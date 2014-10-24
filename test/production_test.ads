@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --  Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -40,8 +40,8 @@ package Production_Test is
    type Token_IDs is (Int_ID, Real_ID, String_ID, Keyword_ID, Expression_ID, Literal_ID);
 
    Token_Image_Width : Integer := Token_IDs'Width;
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_Image_Width);
-   package Tokenizer is new Master_Token.Analyzer (Int_ID, Keyword_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Int_ID, Keyword_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);

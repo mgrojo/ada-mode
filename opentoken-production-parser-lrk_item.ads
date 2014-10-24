@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2008, 2013 Stephe Leake
+-- Copyright (C) 2003, 2008, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -30,13 +30,21 @@
 --  on grammars and LR(k) items.
 ---------------------------------------------------------------------------
 with Ada.Unchecked_Deallocation;
+with OpenToken.Production.List;
 generic
+   type Unknown_State_Index is range <>;
+   Unknown_State : in Unknown_State_Index;
+
    --  The number of elements of lookahead to keep in an item
-   K : in Natural := 0;
+   --  We only instantiate this with K = 1, but it's not worth
+   --  optimizing the code; there is only one loop on 1 .. K.
+   K : in Natural;
+
+   with package Production_List is new OpenToken.Production.List;
 package OpenToken.Production.Parser.LRk_Item is
 
    --  Lookahead Sets
-   type Full_Lookahead_Set is array (1 .. K) of Tokenizer.Terminal_ID;
+   type Full_Lookahead_Set is array (1 .. K) of Token.Terminal_ID;
    type Item_Lookahead;
    type Item_Lookahead_Ptr is access Item_Lookahead;
    type Item_Lookahead is record
@@ -63,7 +71,7 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Node is record
       Prod       : OpenToken.Production.Instance;
       Dot        : Token_List.List_Iterator; -- token after item Dot
-      Index      : Integer;                  -- state_index in LALR parser table; -1 if unknown
+      State      : Unknown_State_Index;
       Lookaheads : Item_Lookahead_Ptr;
       Next       : Item_Ptr;
    end record;
@@ -72,7 +80,7 @@ package OpenToken.Production.Parser.LRk_Item is
    --  the start of the right hand side. Lookaheads are copied.
    function Item_Node_Of
      (Prod       : in Production_List.List_Iterator;
-      Index      : in Integer;
+      State      : in Unknown_State_Index;
       Lookaheads : in Item_Lookahead_Ptr := null)
      return Item_Node;
 
@@ -80,7 +88,7 @@ package OpenToken.Production.Parser.LRk_Item is
    --  the start of the right hand side.
    function Item_Node_Of
      (Prod  : in OpenToken.Production.Instance;
-      Index : in Integer)
+      State : in Unknown_State_Index)
      return Item_Node;
 
    type Set_Reference;
@@ -98,13 +106,13 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Set is record
       Set       : Item_Ptr;
       Goto_List : Set_Reference_Ptr;
-      Index     : Integer; -- state_index in LALR parser table; -1 if unknown
+      State     : Unknown_State_Index;
       Next      : Item_Set_Ptr;
    end record;
 
    type Item_Set_List is record
       Head : Item_Set_Ptr;
-      Size : Natural := 0;
+      Size : Unknown_State_Index := 0;
    end record;
 
    procedure Add
@@ -126,10 +134,10 @@ package OpenToken.Production.Parser.LRk_Item is
    --  Return a pointer to Left in Right, null if not found.
 
    function Find
-     (Index : in Integer;
+     (State : in Unknown_State_Index;
       Sets  : in Item_Set_List)
      return Item_Set_Ptr;
-   --  Return a pointer to the set in Sets containing Index, null if not found.
+   --  Return a pointer to the set in Sets containing State, null if not found.
 
    function Is_In
      (Left  : in Item_Set;
@@ -191,7 +199,7 @@ package OpenToken.Production.Parser.LRk_Item is
      (Grammar           : in Production_List.Instance;
       First             : in Derivation_Matrix;
       Trace             : in Boolean;
-      First_State_Index : in Natural)
+      First_State_Index : in Unknown_State_Index)
      return Item_Set_List;
 
    function Print (Item : in Item_Lookahead) return String;

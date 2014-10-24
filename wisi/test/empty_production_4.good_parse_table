@@ -1,0 +1,131 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => OVERRIDING_ID
+ 3 => OTHER_ID
+ 4 => PROCEDURE_ID
+ 5 => SEMICOLON_ID
+ 6 => IDENTIFIER_ID
+ 7 => EOF_ID
+ 8 => COMPILATION_UNIT_ID
+ 9 => SUBPROGRAM_DECLARATION_ID
+ 10 => OVERRIDING_INDICATOR_ID
+ 11 => OTHER_INDICATOR_ID
+ 12 => OPENTOKEN_ACCEPT_ID
+
+Parse Table:
+State 1:
+  OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
+
+   OVERRIDING_ID             => shift and goto state 2
+   OTHER_ID                  => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   PROCEDURE_ID              => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   default                   => ERROR
+
+   COMPILATION_UNIT_ID       goto state 4
+   SUBPROGRAM_DECLARATION_ID goto state 5
+   OVERRIDING_INDICATOR_ID   goto state 6
+
+State 2:
+  OVERRIDING_INDICATOR_ID <= OVERRIDING_ID ^, OTHER_ID/PROCEDURE_ID
+
+   OTHER_ID                  => reduce 1 tokens to OVERRIDING_INDICATOR_ID
+   PROCEDURE_ID              => reduce 1 tokens to OVERRIDING_INDICATOR_ID
+   default                   => ERROR
+
+
+State 3:
+  OTHER_INDICATOR_ID <= OTHER_ID ^, PROCEDURE_ID
+
+   PROCEDURE_ID              => reduce 1 tokens to OTHER_INDICATOR_ID
+   default                   => ERROR
+
+
+State 4:
+  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
+
+   EOF_ID                    => shift and goto state 9
+   default                   => ERROR
+
+
+State 5:
+  COMPILATION_UNIT_ID <= SUBPROGRAM_DECLARATION_ID ^ SUBPROGRAM_DECLARATION_ID SUBPROGRAM_DECLARATION_ID, EOF_ID
+
+   OVERRIDING_ID             => shift and goto state 2
+   OTHER_ID                  => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   PROCEDURE_ID              => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   default                   => ERROR
+
+   SUBPROGRAM_DECLARATION_ID goto state 8
+   OVERRIDING_INDICATOR_ID   goto state 6
+
+State 6:
+  SUBPROGRAM_DECLARATION_ID <= OVERRIDING_INDICATOR_ID ^ OTHER_INDICATOR_ID PROCEDURE_ID IDENTIFIER_ID SEMICOLON_ID, EOF_ID/OVERRIDING_ID/OTHER_ID/PROCEDURE_ID
+
+   OTHER_ID                  => shift and goto state 3
+   PROCEDURE_ID              => reduce 0 tokens to OTHER_INDICATOR_ID
+   default                   => ERROR
+
+   OTHER_INDICATOR_ID        goto state 7
+
+State 7:
+  SUBPROGRAM_DECLARATION_ID <= OVERRIDING_INDICATOR_ID OTHER_INDICATOR_ID ^ PROCEDURE_ID IDENTIFIER_ID SEMICOLON_ID, EOF_ID/PROCEDURE_ID/OTHER_ID/OVERRIDING_ID
+
+   PROCEDURE_ID              => shift and goto state 11
+   default                   => ERROR
+
+
+State 8:
+  COMPILATION_UNIT_ID <= SUBPROGRAM_DECLARATION_ID SUBPROGRAM_DECLARATION_ID ^ SUBPROGRAM_DECLARATION_ID, EOF_ID
+
+   OVERRIDING_ID             => shift and goto state 2
+   OTHER_ID                  => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   PROCEDURE_ID              => reduce 0 tokens to OVERRIDING_INDICATOR_ID
+   default                   => ERROR
+
+   SUBPROGRAM_DECLARATION_ID goto state 10
+   OVERRIDING_INDICATOR_ID   goto state 6
+
+State 9:
+  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/PROCEDURE_ID/OTHER_ID/OVERRIDING_ID
+
+   EOF_ID                    => accept it
+   IDENTIFIER_ID             => accept it
+   SEMICOLON_ID              => accept it
+   PROCEDURE_ID              => accept it
+   OTHER_ID                  => accept it
+   OVERRIDING_ID             => accept it
+   default                   => ERROR
+
+
+State 10:
+  COMPILATION_UNIT_ID <= SUBPROGRAM_DECLARATION_ID SUBPROGRAM_DECLARATION_ID SUBPROGRAM_DECLARATION_ID ^, EOF_ID
+
+   EOF_ID                    => reduce 3 tokens to COMPILATION_UNIT_ID
+   default                   => ERROR
+
+
+State 11:
+  SUBPROGRAM_DECLARATION_ID <= OVERRIDING_INDICATOR_ID OTHER_INDICATOR_ID PROCEDURE_ID ^ IDENTIFIER_ID SEMICOLON_ID, EOF_ID/OVERRIDING_ID/OTHER_ID/PROCEDURE_ID
+
+   IDENTIFIER_ID             => shift and goto state 12
+   default                   => ERROR
+
+
+State 12:
+  SUBPROGRAM_DECLARATION_ID <= OVERRIDING_INDICATOR_ID OTHER_INDICATOR_ID PROCEDURE_ID IDENTIFIER_ID ^ SEMICOLON_ID, EOF_ID/PROCEDURE_ID/OTHER_ID/OVERRIDING_ID
+
+   SEMICOLON_ID              => shift and goto state 13
+   default                   => ERROR
+
+
+State 13:
+  SUBPROGRAM_DECLARATION_ID <= OVERRIDING_INDICATOR_ID OTHER_INDICATOR_ID PROCEDURE_ID IDENTIFIER_ID SEMICOLON_ID ^, EOF_ID/OVERRIDING_ID/OTHER_ID/PROCEDURE_ID
+
+   EOF_ID                    => reduce 5 tokens to SUBPROGRAM_DECLARATION_ID
+   OVERRIDING_ID             => reduce 5 tokens to SUBPROGRAM_DECLARATION_ID
+   OTHER_ID                  => reduce 5 tokens to SUBPROGRAM_DECLARATION_ID
+   PROCEDURE_ID              => reduce 5 tokens to SUBPROGRAM_DECLARATION_ID
+   default                   => ERROR
+
+
+ 4 rules, 1 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 13 states, 42 table entries

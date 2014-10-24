@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Check;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -47,16 +47,15 @@ package body Test_Empty_Productions_4 is
       subprogram_declaration_ID,
       overriding_indicator_ID);
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, IDENTIFIER_ID, EOF_ID, Token_IDs'Image);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => IDENTIFIER_ID,
-      Last_Terminal  => EOF_ID);
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index => 1);
+   package Analyzers is new Tokens_Pkg.Analyzer;
+   package Parsers is new Productions.Parser (Analyzers);
+   package LALRs is new Parsers.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -81,10 +80,11 @@ package body Test_Empty_Productions_4 is
      Nonterminals.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
+     LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix :=
-     LALR.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generators.LRk.Derivation_Matrix :=
+     LALR_Generators.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012, 2013 Stephe Leake
+-- Copyright (C) 2009, 2012, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -41,27 +41,36 @@
 
 with Ada.Unchecked_Deallocation;
 with OpenToken.Recognizer;
+with OpenToken.Text_Feeder;
 generic
 
    type Token_ID is (<>);
 
-   with function Token_Image (Item : in Token_ID) return String;
+   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
+   --  non-reporting (comments, whitespace), and thus are not used in
+   --  generating an LALR grammar.
+   First_Terminal : in Token_ID;
+   Last_Terminal  : in Token_ID;
+   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
+   --  the nonterminals of a grammar.
 
-   pragma Warnings (Off); -- Token_Image_Width is only used in a child package
-   Token_Image_Width : in Integer;
-   --  Max width of Token_Image.
-   pragma Warnings (On); -- Token_Image_Width is only used in a child package
+   with function Token_Image (Item : in Token_ID) return String;
 
 package OpenToken.Token.Enumerated is
 
-   --  Make Token_ID visible in client packages
-   subtype Parent_Token_ID is Token_ID;
+   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
+   --  We can't define Nonterminal_ID here, because if Last_Terminal = Token_ID'last, there are no nonterminals.
 
    type Instance is new OpenToken.Token.Instance with private;
 
    subtype Class is Instance'Class;
 
    type Handle is access all Class;
+
+   overriding
+   function Image (Token : in Instance) return String;
+
+   procedure Free (Item : in out Handle);
 
    type Recognizer_Handle is access all OpenToken.Recognizer.Class;
    --  Defined here rather than in Opentoken.Recognizer to allow
@@ -84,12 +93,23 @@ package OpenToken.Token.Enumerated is
 
    procedure Set_Build (Token : in out Instance'Class; Build : in Action);
 
+   type Buffer_Range is record
+      Begin_Pos : Integer;
+      End_Pos   : Integer;
+   end record;
+
+   Null_Buffer_Range : constant Buffer_Range := (Integer'Last, Integer'First);
+
    ----------------------------------------------------------------------
    --  Create will be called from Find_Next when a token is
-   --  recognized, whether Look_Ahead is True or not.
+   --  recognized.
    --
-   --  Lexeme is the matched input text. Recognizer is the recognizer
-   --  that matched it.
+   --  Lexeme is the matched input text.
+   --
+   --  Bounds is the start and end position of the input text,
+   --  relative to the last Analyzer Reset.
+   --
+   --  Recognizer is the recognizer that matched the token.
    --
    --  New_Token is the token that the analyzer associates with
    --  Recognizer (specified when the syntax is created).
@@ -106,14 +126,15 @@ package OpenToken.Token.Enumerated is
    ----------------------------------------------------------------------
    procedure Create
      (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance)
      is null;
 
    --------------------------------------------------------------------
-   --  Copy From to To. Called by Parse when a token matches, whether
-   --  Actively is true or not. This is just a dispatching version of
-   --  ':='; see the comments in Parse for more rationale.
+   --  Copy From to To. Called by Enumerated.Parse when a token
+   --  matches, when Actively is true. This is just a dispatching
+   --  version of ':='; see the comments in Parse for more rationale.
    --
    --  Parse has verified that From'Tag = To'Tag, and that From.ID =
    --  To.ID.
@@ -122,6 +143,9 @@ package OpenToken.Token.Enumerated is
      (To   : in out Instance;
       From : in     OpenToken.Token.Class)
      is null;
+
+   --  Return a newly allocated copy of Token, or null
+   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------------
    --  This function returns the ID of the token. This is made
@@ -145,12 +169,14 @@ package OpenToken.Token.Enumerated is
    --------------------------------------------------------------------
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True);
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True);
 
    overriding function Name (Token : in Instance) return String;
 
-   type Source is abstract new OpenToken.Token.Source with null record;
+   type Source is abstract new OpenToken.Token.Source with record
+      Feeder : OpenToken.Text_Feeder.Text_Feeder_Ptr;
+   end record;
 
    --------------------------------------------------------------------------
    --  Returns the actual text of the last token that was matched.
@@ -174,6 +200,6 @@ private
       Build : Action;
    end record;
 
-   procedure Free is new Ada.Unchecked_Deallocation (Class, Handle);
+   procedure Dispose is new Ada.Unchecked_Deallocation (Class, Handle);
 
 end OpenToken.Token.Enumerated;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 David Starner
+-- Copyright (C) 1999, 2014 David Starner
 --
 -- This file is part of the OpenToken package.
 --
@@ -44,20 +44,17 @@ begin
       Mode => Ada.Text_IO.In_File,
       Name => Ada.Command_Line.Argument (1));
 
-   Tokenizer.Set_Text_Feeder
-     (Analyzer => Analyzer,
-      Feeder   => Feeder'Unchecked_Access
-     );
+   Analyzer.Set_Text_Feeder (Feeder'Unchecked_Access);
 
    loop
 
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       Ada.Text_IO.Put_Line
-        ("Found " & M3_Token'Image (Tokenizer.ID (Analyzer)) &
-           ' ' & Tokenizer.Lexeme (Analyzer));
+        ("Found " & M3_Token'Image (Analyzer.ID) &
+           ' ' & Analyzer.Lexeme);
 
-      exit when Tokenizer.ID (Analyzer) = End_of_File_T;
+      exit when Analyzer.ID = End_of_File_T;
 
    end loop;
 

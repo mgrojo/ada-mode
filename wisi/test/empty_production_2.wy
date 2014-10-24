@@ -10,6 +10,10 @@
 ;; shift to start the nested declaration (as in 2), reduce to the
 ;; empty declaration. Both are correct according to the grammar; this
 ;; is reported as shift/reduce conflicts.
+;;
+;; In the actual parse, an infinite number of parsers are spawned,
+;; terminating when the parallel parse limit is reached. Because the
+;; conflict is never resolved, no actions are output.
 
 %{
 (require 'wisi)
@@ -19,18 +23,15 @@
 %keyword IS "is"
 
 %token <punctuation> SEMICOLON ";"
+
+%token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
 
 %start declarations
 
-;; The OpenToken parser doesn't handle conflicts, so it doesn't
-;; use these; the execution stops at the end of grammar generation
-;; with an "unknown conflicts" error.
-;;
-;; IMPROVEME: add --ignore-unknown-conflicts to generated -parse.adb
-%conflict SHIFT/REDUCE in state BODY_ID, DECLARATION_ID on token IS_ID
-%conflict REDUCE/SHIFT in state DECLARATION_ID, BODY_ID on token BEGIN_ID
-%conflict REDUCE/SHIFT in state DECLARATION_ID, OPENTOKEN_ACCEPT_ID on token EOF_ID
+%conflict SHIFT/REDUCE in state body, declaration on token BEGIN
+%conflict SHIFT/REDUCE in state opentoken_accept, declaration on token EOI
+%conflict SHIFT/REDUCE in state body, declaration on token IS
 
 %%
 
@@ -46,6 +47,7 @@ declarations
 
 body
   : IS declarations BEGIN SEMICOLON
+    (wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])
   ;
 
 %%

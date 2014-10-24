@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2013 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013, 2014 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -58,20 +58,24 @@ package OpenToken is
    --  Similarly, this is independent of OS
    EOF_Character : constant Character := Ada.Characters.Latin_1.EOT;
 
-   --  The maximum length of a token. Token.Analizer.Get_More_Text
-   --  should return no more than this many characters minus the
-   --  largest reasonable token string. Tune it up if it bugs you.
+   --  The maximum length of some things.
+   --  FIXME: currently only used in recognizers.string (directly), keyword, separator (via Buffers)
+   --  Add independent lengths to those in Get, with more reasonable defaults
    Max_String_Length : constant := 1024;
 
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);
 
    ----------------------------------------------------------------------
-   --  If Trace_Parse, Parse prints helpful messages
+   --  If Trace_Parse > 0, Parse prints helpful messages; higher value
+   --  prints more.
    ----------------------------------------------------------------------
-   Trace_Parse : Boolean := False;
+   Trace_Parse : Integer := 0;
 
    --  Put Message, indented by 3 * Trace_Indent; no new_line
    procedure Trace_Put (Message : in String);
+
+   function Int_Image (Item : in Integer) return String;
+   --  No leading space
 
 private
    Trace_Indent : Integer := 0;

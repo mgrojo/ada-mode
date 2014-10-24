@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -127,9 +127,9 @@ begin
 
       Put_Line ("Input_String => " & Line (1 .. Line_Length));
 
-      Tokenizer.Reset (Analyzer);
+      Analyzer.Reset;
 
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       Clear_Stack;
 

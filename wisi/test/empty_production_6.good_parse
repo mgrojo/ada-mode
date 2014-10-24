@@ -1,0 +1,49 @@
+ 1 stack:  1 : , 
+ 1: 1: (BEGIN 1 . 5) : shift and goto state 2
+spawn parser from 1 (2 active)
+ 2 stack:  2 : (BEGIN 1 . 5),  1 : , 
+ 2: 2: (IDENTIFIER 10 . 14) : reduce 0 tokens to label_opt
+ ... goto state 8
+ 1 stack:  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 2: (IDENTIFIER 10 . 14) : shift and goto state 5
+ 2 stack:  8 : (label_opt),  2 : (BEGIN 1 . 5),  1 : , 
+ 2: 8: (IDENTIFIER 10 . 14) : shift and goto state 9
+ 2 stack:  9 : (IDENTIFIER 10 . 14),  8 : (label_opt),  2 : (BEGIN 1 . 5),  1 : , 
+ 2: 9: (COLON 16 . 16) : ERROR
+ 1 stack:  5 : (IDENTIFIER 10 . 14),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 5: (COLON 16 . 16) : shift and goto state 12
+ 2: terminate (1 active)
+ 1 stack:  12 : (COLON 16 . 16),  5 : (IDENTIFIER 10 . 14),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 12: (IDENTIFIER 21 . 21) : reduce 2 tokens to label_opt
+[[(6 10 . 14)(3 16 . 16)]
+(-16 [1 -17])
+]
+ ... goto state 8
+ 1 stack:  8 : (label_opt 10 . 16),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 8: (IDENTIFIER 21 . 21) : shift and goto state 9
+ 1 stack:  9 : (IDENTIFIER 21 . 21),  8 : (label_opt 10 . 16),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 9: (COLON_EQUAL 23 . 24) : shift and goto state 14
+ 1 stack:  14 : (COLON_EQUAL 23 . 24),  9 : (IDENTIFIER 21 . 21),  8 : (label_opt 10 . 16),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 14: (IDENTIFIER 26 . 26) : shift and goto state 15
+ 1 stack:  15 : (IDENTIFIER 26 . 26),  14 : (COLON_EQUAL 23 . 24),  9 : (IDENTIFIER 21 . 21),  8 : (label_opt 10 . 16),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 15: (SEMICOLON 27 . 27) : shift and goto state 16
+ 1 stack:  16 : (SEMICOLON 27 . 27),  15 : (IDENTIFIER 26 . 26),  14 : (COLON_EQUAL 23 . 24),  9 : (IDENTIFIER 21 . 21),  8 : (label_opt 10 . 16),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 16: (END 29 . 31) : reduce 5 tokens to statement
+ ... goto state 6
+ 1 stack:  6 : (statement 10 . 27),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 6: (END 29 . 31) : reduce 1 tokens to sequence_of_statements
+ ... goto state 7
+ 1 stack:  7 : (sequence_of_statements 10 . 27),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 7: (END 29 . 31) : shift and goto state 10
+ 1 stack:  10 : (END 29 . 31),  7 : (sequence_of_statements 10 . 27),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 10: (SEMICOLON 32 . 32) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 32 . 32),  10 : (END 29 . 31),  7 : (sequence_of_statements 10 . 27),  2 : (BEGIN 1 . 5),  1 : , 
+ 1: 13: (EOF 33 . 33) : reduce 4 tokens to compilation_unit
+[[(1 1 . 5)(11 10 . 27)(2 29 . 31)(5 32 . 32)]
+(-13 -14 -15)
+]
+ ... goto state 3
+ 1 stack:  3 : (compilation_unit 1 . 32),  1 : , 
+ 1: 3: (EOF 33 . 33) : shift and goto state 4
+ 1 stack:  4 : (EOF 33 . 33),  3 : (compilation_unit 1 . 32),  1 : , 
+ 1: 4: (EOF 34 . 34) : accept it

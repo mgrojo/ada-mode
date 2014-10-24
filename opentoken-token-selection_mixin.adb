@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -28,15 +28,23 @@
 with Ada.Text_IO;
 package body OpenToken.Token.Selection_Mixin is
 
+   overriding
+   function Image (Item : in Instance) return String
+   is
+      pragma Unreferenced (Item);
+   begin
+      return "";
+   end Image;
+
    overriding procedure Parse
      (Match    : access Instance;
-      Analyzer : in out Source_Class;
-      Actively : in     Boolean      := True)
+      Analyzer : access Source_Class;
+      Actively : in     Boolean := True)
    is
       use Linked_List;
       I : List_Iterator := First (Match.Members);
    begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Indent := Trace_Indent + 1;
          if Actively then
             Trace_Put ("parsing");
@@ -45,17 +53,17 @@ package body OpenToken.Token.Selection_Mixin is
          end if;
          Ada.Text_IO.Put_Line
            (" selection " & Name_Dispatch (Match) &
-              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Get (Analyzer)));
+              "'(" & Names (Match.Members) & ") match " & Name_Dispatch (Analyzer.Get));
       end if;
 
       Find_Match :
       loop
          declare
-            Mark : Queue_Mark'Class renames Mark_Push_Back (Analyzer);
+            Mark : Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             Parse (Token_Handle (I), Analyzer, Actively => False);
             if Actively then
-               Push_Back (Analyzer, Mark);
+               Analyzer.Push_Back (Mark);
             end if;
             exit Find_Match;
 
@@ -63,7 +71,7 @@ package body OpenToken.Token.Selection_Mixin is
          when Parse_Error =>
             --  We don't need to call Push_Back here if Next_Token (I)
             --  is null, but we can't tell, and it doesn't hurt.
-            Push_Back (Analyzer, Mark);
+            Analyzer.Push_Back (Mark);
          end;
 
          Next_Token (I);
@@ -74,7 +82,7 @@ package body OpenToken.Token.Selection_Mixin is
                   Expected : Linked_List.Instance;
                begin
                   Expecting (Match, Expected);
-                  raise Parse_Error with "Found " & Name_Dispatch (Get (Analyzer)) & "; expected one of " &
+                  raise Parse_Error with "Found " & Name_Dispatch (Analyzer.Get) & "; expected one of " &
                     Token.Linked_List.Names (Expected) & ".";
                end;
             else
@@ -101,13 +109,13 @@ package body OpenToken.Token.Selection_Mixin is
          end if;
       end if;
 
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...succeeded"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;
    exception
    when others =>
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          Trace_Put ("...failed"); Ada.Text_IO.New_Line;
          Trace_Indent := Trace_Indent - 1;
       end if;

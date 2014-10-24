@@ -1,0 +1,196 @@
+ 1 stack:  1 : , 
+ 1: 1: (IDENTIFIER 1 . 8) : shift and goto state 2
+ 1 stack:  2 : (IDENTIFIER 1 . 8),  1 : , 
+ 1: 2: (SEMICOLON 8 . 9) : reduce 0 tokens to aliased_opt
+aliased_opt_id_0: (aliased_opt) 
+ ... goto state 9
+ 1 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 8),  1 : , 
+ 1: 9: (SEMICOLON 8 . 9) : reduce 0 tokens to constant_opt
+constant_opt_id_0: (constant_opt) 
+ ... goto state 12
+ 1 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 8),  1 : , 
+ 1: 12: (SEMICOLON 8 . 9) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 8 . 9),  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 1 . 8),  1 : , 
+ 1: 13: (IDENTIFIER 10 . 17) : reduce 4 tokens to object_declaration
+[-9 [(5 1 . 8)(10)(11)(4 8 . 9)]
+(-15 [1 -16 4 -17])
+]
+object_declaration_id_0: (object_declaration 1 . 9) (IDENTIFIER 1 . 8), (aliased_opt), (constant_opt), (SEMICOLON 8 . 9)
+ ... goto state 4
+ 1 stack:  4 : (object_declaration 1 . 9),  1 : , 
+ 1: 4: (IDENTIFIER 10 . 17) : reduce 1 tokens to object_declaration_list
+object_declaration_list_id_0: (object_declaration_list 1 . 9) (object_declaration 1 . 9)
+ ... goto state 3
+ 1 stack:  3 : (object_declaration_list 1 . 9),  1 : , 
+ 1: 3: (IDENTIFIER 10 . 17) : shift and goto state 2
+spawn parser from 1 (2 active)
+ 2 stack:  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 2: (CONSTANT 18 . 26) : reduce 0 tokens to aliased_opt
+pending aliased_opt_id_0: (aliased_opt)  action count: 1
+ ... goto state 9
+ 1 stack:  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 1: 2: (CONSTANT 18 . 26) : shift and goto state 8
+ 2 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 9: (CONSTANT 18 . 26) : shift and goto state 8
+ 2 stack:  8 : (CONSTANT 18 . 26),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 8: (SEMICOLON 26 . 27) : reduce 1 tokens to constant_opt
+pending constant_opt_id_0: (constant_opt) (CONSTANT 18 . 26) action count: 2
+ ... goto state 12
+ 1 stack:  8 : (CONSTANT 18 . 26),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 1: 8: (SEMICOLON 26 . 27) : reduce 1 tokens to constant_opt
+pending constant_opt_id_0: (constant_opt) (CONSTANT 18 . 26) action count: 1
+ ... goto state 10
+ 2 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 12: (SEMICOLON 26 . 27) : shift and goto state 13
+ 1 stack:  10 : (constant_opt),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 1: 10: (SEMICOLON 26 . 27) : ERROR
+ 2 stack:  13 : (SEMICOLON 26 . 27),  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 10 . 17),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 13: (IDENTIFIER 28 . 35) : reduce 4 tokens to object_declaration
+pending object_declaration_id_0: (object_declaration) (IDENTIFIER 10 . 17), (aliased_opt), (constant_opt), (SEMICOLON 26 . 27) action count: 3
+ ... goto state 6
+ 1: terminate (1 active)
+execute pending
+aliased_opt_id_0: (aliased_opt) 
+constant_opt_id_0: (constant_opt 18 . 26) (CONSTANT 18 . 26)
+[-9 [(5 10 . 17)(10)(11 18 . 26)(4 26 . 27)]
+(-15 [1 -16 4 -17])
+]
+object_declaration_id_0: (object_declaration 10 . 27) (IDENTIFIER 10 . 17), (aliased_opt), (constant_opt 18 . 26), (SEMICOLON 26 . 27)
+ 2 stack:  6 : (object_declaration 10 . 27),  3 : (object_declaration_list 1 . 9),  1 : , 
+ 2: 6: (IDENTIFIER 28 . 35) : reduce 2 tokens to object_declaration_list
+[-8 [(8 1 . 9)(9 10 . 27)]
+(-12 -13 -14)
+]
+object_declaration_list_id_0: (object_declaration_list 1 . 27) (object_declaration_list 1 . 9), (object_declaration 10 . 27)
+ ... goto state 3
+ 2 stack:  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 3: (IDENTIFIER 28 . 35) : shift and goto state 2
+ 2 stack:  2 : (IDENTIFIER 28 . 35),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 2: (ALIASED 36 . 43) : shift and goto state 7
+ 2 stack:  7 : (ALIASED 36 . 43),  2 : (IDENTIFIER 28 . 35),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 7: (SEMICOLON 43 . 44) : reduce 1 tokens to aliased_opt
+aliased_opt_id_0: (aliased_opt 36 . 43) (ALIASED 36 . 43)
+ ... goto state 9
+ 2 stack:  9 : (aliased_opt 36 . 43),  2 : (IDENTIFIER 28 . 35),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 9: (SEMICOLON 43 . 44) : reduce 0 tokens to constant_opt
+constant_opt_id_0: (constant_opt) 
+ ... goto state 12
+ 2 stack:  12 : (constant_opt),  9 : (aliased_opt 36 . 43),  2 : (IDENTIFIER 28 . 35),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 12: (SEMICOLON 43 . 44) : shift and goto state 13
+ 2 stack:  13 : (SEMICOLON 43 . 44),  12 : (constant_opt),  9 : (aliased_opt 36 . 43),  2 : (IDENTIFIER 28 . 35),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 13: (IDENTIFIER 45 . 52) : reduce 4 tokens to object_declaration
+[-9 [(5 28 . 35)(10 36 . 43)(11)(4 43 . 44)]
+(-15 [1 -16 4 -17])
+]
+object_declaration_id_0: (object_declaration 28 . 44) (IDENTIFIER 28 . 35), (aliased_opt 36 . 43), (constant_opt), (SEMICOLON 43 . 44)
+ ... goto state 6
+ 2 stack:  6 : (object_declaration 28 . 44),  3 : (object_declaration_list 1 . 27),  1 : , 
+ 2: 6: (IDENTIFIER 45 . 52) : reduce 2 tokens to object_declaration_list
+[-8 [(8 1 . 27)(9 28 . 44)]
+(-12 -13 -14)
+]
+object_declaration_list_id_0: (object_declaration_list 1 . 44) (object_declaration_list 1 . 27), (object_declaration 28 . 44)
+ ... goto state 3
+ 2 stack:  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 3: (IDENTIFIER 45 . 52) : shift and goto state 2
+ 2 stack:  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 2: (ALIASED 53 . 60) : shift and goto state 7
+ 2 stack:  7 : (ALIASED 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 7: (CONSTANT 61 . 69) : reduce 1 tokens to aliased_opt
+aliased_opt_id_0: (aliased_opt 53 . 60) (ALIASED 53 . 60)
+ ... goto state 9
+ 2 stack:  9 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 9: (CONSTANT 61 . 69) : shift and goto state 8
+ 2 stack:  8 : (CONSTANT 61 . 69),  9 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 8: (SEMICOLON 69 . 70) : reduce 1 tokens to constant_opt
+constant_opt_id_0: (constant_opt 61 . 69) (CONSTANT 61 . 69)
+ ... goto state 12
+ 2 stack:  12 : (constant_opt 61 . 69),  9 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 12: (SEMICOLON 69 . 70) : shift and goto state 13
+ 2 stack:  13 : (SEMICOLON 69 . 70),  12 : (constant_opt 61 . 69),  9 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 13: (IDENTIFIER 71 . 78) : reduce 4 tokens to object_declaration
+[-9 [(5 45 . 52)(10 53 . 60)(11 61 . 69)(4 69 . 70)]
+(-15 [1 -16 4 -17])
+]
+object_declaration_id_0: (object_declaration 45 . 70) (IDENTIFIER 45 . 52), (aliased_opt 53 . 60), (constant_opt 61 . 69), (SEMICOLON 69 . 70)
+ ... goto state 6
+ 2 stack:  6 : (object_declaration 45 . 70),  3 : (object_declaration_list 1 . 44),  1 : , 
+ 2: 6: (IDENTIFIER 71 . 78) : reduce 2 tokens to object_declaration_list
+[-8 [(8 1 . 44)(9 45 . 70)]
+(-12 -13 -14)
+]
+object_declaration_list_id_0: (object_declaration_list 1 . 70) (object_declaration_list 1 . 44), (object_declaration 45 . 70)
+ ... goto state 3
+ 2 stack:  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 3: (IDENTIFIER 71 . 78) : shift and goto state 2
+ 2 stack:  2 : (IDENTIFIER 71 . 78),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 2: (COLON_EQUAL 79 . 81) : reduce 0 tokens to constant_opt
+constant_opt_id_0: (constant_opt) 
+ ... goto state 10
+ 2 stack:  10 : (constant_opt),  2 : (IDENTIFIER 71 . 78),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 10: (COLON_EQUAL 79 . 81) : shift and goto state 11
+ 2 stack:  11 : (COLON_EQUAL 79 . 81),  10 : (constant_opt),  2 : (IDENTIFIER 71 . 78),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 11: (SEMICOLON 82 . 83) : shift and goto state 14
+ 2 stack:  14 : (SEMICOLON 82 . 83),  11 : (COLON_EQUAL 79 . 81),  10 : (constant_opt),  2 : (IDENTIFIER 71 . 78),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 14: (IDENTIFIER 84 . 91) : reduce 4 tokens to object_declaration
+[-9 [(5 71 . 78)(11)(3 79 . 81)(4 82 . 83)]
+(-15 [1 -16 3 -18
+4 -17])
+]
+object_declaration_id_0: (object_declaration 71 . 83) (IDENTIFIER 71 . 78), (constant_opt), (COLON_EQUAL 79 . 81), (SEMICOLON 82 . 83)
+ ... goto state 6
+ 2 stack:  6 : (object_declaration 71 . 83),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 2: 6: (IDENTIFIER 84 . 91) : reduce 2 tokens to object_declaration_list
+[-8 [(8 1 . 70)(9 71 . 83)]
+(-12 -13 -14)
+]
+object_declaration_list_id_0: (object_declaration_list 1 . 83) (object_declaration_list 1 . 70), (object_declaration 71 . 83)
+ ... goto state 3
+ 2 stack:  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 3: (IDENTIFIER 84 . 91) : shift and goto state 2
+spawn parser from 2 (2 active)
+ 3 stack:  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 3: 2: (CONSTANT 92 . 100) : reduce 0 tokens to aliased_opt
+pending aliased_opt_id_0: (aliased_opt)  action count: 1
+ ... goto state 9
+ 2 stack:  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 2: (CONSTANT 92 . 100) : shift and goto state 8
+ 3 stack:  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 3: 9: (CONSTANT 92 . 100) : shift and goto state 8
+ 3 stack:  8 : (CONSTANT 92 . 100),  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 3: 8: (COLON_EQUAL 101 . 103) : reduce 1 tokens to constant_opt
+pending constant_opt_id_0: (constant_opt) (CONSTANT 92 . 100) action count: 2
+ ... goto state 12
+ 2 stack:  8 : (CONSTANT 92 . 100),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 8: (COLON_EQUAL 101 . 103) : reduce 1 tokens to constant_opt
+pending constant_opt_id_0: (constant_opt) (CONSTANT 92 . 100) action count: 1
+ ... goto state 10
+ 3 stack:  12 : (constant_opt),  9 : (aliased_opt),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 3: 12: (COLON_EQUAL 101 . 103) : ERROR
+ 2 stack:  10 : (constant_opt),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 10: (COLON_EQUAL 101 . 103) : shift and goto state 11
+ 3: terminate (1 active)
+execute pending
+constant_opt_id_0: (constant_opt 92 . 100) (CONSTANT 92 . 100)
+ 2 stack:  11 : (COLON_EQUAL 101 . 103),  10 : (constant_opt 92 . 100),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 11: (SEMICOLON 104 . 105) : shift and goto state 14
+ 2 stack:  14 : (SEMICOLON 104 . 105),  11 : (COLON_EQUAL 101 . 103),  10 : (constant_opt 92 . 100),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 14: (EOF 105 . 106) : reduce 4 tokens to object_declaration
+[-9 [(5 84 . 91)(11 92 . 100)(3 101 . 103)(4 104 . 105)]
+(-15 [1 -16 3 -18
+4 -17])
+]
+object_declaration_id_0: (object_declaration 84 . 105) (IDENTIFIER 84 . 91), (constant_opt 92 . 100), (COLON_EQUAL 101 . 103), (SEMICOLON 104 . 105)
+ ... goto state 6
+ 2 stack:  6 : (object_declaration 84 . 105),  3 : (object_declaration_list 1 . 83),  1 : , 
+ 2: 6: (EOF 105 . 106) : reduce 2 tokens to object_declaration_list
+[-8 [(8 1 . 83)(9 84 . 105)]
+(-12 -13 -14)
+]
+object_declaration_list_id_0: (object_declaration_list 1 . 105) (object_declaration_list 1 . 83), (object_declaration 84 . 105)
+ ... goto state 3
+ 2 stack:  3 : (object_declaration_list 1 . 105),  1 : , 
+ 2: 3: (EOF 105 . 106) : shift and goto state 5
+ 2 stack:  5 : (EOF 105 . 106),  3 : (object_declaration_list 1 . 105),  1 : , 
+ 2: 5: (EOF 106 . 107) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 106) (object_declaration_list 1 . 105), (EOF 105 . 106)

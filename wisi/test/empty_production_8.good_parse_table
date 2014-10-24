@@ -1,0 +1,139 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => ALIASED_ID
+ 3 => CONSTANT_ID
+ 4 => COLON_EQUAL_ID
+ 5 => SEMICOLON_ID
+ 6 => IDENTIFIER_ID
+ 7 => EOF_ID
+ 8 => OBJECT_DECLARATION_LIST_ID
+ 9 => OBJECT_DECLARATION_ID
+ 10 => ALIASED_OPT_ID
+ 11 => CONSTANT_OPT_ID
+ 12 => OPENTOKEN_ACCEPT_ID
+
+Parse Table:
+State 1:
+  OPENTOKEN_ACCEPT_ID <= ^ OBJECT_DECLARATION_LIST_ID EOF_ID
+
+   IDENTIFIER_ID              => shift and goto state 2
+   default                    => ERROR
+
+   OBJECT_DECLARATION_LIST_ID goto state 3
+   OBJECT_DECLARATION_ID      goto state 4
+
+State 2:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+
+   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
+   ALIASED_ID                 => shift and goto state 7
+   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
+   CONSTANT_ID                => shift and goto state 8,
+                                 reduce 0 tokens to ALIASED_OPT_ID
+   default                    => ERROR
+
+   ALIASED_OPT_ID             goto state 9
+   CONSTANT_OPT_ID            goto state 10
+
+State 3:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, EOF_ID/IDENTIFIER_ID
+  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ EOF_ID
+
+   EOF_ID                     => shift and goto state 5
+   IDENTIFIER_ID              => shift and goto state 2
+   default                    => ERROR
+
+   OBJECT_DECLARATION_ID      goto state 6
+
+State 4:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, EOF_ID/IDENTIFIER_ID
+
+   EOF_ID                     => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   IDENTIFIER_ID              => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   default                    => ERROR
+
+
+State 5:
+  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/CONSTANT_ID/ALIASED_ID
+
+   EOF_ID                     => accept it
+   IDENTIFIER_ID              => accept it
+   SEMICOLON_ID               => accept it
+   COLON_EQUAL_ID             => accept it
+   CONSTANT_ID                => accept it
+   ALIASED_ID                 => accept it
+   default                    => ERROR
+
+
+State 6:
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/EOF_ID
+
+   IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   EOF_ID                     => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   default                    => ERROR
+
+
+State 7:
+  ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
+
+   CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
+   default                    => ERROR
+
+
+State 8:
+  CONSTANT_OPT_ID <= CONSTANT_ID ^, COLON_EQUAL_ID/SEMICOLON_ID
+
+   COLON_EQUAL_ID             => reduce 1 tokens to CONSTANT_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
+   default                    => ERROR
+
+
+State 9:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
+
+   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
+   CONSTANT_ID                => shift and goto state 8
+   default                    => ERROR
+
+   CONSTANT_OPT_ID            goto state 12
+
+State 10:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID ^ COLON_EQUAL_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
+
+   COLON_EQUAL_ID             => shift and goto state 11
+   default                    => ERROR
+
+
+State 11:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+
+   SEMICOLON_ID               => shift and goto state 14
+   default                    => ERROR
+
+
+State 12:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+
+   SEMICOLON_ID               => shift and goto state 13
+   default                    => ERROR
+
+
+State 13:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
+
+   EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID
+   IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   default                    => ERROR
+
+
+State 14:
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
+
+   EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID
+   IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   default                    => ERROR
+
+
+ 4 rules, 3 actions, 1 shift/reduce conflicts, 0 reduce/reduce conflicts, 14 states, 44 table entries

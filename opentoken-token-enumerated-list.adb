@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2012, 2013 Stephe Leake
+-- Copyright (C) 2002, 2003, 2012 - 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -26,16 +26,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Unchecked_Deallocation;
-
------------------------------------------------------------------------------
---  This package provides a type and operatoions for building lists of
---  tokens for use in grammar productions
---
---  The algorithm for handling automatic cleanup of list nodes using
---  controlled types was taken directly from Matthew Heaney's tutorial
---  on Homogeneous, Reference-Counted Lists on AdaPower at
---  http://www.adapower.com/alg/homoref.html
------------------------------------------------------------------------------
+with Ada.Text_IO;
 package body OpenToken.Token.Enumerated.List is
 
    procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
@@ -56,56 +47,71 @@ package body OpenToken.Token.Enumerated.List is
       return Result;
    end Length;
 
-   ----------------------------------------------------------------------------
-   --  Create a token list from a single instance.
-   ----------------------------------------------------------------------------
-   function Only (Subject : in OpenToken.Token.Enumerated.Class) return Instance is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Subject),
-                       Next  => null);
+   function Only (Subject : in OpenToken.Token.Enumerated.Class) return Instance
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'
+        (Token => new OpenToken.Token.Enumerated.Class'(Subject),
+         Next  => null);
    begin
-      return (Head => New_Node,
-              Tail => New_Node);
+      return
+        (Head => New_Node,
+         Tail => New_Node);
    end Only;
 
-   ----------------------------------------------------------------------------
-   --  Create a token list from a pair of token instances.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Enumerated.Class;
-                 Right : in OpenToken.Token.Enumerated.Class) return Instance is
-      Right_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Right),
-                       Next  => null
-                      );
+   function Only (Subject : in OpenToken.Token.Enumerated.Handle) return Instance
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'
+        (Token => Subject,
+         Next  => null);
    begin
-      return (Head => new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Left),
-                                     Next  => Right_Node),
-              Tail => Right_Node);
+      return
+        (Head => New_Node,
+         Tail => New_Node);
+   end Only;
+
+   function "&"
+     (Left  : in OpenToken.Token.Enumerated.Class;
+      Right : in OpenToken.Token.Enumerated.Class)
+     return Instance
+   is
+      Right_Node : constant List_Node_Ptr := new List_Node'
+        (Token => new OpenToken.Token.Enumerated.Class'(Right),
+         Next  => null);
+   begin
+      return
+        (Head     => new List_Node'
+           (Token => new OpenToken.Token.Enumerated.Class'(Left),
+            Next  => Right_Node),
+         Tail     => Right_Node);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token list from a token instance and a token list.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in OpenToken.Token.Enumerated.Class;
-                 Right : in Instance) return Instance is
-      Left_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Left),
-                       Next  => Right.Head);
+   function "&"
+     (Left  : in OpenToken.Token.Enumerated.Class;
+      Right : in Instance)
+     return Instance
+   is
+      Left_Node : constant List_Node_Ptr := new List_Node'
+        (Token => new OpenToken.Token.Enumerated.Class'(Left),
+         Next  => Right.Head);
+
       Last_Node : List_Node_Ptr := Right.Tail;
    begin
       if Last_Node = null then
          Last_Node := Left_Node;
       end if;
       return (Head => Left_Node,
-              Tail => Last_Node
-             );
+              Tail => Last_Node);
    end "&";
 
-   function "&" (Left  : in Instance;
-                 Right : in OpenToken.Token.Enumerated.Class) return Instance is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => new OpenToken.Token.Enumerated.Class'(Right),
-                       Next  => null);
+   function "&"
+     (Left  : in Instance;
+      Right : in OpenToken.Token.Enumerated.Class)
+     return Instance
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'
+        (Token => new OpenToken.Token.Enumerated.Class'(Right),
+         Next  => null);
+
       First_Node : List_Node_Ptr;
    begin
       if Left.Tail = null then
@@ -115,36 +121,45 @@ package body OpenToken.Token.Enumerated.List is
          Left.Tail.Next := New_Node;
       end if;
       return (Head => First_Node,
-              Tail => New_Node
-             );
+              Tail => New_Node);
    end "&";
 
-   ----------------------------------------------------------------------------
-   --  Create a token list from a pair of token lists.
-   ----------------------------------------------------------------------------
-   function "&" (Left  : in Instance;
-                 Right : in Instance) return Instance is
-   begin
+   function "&"
+     (Left  : in Instance;
+      Right : in Instance)
+     return Instance
+   is begin
       Left.Tail.Next := Right.Head;
-      return (Head => Left.Head,
-              Tail => Right.Tail
-             );
+      return
+        (Head => Left.Head,
+         Tail => Right.Tail);
    end "&";
 
-   --------------------------------------------------------------------------
-   --  Enqueue a token on the given list. The token itself will not be
-   --  copied, but will be managed by the list from here on in. Do not
-   --  delete it while the list is still using it!
-   --
-   --  This routine is intended for internal use by parsers.
-   ----------------------------------------------------------------------------
-   procedure Enqueue (List  : in out Instance;
-                      Token : in     OpenToken.Token.Enumerated.Handle
-                     ) is
-      New_Node : constant List_Node_Ptr :=
-        new List_Node'(Token => Token,
-                       Next  => List.Head
-                      );
+   function "&"
+     (Left  : in Handle;
+      Right : in Handle)
+     return Instance
+   is
+      Tail : constant List_Node_Ptr := new List_Node'(Right, null);
+      Head : constant List_Node_Ptr := new List_Node'(Left, Tail);
+   begin
+      return (Head, Tail);
+   end "&";
+
+   function "&"
+     (Left  : in Instance;
+      Right : in Handle)
+     return Instance
+   is begin
+      Left.Tail.Next := new List_Node'(Right, null);
+      return (Left.Head, Left.Tail.Next);
+   end "&";
+
+   procedure Enqueue
+     (List  : in out Instance;
+      Token : in     OpenToken.Token.Enumerated.Handle)
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'(Token => Token, Next  => List.Head);
    begin
       if List.Tail = null then
          List.Tail := New_Node;
@@ -152,11 +167,23 @@ package body OpenToken.Token.Enumerated.List is
       List.Head := New_Node;
    end Enqueue;
 
-   --------------------------------------------------------------------------
-   --  This routine needs to be called when you are done using a list,
-   --  or want to reset it to empty.
-   --------------------------------------------------------------------------
-   procedure Clean (List : in out Instance) is
+   procedure Append
+     (List  : in out Instance;
+      Token : in     OpenToken.Token.Enumerated.Handle)
+   is
+      New_Node : constant List_Node_Ptr := new List_Node'(Token, null);
+   begin
+      if List.Tail = null then
+         List.Head := New_Node;
+      else
+         List.Tail.Next := New_Node;
+      end if;
+
+      List.Tail := New_Node;
+   end Append;
+
+   procedure Clean (List : in out Instance)
+   is
       Node : List_Node_Ptr := List.Head;
       Next : List_Node_Ptr;
    begin
@@ -172,9 +199,6 @@ package body OpenToken.Token.Enumerated.List is
       List.Tail := null;
    end Clean;
 
-   ----------------------------------------------------------------------------
-   --  Return an initialized iterator for traversing the token list
-   ----------------------------------------------------------------------------
    function Initial_Iterator (List : in Instance) return List_Iterator is
    begin
       return List_Iterator (List.Head);
@@ -201,5 +225,19 @@ package body OpenToken.Token.Enumerated.List is
    is begin
       return ID (Token_Handle (Iterator).all);
    end ID;
+
+   procedure Print (Item : in Instance)
+   is
+      I : List_Iterator := Initial_Iterator (Item);
+   begin
+      loop
+         exit when I = Null_Iterator;
+         Ada.Text_IO.Put (Token_Handle (I).Image);
+         Next_Token (I);
+         if I /= Null_Iterator then
+            Ada.Text_IO.Put (", ");
+         end if;
+      end loop;
+   end Print;
 
 end OpenToken.Token.Enumerated.List;

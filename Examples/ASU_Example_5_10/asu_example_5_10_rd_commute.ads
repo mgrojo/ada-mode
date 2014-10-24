@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -46,8 +46,9 @@ package ASU_Example_5_10_RD_Commute is
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
                       Multiply_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+   package Master_Token is new OpenToken.Token.Enumerated
+     (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
 
    Syntax : constant Tokenizer.Syntax :=
@@ -66,7 +67,7 @@ package ASU_Example_5_10_RD_Commute is
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
    --  Our custom token types. The grammar is:

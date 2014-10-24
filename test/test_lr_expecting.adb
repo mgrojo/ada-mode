@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,8 +23,9 @@ with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
-with OpenToken.Production.Parser;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -69,16 +70,19 @@ package body Test_LR_Expecting is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (First_Terminal => Equals_ID, Last_Terminal => EOF_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, EOF_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer is new Master_Token.Integer;
 
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
    --  Terminals
    EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");
@@ -176,14 +180,14 @@ package body Test_LR_Expecting is
      Verify_Statement.Grammar;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
-   Parser        : LALR_Parser.Instance;
+   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
+   Parser        : LALR_Parsers.Instance;
 
    procedure Execute
      (Command          : in String;
       Expected_Message : in String)
    is
-      use LALR_Parser;
+      use LALR_Parsers;
    begin
       OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
 
@@ -203,28 +207,30 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parser.Generate
-        (Grammar, Analyzer,
-         Trace       => Test.Debug,
-         Put_Grammar => Test.Debug);
+      Parser := LALR_Parsers.Initialize
+        (Analyzer,
+         LALR_Generators.Generate
+           (Grammar,
+            Trace           => Test.Debug,
+            Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
 
-      Execute ("set A = 2", "1:9: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A = 2", "1:10: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
 
       if Test.Debug then
-         Execute ("set A = ", "1:8: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
+         Execute ("set A = ", "1:9: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
       else
-         Execute ("set A = ", "1:8: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
+         Execute ("set A = ", "1:9: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
       end if;
 
-      Execute ("set A", "1:5: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
-      Execute ("set", "1:3: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A", "1:6: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
+      Execute ("set", "1:4: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
 
       if Test.Debug then
-         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
+         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
       else
-         Execute ("2", "1:0: Syntax error; expecting 'set' or 'verify'; found integer '2'");
+         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer '2'");
       end if;
    end Nominal;
 

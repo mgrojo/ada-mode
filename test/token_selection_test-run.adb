@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -53,7 +53,7 @@ begin
 
       Parse_String : constant String := "Do several things 200 times in a row";
 
-      Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
       Selection : aliased OpenToken.Token.Selection.Class :=
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
@@ -71,7 +71,7 @@ begin
         );
 
       --  Load up the first token
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       for String_Token in 1 .. 8 loop
          --  Perform the parse
@@ -79,13 +79,13 @@ begin
 
       end loop;
 
-      if Tokenizer.ID (Analyzer) = EOF then
+      if Analyzer.ID = EOF then
          Ada.Text_IO.Put_Line ("passed");
       else
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line
            ("There was an unexpected " &
-              Token_IDs'Image (Tokenizer.ID (Analyzer)) &
+              Token_IDs'Image (Analyzer.ID) &
               " left on the input stream.");
       end if;
 
@@ -111,7 +111,7 @@ begin
 
       Parse_String : constant String := "Do several things in a row";
 
-      Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
       Selection : aliased OpenToken.Token.Selection.Class :=
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
@@ -128,7 +128,7 @@ begin
          Value  => Parse_String);
 
       --  Load up the first token
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       --  Parse token selection
       OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);

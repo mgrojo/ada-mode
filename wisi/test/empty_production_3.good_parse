@@ -1,139 +1,46 @@
-Parse Table:
-Set 1:
-  OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
-
-   IDENTIFIER_ID              => shift and goto state 2
-   default                    => ERROR
-
-   COMPILATION_UNIT_ID        goto state 3
-   PARAMETER_SPECIFICATION_ID goto state 4
-
-Set 2:
-  PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID ^ MODE_ID NAME_ID, EOF_ID/IDENTIFIER_ID
-
-   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
-   IN_ID                      => shift and goto state 7
-   default                    => ERROR
-
-   MODE_ID                    goto state 8
-
-Set 3:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
-
-   EOF_ID                     => shift and goto state 6
-   default                    => ERROR
-
-
-Set 4:
-  COMPILATION_UNIT_ID <= PARAMETER_SPECIFICATION_ID ^ PARAMETER_SPECIFICATION_ID, EOF_ID
-
-   IDENTIFIER_ID              => shift and goto state 2
-   default                    => ERROR
-
-   PARAMETER_SPECIFICATION_ID goto state 5
-
-Set 5:
-  COMPILATION_UNIT_ID <= PARAMETER_SPECIFICATION_ID PARAMETER_SPECIFICATION_ID ^, EOF_ID
-
-   EOF_ID                     => reduce 2 tokens to COMPILATION_UNIT_ID
-   default                    => ERROR
-
-
-Set 6:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/IN_ID
-
-   EOF_ID                     => accept it
-   IDENTIFIER_ID              => accept it
-   IN_ID                      => accept it
-   default                    => ERROR
-
-
-Set 7:
-  MODE_ID <= IN_ID ^, IDENTIFIER_ID
-
-   IDENTIFIER_ID              => reduce 1 tokens to MODE_ID
-   default                    => ERROR
-
-
-Set 8:
-  PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID MODE_ID ^ NAME_ID, EOF_ID/IDENTIFIER_ID
-
-   IDENTIFIER_ID              => shift and goto state 9
-   default                    => ERROR
-
-   NAME_ID                    goto state 10
-
-Set 9:
-  NAME_ID <= IDENTIFIER_ID ^, EOF_ID/IDENTIFIER_ID
-
-   EOF_ID                     => reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID              => reduce 1 tokens to NAME_ID
-   default                    => ERROR
-
-
-Set 10:
-  PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID MODE_ID NAME_ID ^, EOF_ID/IDENTIFIER_ID
-
-   EOF_ID                     => reduce 3 tokens to PARAMETER_SPECIFICATION_ID
-   IDENTIFIER_ID              => reduce 3 tokens to PARAMETER_SPECIFICATION_ID
-   default                    => ERROR
-
-
- 1 : 
-IDENTIFIER_ID : SHIFT
- 2 : IDENTIFIER_ID
- 1 : 
-IN_ID : SHIFT
- 7 : IN_ID
- 2 : IDENTIFIER_ID
- 1 : 
-IDENTIFIER_ID : REDUCE to MODE_ID, goto state 8
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
-IDENTIFIER_ID : SHIFT
- 9 : IDENTIFIER_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
-IDENTIFIER_ID : REDUCE to NAME_ID, goto state 10
- 10 : NAME_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 1 : 
-IDENTIFIER_ID : REDUCE to PARAMETER_SPECIFICATION_ID, goto state 4
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-IDENTIFIER_ID : SHIFT
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-IDENTIFIER_ID : REDUCE to MODE_ID, goto state 8
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-IDENTIFIER_ID : SHIFT
- 9 : IDENTIFIER_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-EOF_ID : REDUCE to NAME_ID, goto state 10
- 10 : NAME_ID
- 8 : MODE_ID
- 2 : IDENTIFIER_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-EOF_ID : REDUCE to PARAMETER_SPECIFICATION_ID, goto state 5
- 5 : PARAMETER_SPECIFICATION_ID
- 4 : PARAMETER_SPECIFICATION_ID
- 1 : 
-EOF_ID : REDUCE to COMPILATION_UNIT_ID, goto state 3
- 3 : COMPILATION_UNIT_ID
- 1 : 
-EOF_ID : SHIFT
- 6 : EOF_ID
- 3 : COMPILATION_UNIT_ID
- 1 : 
-EOF_ID : ACCEPT_IT
+ 1 stack:  1 : , 
+ 1: 1: (IDENTIFIER 1 . 4) : shift and goto state 2
+ 1 stack:  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1: 2: (IN 5 . 7) : shift and goto state 7
+ 1 stack:  7 : (IN 5 . 7),  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1: 7: (IDENTIFIER 8 . 14) : reduce 1 tokens to mode
+mode_id_0: (mode 5 . 7) (IN 5 . 7)
+ ... goto state 8
+ 1 stack:  8 : (mode 5 . 7),  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1: 8: (IDENTIFIER 8 . 14) : shift and goto state 9
+ 1 stack:  9 : (IDENTIFIER 8 . 14),  8 : (mode 5 . 7),  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1: 9: (IDENTIFIER 15 . 18) : reduce 1 tokens to name
+name_id_0: (name 8 . 14) (IDENTIFIER 8 . 14)
+ ... goto state 10
+ 1 stack:  10 : (name 8 . 14),  8 : (mode 5 . 7),  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1: 10: (IDENTIFIER 15 . 18) : reduce 3 tokens to parameter_specification
+parameter_specification_id_0: (parameter_specification 1 . 14) (IDENTIFIER 1 . 4), (mode 5 . 7), (name 8 . 14)
+ ... goto state 4
+ 1 stack:  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 4: (IDENTIFIER 15 . 18) : shift and goto state 2
+ 1 stack:  2 : (IDENTIFIER 15 . 18),  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 2: (IDENTIFIER 19 . 31) : reduce 0 tokens to mode
+mode_id_0: (mode) 
+ ... goto state 8
+ 1 stack:  8 : (mode),  2 : (IDENTIFIER 15 . 18),  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 8: (IDENTIFIER 19 . 31) : shift and goto state 9
+ 1 stack:  9 : (IDENTIFIER 19 . 31),  8 : (mode),  2 : (IDENTIFIER 15 . 18),  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 9: (EOF 31 . 32) : reduce 1 tokens to name
+name_id_0: (name 19 . 31) (IDENTIFIER 19 . 31)
+ ... goto state 10
+ 1 stack:  10 : (name 19 . 31),  8 : (mode),  2 : (IDENTIFIER 15 . 18),  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 10: (EOF 31 . 32) : reduce 3 tokens to parameter_specification
+parameter_specification_id_0: (parameter_specification 15 . 31) (IDENTIFIER 15 . 18), (mode), (name 19 . 31)
+ ... goto state 5
+ 1 stack:  5 : (parameter_specification 15 . 31),  4 : (parameter_specification 1 . 14),  1 : , 
+ 1: 5: (EOF 31 . 32) : reduce 2 tokens to compilation_unit
+[-5 [(8 1 . 14)(8 15 . 31)]
+(-9 -10 '-11)
+]
+compilation_unit_id_0: (compilation_unit 1 . 31) (parameter_specification 1 . 14), (parameter_specification 15 . 31)
+ ... goto state 3
+ 1 stack:  3 : (compilation_unit 1 . 31),  1 : , 
+ 1: 3: (EOF 31 . 32) : shift and goto state 6
+ 1 stack:  6 : (EOF 31 . 32),  3 : (compilation_unit 1 . 31),  1 : , 
+ 1: 6: (EOF 32 . 33) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 32) (compilation_unit 1 . 31), (EOF 31 . 32)

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012 Stephen Leake
+-- Copyright (C) 2012, 2014 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -48,13 +48,13 @@ begin
 
    loop
 
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       Ada.Text_IO.Put_Line
-        ("Found " & Java_Token'Image (Tokenizer.ID (Analyzer)) &
-           ' ' & Tokenizer.Lexeme (Analyzer));
+        ("Found " & Java_Token'Image (Analyzer.ID) &
+           ' ' & Analyzer.Lexeme);
 
-      exit when Tokenizer.ID (Analyzer) = End_of_File_T;
+      exit when Analyzer.ID = End_of_File_T;
 
    end loop;
 
