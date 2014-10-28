@@ -74,6 +74,14 @@ is
       return 0;
    end Func_1;
 
+   -- Properly highlight keyword next to type identifier when insert/delete separating space
+   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(sit-for 0.01))
+   --EMACSCMD:(test-face "accessString" 'font-lock-type-face)
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(sit-for 0.01))
+   --EMACSCMD:(test-face "access" 'font-lock-keyword-face)
+   --EMACSCMD:(test-face "String" 'font-lock-type-face)
+   Obj_1 : access String;
+
    -- don't capitalize keywords after typing ' '
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(execute-kbd-macro " ")(let ((case-fold-search nil))(looking-back "begin ")))
 begin

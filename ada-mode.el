@@ -1146,7 +1146,7 @@ Uses `ada-case-identifier', with exceptions defined in
   "Adjust the case of the word before point.
 When invoked interactively, TYPED-CHAR must be
 `last-command-event', and it must not have been inserted yet.
-If IN-COMMENT is non-nil, adjust case of words in comments."
+If IN-COMMENT is non-nil, adjust case of words in comments and strings as code."
   (when (not (bobp))
     (when (save-excursion
 	    (forward-char -1); back to last character in word
@@ -1192,16 +1192,25 @@ If IN-COMMENT is non-nil, adjust case of words in comments."
 
 (defun ada-case-adjust-at-point (&optional in-comment)
   "Adjust case of word at point, move to end of word.
-With prefix arg, adjust case even if in comment."
+With prefix arg, adjust case as code even if in comment;
+otherwise, capitalize words in comments."
   (interactive "P")
-  (when
-      (and (not (eobp))
-	   ;; we use '(syntax-after (point))' here, not '(char-syntax
-	   ;; (char-after))', because the latter does not respect
-	   ;; ada-syntax-propertize.
-	   (memq (syntax-class (syntax-after (point))) '(2 3)))
-    (skip-syntax-forward "w_"))
-  (ada-case-adjust nil in-comment))
+  (cond
+   ((and (not in-comment)
+	 (ada-in-string-or-comment-p))
+    (skip-syntax-backward "w_")
+    (capitalize-word 1))
+
+   (t
+    (when
+	(and (not (eobp))
+	     ;; we use '(syntax-after (point))' here, not '(char-syntax
+	     ;; (char-after))', because the latter does not respect
+	     ;; ada-syntax-propertize.
+	     (memq (syntax-class (syntax-after (point))) '(2 3)))
+      (skip-syntax-forward "w_"))
+    (ada-case-adjust nil in-comment))
+   ))
 
 (defun ada-case-adjust-region (begin end)
   "Adjust case of all words in region BEGIN END."

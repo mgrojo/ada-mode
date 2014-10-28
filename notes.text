@@ -36,14 +36,22 @@ install packages in -Q:
  (list-packages))
 
  next release
-o.e.a.stephe-1: external opentoken parser
-o.e.a.stephe-2: external gps parser
+o.e.a.stephe-1 (from o.e.a): external opentoken parser
+o.e.a.stephe-2 (from o.e.a): external gps parser
+o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-wisi-generate check token numbers in actions, report out of range
+remove-yank-excluded-properties
+    calls remove-list-of-text-properties without with-silent-modifications
+        wisi-before-change can't tell that only text properties are changing
 
-navigation error on case after edit 'when' list
+    use that instead of wisi-after-change?
 
-after trunk transition to git:
+use electric indent instead of ada-newline-indent?
+
+
+face actions in gpr grammar?
+
+after trunk transition to git (11 Nov 2014?):
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
 
 
