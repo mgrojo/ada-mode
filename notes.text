@@ -40,15 +40,46 @@ install packages in -Q:
  (list-packages))
 
  next release
-o.e.a.stephe-1: external opentoken parser
-o.e.a.stephe-2: external gps parser
+o.e.a.stephe-1 (from o.e.a): external opentoken parser
+o.e.a.stephe-2 (from o.e.a): external gps parser
+o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-wisi-generate check token numbers in actions, report out of range
+4.01 autoloads still visible
+    add file that obsoletes all of them
 
-navigation error on case after edit 'when' list
+books passes ada-check-current-project when project is fish_mercury
+    don't put . in compilation-search-path; expand it.
 
-after trunk transition to git:
+find-file-in-prj
+    prompt for file with compilation-search-path as completion
+        avoid navigating to 'with' clause to get same functionality
+
+c:/Archive/Emacs/slime-2.10.1.tar.gz
+
+http://wikemacs.org/wiki/Projectile
+
+parse error for legal expression function in enclosing parens
+      Y : Boolean := Boolean'(if True then False);
+    vs.
+      Y : Boolean := Boolean'((if True then False));  -- o.K.
+
+    LRM 4.5.7 7/3
+
+remove-yank-excluded-properties
+    calls remove-list-of-text-properties without with-silent-modifications
+        wisi-before-change can't tell that only text properties are changing
+
+    use that instead of wisi-after-change?
+
+use electric indent instead of ada-newline-indent?
+
+
+face actions in gpr grammar?
+
+after trunk transition to git (11 Nov 2014?):
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
+    and delete all autoloads?
+        so they are not visible when using elpa package
 
 
 5.1.c: use compiled OpenToken parser in background process
@@ -484,17 +515,14 @@ gpr log-edit-function-name
         Source_Dirs
         Compiler.Default_Switches
 
-parse error for legal expression function in enclosing parens
-      Y : Boolean := Boolean'(if True then False);
-    vs.
-      Y : Boolean := Boolean'((if True then False));  -- o.K.
-
-    LRM 4.5.7 7/3
-
 separate color for vendor-specific aspects
     spark aspects in test/aspects.ads
 
 completion:
+    match GPS behavior
+        get completion candidates from gpr_query
+        all names in scope at point
+
     built-in pcomplete
         completion-at-point-functions
 
@@ -502,8 +530,15 @@ completion:
         including C++ parameters, class members
 
     MELPA package auto-complete
+    https://github.com/auto-complete/auto-complete
+    https://github.com/capitaomorte/yasnippet
 
-    get completion candidates from gpr_query
+find-identifer-in-prj
+    prompt for identifier, goto declaration
+    not useful until have completion
+
+reflect changes in subprogram spec to subprogram body
+    ada-resync-spec-body
 
 fix wisi-compile.el needing comp.el, not comp.elc
     some systems don't install emacs source by default
@@ -521,6 +556,28 @@ use post-self-insert-hook for casing
     in 23.2?
 
 use electric-indent-mode instead of ada-indent-newline-indent
+
+refactoring
+
+    rename entity:
+        use xref to rename all uses (with/without confirm)
+
+    change parameter_result_profile
+        make same change in all overrides
+        offer to walk thru all uses
+
+    promote primitive subprogram-local variable to type component
+
+    move primitive from parent to child class
+
+    extract subprogram
+        from Eclipse
+        highlight lines of source
+        prompt for name
+        it guesses parameter_result_profile
+
+support for "Adadoc"?
+    formatted comments that mention parameters; check that they are all mentioned, spelled correctly
 
  gpr_query
 build/Makefile one

@@ -454,37 +454,73 @@ Used in before/after change functions.")
   (setq wisi-change-need-invalidate nil)
 
   (when (> end begin)
-    (if (<= wisi-cache-max begin)
-	;; Change is in unvalidated region; either the parse was
-	;; failing, or there is more than one top-level grammar
-	;; symbol in buffer.
-	(when wisi-parse-failed
-	  ;; The parse was failing, probably due to bad syntax; this
-	  ;; change may have fixed it, so try reparse.
-	  (setq wisi-parse-try t))
+    (save-excursion
+      ;; (info "(elisp)Parser State")
+      (let* ((begin-state (syntax-ppss begin))
+	     (end-state (syntax-ppss end))
+	     ;; syntax-ppss has moved point to "end".
+	     (word-end (progn (skip-syntax-forward "w_")(point))))
 
-      ;; change is in validated region
-      (save-excursion
-	;; don't invalidate parse for whitespace, string, or comment changes
-	(let (;; (info "(elisp)Parser State")
-	      (state (syntax-ppss begin)))
-	  ;; syntax-ppss has moved point to "begin".
+	;; Remove grammar face from word(s) containing change region;
+	;; might be changing to/from a keyword. See
+	;; test/ada_mode-interactive_common.adb Obj_1
+	(goto-char begin)
+	(skip-syntax-backward "w_")
+	(with-silent-modifications
+	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil)))
+
+	(if (<= wisi-cache-max begin)
+	    ;; Change is in unvalidated region; either the parse was
+	    ;; failing, or there is more than one top-level grammar
+	    ;; symbol in buffer.
+	    (when wisi-parse-failed
+	      ;; The parse was failing, probably due to bad syntax; this
+	      ;; change may have fixed it, so try reparse.
+	      (setq wisi-parse-try t))
+
+	  ;; else change is in validated region
+	  ;;
+	  ;; don't invalidate parse for whitespace, string, or comment changes
 	  (cond
-	   ((or
-	     (nth 3 state); in string
-	     (nth 4 state)); in comment
-	    ;; FIXME: check that entire range is in comment or string
+	   ((and
+	     (nth 3 begin-state); in string
+	     (nth 3 end-state)))
+	   ;; no easy way to tell if there is intervening non-string
+
+	   ((and
+	     (nth 4 begin-state); in comment
+	     (nth 4 end-state))
+	    ;; too hard to detect case where there is intervening
+	    ;; code; no easy way to go to end of comment if not
+	    ;; newline
 	    )
 
-	   ((progn
-	      (skip-syntax-forward " " end);; does not skip newline
-	      (eq (point) end)))
+	   ;; Deleting whitespace generally does not require parse, but
+	   ;; deleting all whitespace between two words does; check that
+	   ;; there is whitespace on at least one side of the deleted
+	   ;; text.
+	   ;;
+	   ;; We are not in a comment (checked above), so treat
+	   ;; comment end as whitespace in case it is newline, except
+	   ;; deleting a comment end at begin means commenting the
+	   ;; current line; requires parse.
+	   ((and
+	     (eq (car (syntax-after begin)) 0) ; whitespace
+	     (memq (car (syntax-after (1- end))) '(0 12)) ; whitespace, comment end
+	     (or
+	      (memq (car (syntax-after (1- begin))) '(0 12))
+	      (memq (car (syntax-after end)) '(0 12)))
+	     (progn
+	       (goto-char begin)
+	       (skip-syntax-forward " >" end)
+	       (eq (point) end))))
 
 	   (t
 	    (setq wisi-change-need-invalidate
 		  (progn
 		    ;; note that because of the checks above, this never
 		    ;; triggers a parse, so it's fast
+	       (goto-char begin)
 		    (wisi-goto-statement-start)
 		    (point))))
 	   )))
@@ -500,50 +536,87 @@ Used in before/after change functions.")
 
   (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
 
-  ;; If the parse was failing, this change may have fixed it. Or it
-  ;; may have broken a passing parse.
-  (setq wisi-parse-try t)
-
   ;; Remove caches on inserted text, which could have caches from
   ;; before the failed parse (or another buffer), and are in any case
   ;; invalid. No point in removing 'fontified; that's handled by
   ;; jit-lock.
+
   (with-silent-modifications
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
-  (when (> wisi-cache-max begin)
-    ;; Change is in validated region
-    (save-excursion
-      (let (need-invalidate
-	    ;; (info "(elisp)Parser State")
-	    (state (syntax-ppss begin)))
-	;; syntax-ppss has moved point to "begin".
+  ;; Also remove grammar face from word(s) containing change region;
+  ;; might be changing to/from a keyword. See
+  ;; test/ada_mode-interactive_common.adb Obj_1
+  (save-excursion
+    ;; (info "(elisp)Parser State")
+    (let ((need-invalidate wisi-change-need-invalidate)
+	  begin-state end-state word-end)
+      (when (> end begin)
+	(setq begin-state (syntax-ppss begin))
+	(setq end-state (syntax-ppss end))
+	;; syntax-ppss has moved point to "end".
+	(skip-syntax-forward "w_")
+	(setq word-end (point))
+	(goto-char begin)
+	(skip-syntax-backward "w_")
+	(with-silent-modifications
+	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil))))
+
+      (if (<= wisi-cache-max begin)
+	  ;; Change is in unvalidated region
+	  (when wisi-parse-failed
+	    ;; The parse was failing, probably due to bad syntax; this
+	    ;; change may have fixed it, so try reparse.
+	    (setq wisi-parse-try t))
+
+	;; Change is in validated region
 	(cond
 	 (wisi-change-need-invalidate
 	  ;; wisi-before change determined the removed text alters the
 	  ;; parse
-	  (setq need-invalidate wisi-change-need-invalidate))
+	  )
 
 	 ((= end begin)
 	  (setq need-invalidate nil))
 
+	 ((and
+	   (nth 3 begin-state); in string
+	   (nth 3 end-state))
+	  ;; no easy way to tell if there is intervening non-string
+	  (setq need-invalidate nil))
+
 	 ((or
-	   (nth 3 state); in string
-	   (nth 4 state)); in comment
-	  ;; FIXME: insert newline in comment to create non-comment!?
-	  ;; or paste a chunk of code
-	  ;; => check that all of change region is comment or string
+	   (nth 4 begin-state)
+	   (nth 4 end-state)); in comment
+	  ;; no easy way to detect intervening code
 	  (setq need-invalidate nil)
 	  ;; no caches to remove
 	  )
 
-	 ((progn
-	    (skip-syntax-forward " " end);; does not skip newlines
-	    (eq (point) end))
+	 ;; Adding whitespace generally does not require parse, but in
+	 ;; the middle of word it does; check that there was
+	 ;; whitespace on at least one side of the inserted text.
+	 ;;
+	 ;; We are not in a comment (checked above), so treat
+	 ;; comment end as whitespace in case it is newline
+	 ((and
+	   (or
+	    (memq (car (syntax-after (1- begin))) '(0 12)); whitespace, comment end
+	    (memq (car (syntax-after end)) '(0 12)))
+	   (progn
+	    (goto-char begin)
+	    (skip-syntax-forward " >" end)
+	    (eq (point) end)))
 	  (setq need-invalidate nil))
 
 	 (t
-	  (setq need-invalidate begin))
+	  (setq need-invalidate
+		(progn
+		  (goto-char begin)
+		  ;; note that because of the checks above, this never
+		  ;; triggers a parse, so it's fast
+		  (wisi-goto-statement-start)
+		  (point))))
 	 )
 
 	(if need-invalidate
@@ -552,9 +625,8 @@ Used in before/after change functions.")
 	  ;; else move cache-max by the net change length.
 	  (setq wisi-cache-max
 		(+ wisi-cache-max (- end begin length))) )
-	)
-      ))
-  )
+	))
+    ))
 
 (defun wisi-get-cache (pos)
   "Return `wisi-cache' struct from the `wisi-cache' text property at POS.
@@ -1370,6 +1442,7 @@ correct. Must leave point at indentation of current line.")
 	(wisi-validate-cache (line-end-position))) ;; include at lease the first token on this line
 
       (if (> (point) wisi-cache-max)
+	  ;; parse failed
 	  (progn
 	    ;; no indent info at point. Assume user is
 	    ;; editing; indent to previous line, fix it
@@ -1379,14 +1452,20 @@ correct. Must leave point at indentation of current line.")
 	    (back-to-indentation)
 	    (setq indent (current-column)))
 
+	;; parse succeeded
 	(when wisi-indent-failed
+	  ;; previous parse failed
 	  (setq wisi-indent-failed nil)
 	  (run-hooks 'wisi-post-parse-fail-hook))
+
+	(when (> (point) wisi-cache-max)
+	  (error "wisi-post-parse-fail-hook invalidated parse."))
 
 	(setq indent
 	      (with-demoted-errors
 		  (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
-	      )))
+	      )
+	))
 
     (if savep
 	;; point was inside line text; leave it there
@@ -1420,6 +1499,11 @@ correct. Must leave point at indentation of current line.")
 	(message "containing %s" (wisi-goto-containing cache t))
       (message "previous %s" (wisi-backward-cache)))
     ))
+
+(defun wisi-show-cache-max ()
+  (interactive)
+  (push-mark)
+  (goto-char wisi-cache-max))
 
 ;;;;; setup
 
