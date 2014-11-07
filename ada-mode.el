@@ -1087,8 +1087,7 @@ User is prompted to choose a file from project variable casing if it is a list."
 	     (copy-marker (1+ end))))
 
       ;; upcase first char
-      (insert-char (upcase (following-char)) 1)
-      (delete-char 1)
+      (upcase-region (point) (1+ (point)))
 
       (goto-char next)
       (if (< (point) end)
@@ -2426,7 +2425,8 @@ Called with no parameters.")
   "See `ada-next-statement-keyword' variable."
   (interactive)
   (when ada-next-statement-keyword
-    (push-mark)
+    (unless (region-active-p)
+      (push-mark))
     (funcall ada-next-statement-keyword)))
 
 (defvar ada-prev-statement-keyword nil
@@ -2440,7 +2440,8 @@ keyword in the previous statement or containing statement.")
   "See `ada-prev-statement-keyword' variable."
   (interactive)
   (when ada-prev-statement-keyword
-    (push-mark)
+    (unless (region-active-p)
+      (push-mark))
     (funcall ada-prev-statement-keyword)))
 
 ;;;; code creation
