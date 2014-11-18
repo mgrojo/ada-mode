@@ -8,7 +8,7 @@ ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 all : update compile-ada-clean compile-ada autoloads test-clean test
 
 # things that can be done on debian stable (opentoken doesn't build, no gpr_query, no gnatstub)
-debian-all : compile-ada-clean compile-ada autoloads test-clean test-debian
+debian-all : byte-compile compile-ada-clean compile-ada autoloads test-clean test-debian
 
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
@@ -44,13 +44,11 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-wisi-gpr_query.el
-one : ada_mode-interactive_common.adb.diff
+one : RUNTEST := run-indent-test-wisi.el
+one : ada_mode-nominal-separate_package_1.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
-
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 
 # These are correct paths for Stephe's development machines;
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
@@ -59,10 +57,16 @@ ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
+# we don't build %-wy.el here
+INDENT.EL := ada-wisi.el gpr-wisi.el
+
 else
 # windows
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
+
+# we build %-wy.el here
+INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 
 endif
 
