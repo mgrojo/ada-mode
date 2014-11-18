@@ -142,7 +142,9 @@ wisi-generate.exe : force
 
 %.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*
 
-%.out : %.exe ;	./$*.exe > $*.out 2>&1
+%.out : %.exe
+	./$*.exe > $*.out 2>&1
+	dos2unix $*.out
 
 DIFF_OPT := -u -w
 %.diff : %.good_out %.out ; diff $(DIFF_OPT) $^ > $@
