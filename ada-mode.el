@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.1.6
-;; package-requires: ((wisi "1.0.6") (cl-lib "0.4") (emacs "24.2"))
+;; Version: 5.1.7
+;; package-requires: ((wisi "1.1.0") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -168,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.1.6"))
+  (let ((version-string "5.1.7"))
     ;; must match:
     ;; ada-mode.texi
     ;; README
@@ -1337,8 +1337,9 @@ Indexed by ada-xref-tool.  Called with one argument; the default
 project properties list. Function should add to the properties
 list and return it.")
 
-(defun ada-prj-default ()
+(defun ada-prj-default (&optional src-dir)
   "Return the default project properties list.
+If SRC-DIR is non-nil, use it as the default for src_dir.
 Include properties set via `ada-prj-default-compiler-alist',
 `ada-prj-default-xref-alist'."
 
@@ -1357,7 +1358,7 @@ Include properties set via `ada-prj-default-compiler-alist',
 			 (list ada-case-exception-file))
       'path_sep        path-separator;; prj variable so users can override it for their compiler
       'proc_env        process-environment
-      'src_dir         (list ".")
+      'src_dir         (list (if src-dir src-dir "."))
       'xref_tool       ada-xref-tool
       ))
 
@@ -1387,6 +1388,7 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-parse-prj-file (prj-file)
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
+  ;; FIXME: use the right name, add an alias
   (let ((project (ada-prj-default))
 	(parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
 
@@ -1616,6 +1618,19 @@ Indexed by project variable xref_tool.")
 
   ;; return 't', for decent display in message buffer when called interactively
   t)
+
+(defun ada-create-select-default-prj (&optional directory)
+  "Create a default project with src_dir set to DIRECTORY (default current directory), select it."
+  (let* ((dir (or directory default-directory))
+	 (prj-file (expand-file-name "default_.adp" dir))
+	 (project (ada-prj-default dir)))
+
+    (if (assoc prj-file ada-prj-alist)
+	(setcdr (assoc prj-file ada-prj-alist) project)
+      (add-to-list 'ada-prj-alist (cons prj-file project)))
+
+    (ada-select-prj-file prj-file)
+    ))
 
 (defun ada-prj-select ()
   "Select the current project file from the list of currently available project files."
@@ -2020,6 +2035,17 @@ the other file."
 
    (t
     (ff-find-other-file other-window)))
+  )
+
+(defun ada-find-file (filename)
+  ;; we assume compliation-search-path is set, either by an
+  ;; ada-mode project, or by some other means.
+  ;; FIXME: option to filter with ada-*-suffixes?
+  (interactive (list (completing-read "File: "
+				      (apply-partially
+				       'locate-file-completion-table
+				       compilation-search-path nil))))
+  (find-file (locate-file filename compilation-search-path))
   )
 
 (defvar ada-operator-re

@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 1.0.6
+;; Version: 1.1.0
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
 ;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
@@ -340,12 +340,6 @@ wisi-forward-token, but does not look up symbol."
      )
     (cons nil (cons (point) end))
     ))
-
-(defun wisi-token-text (token)
-  "Return buffer text from token range."
-  (let ((region (cdr token)))
-    (and region
-       (buffer-substring-no-properties (car region) (cdr region)))))
 
 ;;;; token info cache
 ;;

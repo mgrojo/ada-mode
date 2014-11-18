@@ -1686,7 +1686,7 @@ TOKEN-TEXT; move point to just past token."
 	    (goto-char end) nil)
 	   )))
 
-       ((= (char-after ?.))
+       ((= (char-after) ?.)
 	;; decimal real number?
 	(forward-char 1)
 	(if (not (looking-at "[0-9]+"))

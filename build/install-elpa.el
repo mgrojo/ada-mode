@@ -5,9 +5,9 @@
 
 (package-initialize)
 
-(setq ada-mode-version "5.1.6")
+(setq ada-mode-version "5.1.7")
 (setq ada-ref-man-version "2012.0")
-(setq wisi-version "1.0.6")
+(setq wisi-version "1.1.0")
 
 (cond
  ((string-equal emacs-version "24.2.1")
@@ -17,7 +17,10 @@
  ((string-equal emacs-version "24.3.1")
   (load-file "install-elpa-24.3.el"))
 
- ((string-equal emacs-version "24.3.93.1")
+ ((string-equal emacs-version "24.4.1")
   (load-file "install-elpa-24.4.el"))
+
+ (t
+  (error "install-elpa.el: unsupported emacs-version"))
  )
 ;; end of file

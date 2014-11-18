@@ -45,7 +45,7 @@ test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
-one : ada_mode-nominal.ads.diff
+one : ada_mode-interactive_common.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -70,6 +70,8 @@ endif
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-wy.el ../../%-grammar-wy.el
+
+# FIXME: verify wisi-generate version
 
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts

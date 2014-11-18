@@ -1,7 +1,10 @@
 procedure Ada_Mode.Conditional_Expressions is
    subtype Bounded is Integer range -1 .. +1;
    J : Integer := 42;
-   K0 : Integer := (if J > 42 then -1 else +1);
+
+   K0a : Integer := Integer'(if J > 42 then -1 else +1);
+   K0b : Integer := Integer'((if J > 42 then -1 else +1));
+
    K1 : Integer := (if J > 42 then -1
                     else +1);
    K2 : Integer := (if J > 42
@@ -13,7 +16,7 @@ procedure Ada_Mode.Conditional_Expressions is
                       -1
                     else
                       +1);
-   K : Integer := K0;
+   K : Integer := K0a;
    L0 : Integer :=
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
    L1 : Integer := (case J is

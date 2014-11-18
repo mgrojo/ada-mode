@@ -10,10 +10,10 @@ run test from emacs -Q using installed elpa:
   (package-initialize)
   (setq debug-on-error t)
 ;;  (setq wisi-debug 1)
-  (load "autoloads.el")
-  (load "run-indent-test-wisi-gnatinspect")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (load "run-wisi-test")
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-nominal-child.ads"))
+  (run-test "ada-number-literal"))
 
 run test from emacs -Q using source:
 (progn
@@ -40,8 +40,9 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-4.01 autoloads still visible
-    add file that obsoletes all of them
+do release
+    below
+    done to debian
 
 books passes ada-check-current-project when project is fish_mercury
     don't put . in compilation-search-path; expand it.
@@ -53,13 +54,6 @@ find-file-in-prj
 c:/Archive/Emacs/slime-2.10.1.tar.gz
 
 http://wikemacs.org/wiki/Projectile
-
-parse error for legal expression function in enclosing parens
-      Y : Boolean := Boolean'(if True then False);
-    vs.
-      Y : Boolean := Boolean'((if True then False));  -- o.K.
-
-    LRM 4.5.7 7/3
 
 remove-yank-excluded-properties
     calls remove-list-of-text-properties without with-silent-modifications
@@ -476,6 +470,8 @@ attach gud-gdb to running emacs: attach <process id>
     source emacs/src/.gdbinit
     xbacktrace shows lisp backtrace
 
+"kill -USR2 <emacspid>" which should also drop you into the (elisp?) debugger.
+
 (browse-url "c:/Projects/arm_info/org.adaic.arm_form/build/html/arm2012/RM-P.html")
 (info "(aarm2012)Annex P" "*info Annex P*")
 http://www.ada-auth.org/standards/
@@ -525,36 +521,52 @@ read/write access requires a public key:
 
  release process
 move to external elpa package?
+    maybe after add dynamic library for parser
     simplifies git management of elpa?
     - Push the tree you want onto a branch `externals/<pkg>' in the
       `elpa' repository.
     - Remove the packages/<pkg> directory in the `master' branch.
     - Edit `externals-list' in the `master' branch.
 
+(dvc-status ".")
+(dvc-status "/Projects/org.opentoken")
+
 check for ELPA patches by others
+    (dvc-status "/Projects/elpa")
+        revert local changes
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
-        revert local changes
         update
         clean sync
     cd /Projects/elpa
     git log -2 -- packages/wisi
     git log -2 -- packages/ada-mode
     git log -2 -- packages/ada-ref-man
-    apply changes to current
+    if changes:
+        (dvc-log "/Projects/elpa/packages/<dir>/<file>")
+        apply changes to current
 
 check emacs buglist
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
 
-bump version
+bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
         (list-packages) install ada-mode, wisi from public ELPA
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.5" "/Projects/elpa/packages/wisi" nil)
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.5" "/Projects/elpa/packages/ada-mode" nil)
+
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.6" "/Projects/elpa/packages/wisi" nil)
+            wisi.el
+                Version:
+
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.6" "/Projects/elpa/packages/ada-mode" nil)
+            ada-mode.el
+                Version:
+                package-requires wisi version
+                ada-mode-version
+
         (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
-        (dvc-status "/Projects/org.opentoken")
-        (dvc-log "/Projects/org.opentoken")
+            ada-ref-man.el
+                Version:
 
     NEWS-ada-mode.text
         add release date
@@ -564,12 +576,6 @@ bump version
         add release date
         add new features
 
-    wisi.el
-        Version:
-    ada-mode.el
-        Version:
-        ada-mode-version
-        package-requires wisi version
     ada-mode.texi
         Ada Mode Version
     README-ada-mode
@@ -585,20 +591,28 @@ bump version
         ada-ref-man-version
         wisi-version
 
+    (dvc-log "/Projects/org.opentoken/")
+        examine diff since last Tag: opentoken-i.jk
+        update c:/Projects/org.opentoken/Docs/opentoken.html
+            current version:
+            history
+
     /Projects/org.opentoken.stephe/wisi/wisi-generate.adb
         version
+            independent of opentoken, ada-mode versions
+            bump if changes affect ada-mode or other clients
 
     /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
-        ada-mode version
-        opentoken version
-
-    c:/Projects/Web/stephe-leake/emacs/wisi/wisi.html
-        wisi-version
-        wisi-generate version
-        ada-mode version
-        opentoken version
+        ada-mode find-replace i.j.k
+        opentoken find-replace i.jk
 
     /Projects/Web/stephe-leake/emacs/wisi/wisi.html
+        wisi-i.j.k find-replace
+        wisi-generate version
+        ada-mode i.j.k
+        opentoken version
+
+    (/Projects/Web/stephe-leake/ada/opentoken.html copied by web makefile)
 
 verify other metadata
     ada-mode.el
@@ -608,29 +622,27 @@ verify other metadata
 build/Makefile all
     # pushes to elpa workspace, builds archive, installs
 
-Emacs 24.4?
-    compat-24.3?
+Emacs 24.4, gnat 2014 (sal-standard), installed ada-mode:
+    from http://ftp.gnu.org/gnu/emacs/windows/
+    (setenv "ADA_MODE_DIR" "-f package-initialize")
+    build/wisi/Makefile all
 
 Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
+    build/Makefile install-elpa # deletes and recompiles
     build/wisi/Makefile all
-        gpr_query fail on Windows
 
-Emacs 24.2, gnat 2014:
-    build/Makefile install-elpa # deletes and recompiles, installs cl-lib
-
+Emacs 24.2, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/wisi/Makefile clean all
+    build/Makefile install-elpa-review # deletes and recompiles, installs cl-lib
+    build/wisi/Makefile all
         ignore byte-compile warnings about 'foo' from cl package called at runtime
 
     build/Makefile install-clean
 
-Emacs 24.3
-
 sync for Debian:
     (dvc-status ".")
     (dvc-status "/Projects/org.opentoken")
-        git sets executable bit on any changed files!
     (dvc-sync-run ".")
     (dvc-sync-review ".")
 
@@ -659,6 +671,8 @@ cd /Projects/elpa
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
     (dvc-state-one "/Projects/elpa")
+        git sets executable bit on any changed files!
+        use msys2/mingw64 git?
     commit ada-mode, ada-ref-man, wisi
     (dvc-push "/Projects/elpa")
     # 24 hrs for web repository to update

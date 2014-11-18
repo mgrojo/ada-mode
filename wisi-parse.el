@@ -95,6 +95,12 @@ point at which that max was spawned.")
 (defvar-local wisi-cache-max 0
   "Maximimum position in buffer where wisi-cache text properties are valid.")
 
+(defun wisi-token-text (token)
+  "Return buffer text from token range."
+  (let ((region (cdr token)))
+    (and region
+       (buffer-substring-no-properties (car region) (cdr region)))))
+
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.
 

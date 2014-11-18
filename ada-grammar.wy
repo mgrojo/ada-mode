@@ -176,6 +176,42 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
+%conflict REDUCE/REDUCE in state aggregate, primary on token AMPERSAND
+%conflict REDUCE/REDUCE in state aggregate, primary on token AND
+%conflict REDUCE/REDUCE in state aggregate, primary on token BAR
+%conflict REDUCE/REDUCE in state aggregate, primary on token COLON_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary on token COMMA
+%conflict REDUCE/REDUCE in state aggregate, primary on token DIGITS
+%conflict REDUCE/REDUCE in state aggregate, primary on token DO
+%conflict REDUCE/REDUCE in state aggregate, primary on token DOT_DOT
+%conflict REDUCE/REDUCE in state aggregate, primary on token ELSE
+%conflict REDUCE/REDUCE in state aggregate, primary on token ELSIF
+%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL_GREATER
+%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER
+%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary on token IN
+%conflict REDUCE/REDUCE in state aggregate, primary on token IS
+%conflict REDUCE/REDUCE in state aggregate, primary on token LESS
+%conflict REDUCE/REDUCE in state aggregate, primary on token LESS_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary on token LOOP
+%conflict REDUCE/REDUCE in state aggregate, primary on token MINUS
+%conflict REDUCE/REDUCE in state aggregate, primary on token MOD
+%conflict REDUCE/REDUCE in state aggregate, primary on token NOT
+%conflict REDUCE/REDUCE in state aggregate, primary on token OF
+%conflict REDUCE/REDUCE in state aggregate, primary on token OR
+%conflict REDUCE/REDUCE in state aggregate, primary on token PLUS
+%conflict REDUCE/REDUCE in state aggregate, primary on token RANGE
+%conflict REDUCE/REDUCE in state aggregate, primary on token REM
+%conflict REDUCE/REDUCE in state aggregate, primary on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state aggregate, primary on token SEMICOLON
+%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH
+%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary on token STAR
+%conflict REDUCE/REDUCE in state aggregate, primary on token STAR_STAR
+%conflict REDUCE/REDUCE in state aggregate, primary on token THEN
+%conflict REDUCE/REDUCE in state aggregate, primary on token WITH
+%conflict REDUCE/REDUCE in state aggregate, primary on token XOR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
@@ -198,6 +234,11 @@
 %conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
 %conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
 %conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
+%conflict REDUCE/SHIFT in state expression, relation_and_list on token AND
+%conflict REDUCE/SHIFT in state expression, relation_and_then_list on token AND
+%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
+%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
+%conflict REDUCE/SHIFT in state expression, relation_xor_list on token XOR
 %conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
 %conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
@@ -215,12 +256,7 @@
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
-%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
-%conflict REDUCE/SHIFT in state expression, relation_and_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_xor_list on token XOR
-%conflict REDUCE/SHIFT in state expression, relation_and_then_list on token AND
 
 %%
 ;;;; grammar rules
@@ -325,6 +361,15 @@ aggregate
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
+  | LEFT_PAREN case_expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action [1 open-paren 3 close-paren])
+      (wisi-containing-action 1 2))
+ ;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
+  | LEFT_PAREN if_expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action [1 open-paren 3 close-paren])
+      (wisi-containing-action 1 2))
   | LEFT_PAREN expression WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
     (progn
       (wisi-statement-action [1 open-paren 3 statement-other 6 close-paren])
@@ -1312,7 +1357,7 @@ incomplete_type_declaration
       (wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-containing-action 1 3)
       (wisi-face-action [2 font-lock-type-face]))
-  | TYPE IDENTIFIER SEMICOLON
+  | TYPE IDENTIFIER discriminant_part_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 name 3 statement-end])
       (wisi-face-action [2 font-lock-type-face]))

@@ -8,6 +8,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 
 * wisi 1.1.0
+18 Nov 2014
 
 ** change wisi-forward-token to not return text; simpler, faster
 
