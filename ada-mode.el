@@ -1025,12 +1025,13 @@ list."
     (if (use-region-p)
 	(setq word (buffer-substring-no-properties (region-beginning) (region-end)))
       (save-excursion
-	(skip-syntax-backward "w_")
-	(setq word
-	      (buffer-substring-no-properties
-	       (point)
-	       (progn (skip-syntax-forward "w_") (point))
-	       )))))
+	(let ((syntax (if partial "w" "w_")))
+	  (skip-syntax-backward syntax)
+	  (setq word
+		(buffer-substring-no-properties
+		 (point)
+		 (progn (skip-syntax-forward syntax) (point))
+		 ))))))
 
   (let* ((exceptions (ada-case-read-exceptions file-name))
 	 (full-exceptions (car exceptions))

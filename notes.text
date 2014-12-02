@@ -40,9 +40,27 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-do release
-    below
-    done to debian
+parsing bug:
+    underscore in based numeral
+        test/debug.adb
+
+add ada backend for xref.el
+
+add test to doc handling of bad style:
+
+   if 1 > 2 then
+      null;
+   else if 2 > 3 then
+      null;
+   else if 3 > 4 then
+      null;
+   else
+      null;
+   end if;
+      A;
+   end if;
+      B;
+   end if;
 
 books passes ada-check-current-project when project is fish_mercury
     don't put . in compilation-search-path; expand it.
@@ -68,9 +86,8 @@ face actions in gpr grammar?
 
 after trunk transition to git (11 Nov 2014?):
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
-    and delete all autoloads?
-        so they are not visible when using elpa package
 
+use eieio class/method for dispatching
 
 5.1.c:
 
@@ -507,7 +524,7 @@ read/write access requires a public key:
  git config for elpa checkout
 [core]
 	repositoryformatversion = 0
-	filemode = true
+	filemode = false # don't set exec bits
 	bare = false
 	logallrefupdates = true
 	ignorecase = true
@@ -647,9 +664,9 @@ sync for Debian:
     (dvc-sync-review ".")
 
 Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
-    emacs.sh ;; for dvc
+    emacs.sh ;; current for dvc
 
-    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
     (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
 
     emacs-stable.sh ;; for ada-mode testing
@@ -659,28 +676,32 @@ Debian : emacs, gnat from stable (wheezy 4 May 2013, emacs 24.2, gnat 4.8)
     /home/Projects/org.emacs.ada-mode/build/wisi/Makefile
         debian-all
 
+    emacs.sh ;; current for dvc
     (dvc-status)
-    ;; gds.db (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
+    (dvc-sync-run "/home/Projects/org.emacs.ada-mode")
     (dvc-sync-review "/home/Projects/org.emacs.ada-mode")
 
 (dvc-sync-run ".")
+(dvc-sync-review ".")
 
 build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
 
-cd /Projects/elpa
+commit elpa:
+    xgit-fetch needs rebase option
+
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
     (dvc-state-one "/Projects/elpa")
-        git sets executable bit on any changed files!
-        use msys2/mingw64 git?
-    commit ada-mode, ada-ref-man, wisi
+    add, stage, commit ada-mode, ada-ref-man, wisi
     (dvc-push "/Projects/elpa")
+    (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 
 (dvc-sync-run ".")
+(dvc-sync-review ".")
 
 build/Makefile zip
 

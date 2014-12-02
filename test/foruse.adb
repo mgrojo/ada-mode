@@ -9,10 +9,12 @@ procedure Foruse is
       Enable_Analog,
       Disable_Analog);
 
+   --  Test an earlier bug in wisi-backward-token, that caused
+   --  improper indentation.
    for Command_Labels_Type use
      (Noop              => 0,
-      Reset_HK_Counters => 1,
-      Enable            => 2,
+      Reset_HK_Counters => 10#01#,
+      Enable            => 10#02#,
       Disable           => 3,
       Enable_Analog     => 4,
       Disable_Analog    => 5);

@@ -293,7 +293,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	   (error "wisi-forward-token: forward-sexp failed %s" err)
 	   ))))
 
-     (t ;; assuming word syntax
+     (t ;; assuming word or symbol syntax
       (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
@@ -315,6 +315,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments.
+Does _not_ handle numbers with wisi-number-p; just sees lower-level syntax.
 Return (nil start . end) - same structure as
 wisi-forward-token, but does not look up symbol."
   (forward-comment (- (point)))
@@ -326,6 +327,24 @@ wisi-forward-token, but does not look up symbol."
     (cond
      ((bobp) nil)
 
+     ((eq syntax 1)
+      ;; punctuation. Find the longest matching string in wisi-punctuation-table
+      (backward-char 1)
+      (let ((next-point (point))
+	    temp-text done)
+	(while (not done)
+	  (setq temp-text (buffer-substring-no-properties (point) end))
+	  (when (car (rassoc temp-text wisi-punctuation-table))
+	    (setq next-point (point)))
+	  (if (or
+	       (bobp)
+	       (= (- end (point)) wisi-punctuation-table-max-length))
+	      (setq done t)
+	    (backward-char 1))
+	  )
+	(goto-char next-point))
+      )
+
      ((memq syntax '(4 5)) ;; open, close parenthesis
       (backward-char 1))
 
@@ -334,7 +353,7 @@ wisi-forward-token, but does not look up symbol."
       (let ((forward-sexp-function nil))
 	(forward-sexp -1)))
 
-     (t
+     (t ;; assuming word or symbol syntax
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
      )

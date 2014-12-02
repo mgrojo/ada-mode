@@ -11,6 +11,7 @@
 ^build/smie/.*\.ali$
 ^build/smie/.*\.diff$
 ^build/smie/.*\.tmp$
+^build/test\.casing$
 ^build/wisi/.*\.adb$
 ^build/wisi/.*\.ads$
 ^build/wisi/.*\.ali$
