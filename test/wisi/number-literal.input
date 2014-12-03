@@ -1,6 +1,7 @@
 -- Just parse successfully
+-- wisi number-literal does not support based notation, nore underscore in numbers
 number 1234
 number 1234.5678
 number 1234.5678e+99
 number 1234.5678e-99
-
+number 1234.5678e-99

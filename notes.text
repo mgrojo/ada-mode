@@ -40,10 +40,6 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-parsing bug:
-    underscore in based numeral
-        test/debug.adb
-
 add ada backend for xref.el
 
 add test to doc handling of bad style:

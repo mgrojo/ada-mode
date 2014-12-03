@@ -44,8 +44,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-wisi.el
-one : ada_mode-nominal-separate_package_1.adb.diff
+#one : RUNTEST := run-indent-test-wisi.el
+one-clean:
+	rm -f ada-number-literal.wisi-test
+one : one-clean ada-number-literal.wisi-test
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

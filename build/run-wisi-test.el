@@ -143,6 +143,8 @@
   (add-to-list 'load-path "../../test/wisi/")
   (require (intern (concat filename "-wy")))
   ;; top level parse action must set `wisi-test-success' t.
+
+  (setq wisi-debug 1);; fail for any parse errors
   (let ((build-dir default-directory)
 	(input-file (concat "../../test/wisi/" filename ".input")))
     (unless (file-readable-p input-file)

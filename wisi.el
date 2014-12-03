@@ -209,11 +209,11 @@ TOKEN-TEXT; move point to just past token."
   ;; typical literals:
   ;; 1234
   ;; 1234.5678
-  ;; 1234.5678e+99
+  ;; _not_ including non-decimal base, or underscores (see ada-wisi-number-p)
   ;;
   (let ((end (point)))
     ;; starts with a simple integer
-    (when (string-match "^[0-9]+" token-text)
+    (when (string-match "^[0-9]+$" token-text)
       (when (looking-at "\\.[0-9]+")
 	;; real number
 	(goto-char (setq end (match-end 0)))

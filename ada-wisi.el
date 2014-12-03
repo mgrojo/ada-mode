@@ -1639,12 +1639,12 @@ TOKEN-TEXT; move point to just past token."
   (let ((end (point)))
     ;; this first test must be very fast; it is executed for every token
     (when (and (memq (aref token-text 0) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-	       (string-match "^[0-9]+" token-text))
+	       (string-match "^[0-9_]+$" token-text))
       (cond
        ((= (char-after) ?#)
 	;; based number
 	(forward-char 1)
-	(if (not (looking-at "[0-9a-fA-F]+"))
+	(if (not (looking-at "[0-9a-fA-F_]+"))
 	    (progn (goto-char end) nil)
 
 	  (goto-char (match-end 0))
@@ -1689,7 +1689,7 @@ TOKEN-TEXT; move point to just past token."
        ((= (char-after) ?.)
 	;; decimal real number?
 	(forward-char 1)
-	(if (not (looking-at "[0-9]+"))
+	(if (not (looking-at "[0-9_]+"))
 	    ;; decimal integer
 	    (progn (goto-char end) t)
 
