@@ -1,4 +1,4 @@
---  Abstract :
+s--  Abstract :
 --
 --  Output Ada code implementing the grammar defined by input
 --  parameters, and a parser for that grammar, which outputs encoded
@@ -748,12 +748,14 @@ is
                Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
             end loop;
          elsif -Kind.Kind = """number""" then
-            --  Only one whitespace token. Ignoring value.
+            --  Only one number token. Ignoring value.
             if Kind.Tokens.Length > 1 then
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get),");
+               Indent_Line
+                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get, " &
+                    "Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
             end loop;
          elsif -Kind.Kind = """punctuation""" then
             for Item of Kind.Tokens loop

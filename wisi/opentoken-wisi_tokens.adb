@@ -17,7 +17,9 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
+
 with Ada.Strings.Bounded;
+with Ada.Tags;
 package body OpenToken.Wisi_Tokens is
 
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class
@@ -56,6 +58,10 @@ package body OpenToken.Wisi_Tokens is
 
       loop
          exit when I = Null_Iterator;
+         if Token_Handle (I).all not in Wisi_Tokens.Instance then
+            raise Programmer_Error with Ada.Tags.Expanded_Name (Token_Handle (I).all'Tag) &
+              " " & Image (Token_Handle (I).all) & " passed to Wisi_Tokens.Total_Buffer_Range";
+         end if;
          declare
             Buffer_Region : Buffer_Range renames Wisi_Tokens.Instance (Token_Handle (I).all).Buffer_Range;
          begin

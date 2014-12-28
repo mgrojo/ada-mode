@@ -23,6 +23,10 @@
 ^build/lynx_release/.*\.txt$
 ^build/lynx_release/obj$
 ^build/lynx_release/obj_tree$
+^build/profile/.*\.exe$
+^build/profile/.*\.parse_table$
+^build/profile/gmon\.out$
+^build/profile/obj$
 ^build/release/.*\.adb$
 ^build/release/.*\.ads$
 ^build/release/.*\.diff$
