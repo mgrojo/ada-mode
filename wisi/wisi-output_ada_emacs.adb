@@ -1,4 +1,4 @@
-s--  Abstract :
+--  Abstract :
 --
 --  Output Ada code implementing the grammar defined by input
 --  parameters, and a parser for that grammar, which outputs encoded
@@ -37,7 +37,8 @@ procedure Wisi.Output_Ada_Emacs
    Rule_Count         : in Integer;
    Action_Count       : in Integer;
    First_State_Index  : in Integer;
-   First_Parser_Label : in Integer)
+   First_Parser_Label : in Integer;
+   Profile            : in Boolean)
 is
    use type Ada.Containers.Count_Type;
 
@@ -446,7 +447,7 @@ is
          Put_Line ("with Ada.Strings.Maps.Constants;");
       end if;
 
-      if Action_Count > 0 then
+      if Action_Count > 0 and not Profile then
          Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
       end if;
 
@@ -461,8 +462,8 @@ is
       end if;
 
       if Is_In (Tokens, """number""") then
-            Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
-            --  FIXME: overkill for wisi-number-p; no based
+         Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
+         --  FIXME: overkill for wisi-number-p; no based
       end if;
 
       Put_Line ("with OpenToken.Recognizer.Keyword;");
@@ -527,6 +528,10 @@ is
          Indent_Line ("use Wisi_Tokens;");
          New_Line;
 
+         if Profile then
+            Indent_Line ("Action_Counts : array (Token_IDs) of Integer := (others => 0);");
+         end if;
+
          for Rule of Rules loop
             declare
                LHS_ID : constant Token_IDs := Find_Token_ID (-Rule.Left_Hand_Side);
@@ -552,17 +557,22 @@ is
                         Indent := Indent + 3;
                         Indent_Line ("New_Token := Get (To_ID, Total_Buffer_Range (Source));");
 
-                        --  Translate symbols into integer codes, for
-                        --  faster interpretation on the elisp side.
+                        if Profile then
+                           Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");
 
-                        Indent_Line
-                          ("Put_Line (""[" & To_Code (-Rule.Left_Hand_Side) & " "" & To_Codes (Source));");
+                        else
+                           --  Translate symbols into integer codes, for
+                           --  faster interpretation on the elisp side.
 
-                        for Line of RHS.Action loop
-                           Get_Elisp_Names (Line);
-                           Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");
-                        end loop;
-                        Indent_Line ("Put_Line (""]"");");
+                           Indent_Line
+                             ("Put_Line (""[" & To_Code (-Rule.Left_Hand_Side) & " "" & To_Codes (Source));");
+
+                           for Line of RHS.Action loop
+                              Get_Elisp_Names (Line);
+                              Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");
+                           end loop;
+                           Indent_Line ("Put_Line (""]"");");
+                        end if;
                         Indent := Indent - 3;
                         Indent_Line ("end " & Name & ";");
                         New_Line;
@@ -938,8 +948,9 @@ is
 begin
    Create_Body; -- populates Classes, used by Create_Spec
    Create_Spec;
-   Create_Elisp;
-
+   if not Profile then
+      Create_Elisp;
+   end if;
 exception
 when others =>
    Set_Output (Standard_Output);

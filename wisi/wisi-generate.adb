@@ -50,6 +50,7 @@ is
       Put_Line ("   level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line ("--first_state_index <n>; default 0");
       Put_Line ("--first_parser label <n>; default 0");
+      Put_Line ("--profile; actions just count");
    end Put_Usage;
 
    type Output_Language_Type is (Ada_Emacs, Elisp, Test);
@@ -69,6 +70,7 @@ is
    Action_Count       : Integer;
    First_State_Index  : Integer := 0; -- default
    First_Parser_Label : Integer := 0; -- default
+   Profile            : Boolean := False;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -116,6 +118,10 @@ begin
             First_Parser_Label := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
 
+         elsif Argument (Arg_Next) = "--profile" then
+            Arg_Next := Arg_Next + 1;
+            Profile  := True;
+
          else
             raise User_Error;
          end if;
@@ -138,7 +144,7 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count, First_State_Index, First_Parser_Label);
+         Rule_Count, Action_Count, First_State_Index, First_Parser_Label, Profile);
 
    when Elisp =>
       Wisi.Output_Elisp

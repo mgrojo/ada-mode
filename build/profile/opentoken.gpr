@@ -19,13 +19,11 @@ project OpenToken is
       for Default_Switches ("Ada") use
         Common.Compiler.Release_Switches &
         Common.Compiler.Style_Checks &
-        Common.Compiler'Default_Switches ("Ada") &
-        ("-pg");
+        Common.Compiler'Default_Switches ("Ada");
    end Compiler;
 
    package Builder is
-      for Default_Switches ("Ada") use Common.Builder'Default_Switches ("Ada") &
-        ("-pg");
+      for Default_Switches ("Ada") use Common.Builder'Default_Switches ("Ada");
 
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";
@@ -34,9 +32,5 @@ project OpenToken is
    package Binder is
       for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
    end Binder;
-
-   package Linker is
-      for Default_Switches ("Ada") use ("-pg");
-   end Linker;
 
 end OpenToken;
