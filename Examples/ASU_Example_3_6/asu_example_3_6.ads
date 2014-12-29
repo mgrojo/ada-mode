@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2013 Stephen Leake
+-- Copyright (C) 2013, 2014 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -44,8 +44,8 @@ package Asu_Example_3_6 is
    type Example_Token_ID is (If_ID, Then_ID, Else_ID, ID_ID, Int, Real, Relop, Whitespace);
 
    package Example_Token is new OpenToken.Token.Enumerated
-     (Example_Token_ID, Example_Token_ID'Image, Example_Token_ID'Width);
-   package Tokenizer is new Example_Token.Analyzer (Example_Token_ID'First, Example_Token_ID'Last);
+     (Example_Token_ID, Example_Token_ID'First, Example_Token_ID'Last, Example_Token_ID'Image);
+   package Tokenizer is new Example_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (If_ID             => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("if")),

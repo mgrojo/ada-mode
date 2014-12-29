@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephen Leake.
+--  Copyright (C) 2009, 2014 Stephen Leake.
 --  Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -134,7 +134,7 @@ begin
       Put_Line ("Input_String => " & Line (1 .. Line_Length));
 
       --  Load up the first token
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       Integer_Sequence.Parse (L, Analyzer);
 

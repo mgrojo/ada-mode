@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -55,8 +55,9 @@ package body Test_List_Stack is
 
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+   package Master_Token is new OpenToken.Token.Enumerated
+     (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
 
    Syntax : constant Tokenizer.Syntax :=
@@ -73,7 +74,7 @@ package body Test_List_Stack is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    package Integer_Selection is new OpenToken.Token.Selection_Mixin
      (Parent_Token    => Integer_Token.Instance,
@@ -163,8 +164,8 @@ package body Test_List_Stack is
       use AUnit.Check;
    begin
       OpenToken.Text_Feeder.String.Set (Feeder, "(10 + 5) * (2 + 3)");
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Reset;
+      Analyzer.Find_Next;
 
       Expected_Value := 75;
       Integer_Sequence.Parse (L, Analyzer);

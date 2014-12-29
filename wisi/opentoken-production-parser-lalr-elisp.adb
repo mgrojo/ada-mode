@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,11 +22,11 @@ with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Elisp is
 
-   procedure Action_Table (Parser : in Instance)
+   procedure Action_Table (Table : in Parse_Table)
    is begin
       Put ("     [");
-      for State in Parser.Table'Range loop
-         if State = Parser.Table'First then
+      for State in Table'Range loop
+         if State = Table'First then
             Put ("(");
          else
             Put ("      (");
@@ -35,7 +35,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
          Put ("(default . error)");
 
          declare
-            Action : Action_Node_Ptr := Parser.Table (State).Action_List;
+            Action : Action_Node_Ptr := Table (State).Action_List;
          begin
             loop
                declare
@@ -61,8 +61,8 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Token_Image (LHS_ID (Parse_Action.Production)) & " ." &
-                                Integer'Image (Index (Parse_Action.Production)) & ")");
+                             ("(" & Token_Image (Token.ID (Parse_Action.LHS.all)) & " ." &
+                                Integer'Image (Parse_Action.Index) & ")");
 
                         when Shift =>
                            Put (State_Index'Image (Parse_Action.State));
@@ -94,7 +94,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                end if;
 
                if Action = null then
-                  if State = Parser.Table'Last then
+                  if State = Table'Last then
                      Put (")");
                   else
                      Put_Line (")");
@@ -107,16 +107,16 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("]");
    end Action_Table;
 
-   procedure Goto_Table (Parser : in Instance)
+   procedure Goto_Table (Table : in Parse_Table)
    is
-      function Filter_Terminals (List : in Reduction_Node_Ptr) return Reduction_Node_Ptr
+      function Filter_Terminals (List : in Goto_Node_Ptr) return Goto_Node_Ptr
       is
-         Result : Reduction_Node_Ptr := List;
-         Prev   : Reduction_Node_Ptr := List;
-         Item   : Reduction_Node_Ptr := List;
+         Result : Goto_Node_Ptr := List;
+         Prev   : Goto_Node_Ptr := List;
+         Item   : Goto_Node_Ptr := List;
       begin
          while Item /= null loop
-            if Item.Symbol in Tokenizer.Terminal_ID then
+            if Item.Symbol in Token.Terminal_ID then
                --  delete from Result list
                if Item = Result then
                   Result := Item.Next;
@@ -134,22 +134,22 @@ package body OpenToken.Production.Parser.LALR.Elisp is
 
    begin
       Put ("     [");
-      for State in Parser.Table'Range loop
+      for State in Table'Range loop
          declare
-            Gotos : Reduction_Node_Ptr := Filter_Terminals (Parser.Table (State).Reduction_List);
+            Gotos : Goto_Node_Ptr := Filter_Terminals (Table (State).Goto_List);
          begin
             if Gotos = null then
-               if State = Parser.Table'First then
+               if State = Table'First then
                   Put_Line ("nil");
                else
-                  if State = Parser.Table'Last then
+                  if State = Table'Last then
                      Put ("      nil");
                   else
                      Put_Line ("      nil");
                   end if;
                end if;
             else
-               if State = Parser.Table'First then
+               if State = Table'First then
                   Put ("(");
                else
                   Put ("      (");
@@ -159,7 +159,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
-               if State = Parser.Table'Last then
+               if State = Table'Last then
                   Put (")");
                else
                   Put_Line (")");
@@ -175,7 +175,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Tokens        : in Wisi.Token_Lists.List;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
-      Parser        : in Instance)
+      Parser        : in Parse_Table_Ptr)
    is
       use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
@@ -194,9 +194,11 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       --  terminal tokens
       Put ("   '((");
       for Kind of Tokens loop
-         for Pair of Kind.Tokens loop
-            Put (-Pair.Name & " ");
-         end loop;
+         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+            for Pair of Kind.Tokens loop
+               Put (-Pair.Name & " ");
+            end loop;
+         end if;
       end loop;
       for Pair of Keywords loop
          Put (-Pair.Name & " ");
@@ -251,8 +253,8 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       end loop;
       Put_Line (")");
 
-      Action_Table (Parser);
-      Goto_Table (Parser);
+      Action_Table (Parser.all);
+      Goto_Table (Parser.all);
       Put_Line ("))");
 
       Put_Line ("  ""Parser table."")");

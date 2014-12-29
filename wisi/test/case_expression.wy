@@ -20,14 +20,10 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 ;; non-reporting
-;; whitespace added by wisi-generate
+%token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
 
 ;; terminals
@@ -35,7 +31,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%token <number-literal> NUMBER_LITERAL "[0-9.eE]+"
+%token <number> NUMBER_LITERAL wisi-number-p
 %token <symbol> IDENTIFIER
 
 %keyword RANGE "range"

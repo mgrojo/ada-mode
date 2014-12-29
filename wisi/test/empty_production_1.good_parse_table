@@ -1,0 +1,105 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => COMMENT_ID
+ 3 => BEGIN_ID
+ 4 => IS_ID
+ 5 => SEMICOLON_ID
+ 6 => EOF_ID
+ 7 => DECLARATIONS_ID
+ 8 => DECLARATIVE_PART_ID
+ 9 => BODY_ID
+ 10 => OPENTOKEN_ACCEPT_ID
+
+Parse Table:
+State 1:
+  OPENTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID EOF_ID
+
+   EOF_ID              => reduce 0 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 2
+   default             => ERROR
+
+   DECLARATIONS_ID     goto state 3
+   DECLARATIVE_PART_ID goto state 4
+   BODY_ID             goto state 5
+
+State 2:
+  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
+
+   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 2
+   default             => ERROR
+
+   DECLARATIONS_ID     goto state 3
+   DECLARATIVE_PART_ID goto state 8
+   BODY_ID             goto state 5
+
+State 3:
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, EOF_ID/BEGIN_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, EOF_ID/BEGIN_ID/IS_ID
+
+   EOF_ID              => reduce 1 tokens to DECLARATIVE_PART_ID
+   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 2
+   default             => ERROR
+
+   BODY_ID             goto state 7
+
+State 4:
+  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ EOF_ID
+
+   EOF_ID              => shift and goto state 6
+   default             => ERROR
+
+
+State 5:
+  DECLARATIONS_ID <= BODY_ID ^, EOF_ID/BEGIN_ID/IS_ID
+
+   EOF_ID              => reduce 1 tokens to DECLARATIONS_ID
+   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 6:
+  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
+
+   EOF_ID              => accept it
+   SEMICOLON_ID        => accept it
+   IS_ID               => accept it
+   BEGIN_ID            => accept it
+   default             => ERROR
+
+
+State 7:
+  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/BEGIN_ID/EOF_ID
+
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   EOF_ID              => reduce 2 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 8:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID/EOF_ID
+
+   BEGIN_ID            => shift and goto state 9
+   default             => ERROR
+
+
+State 9:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
+
+   SEMICOLON_ID        => shift and goto state 10
+   default             => ERROR
+
+
+State 10:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID/EOF_ID
+
+   BEGIN_ID            => reduce 4 tokens to BODY_ID
+   IS_ID               => reduce 4 tokens to BODY_ID
+   EOF_ID              => reduce 4 tokens to BODY_ID
+   default             => ERROR
+
+
+ 3 rules, 1 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 10 states, 33 table entries

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -43,9 +43,11 @@ package body OpenToken.Token.Enumerated.Integer is
 
    overriding procedure Create
      (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance)
    is
+      pragma Unreferenced (Bounds);
       pragma Unreferenced (Recognizer);
    begin
       New_Token.Value := Standard.Integer'Value (Lexeme);
@@ -65,7 +67,7 @@ package body OpenToken.Token.Enumerated.Integer is
 
    overriding function Name (Token : in Instance) return String
    is begin
-      if Trace_Parse then
+      if Trace_Parse > 0 then
          return Enumerated.Name (Enumerated.Instance (Token)) & " " & Standard.Integer'Image (Token.Value);
       else
          return Enumerated.Name (Enumerated.Instance (Token));

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2013 Stephe Leake
+-- Copyright (C) 2010, 2013, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -31,7 +31,9 @@
 -------------------------------------------------------------------------------
 
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
@@ -49,14 +51,17 @@ package ASU_Example_5_10_LR is
                       Multiply_ID, EOF_ID, L_ID, E_ID, T_ID, F_ID);
 
    --  Instantiate all the nessecary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Integer_ID, EOF_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Integer_ID, EOF_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new Parser.LALR (First_State_Index => 1);
+   package Parser is new Production.Parser (Tokenizer);
+   package LALR is new Parser.LALR (First_State_Index => 1);
+   package LALR_Generator is new LALR.Generator (Token_IDs'Width, Production_List);
+   package Parser_Lists is new LALR.Parser_Lists;
+   package LALR_Parser is new LALR.Parser (Parser_Lists);
 
    --  Instantiate our tokens
    package Integer_Literal is new Master_Token.Integer;
@@ -93,7 +98,7 @@ package ASU_Example_5_10_LR is
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --------------------------------------------------------------------------
    --  Define the Grammar. The text in the example in the book looks something

@@ -1,0 +1,45 @@
+--  For building OpenToken parsers with profiling
+
+with "../common";
+with "opentoken";
+project OpenToken_Test is
+
+   for Source_Dirs use
+     (".",
+      "../../wisi/test");
+
+   for Object_Dir use "obj";
+   for Exec_Dir use ".";
+
+   package Compiler is
+      for Default_Switches ("Ada") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-pg");
+
+      for Switches ("ada_grammar.adb") use
+        Common.Compiler.Release_Switches &
+        Common.Compiler.Style_Checks_No_Length &
+        ("-O2", "-fno-var-tracking-assignments", "-pg");
+      -- gnatn hangs; 01, 02 slow; -fvar-tracking-assignments gives up (only needed for debug)
+
+      for Switches ("ada_grammar.ads") use
+        Common.Compiler.Release_Switches & Common.Compiler.Style_Checks_No_Length & ("-O0", "-pg");
+      -- 01, O2 gnatn hangs
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use Common.Builder'Default_Switches ("Ada") &
+        ("-pg");
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
+   package Binder is
+      for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
+   end Binder;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-pg");
+   end Linker;
+
+end OpenToken_Test;

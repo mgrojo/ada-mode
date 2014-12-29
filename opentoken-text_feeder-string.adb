@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 Ted Dennison
+-- Copyright (C) 1999, 2014 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -35,14 +35,13 @@ package body OpenToken.Text_Feeder.String is
       New_Text :    out Standard.String;
       Text_End :    out Integer)
    is
-      Data_Length : constant Natural := Ada.Strings.Unbounded.Length (Feeder.Next_Value);
+      use Ada.Strings.Unbounded;
+      Data_Length : constant Natural := Length (Feeder.Next_Value);
    begin
       if New_Text'Length < Data_Length then
-         New_Text := Ada.Strings.Unbounded.To_String
-           (Ada.Strings.Unbounded.Head (Source => Feeder.Next_Value,
-                                        Count  => New_Text'Length));
-         Ada.Strings.Unbounded.Tail (Source => Feeder.Next_Value,
-                                     Count  => Data_Length - New_Text'Length);
+         New_Text := To_String (Head (Feeder.Next_Value, New_Text'Length));
+
+         Tail (Feeder.Next_Value, Data_Length - New_Text'Length);
          Text_End := New_Text'Last;
       else
          Text_End := New_Text'First + Data_Length - 1;

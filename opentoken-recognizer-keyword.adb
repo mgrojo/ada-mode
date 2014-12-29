@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999 FlightSafety International and Ted Dennison
+-- Copyright (C) 1999, 2014 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -94,16 +94,13 @@ package body OpenToken.Recognizer.Keyword is
 
    end Analyze;
 
-
-   ----------------------------------------------------------------------------
-   --  This procedure will be called to create a End_Of_File token
-   ----------------------------------------------------------------------------
-   function Get (Keyword_Literal : in String;
-                 Case_Sensitive  : in Boolean := Default_Case_Sensitivity;
-                 Reportable      : in Boolean := True) return Instance is
-
+   function Get
+     (Keyword_Literal : in String;
+      Case_Sensitive  : in Boolean := Default_Case_Sensitivity;
+      Reportable      : in Boolean := True)
+     return Instance
+   is
       New_Token : Instance;
-
    begin
 
       New_Token.Case_Sensitive := Case_Sensitive;
@@ -112,9 +109,8 @@ package body OpenToken.Recognizer.Keyword is
       if Case_Sensitive then
          New_Token.Literal := Buffers.To_Bounded_String (Keyword_Literal);
       else
-         --  If we aren't case sensitive, convert everything to lower case.
-         New_Token.Literal := Buffers.To_Bounded_String (Ada.Characters.Handling.To_Lower
-                                                           (Keyword_Literal));
+         New_Token.Literal := Buffers.To_Bounded_String
+           (Ada.Characters.Handling.To_Lower (Keyword_Literal));
       end if;
 
       return New_Token;

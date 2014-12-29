@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -44,6 +44,11 @@ package body OpenToken.Token is
          return Token.Name.all;
       end if;
    end Name;
+
+   function Has_Name (Token : in Instance) return Boolean
+   is begin
+      return Token.Name /= null;
+   end Has_Name;
 
    function Name_Dispatch (Token : in Class) return String
    is begin

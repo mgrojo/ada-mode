@@ -1,0 +1,6 @@
+Monitor;
+Monitor constant;
+Monitor aliased;
+Monitor aliased constant;
+Monitor := ;
+Monitor constant := ;

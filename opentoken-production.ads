@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2013 Stephe Leake
+-- Copyright (C) 2003, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,7 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
 
@@ -132,15 +131,17 @@ package OpenToken.Production is
    --  Access functions
 
    function First_Token (Item : in Instance) return Token_List.List_Iterator;
+   function LHS (Item : in Instance) return Nonterminal.Handle;
    function LHS_ID (Item : in Instance) return Token.Token_ID;
    function Index (Item : in Instance) return Integer;
+   function Action (Item : in Instance) return Nonterminal.Synthesize;
 
 private
 
    type Right_Hand_Side is record
       Tokens : Token_List.Instance;
       Action : Nonterminal.Synthesize;
-      Index  : Integer; -- In LRk_Item set
+      Index  : Integer; -- In grammar rule
    end record;
 
    type Instance is record

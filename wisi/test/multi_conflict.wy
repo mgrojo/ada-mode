@@ -1,0 +1,60 @@
+;;; Wisi grammar generating multiple conflicts in one state; show that
+;;; Parser.LALR.Generate recognizes that there are actually only two.
+;;
+%{
+;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+%}
+%keyword LEFT_PAREN "("
+%keyword RIGHT_PAREN ")"
+
+%token <punctuation> TICK "'"
+
+%token <symbol> IDENTIFIER
+
+%token <whitespace> WHITESPACE ""
+
+%start name
+
+%conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+
+%%
+
+
+aggregate
+  : LEFT_PAREN name RIGHT_PAREN
+  ;
+
+
+attribute_reference : name TICK attribute_designator ;
+
+attribute_designator
+  : name
+  ;
+
+
+name
+  : IDENTIFIER
+  | attribute_reference
+  | qualified_expression
+  ;
+
+qualified_expression
+  : name TICK aggregate
+  ;
+
+%%
+;;; end of file

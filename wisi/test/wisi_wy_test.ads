@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Wisi_WY_Test is
+package Wisi_Wy_Test is
 
    type Test_Case (Root_Name : access String) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -29,4 +29,4 @@ package Wisi_WY_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Wisi_WY_Test;
+end Wisi_Wy_Test;

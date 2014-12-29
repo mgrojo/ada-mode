@@ -39,7 +39,7 @@
      ("punctuation"
       (TICK . "'")
      )
-     ("string"
+     ("string-double"
       (STRING_LITERAL)
      )
     )
@@ -50,8 +50,7 @@
    (wisi-compile-grammar
    '((SYMBOL TICK STRING_LITERAL FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN )
      ((compilation_unit
-       ((declarations )
-        (setq wisi-test-success t)))
+       ((declarations )))
       (declarations
        ((declaration ))
        ((declarations declaration )))
@@ -59,43 +58,41 @@
        ((subprogram )))
       (subprogram
        ((FUNCTION parameter_list SYMBOL )
-        `,(wisi-statement-action
-        1 'function
-        2 'other))
-       ((PROCEDURE parameter_list )
-        (wisi-statement-tokens
-        $1 'procedure $region1
-        $2 'other $region2)))
+        (wisi-statement-action [1 function 3 name]))
+       ((PROCEDURE parameter_list SYMBOL )
+        (wisi-statement-action [1 procedure 3 name])))
       (parameter_list
        ((LEFT_PAREN RIGHT_PAREN )
-        `,(wisi-statement-action 1 'open-paren 2 'close-paren))
+        (wisi-statement-action [1 open-paren 2 close-paren]))
        (())
        ((LEFT_PAREN SYMBOL RIGHT_PAREN )
-        `,(wisi-statement-action 1 'open-paren 3 'close-paren))
+        (wisi-statement-action [1 open-paren 3 close-paren]))
        ((TICK STRING_LITERAL ))))
      [((default . error) (FUNCTION .  1) (PROCEDURE .  2))
-      ((default . error) (SYMBOL . (parameter_list . 1)) (LEFT_PAREN .  10) (TICK .  9))
-      ((default . error) (PROCEDURE . (parameter_list . 1)) (FUNCTION . (parameter_list . 1)) ($EOI . (parameter_list . 1)) (LEFT_PAREN .  10) (TICK .  9))
+      ((default . error) (SYMBOL . (parameter_list . 1)) (LEFT_PAREN .  9) (TICK .  10))
+      ((default . error) (SYMBOL . (parameter_list . 1)) (LEFT_PAREN .  9) (TICK .  10))
       ((default . error) ($EOI .  8))
       ((default . error) ($EOI . (compilation_unit . 0)) (FUNCTION .  1) (PROCEDURE .  2))
       ((default . error) ($EOI . (declarations . 0)) (FUNCTION . (declarations . 0)) (PROCEDURE . (declarations . 0)))
       ((default . error) (PROCEDURE . (declaration . 0)) (FUNCTION . (declaration . 0)) ($EOI . (declaration . 0)))
       ((default . error) (PROCEDURE . (declarations . 1)) (FUNCTION . (declarations . 1)) ($EOI . (declarations . 1)))
-      ((default . error) ($EOI . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (LEFT_PAREN . accept) (FUNCTION . accept) (STRING_LITERAL . accept) (TICK . accept) (SYMBOL . accept))
-      ((default . error) (STRING_LITERAL .  16))
-      ((default . error) (SYMBOL .  14) (RIGHT_PAREN .  15))
-      ((default . error) (PROCEDURE . (subprogram . 1)) (FUNCTION . (subprogram . 1)) ($EOI . (subprogram . 1)))
+      ((default . error) ($EOI . accept) (STRING_LITERAL . accept) (TICK . accept) (SYMBOL . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (LEFT_PAREN . accept) (FUNCTION . accept))
+      ((default . error) (SYMBOL .  17) (RIGHT_PAREN .  16))
+      ((default . error) (STRING_LITERAL .  15))
+      ((default . error) (SYMBOL .  14))
       ((default . error) (SYMBOL .  13))
       ((default . error) ($EOI . (subprogram . 0)) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)))
-      ((default . error) (RIGHT_PAREN .  17))
-      ((default . error) (SYMBOL . (parameter_list . 0)) ($EOI . (parameter_list . 0)) (FUNCTION . (parameter_list . 0)) (PROCEDURE . (parameter_list . 0)))
-      ((default . error) (SYMBOL . (parameter_list . 3)) ($EOI . (parameter_list . 3)) (FUNCTION . (parameter_list . 3)) (PROCEDURE . (parameter_list . 3)))
-      ((default . error) (PROCEDURE . (parameter_list . 2)) (FUNCTION . (parameter_list . 2)) ($EOI . (parameter_list . 2)) (SYMBOL . (parameter_list . 2)))]
+      ((default . error) ($EOI . (subprogram . 1)) (FUNCTION . (subprogram . 1)) (PROCEDURE . (subprogram . 1)))
+      ((default . error) (SYMBOL . (parameter_list . 3)))
+      ((default . error) (SYMBOL . (parameter_list . 0)))
+      ((default . error) (RIGHT_PAREN .  18))
+      ((default . error) (SYMBOL . (parameter_list . 2)))]
      [((compilation_unit . 3)(declarations . 4)(declaration . 5)(subprogram . 6))
       ((parameter_list . 12))
       ((parameter_list . 11))
       nil
       ((declaration . 7)(subprogram . 6))
+      nil
       nil
       nil
       nil

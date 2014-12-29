@@ -1,7 +1,7 @@
--- a simple entry_body, with empty declarations
+-- a simple body, with empty declarations
 is begin;
 
--- one declaration; an entry_body with empty declarations
+-- one declaration; a body with empty declarations
 is
     is begin;
 begin;

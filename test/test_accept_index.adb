@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -22,7 +22,9 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Strings.Maps.Constants;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
+with OpenToken.Production.Parser.LALR.Parser;
+with OpenToken.Production.Parser.LALR.Parser_Lists;
 with OpenToken.Recognizer.Based_Integer;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
@@ -53,14 +55,17 @@ package body Test_Accept_Index is
       Statement_ID);
 
    --  Instantiate all the necessary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-   package Tokenizer is new Master_Token.Analyzer (Equals_ID, Identifier_ID);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, Identifier_ID, Token_IDs'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Token_List is new Master_Token.List;
    package Nonterminal is new Master_Token.Nonterminal (Token_List);
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Production_List, Tokenizer);
-   package LALR_Parser is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
+   package LALR_Parser is new LALRs.Parser (1, Parser_Lists);
+   package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_List);
 
    package Integer_Literal is new Master_Token.Integer;
 
@@ -98,7 +103,6 @@ package body Test_Accept_Index is
      Statement <= Master_Token.Get (Set_ID) & Identifier & Equals & Int + Nonterminal.Synthesize_Self;
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Instance := Tokenizer.Initialize (Syntax);
    Parser        : LALR_Parser.Instance;
 
    ----------
@@ -110,12 +114,14 @@ package body Test_Accept_Index is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := LALR_Parser.Generate
-        (Grammar, Analyzer,
-         Trace       => Test.Debug,
-         Put_Grammar => Test.Debug);
+      Parser := LALR_Parser.Initialize
+        (Tokenizer.Initialize (Syntax),
+         LALR_Generator.Generate
+           (Grammar,
+            Trace           => Test.Debug,
+            Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := Test.Debug;
+      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
 
       LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
 

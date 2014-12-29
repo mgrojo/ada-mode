@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999, 2009, 2012 Stephe Leake
+-- Copyright (C) 1999, 2009, 2012, 2014 Stephe Leake
 -- Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -77,43 +77,43 @@ begin
       Analyzer.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Ada.Text_IO.Current_Input));
 
       --  Analyze the file
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
-      if Tokenizer.ID (Analyzer) /= Default then
+      if Analyzer.ID /= Default then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("First token was not default.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
-      if Tokenizer.Lexeme (Analyzer) /= Text_Line_1 then
+      if Analyzer.Lexeme /= Text_Line_1 then
          Ada.Text_IO.Put_Line ("failed.");
-         Ada.Text_IO.Put_Line ("First lexeme was """ & Tokenizer.Lexeme (Analyzer) &
+         Ada.Text_IO.Put_Line ("First lexeme was """ & Analyzer.Lexeme &
                                  """ not """ & Text_Line_1 & """.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
-      if Tokenizer.ID (Analyzer) /= Normal then
+      if Analyzer.ID /= Normal then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Second token was not Normal.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
 
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
-      if Tokenizer.ID (Analyzer) /= Default then
+      if Analyzer.ID /= Default then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line ("Third token was not default.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;
       end if;
-      if Tokenizer.Lexeme (Analyzer) /= OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character then
+      if Analyzer.Lexeme /= OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character then
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line
-           ("Third lexeme was """ & Tokenizer.Lexeme (Analyzer) &
+           ("Third lexeme was """ & Analyzer.Lexeme &
               """ not """ & OpenToken.EOL_Character & Text_Line_2 & OpenToken.EOF_Character & """.");
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          return;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010, 2012 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -30,13 +30,13 @@ package body OpenToken.Production.Parser is
 
    procedure Reset (Parser : in out Instance)
    is begin
-      Tokenizer.Reset (Parser.Analyzer);
+      Parser.Analyzer.Reset;
    end Reset;
 
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr)
    is begin
-      if Tokenizer.End_Of_Buffered_Text (Parser.Analyzer) then
-         Tokenizer.Set_Text_Feeder (Parser.Analyzer, Feeder);
+      if Parser.Analyzer.End_Of_Buffered_Text then
+         Parser.Analyzer.Set_Text_Feeder (Feeder);
       else
          Ada.Exceptions.Raise_Exception
            (Parse_Error'Identity, "Tokenizer not at end of buffered text");
@@ -45,22 +45,22 @@ package body OpenToken.Production.Parser is
 
    procedure Discard_Buffered_Text (Parser : in out Instance)
    is begin
-      Tokenizer.Discard_Buffered_Text (Parser.Analyzer);
+      Parser.Analyzer.Discard_Buffered_Text;
    end Discard_Buffered_Text;
 
    function End_Of_Text (Parser : in Instance) return Boolean
    is begin
-      return Tokenizer.End_Of_Text (Parser.Analyzer);
+      return Parser.Analyzer.End_Of_Text;
    end End_Of_Text;
 
    function Line (Parser : in Instance) return Natural is
    begin
-      return Tokenizer.Line (Parser.Analyzer);
+      return Parser.Analyzer.Line;
    end Line;
 
    function Column (Parser : in Instance) return Natural is
    begin
-      return Tokenizer.Column (Parser.Analyzer);
+      return Parser.Analyzer.Column;
    end Column;
 
 end OpenToken.Production.Parser;

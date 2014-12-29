@@ -31,16 +31,13 @@
 (defconst case_expression-wy--token-table
   (semantic-lex-make-type-table
    '(
-     ("line_comment"
-      (COMMENT . "--")
-     )
      ("punctuation"
       (DOT_DOT . "..")
       (EQUAL_GREATER . "=>")
       (TICK . "'")
      )
-     ("number-literal"
-      (NUMBER_LITERAL . "[0-9.eE]+")
+     ("number"
+      (NUMBER_LITERAL . wisi-number-p)
      )
      ("symbol"
       (IDENTIFIER)

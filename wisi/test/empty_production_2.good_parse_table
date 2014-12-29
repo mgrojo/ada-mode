@@ -1,0 +1,117 @@
+Tokens:
+ 1 => WHITESPACE_ID
+ 2 => COMMENT_ID
+ 3 => BEGIN_ID
+ 4 => IS_ID
+ 5 => SEMICOLON_ID
+ 6 => EOF_ID
+ 7 => DECLARATION_ID
+ 8 => DECLARATIONS_ID
+ 9 => BODY_ID
+ 10 => OPENTOKEN_ACCEPT_ID
+
+Parse Table:
+State 1:
+  OPENTOKEN_ACCEPT_ID <= ^ DECLARATIONS_ID EOF_ID
+
+   EOF_ID              => reduce 0 tokens to DECLARATION_ID
+   IS_ID               => shift and goto state 2,
+                          reduce 0 tokens to DECLARATION_ID
+   default             => ERROR
+
+   DECLARATION_ID      goto state 3
+   DECLARATIONS_ID     goto state 4
+   BODY_ID             goto state 5
+
+State 2:
+  BODY_ID <= IS_ID ^ DECLARATIONS_ID BEGIN_ID SEMICOLON_ID, EOF_ID/BEGIN_ID/IS_ID
+
+   BEGIN_ID            => reduce 0 tokens to DECLARATION_ID
+   IS_ID               => shift and goto state 2,
+                          reduce 0 tokens to DECLARATION_ID
+   default             => ERROR
+
+   DECLARATION_ID      goto state 3
+   DECLARATIONS_ID     goto state 8
+   BODY_ID             goto state 5
+
+State 3:
+  DECLARATIONS_ID <= DECLARATION_ID ^, EOF_ID/BEGIN_ID/IS_ID
+
+   EOF_ID              => reduce 1 tokens to DECLARATIONS_ID
+   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 4:
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, EOF_ID/IS_ID
+  OPENTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ EOF_ID
+
+   EOF_ID              => shift and goto state 6,
+                          reduce 0 tokens to DECLARATION_ID
+   IS_ID               => shift and goto state 2,
+                          reduce 0 tokens to DECLARATION_ID
+   default             => ERROR
+
+   DECLARATION_ID      goto state 7
+   BODY_ID             goto state 5
+
+State 5:
+  DECLARATION_ID <= BODY_ID ^, EOF_ID/IS_ID/BEGIN_ID
+
+   EOF_ID              => reduce 1 tokens to DECLARATION_ID
+   IS_ID               => reduce 1 tokens to DECLARATION_ID
+   BEGIN_ID            => reduce 1 tokens to DECLARATION_ID
+   default             => ERROR
+
+
+State 6:
+  OPENTOKEN_ACCEPT_ID <= DECLARATIONS_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
+
+   EOF_ID              => accept it
+   SEMICOLON_ID        => accept it
+   IS_ID               => accept it
+   BEGIN_ID            => accept it
+   default             => ERROR
+
+
+State 7:
+  DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, BEGIN_ID/IS_ID/EOF_ID
+
+   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   EOF_ID              => reduce 2 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 8:
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID/IS_ID
+  BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/BEGIN_ID/EOF_ID
+
+   BEGIN_ID            => shift and goto state 9,
+                          reduce 0 tokens to DECLARATION_ID
+   IS_ID               => shift and goto state 2,
+                          reduce 0 tokens to DECLARATION_ID
+   default             => ERROR
+
+   DECLARATION_ID      goto state 7
+   BODY_ID             goto state 5
+
+State 9:
+  BODY_ID <= IS_ID DECLARATIONS_ID BEGIN_ID ^ SEMICOLON_ID, EOF_ID/BEGIN_ID/IS_ID
+
+   SEMICOLON_ID        => shift and goto state 10
+   default             => ERROR
+
+
+State 10:
+  BODY_ID <= IS_ID DECLARATIONS_ID BEGIN_ID SEMICOLON_ID ^, IS_ID/BEGIN_ID/EOF_ID
+
+   IS_ID               => reduce 4 tokens to BODY_ID
+   BEGIN_ID            => reduce 4 tokens to BODY_ID
+   EOF_ID              => reduce 4 tokens to BODY_ID
+   default             => ERROR
+
+
+ 3 rules, 1 actions, 3 shift/reduce conflicts, 0 reduce/reduce conflicts, 10 states, 35 table entries

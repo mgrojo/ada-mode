@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -34,8 +34,8 @@ package body Test_List_Actions is
 
    type Token_ID is (Int, Plus, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer (Token_ID'First, Token_ID'Last);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
    package Int_List is new OpenToken.Token.List_Mixin
      (Parent_Token    => Integer_Token.Instance,
@@ -52,7 +52,7 @@ package body Test_List_Actions is
      );
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --  Build and Add_Element actions
 
@@ -111,8 +111,8 @@ package body Test_List_Actions is
       use AUnit.Check;
    begin
       OpenToken.Text_Feeder.String.Set (Feeder, "1 + 2 + 3");
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Reset;
+      Analyzer.Find_Next;
 
       Int_List.Parse (A_List, Analyzer);
 
@@ -139,7 +139,7 @@ package body Test_List_Actions is
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
-      OpenToken.Trace_Parse := T.Debug;
+      OpenToken.Trace_Parse := (if T.Debug then 1 else 0);
    end Set_Up_Case;
 
 end Test_List_Actions;

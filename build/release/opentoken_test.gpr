@@ -40,9 +40,12 @@ project OpenToken_Test is
       for Default_Switches ("Ada") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
+      -- generated code has long lines, so relax limit
       for Switches ("empty_production_5*.ad?") use
-        -- generated code has long lines, so don't enforce limit
-        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM123");
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999");
+
+      for Switches ("multi_conflict.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999");
    end Compiler;
 
    package Builder is

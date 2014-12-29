@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012, 2013 Stephen Leake
+-- Copyright (C) 2012 - 2014 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -72,7 +72,6 @@ package OpenToken.Text_Feeder.Text_IO is
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
 
 private
-   Nothing : constant Character := Character'Val (0);
 
    type Instance is new OpenToken.Text_Feeder.Instance with record
       File     : Ada.Text_IO.File_Access := Ada.Text_IO.Current_Input;

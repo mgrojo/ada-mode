@@ -11,6 +11,8 @@
 ^build/debug/.*\.out$
 ^build/debug/.*\.output$
 ^build/debug/.*\.parse$
+^build/debug/.*\.parse_table$
+^build/debug/.*\.text$
 ^build/debug/.*\.txt$
 ^build/debug/lib$
 ^build/debug/obj$
@@ -21,6 +23,14 @@
 ^build/lynx_release/.*\.txt$
 ^build/lynx_release/obj$
 ^build/lynx_release/obj_tree$
+^build/profile/.*\.exe$
+^build/profile/.*\.parse_table$
+^build/profile/ada_grammar\.adb$
+^build/profile/ada_grammar\.ads$
+^build/profile/ada_grammar\.el$
+^build/profile/gmon\.out$
+^build/profile/gprof\.out$
+^build/profile/obj$
 ^build/release/.*\.adb$
 ^build/release/.*\.ads$
 ^build/release/.*\.diff$
@@ -28,6 +38,8 @@
 ^build/release/.*\.exe$
 ^build/release/.*\.out$
 ^build/release/.*\.parse$
+^build/release/.*\.parse_table$
+^build/release/.*\.text$
 ^build/release/.*\.txt$
 ^build/release/lib$
 ^build/release/lib-obj$

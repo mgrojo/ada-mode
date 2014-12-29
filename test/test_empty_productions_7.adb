@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,7 @@ pragma License (GPL);
 with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR;
+with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Token.Enumerated.Analyzer;
 with OpenToken.Token.Enumerated.List;
 with OpenToken.Token.Enumerated.Nonterminal;
@@ -52,16 +52,15 @@ package body Test_Empty_Productions_7 is
 
    First_State_Index : constant Integer := 1;
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
+   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, ALIASED_ID, EOF_ID, Token_IDs'Image);
    package Token_Lists is new Tokens_Pkg.List;
    package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
    package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer
-     (First_Terminal => ALIASED_ID,
-      Last_Terminal  => EOF_ID);
-   package Parsers is new Productions.Parser (Production_Lists, Analyzers);
-   package LALR is new Parsers.LALR (First_State_Index);
+   package Analyzers is new Tokens_Pkg.Analyzer;
+   package Parsers is new Productions.Parser (Analyzers);
+   package LALRs is new Parsers.LALR (First_State_Index);
+   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
    use type Token_Lists.Instance;
@@ -94,25 +93,26 @@ package body Test_Empty_Productions_7 is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists, ALIASED_ID, EOF_ID,
-      Analyzers, Parsers, First_State_Index, LALR, Grammar);
+     (Token_IDs, ALIASED_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
+      Analyzers, Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
 
-   Has_Empty_Production : constant LALR.LRk.Nonterminal_ID_Set := LALR.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
+     LALR_Generators.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR.LRk.Derivation_Matrix := LALR.LRk.First_Derivations
+   First : constant LALR_Generators.LRk.Derivation_Matrix := LALR_Generators.LRk.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    Accept_Index : constant := 5;
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LALR.LRk.Item_Set;
+      Kernel   : in LALR_Generators.LRk.Item_Set;
       Symbol   : in Token_IDs;
-      Expected : in LALR.LRk.Item_Set;
+      Expected : in LALR_Generators.LRk.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LALR.LRk;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -127,27 +127,27 @@ package body Test_Empty_Productions_7 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR.LRk.Item_Set_List;
-      State    : in Integer;
-      Expected : in LALR.Parse_State;
+      Kernels  : in LALR_Generators.LRk.Item_Set_List;
+      State    : in LALRs.State_Index;
+      Expected : in LALRs.Parse_State;
       Debug    : in Boolean)
    is
       use OpenToken_AUnit;
-      Kernel    : constant LALR.LRk.Item_Set_Ptr := LALR.LRk.Find (State, Kernels);
-      Conflicts : LALR.Conflict_Lists.List;
-      Table     : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
+      Kernel    : constant LALR_Generators.LRk.Item_Set_Ptr := LALR_Generators.LRk.Find (State, Kernels);
+      Conflicts : LALRs.Conflict_Lists.List;
+      Table     : LALRs.Parse_Table (1 .. LALRs.State_Index (Kernels.Size));
    begin
-      LALR.Add_Actions
+      LALR_Generators.Add_Actions
         (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       if Debug then
          Ada.Text_IO.Put_Line ("Computed:");
-         LALR.Put (Table (LALR.State_Index (Kernel.Index)));
+         LALR_Generators.Put (Table (Kernel.State));
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR.Put (Expected);
+         LALR_Generators.Put (Expected);
       end if;
 
-      Check (Label, Table (LALR.State_Index (Kernel.Index)), Expected);
+      Check (Label, Table (Kernel.State), Expected);
    end Test_Actions;
 
    ----------
@@ -156,7 +156,7 @@ package body Test_Empty_Productions_7 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
       --  kernel:
@@ -167,7 +167,7 @@ package body Test_Empty_Productions_7 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR.LRk.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generators.LRk.Lookahead_Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -200,13 +200,13 @@ package body Test_Empty_Productions_7 is
       Expected :=
         (Set       => Expected_Set,
          Goto_List => null,
-         Index     => -1,
+         State     => LALRs.Unknown_State,
          Next      => null);
 
       if Test.Debug then
          --  computed output by Lookahead_Closure
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR.LRk.Put (Expected);
+         LALR_Generators.LRk.Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 
@@ -216,7 +216,7 @@ package body Test_Empty_Productions_7 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
       --  kernel:
@@ -259,7 +259,7 @@ package body Test_Empty_Productions_7 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         Index     => -1,
+         State     => LALRs.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("3", Kernel, CONSTANT_ID, Expected, Test.Debug);
@@ -271,7 +271,7 @@ package body Test_Empty_Productions_7 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR.LRk;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
       --  kernel:
@@ -314,7 +314,7 @@ package body Test_Empty_Productions_7 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         Index     => -1,
+         State     => LALRs.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("3", Kernel, SEMICOLON_ID, Expected, Test.Debug);
@@ -324,21 +324,22 @@ package body Test_Empty_Productions_7 is
    procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR;
-      use LALR.LRk;
+      use LALRs;
+      use LALR_Generators;
+      use LALR_Generators.LRk;
       use OpenToken_AUnit;
 
       Used_Tokens : Analyzers.Token_Array_Boolean := (others => False);
 
       Kernels : Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => First_State_Index);
+        (Grammar, First, Trace => Test.Debug, First_State_Index => LALRs.Unknown_State_Index (First_State_Index));
 
       Expected : Parse_State;
    begin
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Accept_Index, Used_Tokens, Test.Debug);
 
       if Test.Debug then
-         LALR.LRk.Put (Kernels);
+         LALR_Generators.LRk.Put (Kernels);
       end if;
 
       --  kernel 2:
@@ -355,7 +356,7 @@ package body Test_Empty_Productions_7 is
       --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 8
 
       Expected.Action_List := new Action_Node'
-        (Symbol  => Analyzers.Terminal_ID'Last, -- ignored, since this is the last action
+        (Symbol  => Tokens_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
          Action  => new Parse_Action_Node'
            (Item => (Verb => Error),
             Next => null),
@@ -371,26 +372,30 @@ package body Test_Empty_Productions_7 is
          Next        => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol           => SEMICOLON_ID,
-         Action           => new Parse_Action_Node'
-           (Item          =>
-              (Verb       => Reduce,
-               Production => Get_Production (5),
-               Length     => 0),
-            Next          => null),
-         Next             => Expected.Action_List);
+        (Symbol            => SEMICOLON_ID,
+         Action            => new Parse_Action_Node'
+           (Item           =>
+              (Verb        => Reduce,
+               LHS         => Productions.LHS (Get_Production (5)),
+               Action      => null,
+               Index       => 0,
+               Token_Count => 0),
+            Next           => null),
+         Next              => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol           => CONSTANT_ID,
-         Action           => new Parse_Action_Node'
-           (Item          =>
-              (Verb       => Reduce,
-               Production => Get_Production (5),
-               Length     => 0),
-            Next          => null),
-         Next             => Expected.Action_List);
+        (Symbol            => CONSTANT_ID,
+         Action            => new Parse_Action_Node'
+           (Item           =>
+              (Verb        => Reduce,
+               LHS         => Productions.LHS (Get_Production (5)),
+               Action      => null,
+               Index       => 0,
+               Token_Count => 0),
+            Next           => null),
+         Next              => Expected.Action_List);
 
-      Expected.Reduction_List := new Reduction_Node'
+      Expected.Goto_List := new Goto_Node'
         (Symbol => aliased_opt_ID,
          State  => 8,
          Next   => null);

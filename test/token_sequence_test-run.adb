@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephen Leake
+-- Copyright (C) 2009, 2014 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -52,7 +52,7 @@ begin
 
       Parse_String : constant String := "Do several things 200 times in a row";
 
-      Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
       Sequence : aliased OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
@@ -68,19 +68,19 @@ begin
       OpenToken.Text_Feeder.String.Set (String_Feeder, Parse_String);
 
       --  Load up the first token
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       --  Perform the parse
       OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
 
-      if Tokenizer.ID (Analyzer) = EOF then
+      if Analyzer.ID = EOF then
          Ada.Text_IO.Put_Line ("passed");
       else
          Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
          Ada.Text_IO.Put_Line ("failed.");
          Ada.Text_IO.Put_Line
            ("There was an unexpected " &
-              Token_IDs'Image (Tokenizer.ID (Analyzer)) &
+              Token_IDs'Image (Analyzer.ID) &
               " left on the input stream.");
       end if;
 
@@ -106,7 +106,7 @@ begin
 
       Parse_String : constant String := "Do several things in a row";
 
-      Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, String_Feeder'Access);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
       Sequence : aliased OpenToken.Token.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
@@ -122,7 +122,7 @@ begin
       OpenToken.Text_Feeder.String.Set (String_Feeder, Parse_String);
 
       --  Load up the first token
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       --  Parse token sequence
       OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);

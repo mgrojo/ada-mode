@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -93,8 +93,8 @@ package body Test_Backtrack is
 
    type Token_ID is (T0, T1, T2, T3, T4, T5, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'Image, Token_ID'Width);
-   package Tokenizer is new Master_Token.Analyzer (T0, Whitespace);
+   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, T0, Whitespace, Token_ID'Image);
+   package Tokenizer is new Master_Token.Analyzer;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 
@@ -113,7 +113,7 @@ package body Test_Backtrack is
            (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax, Feeder'Access);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
    --  We are only interested in testing the backtracking, so we don't
    --  define any Build actions.
@@ -157,14 +157,14 @@ package body Test_Backtrack is
       --  to do the simple stuff first.
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
+      Analyzer.Reset;
       --  The very first call to find_next can't be look_ahead =>
       --  true, since no real parser would do that.
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Find_Next (Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
@@ -176,7 +176,7 @@ package body Test_Backtrack is
             Head_Null   => True);
 
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -196,7 +196,7 @@ package body Test_Backtrack is
                Head_Null   => True);
 
             --  The higher level tries another token:
-            Tokenizer.Push_Back (Analyzer, Mark);
+            Analyzer.Push_Back (Mark);
          end;
 
          Analyzer_AUnit.Check
@@ -218,7 +218,7 @@ package body Test_Backtrack is
          --  And finally the higher level does the active parse. Since
          --  it is switching from inactive to active, it must
          --  push_back to restore Last_Token.
-         Tokenizer.Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
       Master_Token.Parse (T0_Token, Analyzer);
 
@@ -260,17 +260,17 @@ package body Test_Backtrack is
       end if;
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Reset;
+      Analyzer.Find_Next (Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -288,7 +288,7 @@ package body Test_Backtrack is
                Queue_Token => T1,
                Head_Null   => True);
 
-            Tokenizer.Push_Back (Analyzer, Mark);
+            Analyzer.Push_Back (Mark);
          end;
 
          Sequence.Parse (E, Analyzer, Actively => False);
@@ -301,7 +301,7 @@ package body Test_Backtrack is
             Head_Null   => True);
 
          --  And finally the active parse
-         Tokenizer.Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
       Master_Token.Parse (T0_Token, Analyzer);
       Sequence.Parse (E, Analyzer);
@@ -332,16 +332,16 @@ package body Test_Backtrack is
       end if;
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Reset;
+      Analyzer.Find_Next (Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -361,7 +361,7 @@ package body Test_Backtrack is
                Queue_Token => T1,
                Head_Token  => T2);
 
-            Tokenizer.Push_Back (Analyzer, Mark);
+            Analyzer.Push_Back (Mark);
          end;
 
          Selection.Parse (C, Analyzer, Actively => False);
@@ -384,7 +384,7 @@ package body Test_Backtrack is
             Head_Null   => True);
 
          --  And finally the active parse
-         Tokenizer.Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
       Master_Token.Parse (T0_Token, Analyzer);
       Selection.Parse (C, Analyzer);
@@ -413,12 +413,12 @@ package body Test_Backtrack is
       --  does backtracking.
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Tokenizer.Reset (Analyzer);
-      Tokenizer.Find_Next (Analyzer, Look_Ahead => False);
+      Analyzer.Reset;
+      Analyzer.Find_Next (Look_Ahead => False);
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Tokenizer.Mark_Push_Back (Analyzer);
+         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
@@ -433,7 +433,7 @@ package body Test_Backtrack is
             Head_Null   => True);
 
          --  And finally the active parse
-         Tokenizer.Push_Back (Analyzer, Mark);
+         Analyzer.Push_Back (Mark);
       end;
       Master_Token.Parse (T0_Token, Analyzer);
       Sequence.Parse (A, Analyzer);
@@ -469,7 +469,7 @@ package body Test_Backtrack is
 
    overriding procedure Set_Up_Case (T : in out Test_Case)
    is begin
-      OpenToken.Trace_Parse := T.Debug;
+      OpenToken.Trace_Parse := (if T.Debug then 1 else 0);
    end Set_Up_Case;
 
 end Test_Backtrack;

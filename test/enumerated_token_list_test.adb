@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2013 Stephe Leake
+-- Copyright (C) 2010, 2013, 2014 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -51,8 +51,9 @@ begin
    declare
       type Token_IDs is (Int, Real, String, Keyword);
 
-      package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Token_IDs'Image, Token_IDs'Width);
-      package Tokenizer is new Master_Token.Analyzer (Token_IDs'First, Token_IDs'Last);
+      package Master_Token is new OpenToken.Token.Enumerated
+        (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
+      package Tokenizer is new Master_Token.Analyzer;
       package Token_List is new Master_Token.List;
 
       use type Token_List.Instance;
@@ -61,13 +62,11 @@ begin
         (Int     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),
          Real    => Tokenizer.Get (OpenToken.Recognizer.Real.Get),
          String  => Tokenizer.Get (OpenToken.Recognizer.String.Get),
-         Keyword => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever"))
-        );
+         Keyword => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("whatever")));
 
       --  We don't need the Analyzer; we run Initialize because it
       --  sets the correct tokens in Syntax.
-      Analyzer : constant Tokenizer.Instance :=
-        Tokenizer.Initialize (Syntax);
+      Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
 
       List : Token_List.Instance;
@@ -87,7 +86,7 @@ begin
             Ada.Text_IO.Put_Line
               ("  (got a " &
                  Token_IDs'Image (Master_Token.ID (Token_List.Token_Handle (Iterator).all)) &
-                 " where a "& Token_IDs'Image (ID) & " was expected.");
+                 " where a " & Token_IDs'Image (ID) & " was expected.");
             Passed := False;
          end if;
          Token_List.Next_Token (Iterator);

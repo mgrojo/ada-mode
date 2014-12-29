@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012 Stephen Leake
+-- Copyright (C) 2009, 2012, 2014 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -26,7 +26,7 @@
 
 package body HTML_Lexer.Task_Unsafe is
 
-   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Text_Syntax, Default => Bad_Token);
+   Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Text_Syntax, Default => Bad_Token);
 
    procedure Initialize (Input_Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr) is
    begin
@@ -36,20 +36,20 @@ package body HTML_Lexer.Task_Unsafe is
    function Next_Token return HTML_Token is
       Result : HTML_Token;
    begin
-      Tokenizer.Find_Next (Analyzer);
+      Analyzer.Find_Next;
 
       Result :=
-        (Name   => Tokenizer.ID (Analyzer),
-         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Tokenizer.Lexeme (Analyzer)),
-         Line   => Tokenizer.Line (Analyzer),
-         Column => Tokenizer.Column (Analyzer));
+        (Name   => Analyzer.ID,
+         Lexeme => Ada.Strings.Unbounded.To_Unbounded_String (Analyzer.Lexeme),
+         Line   => Analyzer.Line,
+         Column => Analyzer.Column);
 
       case Result.Name is
       when Start_Tag_Opener | End_Tag_Opener =>
-         Tokenizer.Set_Syntax (Analyzer, Tag_Syntax);
+         Analyzer.Set_Syntax (Tag_Syntax);
 
       when Tag_Closer =>
-         Tokenizer.Set_Syntax (Analyzer, Text_Syntax);
+         Analyzer.Set_Syntax (Text_Syntax);
 
       when others =>
          null;
