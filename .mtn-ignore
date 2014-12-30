@@ -27,7 +27,6 @@
 ^build/profile/.*\.parse_table$
 ^build/profile/ada_grammar\.adb$
 ^build/profile/ada_grammar\.ads$
-^build/profile/ada_grammar\.el$
 ^build/profile/gmon\.out$
 ^build/profile/gprof\.out$
 ^build/profile/obj$

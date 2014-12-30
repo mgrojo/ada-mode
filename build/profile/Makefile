@@ -9,7 +9,7 @@ include ../common.make
 run_ada_parser.exe : ada_grammar.ads
 
 gmon.out : run_ada_parser.exe
-	./run_ada_parser.exe ../../wisi/test/gnatcoll-xref.adb
+	./run_ada_parser.exe 10 ../../wisi/test/gnatcoll-xref.adb
 
 gprof.out : gmon.out
 	gprof run_ada_parser.exe > gprof.out
@@ -18,7 +18,7 @@ clean :: gprof_clean
 	rm -f obj_tree/*
 
 gprof_clean :
-	rm *.out
+	rm -f *.out
 
 # Local Variables:
 # eval: (load-file "../opentoken.el")
