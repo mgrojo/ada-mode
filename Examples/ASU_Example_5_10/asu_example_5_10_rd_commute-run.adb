@@ -59,7 +59,7 @@ begin
 
       when 1 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 1;
 
          else
             Use_File (Argument (1));
@@ -67,7 +67,7 @@ begin
 
       when 2 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 2;
 
          else
             Set_Exit_Status (Failure);

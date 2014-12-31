@@ -264,7 +264,11 @@ package body Wisi_Rules_Test is
       pragma Unreferenced (Test);
       use Wisi;
       use AUnit.Check;
-      Computed : Wisi.Rule_Lists.List;
+      Computed   : Wisi.Rule_Lists.List;
+      Rule_Count : Integer;
+      pragma Unreferenced (Rule_Count);
+      Action_Count : Integer;
+      pragma Unreferenced (Action_Count);
    begin
       --  Verify that token numbers are properly checked for range
       Delete (File_Name);
@@ -281,7 +285,7 @@ package body Wisi_Rules_Test is
 
       Open (File, In_File, File_Name);
       begin
-         Wisi.Rules (File, Computed);
+         Wisi.Rules (File, Computed, Rule_Count, Action_Count);
          AUnit.Assertions.Assert (False, "1 did not get exception");
       exception
       when Syntax_Error =>

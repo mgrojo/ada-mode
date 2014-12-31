@@ -1,76 +1,87 @@
  1 stack:  1 : , 
- 1: 1: (OVERRIDING 1 . 10) : shift and goto state 2
- 1 stack:  2 : (OVERRIDING 1 . 10),  1 : , 
- 1: 2: (OTHER 12 . 16) : reduce 1 tokens to overriding_indicator
+ 1: 1: (OVERRIDING 1 . 11) : shift and goto state 2
+ 1 stack:  2 : (OVERRIDING 1 . 11),  1 : , 
+ 1: 2: (OTHER 12 . 17) : reduce 1 tokens to overriding_indicator
+overriding_indicator_id_0: (overriding_indicator 1 . 11) (OVERRIDING 1 . 11)
  ... goto state 6
- 1 stack:  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 6: (OTHER 12 . 16) : shift and goto state 3
- 1 stack:  3 : (OTHER 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 3: (PROCEDURE 18 . 26) : reduce 1 tokens to other_indicator
+ 1 stack:  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 6: (OTHER 12 . 17) : shift and goto state 3
+ 1 stack:  3 : (OTHER 12 . 17),  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 3: (PROCEDURE 18 . 27) : reduce 1 tokens to other_indicator
+other_indicator_id_0: (other_indicator 12 . 17) (OTHER 12 . 17)
  ... goto state 7
- 1 stack:  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 7: (PROCEDURE 18 . 26) : shift and goto state 11
- 1 stack:  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 11: (IDENTIFIER 28 . 33) : shift and goto state 12
- 1 stack:  12 : (IDENTIFIER 28 . 33),  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 12: (SEMICOLON 34 . 34) : shift and goto state 13
- 1 stack:  13 : (SEMICOLON 34 . 34),  12 : (IDENTIFIER 28 . 33),  11 : (PROCEDURE 18 . 26),  7 : (other_indicator 12 . 16),  6 : (overriding_indicator 1 . 10),  1 : , 
- 1: 13: (OTHER 37 . 41) : reduce 5 tokens to subprogram_declaration
-[[(10 1 . 10)(11 12 . 16)(3 18 . 26)(5 28 . 33)(4 34 . 34)]
+ 1 stack:  7 : (other_indicator 12 . 17),  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 7: (PROCEDURE 18 . 27) : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 18 . 27),  7 : (other_indicator 12 . 17),  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 11: (IDENTIFIER 28 . 34) : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 28 . 34),  11 : (PROCEDURE 18 . 27),  7 : (other_indicator 12 . 17),  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 12: (SEMICOLON 34 . 35) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 34 . 35),  12 : (IDENTIFIER 28 . 34),  11 : (PROCEDURE 18 . 27),  7 : (other_indicator 12 . 17),  6 : (overriding_indicator 1 . 11),  1 : , 
+ 1: 13: (OTHER 37 . 42) : reduce 5 tokens to subprogram_declaration
+[-9 [(10 1 . 11)(11 12 . 17)(3 18 . 27)(5 28 . 34)(4 34 . 35)]
 [
 (-12 [1 -13 2 -14 4 -15])
 (-16 [3 5])
 (-17 1)]
 ]
+subprogram_declaration_id_0: (subprogram_declaration 1 . 35) (overriding_indicator 1 . 11), (other_indicator 12 . 17), (PROCEDURE 18 . 27), (IDENTIFIER 28 . 34), (SEMICOLON 34 . 35)
  ... goto state 5
- 1 stack:  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 5: (OTHER 37 . 41) : reduce 0 tokens to overriding_indicator
+ 1 stack:  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 5: (OTHER 37 . 42) : reduce 0 tokens to overriding_indicator
+overriding_indicator_id_0: (overriding_indicator) 
  ... goto state 6
- 1 stack:  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 6: (OTHER 37 . 41) : shift and goto state 3
- 1 stack:  3 : (OTHER 37 . 41),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 3: (PROCEDURE 43 . 51) : reduce 1 tokens to other_indicator
+ 1 stack:  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 6: (OTHER 37 . 42) : shift and goto state 3
+ 1 stack:  3 : (OTHER 37 . 42),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 3: (PROCEDURE 43 . 52) : reduce 1 tokens to other_indicator
+other_indicator_id_0: (other_indicator 37 . 42) (OTHER 37 . 42)
  ... goto state 7
- 1 stack:  7 : (other_indicator 37 . 41),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 7: (PROCEDURE 43 . 51) : shift and goto state 11
- 1 stack:  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 11: (IDENTIFIER 53 . 58) : shift and goto state 12
- 1 stack:  12 : (IDENTIFIER 53 . 58),  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 12: (SEMICOLON 59 . 59) : shift and goto state 13
- 1 stack:  13 : (SEMICOLON 59 . 59),  12 : (IDENTIFIER 53 . 58),  11 : (PROCEDURE 43 . 51),  7 : (other_indicator 37 . 41),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 13: (PROCEDURE 62 . 70) : reduce 5 tokens to subprogram_declaration
-[[(10)(11 37 . 41)(3 43 . 51)(5 53 . 58)(4 59 . 59)]
+ 1 stack:  7 : (other_indicator 37 . 42),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 7: (PROCEDURE 43 . 52) : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 43 . 52),  7 : (other_indicator 37 . 42),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 11: (IDENTIFIER 53 . 59) : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 53 . 59),  11 : (PROCEDURE 43 . 52),  7 : (other_indicator 37 . 42),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 12: (SEMICOLON 59 . 60) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 59 . 60),  12 : (IDENTIFIER 53 . 59),  11 : (PROCEDURE 43 . 52),  7 : (other_indicator 37 . 42),  6 : (overriding_indicator),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 13: (PROCEDURE 62 . 71) : reduce 5 tokens to subprogram_declaration
+[-9 [(10)(11 37 . 42)(3 43 . 52)(5 53 . 59)(4 59 . 60)]
 [
 (-12 [1 -13 2 -14 4 -15])
 (-16 [3 5])
 (-17 1)]
 ]
+subprogram_declaration_id_0: (subprogram_declaration 37 . 60) (overriding_indicator), (other_indicator 37 . 42), (PROCEDURE 43 . 52), (IDENTIFIER 53 . 59), (SEMICOLON 59 . 60)
  ... goto state 8
- 1 stack:  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 8: (PROCEDURE 62 . 70) : reduce 0 tokens to overriding_indicator
+ 1 stack:  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 8: (PROCEDURE 62 . 71) : reduce 0 tokens to overriding_indicator
+overriding_indicator_id_0: (overriding_indicator) 
  ... goto state 6
- 1 stack:  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 6: (PROCEDURE 62 . 70) : reduce 0 tokens to other_indicator
+ 1 stack:  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 6: (PROCEDURE 62 . 71) : reduce 0 tokens to other_indicator
+other_indicator_id_0: (other_indicator) 
  ... goto state 7
- 1 stack:  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 7: (PROCEDURE 62 . 70) : shift and goto state 11
- 1 stack:  11 : (PROCEDURE 62 . 70),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 11: (IDENTIFIER 72 . 77) : shift and goto state 12
- 1 stack:  12 : (IDENTIFIER 72 . 77),  11 : (PROCEDURE 62 . 70),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 12: (SEMICOLON 78 . 78) : shift and goto state 13
- 1 stack:  13 : (SEMICOLON 78 . 78),  12 : (IDENTIFIER 72 . 77),  11 : (PROCEDURE 62 . 70),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 13: (EOF 79 . 79) : reduce 5 tokens to subprogram_declaration
-[[(10)(11)(3 62 . 70)(5 72 . 77)(4 78 . 78)]
+ 1 stack:  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 7: (PROCEDURE 62 . 71) : shift and goto state 11
+ 1 stack:  11 : (PROCEDURE 62 . 71),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 11: (IDENTIFIER 72 . 78) : shift and goto state 12
+ 1 stack:  12 : (IDENTIFIER 72 . 78),  11 : (PROCEDURE 62 . 71),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 12: (SEMICOLON 78 . 79) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 78 . 79),  12 : (IDENTIFIER 72 . 78),  11 : (PROCEDURE 62 . 71),  7 : (other_indicator),  6 : (overriding_indicator),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 13: (EOF 79 . 80) : reduce 5 tokens to subprogram_declaration
+[-9 [(10)(11)(3 62 . 71)(5 72 . 78)(4 78 . 79)]
 [
 (-12 [1 -13 2 -14 4 -15])
 (-16 [3 5])
 (-17 1)]
 ]
+subprogram_declaration_id_0: (subprogram_declaration 62 . 79) (overriding_indicator), (other_indicator), (PROCEDURE 62 . 71), (IDENTIFIER 72 . 78), (SEMICOLON 78 . 79)
  ... goto state 10
- 1 stack:  10 : (subprogram_declaration 62 . 78),  8 : (subprogram_declaration 37 . 59),  5 : (subprogram_declaration 1 . 34),  1 : , 
- 1: 10: (EOF 79 . 79) : reduce 3 tokens to compilation_unit
+ 1 stack:  10 : (subprogram_declaration 62 . 79),  8 : (subprogram_declaration 37 . 60),  5 : (subprogram_declaration 1 . 35),  1 : , 
+ 1: 10: (EOF 79 . 80) : reduce 3 tokens to compilation_unit
+compilation_unit_id_0: (compilation_unit 1 . 79) (subprogram_declaration 1 . 35), (subprogram_declaration 37 . 60), (subprogram_declaration 62 . 79)
  ... goto state 4
- 1 stack:  4 : (compilation_unit 1 . 78),  1 : , 
- 1: 4: (EOF 79 . 79) : shift and goto state 9
- 1 stack:  9 : (EOF 79 . 79),  4 : (compilation_unit 1 . 78),  1 : , 
- 1: 9: (EOF 80 . 80) : accept it
+ 1 stack:  4 : (compilation_unit 1 . 79),  1 : , 
+ 1: 4: (EOF 79 . 80) : shift and goto state 9
+ 1 stack:  9 : (EOF 79 . 80),  4 : (compilation_unit 1 . 79),  1 : , 
+ 1: 9: (EOF 80 . 81) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 80) (compilation_unit 1 . 79), (EOF 79 . 80)

@@ -48,7 +48,7 @@
 
 (defconst case_expression-wy--parse-table
    (wisi-compile-grammar
-   '((COMMENT DOT_DOT EQUAL_GREATER TICK NUMBER_LITERAL IDENTIFIER RANGE WHEN )
+   '((DOT_DOT EQUAL_GREATER TICK NUMBER_LITERAL IDENTIFIER RANGE WHEN )
      ((case_expression
        ((WHEN discrete_choice EQUAL_GREATER factor )
         (setq wisi-test-success t)))
@@ -70,7 +70,7 @@
      [((default . error) (WHEN .  1))
       ((default . error) (IDENTIFIER .  5) (NUMBER_LITERAL .  4))
       ((default . error) ($EOI .  3))
-      ((default . error) ($EOI . accept) (WHEN . accept) (RANGE . accept) (IDENTIFIER . accept) (NUMBER_LITERAL . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept))
+      ((default . error) ($EOI . accept) (IDENTIFIER . accept) (NUMBER_LITERAL . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept) (WHEN . accept) (RANGE . accept))
       ((default . error) ($EOI . (factor . 1)) (DOT_DOT . (factor . 1)) (EQUAL_GREATER . (factor . 1)))
       ((default . error) (TICK .  14) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))

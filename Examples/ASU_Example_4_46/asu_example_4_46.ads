@@ -56,10 +56,12 @@ package ASU_Example_4_46 is
    package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
    package Production_List is new Production.List;
    package Parser is new Production.Parser (Tokenizer);
-   package LALR is new Parser.LALR (First_State_Index => 1);
-   package LALR_Generator is new LALR.Generator (Token_IDs'Width, Production_List);
-   package Parser_Lists is new LALR.Parser_Lists;
-   package LALR_Parser is new LALR.Parser (Parser_Lists);
+   package LALRs is new Parser.LALR (First_State_Index => 1);
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);
+   package LALR_Parser is new LALRs.Parser (First_Parser_Label, Parser_Lists);
+   Token_Image_Width : Integer := Token_IDs'Width;
+   package LALR_Generator is new LALRs.Generator (Token_Image_Width, Production_List);
 
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),

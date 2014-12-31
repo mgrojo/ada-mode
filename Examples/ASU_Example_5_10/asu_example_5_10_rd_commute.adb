@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009 Stephe Leake
+--  Copyright (C) 2009, 2014 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -64,7 +64,7 @@ package body ASU_Example_5_10_RD_Commute is
    begin
       --  No stack operations; just trace
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Build_Selection " & OpenToken.Token.Selection.Name (Match) & ": " & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
@@ -82,7 +82,7 @@ package body ASU_Example_5_10_RD_Commute is
       Ada.Text_IO.Put_Line (Integer'Image (Top (Stack)));
       Pop (Stack);
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Stack: " & Image (Stack));
          Ada.Text_IO.New_Line;
       end if;
@@ -107,7 +107,7 @@ package body ASU_Example_5_10_RD_Commute is
 
       Push (Stack, Result);
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Build_Plus:" & Integer'Image (Left) & " +" & Integer'Image (Right) & " =>" & Integer'Image (Result));
          Ada.Text_IO.New_Line;
@@ -136,7 +136,7 @@ package body ASU_Example_5_10_RD_Commute is
 
       Push (Stack, Result);
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Build_Multiply:" & Integer'Image (Left) & " *" & Integer'Image (Right) & " =>" & Integer'Image (Result));
          Ada.Text_IO.New_Line;
@@ -155,7 +155,7 @@ package body ASU_Example_5_10_RD_Commute is
       use Integer_Stacks;
    begin
       --  No stack operations; just trace
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Build_Parens:" & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
       end if;
@@ -166,7 +166,7 @@ package body ASU_Example_5_10_RD_Commute is
       Int : Integer_Token.Instance renames Integer_Token.Instance (Token);
    begin
       Integer_Stacks.Push (Stack, Int.Value);
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Stack: " & Image (Stack));
          Ada.Text_IO.New_Line;
       end if;

@@ -51,7 +51,7 @@ is
 begin
    --  The test is that there are no exceptions, and that the parse
    --  trace matches the known good trace.
-   OpenToken.Trace_Parse := True;
+   OpenToken.Trace_Parse := 1;
 
    Parse_Command ("(identifier)");
    Parse_Command ("(identifier, identifier)");

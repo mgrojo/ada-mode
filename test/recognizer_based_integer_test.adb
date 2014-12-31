@@ -67,6 +67,42 @@ is
            ": " & Ada.Exceptions.Exception_Message (E));
    end Test;
 
+   procedure Test_Syntax
+     (Item         : in String;
+      Comment      : in String;
+      Expected     : in String)
+   is
+      --  Assume Item contains one more character after valid
+      --  based_integer; compare matched string to Expected.
+      use OpenToken.Recognizer;
+      Verdict : Analysis_Verdict;
+      Last    : Integer := Item'First;
+   begin
+      Clear (Recognizer);
+
+      loop
+         Analyze (Recognizer, Item (Last), Verdict);
+         exit when Last = Item'Last or Verdict = Failed;
+         Last := Last + 1;
+      end loop;
+
+      if Verdict = Matches then
+         Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
+         Put_Line (Comment & " ... failed (matched extra stuff)");
+      else
+         if Expected = Item (Item'First .. Last - 1) then
+            Put_Line (Comment & "...passed");
+         else
+            Put_Line (Comment & "...failed; got '" & Item (Item'First .. Last - 1) & "'");
+         end if;
+      end if;
+   exception
+   when E : others =>
+      Put_Line
+        (Comment & "...failed due to exception. " &
+           Ada.Exceptions.Exception_Name (E) &
+           ": " & Ada.Exceptions.Exception_Message (E));
+   end Test_Syntax;
 
 begin
    Test

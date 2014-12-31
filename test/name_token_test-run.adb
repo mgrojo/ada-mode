@@ -49,7 +49,7 @@ is
 
 begin
    --  The test is that the parse trace matches the known good trace.
-   OpenToken.Trace_Parse := True;
+   OpenToken.Trace_Parse := 1;
 
    Put_Line ("Simple Parser");
    declare

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2014 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -31,7 +31,7 @@ package body ASU_Example_5_10_RD_List is
      (Match : in out Integer_Selection.Instance;
       From  : in     Integer_Token.Class)
    is begin
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Build_Selection:" & Integer'Image (Match.Value) & " =>" & Integer'Image (From.Value));
          Ada.Text_IO.New_Line;
@@ -50,7 +50,7 @@ package body ASU_Example_5_10_RD_List is
       Next_Token (Iterator); -- E
       Match.Value := Integer_Token.Handle (Token_Handle (Iterator)).Value;
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Build_Parens:" & Integer'Image (Match.Value));
          Ada.Text_IO.New_Line;
       end if;
@@ -69,7 +69,7 @@ package body ASU_Example_5_10_RD_List is
 
    procedure Init_Plus (Match : in out Operation_List.Instance)
    is begin
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Init_Plus:" & Integer'Image (Match.Value) & " => 0");
          Ada.Text_IO.New_Line;
       end if;
@@ -80,7 +80,7 @@ package body ASU_Example_5_10_RD_List is
      (Match   : in out Operation_List.Instance;
       Element : in     Integer_Token.Class)
    is begin
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Plus_Element:" & Integer'Image (Match.Value) & " +" &
               Integer'Image (Element.Value) & " =>");
@@ -88,7 +88,7 @@ package body ASU_Example_5_10_RD_List is
 
       Match.Value := Match.Value + Element.Value;
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
       end if;
    end Plus_Element;
@@ -96,7 +96,7 @@ package body ASU_Example_5_10_RD_List is
    procedure Init_Times (Match : in out Operation_List.Instance)
    is begin
       Match.Value := 1;
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put ("Init_Times:" & Integer'Image (Match.Value) & " => 1");
          Ada.Text_IO.New_Line;
       end if;
@@ -106,7 +106,7 @@ package body ASU_Example_5_10_RD_List is
      (Match   : in out Operation_List.Instance;
       Element : in     Integer_Token.Class)
    is begin
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
            ("Times_Element:" & Integer'Image (Match.Value) & " *" &
               Integer'Image (Element.Value) & " =>");
@@ -114,7 +114,7 @@ package body ASU_Example_5_10_RD_List is
 
       Match.Value := Match.Value * Element.Value;
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
       end if;
    end Times_Element;

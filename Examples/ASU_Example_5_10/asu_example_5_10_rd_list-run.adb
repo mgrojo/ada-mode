@@ -63,7 +63,7 @@ begin
 
       when 1 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 1;
 
          else
             Use_File (Argument (1));
@@ -71,7 +71,7 @@ begin
 
       when 2 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 1;
 
          else
             Set_Exit_Status (Failure);
@@ -116,7 +116,7 @@ begin
 
       exit when Line_Length = 0;
 
-      if OpenToken.Trace_Parse then
+      if OpenToken.Trace_Parse > 0 then
          Put_Line (Line (1 .. Line_Length));
 
          --  reset initial state of tokens, to help interpret the trace

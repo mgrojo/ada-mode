@@ -66,7 +66,7 @@ begin
 
       when 1 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 1;
 
          else
             Use_File (Argument (1));
@@ -74,7 +74,7 @@ begin
 
       when 2 =>
          if Argument (1) = "-t" then
-            OpenToken.Trace_Parse := True;
+            OpenToken.Trace_Parse := 1;
 
          else
             Set_Exit_Status (Failure);
@@ -95,8 +95,8 @@ begin
      (Analyzer,
       LALR_Generator.Generate
         (Grammar,
-         Trace           => OpenToken.Trace_Parse,
-         Put_Parse_Table => OpenToken.Trace_Parse));
+         Trace           => OpenToken.Trace_Parse = 1,
+         Put_Parse_Table => OpenToken.Trace_Parse = 1));
 
    if not Is_Open (Input_File) then
       Put_Line ("A simple calculator, as specified in example 5.10 in Aho, Sethi, and Ullman's");

@@ -5,4 +5,32 @@ speed up parsing, for Emacs Ada backend
     added profiling; see build/profile/gprof.out
 
     add opentoken analyzer wrapper around ada flex
-        in org.opentoken.stephe-2
+        in org.opentoken.stephe-1
+
+ misc
+
+every file is marked executable in mtn?
+
+html_lexer:
+
+    new tags:
+
+     Code,               -- <CODE>
+     Paragraph       -- <P attributes>
+
+Expecting eliminate duplicates
+    same as First sets; dragon section 2.4
+
+need string value for integer_token
+    unsigned_32'last > integer'last
+    similarly for time_type, real_type
+
+need to find all access types, make them pool-specific, use tracing allocator (gnat.debug_pool).
+
+error on missing ':' in 'range | foo ;'
+
+pointer at end of kernel => default should be reduce or accept
+    don't need to compute lookaheads?
+    see FIXME in opentoken-production-parser-lalr.adb
+
+# end of file

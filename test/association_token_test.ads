@@ -71,8 +71,9 @@ package Association_Token_Test is
    package Tokenizer is new Master_Token.Analyzer;
    package Parser is new Production.Parser (Tokenizer);
    package LALRs is new Parser.LALR (First_State_Index => 1);
-   package Parser_Lists is new LALRs.Parser_Lists;
-   package LALR_Parser is new LALRs.Parser (Parser_Lists);
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);
+   package LALR_Parser is new LALRs.Parser (First_Parser_Label, Parser_Lists);
    package LALR_Generator is new LALRs.Generator (Token_Image_Width, Production_List);
 
    package Tokens is
