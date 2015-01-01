@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -24,8 +24,8 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
 with OpenToken.Token.List_Mixin;
 package body Test_List_Actions is
 
@@ -34,10 +34,10 @@ package body Test_List_Actions is
 
    type Token_ID is (Int, Plus, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Master_Token is new OpenToken.Token (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
-   package Int_List is new OpenToken.Token.List_Mixin
+   package Int_List is new Master_Token.List_Mixin
      (Parent_Token    => Integer_Token.Instance,
       Component_Token => Integer_Token.Instance);
 
@@ -47,9 +47,9 @@ package body Test_List_Actions is
          New_Token  => Integer_Token.Get (Int)),
       Plus          => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("+")),
       EOF           => Tokenizer.Get (Recognizer => OpenToken.Recognizer.End_Of_File.Get),
-      Whitespace    => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Character_Set.Get
-                                        (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
-     );
+      Whitespace    => Tokenizer.Get
+        (Recognizer => OpenToken.Recognizer.Character_Set.Get
+           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
@@ -121,13 +121,13 @@ package body Test_List_Actions is
    end List_Action;
 
    ----------
-   --  Public  subprograms
+   --  Public subprograms
 
    overriding function Name (T : in Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Test_List_Actions");
+      return new String'("../../Test/test_list_actions.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

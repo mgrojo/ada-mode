@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -42,9 +42,9 @@ package body ASU_Example_5_10_RD_List is
 
    procedure Build_Parens
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+      Using : in     Master_Token.List.Instance)
    is
-      use OpenToken.Token.Linked_List;
+      use Master_Token.List;
       Iterator : List_Iterator := First (Using); -- (
    begin
       Next_Token (Iterator); -- E
@@ -58,12 +58,12 @@ package body ASU_Example_5_10_RD_List is
 
    procedure Build_Print
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+      Using : in     Master_Token.List.Instance)
    is
-      use OpenToken.Token.Linked_List;
+      use Master_Token.List;
       Iterator : constant List_Iterator := First (Using); -- E
    begin
-      Match.Value := Integer_Token.Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
+      Match.Value := Integer_Token.Handle (Master_Token.List.Token_Handle (Iterator)).Value;
       Ada.Text_IO.Put_Line (Integer'Image (Match.Value));
    end Build_Print;
 

@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
--- Copyright (C) 2000 Ted Dennison
+-- Copyright (C) 2002, 2003, 2009, 2014 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -22,7 +21,45 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
+--
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Sequence_Mixin;
-package OpenToken.Token.Sequence is new OpenToken.Token.Sequence_Mixin (OpenToken.Token.Instance);
+-------------------------------------------------------------------------------
+--  This package declares a type for designating a real. Useful as
+--  a literal in LR parsers, or an integer value in recursive descent
+--  parsers.
+-------------------------------------------------------------------------------
+
+generic
+   type Real_Type is digits <>;
+package OpenToken.Token.Real is
+
+   type Instance is new OpenToken.Token.Instance with record
+      Value : Real_Type;
+   end record;
+
+   subtype Class is Instance'Class;
+
+   type Handle is access all Class;
+
+   ----------------------------------------------------------------------------
+   --  Get a real token
+   ----------------------------------------------------------------------------
+   function Get
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Name  : in String    := "";
+      Build : in Action    := null)
+     return Instance'Class;
+
+   overriding procedure Create
+     (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance);
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class);
+
+end OpenToken.Token.Real;

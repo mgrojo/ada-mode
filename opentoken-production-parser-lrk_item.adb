@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013, 2014 Stephe Leake
+-- Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -67,7 +67,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Trace                : in Boolean)
      return Token_ID_Set
    is
-      use Token_List;
+      use Token.List;
 
       Prod_Iterator  : Production_List.List_Iterator;
       Token_Iterator : List_Iterator;
@@ -156,19 +156,19 @@ package body OpenToken.Production.Parser.LRk_Item is
 
    function Has_Empty_Production (Grammar : in Production_List.Instance) return Nonterminal_ID_Set
    is
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
       Result : Nonterminal_ID_Set := (others => False);
       Prod_I : Production_List.List_Iterator;
       Prod   : OpenToken.Production.Instance;
-      RHS_I  : Token_List.List_Iterator;
+      RHS_I  : Token.List.List_Iterator;
    begin
       Prod_I := Production_List.Initial_Iterator (Grammar);
       while not Production_List.Past_Last (Prod_I) loop
 
          Prod  := Production_List.Get_Production (Prod_I);
-         RHS_I := Token_List.Initial_Iterator (Prod.RHS.Tokens);
+         RHS_I := Token.List.Initial_Iterator (Prod.RHS.Tokens);
 
-         if RHS_I = Token_List.Null_Iterator then
+         if RHS_I = Token.List.Null_Iterator then
             Result (LHS_ID (Prod)) := True;
          end if;
          Production_List.Next_Production (Prod_I);
@@ -199,7 +199,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    is begin
       return
         (Prod       => Production_List.Get_Production (Prod),
-         Dot        => Token_List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens),
+         Dot        => Token.List.Initial_Iterator (Production_List.Get_Production (Prod).RHS.Tokens),
          State      => State,
          Lookaheads => Deep_Copy (Lookaheads),
          Next       => null);
@@ -212,7 +212,7 @@ package body OpenToken.Production.Parser.LRk_Item is
    is begin
       return
         (Prod       => Prod,
-         Dot        => Token_List.Initial_Iterator (Prod.RHS.Tokens),
+         Dot        => Token.List.Initial_Iterator (Prod.RHS.Tokens),
          State      => State,
          Lookaheads => null,
          Next       => null);
@@ -277,7 +277,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Right : in Item_Set)
      return Item_Ptr
    is
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
       Current : Item_Ptr := Right.Set;
    begin
       while Current /= null loop
@@ -480,11 +480,11 @@ package body OpenToken.Production.Parser.LRk_Item is
      return Item_Set
    is
       use type Token.Token_ID;
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
 
       Item                : Item_Ptr := Set.Set;
       Current             : Item_Ptr;
-      Next_Symbol         : Token_List.List_Iterator;
+      Next_Symbol         : Token.List.List_Iterator;
       Production_Iterator : Production_List.List_Iterator;
       Result              : Item_Set;
       Merge_From          : Item_Node;
@@ -512,18 +512,18 @@ package body OpenToken.Production.Parser.LRk_Item is
          --  If the token after Dot is a nonterminal, find its
          --  productions and place them in the set with lookaheads
          --  from the current production.
-         if Current.Dot /= Token_List.Null_Iterator and then
-           Token_List.ID (Current.Dot) in Nonterminal_ID
+         if Current.Dot /= Token.List.Null_Iterator and then
+           Token.List.ID (Current.Dot) in Nonterminal_ID
          then
-            Next_Symbol := Token_List.Next_Token (Current.Dot); -- token after nonterminal, possibly null
+            Next_Symbol := Token.List.Next_Token (Current.Dot); -- token after nonterminal, possibly null
 
             Production_Iterator := Production_List.Initial_Iterator (Grammar);
             while not Production_List.Past_Last (Production_Iterator) loop
-               if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Token_List.ID (Current.Dot) then
+               if LHS_ID (Production_List.Get_Production (Production_Iterator)) = Token.List.ID (Current.Dot) then
                   --  loop until find a terminal, or a nonterminal that cannot be empty, or end of production
                   Empty_Nonterm :
                   loop
-                     if Next_Symbol = Token_List.Null_Iterator then
+                     if Next_Symbol = Token.List.Null_Iterator then
                         --  Need a variable, because the lookaheads might be freed.
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
@@ -533,13 +533,13 @@ package body OpenToken.Production.Parser.LRk_Item is
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
                         exit Empty_Nonterm;
 
-                     elsif Token_List.ID (Next_Symbol) in Token.Terminal_ID then
+                     elsif Token.List.ID (Next_Symbol) in Token.Terminal_ID then
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
                            State         => Unknown_State,
                            Lookaheads    => new Item_Lookahead'
                              (Last       => 1,
-                              Lookaheads => (1 => Token_List.ID (Next_Symbol)),
+                              Lookaheads => (1 => Token.List.ID (Next_Symbol)),
                               Next       => null));
 
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
@@ -548,7 +548,7 @@ package body OpenToken.Production.Parser.LRk_Item is
                      else
                         --  Next_Symbol is a nonterminal
                         for Terminal in Token.Terminal_ID loop
-                           if First (Token_List.ID (Next_Symbol)) (Terminal) then
+                           if First (Token.List.ID (Next_Symbol)) (Terminal) then
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,
                                  State         => Unknown_State,
@@ -561,15 +561,15 @@ package body OpenToken.Production.Parser.LRk_Item is
                            end if;
                         end loop;
 
-                        if Has_Empty_Production (Token_List.ID (Next_Symbol)) then
-                           Next_Symbol := Token_List.Next_Token (Next_Symbol);
+                        if Has_Empty_Production (Token.List.ID (Next_Symbol)) then
+                           Next_Symbol := Token.List.Next_Token (Next_Symbol);
                         else
                            exit Empty_Nonterm;
                         end if;
                      end if;
                   end loop Empty_Nonterm;
 
-                  Next_Symbol := Token_List.Next_Token (Current.Dot);
+                  Next_Symbol := Token.List.Next_Token (Current.Dot);
                end if;
 
                Production_List.Next_Production (Production_Iterator);
@@ -607,7 +607,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Grammar              : in Production_List.Instance)
      return Item_Set
    is
-      use Token_List;
+      use Token.List;
       use type Token.Handle;
       use type Token.Token_ID;
 
@@ -896,7 +896,7 @@ package body OpenToken.Production.Parser.LRk_Item is
       Show_Tag        : in Boolean := False)
      return String
    is
-      use Token_List;
+      use Token.List;
 
       Token_Index : List_Iterator;
 

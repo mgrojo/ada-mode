@@ -29,14 +29,14 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.Identifier;
 with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
 package body Analyzer_Buffer_Test is
 
    type Token_ID is (Identifier_ID, Whitespace);
 
-   package Master_Example_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
-   package Tokenizer is new Master_Example_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 

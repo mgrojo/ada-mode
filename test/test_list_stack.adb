@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -25,9 +25,8 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Linked_List;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
 with OpenToken.Token.List_Mixin;
 with OpenToken.Token.Selection_Mixin;
 with OpenToken.Token.Sequence_Mixin;
@@ -55,7 +54,7 @@ package body Test_List_Stack is
 
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
@@ -76,7 +75,7 @@ package body Test_List_Stack is
    Feeder   : aliased OpenToken.Text_Feeder.String.Instance;
    Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, Feeder'Access);
 
-   package Integer_Selection is new OpenToken.Token.Selection_Mixin
+   package Integer_Selection is new Master_Token.Selection_Mixin
      (Parent_Token    => Integer_Token.Instance,
       Component_Token => Integer_Token.Instance);
    procedure Build_Selection
@@ -86,12 +85,12 @@ package body Test_List_Stack is
       Match.Value := From.Value;
    end Build_Selection;
 
-   package Integer_Sequence is new OpenToken.Token.Sequence_Mixin (Integer_Token.Instance);
+   package Integer_Sequence is new Master_Token.Sequence_Mixin (Integer_Token.Instance);
    procedure Build_Parens
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+      Using : in     Master_Token.List.Instance)
    is
-      use OpenToken.Token.Linked_List;
+      use Master_Token.List;
       Iterator : List_Iterator := First (Using); -- (
    begin
       Next_Token (Iterator); -- E
@@ -101,16 +100,16 @@ package body Test_List_Stack is
    Expected_Value : Integer;
    procedure Build_Print
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+      Using : in     Master_Token.List.Instance)
    is
-      use OpenToken.Token.Linked_List;
+      use Master_Token.List;
       Iterator : constant List_Iterator := First (Using); -- E
    begin
-      Match.Value := Integer_Token.Handle (OpenToken.Token.Linked_List.Token_Handle (Iterator)).Value;
+      Match.Value := Integer_Token.Handle (Master_Token.List.Token_Handle (Iterator)).Value;
       AUnit.Check.Check ("expected result", Match.Value, Expected_Value);
    end Build_Print;
 
-   package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
+   package Operation_List is new Master_Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
 
    procedure Init_Plus (Match : in out Operation_List.Instance)
    is begin

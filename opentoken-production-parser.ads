@@ -30,15 +30,13 @@
 --  production list. There are many possible different methods for parsing.
 -------------------------------------------------------------------------------
 with OpenToken.Text_Feeder;
-with OpenToken.Token.Enumerated.Analyzer;
 generic
-   with package Tokenizer is new Token.Analyzer;
 package OpenToken.Production.Parser is
 
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged record
-      Analyzer : Tokenizer.Handle;
+      Analyzer : Token.Source_Handle;
    end record;
 
    ----------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 --  parameters, and a parser for that grammar, which outputs encoded
 --  elisp actions for the Emacs Ada mode indentation engine.
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -314,9 +314,8 @@ is
       Put_Line ("with OpenToken.Production.Parser.LALR.Parser_Lists;");
       Put_Line ("with OpenToken.Text_Feeder;");
 
-      Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
-      Put_Line ("with OpenToken.Token.Enumerated.List;");
-      Put_Line ("with OpenToken.Token.Enumerated.Nonterminal;");
+      Put_Line ("with OpenToken.Token.Analyzer;");
+      Put_Line ("with OpenToken.Token.Nonterminal;");
       Put_Line ("with OpenToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
@@ -374,12 +373,11 @@ is
       Indent_Line ("function Token_Image (ID : in Token_IDs) return String is (Token_Images (ID).all);");
 
       Indent_Line
-        ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
+        ("package Tokens is new OpenToken.Token (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
       Indent_Line ("package Analyzers is new Tokens.Analyzer;");
-      Indent_Line ("package Token_Lists is new Tokens.List;");
-      Indent_Line ("package Nonterminals is new Tokens.Nonterminal (Token_Lists);");
-      Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
-      Indent_Line ("package Parsers is new Productions.Parser (Analyzers);");
+      Indent_Line ("package Nonterminals is new Tokens.Nonterminal;");
+      Indent_Line ("package Productions is new OpenToken.Production (Tokens, Nonterminals);");
+      Indent_Line ("package Parsers is new Productions.Parser;");
       Indent_Line
         ("First_State_Index : constant Integer := " & OpenToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LALRs is new Parsers.LALR (First_State_Index);");
@@ -393,7 +391,7 @@ is
 
       Indent_Line ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");
       Indent_Line
-        ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Token_Lists, Nonterminals);");
+        ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Nonterminals);");
       New_Line;
 
       Indent_Line ("function Create_Syntax return Analyzers.Syntax;");
@@ -550,7 +548,7 @@ is
                         Indent := Indent + 2;
                         Indent_Line ("(New_Token : out Nonterminals.Class;");
                         Indent := Indent + 1;
-                        Indent_Line ("Source    : in  Token_Lists.Instance'Class;");
+                        Indent_Line ("Source    : in  Tokens.List.Instance'Class;");
                         Indent_Line ("To_ID     : in  Token_IDs)");
                         Indent := Indent - 3;
                         Indent_Line ("is begin");
@@ -896,7 +894,9 @@ is
       New_Line;
       --  FIXME: get Max_Parallel from some command line
       Indent_Line ("return");
-      Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0),");
+      Indent_Line
+        ("  (Tokens.Source_Handle (Analyzers.Initialize" &
+           " (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0)),");
       Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

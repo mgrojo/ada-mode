@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999,2000,2009,2014 Ted Dennison
+-- Copyright (C) 1999,2000,2009,2014,2015 Ted Dennison
 --
 -- This file is part of the OpenToken package.
 --
@@ -45,7 +45,7 @@ begin
    --  Purpose          :
    --
    Test_Case_1 : declare
-      use type Token_List.Instance;
+      use type Master_Token.List.Instance;
       use type Production.Right_Hand_Side;
       use type Production.Instance;
       use type Production_List.Instance;

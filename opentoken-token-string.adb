@@ -24,7 +24,7 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.String is
+package body OpenToken.Token.String is
 
    --------------------------------------------------------------------------
    --  Return the value of Item with quotes removed
@@ -91,4 +91,4 @@ package body OpenToken.Token.Enumerated.String is
       To.Value := Instance (From).Value;
    end Copy;
 
-end OpenToken.Token.Enumerated.String;
+end OpenToken.Token.String;

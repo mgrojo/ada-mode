@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -53,7 +53,7 @@ begin
    --  Load up the first token
    Analyzer.Find_Next;
 
-   OpenToken.Token.Parse
+   Master_Token.Parse
      (Match    => S_Prime,
       Analyzer => Analyzer);
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephen Leake
+-- Copyright (C) 2009, 2014, 2015 Stephen Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,8 +33,6 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Sequence;
-with OpenToken.Token;
 procedure Token_Sequence_Test.Run is
 begin
 
@@ -48,13 +46,13 @@ begin
    Test_Case_1 :
    declare
 
-      use OpenToken.Token.Sequence;
+      use Token_Sequence_Test.Sequence; -- "&"
 
       Parse_String : constant String := "Do several things 200 times in a row";
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : aliased OpenToken.Token.Sequence.Class :=
+      Sequence : aliased Token_Sequence_Test.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword &
         In_Keyword & A_Keyword & Row_Keyword;
@@ -71,7 +69,7 @@ begin
       Analyzer.Find_Next;
 
       --  Perform the parse
-      OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
+      Sequence.Parse (Analyzer);
 
       if Analyzer.ID = EOF then
          Ada.Text_IO.Put_Line ("passed");
@@ -102,13 +100,13 @@ begin
    --
    Test_Case_2 :
    declare
-      use OpenToken.Token.Sequence;
+      use Token_Sequence_Test.Sequence; -- "&"
 
       Parse_String : constant String := "Do several things in a row";
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Sequence : aliased OpenToken.Token.Sequence.Class :=
+      Sequence : aliased Token_Sequence_Test.Sequence.Class :=
         Do_Keyword & Several_Keyword & Things_Keyword &
         Int_Literal & Times_Keyword & In_Keyword &
         A_Keyword & Row_Keyword;
@@ -125,7 +123,7 @@ begin
       Analyzer.Find_Next;
 
       --  Parse token sequence
-      OpenToken.Token.Sequence.Parse (Sequence'Access, Analyzer);
+      Sequence.Parse (Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

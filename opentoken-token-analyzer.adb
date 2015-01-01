@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012 - 2014 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 - 2015 Stephe Leake
 --  Copyright (C) 1999, 2000 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -36,7 +36,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-package body OpenToken.Token.Enumerated.Analyzer is
+package body OpenToken.Token.Analyzer is
 
    type Match_List is array (Syntax_ID) of Recognizer.Analysis_Verdict;
 
@@ -424,12 +424,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return New_Analyzer;
    end Initialize;
 
-   function Name (Analyzer : in Instance; ID : in Token_ID) return String
+   overriding function Name (Analyzer : in Instance; ID : in Token_ID) return String
    is begin
       return Name (Analyzer.Syntax_List (ID).Token_Handle.all);
    end Name;
 
-   procedure Reset (Analyzer : in out Instance)
+   overriding procedure Reset (Analyzer : in out Instance)
    is
       Prev : Token_List_Node_Pointer;
    begin
@@ -463,8 +463,10 @@ package body OpenToken.Token.Enumerated.Analyzer is
       Analyzer.Max_Lookahead   := 0;
    end Reset;
 
-   procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr) is
-   begin
+   overriding procedure Set_Text_Feeder
+     (Analyzer : in out Instance;
+      Feeder : in Text_Feeder.Text_Feeder_Ptr)
+   is begin
       Analyzer.Feeder      := Feeder;
       Analyzer.Line        := 1;
       Analyzer.Column      := Analyzer.First_Column;
@@ -486,17 +488,17 @@ package body OpenToken.Token.Enumerated.Analyzer is
       end loop;
    end Set_Syntax;
 
-   function End_Of_Text (Analyzer : in Instance) return Boolean
+   overriding function End_Of_Text (Analyzer : in Instance) return Boolean
    is begin
       return End_Of_Buffered_Text (Analyzer) and Text_Feeder.End_Of_Text (Analyzer.Feeder.all);
    end End_Of_Text;
 
-   function End_Of_Buffered_Text (Analyzer : in Instance) return Boolean
+   overriding function End_Of_Buffered_Text (Analyzer : in Instance) return Boolean
    is begin
       return Analyzer.Buffer_Size = 0 or Analyzer.Buffer_Head = Analyzer.Buffer_Tail;
    end End_Of_Buffered_Text;
 
-   procedure Discard_Buffered_Text (Analyzer : in out Instance)
+   overriding procedure Discard_Buffered_Text (Analyzer : in out Instance)
    is begin
       Analyzer.Buffer_Head := Analyzer.Buffer'First;
       Analyzer.Buffer_Tail := Analyzer.Buffer'Last;
@@ -535,7 +537,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
          --  Create stored them in the token.
 
          Analyzer.Lookahead_Tail := new Token_List_Node'
-           (Token_Handle => new Enumerated.Class'
+           (Token_Handle => new Token.Class'
               (Analyzer.Syntax_List (Analyzer.Last_Token_ID).Token_Handle.all),
             Prev         => null,
             Next         => null);
@@ -613,7 +615,7 @@ package body OpenToken.Token.Enumerated.Analyzer is
                --  Push the matched token on the lookahead queue tail.
 
                Analyzer.Lookahead_Tail.Next := new Token_List_Node'
-                 (Token_Handle => new Enumerated.Class'(Analyzer.Syntax_List (Matched_Token_ID).Token_Handle.all),
+                 (Token_Handle => new Token.Class'(Analyzer.Syntax_List (Matched_Token_ID).Token_Handle.all),
                   Prev         => Analyzer.Lookahead_Tail,
                   Next         => null);
 
@@ -759,12 +761,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return Analyzer.Next_Column;
    end Next_Token_Column;
 
-   function Line (Analyzer : in Instance) return Natural is
+   overriding function Line (Analyzer : in Instance) return Natural is
    begin
       return Analyzer.Line;
    end Line;
 
-   function Column (Analyzer : in Instance) return Natural is
+   overriding function Column (Analyzer : in Instance) return Natural is
    begin
       return Analyzer.Column;
    end Column;
@@ -799,12 +801,12 @@ package body OpenToken.Token.Enumerated.Analyzer is
 
    function Get
      (Recognizer : in OpenToken.Recognizer.Class;
-      New_Token  : in OpenToken.Token.Enumerated.Class := OpenToken.Token.Enumerated.Get)
+      New_Token  : in OpenToken.Token.Class := OpenToken.Token.Get)
      return Recognizable_Token
    is begin
       return
         (Recognizer   => new OpenToken.Recognizer.Class'(Recognizer),
-         Token_Handle => new OpenToken.Token.Enumerated.Class'(New_Token));
+         Token_Handle => new OpenToken.Token.Class'(New_Token));
    end Get;
 
    function Bounds (Analyzer : in Instance) return Buffer_Range
@@ -826,4 +828,4 @@ package body OpenToken.Token.Enumerated.Analyzer is
       return Analyzer.Syntax_List (Analyzer.Last_Token_ID).Recognizer;
    end Last_Recognizer;
 
-end OpenToken.Token.Enumerated.Analyzer;
+end OpenToken.Token.Analyzer;

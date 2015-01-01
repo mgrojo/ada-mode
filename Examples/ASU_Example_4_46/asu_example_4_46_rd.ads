@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013, 2014 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -36,17 +36,19 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Text_Feeder.Text_IO;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Selection;
-with OpenToken.Token.Sequence;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Selection_Mixin;
+with OpenToken.Token.Sequence_Mixin;
 package ASU_Example_4_46_RD is
 
    --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Asterix_ID, ID_ID, Equals_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
+   package Selection is new Master_Token.Selection_Mixin (Master_Token.Instance, Master_Token.Instance);
+   package Sequence is new Master_Token.Sequence_Mixin (Master_Token.Instance);
 
    Syntax : constant Tokenizer.Syntax :=
      (Asterix_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("*")),
@@ -74,9 +76,9 @@ package ASU_Example_4_46_RD is
    EOF     : constant Master_Token.Handle := Syntax (EOF_ID).Token_Handle;
 
    --  Allow infix operators for building productions
-   use type OpenToken.Token.Selection.Instance;
-   use type OpenToken.Token.Sequence.Instance;
-   use OpenToken.Token;
+   use type Selection.Instance;
+   use type Sequence.Instance;
+   use Master_Token;
 
    --  Non-terminal tokens, which define the grammar.
    --
@@ -111,7 +113,7 @@ package ASU_Example_4_46_RD is
 
    --  This is of type OpenToken.Token.Handle, so it can be passed to
    --  OpenToken.Token.Parse, rather than Sequence.Parse.
-   S_Prime : constant OpenToken.Token.Handle := OpenToken.Token.Handle (Sequence.New_Instance (S & EOF));
+   S_Prime : constant Master_Token.Handle := Master_Token.Handle (Sequence.New_Instance (S & EOF));
 
    --  Create a text feeder for our Input_File.
    Input_File : aliased Ada.Text_IO.File_Type;

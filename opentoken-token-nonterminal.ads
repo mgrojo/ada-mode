@@ -25,19 +25,14 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.List;
-
 -----------------------------------------------------------------------------
 --  This package provides a type and operations for building grammar
 --  productions.
 -----------------------------------------------------------------------------
-
 generic
-   with package Token_List is new OpenToken.Token.Enumerated.List;
-package OpenToken.Token.Enumerated.Nonterminal is
+package OpenToken.Token.Nonterminal is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with null record;
+   type Instance is new OpenToken.Token.Instance with null record;
 
    subtype Class is Instance'Class;
 
@@ -78,7 +73,7 @@ package OpenToken.Token.Enumerated.Nonterminal is
    --  when it detects a series of tokens that derive to this token.
    --------------------------------------------------------------------------
    type Synthesize is access procedure (New_Token : out Class;
-                                        Source    : in  Token_List.Instance'Class;
+                                        Source    : in  Token.List.Instance'Class;
                                         To_ID     : in  Token_ID);
 
    --------------------------------------------------------------------------
@@ -147,7 +142,7 @@ package OpenToken.Token.Enumerated.Nonterminal is
    --  implementation, the Source must be in Instance'Class.
    --------------------------------------------------------------------------
    procedure Synthesize_By_Copying (New_Token : out Instance;
-                                    Source    : in  OpenToken.Token.Enumerated.Instance'Class;
+                                    Source    : in  OpenToken.Token.Instance'Class;
                                     To_ID     : in  Token_ID);
 
 
@@ -159,7 +154,7 @@ package OpenToken.Token.Enumerated.Nonterminal is
    --  restrictions as Synthesize_First.
    --------------------------------------------------------------------------
    procedure Default_Synthesize (New_Token : out Instance;
-                                 Source    : in  Token_List.Instance'Class;
+                                 Source    : in  Token.List.Instance'Class;
                                  To_ID     : in  Token_ID);
 
 private
@@ -174,7 +169,7 @@ private
    --  Nonterminal.Instance's.
    --------------------------------------------------------------------------
    procedure Self_Synthesize (New_Token : out Class;
-                              Source    : in  Token_List.Instance'Class;
+                              Source    : in  Token.List.Instance'Class;
                               To_ID     : in  Token_ID);
 
    --------------------------------------------------------------------------
@@ -187,7 +182,7 @@ private
    --  will be raised.
    --------------------------------------------------------------------------
    procedure Synthesize_From_First (New_Token : out Class;
-                                    Source    : in  Token_List.Instance'Class;
+                                    Source    : in  Token.List.Instance'Class;
                                     To_ID     : in  Token_ID);
 
    --------------------------------------------------------------------------
@@ -197,10 +192,10 @@ private
    --  Default_Synthesize routine.
    --------------------------------------------------------------------------
    procedure Default_Synthesize_Class (New_Token : out Class;
-                                       Source    : in  Token_List.Instance'Class;
+                                       Source    : in  Token.List.Instance'Class;
                                        To_ID     : in  Token_ID);
 
    Synthesize_Self    : constant Synthesize := Self_Synthesize'Access;
    Synthesize_First   : constant Synthesize := Synthesize_From_First'Access;
    Synthesize_Default : constant Synthesize := Default_Synthesize_Class'Access;
-end OpenToken.Token.Enumerated.Nonterminal;
+end OpenToken.Token.Nonterminal;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2012, 2013, 2014, 2015 Stephen Leake
 --  Copyright (C) 2000 David Starner
 --  Copyright (C) 1999 Christoph Karl Walter Grein
 --
@@ -33,7 +33,7 @@
 -------------------------------------------------------------------------------
 with Ada.Strings.Maps.Constants;
 with Ada.Characters.Latin_1;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Recognizer.Identifier;
@@ -95,7 +95,7 @@ package M3_Lexer is
       Whitespace_T,
       End_of_File_T);
 
-   package Master_Token is new OpenToken.Token.Enumerated (M3_Token, M3_Token'First, M3_Token'Last, M3_Token'Image);
+   package Master_Token is new OpenToken.Token (M3_Token, M3_Token'First, M3_Token'Last, M3_Token'Image);
    package Tokenizer is new Master_Token.Analyzer;
 
    M3_Style_Escape_Code_Map : constant Ada.Strings.Maps.Character_Mapping :=

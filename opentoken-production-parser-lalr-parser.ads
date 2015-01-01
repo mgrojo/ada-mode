@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -40,10 +40,10 @@ package OpenToken.Production.Parser.LALR.Parser is
    end record;
 
    function Initialize
-     (Analyzer             : in Tokenizer.Handle;
-      Table                : in Parse_Table_Ptr;
-      Max_Parallel         : in Integer   := 15;
-      Terminate_Same_State : in Boolean   := False)
+     (Analyzer             : access Token.Source'Class;
+      Table                : in     Parse_Table_Ptr;
+      Max_Parallel         : in     Integer := 15;
+      Terminate_Same_State : in     Boolean := False)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);

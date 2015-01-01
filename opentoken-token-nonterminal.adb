@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,7 +25,7 @@
 --
 -------------------------------------------------------------------------------
 
-package body OpenToken.Token.Enumerated.Nonterminal is
+package body OpenToken.Token.Nonterminal is
 
    function Get
      (ID    : in Token_ID := Token_ID'First;
@@ -42,13 +42,13 @@ package body OpenToken.Token.Enumerated.Nonterminal is
 
    function Copy (Token : in Handle) return Handle
    is begin
-      return Nonterminal.Handle (Enumerated.Copy (Enumerated.Handle (Token)));
+      return Nonterminal.Handle (OpenToken.Token.Copy (OpenToken.Token.Handle (Token)));
    end Copy;
 
    procedure Synthesize_By_Copying
      (New_Token : out Instance;
-      Source    : in  OpenToken.Token.Enumerated.Instance'Class;
-      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+      Source    : in  OpenToken.Token.Instance'Class;
+      To_ID     : in  OpenToken.Token.Token_ID)
    is begin
       New_Token := Instance (Source);
       New_Token.ID := To_ID;
@@ -56,28 +56,28 @@ package body OpenToken.Token.Enumerated.Nonterminal is
    exception
    when Constraint_Error =>
       raise Invalid_Synth_Argument with
-        "Token " & OpenToken.Token.Enumerated.Token_ID'Image (To_ID) & " cannot be synthesized " &
+        "Token " & OpenToken.Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
         "solely from a " &
-        OpenToken.Token.Enumerated.Token_ID'Image (OpenToken.Token.Enumerated.ID (Source)) &
+        OpenToken.Token.Token_ID'Image (OpenToken.Token.ID (Source)) &
         "; need Synthesize_Self or other action?";
 
    end Synthesize_By_Copying;
 
    procedure Default_Synthesize
      (New_Token : out Instance;
-      Source    : in  Token_List.Instance'Class;
-      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+      Source    : in  Token.List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Token_ID)
    is begin
       Synthesize_By_Copying
         (New_Token => Class (New_Token),
-         Source    => Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all,
+         Source    => Token.List.Token_Handle (Token.List.Initial_Iterator (Source)).all,
          To_ID     => To_ID);
    end Default_Synthesize;
 
    procedure Self_Synthesize
      (New_Token : out Class;
-      Source    : in  Token_List.Instance'Class;
-      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+      Source    : in  Token.List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Token_ID)
    is
       pragma Unreferenced (Source);
    begin
@@ -86,21 +86,21 @@ package body OpenToken.Token.Enumerated.Nonterminal is
 
    procedure Synthesize_From_First
      (New_Token : out Class;
-      Source    : in  Token_List.Instance'Class;
-      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+      Source    : in  Token.List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Token_ID)
    is
       Checked_Source : Handle;
    begin
       begin
-         Checked_Source := Handle (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)));
+         Checked_Source := Handle (Token.List.Token_Handle (Token.List.Initial_Iterator (Source)));
       exception
       when Constraint_Error =>
          raise Invalid_Synth_Argument with
-           "Token " & OpenToken.Token.Enumerated.Token_ID'Image (To_ID) & " cannot be synthesized " &
+           "Token " & OpenToken.Token.Token_ID'Image (To_ID) & " cannot be synthesized " &
            "solely from a " &
-           OpenToken.Token.Enumerated.Token_ID'Image
-           (OpenToken.Token.Enumerated.ID
-              (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all)) & ".";
+           OpenToken.Token.Token_ID'Image
+           (OpenToken.Token.ID
+              (Token.List.Token_Handle (Token.List.Initial_Iterator (Source)).all)) & ".";
       end;
 
       Synthesize_By_Copying
@@ -111,10 +111,10 @@ package body OpenToken.Token.Enumerated.Nonterminal is
 
    procedure Default_Synthesize_Class
      (New_Token : out Class;
-      Source    : in  Token_List.Instance'Class;
-      To_ID     : in  OpenToken.Token.Enumerated.Token_ID)
+      Source    : in  Token.List.Instance'Class;
+      To_ID     : in  OpenToken.Token.Token_ID)
    is begin
       Default_Synthesize (New_Token, Source, To_ID);
    end Default_Synthesize_Class;
 
-end OpenToken.Token.Enumerated.Nonterminal;
+end OpenToken.Token.Nonterminal;

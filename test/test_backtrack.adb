@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -27,9 +27,9 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer.AUnit;
-with OpenToken.Token.Selection;
-with OpenToken.Token.Sequence;
+with OpenToken.Token.Analyzer.AUnit;
+with OpenToken.Token.Selection_Mixin;
+with OpenToken.Token.Sequence_Mixin;
 package body Test_Backtrack is
 
    --  The grammar, illustrating need for partial backtracking:
@@ -93,8 +93,12 @@ package body Test_Backtrack is
 
    type Token_ID is (T0, T1, T2, T3, T4, T5, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, T0, Whitespace, Token_ID'Image);
+   package Master_Token is new OpenToken.Token (Token_ID, T0, Whitespace, Token_ID'Image);
    package Tokenizer is new Master_Token.Analyzer;
+   package Sequence is new Master_Token.Sequence_Mixin (Master_Token.Instance);
+   package Selection is new Master_Token.Selection_Mixin
+     (Parent_Token    => Master_Token.Instance,
+      Component_Token => Master_Token.Instance);
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 
@@ -118,7 +122,7 @@ package body Test_Backtrack is
    --  We are only interested in testing the backtracking, so we don't
    --  define any Build actions.
 
-   use OpenToken.Token;
+   use Master_Token;
    use type Sequence.Instance;
    use type Selection.Instance;
 
@@ -164,7 +168,7 @@ package body Test_Backtrack is
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
@@ -176,7 +180,7 @@ package body Test_Backtrack is
             Head_Null   => True);
 
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+            Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -265,12 +269,12 @@ package body Test_Backtrack is
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+            Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -337,11 +341,11 @@ package body Test_Backtrack is
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
          declare
-            Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+            Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             --  Now we do this:
             begin
@@ -418,7 +422,7 @@ package body Test_Backtrack is
 
       --  The higher level parser does this:
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Master_Token.Parse (T0_Token, Analyzer, Actively => False);
 

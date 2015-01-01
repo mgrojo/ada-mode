@@ -37,6 +37,9 @@ project OpenToken_Test is
 
    package Compiler is
       -- AUnit requires -fno-strict-aliasing
+      -- -gnatdc outputs compiler progress (for when it hangs)
+      -- -gnatc does semantic only
+      -- -gnatdO outputs error messages immediately
       for Default_Switches ("Ada") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 

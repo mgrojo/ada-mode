@@ -2,7 +2,7 @@
 --
 --  Parse the production rules from Input_File, add to List.
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Exceptions;
+with Ada.Directories;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -240,7 +241,7 @@ begin
             use Standard.Ada.Exceptions;
          begin
             Standard.Ada.Text_IO.Put_Line
-              (Name (Input_File) & ":" &
+              (Ada.Directories.Simple_Name (Name (Input_File)) & ":" &
                  Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0: " &
                  Exception_Message (E));
          end;

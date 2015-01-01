@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2009, 2014 Stephen Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,49 +25,53 @@
 --
 -------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
---  This package declares a type for designating an integer. Useful as
---  a literal in LR parsers, or an integer value in recursive descent
---  parsers.
------------------------------------------------------------------------------
+package body OpenToken.Token.Integer is
 
-generic
-package OpenToken.Token.Enumerated.Integer is
-
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
-      Value : Standard.Integer;
-   end record;
-
-   subtype Class is Instance'Class;
-
-   type Handle is access all Class;
-
-   ----------------------------------------------------------------------------
-   --  Get an integer token
-   ----------------------------------------------------------------------------
    function Get
      (ID    : in Token_ID;
       Value : in Standard.Integer := 0;
       Name  : in String           := "";
       Build : in Action           := null)
-     return Instance'Class;
+     return Instance'Class
+   is begin
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
+   end Get;
 
    overriding procedure Create
      (Lexeme     : in     String;
       Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
-      New_Token  : in out Instance);
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Bounds);
+      pragma Unreferenced (Recognizer);
+   begin
+      New_Token.Value := Standard.Integer'Value (Lexeme);
+   exception
+   when Constraint_Error =>
+      raise Syntax_Error with
+        Lexeme & " not in range: " &
+        Standard.Integer'Image (Standard.Integer'First) & " .. " & Standard.Integer'Image (Standard.Integer'Last);
+   end Create;
 
    overriding procedure Copy
      (To   : in out Instance;
-      From : in     Token.Class);
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
 
-   --------------------------------------------------------------------
-   --  If Trace_Parse, include the current value in the name, to help
-   --  decipher parser trace output. We don't include it otherwise
-   --  since it is confusing as part of an "expected ..." error
-   --  message.
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
+   overriding function Name (Token : in Instance) return String
+   is begin
+      if Trace_Parse > 0 then
+         return Name (OpenToken.Token.Instance (Token)) & " " & Standard.Integer'Image (Token.Value);
+      else
+         return Name (OpenToken.Token.Instance (Token));
+      end if;
+   end Name;
 
-end OpenToken.Token.Enumerated.Integer;
+end OpenToken.Token.Integer;

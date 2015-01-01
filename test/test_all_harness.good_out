@@ -1,4 +1,4 @@
-c:\projects\org.opentoken\build\release\wisi_rules_test.wy:8:0: token number 4  out of range 1 .. 3
+wisi_rules_test.wy:8:0: token number 4  out of range 1 .. 3
 
 OK ../../wisi/test/test_generate_errors.adb../../wisi/test/unused_tokens : Run_Test
 OK ../../wisi/test/wisi_rules_test.adb : Nominal
@@ -49,7 +49,7 @@ OK ../../Test/test_empty_productions_8.adb : Kernels_1
 OK Test_LR0_Kernels : Nominal
 OK ../../Test/test_lr1_lookahead_closure.adb : Nominal
 OK ../../Test/test_lr_expecting.adb : Nominal
-OK Test_List_Actions : List_Action
+OK ../../Test/test_list_actions.adb : List_Action
 OK Test_List_Stack : List_Stack
 OK Test_Selection_Actions : Selection_Action
 OK Test_Sequence_Actions : Sequence_Action

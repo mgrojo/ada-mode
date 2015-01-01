@@ -2,7 +2,7 @@
 --
 --  Test OpenToken.Token.Selection
 --
---  Copyright (C) 2009, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,21 +25,21 @@
 
 pragma License (Modified_GPL);
 
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Selection_Mixin;
 with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Text_Feeder.String;
-
 package Token_Selection_Test is
 
    type Token_IDs is (Do_ID, Several, Things, Int, Times, In_ID, A_ID, Row, EOF, Whitespace);
 
-   package Terminal_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
-   package Tokenizer is new Terminal_Token.Analyzer;
+   package Tokenizer is new Master_Token.Analyzer;
+   package Selection is new Master_Token.Selection_Mixin (Master_Token.Instance, Master_Token.Instance);
 
    Syntax : constant Tokenizer.Syntax :=
      (Do_ID      => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("do")),
@@ -55,14 +55,14 @@ package Token_Selection_Test is
                                      (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
      );
 
-   Do_Keyword      : Terminal_Token.Handle := Syntax (Do_ID).Token_Handle;
-   Several_Keyword : Terminal_Token.Handle := Syntax (Several).Token_Handle;
-   Things_Keyword  : Terminal_Token.Handle := Syntax (Things).Token_Handle;
-   Int_Literal     : Terminal_Token.Handle := Syntax (Int).Token_Handle;
-   Times_Keyword   : Terminal_Token.Handle := Syntax (Times).Token_Handle;
-   In_Keyword      : Terminal_Token.Handle := Syntax (In_ID).Token_Handle;
-   A_Keyword       : Terminal_Token.Handle := Syntax (A_ID).Token_Handle;
-   Row_Keyword     : Terminal_Token.Handle := Syntax (Row).Token_Handle;
+   Do_Keyword      : Master_Token.Handle := Syntax (Do_ID).Token_Handle;
+   Several_Keyword : Master_Token.Handle := Syntax (Several).Token_Handle;
+   Things_Keyword  : Master_Token.Handle := Syntax (Things).Token_Handle;
+   Int_Literal     : Master_Token.Handle := Syntax (Int).Token_Handle;
+   Times_Keyword   : Master_Token.Handle := Syntax (Times).Token_Handle;
+   In_Keyword      : Master_Token.Handle := Syntax (In_ID).Token_Handle;
+   A_Keyword       : Master_Token.Handle := Syntax (A_ID).Token_Handle;
+   Row_Keyword     : Master_Token.Handle := Syntax (Row).Token_Handle;
 
    Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
 

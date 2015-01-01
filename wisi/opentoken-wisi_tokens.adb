@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -45,9 +45,11 @@ package body OpenToken.Wisi_Tokens is
       return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Buffer_Range);
    end Get;
 
-   function Total_Buffer_Range (Tokens : in Token_Lists.Instance'Class) return Wisi_Tokens.Tokens.Buffer_Range
+   function Total_Buffer_Range
+     (Tokens : in Wisi_Tokens.Tokens.List.Instance'Class)
+     return Wisi_Tokens.Tokens.Buffer_Range
    is
-      use Token_Lists;
+      use Wisi_Tokens.Tokens.List;
       use Wisi_Tokens.Tokens;
       I      : List_Iterator := Tokens.Initial_Iterator;
       Result : Buffer_Range  := Null_Buffer_Range;
@@ -81,7 +83,7 @@ package body OpenToken.Wisi_Tokens is
 
    procedure Self
      (New_Token : out Nonterminals.Class;
-      Source    : in  Token_Lists.Instance'Class;
+      Source    : in  Tokens.List.Instance'Class;
       To_ID     : in  Token_IDs)
    is begin
       New_Token := Get (To_ID, Total_Buffer_Range (Source));
@@ -102,9 +104,9 @@ package body OpenToken.Wisi_Tokens is
       end if;
    end Image;
 
-   function To_Codes (Tokens : in Token_Lists.Instance'Class) return String
+   function To_Codes (Tokens : in Wisi_Tokens.Tokens.List.Instance'Class) return String
    is
-      use Token_Lists;
+      use Wisi_Tokens.Tokens.List;
       Chars_Per_Token : constant Integer := 4 + 2 * Integer'Width;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 18 + Tokens.Length * Chars_Per_Token);
       use Bounded;

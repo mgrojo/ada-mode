@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 --  MA 02111-1307, USA.
 
 with AUnit.Assertions;
-package body OpenToken.Token.Enumerated.Analyzer.AUnit is
+package body OpenToken.Token.Analyzer.AUnit is
 
    procedure Check
      (Label        : in String;
@@ -71,4 +71,4 @@ package body OpenToken.Token.Enumerated.Analyzer.AUnit is
 
    end Check;
 
-end OpenToken.Token.Enumerated.Analyzer.AUnit;
+end OpenToken.Token.Analyzer.AUnit;

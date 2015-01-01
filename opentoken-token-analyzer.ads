@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2002, 2003, 2009, 2012 - 2014 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2012 - 2015 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -51,9 +51,17 @@
 
 with OpenToken.Recognizer;
 generic
-package OpenToken.Token.Enumerated.Analyzer is
+package OpenToken.Token.Analyzer is
 
-   type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
+   type Source is abstract new OpenToken.Token.Source with null record;
+
+   --------------------------------------------------------------------------
+   --  Returns the recognizer handle of the last token that was matched.
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
+   --------------------------------------------------------------------------
+   function Last_Recognizer (Analyzer : in Source) return Recognizer_Handle is abstract;
 
    --  Descriptor for what an individual token in this language looks
    --  like. Also provides storage for Lexeme and Recognizer from
@@ -85,7 +93,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    --------------------------------------------------------------------------
    function Get
      (Recognizer : in OpenToken.Recognizer.Class;
-      New_Token  : in OpenToken.Token.Enumerated.Class := Get)
+      New_Token  : in OpenToken.Token.Class := Get)
      return Recognizable_Token;
 
    function Null_Analyzer return Instance;
@@ -108,16 +116,9 @@ package OpenToken.Token.Enumerated.Analyzer is
       First_Column    : in Integer                               := 1)
      return Handle;
 
-   ----------------------------------------------------------------------
-   --  Return name of ID token in Analyzer.Syntax
-   ----------------------------------------------------------------------
-   function Name (Analyzer : in Instance; ID : in Token_ID) return String;
+   overriding function Name (Analyzer : in Instance; ID : in Token_ID) return String;
 
-   --------------------------------------------------------------------
-   --  Reset Analyzer, to start finding tokens. This is appropriate
-   --  when the Feeder text has been changed.
-   --------------------------------------------------------------------
-   procedure Reset (Analyzer : in out Instance);
+   overriding procedure Reset (Analyzer : in out Instance);
 
    ----------------------------------------------------------------------------
    --  Set the Analyzer's syntax to the given value.
@@ -144,24 +145,16 @@ package OpenToken.Token.Enumerated.Analyzer is
    ----------------------------------------------------------------------
    procedure Set_Syntax (Analyzer : in out Instance; Language_Syntax : in Syntax);
 
-   ----------------------------------------------------------------------------
-   --  Set the analyzer's text feeder.
-   ----------------------------------------------------------------------------
+   overriding
    procedure Set_Text_Feeder (Analyzer : in out Instance; Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr);
 
-   ------------------------------------------------------------------------
-   --  True if Analyzer's internal buffer is empty, and
-   --  Analyzer.Text_Feeder reports End_Of_Text.
+   overriding
    function End_Of_Text (Analyzer : in Instance) return Boolean;
 
-   ------------------------------------------------------------------------
-   --  True if Analyzer's internal buffer is empty.
+   overriding
    function End_Of_Buffered_Text (Analyzer : in Instance) return Boolean;
 
-   --------------------------------------------------------------------------
-   --  Discard text in Analyzer's internal buffer. Do this when a
-   --  parse error is encountered, and you want to start over.
-   --------------------------------------------------------------------------
+   overriding
    procedure Discard_Buffered_Text (Analyzer : in out Instance);
 
    ----------------------------------------------------------------------------
@@ -170,7 +163,7 @@ package OpenToken.Token.Enumerated.Analyzer is
    --  If Find_Next can't find a matching token, it will set Token to
    --  this token id, instead of raising syntax error. The Lexeme in
    --  this situation will be contain all the contiguous characters
-   --  that fail to match an token. In practice this will be much less
+   --  that fail to match a token. In practice this will be much less
    --  efficient than an "error" token that explicitly matches
    --  unmatchable strings. But often those are quite difficult to
    --  construct. The default token will be checked for legitimate
@@ -197,19 +190,10 @@ package OpenToken.Token.Enumerated.Analyzer is
    overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class;
    overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
 
-   --------------------------------------------------------------------------
-   --  Returns the current text line number at which processing will resume.
-   --  This is particularly useful for printing error messages when
-   --  syntax errors are detected.
-   --------------------------------------------------------------------------
+   overriding
    function Line (Analyzer : in Instance) return Natural;
 
-   --------------------------------------------------------------------------
-   --  Returns the current text column number at which processing will
-   --  resume. This is particularly useful for printing error messages
-   --  when syntax errors are detected. First column number is given
-   --  in Initialize.
-   --------------------------------------------------------------------------
+   overriding
    function Column (Analyzer : in Instance) return Natural;
 
    --------------------------------------------------------------------------
@@ -251,7 +235,7 @@ private
 
    --  Visible for unit tests
    type Token_List_Node is record
-      Token_Handle : OpenToken.Token.Enumerated.Handle;
+      Token_Handle : OpenToken.Token.Handle;
       Prev         : Token_List_Node_Pointer;
       Next         : Token_List_Node_Pointer;
    end record;
@@ -300,4 +284,4 @@ private
       Tail : Token_List_Node_Pointer;
    end record;
 
-end OpenToken.Token.Enumerated.Analyzer;
+end OpenToken.Token.Analyzer;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,10 +33,9 @@ with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Nonterminal;
 package body Test_LR_Expecting is
 
    --  A simple grammar for testing the Expecting function for generating nice error messages.
@@ -70,15 +69,14 @@ package body Test_LR_Expecting is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, EOF_ID, Token_IDs'Image);
+   package Master_Token is new OpenToken.Token (Token_IDs, Equals_ID, EOF_ID, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer is new Master_Token.Integer;
 
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Nonterminal is new Master_Token.Nonterminal;
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package OpenToken_Parser is new Production.Parser;
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
@@ -100,7 +98,7 @@ package body Test_LR_Expecting is
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    package Set_Statement is
 
@@ -208,7 +206,7 @@ package body Test_LR_Expecting is
       Test : Test_Case renames Test_Case (T);
    begin
       Parser := LALR_Parsers.Initialize
-        (Analyzer,
+        (Master_Token.Source_Handle (Analyzer),
          LALR_Generators.Generate
            (Grammar,
             Trace           => Test.Debug,

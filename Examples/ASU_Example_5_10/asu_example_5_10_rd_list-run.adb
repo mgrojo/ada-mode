@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephen Leake.
+--  Copyright (C) 2009, 2014, 2015 Stephen Leake.
 --  Copyright (C) 1999,2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -105,10 +105,10 @@ begin
    end if;
 
    --  Set debugging info
-   OpenToken.Token.Set_Name (L.all, "L");
-   OpenToken.Token.Set_Name (F1.all, "F1");
-   OpenToken.Token.Set_Name (F.all, "F");
-   OpenToken.Token.Set_Name (T.all, "T");
+   Master_Token.Set_Name (L.all, "L");
+   Master_Token.Set_Name (F1.all, "F1");
+   Master_Token.Set_Name (F.all, "F");
+   Master_Token.Set_Name (T.all, "T");
 
    --  Read and parse lines from Current_Input until an empty line is read.
    loop

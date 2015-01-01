@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2013, 2014 Stephe Leake
+--  Copyright (C) 2009, 2013, 2014, 2015 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -38,9 +38,8 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Linked_List;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
 with OpenToken.Token.List_Mixin;
 with OpenToken.Token.Selection_Mixin;
 with OpenToken.Token.Sequence_Mixin;
@@ -50,7 +49,7 @@ package ASU_Example_5_10_RD_List is
    type Token_IDs is
      (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_ID, Times_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
@@ -89,7 +88,7 @@ package ASU_Example_5_10_RD_List is
    --  Create a custom selection token which has integers for
    --  components and returns an integer with the value of the
    --  selected component from a parse; used for F -> ( E ) | digit.
-   package Integer_Selection is new OpenToken.Token.Selection_Mixin
+   package Integer_Selection is new Master_Token.Selection_Mixin
      (Parent_Token    => Integer_Token.Instance,
       Component_Token => Integer_Token.Instance);
    procedure Build_Selection
@@ -97,16 +96,16 @@ package ASU_Example_5_10_RD_List is
       From  : in     Integer_Token.Class);
 
    --  A token type for a sequence of tokens; used for ( E ), E EOF
-   package Integer_Sequence is new OpenToken.Token.Sequence_Mixin (Integer_Token.Instance);
+   package Integer_Sequence is new Master_Token.Sequence_Mixin (Integer_Token.Instance);
    procedure Build_Parens
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+      Using : in     Master_Token.List.Instance);
    procedure Build_Print
      (Match : in out Integer_Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+      Using : in     Master_Token.List.Instance);
 
    --  Token type for repeating lists; {+ T}, {* F}
-   package Operation_List is new OpenToken.Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
+   package Operation_List is new Master_Token.List_Mixin (Integer_Token.Instance, Integer_Token.Instance);
 
    procedure Init_Plus (Match : in out Operation_List.Instance);
    procedure Plus_Element

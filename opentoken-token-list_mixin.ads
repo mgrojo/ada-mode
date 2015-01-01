@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -116,7 +116,7 @@ package OpenToken.Token.List_Mixin is
       Analyzer : access Source_Class;
       Actively : in     Boolean      := True);
 
-   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
+   overriding procedure Expecting (Token : access Instance; List : in out OpenToken.Token.List.Instance);
 
 private
    type Component_Handle is access all Component_Token'Class;
@@ -127,7 +127,7 @@ private
       Lookahead   : Integer;
       Initialize  : List_Action;
       Add_Element : Element_Action;
-      Build       : List_Action;
+      Build_List  : List_Action;
    end record;
 
 end OpenToken.Token.List_Mixin;

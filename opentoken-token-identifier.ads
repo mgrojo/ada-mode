@@ -1,8 +1,8 @@
---  Abstract:
+--  Abstract :
 --
---  See spec.
+--  Identifier token
 --
---  Copyright (C) 2002, 2009, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2009, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,39 +23,29 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-package body OpenToken.Token.Enumerated.Identifier is
+generic
+package OpenToken.Token.Identifier is
+
+   type Instance is new Token.Instance with record
+      --  Because OpenToken.Token.Analyzer reuses token
+      --  objects, we can't use a discriminant to set the string
+      --  length. So we use Ada.Strings.Bounded.
+      Identifier : OpenToken.Buffers.Bounded_String;
+   end record;
 
    function Get
      (ID    : in Token_ID;
       Build : in Action := null)
-     return Instance'Class
-   is begin
-      return Instance'Class
-        (Instance'
-           (Token.Instance with
-            ID         => ID,
-            Build      => Build,
-            Identifier => OpenToken.Buffers.Null_Bounded_String));
-
-   end Get;
+     return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;
       Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
-      New_Token  : in out Instance)
-   is
-      pragma Unreferenced (Bounds);
-      pragma Unreferenced (Recognizer);
-   begin
-      New_Token.Identifier := OpenToken.Buffers.To_Bounded_String (Lexeme);
-   end Create;
+      New_Token  : in out Instance);
 
    overriding procedure Copy
      (To   : in out Instance;
-      From : in     Token.Class)
-   is begin
-      To.Identifier := Instance (From).Identifier;
-   end Copy;
+      From : in     Token.Class);
 
-end OpenToken.Token.Enumerated.Identifier;
+end OpenToken.Token.Identifier;

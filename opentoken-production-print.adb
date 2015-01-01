@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2002, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -37,7 +37,7 @@ package body OpenToken.Production.Print is
    is
       use type Nonterminal.Synthesize;
    begin
-      Token_List.Print (Item.Tokens);
+      Token.List.Print (Item.Tokens);
       Put (", Action => ");
       Print_Action (Item.Action);
    end Print;

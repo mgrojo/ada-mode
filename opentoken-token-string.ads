@@ -29,9 +29,9 @@
 --  parsers.
 -------------------------------------------------------------------------------
 generic
-package OpenToken.Token.Enumerated.String is
+package OpenToken.Token.String is
 
-   type Instance is new OpenToken.Token.Enumerated.Instance with record
+   type Instance is new OpenToken.Token.Instance with record
       Value : Buffers.Bounded_String;
    end record;
 
@@ -68,4 +68,4 @@ package OpenToken.Token.Enumerated.String is
      return Buffers.Bounded_String
      renames Buffers.To_Bounded_String;
 
-end OpenToken.Token.Enumerated.String;
+end OpenToken.Token.String;

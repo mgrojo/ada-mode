@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -22,9 +22,9 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.AUnit;
-with OpenToken.Token.Selection;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.AUnit;
+with OpenToken.Token.Selection_Mixin;
 package body Test_Selection_Actions is
 
    --  Just enough machinery to allow checking that the specified
@@ -32,9 +32,10 @@ package body Test_Selection_Actions is
 
    type Token_ID is (T0, T1, EOF, Whitespace);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
+   package Master_Token is new OpenToken.Token (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Master_Token_AUnit is new Master_Token.AUnit;
+   package Selection is new Master_Token.Selection_Mixin (Master_Token.Instance, Master_Token.Instance);
 
    Syntax : constant Tokenizer.Syntax :=
      (T0         => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("T0")),
@@ -49,7 +50,7 @@ package body Test_Selection_Actions is
 
    --  Build and Add_Element actions
 
-   use OpenToken.Token;
+   use Master_Token;
    use type Selection.Instance;
 
    --  Terminal tokens
@@ -59,7 +60,7 @@ package body Test_Selection_Actions is
    --  Nonterminal tokens
    procedure Build_Selection
      (Token    : in out Selection.Instance;
-      Selected : in     OpenToken.Token.Class)
+      Selected : in     Master_Token.Class)
    is
       pragma Unreferenced (Token);
       use Master_Token_AUnit;

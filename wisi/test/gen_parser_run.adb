@@ -1,4 +1,5 @@
 with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
@@ -63,7 +64,7 @@ begin
 
 exception
 when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
-   Put_Line (Name (File) & ":" & Ada.Exceptions.Exception_Message (E));
+   Put_Line (Ada.Directories.Simple_Name (Name (File)) & ":" & Ada.Exceptions.Exception_Message (E));
 
 when E : others =>
    New_Line;

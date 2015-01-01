@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -29,11 +29,9 @@
 --  descent parsers.
 -----------------------------------------------------------------------------
 
-with OpenToken.Token.Linked_List;
 generic
    type Parent_Token is abstract new OpenToken.Token.Instance with private;
    type Component_Token is abstract new OpenToken.Token.Instance with private;
-
 package OpenToken.Token.Selection_Mixin is
 
    type Instance is new Parent_Token with private;
@@ -169,13 +167,16 @@ package OpenToken.Token.Selection_Mixin is
       Analyzer : access Source_Class;
       Actively : in     Boolean      := True);
 
-   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance);
+   overriding
+   procedure Expecting
+     (Token : access Instance;
+      List  : in out OpenToken.Token.List.Instance);
 
 private
 
    type Instance is new Parent_Token with record
-      Members : Token.Linked_List.Instance;
-      Build   : Action;
+      Members         : OpenToken.Token.List.Instance;
+      Build_Selection : Action;
    end record;
 
 end OpenToken.Token.Selection_Mixin;

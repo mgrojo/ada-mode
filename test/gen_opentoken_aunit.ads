@@ -2,7 +2,7 @@
 --
 --  AUnit routines useful in OpenToken tests
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,20 +21,16 @@ pragma License (GPL);
 with AUnit.Check;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 generic
    type Token_ID is (<>);
    First_Terminal : in Token_ID;
    Last_Terminal  : in Token_ID;
-   with package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
-   with package Token_Lists is new Tokens_Pkg.List;
-   with package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-   with package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
+   with package Tokens_Pkg is new OpenToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
+   with package Nonterminals is new Tokens_Pkg.Nonterminal;
+   with package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
    with package Production_Lists is new Productions.List;
-   with package Analyzers is new Tokens_Pkg.Analyzer;
-   with package Parsers is new Productions.Parser (Analyzers);
+   with package Parsers is new Productions.Parser;
    First_State_Index : in Integer;
    with package LALRs is new Parsers.LALR (First_State_Index);
    with package LALR_Generators is new LALRs.Generator (Token_ID'Width, Production_Lists);
@@ -45,8 +41,8 @@ package Gen_OpenToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Lists.List_Iterator;
-      Expected : in Token_Lists.List_Iterator);
+      Computed : in Tokens_Pkg.List.List_Iterator;
+      Expected : in Tokens_Pkg.List.List_Iterator);
 
    procedure Check
      (Label    : in String;

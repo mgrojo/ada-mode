@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -34,12 +34,11 @@ with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Real;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Identifier;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Real;
-with OpenToken.Token.Enumerated.String;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Identifier;
+with OpenToken.Token.Nonterminal;
+with OpenToken.Token.Real;
+with OpenToken.Token.String;
 package body Test_Token_Identifier_Real_String is
 
    type Token_ID_Type is
@@ -53,15 +52,14 @@ package body Test_Token_Identifier_Real_String is
       Value_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Identifier_ID, EOF_ID, Token_ID_Type'Image);
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
+   package Master_Token is new OpenToken.Token (Token_ID_Type, Identifier_ID, EOF_ID, Token_ID_Type'Image);
+   package Nonterminal is new Master_Token.Nonterminal;
 
    package Identifier_Tokens is new Master_Token.Identifier;
    package Real_Tokens is new Master_Token.Real (Float);
    package String_Tokens is new Master_Token.String;
 
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
 
    package Tokens is
@@ -96,10 +94,10 @@ package body Test_Token_Identifier_Real_String is
 
    procedure Test_Action
      (New_Token :    out Nonterminal.Class;
-      Source    : in     Token_List.Instance'Class;
+      Source    : in     Master_Token.List.Instance'Class;
       To_ID     : in     Token_ID_Type)
    is
-      use Token_List;
+      use Master_Token.List;
       use Ada.Strings.Unbounded;
       use OpenToken.Buffers;
 
@@ -144,7 +142,7 @@ package body Test_Token_Identifier_Real_String is
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    Grammar : constant Production_List.Instance :=
      --  Start symbol must only be in first production, all
@@ -154,7 +152,7 @@ package body Test_Token_Identifier_Real_String is
      Tokens.Value <= Tokens.Real + Test_Action'Access  and
      Tokens.Value <= Tokens.String + Test_Action'Access;
 
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package OpenToken_Parser is new Production.Parser;
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
@@ -237,7 +235,7 @@ package body Test_Token_Identifier_Real_String is
 
       begin
          Parser := LALR_Parsers.Initialize
-           (An_Analyzer,
+           (Master_Token.Source_Handle (An_Analyzer),
             LALR_Generators.Generate (Grammar, Trace => Test.Debug));
       exception
       when E : others =>

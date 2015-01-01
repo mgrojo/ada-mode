@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,18 +25,12 @@
 --
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
---  Test driver for the token list handling code.
--------------------------------------------------------------------------------
-
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.List;
 procedure Token_List_Test.Run is
 begin
-
    ----------------------------------------------------------------------------
    --  Test Case 1
    --
@@ -51,8 +45,8 @@ begin
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      List : aliased OpenToken.Token.List.Class :=
-        OpenToken.Token.List.Get
+      List : aliased Token_List.Class :=
+        Token_List.Get
         (Element   => Syntax (Int).Token_Handle,
          Separator => Syntax (Comma).Token_Handle);
    begin
@@ -69,7 +63,7 @@ begin
       Analyzer.Find_Next;
 
       --  Perform the parse
-      OpenToken.Token.List.Parse (List'Access, Analyzer);
+      Token_List.Parse (List'Access, Analyzer);
 
       if Analyzer.ID = EOF then
          Ada.Text_IO.Put_Line ("passed");
@@ -103,8 +97,8 @@ begin
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      List : aliased OpenToken.Token.List.Class :=
-        OpenToken.Token.List.Get
+      List : aliased Token_List.Class :=
+        Token_List.Get
         (Element   => Syntax (Int).Token_Handle,
          Separator => Syntax (Comma).Token_Handle);
 
@@ -122,9 +116,9 @@ begin
       Analyzer.Find_Next;
 
       --  Parse 2 token lists (one for each integer).
-      OpenToken.Token.List.Parse (List'Access, Analyzer);
+      Token_List.Parse (List'Access, Analyzer);
 
-      OpenToken.Token.List.Parse (List'Access, Analyzer);
+      Token_List.Parse (List'Access, Analyzer);
 
       if Analyzer.ID = EOF then
          Ada.Text_IO.Put_Line ("passed");
@@ -159,8 +153,8 @@ begin
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      List : aliased OpenToken.Token.List.Class :=
-        OpenToken.Token.List.Get
+      List : aliased Token_List.Class :=
+        Token_List.Get
         (Element   => Syntax (Int).Token_Handle,
          Separator => Syntax (Comma).Token_Handle);
 
@@ -178,7 +172,7 @@ begin
       Analyzer.Find_Next;
 
       --  Parse 2 token lists (one for each integer).
-      OpenToken.Token.List.Parse (List'Access, Analyzer);
+      Token_List.Parse (List'Access, Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

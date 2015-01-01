@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2014 Stephe Leake
+-- Copyright (C) 2009, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,7 +33,6 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Selection;
 procedure Token_Selection_Test.Run is
 begin
 
@@ -48,14 +47,13 @@ begin
    --                     parsed.
    Test_Case_1 :
    declare
-
-      use OpenToken.Token.Selection;
-
       Parse_String : constant String := "Do several things 200 times in a row";
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : aliased OpenToken.Token.Selection.Class :=
+      use Token_Selection_Test.Selection; -- "or"
+
+      Selection : aliased Token_Selection_Test.Selection.Class :=
         Do_Keyword or Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -67,15 +65,14 @@ begin
       --  Put the parse string into the analyzer's text feeder.
       OpenToken.Text_Feeder.String.Set
         (Feeder => String_Feeder,
-         Value  => Parse_String
-        );
+         Value  => Parse_String);
 
       --  Load up the first token
       Analyzer.Find_Next;
 
       for String_Token in 1 .. 8 loop
          --  Perform the parse
-         OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
+         Selection.Parse (Analyzer);
 
       end loop;
 
@@ -107,13 +104,13 @@ begin
    --
    Test_Case_2 :
    declare
-      use OpenToken.Token.Selection;
-
       Parse_String : constant String := "Do several things in a row";
 
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, String_Feeder'Access);
 
-      Selection : aliased OpenToken.Token.Selection.Class :=
+      use Token_Selection_Test.Selection; -- "or"
+
+      Selection : aliased Token_Selection_Test.Selection.Class :=
         Several_Keyword or Things_Keyword or Int_Literal or Times_Keyword or
         In_Keyword or A_Keyword or Row_Keyword;
 
@@ -131,7 +128,7 @@ begin
       Analyzer.Find_Next;
 
       --  Parse token selection
-      OpenToken.Token.Selection.Parse (Selection'Access, Analyzer);
+      Selection.Parse (Analyzer);
 
       Ada.Text_IO.Put_Line ("failed.");
       Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

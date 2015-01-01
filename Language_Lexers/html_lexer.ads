@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2010, 2013, 2014 Stephen Leake
+-- Copyright (C) 2009, 2010, 2013, 2014, 2015 Stephen Leake
 -- Copyright (C) 1999, 2000 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -25,7 +25,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Unbounded;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
 package HTML_Lexer is
 
    ----------------------------------------------------------------------
@@ -100,7 +100,7 @@ private
    end record;
 
    --  Visible for children
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_Name, Token_Name'First, Token_Name'Last, Token_Name'Image);
    package Tokenizer is new Master_Token.Analyzer;
 

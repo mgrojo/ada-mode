@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2013, 2014 Stephe Leake
+-- Copyright (C) 2009, 2013, 2014, 2015 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -35,21 +35,22 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Linked_List;
-with OpenToken.Token.Selection;
-with OpenToken.Token.Sequence;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Selection_Mixin;
+with OpenToken.Token.Sequence_Mixin;
 package ASU_Example_5_10_RD_Commute is
 
    --  The complete list of tokens. No non-terminals in recursive descent.
    type Token_IDs is (Integer_ID, Left_Paren_ID, Right_Paren_ID, Plus_Sign_ID,
                       Multiply_ID, EOF_ID, Whitespace_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
    package Integer_Token is new Master_Token.Integer;
+   package Selection is new Master_Token.Selection_Mixin (Master_Token.Instance, Master_Token.Instance);
+   package Sequence is new Master_Token.Sequence_Mixin (Master_Token.Instance);
 
    Syntax : constant Tokenizer.Syntax :=
      (Multiply_ID       => Tokenizer.Get (Recognizer => OpenToken.Recognizer.Separator.Get ("*")),
@@ -112,20 +113,20 @@ package ASU_Example_5_10_RD_Commute is
    procedure Clear_Stack;
 
    procedure Build_Selection
-     (Match : in out OpenToken.Token.Selection.Instance;
-      From  : in     OpenToken.Token.Class);
+     (Match : in out Selection.Instance;
+      From  : in     Master_Token.Class);
    procedure Build_Print
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance);
    procedure Build_Plus
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance);
    procedure Build_Multiply
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance);
    procedure Build_Parens
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance);
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance);
    procedure Build_Integer (Token : in out Master_Token.Instance'Class);
 
    --  Define all our tokens
@@ -139,9 +140,9 @@ package ASU_Example_5_10_RD_Commute is
 
    --  ...and nonterminals. Since we have lots of recursion, we do
    --  them all in the body.
-   L : constant OpenToken.Token.Sequence.Handle  := new OpenToken.Token.Sequence.Instance;
-   E : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
-   T : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
-   F : constant OpenToken.Token.Selection.Handle := new OpenToken.Token.Selection.Instance;
+   L : constant Sequence.Handle  := new Sequence.Instance;
+   E : constant Selection.Handle := new Selection.Instance;
+   T : constant Selection.Handle := new Selection.Instance;
+   F : constant Selection.Handle := new Selection.Instance;
 
 end ASU_Example_5_10_RD_Commute;

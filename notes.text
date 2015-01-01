@@ -1,5 +1,21 @@
 Misc notes on current work
 
+refactor packages
+    o.t.linked_list vs o.t.list (was o.t.e.list)
+        merge into o.t
+        o.t.linked_list was controlled; was that actually used?
+            yes, at least for Expected
+
+    o.t.instance.build vs o.t.sequence/selection_mixin.instance.build
+
+    delete recursive descent parser
+
+    split out lexer (rename from analyzer?)
+        eliminate run-time class check for tokens
+
+    only recursive descent needs lexer lookahead
+        lalr is lalr 1
+
 speed up parsing, for Emacs Ada backend
 
     added profiling; see build/profile/gprof.out
@@ -7,30 +23,19 @@ speed up parsing, for Emacs Ada backend
     add opentoken analyzer wrapper around ada flex
         in org.opentoken.stephe-1
 
- misc
+    /Projects/org.emacs.ada-mode.stephe-1/notes.text
+    /Projects/aflex/build/Makefile
+    /Projects/aflex/aflex.adb
+    source from http://sourceforge.net/projects/p2ada/
+        if this works, put it in another mtn branch
 
-every file is marked executable in mtn?
+    aflex generates ada_syntax.a, containing function yylex
+        change aflex to name function ada_syntax.yylex
 
-html_lexer:
+        add --help
 
-    new tags:
+        ECHO is an error handler?
+            writes via "Text_IO.Put (user_output_file)"
 
-     Code,               -- <CODE>
-     Paragraph       -- <P attributes>
-
-Expecting eliminate duplicates
-    same as First sets; dragon section 2.4
-
-need string value for integer_token
-    unsigned_32'last > integer'last
-    similarly for time_type, real_type
-
-need to find all access types, make them pool-specific, use tracing allocator (gnat.debug_pool).
-
-error on missing ':' in 'range | foo ;'
-
-pointer at end of kernel => default should be reduce or accept
-    don't need to compute lookaheads?
-    see FIXME in opentoken-production-parser-lalr.adb
 
 # end of file

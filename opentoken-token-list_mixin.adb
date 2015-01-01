@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -26,7 +26,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Text_IO;
-with OpenToken.Token.Linked_List;
 package body OpenToken.Token.List_Mixin is
 
    overriding
@@ -49,7 +48,7 @@ package body OpenToken.Token.List_Mixin is
          Lookahead   => Default_Lookahead,
          Initialize  => null,
          Add_Element => null,
-         Build       => null);
+         Build_List  => null);
    end "**";
 
    function "*"
@@ -74,7 +73,7 @@ package body OpenToken.Token.List_Mixin is
       Build : in List_Action)
      return Handle
    is begin
-      Token.Build := Build;
+      Token.Build_List := Build;
       return Token;
    end "-";
 
@@ -95,7 +94,7 @@ package body OpenToken.Token.List_Mixin is
          Lookahead   => Lookahead,
          Initialize  => Initialize,
          Add_Element => Add_Element,
-         Build       => Build);
+         Build_List  => Build);
    begin
       Set_Name (OpenToken.Token.Instance (New_Token), Name);
 
@@ -126,7 +125,7 @@ package body OpenToken.Token.List_Mixin is
          New_Token.Add_Element := Add_Element;
       end if;
       if Build /= null then
-         New_Token.Build := Build;
+         New_Token.Build_List := Build;
       end if;
 
       return New_Token;
@@ -186,8 +185,8 @@ package body OpenToken.Token.List_Mixin is
             end;
          end loop;
 
-         if Local_Match.Build /= null then
-            Local_Match.Build (Local_Match);
+         if Local_Match.Build_List /= null then
+            Local_Match.Build_List (Local_Match);
          end if;
 
          Match.all := Local_Match;
@@ -221,9 +220,9 @@ package body OpenToken.Token.List_Mixin is
       raise;
    end Parse;
 
-   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   overriding procedure Expecting (Token : access Instance; List : in out OpenToken.Token.List.Instance)
    is begin
-      Linked_List.Add (List, OpenToken.Token.Handle (Token.Element));
+      List.Add (OpenToken.Token.Handle (Token.Element));
    end Expecting;
 
 end OpenToken.Token.List_Mixin;

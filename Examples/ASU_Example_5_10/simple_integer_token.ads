@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -24,18 +24,11 @@
 --  executable file might be covered by the GNU Public License.
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.Nonterminal;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-
--------------------------------------------------------------------------------
---  This package declares a type for designating an integer literal.
--------------------------------------------------------------------------------
+with OpenToken.Token.Nonterminal;
+with OpenToken.Token.Integer;
 generic
-   with package Token           is new OpenToken.Token.Enumerated (<>);
-   with package Token_List      is new Token.List;
-   with package Nonterminal     is new Token.Nonterminal (Token_List);
+   with package Token           is new OpenToken.Token (<>);
+   with package Nonterminal     is new Token.Nonterminal;
    with package Integer_Literal is new Token.Integer;
 package Simple_Integer_Token is
 
@@ -87,7 +80,7 @@ package Simple_Integer_Token is
    --  Routine to print the value of the given Single interger token.
    --------------------------------------------------------------------------
    procedure Print_Value (New_Token : out Nonterminal.Class;
-                          Source    : in  Token_List.Instance'Class;
+                          Source    : in  Token.List.Instance'Class;
                           To_ID     : in  Token.Token_ID);
 
 private
@@ -103,10 +96,10 @@ private
    --  Instance'Class.
    ----------------------------------------------------------------------------
    procedure Synthesize_Add (New_Token : out Nonterminal.Class;
-                             Source    : in  Token_List.Instance'Class;
+                             Source    : in  Token.List.Instance'Class;
                              To_ID     : in  Token.Token_ID);
    procedure Synthesize_Multiply (New_Token : out Nonterminal.Class;
-                                  Source    : in  Token_List.Instance'Class;
+                                  Source    : in  Token.List.Instance'Class;
                                   To_ID     : in  Token.Token_ID);
 
    ----------------------------------------------------------------------------
@@ -114,7 +107,7 @@ private
    --  production's right hand side.
    ----------------------------------------------------------------------------
    procedure Synthesize_From_Second_Argument (New_Token : out Nonterminal.Class;
-                                              Source    : in  Token_List.Instance'Class;
+                                              Source    : in  Token.List.Instance'Class;
                                               To_ID     : in  Token.Token_ID);
 
    Add_Integers      : constant Nonterminal.Synthesize := Synthesize_Add'Access;

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -41,7 +41,7 @@ package body OpenToken.Token.Selection_Mixin is
       Analyzer : access Source_Class;
       Actively : in     Boolean := True)
    is
-      use Linked_List;
+      use Token.List;
       I : List_Iterator := First (Match.Members);
    begin
       if Trace_Parse > 0 then
@@ -79,11 +79,13 @@ package body OpenToken.Token.Selection_Mixin is
          if I = Null_Iterator then
             if Actively then
                declare
-                  Expected : Linked_List.Instance;
+                  Expected : Token.List.Instance;
+                  --  FIXME: needs garbage collection
+                  --  Or change Expecting to return a string
                begin
                   Expecting (Match, Expected);
                   raise Parse_Error with "Found " & Name_Dispatch (Analyzer.Get) & "; expected one of " &
-                    Token.Linked_List.Names (Expected) & ".";
+                    Token.List.Names (Expected) & ".";
                end;
             else
                --  The spec says "raise Parse_Error with no message".
@@ -104,8 +106,8 @@ package body OpenToken.Token.Selection_Mixin is
 
       if Actively then
          Parse (Token_Handle (I), Analyzer, Actively);
-         if Match.Build /= null then
-            Match.Build (Match.all, Component_Token'Class (Token_Handle (I).all));
+         if Match.Build_Selection /= null then
+            Match.Build_Selection (Match.all, Component_Token'Class (Token_Handle (I).all));
          end if;
       end if;
 
@@ -127,36 +129,36 @@ package body OpenToken.Token.Selection_Mixin is
       Right : access Component_Token'Class)
      return Instance
    is
-      use type Linked_List.Instance;
+      use type Token.List.Instance;
    begin
       return
         (Parent_Token with
-         Members => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         Build   => null);
+         Members         => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Build_Selection => null);
    end "or";
 
    function "or"
      (Left  : access Component_Token'Class;
       Right : in     Instance) return Instance
    is
-      use type Linked_List.Instance;
+      use type Token.List.Instance;
    begin
       return
         (Parent_Token with
-         Members => OpenToken.Token.Handle (Left) & Right.Members,
-         Build   => null);
+         Members         => OpenToken.Token.Handle (Left) & Right.Members,
+         Build_Selection => null);
    end "or";
 
    function "or"
      (Left  : in     Instance;
       Right : access Component_Token'Class) return Instance
    is
-      use type Linked_List.Instance;
+      use type Token.List.Instance;
    begin
       return
         (Parent_Token with
-         Members => Left.Members & OpenToken.Token.Handle (Right),
-         Build   => null);
+         Members         => Left.Members & OpenToken.Token.Handle (Right),
+         Build_Selection => null);
    end "or";
 
    function "or"
@@ -164,12 +166,12 @@ package body OpenToken.Token.Selection_Mixin is
       Right : in Instance)
      return Instance
    is
-      use type Linked_List.Instance;
+      use type Token.List.Instance;
    begin
       return
         (Parent_Token with
-         Members => Left.Members & Right.Members,
-         Build   => null);
+         Members         => Left.Members & Right.Members,
+         Build_Selection => null);
    end "or";
 
    function "+"
@@ -196,7 +198,7 @@ package body OpenToken.Token.Selection_Mixin is
    begin
       Set_Name (OpenToken.Token.Instance (New_Token.all), Name);
       if Build /= null then
-         New_Token.Build := Build;
+         New_Token.Build_Selection := Build;
       end if;
       return New_Token;
    end New_Instance;
@@ -206,9 +208,9 @@ package body OpenToken.Token.Selection_Mixin is
       return Token;
    end Copy;
 
-   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   overriding procedure Expecting (Token : access Instance; List : in out OpenToken.Token.List.Instance)
    is
-      use Linked_List;
+      use OpenToken.Token.List;
       I : List_Iterator := First (Token.Members);
    begin
       loop

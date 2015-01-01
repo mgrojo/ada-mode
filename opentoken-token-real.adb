@@ -1,7 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
--- Copyright (C) 2000 Ted Dennison
+-- Copyright (C) 2002, 2009, 2014 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -22,9 +21,40 @@
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
--------------------------------------------------------------------------------
 
-with OpenToken.Token.Selection_Mixin;
-package OpenToken.Token.Selection is new OpenToken.Token.Selection_Mixin
-  (Parent_Token => OpenToken.Token.Instance,
-   Component_Token => OpenToken.Token.Instance);
+package body OpenToken.Token.Real is
+
+   function Get
+     (ID    : in Token_ID;
+      Value : in Real_Type := 0.0;
+      Name  : in String    := "";
+      Build : in Action    := null)
+     return Instance'Class
+   is begin
+      if Name = "" then
+         return Instance'Class (Instance'(null, ID, Build, Value));
+      else
+         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+      end if;
+   end Get;
+
+   overriding procedure Create
+     (Lexeme     : in     String;
+      Bounds     : in     Buffer_Range;
+      Recognizer : in     Recognizer_Handle;
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Bounds);
+      pragma Unreferenced (Recognizer);
+   begin
+      New_Token.Value := Real_Type'Value (Lexeme);
+   end Create;
+
+   overriding procedure Copy
+     (To   : in out Instance;
+      From : in     Token.Class)
+   is begin
+      To.Value := Instance (From).Value;
+   end Copy;
+
+end OpenToken.Token.Real;

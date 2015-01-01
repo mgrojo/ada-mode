@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -46,8 +46,8 @@ procedure ASU_Example_5_10_RD_Commute.Run is
    Line        : String (1 .. 1024);
    Line_Length : Natural;
 
-   use OpenToken.Token.Sequence;
-   use OpenToken.Token.Selection;
+   use Sequence;
+   use Selection;
 begin
 
    declare
@@ -90,7 +90,7 @@ begin
    --
    --  Note that this results in always looking ahead to the end of
    --  the input, for every step along the way.
-   OpenToken.Token.Default_Lookahead := 3;
+   Master_Token.Default_Lookahead := 3;
 
    --  We'd like to arrange the selection order so that integers are
    --  accepted as quickly as possible. But then the operators are not
@@ -133,7 +133,7 @@ begin
 
       Clear_Stack;
 
-      OpenToken.Token.Sequence.Parse (L, Analyzer);
+      Sequence.Parse (L, Analyzer);
    end loop;
 
 exception

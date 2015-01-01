@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015 Stephe Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -46,7 +46,7 @@ package body OpenToken.Token.Sequence_Mixin is
       Analyzer : access Source_Class;
       Actively : in     Boolean      := True)
    is
-      use Token.Linked_List;
+      use Token.List;
 
       I : List_Iterator := First (Match.Members);
    begin
@@ -68,8 +68,8 @@ package body OpenToken.Token.Sequence_Mixin is
             Next_Token (I);
          end loop;
 
-         if Match.Build /= null then
-            Match.Build (Match.all, Match.Members);
+         if Match.Build_Sequence /= null then
+            Match.Build_Sequence (Match.all, Match.Members);
          end if;
       else
          for J in 1 .. Match.Lookahead loop
@@ -97,13 +97,13 @@ package body OpenToken.Token.Sequence_Mixin is
       Right : access OpenToken.Token.Class)
      return Instance
    is
-      use type Linked_List.Instance;
+      use type List.Instance;
    begin
       return
         (Parent_Token with
-         Members   => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
-         Lookahead => Default_Lookahead,
-         Build     => null);
+         Members        => OpenToken.Token.Handle (Left) & OpenToken.Token.Handle (Right),
+         Lookahead      => Default_Lookahead,
+         Build_Sequence => null);
    end "&";
 
    function "&"
@@ -111,13 +111,13 @@ package body OpenToken.Token.Sequence_Mixin is
       Right : in     Instance)
      return Instance
    is
-      use Linked_List;
+      use List;
    begin
       return
         (Parent_Token with
-         Members   => OpenToken.Token.Handle (Left) & Right.Members,
-         Lookahead => Default_Lookahead,
-         Build     => null);
+         Members        => OpenToken.Token.Handle (Left) & Right.Members,
+         Lookahead      => Default_Lookahead,
+         Build_Sequence => null);
    end "&";
 
    function "&"
@@ -125,13 +125,13 @@ package body OpenToken.Token.Sequence_Mixin is
       Right : access OpenToken.Token.Class)
      return Instance
    is
-      use Linked_List;
+      use List;
    begin
       return
         (Parent_Token with
-         Members   => Left.Members & OpenToken.Token.Handle (Right),
-         Lookahead => Default_Lookahead,
-         Build     => null);
+         Members        => Left.Members & OpenToken.Token.Handle (Right),
+         Lookahead      => Default_Lookahead,
+         Build_Sequence => null);
    end "&";
 
    function "&"
@@ -139,13 +139,13 @@ package body OpenToken.Token.Sequence_Mixin is
       Right : in Instance)
      return Instance
    is
-      use Linked_List;
+      use List;
    begin
       return
         (Parent_Token with
-         Members   => Left.Members & Right.Members,
-         Lookahead => Default_Lookahead,
-         Build     => null);
+         Members        => Left.Members & Right.Members,
+         Lookahead      => Default_Lookahead,
+         Build_Sequence => null);
    end "&";
 
    function "+"
@@ -176,7 +176,7 @@ package body OpenToken.Token.Sequence_Mixin is
       New_Token.Lookahead := Lookahead;
 
       if Build /= null then
-         New_Token.Build := Build;
+         New_Token.Build_Sequence := Build;
       end if;
       return New_Token;
    end New_Instance;
@@ -186,9 +186,9 @@ package body OpenToken.Token.Sequence_Mixin is
       return Token;
    end Copy;
 
-   overriding procedure Expecting (Token : access Instance; List : in out Linked_List.Instance)
+   overriding procedure Expecting (Token : access Instance; List : in out OpenToken.Token.List.Instance)
    is
-      use Linked_List;
+      use OpenToken.Token.List;
    begin
       Add (List, Token_Handle (First (Token.Members)));
    end Expecting;

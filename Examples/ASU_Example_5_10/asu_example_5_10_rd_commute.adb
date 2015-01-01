@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -56,8 +56,8 @@ package body ASU_Example_5_10_RD_Commute is
    end Clear_Stack;
 
    procedure Build_Selection
-     (Match : in out OpenToken.Token.Selection.Instance;
-      From  : in     OpenToken.Token.Class)
+     (Match : in out Selection.Instance;
+      From  : in     Master_Token.Class)
    is
       pragma Unreferenced (From);
       use Integer_Stacks;
@@ -66,14 +66,14 @@ package body ASU_Example_5_10_RD_Commute is
 
       if OpenToken.Trace_Parse > 0 then
          OpenToken.Trace_Put
-           ("Build_Selection " & OpenToken.Token.Selection.Name (Match) & ": " & Integer'Image (Top (Stack)));
+           ("Build_Selection " & Selection.Name (Match) & ": " & Integer'Image (Top (Stack)));
          Ada.Text_IO.New_Line;
       end if;
    end Build_Selection;
 
    procedure Build_Print
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance)
    is
       pragma Unreferenced (Using);
       pragma Unreferenced (Match);
@@ -89,8 +89,8 @@ package body ASU_Example_5_10_RD_Commute is
    end Build_Print;
 
    procedure Build_Plus
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance)
    is
       pragma Unreferenced (Using);
       pragma Unreferenced (Match);
@@ -118,8 +118,8 @@ package body ASU_Example_5_10_RD_Commute is
    end Build_Plus;
 
    procedure Build_Multiply
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance)
    is
       pragma Unreferenced (Using);
       pragma Unreferenced (Match);
@@ -147,8 +147,8 @@ package body ASU_Example_5_10_RD_Commute is
    end Build_Multiply;
 
    procedure Build_Parens
-     (Match : in out OpenToken.Token.Sequence.Instance;
-      Using : in     OpenToken.Token.Linked_List.Instance)
+     (Match : in out Sequence.Instance;
+      Using : in     Master_Token.List.Instance)
    is
       pragma Unreferenced (Using);
       pragma Unreferenced (Match);

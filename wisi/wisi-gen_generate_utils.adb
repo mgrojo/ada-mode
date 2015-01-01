@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -430,9 +430,9 @@ package body Wisi.Gen_Generate_Utils is
       raise OpenToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Token_Lists.Instance; Token : in String) return Token_Lists.Instance
+   function "&" (Tokens : in Tokens_Pkg.List.Instance; Token : in String) return Tokens_Pkg.List.Instance
    is
-      use Token_Lists;
+      use Tokens_Pkg.List;
    begin
       return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
    end "&";
@@ -440,7 +440,7 @@ package body Wisi.Gen_Generate_Utils is
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance
    is
       use Productions;
-      use Token_Lists;
+      use Tokens_Pkg.List;
 
       Grammar : Production_Lists.Instance;
    begin
@@ -463,7 +463,7 @@ package body Wisi.Gen_Generate_Utils is
                declare
                   use Production_Lists;
 
-                  Tokens : Token_Lists.Instance;
+                  Tokens : Tokens_Pkg.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;

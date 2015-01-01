@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -28,16 +28,16 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer.AUnit;
-with OpenToken.Token.Enumerated.String;
+with OpenToken.Token.Analyzer.AUnit;
+with OpenToken.Token.String;
 package body Analyzer_Lookahead_Test is
 
    type Token_ID is (If_ID, Then_ID, Quit_ID, String_ID, Whitespace, EOF);
 
-   package Master_Example_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_ID, Token_ID'First, Token_ID'Last, Token_ID'Image);
-   package Tokenizer is new Master_Example_Token.Analyzer;
-   package String_Literal is new Master_Example_Token.String;
+   package Tokenizer is new Master_Token.Analyzer;
+   package String_Literal is new Master_Token.String;
 
    procedure Check is new AUnit.Check.Gen_Check_Discrete (Token_ID);
 
@@ -133,7 +133,7 @@ package body Analyzer_Lookahead_Test is
          Head_Null   => True);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("2", True, Then_ID);
 
@@ -155,7 +155,7 @@ package body Analyzer_Lookahead_Test is
          Head_Token  => Then_ID);
 
       declare
-         Mark_2 : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark_2 : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("4", True, Then_ID);
 
@@ -176,7 +176,7 @@ package body Analyzer_Lookahead_Test is
             Head_Null   => True);
 
          declare
-            Mark_1 : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+            Mark_1 : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
          begin
             Step ("6", True, Quit_ID);
 
@@ -220,7 +220,7 @@ package body Analyzer_Lookahead_Test is
       Step ("10", False, String_ID);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          Step ("11", True, Quit_ID);
 
@@ -255,7 +255,7 @@ package body Analyzer_Lookahead_Test is
 
    procedure Check_Lexeme
      (Label           : in     String;
-      Token           : in     Master_Example_Token.Handle;
+      Token           : in     Master_Token.Handle;
       Expected_Lexeme : access String)
    is
       use AUnit.Check;
@@ -281,13 +281,13 @@ package body Analyzer_Lookahead_Test is
       procedure Test
         (Label           : in     String;
          Actively        : in     Boolean;
-         Token           : access Master_Example_Token.Class;
+         Token           : access Master_Token.Class;
          Expected_Lexeme : in     String                := "")
       is
          use AUnit.Check;
          use type Ada.Tags.Tag;
       begin
-         Master_Example_Token.Parse (Token, Analyzer, Actively);
+         Master_Token.Parse (Token, Analyzer, Actively);
          Check
            (Label & ".lexeme", String_Literal.To_String (String_Literal.Instance (Token.all).Value), Expected_Lexeme);
       end Test;
@@ -308,7 +308,7 @@ package body Analyzer_Lookahead_Test is
       Analyzer.Find_Next (Look_Ahead => False);
 
       declare
-         Mark : OpenToken.Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
+         Mark : Master_Token.Queue_Mark'Class renames Analyzer.Mark_Push_Back;
       begin
          --  Lexemes are not copied to tokens during inactive parse,
          --  but they are copied into the tokens pushed on the queue,
@@ -350,7 +350,7 @@ package body Analyzer_Lookahead_Test is
 
       Text : constant String := """string 1"" ";
 
-      Bad_String_Token : aliased Master_Example_Token.Class := Master_Example_Token.Get (String_ID);
+      Bad_String_Token : aliased Master_Token.Class := Master_Token.Get (String_ID);
 
    begin
       --  Verify the error from Parse when called with a token type
@@ -363,7 +363,7 @@ package body Analyzer_Lookahead_Test is
       Analyzer.Find_Next (Look_Ahead => False);
 
       begin
-         Master_Example_Token.Parse (Bad_String_Token'Access, Analyzer, Actively => True);
+         Master_Token.Parse (Bad_String_Token'Access, Analyzer, Actively => True);
          AUnit.Assertions.Assert (False, "did not get exception");
       exception
       when OpenToken.Programmer_Error =>

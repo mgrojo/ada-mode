@@ -1,4 +1,4 @@
---  Copyright (C) 2002 - 2005, 2008 - 2014 Stephe Leake
+--  Copyright (C) 2002 - 2005, 2008 - 2015 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -63,9 +63,9 @@ package body OpenToken.Production.Parser.LALR.Parser is
       return Goto_Node.State;
    end Goto_For;
 
-   type Token_Array is array (Integer range <>) of Token.Token_ID;
+   type Token_ID_Array is array (Integer range <>) of Token.Token_ID;
 
-   function Expecting (Table : in Parse_Table_Ptr; State : in State_Index) return Token_Array
+   function Expecting (Table : in Parse_Table_Ptr; State : in State_Index) return Token_ID_Array
    is
       Action : Action_Node_Ptr := Table (State).Action_List;
       Count  : Integer         := 0;
@@ -79,7 +79,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
       --  Last action is error; don't include it.
       declare
-         Result : Token_Array (1 .. Count - 1);
+         Result : Token_ID_Array (1 .. Count - 1);
       begin
          Action := Table (State).Action_List;
          for I in Result'Range loop
@@ -90,7 +90,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end;
    end Expecting;
 
-   function Names (Analyzer : in Tokenizer.Handle; Tokens : in Token_Array) return String
+   function Names (Analyzer : in Token.Source_Handle; Tokens : in Token_ID_Array) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
@@ -114,7 +114,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
    is
       use type Nonterminal.Synthesize;
 
-      Tokens : Token_List.Instance;
+      Tokens : Token.List.Instance;
    begin
       --  Pop the indicated number of token states from the stack, and
       --  if not Pending call the production action routine to update
@@ -125,7 +125,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       if Action.Token_Count > 0 then
          for I in 1 .. Action.Token_Count loop
             --  Enqueue does not deep copy Token, but clean frees it
-            Token_List.Enqueue (Tokens, Current_Parser.Pop.Token);
+            Token.List.Enqueue (Tokens, Current_Parser.Pop.Token);
          end loop;
       end if;
 
@@ -145,7 +145,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                Parser_Lists.Put (Action_Token);
                Ada.Text_IO.New_Line;
             end if;
-            Token_List.Clean (Tokens);
+            Token.List.Clean (Tokens);
          end if;
       end;
    end Reduce_Stack;
@@ -293,7 +293,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
             Ada.Text_IO.New_Line;
          end if;
          --  Action_Token.New_Token still on stack; freed later
-         Token_List.Clean (Action_Token.Tokens);
+         Token.List.Clean (Action_Token.Tokens);
       end loop;
    end Execute_Pending;
 
@@ -315,7 +315,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
          when Shift =>
             Parser.Analyzer.Find_Next;
             Token.Free (Current_Token);
-            Current_Token := new Token.Class'(Token.Class (Parser.Analyzer.Get));
+            Current_Token := new Token.Class'(Parser.Analyzer.Get);
 
          when Accept_It =>
             --  Done.
@@ -337,7 +337,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                Lexeme : constant String := Parser.Analyzer.Lexeme;
 
                --  FIXME: merge expecting from all active parsers
-               Expecting_Tokens : constant Token_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
+               Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
             begin
                --  FIXME: free everything
                raise Syntax_Error with
@@ -423,13 +423,13 @@ package body OpenToken.Production.Parser.LALR.Parser is
    end Parse;
 
    function Initialize
-     (Analyzer             : in Tokenizer.Handle;
-      Table                : in Parse_Table_Ptr;
-      Max_Parallel         : in Integer := 15;
-      Terminate_Same_State : in Boolean := False)
+     (Analyzer             : access Token.Source'Class;
+      Table                : in     Parse_Table_Ptr;
+      Max_Parallel         : in     Integer := 15;
+      Terminate_Same_State : in     Boolean := False)
      return Instance
    is begin
-      return (Analyzer, Table, Max_Parallel, Terminate_Same_State);
+      return (Token.Source_Handle (Analyzer), Table, Max_Parallel, Terminate_Same_State);
    end Initialize;
 
 

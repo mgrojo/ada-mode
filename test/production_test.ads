@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --  Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,26 +25,19 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Nonterminal;
 with OpenToken.Production;
 with OpenToken.Production.List;
-
------------------------------------------------------------------------------
---  Library-level declarations for the test driver for the token list
---  handling code.
------------------------------------------------------------------------------
 package Production_Test is
 
    type Token_IDs is (Int_ID, Real_ID, String_ID, Keyword_ID, Expression_ID, Literal_ID);
 
    Token_Image_Width : Integer := Token_IDs'Width;
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Int_ID, Keyword_ID, Token_IDs'Image);
+   package Master_Token is new OpenToken.Token (Token_IDs, Int_ID, Keyword_ID, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Nonterminal is new Master_Token.Nonterminal;
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
 
 end Production_Test;

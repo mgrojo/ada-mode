@@ -2,7 +2,7 @@
 --
 --  AUnit stuff for analyzer unit tests
 --
---  Copyright (C) 2009, 2010, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,7 +24,7 @@ generic
       Computed : in Token_ID;
       Expected : in Token_ID);
 
-package OpenToken.Token.Enumerated.Analyzer.AUnit is
+package OpenToken.Token.Analyzer.AUnit is
 
    type Token_Array is array (Natural range <>) of Token_ID;
 
@@ -36,7 +36,7 @@ package OpenToken.Token.Enumerated.Analyzer.AUnit is
 
    type Check_Token_Proc is access procedure
      (Label           : in     String;
-      Token           : in     OpenToken.Token.Enumerated.Handle;
+      Token           : in     OpenToken.Token.Handle;
       Expected_Lexeme : access String);
 
    procedure Check
@@ -54,4 +54,4 @@ package OpenToken.Token.Enumerated.Analyzer.AUnit is
    --  Raise AUnit.Assert_Error if Analyzer lookahead queue does not
    --  match the given state.
 
-end OpenToken.Token.Enumerated.Analyzer.AUnit;
+end OpenToken.Token.Analyzer.AUnit;

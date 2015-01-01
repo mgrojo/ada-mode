@@ -6,8 +6,6 @@ procedure Subprograms_Run is new Gen_Parser_Run
    Subprograms.Last_Terminal,
    Subprograms.Token_Image,
    Subprograms.Tokens,
-   Subprograms.Analyzers,
-   Subprograms.Token_Lists,
    Subprograms.Nonterminals,
    Subprograms.Productions,
    Subprograms.Parsers,

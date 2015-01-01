@@ -6,8 +6,6 @@ procedure Empty_Production_8_Run is new Gen_Parser_Run
    Empty_Production_8.Last_Terminal,
    Empty_Production_8.Token_Image,
    Empty_Production_8.Tokens,
-   Empty_Production_8.Analyzers,
-   Empty_Production_8.Token_Lists,
    Empty_Production_8.Nonterminals,
    Empty_Production_8.Productions,
    Empty_Production_8.Parsers,
