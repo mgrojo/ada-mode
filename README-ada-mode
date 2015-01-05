@@ -37,4 +37,9 @@ By default ada-mode uses gnat find for cross-reference functions.
 There is support for an alternative: gpr_query. See ada-mode.texi
 section Installation for more.
 
+By default ada-mode uses an elisp parser, which can be slow on large
+files. There is experimental support an alternative, using the GPS
+parser running in a subprocess. See ada-mode.texi section ada-gps for
+more.
+   
 (end of file)

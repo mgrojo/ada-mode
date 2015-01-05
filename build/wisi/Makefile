@@ -122,6 +122,14 @@ test-ada-gpr_query.stamp : force
 	$(MAKE) test-ada-gpr_query
 	touch $@
 
+test-ada-gps : RUNTEST := run-indent-test-gps.el
+test-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-gps.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gps
+	touch $@
+
 # we don't use 'expand-file-name' here because that adds c:/ on windows
 # eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
 # eval: (ada-parse-prj-file "wisi_opentoken.prj")

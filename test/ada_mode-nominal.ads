@@ -120,7 +120,7 @@ package Ada_Mode.Nominal is -- target 0
      constant Integer;
    type Object_Access_Type_4 is not null
      --EMACSCMD:(test-face "Integer" font-lock-type-face)
-     access all Integer; -- it no longer matters wither this is 'all' or 'constant'
+     access all Integer; -- it no longer matters whether this is 'all' or 'constant'
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(downcase-word 4)(ada-case-adjust))
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(upcase-word 4)(ada-case-adjust))

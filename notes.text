@@ -17,17 +17,17 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
+  (add-to-list 'exec-path "/apps/GNAT-gpl_2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
   (setq debug-on-error t)
   (load "autoloads.el")
-  (load "run-indent-test-wisi")
-  (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/format_paramlist.adb")
-  (ada-wisi-debug-keys))
+  (load "run-indent-test-gps")
+;  (setq wisi-debug 1)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/wisi/")
+;  (setq ada-gps-exec "/Projects/org.emacs.ada-mode.stephe-2/build/ada_mode_gps_indent"))
+  (run-test "../../test/gnatprep.adb"))
 
 install packages in -Q:
 (progn
@@ -90,7 +90,49 @@ after trunk transition to git (11 Nov 2014?):
 
 use eieio class/method for dispatching
 
-5.1.c:
+5.1.c: GPS sub-process indentation engine
+    build/Makefile
+
+    (progn
+      (require 'ada-gps)
+      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent")))
+
+    Version in a_m_gps_i for upgrade control
+
+
+    c:/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        7081 lines, 241060 chars
+        copied to build/foo.adb
+
+    wisi timing:
+    (progn
+        (ada-wisi-setup)
+        (wisi-invalidate-cache)
+        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
+        2.062000
+
+    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
+        0.531000
+
+    (progn
+        (goto-char (point-max))
+        (forward-line -3)
+        (time-it 'indent-according-to-mode 10))
+        0.001 seconds
+
+    ada-gps timing:
+    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
+        ~700 seconds?
+
+    (progn
+        (goto-char (point-max))
+        (forward-line -3)
+        (time-it 'indent-according-to-mode 10))
+        Total 1.857000 seconds; per iteration 0.185700
+
+    include *.adb, build/Makefile in ELPA for gpr_query, ada_mode_gps_indent
+
+5.1.d:
 
 handle parser errors more gracefully
     continue by adding virtual tokens

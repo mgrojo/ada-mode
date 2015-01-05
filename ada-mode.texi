@@ -122,6 +122,7 @@ You may also want to install additional utilities:
 @menu
 * Ada Reference Manual::
 * gpr_query::
+* ada_mode_gps_indent::
 * Upgrading::
 @end menu
 
@@ -199,6 +200,7 @@ the tutorial (@kbd{C-h t}).
 * Non-standard file names::
 * Other compiler::
 * Other cross-reference::
+* Other indentation::
 * Other customization::
 @end menu
 
@@ -285,7 +287,33 @@ To use a cross reference tool other than the above, you must write
 Emacs lisp code that provides the interface to the compiler, and set
 @code{ada-xref-tool} and the indirection variables.
 
-See @file{ada-gnat-xref.el} and @file{gpr-query.el} for examples.
+See @file{ada-gnat-xref.el}, @file{gnat-inspect.el},
+@file{gpr-query.el} for examples.
+
+@node Other indentation, Other customization, Other compiler, Customization
+@section Other indentation
+The ada-mode indentation engine is set by a function on
+@var{ada-mode-hook}, which is set when the elisp code defining the
+indentation engine is loaded.
+
+The default indentation tool is @file{ada-wisi}, provided by the
+file @file{ada-wisi.el}. It can be very slow on very large files, so
+an alternative is provided in @file{ada-gps.el}; on small files, it
+uses ada-wisi, on large files, it uses the AdaCore GPS indentation
+engine.
+
+To use ada-gps, add the
+following to @file{~/.emacs}:
+
+@example
+(require 'ada-gps)
+@end example
+
+To use @file{ada-gps}, the Ada code @file{ada_mode_gps_indent.adb}
+must be compiled; see @ref{Installation}.
+
+The threshold for ``large file'' is in user variable
+@var{ada-gps-size-threshold}.
 
 @node Other customization,  , Other cross-reference, Customization
 @section Other customization
