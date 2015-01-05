@@ -24,6 +24,8 @@ generic
    --EMACSCMD:(ada-which-function)
    --EMACSRESULT:(if (featurep 'ada-wisi) "Ada_Mode.Generic_Package" nil)
 
+   use Ada.Text_IO;
+
    -- one of each kind of generic_formal_parameter_definition from arm Annex P
 
    -- Types

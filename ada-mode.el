@@ -2091,6 +2091,7 @@ identifier.  May be an Ada identifier or operator."
       (error "No identifier around"))
      )))
 
+;; FIXME: use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
 (defvar ada-goto-pos-ring '()
   "List of positions selected by navigation functions. Used
 to go back to these positions.")

@@ -1,16 +1,13 @@
 This directory provides source files for testing Emacs Ada mode and
 gpr mode indentation, capitalization, and other issues.
 
-See ../build for running the tests.
+See ../build/wisi/Makefile for running the tests.
 
 The Ada files that are children of Ada_Mode were written (or renamed
-from existing tests) to test the SMIE grammar while the grammar was
-being written. Ada_Mode.Nominal contains structures that have a major
-influence on the grammar structure, such as names with dots, extended
-return, protected types. Other Ada_Mode.* test smaller parts of the
-grammar. Ada_Mode.* files all use the default option settings; other
-files test other settings.
+from existing tests) to test the grammar while the grammar was being
+written. Ada_Mode.Nominal tests most of the grammar. Other Ada_Mode.*
+test smaller parts of the grammar. Ada_Mode.* files all use the
+default ada-mode option settings; other files test other settings.
 
-Other Ada files are mostly bug reports from earlier versions of
-Ada mode. They must still work, and may test corner cases not
+Other Ada files are mostly bug reports. They may test corner cases not
 otherwise tested.

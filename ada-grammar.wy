@@ -1186,7 +1186,7 @@ generic_declaration
   ;
 
 generic_formal_part
-  : GENERIC generic_formal_parameter_declarations ;; leaving out use_clause
+  : GENERIC generic_formal_parameter_declarations
     (progn
       (wisi-statement-action [1 block-start])
       (wisi-containing-action 1 2))
@@ -1205,6 +1205,7 @@ generic_formal_parameter_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
   | pragma
+  | use_clause
   ;
 
 generic_instantiation

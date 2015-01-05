@@ -637,7 +637,7 @@ Prompt user if more than one."
    ;;   foo.c:2 : `TRUE' undeclared here (not in a function)
    "^\\(\\(.:\\)?[^ :\n]+\\):\\([0-9]+\\)\\s-?:?\\([0-9]+\\)?" 1 3 4))
 
-(unless (default-value ada-compiler)
+(unless (default-value 'ada-compiler)
     (set-default 'ada-compiler 'gnat))
 
 ;; end of file

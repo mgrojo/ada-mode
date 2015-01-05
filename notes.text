@@ -40,26 +40,37 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-add ada backend for xref.el
+incorrect color:
+    opentoken/wisi/test/run_ada_parser.adb
+        Ada_Grammar.LALR_Parsers.Parse (Parser);
 
-add test to doc handling of bad style:
-
-   if 1 > 2 then
-      null;
-   else if 2 > 3 then
-      null;
-   else if 3 > 4 then
-      null;
-   else
-      null;
-   end if;
-      A;
-   end if;
-      B;
-   end if;
 
 books passes ada-check-current-project when project is fish_mercury
     don't put . in compilation-search-path; expand it.
+
+completion
+    (info "(elisp)Completion")
+    examples:
+        Ada.Text_IO.<tab> => Put, Put_line, Get, etc
+            needs new query; all symbols that match prefix
+            better as an ASIS query?
+
+        what does GPS do?
+            works on non-compiled, bad syntax code
+            type 'with '; puts up a list of all packages in the project.
+            type 'with Ada.'; list of all children of Ada
+                requires scroll, <ret> to select
+                while scrolling, puts up help text next to list
+
+            type 'Put', puts up a list of all simple names in project matching that prefix
+            type 'Put (', puts up a list of all params of all Puts (_not_ filtered by current context clause)
+
+            does _not_ handle 'foo_io.put', where 'foo_io' is an instance of A.Tio.float_io.
+                maybe it would if foo_io is:
+                    a library package instantiation
+                    a local instantiation, but was previously compiled
+
+            find the GPS source code
 
 find-file-in-prj
     prompt for file with compilation-search-path as completion
@@ -68,12 +79,6 @@ find-file-in-prj
 c:/Archive/Emacs/slime-2.10.1.tar.gz
 
 http://wikemacs.org/wiki/Projectile
-
-remove-yank-excluded-properties
-    calls remove-list-of-text-properties without with-silent-modifications
-        wisi-before-change can't tell that only text properties are changing
-
-    use that instead of wisi-after-change?
 
 use electric indent instead of ada-newline-indent?
 
