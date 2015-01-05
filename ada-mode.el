@@ -2912,7 +2912,7 @@ The paragraph is indented on the first line."
 (require 'ada-build)
 
 (unless (featurep 'ada-indent-engine)
-  (if (locate-file ada-gps-exec exec-path '(".exe"))
+  (if (locate-file ada-gps-exec exec-path '("" ".exe"))
       (require 'ada-gps)
     (require 'ada-wisi)))
 

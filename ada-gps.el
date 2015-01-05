@@ -56,7 +56,7 @@
     ;; user may have killed buffer
     (setf (ada-gps--session-buffer ada-gps-session) (get-buffer-create ada-gps-buffer-name)))
 
-  (let ((exec-file (locate-file ada-gps-exec exec-path '(".exe"))))
+  (let ((exec-file (locate-file ada-gps-exec exec-path '("" ".exe"))))
     (unless exec-file
       (error "%s not found on `exec-path'" ada-gps-exec))
 
@@ -85,7 +85,7 @@
 (defun ada-gps-session-wait ()
   "Wait for the current command to complete."
   (unless (process-live-p (ada-gps--session-process ada-gps-session))
-    (ada-gps-show-buffer ada-gps-session)
+    (ada-gps-show-buffer)
     (error "ada-gps process died"))
 
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
@@ -136,10 +136,12 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
     (process-send-string (ada-gps--session-process ada-gps-session) "04exit")
     ))
 
-(defun ada-gps-show-buffer (&optional session)
+(defun ada-gps-show-buffer ()
   "Show ada-gps buffer."
   (interactive)
-  (pop-to-buffer (ada-gps--session-buffer ada-gps-session)))
+  (if (ada-gps--session-buffer ada-gps-session)
+      (pop-to-buffer (ada-gps--session-buffer ada-gps-session)))
+  (error "ada-gps session not active")))
 
 ;;;;; indenting
 
@@ -215,7 +217,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
     (ada-wisi-setup))
   )
 
-(unless (locate-file ada-gps-exec exec-path '(".exe"))
+(unless (locate-file ada-gps-exec exec-path '("" ".exe"))
   (error "%s not found on `exec-path'" ada-gps-exec))
 
 (add-hook 'ada-mode-hook 'ada-gps-or-wisi-setup)

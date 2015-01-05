@@ -44,88 +44,8 @@ install packages in -Q:
       (require 'ada-gps)
       (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent")))
 
-    running ada-test-gps
-        build/wisi/Makefile
-        reporting indentation bugs
-            test/ada_mode.adb; 'is separate' - sent, minor bug
+    Version in a_m_gps_i for upgrade control
 
-            test/ada_mode-conditional_expressions.adb; - sent, enhancement (pathological)
-                -1
-                (case
-                -- comment aligned with 'when'
-                others
-                =>
-
-            test/ada_mode-generic_package.ads   - sent
-                all code after 'is task interface'
-
-            test/ada_mode-long_paren.adb
-            test/ada_mode-nested_packages.ads
-                object init/renames indented relative to ':', not line
-
-        discuss minor discrepencies - done, waiting on mailing list
-            test/access_in_record.ads - posted
-                change o.e.a to indent line with record use ada-indent-record-rel-type
-
-
-            test/ada_mode-expression_functions.ads 'is (' - posted
-                'is' does _not_ start a block
-
-            test/ada_mode-generic_instantiation.ads - posted
-                name after 'generic procedure'
-                not a real style
-
-            test/ada_mode-generic_parent.ads - posted
-            test/ada_mode-interactive_common.adb
-            test/ada_mode-interactive_wisi.adb
-            test/ada_mode-nested_packages.adb.diff
-                return/renames under paren
-                (setq ada-indent-return/-renames -1) to match
-                change defaults?
-
-            test/ada_mode-long_paren.adb - posted
-                aggregate selector continuation same indent
-                new option?
-
-            test/ada_mode-nominal.adb
-                labels
-                nothing else new worth discussing
-
-            ada_mode-nominal.ads
-            test/ada_mode-nominal-child.adb
-            test/ada_mode-nominal-child.ads
-            test/ada_mode-opentoken.ads
-            test/ada_mode-options.adb
-            test/ada_mode-options.ads
-            test/ada_mode-options-indent_return_1.ads
-            test/ada_mode-options-indent_return_2.ads
-            test/ada_mode-options-indent_return_3.ads
-            test/ada_mode-parens.adb
-            test/ada_mode-parens.ads
-            test/ada_mode-quantified_expressions.adb
-            test/ada_skel.adb
-            test/adacore_8114_010.ads
-            test/adacore_9907_010.adb
-            test/adacore_d304_005_2.adb
-            test/aspects.ads (gps sucks!)
-            test/bug_5746.adb
-            test/g-comlin.adb
-            test/indent.ads
-            test/limited_record.ads
-            test/mats_weber_bugs.adb
-            test/named_block.adb
-            test/parent.adb
-            test/pragma_indent.adb
-            test/prime-volatilities.adb (gps sucks!)
-            test/with_use2.adb
-                nothing new
-
-        already have (setq skip-reindent-test t):
-            ada_mode-ada2005.ads
-            ada_mode-ada2014.ads
-            ada_mode-ada83.ads
-            ada_mode-ada95.ads
-            ada_mode-interactive_wisi.adb
 
     c:/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
         7081 lines, 241060 chars

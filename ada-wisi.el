@@ -1182,7 +1182,8 @@ cached token, return new indentation for point."
   "For `ada-on-context-clause'."
 
   (save-excursion
-    (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause))))
+    (and (wisi-goto-statement-start)
+	 (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause)))))
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
