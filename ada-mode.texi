@@ -3,7 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2014  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2015  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -134,7 +134,7 @@ Annotated Ada Reference Manual in info format.
 @section gpr_query
 Ada mode has support for an external cross reference
 tool @code{gpr_query}, which supports Ada, C, C++, and any other
-language for which AdaCore gcc provices the @code{-fdump-xref}
+language for which AdaCore gcc provides the @code{-fdump-xref}
 (@code{-fdump-xref} is an AdaCore extension).
 
 @code{gpr_query} requires the @code{gnatcoll} library provided by
@@ -279,7 +279,8 @@ file @file{ada-gnat-xref.el}. One other tool is supported:
 @end example
 
 To use @file{gpr_query}, the Ada code @file{gpr_query.adb} must be
-compiled; see @ref{Installation}.
+compiled; see @ref{Installation}. In addition, non-Ada code must be
+compiled with the AdaCore gcc extension @code{-fdump-xref}.
 
 To use a cross reference tool other than the above, you must write
 Emacs lisp code that provides the interface to the compiler, and set

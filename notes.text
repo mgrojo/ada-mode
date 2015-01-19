@@ -40,6 +40,13 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
+email re "aliased in out not null access"
+    at least ensure we have tests for the worst cases
+    maybe redesign
+
+http://jdee.sourceforge.net/
+    has lalr parser
+
 incorrect color:
     opentoken/wisi/test/run_ada_parser.adb
         Ada_Grammar.LALR_Parsers.Parse (Parser);

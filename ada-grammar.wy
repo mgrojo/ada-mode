@@ -335,7 +335,7 @@ access_definition ;; same as access_type_definition for our purposes
     (progn
       (wisi-statement-action [4 name-paren])
       (wisi-containing-action 4 5)
-      (wisi-motion-action [4 [5 return-1 RETURN return-2 RETURN]]))
+      (wisi-motion-action [4 [5 return-with-params RETURN return-without-params RETURN]]))
   ;
 
 actual_parameter_part
@@ -1166,7 +1166,7 @@ function_specification
       (wisi-statement-action [1 statement-other 2 name])
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
-      (wisi-motion-action [1 [3 return-1 RETURN return-2 RETURN]])
+      (wisi-motion-action [1 [3 return-with-params RETURN return-without-params RETURN]])
       (wisi-face-action [2 font-lock-function-name-face]))
   ;
 
@@ -1708,20 +1708,20 @@ package_specification
 parameter_and_result_profile
   : formal_part RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action [2 return-1]);; for ada-indent-return
+      (wisi-statement-action [2 return-with-params]);; for ada-indent-return
       (wisi-containing-action 2 4)
       (wisi-face-action [4 font-lock-type-face]))
-  | RETURN name_opt
+  | RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action [1 return-2])
-      (wisi-face-action [2 font-lock-type-face]))
+      (wisi-statement-action [1 return-without-params])
+      (wisi-face-action [3 font-lock-type-face]))
   | formal_part RETURN access_definition
     (progn
-      (wisi-statement-action [2 return-1])
+      (wisi-statement-action [2 return-with-params])
       (wisi-containing-action 2 3))
   | RETURN access_definition
     (progn
-      (wisi-statement-action [1 return-2])
+      (wisi-statement-action [1 return-without-params])
       (wisi-containing-action 1 2))
   ;
 

@@ -2,7 +2,7 @@
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -44,8 +44,8 @@
     name-paren ;; anything that looks like a procedure call, since the grammar can't distinguish most of them
     open-paren
     return
-    return-1
-    return-2
+    return-with-params
+    return-without-params
     statement-end
     statement-other
     statement-start
@@ -462,7 +462,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		))
 	     )))
 
-	(return-1;; parameter list
+	(return-with-params;; parameter list
 	 (let ((return-pos (point)))
 	   (wisi-goto-containing cache nil) ;; matching 'function'
 	   (cond
@@ -475,7 +475,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	     (+ (current-column) ada-indent-return))
 	    )))
 
-	(return-2;; no parameter list
+	(return-without-params;; no parameter list
 	 (wisi-goto-containing cache nil) ;; matching 'function'
 	 (+ (current-column) ada-indent-broken))
 
@@ -898,7 +898,7 @@ cached token, return new indentation for point."
 	       ;; 1)
 	       (+ paren-column 1 ada-indent-broken))))
 
-	  ((return-1 return-2)
+	  ((return-with-params return-without-params)
 	   ;; test/ada_mode-nominal.adb
 	   ;; function Function_Access_1
 	   ;;   (A_Param : in Float)
