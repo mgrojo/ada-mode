@@ -1,4 +1,6 @@
 --  FIXME: Does not compile; add required subprograms
+--
+--  Some aspects also tested in ada-nominal.ads
 
 package Aspects is
 

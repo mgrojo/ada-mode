@@ -532,7 +532,10 @@ package Ada_Mode.Nominal is -- target 0
    P_8
      : Ada.Strings.Unbounded.String_Access;
 
-   task type Task_Type_1 (Name : access String) is
+   task type Task_Type_1 (Name : access String)
+   with
+     Storage_Size => 512 + 256
+   is
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Task_Type_1"
 

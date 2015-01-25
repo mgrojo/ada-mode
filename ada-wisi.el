@@ -563,8 +563,13 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     ;; indenting 'new'; containing is 'with'
 		     (+ (current-column) ada-indent-broken))
 
-		    ((full_type_declaration subtype_declaration)
-		     (while (not (memq (wisi-cache-token containing) '(TYPE SUBTYPE)))
+		    ((full_type_declaration
+		      single_protected_declaration
+		      single_task_declaration
+		      subtype_declaration
+		      task_type_declaration)
+
+		     (while (not (memq (wisi-cache-token containing) '(PROTECTED SUBTYPE TASK TYPE)))
 		       (setq containing (wisi-goto-containing containing)))
 
 		     (cond
@@ -577,6 +582,18 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 			   ;; test/aspects.ads
 			   ;; subtype Integer_String is String
 			   ;;   with Dynamic_Predicate => Integer'Value (Integer_String) in Integer
+			   ;; indenting 'with'
+			   ;;
+			   ;; test/ada_mode.ads
+			   ;; protected Separate_Protected_Body
+			   ;; with
+			   ;;   Priority => 5
+			   ;; indenting 'with'
+			   ;;
+			   ;; test/ada_nominal.ads
+			   ;; task type Task_Type_1 (Name : access String)
+			   ;; with
+			   ;;    Storage_Size => 512 + 256
 			   ;; indenting 'with'
 			   type-col)
 

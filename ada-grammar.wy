@@ -1894,6 +1894,8 @@ protected_operation_item
   : subprogram_declaration
   | subprogram_body
   | entry_body
+  | expression_function_declaration
+  | null_procedure_declaration
   | aspect_clause
   ;
 
@@ -2230,7 +2232,7 @@ single_task_declaration
       (wisi-face-action [2 font-lock-type-face]))
   | TASK IDENTIFIER aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 4 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 statement-end])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
       (wisi-face-action [2 font-lock-type-face]))

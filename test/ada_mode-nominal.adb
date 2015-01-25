@@ -375,12 +375,10 @@ package body Ada_Mode.Nominal is -- target 0
       end Read;
    end Protected_Buffer;
 
-   --------------------------------------------------------
-   --  6804-008: problem for indentation after a task declaration
-   --  The problem was caused by the task declaration with no
-   --  block attached
-   --------------------------------------------------------
-   task Executive;
+   task Executive
+   with
+     Storage_Size => 512 + 256,
+     Priority => 5;
    task body Executive is -- target 5
    begin
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
