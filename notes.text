@@ -1,41 +1,68 @@
 Misc notes on current work
 
+build/release/Makefile
+
+use aflex
+    /Projects/aflex/build/Makefile
+    /Projects/aflex/aflex.adb
+    source from http://sourceforge.net/projects/p2ada/
+        if this works, put it in another mtn branch
+
+    build/release/Makefile one
+        c:\projects\org.opentoken.stephe-1\wisi\test\gnatcoll-xref.adb:0:0: Syntax error; expecting 'LEFT_PAREN' or 'TICK' or 'STAR_STAR' or 'STAR' or 'SLASH' or 'REM' or 'MOD' or 'SEMICOLON' or 'AMPERSAND' or 'MINUS' or 'PLUS' or 'XOR' or 'OR' or 'AND' or 'SLASH_EQUAL'
+
+        run with trace on debug.adb; works fine
+
+        add line counter to ada_lexer.l
+
+    aflex generates ada_syntax.a, containing function yylex
+        add line/column
+            line token?
+                action stores 'line start pos' for yy
+
+        ada_syntax_dfa.ads YY_BUF_SIZE
+            add option to set it
+            tell aflex it's larger than the entire input text; no need to wrap or refill
+
+        change aflex to name function ada_syntax.yylex
+
+        better error messages; gnu syntax
+
+        add --help
+
+
 refactor packages
     o.t.linked_list vs o.t.list (was o.t.e.list)
         merge into o.t
         o.t.linked_list was controlled; was that actually used?
             yes, at least for Expected
 
-    o.t.instance.build vs o.t.sequence/selection_mixin.instance.build
-
     delete recursive descent parser
-
-    split out lexer (rename from analyzer?)
-        eliminate run-time class check for tokens
 
     only recursive descent needs lexer lookahead
         lalr is lalr 1
 
 speed up parsing, for Emacs Ada backend
 
+    measure progress:
+        with wisi-generate Ada_Emacs
+        time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > debug.parse
+
+        opentoken.stephe: 0.608, 0.920, 0.811, 0.842
+        refactor linked_lists, enumerated: 0.577 0.811 0.842 0.814 0.827
+
+        with wisi-generate --profile Ada_Emacs
+        time ./run_ada_parser.exe 10 ../../wisi/test/gnatcoll-xref.adb
+
+        refactor linked_lists, enumerated: 3.292 3.307 3.309
+        aflex (file input only):
+            outputting whitespace; add regexp to match it
+
+        change aflex to use text_feeder:
+
     added profiling; see build/profile/gprof.out
 
-    add opentoken analyzer wrapper around ada flex
-        in org.opentoken.stephe-1
-
-    /Projects/org.emacs.ada-mode.stephe-1/notes.text
-    /Projects/aflex/build/Makefile
-    /Projects/aflex/aflex.adb
-    source from http://sourceforge.net/projects/p2ada/
-        if this works, put it in another mtn branch
-
-    aflex generates ada_syntax.a, containing function yylex
-        change aflex to name function ada_syntax.yylex
-
-        add --help
-
-        ECHO is an error handler?
-            writes via "Text_IO.Put (user_output_file)"
-
+regenerate aflex.l
+    start with flex.l?
 
 # end of file

@@ -36,6 +36,7 @@ procedure Wisi.Output_Ada_Emacs
    Rules              : in Rule_Lists.List;
    Rule_Count         : in Integer;
    Action_Count       : in Integer;
+   Lexer              : in Lexer_Type;
    First_State_Index  : in Integer;
    First_Parser_Label : in Integer;
    Profile            : in Boolean)
@@ -314,7 +315,6 @@ is
       Put_Line ("with OpenToken.Production.Parser.LALR.Parser_Lists;");
       Put_Line ("with OpenToken.Text_Feeder;");
 
-      Put_Line ("with OpenToken.Token.Analyzer;");
       Put_Line ("with OpenToken.Token.Nonterminal;");
       Put_Line ("with OpenToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
@@ -340,6 +340,14 @@ is
       end loop;
       Indent := Indent - 3;
       New_Line;
+
+      case Lexer is
+      when Aflex_Lexer =>
+         Indent_Line ("subtype Token is Token_IDs;");
+         Indent_Line ("End_Of_Input : Token_IDs renames EOF_ID;");
+      when OpenToken_Lexer =>
+         null;
+      end case;
 
       Indent_Line ("First_Terminal : constant Token_IDs := " & To_Token_Image (Keywords.First_Element.Name) & ";");
       Indent_Line ("Last_Terminal : constant Token_IDs := EOF_ID;");
@@ -374,7 +382,6 @@ is
 
       Indent_Line
         ("package Tokens is new OpenToken.Token (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
-      Indent_Line ("package Analyzers is new Tokens.Analyzer;");
       Indent_Line ("package Nonterminals is new Tokens.Nonterminal;");
       Indent_Line ("package Productions is new OpenToken.Production (Tokens, Nonterminals);");
       Indent_Line ("package Parsers is new Productions.Parser;");
@@ -394,8 +401,6 @@ is
         ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Nonterminals);");
       New_Line;
 
-      Indent_Line ("function Create_Syntax return Analyzers.Syntax;");
-      New_Line;
       Indent_Line ("function Create_Parser");
       Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
       Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
@@ -441,50 +446,85 @@ is
       Put_Line ("--");
       Put_Prologue (Ada_Syntax => True);
 
-      if Is_In (Tokens, """symbol""") then
-         Put_Line ("with Ada.Strings.Maps.Constants;");
-      end if;
-
       if Action_Count > 0 and not Profile then
          Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
       end if;
 
-      if Is_In (Tokens, """whitespace""") then
-         Put_Line ("with OpenToken.Recognizer.Character_Set;");
-      end if;
+      case Lexer is
+      when Aflex_Lexer =>
+         declare
+            use Standard.Ada.Characters.Handling;
+         begin
+            Put_Line ("with OpenToken.Token.Aflex;");
+            Put_Line ("with YYLex;");
+            Put_Line ("with " & To_Lower (Package_Name) & "_dfa;");
+            Put_Line ("with " & To_Lower (Package_Name) & "_io;");
+         end;
 
-      Put_Line ("with OpenToken.Recognizer.End_Of_File;");
+      when OpenToken_Lexer =>
+         Put_Line ("with OpenToken.Token.Analyzer;");
+         if Is_In (Tokens, """symbol""") then
+            Put_Line ("with Ada.Strings.Maps.Constants;");
+         end if;
 
-      if Is_In (Tokens, """symbol""") then
-         Put_Line ("with OpenToken.Recognizer.Identifier;");
-      end if;
+         if Is_In (Tokens, """whitespace""") then
+            Put_Line ("with OpenToken.Recognizer.Character_Set;");
+         end if;
 
-      if Is_In (Tokens, """number""") then
-         Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
-         --  FIXME: overkill for wisi-number-p; no based
-      end if;
+         Put_Line ("with OpenToken.Recognizer.End_Of_File;");
 
-      Put_Line ("with OpenToken.Recognizer.Keyword;");
+         if Is_In (Tokens, """symbol""") then
+            Put_Line ("with OpenToken.Recognizer.Identifier;");
+         end if;
 
-      if Is_In (Tokens, """line_comment""") then
-         Put_Line ("with OpenToken.Recognizer.Line_Comment;");
-      end if;
+         if Is_In (Tokens, """number""") then
+            Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
+            --  FIXME: overkill for wisi-number-p; no based
+         end if;
 
-      if Is_In (Tokens, """punctuation""") then
-         Put_Line ("with OpenToken.Recognizer.Separator;");
-      end if;
+         Put_Line ("with OpenToken.Recognizer.Keyword;");
 
-      if Is_In (Tokens, """string-double""") then
-         Put_Line ("with OpenToken.Recognizer.String;");
-      end if;
+         if Is_In (Tokens, """line_comment""") then
+            Put_Line ("with OpenToken.Recognizer.Line_Comment;");
+         end if;
 
-      if Is_In (Tokens, """string-single""") then
-         Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
-      end if;
+         if Is_In (Tokens, """punctuation""") then
+            Put_Line ("with OpenToken.Recognizer.Separator;");
+         end if;
+
+         if Is_In (Tokens, """string-double""") then
+            Put_Line ("with OpenToken.Recognizer.String;");
+         end if;
+
+         if Is_In (Tokens, """string-single""") then
+            Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
+         end if;
+      end case;
 
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
+
+      case Lexer is
+      when Aflex_Lexer =>
+         declare
+            use Standard.Ada.Characters.Handling;
+         begin
+            Indent_Line ("package Lexers is new Tokens.Aflex");
+            Indent_Line ("  (YYLex,");
+            Indent := Indent + 3;
+            Indent_Line (To_Lower (Package_Name) & "_dfa.YYText,");
+            Indent_Line (To_Lower (Package_Name) & "_dfa.yy_init,");
+            Indent_Line (To_Lower (Package_Name) & "_dfa.yy_cp,");
+            Indent_Line (To_Lower (Package_Name) & "_io.yy_eof_has_been_seen,");
+            Indent_Line ("Nonterminals,");
+            Indent_Line ("Wisi_Tokens.Get);");
+            Indent := Indent - 3;
+         end;
+
+      when OpenToken_Lexer =>
+         Indent_Line ("package Analyzers is new Tokens.Analyzer;"); -- FIXME: rename to Lexers
+      end case;
 
       Action_Names (Find_Token_ID (-OpenToken_Accept_Name))     := new Action_Name_List (0 .. 0);
       Action_Names (Find_Token_ID (-OpenToken_Accept_Name)) (0) := Empty_Action;
@@ -726,81 +766,89 @@ is
       Indent_Line ("end Add_Goto;");
       New_Line;
 
-      Indent_Line ("function Create_Syntax return Analyzers.Syntax");
-      Indent_Line ("is");
-      Indent_Line ("   use OpenToken.Recognizer;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("return");
-      Indent_Line ("  (");
-      Indent := Indent + 3;
-      for Item of Keywords loop
-         Indent_Line
-           (To_Token_Image (Item.Name) & " => Analyzers.Get (Keyword.Get (" & (-Item.Value) &
-              "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-      end loop;
-      for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Line_Comment.Get (" &
-                    (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """whitespace""" then
-            --  Only one whitespace token. Ignoring value.
-            if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
+      case Lexer is
+      when Aflex_Lexer =>
+         null;
+      when OpenToken_Lexer =>
+         Indent_Line ("function Create_Syntax return Analyzers.Syntax");
+         Indent_Line ("is");
+         Indent_Line ("   use OpenToken.Recognizer;");
+         Indent_Line ("begin");
+         Indent := Indent + 3;
+         Indent_Line ("return");
+         Indent_Line ("  (");
+         Indent := Indent + 3;
+
+         --  We don't use a Token_Cursor here because the output depends on the Kind
+         for Item of Keywords loop
+            Indent_Line
+              (To_Token_Image (Item.Name) & " => Analyzers.Get (Keyword.Get (" & (-Item.Value) &
+                 "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+         end loop;
+         for Kind of Tokens loop
+            if -Kind.Kind = """line_comment""" then
+               for Item of Kind.Tokens loop
+                  Indent_Line
+                    (To_Token_Image (Item.Name) & " => Analyzers.Get (Line_Comment.Get (" &
+                       (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+               end loop;
+            elsif -Kind.Kind = """whitespace""" then
+               --  Only one whitespace token. Ignoring value.
+               if Kind.Tokens.Length > 1 then
+                  raise Programmer_Error;
+               end if;
+               for Item of Kind.Tokens loop
+                  Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
+                  Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
+               end loop;
+            elsif -Kind.Kind = """number""" then
+               --  Only one number token. Ignoring value.
+               if Kind.Tokens.Length > 1 then
+                  raise Programmer_Error;
+               end if;
+               for Item of Kind.Tokens loop
+                  Indent_Line
+                    (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get, " &
+                       "Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+               end loop;
+            elsif -Kind.Kind = """punctuation""" then
+               for Item of Kind.Tokens loop
+                  Indent_Line
+                    (To_Token_Image (Item.Name) & " => Analyzers.Get (Separator.Get (" &
+                       (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+               end loop;
+            elsif -Kind.Kind = """symbol""" then
+               for Item of Kind.Tokens loop
+                  Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
+                  Indent_Line ("  (Identifier.Get");
+                  --  this is compatible with the Emacs Ada mode wisi elisp lexer
+                  Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
+                  Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set),");
+                  Indent_Line ("   Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
+               end loop;
+            elsif -Kind.Kind = """string-double""" then
+               for Item of Kind.Tokens loop
+                  Indent_Line
+                    (To_Token_Image (Item.Name) &
+                       " => Analyzers.Get (OpenToken.Recognizer.String.Get, Wisi_Tokens.Get (" &
+                       To_Token_Image (Item.Name) & ")),");
+               end loop;
+            elsif -Kind.Kind = """string-single""" then
+               for Item of Kind.Tokens loop
+                  Indent_Line
+                    (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get, Wisi_Tokens.Get (" &
+                       To_Token_Image (Item.Name) & ")),");
+               end loop;
+            else
+               raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
             end if;
-            for Item of Kind.Tokens loop
-               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-               Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
-            end loop;
-         elsif -Kind.Kind = """number""" then
-            --  Only one number token. Ignoring value.
-            if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
-            end if;
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get, " &
-                    "Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """punctuation""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Separator.Get (" &
-                    (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """symbol""" then
-            for Item of Kind.Tokens loop
-               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-               Indent_Line ("  (Identifier.Get");
-               --  this is compatible with the Emacs Ada mode wisi elisp lexer
-               Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
-               Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set),");
-               Indent_Line ("   Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """string-double""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.String.Get, Wisi_Tokens.Get (" &
-                    To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """string-single""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get, Wisi_Tokens.Get (" &
-                    To_Token_Image (Item.Name) & ")),");
-            end loop;
-         else
-            raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
-         end if;
-      end loop;
-      Indent_Line ("EOF_ID => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, Wisi_Tokens.Get (EOF_ID)));");
-      New_Line;
-      Indent := Indent - 6;
-      Indent_Line ("end Create_Syntax;");
-      New_Line;
+         end loop;
+         Indent_Line ("EOF_ID => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, Wisi_Tokens.Get (EOF_ID)));");
+         New_Line;
+         Indent := Indent - 6;
+         Indent_Line ("end Create_Syntax;");
+         New_Line;
+      end case;
 
       Indent_Line ("function Create_Parser");
       Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
@@ -895,8 +943,14 @@ is
       --  FIXME: get Max_Parallel from some command line
       Indent_Line ("return");
       Indent_Line
-        ("  (Tokens.Source_Handle (Analyzers.Initialize" &
-           " (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0)),");
+        ("  (" &
+           (case Lexer is
+            when Aflex_Lexer =>
+               "Tokens.Source_Handle (Lexers.Initialize" &
+               " (Text_Feeder, Buffer_Size, First_Column => 0)),",
+            when OpenToken_Lexer =>
+               "Tokens.Source_Handle (Analyzers.Initialize" &
+               " (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0)),"));
       Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");
@@ -913,6 +967,112 @@ is
            LALRs.State_Index'Image (Parser'Last) & " states," &
            Integer'Image (Table_Entry_Count) & " table entries");
    end Create_Body;
+
+   procedure Create_Aflex
+   is
+      File : File_Type;
+   begin
+      Create (File, Out_File, Output_File_Root & ".l");
+      Set_Output (File);
+
+      Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
+      Put_Line ("--");
+      Put_Prologue (Ada_Syntax => True);
+      New_Line;
+      Put_Line ("%%");
+      New_Line;
+
+      --  We don't use a Token_Cursor here because the output depends on the Kind
+      for Item of Keywords loop
+         Put_Line (-Item.Value & " { return " & To_Token_Image (Item.Name) & ";}");
+      end loop;
+
+      for Kind of Tokens loop
+         if -Kind.Kind = """line_comment""" then
+            for Item of Kind.Tokens loop
+               declare
+                  Value : constant String := -Item.Value;
+               begin
+                  --  drop comment
+                  if Value = """--""" then
+                     --  matches Aflex comment; need escape
+                     Put_Line ("\-\-[^\n]*$ {null;}");
+                  else
+                     --  FIXME: strip quotes
+                     Put_Line (Value (1 .. Value'Last - 1) & ".*$"" {null;}");
+                  end if;
+               end;
+            end loop;
+
+         elsif -Kind.Kind = """whitespace""" then
+            for Item of Kind.Tokens loop
+               declare
+                  Value : constant String := -Item.Value;
+               begin
+                  --  drop whitespace
+                  Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {null;}");
+               end;
+            end loop;
+
+         elsif -Kind.Kind = """number""" then
+            --  Only one number token.
+            if Kind.Tokens.Length > 1 then
+               raise Programmer_Error;
+            end if;
+            for Item of Kind.Tokens loop
+               if -Item.Value = "ada-wisi-number-p" then
+                  Put_Line ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? { return " & To_Token_Image (Item.Name) & ";}");
+               else
+                  raise Programmer_Error;
+               end if;
+            end loop;
+
+         elsif -Kind.Kind = """punctuation""" then
+            for Item of Kind.Tokens loop
+               Put_Line (-Item.Value & " { return " & To_Token_Image (Item.Name) & ";}");
+            end loop;
+
+         elsif -Kind.Kind = """symbol""" then
+            --  FIXME: need value to determine regexp; assuming Ada
+            if Kind.Tokens.Length > 1 then
+               raise Programmer_Error;
+            end if;
+            for Item of Kind.Tokens loop
+               Put_Line ("[0-9a-zA-Z_.]+ { return " & To_Token_Image (Item.Name) & ";}");
+            end loop;
+
+         elsif -Kind.Kind = """string-double""" then
+            --  FIXME: need value to determine regexp; assuming Ada
+            if Kind.Tokens.Length > 1 then
+               raise Programmer_Error;
+            end if;
+            for Item of Kind.Tokens loop
+               --  FIXME: this doesn't recognize "" in string
+               Put_Line ("\""[^\""]*\"" { return " & To_Token_Image (Item.Name) & ";}");
+            end loop;
+
+         elsif -Kind.Kind = """string-single""" then
+            --  FIXME: need value to determine regexp; assuming Ada
+            if Kind.Tokens.Length > 1 then
+               raise Programmer_Error;
+            end if;
+            for Item of Kind.Tokens loop
+               Put_Line ("'[^']'|'''' { return " & To_Token_Image (Item.Name) & ";}");
+            end loop;
+
+         else
+            raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
+         end if;
+      end loop;
+
+      --  aflex has built-in EOF
+
+      Put_Line ("%%");
+      Put_Line ("with " & To_Ada (Output_File_Root) & "; use " & To_Ada (Output_File_Root) & ";");
+      Put_Line ("##");
+
+      Close (File);
+   end Create_Aflex;
 
    procedure Create_Elisp
    is
@@ -948,6 +1108,14 @@ is
 begin
    Create_Body; -- populates Classes, used by Create_Spec
    Create_Spec;
+
+   case Lexer is
+   when Aflex_Lexer =>
+      Create_Aflex;
+   when OpenToken_Lexer =>
+      null;
+   end case;
+
    if not Profile then
       Create_Elisp;
    end if;

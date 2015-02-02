@@ -2,9 +2,7 @@ all: clean gprof.out
 
 include ../common.make
 
-%.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe --profile $< Ada_Emacs
-	dos2unix $@ $*.ads
+ada_grammar.ads : RUN_ARGS := --profile
 
 run_ada_parser.exe : ada_grammar.ads
 

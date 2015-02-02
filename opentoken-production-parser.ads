@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010, 2012, 2013, 2014 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012 - 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -52,7 +52,7 @@ package OpenToken.Production.Parser is
    procedure Reset (Parser : in out Instance);
 
    --------------------------------------------------------------------------
-   --  Set the parser's text feeder. Raises Parse_Error if current
+   --  Set the parser's text feeder. May discard input if current
    --  text buffer is not empty.
    --------------------------------------------------------------------------
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr);

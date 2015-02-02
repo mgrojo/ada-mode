@@ -1,4 +1,5 @@
 GNAT
+YYLex
 *AUnit
 *CR
 *CSV
@@ -20,3 +21,4 @@ GNAT
 *OS
 *OpenToken
 *RHS
+*YY

@@ -24,7 +24,7 @@
 --  [3] wisi-user-manual.texi
 --  [4] http://en.wikipedia.org/wiki/Wisent
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -128,4 +128,7 @@ package Wisi is
    function "+" (List : in RHS_Lists.List; Item : in RHS_Type) return RHS_Lists.List;
 
    Verbosity : Integer := 0;
+
+   type Lexer_Type is (Aflex_Lexer, OpenToken_Lexer);
+
 end Wisi;

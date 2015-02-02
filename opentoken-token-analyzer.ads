@@ -53,16 +53,6 @@ with OpenToken.Recognizer;
 generic
 package OpenToken.Token.Analyzer is
 
-   type Source is abstract new OpenToken.Token.Source with null record;
-
-   --------------------------------------------------------------------------
-   --  Returns the recognizer handle of the last token that was matched.
-   --
-   --  Raises Programmer_Error when the last token was read from the
-   --  lookahead queue.
-   --------------------------------------------------------------------------
-   function Last_Recognizer (Analyzer : in Source) return Recognizer_Handle is abstract;
-
    --  Descriptor for what an individual token in this language looks
    --  like. Also provides storage for Lexeme and Recognizer from
    --  recognized tokens. This is required by lookahead; the lexeme
@@ -79,9 +69,6 @@ package OpenToken.Token.Analyzer is
    subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
    type Syntax is array (Syntax_ID) of Recognizable_Token;
 
-   type Instance (Max_Buffer_Size : Integer) is new Source with private;
-   type Handle is access all Instance;
-
    --  Need to revisit token definitions or raise Max_String_Length
    Token_Too_Long : exception;
 
@@ -95,6 +82,9 @@ package OpenToken.Token.Analyzer is
      (Recognizer : in OpenToken.Recognizer.Class;
       New_Token  : in OpenToken.Token.Class := Get)
      return Recognizable_Token;
+
+   type Instance (Max_Buffer_Size : Integer) is new OpenToken.Token.Source with private;
+   type Handle is access all Instance;
 
    function Null_Analyzer return Instance;
    --  no input stream; used when grammar will be used for something other than parsing.
@@ -226,7 +216,11 @@ package OpenToken.Token.Analyzer is
    --------------------------------------------------------------------------
    function Bounds (Analyzer : in Instance) return Buffer_Range;
 
-   overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
+   function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
+   --  Returns the recognizer handle of the last token that was matched.
+   --
+   --  Raises Programmer_Error when the last token was read from the
+   --  lookahead queue.
 
 private
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2010, 2012, 2014 Stephe Leake
+-- Copyright (C) 2002, 2003, 2010, 2012, 2014 - 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,7 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Exceptions;
 package body OpenToken.Production.Parser is
 
    procedure Reset (Parser : in out Instance)
@@ -35,12 +34,7 @@ package body OpenToken.Production.Parser is
 
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr)
    is begin
-      if Parser.Analyzer.End_Of_Buffered_Text then
-         Parser.Analyzer.Set_Text_Feeder (Feeder);
-      else
-         Ada.Exceptions.Raise_Exception
-           (Parse_Error'Identity, "Tokenizer not at end of buffered text");
-      end if;
+      Parser.Analyzer.Set_Text_Feeder (Feeder);
    end Set_Text_Feeder;
 
    procedure Discard_Buffered_Text (Parser : in out Instance)

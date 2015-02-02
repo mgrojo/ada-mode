@@ -3,7 +3,7 @@
 --  Non-OpenToken parser for Wisent grammar files, producing Ada or
 --  Elisp source files.
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -40,10 +40,11 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisent grammar file} {output language}");
+      Put_Line ("wisi-generate [options] {wisent grammar file} {lexer} {output language}");
       Put_Line ("version 0.00 - experimental");
-      Put_Line ("generate output language source corresponding to 'wisent grammar file'");
-      Put_Line ("output language is one of Ada_Emacs, Elisp, Test");
+      Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
+      Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer");
+      Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
       Put_Line ("-v level: sets verbosity (default 0):");
       Put_Line ("   level 0 - only error messages to standard error");
       Put_Line ("   level 1 - add compiled grammar output to standard out");
@@ -68,6 +69,7 @@ is
    Rules              : Rule_Lists.List;
    Rule_Count         : Integer;
    Action_Count       : Integer;
+   Lexer              : Lexer_Type;
    First_State_Index  : Integer := 0; -- default
    First_Parser_Label : Integer := 0; -- default
    Profile            : Boolean := False;
@@ -84,26 +86,15 @@ is
       raise Name_Error with "input file '" & File_Name & "' could not be opened.";
    end Use_Input_File;
 
-   procedure Set_Output_Language (Image : in String)
-   is begin
-      Output_Language := Output_Language_Type'Value (Image);
-   exception
-   when Constraint_Error =>
-      raise User_Error;
-   end Set_Output_Language;
-
 begin
    declare
       use Standard.Ada.Command_Line;
-      Arg_Next     : Integer := 1;
-      Options_Done : Boolean := False;
+      Arg_Next : Integer := 1;
    begin
       loop
-         exit when Options_Done;
-         if Argument (Arg_Next)(1) /= '-' then
-            Options_Done := True;
+         exit when Argument (Arg_Next)(1) /= '-';
 
-         elsif Argument (Arg_Next) = "-v" then
+         if Argument (Arg_Next) = "-v" then
             Arg_Next  := Arg_Next + 1;
             Verbosity := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
@@ -129,10 +120,25 @@ begin
 
       Use_Input_File (Argument (Arg_Next));
       Arg_Next := Arg_Next + 1;
-      Set_Output_Language (Argument (Arg_Next));
+
+      begin
+         Lexer := Lexer_Type'Value (Argument (Arg_Next));
+         Arg_Next := Arg_Next + 1;
+      exception
+      when Constraint_Error =>
+         raise User_Error;
+      end;
+
+      begin
+         Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
+      exception
+      when Constraint_Error =>
+         raise User_Error;
+      end;
 
       if Arg_Next /= Argument_Count then
-         raise User_Error;
+         raise User_Error with "arg count" & Integer'Image (Argument_Count) &
+           " different from expected count" & Integer'Image (Arg_Next);
       end if;
    end;
 
@@ -144,7 +150,7 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count, First_State_Index, First_Parser_Label, Profile);
+         Rule_Count, Action_Count, Lexer, First_State_Index, First_Parser_Label, Profile);
 
    when Elisp =>
       Wisi.Output_Elisp
@@ -156,7 +162,8 @@ begin
    end case;
 
 exception
-when User_Error =>
+when E : User_Error =>
+   Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
 

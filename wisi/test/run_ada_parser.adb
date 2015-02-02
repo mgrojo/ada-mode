@@ -7,8 +7,9 @@ procedure Run_Ada_Parser
 is
    procedure Put_Usage
    is begin
-      Put_Line ("usage: run_ada_parser <count> <file>");
+      Put_Line ("usage: run_ada_parser <count> <file> [trace]");
       Put_Line ("parse <file> <count> times, for profiling the parser");
+      Put_Line ("if [trace] is present, output parser trace");
    end Put_Usage;
 
    Count : Integer;
@@ -18,6 +19,10 @@ begin
    if Argument_Count = 2 then
       Count := Integer'Value (Argument (1));
       Open (File, In_File, Argument (2));
+   elsif Argument_Count = 3 then
+      Count := Integer'Value (Argument (1));
+      Open (File, In_File, Argument (2));
+      OpenToken.Trace_Parse := 1;
    else
       Put_Usage;
       Set_Exit_Status (Failure);

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014 Stephe Leake
+--  Copyright (C) 2009, 2014 - 2015 Stephe Leake
 --  Copyright (C) 1999, 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -315,7 +315,8 @@ package OpenToken.Token is
    --  Return the token name from the Analyzer.Syntax_List.
 
    function Get (Analyzer : in Source) return Class is abstract;
-   --  Returns the last token that was matched.
+   --  Returns the last token that was matched. This must be a copy of a
+   --  token allocated during initialize; it will not be freed.
 
    type Queue_Mark is abstract tagged limited null record;
 
