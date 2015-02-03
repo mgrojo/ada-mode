@@ -49,20 +49,21 @@ project OpenToken_Test is
 
       for Switches ("ada_grammar.adb") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
+      for Switches ("ada_grammar_1.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
+      for Switches ("ada_grammar_2.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
 
       -- Aflex generated code does not follow any style rules
-      for Switches ("ada_grammar_dfa.adb") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler'Default_Switches ("Ada");
-      for Switches ("ada_grammar_dfa.ads") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler'Default_Switches ("Ada");
-      for Switches ("ada_grammar_io.adb") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler'Default_Switches ("Ada") & "-gnatwK";
-      for Switches ("ada_grammar_io.ads") use
-        Common.Compiler.Release_Switches &
-        Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_dfa.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_dfa.ads") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_io.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwK";
+      for Switches ("ada_grammar_io.ads") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_2_dfa.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_2_dfa.ads") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_2_io.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwK";
+      for Switches ("ada_grammar_2_io.ads") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+
       for Switches ("yylex.adb") use
         Common.Compiler.Release_Switches &
         Common.Compiler'Default_Switches ("Ada") & "-gnatwA";

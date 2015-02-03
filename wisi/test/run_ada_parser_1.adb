@@ -1,9 +1,9 @@
 with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
-with Ada_Grammar;
+with Ada_Grammar_1; use Ada_Grammar_1;
 with OpenToken.Text_Feeder.Text_IO;
-procedure Run_Ada_Parser
+procedure Run_Ada_Parser_1
 is
    procedure Put_Usage
    is begin
@@ -14,7 +14,7 @@ is
 
    Count : Integer;
    File   : File_Type;
-   Parser : Ada_Grammar.LALR_Parsers.Instance := Ada_Grammar.Create_Parser (Terminate_Same_State => True);
+   Parser : LALR_Parsers.Instance := Create_Parser (Terminate_Same_State => True);
 begin
    if Argument_Count = 2 then
       Count := Integer'Value (Argument (1));
@@ -33,7 +33,7 @@ begin
    Parser.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
 
    for I in 1 .. Count loop
-      Ada_Grammar.LALR_Parsers.Parse (Parser);
+      LALR_Parsers.Parse (Parser);
       Reset (File);
       Parser.Reset;
    end loop;
@@ -48,4 +48,4 @@ when E : others =>
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Set_Exit_Status (Failure);
 
-end Run_Ada_Parser;
+end Run_Ada_Parser_1;

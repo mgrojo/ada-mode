@@ -187,10 +187,17 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $(RUN_ARGS) $< $(LEXER) Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
+	dos2unix -q $*.ads
+	dos2unix -q $*.adb
+
+clean :: wisi-clean
+
+wisi-clean :
+	rm -f *.parse_table *.ads *.el
 
 # for a wisi test
-ada_grammar.ads : RUN_ARGS := --profile
-ada_grammar.ads : LEXER := Aflex_Lexer
+ada_grammar.ads : RUN_ARGS ?= --profile
+ada_grammar.ads : LEXER ?= Aflex_Lexer
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v 2 $< > $*.parse
@@ -203,6 +210,11 @@ ada_grammar.ads : LEXER := Aflex_Lexer
 
 %_dfa.ads : %.a
 	gnatchop -w $*.a $*_dfa.a $*_io.a
+
+clean :: aflex-clean
+
+aflex-clean :
+	rm -f *.a
 
 .PRECIOUS : %.a %.ads %_run.exe %.parse %-wy.el
 

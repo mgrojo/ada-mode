@@ -45,13 +45,15 @@ is
       Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
       Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
-      Put_Line ("-v level: sets verbosity (default 0):");
-      Put_Line ("   level 0 - only error messages to standard error");
-      Put_Line ("   level 1 - add compiled grammar output to standard out");
-      Put_Line ("   level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
-      Put_Line ("--first_state_index <n>; default 0");
-      Put_Line ("--first_parser label <n>; default 0");
-      Put_Line ("--profile; actions just count");
+      Put_Line ("options are:");
+      Put_Line ("  -v level: sets verbosity (default 0):");
+      Put_Line ("     level 0 - only error messages to standard error");
+      Put_Line ("     level 1 - add compiled grammar output to standard out");
+      Put_Line ("     level 2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line ("  --first_state_index <n>; default 0");
+      Put_Line ("  --first_parser label <n>; default 0");
+      Put_Line ("  --profile; actions just count");
+      Put_Line ("  --suffix <string>; appended to grammar file name");
    end Put_Usage;
 
    type Output_Language_Type is (Ada_Emacs, Elisp, Test);
@@ -61,6 +63,7 @@ is
    Input_File_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File         : Standard.Ada.Text_IO.File_Type;
    Output_File_Root   : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Suffix             : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologue           : String_Lists.List;
    Keywords           : String_Pair_Lists.List;
    Tokens             : Token_Lists.List;
@@ -76,10 +79,11 @@ is
 
    procedure Use_Input_File (File_Name : in String)
    is
+      use Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
    begin
       Input_File_Name  := +File_Name;
-      Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name);
+      Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
       Open (Input_File, In_File, File_Name);
    exception
    when Name_Error | Use_Error =>
@@ -112,6 +116,11 @@ begin
          elsif Argument (Arg_Next) = "--profile" then
             Arg_Next := Arg_Next + 1;
             Profile  := True;
+
+         elsif Argument (Arg_Next) = "--suffix" then
+            Arg_Next := Arg_Next + 1;
+            Suffix   := +Argument (Arg_Next);
+            Arg_Next := Arg_Next + 1;
 
          else
             raise User_Error;

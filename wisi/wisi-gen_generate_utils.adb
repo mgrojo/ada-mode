@@ -21,12 +21,20 @@ with Ada.Exceptions;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
+   function Non_Reporting (Kind : in String) return Boolean
+   is begin
+      return
+        Kind = """line_comment""" or
+        Kind = """line_end""" or
+        Kind = """whitespace""";
+   end Non_Reporting;
+
    function Count_Non_Reporting return Integer
    is
       Result : Integer := 0;
    begin
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             Result := Result + Integer (Kind.Tokens.Length);
          end if;
       end loop;
@@ -40,7 +48,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       --  Same order as set_token_images below.
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -58,7 +66,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -100,7 +108,7 @@ package body Wisi.Gen_Generate_Utils is
 
       --  non-reporting
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
                ID := ID + 1;
@@ -114,7 +122,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
                ID := ID + 1;
@@ -162,7 +170,7 @@ package body Wisi.Gen_Generate_Utils is
 
       Kind : constant String := To_String (Token_Ref.Element.Kind);
    begin
-      return Kind = """line_comment""" or Kind = """whitespace""";
+      return Non_Reporting (Kind);
    end Non_Reporting;
 
    function First_Token_Item (Cursor : in Token_Cursor) return String_Pair_Lists.Cursor

@@ -818,7 +818,7 @@ package body OpenToken.Token.Analyzer is
       return (Analyzer.Lexeme_Source_Pos, Analyzer.Lexeme_Source_Pos + Lexeme (Analyzer)'Length - 1);
    end Bounds;
 
-   overriding function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle
+   function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle
    is begin
       if Analyzer.Read_From_Lookahead then
          --  Only a problem if the recognizer changes dynamically,

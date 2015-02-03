@@ -1038,7 +1038,7 @@ is
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line ("[0-9a-zA-Z_.]+ { return " & To_Token_Image (Item.Name) & ";}");
+               Put_Line ("[0-9a-zA-Z_]+ { return " & To_Token_Image (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-double""" then

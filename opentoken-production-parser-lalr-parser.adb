@@ -95,14 +95,16 @@ package body OpenToken.Production.Parser.LALR.Parser is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
    begin
-      for I in Tokens'Range loop
+      --  More than 10 names is just confusing, and forces the rest of
+      --  the error message to overflow the GNAT exception message
+      --  limit.
+      for I in Tokens'First .. Integer'Min (Tokens'Last, 10) loop
          Result := Result & "'" & Analyzer.Name (Tokens (I));
          if I = Tokens'Last then
             Result := Result & "'";
          else
             Result := Result & "' or ";
          end if;
-
       end loop;
       return To_String (Result);
    end Names;
