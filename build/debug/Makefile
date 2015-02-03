@@ -10,7 +10,16 @@ t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
-one : body_instantiation_conflict-wy.el
+#one : body_instantiation_conflict-wy.el
+one: ada_grammar_2.ads ada_grammar_2_dfa.ads run_ada_parser_2.exe
+	./run_ada_parser_2 1 ../../wisi/test/debug.adb
+	./run_ada_parser_2 1 ../../wisi/test/gnatcoll-xref.adb
+
+ada_grammar_2.ads : ada_grammar.wy wisi-generate.exe
+	./wisi-generate.exe --profile --suffix "_2" ../../wisi/test/ada_grammar.wy Aflex_Lexer Ada_Emacs
+
+time: ada_grammar.ads ada_grammar_dfa.ads run_ada_parser.exe
+	bash -c "time ./run_ada_parser 10 ../../wisi/test/gnatcoll-xref.adb"
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy

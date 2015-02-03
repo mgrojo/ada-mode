@@ -12,6 +12,19 @@ t_all : test_all_harness.diff
 #one : test-clean
 #one : multi_conflict.ads
 #one : multi_conflict-parse.diff
+#one : ada_syntax_dfa.ads
+
+one: ada_grammar_1.ads run_ada_parser_1.exe
+	bash -c "time ./run_ada_parser_1 10 ../../wisi/test/gnatcoll-xref.adb"
+
+two: ada_grammar_2.ads ada_grammar_2_dfa.ads run_ada_parser_2.exe
+	bash -c "time ./run_ada_parser_2 10 ../../wisi/test/gnatcoll-xref.adb"
+
+ada_grammar_1.ads : ada_grammar.wy wisi-generate.exe
+	./wisi-generate.exe --profile --suffix "_1" ../../wisi/test/ada_grammar.wy OpenToken_Lexer Ada_Emacs
+
+ada_grammar_2.ads : ada_grammar.wy wisi-generate.exe
+	./wisi-generate.exe --profile --suffix "_2" ../../wisi/test/ada_grammar.wy Aflex_Lexer Ada_Emacs
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075

@@ -28,7 +28,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
-with Ada.Text_IO;
 package body OpenToken.Token.Aflex is
 
    function Initialize
@@ -119,16 +118,14 @@ package body OpenToken.Token.Aflex is
    is
       pragma Unreferenced (Lexer);
    begin
-      --  FIXME: Currently this is the only input we are using
-      return Natural (Ada.Text_IO.Line (Ada.Text_IO.Current_Input));
+      return Yy_Line_Number;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Natural
    is
       pragma Unreferenced (Lexer);
    begin
-      --  FIXME: Currently this is the only input we are using
-      return Natural (Ada.Text_IO.Col (Ada.Text_IO.Current_Input));
+      return Yy_Begin_Column;
    end Column;
 
    overriding function Get (Lexer : in Instance) return OpenToken.Token.Class

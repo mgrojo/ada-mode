@@ -514,6 +514,8 @@ is
             Indent_Line ("  (YYLex,");
             Indent := Indent + 3;
             Indent_Line (To_Lower (Package_Name) & "_dfa.YYText,");
+            Indent_Line (To_Lower (Package_Name) & "_io.Yy_Line_Number,");
+            Indent_Line (To_Lower (Package_Name) & "_io.Yy_Begin_Column,");
             Indent_Line (To_Lower (Package_Name) & "_dfa.yy_init,");
             Indent_Line (To_Lower (Package_Name) & "_dfa.yy_cp,");
             Indent_Line (To_Lower (Package_Name) & "_io.yy_eof_has_been_seen,");

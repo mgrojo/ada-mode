@@ -36,6 +36,10 @@ generic
    with function YY_Text return String;
    --  Lexeme for last token
 
+   with function Yy_Line_Number return Natural;
+   with function Yy_Begin_Column return Natural;
+   --  Line, column of last token in input stream.
+
    YY_Init              : in out Boolean;
    YY_CP                : in out Integer;
    YY_EOF_Has_Been_Seen : in out Boolean;
