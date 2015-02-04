@@ -3,11 +3,10 @@ Misc notes on current work
 build/release/Makefile
 
 /Projects/aflex/build/Makefile
-    change aflex to name yylex <root>_yylex
-        use external skeleton?
-            -S ; only recommended for aflex maintenance
-
     change aflex to use opentoken text_feeder (heading for Emacs buffer)
+        <root>_io.YY_INPUT fills <root>_dfa.yy_ch_buf
+        need new template for <root>_io.a
+        add external_skeleton to template_manager.ad[sb]
 
 speed up parsing, for Emacs Ada backend
     gnatcoll-xref.adb needs to be < 0.2 second

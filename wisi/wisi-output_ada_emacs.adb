@@ -456,7 +456,7 @@ is
             use Standard.Ada.Characters.Handling;
          begin
             Put_Line ("with OpenToken.Token.Aflex;");
-            Put_Line ("with YYLex;");
+            Put_Line ("with " & To_Lower (Package_Name) & "_YYLex;");
             Put_Line ("with " & To_Lower (Package_Name) & "_dfa;");
             Put_Line ("with " & To_Lower (Package_Name) & "_io;");
          end;
@@ -511,7 +511,7 @@ is
             use Standard.Ada.Characters.Handling;
          begin
             Indent_Line ("package Lexers is new Tokens.Aflex");
-            Indent_Line ("  (YYLex,");
+            Indent_Line ("  (" & To_Lower (Package_Name) & "_YYLex,");
             Indent := Indent + 3;
             Indent_Line (To_Lower (Package_Name) & "_dfa.YYText,");
             Indent_Line (To_Lower (Package_Name) & "_io.Yy_Line_Number,");
