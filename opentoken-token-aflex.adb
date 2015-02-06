@@ -39,7 +39,10 @@ package body OpenToken.Token.Aflex is
       pragma Unreferenced (First_Column);
       New_Lexer : constant Handle := new Instance (Buffer_Size);
    begin
-      New_Lexer.Feeder := Feeder;
+      --  We don't set New_Lexer.Feeder, because we don't actually use it
+
+      OpenToken.Token.Aflex.Feeder := Feeder;
+
       for ID in Token_ID loop
          New_Lexer.Token_List (ID) := new Nonterminals.Class'(Get_Token (ID));
       end loop;
@@ -57,15 +60,19 @@ package body OpenToken.Token.Aflex is
    is
       pragma Unreferenced (Lexer);
    begin
-      --  yyrestart is in yylex.adb; it does this
+      --  yyrestart is not visible in yylex.adb; it does this
       YY_Init := True;
+
+      --  Feeder is not reset here; user resets it.
    end Reset;
 
    overriding procedure Set_Text_Feeder
      (Lexer : in out Instance;
       Feeder : in Text_Feeder.Text_Feeder_Ptr)
-   is begin
-      Lexer.Feeder := Feeder;
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      OpenToken.Token.Aflex.Feeder := Feeder;
    end Set_Text_Feeder;
 
    overriding function End_Of_Text (Lexer : in Instance) return Boolean
@@ -87,7 +94,7 @@ package body OpenToken.Token.Aflex is
    end Discard_Buffered_Text;
 
    overriding procedure Find_Next
-     (Lexer   : in out Instance;
+     (Lexer      : in out Instance;
       Look_Ahead : in     Boolean := False)
    is begin
       if Look_Ahead then
@@ -97,8 +104,12 @@ package body OpenToken.Token.Aflex is
       Lexer.Token := YYLex;
    exception
    when E : others =>
-      --  FIXME: need lexer.line, column
-      raise Syntax_Error with "0:" & Int_Image (YY_CP) & ": " & Ada.Exceptions.Exception_Message (E);
+      raise Syntax_Error with
+        Int_Image (Lexer.Line) &
+        ":" &
+        Int_Image (Lexer.Column) &
+        ": " & Ada.Exceptions.Exception_Name (E) &
+        " : " & Ada.Exceptions.Exception_Message (E);
    end Find_Next;
 
    type Dummy_Queue_Mark is new Queue_Mark with record Foo : Integer; end record;
@@ -118,20 +129,27 @@ package body OpenToken.Token.Aflex is
    is
       pragma Unreferenced (Lexer);
    begin
-      return Yy_Line_Number;
+      return YY_Begin_Line;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Natural
    is
       pragma Unreferenced (Lexer);
    begin
-      return Yy_Begin_Column;
+      return YY_Begin_Column;
    end Column;
 
    overriding function Get (Lexer : in Instance) return OpenToken.Token.Class
-   is begin
-      --  FIXME: bounds?
-      return Lexer.Token_List (Lexer.Token).all;
+   is
+      Temp : OpenToken.Token.Class := Lexer.Token_List (Lexer.Token).all;
+   begin
+      Create
+        (Lexeme     => Lexer.Lexeme,
+         Bounds     => Lexer.Bounds,
+         Recognizer => null,
+         New_Token  => Temp);
+
+      return Temp;
    end Get;
 
    overriding function Lexeme (Lexer : in Instance) return String
@@ -140,5 +158,12 @@ package body OpenToken.Token.Aflex is
    begin
       return YY_Text;
    end Lexeme;
+
+   overriding function Bounds (Lexer : in Instance) return Buffer_Range
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      return (YY_Text_Ptr, YY_Text_Ptr + YY_Length - 1);
+   end Bounds;
 
 end OpenToken.Token.Aflex;

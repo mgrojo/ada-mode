@@ -3,6 +3,7 @@ YYLex
 *AUnit
 *CR
 *CSV
+*DFA
 *EOF
 *EOI
 *EOL

@@ -2,6 +2,7 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Text_IO;      use Ada.Text_IO;
 with Ada_Grammar_2; use Ada_Grammar_2;
+with ada_grammar_2_dfa; use ada_grammar_2_dfa;
 with OpenToken.Text_Feeder.Text_IO;
 procedure Run_Ada_Parser_2
 is
@@ -12,17 +13,21 @@ is
       Put_Line ("if [trace] is present, output parser trace");
    end Put_Usage;
 
-   Count : Integer;
+   Count  : Integer;
    File   : File_Type;
    Parser : LALR_Parsers.Instance := Create_Parser (Terminate_Same_State => True);
 begin
    if Argument_Count = 2 then
       Count := Integer'Value (Argument (1));
       Open (File, In_File, Argument (2));
+
    elsif Argument_Count = 3 then
       Count := Integer'Value (Argument (1));
       Open (File, In_File, Argument (2));
+
       OpenToken.Trace_Parse := 1;
+      aflex_debug           := True;
+
    else
       Put_Usage;
       Set_Exit_Status (Failure);

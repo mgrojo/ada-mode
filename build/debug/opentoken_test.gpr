@@ -55,9 +55,7 @@ project OpenToken_Test is
 
       -- Aflex generated code does not follow any style rules
       for Switches ("ada_grammar_2_dfa.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada");
-      for Switches ("ada_grammar_2_dfa.ads") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada");
-      for Switches ("ada_grammar_2_io.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwK";
-      for Switches ("ada_grammar_2_io.ads") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_2_io.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwKU";
       for Switches ("ada_grammar_2_yylex.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwA";
    end Compiler;
 

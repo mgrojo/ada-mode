@@ -192,8 +192,9 @@ DIFF_OPT := -u -w
 
 clean :: wisi-clean
 
+# delete files created by wisi-generate
 wisi-clean :
-	rm -f *.parse_table *.ads *.el
+	rm -f *.parse_table *.ads *.adb *.el *.l
 
 # for a wisi test
 ada_grammar.ads : RUN_ARGS ?= --profile
@@ -206,13 +207,14 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %.a : %.l
-	aflex -i -s -E $(AFLEX_ARGS) $<
+	aflex -i -s -E -O../../wisi/opentoken_aflex_io_template.adb $(AFLEX_ARGS) $<
 
 %_dfa.ads : %.a
 	gnatchop -w $*.a $*_dfa.a $*_io.a
 
 clean :: aflex-clean
 
+# delete files created by aflex
 aflex-clean :
 	rm -f *.a
 

@@ -578,9 +578,8 @@ package body OpenToken.Token.Analyzer is
 
                   Analyzer.Lexeme_Source_Pos := Analyzer.Buffer_Head_Source_Pos;
 
-                  --  This allows the user token to modify
-                  --  Syntax_List, as well as cache recognizer and
-                  --  analyzer info in the token.
+                  --  Store data in Syntax_List, for retrieval in Get.
+                  --  FIXME: move to Get?
                   Create
                     (Lexeme     => Lexeme (Analyzer),
                      Bounds     => Bounds (Analyzer),
@@ -809,7 +808,7 @@ package body OpenToken.Token.Analyzer is
          Token_Handle => new OpenToken.Token.Class'(New_Token));
    end Get;
 
-   function Bounds (Analyzer : in Instance) return Buffer_Range
+   overriding function Bounds (Analyzer : in Instance) return Buffer_Range
    is begin
       if Analyzer.Read_From_Lookahead then
          raise Programmer_Error;

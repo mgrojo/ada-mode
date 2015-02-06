@@ -2,6 +2,10 @@
 --
 --  OpenToken wrapper around the aflex lexer
 --
+--  aflex must be run with the following options:
+--
+--    -E -Owisi/opentoken_aflex_io_template.adb
+--
 --  Copyright (C) 2015 Stephe Leake
 --
 --  This file is part of the OpenToken package.
@@ -28,20 +32,28 @@
 pragma License (Modified_GPL);
 
 with OpenToken.Token.Nonterminal;
+with OpenToken.Text_Feeder;
 generic
+   Feeder : in out OpenToken.Text_Feeder.Text_Feeder_Ptr;
+   --  Must represent line end as ASCII.LF (that's what aflex uses).
+
    with function YYLex return Token_ID;
-   --  Read tokens from <grammar>_IO.User_Input_File or Ada.Text_IO.Current_Input
-   --  FIXME: change to use Text_Feeder
+   --  Read tokens from Feeder
 
    with function YY_Text return String;
    --  Lexeme for last token
 
-   with function Yy_Line_Number return Natural;
-   with function Yy_Begin_Column return Natural;
+   YY_Text_Ptr : in out Integer;
+   --  Index of start of YY_Text in internal buffer.
+
+   with function YY_Length return Integer;
+   --  Length of YY_Text
+
+   YY_Begin_Line : in out Integer;
+   YY_Begin_Column : in out Integer;
    --  Line, column of last token in input stream.
 
    YY_Init              : in out Boolean;
-   YY_CP                : in out Integer;
    YY_EOF_Has_Been_Seen : in out Boolean;
 
    with package Nonterminals is new OpenToken.Token.Nonterminal;
@@ -53,9 +65,9 @@ package OpenToken.Token.Aflex is
    type Handle is access all Instance;
 
    function Initialize
-     (Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Buffer_Size     : in Integer                               := 1024;
-      First_Column    : in Integer                               := 1)
+     (Feeder       : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size  : in Integer                               := 1024;
+      First_Column : in Integer                               := 1)
      return Handle;
 
    overriding function Name (Lexer : in Instance; ID : in Token_ID) return String;
@@ -93,6 +105,8 @@ package OpenToken.Token.Aflex is
 
    overriding function Lexeme (Lexer : in Instance) return String;
 
+   overriding function Bounds (Lexer : in Instance) return Buffer_Range;
+
 private
 
    type ID_Array_Tokens is array (Token_ID) of Token.Handle;
@@ -101,7 +115,6 @@ private
    record
       Token      : Token_ID; --  last token read by find_next
       Token_List : ID_Array_Tokens;
-      Text_Pos : Integer; -- character position o
    end record;
 
 end OpenToken.Token.Aflex;

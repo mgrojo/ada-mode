@@ -255,8 +255,9 @@ package OpenToken.Token is
    type Source_Handle is access all Source_Class;
 
    procedure Reset (Analyzer : in out Source) is abstract;
-   --  Reset Analyzer, to start finding tokens. This is appropriate
-   --  when the Feeder text has been changed.
+   --  Reset Analyzer (but not Analyzer.Feeder), to start finding
+   --  tokens. This is appropriate when the Feeder text has been
+   --  changed.
 
    procedure Set_Text_Feeder
      (Analyzer : in out Source;
@@ -279,6 +280,13 @@ package OpenToken.Token is
    --
    --  Raises Programmer_Error when the last token was read from the
    --  lookahead queue.
+
+   function Bounds (Analyzer : in Source) return Buffer_Range is abstract;
+   --  Returns the position of the start and end of the last token
+   --  that was matched, in the internal buffer.
+   --
+   --  Most useful when the internal buffer holds the entire input
+   --  text, as it will for editor parsers.
 
    function Line (Analyzer : in Source) return Natural is abstract;
    --  Returns the current text line number at which processing will resume.

@@ -3,10 +3,10 @@ Misc notes on current work
 build/release/Makefile
 
 /Projects/aflex/build/Makefile
-    change aflex to use opentoken text_feeder (heading for Emacs buffer)
-        <root>_io.YY_INPUT fills <root>_dfa.yy_ch_buf
-        need new template for <root>_io.a
-        add external_skeleton to template_manager.ad[sb]
+    add test
+
+    use counted stream feeder; see ada-gps
+        does this put EOF_Character in stream?
 
 speed up parsing, for Emacs Ada backend
     gnatcoll-xref.adb needs to be < 0.2 second
@@ -25,11 +25,15 @@ speed up parsing, for Emacs Ada backend
         run_ada_parser_2 : --profile Aflex_Lexer Ada_Emacs
 
         refactor linked_lists, enumerated:
-            _1 : 3.413 3.453 3.448
-            _2 : 1.901 1.815 1.789
-                aflex 1.8 times faster; 0.18 for just parse (almost fast enough)
+            _1 OpenToken.Text_Feeder.Text_IO : 3.413 3.453 3.448
+            _2 aflex text feeder             : 1.901 1.815 1.789
+                1.8 times faster; leaves 0.02 for elisp actions (almost fast enough)
 
-        change aflex to use text_feeder (heading for Emacs buffer):
+        change aflex to use OpenToken text_feeder (heading for Emacs buffer):
+            _2 OpenToken.Text_Feeder.Text_IO: 1.435 1.170 1.201
+                2.7 times faster than _1 OpenToken.Text_Feeder.Text_IO; 0.127 parse; 0.073 for elisp actions
+
+        change run_ada_parser to read file once, use counted text_feeder:
 
 use aflex
     /Projects/aflex/build/Makefile

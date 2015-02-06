@@ -210,11 +210,7 @@ package OpenToken.Token.Analyzer is
 
    overriding function Lexeme (Analyzer : in Instance) return String;
 
-   --------------------------------------------------------------------------
-   --  Returns the position of the start and end of the last token
-   --  that was matched, in the internal buffer.
-   --------------------------------------------------------------------------
-   function Bounds (Analyzer : in Instance) return Buffer_Range;
+   overriding function Bounds (Analyzer : in Instance) return Buffer_Range;
 
    function Last_Recognizer (Analyzer : in Instance) return Recognizer_Handle;
    --  Returns the recognizer handle of the last token that was matched.

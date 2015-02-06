@@ -511,13 +511,15 @@ is
             use Standard.Ada.Characters.Handling;
          begin
             Indent_Line ("package Lexers is new Tokens.Aflex");
-            Indent_Line ("  (" & To_Lower (Package_Name) & "_YYLex,");
+            Indent_Line ("  (" & To_Lower (Package_Name) & "_io.Feeder,");
             Indent := Indent + 3;
+            Indent_Line (To_Lower (Package_Name) & "_YYLex,");
             Indent_Line (To_Lower (Package_Name) & "_dfa.YYText,");
-            Indent_Line (To_Lower (Package_Name) & "_io.Yy_Line_Number,");
-            Indent_Line (To_Lower (Package_Name) & "_io.Yy_Begin_Column,");
+            Indent_Line (To_Lower (Package_Name) & "_dfa.YYText_ptr,");
+            Indent_Line (To_Lower (Package_Name) & "_dfa.YYLength,");
+            Indent_Line (To_Lower (Package_Name) & "_io.Tok_Begin_Line,");
+            Indent_Line (To_Lower (Package_Name) & "_io.Tok_Begin_Col,");
             Indent_Line (To_Lower (Package_Name) & "_dfa.yy_init,");
-            Indent_Line (To_Lower (Package_Name) & "_dfa.yy_cp,");
             Indent_Line (To_Lower (Package_Name) & "_io.yy_eof_has_been_seen,");
             Indent_Line ("Nonterminals,");
             Indent_Line ("Wisi_Tokens.Get);");
