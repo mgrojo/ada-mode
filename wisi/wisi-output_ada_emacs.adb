@@ -988,7 +988,7 @@ is
 
       --  We don't use a Token_Cursor here because the output depends on the Kind
       for Item of Keywords loop
-         Put_Line (-Item.Value & " { return " & To_Token_Image (Item.Name) & ";}");
+         Put_Line (-Item.Value & " {         return " & To_Token_Image (Item.Name) & ";}");
       end loop;
 
       for Kind of Tokens loop
@@ -1000,10 +1000,10 @@ is
                   --  drop comment
                   if Value = """--""" then
                      --  matches Aflex comment; need escape
-                     Put_Line ("\-\-[^\n]*$ {null;}");
+                     Put_Line ("\-\-[^\n]*$ {         null;}");
                   else
                      --  FIXME: strip quotes
-                     Put_Line (Value (1 .. Value'Last - 1) & ".*$"" {null;}");
+                     Put_Line (Value (1 .. Value'Last - 1) & ".*$"" {         null;}");
                   end if;
                end;
             end loop;
@@ -1014,7 +1014,7 @@ is
                   Value : constant String := -Item.Value;
                begin
                   --  drop whitespace
-                  Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {null;}");
+                  Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {         null;}");
                end;
             end loop;
 
@@ -1025,7 +1025,8 @@ is
             end if;
             for Item of Kind.Tokens loop
                if -Item.Value = "ada-wisi-number-p" then
-                  Put_Line ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? { return " & To_Token_Image (Item.Name) & ";}");
+                  Put_Line
+                    ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? {         return " & To_Token_Image (Item.Name) & ";}");
                else
                   raise Programmer_Error;
                end if;
@@ -1033,7 +1034,7 @@ is
 
          elsif -Kind.Kind = """punctuation""" then
             for Item of Kind.Tokens loop
-               Put_Line (-Item.Value & " { return " & To_Token_Image (Item.Name) & ";}");
+               Put_Line (-Item.Value & " {         return " & To_Token_Image (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """symbol""" then
@@ -1042,7 +1043,7 @@ is
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line ("[0-9a-zA-Z_]+ { return " & To_Token_Image (Item.Name) & ";}");
+               Put_Line ("[0-9a-zA-Z_]+ {         return " & To_Token_Image (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-double""" then
@@ -1052,7 +1053,7 @@ is
             end if;
             for Item of Kind.Tokens loop
                --  FIXME: this doesn't recognize "" in string
-               Put_Line ("\""[^\""]*\"" { return " & To_Token_Image (Item.Name) & ";}");
+               Put_Line ("\""[^\""]*\"" {         return " & To_Token_Image (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-single""" then
@@ -1061,7 +1062,7 @@ is
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line ("'[^']'|'''' { return " & To_Token_Image (Item.Name) & ";}");
+               Put_Line ("'[^']'|'''' {         return " & To_Token_Image (Item.Name) & ";}");
             end loop;
 
          else

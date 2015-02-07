@@ -8,26 +8,26 @@ package Dummy is  -- for indentation
    AFLEX_INTERNAL_ERROR  : exception;
    UNEXPECTED_LAST_MATCH : exception;
    PUSHBACK_OVERFLOW     : exception;
-   Aflex_Scanner_Jammed  : exception;
+   AFLEX_SCANNER_JAMMED  : exception;
 
    User_Output_File : Ada.Text_IO.File_Type; -- required by ECHO in yylex, which we don't use
 
-   YY_END_OF_BUFFER_CHAR : constant character := ASCII.NUL;
-   yy_n_chars            : integer; -- number of characters read into yy_ch_buf
-   yy_eof_has_been_seen  : boolean;
+   YY_END_OF_BUFFER_CHAR : constant Character := ASCII.NUL;
+   yy_n_chars            : Integer; -- number of characters read into yy_ch_buf
+   yy_eof_has_been_seen  : Boolean;
 
--- UMASS CODES :
-   type String_Ptr is access string;
-   Saved_Tok_Line1                : String_Ptr := Null;
-   Line_Number_Of_Saved_Tok_Line1 : integer    := 0;
-   Saved_Tok_Line2                : String_Ptr := Null;
-   Line_Number_Of_Saved_Tok_Line2 : integer    := 0;
-   Tok_Begin_Line                 : integer    := 1;
-   Tok_End_Line                   : integer    := 1;
-   Tok_Begin_Col                  : integer    := 0;
-   Tok_End_Col                    : integer    := 0;
+--  UMASS CODES :
+   type String_Ptr is access String;
+   Saved_Tok_Line1                : String_Ptr := null;
+   Line_Number_Of_Saved_Tok_Line1 : Integer    := 0;
+   Saved_Tok_Line2                : String_Ptr := null;
+   Line_Number_Of_Saved_Tok_Line2 : Integer    := 0;
+   Tok_Begin_Line                 : Integer    := 1;
+   Tok_End_Line                   : Integer    := 1;
+   Tok_Begin_Col                  : Integer    := 0;
+   Tok_End_Col                    : Integer    := 0;
    Token_At_End_Of_Line           : Boolean    := False;
--- END OF UMASS CODES.
+--  END OF UMASS CODES.
 
    Feeder : OpenToken.Text_Feeder.Text_Feeder_Ptr;
 
@@ -37,18 +37,18 @@ package Dummy is  -- for indentation
       EOB_ACT_LAST_MATCH); -- hit end of file with unscanned text; accept it
 
    function yy_get_next_buffer return eob_action_type;
-   -- try to refill buffer
+   --  try to refill buffer
 
-   function yyWrap return Boolean;
+   function yywrap return Boolean;
 
-   procedure Open_Input(fname : in String);
+   procedure Open_Input (fname : in String);
    --  Called from yyrestart; raises AFLEX_INTERNAL_ERROR
 
 --%%2 aflex inserts package spec end, body start
 end Dummy;
 package Dummy is -- for indentation
 
-   procedure YY_INPUT(Buf: out Unbounded_Character_Array; Result: out Integer; Max_Size: in Integer)
+   procedure YY_Input (Buf : out unbounded_character_array; Result : out Integer; Max_Size : in Integer)
    is
       --  Read up to Max_Size characters from text feeder, store in Buf.
       --  Update Result with count characters read.
@@ -74,35 +74,35 @@ package Dummy is -- for indentation
 
          Result := Temp_Last - Buf'First + 1;
       end if;
-   end YY_INPUT;
+   end YY_Input;
 
 --%%1 placeholder used with aflex -I option
 
    function yy_get_next_buffer return eob_action_type is
-      dest           : integer := 0;
-      source         : integer := yytext_ptr - 1; -- copy prev. char, too
-      number_to_move : integer;
+      dest           : Integer := 0;
+      source         : Integer := yytext_ptr - 1; -- copy prev. char, too
+      number_to_move : Integer;
       ret_val        : eob_action_type;
-      num_to_read    : integer;
+      num_to_read    : Integer;
    begin
       if yy_c_buf_p > yy_n_chars + 1 then
          raise NULL_IN_INPUT;
       end if;
 
-      -- try to read more data
+      --  try to read more data
 
-      -- first move last chars to start of buffer
+      --  first move last chars to start of buffer
       number_to_move := yy_c_buf_p - yytext_ptr;
 
-      for i in 0..number_to_move - 1 loop
-         yy_ch_buf(dest) := yy_ch_buf(source);
-         dest := dest + 1;
-         source := source + 1;
+      for i in 0 .. number_to_move - 1 loop
+         yy_ch_buf (dest) := yy_ch_buf (source);
+         dest             := dest + 1;
+         source           := source + 1;
       end loop;
 
       if yy_eof_has_been_seen then
-         -- don't do the read, it's not guaranteed to return an EOF,
-         -- just force an EOF
+         --  don't do the read, it's not guaranteed to return an EOF,
+         --  just force an EOF
 
          yy_n_chars := 0;
       else
@@ -113,7 +113,7 @@ package Dummy is -- for indentation
             num_to_read := YY_READ_BUF_SIZE;
          end if;
 
-         YY_Input (YY_Ch_Buf (Number_To_Move .. YY_Ch_Buf'Last), YY_N_Chars, Num_To_Read);
+         YY_Input (yy_ch_buf (number_to_move .. yy_ch_buf'Last), yy_n_chars, num_to_read);
       end if;
       if yy_n_chars = 0 then
          if number_to_move = 1 then
@@ -122,36 +122,36 @@ package Dummy is -- for indentation
             ret_val := EOB_ACT_LAST_MATCH;
          end if;
 
-         yy_eof_has_been_seen := true;
+         yy_eof_has_been_seen := True;
       else
          ret_val := EOB_ACT_RESTART_SCAN;
       end if;
 
       yy_n_chars := yy_n_chars + number_to_move;
-      yy_ch_buf(yy_n_chars) := YY_END_OF_BUFFER_CHAR;
-      yy_ch_buf(yy_n_chars + 1) := YY_END_OF_BUFFER_CHAR;
+      yy_ch_buf (yy_n_chars) := YY_END_OF_BUFFER_CHAR;
+      yy_ch_buf (yy_n_chars + 1) := YY_END_OF_BUFFER_CHAR;
 
-      -- yytext begins at the second character in
-      -- yy_ch_buf; the first character is the one which
-      -- preceded it before reading in the latest buffer;
-      -- it needs to be kept around in case it's a
-      -- newline, so yy_get_previous_state() will have
-      -- with '^' rules active
+      --  yytext begins at the second character in
+      --  yy_ch_buf; the first character is the one which
+      --  preceded it before reading in the latest buffer;
+      --  it needs to be kept around in case it's a
+      --  newline, so yy_get_previous_state() will have
+      --  with '^' rules active
 
       yytext_ptr := 1;
 
       return ret_val;
    end yy_get_next_buffer;
 
-   -- default yywrap function - always treat EOF as an EOF
-   function yywrap return boolean
+   --  default yywrap function - always treat EOF as an EOF
+   function yywrap return Boolean
    is begin
-      return true;
+      return True;
    end yywrap;
 
-   procedure Open_Input(fname : in String)
+   procedure Open_Input (fname : in String)
    is begin
-      raise Aflex_Internal_Error;
+      raise AFLEX_INTERNAL_ERROR;
    end Open_Input;
 
 --%%1 aflex inserts package body end

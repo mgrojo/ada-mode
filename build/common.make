@@ -48,11 +48,15 @@ tests : token_sequence_test-run.run
 # from ../wisi/test
 #
 # to parse .wy, build .ads, run parser, we'd like to do:
+#
 # %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
-# but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
+#
+# but that gets overridden by the simpler .exe rule for other things.
+# So we must list %.ads or %.l explicitly in tests. We do half of
+# these tests with the Aflex lexer, to get some testing with that.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
-tests : empty_production_1.ads
+tests : empty_production_1.l
 tests : empty_production_1-parse.diff
 tests : empty_production_2.ads
 tests : empty_production_2-parse.diff
@@ -182,13 +186,16 @@ DIFF_OPT := -u -w
 # wisi-generate Ada_Emacs runs lalr_parser.generate, and we always want the parse_table for tests
 # match historical first_state_index, first_parser_label
 %.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
-%.ads : LEXER ?= OpenToken_Lexer
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< $(LEXER) Ada_Emacs > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< OpenToken_Lexer Ada_Emacs > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
-	dos2unix -q $*.ads
-	dos2unix -q $*.adb
+
+%.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%.l : %.wy wisi-generate.exe
+	./wisi-generate.exe $(RUN_ARGS) $< Aflex_Lexer Ada_Emacs > $*.parse_table
+	dos2unix $*.parse_table
+	dos2unix -q $*.el
 
 clean :: wisi-clean
 
@@ -216,7 +223,7 @@ clean :: aflex-clean
 
 # delete files created by aflex
 aflex-clean :
-	rm -f *.a
+	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
 
 .PRECIOUS : %.a %.ads %_run.exe %.parse %-wy.el
 
