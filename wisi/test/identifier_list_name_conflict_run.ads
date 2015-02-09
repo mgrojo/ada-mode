@@ -1,6 +1,6 @@
-with Gen_Parser_Run;
+with Gen_Parser_Run_Counted_GNAT_OS_Lib;
 with Identifier_List_Name_Conflict;
-procedure Identifier_List_Name_Conflict_Run is new Gen_Parser_Run
+procedure Identifier_List_Name_Conflict_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
   (Identifier_List_Name_Conflict.Token_IDs,
    Identifier_List_Name_Conflict.First_Terminal,
    Identifier_List_Name_Conflict.Last_Terminal,

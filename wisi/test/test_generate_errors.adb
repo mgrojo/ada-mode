@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -47,7 +47,8 @@ package body Test_Generate_Errors is
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
            (1         => Wy_File,
-            2         => new String'("test")),
+            2         => new String'("OpenToken_Lexer"),
+            3         => new String'("Test")),
          Output_File  => Computed_Error_File,
          Return_Code  => Return_Code,
          Success      => Success);
@@ -71,7 +72,7 @@ package body Test_Generate_Errors is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("../../wisi/test/" & GNAT.Source_Info.File & T.Root_Name.all);
+      return new String'("../../wisi/test/" & GNAT.Source_Info.File & " " & T.Root_Name.all);
    end Name;
 
 end Test_Generate_Errors;

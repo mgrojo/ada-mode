@@ -1,9 +1,9 @@
-with Ada.Command_Line; use Ada.Command_Line;
+with Ada.Command_Line;  use Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Text_IO;      use Ada.Text_IO;
-with Ada_Grammar_2; use Ada_Grammar_2;
+with Ada.Text_IO;       use Ada.Text_IO;
+with Ada_Grammar_2;     use Ada_Grammar_2;
 with ada_grammar_2_dfa; use ada_grammar_2_dfa;
-with OpenToken.Text_Feeder.Text_IO;
+with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
 procedure Run_Ada_Parser_2
 is
    procedure Put_Usage
@@ -14,7 +14,8 @@ is
    end Put_Usage;
 
    Count  : Integer;
-   File   : File_Type;
+   File   : GNAT.OS_Lib.File_Descriptor;
+   Feeder : aliased OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance;
    Parser : LALR_Parsers.Instance := Create_Parser (Terminate_Same_State => True);
 begin
    if Argument_Count = 2 then
@@ -23,7 +24,9 @@ begin
 
    elsif Argument_Count = 3 then
       Count := Integer'Value (Argument (1));
-      Open (File, In_File, Argument (2));
+
+      File := GNAT.OS_Lib.Open_Read (Argument (2), Text);
+      --  Mode Text normalizes CR/LF to LF
 
       OpenToken.Trace_Parse := 1;
       aflex_debug           := True;
@@ -34,8 +37,9 @@ begin
       return;
    end if;
 
-   Set_Input (File);
-   Parser.Set_Text_Feeder (OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
+   Feeder.Create (File);
+   Feeder.Reset (GNAT.OS_Lib.File_Length (File));
+   Parser.Set_Text_Feeder (Feeder'Unchecked_Access);
 
    for I in 1 .. Count loop
       LALR_Parsers.Parse (Parser);

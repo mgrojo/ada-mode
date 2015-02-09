@@ -1,6 +1,6 @@
-with Gen_Parser_Run;
+with Gen_Parser_Run_Text_IO;
 with Empty_Production_6;
-procedure Empty_Production_6_Run is new Gen_Parser_Run
+procedure Empty_Production_6_Run is new Gen_Parser_Run_Text_IO
   (Empty_Production_6.Token_IDs,
    Empty_Production_6.First_Terminal,
    Empty_Production_6.Last_Terminal,

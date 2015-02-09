@@ -1,6 +1,6 @@
-with Gen_Parser_Run;
+with Gen_Parser_Run_Counted_GNAT_OS_Lib;
 with Empty_Production_7;
-procedure Empty_Production_7_Run is new Gen_Parser_Run
+procedure Empty_Production_7_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
   (Empty_Production_7.Token_IDs,
    Empty_Production_7.First_Terminal,
    Empty_Production_7.Last_Terminal,

@@ -1,3 +1,9 @@
+read 70
+Monitor;
+Monitor constant;
+Monitor aliased;
+Monitor aliased constant;
+
  1 stack:  1 : , 
  1: 1: (IDENTIFIER 1 . 8) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 8),  1 : , 
@@ -88,18 +94,18 @@ constant_opt_id_0: (constant_opt 61 . 69) (CONSTANT 61 . 69)
  1 stack:  10 : (constant_opt 61 . 69),  8 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
  1: 10: (SEMICOLON 69 . 70) : shift and goto state 11
  1 stack:  11 : (SEMICOLON 69 . 70),  10 : (constant_opt 61 . 69),  8 : (aliased_opt 53 . 60),  2 : (IDENTIFIER 45 . 52),  3 : (object_declaration_list 1 . 44),  1 : , 
- 1: 11: (EOF 70 . 71) : reduce 4 tokens to object_declaration
+ 1: 11: (EOF 1 . 2) : reduce 4 tokens to object_declaration
 object_declaration_id_0: (object_declaration 45 . 70) (IDENTIFIER 45 . 52), (aliased_opt 53 . 60), (constant_opt 61 . 69), (SEMICOLON 69 . 70)
  ... goto state 6
  1 stack:  6 : (object_declaration 45 . 70),  3 : (object_declaration_list 1 . 44),  1 : , 
- 1: 6: (EOF 70 . 71) : reduce 2 tokens to object_declaration_list
+ 1: 6: (EOF 1 . 2) : reduce 2 tokens to object_declaration_list
 [-7 [(7 1 . 44)(8 45 . 70)]
 (-11 -12 -13)
 ]
 object_declaration_list_id_0: (object_declaration_list 1 . 70) (object_declaration_list 1 . 44), (object_declaration 45 . 70)
  ... goto state 3
  1 stack:  3 : (object_declaration_list 1 . 70),  1 : , 
- 1: 3: (EOF 70 . 71) : shift and goto state 5
- 1 stack:  5 : (EOF 70 . 71),  3 : (object_declaration_list 1 . 70),  1 : , 
- 1: 5: (EOF 71 . 72) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 71) (object_declaration_list 1 . 70), (EOF 70 . 71)
+ 1: 3: (EOF 1 . 2) : shift and goto state 5
+ 1 stack:  5 : (EOF 1 . 2),  3 : (object_declaration_list 1 . 70),  1 : , 
+ 1: 5: (EOF 1 . 2) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 70) (object_declaration_list 1 . 70), (EOF 1 . 2)

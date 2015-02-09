@@ -1,3 +1,5 @@
+--  Main program to run a parser, using a Counted_GNAT_OS_Lib text feeder.
+
 with OpenToken.Production;
 with OpenToken.Production.Parser.LALR.Parser;
 with OpenToken.Production.Parser.LALR.Parser_Lists;
@@ -23,4 +25,4 @@ generic
       Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size          : in Integer                               := 1024)
      return LALR_Parsers.Instance;
-procedure Gen_Parser_Run;
+procedure Gen_Parser_Run_Counted_GNAT_OS_Lib;

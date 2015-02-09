@@ -56,27 +56,27 @@ tests : token_sequence_test-run.run
 # these tests with the Aflex lexer, to get some testing with that.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
-tests : empty_production_1.l
+tests : empty_production_1_yylex.ads
 tests : empty_production_1-parse.diff
 tests : empty_production_2.ads
 tests : empty_production_2-parse.diff
-tests : empty_production_3.ads
+tests : empty_production_3_yylex.ads
 tests : empty_production_3-parse.diff
 tests : empty_production_4.ads
 tests : empty_production_4-parse.diff
-tests : empty_production_5.ads
+tests : empty_production_5_yylex.ads
 tests : empty_production_5-parse.diff
 tests : empty_production_6.ads
 tests : empty_production_6-parse.diff
-tests : empty_production_7.ads
+tests : empty_production_7_yylex.ads
 tests : empty_production_7-parse.diff
 tests : empty_production_8.ads
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict.ads
+tests : identifier_list_name_conflict_yylex.ads
 tests : identifier_list_name_conflict-parse.diff
 tests : multi_conflict.ads
 tests : multi_conflict-parse.diff
-tests : subprograms.ads
+tests : subprograms_yylex.ads
 tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
@@ -213,11 +213,11 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
-%.a : %.l
+%.ada : %.l
 	aflex -i -s -E -O../../wisi/opentoken_aflex_io_template.adb $(AFLEX_ARGS) $<
 
-%_dfa.ads : %.a
-	gnatchop -w $*.a $*_dfa.a $*_io.a
+%_yylex.ads : %.ada
+	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
 
 clean :: aflex-clean
 
@@ -225,7 +225,7 @@ clean :: aflex-clean
 aflex-clean :
 	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
 
-.PRECIOUS : %.a %.ads %_run.exe %.parse %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-wy.el
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

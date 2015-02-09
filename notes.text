@@ -2,15 +2,6 @@ Misc notes on current work
 
 build/release/Makefile
 
-/Projects/aflex/build/Makefile
-    add test
-        diff fails on bounds
-            use gnat_io_counted text feeder with large enough buffer
-            or track buffer_start_pos like opentoken lexer does
-
-    use counted stream feeder; see ada-gps
-        does this put EOF_Character in stream?
-
 speed up parsing, for Emacs Ada backend
     gnatcoll-xref.adb needs to be < 0.2 second
 

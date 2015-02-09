@@ -1,10 +1,12 @@
+with Ada.Strings.Unbounded;
+with GNAT.OS_Lib;
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with OpenToken.Text_Feeder.Text_IO;
-procedure Gen_Parser_Run
+with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+procedure Gen_Parser_Run_Counted_GNAT_OS_Lib
 is
 
    procedure Put_Usage
@@ -14,17 +16,40 @@ is
       Put_Line ("  -v : output trace of states while parsing");
    end Put_Usage;
 
-   File       : File_Type;
+   File_Name : Ada.Strings.Unbounded.Unbounded_String; -- for error message
+   function "+" (Item : in String) return Ada.Strings.Unbounded.Unbounded_String
+     renames Ada.Strings.Unbounded.To_Unbounded_String;
+   function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+     renames Ada.Strings.Unbounded.To_String;
+
    The_Parser : LALR_Parsers.Instance := Create_Parser;
 
    procedure Use_File (File_Name : in String)
-   is begin
-      Open (File, In_File, File_Name);
+   is
+      use GNAT.OS_Lib;
+   begin
+      Gen_Parser_Run_Counted_GNAT_OS_Lib.File_Name := +File_Name;
+
+      declare
+         File : constant File_Descriptor := Open_Read (File_Name, Text);
+         --  Mode Text normalizes CR/LF to LF
+
+         Feeder : constant OpenToken.Text_Feeder.Text_Feeder_Ptr :=
+           OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
+
+         Counted_Feeder : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+           OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
+
+      begin
+         Counted_Feeder.Reset (Integer (File_Length (File)));
+         The_Parser.Set_Text_Feeder (Feeder);
+      end;
    exception
    when Name_Error =>
       Put_Line (File_Name & " cannot be opened");
       raise OpenToken.User_Error;
    end Use_File;
+
 begin
    declare
       use Ada.Command_Line;
@@ -57,17 +82,14 @@ begin
       return;
    end;
 
-   Set_Input (File);
-   --  Text_Feeder.Text_IO.Create must be called _after_ Set_Input
-   LALR_Parsers.Set_Text_Feeder (The_Parser, OpenToken.Text_Feeder.Text_IO.Create (Current_Input));
    LALR_Parsers.Parse (The_Parser);
 
 exception
 when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
-   Put_Line (Ada.Directories.Simple_Name (Name (File)) & ":" & Ada.Exceptions.Exception_Message (E));
+   Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
 
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Parser_Run;
+end Gen_Parser_Run_Counted_GNAT_OS_Lib;

@@ -36,8 +36,11 @@ package Dummy is  -- for indentation
       EOB_ACT_END_OF_FILE, -- hit end of file with no unscanned text
       EOB_ACT_LAST_MATCH); -- hit end of file with unscanned text; accept it
 
-   function yy_get_next_buffer return eob_action_type;
-   --  try to refill buffer
+   procedure YY_Input (Buf : out unbounded_character_array; Result : out Integer; Max_Size : in Integer);
+   --  Read up to Max_Size characters from text feeder, store in Buf.
+   --  Update Result with count characters read.
+   --
+   --  If text feeder reports end of file, Result is 0.
 
    function yywrap return Boolean;
 
@@ -50,11 +53,6 @@ package Dummy is -- for indentation
 
    procedure YY_Input (Buf : out unbounded_character_array; Result : out Integer; Max_Size : in Integer)
    is
-      --  Read up to Max_Size characters from text feeder, store in Buf.
-      --  Update Result with count characters read.
-      --
-      --  If text feeder reports end of file, Result is 0.
-
       --  FIXME: change Buf to String to avoid this copy
       Temp      : String (Buf'First .. Buf'First + Max_Size - 1);
       Temp_Last : Integer;
@@ -77,71 +75,6 @@ package Dummy is -- for indentation
    end YY_Input;
 
 --%%1 placeholder used with aflex -I option
-
-   function yy_get_next_buffer return eob_action_type is
-      dest           : Integer := 0;
-      source         : Integer := yytext_ptr - 1; -- copy prev. char, too
-      number_to_move : Integer;
-      ret_val        : eob_action_type;
-      num_to_read    : Integer;
-   begin
-      if yy_c_buf_p > yy_n_chars + 1 then
-         raise NULL_IN_INPUT;
-      end if;
-
-      --  try to read more data
-
-      --  first move last chars to start of buffer
-      number_to_move := yy_c_buf_p - yytext_ptr;
-
-      for i in 0 .. number_to_move - 1 loop
-         yy_ch_buf (dest) := yy_ch_buf (source);
-         dest             := dest + 1;
-         source           := source + 1;
-      end loop;
-
-      if yy_eof_has_been_seen then
-         --  don't do the read, it's not guaranteed to return an EOF,
-         --  just force an EOF
-
-         yy_n_chars := 0;
-      else
-         --  Leave space for YY_END_OF_BUFFER_CHAR
-         num_to_read := YY_BUF_SIZE - number_to_move - 1;
-
-         if num_to_read > YY_READ_BUF_SIZE then
-            num_to_read := YY_READ_BUF_SIZE;
-         end if;
-
-         YY_Input (yy_ch_buf (number_to_move .. yy_ch_buf'Last), yy_n_chars, num_to_read);
-      end if;
-      if yy_n_chars = 0 then
-         if number_to_move = 1 then
-            ret_val := EOB_ACT_END_OF_FILE;
-         else
-            ret_val := EOB_ACT_LAST_MATCH;
-         end if;
-
-         yy_eof_has_been_seen := True;
-      else
-         ret_val := EOB_ACT_RESTART_SCAN;
-      end if;
-
-      yy_n_chars := yy_n_chars + number_to_move;
-      yy_ch_buf (yy_n_chars) := YY_END_OF_BUFFER_CHAR;
-      yy_ch_buf (yy_n_chars + 1) := YY_END_OF_BUFFER_CHAR;
-
-      --  yytext begins at the second character in
-      --  yy_ch_buf; the first character is the one which
-      --  preceded it before reading in the latest buffer;
-      --  it needs to be kept around in case it's a
-      --  newline, so yy_get_previous_state() will have
-      --  with '^' rules active
-
-      yytext_ptr := 1;
-
-      return ret_val;
-   end yy_get_next_buffer;
 
    --  default yywrap function - always treat EOF as an EOF
    function yywrap return Boolean

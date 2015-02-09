@@ -12,7 +12,7 @@
 
 %token <symbol> IDENTIFIER
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 %start compilation_unit
 

@@ -1,3 +1,8 @@
+read 37
+function (foo) bar
+
+procedure foobar
+
  1 stack:  1 : , 
  1: 1: (FUNCTION 1 . 9) : shift and goto state 2
  1 stack:  2 : (FUNCTION 1 . 9),  1 : , 
@@ -39,26 +44,26 @@ parameter_list_id_0: (parameter_list)
  1 stack:  12 : (parameter_list),  3 : (PROCEDURE 21 . 30),  5 : (declarations 1 . 19),  1 : , 
  1: 12: (SYMBOL 31 . 37) : shift and goto state 15
  1 stack:  15 : (SYMBOL 31 . 37),  12 : (parameter_list),  3 : (PROCEDURE 21 . 30),  5 : (declarations 1 . 19),  1 : , 
- 1: 15: (EOF 37 . 38) : reduce 3 tokens to subprogram
+ 1: 15: (EOF 1 . 2) : reduce 3 tokens to subprogram
 [-13 [(3 21 . 30)(14)(5 31 . 37)]
 (-15 [1 -18 3 -17])
 ]
 subprogram_id_0: (subprogram 21 . 37) (PROCEDURE 21 . 30), (parameter_list), (SYMBOL 31 . 37)
  ... goto state 7
  1 stack:  7 : (subprogram 21 . 37),  5 : (declarations 1 . 19),  1 : , 
- 1: 7: (EOF 37 . 38) : reduce 1 tokens to declaration
+ 1: 7: (EOF 1 . 2) : reduce 1 tokens to declaration
 declaration_id_0: (declaration 21 . 37) (subprogram 21 . 37)
  ... goto state 8
  1 stack:  8 : (declaration 21 . 37),  5 : (declarations 1 . 19),  1 : , 
- 1: 8: (EOF 37 . 38) : reduce 2 tokens to declarations
+ 1: 8: (EOF 1 . 2) : reduce 2 tokens to declarations
 declarations_id_0: (declarations 1 . 37) (declarations 1 . 19), (declaration 21 . 37)
  ... goto state 5
  1 stack:  5 : (declarations 1 . 37),  1 : , 
- 1: 5: (EOF 37 . 38) : reduce 1 tokens to compilation_unit
+ 1: 5: (EOF 1 . 2) : reduce 1 tokens to compilation_unit
 compilation_unit_id_0: (compilation_unit 1 . 37) (declarations 1 . 37)
  ... goto state 4
  1 stack:  4 : (compilation_unit 1 . 37),  1 : , 
- 1: 4: (EOF 37 . 38) : shift and goto state 9
- 1 stack:  9 : (EOF 37 . 38),  4 : (compilation_unit 1 . 37),  1 : , 
- 1: 9: (EOF 38 . 39) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 38) (compilation_unit 1 . 37), (EOF 37 . 38)
+ 1: 4: (EOF 1 . 2) : shift and goto state 9
+ 1 stack:  9 : (EOF 1 . 2),  4 : (compilation_unit 1 . 37),  1 : , 
+ 1: 9: (EOF 1 . 2) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 37) (compilation_unit 1 . 37), (EOF 1 . 2)

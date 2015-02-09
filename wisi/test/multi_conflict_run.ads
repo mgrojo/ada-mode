@@ -1,6 +1,6 @@
-with Gen_Parser_Run;
+with Gen_Parser_Run_Text_IO;
 with Multi_Conflict;
-procedure Multi_Conflict_Run is new Gen_Parser_Run
+procedure Multi_Conflict_Run is new Gen_Parser_Run_Text_IO
   (Multi_Conflict.Token_IDs,
    Multi_Conflict.First_Terminal,
    Multi_Conflict.Last_Terminal,

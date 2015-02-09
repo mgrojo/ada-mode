@@ -3,7 +3,7 @@
 ^build/.*\.bz2$
 ^build/.*\.gz$
 ^build/.*\.zip$
-^build/debug/.*\.a$
+^build/debug/.*\.ada$
 ^build/debug/.*\.adb$
 ^build/debug/.*\.ads$
 ^build/debug/.*\.aflex_output$
@@ -33,7 +33,7 @@
 ^build/profile/gmon\.out$
 ^build/profile/gprof\.out$
 ^build/profile/obj$
-^build/release/.*\.a$
+^build/release/.*\.ada$
 ^build/release/.*\.adb$
 ^build/release/.*\.ads$
 ^build/release/.*\.diff$
