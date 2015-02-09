@@ -1287,9 +1287,10 @@ cached token, return new indentation for point."
 
 (defun ada-wisi-on-context-clause ()
   "For `ada-on-context-clause'."
-
+  ;; Don't require parse of large file just for ada-find-other-file
   (save-excursion
-    (and (wisi-goto-statement-start)
+    (and (< (point-max) wisi-size-threshold)
+	 (wisi-goto-statement-start)
 	 (memq (wisi-cache-nonterm (wisi-goto-statement-start)) '(use_clause with_clause)))))
 
 (defun ada-wisi-goto-subunit-name ()

@@ -5,7 +5,7 @@
 (require 'xref)
 
 (defun xref-ada-find (action arg)
-  (ecase action
+  (cl-ecase action
     (definitions ;; arg is an identifer (see xref-ada-identifier-at-point)
       (xref-ada-find-definitions arg))
     (references  ;; arg is an identifer
@@ -61,9 +61,9 @@
 	 nil))))
 
 (defun xref-ada-identifer-completion-table (identifer)
-   "For `xref-identifier-completion-table-function'."
-   (lambda (string pred action)
-     (complete-with-action action (tags-completion-table) string pred)))
+  "For `xref-identifier-completion-table-function'."
+  ;; FIXME: implement gpr or asis backend
+   nil)
 
 (defun xref-ada-setup ()
   (setq-local xref-find-function #'xref-ada-find)

@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser
 ;;
-;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -179,12 +179,12 @@
   (require 'wisi-compat-24.2)
 ;;)
 
-(defcustom wisi-font-lock-size-threshold 100000
-  "Max size (in characters) for using wisi parser results for syntax highlighting."
+(defcustom wisi-size-threshold 100000
+  "Max size (in characters) for using wisi parser results for syntax highlighting and file navigation."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
-(make-variable-buffer-local 'wisi-font-lock-size-threshold)
+(make-variable-buffer-local 'wisi-size-threshold)
 
 ;;;; lexer
 
@@ -721,7 +721,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-fontify-region (begin end)
   "For `jit-lock-functions'."
-  (when (< (point-max) wisi-font-lock-size-threshold)
+  (when (< (point-max) wisi-size-threshold)
     (wisi-validate-cache end)))
 
 (defun wisi-get-containing-cache (cache)

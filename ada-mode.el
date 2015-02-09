@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 ;;
-;;; Copyright (C) 1994, 1995, 1997 - 2014  Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995, 1997 - 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -231,7 +231,11 @@ Function to call to adjust the case of Ada keywords."
 (defcustom ada-case-identifier 'ada-mixed-case
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
-Function to call to adjust the case of Ada keywords."
+Function to call to adjust the case of Ada keywords.
+Called with three args;
+start      - buffer pos of start of identifier
+end        - end of identifier
+force-case - if t, treat `ada-strict-case' as t"
   :type '(choice (const ada-mixed-case)
 		 (const downcase-region)
 		 (const upcase-region))
@@ -393,6 +397,7 @@ Values defined by cross reference packages.")
     ("Navigate"
      ["Other file"                    ada-find-other-file          t]
      ["Other file don't find decl"    ada-find-other-file-noset    t]
+     ["Find file in project"          ada-find-file                t]
      ["Goto declaration/body"         ada-goto-declaration         t]
      ["Goto next statement keyword"   ada-next-statement-keyword   t]
      ["Goto declaration start"        ada-goto-declaration-start   t]
@@ -1074,11 +1079,11 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (point))))
     (member (downcase word) ada-keywords)))
 
-(defun ada-mixed-case (start end)
+(defun ada-mixed-case (start end force-case-strict)
   "Adjust case of region START END to Mixed_Case."
   (let ((done nil)
 	next)
-    (if ada-case-strict
+    (if (or force-case-strict ada-case-strict)
 	(downcase-region start end))
     (goto-char start)
     (while (not done)
@@ -1096,7 +1101,7 @@ User is prompted to choose a file from project variable casing if it is a list."
 	(setq done t))
       )))
 
-(defun ada-case-adjust-identifier ()
+(defun ada-case-adjust-identifier (&optional force-case)
   "Adjust case of the previous word as an identifier.
 Uses `ada-case-identifier', with exceptions defined in
 `ada-case-full-exceptions', `ada-case-partial-exceptions'."
@@ -1119,7 +1124,7 @@ Uses `ada-case-identifier', with exceptions defined in
 	    (delete-region (point) end))
 
 	;; else apply ada-case-identifier
-	(funcall ada-case-identifier start end)
+	(funcall ada-case-identifier start end force-case)
 
 	;; apply partial-exceptions
 	(goto-char start)
@@ -1146,7 +1151,8 @@ Uses `ada-case-identifier', with exceptions defined in
   "Adjust the case of the word before point.
 When invoked interactively, TYPED-CHAR must be
 `last-command-event', and it must not have been inserted yet.
-If IN-COMMENT is non-nil, adjust case of words in comments and strings as code."
+If IN-COMMENT is non-nil, adjust case of words in comments and strings as code,
+and treat `ada-case-strict' as t in code.."
   (when (not (bobp))
     (when (save-excursion
 	    (forward-char -1); back to last character in word
@@ -1178,7 +1184,7 @@ If IN-COMMENT is non-nil, adjust case of words in comments and strings as code."
 	   (save-excursion
 	     (skip-syntax-backward "w_")
 	     (eq (char-before) ?')))
-	  (ada-case-adjust-identifier))
+	  (ada-case-adjust-identifier in-comment))
 
 	 ((and
 	   (not in-comment)
@@ -1186,7 +1192,7 @@ If IN-COMMENT is non-nil, adjust case of words in comments and strings as code."
 	   (ada-after-keyword-p))
 	  (funcall ada-case-keyword -1))
 
-	 (t (ada-case-adjust-identifier))
+	 (t (ada-case-adjust-identifier in-comment))
 	 ))
       )))
 

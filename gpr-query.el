@@ -4,7 +4,7 @@
 ;;; gpr-query supports Ada and any gcc language that supports the
 ;;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;;; Copyright (C) 2013, 2014  Free Software Foundation, Inc.
+;;; Copyright (C) 2013 - 2015  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -250,9 +250,10 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
       (gpr-query-session-send cmd-1 t)
+
       ;; point is at EOB. gpr_query returns one line per result plus prompt
       (setq result-count (- (line-number-at-pos) 1))
-      ;; Won't be needed in 24.5 any more.
+
       (if (fboundp 'font-lock-ensure)
           (font-lock-ensure)
         (font-lock-fontify-buffer))
@@ -260,7 +261,8 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
       ;; FIXME: Won't be needed in 24.5 any more, since compilation-next-error
       ;; will apply compilation-message text properties on the fly.
       ;; IMPROVEME: for some reason, next-error works, but the font
-      ;; colors are not right (no koolaid!)
+      ;; colors are not right (no koolaid!) (fixed in 24.5?)
+
       (goto-char (point-min))
 
       (cl-case result-count
