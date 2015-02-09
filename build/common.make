@@ -214,7 +214,7 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %.ada : %.l
-	aflex -i -s -E -O../../wisi/opentoken_aflex_io_template.adb $(AFLEX_ARGS) $<
+	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa_template.adb -O../../wisi/opentoken_aflex_io_template.adb $(AFLEX_ARGS) $<
 
 %_yylex.ads : %.ada
 	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada

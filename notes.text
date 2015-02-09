@@ -1,6 +1,6 @@
 Misc notes on current work
 
-build/release/Makefile
+build/debug/Makefile
 
 speed up parsing, for Emacs Ada backend
     gnatcoll-xref.adb needs to be < 0.2 second
@@ -27,7 +27,8 @@ speed up parsing, for Emacs Ada backend
             _2 OpenToken.Text_Feeder.Text_IO: 1.435 1.170 1.201
                 2.7 times faster than _1 OpenToken.Text_Feeder.Text_IO; 0.127 parse; 0.073 for elisp actions
 
-        change run_ada_parser to read file once, use counted text_feeder:
+        change run_ada_parser to use counted_gnat_os_lib text_feeder:
+            _2 OpenToken.Text_Feeder.counted_gnat_os_lib: 1.426 1.250 1.226
 
 use aflex
     /Projects/aflex/build/Makefile
