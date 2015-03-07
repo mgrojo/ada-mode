@@ -148,6 +148,7 @@ clean :: compile-ada-clean test-clean
 # .ali files are in source dir, so they are shared between wisi and smie tests
 compile-ada-clean :
 	rm -f ../../test/*.ali ../../test/subdir/*.ali *.ali
+	rm -f ../../test/gpr_query.*
 
 test-clean ::
 	rm -f *.diff *.tmp

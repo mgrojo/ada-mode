@@ -1,4 +1,4 @@
-;;; An indentation engine for gpr mode, using the wisent LALR parser
+, 2015;;; An indentation engine for gpr mode, using the wisent LALR parser
 ;;
 ;; [1] GNAT user guide (info "gnat_ugn")
 ;;
@@ -193,7 +193,8 @@ or containing ancestor of CACHE that is at a line beginning."
 	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+	      gpr-grammar-wy--parse-table
+	      nil)
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)

@@ -49,10 +49,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 ;; Declarations
@@ -167,6 +163,9 @@
 ;; Must be before IDENTIFIER; otherwise recognized as an identifier
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
+;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+%token <whitespace> WHITESPACE ""
+%token <line_comment> COMMENT "--"
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL
@@ -176,42 +175,6 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
-%conflict REDUCE/REDUCE in state aggregate, primary on token AMPERSAND
-%conflict REDUCE/REDUCE in state aggregate, primary on token AND
-%conflict REDUCE/REDUCE in state aggregate, primary on token BAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token COLON_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token COMMA
-%conflict REDUCE/REDUCE in state aggregate, primary on token DIGITS
-%conflict REDUCE/REDUCE in state aggregate, primary on token DO
-%conflict REDUCE/REDUCE in state aggregate, primary on token DOT_DOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSE
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSIF
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL_GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token IN
-%conflict REDUCE/REDUCE in state aggregate, primary on token IS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token LOOP
-%conflict REDUCE/REDUCE in state aggregate, primary on token MINUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token MOD
-%conflict REDUCE/REDUCE in state aggregate, primary on token NOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token OF
-%conflict REDUCE/REDUCE in state aggregate, primary on token OR
-%conflict REDUCE/REDUCE in state aggregate, primary on token PLUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token RANGE
-%conflict REDUCE/REDUCE in state aggregate, primary on token REM
-%conflict REDUCE/REDUCE in state aggregate, primary on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state aggregate, primary on token SEMICOLON
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR_STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token THEN
-%conflict REDUCE/REDUCE in state aggregate, primary on token WITH
-%conflict REDUCE/REDUCE in state aggregate, primary on token XOR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
@@ -225,38 +188,36 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
-%conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
-%conflict REDUCE/SHIFT in state aspect_specification_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, package_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
-%conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
-%conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
-%conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
-%conflict REDUCE/SHIFT in state expression, relation_and_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_and_then_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_xor_list on token XOR
-%conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
-%conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state name, aspect_clause on token USE
-%conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
-%conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, expression_function_declaration on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
+%conflict SHIFT/REDUCE in state generic_instantiation, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
+%conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state pragma_argument_association, name on token TICK
+%conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
+%conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
+%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
 
 %%
 ;;;; grammar rules
@@ -504,7 +465,8 @@ block_statement
       (wisi-motion-action [1 [2 block-middle EXCEPTION block-middle WHEN] 3]))
   ;
 
-body : proper_body | body_stub ;
+;; Annex P has overloaded 'body'; keyword and grammar element
+body_g : proper_body | body_stub ;
 
 body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
 
@@ -689,7 +651,7 @@ constant_opt
   ;
 
 constraint
-  : RANGE range ;; range_constraint
+  : RANGE range_g ;; range_constraint
  ;; | digits_constraint
  ;; | delta_constraint
   | index_constraint
@@ -701,12 +663,12 @@ constraint_opt
   | constraint
   ;
 
-context_item : pragma | with_clause | use_clause;
+context_item : pragma_g | with_clause | use_clause;
 
 declaration
   : abstract_subprogram_declaration
   | aspect_clause
-  | body
+  | body_g
   | entry_declaration
   | exception_declaration
   | expression_function_declaration
@@ -719,7 +681,7 @@ declaration
       (wisi-containing-action 1 5))
   | object_declaration
   | package_declaration
-  | pragma ;; not a declaration in ARM, but it must be in the grammar
+  | pragma_g ;; not a 'declaration' in ARM, but it must be in the grammar
   | renaming_declaration
   | subprogram_declaration
   | subtype_declaration
@@ -772,9 +734,9 @@ direct_name_opt
   ;
 
 discrete_choice
-  : choice_expression ;; includes name
-  | NOT NULL name ;; from subytpe_indication, excluding constructs covered by name
-  | range
+  : choice_expression ;; includes 'name'
+  | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
+  | range_g
   | OTHERS
   ;
 
@@ -788,7 +750,7 @@ discrete_choice_list
 
  ;; discrete_range_list is the same as discrete_subtype_definition_list
 
-discrete_subtype_definition : subtype_indication | range ;
+discrete_subtype_definition : subtype_indication | range_g ;
 
 discrete_subtype_definition_list
   : discrete_subtype_definition
@@ -1204,7 +1166,7 @@ generic_formal_parameter_declaration
   | formal_type_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
-  | pragma
+  | pragma_g
   | use_clause
   ;
 
@@ -1483,10 +1445,10 @@ membership_choice
  ;; ARM has choice_expression here, but that leads to a shift/reduce conflict, because of the following productions:
  ;; membership_choice_list => membership_choice => choice_expression => choice_relation_and_list
  ;; relation => simple_expression IN choice_relation_and_list
- ;; thus choice_relation_and_list AND could be followed by relation (=> reduce) or choice_relation (=> shift)
- ;; This only occurs in legal Ada in expressions such as True in 1 and 3; not useful, so we leave it out.
-  | range
- ;;  | name ;; subtype_mark - covered by simple_expression
+ ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
+ ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
+  | range_g
+ ;;  | name ;; subtype_mark - also covered by simple_expression; avoid reduce/reduce conflict
   ;
 
 mod_clause_opt
@@ -1523,7 +1485,7 @@ name
  ;; ARM has name ( discrete_subtype_definition ) here, but thats
  ;; partly redundant with name actual_parameter_part; this is the
  ;; part that is not redundant.
-  | name LEFT_PAREN range RIGHT_PAREN ;; slice
+  | name LEFT_PAREN range_g RIGHT_PAREN ;; slice
     (progn
       (wisi-statement-action [1 name-paren 2 open-paren 4 close-paren])
       (wisi-containing-action 1 2)
@@ -1766,7 +1728,8 @@ paren_expression
       (wisi-containing-action 1 2))
   ;
 
-pragma
+;; Annex P has overloaded 'pragma'; keyword and grammar
+pragma_g
   : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-end])
@@ -1970,7 +1933,8 @@ raise_statement
     (wisi-statement-action [1 statement-start 3 statement-end])
   ;
 
-range
+;; Annex P has overloaded 'range'; keyword and grammar
+range_g
   : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
     (progn
       (wisi-statement-action [4 open-paren 6 close-paren])
@@ -2195,7 +2159,7 @@ simple_statement
     (wisi-statement-action [1 statement-start 3 statement-end])
   | raise_statement
   ;; | code_statement
-  | pragma
+  | pragma_g
   ;
 
 single_protected_declaration

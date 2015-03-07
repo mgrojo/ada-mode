@@ -171,6 +171,10 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'wisi-parse-common)
+
+;; FIXME: use better dispatching
+(require 'wisi-ext-parse)
 (require 'wisi-parse)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
@@ -405,6 +409,7 @@ wisi-forward-token, but does not look up symbol."
   )
 
 (defvar-local wisi-parse-table nil)
+(defvar-local wisi-elisp-names nil)
 
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
@@ -671,6 +676,20 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defvar wisi-post-parse-succeed-hook nil
   "Hook run after parse succeeds.")
 
+(defvar wisi-parser 'elisp
+  "Choice of wisi parser implementation; 'elisp or 'ada.
+'ada uses external program ada_mode_wisi_parse.")
+
+(defun wisi-parse-current ()
+  "Parse current buffer. Parser used is given by `wisi-parser'."
+  (cl-ecase wisi-parser
+    (elisp
+     (wisi-parse wisi-parse-table 'wisi-forward-token))
+    (ada
+     ;; FIXME: grammar is specifed by .exe name; that must be here.
+     (wisi-ext-parse wisi-elisp-names))
+    ))
+
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
@@ -687,7 +706,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  ;; let debugger stop in wisi-parse
 	  (progn
 	    (save-excursion
-	      (wisi-parse wisi-parse-table 'wisi-forward-token)
+	      (wisi-parse-current)
 	      (setq wisi-cache-max (point))
 	      (setq wisi-parse-failed nil))
 	    (run-hooks 'wisi-post-parse-succeed-hook))
@@ -698,7 +717,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(condition-case err
 	    (progn
 	      (save-excursion
-		(wisi-parse wisi-parse-table 'wisi-forward-token)
+		(wisi-parse-current)
 		(setq wisi-cache-max (point))
 		(setq wisi-parse-failed nil))
 	      (run-hooks 'wisi-post-parse-succeed-hook))
@@ -1501,7 +1520,7 @@ correct. Must leave point at indentation of current line.")
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table elisp-names)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
   (setq wisi-string-double-term (car (symbol-value (intern-soft "string-double" token-table))))
@@ -1534,6 +1553,7 @@ correct. Must leave point at indentation of current line.")
 
   (setq wisi-keyword-table keyword-table)
   (setq wisi-parse-table parse-table)
+  (setq wisi-elisp-names elisp-names)
 
   (setq wisi-indent-calculate-functions indent-calculate)
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)

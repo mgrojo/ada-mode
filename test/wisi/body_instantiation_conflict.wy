@@ -24,7 +24,7 @@
 
 %start compilation_unit
 
-%conflict REDUCE/SHIFT in state parameter_list, generic_instantiation on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_list on token IS
 
 %%
 

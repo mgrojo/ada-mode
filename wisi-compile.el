@@ -1,6 +1,6 @@
 ;;; Grammar compiler for the wisent LALR parser, integrating Wisi OpenToken output.
 ;;
-;; Copyright (C) 2012, 2013, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -84,13 +84,6 @@ Return the new alist."
 	   (push (cons (car item)
 		       (list (car value)
 			     (wisi-compose-action (cadr value) symbol-array nonterms)))
-		 result))
-
-	  ((integerp (cadr value))
-	   ;; reduce/shift conflict
-	   (push (cons (car item)
-		       (list (wisi-compose-action (car value) symbol-array nonterms)
-			     (cadr value)))
 		 result))
 
 	  (t ;; reduce/reduce conflict
