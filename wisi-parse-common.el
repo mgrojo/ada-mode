@@ -1,6 +1,6 @@
 ;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
 ;;
-;; Copyright (C) 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -53,6 +53,12 @@
 (put 'wisi-parse-error
      'error-message
      "wisi parse error")
+
+(defun wisi-token-text (token)
+  "Return buffer text from token range."
+  (let ((region (cdr token)))
+    (and region
+       (buffer-substring-no-properties (car region) (cdr region)))))
 
 (defun wisi-parse-max-pos (tokens)
   "Return max position in tokens, or point if tokens nil."

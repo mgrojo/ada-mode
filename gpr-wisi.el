@@ -1,8 +1,8 @@
-, 2015;;; An indentation engine for gpr mode, using the wisent LALR parser
+;;; An indentation engine for gpr mode, using the wisent LALR parser
 ;;
 ;; [1] GNAT user guide (info "gnat_ugn")
 ;;
-;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;

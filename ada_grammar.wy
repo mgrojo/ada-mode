@@ -175,6 +175,42 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token AMPERSAND
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token AND
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token BAR
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token COLON_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token COMMA
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token DIGITS
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token DO
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token DOT_DOT
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token ELSE
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token ELSIF
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token EQUAL_GREATER
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token GREATER
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token GREATER_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token IN
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token IS
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token LESS
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token LESS_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token LOOP
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token MINUS
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token MOD
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token NOT
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token OF
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token OR
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token PLUS
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token RANGE
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token REM
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token SEMICOLON
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token SLASH
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token SLASH_EQUAL
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token STAR
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token STAR_STAR
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token THEN
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token WITH
+%conflict REDUCE/REDUCE in state aggregate, primary ( 401) on token XOR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR

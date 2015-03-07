@@ -1,6 +1,6 @@
-, 2015;;; wisi-parse.el --- Wisi parser
+;;; wisi-parse.el --- Wisi parser
 
-;; Copyright (C) 2013, 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2013, 2014, 2015  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -63,56 +63,6 @@ point at which that max was spawned.")
   ;; list of (action-symbol stack-fragment)
   )
 
-<<<<<<< variant A
-(defun wisi-error-msg (message &rest args)
-  (let ((line (line-number-at-pos))
-	(col (- (point) (line-beginning-position))))
-    (format
-     "%s:%d:%d: %s"
-       (file-name-nondirectory (buffer-name)) ;; buffer-file-name is sometimes nil here!?
-       line col
-       (apply 'format message args))))
-
-(defvar wisi-parse-error nil)
-(put 'wisi-parse-error
-     'error-conditions
-     '(error wisi-parse-error))
-(put 'wisi-parse-error
-     'error-message
-     "wisi parse error")
-
-(defvar-local wisi-cache-max 0
-  "Maximimum position in buffer where wisi-cache text properties are valid.")
-
-(defun wisi-token-text (token)
-  "Return buffer text from token range."
-  (let ((region (cdr token)))
-    (and region
-       (buffer-substring-no-properties (car region) (cdr region)))))
-
->>>>>>> variant B
-####### Ancestor
-(defun wisi-error-msg (message &rest args)
-  (let ((line (line-number-at-pos))
-	(col (- (point) (line-beginning-position))))
-    (format
-     "%s:%d:%d: %s"
-       (file-name-nondirectory (buffer-name)) ;; buffer-file-name is sometimes nil here!?
-       line col
-       (apply 'format message args))))
-
-(defvar wisi-parse-error nil)
-(put 'wisi-parse-error
-     'error-conditions
-     '(error wisi-parse-error))
-(put 'wisi-parse-error
-     'error-message
-     "wisi parse error")
-
-(defvar-local wisi-cache-max 0
-  "Maximimum position in buffer where wisi-cache text properties are valid.")
-
-======= end
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.
 
