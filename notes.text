@@ -82,6 +82,9 @@ after trunk transition to git (11 Nov 2014?):
         so they are not visible when using elpa package
 
 
+see https://github.com/ensime for Emacs SCALA compiler interface
+    c:/Archive/Emacs/ensime-emacs-master.zip
+
 5.1.c: use compiled OpenToken parser in background process
     (setq wisi-ext-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
     build/wisi/Makefile
@@ -100,27 +103,6 @@ after trunk transition to git (11 Nov 2014?):
     c:/Projects/org.opentoken.stephe/build/debug/Makefile
 
 run all ada-mode tests with ext parser
-    test/ada_mode-nominal.ads
-        wisi-cache-max is point-max + 2 !?
-
-wisi-ext-parse.el
-    ;; FIXME: time temp for (cadr action)
-
-build/run-wisi-test.el
-        ;; FIXME: run this with wisi-ext-parse
-
-other o.e.a fixmes
-
-terminate parser on error even if not match current_verb
-
-other opentoken fixmes
-
-run all opentoken tests
-
-propagate to o.e.ada-mode
-
-propagate to o.opentoken
-
 
 do FFI
 

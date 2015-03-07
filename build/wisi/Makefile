@@ -16,6 +16,7 @@ update : ../../ada_grammar-wy.el
 update : ../../gpr-grammar-wy.el
 # update : ../../ada_syntax.ads
 update : ../../ada_grammar.ads
+update : install
 update : byte-compile
 update : ada_mode_wisi_parse.exe
 
@@ -53,14 +54,14 @@ test-wisi :: subprograms.wisi-test
 
 #one : install
 one : RUNTEST := run-indent-test-wisi-ext-gpr_query.el
-#one : ada_mode-parens.adb.diff
-one :
-	emacs -Q -L .. -L ../.. -l autoloads.el -l run-indent-test-wisi-ext-gpr_query.el --eval '(progn (run-test "../../test/ada_mode-parens.ads"))'
+one : ada_mode-conditional_expressions.adb.diff
+# one :
+# 	emacs -Q -L .. -L ../.. -l autoloads.el -l run-indent-test-wisi-ext-gpr_query.el --eval '(progn (run-test "../../test/ada_mode-interactive_wisi.adb"))'
 
 two : export Ada_Mode_Wisi_Parse_Build := Debug
 two : export WISI_OPENTOKEN := /Projects/org.opentoken.stephe/build/debug
 two : run_ada_parser.exe
-	./run_ada_parser.exe -v 1 ../../test/debug.adb > debug.parse
+	./run_ada_parser.exe -v 1 ../../test/ada_mode-conditional_expressions.adb > debug.parse
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -107,6 +108,7 @@ endif
 %.exe : ../../%.adb force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr $<
 
+#ada_mode_wisi_parse.exe : export Ada_Mode_Wisi_Parse_Build := Debug
 ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr
 

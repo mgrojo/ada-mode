@@ -209,6 +209,12 @@
 %conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state pragma_argument_association, name on token TICK
 %conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
+%conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
 %conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
 %conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS

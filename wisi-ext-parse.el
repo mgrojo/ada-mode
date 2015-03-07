@@ -271,7 +271,11 @@ Does not wait for command to complete."
     (wisi-ext-parse-session-send-parse)
     (when wisi-ext-parse-new-session
       (setq wisi-ext-parse-new-session nil)
-      (sit-for 0.1)) ;; makes tests work
+      ;; There is some race condition when first starting emacs;
+      ;; loading more emacs code vs starting the external process
+      ;; interface or something. It is quite repeatable when running
+      ;; unit tests; this delay makes the tests work
+      (sit-for 0.2))
 
     (set-buffer action-buffer)
 
