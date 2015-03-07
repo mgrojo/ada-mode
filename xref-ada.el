@@ -60,10 +60,10 @@
 	 ;; from ada-identifier-at-point; no identifier
 	 nil))))
 
-(defun xref-ada-identifer-completion-table (identifer)
-  "For `xref-identifier-completion-table-function'."
-  ;; FIXME: implement gpr or asis backend
-   nil)
+;; (defun xref-ada-identifer-completion-table (identifer)
+;;   "For `xref-identifier-completion-table-function'."
+;;   ;; FIXME: implement gpr or asis backend
+;;    nil)
 
 (defun xref-ada-setup ()
   (setq-local xref-find-function #'xref-ada-find)

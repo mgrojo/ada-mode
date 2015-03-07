@@ -40,6 +40,18 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
+test with gnat 7.3
+
+param-list-align fails on:
+
+   procedure Search
+     (Directory : String;
+      Pattern   : String;
+      Filter    : Filter_Type := (others => True);
+      Process   : not null access procedure (Directory_Entry : Directory_Entry_Type));
+
+ada-indent-opentoken not safe?
+
 use goto-decl-start to indent aspects
 
 email re "aliased in out not null access"
@@ -503,7 +515,7 @@ attach gud-gdb to running emacs: attach <process id>
 (info "(aarm2012)Annex P" "*info Annex P*")
 http://www.ada-auth.org/standards/
 (info "(elisp)Parser State" "*info syntax-ppss*")
-"c:/home/stephe/Backup/eBooks/Dick Grune/BookBody.pdf" [dickgrune]
+"c:/home/stephe/Backup/eBooks/Dick Grune/Parsing.pdf" [dickgrune]
 
 http://savannah.gnu.org/projects/emacs/
 
