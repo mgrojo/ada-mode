@@ -450,6 +450,7 @@ ada-align-paramlist
 parser is too slow
     try byte-compile - not enough
     see incremental LALR [dickgrune] 9.7.4
+    ~/Backup/eBooks/twagner-thesis.pdf
     cache parser state periodically (every 200 token caches?), resume parse from last avail cache
         won't help much; still need to parse to end of file
         won't help at all on first parse

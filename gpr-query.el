@@ -576,12 +576,6 @@ Enable mode if ARG is positive"
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
   (setq ada-make-package-body       'ada-gnat-make-package-body)
 
-  (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
-
-  ;; must be after indentation engine setup, because that resets the
-  ;; indent function list.
-  (add-hook 'ada-mode-hook 'ada-gpr-query-setup t)
-
   (setq ada-xref-refresh-function    'gpr-query-refresh)
   (setq ada-xref-all-function        'gpr-query-all)
   (setq ada-xref-other-function      'gpr-query-other)
@@ -599,9 +593,6 @@ Enable mode if ARG is positive"
   (setq ada-ada-name-from-file-name nil)
   (setq ada-make-package-body       nil)
 
-  (setq ada-syntax-propertize-hook (delq 'gnatprep-syntax-propertize ada-syntax-propertize-hook))
-  (setq ada-mode-hook (delq 'ada-gpr-query-setup ada-mode-hook))
-
   (setq ada-xref-other-function      nil)
   (setq ada-xref-parent-function     nil)
   (setq ada-xref-all-function        nil)
@@ -612,11 +603,6 @@ Enable mode if ARG is positive"
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   )
 
-(defun ada-gpr-query-setup ()
-  (when (boundp 'wisi-indent-calculate-functions)
-    (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent))
-  )
-
 (defun ada-gpr-query ()
   "Set Ada mode global vars to use gpr_query."
   (add-to-list 'ada-prj-parser-alist       '("gpr" . gnat-parse-gpr))
@@ -624,10 +610,6 @@ Enable mode if ARG is positive"
   (add-to-list 'ada-deselect-prj-xref-tool '(gpr_query . ada-gpr-query-deselect-prj))
 
   ;; no parse-*-xref
-
-  (font-lock-add-keywords 'ada-mode
-   ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
   )
 
 (provide 'gpr-query)
