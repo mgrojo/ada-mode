@@ -49,10 +49,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 ;; Declarations
@@ -167,6 +163,9 @@
 ;; Must be before IDENTIFIER; otherwise recognized as an identifier
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
+;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+%token <whitespace> WHITESPACE ""
+%token <line_comment> COMMENT "--"
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL
@@ -225,38 +224,36 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
-%conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
-%conflict REDUCE/SHIFT in state aspect_specification_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, package_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
-%conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
-%conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
-%conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
-%conflict REDUCE/SHIFT in state expression, relation_and_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_and_then_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_xor_list on token XOR
-%conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
-%conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state name, aspect_clause on token USE
-%conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
-%conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, expression_function_declaration on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
+%conflict SHIFT/REDUCE in state generic_instantiation, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
 %conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
+%conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state pragma_argument_association, name on token TICK
+%conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
+%conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
+%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
 
 %%
 ;;;; grammar rules
@@ -1918,10 +1915,10 @@ protected_type_declaration
   : PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH
     protected_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 name 6 block-start 11 statement-end])
+      (wisi-statement-action [1 statement-start 3 name 6 block-start 9 statement-other 11 statement-end])
       (wisi-containing-action 1 3)
       (wisi-containing-action 3 5)
-      (wisi-containing-action 9 10)
+      (wisi-containing-action 6 10)
       (wisi-face-action [3 font-lock-type-face]))
   | PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON
     (progn

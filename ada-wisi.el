@@ -1153,7 +1153,7 @@ cached token, return new indentation for point."
 	      (ada-wisi-indent-containing ada-indent-broken cache))
 
 	     (WITH
-	      (cl-case (wisi-cache-nonterm cache)
+	      (cl-ecase (wisi-cache-nonterm cache)
 		(aggregate
 		 ;; test/ada_mode-nominal-child.ads
 		 ;;   (Default_Parent with

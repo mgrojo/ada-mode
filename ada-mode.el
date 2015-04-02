@@ -596,7 +596,7 @@ Placeholders are defined by the skeleton backend."
      "return\\|"
      "type\\|"
      "when"
-     "\\)\\>\\)"))
+     "\\)\\>[^_]\\)")) ;; in case "_" has punctuation syntax
   "See the variable `align-region-separate' for more information.")
 
 (defun ada-align ()

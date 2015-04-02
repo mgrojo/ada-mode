@@ -456,6 +456,12 @@ package Ada_Mode.Nominal is -- target 0
       -- A comment just before 'end'
    end Protected_1;
 
+   type Protected_Interface_1 is protected interface;
+
+   protected type Protected_Child_1 is new Protected_Interface_1 with
+      entry E1 (X : Integer);
+   end Protected_Child_1;
+
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
    --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))

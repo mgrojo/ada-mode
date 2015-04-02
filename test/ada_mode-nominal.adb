@@ -353,6 +353,10 @@ package body Ada_Mode.Nominal is -- target 0
       end; -- no P2
    end Protected_1;
 
+   protected body Protected_Child_1 is
+      entry E1 (X : Integer) when True is begin null; end E1;
+   end Protected_Child_1;
+
    --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
       --EMACSCMD:(ada-which-function)
