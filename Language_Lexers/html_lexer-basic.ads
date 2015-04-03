@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 1999, 2013 Christoph Karl Walter Grein
+-- Copyright (C) 1999, 2013, 2015 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
 --
@@ -50,8 +50,9 @@ private package HTML_Lexer.Basic is
    -- Note that sequence of tokens is relevant since among competing
    -- tokens the first one wins.
 
-   package Master_Basic_Token is new OpenToken.Token.Enumerated (Basic_Token, Basic_Token'Image, Basic_Token'Width);
-   package Tokenizer is new Master_Basic_Token.Analyzer (Basic_Token'First, Basic_Token'Last);
+   package Master_Basic_Token is new OpenToken.Token.Enumerated
+     (Basic_Token, Basic_Token'First, Basic_Token'Last, Basic_Token'Image);
+   package Tokenizer is new Master_Basic_Token.Analyzer;
 
    use type Ada.Strings.Maps.Character_Set;
 
@@ -82,6 +83,6 @@ private package HTML_Lexer.Basic is
       Bad_Token   => Tokenizer.Get(OpenToken.Recognizer.Nothing.Get),
       End_Of_File => Tokenizer.Get(OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer: Tokenizer.Instance := Tokenizer.Initialize (Syntax, Default => Bad_Token);
+   Analyzer: Tokenizer.Instance := Tokenizer.Initialize (Syntax).all;
 
 end HTML_Lexer.Basic;

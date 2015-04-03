@@ -1,11 +1,5 @@
 Misc notes on current work
 
-speed up parsing, for Emacs Ada backend
-
-    added profiling; see build/profile/gprof.out
-
-    add opentoken analyzer wrapper around ada flex
-        in org.opentoken.stephe-1
 
  misc
 

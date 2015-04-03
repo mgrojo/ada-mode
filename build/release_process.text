@@ -10,9 +10,15 @@ review Debian bugs
     Debian package maintainer will mark them closed
 
 review todo list
-    ~/Misc/opentoken.text
+    ../notes.text
 
-bump version, doc changes
+doc changes since last release
+    ../Docs/opentoken.html
+    $ cd org.opentoken
+    $ mtn log --to d:yyyy-mmm-dd > release.log
+    ../release.log
+
+bump version
     ../Docs/opentoken.html
         current version
         opentoken-*.tar.gz
@@ -23,7 +29,7 @@ bump version, doc changes
     ~/Web/Makefile
         OPENTOKEN_ZIP_VERSION
 
-    /home/Projects/Web/stephe-leake/ada/
+    /Projects/Web/stephe-leake/ada/
         delete old *.zip, *.gz
 
 loop until no changes:
@@ -38,8 +44,12 @@ loop until no changes:
             install
 
         ../../webcheck.main/build/windows_release/Makefile
+            # uses installed opentoken html lexer
             maintainer-clean
             all
+
+        release/Makefile
+            uninstall
 
         (dvc-state-one ".")
 

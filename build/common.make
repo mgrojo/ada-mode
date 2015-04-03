@@ -132,6 +132,9 @@ test_m3_lexer.run : test_m3_lexer.exe
 install: library
 	make -f Install.make install
 
+uninstall:
+	make -f Install.make install-clean
+
 library:
 	gprbuild -p -Popentoken_lib
 
@@ -143,7 +146,7 @@ distclean :: clean
 	rm -rf obj obj_tree
 
 test-clean :
-	rm -f *.diff *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
+	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
 	rm -f *.ads *.adb
 
 source-clean ::

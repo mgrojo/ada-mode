@@ -11,12 +11,12 @@
 <h1> OpenToken</h1>
 <p><a href="#History">History</a></p>
 
-<h1> current version: 5.0b</h1>
+<h1> current version: 6.0a</h1>
 
 <p>OpenToken may be obtained in several ways:
 <ul>
-  <li><a href="opentoken-5.0a.tar.bz2">source Gnu tar bzip2 opentoken-5.0a.tar.bz2</a>
-  <li><a href="opentoken-5.0a.zip">source zip opentoken-5.0a.zip</a>
+  <li><a href="opentoken-6.0a.tar.bz2">source Gnu tar bzip2 opentoken-6.0a.tar.bz2</a>
+  <li><a href="opentoken-6.0a.zip">source zip opentoken-6.0a.zip</a>
   <li>Debian binary package "libopentoken", source package "opentoken"
   <li><a href="http://www.stephe-leake.org/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.opentoken. Maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
 </ul>
@@ -168,6 +168,24 @@ directory. The Test directory also has useful examples, although
 oriented towards testing OpenToken itself.
 
 <h2><a name="History"></a> History</h2>
+
+<h3>Version 6.0a 5 Apr 2014</h3>
+<ul>
+  <li>Extend parser to generalized LALR (spawn parallel parsers) to handle conflicts
+  <li>Extensive API changes to support the restructured parser.
+  <li>New text feeder opentoken-text_feeder-counted_gnat_os_lib
+  <li>New recognizer OpenToken.Recognizers.based_integer_real_ada for Ada numeric literals
+  <li>Enforce canonical order for shift/reduce conflicts; don't use
+  reduce/shift conflicts.
+
+  <li>wisi-generate
+    <ul>
+      <li>improve .wy comment handling
+      <li>Ada_Emacs outputs full Ada code for generalized LALR parser,
+      with pre-computed parser tables, for use with Emacs ada-mode
+    </ul>
+  <li>fix bugs
+</ul>
 
 <h3>Version 5.0b 18 Nov 2014</h3>
 <ul>

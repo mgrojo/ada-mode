@@ -1,12 +1,1 @@
-Jan .. April 2013 :
-
-    add wisi, allowing bison style input files generating Ada or elisp
-    source files
-
-    extend LALR.Generate to express shift/reduce and reduce/reduce
-    conflicts in the parser table, for use with the elisp generalized
-    LALR parser.
-
-May 2013 :
-
-    Fix bugs in lrk_item and lalr related to handling empty productions.
+See Docs/opentoken.html history, mtn commit logs.
