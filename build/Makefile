@@ -36,7 +36,7 @@ bz2file : force
 
 zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/$(ROOT)-$(ZIP_VERSION).zip opentoken-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
+	cd ../..; zip -q -r $(CURDIR)/opentoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
 tag :
 	mtn tag h:org.opentoken opentoken-$(ZIP_VERSION)

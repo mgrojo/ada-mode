@@ -75,14 +75,18 @@ loop until no changes:
 
 end loop
 
+Makefile
+    zip
+
 ~/Web/Makefile
     opentoken sync check
 
 (dvc-status ".")
-mtn_sync_ada_france.sh
 
 Makefile
     tag
+
+(dvc-sync-run)
 
 announce:
     comp.lang.ada
