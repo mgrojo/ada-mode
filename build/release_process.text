@@ -36,8 +36,6 @@ loop until no changes:
     Windows:
         (sal-standard)
 
-        mtn_sync_ada_france.sh
-
         release/Makefile
             distclean
             all
@@ -53,34 +51,27 @@ loop until no changes:
 
         (dvc-state-one ".")
 
-        mtn_sync_ada_france.sh
+        (dvc-sync-run)
 
     Debian:
 
-        mtn sync
+        (dvc-sync-run)
+        (dvc-sync-review)
 
-        (sal-debian)
-        linux_release/Makefile
-            make -r distclean
-            schroot -- make -r all
-
+        # debian gnat does not (yet) support Ada 2012 containers, so the libre package must be used
         (sal-standard)
-        Makefile
-            make -r zip debian
-                deletes debian/*; be sure to do dvc-status first!
-
-        ../../opentoken-4.0a-current/opentoken-4.0a/debian/rules
-            sudo schroot -d `cd ..; pwd` --chroot=unstable -- dpkg-buildpackage -uc -us -i"_MTN|\\.mtn-ignore"
-            schroot -d `cd ..; pwd` --chroot=unstable -- make -f debian/rules lint
-            sudo schroot --chroot=unstable -- ./test_installed.sh
+        release/Makefile
+            make -r distclean
+            make -r all
 
         ../../../webcheck.main/build/linux_release/Makefile
+            # FIXME: delete dependence on main_lynx_5/makerules
             maintainer-clean
-            schroot -- make -r all BUILD=User
+            make -r all BUILD=User
 
         (dvc-state-one ".")
 
-        mtn sync
+        (dvc-sync-run)
 
 end loop
 

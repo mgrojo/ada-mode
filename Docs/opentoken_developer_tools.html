@@ -3,52 +3,34 @@
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
    <meta name="Author" content="Stephen Leake">
-   <title>GNAT Compiler patches</title>
+   <title>OpenToken Developer tools</title>
 </head>
 <body>
 
-<h1>OpenToken Developer tools</h1>
-Running the OpenToken tests requires AUnit.
+  <h1>OpenToken Developer tools</h1>
 
-<h2>GNAT</h2>
-<p>OpenToken uses Ada 2012 syntax. This requires GNAT GPL 2012 or later.
-<p>Download GNAT GPL 2012 from <a href="https://libre.adacore.com/libre/download/">AdaCore GNAT Libre</a>.
-<p>On Linux, I recommend installing to <tt>/opt/gnat/gpl-2012/</tt>. In addition, you will need to add:
-<pre>
-    export LIBRARY_PATH=/usr/lib/i386-linux-gnu/
-</pre>
+  <p>OpenToken has been tested with GNAT GPL 2014 on Windows and
+    Debian. Here we give installation instructions for
+    these tools on Windows and Debian.</p>
 
-<h2>AUnit</h2>
+  <p>As of the OpenToken release date, the Debian stable GNAT package
+    does not support Ada 2012 containers, so the GNAT GPL 2014 package
+    from AdaCore must be used.<p>
 
-<p>The version of AUnit in Debian 5.0 is 1.03. OpenToken tests require
-the version distributed by AdaCore with GNAT 7.1.1 or GNAT GPL 2012.
+  <p>On Windows, Cygwin is used to run the Makefiles.<p>
 
-<p> AUnit can be built and used in place, or installed in the GNAT
-installation directory.
+  <h2>GNAT GPL 2014</h2>
+  <p>Download and run GNAT GPL 2014 from <a href="https://libre.adacore.com/libre/download/">AdaCore GNAT Libre</a>.
+  <p>On Linux, I recommend installing to <tt>/opt/gnat/gpl-2012/</tt>. In addition, you will need to add:
+    <pre>
+      export LIBRARY_PATH=/usr/lib/i386-linux-gnu/
+    </pre>
+  </p>
 
-<ol>
-  <li>Download:
-    <dl>
-      <dt><tt>aunit-3.4.2-src.tgz</tt></dt>
-      <dd> from <a href="http://adacore.com">AdaCore GNAT Pro</a></dd>
-      <dt><tt>aunit-gpl-2012-src.tgz</tt></dt>
-      <dd> from <a href="https://libre.adacore.com/libre/download/">AdaCore GNAT Libre</a></dd>
-      <dt><tt>aunit-gpl-2012-i686-pc-mingw32.exe</tt></dt>
-      <dd> for Windows from <a href="https://libre.adacore.com/libre/download/">AdaCore GNAT Libre</a></dd>
-    </dl>
-  <li>On Windows, run the executable.
-  <li>On Linux untar the source anywhere; here we assume <tt>/Projects/aunit-gpl-2012-src</tt>
-  <li>compile it, install it. Here we assume installing to the GNAT GPL 2012 install directory on Linux:
-      <pre>
-su
-export PATH=/opt/gnat/gpl-2012/bin:$PATH
-cd /opt/gnat/gpl-2012
-tar zxf aunit-gpl-2012-src.tgz
-cd aunit-gpl-2012-src
-make all install BLD=debug
-      </pre>
-
- </ol>
+  <p>Running the tests requires additional packages on Cygwin and Debian:</p>
+  <ul>
+    <li>dos2unix
+  </ul>
 
 <hr>
 <p><a href="/index.html">my home page</a>
