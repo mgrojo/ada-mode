@@ -5,9 +5,9 @@
 
 (package-initialize)
 
-(setq ada-mode-version "5.1.7")
+(setq ada-mode-version "5.1.8")
 (setq ada-ref-man-version "2012.0")
-(setq wisi-version "1.1.0")
+(setq wisi-version "1.1.1")
 
 (cond
  ((string-equal emacs-version "24.2.1")

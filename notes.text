@@ -591,14 +591,24 @@ check emacs buglist
 
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
-        (list-packages) install ada-mode, wisi from public ELPA
+
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
 
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.0.6" "/Projects/elpa/packages/wisi" nil)
+        (list-packages) install ada-mode, wisi from public ELPA
+
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.0" "/Projects/elpa/packages/wisi" nil)
+            NEWS-wisi.text
+                add release date
+                add new features
+
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.6" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.7" "/Projects/elpa/packages/ada-mode" nil)
+            NEWS-ada-mode.text
+                add release date
+                add new features
+
             ada-mode.el
                 Version:
                 package-requires wisi version
@@ -607,14 +617,6 @@ bump versions
         (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
             ada-ref-man.el
                 Version:
-
-    NEWS-ada-mode.text
-        add release date
-        add new features
-
-    NEWS-wisi.text
-        add release date
-        add new features
 
     ada-mode.texi
         Ada Mode Version
@@ -630,17 +632,6 @@ bump versions
         ada-mode-version
         ada-ref-man-version
         wisi-version
-
-    (dvc-log "/Projects/org.opentoken/")
-        examine diff since last Tag: opentoken-i.jk
-        update c:/Projects/org.opentoken/Docs/opentoken.html
-            current version:
-            history
-
-    /Projects/org.opentoken.stephe/wisi/wisi-generate.adb
-        version
-            independent of opentoken, ada-mode versions
-            bump if changes affect ada-mode or other clients
 
     /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
         ada-mode find-replace i.j.k
@@ -659,11 +650,17 @@ verify other metadata
     ada-ref-man.el
     wisi.el
 
-build/Makefile all
+Emacs master, gnat 2014:
+    build/wisi/Makefile all byte-compile-clean
+
+check for latest Emacs release
+    http://ftp.gnu.org/gnu/emacs/windows/
+
+Emacs 24.4, gnat 2014, devel ada-mode:
+    build/Makefile all
     # pushes to elpa workspace, builds archive, installs
 
 Emacs 24.4, gnat 2014 (sal-standard), installed ada-mode:
-    from http://ftp.gnu.org/gnu/emacs/windows/
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/wisi/Makefile all
 
@@ -672,15 +669,18 @@ Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     build/Makefile install-elpa # deletes and recompiles
     build/wisi/Makefile all
 
+    (list-packages) install cl-lib for emacs 24.2
+
 Emacs 24.2, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/Makefile install-elpa-review # deletes and recompiles, installs cl-lib
+    build/Makefile install-elpa # deletes and recompiles, installs cl-lib
     build/wisi/Makefile all
         ignore byte-compile warnings about 'foo' from cl package called at runtime
 
     build/Makefile install-clean
 
 sync for Debian:
+    Emacs 24.4 for dvc
     (dvc-status ".")
     (dvc-status "/Projects/org.opentoken")
     (dvc-sync-run ".")

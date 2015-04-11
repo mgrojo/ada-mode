@@ -35,6 +35,11 @@ Preserves text after point."
     (with-temp-buffer
       filename
       (gpr-mode)
+
+      ;; `skeleton-insert' may recenter, which fails if the buffer is
+      ;; not mapped to the selected window.
+      (pop-to-buffer (current-buffer))
+
       ;; gpr-skel-initial-string inserts 'header project' tokens;
       ;; expand those, then expand all other tokens within the project
       ;; declaration, so they are accepted by the parser.

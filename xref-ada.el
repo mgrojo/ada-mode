@@ -2,7 +2,9 @@
 ;;
 ;; not loaded from ada-mode.el yet; xref not in released emacs.
 
-(require 'xref)
+(eval-and-compile
+  (when (> emacs-major-version 24)
+    (require 'xref)))
 
 (defun xref-ada-find (action arg)
   (cl-ecase action

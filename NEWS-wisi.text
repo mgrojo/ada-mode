@@ -7,7 +7,8 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
-* wisi 1.?
+* wisi 1.1.1
+10 Apr 2015
 
 ** rename wisi-font-lock-size-threshold to wisi-size-threshold, use
    for more things in ada-mode

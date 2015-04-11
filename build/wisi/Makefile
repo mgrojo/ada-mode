@@ -5,7 +5,7 @@
 ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
-all : update compile-ada-clean compile-ada autoloads test-clean test
+all : byte-compile-clean update compile-ada-clean compile-ada autoloads test-clean test
 
 # things that can be done on debian stable (opentoken doesn't build, no gpr_query, no gnatstub)
 debian-all : byte-compile compile-ada-clean compile-ada autoloads test-clean test-debian
@@ -44,10 +44,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-#one : RUNTEST := run-indent-test-wisi.el
+one : RUNTEST := gpr-skel-test.el
 one-clean:
-	rm -f ada-number-literal.wisi-test
-one : one-clean ada-number-literal.wisi-test
+	rm -f gpr-skel*
+one : one-clean gpr-skel.gpr.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.1.7
-;; package-requires: ((wisi "1.1.0") (cl-lib "0.4") (emacs "24.2"))
+;; Version: 5.1.8
+;; package-requires: ((wisi "1.1.1") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -168,10 +168,10 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.1.7"))
+  (let ((version-string "5.1.8"))
     ;; must match:
     ;; ada-mode.texi
-    ;; README
+    ;; README-ada-mode
     ;; Version: above
     (if (called-interactively-p 'interactive)
 	(message version-string)
@@ -237,10 +237,14 @@ start      - buffer pos of start of identifier
 end        - end of identifier
 force-case - if t, treat `ada-strict-case' as t"
   :type '(choice (const ada-mixed-case)
-		 (const downcase-region)
-		 (const upcase-region))
+		 (const ada-lower-case)
+		 (const ada-upper-case))
   :group 'ada
   :safe  'functionp)
+;; we'd like to check that there are 3 args, since the previous
+;; release required 2 here. But there doesn't seem to be a way to
+;; access the arg count, which is only available for byte-compiled
+;; functions
 (make-variable-buffer-local 'ada-case-identifier)
 
 (defcustom ada-case-strict t
@@ -1078,6 +1082,12 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (save-excursion (skip-syntax-backward "w_") (point))
 	       (point))))
     (member (downcase word) ada-keywords)))
+
+(defun ada-lower-case (start end force-case-strict)
+  (downcase-region start end))
+
+(defun ada-upper-case (start end force-case-strict)
+  (upcase-region start end))
 
 (defun ada-mixed-case (start end force-case-strict)
   "Adjust case of region START END to Mixed_Case."

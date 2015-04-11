@@ -224,6 +224,8 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
+%conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
@@ -238,7 +240,6 @@
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
 %conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
@@ -1517,10 +1518,10 @@ name
  ;; | explicit_dereference
  ;; | indexed_component
 
- ;; ARM has name ( discrete_subtype_definition ) here, but thats
+ ;; ARM has name ( discrete_subtype_definition ) here, but that's
  ;; partly redundant with name actual_parameter_part; this is the
  ;; part that is not redundant.
-  | name LEFT_PAREN range RIGHT_PAREN ;; slice
+  | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
     (progn
       (wisi-statement-action [1 name-paren 2 open-paren 4 close-paren])
       (wisi-containing-action 1 2)
@@ -1974,6 +1975,14 @@ range
       (wisi-containing-action 4 5))
   | name TICK RANGE ;; range_attribute_reference
   | simple_expression DOT_DOT simple_expression
+  ;
+
+range_list
+  : range
+  | range_list COMMA range
+    (progn
+      (wisi-statement-action [2 list-break])
+      (wisi-containing-action 2 3))
   ;
 
 real_range_specification_opt

@@ -257,6 +257,7 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
    --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+   type Access_Unconstrained_Array_Type_1 is access Unconstrained_Array_Type_1 (1 .. 10, 'A' .. 'D');
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
      Object_Access_Type_1;
    type Unconstrained_Array_Type_3 is array (Integer range <>, Standard.Character range <>)
