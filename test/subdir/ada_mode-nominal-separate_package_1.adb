@@ -5,7 +5,7 @@
 --EMACSCMD:(progn (forward-line 1)(forward-word 2)(downcase-word 2)(ada-case-adjust)(let ((case-fold-search nil))(looking-back "Text_IO")))
 with Ada.Text_IO;
 --EMACSRESULT:t
--- other file from a subunit on a context clause
+-- Other file from a subunit on a context clause.
 --EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
 --EMACSRESULT:t
 

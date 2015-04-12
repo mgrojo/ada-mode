@@ -526,9 +526,9 @@ Used in before/after change functions.")
 	   (t
 	    (setq wisi-change-need-invalidate
 		  (progn
+		    (goto-char begin)
 		    ;; note that because of the checks above, this never
 		    ;; triggers a parse, so it's fast
-	       (goto-char begin)
 		    (wisi-goto-statement-start)
 		    (point))))
 	   )))
@@ -674,8 +674,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-validate-cache (pos)
   "Ensure cached data is valid at least up to POS in current buffer."
   (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
+    ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
     (when (and wisi-parse-try
-	       (< wisi-cache-max pos))
+	       (<= wisi-cache-max pos))
       (when (> wisi-debug 0)
 	(message msg))
 

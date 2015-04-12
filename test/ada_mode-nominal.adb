@@ -1,6 +1,6 @@
 -- A comment before the first code
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")

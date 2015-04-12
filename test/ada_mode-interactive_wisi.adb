@@ -35,16 +35,16 @@ is
    --EMACSRESULT:(point-max)
 
    -- Delete/insert range including close quote of string invalidates cache
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 1)(backward-delete-char 2)(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 1)(backward-delete-char 2)(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(line-beginning-position 4)
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 1)(execute-kbd-macro "o\"")(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 1)(execute-kbd-macro "o\"")(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(point-max)
    Obj_2 : constant String := "foo";
 
    -- Delete/insert range including open quote of string invalidates cache
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 4)(backward-delete-char 2)(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 4)(backward-delete-char 2)(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(line-beginning-position 4)
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(execute-kbd-macro "\"f")(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(execute-kbd-macro "\"f")(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(point-max)
    Obj_3 : constant String := "foo";
 
@@ -55,14 +55,14 @@ is
    -- delete/insert range including comment start invalidates cache
    --EMACSCMD:(progn (beginning-of-line 0)(kill-word 1) wisi-cache-max)
    --EMACSRESULT:(line-beginning-position -7)
-   --EMACSCMD:(progn (beginning-of-line -2)(execute-kbd-macro "   -- delete")(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (beginning-of-line -2)(execute-kbd-macro "   -- delete")(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(point-max)
 
    -- delete/insert range including comment end invalidates cache
 
    --EMACSCMD:(progn (end-of-line 0)(backward-delete-char 1) wisi-cache-max)
    --EMACSRESULT:(line-beginning-position -13)
-   --EMACSCMD:(progn (beginning-of-line -1)(execute-kbd-macro "\n")(sit-for 0.01) wisi-cache-max)
+   --EMACSCMD:(progn (beginning-of-line -1)(execute-kbd-macro "\n")(jit-lock-fontify-now) wisi-cache-max)
    --EMACSRESULT:(point-max)
 
    -- Newline before a blank line

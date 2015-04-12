@@ -23,7 +23,7 @@ with
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
@@ -569,7 +569,7 @@ package Ada_Mode.Nominal is -- target 0
    end record;
 
    -- test that comment prefix is properly fontified
-   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(sit-for 0.1)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
+   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(jit-lock-fontify-now)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
    --EMACSRESULT: 11
 
    -- a filled comment. Now is the time for all good parsers to come

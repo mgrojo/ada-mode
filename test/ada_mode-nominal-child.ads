@@ -1,6 +1,6 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 package Ada_Mode.Nominal.Child is
 

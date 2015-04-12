@@ -3,7 +3,7 @@
 --
 -- Also other stuff
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 

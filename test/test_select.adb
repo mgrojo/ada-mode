@@ -2,7 +2,7 @@
 --  We test the select statement in this package, with the different
 --  possible constructions
 
---EMACSCMD:(sit-for 0.01);;let jit-lock run
+--EMACSCMD:(jit-lock-fontify-now)
 procedure Test_Select is
    task type Task_1 (D : Integer) is
       --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
