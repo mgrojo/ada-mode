@@ -692,9 +692,9 @@ Debian stable not supported:
     gnat 4.8 does not support Ada 2012 OpenToken
 
 Debian testing
-    Debian 8.0
-    emacs 24.4
-    gnat 4.9.2
+    Debian 8.0 jessie
+    emacs  24.4
+    gnat   4.9.2
 
     emacs-stable.sh ;; for dvc and testing
     (sal-debian)
@@ -713,15 +713,17 @@ Debian testing
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
-
 commit elpa:
     xgit-fetch needs rebase option
 
     (dvc-pull "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
+
+    build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
+
     (dvc-state-one "/Projects/elpa")
-    add, stage, commit ada-mode, ada-ref-man, wisi
+        add, stage, commit ada-mode, ada-ref-man, wisi
+
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
