@@ -44,10 +44,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := gpr-skel-test.el
+one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f gpr-skel*
-one : one-clean gpr-skel.gpr.diff
+	rm -f ada_mode-nominal*
+one : one-clean ada_mode-nominal.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

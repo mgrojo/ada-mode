@@ -666,7 +666,7 @@ package body Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
    --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
    --EMACSCMD:(test-face "1234" 'font-lock-constant-face)
-   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234));
+   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234), 1, new Float'(1.234));
 begin
    null;
 end Ada_Mode.Nominal;

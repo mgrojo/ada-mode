@@ -2132,6 +2132,7 @@ to go back to these positions.")
 (defun ada-goto-source (file line column other-window)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
+LINE, COLUMN are Emacs origin.
 
 If OTHER-WINDOW is non-nil, show the buffer in another window."
   (let ((file-1

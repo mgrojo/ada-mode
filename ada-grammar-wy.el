@@ -617,7 +617,8 @@
        ((FOR name USE aggregate SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 3 4)
+        (wisi-face-action [2 font-lock-type-face]))))
       (enumeration_type_definition
        ((LEFT_PAREN enumeration_literal_list RIGHT_PAREN )
         (progn
@@ -1071,8 +1072,7 @@
         (wisi-statement-action [1 name-paren 2 open-paren 4 close-paren])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)))
-       ((selected_component )
-        (wisi-extend-action 1))
+       ((selected_component ))
        ((attribute_reference ))
        ((name actual_parameter_part )
         (progn
@@ -1437,7 +1437,8 @@
        ((FOR name USE record_rep SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 3 4)
+        (wisi-face-action [2 font-lock-type-face]))))
       (record_rep
        ((RECORD mod_clause_opt component_clause_list END RECORD )
         (progn
@@ -1491,7 +1492,8 @@
        ((subtype_indication ))
        ((access_definition )))
       (selected_component
-       ((name DOT IDENTIFIER ))
+       ((name DOT IDENTIFIER )
+        (wisi-extend-action 1 3))
        ((name DOT CHARACTER_LITERAL ))
        ((name DOT STRING_LITERAL ))
        ((name DOT ALL )))

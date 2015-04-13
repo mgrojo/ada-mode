@@ -1,7 +1,8 @@
+--EMACSCMD:(jit-lock-fontify-now)
 
---EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" '(nil default)))
+--EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" font-lock-function-name-face))
 with
-  Ada.Text_IO; -- font-lock doesn't work across newline
+  Ada.Text_IO;
 
 -- don't indent this comment with the previous; blank line between
 --
@@ -22,8 +23,6 @@ with
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
-
---EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
@@ -324,6 +323,7 @@ package Ada_Mode.Nominal is -- target 0
       Component_2   : Integer := 2;
       Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;
+   --EMACSCMD:(test-face "Record_Type_1" font-lock-type-face)
    for Record_Type_1 use
       record
          --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
@@ -346,15 +346,22 @@ package Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end record"))
    --EMACSRESULT:t
-   type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
-      --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
-      --EMACSRESULT:t
-      Component_1 : Integer; -- end 2
-      Component_2 :
-        Integer;
-      Component_3
-        : Integer;
-   end record;
+   --EMACSCMD:(test-face-1 "access" "Standard.Integer" font-lock-type-face)
+   type Record_Type_3
+     (Discriminant_1 : access Standard.Integer;
+      --EMACSCMD:(test-face "Standard.Integer" font-lock-type-face)
+      Discriminant_2 : Standard.Integer;
+      --EMACSCMD:(test-face "Ada_Mode.Nominal.Object_Access_Type_0a" font-lock-type-face)
+      Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
+     is tagged record
+        --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
+        --EMACSRESULT:t
+        Component_1 : Integer; -- end 2
+        Component_2 :
+          Integer;
+        Component_3
+          : Integer;
+     end record;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is

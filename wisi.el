@@ -1010,18 +1010,15 @@ vector [number class token_id class token_id ...]:
 	  ))
       )))
 
-(defun wisi-extend-action (number)
-  "Extend text of cache at token NUMBER to cover all of token NUMBER.
-Also override token with new token."
-  (let* ((token-region (aref wisi-tokens (1- number)));; wisi-tokens is let-bound in wisi-parse-reduce
-	 (token (car token-region))
-	 (region (cdr token-region))
+(defun wisi-extend-action (first last)
+  "Extend text of cache at token FIRST to cover all tokens thru LAST."
+  (let* ((first-region (cdr (aref wisi-tokens (1- first))));; wisi-tokens is let-bound in wisi-parse-reduce
+	 (last-region (cdr (aref wisi-tokens (1- last))))
 	cache)
 
-    (when region
-      (setq cache (wisi-get-cache (car region)))
-      (setf (wisi-cache-last cache) (- (cdr region) (car region)))
-      (setf (wisi-cache-token cache) token)
+    (when first-region
+      (setq cache (wisi-get-cache (car first-region)))
+      (setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
       )
     ))
 

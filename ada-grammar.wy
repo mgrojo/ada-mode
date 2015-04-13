@@ -471,7 +471,6 @@ at_clause
   ;
 
 attribute_reference : name TICK attribute_designator ;
-;; FIXME: name could be a type
 
 attribute_designator
 ;; IDENTIFIER LEFT_PAREN expression RIGHT_PAREN is redundant with name
@@ -909,10 +908,10 @@ enumeration_literal_list
 
 enumeration_representation_clause
   : FOR name USE aggregate SEMICOLON
- ;; FIXME: name is a type
     (progn
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 3 4)
+      (wisi-face-action [2 font-lock-type-face]))
   ;
 
 enumeration_type_definition
@@ -1526,8 +1525,7 @@ name
       (wisi-statement-action [1 name-paren 2 open-paren 4 close-paren])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3))
-  | selected_component ;; starts with name; extend to cover all
-    (wisi-extend-action 1)
+  | selected_component
   | attribute_reference ;; starts with name
   | name actual_parameter_part
  ;; type_conversion, function_call, procedure call, generic instantiation.
@@ -2000,10 +1998,10 @@ record_definition
 
 record_representation_clause
   : FOR name USE record_rep SEMICOLON
- ;; FIXME: name is a type
     (progn
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 3 4)
+      (wisi-face-action [2 font-lock-type-face]))
   ;
 
 record_rep
@@ -2082,6 +2080,7 @@ return_subtype_indication
 
 selected_component
   : name DOT IDENTIFIER
+    (wisi-extend-action 1 3)
   | name DOT CHARACTER_LITERAL
 
   | name DOT STRING_LITERAL
