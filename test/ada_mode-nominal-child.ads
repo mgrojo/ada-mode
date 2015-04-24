@@ -75,6 +75,9 @@ package Ada_Mode.Nominal.Child is
      return Float   -- from ada-indent-return
      renames Function_2f_Different_Name;  -- from ada-indent-renames
 
+   overriding
+   function Function_2g (Param : in Parent_Type_1) return Float is (1.0); -- expression function
+
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 
    Child_Obj_1 : constant Child_Type_1 :=

@@ -135,7 +135,11 @@ if in paren, pos following paren."
 	;; test/ada_mode-opentoken.ads
 	;; private package GDS.Commands.Add_Statement is
 	;;    type Instance is new Nonterminal.Instance with null record;
-	offset)
+	;;
+	;; test/ada_mode-nominal.adb
+	;;     return B : Integer :=
+	;;       (Local_Function);
+	(+ indent offset))
 
        ((eq 'label_opt (wisi-cache-token cache))
 	(+ indent (- ada-indent-label) offset))
@@ -703,7 +707,12 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 			(ada-wisi-indent-cache ada-indent-broken cache))
 		       ))
 
-		    ((subprogram_body subprogram_declaration subprogram_specification null_procedure_declaration)
+		    ((abstract_subprogram_declaration
+		      expression_function_declaration
+		      subprogram_body
+		      subprogram_declaration
+		      subprogram_specification
+		      null_procedure_declaration)
 		     (cl-ecase (wisi-cache-token cache)
 		       (IS
 			;; test/ada_mode-nominal.ads
@@ -1295,6 +1304,17 @@ cached token, return new indentation for point."
 	   (memq (wisi-cache-nonterm cache) '(use_clause with_clause))
 	   ))))
 
+(defun ada-wisi-in-case-expression ()
+  "For `ada-in-case-expression'."
+  (save-excursion
+    ;; Used by ada-align, which does indent, which will require parse
+    ;; We know we are in a paren.
+    (ada-goto-open-paren 1)
+    (let ((cache (wisi-get-cache (point))))
+      (and cache
+	   (eq (wisi-cache-nonterm cache) 'case_expression)))
+    ))
+
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
   (wisi-validate-cache (point-max))
@@ -1356,7 +1376,10 @@ Also return cache at start."
 		    ((protected_body protected_type_declaration single_protected_declaration)
 		     (eq (wisi-cache-token cache) 'PROTECTED))
 
-		    ((subprogram_body subprogram_declaration null_procedure_declaration)
+		    ((abstract_subprogram_declaration
+		      subprogram_body
+		      subprogram_declaration
+		      null_procedure_declaration)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
 		    (task_type_declaration
@@ -1439,11 +1462,11 @@ Also return cache at start."
       (when first (setq first nil)))
     ))
 
-(defun ada-wisi-in-paramlist-p ()
+(defun ada-wisi-in-paramlist-p (&optional parse-result)
   "For `ada-in-paramlist-p'."
   (wisi-validate-cache (point))
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
-  (let* ((parse-result (syntax-ppss))
+  (let ((parse-result (or parse-result (syntax-ppss)))
 	 cache)
     (and (> (nth 0 parse-result) 0)
 	 ;; cache is nil if the parse failed
@@ -1598,12 +1621,11 @@ Also return cache at start."
 	  ;; bob or failed parse
 	  (setq result "")
 
-	(cl-case (wisi-cache-nonterm cache)
-	  ((generic_package_declaration generic_subprogram_declaration)
-	   ;; name is after next statement keyword
-	   (wisi-next-statement-cache cache)
-	   (setq cache (wisi-get-cache (point))))
-	  )
+	(when (memq (wisi-cache-nonterm cache)
+		    '(generic_package_declaration generic_subprogram_declaration))
+	  ;; name is after next statement keyword
+	  (wisi-next-statement-cache cache)
+	  (setq cache (wisi-get-cache (point))))
 
 	;; add or delete 'body' as needed
 	(cl-ecase (wisi-cache-nonterm cache)
@@ -1620,7 +1642,8 @@ Also return cache at start."
 	  ((protected_type_declaration single_protected_declaration)
 	   (setq result (ada-wisi-which-function-1 "protected" t)))
 
-	  ((subprogram_declaration
+	  ((abstract_subprogram_declaration
+	    subprogram_declaration
 	    generic_subprogram_declaration ;; after 'generic'
 	    null_procedure_declaration)
 	   (setq result (ada-wisi-which-function-1
@@ -1764,6 +1787,7 @@ TOKEN-TEXT; move point to just past token."
 (setq ada-make-subprogram-body 'ada-wisi-make-subprogram-body)
 (setq ada-next-statement-keyword 'wisi-forward-statement-keyword)
 (setq ada-on-context-clause 'ada-wisi-on-context-clause)
+(setq ada-in-case-expression 'ada-wisi-in-case-expression)
 (setq ada-prev-statement-keyword 'wisi-backward-statement-keyword)
 (setq ada-reset-parser 'wisi-invalidate-cache)
 (setq ada-scan-paramlist 'ada-wisi-scan-paramlist)

@@ -1,6 +1,6 @@
 ;;; ada-mode-compat-24.2.el --- Implement current Emacs features not present in Emacs 24.2
 
-;; Copyright (C) 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -19,12 +19,16 @@
 
 ;; using cl-lib 0.4 from Gnu ELPA
 
-(defun file-name-base (&optional filename)
-  "Return the base name of the FILENAME: no directory, no extension.
+(when (not (boundp 'file-name-base))
+  (defun file-name-base (&optional filename)
+    "Return the base name of the FILENAME: no directory, no extension.
 FILENAME defaults to `buffer-file-name'."
-  (file-name-sans-extension
-   (file-name-nondirectory (or filename (buffer-file-name)))))
+    (file-name-sans-extension
+     (file-name-nondirectory (or filename (buffer-file-name))))))
 
+(when (not (boundp 'font-lock-ensure))
+  (defun font-lock-ensure (&optional beg end)
+    (font-lock-fontify-region beg end)))
 
 (provide 'ada-mode-compat-24.2)
 

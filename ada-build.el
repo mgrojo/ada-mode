@@ -1,7 +1,7 @@
 ;;; ada-build.el --- extensions to ada-mode for compiling and running
 ;;; Ada projects without 'make' or similar tool
 ;;
-;;; Copyright (C) 1994, 1995, 1997 - 2014  Free Software Foundation, Inc.
+;;; Copyright (C) 1994, 1995, 1997 - 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -34,9 +34,7 @@
 ;; compiling and running capabilities in Ada mode 4.01, done in 2013 by
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
-(when (and (= emacs-major-version 24)
-	   (= emacs-minor-version 2))
-  (require 'ada-mode-compat-24.2))
+(require 'ada-mode-compat-24.2)
 
 (require 'ada-mode)
 

@@ -613,23 +613,32 @@ current construct."
         (deactivate-mark))
 
     ;; else see if we are in a construct we know how to align
-    (cond
-     ((ada-in-paramlist-p)
+    (let ((parse-result (syntax-ppss)))
+      (cond
+       ((ada-in-paramlist-p parse-result)
         (ada-format-paramlist))
 
-     (t
-      (align-current))
-     )))
+       ((and
+	 (ada-in-paren-p parse-result)
+	 (ada-in-case-expression))
+	;; align '=>'
+	(let ((begin (nth 1 parse-result))
+	      (end   (scan-lists (point) 1 1)))
+	  (align begin end 'entire)))
+
+       (t
+	(align-current))
+       ))))
 
 (defvar ada-in-paramlist-p nil
   ;; Supplied by indentation engine parser
   "Function to return t if point is inside the parameter-list of a subprogram declaration.
-Function is called with no arguments.")
+Function is called with one optional argument; syntax-ppss result.")
 
-(defun ada-in-paramlist-p ()
+(defun ada-in-paramlist-p (&optional parse-result)
   "Return t if point is inside the parameter-list of a subprogram declaration."
   (when ada-in-paramlist-p
-    (funcall ada-in-paramlist-p)))
+    (funcall ada-in-paramlist-p parse-result)))
 
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
@@ -1918,6 +1927,17 @@ other file.")
   (interactive)
   (when ada-on-context-clause
     (funcall ada-on-context-clause)))
+
+(defvar ada-in-case-expression nil
+  ;; supplied by indentation engine
+  "Function called with no parameters; it should return non-nil
+  if point is in a case expression.")
+
+(defun ada-in-case-expression ()
+  "See `ada-in-case-expression' variable."
+  (interactive)
+  (when ada-in-case-expression
+    (funcall ada-in-case-expression)))
 
 (defvar ada-goto-subunit-name nil
   ;; supplied by indentation engine

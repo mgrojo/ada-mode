@@ -7,6 +7,12 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.1.9
+
+** supports aligning '=>' in case expressions.
+
+** fix bugs
+
 * Ada mode 5.1.8
 10 Apr 2015
 

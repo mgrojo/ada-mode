@@ -646,8 +646,10 @@ package Ada_Mode.Nominal is -- target 0
      (Param : in Parent_Type_1)
      return Float; -- end 5
 
+   --EMACSCMD:(progn (end-of-line 3)(ada-which-function))
+   --EMACSRESULT:"Function_2g"
    function Function_2g
-     (Param : in Private_Type_1)
+     (Param : in Parent_Type_1)
      return Float
        is abstract;
    --  comment after 'is abstract', aligned with 'function'

@@ -674,7 +674,10 @@
         (wisi-containing-action 2 4)
         (wisi-containing-action 2 5))))
       (extended_return_object_declaration
-       ((IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication COLON_EQUAL expression ))
+       ((IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication COLON_EQUAL expression )
+        (progn
+        (wisi-statement-action [1 statement-start 6 statement-other])
+        (wisi-containing-action 6 7)))
        ((IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication )))
       (extended_return_object_declaration_opt
        (())
@@ -1305,13 +1308,14 @@
         (wisi-containing-action 1 3)
         (wisi-containing-action 6 7)
         (wisi-containing-action 6 8)
-        (wisi-containing-action 2 11)
+        (wisi-containing-action 4 11)
         (wisi-face-action [2 font-lock-type-face]))))
       (private_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 8 statement-end])
-        (wisi-containing-action 1 7)
+        (wisi-containing-action 1 3)
+        (wisi-containing-action 4 7)
         (wisi-face-action [2 font-lock-type-face]))))
       (procedure_call_statement
        ((name SEMICOLON )

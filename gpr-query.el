@@ -29,6 +29,12 @@
 ;;
 ;; M-x gpr-query
 
+;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
+  ;; (cond
+  ;;  ((and (= emacs-major-version 24)
+  ;; 	 (= emacs-minor-version 2))
+    (require 'ada-mode-compat-24.2)
+
 (require 'ada-mode) ;; for ada-prj-*, some other things
 (require 'gnat-core)
 (require 'cl-lib)
@@ -220,7 +226,7 @@ Uses 'gpr_query'. Returns new list."
 (defconst gpr-query-ident-file-regexp
   ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
-  "\\(\\(?:.:\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
+  "\\(\\(?:.:\\\\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
   ;; 1                          2                   3
   "Regexp matching <file>:<line>:<column>")
 
@@ -232,10 +238,6 @@ Uses 'gpr_query'. Returns new list."
   (concat gpr-query-ident-file-regexp " (\\(.*\\))")
   "Regexp matching <file>:<line>:<column> (<type>)")
 
-;; debugging:
-;; in *compilation-gpr_query-refs*, run
-;;  (progn (set-text-properties (point-min)(point-max) nil)(compilation-parse-errors (point-min)(point-max) gpr-query-ident-file-regexp-alist))
-
 (defun gpr-query-compilation (identifier file line col cmd comp-err)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
@@ -243,43 +245,54 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
   ;; `compilation-start' to run gpr_query, so the user can navigate
   ;; to each result in turn via `next-error'.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
-	(result-count 0)
-	file line column)
+	(result-count 0))
     (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
       (compilation-mode)
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
       (gpr-query-session-send cmd-1 t)
 
-      ;; point is at EOB. gpr_query returns one line per result plus prompt
+      ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
 
-      (if (fboundp 'font-lock-ensure)
-          (font-lock-ensure)
-        (font-lock-fontify-buffer))
-      ;; font-lock-fontify-buffer applies compilation-message text properties
-      ;; FIXME: Won't be needed in 24.5 any more, since compilation-next-error
-      ;; will apply compilation-message text properties on the fly.
-      ;; IMPROVEME: for some reason, next-error works, but the font
-      ;; colors are not right (no koolaid!) (fixed in 24.5?)
+      (font-lock-ensure)
+      ;; pre Emacs 25, font-lock-ensure applies compilation-message
+      ;; text properties
+      ;;
+      ;; post Emacs 25, compilation-next-error applies
+      ;; compilation-message text properties on the fly via
+      ;; compilation--ensure-parse. But that doesn't apply face text
+      ;; properties.
+      ;;
+      ;; IMPROVEME: next-error works, but the font colors are not
+      ;; right (bad regexp?)
 
       (goto-char (point-min))
+      (cond
+       ((looking-at "^warning: ")
+	(setq result-count (1- result-count))
+	(forward-line 1))
+       ((looking-at "^Error: entity not found")
+	(error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
+       )
 
       (cl-case result-count
 	(0
 	 (error "gpr_query returned no results"))
 	(1
-	 (when (looking-at "^Error: entity not found")
-	   (error (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
-
 	 ;; just go there, don't display session-buffer. We have to
 	 ;; fetch the compilation-message while in the session-buffer.
-	 (let* ((msg (compilation-next-error 0 nil (point-min)))
-                ;; FIXME: '--' indicates internal-only; use compile-goto-error
-		(loc (compilation--message->loc msg)))
-	   (setq file (caar (compilation--loc->file-struct loc))
-		 line (caar (cddr (compilation--loc->file-struct loc)))
-		 column (1- (compilation--loc->col loc)))
+	 (compilation--ensure-parse (point-max))
+	 (let* ((msg (compilation-next-error 0))
+                ;; FIXME: '--' indicates internal-only. But we can't
+                ;; use compile-goto-error, because that displays the
+                ;; session-buffer.
+	 	(loc (compilation--message->loc msg)))
+	   (ada-goto-source
+	    (caar (compilation--loc->file-struct loc)) ;; file
+	    (caar (cddr (compilation--loc->file-struct loc))) ;; line
+	    (1- (compilation--loc->col loc)) ;; column
+	    nil) ;; other-window
 	   ))
 
 	(t
@@ -288,18 +301,18 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 	));; case, with-currrent-buffer
 
-    (if (> result-count 1)
-	;; more than one result; display session buffer, goto first ref
-	;;
-	;; compilation-next-error-function assumes there is not an error
-	;; at point-min; work around that by moving forward 0 errors for
-	;; the first one. Unless the first line contains "warning: ".
-	(if (looking-at "^warning: ")
-	    (next-error)
-	  (next-error 0 t))
-
-      ;; just one result; go there
-      (ada-goto-source file line column nil))
+    (when (> result-count 1)
+      ;; more than one result; display session buffer, goto first ref
+      ;;
+      ;; compilation-next-error-function assumes there is not an error
+      ;; at point-min; work around that by moving forward 0 errors for
+      ;; the first one. Unless the first line contains "warning: ".
+      (set-buffer next-error-last-buffer)
+      (goto-char (point-min))
+      (if (looking-at "^warning: ")
+	  (next-error)
+	(next-error 0 t))
+      )
     ))
 
 (defun gpr-query-dist (found-line line found-col col)

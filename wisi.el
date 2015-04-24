@@ -1022,27 +1022,26 @@ vector [number class token_id class token_id ...]:
       )
     ))
 
-(defun wisi-face-action-1 (face region &optional no-override)
-  "Apply FACE to REGION. If NO-OVERRIDE is non-nil, don't override existing face."
+(defun wisi-face-action-1 (face region &optional override-no-error)
+  "Apply FACE to REGION.
+If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existing face."
   (when region
     ;; We allow overriding a face property, because we don't want to
     ;; delete them in wisi-invalidate (see comments there). On the
     ;; other hand, it can be an error, so keep this debug
-    ;; code. However, note that font-lock-face properties must be
-    ;; removed first, or the buffer must be fresh (never parsed).
+    ;; code. However, to validly report errors, note that
+    ;; font-lock-face properties must be removed first, or the buffer
+    ;; must be fresh (never parsed), and wisi-debug must be > 1.
     ;;
-    ;; Grammar sets no-override when a higher-level production might
-    ;; override a face in a lower-level production; that's not an
-    ;; error.
+    ;; Grammar sets override-no-error when a higher-level production might
+    ;; override a face in a lower-level production.
     (let (cur-face
 	  (do-set t))
-      (when (or no-override
-		(> wisi-debug 1))
+      (when (> wisi-debug 1)
 	(setq cur-face (get-text-property (car region) 'font-lock-face))
-	(if cur-face
-	    (if no-override
-		(setq do-set nil)
-	      (message "%s:%d overriding face %s with %s on '%s'"
+	(when cur-face
+	  (unless override-no-error
+	    (message "%s:%d overriding face %s with %s on '%s'"
 		     (buffer-file-name)
 		     (line-number-at-pos (car region))
 		     face
@@ -1050,13 +1049,12 @@ vector [number class token_id class token_id ...]:
 		     (buffer-substring-no-properties (car region) (cdr region))))
 
 	  ))
-      (when do-set
-	(with-silent-modifications
-	  (add-text-properties
-	   (car region) (cdr region)
-	   (list
-	    'font-lock-face face
-	    'fontified t))))
+      (with-silent-modifications
+	(add-text-properties
+	 (car region) (cdr region)
+	 (list
+	  'font-lock-face face
+	  'fontified t)))
     )))
 
 (defun wisi-face-action (pairs &optional no-override)

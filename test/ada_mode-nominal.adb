@@ -195,7 +195,8 @@ package body Ada_Mode.Nominal is -- target 0
       begin
          --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "end F1"))
          --EMACSRESULT: t
-         return B : Integer := Local_Function;
+         return B : Integer :=
+           (Local_Function);
          -- non-do extended return
       end F1;
 

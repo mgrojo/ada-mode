@@ -1,6 +1,6 @@
 ;;; gpr-mode --- major-mode for editing GNAT project files
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2014  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -207,6 +207,7 @@ of the package or project point is in or just after, or nil.")
     (end-of-line 1)
     (gpr-which-function)))
 
+(declare-function gpr-query-kill-all-sessions "gpr-query.el" nil)
 (defun gpr-set-as-project (&optional file)
   "Set FILE (default current buffer file) as Emacs project file."
   (interactive)
