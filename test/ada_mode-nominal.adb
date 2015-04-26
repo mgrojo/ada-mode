@@ -663,7 +663,7 @@ package body Ada_Mode.Nominal is -- target 0
    -- rest of newline placement covered in spec
 
    --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 3)(test-face "new" 'font-lock-keyword-face))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 4)(test-face "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
    --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
    --EMACSCMD:(test-face "1234" 'font-lock-constant-face)

@@ -1113,11 +1113,15 @@ cached token, return new indentation for point."
 		  ;; type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
 		  ;;   with private;
 
-		  subtype_declaration)
-		 ;; test/ada_mode-nominal.ads
-		 ;;    subtype Subtype_2 is Signed_Integer_Type range 10 ..
-		 ;;      20;
+		  subtype_declaration
+		  ;; test/ada_mode-nominal.ads
+		  ;;    subtype Subtype_2 is Signed_Integer_Type range 10 ..
+		  ;;      20;
 
+		  private_type_declaration
+		  ;; type Private_Type_2 is abstract tagged limited
+		  ;;  private;
+		  )
 		 (+ (current-column) ada-indent-broken))
 
 		(null_procedure_declaration
@@ -1257,7 +1261,7 @@ cached token, return new indentation for point."
 	    indent)
 
 	   ((and (setq next-indent (save-excursion (forward-line 1)(current-indentation)))
-		 (= indent prev-indent))
+		 (= indent next-indent))
 	    indent)
 
 	   (t
@@ -1588,7 +1592,7 @@ Also return cache at start."
 	(wisi-forward-find-token 'SEMICOLON end t))
 
        ((equal token 'LEFT_PAREN)
-	;; anonymous access procedure type, type constraints
+	;; anonymous access procedure type
 	(goto-char (scan-sexps (1- (point)) 1)))
 
        ((member token '(SEMICOLON RIGHT_PAREN))

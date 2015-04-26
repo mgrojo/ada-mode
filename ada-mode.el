@@ -1083,6 +1083,10 @@ User is prompted to choose a file from project variable casing if it is a list."
   (interactive)
   (ada-case-create-exception nil nil t))
 
+(defun ada-in-based-numeric-literal-p ()
+  "Return t if point is after a prefix of a based numeric literal."
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
+
 (defvar ada-keywords nil
   "List of Ada keywords for current `ada-language-version'.")
 
@@ -1187,6 +1191,9 @@ and treat `ada-case-strict' as t in code.."
 		 ;; we sometimes want to capitialize an Ada identifier
 		 ;; referenced in a comment, via
 		 ;; ada-case-adjust-at-point.
+
+		 (not (ada-in-based-numeric-literal-p))
+		 ;; don't adjust case on hex digits
 		 ))
 
       ;; The indentation engine may trigger a reparse on

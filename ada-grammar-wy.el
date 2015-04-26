@@ -1313,7 +1313,7 @@
       (private_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 name 8 statement-end])
+        (wisi-statement-action [1 statement-start 2 name 4 statement-other 8 statement-end])
         (wisi-containing-action 1 3)
         (wisi-containing-action 4 7)
         (wisi-face-action [2 font-lock-type-face]))))
