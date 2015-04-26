@@ -50,9 +50,6 @@
     (define-key map "\C-c\C-e" 'gpr-expand)
     (define-key map "\C-c\C-f" 'gpr-show-parse-error)
     (define-key map "\C-c\C-i" 'gpr-indent-statement)
-            ;; FIXME (later): implement?
-    ;; (define-key map "\C-c\C-n" 'ada-next-statement-keyword)
-    ;; (define-key map "\C-c\C-p" 'ada-prev-statement-keyword)
     (define-key map "\C-c\C-o" 	 'ff-find-other-file)
     (define-key map "\C-c\C-P" 'gpr-set-as-project)
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)

@@ -296,6 +296,12 @@ must provide a parser for a file with one of these extensions."
   :type 'list
   :group 'ada)
 
+(defcustom ada-prj-parse-hook nil
+  "Hook run at start of `ada-parse-prj-file'.
+Useful for setting `ada-xref-tool' and similar vars."
+  :type 'function
+  :group 'ada)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -1077,11 +1083,6 @@ User is prompted to choose a file from project variable casing if it is a list."
   (interactive)
   (ada-case-create-exception nil nil t))
 
-(defun ada-in-numeric-literal-p ()
-  "Return t if point is after a prefix of a numeric literal."
-  ;; FIXME: this is actually a based numeric literal; excludes 1234
-  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
-
 (defvar ada-keywords nil
   "List of Ada keywords for current `ada-language-version'.")
 
@@ -1186,8 +1187,6 @@ and treat `ada-case-strict' as t in code.."
 		 ;; we sometimes want to capitialize an Ada identifier
 		 ;; referenced in a comment, via
 		 ;; ada-case-adjust-at-point.
-
-		 (not (ada-in-numeric-literal-p))
 		 ))
 
       ;; The indentation engine may trigger a reparse on
@@ -1414,7 +1413,7 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-parse-prj-file (prj-file)
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
-  ;; FIXME: use the right name, add an alias
+  (run-hooks `ada-prj-parse-hook)
   (let ((project (ada-prj-default))
 	(parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
 
@@ -2127,7 +2126,7 @@ identifier.  May be an Ada identifier or operator."
       (error "No identifier around"))
      )))
 
-;; FIXME: use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
+;; FIXME (for emacs 25): use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
 (defvar ada-goto-pos-ring '()
   "List of positions selected by navigation functions. Used
 to go back to these positions.")
@@ -2541,17 +2540,22 @@ package body file, containing skeleton code that will compile.")
 (defun ada-ff-create-body ()
   ;; no error if not set; let ada-skel do its thing.
   (when ada-make-package-body
-    ;; ff-find-other-file calls us with point in an empty buffer for the
-    ;; body file; ada-make-package-body expects to be in the spec. So go
-    ;; back.
-    (let ((body-file-name (buffer-file-name)))
-      (ff-find-the-other-file)
+    ;; ff-find-other-file calls us with point in an empty buffer for
+    ;; the body file; ada-make-package-body expects to be in the
+    ;; spec. So go back to the spec, and delete the body buffer so it
+    ;; does not get written to disk.
+    (let ((body-buffer (current-buffer))
+	  (body-file-name (buffer-file-name)))
+
+      (set-buffer-modified-p nil);; may have a skeleton; allow silent delete
+
+      (ff-find-the-other-file);; back to spec
+
+      (kill-buffer body-buffer)
 
       (ada-make-package-body body-file-name)
-      ;; FIXME (later): if 'ada-make-package-body' fails, delete the body buffer
-      ;; so it doesn't get written to disk, and we can try again.
 
-      ;; back to the body, read in from the disk.
+      ;; back to the new body file, read in from the disk.
       (ff-find-the-other-file)
       (revert-buffer t t))
     ))

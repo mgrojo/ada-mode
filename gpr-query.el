@@ -70,8 +70,6 @@
       (setf (gpr-query--session-process session)
 	    ;; gnatcoll-1.6 can't handle aggregate projects; M910-032
 	    ;; gpr_query can handle some aggregate projects, but not all
-	    ;; FIXME: need good error message on bad project file:
-	    ;; 		"can't handle aggregate projects?")
 	    (start-process (concat "gpr_query " (buffer-name))
 			   (gpr-query--session-buffer session)
 			   "gpr_query"
@@ -132,7 +130,7 @@
 		    (not (re-search-forward gpr-query-prompt (point-max) 1))))
 	(setq search-start (point));; don't search same text again
 	(message (concat "running gpr_query ..." (make-string wait-count ?.)))
-	;; FIXME: use --display-progress
+	;; IMPROVEME: use --display-progress
 	(accept-process-output process 1.0)
 	(setq wait-count (1+ wait-count)))
       (if (process-live-p process)
@@ -284,7 +282,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	 ;; fetch the compilation-message while in the session-buffer.
 	 (compilation--ensure-parse (point-max))
 	 (let* ((msg (compilation-next-error 0))
-                ;; FIXME: '--' indicates internal-only. But we can't
+                ;; IMPROVEME: '--' indicates internal-only. But we can't
                 ;; use compile-goto-error, because that displays the
                 ;; session-buffer.
 	 	(loc (compilation--message->loc msg)))
@@ -387,8 +385,8 @@ buffer in another window."
     (define-key map "\C-c\C-i\C-p" 'ada-build-prompt-select-prj-file)
     (define-key map "\C-c\C-i\C-q" 'gpr-query-refresh)
     (define-key map "\C-c\C-i\C-r" 'gpr-query-show-references)
-    ;; FIXME: (define-key map "\C-c\M-d" 'gpr-query-parents)
-    ;; FIXME: overriding
+    ;; IMPROVEME: (define-key map "\C-c\M-d" 'gpr-query-parents)
+    ;; IMPROVEME: overriding
     map
   )  "Local keymap used for gpr query minor mode.")
 

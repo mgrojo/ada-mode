@@ -241,7 +241,6 @@ package body Ada_Mode.Parens is
         or else B.all
         --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
         --EMACSRESULT: t
-        -- FIXME (later): conflicts with gnat style check
       loop
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
       end loop;
@@ -433,3 +432,6 @@ package body Ada_Mode.Parens is
    end Slice;
 
 end Ada_Mode.Parens;
+--  Local Variables:
+--  ada-indent-comment-gnat: t
+--  End:

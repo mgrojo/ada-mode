@@ -1323,6 +1323,20 @@ Number of columns to indent the continuation of a broken line.
 If non-nil, comments currently starting in column 0 are left in column
 0.  Otherwise, they are indented with previous comments or code.
 
+@item @code{ada-indent-comment-gnat}  (default value: nil)
+If non-nil, comments are indented to meet the GNAT style check; one
+of:
+   @itemize
+   @item
+   multiple of @code{ada-indent}
+   @item
+   next non-blank line
+   @item
+   previous non-blank line
+   @end itemize
+
+Otherwise, they are indented with previous comments or code.
+
 @item @code{ada-indent-label}            (default value: -3)
 Number of columns to indent a label.
 

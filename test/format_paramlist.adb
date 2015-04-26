@@ -100,4 +100,12 @@ package body Format_Paramlist is
       null;
    end J;
 
+   --  anonymous access procedure type, constrained parameter type
+   procedure Process
+     (Directory : in              String (1 .. 10);
+      Process   : not null access procedure (Directory_Entry : in Directory_Entry_Type'Class))
+   is begin
+      null;
+   end Process;
+
 end Format_Paramlist;

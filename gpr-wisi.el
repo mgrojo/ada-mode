@@ -2,7 +2,7 @@
 ;;
 ;; [1] GNAT user guide (info "gnat_ugn")
 ;;
-;; Copyright (C) 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -77,7 +77,6 @@ or containing ancestor of CACHE that is at a line beginning."
 	(block-middle
 	 (wisi-indent-start
 	  (if (eq (wisi-cache-token cache) 'WHEN) ada-indent-when 0)
-	  ;; FIXME (later): need test of ada-indent-when in gpr
 	  cache))
 	(close-paren (wisi-indent-paren 0))
 	(open-paren nil); let after-keyword handle it

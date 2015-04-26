@@ -9,7 +9,16 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.9
 
-** supports aligning '=>' in case expressions.
+** New option ada-indent-comment-gnat matches the GNAT style check for
+   comments in all cases (previously, there were some cases where the
+   comment indent algorithm did not match the GNAT check).
+
+** ada-fix-add-context-clause now sorts "limited with" and "private
+   with" clauses after other clauses.
+
+** ada-align now aligns '=>' in case expressions.
+
+** New hook ada-prj-parse-hook, run from ada-parse-prj-file
 
 ** fix bugs
 

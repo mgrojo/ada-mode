@@ -428,12 +428,8 @@ list."
 		    (split-string (ada-prj-get 'gnat_stub_switches))))
 	)
 
-    ;; Make sure all relevant files are saved to disk. This also saves
-    ;; the bogus body buffer created by ff-find-the-other-file, so we
-    ;; need -f gnat stub option. We won't get here if there is an
-    ;; existing body file.
+    ;; Make sure all relevant files are saved to disk.
     (save-some-buffers t)
-    (cl-pushnew "-f" opts :test #'equal)
     (with-current-buffer (gnat-run-buffer)
       (gnat-run-no-prj
        (append (list "stub") opts (list start-file "-cargs") switches)

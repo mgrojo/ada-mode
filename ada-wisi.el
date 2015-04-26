@@ -1237,8 +1237,38 @@ cached token, return new indentation for point."
       ;; would align the comment with the block-middle, which is wrong. So
       ;; we only call ada-wisi-after-cache.
 
-      ;; FIXME: need option to match gnat style check; change indentation to match (ie mod 3)
-      (ada-wisi-after-cache))
+      (let ((indent (ada-wisi-after-cache))
+	    prev-indent next-indent)
+	(if ada-indent-comment-gnat
+	  ;; match the gnat comment indent style check; comments must
+	  ;; be aligned to one of:
+	  ;;
+	  ;; - multiple of ada-indent
+	  ;; - next non-blank line
+	  ;; - previous non-blank line
+	  (cond
+	   ((= 0 (% indent ada-indent))
+	    ;; this will handle comments at bob and eob, so we don't
+	    ;; need to worry about those positions in the next checks.
+	    indent)
+
+	   ((and (setq prev-indent (save-excursion (forward-line -1)(current-indentation)))
+		 (= indent prev-indent))
+	    indent)
+
+	   ((and (setq next-indent (save-excursion (forward-line 1)(current-indentation)))
+		 (= indent prev-indent))
+	    indent)
+
+	   (t
+	    (or
+	     prev-indent
+	     next-indent
+	     (floor indent ada-indent)))
+	   )
+
+	  ;; not forcing gnat style
+	  indent)))
 
       (t
        ;; comment is after a comment
@@ -1556,6 +1586,10 @@ Also return cache at start."
 	(skip-syntax-forward " ")
 	(setq default-begin (point))
 	(wisi-forward-find-token 'SEMICOLON end t))
+
+       ((equal token 'LEFT_PAREN)
+	;; anonymous access procedure type, type constraints
+	(goto-char (scan-sexps (1- (point)) 1)))
 
        ((member token '(SEMICOLON RIGHT_PAREN))
 	(when (not type-end)

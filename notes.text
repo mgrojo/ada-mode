@@ -40,28 +40,14 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-need hook in parse-prj for sal-xref-tool
+ada-mode.el:2086:  ;; FIXME: option to filter with ada-*-suffixes?
+    find a key for it
+        I've bound it to M-f12
+    posted on emacs-ada-mode
 
-format paramlist screws up:
-   procedure Process
-     (Directory : in              String;
-      Protocol : access Protocol_Type;
-      Process   : not null access procedure (Directory_Entry : in Directory_Entry_Type'Class))
-     is abstract;
-
-face wrong on interactive extend selected package name
-
-review fixmes
+wisi.el:860:			    ;; FIXME: why block-middle here?
 
 test with gnat 7.3
-
-param-list-align fails on:
-
-   procedure Search
-     (Directory : String;
-      Pattern   : String;
-      Filter    : Filter_Type := (others => True);
-      Process   : not null access procedure (Directory_Entry : Directory_Entry_Type));
 
 ada-indent-opentoken not safe?
 

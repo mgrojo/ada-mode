@@ -382,7 +382,9 @@ Prompt user if more than one."
 	   ;; also 'possible missing "with Ada.Text_IO; use Ada.Text_IO"' - ignoring the 'use'
 	   (let ((package-name (match-string-no-properties 1)))
 	     (pop-to-buffer source-buffer)
-	     ;; FIXME (later): should check if prefix is already with'd, extend it
+	     ;; Could check if prefix is already with'd, extend
+	     ;; it. But no one has reported that case yet; this
+	     ;; message only occurs for predefined Ada packages.
 	     (ada-fix-add-with-clause package-name))
 	   t)
 

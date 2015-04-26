@@ -1,6 +1,6 @@
 ;;; user options shared by Ada mode indentation engines
 ;;
-;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -69,6 +69,20 @@ Otherwise, they are indented with previous comments or code."
   :group 'ada-indentation
   :safe  'booleanp)
 (make-variable-buffer-local 'ada-indent-comment-col-0)
+
+(defcustom ada-indent-comment-gnat nil
+  "If non-nil, comments are indented to meet the GNAT comment style check.
+That is, one of:
+
+- multiple of ada-indent
+- next non-blank line
+- previous non-blank line
+
+Otherwise, they are indented as a with previous comments or code."
+  :type  'boolean
+  :group 'ada-indentation
+  :safe  'booleanp)
+(make-variable-buffer-local 'ada-indent-comment-gnat)
 
 (defvar ada-label-indent nil)
 (make-obsolete-variable
