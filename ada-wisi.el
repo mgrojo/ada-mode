@@ -1250,17 +1250,26 @@ cached token, return new indentation for point."
 	  ;; - multiple of ada-indent
 	  ;; - next non-blank line
 	  ;; - previous non-blank line
+	  ;;
+	  ;; Note that we must indent the prev and next lines, in case
+	  ;; they are not currently correct.
 	  (cond
 	   ((= 0 (% indent ada-indent))
 	    ;; this will handle comments at bob and eob, so we don't
 	    ;; need to worry about those positions in the next checks.
 	    indent)
 
-	   ((and (setq prev-indent (save-excursion (forward-line -1)(current-indentation)))
+	   ((and (setq prev-indent
+		       (save-excursion (forward-line -1)(indent-according-to-mode)(current-indentation)))
 		 (= indent prev-indent))
 	    indent)
 
-	   ((and (setq next-indent (save-excursion (forward-line 1)(current-indentation)))
+	   ((and (setq next-indent
+		       ;; we use forward-comment here, instead of
+		       ;; forward-line, because consecutive comment
+		       ;; lines are indented to the current one, which
+		       ;; we don't know yet.
+		       (save-excursion (forward-comment (point-max))(indent-according-to-mode)(current-indentation)))
 		 (= indent next-indent))
 	    indent)
 

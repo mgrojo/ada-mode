@@ -857,8 +857,7 @@ grammar action as:
 		(when first-item
 		  (setq first-item nil)
 		  (when (or override-start
-			    ;; FIXME: why block-middle here?
-			    (memq class '(block-middle block-start statement-start)))
+			    (memq class '(block-start statement-start)))
 		    (setq override-start nil)
 		    (setq first-keyword-mark mark)))
 

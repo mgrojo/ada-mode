@@ -17,7 +17,7 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
+  (add-to-list 'exec-path "/apps/GNAT-gpl_2014/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
@@ -26,7 +26,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/format_paramlist.adb")
+  (run-test "../../test/ada_mode-parens.adb")
   (ada-wisi-debug-keys))
 
 install packages in -Q:

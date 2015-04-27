@@ -340,6 +340,7 @@
        ((WHEN discrete_choice_list EQUAL_GREATER expression )
         (progn
         (wisi-statement-action [1 block-middle 3 statement-other])
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4))))
       (case_expression_alternative_list
        ((case_expression_alternative ))
@@ -359,6 +360,7 @@
         (progn
         (wisi-statement-action [1 block-middle 3 statement-other])
         (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4))))
       (case_statement_alternative_list
        ((case_statement_alternative ))
@@ -638,11 +640,13 @@
         (progn
         (wisi-statement-action [1 block-middle 5 statement-other])
         (wisi-containing-action 1 4)
+        (wisi-containing-action 1 5)
         (wisi-containing-action 5 6)))
        ((WHEN exception_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
         (wisi-statement-action [1 block-middle 3 statement-other])
         (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4))))
       (exception_handler_list
        ((exception_handler ))
@@ -1518,6 +1522,7 @@
         (progn
         (wisi-statement-action [1 block-start 3 statement-other])
         (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4)
         (wisi-containing-action 3 5)))
        ((accept_statement sequence_of_statements_opt ))
@@ -1525,12 +1530,14 @@
         (progn
         (wisi-statement-action [1 block-start 3 statement-other])
         (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4)))
        ((delay_alternative ))
        ((WHEN expression EQUAL_GREATER TERMINATE SEMICOLON )
         (progn
         (wisi-statement-action [1 block-start 3 statement-other 4 statement-start 5 statement-end])
-        (wisi-containing-action 1 2)))
+        (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)))
        ((TERMINATE SEMICOLON )
         (wisi-statement-action [1 statement-start 2 statement-end])))
       (select_alternative_list
@@ -1769,6 +1776,7 @@
         (progn
         (wisi-statement-action [1 block-middle 3 statement-other])
         (wisi-containing-action 1 2)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 3 4))))
       (unary_adding_operator
        ((PLUS ))
