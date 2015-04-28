@@ -243,7 +243,8 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
   ;; `compilation-start' to run gpr_query, so the user can navigate
   ;; to each result in turn via `next-error'.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
-	(result-count 0))
+	(result-count 0)
+	target-file target-line target-col)
     (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
       (compilation-mode)
       (setq buffer-read-only nil)
@@ -279,18 +280,19 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	 (error "gpr_query returned no results"))
 	(1
 	 ;; just go there, don't display session-buffer. We have to
-	 ;; fetch the compilation-message while in the session-buffer.
+	 ;; fetch the compilation-message while in the
+	 ;; session-buffer. and call ada-goot-source outside the
+	 ;; with-current-buffer above.
 	 (compilation--ensure-parse (point-max))
 	 (let* ((msg (compilation-next-error 0))
                 ;; IMPROVEME: '--' indicates internal-only. But we can't
                 ;; use compile-goto-error, because that displays the
                 ;; session-buffer.
 	 	(loc (compilation--message->loc msg)))
-	   (ada-goto-source
-	    (caar (compilation--loc->file-struct loc)) ;; file
-	    (caar (cddr (compilation--loc->file-struct loc))) ;; line
-	    (1- (compilation--loc->col loc)) ;; column
-	    nil) ;; other-window
+	   (setq target-file (caar (compilation--loc->file-struct loc))
+		 target-line (caar (cddr (compilation--loc->file-struct loc)))
+		 target-col  (1- (compilation--loc->col loc))
+		 )
 	   ))
 
 	(t
@@ -299,7 +301,9 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 
 	));; case, with-currrent-buffer
 
-    (when (> result-count 1)
+    (if (= result-count 1)
+	(ada-goto-source target-file target-line target-col nil)
+
       ;; more than one result; display session buffer, goto first ref
       ;;
       ;; compilation-next-error-function assumes there is not an error

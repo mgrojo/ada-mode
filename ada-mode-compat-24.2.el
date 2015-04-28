@@ -19,16 +19,16 @@
 
 ;; using cl-lib 0.4 from Gnu ELPA
 
-(when (not (boundp 'file-name-base))
+(when (not (functionp 'file-name-base))
   (defun file-name-base (&optional filename)
     "Return the base name of the FILENAME: no directory, no extension.
 FILENAME defaults to `buffer-file-name'."
     (file-name-sans-extension
      (file-name-nondirectory (or filename (buffer-file-name))))))
 
-(when (not (boundp 'font-lock-ensure))
+(when (not (functionp 'font-lock-ensure))
   (defun font-lock-ensure (&optional beg end)
-    (font-lock-fontify-region beg end)))
+    (font-lock-fontify-region (or beg (point-min)) (or end (point-max)))))
 
 (provide 'ada-mode-compat-24.2)
 

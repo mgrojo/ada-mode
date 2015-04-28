@@ -40,30 +40,7 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-ada-mode.el:2086:  ;; FIXME: option to filter with ada-*-suffixes?
-    find a key for it
-        I've bound it to M-f12
-    posted on emacs-ada-mode
-
-wisi.el:860:			    ;; FIXME: why block-middle here?
-
-test with gnat 7.3
-
-ada-indent-opentoken not safe?
-
-use goto-decl-start to indent aspects
-
-email re "aliased in out not null access"
-    at least ensure we have tests for the worst cases
-    maybe redesign
-
-http://jdee.sourceforge.net/
-    has lalr parser
-
-incorrect color:
-    opentoken/wisi/test/run_ada_parser.adb
-        Ada_Grammar.LALR_Parsers.Parse (Parser);
-
+proposed patch from stefan monnier
 
 books passes ada-check-current-project when project is fish_mercury
     don't put . in compilation-search-path; expand it.
@@ -92,16 +69,12 @@ completion
 
             find the GPS source code
 
-find-file-in-prj
-    prompt for file with compilation-search-path as completion
-        avoid navigating to 'with' clause to get same functionality
+use goto-decl-start to indent aspects?
+    avoid lots of nested cond/cl-ecase in ada-wisi-before|after-cache
 
 c:/Archive/Emacs/slime-2.10.1.tar.gz
 
 http://wikemacs.org/wiki/Projectile
-
-use electric indent instead of ada-newline-indent?
-
 
 face actions in gpr grammar?
 
@@ -109,6 +82,7 @@ after ada-mode is fast enough:
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
 
 use eieio class/method for dispatching
+    now in cl-lib?
 
 5.1.c:
 

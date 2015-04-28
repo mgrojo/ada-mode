@@ -153,7 +153,7 @@ cd gnatcoll-gpl-2014-src
 make
 sudo make install
 cd ~/.emacs.d/elpa/ada-mode-5.xx/build
-make install-gpr_query
+make install
 @end example
 
 To build an sqlite3 executable that is compatible with the database
