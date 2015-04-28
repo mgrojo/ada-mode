@@ -1,6 +1,4 @@
-;;; An indentation engine for gpr mode, using the wisent LALR parser
-;;
-;; [1] GNAT user guide (info "gnat_ugn")
+;; gpr-wisi.el --- Indentation engine for gpr mode, using the wisi parser  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 ;;

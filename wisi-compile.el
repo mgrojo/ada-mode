@@ -1,4 +1,4 @@
-;;; Grammar compiler for the wisent LALR parser, integrating Wisi OpenToken output.
+;; wisi-compile.el --- Grammar compiler for the wisi parser, integrating Wisi OpenToken output.  -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2012, 2013, 2015 Free Software Foundation, Inc.
 ;;
@@ -180,6 +180,10 @@ gotos is a copy of GOTOS.
 semantic-actions is an obarray containing functions that
 implement the user action for each nonterminal; the function
 names have the format nonterm:index."
+  ;; These are referenced the called functions, so they must declared
+  ;; to be dynamically bound. FIXME: should have name prefix
+  (defvar nrules) (defvar ptable) (defvar rcode) (defvar rlhs) (defvar tags)
+  (defvar token-list) (defvar var-list)
   (let (nrules ptable rcode rlhs tags token-list var-list)
     (wisent-parse-grammar;; set global vars used by wisent-semantic-action
      (cons

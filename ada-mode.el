@@ -1,6 +1,6 @@
-;;; ada-mode.el --- major-mode for editing Ada sources
+;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;;; Copyright (C) 1994, 1995, 1997 - 2015  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -196,8 +196,7 @@ Non-nil means automatically change case of preceding word while typing.
 Casing of Ada keywords is done according to `ada-case-keyword',
 identifiers are Mixed_Case."
   :type  'boolean
-  :group 'ada
-  :safe  'booleanp)
+  :safe  #'booleanp)
 (make-variable-buffer-local 'ada-auto-case)
 
 (defcustom ada-case-exception-file nil
@@ -215,20 +214,24 @@ character, and end either at the end of the word or at a _
 character.  Characters after the first word are ignored, and not
 preserved when the list is written back to the file."
   :type  '(repeat (file))
-  :group 'ada
-  :safe  'listp)
+  :safe  #'listp)
 
-(defcustom ada-case-keyword 'downcase-word
+(defcustom ada-case-keyword 'lower-case
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
 Function to call to adjust the case of Ada keywords."
-  :type '(choice (const downcase-word)
-		 (const upcase-word))
-  :group 'ada
-  :safe  'functionp)
+  :type '(choice (const lower-case)
+		 (const upper-case))
+  ;; We'd like to specify that the value must be a function that takes
+  ;; one arg, but custom doesn't support that. ':safe' is supposed
+  ;; to be used to prevent user-provided functions from compromising
+  ;; security, so ":safe #'functionp" is not appropriate. So we
+  ;; use a symbol, and a cl-ecase in ada-case-keyword.
+  :safe (lambda (val) (memq val '(lower-case upper-case)))
+  )
 (make-variable-buffer-local 'ada-case-keyword)
 
-(defcustom ada-case-identifier 'ada-mixed-case
+(defcustom ada-case-identifier 'mixed-case
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
 Function to call to adjust the case of Ada keywords.
@@ -236,11 +239,12 @@ Called with three args;
 start      - buffer pos of start of identifier
 end        - end of identifier
 force-case - if t, treat `ada-strict-case' as t"
-  :type '(choice (const ada-mixed-case)
-		 (const ada-lower-case)
-		 (const ada-upper-case))
-  :group 'ada
-  :safe  'functionp)
+  :type '(choice (const mixed-case)
+		 (const lower-case)
+		 (const upper-case))
+  ;; see comment on :safe at ada-case-keyword
+  :safe (lambda (val) (memq val '(mixed-case lower-case upper-case)))
+  )
 ;; we'd like to check that there are 3 args, since the previous
 ;; release required 2 here. But there doesn't seem to be a way to
 ;; access the arg count, which is only available for byte-compiled
@@ -253,8 +257,7 @@ Global value is default for project variable `case_strict'.
 If non-nil, force Mixed_Case for identifiers.
 Otherwise, allow UPPERCASE for identifiers."
   :type 'boolean
-  :group 'ada
-  :safe  'booleanp)
+  :safe  #'booleanp)
 (make-variable-buffer-local 'ada-case-strict)
 
 (defcustom ada-language-version 'ada2012
@@ -265,36 +268,31 @@ indentation parser accepts."
 		 (const ada95)
 		 (const ada2005)
 		 (const ada2012))
-  :group 'ada
-  :safe  'symbolp)
+  :safe  #'symbolp)
 (make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-fill-comment-prefix "-- "
   "Comment fill prefix."
-  :type 'string
-  :group 'ada)
+  :type 'string)
 (make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-fill-comment-postfix " --"
   "Comment fill postfix."
-  :type 'string
-  :group 'ada)
+  :type 'string)
 (make-variable-buffer-local 'ada-language-version)
 
 (defcustom ada-prj-file-extensions '("adp" "prj")
   "List of Emacs Ada mode project file extensions.
 Used when searching for a project file.
 Any file with one of these extensions will be parsed by `ada-prj-parse-file-1'."
-  :type 'list
-  :group 'ada)
+  :type 'list)
 
 (defcustom ada-prj-file-ext-extra nil
   "List of secondary project file extensions.
 Used when searching for a project file that can be a primary or
 secondary project file (referenced from a primary).  The user
 must provide a parser for a file with one of these extensions."
-  :type 'list
-  :group 'ada)
+  :type 'list)
 
 (defcustom ada-prj-parse-hook nil
   "Hook run at start of `ada-parse-prj-file'.
@@ -471,29 +469,17 @@ Values defined by cross reference packages.")
     ["Indent current statement"    ada-indent-statement       t]
     ["Goto next statement keyword" ada-next-statement-keyword t]
     ["Goto prev statement keyword" ada-next-statement-keyword t]
-    ["Other File"                  ada-find-other-file        t]
-    ["Other file don't find decl"  ada-find-other-file-noset  t]))
+    ["Other File"                  ada-find-other-file        t]))
 
-(defun ada-popup-menu (position)
-  "Pops up a `ada-context-menu', with `ada-context-menu-on-identifer' set appropriately.
-POSITION is the location the mouse was clicked on.
-Sets `ada-context-menu-last-point' to the current position before
-displaying the menu.  When a function from the menu is called,
-point is where the mouse button was clicked."
-  (interactive "e")
+(defun ada-popup-menu ()
+  "Pops up `ada-context-menu'.
+When a function from the menu is called, point is where the mouse
+button was clicked."
+  (interactive)
 
   (mouse-set-point last-input-event)
-
-  (setq ada-context-menu-on-identifier
-	(and (char-after)
-	     (or (= (char-syntax (char-after)) ?w)
-		 (= (char-after) ?_))
-	     (not (ada-in-string-or-comment-p))
-	     (save-excursion (skip-syntax-forward "w")
-			     (not (ada-after-keyword-p)))
-	     ))
-    (popup-menu ada-context-menu)
-    )
+  (popup-menu ada-context-menu)
+  )
 
 (defun ada-indent-newline-indent ()
   "insert a newline, indent the old and new lines."
@@ -1085,7 +1071,7 @@ User is prompted to choose a file from project variable casing if it is a list."
 
 (defun ada-in-based-numeric-literal-p ()
   "Return t if point is after a prefix of a based numeric literal."
-  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)"))
+  (looking-back "\\([0-9]+#[0-9a-fA-F_]+\\)" (line-beginning-position)))
 
 (defvar ada-keywords nil
   "List of Ada keywords for current `ada-language-version'.")
@@ -1097,11 +1083,18 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (point))))
     (member (downcase word) ada-keywords)))
 
-(defun ada-lower-case (start end force-case-strict)
-  (downcase-region start end))
+(defun ada-case-keyword (arg)
+  (cl-ecase ada-case-keyword
+    (lower-case (downcase-word arg))
+    (upper-case (upcase-word arg))
+    ))
 
-(defun ada-upper-case (start end force-case-strict)
-  (upcase-region start end))
+(defun ada-case-identifier (start end force-case-strict)
+  (cl-ecase ada-case-identifier
+    (mixed-case (ada-mixed-case start end force-case-strict))
+    (lower-case (downcase-region start end))
+    (upper-case (upcase-region start end))
+    ))
 
 (defun ada-mixed-case (start end force-case-strict)
   "Adjust case of region START END to Mixed_Case."
@@ -1148,7 +1141,7 @@ Uses `ada-case-identifier', with exceptions defined in
 	    (delete-region (point) end))
 
 	;; else apply ada-case-identifier
-	(funcall ada-case-identifier start end force-case)
+	(ada-case-identifier start end force-case)
 
 	;; apply partial-exceptions
 	(goto-char start)
@@ -1215,7 +1208,7 @@ and treat `ada-case-strict' as t in code.."
 	   (not in-comment)
 	   (not (eq typed-char ?_))
 	   (ada-after-keyword-p))
-	  (funcall ada-case-keyword -1))
+	  (ada-case-keyword -1))
 
 	 (t (ada-case-adjust-identifier in-comment))
 	 ))
@@ -2017,13 +2010,7 @@ set."
         (error "%s (opened) and %s (found in project) are two different files"
                file-name found-file)))))
 
-(defun ada-find-other-file-noset (other-window)
-  "Same as `ada-find-other-file', but preserve point in the other file,
-don't move to corresponding declaration."
-  (interactive "P")
-  (ada-find-other-file other-window t))
-
-(defun ada-find-other-file (other-window &optional no-set-point)
+(defun ada-find-other-file (other-window)
   "Move to the corresponding declaration in another file.
 
 - If region is active, assume it contains a package name;
@@ -2043,11 +2030,7 @@ don't move to corresponding declaration."
   on the corresponding specification or body.
 
 If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window.
-
-If NO-SET-POINT is nil, set point in the other file on the
-corresponding declaration. If non-nil, preserve existing point in
-the other file."
+buffer in another window."
 
   ;; ff-get-file, ff-find-other file first process
   ;; ff-special-constructs, then run the following hooks:
@@ -2102,36 +2085,34 @@ identifier.  May be an Ada identifier or operator."
   (when (ada-in-comment-p)
     (error "Inside comment"))
 
-  (let (identifier)
+  (skip-chars-backward "a-zA-Z0-9_<>=+\\-\\*/&")
 
-    (skip-chars-backward "a-zA-Z0-9_<>=+\\-\\*/&")
-
-    ;; Just in front of, or inside, a string => we could have an
-    ;; operator function declaration.
+  ;; Just in front of, or inside, a string => we could have an
+  ;; operator function declaration.
+  (cond
+   ((ada-in-string-p)
     (cond
-     ((ada-in-string-p)
-      (cond
 
-       ((and (= (char-before) ?\")
-	     (progn
-	       (forward-char -1)
-	       (looking-at (concat "\"\\(" ada-operator-re "\\)\""))))
-	(setq identifier (concat "\"" (match-string-no-properties 1) "\"")))
-
-       (t
-	(error "Inside string or character constant"))
-       ))
-
-     ((and (= (char-after) ?\")
-	   (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
-      (setq identifier (concat "\"" (match-string-no-properties 1) "\"")))
-
-     ((looking-at "[a-zA-Z0-9_]+\\|[+\\-*/&=<>]")
-      (setq identifier (match-string-no-properties 0)))
+     ((and (= (char-before) ?\")
+	   (progn
+	     (forward-char -1)
+	     (looking-at (concat "\"\\(" ada-operator-re "\\)\""))))
+      (concat "\"" (match-string-no-properties 1) "\""))
 
      (t
-      (error "No identifier around"))
-     )))
+      (error "Inside string or character constant"))
+     ))
+
+   ((and (= (char-after) ?\")
+	 (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
+    (concat "\"" (match-string-no-properties 1) "\""))
+
+   ((looking-at "[a-zA-Z0-9_]+\\|[+\\-*/&=<>]")
+    (match-string-no-properties 0))
+
+   (t
+    (error "No identifier around"))
+   ))
 
 ;; FIXME (for emacs 25): use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
 (defvar ada-goto-pos-ring '()
@@ -2850,8 +2831,8 @@ The paragraph is indented on the first line."
 
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
-    ((nil 'gnat) (require 'ada-gnat-xref))
-    ('gpr_query (require 'gpr-query))
+    ((nil gnat) (require 'ada-gnat-xref))
+    (gpr_query (require 'gpr-query))
     ))
 
 (unless (featurep 'ada-compiler)

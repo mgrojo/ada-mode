@@ -1,4 +1,4 @@
-;;; An indentation engine for Ada mode, using the wisi generalized LALR parser
+;;; ada-wisi.el --- Indentation engine for Ada mode, using the wisi generalized LALR parser  -*- lexical-binding:t -*-
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
@@ -1641,12 +1641,9 @@ Also return cache at start."
     paramlist))
 
 (defun ada-wisi-which-function-1 (keyword add-body)
-  "used in `ada-wisi-which-function'."
-  (let (region
-	result
-	(cache (wisi-forward-find-class 'name (point-max))))
-
-    (setq result (wisi-cache-text cache))
+  "Used in `ada-wisi-which-function'."
+  (let* ((cache (wisi-forward-find-class 'name (point-max)))
+         (result (wisi-cache-text cache)))
 
     (when (not ff-function-name)
       (setq ff-function-name

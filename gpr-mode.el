@@ -1,4 +1,4 @@
-;;; gpr-mode --- major-mode for editing GNAT project files
+;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2004, 2007, 2008, 2012-2015  Free Software Foundation, Inc.
 

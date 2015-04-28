@@ -1,4 +1,4 @@
-;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser
+;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
 ;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
 ;;
@@ -204,25 +204,24 @@
 
 (defun wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
-syntax for a real literal; otherwise nil. point is after
+syntax for a real literal; otherwise nil.  Point is after
 TOKEN-TEXT; move point to just past token."
-  ;; typical literals:
+  ;; Typical literals:
   ;; 1234
   ;; 1234.5678
   ;; _not_ including non-decimal base, or underscores (see ada-wisi-number-p)
   ;;
-  (let ((end (point)))
-    ;; starts with a simple integer
-    (when (string-match "^[0-9]+$" token-text)
-      (when (looking-at "\\.[0-9]+")
-	;; real number
-	(goto-char (setq end (match-end 0)))
-	(when (looking-at  "[Ee][+-][0-9]+")
-	  ;; exponent
-	  (goto-char (setq end (match-end 0)))))
+  ;; Starts with a simple integer
+  (when (string-match "^[0-9]+$" token-text)
+    (when (looking-at "\\.[0-9]+")
+      ;; real number
+      (goto-char (match-end 0))
+      (when (looking-at  "[Ee][+-][0-9]+")
+        ;; exponent
+        (goto-char (match-end 0))))
 
-      t
-      )))
+    t
+    ))
 
 (defun wisi-forward-token ()
   "Move point forward across one token, skipping leading whitespace and comments.
@@ -720,7 +719,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  (message "%s done" msg)))
       )))
 
-(defun wisi-fontify-region (begin end)
+(defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
   (when (< (point-max) wisi-size-threshold)
     (wisi-validate-cache end)))
@@ -1034,10 +1033,8 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
     ;;
     ;; Grammar sets override-no-error when a higher-level production might
     ;; override a face in a lower-level production.
-    (let (cur-face
-	  (do-set t))
-      (when (> wisi-debug 1)
-	(setq cur-face (get-text-property (car region) 'font-lock-face))
+    (when (> wisi-debug 1)
+      (let ((cur-face (get-text-property (car region) 'font-lock-face)))
 	(when cur-face
 	  (unless override-no-error
 	    (message "%s:%d overriding face %s with %s on '%s'"
@@ -1047,14 +1044,14 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
 		     cur-face
 		     (buffer-substring-no-properties (car region) (cdr region))))
 
-	  ))
-      (with-silent-modifications
-	(add-text-properties
-	 (car region) (cdr region)
-	 (list
-	  'font-lock-face face
-	  'fontified t)))
-    )))
+	  )))
+    (with-silent-modifications
+      (add-text-properties
+       (car region) (cdr region)
+       (list
+	'font-lock-face face
+	'fontified t)))
+    ))
 
 (defun wisi-face-action (pairs &optional no-override)
   "Cache face information in text properties of tokens.

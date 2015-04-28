@@ -9,6 +9,13 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.9
 
+** ada-case-keyword changed to accept the symbols 'lower-case,
+   'upper-case instead of the functions downcase-word, upcase-word.
+
+** ada-case-identifier changed to accept the symbols 'mixed-case,
+   'lower-case, 'upper-case instead of the functions 'ada-mixed-case,
+   'ada-lower-case, 'ada-upper-case.
+
 ** New option ada-indent-comment-gnat matches the GNAT style check for
    comments in all cases (previously, there were some cases where the
    comment indent algorithm did not match the GNAT check).

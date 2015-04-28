@@ -21,5 +21,5 @@ is
    end F;
 end SEPARATE_PROTECTED_BODY;
 -- Local Variables:
--- ada-case-identifier: ada-upper-case
+-- ada-case-identifier: upper-case
 -- End:

@@ -1,6 +1,6 @@
-;;; ada-mode-compat-24.2.el --- Implement current Emacs features not present in Emacs 24.2
+;; ada-mode-compat-24.2.el --- Implement current Emacs features not present in Emacs 24.2  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +30,7 @@ FILENAME defaults to `buffer-file-name'."
   (defun font-lock-ensure (&optional beg end)
     (font-lock-fontify-region (or beg (point-min)) (or end (point-max)))))
 
+;; FIXME: need cl-flet, but there is no macrop
 (provide 'ada-mode-compat-24.2)
 
 ;; end of file
