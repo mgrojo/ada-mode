@@ -1317,7 +1317,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 	(plist-get prj prop)
 
       ;; no project, just use default vars
-      ;; must match code in ada-prj-default
+      ;; must match code in ada-prj-default, except for src_dir.
       (cl-case prop
 	(ada_compiler    ada-compiler)
 	(auto_case       ada-auto-case)
@@ -1329,7 +1329,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 			   (list ada-case-exception-file)))
 	(path_sep        path-separator)
 	(proc_env        process-environment)
-	(src_dir         (list "."))
+	(src_dir         (list (directory-file-name default-directory)))
 	(xref_tool       ada-xref-tool)
 	))))
 
@@ -1383,7 +1383,7 @@ Include properties set via `ada-prj-default-compiler-alist',
 			 (list ada-case-exception-file))
       'path_sep        path-separator;; prj variable so users can override it for their compiler
       'proc_env        process-environment
-      'src_dir         (list (if src-dir src-dir "."))
+      'src_dir         (if src-dir (list src-dir) nil)
       'xref_tool       ada-xref-tool
       ))
 

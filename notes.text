@@ -40,12 +40,6 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-proposed patch from stefan monnier
-    in particular, lexical binding
-
-books passes ada-check-current-project when project is fish_mercury
-    don't put . in compilation-search-path; expand it.
-
 completion
     (info "(elisp)Completion")
     examples:

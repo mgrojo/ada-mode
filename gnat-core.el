@@ -147,7 +147,7 @@ Uses 'gnat list'.  Returns new (SRC-DIRS PRJ-DIRS)."
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
 	    (if (looking-at "<Current_Directory>")
-                (cl-pushnew "." prj-dirs :test #'equal)
+                (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'equal)
               (let ((f (expand-file-name
                         (buffer-substring-no-properties (point) (point-at-eol)))))
                 (cl-pushnew f prj-dirs :test #'equal)

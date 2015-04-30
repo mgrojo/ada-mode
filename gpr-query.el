@@ -213,9 +213,13 @@ Uses 'gpr_query'. Returns new list."
     (gpr-query-session-send "project_path" t)
     (goto-char (point-min))
     (while (not (looking-at gpr-query-prompt))
-      (cl-pushnew (directory-file-name
-		    (buffer-substring-no-properties (point) (point-at-eol)))
-                  prj-dirs :test #'equal)
+      (cl-pushnew
+       (let ((dir (buffer-substring-no-properties (point) (point-at-eol))))
+	 (if (string= dir ".")
+	     (directory-file-name default-directory)
+	     dir))
+       prj-dirs
+       :test #'equal)
       (forward-line 1))
     )
   prj-dirs)
