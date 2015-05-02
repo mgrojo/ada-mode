@@ -66,14 +66,12 @@ package OpenToken is
 
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);
 
-   ----------------------------------------------------------------------
+   Trace_Parse : Integer := 0;
    --  If Trace_Parse > 0, Parse prints helpful messages; higher value
    --  prints more.
-   ----------------------------------------------------------------------
-   Trace_Parse : Integer := 0;
 
-   --  Put Message, indented by 3 * Trace_Indent; no new_line
    procedure Trace_Put (Message : in String);
+   --  Put Message, indented by 3 * Trace_Indent; no new_line
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space

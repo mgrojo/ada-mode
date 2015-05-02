@@ -33,19 +33,12 @@ package OpenToken.Token.Identifier is
       Identifier : OpenToken.Buffers.Bounded_String;
    end record;
 
-   function Get
-     (ID    : in Token_ID;
-      Build : in Action := null)
-     return Instance'Class;
+   function Get (ID : in Token_ID) return Instance'Class;
 
    overriding procedure Create
      (Lexeme     : in     String;
       Bounds     : in     Buffer_Range;
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
-
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class);
 
 end OpenToken.Token.Identifier;

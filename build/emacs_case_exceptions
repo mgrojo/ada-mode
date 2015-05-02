@@ -15,6 +15,7 @@ YYLex
 *IO
 *LALR
 *LALRs
+*LF
 *LHS
 *LR0
 *LR1

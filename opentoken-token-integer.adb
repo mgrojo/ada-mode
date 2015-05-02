@@ -30,14 +30,13 @@ package body OpenToken.Token.Integer is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.Integer := 0;
-      Name  : in String           := "";
-      Build : in Action           := null)
+      Name  : in String           := "")
      return Instance'Class
    is begin
       if Name = "" then
-         return Instance'Class (Instance'(null, ID, Build, Value));
+         return Instance'Class (Instance'(null, ID, Value));
       else
-         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+         return Instance'Class (Instance'(new String'(Name), ID, Value));
       end if;
    end Get;
 
@@ -57,13 +56,6 @@ package body OpenToken.Token.Integer is
         Lexeme & " not in range: " &
         Standard.Integer'Image (Standard.Integer'First) & " .. " & Standard.Integer'Image (Standard.Integer'Last);
    end Create;
-
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class)
-   is begin
-      To.Value := Instance (From).Value;
-   end Copy;
 
    overriding function Name (Token : in Instance) return String
    is begin

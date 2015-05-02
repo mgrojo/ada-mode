@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2014 Stephen Leake
+--  Copyright (C) 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -49,7 +49,8 @@ package body Analyzer_Buffer_Test is
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
 
    String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, null, Buffer_Size => 10);
+   Buffer_Size   : constant                  := 10;
+   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax, null, Buffer_Size);
 
    procedure Step
      (Label           : in String;
@@ -59,7 +60,7 @@ package body Analyzer_Buffer_Test is
       use Tokenizer;
       use AUnit.Check;
    begin
-      Analyzer.Find_Next (Look_Ahead => False);
+      Analyzer.Find_Next;
 
       Check (Label & ".ID", Analyzer.ID, Expected_ID);
       Check (Label & ".lexeme", Analyzer.Lexeme, Expected_Lexeme);
@@ -80,7 +81,7 @@ package body Analyzer_Buffer_Test is
 
       OpenToken.Text_Feeder.String.Set (String_Feeder, Text);
       Analyzer.Feeder := String_Feeder'Access;
-      Analyzer.Reset;
+      Analyzer.Reset (Buffer_Size);
 
       Step ("1", Identifier_ID, "a23456");
       Step ("2", Identifier_ID, "b90123");
@@ -116,7 +117,7 @@ package body Analyzer_Buffer_Test is
         (Open_Read (File_Name, Binary));
 
       OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Analyzer.Feeder.all).Reset (Text'Length);
-      Analyzer.Reset;
+      Analyzer.Reset (Buffer_Size);
 
       Step ("1", Identifier_ID, "a23456");
       Step ("2", Identifier_ID, "b90123");
@@ -135,9 +136,9 @@ package body Analyzer_Buffer_Test is
 
       OpenToken.Text_Feeder.String.Set (String_Feeder, Text);
       Analyzer.Feeder := String_Feeder'Access;
-      Analyzer.Reset;
+      Analyzer.Reset (Buffer_Size);
 
-      Analyzer.Find_Next (Look_Ahead => False);
+      Analyzer.Find_Next;
       AUnit.Assertions.Assert (False, "did not get exception");
    exception
    when E : others =>

@@ -44,8 +44,7 @@ package body Wisi_Wy_Test is
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
            (1         => Wy_File,
-            2         => new String'("OpenToken_Lexer"),
-            3         => new String'("Elisp")),
+            2         => new String'("Elisp")),
          Success      => Success);
 
       AUnit.Assertions.Assert

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2009, 2014 Stephen Leake
+-- Copyright (C) 2002, 2009, 2014, 2015 Stephen Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -27,14 +27,13 @@ package body OpenToken.Token.Real is
    function Get
      (ID    : in Token_ID;
       Value : in Real_Type := 0.0;
-      Name  : in String    := "";
-      Build : in Action    := null)
+      Name  : in String    := "")
      return Instance'Class
    is begin
       if Name = "" then
-         return Instance'Class (Instance'(null, ID, Build, Value));
+         return Instance'Class (Instance'(null, ID, Value));
       else
-         return Instance'Class (Instance'(new String'(Name), ID, Build, Value));
+         return Instance'Class (Instance'(new String'(Name), ID, Value));
       end if;
    end Get;
 
@@ -49,12 +48,5 @@ package body OpenToken.Token.Real is
    begin
       New_Token.Value := Real_Type'Value (Lexeme);
    end Create;
-
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class)
-   is begin
-      To.Value := Instance (From).Value;
-   end Copy;
 
 end OpenToken.Token.Real;

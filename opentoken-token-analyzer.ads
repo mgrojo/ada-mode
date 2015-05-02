@@ -83,11 +83,8 @@ package OpenToken.Token.Analyzer is
       New_Token  : in OpenToken.Token.Class := Get)
      return Recognizable_Token;
 
-   type Instance (Max_Buffer_Size : Integer) is new OpenToken.Token.Source with private;
+   type Instance is new OpenToken.Token.Source with private;
    type Handle is access all Instance;
-
-   function Null_Analyzer return Instance;
-   --  no input stream; used when grammar will be used for something other than parsing.
 
    ----------------------------------------------------------------------------
    --  Return an Analyzer with the given syntax and text feeder.
@@ -108,7 +105,7 @@ package OpenToken.Token.Analyzer is
 
    overriding function Name (Analyzer : in Instance; ID : in Token_ID) return String;
 
-   overriding procedure Reset (Analyzer : in out Instance);
+   overriding procedure Reset (Analyzer : in out Instance; Buffer_Size : in Integer := 1024);
 
    ----------------------------------------------------------------------------
    --  Set the Analyzer's syntax to the given value.
@@ -171,14 +168,7 @@ package OpenToken.Token.Analyzer is
    --------------------------------------------------------------------------
    procedure Unset_Default (Analyzer : in out Instance);
 
-   overriding procedure Find_Next
-     (Analyzer   : in out Instance;
-      Look_Ahead : in     Boolean := False);
-
-   type Queue_Mark is new Token.Queue_Mark with private;
-
-   overriding function Mark_Push_Back (Analyzer : in Instance) return Token.Queue_Mark'Class;
-   overriding procedure Push_Back (Analyzer : in out Instance; Mark : in Token.Queue_Mark'Class);
+   overriding procedure Find_Next (Analyzer : in out Instance);
 
    overriding
    function Line (Analyzer : in Instance) return Natural;
@@ -220,21 +210,11 @@ package OpenToken.Token.Analyzer is
 
 private
 
-   type Token_List_Node;
-   type Token_List_Node_Pointer is access Token_List_Node;
-
-   --  Visible for unit tests
-   type Token_List_Node is record
-      Token_Handle : OpenToken.Token.Handle;
-      Prev         : Token_List_Node_Pointer;
-      Next         : Token_List_Node_Pointer;
-   end record;
-
-   procedure Free is new Ada.Unchecked_Deallocation (Token_List_Node, Token_List_Node_Pointer);
+   type String_Access_Type is access String;
 
    --  Put all the Analyzer's state information in here, so there can
    --  be several Analyzers running at once.
-   type Instance (Max_Buffer_Size : Integer) is new Source with record
+   type Instance is new Source with record
 
       --  User-settable attributes
       Syntax_List   : Syntax;
@@ -250,10 +230,8 @@ private
       Lexeme_Source_Pos : Natural := 1;
       Last_Token_ID     : Terminal_ID;
 
-      Read_From_Lookahead : Boolean;
-
       --  Internal state information
-      Buffer                 : String (1 .. Max_Buffer_Size); --  FIXME: allow reallocate in Reset
+      Buffer                 : String_Access_Type;
       Buffer_Head            : Natural := 1;
       Buffer_Tail            : Natural := 0;
       Buffer_Size            : Natural := 0; -- = tail - head, wrapped; 0 if empty
@@ -261,17 +239,6 @@ private
 
       Next_Line    : Natural := 1;
       Next_Column  : Natural := 1;
-
-      Lookahead_Queue : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is false
-      Lookahead_Head  : Token_List_Node_Pointer; --  Read from here or text source when Look_Ahead is true
-      Lookahead_Tail  : Token_List_Node_Pointer; --  Most recent token read from text source with Look_Ahead true
-      Lookahead_Count : Integer;
-      Max_Lookahead   : Integer;
-   end record;
-
-   type Queue_Mark is new Token.Queue_Mark with record
-      Head : Token_List_Node_Pointer;
-      Tail : Token_List_Node_Pointer;
    end record;
 
 end OpenToken.Token.Analyzer;

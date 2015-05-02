@@ -193,7 +193,7 @@ package body Ada_Lexer is
       --  Take care that the expression Character'('x') is correctly processed:
       --  A character literal cannot follow an identifier.
    begin
-      Analyzer.Find_Next (Look_Ahead => False);
+      Analyzer.Find_Next;
       OpenToken.Recognizer.Graphic_Character.Redefine
         (OpenToken.Recognizer.Graphic_Character.Instance (Syntax (Character_T).Recognizer.all),
          Exclusion (Token_ID = Identifier_T));

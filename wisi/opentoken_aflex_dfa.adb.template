@@ -13,7 +13,7 @@ package Dummy is  -- for indentation
    --  token (typically comments)
 
    type unbounded_character_array is array (Integer range <>) of Character;
-   type Unbounded_Character_Array_Access is access Unbounded_Character_Array;
+   type Unbounded_Character_Array_Access is access unbounded_character_array;
 
    yy_ch_buf : Unbounded_Character_Array_Access;
 
@@ -48,7 +48,7 @@ package Dummy is -- for indentation
 
    procedure Set_Buffer_Size (Size : in Integer)
    is
-      procedure Free is new Ada.Unchecked_Deallocation (Unbounded_Character_Array, Unbounded_Character_Array_Access);
+      procedure Free is new Ada.Unchecked_Deallocation (unbounded_character_array, Unbounded_Character_Array_Access);
    begin
       --  We want to read the entire input file on the first call to yy_get_next_buffer.
       YY_READ_BUF_SIZE := Size;
@@ -56,7 +56,7 @@ package Dummy is -- for indentation
       Free (yy_ch_buf);
 
       --  yy_ch_buf is 2 characters longer than YY_BUF_SIZE for 2 end-of-buffer characters.
-      YY_Ch_Buf := new unbounded_character_array (0 .. Size + 1);
+      yy_ch_buf := new unbounded_character_array (0 .. Size + 1);
    end Set_Buffer_Size;
 
    function YYText return String is

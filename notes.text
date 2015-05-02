@@ -1,6 +1,20 @@
 Misc notes on current work
 
+build/release/Makefile
 build/debug/Makefile
+
+finish refactor packages
+    delete opentoken.trace_indent?
+
+    delete token.name?
+
+    delete token.set_id, or doc why not
+
+    add aflex/wisi versions to dragon examples
+
+    make install should install wisi-generate.exe
+
+    review FIXME
 
 speed up parsing, for Emacs Ada backend
     gnatcoll-xref.adb needs to be < 0.2 second
@@ -35,27 +49,9 @@ use aflex
     /Projects/aflex/aflex.adb
     source from http://sourceforge.net/projects/p2ada/
 
-    aflex generates ada_syntax.a, containing function yylex
-        ada_syntax_dfa.ads YY_BUF_SIZE
-            add option to set it
-            tell aflex it's larger than the entire input text; no need to wrap or refill
-
-        better error messages; gnu syntax
-
-        add --help
+    better error messages; gnu syntax
 
     regenerate aflex.l
         start with flex.l?
-
-refactor packages
-    o.t.linked_list vs o.t.list (was o.t.e.list)
-        merge into o.t
-        o.t.linked_list was controlled; was that actually used?
-            yes, at least for Expected
-
-    delete recursive descent parser
-
-    only recursive descent needs lexer lookahead
-        lalr is lalr 1
 
 # end of file

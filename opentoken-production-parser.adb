@@ -27,9 +27,9 @@
 
 package body OpenToken.Production.Parser is
 
-   procedure Reset (Parser : in out Instance)
+   procedure Reset (Parser : in out Instance; Buffer_Size : in Integer)
    is begin
-      Parser.Analyzer.Reset;
+      Parser.Analyzer.Reset (Buffer_Size);
    end Reset;
 
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr)

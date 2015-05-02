@@ -129,6 +129,9 @@ package Wisi is
 
    Verbosity : Integer := 0;
 
-   type Lexer_Type is (Aflex_Lexer, OpenToken_Lexer);
+   type Lexer_Type is (Aflex_Lexer, OpenToken_Lexer, Elisp_Lexer);
+
+   procedure Put_Command_Line (Comment_Prefix : in String);
+   --  Put command line to current output
 
 end Wisi;

@@ -49,6 +49,9 @@ generic
    with function YY_Length return Integer;
    --  Length of YY_Text
 
+   with procedure Set_Buffer_Size (Size : in Integer);
+   --  Set lexer internal buffer size.
+
    YY_Begin_Line : in out Integer;
    YY_Begin_Column : in out Integer;
    --  Line, column of last token in input stream.
@@ -61,7 +64,7 @@ generic
 
 package OpenToken.Token.Aflex is
 
-   type Instance (Max_Buffer_Size : Integer) is new OpenToken.Token.Source with private;
+   type Instance is new OpenToken.Token.Source with private;
    type Handle is access all Instance;
 
    function Initialize
@@ -72,7 +75,7 @@ package OpenToken.Token.Aflex is
 
    overriding function Name (Lexer : in Instance; ID : in Token_ID) return String;
 
-   overriding procedure Reset (Lexer : in out Instance);
+   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
    overriding
    procedure Set_Text_Feeder (Lexer : in out Instance; Feeder : in OpenToken.Text_Feeder.Text_Feeder_Ptr);
@@ -88,12 +91,7 @@ package OpenToken.Token.Aflex is
    procedure Discard_Buffered_Text (Lexer : in out Instance);
    --  FIXME: is this ever called without Reset?
 
-   overriding procedure Find_Next
-     (Lexer   : in out Instance;
-      Look_Ahead : in     Boolean := False);
-
-   overriding function Mark_Push_Back (Lexer : in Instance) return Token.Queue_Mark'Class;
-   overriding procedure Push_Back (Lexer : in out Instance; Mark : in Token.Queue_Mark'Class);
+   overriding procedure Find_Next (Lexer : in out Instance);
 
    overriding
    function Line (Lexer : in Instance) return Natural;
@@ -111,7 +109,7 @@ private
 
    type ID_Array_Tokens is array (Token_ID) of Token.Handle;
 
-   type Instance (Max_Buffer_Size : Integer) is new OpenToken.Token.Source with
+   type Instance is new OpenToken.Token.Source with
    record
       Token      : Token_ID; --  last token read by find_next
       Token_List : ID_Array_Tokens;

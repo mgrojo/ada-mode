@@ -28,22 +28,16 @@
 package body OpenToken.Token.Nonterminal is
 
    function Get
-     (ID    : in Token_ID := Token_ID'First;
-      Name  : in String   := "";
-      Build : in Action   := null)
+     (ID   : in Token_ID := Token_ID'First;
+      Name : in String   := "")
      return Instance'Class
    is begin
       if Name = "" then
-         return Instance'Class (Instance'(null, ID, Build));
+         return Instance'Class (Instance'(null, ID));
       else
-         return Instance'Class (Instance'(new String'(Name), ID, Build));
+         return Instance'Class (Instance'(new String'(Name), ID));
       end if;
    end Get;
-
-   function Copy (Token : in Handle) return Handle
-   is begin
-      return Nonterminal.Handle (OpenToken.Token.Copy (OpenToken.Token.Handle (Token)));
-   end Copy;
 
    procedure Synthesize_By_Copying
      (New_Token : out Instance;

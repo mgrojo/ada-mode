@@ -45,11 +45,10 @@ package OpenToken.Production.Parser is
    ----------------------------------------------------------------------------
    procedure Parse (Parser : in out Instance) is abstract;
 
-   --------------------------------------------------------------------------
-   --  Reset the internal Analyzer. Appropriate if the Text_Feeder's
-   --  input has changed.
-   --------------------------------------------------------------------------
-   procedure Reset (Parser : in out Instance);
+   procedure Reset (Parser : in out Instance; Buffer_Size : in Integer);
+   --  Reset the internal Analyzer, reallocating the input buffer to Buffer_Size.
+   --
+   --  Appropriate if the Text_Feeder's input has changed.
 
    --------------------------------------------------------------------------
    --  Set the parser's text feeder. May discard input if current

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2003, 2008, 2009, 2014 Stephen Leake
+--  Copyright (C) 2003, 2008, 2009, 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -61,14 +61,13 @@ package body OpenToken.Token.String is
    function Get
      (ID    : in Token_ID;
       Value : in Standard.String := "";
-      Name  : in Standard.String := "";
-      Build : in Action          := null)
+      Name  : in Standard.String := "")
      return Instance'Class
    is begin
       if Name = "" then
-         return Instance'Class (Instance'(null, ID, Build, Buffers.To_Bounded_String (Value)));
+         return Instance'Class (Instance'(null, ID, Buffers.To_Bounded_String (Value)));
       else
-         return Instance'Class (Instance'(new Standard.String'(Name), ID, Build, Buffers.To_Bounded_String (Value)));
+         return Instance'Class (Instance'(new Standard.String'(Name), ID, Buffers.To_Bounded_String (Value)));
       end if;
    end Get;
 
@@ -83,12 +82,5 @@ package body OpenToken.Token.String is
    begin
       New_Token.Value := Buffers.To_Bounded_String (Unquote (Lexeme));
    end Create;
-
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class)
-   is begin
-      To.Value := Instance (From).Value;
-   end Copy;
 
 end OpenToken.Token.String;

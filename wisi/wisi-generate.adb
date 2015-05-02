@@ -40,11 +40,12 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisent grammar file} {lexer} {output language}");
+      Put_Line ("wisi-generate [options] {wisent grammar file} {output language} [lexer]");
       Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
       Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
+      Put_Line ("only Ada_Emacs takes a lexer argument");
       Put_Line ("options are:");
       Put_Line ("  -v level: sets verbosity (default 0):");
       Put_Line ("     level 0 - only error messages to standard error");
@@ -131,7 +132,7 @@ begin
       Arg_Next := Arg_Next + 1;
 
       begin
-         Lexer := Lexer_Type'Value (Argument (Arg_Next));
+         Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
          Arg_Next := Arg_Next + 1;
       exception
       when Constraint_Error =>
@@ -139,15 +140,21 @@ begin
       end;
 
       begin
-         Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
+         case Output_Language is
+         when Ada_Emacs =>
+            Lexer := Lexer_Type'Value (Argument (Arg_Next));
+            Arg_Next := Arg_Next + 1;
+         when others =>
+            null;
+         end case;
       exception
       when Constraint_Error =>
          raise User_Error;
       end;
 
-      if Arg_Next /= Argument_Count then
+      if Arg_Next - 1 /= Argument_Count then
          raise User_Error with "arg count" & Integer'Image (Argument_Count) &
-           " different from expected count" & Integer'Image (Arg_Next);
+           " different from expected count" & Integer'Image (Arg_Next - 1);
       end if;
    end;
 

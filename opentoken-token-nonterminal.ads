@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009, 2012, 2014 Stephe Leake
+-- Copyright (C) 2009, 2012, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -38,19 +38,13 @@ package OpenToken.Token.Nonterminal is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
+   function Get
+     (ID    : in Token_ID := Token_ID'First;
+      Name  : in String   := "")
+     return Instance'Class;
    --  Get a nonterminal token with the given ID.
    --
    --  Return type is 'class to avoid forcing derived types to override this
-   ----------------------------------------------------------------------------
-   function Get
-     (ID    : in Token_ID := Token_ID'First;
-      Name  : in String   := "";
-      Build : in Action   := null)
-     return Instance'Class;
-
-   --  Return a newly allocated copy of Token, or null
-   function Copy (Token : in Handle) return Handle;
 
    --------------------------------------------------------------------------
    --  The following primitive routines provide overloadable

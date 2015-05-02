@@ -10,3 +10,14 @@ Jan .. April 2013 :
 May 2013 :
 
     Fix bugs in lrk_item and lalr related to handling empty productions.
+
+October 2014 :
+
+    Add OpenToken.Text_Feeder.Counted_GNAT_OS_Lib for Emacs ada-mode parser.
+
+February 2015 :
+
+    Refactor several packages, add support for Aflex lexer.
+
+    Delete support for recursive descent parsers - broken by above
+    refactor, not worth fixing.

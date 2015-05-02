@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2009, 2014 Stephen Leake
+-- Copyright (C) 2003, 2009, 2014, 2015 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -42,14 +42,10 @@ package OpenToken.Token.Integer is
 
    type Handle is access all Class;
 
-   ----------------------------------------------------------------------------
-   --  Get an integer token
-   ----------------------------------------------------------------------------
    function Get
      (ID    : in Token_ID;
       Value : in Standard.Integer := 0;
-      Name  : in String           := "";
-      Build : in Action           := null)
+      Name  : in String           := "")
      return Instance'Class;
 
    overriding procedure Create
@@ -58,16 +54,10 @@ package OpenToken.Token.Integer is
       Recognizer : in     Recognizer_Handle;
       New_Token  : in out Instance);
 
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class);
-
-   --------------------------------------------------------------------
+   overriding function Name (Token : in Instance) return String;
    --  If Trace_Parse, include the current value in the name, to help
    --  decipher parser trace output. We don't include it otherwise
    --  since it is confusing as part of an "expected ..." error
    --  message.
-   --------------------------------------------------------------------
-   overriding function Name (Token : in Instance) return String;
 
 end OpenToken.Token.Integer;

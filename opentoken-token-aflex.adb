@@ -37,9 +37,11 @@ package body OpenToken.Token.Aflex is
      return Handle
    is
       pragma Unreferenced (First_Column);
-      New_Lexer : constant Handle := new Instance (Buffer_Size);
+      New_Lexer : constant Handle := new Instance;
    begin
       --  We don't set New_Lexer.Feeder, because we don't actually use it
+
+      Set_Buffer_Size (Buffer_Size);
 
       OpenToken.Token.Aflex.Feeder := Feeder;
 
@@ -56,12 +58,13 @@ package body OpenToken.Token.Aflex is
       return Token_Image (ID);
    end Name;
 
-   overriding procedure Reset (Lexer : in out Instance)
+   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
    is
       pragma Unreferenced (Lexer);
    begin
       --  yyrestart is not visible in yylex.adb; it does this
       YY_Init := True;
+      Set_Buffer_Size (Buffer_Size);
 
       --  Feeder is not reset here; user resets it.
    end Reset;
@@ -93,14 +96,8 @@ package body OpenToken.Token.Aflex is
       raise Programmer_Error;
    end Discard_Buffered_Text;
 
-   overriding procedure Find_Next
-     (Lexer      : in out Instance;
-      Look_Ahead : in     Boolean := False)
+   overriding procedure Find_Next (Lexer : in out Instance)
    is begin
-      if Look_Ahead then
-         raise Programmer_Error;
-      end if;
-
       Lexer.Token := YYLex;
    exception
    when E : others =>
@@ -111,19 +108,6 @@ package body OpenToken.Token.Aflex is
         ": " & Ada.Exceptions.Exception_Name (E) &
         " : " & Ada.Exceptions.Exception_Message (E);
    end Find_Next;
-
-   type Dummy_Queue_Mark is new Queue_Mark with record Foo : Integer; end record;
-
-   overriding function Mark_Push_Back (Lexer : in Instance) return Token.Queue_Mark'Class
-   is begin
-      raise Programmer_Error;
-      return Dummy_Queue_Mark'(Foo => 1);
-   end Mark_Push_Back;
-
-   overriding procedure Push_Back (Lexer : in out Instance; Mark : in Token.Queue_Mark'Class)
-   is begin
-      raise Programmer_Error;
-   end Push_Back;
 
    overriding function Line (Lexer : in Instance) return Natural
    is

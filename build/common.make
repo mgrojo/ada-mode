@@ -41,9 +41,6 @@ tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
 tests : test_html_lexer_safe-syntax_error.diff
 tests : token_analyzer_ctd-run.run
-tests : token_list_test-run.run
-tests : token_selection_test-run.run
-tests : token_sequence_test-run.run
 
 # from ../wisi/test
 #
@@ -54,6 +51,8 @@ tests : token_sequence_test-run.run
 # but that gets overridden by the simpler .exe rule for other things.
 # So we must list %.ads or %.l explicitly in tests. We do half of
 # these tests with the Aflex lexer, to get some testing with that.
+# Testing with an Emacs module calling the elisp wisi lexer and wisi
+# actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
 tests : empty_production_1_yylex.ads
@@ -81,10 +80,7 @@ tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
-examples : asu_example_4_46_rd-run.run
 examples : asu_example_5_10_lr-run.run
-examples : asu_example_5_10_rd_commute-run.run
-examples : asu_example_5_10_rd_list-run.run
 examples : ada_count.run
 examples : test_ada_lexer.run
 examples : test_html_lexer_unsafe.run
@@ -187,13 +183,13 @@ DIFF_OPT := -u -w
 # match historical first_state_index, first_parser_label
 %.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< OpenToken_Lexer Ada_Emacs > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs OpenToken_Lexer > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
 
 %.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %.l : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Aflex_Lexer Ada_Emacs > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs Aflex_Lexer > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
 
@@ -214,7 +210,7 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %.ada : %.l
-	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa_template.adb -O../../wisi/opentoken_aflex_io_template.adb $(AFLEX_ARGS) $<
+	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa.adb.template -O../../wisi/opentoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
 %_yylex.ads : %.ada
 	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada

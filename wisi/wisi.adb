@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,6 +18,8 @@
 
 pragma License (GPL);
 
+with Ada.Command_Line;
+with Ada.Directories;
 package body Wisi is
 
    function Count (Tokens : in Token_Lists.List) return Integer
@@ -113,5 +115,36 @@ package body Wisi is
       Result.Append (Item);
       return Result;
    end "+";
+
+   procedure Put_Command_Line (Comment_Prefix : in String)
+   is
+      use Ada.Command_Line;
+      Max_Line_Length : constant := 120;
+      Col : Integer := 0;
+
+      procedure Put (Item : in String; Leading_Space : in Boolean)
+      is begin
+         if Col > 0 and Col + Item'Length + 1 > Max_Line_Length then
+            Ada.Text_IO.New_Line;
+            Col := Comment_Prefix'Length;
+            Ada.Text_IO.Put (Comment_Prefix);
+         else
+            if Leading_Space then
+               Ada.Text_IO.Put (" ");
+               Col := Col + 1;
+            end if;
+         end if;
+
+         Col := Col + Item'Length;
+         Ada.Text_IO.Put (Item);
+      end Put;
+   begin
+      Put (Comment_Prefix & "with command line:", False);
+      Put (Ada.Directories.Simple_Name (Command_Name), True);
+      for I in 1 .. Argument_Count loop
+         Put (Argument (I), True);
+      end loop;
+      Ada.Text_IO.New_Line;
+   end Put_Command_Line;
 
 end Wisi;

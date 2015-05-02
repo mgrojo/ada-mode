@@ -25,18 +25,13 @@
 
 package body OpenToken.Token.Identifier is
 
-   function Get
-     (ID    : in Token_ID;
-      Build : in Action := null)
-     return Instance'Class
+   function Get (ID : in Token_ID) return Instance'Class
    is begin
       return Instance'Class
         (Instance'
            (Name       => null,
             ID         => ID,
-            Build      => Build,
             Identifier => OpenToken.Buffers.Null_Bounded_String));
-
    end Get;
 
    overriding procedure Create
@@ -50,12 +45,5 @@ package body OpenToken.Token.Identifier is
    begin
       New_Token.Identifier := OpenToken.Buffers.To_Bounded_String (Lexeme);
    end Create;
-
-   overriding procedure Copy
-     (To   : in out Instance;
-      From : in     Token.Class)
-   is begin
-      To.Identifier := Instance (From).Identifier;
-   end Copy;
 
 end OpenToken.Token.Identifier;
