@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014-2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -52,7 +52,12 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    function First (List : aliased in out Parser_Lists.List'Class) return Cursor
    is begin
-      return (List'Access, Ptr => List.Head);
+      --  WORKAROUND: with 'Access, Debian gnat 4.9.2 reports
+      --  "non-local pointer cannot point to local object", even
+      --  though GNAT Pro 7.3.1 and GNAT GPL 2014 allow 'Access There
+      --  doesn't seem to be a way to use a legitimate access param
+      --  while still meeting the Iterator requirements.
+      return (List'Unchecked_Access, Ptr => List.Head);
    end First;
 
    procedure Next (Cursor : in out Parser_Lists.Cursor)
@@ -468,7 +473,8 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       Ptr  :         in     Parser_Node_Access)
      return Cursor
    is begin
-      return (List'Access, Ptr);
+      --  see WORKAROUND in First
+      return (List'Unchecked_Access, Ptr);
    end To_Cursor;
 
    function Constant_Reference
@@ -524,7 +530,8 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      return Iterator'(Container => Container'Access);
+      --  see WORKAROUND in First
+      return Iterator'(Container => Container'Unchecked_Access);
    end Iterate;
 
    function Count (Action_Token : in Action_Token_List) return Integer
