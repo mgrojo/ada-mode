@@ -38,5 +38,6 @@ install-clean :
 	rm -rf $(I_INC)
 	rm -rf $(I_LIB)
 	rm -f  $(I_GPR)/opentoken.gpr
+	rm -f  $(I_BIN)/libopentoken*
 
 # end of file

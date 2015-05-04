@@ -37,9 +37,9 @@ procedure Ada_Count is
    Revision_Keyword : constant String := "$Revision: 1.4 $";
    Revision         : constant String := Revision_Keyword (12 .. Revision_Keyword'Length - 2);
 
-   SLOC          : Integer := 0;
-   Comment_Count : Integer := 0;
-   Line_Count    : Integer := 0;
+   SLOC          : Natural := 0;
+   Comment_Count : Natural := 0;
+   Line_Count    : Natural := 0;
 
    ----------------------------------------------------------------------------
    --  Print a description of the proper usage of this program
@@ -84,9 +84,10 @@ procedure Ada_Count is
    ----------------------------------------------------------------------------
    procedure Count (Filename : String) is
 
-      Local_SLOC          : Integer := 0;
-      Local_Comment_Count : Integer := 0;
-      Paren_Count         : Integer := 0;
+      Local_SLOC          : Natural := 0;
+      Local_Line_Count    : Natural := 0;
+      Local_Comment_Count : Natural := 0;
+      Paren_Count         : Natural := 0;
 
       --  Text file for reading parse data
       File : Ada.Text_IO.File_Type;
@@ -127,20 +128,22 @@ procedure Ada_Count is
 
       end loop;
 
+      Local_Line_Count := Line;
+
       --  Print the local results
       Ada.Text_IO.Put (Filename);
       Ada.Text_IO.Set_Col (43);
       Ada.Integer_Text_IO.Put (Item => Local_SLOC, Width => 10);
       Ada.Text_IO.Set_Col (56);
-      Ada.Integer_Text_IO.Put (Item => Line - Line_Count, Width => 10);
-      Line_Count := Line;
+      Ada.Integer_Text_IO.Put (Item => Local_Line_Count, Width => 10);
       Ada.Text_IO.Set_Col (67);
       Ada.Integer_Text_IO.Put (Item => Local_Comment_Count, Width => 10);
       Ada.Text_IO.New_Line;
       Ada.Text_IO.Close (File => File);
 
       --  Update the global results
-      SLOC          := SLOC + Local_SLOC;
+      SLOC          := SLOC          + Local_SLOC;
+      Line_Count    := Line_Count    + Local_Line_Count;
       Comment_Count := Comment_Count + Local_Comment_Count;
 
    end Count;
@@ -223,7 +226,7 @@ begin
    Ada.Text_IO.Set_Col (43);
    Ada.Integer_Text_IO.Put (Item => SLOC, Width => 10);
    Ada.Text_IO.Set_Col (56);
-   Ada.Integer_Text_IO.Put (Item => Line, Width => 10);
+   Ada.Integer_Text_IO.Put (Item => Line_Count, Width => 10);
    Ada.Text_IO.Set_Col (67);
    Ada.Integer_Text_IO.Put (Item => Comment_Count, Width => 10);
    Ada.Text_IO.New_Line;

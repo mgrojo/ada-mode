@@ -32,6 +32,11 @@ bump version
     /Projects/Web/stephe-leake/ada/
         delete old *.zip, *.gz
 
+    ../wisi/wisi-generate.adb
+        version
+            independent of opentoken, ada-mode versions
+            bump if changes affect ada-mode or other clients
+
 loop until no changes:
     Windows:
         (sal-standard)

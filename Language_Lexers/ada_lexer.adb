@@ -157,7 +157,7 @@ package body Ada_Lexer is
         (OpenToken.Recognizer.Identifier.Get
            (Start_Chars     => Ada.Strings.Maps.Constants.Letter_Set,
             Body_Chars      => Ada.Strings.Maps.Constants.Alphanumeric_Set)),
-      Comment_T             => Tokenizer.Get (OpenToken.Recognizer.Line_Comment.Get (" --")),
+      Comment_T             => Tokenizer.Get (OpenToken.Recognizer.Line_Comment.Get ("--")),
       Whitespace_T          => Tokenizer.Get (OpenToken.Recognizer.Character_Set.Get
                                           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       Bad_Token_T           => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),

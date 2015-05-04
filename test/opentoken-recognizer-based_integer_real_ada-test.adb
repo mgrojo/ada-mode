@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014 Stephe Leake
+--  Copyright (C) 2014-2015 Stephe Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -41,6 +41,8 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada.Test is
 
       Verdict : Analysis_Verdict;
       Last    : Integer := Item'First;
+
+      Test_Last : constant Integer := (if Expected'Length = 0 then Item'Last else Expected_Fail);
    begin
       Clear (Recognizer);
 
@@ -53,11 +55,15 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada.Test is
          end;
 
          Standard.AUnit.Assertions.Assert
-           ((if Last < (if Expected'Length = 0 then Item'Last else Expected_Fail)
+           ((if Last = Test_Last
+             then Verdict = (if Expected_Fail > 0 then Failed else Matches)
+             elsif Last < Test_Last
              then Verdict in Matches .. So_Far_So_Good
              else Verdict = Failed),
             Label & "." & Integer'Image (Last) & " expecting " &
-              (if Last < (if Expected'Length = 0 then Item'Last else Expected_Fail)
+              (if Last = Test_Last
+               then "Matches"
+               elsif Last < Test_Last
                then "Matches .. So_Far_So_Good"
                else "Failed") &
               " got " & Analysis_Verdict'Image (Verdict));
@@ -83,35 +89,36 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada.Test is
          Check ("fail", Verdict, Failed);
       end;
 
-      Test ("1", "1234;");
-      Test ("2", "1234.0;");
-      Test ("3", "1234.5678E+90;");
-      Test ("4", "1234.5678e-90;");
-      Test ("5", "1234.5678E90;");
+      Test ("0", "1");
+      Test ("1", "1234");
+      Test ("2", "1234.0");
+      Test ("3", "1234.5678E+90");
+      Test ("4", "1234.5678e-90");
+      Test ("5", "1234.5678E90");
 
-      Test ("6", "123_456;");
-      Test ("7", "123_456.901_234;");
-      Test ("8", "1_234.567_8E+90;");
+      Test ("6", "123_456");
+      Test ("7", "123_456.901_234");
+      Test ("8", "1_234.567_8E+90");
 
-      Test ("9", "16#ABCD#;");
-      Test ("10", "16#EF34.0#;");
-      Test ("11", "16#1234.ABCD#E+90;");
-      Test ("12", "16#1234.5678#e-90;");
-      Test ("13", "16#1234.5678#E90;");
+      Test ("9", "16#ABCD#");
+      Test ("10", "16#EF34.0#");
+      Test ("11", "16#1234.ABCD#E+90");
+      Test ("12", "16#1234.5678#e-90");
+      Test ("13", "16#1234.5678#E90");
 
-      Test ("14", "16#ABCD_EF01#;");
-      Test ("15", "16#EF_34.0_1#;");
-      Test ("16", "16#12_34.AB_CD#E+90;");
+      Test ("14", "16#ABCD_EF01#");
+      Test ("15", "16#EF_34.0_1#");
+      Test ("16", "16#12_34.AB_CD#E+90");
 
       --  problematic cases
-      Test ("17", "1234.;", "1234", 6); -- trailing .
-      Test ("18", "1234E+90;", "1234", 5); -- no .
+      Test ("17", "1234.", "1234", 6); -- trailing .
+      Test ("18", "1234E+90", "1234", 5); -- no ., so E illegal
 
-      Test ("19", "123_;", "123", 5); -- trailing _
+      Test ("19", "123_", "123", 5); -- trailing _
 
-      Test ("20", "16#ABCD;", "16", 8); -- missing trailing #
-      Test ("21", "16_#ABCD;", "16", 4); -- trailing _ in base
-      Test ("22", "16#1234.ABCD#E;", "16#1234.ABCD#", 15); -- no exponent
+      Test ("20", "16#ABCD", "16", 8); -- missing trailing #
+      Test ("21", "16_#ABCD", "16", 4); -- trailing _ in base
+      Test ("22", "16#1234.ABCD#E", "16#1234.ABCD#", 15); -- no exponent
    end Nominal;
 
    ----------

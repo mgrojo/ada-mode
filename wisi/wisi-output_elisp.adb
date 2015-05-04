@@ -2,7 +2,7 @@
 --
 --  Output Elisp code implementing the grammar defined by the parameters.
 --
---  Copyright (C) 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -67,7 +67,7 @@ is
    is
       use Standard.Ada.Text_IO;
    begin
-      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file");
+      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file  -*- lexical-binding:t -*-");
       New_Line;
       for Line of Prologue loop
          Put_Line (Line);
