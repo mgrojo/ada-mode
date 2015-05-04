@@ -1,4 +1,5 @@
 ;; ada-mode-compat-24.2.el --- Implement current Emacs features not present in Emacs 24.2  -*- lexical-binding:t -*-
+;; FIXME: rename to ada-mode-compat.el, rely on functionp etc. doc emacs version for each item
 
 ;; Copyright (C) 2014-2015 Free Software Foundation, Inc.
 

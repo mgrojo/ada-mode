@@ -2457,10 +2457,10 @@ is currently in.  Called with no parameters.")
   ;; Supplied by indentation engine
   "Function called with no parameters; it should move forward to
 the next keyword in the statement following the one point is
-in (ie from 'if' to 'then').  If not in a keyword, move forward
-to the next keyword in the current statement. If at the last keyword,
-move forward to the first keyword in the next statement or next
-keyword in the containing statement.")
+in (ie from 'if' to 'then'). If not in a keyword, move forward to
+the next keyword in the current statement. If at the last
+keyword, move forward to the first keyword in the next statement
+or next keyword in the containing statement.")
 
 (defvar ada-goto-end nil
   ;; Supplied by indentation engine
@@ -2474,12 +2474,18 @@ Called with no parameters.")
 
 (defun ada-next-statement-keyword ()
   ;; Supplied by indentation engine
-  "See `ada-next-statement-keyword' variable."
+  "See `ada-next-statement-keyword' variable. In addition,
+if on open parenthesis to matching closing parenthesis."
   (interactive)
-  (when ada-next-statement-keyword
-    (unless (region-active-p)
-      (push-mark))
-    (funcall ada-next-statement-keyword)))
+  (if (= (syntax-class (syntax-after (point))) 4)
+      ;; on open paren
+      (forward-sexp)
+
+    ;; else move by keyword
+    (when ada-next-statement-keyword
+      (unless (region-active-p)
+	(push-mark))
+      (funcall ada-next-statement-keyword))))
 
 (defvar ada-prev-statement-keyword nil
   ;; Supplied by indentation engine
@@ -2489,12 +2495,18 @@ keyword in the statement following the one point is in (ie from
 keyword in the previous statement or containing statement.")
 
 (defun ada-prev-statement-keyword ()
-  "See `ada-prev-statement-keyword' variable."
+  "See `ada-prev-statement-keyword' variable. In addition,
+if on open parenthesis to matching closing parenthesis."
   (interactive)
-  (when ada-prev-statement-keyword
-    (unless (region-active-p)
-      (push-mark))
-    (funcall ada-prev-statement-keyword)))
+  (if (= (syntax-class (syntax-after (point))) 5)
+      ;; on close paren
+      (backward-sexp)
+
+    ;; else move by keyword
+    (when ada-prev-statement-keyword
+      (unless (region-active-p)
+	(push-mark))
+      (funcall ada-prev-statement-keyword))))
 
 ;;;; code creation
 

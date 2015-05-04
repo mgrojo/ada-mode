@@ -148,8 +148,8 @@ point at which that max was spawned.")
 			(let ((state (aref (wisi-parser-state-stack parser-state)
 					   (wisi-parser-state-sp parser-state))))
 			  (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"
-						  " simplify grammar, or increase `wisi-parse-max-parallel'"
-						  state)))))
+						  " simplify grammar, or increase `wisi-parse-max-parallel'")
+						  state))))
 
 	      (let ((j (wisi-free-parser parser-states)))
 		(cond

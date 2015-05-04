@@ -46,7 +46,7 @@
     (define-key map [return]   'ada-indent-newline-indent)
     (define-key map "\C-c`"    'ada-show-secondary-error)
     ;; comment-dwim is in global map on M-;
-    (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-c" 'ada-build-make)
     (define-key map "\C-c\C-e" 'gpr-expand)
     (define-key map "\C-c\C-f" 'gpr-show-parse-error)
     (define-key map "\C-c\C-i" 'gpr-indent-statement)
@@ -73,6 +73,7 @@
 
     ["Customize"     (customize-group 'ada)];; we reuse the Ada indentation options
     ["------"        nil nil]
+    ["Build current project"       ada-build-make                   t]
     ["Find and select project ..." ada-build-prompt-select-prj-file t]
     ["Select project ..."          ada-prj-select                   t]
     ["Parse and select current file" gpr-set-as-project             t]

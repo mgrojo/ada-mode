@@ -54,10 +54,11 @@ source-clean :
 .PHONY : force
 
 # copy files to ELPA ada-mode package
+# First delete all files in ELPA, so we catch files deleted here.
 pub-ada : force
 	rm -rf ../../elpa/archive
 	mkdir -p ../../elpa/packages/ada-mode
-	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
+	rm -f ../../elpa/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
 	cp ../dir-ada-mode ../../elpa/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
@@ -76,7 +77,7 @@ pub-ada-ref-man : force
 
 # copy files to ELPA wisi package
 pub-wisi : force
-	rm -f ../../elpa/packages/wisi/wisi-pkg.el
+	rm -f ../../elpa/packages/wisi/*
 	cp ../README-wisi ../../elpa/packages/wisi/README
 	cp ../NEWS-wisi.text ../../elpa/packages/wisi/NEWS
 	cp ../wisi*.el ../../elpa/packages/wisi

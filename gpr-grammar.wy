@@ -89,6 +89,7 @@
 %keyword OTHERS "others"
 %keyword PACKAGE "package"
 %keyword PROJECT "project"
+%keyword RENAMES "renames"
 %keyword RIGHT_PAREN ")"
 %keyword STANDARD "standard"
 %keyword TYPE "type"
@@ -102,17 +103,7 @@
 %start compilation_unit
 
 %conflict SHIFT/REDUCE in state term, identifier_opt on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state attribute_declaration, declarative_items on token FOR
-%conflict SHIFT/REDUCE in state attribute_declaration, simple_declarative_items on token FOR
 %conflict SHIFT/REDUCE in state case_item, case_items on token WHEN
-%conflict SHIFT/REDUCE in state case_statement, declarative_items on token CASE
-%conflict SHIFT/REDUCE in state case_statement, simple_declarative_items on token CASE
-%conflict SHIFT/REDUCE in state package_spec, declarative_items on token PACKAGE
-%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token IDENTIFIER
-%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token NULL
-%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token IDENTIFIER
-%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token NULL
-%conflict SHIFT/REDUCE in state typed_string_declaration, declarative_items on token TYPE
 
 %%
 ;; grammar rules, non-terminal alphabetical order
@@ -158,9 +149,10 @@ case_statement
 ;; declarations allowed in a case statement are a subset of
 ;; declarative_items, but this simplifies the grammar.
 case_item
-  : WHEN discrete_choice_list EQUAL_GREATER declarative_items
+  : WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt
     (progn
       (wisi-statement-action [1 block-middle 3 block-start])
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
   ;
 
@@ -192,9 +184,13 @@ declarative_item
   ;
 
 declarative_items
-  : ;; empty
-  | declarative_item
+  : declarative_item
   | declarative_items declarative_item
+  ;
+
+declarative_items_opt
+  : ;; empty
+  | declarative_items
   ;
 
 discrete_choice
@@ -238,19 +234,24 @@ project_declaration_opt
 ;; (info "(gnat_ugn)Packages")
 package_declaration
   : package_spec
-  ;; | package_renaming
+  | package_renaming
   ;; | package_extension
   ;
 
 package_spec
-  : PACKAGE identifier_opt IS simple_declarative_items END identifier_opt SEMICOLON
+  : PACKAGE identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
       (wisi-containing-action 3 4))
   ;
 
-;; package_renaming ::==
-;;   package <package_>simple_name renames <project_>simple_name.package_identifier ;
+package_renaming
+  : PACKAGE identifier_opt RENAMES name SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
+      (wisi-containing-action 3 4))
+  ;
+
 ;; package_extension ::==
 ;;   package <package_>simple_name extends <project_>simple_name.package_identifier is
 ;;     {simple_declarative_item}
@@ -283,14 +284,8 @@ simple_declarative_item
     (wisi-statement-action [1 statement-start 2 statement-end])
   ;
 
-simple_declarative_items
-  : ;; empty
-  | simple_declarative_item
-  | simple_declarative_items simple_declarative_item
-  ;
-
 simple_project_declaration
-  : PROJECT identifier_opt IS declarative_items END identifier_opt SEMICOLON
+  : PROJECT identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
       (wisi-containing-action 3 4))

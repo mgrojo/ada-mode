@@ -1467,6 +1467,13 @@ correct. Must leave point at indentation of current line.")
   (wisi-invalidate-cache)
   (wisi-validate-cache (point-max)))
 
+(defun wisi-lex-buffer ()
+  (interactive)
+  (syntax-propertize (point-max))
+  (goto-char (point-min))
+  (while (not (eq wisent-eoi-term (car (wisi-forward-token)))))
+  )
+
 (defun wisi-show-cache ()
   "Show cache at point."
   (interactive)

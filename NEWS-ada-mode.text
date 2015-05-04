@@ -25,7 +25,15 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** ada-align now aligns '=>' in case expressions.
 
+** ada-next-statement-keyword now moves to matching close paren if on
+   open paren, ada-prev-statement-keyword moves from close paren to
+   open paren.
+
 ** New hook ada-prj-parse-hook, run from ada-parse-prj-file
+
+** gpr parser handles nested case statements without blowing up.
+
+** gpr parser handles package renames
 
 ** fix bugs
 

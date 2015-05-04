@@ -19,6 +19,9 @@ library project Simple is
    -- Keywords are case-insensitive
    GNAT_Version : GNAT_Version_Type := EXTERNAL ("GNAT_VERSION");
 
+   type Ext_Type is (".dll", ".so");
+   Dyn_Lib_Extension : Ext_Type := External ("DYNLIB_EXT", ".so");
+
    for Source_Dirs use
      ("../auto",
       External ("GNAT_VERSION") & "/foo",
@@ -34,13 +37,18 @@ library project Simple is
 
       case GNAT_Version is
          when "GPL-2012" | "7.0.1" =>
-            for Default_Switches ("Ada") use
-              ("-gnat2012",
-               -- comment in list
-               "-gnatw" & ".V", "-gnatyO"
-              ) & Style_Checks
-              & Standard_Common.Compiler'Default_Switches;
-
+            case Dyn_Lib_Extension is
+               -- Nested case
+               when ".dll" =>
+                  for Default_Switches ("Ada") use
+                    ("-gnat2012",
+                     -- comment in list
+                     "-gnatw" & ".V", "-gnatyO"
+                    ) & Style_Checks
+                    & Standard_Common.Compiler'Default_Switches;
+               when ".so" =>
+                  for Default_Switches ("Ada") use ("-fPIC");
+            end case;
          when "GPL-2011" |
            "6.2.2" |
            "6.2.1" =>
