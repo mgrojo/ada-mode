@@ -46,8 +46,9 @@ package OpenToken.Production.Parser is
    --  Raises Syntax_Error for lexer errors, Parse_Error for
    --  parser errors.
 
-   procedure Reset (Parser : in out Instance; Buffer_Size : in Integer);
-   --  Reset the internal Analyzer, reallocating the input buffer to Buffer_Size.
+   procedure Reset (Parser : in out Instance; Buffer_Size : in Integer := 0);
+   --  Reset the internal Analyzer, reallocating the input buffer to
+   --  Buffer_Size (if there is a buffer).
    --
    --  Appropriate if the Text_Feeder's input has changed.
 

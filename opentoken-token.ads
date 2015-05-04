@@ -91,6 +91,8 @@ package OpenToken.Token is
      return Instance'Class;
    --  Get a token with ID, Name. Result is class-wide so derived
    --  types don't have to override Get.
+   --
+   --  FIXME: Name only set in recursive descent? Just use Image
 
    function "+" (Item : in Token_ID) return Instance'Class;
    --  Calls Get with default Name; for use in LALR Grammar statements.

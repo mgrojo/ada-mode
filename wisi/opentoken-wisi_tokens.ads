@@ -70,5 +70,7 @@ package OpenToken.Wisi_Tokens is
      return Wisi_Tokens.Tokens.Buffer_Range;
 
    function To_Codes (Tokens : in Wisi_Tokens.Tokens.List.Instance'Class) return String;
+   --  Return format for Emacs ada-mode process interface
+   --  FIXME: move to child package
 
 end OpenToken.Wisi_Tokens;

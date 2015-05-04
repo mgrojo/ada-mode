@@ -55,11 +55,9 @@ package OpenToken.Token.Analyzer is
 
    --  Descriptor for what an individual token in this language looks
    --  like. Also provides storage for Lexeme and Recognizer from
-   --  recognized tokens. This is required by lookahead; the lexeme
-   --  and recognizer are only available when the token is recognized
-   --  in the input stream, not later when it is read from the
-   --  lookahead queue. Copies of the recognized token are pushed onto
-   --  the lookahead queue, after Create is called.
+   --  recognized tokens.
+   --
+   --  FIXME: This is required by lookahead, which we are no longer supporting
    type Recognizable_Token is record
       Recognizer   : Recognizer_Handle;
       Token_Handle : Handle;
