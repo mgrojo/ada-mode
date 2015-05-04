@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2009 Stephe Leake
+-- Copyright (C) 2009, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -58,10 +58,10 @@ package body Simple_Integer_Token is
 
    procedure Synthesize_Add
      (New_Token : out Nonterminal.Class;
-      Source    : in  Token_List.Instance'Class;
+      Source    : in  Token.List.Instance'Class;
       To_ID     : in  Token.Token_ID)
    is
-      use Token_List;
+      use Token.List;
       Left  : constant List_Iterator := Initial_Iterator (Source);
       Right : List_Iterator := Initial_Iterator (Source);
 
@@ -88,10 +88,10 @@ package body Simple_Integer_Token is
 
    procedure Synthesize_Multiply
      (New_Token : out Nonterminal.Class;
-      Source    : in  Token_List.Instance'Class;
+      Source    : in  Token.List.Instance'Class;
       To_ID     : in  Token.Token_ID)
    is
-      use Token_List;
+      use Token.List;
       Left  : constant List_Iterator := Initial_Iterator (Source);
       Right : List_Iterator := Initial_Iterator (Source);
 
@@ -118,10 +118,10 @@ package body Simple_Integer_Token is
 
    procedure Synthesize_From_Second_Argument
      (New_Token : out Nonterminal.Class;
-      Source    : in  Token_List.Instance'Class;
+      Source    : in  Token.List.Instance'Class;
       To_ID     : in  Token.Token_ID)
    is
-      use Token_List;
+      use Token.List;
       Second : List_Iterator := Initial_Iterator (Source);
    begin
       --  Move "Second" over to the second item;
@@ -142,11 +142,11 @@ package body Simple_Integer_Token is
 
    procedure Print_Value
      (New_Token :    out Nonterminal.Class;
-      Source    : in     Token_List.Instance'Class;
+      Source    : in     Token.List.Instance'Class;
       To_ID     : in     Token.Token_ID)
    is begin
       Ada.Text_IO.Put_Line
-        (Integer'Image (Value (Class (Token_List.Token_Handle (Token_List.Initial_Iterator (Source)).all))));
+        (Integer'Image (Value (Class (Token.List.Token_Handle (Token.List.Initial_Iterator (Source)).all))));
 
       Nonterminal.Synthesize_Self (New_Token, Source, To_ID);
    end Print_Value;

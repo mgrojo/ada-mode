@@ -3,7 +3,7 @@
 --  Utilities for translating input file structures to OpenToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,9 +21,7 @@ pragma License (GPL);
 with OpenToken.Production.List.Print;
 with OpenToken.Production.Parser.LALR.Generator;
 with OpenToken.Production.Print;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
    Tokens                : in Wisi.Token_Lists.List;
@@ -77,13 +75,10 @@ package Wisi.Gen_Generate_Utils is
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, First_Terminal, EOI_ID, Token_Image);
-   --  we only need Analyzers to instantiate Parsers, but we might call it for debugging
-   package Analyzers is new Tokens_Pkg.Analyzer;
-   package Token_Lists is new Tokens_Pkg.List;
-   package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-   package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
-   package Parsers is new Productions.Parser (Analyzers);
+   package Tokens_Pkg is new OpenToken.Token (Token_IDs, First_Terminal, EOI_ID, Token_Image);
+   package Nonterminals is new Tokens_Pkg.Nonterminal;
+   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
+   package Parsers is new Productions.Parser;
    package LALRs is new Parsers.LALR (First_State_Index);
    package Production_Lists is new Productions.List;
    package LALR_Generators is new LALRs.Generator (Token_Image_Width, Production_Lists);

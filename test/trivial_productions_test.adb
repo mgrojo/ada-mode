@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake
+--  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -27,9 +27,8 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Nonterminal;
 package body Trivial_Productions_Test is
 
    Feeder : aliased OpenToken.Text_Feeder.String.Instance;
@@ -47,13 +46,12 @@ package body Trivial_Productions_Test is
          --  Nonterminals
          E_ID, F_ID, T_ID);
 
-      package Tokens is new OpenToken.Token.Enumerated (Token_IDs, Symbol_ID, EOF_ID, Token_IDs'Image);
+      package Tokens is new OpenToken.Token (Token_IDs, Symbol_ID, EOF_ID, Token_IDs'Image);
       package Analyzers is new Tokens.Analyzer;
-      package Token_Lists is new Tokens.List;
-      package Nonterminals is new Tokens.Nonterminal (Token_Lists);
-      package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);
+      package Nonterminals is new Tokens.Nonterminal;
+      package Productions is new OpenToken.Production (Tokens, Nonterminals);
       package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser (Analyzers);
+      package Parsers is new Productions.Parser;
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
       package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
@@ -72,7 +70,7 @@ package body Trivial_Productions_Test is
       Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
 
       --  Allow infix operators for building productions
-      use type Token_Lists.Instance;
+      use type Tokens.List.Instance;
       use type Productions.Right_Hand_Side;
       use type Productions.Instance;
       use type Production_Lists.Instance;
@@ -96,7 +94,7 @@ package body Trivial_Productions_Test is
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
       Parser := LALR_Parsers.Initialize
-        (Analyzer,
+        (Tokens.Source_Handle (Analyzer),
          LALR_Generators.Generate (Grammar, Trace => Test_Case (Test).Debug));
 
       OpenToken.Text_Feeder.String.Set (Feeder, Text);
@@ -130,24 +128,23 @@ package body Trivial_Productions_Test is
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, Function_ID, EOF_ID, Token_IDs'Image);
-      package Analyzers is new Tokens_Pkg.Analyzer;
-      package Token_Lists is new Tokens_Pkg.List;
-      package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-      package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
+      package Tokens is new OpenToken.Token (Token_IDs, Function_ID, EOF_ID, Token_IDs'Image);
+      package Analyzers is new Tokens.Analyzer;
+      package Nonterminals is new Tokens.Nonterminal;
+      package Productions is new OpenToken.Production (Tokens, Nonterminals);
       package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser (Analyzers);
+      package Parsers is new Productions.Parser;
       package LALRs is new Parsers.LALR (First_State_Index => 1);
       package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
       package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
       package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
-      EOF            : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
-      Function_Tok   : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Function_ID);
-      Left_Paren     : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Left_Paren_ID);
-      Procedure_Tok  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Procedure_ID);
-      Right_Paren    : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Right_Paren_ID);
-      Symbol         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Symbol_ID);
+      EOF            : constant Tokens.Class := Tokens.Get (EOF_ID);
+      Function_Tok   : constant Tokens.Class := Tokens.Get (Function_ID);
+      Left_Paren     : constant Tokens.Class := Tokens.Get (Left_Paren_ID);
+      Procedure_Tok  : constant Tokens.Class := Tokens.Get (Procedure_ID);
+      Right_Paren    : constant Tokens.Class := Tokens.Get (Right_Paren_ID);
+      Symbol         : constant Tokens.Class := Tokens.Get (Symbol_ID);
 
       OpenToken_Accept : constant Nonterminals.Class := Nonterminals.Get (OpenToken_Accept_ID);
       Declarations     : constant Nonterminals.Class := Nonterminals.Get (Declarations_ID);
@@ -168,7 +165,7 @@ package body Trivial_Productions_Test is
       Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
 
       --  Allow infix operators for building productions
-      use type Token_Lists.Instance;
+      use type Tokens.List.Instance;
       use type Productions.Right_Hand_Side;
       use type Productions.Instance;
       use type Production_Lists.Instance;
@@ -190,7 +187,7 @@ package body Trivial_Productions_Test is
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
       Parser := LALR_Parsers.Initialize
-        (Analyzer,
+        (Tokens.Source_Handle (Analyzer),
          LALR_Generators.Generate
            (Grammar,
             Trace       => Test_Case (Test).Debug,

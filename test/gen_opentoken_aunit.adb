@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,13 +23,13 @@ package body Gen_OpenToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Lists.List_Iterator;
-      Expected : in Token_Lists.List_Iterator)
+      Computed : in Tokens_Pkg.List.List_Iterator;
+      Expected : in Tokens_Pkg.List.List_Iterator)
    is
       use AUnit.Check;
       use Tokens_Pkg;
       use Productions;
-      use Token_Lists;
+      use Tokens_Pkg.List;
       Computed_I : List_Iterator := Computed;
       Expected_I : List_Iterator := Expected;
       Index      : Integer       := 1;
@@ -183,7 +183,7 @@ package body Gen_OpenToken_AUnit is
    is
       Grammar_I : Production_Lists.List_Iterator := Grammar.Initial_Iterator;
 
-      Dot_I : Token_Lists.List_Iterator;
+      Dot_I : Tokens_Pkg.List.List_Iterator;
    begin
       for I in 2 .. Prod loop
          Production_Lists.Next_Production (Grammar_I);
@@ -191,7 +191,7 @@ package body Gen_OpenToken_AUnit is
 
       Dot_I := Productions.First_Token (Production_Lists.Get_Production (Grammar_I));
       for I in 2 .. Dot loop
-         Token_Lists.Next_Token (Dot_I);
+         Tokens_Pkg.List.Next_Token (Dot_I);
       end loop;
 
       return new LALR_Generators.LRk.Item_Node'

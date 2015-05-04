@@ -113,7 +113,9 @@
 ../../Test/test_html_scan.html:19:1026: VALUE: p
 ../../Test/test_html_scan.html:19:1027: TAG_CLOSER: >
 ../../Test/test_html_scan.html:19:1028: TEXT: A paragraph with a "quote" and => in it.
-../../Test/test_html_scan.html:21:1025: PRE: <pre>    C := "A" & 'B' <= foo;</pre>
+../../Test/test_html_scan.html:21:1025: PRE: <pre>
+    C := "A" & 'B' <= foo;
+</pre>
 ../../Test/test_html_scan.html:25:1025: START_TAG_OPENER: <
 ../../Test/test_html_scan.html:25:1026: VALUE: hr
 ../../Test/test_html_scan.html:25:1028: TAG_CLOSER: >

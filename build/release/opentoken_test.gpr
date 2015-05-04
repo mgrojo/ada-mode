@@ -12,9 +12,6 @@
 
 --  For running OpenToken tests.
 --  use installed AdaCore aunit (not SAL aunit; don't put SAL in project path)
---
---  (ediff "opentoken_test.gpr" "../linux_release/opentoken_test.gpr")
---  (ediff "opentoken_test.gpr" "../windows_debug/opentoken_test.gpr")
 
 with "../common";
 with "aunit";
@@ -37,15 +34,30 @@ project OpenToken_Test is
 
    package Compiler is
       -- AUnit requires -fno-strict-aliasing
+      -- -gnatdc outputs compiler progress (for when it hangs)
+      -- -gnatc does semantic only
+      -- -gnatdO outputs error messages immediately
       for Default_Switches ("Ada") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
-      -- generated code has long lines, so relax limit
-      for Switches ("empty_production_5*.ad?") use
+      -- wisi-generated code has long lines, so relax limit
+      for Switches ("empty_production_*.ad?") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999");
 
       for Switches ("multi_conflict.adb") use
         OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999");
+
+      for Switches ("ada_grammar.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
+      for Switches ("ada_grammar_1.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
+      for Switches ("ada_grammar_2.adb") use
+        OpenToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
+
+      -- Aflex generated code does not follow any style rules
+      for Switches ("ada_grammar_2_dfa.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada");
+      for Switches ("ada_grammar_2_io.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwKU";
+      for Switches ("ada_grammar_2_yylex.adb") use Common.Compiler.Release_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwA";
    end Compiler;
 
    package Builder is

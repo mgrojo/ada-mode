@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,9 +23,7 @@ with Ada.Text_IO;
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 package body Test_Empty_Productions_1 is
 
    --  A grammar with a null production in a list (from ../wisi/test/empty_production_1.wy)
@@ -48,18 +46,16 @@ package body Test_Empty_Productions_1 is
       declarative_part_ID,
       body_ID);
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, BEGIN_ID, EOF_ID, Token_IDs'Image);
-   package Token_Lists is new Tokens_Pkg.List;
-   package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-   package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
+   package Tokens_Pkg is new OpenToken.Token (Token_IDs, BEGIN_ID, EOF_ID, Token_IDs'Image);
+   package Nonterminals is new Tokens_Pkg.Nonterminal;
+   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer;
-   package Parsers is new Productions.Parser (Analyzers);
+   package Parsers is new Productions.Parser;
    package LALRs is new Parsers.LALR (First_State_Index => 1);
    package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
-   use type Token_Lists.Instance;
+   use type Tokens_Pkg.List.Instance;
    use type Productions.Right_Hand_Side;
    use type Productions.Instance;
    use type Production_Lists.Instance;
@@ -83,8 +79,8 @@ package body Test_Empty_Productions_1 is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, BEGIN_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
-      Analyzers, Parsers, 1, LALRs, LALR_Generator, Grammar);
+     (Token_IDs, BEGIN_ID, EOF_ID, Tokens_Pkg, Nonterminals, Productions, Production_Lists,
+      Parsers, 1, LALRs, LALR_Generator, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
      LALR_Generator.LRk.Has_Empty_Production (Grammar);

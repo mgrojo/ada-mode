@@ -1,7 +1,9 @@
 GNAT
+YYLex
 *AUnit
 *CR
 *CSV
+*DFA
 *EOF
 *EOI
 *EOL
@@ -13,6 +15,7 @@ GNAT
 *IO
 *LALR
 *LALRs
+*LF
 *LHS
 *LR0
 *LR1
@@ -20,3 +23,4 @@ GNAT
 *OS
 *OpenToken
 *RHS
+*YY

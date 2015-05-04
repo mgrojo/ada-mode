@@ -4,7 +4,7 @@
 --  earlier version of OpenToken, this grammar reported spurious
 --  conflicts.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,11 +30,10 @@ with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Identifier;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Identifier;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Nonterminal;
 package Association_Token_Test is
 
    type Token_ID_Type is
@@ -58,18 +57,17 @@ package Association_Token_Test is
       Statement_ID);
 
    Token_Image_Width : Integer := Token_ID_Type'Width;
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Comma_ID, EOF_ID, Token_ID_Type'Image);
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
+   package Master_Token is new OpenToken.Token (Token_ID_Type, Comma_ID, EOF_ID, Token_ID_Type'Image);
+   package Nonterminal is new Master_Token.Nonterminal;
 
    package Identifier_Token is new Master_Token.Identifier;
    package Integer_Literal is new Master_Token.Integer;
 
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
 
    package Tokenizer is new Master_Token.Analyzer;
-   package Parser is new Production.Parser (Tokenizer);
+   package Parser is new Production.Parser;
    package LALRs is new Parser.LALR (First_State_Index => 1);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);
@@ -112,7 +110,7 @@ package Association_Token_Test is
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    --  For use in right or left hand sides
    Aggregate        : constant Nonterminal.Class := Nonterminal.Get (Aggregate_ID);

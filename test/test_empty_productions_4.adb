@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,9 +21,7 @@ pragma License (GPL);
 with AUnit.Check;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 package body Test_Empty_Productions_4 is
 
    --  A grammar with a null production in the first two nonterms in a
@@ -47,18 +45,16 @@ package body Test_Empty_Productions_4 is
       subprogram_declaration_ID,
       overriding_indicator_ID);
 
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, IDENTIFIER_ID, EOF_ID, Token_IDs'Image);
-   package Token_Lists is new Tokens_Pkg.List;
-   package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-   package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
+   package Tokens_Pkg is new OpenToken.Token (Token_IDs, IDENTIFIER_ID, EOF_ID, Token_IDs'Image);
+   package Nonterminals is new Tokens_Pkg.Nonterminal;
+   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Analyzers is new Tokens_Pkg.Analyzer;
-   package Parsers is new Productions.Parser (Analyzers);
+   package Parsers is new Productions.Parser;
    package LALRs is new Parsers.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
-   use type Token_Lists.Instance;
+   use type Tokens_Pkg.List.Instance;
    use type Productions.Right_Hand_Side;
    use type Productions.Instance;
    use type Production_Lists.Instance;

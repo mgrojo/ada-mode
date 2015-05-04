@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,9 +21,7 @@ pragma License (GPL);
 with Gen_OpenToken_AUnit;
 with OpenToken.Production.List;
 with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 package body Test_LR1_Lookahead_Closure is
 
    --  A grammar for a greatly simplified form of the Ada 2012 case
@@ -54,18 +52,16 @@ package body Test_LR1_Lookahead_Closure is
       factor_ID,
       factor_list_ID,
       range_nt_ID);
-   package Tokens_Pkg is new OpenToken.Token.Enumerated (Token_IDs, RANGE_ID, EOF_ID, Token_IDs'Image);
-   package Analyzers is new Tokens_Pkg.Analyzer;
-   package Token_Lists is new Tokens_Pkg.List;
-   package Nonterminals is new Tokens_Pkg.Nonterminal (Token_Lists);
-   package Productions is new OpenToken.Production (Tokens_Pkg, Token_Lists, Nonterminals);
+   package Tokens_Pkg is new OpenToken.Token (Token_IDs, RANGE_ID, EOF_ID, Token_IDs'Image);
+   package Nonterminals is new Tokens_Pkg.Nonterminal;
+   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
    package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser (Analyzers);
+   package Parsers is new Productions.Parser;
    package LALRs is new Parsers.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
 
    --  Allow infix operators for building productions
-   use type Token_Lists.Instance;
+   use type Tokens_Pkg.List.Instance;
    use type Productions.Right_Hand_Side;
    use type Productions.Instance;
    use type Production_Lists.Instance;
@@ -98,8 +94,8 @@ package body Test_LR1_Lookahead_Closure is
      ;
 
    package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, RANGE_ID, EOF_ID, Tokens_Pkg, Token_Lists, Nonterminals, Productions, Production_Lists,
-      Analyzers, Parsers, 1, LALRs, LALR_Generators, Grammar);
+     (Token_IDs, RANGE_ID, EOF_ID, Tokens_Pkg, Nonterminals, Productions, Production_Lists,
+      Parsers, 1, LALRs, LALR_Generators, Grammar);
 
    ----------
    --  Test procedures

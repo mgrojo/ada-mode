@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2008, 2013, 2014 Stephe Leake
+-- Copyright (C) 2003, 2008, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -70,7 +70,7 @@ package OpenToken.Production.Parser.LRk_Item is
    type Item_Ptr is access Item_Node;
    type Item_Node is record
       Prod       : OpenToken.Production.Instance;
-      Dot        : Token_List.List_Iterator; -- token after item Dot
+      Dot        : Token.List.List_Iterator; -- token after item Dot
       State      : Unknown_State_Index;
       Lookaheads : Item_Lookahead_Ptr;
       Next       : Item_Ptr;

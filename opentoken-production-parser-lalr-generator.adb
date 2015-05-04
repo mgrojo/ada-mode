@@ -1,4 +1,4 @@
---  Copyright (C) 2002 - 2005, 2008 - 2014 Stephe Leake
+--  Copyright (C) 2002 - 2005, 2008 - 2015 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -227,7 +227,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       For_Token    : in     Token.Token_ID;
       Propagations : in out Item_Item_List_Mapping_Ptr)
    is
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
       use type LRk.Item_Set_Ptr;
       use type LRk.Item_Ptr;
 
@@ -294,7 +294,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       Closure_Item : in     LRk.Item_Node;
       Accept_State : in     State_Index;
       Propagations : in out Item_Item_List_Mapping_Ptr;
-      Used_Tokens  : in out Tokenizer.Token_Array_Boolean;
+      Used_Tokens  : in out Token.Token_Array_Boolean;
       Trace        : in     Boolean)
    is
       Spontaneous_Count : Integer := 0;
@@ -302,7 +302,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       use type LRk.Item_Lookahead_Ptr;
       use type LRk.Item_Ptr;
       use type LRk.Item_Set_Ptr;
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("  closure_item: ");
@@ -335,13 +335,13 @@ package body OpenToken.Production.Parser.LALR.Generator is
 
       --  If the closure item doesn't have a token after Dot,
       --  there's nothing else to do.
-      if Closure_Item.Dot = Token_List.Null_Iterator then
+      if Closure_Item.Dot = Token.List.Null_Iterator then
          return;
       end if;
 
       declare
-         Token_ID   : constant Token.Token_ID           := Token_List.ID (Closure_Item.Dot);
-         Next_Token : constant Token_List.List_Iterator := Token_List.Next_Token (Closure_Item.Dot);
+         Token_ID   : constant Token.Token_ID           := Token.List.ID (Closure_Item.Dot);
+         Next_Token : constant Token.List.List_Iterator := Token.List.Next_Token (Closure_Item.Dot);
 
          Next_Item : constant LRk.Item_Node :=
            (Prod       => Closure_Item.Prod,
@@ -456,7 +456,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       First                : in     LRk.Derivation_Matrix;
       Kernels              : in out LRk.Item_Set_List;
       Accept_State         : in     State_Index;
-      Used_Tokens          : in out Tokenizer.Token_Array_Boolean;
+      Used_Tokens          : in out Token.Token_Array_Boolean;
       Trace                : in     Boolean)
    is
       Kernel       : LRk.Item_Set_Ptr := Kernels.Head;
@@ -534,7 +534,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
      return Token.Token_ID
    is
       --  Return LHS of production that matches Action, Lookahead
-      use Token_List;
+      use Token.List;
       use type LRk.Item_Set;
       use type Token.Token_ID;
       use type LRk.Item_Ptr;
@@ -766,7 +766,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
 
       use type LRk.Item_Ptr;
       use type LRk.Set_Reference_Ptr;
-      use type Token_List.List_Iterator;
+      use type Token.List.List_Iterator;
       use type Token.Handle;
    begin
       if Trace then
@@ -777,17 +777,17 @@ package body OpenToken.Production.Parser.LALR.Generator is
       end if;
 
       while Item /= null loop
-         if Item.Dot = Token_List.Null_Iterator then
+         if Item.Dot = Token.List.Null_Iterator then
             --  Pointer is at the end of the production; add a reduce
             --  or accept action.
 
             Add_Lookahead_Actions
               (Item, Kernel, Accept_State, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
-         elsif Token_List.ID (Item.Dot) in Token.Terminal_ID then
+         elsif Token.List.ID (Item.Dot) in Token.Terminal_ID then
             --  Dot is before a terminal token.
             declare
-               Dot_ID : constant Token.Terminal_ID := Token_List.ID (Item.Dot);
+               Dot_ID : constant Token.Terminal_ID := Token.List.ID (Item.Dot);
                --  ID of token after Item.Dot
             begin
                Add_Action
@@ -807,7 +807,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
             --  empty production for the non-terminal will appear in
             --  the closure, and be handled above.
             if Trace then
-               Ada.Text_IO.Put_Line (Token.Token_Image (Token_List.ID (Item.Dot)) & " => no action");
+               Ada.Text_IO.Put_Line (Token.Token_Image (Token.List.ID (Item.Dot)) & " => no action");
             end if;
          end if;
 
@@ -962,7 +962,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
       Has_Empty_Production : constant LRk.Nonterminal_ID_Set := LRk.Has_Empty_Production (Grammar);
       First                : constant LRk.Derivation_Matrix  := LRk.First_Derivations
         (Grammar, Has_Empty_Production, Trace);
-      Used_Tokens          : Tokenizer.Token_Array_Boolean   := (others => False);
+      Used_Tokens          : Token.Token_Array_Boolean       := (others => False);
 
       Kernels : LRk.Item_Set_List := LRk.LR0_Kernels (Grammar, First, Trace, Unknown_State_Index (First_State_Index));
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2014 Stephen Leake
+--  Copyright (C) 2014, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -22,21 +22,19 @@ with AUnit.Assertions;
 with AUnit.Check;
 with Ada.Exceptions;
 with OpenToken.Production.Parser.LALR.Parser_Lists;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+--  FIXME: needed elswhere? with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Nonterminal;
 package body Parser_Lists_Test is
 
    --  we need an instantiation of OpenToken.Production.Parser.LALR.Parser to test
 
    type Token_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
-   package Token is new OpenToken.Token.Enumerated (Token_ID, If_ID, EOF_ID, Token_ID'Image);
-   package Token_List is new Token.List;
-   package Nonterminal is new Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Token, Token_List, Nonterminal);
-   package Tokenizer is new Token.Analyzer;
-   package Parser is new Production.Parser (Tokenizer);
+   package Token is new OpenToken.Token (Token_ID, If_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token.Nonterminal;
+   package Production is new OpenToken.Production (Token, Nonterminal);
+   --  FIXME: needed elsewhere? package Tokenizer is new Token.Analyzer;
+   package Parser is new Production.Parser;
    package LALRs is new Parser.LALR (First_State_Index => 1);
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 0);
 
@@ -210,9 +208,9 @@ package body Parser_Lists_Test is
 
       Parsers : List                  := Initialize;
       Item_1  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Statement_ID)), Token_List.Null_List);
+        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Statement_ID)), Token.List.Null_List);
       Item_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Procedure_ID)), Token_List.Null_List);
+        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Procedure_ID)), Token.List.Null_List);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
    begin
@@ -254,7 +252,7 @@ package body Parser_Lists_Test is
       use AUnit.Check;
       use Parser_Lists;
       use LALRs;
-      use Token_List;
+      use Token.List;
       use Parser_Lists_Test;
 
       Parsers : List := Initialize;

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,12 +21,20 @@ with Ada.Exceptions;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
+   function Non_Reporting (Kind : in String) return Boolean
+   is begin
+      return
+        Kind = """line_comment""" or
+        Kind = """line_end""" or
+        Kind = """whitespace""";
+   end Non_Reporting;
+
    function Count_Non_Reporting return Integer
    is
       Result : Integer := 0;
    begin
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             Result := Result + Integer (Kind.Tokens.Length);
          end if;
       end loop;
@@ -40,7 +48,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       --  Same order as set_token_images below.
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -58,7 +66,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -100,7 +108,7 @@ package body Wisi.Gen_Generate_Utils is
 
       --  non-reporting
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
                ID := ID + 1;
@@ -114,7 +122,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
                ID := ID + 1;
@@ -162,7 +170,7 @@ package body Wisi.Gen_Generate_Utils is
 
       Kind : constant String := To_String (Token_Ref.Element.Kind);
    begin
-      return Kind = """line_comment""" or Kind = """whitespace""";
+      return Non_Reporting (Kind);
    end Non_Reporting;
 
    function First_Token_Item (Cursor : in Token_Cursor) return String_Pair_Lists.Cursor
@@ -430,9 +438,9 @@ package body Wisi.Gen_Generate_Utils is
       raise OpenToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Token_Lists.Instance; Token : in String) return Token_Lists.Instance
+   function "&" (Tokens : in Tokens_Pkg.List.Instance; Token : in String) return Tokens_Pkg.List.Instance
    is
-      use Token_Lists;
+      use Tokens_Pkg.List;
    begin
       return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
    end "&";
@@ -440,7 +448,7 @@ package body Wisi.Gen_Generate_Utils is
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance
    is
       use Productions;
-      use Token_Lists;
+      use Tokens_Pkg.List;
 
       Grammar : Production_Lists.Instance;
    begin
@@ -463,7 +471,7 @@ package body Wisi.Gen_Generate_Utils is
                declare
                   use Production_Lists;
 
-                  Tokens : Token_Lists.Instance;
+                  Tokens : Tokens_Pkg.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;

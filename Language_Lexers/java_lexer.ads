@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012, 2013, 2014 Stephen Leake
+-- Copyright (C) 2012, 2013, 2014, 2015 Stephen Leake
 -- Copyright (C) 1999 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -39,7 +39,7 @@ with OpenToken.Recognizer.Octal_Escape;
 with OpenToken.Recognizer.Real;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Recognizer.String;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
 package Java_Lexer is
 
    ---------------------------------------------------------------------
@@ -124,7 +124,7 @@ package Java_Lexer is
       --
       End_of_File_T);
 
-   package Master_Java_Token is new OpenToken.Token.Enumerated
+   package Master_Java_Token is new OpenToken.Token
      (Java_Token, Java_Token'First, Java_Token'Last, Java_Token'Image);
    package Tokenizer is new Master_Java_Token.Analyzer;
 

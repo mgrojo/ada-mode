@@ -31,7 +31,7 @@
 %token <string-double> STRING_LITERAL
 %token <symbol> IDENTIFIER
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 %token <line_comment> COMMENT "--"
 
 ;; not first nonterminal

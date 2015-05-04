@@ -41,46 +41,46 @@ tests : test_all_harness.diff
 tests : test_html_lexer_safe.diff
 tests : test_html_lexer_safe-syntax_error.diff
 tests : token_analyzer_ctd-run.run
-tests : token_list_test-run.run
-tests : token_selection_test-run.run
-tests : token_sequence_test-run.run
 
 # from ../wisi/test
 #
 # to parse .wy, build .ads, run parser, we'd like to do:
+#
 # %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
-# but that gets overridden by the simpler .exe rule for other things. So we must list %.ads explicitly in tests:
+#
+# but that gets overridden by the simpler .exe rule for other things.
+# So we must list %.ads or %.l explicitly in tests. We do half of
+# these tests with the Aflex lexer, to get some testing with that.
+# Testing with an Emacs module calling the elisp wisi lexer and wisi
+# actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
-tests : empty_production_1.ads
+tests : empty_production_1_yylex.ads
 tests : empty_production_1-parse.diff
 tests : empty_production_2.ads
 tests : empty_production_2-parse.diff
-tests : empty_production_3.ads
+tests : empty_production_3_yylex.ads
 tests : empty_production_3-parse.diff
 tests : empty_production_4.ads
 tests : empty_production_4-parse.diff
-tests : empty_production_5.ads
+tests : empty_production_5_yylex.ads
 tests : empty_production_5-parse.diff
 tests : empty_production_6.ads
 tests : empty_production_6-parse.diff
-tests : empty_production_7.ads
+tests : empty_production_7_yylex.ads
 tests : empty_production_7-parse.diff
 tests : empty_production_8.ads
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict.ads
+tests : identifier_list_name_conflict_yylex.ads
 tests : identifier_list_name_conflict-parse.diff
 tests : multi_conflict.ads
 tests : multi_conflict-parse.diff
-tests : subprograms.ads
+tests : subprograms_yylex.ads
 tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
-examples : asu_example_4_46_rd-run.run
 examples : asu_example_5_10_lr-run.run
-examples : asu_example_5_10_rd_commute-run.run
-examples : asu_example_5_10_rd_list-run.run
 examples : ada_count.run
 examples : test_ada_lexer.run
 examples : test_html_lexer_unsafe.run
@@ -186,9 +186,25 @@ DIFF_OPT := -u -w
 # match historical first_state_index, first_parser_label
 %.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs OpenToken_Lexer > $*.parse_table
 	dos2unix $*.parse_table
-	dos2unix $*.el
+	dos2unix -q $*.el
+
+%.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%.l : %.wy wisi-generate.exe
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs Aflex_Lexer > $*.parse_table
+	dos2unix $*.parse_table
+	dos2unix -q $*.el
+
+clean :: wisi-clean
+
+# delete files created by wisi-generate
+wisi-clean :
+	rm -f *.parse_table *.ads *.adb *.el *.l
+
+# for a wisi test
+ada_grammar.ads : RUN_ARGS ?= --profile
+ada_grammar.ads : LEXER ?= Aflex_Lexer
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v 2 $< > $*.parse
@@ -196,7 +212,19 @@ DIFF_OPT := -u -w
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
 
-.PRECIOUS : %-wy.el %.ads %_run.exe %.parse
+%.ada : %.l
+	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa.adb.template -O../../wisi/opentoken_aflex_io.adb.template $(AFLEX_ARGS) $<
+
+%_yylex.ads : %.ada
+	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
+
+clean :: aflex-clean
+
+# delete files created by aflex
+aflex-clean :
+	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
+
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-wy.el
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

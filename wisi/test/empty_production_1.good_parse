@@ -1,3 +1,12 @@
+read 128
+-- a simple body, with empty declarations
+is begin;
+
+-- one declaration; a body with empty declarations
+is
+    is begin;
+begin;
+
  1 stack:  1 : , 
  1: 1: (IS 43 . 45) : shift and goto state 2
  1 stack:  2 : (IS 43 . 45),  1 : , 
@@ -51,22 +60,22 @@ declarative_part_id_0: (declarative_part 112 . 121) (declarations 112 . 121)
  1 stack:  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
  1: 9: (SEMICOLON 127 . 128) : shift and goto state 10
  1 stack:  10 : (SEMICOLON 127 . 128),  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 10: (EOF 128 . 129) : reduce 4 tokens to body
+ 1: 10: (EOF 1 . 2) : reduce 4 tokens to body
 [-9 [(3 105 . 107)(8 112 . 121)(2 122 . 127)(4 127 . 128)]
 (-10 [1 -11 3 -11 4 -12])
 ]
 body_id_0: (body 105 . 128) (IS 105 . 107), (declarative_part 112 . 121), (BEGIN 122 . 127), (SEMICOLON 127 . 128)
  ... goto state 7
  1 stack:  7 : (body 105 . 128),  3 : (declarations 43 . 52),  1 : , 
- 1: 7: (EOF 128 . 129) : reduce 2 tokens to declarations
+ 1: 7: (EOF 1 . 2) : reduce 2 tokens to declarations
 declarations_id_0: (declarations 43 . 128) (declarations 43 . 52), (body 105 . 128)
  ... goto state 3
  1 stack:  3 : (declarations 43 . 128),  1 : , 
- 1: 3: (EOF 128 . 129) : reduce 1 tokens to declarative_part
+ 1: 3: (EOF 1 . 2) : reduce 1 tokens to declarative_part
 declarative_part_id_0: (declarative_part 43 . 128) (declarations 43 . 128)
  ... goto state 4
  1 stack:  4 : (declarative_part 43 . 128),  1 : , 
- 1: 4: (EOF 128 . 129) : shift and goto state 6
- 1 stack:  6 : (EOF 128 . 129),  4 : (declarative_part 43 . 128),  1 : , 
- 1: 6: (EOF 129 . 130) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 43 . 129) (declarative_part 43 . 128), (EOF 128 . 129)
+ 1: 4: (EOF 1 . 2) : shift and goto state 6
+ 1 stack:  6 : (EOF 1 . 2),  4 : (declarative_part 43 . 128),  1 : , 
+ 1: 6: (EOF 1 . 2) : accept it
+opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 128) (declarative_part 43 . 128), (EOF 1 . 2)

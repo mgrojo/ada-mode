@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2012 - 2014 Stephen Leake
+-- Copyright (C) 2012 - 2015 Stephen Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -55,7 +55,7 @@ package OpenToken.Text_Feeder.Text_IO is
 
    --------------------------------------------------------------------------
    --  This procedure returns strings for the analyzer. If the end of
-   --  the file is reached, a Token.EOF_Character is retured. Each
+   --  the file is reached, an OpenToken.EOF_Character is retured. Each
    --  text line is terminated with an OpenToken.EOF_Character, no
    --  matter what actual character (if any) the OS uses for that
    --  purpose.

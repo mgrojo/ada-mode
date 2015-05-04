@@ -1,3 +1,12 @@
+read 179
+-- grammar requires three statements
+
+Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
+
+"+", Name_2 -- name_list
+
+(selector_1 => name_1, "=" => "=") -- association_list
+
  1 stack:  1 : , 
  1: 1: (IDENTIFIER 39 . 46) : shift and goto state 4
 spawn parser from 1 (2 active)
@@ -214,29 +223,29 @@ pending association_list_id_0: (association_list) (association_list), (COMMA 146
  1 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
  1: 17: (RIGHT_PAREN 158 . 159) : shift and goto state 20
  2 stack:  20 : (RIGHT_PAREN 158 . 159),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 20: (EOF 179 . 180) : reduce 3 tokens to compilation_unit
+ 2: 20: (EOF 1 . 2) : reduce 3 tokens to compilation_unit
 pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 21
  ... goto state 22
  1 stack:  20 : (RIGHT_PAREN 158 . 159),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 20: (EOF 179 . 180) : reduce 3 tokens to compilation_unit
+ 1: 20: (EOF 1 . 2) : reduce 3 tokens to compilation_unit
 pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 18
  ... goto state 22
  2 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 22: (EOF 179 . 180) : reduce 3 tokens to compilation
+ 2: 22: (EOF 1 . 2) : reduce 3 tokens to compilation
 pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 22
  ... goto state 5
  1 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 22: (EOF 179 . 180) : reduce 3 tokens to compilation
+ 1: 22: (EOF 1 . 2) : reduce 3 tokens to compilation
 pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 19
  ... goto state 5
  2 stack:  5 : (compilation),  1 : , 
- 2: 5: (EOF 179 . 180) : shift and goto state 13
+ 2: 5: (EOF 1 . 2) : shift and goto state 13
  1 stack:  5 : (compilation),  1 : , 
- 1: 5: (EOF 179 . 180) : shift and goto state 13
- 2 stack:  13 : (EOF 179 . 180),  5 : (compilation),  1 : , 
- 2: 13: (EOF 180 . 181) : accept it
-pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 179 . 180) action count: 23
- 1 stack:  13 : (EOF 179 . 180),  5 : (compilation),  1 : , 
- 1: 13: (EOF 180 . 181) : accept it
-pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 179 . 180) action count: 20
-identifier_list_name_conflict.input:7:1079: Ambiguous parse: 2 parsers active.
+ 1: 5: (EOF 1 . 2) : shift and goto state 13
+ 2 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
+ 2: 13: (EOF 1 . 2) : accept it
+pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 23
+ 1 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
+ 1: 13: (EOF 1 . 2) : accept it
+pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 20
+identifier_list_name_conflict.input:7:56: Ambiguous parse: 2 parsers active.

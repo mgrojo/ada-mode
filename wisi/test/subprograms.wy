@@ -32,7 +32,7 @@
 %token <punctuation> TICK "'"
 %token <string-double> STRING_LITERAL
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 ;; 'opentoken_accept', $EOI added in wisi-generate
 %start compilation_unit

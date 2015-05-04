@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -44,7 +44,7 @@ package body Wisi_Wy_Test is
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
            (1         => Wy_File,
-            2         => new String'("elisp")),
+            2         => new String'("Elisp")),
          Success      => Success);
 
       AUnit.Assertions.Assert

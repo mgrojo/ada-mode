@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2003, 2013, 2014 Stephe Leake
+-- Copyright (C) 2003, 2013 - 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,24 +25,23 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Nonterminal;
 
-pragma Elaborate_All (OpenToken.Token.Enumerated);
+pragma Elaborate_All (OpenToken.Token);
 
 -------------------------------------------------------------------------------
 --  This package provides a type and operations for building grammar
 --  productions.
 -------------------------------------------------------------------------------
 generic
-   with package Token is new OpenToken.Token.Enumerated (<>);
-   with package Token_List is new Token.List;
-   with package Nonterminal is new Token.Nonterminal (Token_List);
+   with package Token is new OpenToken.Token (<>);
+   with package Nonterminal is new Token.Nonterminal;
 package OpenToken.Production is
 
    ----------------------------------------------------------------------------
    --  The Right Hand Side of a production is a token list "+"ed with a
    --  synthesization routine. For example:
+   --
    --     Number & Minus_Sign & Number + Nonterminal.Synthesize_First
    --
    type Right_Hand_Side is private;
@@ -53,7 +52,7 @@ package OpenToken.Production is
    --  parser.
 
    function "+"
-     (Tokens : in Token_List.Instance;
+     (Tokens : in Token.List.Instance;
       Action : in Nonterminal.Synthesize)
      return Right_Hand_Side;
    function "+"
@@ -65,7 +64,7 @@ package OpenToken.Production is
      return Right_Hand_Side;
 
    function "+"
-     (Tokens : in Token_List.Instance;
+     (Tokens : in Token.List.Instance;
       Index  : in Integer)
      return Right_Hand_Side;
    function "+"
@@ -109,11 +108,11 @@ package OpenToken.Production is
    --  Production building operators using token lists
    ----------------------------------------------------------------------------
    function "<=" (LHS : in Nonterminal.Handle;
-                  RHS : in Token_List.Instance
+                  RHS : in Token.List.Instance
                  ) return Instance;
 
    function "<=" (LHS : in Nonterminal.Class;
-                  RHS : in Token_List.Instance
+                  RHS : in Token.List.Instance
                  ) return Instance;
 
    ----------------------------------------------------------------------------
@@ -130,7 +129,7 @@ package OpenToken.Production is
    ----------
    --  Access functions
 
-   function First_Token (Item : in Instance) return Token_List.List_Iterator;
+   function First_Token (Item : in Instance) return Token.List.List_Iterator;
    function LHS (Item : in Instance) return Nonterminal.Handle;
    function LHS_ID (Item : in Instance) return Token.Token_ID;
    function Index (Item : in Instance) return Integer;
@@ -139,7 +138,7 @@ package OpenToken.Production is
 private
 
    type Right_Hand_Side is record
-      Tokens : Token_List.Instance;
+      Tokens : Token.List.Instance;
       Action : Nonterminal.Synthesize;
       Index  : Integer; -- In grammar rule
    end record;

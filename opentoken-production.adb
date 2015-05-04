@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013, 2014 Stephe Leake
+--  Copyright (C) 2013, 2014, 2015 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -29,7 +29,7 @@
 package body OpenToken.Production is
 
    function "+"
-     (Tokens : in Token_List.Instance;
+     (Tokens : in Token.List.Instance;
       Action : in Nonterminal.Synthesize)
      return Right_Hand_Side
    is begin
@@ -41,18 +41,18 @@ package body OpenToken.Production is
       Action : in Nonterminal.Synthesize)
      return Right_Hand_Side
    is begin
-      return (Token_List.Only (Tokens), Action, 0);
+      return (Token.List.Only (Tokens), Action, 0);
    end "+";
 
    function "+"
      (Action : in Nonterminal.Synthesize)
      return Right_Hand_Side
    is begin
-      return (Token_List.Null_List, Action, 0);
+      return (Token.List.Null_List, Action, 0);
    end "+";
 
    function "+"
-     (Tokens : in Token_List.Instance;
+     (Tokens : in Token.List.Instance;
       Index  : in Integer)
      return Right_Hand_Side
    is begin
@@ -64,14 +64,14 @@ package body OpenToken.Production is
       Index  : in Integer)
      return Right_Hand_Side
    is begin
-      return (Token_List.Only (Tokens), null, Index);
+      return (Token.List.Only (Tokens), null, Index);
    end "+";
 
    function "+"
      (Index  : in Integer)
      return Right_Hand_Side
    is begin
-      return (Token_List.Null_List, null, Index);
+      return (Token.List.Null_List, null, Index);
    end "+";
 
    function "<="
@@ -101,7 +101,7 @@ package body OpenToken.Production is
 
    function "<="
      (LHS : in Nonterminal.Handle;
-      RHS : in Token_List.Instance)
+      RHS : in Token.List.Instance)
      return Instance
    is begin
       return (LHS => LHS,
@@ -109,7 +109,7 @@ package body OpenToken.Production is
    end "<=";
 
    function "<=" (LHS : in Nonterminal.Class;
-                  RHS : in Token_List.Instance
+                  RHS : in Token.List.Instance
                  ) return Instance is
    begin
       return (LHS => new Nonterminal.Class'(LHS),
@@ -139,9 +139,9 @@ package body OpenToken.Production is
              );
    end "<=";
 
-   function First_Token (Item : in Instance) return Token_List.List_Iterator
+   function First_Token (Item : in Instance) return Token.List.List_Iterator
    is begin
-      return Token_List.Initial_Iterator (Item.RHS.Tokens);
+      return Token.List.Initial_Iterator (Item.RHS.Tokens);
    end First_Token;
 
    function LHS (Item : in Instance) return Nonterminal.Handle

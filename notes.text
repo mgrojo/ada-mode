@@ -1,30 +1,57 @@
 Misc notes on current work
 
+build/release/Makefile
+build/debug/Makefile
 
- misc
+finish refactor packages
+    delete opentoken.trace_indent?
 
-every file is marked executable in mtn?
+    delete token.name?
 
-html_lexer:
+    delete token.set_id, or doc why not
 
-    new tags:
+    add aflex/wisi versions to dragon examples
 
-     Code,               -- <CODE>
-     Paragraph       -- <P attributes>
+    make install should install wisi-generate.exe
 
-Expecting eliminate duplicates
-    same as First sets; dragon section 2.4
+    review FIXME
 
-need string value for integer_token
-    unsigned_32'last > integer'last
-    similarly for time_type, real_type
+speed up parsing, for Emacs Ada backend
+    gnatcoll-xref.adb needs to be < 0.2 second
 
-need to find all access types, make them pool-specific, use tracing allocator (gnat.debug_pool).
+    measure progress:
+        with wisi-generate Ada_Emacs
+        time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > debug.parse
 
-error on missing ':' in 'range | foo ;'
+        opentoken.stephe: 0.608, 0.920, 0.811, 0.842
+        opentoken.stephe-1: refactor linked_lists, enumerated: 0.577 0.811 0.842 0.814 0.827
 
-pointer at end of kernel => default should be reduce or accept
-    don't need to compute lookaheads?
-    see FIXME in opentoken-production-parser-lalr.adb
+        with wisi-generate --profile Ada_Emacs
+        time ./run_ada_parser_*.exe 10 ../../wisi/test/gnatcoll-xref.adb
+
+        run_ada_parser_1 : --profile Opentoken_Lexer Ada_Emacs
+        run_ada_parser_2 : --profile Aflex_Lexer Ada_Emacs
+
+        refactor linked_lists, enumerated:
+            _1 OpenToken.Text_Feeder.Text_IO : 3.413 3.453 3.448
+            _2 aflex text feeder             : 1.901 1.815 1.789
+                1.8 times faster; leaves 0.02 for elisp actions (almost fast enough)
+
+        change aflex to use OpenToken text_feeder (heading for Emacs buffer):
+            _2 OpenToken.Text_Feeder.Text_IO: 1.435 1.170 1.201
+                2.7 times faster than _1 OpenToken.Text_Feeder.Text_IO; 0.127 parse; 0.073 for elisp actions
+
+        change run_ada_parser to use counted_gnat_os_lib text_feeder:
+            _2 OpenToken.Text_Feeder.counted_gnat_os_lib: 1.426 1.250 1.226
+
+use aflex
+    /Projects/aflex/build/Makefile
+    /Projects/aflex/aflex.adb
+    source from http://sourceforge.net/projects/p2ada/
+
+    better error messages; gnu syntax
+
+    regenerate aflex.l
+        start with flex.l?
 
 # end of file

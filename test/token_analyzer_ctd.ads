@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --  Copyright (C) 2013 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -25,20 +25,14 @@
 --
 -------------------------------------------------------------------------------
 
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.Analyzer;
+with OpenToken.Token.Analyzer;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Nothing;
-
------------------------------------------------------------------------------
---  Library-level declarations for test driver for the token
---  anlayzer's default token functionality
------------------------------------------------------------------------------
 package Token_Analyzer_CTD is
 
    type Token_IDs is (Normal, Default);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
 
@@ -46,8 +40,7 @@ package Token_Analyzer_CTD is
 
    Syntax : Tokenizer.Syntax :=
      (Normal  => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get (Normal_Text)),
-      Default => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get)
-     );
+      Default => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get));
 
    Analyzer : Tokenizer.Handle := Tokenizer.Initialize
      (Language_Syntax => Syntax,

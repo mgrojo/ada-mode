@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2008, 2012, 2013, 2014 Stephen Leake
+-- Copyright (C) 2008, 2012, 2013, 2014, 2015 Stephen Leake
 -- Copyright (C) 1999, 2008 Christoph Karl Walter Grein
 --
 -- This file is part of the OpenToken package.
@@ -39,11 +39,10 @@ with OpenToken.Recognizer.Real;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Recognizer.String;
 with OpenToken.Text_Feeder.Text_IO;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated;
+with OpenToken.Token.Analyzer;
 package body Ada_Lexer is
 
-   package Master_Ada_Token is new OpenToken.Token.Enumerated
+   package Master_Ada_Token is new OpenToken.Token
      (Ada_Token, Ada_Token'First, Ada_Token'Last, Ada_Token'Image);
    package Tokenizer        is new Master_Ada_Token.Analyzer;
 
@@ -194,7 +193,7 @@ package body Ada_Lexer is
       --  Take care that the expression Character'('x') is correctly processed:
       --  A character literal cannot follow an identifier.
    begin
-      Analyzer.Find_Next (Look_Ahead => False);
+      Analyzer.Find_Next;
       OpenToken.Recognizer.Graphic_Character.Redefine
         (OpenToken.Recognizer.Graphic_Character.Instance (Syntax (Character_T).Recognizer.all),
          Exclusion (Token_ID = Identifier_T));

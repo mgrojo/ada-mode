@@ -271,7 +271,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       New_Stack         :    out Stack_Node_Access;
       New_Action_Tokens :    out Action_Token_List)
    is
-      use Token_List;
+      use Token.List;
       use type Token.Handle;
 
       --  All Action_Token.New_Token must point either to a token on
@@ -292,7 +292,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       J          : Action_Token_Node_Access := Action_Token.Head;
       Action_Pos : Integer := New_Token_Items'Last;
       Iter       : List_Iterator;
-      New_Tokens : Token_List.Instance;
+      New_Tokens : Token.List.Instance;
       New_Token  : Token.Handle;
 
       I    : Stack_Node_Access := Stack;
@@ -604,10 +604,10 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       return False;
    end Is_In;
 
-   function Is_In (Item : in Nonterminal.Handle; Tokens : Token_List.Instance) return Boolean
+   function Is_In (Item : in Nonterminal.Handle; Tokens : Token.List.Instance) return Boolean
    is
       use type Token.Handle;
-      use Token_List;
+      use Token.List;
       Iter : List_Iterator := Initial_Iterator (Tokens);
    begin
       loop
@@ -658,10 +658,10 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    procedure Check_Are_In_Prev_New_Token
      (Label        : in String;
-      Tokens       : in Token_List.Instance;
+      Tokens       : in Token.List.Instance;
       Action_Token : in Action_Token_Node_Access)
    is
-      use Token_List;
+      use Token.List;
       Iter : List_Iterator := Initial_Iterator (Tokens);
    begin
       loop
@@ -728,7 +728,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
         "_" & OpenToken.Int_Image (Action_Token.Action.Index);
    begin
       Ada.Text_IO.Put (Action_Name & ": " & Action_Token.New_Token.Image & " ");
-      Token_List.Print (Action_Token.Tokens);
+      Token.List.Print (Action_Token.Tokens);
    end Put;
 
    procedure Put_Action_Tokens (Cursor : in Parser_Lists.Cursor)

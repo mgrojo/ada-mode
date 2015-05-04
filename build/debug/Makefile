@@ -10,7 +10,11 @@ t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
-one : body_instantiation_conflict-wy.el
+#one : body_instantiation_conflict-wy.el
+one: aflex.exe empty_production_1.l empty_production_1_yylex.ads empty_production_1-parse.diff
+
+aflex.exe : force
+	make -C /Projects/aflex/build install
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy

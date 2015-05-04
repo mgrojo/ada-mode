@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2014 Stephe Leake
+-- Copyright (C) 2014, 2015 Stephe Leake
 --
 -- This file is part of the OpenToken package.
 --
@@ -78,10 +78,10 @@ package OpenToken.Production.Parser.LALR.Parser_Lists is
    type Action_Token is record
       Action    : Reduce_Action_Rec;
       New_Token : Nonterminal.Handle;
-      Tokens    : Token_List.Instance;
+      Tokens    : Token.List.Instance;
    end record;
 
-   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, null, Token_List.Null_List);
+   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, null, Token.List.Null_List);
 
    function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer;

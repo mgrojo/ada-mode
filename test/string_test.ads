@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --  Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -31,16 +31,8 @@ with OpenToken.Recognizer.Character_Set;
 with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.String;
-
-with OpenToken.Token.Enumerated;
-with OpenToken.Token.Enumerated.Analyzer;
-
------------------------------------------------------------------------------
---  This package provides the library-level declarations for running
---  the string test driver.
------------------------------------------------------------------------------
+with OpenToken.Token.Analyzer;
 package String_Test is
-
 
    --  Global text file for reading parse data
    File : Ada.Text_IO.File_Type;
@@ -50,7 +42,7 @@ package String_Test is
    type Example_Token_ID is (Whitespace, If_ID, String_ID, EOF);
 
    Token_Image_Width : Integer := Example_Token_ID'Width;
-   package Master_Example_Token is new OpenToken.Token.Enumerated
+   package Master_Example_Token is new OpenToken.Token
      (Example_Token_ID, If_ID, EOF, Example_Token_ID'Image);
    package Tokenizer is new Master_Example_Token.Analyzer;
 

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2013, 2014 Stephe Leake
+-- Copyright (C) 2010, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -33,9 +33,7 @@ with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Real;
 with OpenToken.Recognizer.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated;
+with OpenToken.Token.Analyzer;
 procedure Enumerated_Token_List_Test is
 begin
 
@@ -51,12 +49,11 @@ begin
    declare
       type Token_IDs is (Int, Real, String, Keyword);
 
-      package Master_Token is new OpenToken.Token.Enumerated
+      package Master_Token is new OpenToken.Token
         (Token_IDs, Token_IDs'First, Token_IDs'Last, Token_IDs'Image);
       package Tokenizer is new Master_Token.Analyzer;
-      package Token_List is new Master_Token.List;
 
-      use type Token_List.Instance;
+      use type Master_Token.List.Instance;
 
       Syntax : constant Tokenizer.Syntax :=
         (Int     => Tokenizer.Get (OpenToken.Recognizer.Integer.Get),
@@ -69,8 +66,8 @@ begin
       Analyzer : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
       pragma Unreferenced (Analyzer);
 
-      List : Token_List.Instance;
-      Iterator : Token_List.List_Iterator;
+      List : Master_Token.List.Instance;
+      Iterator : Master_Token.List.List_Iterator;
       Passed : Boolean := True;
    begin
 
@@ -79,19 +76,19 @@ begin
 
       List := Syntax (Keyword).Token_Handle.all & Syntax (String).Token_Handle.all &
         Syntax (Real).Token_Handle.all & Syntax (Int).Token_Handle.all;
-      Iterator := Token_List.Initial_Iterator (List);
+      Iterator := Master_Token.List.Initial_Iterator (List);
       for ID in reverse Syntax'Range loop
-         if Master_Token.ID (Token_List.Token_Handle (Iterator).all) /= ID then
+         if Master_Token.ID (Master_Token.List.Token_Handle (Iterator).all) /= ID then
             Ada.Text_IO.Put_Line ("failed!");
             Ada.Text_IO.Put_Line
               ("  (got a " &
-                 Token_IDs'Image (Master_Token.ID (Token_List.Token_Handle (Iterator).all)) &
+                 Token_IDs'Image (Master_Token.ID (Master_Token.List.Token_Handle (Iterator).all)) &
                  " where a " & Token_IDs'Image (ID) & " was expected.");
             Passed := False;
          end if;
-         Token_List.Next_Token (Iterator);
+         Master_Token.List.Next_Token (Iterator);
       end loop;
-      Token_List.Clean (List);
+      Master_Token.List.Clean (List);
 
       if Passed then
          Ada.Text_IO.Put_Line ("passed");

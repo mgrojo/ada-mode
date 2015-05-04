@@ -71,7 +71,7 @@ package OpenToken.Production.Parser.LALR.Generator is
       First                : in     LRk.Derivation_Matrix;
       Kernels              : in out LRk.Item_Set_List;
       Accept_State         : in     State_Index;
-      Used_Tokens          : in out Tokenizer.Token_Array_Boolean;
+      Used_Tokens          : in out Token.Token_Array_Boolean;
       Trace                : in     Boolean);
 
    procedure Add_Actions

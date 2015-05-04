@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2010, 2013, 2014 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013 - 2015 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the OpenToken package.
@@ -52,8 +52,9 @@ package OpenToken is
    Programmer_Error : exception; -- a programming convention has been violated
 
    --  We use this regardless of OS, since we need a standard way of
-   --  representing an end of line in a string buffer
-   EOL_Character : constant Character := Ada.Characters.Latin_1.CR;
+   --  representing an end of line in a string buffer. We use
+   --  LF to match OpenToken.Token.Aflex; Aflex hard-codes LF.
+   EOL_Character : constant Character := Ada.Characters.Latin_1.LF;
 
    --  Similarly, this is independent of OS
    EOF_Character : constant Character := Ada.Characters.Latin_1.EOT;
@@ -65,14 +66,12 @@ package OpenToken is
 
    package Buffers is new Ada.Strings.Bounded.Generic_Bounded_Length (Max_String_Length);
 
-   ----------------------------------------------------------------------
+   Trace_Parse : Integer := 0;
    --  If Trace_Parse > 0, Parse prints helpful messages; higher value
    --  prints more.
-   ----------------------------------------------------------------------
-   Trace_Parse : Integer := 0;
 
-   --  Put Message, indented by 3 * Trace_Indent; no new_line
    procedure Trace_Put (Message : in String);
+   --  Put Message, indented by 3 * Trace_Indent; no new_line
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space

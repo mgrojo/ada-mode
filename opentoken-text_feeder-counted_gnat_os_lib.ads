@@ -8,7 +8,7 @@
 --  return until some rather large buffer fills up. This does not
 --  happen with GNAT_OS_Lib.Read.
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,6 +28,7 @@ with GNAT.OS_Lib;
 package OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
    type Instance is new OpenToken.Text_Feeder.Instance with private;
+   type Handle is access all Instance'Class;
 
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr;
    --  File must be open.

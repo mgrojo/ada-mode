@@ -2,7 +2,7 @@
 --
 --  Test grammar generator with an Ada-like Name syntax
 --
---  Copyright (C) 2002, 2003, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2010, 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,10 +27,9 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Identifier;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Identifier;
+with OpenToken.Token.Nonterminal;
 package Name_Token_Test is
 
    type Token_ID_Type is
@@ -51,20 +50,19 @@ package Name_Token_Test is
       Symbol_Name_ID);
 
    Token_Image_Width : Integer := Token_ID_Type'Width;
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Dot_ID, EOF_ID, Token_ID_Type'Image);
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
+   package Master_Token is new OpenToken.Token (Token_ID_Type, Dot_ID, EOF_ID, Token_ID_Type'Image);
+   package Nonterminal is new Master_Token.Nonterminal;
 
    --  Our terminal token types.
    package Identifier_Token is new Master_Token.Identifier;
 
    --  Stuff for grammar fragments
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
 
    --  Parser stuff.
    package Tokenizer is new Master_Token.Analyzer;
-   package Parser is new Production.Parser (Tokenizer);
+   package Parser is new Production.Parser;
    package LALRs is new Parser.LALR (First_State_Index => 1);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);
@@ -101,7 +99,7 @@ package Name_Token_Test is
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    --  For use in right or left hand sides
    Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);

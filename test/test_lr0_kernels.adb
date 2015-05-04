@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -30,10 +30,9 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Nonterminal;
 package body Test_LR0_Kernels is
 
    --  A simple grammar that exersizes the "already in goto_set" branches in LR0_Kernels
@@ -55,20 +54,19 @@ package body Test_LR0_Kernels is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated
+   package Master_Token is new OpenToken.Token
      (Token_ID_Type, Equals_Greater_ID, EOF_ID, Token_ID_Type'Image);
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
+   package Nonterminal is new Master_Token.Nonterminal;
 
    package Integer_Literal is new Master_Token.Integer;
 
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
 
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    package Tokens is
       --  For use in right hand sides.
@@ -198,7 +196,7 @@ package body Test_LR0_Kernels is
      Integer_Token.Grammar and
      Aggregate_Token.Grammar and
      Association_Token.Grammar;
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package OpenToken_Parser is new Production.Parser;
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
@@ -250,7 +248,7 @@ package body Test_LR0_Kernels is
       end if;
 
       Command_Parser := LALR_Parsers.Initialize
-        (An_Analyzer,
+        (Master_Token.Source_Handle (An_Analyzer),
          LALR_Generators.Generate
            (Grammar,
             Put_Parse_Table => Test.Debug,

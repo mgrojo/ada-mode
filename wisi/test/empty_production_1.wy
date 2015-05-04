@@ -17,7 +17,7 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 %token <line_comment> COMMENT "--"
 
 %start declarative_part

@@ -32,10 +32,9 @@ with OpenToken.Recognizer.Identifier;
 with OpenToken.Recognizer.Keyword;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Nonterminal;
 package body Test_Accept_Index is
 
    --  A simple grammar that OpenToken used to get wrong.
@@ -54,14 +53,11 @@ package body Test_Accept_Index is
       Parse_Sequence_ID,
       Statement_ID);
 
-   --  Instantiate all the necessary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, Identifier_ID, Token_IDs'Image);
-   package Tokenizer is new Master_Token.Analyzer;
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Master_Token is new OpenToken.Token (Token_IDs, Equals_ID, Identifier_ID, Token_IDs'Image);
+   package Nonterminal is new Master_Token.Nonterminal;
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
+   package OpenToken_Parser is new Production.Parser;
    package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
    package LALR_Parser is new LALRs.Parser (1, Parser_Lists);
@@ -77,6 +73,8 @@ package body Test_Accept_Index is
    Identifier     : constant Master_Token.Class := Master_Token.Get (Identifier_ID);
    Parse_Sequence : constant Nonterminal.Class  := Nonterminal.Get (Parse_Sequence_ID);
    Statement      : constant Nonterminal.Class  := Nonterminal.Get (Statement_ID);
+
+   package Tokenizer is new Master_Token.Analyzer;
 
    Syntax : constant Tokenizer.Syntax :=
      (Equals_ID         => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("="), Master_Token.Get (Equals_ID, "=")),
@@ -94,7 +92,7 @@ package body Test_Accept_Index is
    use type Production.Instance;        --  "<="
    use type Production_List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Master_Token.List.Instance; --  "&"
 
    Grammar : constant Production_List.Instance :=
      --  First production in Grammar must be the terminating
@@ -115,7 +113,7 @@ package body Test_Accept_Index is
       --  The test is that there are no exceptions.
 
       Parser := LALR_Parser.Initialize
-        (Tokenizer.Initialize (Syntax),
+        (Master_Token.Source_Handle (Tokenizer.Initialize (Syntax)),
          LALR_Generator.Generate
            (Grammar,
             Trace           => Test.Debug,
