@@ -226,8 +226,8 @@ package OpenToken.Token is
    type Source_Handle is access all Source_Class;
 
    procedure Reset (Analyzer : in out Source; Buffer_Size : in Integer := 1024) is abstract;
-   --  Reset Analyzer (but not Analyzer.Feeder), to start finding
-   --  tokens. Reallocate input buffer to Buffer_Size.
+   --  Reset Analyzer, to start finding tokens. Reallocate input
+   --  buffer to Buffer_Size.
    --
    --  This is appropriate when the Feeder text has been
    --  changed.

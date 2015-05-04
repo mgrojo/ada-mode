@@ -1,4 +1,4 @@
---  aflex inserts 'with <root>_dfa; use <root>_dfa;
+--  aflex inserts 'with <root>_dfa; use <root>_dfa; -*- mode:ada -*-
 with Ada.Text_IO;
 with OpenToken.Text_Feeder;
 --%%1 aflex inserts package spec start

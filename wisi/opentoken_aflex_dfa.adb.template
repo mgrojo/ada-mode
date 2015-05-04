@@ -1,4 +1,4 @@
---%%1 aflex inserts package spec start, aflex_debug
+--%%1 aflex inserts package spec start, aflex_debug -*- mode:ada -*-
 package Dummy is  -- for indentation
 
    yytext_ptr : Integer; -- points to start of yytext in buffer

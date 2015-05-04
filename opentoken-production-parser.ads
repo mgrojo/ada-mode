@@ -39,46 +39,45 @@ package OpenToken.Production.Parser is
       Analyzer : Token.Source_Handle;
    end record;
 
-   ----------------------------------------------------------------------------
-   --  Attempt a parse. This routine will return when the grammar indicates the
-   --  first production has been parsed. (or an exception is raised)
-   ----------------------------------------------------------------------------
    procedure Parse (Parser : in out Instance) is abstract;
+   --  Attempt a parse. Returns when the grammar indicates the
+   --  first production has been parsed.
+   --
+   --  Raises Syntax_Error for lexer errors, Parse_Error for
+   --  parser errors.
 
    procedure Reset (Parser : in out Instance; Buffer_Size : in Integer);
    --  Reset the internal Analyzer, reallocating the input buffer to Buffer_Size.
    --
    --  Appropriate if the Text_Feeder's input has changed.
 
-   --------------------------------------------------------------------------
-   --  Set the parser's text feeder. May discard input if current
-   --  text buffer is not empty.
-   --------------------------------------------------------------------------
    procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr);
+   --  Discards input if current text buffer is not empty.
 
-   ------------------------------------------------------------------------
-   --  Discard text in Parser.Analyzer's internal buffer. Do this when
-   --  a parse error is encountered, and you want to start over.
-   ------------------------------------------------------------------------
    procedure Discard_Buffered_Text (Parser : in out Instance);
+   --  Discard text in Parser.Analyzer's internal buffer.
+   --
+   --  Appropriate when
+   --  a parse error is encountered, and you want to start over.
 
-   ------------------------------------------------------------------------
+   function End_Of_Text (Parser : in Instance) return Boolean;
    --  True if all text buffers are empty, and text feeder reports end
    --  of text.
-   function End_Of_Text (Parser : in Instance) return Boolean;
 
-   ----------------------------------------------------------------------------
-   --  Returns the current text line at which processing will resume. This is
-   --  particularly useful for printing error messages when syntax errors are
-   --  detected.
-   ----------------------------------------------------------------------------
    function Line (Parser : in Instance) return Natural;
+   --  Returns the current text line in the text feeder input file at
+   --  which parsing will resume.
+   --
+   --  Useful for error messages when errors are detected.
 
-   ----------------------------------------------------------------------------
-   --  Returns the current text column at which processing will resume. This is
-   --  particularly useful for printing error messages when syntax errors are
-   --  detected.
-   ----------------------------------------------------------------------------
    function Column (Parser : in Instance) return Natural;
+   --  Returns the current text column in the text feeder input file
+   --  at which processing will resume.
+   --
+   --  Useful for printing error messages when errors are detected.
+
+   function Last_Char_Pos (Parser : in Instance) return Integer;
+   --  Returns the position in the internal Analyzer text buffer of
+   --  the end of the last token parsed.
 
 end OpenToken.Production.Parser;

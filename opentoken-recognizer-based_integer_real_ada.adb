@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2014 Stephen Leake
+--  Copyright (C) 2014-2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -59,7 +59,8 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada is
             Token.Base := (Token.Base * 10) + (Character'Pos (Next_Char) - Character'Pos ('0'));
 
             if Token.Base <= Extended_Digits.Maximum_Base then
-               Verdict := So_Far_So_Good;
+               --  A based integer, decimal integer, or decimal real
+               Verdict := Matches;
             else
                --  A decimal integer or decimal real
                Token.State := Fore;
@@ -111,7 +112,7 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada is
 
          case Digits_Verdict is
          when So_Far_So_Good | Matches =>
-            --  integer or real
+            --  integer or real. Extended_Digits returns So_Far_So_Good for underscore
             Verdict := Digits_Verdict;
 
          when Failed =>
@@ -148,7 +149,7 @@ package body OpenToken.Recognizer.Based_Integer_Real_Ada is
 
          case Digits_Verdict is
          when So_Far_So_Good | Matches =>
-            Verdict := So_Far_So_Good;
+            Verdict := Digits_Verdict;
 
          when Failed =>
             case Token.Last_Digits_Verdict is

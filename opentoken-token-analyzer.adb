@@ -41,15 +41,29 @@ package body OpenToken.Token.Analyzer is
 
    --  Routines to handle indexes in a circular ring buffer
 
-   --  Increment Index by Amount, wrapping at end of buffer.
    function Increment_Buffer_Index
      (Max_Buffer_Size : in Integer;
       Index           : in Integer;
       Amount          : in Integer)
      return Natural
    is begin
+      --  Increment Index by Amount, wrapping at end of buffer.
       return ((Index + Amount - 1) mod Max_Buffer_Size) + 1;
    end Increment_Buffer_Index;
+
+   function Diff_Buffer_Index
+     (Max_Buffer_Size : in Integer;
+      Left           : in Integer;
+      Right          : in Integer)
+     return Natural
+   is begin
+      --  Return Right - Left, accounting for wrap at end of buffer.
+      if Right >= Left then
+         return Right - Left;
+      else
+         return Right + Max_Buffer_Size - Left;
+      end if;
+   end Diff_Buffer_Index;
 
    -----------------------------------------------------------------------
    --  Return True if the given index designates a valid element of
@@ -289,8 +303,8 @@ package body OpenToken.Token.Analyzer is
    is
       Match                 : Match_List := (others => Recognizer.So_Far_So_Good);
       More_Possible_Matches : Boolean    := True;
-
-      Current_Char : Integer := Analyzer.Buffer_Head;
+      Current_Char          : Integer    := Analyzer.Buffer_Head;
+      Current_Token_Length  : Integer;
 
       use type OpenToken.Recognizer.Analysis_Verdict;
    begin
@@ -323,13 +337,14 @@ package body OpenToken.Token.Analyzer is
                   Next_Char => Analyzer.Buffer (Current_Char),
                   Verdict   => Match (Token_Index));
 
+               Current_Token_Length := Diff_Buffer_Index
+                 (Analyzer.Buffer'Length, Analyzer.Buffer_Head, Current_Char) + 1;
+
                if Match (Token_Index) = Recognizer.Matches and
-                 Best_Match_Length < Increment_Buffer_Index
-                   (Analyzer.Buffer'Length, Current_Char, 1 - Analyzer.Buffer_Head)
+                 Best_Match_Length < Current_Token_Length
                then
                   Best_Match_Token  := Token_Index;
-                  Best_Match_Length := Increment_Buffer_Index
-                    (Analyzer.Buffer'Length, Current_Char, 1 - Analyzer.Buffer_Head);
+                  Best_Match_Length := Current_Token_Length;
                end if;
 
                --  Exit (returning Best_Match) when all have failed or

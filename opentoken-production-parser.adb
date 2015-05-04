@@ -57,4 +57,9 @@ package body OpenToken.Production.Parser is
       return Parser.Analyzer.Column;
    end Column;
 
+   function Last_Char_Pos (Parser : in Instance) return Integer
+   is begin
+      return Parser.Analyzer.Bounds.End_Pos;
+   end Last_Char_Pos;
+
 end OpenToken.Production.Parser;
