@@ -2,6 +2,7 @@ Misc notes on current work
 
 build/release/Makefile
 build/debug/Makefile
+build/release_process.text
 
 finish refactor packages
     delete opentoken.trace_indent?

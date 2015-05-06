@@ -139,8 +139,8 @@ library:
 	gprbuild -p -Popentoken_lib
 
 clean :: test-clean
-	rm -rf obj/* lib-obj/* *.exe
-	rm -rf lib/*
+	rm -rf obj *.exe
+	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
 distclean :: clean
 	rm -rf obj obj_tree

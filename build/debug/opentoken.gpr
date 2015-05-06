@@ -1,4 +1,5 @@
 --  For using OpenToken in other projects, and building OpenToken
+-- (ediff "opentoken.gpr" "../release/opentoken.gpr")
 with "../common";
 project OpenToken is
 

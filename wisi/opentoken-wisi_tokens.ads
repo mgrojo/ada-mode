@@ -42,6 +42,7 @@ package OpenToken.Wisi_Tokens is
    function Image (Token : in Instance) return String;
 
    function Get (ID : in Token_IDs) return Nonterminals.Instance'Class;
+   function Get (ID : in Token_IDs) return Tokens.Handle;
    --  For use in Syntax; sets null Buffer_Range
 
    overriding

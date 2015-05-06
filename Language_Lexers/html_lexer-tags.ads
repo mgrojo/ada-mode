@@ -124,8 +124,8 @@ private package HTML_Lexer.Tags is
 
    Tag_Input_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
 
-   Analyzer: Tokenizer.Instance := Tokenizer.Initialize
+   Analyzer : Tokenizer.Instance := Tokenizer.Initialize
      (Syntax,
-      Feeder  => Tag_Input_Feeder'access).all;
+      Feeder  => Tag_Input_Feeder'Access).all;
 
 end HTML_Lexer.Tags;

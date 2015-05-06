@@ -3,15 +3,16 @@ project Common is
 
    for Source_Dirs use (); -- avoids spurious error about "no Ada sources"
 
-   type Build_Type is ("Developer", "User");
-
-   Build : Build_Type := External ("BUILD", "User");
+   --  These switches are only meaningful when building a library, so they are used in opentoken_lib.gpr
 
    type Lib_Type is ("static", "dynamic");
-
    Libtype : Lib_Type := External ("LIBTYPE", "dynamic");
 
-   Dyn_Lib_Extension := External ("DYN_LIB_EXTENSION", "so");
+   type Ext_Type is (".dll", ".so");
+   Dyn_Lib_Extension : Ext_Type := External ("DYNLIB_EXT", ".so");
+
+   type Run_Time_Type is ("zcx", "sjlj");
+   Run_Time : Run_Time_Type := External ("ADA_RUN_TIME", "zcx");
 
    package Compiler is
       -- Switches for gcc
@@ -30,6 +31,7 @@ project Common is
          "-gnatfoqQ",
          "-gnatVa",
          "-gnatwaeLP",
+         "-gnatyO",
          "-fstack-check");
 
       --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
@@ -42,22 +44,8 @@ project Common is
          "-gnat2012",
          "-gnatfnoqQ",
          "-gnatwaeL",
+         "-gnatyO",
          "-fstack-check");
-
-      --  The project file syntax does not let us set a variable in a
-      --  case statement. So we set the Default_Switches attribute to
-      --  contain the external-dependent switches. This is then
-      --  accessible in child project files via 'Default_Switches.
-
-      case Build is
-         when "Developer" =>
-            -- -gnatyO requires patching the compiler runtime source for GNAT 6.x and earlier
-            -- It is not valid for GNAT 4.x and earlier
-            for Default_Switches ("Ada") use ("-gnatyO");
-
-         when "User" =>
-            null;
-      end case;
 
    end Compiler;
 

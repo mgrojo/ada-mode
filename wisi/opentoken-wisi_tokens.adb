@@ -27,6 +27,11 @@ package body OpenToken.Wisi_Tokens is
       return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Tokens.Null_Buffer_Range);
    end Get;
 
+   function Get (ID : in Token_IDs) return Tokens.Handle
+   is begin
+      return new Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Tokens.Null_Buffer_Range);
+   end Get;
+
    overriding
    procedure Create
      (Lexeme     : in     String;

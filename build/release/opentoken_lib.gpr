@@ -7,17 +7,47 @@ project Opentoken_Lib is
    Version := "5.0.0";
 
    for Languages use ("Ada");
-   for Source_Dirs use ("../..", "../../Language_Lexers");
-   for Object_Dir use "lib-obj";
+   for Source_Dirs use
+     ("../..",
+      "../../Language_Lexers",
+      "../../wisi"
+     );
+   for Object_Dir use "libobj" & Common.Run_Time;
    for Library_Name use "opentoken";
-   for Library_Dir use "lib";
+   for Library_Dir use "lib" & Common.Run_Time;
    for Library_Kind use Common.Libtype;
 
    --  Library_Version is not used when Library_Kind is "static"
    for Library_Version use "libopentoken." & Common.Dyn_Lib_Extension & "." & Version;
 
    package Compiler is
-      for Default_Switches ("Ada") use Common.Compiler.Release_Switches;
+      case Common.Dyn_Lib_Extension is
+      when ".dll" =>
+         case Common.Run_Time is
+         when "zcx" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches;
+
+         when "sjlj" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("--RTS=sjlj");
+         end case;
+
+      when ".so" =>
+         case Common.Run_Time is
+         when "zcx" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("-FPIC");
+         when "sjlj" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("-FPIC", "--RTS=sjlj");
+         end case;
+      end case;
    end Compiler;
+
+   package Builder is
+      case Common.Run_Time is
+      when "zcx" =>
+         null;
+      when "sjlj" =>
+         for Default_Switches ("Ada") use ("--RTS=sjlj");
+      end case;
+   end Builder;
 
 end Opentoken_Lib;

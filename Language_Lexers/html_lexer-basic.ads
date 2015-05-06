@@ -86,6 +86,6 @@ private package HTML_Lexer.Basic is
       Bad_Token   => Tokenizer.Get (OpenToken.Recognizer.Nothing.Get),
       End_Of_File => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get));
 
-   Analyzer: Tokenizer.Instance := Tokenizer.Initialize (Syntax).all;
+   Analyzer : Tokenizer.Instance := Tokenizer.Initialize (Syntax).all;
 
 end HTML_Lexer.Basic;

@@ -23,8 +23,14 @@ bump version
         current version
         opentoken-*.tar.gz
 
-    ../Build/Makefile
+    Makefile
         ZIP_VERSION
+
+    debug/opentoken_lib.gpr
+        Version
+
+    release/opentoken_lib.gpr
+        Version
 
     ~/Web/Makefile
         OPENTOKEN_ZIP_VERSION
