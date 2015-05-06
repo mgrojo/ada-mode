@@ -292,7 +292,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	   (error "wisi-forward-token: forward-sexp failed %s" err)
 	   ))))
 
-     (t ;; assuming word or symbol syntax
+     (t ;; assuming word or symbol syntax; includes numbers
       (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id

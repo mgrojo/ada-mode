@@ -101,11 +101,18 @@ package body Format_Paramlist is
    end J;
 
    --  anonymous access procedure type
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
    procedure Process
      (Directory : in              String;
       Process   : not null access procedure (A : in Integer))
    is begin
       null;
    end Process;
+
+   --  Single parameter, but on its own line
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(insert "   ") (ada-align))
+   function Create_Parser
+     (Max_Parallel : in Integer := 15)
+     return LALR_Parsers.Instance;
 
 end Format_Paramlist;

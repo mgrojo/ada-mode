@@ -238,7 +238,7 @@ Function to call to adjust the case of Ada keywords.
 Called with three args;
 start      - buffer pos of start of identifier
 end        - end of identifier
-force-case - if t, treat `ada-strict-case' as t"
+force-case - if t, treat `ada-case-strict' as t"
   :type '(choice (const mixed-case)
 		 (const lower-case)
 		 (const upper-case))
@@ -819,13 +819,14 @@ Each parameter declaration is represented by a list
 
 (defun ada-insert-paramlist-single-line (paramlist)
   "Insert a single-line formatted PARAMLIST in the buffer."
-  (let ((i (length paramlist))
+  ;; point is properly indented
+  (let ((begin (point))
+	(i (length paramlist))
 	param)
 
     ;; clean up whitespace
-    (skip-syntax-forward " ")
-    (delete-char (- (skip-syntax-backward " ")))
-    (insert " (")
+    (delete-char (skip-syntax-forward " "))
+    (insert "(")
 
     (setq i (length paramlist))
     (while (not (zerop i))
@@ -1033,7 +1034,9 @@ list."
 
   (unless word
     (if (use-region-p)
-	(setq word (buffer-substring-no-properties (region-beginning) (region-end)))
+	(progn
+	  (setq word (buffer-substring-no-properties (region-beginning) (region-end)))
+	  (deactivate-mark))
       (save-excursion
 	(let ((syntax (if partial "w" "w_")))
 	  (skip-syntax-backward syntax)
@@ -2475,7 +2478,7 @@ Called with no parameters.")
 (defun ada-next-statement-keyword ()
   ;; Supplied by indentation engine
   "See `ada-next-statement-keyword' variable. In addition,
-if on open parenthesis to matching closing parenthesis."
+if on open parenthesis move to matching closing parenthesis."
   (interactive)
   (if (= (syntax-class (syntax-after (point))) 4)
       ;; on open paren
@@ -2496,9 +2499,9 @@ keyword in the previous statement or containing statement.")
 
 (defun ada-prev-statement-keyword ()
   "See `ada-prev-statement-keyword' variable. In addition,
-if on open parenthesis to matching closing parenthesis."
+if on close parenthesis move to matching open parenthesis."
   (interactive)
-  (if (= (syntax-class (syntax-after (point))) 5)
+  (if (= (syntax-class (syntax-after (1- (point)))) 5)
       ;; on close paren
       (backward-sexp)
 
