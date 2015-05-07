@@ -141,7 +141,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (interactive)
   (if (ada-gps--session-buffer ada-gps-session)
       (pop-to-buffer (ada-gps--session-buffer ada-gps-session)))
-  (error "ada-gps session not active")))
+  (error "ada-gps session not active"))
 
 ;;;;; indenting
 
