@@ -136,7 +136,7 @@ uninstall:
 	make -f Install.make install-clean
 
 library:
-	gprbuild -p -Popentoken_lib
+	gprbuild -p --RTS=$(ADA_RUN_TIME) -Popentoken_lib
 
 clean :: test-clean
 	rm -rf obj *.exe

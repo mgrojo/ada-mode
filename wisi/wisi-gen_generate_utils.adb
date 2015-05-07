@@ -276,6 +276,8 @@ package body Wisi.Gen_Generate_Utils is
                Cursor.Token_Item := First_Token_Item (Cursor);
                return;
             end if;
+
+            Wisi.Token_Lists.Next (Cursor.Token_Kind);
          end loop;
 
          --  no Terminals_Others; on to EOI

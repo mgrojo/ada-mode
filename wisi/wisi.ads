@@ -40,6 +40,7 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Handling;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Strings.Unbounded;
@@ -117,6 +118,15 @@ package Wisi is
    function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
      renames Standard.Ada.Strings.Unbounded.To_String;
 
+   function To_Lower (Item : in String) return String
+     renames Ada.Characters.Handling.To_Lower;
+
+   function To_Upper (Item : in String) return String
+     renames Ada.Characters.Handling.To_Upper;
+
+   function To_Upper (Item : in Character) return Character
+     renames Ada.Characters.Handling.To_Upper;
+
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List;
 
    function String_To_String_List (Item : in String) return String_Lists.List;
@@ -130,6 +140,8 @@ package Wisi is
    Verbosity : Integer := 0;
 
    type Lexer_Type is (Aflex_Lexer, OpenToken_Lexer, Elisp_Lexer);
+
+   type Interface_Type is (Process, Module);
 
    procedure Put_Command_Line (Comment_Prefix : in String);
    --  Put command line to current output

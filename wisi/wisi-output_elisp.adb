@@ -67,7 +67,7 @@ is
    is
       use Standard.Ada.Text_IO;
    begin
-      Put_Line (";;; " & Elisp_Package & "-wy.el --- Generated parser support file  -*- lexical-binding:t -*-");
+      Put_Line (";;; " & Elisp_Package & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
       New_Line;
       for Line of Prologue loop
          Put_Line (Line);
@@ -80,7 +80,7 @@ is
    is
       use Standard.Ada.Text_IO;
    begin
-      Put_Line ("(defconst " & Elisp_Package & "-wy--keyword-table");
+      Put_Line ("(defconst " & Elisp_Package & "-elisp-keyword-table");
       Put_Line ("  (semantic-lex-make-keyword-table");
       Put_Line ("   '(");
       for Pair of Keywords loop
@@ -98,7 +98,7 @@ is
       use Standard.Ada.Strings.Unbounded; -- length
       use Standard.Ada.Text_IO;
    begin
-      Put_Line ("(defconst " & Elisp_Package & "-wy--token-table");
+      Put_Line ("(defconst " & Elisp_Package & "-elisp-token-table");
       Put_Line ("  (semantic-lex-make-type-table");
       Put_Line ("   '(");
       for Kind of Tokens loop
@@ -108,7 +108,7 @@ is
                if 0 = Length (Token.Value) then
                   Put_Line ("      (" & (-Token.Name) & ")");
                else
-                  Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
+                  Put_Line ("      (" & (-Token.Name) & " " & (-Token.Value) & ")");
                end if;
             end loop;
             Put_Line ("     )");
@@ -127,7 +127,7 @@ begin
       New_Line;
    end if;
 
-   Create (File, Out_File, Elisp_Package & "-wy.el");
+   Create (File, Out_File, Elisp_Package & "-elisp.el");
    Set_Output (File);
    Header (Elisp_Package, Prologue);
    New_Line;
@@ -141,7 +141,7 @@ begin
    New_Line;
    Parser_Elisp.Output (Elisp_Package, Tokens, Keywords, Rules, Parser);
    New_Line;
-   Put_Line ("(provide '" & Elisp_Package & "-wy)");
+   Put_Line ("(provide '" & Elisp_Package & "-elisp)");
    New_Line;
    Put_Line (";; end of file");
    Close (File);

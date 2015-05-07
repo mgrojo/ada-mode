@@ -40,12 +40,13 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisent grammar file} {output language} [lexer]");
+      Put_Line ("wisi-generate [options] {wisent grammar file} {output language} [{lexer} {interface}]");
       Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
-      Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer");
+      Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer, Elisp_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
-      Put_Line ("only Ada_Emacs takes a lexer argument");
+      Put_Line ("'interface' is one of Process, Module");
+      Put_Line ("only Ada_Emacs takes lexer and interface arguments");
       Put_Line ("options are:");
       Put_Line ("  -v level: sets verbosity (default 0):");
       Put_Line ("     level 0 - only error messages to standard error");
@@ -74,6 +75,7 @@ is
    Rule_Count         : Integer;
    Action_Count       : Integer;
    Lexer              : Lexer_Type;
+   Interface_Kind     : Interface_Type;
    First_State_Index  : Integer := 0; -- default
    First_Parser_Label : Integer := 0; -- default
    Profile            : Boolean := False;
@@ -134,19 +136,18 @@ begin
       begin
          Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
          Arg_Next := Arg_Next + 1;
-      exception
-      when Constraint_Error =>
-         raise User_Error;
-      end;
 
-      begin
          case Output_Language is
          when Ada_Emacs =>
             Lexer := Lexer_Type'Value (Argument (Arg_Next));
             Arg_Next := Arg_Next + 1;
+
+            Interface_Kind := Interface_Type'Value (Argument (Arg_Next));
+            Arg_Next := Arg_Next + 1;
          when others =>
             null;
          end case;
+
       exception
       when Constraint_Error =>
          raise User_Error;
@@ -166,7 +167,7 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count, Lexer, First_State_Index, First_Parser_Label, Profile);
+         Rule_Count, Action_Count, Lexer, Interface_Kind, First_State_Index, First_Parser_Label, Profile);
 
    when Elisp =>
       Wisi.Output_Elisp
