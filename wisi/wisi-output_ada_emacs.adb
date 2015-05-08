@@ -121,7 +121,7 @@ is
             Result (I + 1) := To_Upper (Result (I + 1));
          end if;
       end loop;
-      return Result;
+      return Result & "_ID"; -- Some elisp names may be Ada reserved words;
    end Elisp_Name_To_Ada;
 
    Package_Name_Root : constant String := File_Name_To_Ada (Output_File_Root);
@@ -471,27 +471,19 @@ is
       use Generate_Utils;
       use Ada.Strings.Fixed;
 
+      --  Typical lines:
+      --
       --  (wisi-test-result 1)
-      --  Funcall
-      --    (Env,
-      --     Elisp_Names (Wisi_Test_Result),
-      --     (1 => Elisp_Numbers (1)));
 
-      --  (wisi-statement-action [1 statement-start 6 statement-end])
-      --  Funcall
-      --    (Env,
-      --     Elisp_Names (Wisi_Statement_Action),
-      --     (Elisp_Numbers (1),
-      --      Elisp_Names (Statement_Start),
-      --      Elisp_Numbers (6),
-      --      Elisp_Names (Statement_End)));
+      --  (progn
+      --   (wisi-statement-action [1 statement-start 6 statement-end])
+      --   (wisi-containing-action 2 3))
+      --   (wisi-face-action [2 font-lock-type-face] t))
 
-      --  (wisi-containing-action 2 3))
-      --  Funcall
-      --    (Env,
-      --     Elisp_Names (Wisi_Test_Result),
-      --     (Elisp_Numbers (2),
-      --      Elisp_Numbers (3)));
+      --  (wisi-motion-action [1 3 [5 statement-other ELSIF block-middle THEN] 6 8]))
+      --  not [... [...] ... [...] ... ]
+
+      --  (wisi-motion-action [1 5 [6 block-middle EXCEPTION block-middle WHEN]])
 
       function Item_Image (Item : in String) return String
       is
@@ -500,59 +492,98 @@ is
          if Is_Digit (Item (Item'First)) then
             return "Elisp_Numbers (" & Item & ")";
          else
-            return "Elisp_Names (" & Elisp_Name_To_Ada (Item) & ")";
+            return "Elisp_Symbols (" & Elisp_Name_To_Ada (Item) & ")";
          end if;
       end Item_Image;
 
-      First : Integer := Line'First;
-      Last  : Integer;
+      First           : Integer := Line'First;
+      Last            : Integer;
+      Max_Last        : Integer;
+      Closing_Bracket : Integer := 0;
+      First_Item      : Boolean := True;
    begin
-      if Line (First) /= '(' or Line (Line'Last) /= ')' then
-         raise Programmer_Error with "To_Module_Action_Line: unsupported line";
+      if Line = "(progn" then
+         return;
+      elsif Line (First) /= '(' or Line (Line'Last) /= ')' then
+         raise Programmer_Error with "To_Module_Action_Line: unsupported line '" & Line & "'";
       end if;
+
       First := First + 1;
+
+      if Line (Line'Last - 1) = ')' then
+         Max_Last := Line'Last - 2; -- "...))"
+      else
+         Max_Last := Line'Last - 1; -- "...)"
+      end if;
+
+      if Line (Max_Last) = ']' then
+         Max_Last := Max_Last - 1; -- "...])"
+      end if;
+
+      if Line (Max_Last) = ']' then
+         Max_Last := Max_Last - 1; -- "...]])"
+      end if;
 
       Indent_Line ("Funcall");
       Indent_Line ("  (Env,");
       Indent := Indent + 3;
 
-      Last := Index (Line (First .. Line'Last), " ");
+      Last := Index (Line, " ", From => First);
       if Last = 0 then
-         Indent_Line ("Elisp_Symbols (" & Elisp_Name_To_Ada (Line (First .. Line'Last)) & ");");
+         Indent_Line ("Elisp_Symbols (" & Elisp_Name_To_Ada (Line (First .. Max_Last)) & "));");
          Indent := Indent - 3;
          return;
       end if;
 
       Indent_Line ("Elisp_Symbols (" & Elisp_Name_To_Ada (Line (First .. Last - 1)) & "),");
 
-      First := Index_Non_Blank (Line, Last);
-      if Line (First) = '[' then
-         First := First + 1;
-      end if;
-
-      Last := Index (Line (First .. Line'Last), " ");
-
-      if Last = 0 then
-         Indent_Line ("(1 => " & Item_Image (Line (First .. Line'Last - 1)) & "));");
-         Indent := Indent - 3;
-         return;
-      end if;
-
-      Indent_Line ("(" & Item_Image (Line (First .. Last - 1)) & ", ");
-      First := Index_Non_Blank (Line, Last);
-
       loop
-         Last := Index (Line (First .. Line'Last), " ");
+         First := Index_Non_Blank
+           (Line,
+            From =>
+              (if Last = Closing_Bracket
+               then Closing_Bracket + 1
+               else Last));
 
-         if Last = 0 then
-            Indent_Line (Item_Image (Line (First .. Line'Last)) & "));");
-            Indent := Indent - 3;
-            return;
+         if Line (First) = '[' then
+            First := First + 1;
+
+            if Closing_Bracket = 0 then
+               Closing_Bracket := Index (Line, "]", From => First);
+            end if;
          end if;
 
-         Indent_Line (Item_Image (Line (First .. Last - 1)) & ", ");
-         First := Index_Non_Blank (Line, Last);
+         Last := Index (Line, " ", From => First);
+
+         if Last = 0 then
+            if First_Item then
+               Indent_Line ("(1 => " & Item_Image (Line (First .. Max_Last)) & "));");
+               Indent := Indent - 3;
+               return;
+            else
+               Indent_Line (Item_Image (Line (First .. Max_Last)) & "));");
+               Indent := Indent - 4;
+               return;
+            end if;
+
+         elsif Last = Closing_Bracket + 1 then
+            Last := Closing_Bracket;
+         end if;
+
+         if First_Item then
+            Indent_Line ("(" & Item_Image (Line (First .. Last - 1)) & ",");
+            Indent := Indent + 1;
+         else
+            Indent_Line (Item_Image (Line (First .. Last - 1)) & ",");
+         end if;
+
+         First_Item := False;
       end loop;
+   exception
+   when Programmer_Error =>
+      raise;
+   when others =>
+      raise Programmer_Error with "Put_Module_Action_Line: extra space '" & Line & "'";
    end Put_Module_Action_Line;
 
    procedure Create_Ada_Body
@@ -661,6 +692,13 @@ is
 
       when Elisp_Lexer =>
          Put_Line ("with OpenToken.Token.Wisi_Elisp;");
+      end case;
+
+      case Interface_Kind is
+      when Process =>
+         null;
+      when Module =>
+         Put_Line ("with Ada.Exceptions;");
       end case;
 
       Put_Line ("package body " & Package_Name & " is");
@@ -824,7 +862,6 @@ is
             Indent_Line ("Elisp_Symbols  : Elisp_Array_Emacs_Value;");
             Indent_Line ("Env            : Emacs_Env_Access;");
             Indent_Line ("Nil            : emacs_module_h.emacs_value;");
-            Indent_Line ("T              : emacs_module_h.emacs_value;");
             New_Line;
 
             Indent_Line ("procedure To_Emacs");
@@ -864,9 +901,9 @@ is
             Indent_Line ("To_Emacs (Args, Tokens (2 .. Tokens'Last));");
             Indent_Line ("Funcall");
             Indent_Line (" (Env,");
-            Indent_Line ("  Elisp_Symbols (Set),");
-            Indent_Line ("  (Elisp_Symbols (Wisi_Tokens),");
-            Indent_Line ("   Funcall (Env, Elisp_Symbols (Vector), Tokens)));");
+            Indent_Line ("  Elisp_Symbols (Set_ID),");
+            Indent_Line ("  (Elisp_Symbols (Wisi_Tokens_ID),");
+            Indent_Line ("   Funcall (Env, Elisp_Symbols (Vector_ID), Tokens)));");
             Indent := Indent - 3;
             Indent_Line ("end Set_Wisi_Tokens;");
             New_Line;
@@ -1290,17 +1327,15 @@ is
       New_Line;
 
       Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
-      Indent_Line ("is");
-      Indent_Line ("   pragma Unreferenced (Env); -- We assume it is unchanged since Init");
-      Indent_Line ("begin");
+      Indent_Line ("is begin");
       --  FIXME: set OpenToken.Trace_Parse from elisp var
       Indent_Line ("   Parser.Reset;");
       Indent_Line ("   Parser.Parse;");
       Indent_Line ("   return Nil;");
       Indent_Line ("exception");
-      Indent_Line ("when others =>");
-      --  FIXME: implement emacs_module_h make_string and return error message
-      Indent_Line ("   return T;");
+      Indent_Line ("when E : others =>");
+      --  FIXME: implement emacs_module_h signal_error and use that?
+      Indent_Line ("   return To_Emacs (Env, Ada.Exceptions.Exception_Message (E));");
       Indent_Line ("end Parse;");
       New_Line;
 
@@ -1311,7 +1346,6 @@ is
       Indent_Line ("   " & Package_Name & ".Env := Env;");
       Indent_Line ("   Intern_Soft_Symbol := Intern (Env, ""intern-soft"");");
       Indent_Line ("   Nil := Intern_Soft (Env, ""nil"");");
-      Indent_Line ("   T   := Intern_Soft (Env, ""t"");");
       Indent_Line ("   for I in Token_Symbols'Range loop");
       Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
       Indent_Line ("   end loop;");
@@ -1506,6 +1540,8 @@ is
 
       --  don't need the prologue here
 
+      --  FIXME: this duplicates wisi-output_elisp Keyword_Table, Token_Table; factor out and share
+      --  or just add all elisp here?
       Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-parse-common)");
 
@@ -1540,7 +1576,12 @@ is
                   if 0 = Length (Token.Value) then
                      Indent_Line ("(" & Img & ")");
                   else
-                     Indent_Line ("(" & Img & " " & (-Token.Value) & ")");
+                     if -Kind.Kind = """number""" then
+                        --  allow for (<token> <number-p> <require>)
+                        Indent_Line ("(" & Img & " " & (-Token.Value) & ")");
+                     else
+                        Indent_Line ("(" & Img & " . " & (-Token.Value) & ")");
+                     end if;
                   end if;
                end;
             end loop;
@@ -1577,10 +1618,9 @@ is
       New_Line;
 
       Indent_Line ("(let ((result (" & To_Lower (Package_Name_Root) & "-wisi-module-parse (current-buffer))))");
-      --  result is nil for no errors, t for some error
-      --  FIXME: implement emacs_module.h make_string and return error message
+      --  result is nil for no errors, a string for some error
       Indent_Line ("  (when result");
-      Indent_Line ("    (signal 'wisi-parse-error (wisi-error-msg ""Ada module returned error"")))))");
+      Indent_Line ("    (signal 'wisi-parse-error (wisi-error-msg result)))))");
       New_Line;
       Indent := Indent - 2;
 
@@ -1619,7 +1659,7 @@ is
       Indent_Line ("""" & To_Lower (Package_Name_Root) & "_module.adb"",");
       Indent_Line ("""" & To_Lower (Package_Name_Root) & "_module.ads""");
       Indent := Indent - 3;
-      Indent_Line (");");
+      Indent_Line ("  );");
       New_Line;
       Indent_Line ("for Object_Dir use ""libobjsjlj"";");
       Indent_Line ("for Library_Name use """ & To_Lower (Package_Name_Root) & "_wisi_module_parse"";");
@@ -1629,8 +1669,37 @@ is
       Indent_Line ("for Library_Kind use ""static"";");
       New_Line;
       Indent_Line ("package Compiler is");
+      Indent := Indent + 3;
       Indent_Line
-        ("   for Default_Switches (""Ada"") use Wisi_Module_Parse_Common.Compiler'Default_Switches (""Ada"");");
+        ("for Default_Switches (""Ada"") use Wisi_Module_Parse_Common.Compiler'Default_Switches (""Ada"");");
+
+      --  Grammar files can get very large, so they need some special switches:
+      --
+      --  'Wisi_Module_Parse_Common.Compiler'Default_Switches' includes 'gnatn', but that hangs
+      --
+      --  gcc gives up without -fno-var-tracking-assignments; it is
+      --  only useful when debugging, which is typically not needed in
+      --  this file.
+      Indent_Line ("case Wisi_Module_Parse_Common.Build is");
+      Indent_Line ("when ""Debug"" =>");
+      Indent_Line ("   for Switches (""" & To_Lower (Package_Name_Root) & "_module.adb"") use");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("     (""-O0"", ""-fno-var-tracking-assignments"");");
+      Indent_Line ("when ""Normal"" =>");
+      Indent_Line ("for Switches (""" & To_Lower (Package_Name_Root) & "_module.adb"") use");
+      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("  (""-O2"", ""-fno-var-tracking-assignments"");");
+      Indent_Line ("end case;");
+
+      --  Other optimization levels hang here.
+      Indent_Line ("for Switches (""" & To_Lower (Package_Name_Root) & "_module.ads"") use");
+      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("  (""-O0""); ");
+
+      Indent := Indent - 3;
       Indent_Line ("end Compiler;");
       New_Line;
       Indent_Line ("package Builder is");

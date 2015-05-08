@@ -108,7 +108,12 @@ is
                if 0 = Length (Token.Value) then
                   Put_Line ("      (" & (-Token.Name) & ")");
                else
-                  Put_Line ("      (" & (-Token.Name) & " " & (-Token.Value) & ")");
+                  if -Kind.Kind = """number""" then
+                     --  allow for (<token> <number-p> <require>)
+                     Put_Line ("      (" & (-Token.Name) & " " & (-Token.Value) & ")");
+                  else
+                     Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
+                  end if;
                end if;
             end loop;
             Put_Line ("     )");

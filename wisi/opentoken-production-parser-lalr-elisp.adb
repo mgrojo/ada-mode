@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -189,7 +189,7 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Action_Length : Count_Type;
       Action_Count  : Count_Type;
    begin
-      Put_Line ("(defconst " & Elisp_Package & "-wy--parse-table");
+      Put_Line ("(defconst " & Elisp_Package & "-elisp-parse-table");
       Put_Line ("   (wisi-compile-grammar");
       --  terminal tokens
       Put ("   '((");
