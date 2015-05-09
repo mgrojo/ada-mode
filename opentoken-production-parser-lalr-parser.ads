@@ -27,10 +27,20 @@
 -----------------------------------------------------------------------------
 --  This package provides the LALR parser.
 
+with Ada.Text_IO;
 with OpenToken.Production.Parser.LALR.Parser_Lists;
 generic
    First_Parser_Label : in Integer;
-   with package Parser_Lists is new OpenToken.Production.Parser.LALR.Parser_Lists (First_Parser_Label);
+
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   --  Accumulate Item in the trace buffer.
+
+   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
+   --  Accumulate Item in the trace buffer, output the trace buffer to
+   --  the display.
+
+   with package Parser_Lists is new OpenToken.Production.Parser.LALR.Parser_Lists
+     (First_Parser_Label, Put_Trace, Put_Trace_Line);
 package OpenToken.Production.Parser.LALR.Parser is
 
    type Instance is new OpenToken.Production.Parser.Instance with record

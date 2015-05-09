@@ -3,7 +3,7 @@
 --  Run LALR_Generators.Generate, for testing. Exceptions raised by
 --  Generate are propagated.
 --
---  Copyright (C) 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -72,7 +72,7 @@ begin
          New_Line;
 
          Put_Line ("Grammar:");
-         Print_Production_Lists.Print (Grammar);
+         Put_Trace_Production_Lists.Put_Trace (Grammar);
          New_Line;
       end;
    end if;

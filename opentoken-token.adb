@@ -25,7 +25,6 @@
 --
 -------------------------------------------------------------------------------
 
-with Ada.Text_IO;
 package body OpenToken.Token is
 
    procedure Free (Item : in out Handle)
@@ -306,19 +305,19 @@ package body OpenToken.Token is
          return ID (Token_Handle (Iterator).all);
       end ID;
 
-      procedure Print (Item : in Instance)
+      procedure Put_Trace (Item : in Instance)
       is
          I : List_Iterator := Initial_Iterator (Item);
       begin
          loop
             exit when I = Null_Iterator;
-            Ada.Text_IO.Put (Token_Handle (I).Image);
+            Put_Trace (Token_Handle (I).Image);
             Next_Token (I);
             if I /= Null_Iterator then
-               Ada.Text_IO.Put (", ");
+               Put_Trace (", ");
             end if;
          end loop;
-      end Print;
+      end Put_Trace;
 
    end List;
 

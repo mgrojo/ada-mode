@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  See spec
+--  Put_Trace Production.List.Instance
 --
---  Copyright (C) 2002 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,21 +23,19 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-with Ada.Text_IO; use Ada.Text_IO;
-package body OpenToken.Production.List.Print is
+with Ada.Text_IO;
+generic
+   with procedure Put_Trace_Production (Item : in OpenToken.Production.Instance);
 
-   procedure Print (Item : in Instance)
-   is
-      I : List_Iterator := Initial_Iterator (Item);
-   begin
-      Put ("(");
-      loop
-         exit when Past_Last (I);
-         Print_Production (Get_Production (I));
-         Put_Line (",");
-         Next_Production (I);
-      end loop;
-      Put (")");
-   end Print;
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   --  Accumulate Item in the trace buffer.
 
-end OpenToken.Production.List.Print;
+   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
+   --  Accumulate Item in the trace buffer, output the trace buffer to
+   --  the display.
+
+package OpenToken.Production.List.Put_Trace is
+
+   procedure Put_Trace (Item : in Instance);
+
+end OpenToken.Production.List.Put_Trace;

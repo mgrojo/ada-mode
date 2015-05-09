@@ -124,7 +124,8 @@ is
       return Result & "_ID"; -- Some elisp names may be Ada reserved words;
    end Elisp_Name_To_Ada;
 
-   Package_Name_Root : constant String := File_Name_To_Ada (Output_File_Root);
+   Package_Name_Root       : constant String := File_Name_To_Ada (Output_File_Root);
+   Lower_Package_Name_Root : constant String := To_Lower (Output_File_Root);
 
    Elisp_Names : String_Lists.List;
    --  Populated by Create_Parser_Body, used by Create_Process_Elisp,
@@ -150,7 +151,11 @@ is
       --  (wisi-face-action [2 'font-lock-keyword-face 4 'font-lock-type-face])
       --  ...
       --
-      --  Enter all names in Elisp_Names
+      --  Enter all names in Elisp_Names.
+      --
+      --  IMPROVEME: for modules, don't need terminal token names in
+      --  Elisp_Names; they are already in the keyword and token
+      --  tables.
       I       : Integer := Line'First;
       First   : Integer := Line'First - 1;
       In_Name : Boolean := False;
@@ -421,9 +426,11 @@ is
       end;
 
       Indent_Line ("function Token_Image (ID : in Token_IDs) return String is (Token_Images (ID).all);");
-
-      Indent_Line
-        ("package Tokens is new OpenToken.Token (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
+      Indent_Line ("procedure Put_Trace (Item : in String);");
+      Indent_Line ("procedure Put_Trace_Line (Item : in String);");
+      New_Line;
+      Indent_Line ("package Tokens is new OpenToken.Token");
+      Indent_Line ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
       Indent_Line ("package Nonterminals is new Tokens.Nonterminal;");
       Indent_Line ("package Productions is new OpenToken.Production (Tokens, Nonterminals);");
       Indent_Line ("package Parsers is new Productions.Parser;");
@@ -434,13 +441,14 @@ is
       Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & OpenToken.Int_Image (First_Parser_Label) & ";");
-      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);");
-      Indent_Line ("package LALR_Parsers is new LALRs.Parser (First_Parser_Label, Parser_Lists);");
+      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
+      Indent_Line
+        ("package LALR_Parsers is new LALRs.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
       New_Line;
 
       Indent_Line ("package Wisi_Tokens_Pkg is new OpenToken.Wisi_Tokens");
       Indent_Line
-        ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Nonterminals);");
+        ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Tokens, Nonterminals);");
       New_Line;
 
       case Interface_Kind is
@@ -454,9 +462,9 @@ is
 
       when Module =>
          Indent_Line ("function Parse (Env : Emacs_Module_Aux.Emacs_Env_Access) return emacs_module_h.emacs_value;");
-         Indent_Line ("pragma Export (C, Parse, """ & To_Lower (Package_Name_Root) & "_wisi_module_parse"");");
+         Indent_Line ("pragma Export (C, Parse, """ & Lower_Package_Name_Root & "_wisi_module_parse"");");
          Indent_Line ("function Init (Env : Emacs_Module_Aux.Emacs_Env_Access) return Interfaces.C.int;");
-         Indent_Line ("pragma Export (C, Init, """ & To_Lower (Package_Name_Root) & "_wisi_module_parse_init"");");
+         Indent_Line ("pragma Export (C, Init, """ & Lower_Package_Name_Root & "_wisi_module_parse_init"");");
 
       end case;
 
@@ -647,9 +655,9 @@ is
       case Lexer is
       when Aflex_Lexer =>
          Put_Line ("with OpenToken.Token.Aflex;");
-         Put_Line ("with " & To_Lower (Package_Name_Root) & "_YYLex;");
-         Put_Line ("with " & To_Lower (Package_Name_Root) & "_dfa;");
-         Put_Line ("with " & To_Lower (Package_Name_Root) & "_io;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_YYLex;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_dfa;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_io;");
 
       when OpenToken_Lexer =>
          Put_Line ("with OpenToken.Token.Analyzer;");
@@ -699,6 +707,7 @@ is
          null;
       when Module =>
          Put_Line ("with Ada.Exceptions;");
+         Put_Line ("with Ada.Strings.Unbounded;");
       end case;
 
       Put_Line ("package body " & Package_Name & " is");
@@ -708,17 +717,17 @@ is
       case Lexer is
       when Aflex_Lexer =>
          Indent_Line ("package Lexers is new Tokens.Aflex");
-         Indent_Line ("  (" & To_Lower (Package_Name_Root) & "_io.Feeder,");
+         Indent_Line ("  (" & Lower_Package_Name_Root & "_io.Feeder,");
          Indent := Indent + 3;
-         Indent_Line (To_Lower (Package_Name_Root) & "_YYLex,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_dfa.YYText,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_dfa.YYText_ptr,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_dfa.YYLength,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_dfa.Set_Buffer_Size,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_io.Tok_Begin_Line,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_io.Tok_Begin_Col,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_dfa.yy_init,");
-         Indent_Line (To_Lower (Package_Name_Root) & "_io.yy_eof_has_been_seen,");
+         Indent_Line (Lower_Package_Name_Root & "_YYLex,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.YYText,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.YYText_ptr,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.YYLength,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.Set_Buffer_Size,");
+         Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Line,");
+         Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init,");
+         Indent_Line (Lower_Package_Name_Root & "_io.yy_eof_has_been_seen,");
          Indent_Line ("Nonterminals,");
          Indent_Line ("Wisi_Tokens_Pkg.Get);");
          Indent := Indent - 3;
@@ -780,7 +789,9 @@ is
          New_Line;
 
          --  For Module, we need to declare Elisp_Names before the
-         --  action subprograms; accumulate them here.
+         --  action subprograms; accumulate them here. Elisp_Names has
+         --  all the non-token names used in actions; the elisp
+         --  functions and their arguments.
          for Rule of Rules loop
             for RHS of Rule.Right_Hand_Sides loop
                if RHS.Action.Length > 0 then
@@ -796,6 +807,9 @@ is
             null;
 
          when Module =>
+            --  All symbols used in wisi-tokens; terminals and
+            --  non-terminals. Must be indexed by Token_ID for
+            --  To_Emacs (token_list).
             Indent_Line
               ("type Token_Array_Emacs_Value is array (Token_IDs range First_Terminal .. Token_IDs'Last) of");
             Indent_Line ("  emacs_module_h.emacs_value;");
@@ -806,6 +820,7 @@ is
                  ") of emacs_module_h.emacs_value;");
             New_Line;
 
+            --  All other symbols used in actions.
             Indent_Line ("type Elisp_Index is");
             Indent_Line ("  (");
             Indent := Indent + 3;
@@ -861,7 +876,24 @@ is
             Indent_Line ("Elisp_Numbers  : Number_Array_Emacs_Value;");
             Indent_Line ("Elisp_Symbols  : Elisp_Array_Emacs_Value;");
             Indent_Line ("Env            : Emacs_Env_Access;");
-            Indent_Line ("Nil            : emacs_module_h.emacs_value;");
+            New_Line;
+
+            Indent_Line ("Trace_Buffer : Ada.Strings.Unbounded.Unbounded_String;");
+            New_Line;
+            Indent_Line ("procedure Put_Trace (Item : in String)");
+            Indent_Line ("is");
+            Indent_Line ("   use Ada.Strings.Unbounded;");
+            Indent_Line ("begin");
+            Indent_Line ("   Trace_Buffer := Trace_Buffer & Item;");
+            Indent_Line ("end Put_Trace;");
+            New_Line;
+            Indent_Line ("procedure Put_Trace_Line (Item : in String)");
+            Indent_Line ("is");
+            Indent_Line ("   use Ada.Strings.Unbounded;");
+            Indent_Line ("begin");
+            Indent_Line ("   Message (Env, To_String (Trace_Buffer & Item));");
+            Indent_Line ("   Set_Unbounded_String (Trace_Buffer, """");");
+            Indent_Line ("end Put_Trace_Line;");
             New_Line;
 
             Indent_Line ("procedure To_Emacs");
@@ -1331,11 +1363,16 @@ is
       --  FIXME: set OpenToken.Trace_Parse from elisp var
       Indent_Line ("   Parser.Reset;");
       Indent_Line ("   Parser.Parse;");
-      Indent_Line ("   return Nil;");
+      Indent_Line ("   return Env.Qnil;");
       Indent_Line ("exception");
-      Indent_Line ("when E : others =>");
-      --  FIXME: implement emacs_module_h signal_error and use that?
+      Indent_Line ("when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>");
       Indent_Line ("   return To_Emacs (Env, Ada.Exceptions.Exception_Message (E));");
+      Indent_Line ("when E : others =>");
+      Indent_Line ("   declare");
+      Indent_Line ("      use Ada.Exceptions;");
+      Indent_Line ("   begin");
+      Indent_Line ("      return To_Emacs (Env, Exception_Name (E) & "": "" & Exception_Message (E));");
+      Indent_Line ("   end;");
       Indent_Line ("end Parse;");
       New_Line;
 
@@ -1345,7 +1382,6 @@ is
       Indent_Line ("begin");
       Indent_Line ("   " & Package_Name & ".Env := Env;");
       Indent_Line ("   Intern_Soft_Symbol := Intern (Env, ""intern-soft"");");
-      Indent_Line ("   Nil := Intern_Soft (Env, ""nil"");");
       Indent_Line ("   for I in Token_Symbols'Range loop");
       Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
       Indent_Line ("   end loop;");
@@ -1361,12 +1397,14 @@ is
       Indent_Line ("   Parser := Create_Parser (Env, Lexer_Elisp_Symbols);");
       Indent_Line ("   return 0;");
       Indent_Line ("exception");
-      Indent_Line ("when others =>");
-      --  FIXME: implement emacs_module_h make_string and return error message
+      Indent_Line ("when E : others =>");
+      --  FIXME: implement emacs_module_h signal_error to return error message
+      Indent_Line
+        ("   Signal_Error (Env, " &
+           "Ada.Exceptions.Exception_Name (E) & "": "" & Ada.Exceptions.Exception_Message (E), Env.Qnil);");
       Indent_Line ("   return 1;");
       Indent_Line ("end Init;");
       New_Line;
-
 
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);
@@ -1506,17 +1544,9 @@ is
       Put_Command_Line (";; ");
       Put_Line (";;");
       --  don't need the prologue here
+      New_Line;
 
-      New_Line;
-      Indent_Line ("(defconst " & Output_File_Root & "-process-names");
-      Indent_Line ("  [");
-      Indent := Indent + 3;
-      for Name of Elisp_Names loop
-         Indent_Line (Name);
-      end loop;
-      Indent_Line ("])");
-      Indent := Indent - 3;
-      New_Line;
+      Indent_Names_Elisp (Output_File_Root, "process", Elisp_Names);
 
       Put_Line ("(provide '" & File_Name & ")");
       Set_Output (Standard_Output);
@@ -1527,6 +1557,11 @@ is
    procedure Create_Module_Elisp
    is
       use Generate_Utils;
+
+      function To_ID_Image (Name : in Ada.Strings.Unbounded.Unbounded_String) return String
+      is begin
+         return Integer'Image (Token_IDs'Pos (Find_Token_ID (-Name)));
+      end To_ID_Image;
 
       File : File_Type;
    begin
@@ -1540,84 +1575,60 @@ is
 
       --  don't need the prologue here
 
-      --  FIXME: this duplicates wisi-output_elisp Keyword_Table, Token_Table; factor out and share
-      --  or just add all elisp here?
+      --  FIXME: this partly duplicates wisi-output_elisp
+      --  Keyword_Table, Token_Table; factor out and share. or just
+      --  add all elisp here?
       Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-parse-common)");
-
       New_Line;
-      Indent_Line ("(defconst " & Output_File_Root & "-module-keyword-table");
-      Indent_Line ("  (semantic-lex-make-keyword-table");
-      Indent_Line ("   '(");
-      Indent := Indent + 5;
-      for Pair of Keywords loop
-         Indent_Line ("(" & (-Pair.Value) & " . " & (-Pair.Name) & ")");
+
+      --  Lexer tables; also contain terminals for wisi-tokens
+      Indent_Keyword_Table_Elisp (Output_File_Root, "elisp", Keywords, Ada.Strings.Unbounded.To_String'Access);
+      Indent_Keyword_Table_Elisp (Output_File_Root, "module", Keywords, To_ID_Image'Access);
+      Indent_Token_Table_Elisp (Output_File_Root, "elisp", Tokens, Ada.Strings.Unbounded.To_String'Access);
+      Indent_Token_Table_Elisp (Output_File_Root, "module", Tokens, To_ID_Image'Access);
+
+      --  non-terminals. We only need the ones that actually have
+      --  actions, and thus will appear in a call to To_Emacs. But
+      --  Token_Symbols must be indexed by Token_IDs, so we declare
+      --  all of them.
+      Indent_Line ("(defconst " & Output_File_Root & "-module-nonterms");
+      Indent_Line (" '(");
+      Indent := Indent + 3;
+      Indent_Line (-OpenToken_Accept_Name);
+      for Rule of Rules loop
+         Indent_Line (-Rule.Left_Hand_Side);
       end loop;
-      Indent_Line (")");
-      Indent := Indent - 2;
-      Indent_Line ("nil))");
+      Indent_Line ("))");
       Indent := Indent - 3;
       New_Line;
 
-      Indent_Line ("(defconst " & Output_File_Root & "-module-token-table");
-      Indent_Line ("  (semantic-lex-make-type-table");
-      Indent_Line ("   '(");
-      Indent := Indent + 5;
-      for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
-            Indent_Line ("(" & (-Kind.Kind));
-            Indent := Indent + 1;
-            for Token of Kind.Tokens loop
-               declare
-                  use Ada.Strings.Unbounded;
-                  Img : constant String := Integer'Image
-                    (Token_IDs'Pos (Find_Token_ID (-Token.Name)));
-               begin
-                  if 0 = Length (Token.Value) then
-                     Indent_Line ("(" & Img & ")");
-                  else
-                     if -Kind.Kind = """number""" then
-                        --  allow for (<token> <number-p> <require>)
-                        Indent_Line ("(" & Img & " " & (-Token.Value) & ")");
-                     else
-                        Indent_Line ("(" & Img & " . " & (-Token.Value) & ")");
-                     end if;
-                  end if;
-               end;
-            end loop;
-            Indent_Line (")");
-            Indent := Indent - 1;
-         end if;
-      end loop;
-      Indent_Line (")");
-      Indent := Indent - 2;
-      Indent_Line ("nil))");
-      Indent := 1;
+      --  Remaining symbols used in actions
+      Indent_Names_Elisp (Output_File_Root, "module", Elisp_Names);
 
       Indent_Line
-        ("(cl-defstruct (" &
-           To_Lower (Package_Name_Root) &
-           "-wisi-module-parser (:include wisi-parser)) dll-name)");
+        ("(cl-defstruct (" & Lower_Package_Name_Root &
+           "-wisi-module-parser (:include wisi-parser) (:constructor " &
+           Lower_Package_Name_Root & "-make (dll-name))))");
       New_Line;
+      Indent_Line ("(defun " & Lower_Package_Name_Root & "-make (dll-name)");
+      Indent_Line ("  (module-load dll-name)");
+      Indent_Line ("  (make-" & Lower_Package_Name_Root & "-wisi-module-parser))");
 
       Indent_Line
-      ("(declare-function " &
-           To_Lower (Package_Name_Root) &
+        ("(declare-function " &
+           Lower_Package_Name_Root &
            "-wisi-module-parse """ &
-           To_Lower (Package_Name_Root) &
-           "-wisi-module-parse.c"" (buffer))");
+           Lower_Package_Name_Root &
+           "-wisi-module-parse.c"")");
       New_Line;
 
       Indent_Line
         ("(cl-defmethod wisi-parse-current ((parser " &
-           To_Lower (Package_Name_Root) &
+           Lower_Package_Name_Root &
            "-wisi-module-parser))");
       Indent := Indent + 2;
-      Indent_Line ("(unless (functionp '" & To_Lower (Package_Name_Root) & "-wisi-module-parse)");
-      Indent_Line ("  (module-load (" & To_Lower (Package_Name_Root) & "-wisi-module-parser-dll-name parser)))");
-      New_Line;
-
-      Indent_Line ("(let ((result (" & To_Lower (Package_Name_Root) & "-wisi-module-parse (current-buffer))))");
+      Indent_Line ("(let ((result (" & Lower_Package_Name_Root & "-wisi-module-parse)))");
       --  result is nil for no errors, a string for some error
       Indent_Line ("  (when result");
       Indent_Line ("    (signal 'wisi-parse-error (wisi-error-msg result)))))");
@@ -1656,13 +1667,13 @@ is
       Indent_Line ("""emacs_module_h.ads"",");
       Indent_Line ("""opentoken-token-wisi_elisp.adb"",");
       Indent_Line ("""opentoken-token-wisi_elisp.ads"",");
-      Indent_Line ("""" & To_Lower (Package_Name_Root) & "_module.adb"",");
-      Indent_Line ("""" & To_Lower (Package_Name_Root) & "_module.ads""");
+      Indent_Line ("""" & Lower_Package_Name_Root & "_module.adb"",");
+      Indent_Line ("""" & Lower_Package_Name_Root & "_module.ads""");
       Indent := Indent - 3;
       Indent_Line ("  );");
       New_Line;
       Indent_Line ("for Object_Dir use ""libobjsjlj"";");
-      Indent_Line ("for Library_Name use """ & To_Lower (Package_Name_Root) & "_wisi_module_parse"";");
+      Indent_Line ("for Library_Name use """ & Lower_Package_Name_Root & "_wisi_module_parse"";");
       Indent_Line ("for Library_Dir use ""libsjlj"";");
       --  This library is linked with *_wisi_module_parse_wrapper.c to
       --  make a dynamic library
@@ -1682,19 +1693,19 @@ is
       --  this file.
       Indent_Line ("case Wisi_Module_Parse_Common.Build is");
       Indent_Line ("when ""Debug"" =>");
-      Indent_Line ("   for Switches (""" & To_Lower (Package_Name_Root) & "_module.adb"") use");
+      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
       Indent_Line ("     (""-O0"", ""-fno-var-tracking-assignments"");");
       Indent_Line ("when ""Normal"" =>");
-      Indent_Line ("for Switches (""" & To_Lower (Package_Name_Root) & "_module.adb"") use");
+      Indent_Line ("for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
       Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
       Indent_Line ("  (""-O2"", ""-fno-var-tracking-assignments"");");
       Indent_Line ("end case;");
 
       --  Other optimization levels hang here.
-      Indent_Line ("for Switches (""" & To_Lower (Package_Name_Root) & "_module.ads"") use");
+      Indent_Line ("for Switches (""" & Lower_Package_Name_Root & "_module.ads"") use");
       Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
       Indent_Line ("  (""-O0""); ");
@@ -1719,7 +1730,7 @@ is
       Put_Command_Line ("-- ");
       Indent_Line ("aggregate project " & Package_Name_Root & "_Wisi_Module_Parse_Agg is");
       Indent_Line ("   for Project_Path use (external (""WISI_OPENTOKEN""));");
-      Indent_Line ("   for Project_files use (""" & To_Lower (Package_Name_Root) & "_wisi_module_parse.gpr"");");
+      Indent_Line ("   for Project_files use (""" & Lower_Package_Name_Root & "_wisi_module_parse.gpr"");");
       Indent_Line ("end " & Package_Name_Root & "_Wisi_Module_Parse_Agg;");
       Set_Output (Standard_Output);
       Close (File);
@@ -1733,14 +1744,13 @@ is
       Indent_Line ("//  *_wisi_module_parse.adb; it is needed to call adainit.");
       Indent_Line ("#include <emacs_module.h>");
       Indent_Line ("int plugin_is_GPL_compatible;");
-      Indent_Line ("static emacs_value nil;");
       Indent_Line ("extern void adainit(void);");
-      Indent_Line ("extern int " & To_Lower (Package_Name_Root) & "_wisi_module_parse_init (emacs_env *env);");
+      Indent_Line ("extern int " & Lower_Package_Name_Root & "_wisi_module_parse_init (emacs_env *env);");
       Indent_Line ("/* Parse current buffer, using parser in current module. */");
-      Indent_Line ("extern emacs_value " & To_Lower (Package_Name_Root) & "_wisi_module_parse (emacs_env *env);");
+      Indent_Line ("extern emacs_value " & Lower_Package_Name_Root & "_wisi_module_parse (emacs_env *env);");
       Indent_Line ("static emacs_value Fparse (emacs_env *env, int nargs, emacs_value args[])");
       Indent_Line ("{");
-      Indent_Line ("  return " & To_Lower (Package_Name_Root) & "_wisi_module_parse (env);");
+      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse (env);");
       Indent_Line ("}");
       New_Line;
       Indent_Line ("static void bind_function (emacs_env *env, const char *name, emacs_value Ffun)");
@@ -1754,12 +1764,11 @@ is
       Indent_Line ("int emacs_module_init (struct emacs_runtime *ert)");
       Indent_Line ("{");
       Indent_Line ("  emacs_env *env = ert->get_environment (ert);");
-      Indent_Line ("  nil = env->intern (env, ""nil"");");
       Indent_Line
-        ("  bind_function (env, """ & To_Lower (Package_Name_Root) &
+        ("  bind_function (env, """ & Lower_Package_Name_Root &
            "-wisi-module-parse"", env->make_function (env, 1, 1, Fparse));");
       Indent_Line ("  adainit();");
-      Indent_Line ("  return " & To_Lower (Package_Name_Root) & "_wisi_module_parse_init (env);");
+      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse_init (env);");
       Indent_Line ("}");
       Set_Output (Standard_Output);
       Close (File);
@@ -1795,3 +1804,8 @@ when others =>
    Set_Output (Standard_Output);
    raise;
 end Wisi.Output_Ada_Emacs;
+--  FIXME: if keep, add to `safe-local-variable-values'
+--  parsing is slow, so it gets in the way of interactive typeing due to immediate font-lock. Slow that down.
+--  Local Variables:
+--  jit-lock-defer-time: 0.5
+--  End:

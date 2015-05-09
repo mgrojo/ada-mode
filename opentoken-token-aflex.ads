@@ -73,8 +73,6 @@ package OpenToken.Token.Aflex is
       First_Column : in Integer                               := 1)
      return Handle;
 
-   overriding function Name (Lexer : in Instance; ID : in Token_ID) return String;
-
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
    overriding

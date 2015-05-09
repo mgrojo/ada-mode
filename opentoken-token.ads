@@ -31,6 +31,7 @@
 --  abstract token source (lexer), and a recursive descent parse
 --  operation.
 
+with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 with OpenToken.Recognizer;
 with OpenToken.Text_Feeder;
@@ -48,6 +49,11 @@ generic
    --  the nonterminals of a grammar.
 
    with function Token_Image (Item : in Token_ID) return String;
+
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   --  Accumulate Item in the trace buffer.
+   --
+   --  Called when OpenToken.Trace_Parse > 0
 
 package OpenToken.Token is
 
@@ -193,8 +199,8 @@ package OpenToken.Token is
       procedure Append (List  : in out Instance; Token : in     Handle);
       --  Append to tail of List, without copying Token.all
 
-      procedure Print (Item : in Instance);
-      --  Print Item to Ada.Text_IO.Current_Output.
+      procedure Put_Trace (Item : in Instance);
+      --  Put Item to Put_Trace.
 
    private
       type List_Node;
@@ -277,9 +283,6 @@ package OpenToken.Token is
    --
    --  Raises Syntax_Error with an appropriate message if no token
    --  is found and there is no default token.
-
-   function Name (Analyzer : in Source; ID : in Token_ID) return String is abstract;
-   --  Return the token name from the Analyzer.Syntax_List.
 
    function Get (Analyzer : in Source) return Class is abstract;
    --  Returns the last token that was matched. This must be a copy of a

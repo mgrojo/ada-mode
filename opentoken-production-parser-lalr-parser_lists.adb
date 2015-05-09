@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
-with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    function Initialize return List
@@ -161,24 +160,23 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
       return Stack_1 = null and Stack_2 = null;
    end Stack_Equal;
 
-   procedure Put_Top_10 (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor)
    is
-      use Ada.Text_IO;
       use type Token.Handle;
       Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
    begin
-      Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
+      Put_Trace (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
       for I in 1 .. 10 loop
          exit when Stack_I = null;
-         Put
+         Put_Trace
            (State_Index'Image (Stack_I.Item.State) & " : " &
               (if Stack_I.Item.Token = null then ""
                else Stack_I.Item.Token.Image) &
               ", ");
          Stack_I := Stack_I.Next;
       end loop;
-      New_Line;
-   end Put_Top_10;
+      Put_Trace_Line ("");
+   end Put_Trace_Top_10;
 
    function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer
    is
@@ -717,7 +715,7 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
 
    end Check_Action_Stack;
 
-   procedure Put (Action_Token : in Parser_Lists.Action_Token)
+   procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token)
    is
       use type Nonterminal.Handle;
       use Ada.Characters.Handling;
@@ -727,20 +725,20 @@ package body OpenToken.Production.Parser.LALR.Parser_Lists is
            ((if Action_Token.Action.LHS = null then Action_Token.New_Token.ID else Action_Token.Action.LHS.ID))) &
         "_" & OpenToken.Int_Image (Action_Token.Action.Index);
    begin
-      Ada.Text_IO.Put (Action_Name & ": " & Action_Token.New_Token.Image & " ");
-      Token.List.Print (Action_Token.Tokens);
-   end Put;
+      Put_Trace (Action_Name & ": " & Action_Token.New_Token.Image & " ");
+      Token.List.Put_Trace (Action_Token.Tokens);
+   end Put_Trace;
 
-   procedure Put_Action_Tokens (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Action_Tokens (Cursor : in Parser_Lists.Cursor)
    is
       Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
    begin
       loop
          exit when Action_Token = null;
-         Put (Action_Token.Item);
-         Ada.Text_IO.New_Line;
+         Put_Trace (Action_Token.Item);
+         Put_Trace_Line ("");
          Action_Token := Action_Token.Next;
       end loop;
-   end Put_Action_Tokens;
+   end Put_Trace_Action_Tokens;
 
 end OpenToken.Production.Parser.LALR.Parser_Lists;

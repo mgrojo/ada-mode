@@ -101,8 +101,6 @@ package OpenToken.Token.Analyzer is
       First_Column    : in Integer                               := 1)
      return Handle;
 
-   overriding function Name (Analyzer : in Instance; ID : in Token_ID) return String;
-
    overriding procedure Reset (Analyzer : in out Instance; Buffer_Size : in Integer := 1024);
 
    ----------------------------------------------------------------------------

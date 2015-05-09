@@ -23,23 +23,22 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-with Ada.Text_IO; use Ada.Text_IO;
-package body OpenToken.Production.Print is
+package body OpenToken.Production.Put_Trace is
 
-   procedure Print (Item : in Instance)
+   procedure Put_Trace (Item : in Instance)
    is begin
-      Put ("(" & Token.Token_Image (Token.ID (Item.LHS.all)) & " <= ");
-      Print (Item.RHS);
-      Put (")");
-   end Print;
+      Put_Trace ("(" & Token.Token_Image (Token.ID (Item.LHS.all)) & " <= ");
+      Put_Trace (Item.RHS);
+      Put_Trace (")");
+   end Put_Trace;
 
-   procedure Print (Item : in Right_Hand_Side)
+   procedure Put_Trace (Item : in Right_Hand_Side)
    is
       use type Nonterminal.Synthesize;
    begin
-      Token.List.Print (Item.Tokens);
-      Put (", Action => ");
-      Print_Action (Item.Action);
-   end Print;
+      Token.List.Put_Trace (Item.Tokens);
+      Put_Trace (", Action => ");
+      Put_Trace_Action (Item.Action);
+   end Put_Trace;
 
-end OpenToken.Production.Print;
+end OpenToken.Production.Put_Trace;

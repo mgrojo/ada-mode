@@ -422,11 +422,6 @@ package body OpenToken.Token.Analyzer is
       return New_Analyzer;
    end Initialize;
 
-   overriding function Name (Analyzer : in Instance; ID : in Token_ID) return String
-   is begin
-      return Name (Analyzer.Syntax_List (ID).Token_Handle.all);
-   end Name;
-
    overriding procedure Reset (Analyzer : in out Instance; Buffer_Size : in Integer := 1024)
    is
       procedure Free is new Ada.Unchecked_Deallocation (String, String_Access_Type);

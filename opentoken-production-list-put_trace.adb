@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Print types in Production
+--  See spec
 --
---  Copyright (C) 2002, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,12 +23,20 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-generic
-   with procedure Print_Action (Item : in Nonterminal.Synthesize);
-package OpenToken.Production.Print is
+package body OpenToken.Production.List.Put_Trace is
 
-   procedure Print (Item : in Instance);
-   procedure Print (Item : in Right_Hand_Side);
-   --  Print Item to Ada.Text_IO.Current_Output.
+   procedure Put_Trace (Item : in Instance)
+   is
+      I : List_Iterator := Initial_Iterator (Item);
+   begin
+      Put_Trace ("(");
+      loop
+         exit when Past_Last (I);
+         Put_Trace_Production (Get_Production (I));
+         Put_Trace_Line (",");
+         Next_Production (I);
+      end loop;
+      Put_Trace (")");
+   end Put_Trace;
 
-end OpenToken.Production.Print;
+end OpenToken.Production.List.Put_Trace;

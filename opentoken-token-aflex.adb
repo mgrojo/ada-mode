@@ -51,13 +51,6 @@ package body OpenToken.Token.Aflex is
       return New_Lexer;
    end Initialize;
 
-   overriding function Name (Lexer : in Instance; ID : in Token_ID) return String
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      return Token_Image (ID);
-   end Name;
-
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
    is
       pragma Unreferenced (Lexer);

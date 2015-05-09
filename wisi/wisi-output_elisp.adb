@@ -128,7 +128,7 @@ is
 begin
    if Verbosity > 0 then
       Put_Line ("Grammar:");
-      Generate_Utils.Print_Production_Lists.Print (Grammar);
+      Generate_Utils.Put_Trace_Production_Lists.Put_Trace (Grammar);
       New_Line;
    end if;
 

@@ -25,7 +25,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 package body OpenToken.Production.Parser.LALR.Parser is
 
    --  Return the action for the given state index and terminal ID.
@@ -90,7 +89,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end;
    end Expecting;
 
-   function Names (Analyzer : in Token.Source_Handle; Tokens : in Token_ID_Array) return String
+   function Names (Tokens : in Token_ID_Array) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
@@ -99,11 +98,9 @@ package body OpenToken.Production.Parser.LALR.Parser is
       --  the error message to overflow the GNAT exception message
       --  limit.
       for I in Tokens'First .. Integer'Min (Tokens'Last, 10) loop
-         Result := Result & "'" & Analyzer.Name (Tokens (I));
-         if I = Tokens'Last then
-            Result := Result & "'";
-         else
-            Result := Result & "' or ";
+         Result := Result & Token.Token_Image (Tokens (I));
+         if I /= Tokens'Last then
+            Result := Result & ", ";
          end if;
       end loop;
       return To_String (Result);
@@ -137,15 +134,15 @@ package body OpenToken.Production.Parser.LALR.Parser is
          if Current_Parser.Active_Parser_Count > 1 then
             Current_Parser.Enqueue (Action_Token);
             if Trace_Parse > 0 then
-               Ada.Text_IO.Put ("pending ");
-               Parser_Lists.Put (Action_Token);
-               Ada.Text_IO.Put_Line (" action count:" & Integer'Image (Current_Parser.Action_Token_Count));
+               Put_Trace ("pending ");
+               Parser_Lists.Put_Trace (Action_Token);
+               Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Action_Token_Count));
             end if;
          else
             Action.Action (New_Token.all, Tokens, Token.ID (New_Token.all));
             if Trace_Parse > 0 then
-               Parser_Lists.Put (Action_Token);
-               Ada.Text_IO.New_Line;
+               Parser_Lists.Put_Trace (Action_Token);
+               Put_Trace_Line ("");
             end if;
             Token.List.Clean (Tokens);
          end if;
@@ -160,14 +157,14 @@ package body OpenToken.Production.Parser.LALR.Parser is
    is begin
       if Trace_Parse > 0 then
          if Trace_Parse > 1 then
-            Parser_Lists.Put_Top_10 (Current_Parser);
+            Parser_Lists.Put_Trace_Top_10 (Current_Parser);
          end if;
-         Ada.Text_IO.Put
+         Put_Trace
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
               Current_Token.Image & " : ");
          Put (Action);
-         Ada.Text_IO.New_Line;
+         Put_Trace_Line ("");
       end if;
 
       case Action.Verb is
@@ -188,7 +185,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                 Token    => OpenToken.Production.Token.Handle (New_Token)));
 
             if Trace_Parse > 0 then
-               Ada.Text_IO.Put_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
+               Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
             end if;
          end;
 
@@ -282,7 +279,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
       Action_Token : Parser_Lists.Action_Token;
    begin
       if Trace_Parse > 0 then
-         Ada.Text_IO.Put_Line ("execute pending");
+         Put_Trace_Line ("execute pending");
       end if;
       loop
          exit when Current_Parser.Action_Tokens_Empty;
@@ -291,8 +288,8 @@ package body OpenToken.Production.Parser.LALR.Parser is
            (Action_Token.New_Token.all, Action_Token.Tokens, Token.ID (Action_Token.New_Token.all));
          if Trace_Parse > 0 then
             --  Do Put after calling Action, so New_Token has result of Action
-            Parser_Lists.Put (Action_Token);
-            Ada.Text_IO.New_Line;
+            Parser_Lists.Put_Trace (Action_Token);
+            Put_Trace_Line ("");
          end if;
          --  Action_Token.New_Token still on stack; freed later
          Token.List.Clean (Action_Token.Tokens);
@@ -344,7 +341,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                --  FIXME: free everything
                raise Syntax_Error with
                  Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
-                 ": Syntax error; expecting " & Names (Parser.Analyzer, Expecting_Tokens) &
+                 ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
                  "; found " & ID & " '" & Lexeme & "'";
             end;
 
@@ -360,7 +357,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
             if Current_Verb = Shift and Current_Parser.Verb = Error then
                if Trace_Parse > 0 then
-                  Ada.Text_IO.Put_Line
+                  Put_Trace_Line
                     (Integer'Image (Current_Parser.Label) & ": terminate (" &
                        Int_Image (Parsers.Count - 1) & " active)");
                end if;
@@ -374,7 +371,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
               (Current_Verb = Shift and Duplicate_State (Parsers, Current_Parser))
             then
                if Trace_Parse > 0 then
-                  Ada.Text_IO.Put_Line
+                  Put_Trace_Line
                     (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
                        Int_Image (Parsers.Count - 1) & " active)");
                end if;
@@ -403,11 +400,11 @@ package body OpenToken.Production.Parser.LALR.Parser is
 
                   else
                      if Trace_Parse > 0 then
-                        Ada.Text_IO.Put ("spawn parser from " & Int_Image (Current_Parser.Label));
+                        Put_Trace ("spawn parser from " & Int_Image (Current_Parser.Label));
                      end if;
                      Parsers.Prepend_Copy (Current_Parser);
                      if Trace_Parse > 0 then
-                        Ada.Text_IO.Put_Line (" (" & Int_Image (Parsers.Count) & " active)");
+                        Put_Trace_Line (" (" & Int_Image (Parsers.Count) & " active)");
                         Parser_Lists.Check_Action_Stack ("", Current_Parser);
                      end if;
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser.Table.all);

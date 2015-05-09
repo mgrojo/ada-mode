@@ -19,14 +19,18 @@
 pragma License (GPL);
 
 with OpenToken.Token.Nonterminal;
+with Ada.Text_IO;
 generic
    type Token_IDs is (<>);
    First_Terminal : in Token_IDs;
    Last_Terminal  : in Token_IDs;
 
    with function Token_Image (Item : in Token_IDs) return String;
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+
    with package Tokens is new OpenToken.Token
-     (Token_IDs, First_Terminal, Last_Terminal, Token_Image);
+     (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
+
    with package Nonterminals is new Tokens.Nonterminal;
 package OpenToken.Wisi_Tokens is
 

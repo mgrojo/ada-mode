@@ -18,9 +18,9 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
-with OpenToken.Production.List.Print;
+with OpenToken.Production.List.Put_Trace;
 with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Production.Print;
+with OpenToken.Production.Put_Trace;
 with OpenToken.Token.Nonterminal;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
@@ -83,9 +83,9 @@ package Wisi.Gen_Generate_Utils is
    package Production_Lists is new Productions.List;
    package LALR_Generators is new LALRs.Generator (Token_Image_Width, Production_Lists);
 
-   procedure Print_Action (Item : in Nonterminals.Synthesize) is null;
-   package Print_Production is new Productions.Print (Print_Action);
-   package Print_Production_Lists is new Production_Lists.Print (Print_Production.Print);
+   procedure Put_Trace_Action (Item : in Nonterminals.Synthesize) is null;
+   package Put_Trace_Production is new Productions.Put_Trace (Put_Trace_Action);
+   package Put_Trace_Production_Lists is new Production_Lists.Put_Trace (Put_Trace_Production.Put_Trace);
 
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
@@ -100,6 +100,34 @@ package Wisi.Gen_Generate_Utils is
 
    procedure Indent_Line (Text : in String);
    --  Put Text indented to Indent to Current_Output, with newline.
+
+   procedure Indent_Keyword_Table_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Keywords         : in     String_Pair_Lists.List;
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-keyword-table declaring a keyword table
+   --  for the wisi lexer containing Keywords and $eoi, using Image
+   --  (Pair.Name) for the elisp symbol.
+
+   procedure Indent_Token_Table_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Tokens           : in     Token_Lists.List;
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-token-table declaring a token table for
+   --  the wisi lexer containing Tokens, using Image (Token.Name) for
+   --  the elisp symbol.
+
+   procedure Indent_Names_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Names            : in     String_Lists.List);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-names declaring an array of symbols
+   --  containing Names.
 
 private
 
