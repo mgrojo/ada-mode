@@ -51,10 +51,9 @@
 
 (defun wisi-compose-action (value symbol-array nonterms)
   (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))
-	(prod (car (nth (cdr value) (cdr (assoc (car value) nonterms))))))
-    (if symbol
-	(list (car value) symbol (length prod))
-      (error "%s not in symbol-array" symbol))))
+	(rhs (car (nth (cdr value) (cdr (assoc (car value) nonterms))))))
+    (list (car value) symbol (length rhs))
+    ))
 
 (defun wisi-replace-actions (action symbol-array nonterms)
   "Replace semantic action symbol names in ACTION with list as defined in `wisi-compile-grammar'.
@@ -113,17 +112,23 @@ tokens to be reduced. It returns nil; it is called for the user
 side-effects only."
   ;; based on comp.el wisent-semantic-action
   (let* ((actn (aref rcode r))
-	 (n    (aref actn 1))         ; number of tokens in production
+	 (n    (aref actn 1))         ; number of tokens in production RHS
 	 (name (apply 'format "%s:%d" (aref actn 2)))
 	 (form (aref actn 0))
-	 (action-symbol (intern name (aref rcode 0))))
+	 action-symbol)
 
-    (fset action-symbol
-	  `(lambda (wisi-tokens)
-	     (let* (($nterm ',(aref tags (aref rlhs r)))
-		    ($1 nil));; wisent-parse-nonterminals defines a default body of $1 for empty actions
-	       ,form
-	       nil)))
+    (when (eq form '$1)
+      ;; no user action; comp.el wisent-parse-nonterminals provides a
+      ;; default user action of '$1; erase that
+      (setq form nil))
+
+    (when form
+      (setq action-symbol (intern name (aref rcode 0)))
+      (fset action-symbol
+	    `(lambda (wisi-tokens)
+	       (let* (($nterm ',(aref tags (aref rlhs r))))
+		 ,form
+		 nil))))
 
     (list (car (aref actn 2)) action-symbol n)))
 

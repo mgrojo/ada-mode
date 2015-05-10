@@ -519,25 +519,29 @@ the first and last tokens of the nonterminal."
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
 
-    (dotimes (i token-count)
-      (aset tokens (- token-count i 1) (aref stack (- sp (* 2 i) 1))))
+    (when (nth 1 action)
+      ;; don't need wisi-tokens for a null user action
+      (dotimes (i token-count)
+	(aset tokens (- token-count i 1) (aref stack (- sp (* 2 i) 1)))))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp) (cons nonterm nonterm-region))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
 
-    (if pendingp
-	(if (wisi-parser-state-pending parser-state)
+    (when (nth 1 action)
+      ;; nothing to do for a null user action
+      (if pendingp
+	  (if (wisi-parser-state-pending parser-state)
+	      (setf (wisi-parser-state-pending parser-state)
+		    (append (wisi-parser-state-pending parser-state)
+			    (list (list (nth 1 action) tokens))))
 	    (setf (wisi-parser-state-pending parser-state)
-		  (append (wisi-parser-state-pending parser-state)
-			  (list (list (nth 1 action) tokens))))
-	  (setf (wisi-parser-state-pending parser-state)
-		(list (list (nth 1 action) tokens))))
+		  (list (list (nth 1 action) tokens))))
 
-      ;; Not pending.
-      (wisi-parse-exec-action (nth 1 action) tokens)
-      )
+	;; Not pending.
+	(wisi-parse-exec-action (nth 1 action) tokens)
+	))
     ))
 
 (provide 'wisi-parse)
