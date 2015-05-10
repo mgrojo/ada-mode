@@ -508,7 +508,7 @@ the first and last tokens of the nonterminal."
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
   (let* ((stack (wisi-parser-state-stack parser-state)); reference
 	 (sp (wisi-parser-state-sp parser-state)); copy
-	 (token-count (or (nth 2 action) 0))
+	 (token-count (nth 2 action))
 	 (nonterm (nth 0 action))
 	 (nonterm-region (when (> token-count 0)
 			   (wisi-nonterm-bounds stack (- sp (* 2 (1- token-count)) 1) (1- sp))))

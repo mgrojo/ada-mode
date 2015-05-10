@@ -36,6 +36,8 @@ developing GNU and promoting software freedom.''
 
 @node Top, Overview, (dir), (dir)
 
+Ada Mode Version 5.1.8
+
 @ifnottex
 @insertcopying
 @end ifnottex

@@ -112,7 +112,7 @@ package body Format_Paramlist is
    --  Single parameter, but on its own line
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(insert "   ") (ada-align))
    function Create_Parser
-     (Max_Parallel : in Integer := 15)
-     return LALR_Parsers.Instance;
+     (Parallel : in Integer := 15)
+     return Lalr_Parsers.Instance;
 
 end Format_Paramlist;

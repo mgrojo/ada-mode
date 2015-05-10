@@ -26,7 +26,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-wisi")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-parens.adb")
+  (run-test "../../test/format_paramlist.adb")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -40,8 +40,6 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-show version on front page of ada-mode.info
-
 do less work for null user action
     wisi-compile.el
         wisi-semantic-action
@@ -51,16 +49,13 @@ do less work for null user action
 
     wisi-elisp-parse.el
         wisi-elisp-parse-reduce
-            what's with (token-count (or (nth 2 action) 0))?
-                production can be null?
-                in wisi-compose-action, 'prod' is actually 'rhs'
-                    still can't be nil
-
             if (nth 1 action) is 0:
                 don't build tokens
                 don't pend or execute
 
 pass nonterm to action; save time for let?
+
+delete (if (featurep 'ada-wisi) ...) from tests
 
 completion
     (info "(elisp)Completion")

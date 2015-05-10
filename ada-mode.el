@@ -825,7 +825,7 @@ Each parameter declaration is represented by a list
 	param)
 
     ;; clean up whitespace
-    (delete-char (skip-syntax-forward " "))
+    (delete-char (- (skip-syntax-forward " ")))
     (insert "(")
 
     (setq i (length paramlist))
