@@ -1061,7 +1061,7 @@ Some variables (like @code{src_dir}) are lists; multiple occurrences
 are concatenated.
 
 There must be no space between the variable name and ``='', and no
-trailing spaces.
+trailing spaces after the value.
 
 The current project file is given by the lisp variable
 @code{ada-prj-default-project-file}, and shown by the menu command
@@ -1091,10 +1091,15 @@ just @code{ada-select-prj-file}, or by selecting it from the menu.
 @section Project file variables
 
 To set a project variable that is a list, specify each element of the
-list on a separate line in the project file.
+list on a separate line in the project file. The value on the last
+line is the last element in the list.
 
-Process environment variables can be referenced using the
-normal @code{$var} syntax.
+A variable name that starts with @code{$} is set as a process
+environment variable, for processes launched from Emacs for the
+project.
+
+In variable values, process environment variables can be referenced
+using the normal @code{$var} syntax.
 
 Most project variables have defaults that can be changed by setting
 elisp variables; the table below identifies the elisp variable for each

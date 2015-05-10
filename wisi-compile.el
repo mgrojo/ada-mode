@@ -86,13 +86,6 @@ Return the new alist."
 			     (wisi-compose-action (cadr value) symbol-array nonterms)))
 		 result))
 
-	  ((integerp (cadr value))
-	   ;; reduce/shift conflict
-	   (push (cons (car item)
-		       (list (wisi-compose-action (car value) symbol-array nonterms)
-			     (cadr value)))
-		 result))
-
 	  (t ;; reduce/reduce conflict
 	   (push (cons (car item)
 		       (list (wisi-compose-action (car value) symbol-array nonterms)

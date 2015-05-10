@@ -29,6 +29,9 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    open paren, ada-prev-statement-keyword moves from close paren to
    open paren.
 
+** New function ada-prj-show-src-path (on the Ada menu) displays
+   compilation-search-path in a buffer.
+
 ** New hook ada-prj-parse-hook, run from ada-parse-prj-file
 
 ** gpr parser handles nested case statements without blowing up.

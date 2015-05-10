@@ -389,7 +389,8 @@ Values defined by cross reference packages.")
      ["Find and select project ..."   ada-build-prompt-select-prj-file t]
      ["Select project ..."            ada-prj-select                   t]
      ["Show project"                  ada-prj-show                     t]
-     ["Show project search path"      ada-prj-show-path                t]
+     ["Show project file search path" ada-prj-show-prj-path            t]
+     ["Show source file search path"  ada-prj-show-src-path            t]
     )
     ("Build"
      ["Next compilation error"     next-error                t]
@@ -820,8 +821,7 @@ Each parameter declaration is represented by a list
 (defun ada-insert-paramlist-single-line (paramlist)
   "Insert a single-line formatted PARAMLIST in the buffer."
   ;; point is properly indented
-  (let ((begin (point))
-	(i (length paramlist))
+  (let ((i (length paramlist))
 	param)
 
     ;; clean up whitespace
@@ -1671,15 +1671,27 @@ Indexed by project variable xref_tool.")
   (interactive)
   (message "current Emacs Ada mode project file: %s" ada-prj-current-file))
 
-(defvar ada-prj-show-path nil
+(defvar ada-prj-show-prj-path nil
   ;; Supplied by compiler
-  "Function to show project search path used by compiler (and possibly xref tool)."
+  "Function to show project file search path used by compiler (and possibly xref tool)."
   )
 
-(defun ada-prj-show-path ()
+(defun ada-prj-show-prj-path ()
   (interactive)
-  (when ada-prj-show-path
-    (funcall ada-prj-show-path)))
+  (when ada-prj-show-prj-path
+    (funcall ada-prj-show-prj-path)))
+
+(defun ada-prj-show-src-path ()
+  "Show the project source file search path."
+  (interactive)
+  (if compilation-search-path
+      (progn
+	(pop-to-buffer (get-buffer-create "*Ada project source file search path*"))
+	(erase-buffer)
+	(dolist (file compilation-search-path)
+	  (insert (format "%s\n" file))))
+    (message "no project source file search path set")
+    ))
 
 (defvar ada-show-xref-tool-buffer nil
   ;; Supplied by xref tool
