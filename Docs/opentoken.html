@@ -29,16 +29,18 @@
 policy release timeline</a>).</p>
 
 <p>OpenToken is a facility for performing token analysis and parsing
-within the Ada language. It is designed to provide all the
-functionality of a traditional lexical analyzer/parser generator, such
-as lex/yacc. But due to the magic of inheritance and runtime
-polymorphism it is implemented entirely in Ada as withed-in code. No
-precompilation step is required, and no messy tool-generated source
-code is created. The tradeoff is that the grammar is generated at
-runtime.
+  within the Ada language. It supports two modes of parser
+  programming; code generation similar to yacc, and Ada packages to
+  construct the grammar and parse tables directly at run-time.
 
-<p>For example, here is an OpenToken LR specification of a typical
-arithmetic grammar, taken from Example 5.10, section 5.3, page 295 of
+  For small languages, the Ada package approach is easy to use and
+  maintain. For larger languages, the code generation approach is
+  better; the grammar description is more compact and easier to relate
+  to other language tools.
+
+<p>For an Ada package example, here is an OpenToken LR specification
+of a typical arithmetic grammar, taken from Example 5.10, section 5.3,
+page 295 of
 <a href="http://en.wikipedia.org/wiki/Dragon_Book_%28computer_science%29">
 the red dragon book</a> (note that we have added an explicit EOF (end
 of file) symbol):
@@ -140,11 +142,9 @@ newsgroup comp.lang.ada.
 
 <p>OpenToken has been tested on the following operating systems/compilers:
 <ul>
-  <li>Debian 5.0 GNAT 3.4.2
-  <li>Debian 6.0 GNAT 4.4.3
-  <li>Windows XP 32 bit GNAT 6.2.1
-  <li>Windows XP 32 bit GNAT GPL-2009
-  <li>Windows 7 64 bit GNAT 7.1 preview
+  <li>Debian 7.0 (wheezy) GNAT GPL 2014
+  <li>Debian 8.0 (jessi) gcc 4.9.2
+  <li>Windows 7 64 bit GNAT GPL 2014 32 bit
 </ul>
 
 <p>The simplest way to use the source distribution is to install it in
