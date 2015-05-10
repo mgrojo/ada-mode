@@ -42,6 +42,7 @@ loop until no changes:
         (sal-standard)
 
         release/Makefile
+            (gpr-query-kill-all-sessions)
             distclean
             all
             install
