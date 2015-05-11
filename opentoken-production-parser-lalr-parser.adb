@@ -133,14 +133,14 @@ package body OpenToken.Production.Parser.LALR.Parser is
       begin
          if Current_Parser.Active_Parser_Count > 1 then
             Current_Parser.Enqueue (Action_Token);
-            if Trace_Parse > 0 then
+            if Trace_Parse > 1 then
                Put_Trace ("pending ");
                Parser_Lists.Put_Trace (Action_Token);
                Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Action_Token_Count));
             end if;
          else
             Action.Action (New_Token.all, Tokens, Token.ID (New_Token.all));
-            if Trace_Parse > 0 then
+            if Trace_Parse > 1 then
                Parser_Lists.Put_Trace (Action_Token);
                Put_Trace_Line ("");
             end if;
@@ -149,21 +149,37 @@ package body OpenToken.Production.Parser.LALR.Parser is
       end;
    end Reduce_Stack;
 
+   procedure Put_Trace (Item : in Parse_Action_Rec)
+   is begin
+      case Item.Verb is
+      when Shift =>
+         Put_Trace ("shift and goto state" & State_Index'Image (Item.State));
+
+      when Reduce =>
+         Put_Trace
+           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
+      when Accept_It =>
+         Put_Trace ("accept it");
+      when Error =>
+         Put_Trace ("ERROR");
+      end case;
+   end Put_Trace;
+
    procedure Do_Action
      (Action         : in Parse_Action_Rec;
       Current_Parser : in Parser_Lists.Cursor;
       Current_Token  : in Token.Handle;
       Table          : in Parse_Table)
    is begin
-      if Trace_Parse > 0 then
-         if Trace_Parse > 1 then
+      if Trace_Parse > 1 then
+         if Trace_Parse > 2 then
             Parser_Lists.Put_Trace_Top_10 (Current_Parser);
          end if;
          Put_Trace
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
               Current_Token.Image & " : ");
-         Put (Action);
+         Put_Trace (Action);
          Put_Trace_Line ("");
       end if;
 
@@ -184,7 +200,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
                    ID    => Token.ID (Action.LHS.all)),
                 Token    => OpenToken.Production.Token.Handle (New_Token)));
 
-            if Trace_Parse > 0 then
+            if Trace_Parse > 1 then
                Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
             end if;
          end;
@@ -278,7 +294,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
    is
       Action_Token : Parser_Lists.Action_Token;
    begin
-      if Trace_Parse > 0 then
+      if Trace_Parse > 1 then
          Put_Trace_Line ("execute pending");
       end if;
       loop
@@ -286,7 +302,7 @@ package body OpenToken.Production.Parser.LALR.Parser is
          Action_Token := Current_Parser.Dequeue;
          Action_Token.Action.Action
            (Action_Token.New_Token.all, Action_Token.Tokens, Token.ID (Action_Token.New_Token.all));
-         if Trace_Parse > 0 then
+         if Trace_Parse > 1 then
             --  Do Put after calling Action, so New_Token has result of Action
             Parser_Lists.Put_Trace (Action_Token);
             Put_Trace_Line ("");

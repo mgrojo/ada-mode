@@ -50,9 +50,12 @@ package OpenToken.Production.Parser.LALR.Generator is
    --  grammar start symbol is the LHS of the first production in
    --  Grammar.
    --
-   --  If Trace, output debug info about generation process. We don't
-   --  use OpenToken.Trace here; we often want to see a trace of the
-   --  parser execution without the parser generation.
+   --  If Trace, output debug info to Standard_Error about generation
+   --  process. We don't use OpenToken.Trace here; we often want to
+   --  see a trace of the parser execution without the parser
+   --  generation.
+   --
+   --  If Put_Parse_Table, output the parse table to Standard_Output
    --
    --  Unless Ignore_Unused_Tokens is True, raise Grammar_Error if
    --  there are unused tokens.

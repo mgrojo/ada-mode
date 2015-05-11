@@ -758,8 +758,9 @@ is
 
       when Module =>
          Add_Elisp_Name ("set");
-         Add_Elisp_Name ("wisi-tokens");
          Add_Elisp_Name ("vector");
+         Add_Elisp_Name ("wisi-tokens");
+         Add_Elisp_Name ("wisi-debug");
 
       end case;
 
@@ -1360,7 +1361,8 @@ is
 
       Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
       Indent_Line ("is begin");
-      --  FIXME: set OpenToken.Trace_Parse from elisp var
+      Indent_Line ("   OpenToken.Trace_Parse := To_Integer (Env, Elisp_Symbols (Wisi_Debug_ID));");
+      --  FIXME: need Symbol_Value
       Indent_Line ("   Parser.Reset;");
       Indent_Line ("   Parser.Parse;");
       Indent_Line ("   return Env.Qnil;");
@@ -1382,6 +1384,7 @@ is
       Indent_Line ("begin");
       Indent_Line ("   " & Package_Name & ".Env := Env;");
       Indent_Line ("   Intern_Soft_Symbol := Intern (Env, ""intern-soft"");");
+      Indent_Line ("   Message_Symbol     := Intern_Soft (Env, ""message"");");
       Indent_Line ("   for I in Token_Symbols'Range loop");
       Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
       Indent_Line ("   end loop;");
@@ -1398,7 +1401,6 @@ is
       Indent_Line ("   return 0;");
       Indent_Line ("exception");
       Indent_Line ("when E : others =>");
-      --  FIXME: implement emacs_module_h signal_error to return error message
       Indent_Line
         ("   Signal_Error (Env, " &
            "Ada.Exceptions.Exception_Name (E) & "": "" & Ada.Exceptions.Exception_Message (E), Env.Qnil);");
@@ -1560,7 +1562,8 @@ is
 
       function To_ID_Image (Name : in Ada.Strings.Unbounded.Unbounded_String) return String
       is begin
-         return Integer'Image (Token_IDs'Pos (Find_Token_ID (-Name)));
+         --  Ada 'Val is 0 origin; Generate_Utils Token_IDs is 1 origin
+         return Integer'Image (-1 + Find_Token_ID (-Name));
       end To_ID_Image;
 
       File : File_Type;

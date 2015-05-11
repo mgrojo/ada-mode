@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephe Leake
+-- Copyright (C) 2002, 2003, 2009, 2010, 2013-2015 Stephe Leake
 -- Copyright (C) 1999 Ted Dennison
 --
 --  References:
@@ -138,7 +138,5 @@ package OpenToken.Production.Parser.LALR is
 
    function State_Image (Item : in State_Index) return String;
    --  no leading space
-
-   procedure Put (Item : in Parse_Action_Rec);
 
 end OpenToken.Production.Parser.LALR;
