@@ -381,7 +381,7 @@ nil, 'shift, or 'accept."
     result)
   )
 
-(defun wisi-parse-exec-action (func tokens)
+(defun wisi-parse-exec-action (func nonterm tokens)
   "Execute action if all tokens past wisi-cache-max."
   ;; We don't execute actions if all tokens are before wisi-cache-max,
   ;; because later actions can update existing caches, and if the
@@ -392,7 +392,7 @@ nil, 'shift, or 'accept."
   (if (< 0 (length tokens))
       (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
 
-	  (funcall func tokens)
+	  (funcall func nonterm tokens)
 
 	(when (> wisi-debug 1)
 	  (message "... action skipped; before wisi-cache-max %d" wisi-cache-max)))
@@ -407,7 +407,7 @@ nil, 'shift, or 'accept."
     (when (> wisi-debug 1) (message "%s" (car pending)))
 
     (let ((func-args (pop pending)))
-      (wisi-parse-exec-action (car func-args) (cadr func-args)))
+      (wisi-parse-exec-action (nth 0 func-args) (nth 1 func-args) (cl-caddr func-args)))
     ))
 
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
@@ -535,12 +535,12 @@ the first and last tokens of the nonterminal."
 	  (if (wisi-parser-state-pending parser-state)
 	      (setf (wisi-parser-state-pending parser-state)
 		    (append (wisi-parser-state-pending parser-state)
-			    (list (list (nth 1 action) tokens))))
+			    (list (list (nth 1 action) nonterm tokens))))
 	    (setf (wisi-parser-state-pending parser-state)
-		  (list (list (nth 1 action) tokens))))
+		  (list (list (nth 1 action) nonterm tokens))))
 
 	;; Not pending.
-	(wisi-parse-exec-action (nth 1 action) tokens)
+	(wisi-parse-exec-action (nth 1 action) nonterm tokens)
 	))
     ))
 

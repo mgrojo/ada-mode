@@ -40,39 +40,6 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
-times
-    /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-    (time-it 'wisi-parse-buffer 5)
-    start                                       2.821045 2.905325 2.934285
-    elim wisi-tokens for null action/null RHS   2.574405 2.748925 2.792805
-    elim $1                                     2.441244 2.574405 2.562125
-
-do less work for null user action
-    wisi-compile.el
-        wisi-semantic-action
-            set action-symbol nil if form is nil
-            save time by not binding wisi-tokens
-
-    wisi-parse.el
-        wisi-elisp-parse-reduce
-            if (nth 1 action) is 0:
-                don't build tokens
-                don't pend or execute
-
-    passes all tests
-
-wisi-compile.el
-    wisi-semantic-action
-        eliminate $1
-
-        passes subprograms.test-wisi
-
-    wisi-semantic-action
-        eliminate run-time 'let'?
-            pass nonterm to action
-
-set number-p to nil
-
 completion
     (info "(elisp)Completion")
     examples:
@@ -609,6 +576,9 @@ bump versions
             NEWS-ada-mode.text
                 add release date
                 add new features
+                add timing
+                /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+                (time-it 'wisi-parse-buffer 5)
 
             ada-mode.el
                 Version:

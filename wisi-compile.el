@@ -98,7 +98,7 @@ Return the new alist."
 
    (reverse result)))
 
-(defun wisi-semantic-action (r rcode tags rlhs)
+(defun wisi-semantic-action (r rcode)
   "Define an Elisp function for semantic action at rule R.
 On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY
 is the body of the semantic action, N is the number of tokens in
@@ -107,9 +107,11 @@ belongs to, and I is the index of the production and associated
 semantic action in the NTERM rule.  Returns the semantic action
 symbol, which is interned in RCODE[0].
 
-The semantic action function accepts one argument, the list of
-tokens to be reduced. It returns nil; it is called for the user
-side-effects only."
+The semantic action function accepts two arguments;
+- $nterm      : the nonterminal
+- wisi-tokens : the list of tokens to be reduced.
+
+It returns nil; it is called for the user side-effects only."
   ;; based on comp.el wisent-semantic-action
   (let* ((actn (aref rcode r))
 	 (n    (aref actn 1))         ; number of tokens in production RHS
@@ -125,10 +127,9 @@ side-effects only."
     (when form
       (setq action-symbol (intern name (aref rcode 0)))
       (fset action-symbol
-	    `(lambda (wisi-tokens)
-	       (let* (($nterm ',(aref tags (aref rlhs r))))
-		 ,form
-		 nil))))
+	    `(lambda ($nterm wisi-tokens)
+	       ,form
+	       nil)))
 
     (list (car (aref actn 2)) action-symbol n)))
 
@@ -195,7 +196,7 @@ names have the format nonterm:index."
     ;; create semantic action functions, interned in rcode[0]
     (let* ((i 1))
       (while (<= i nrules)
-	(wisi-semantic-action i rcode tags rlhs)
+	(wisi-semantic-action i rcode)
 	(setq i (1+ i)))
       )
 
