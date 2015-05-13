@@ -32,7 +32,8 @@ procedure Wisi.Output_Elisp
    Rules             : in Rule_Lists.List;
    First_State_Index : in Integer)
 is
-   EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"$EOI";
+   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF"; -- must match wisi-output_ada_emacs for tests.
+
    OpenToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String

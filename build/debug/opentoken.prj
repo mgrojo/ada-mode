@@ -1,7 +1,4 @@
--- We do _not_ set ada_project_path, to simplify compiling without
--- this project file.
-
-gpr_file=opentoken_test.gpr
+gpr_file=opentoken_test_agg.gpr
 
 gnat_stub_opts=-P opentoken_test.gpr
 

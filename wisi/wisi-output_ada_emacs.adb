@@ -26,10 +26,10 @@
 
 pragma License (GPL);
 
-with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with OpenToken;
 with Wisi.Gen_Generate_Utils;
+with Wisi.Put_Module_Action_Line;
 with Wisi.Utils;
 procedure Wisi.Output_Ada_Emacs
   (Input_File_Name    : in String;
@@ -107,22 +107,6 @@ is
       end loop;
       return Result;
    end File_Name_To_Ada;
-
-   function Elisp_Name_To_Ada (Elisp_Name : in String) return String
-   is
-      Result : String := Elisp_Name;
-   begin
-      Result (Result'First) := To_Upper (Result (Result'First));
-      for I in Result'Range loop
-         if Result (I) = '-' then
-            Result (I) := '_';
-            Result (I + 1) := To_Upper (Result (I + 1));
-         elsif Result (I) = '_' then
-            Result (I + 1) := To_Upper (Result (I + 1));
-         end if;
-      end loop;
-      return Result & "_ID"; -- Some elisp names may be Ada reserved words;
-   end Elisp_Name_To_Ada;
 
    Package_Name_Root       : constant String := File_Name_To_Ada (Output_File_Root);
    Lower_Package_Name_Root : constant String := To_Lower (Output_File_Root);
@@ -326,6 +310,7 @@ is
    procedure Create_Ada_Spec
    is
       use Generate_Utils;
+      use Wisi.Utils;
 
       File_Name : constant String := Output_File_Root &
         (case Interface_Kind is
@@ -474,129 +459,10 @@ is
 
    end Create_Ada_Spec;
 
-   procedure Put_Module_Action_Line (Line : in String)
-   is
-      use Generate_Utils;
-      use Ada.Strings.Fixed;
-
-      --  Typical lines:
-      --
-      --  (wisi-test-result 1)
-
-      --  (progn
-      --   (wisi-statement-action [1 statement-start 6 statement-end])
-      --   (wisi-containing-action 2 3))
-      --   (wisi-face-action [2 font-lock-type-face] t))
-
-      --  (wisi-motion-action [1 3 [5 statement-other ELSIF block-middle THEN] 6 8]))
-      --  not [... [...] ... [...] ... ]
-
-      --  (wisi-motion-action [1 5 [6 block-middle EXCEPTION block-middle WHEN]])
-
-      function Item_Image (Item : in String) return String
-      is
-         use Ada.Characters.Handling;
-      begin
-         if Is_Digit (Item (Item'First)) then
-            return "Elisp_Numbers (" & Item & ")";
-         else
-            return "Elisp_Symbols (" & Elisp_Name_To_Ada (Item) & ")";
-         end if;
-      end Item_Image;
-
-      First           : Integer := Line'First;
-      Last            : Integer;
-      Max_Last        : Integer;
-      Closing_Bracket : Integer := 0;
-      First_Item      : Boolean := True;
-   begin
-      if Line = "(progn" then
-         return;
-      elsif Line (First) /= '(' or Line (Line'Last) /= ')' then
-         raise Programmer_Error with "To_Module_Action_Line: unsupported line '" & Line & "'";
-      end if;
-
-      First := First + 1;
-
-      if Line (Line'Last - 1) = ')' then
-         Max_Last := Line'Last - 2; -- "...))"
-      else
-         Max_Last := Line'Last - 1; -- "...)"
-      end if;
-
-      if Line (Max_Last) = ']' then
-         Max_Last := Max_Last - 1; -- "...])"
-      end if;
-
-      if Line (Max_Last) = ']' then
-         Max_Last := Max_Last - 1; -- "...]])"
-      end if;
-
-      Indent_Line ("Funcall");
-      Indent_Line ("  (Env,");
-      Indent := Indent + 3;
-
-      Last := Index (Line, " ", From => First);
-      if Last = 0 then
-         Indent_Line ("Elisp_Symbols (" & Elisp_Name_To_Ada (Line (First .. Max_Last)) & "));");
-         Indent := Indent - 3;
-         return;
-      end if;
-
-      Indent_Line ("Elisp_Symbols (" & Elisp_Name_To_Ada (Line (First .. Last - 1)) & "),");
-
-      loop
-         First := Index_Non_Blank
-           (Line,
-            From =>
-              (if Last = Closing_Bracket
-               then Closing_Bracket + 1
-               else Last));
-
-         if Line (First) = '[' then
-            First := First + 1;
-
-            if Closing_Bracket = 0 then
-               Closing_Bracket := Index (Line, "]", From => First);
-            end if;
-         end if;
-
-         Last := Index (Line, " ", From => First);
-
-         if Last = 0 then
-            if First_Item then
-               Indent_Line ("(1 => " & Item_Image (Line (First .. Max_Last)) & "));");
-               Indent := Indent - 3;
-               return;
-            else
-               Indent_Line (Item_Image (Line (First .. Max_Last)) & "));");
-               Indent := Indent - 4;
-               return;
-            end if;
-
-         elsif Last = Closing_Bracket + 1 then
-            Last := Closing_Bracket;
-         end if;
-
-         if First_Item then
-            Indent_Line ("(" & Item_Image (Line (First .. Last - 1)) & ",");
-            Indent := Indent + 1;
-         else
-            Indent_Line (Item_Image (Line (First .. Last - 1)) & ",");
-         end if;
-
-         First_Item := False;
-      end loop;
-   exception
-   when Programmer_Error =>
-      raise;
-   when others =>
-      raise Programmer_Error with "Put_Module_Action_Line: extra space '" & Line & "'";
-   end Put_Module_Action_Line;
-
    procedure Create_Ada_Body
    is
       use Generate_Utils;
+      use Wisi.Utils;
 
       type Action_Name_List is array (Integer range <>) of access constant String;
       type Action_Name_List_Access is access Action_Name_List;
@@ -759,8 +625,9 @@ is
       when Module =>
          Add_Elisp_Name ("set");
          Add_Elisp_Name ("vector");
-         Add_Elisp_Name ("wisi-tokens");
          Add_Elisp_Name ("wisi-debug");
+         Add_Elisp_Name ("wisi-nonterm");
+         Add_Elisp_Name ("wisi-tokens");
 
       end case;
 
@@ -897,28 +764,20 @@ is
             Indent_Line ("end Put_Trace_Line;");
             New_Line;
 
-            Indent_Line ("procedure To_Emacs");
-            Indent_Line ("  (Args   : in     Tokens.List.Instance'Class;");
-            Indent_Line ("   Tokens : in out Emacs_Value_Array)");
+            Indent_Line ("function To_Token_List (Token : in Tokens.Handle) return emacs_module_h.emacs_value");
             Indent_Line ("is");
-            Indent := Indent + 3;
-            Indent_Line ("use " & Package_Name & ".Tokens;");
-            Indent_Line ("use " & Package_Name & ".Tokens.List;");
-            Indent_Line ("Args_I   : List_Iterator := Initial_Iterator (Args);");
-            Indent_Line ("Tokens_I : Integer       := Tokens'First;");
-            Indent := Indent - 3;
+            Indent_Line ("   use Tokens;");
+            Indent_Line ("   Wisi_Token : Wisi_Tokens_Pkg.Instance renames Wisi_Tokens_Pkg.Instance (Token.all);");
+            Indent_Line ("   Bounds     : Buffer_Range renames Wisi_Token.Buffer_Range;");
             Indent_Line ("begin");
-            Indent := Indent + 3;
-            Indent_Line ("loop");
-            Indent := Indent + 3;
-            Indent_Line ("exit when Args_I = Null_Iterator;");
-            Indent_Line ("Tokens (Tokens_I) := Token_Symbols (ID (Args_I));");
-            Indent_Line ("Tokens_I := Tokens_I + 1;");
-            Indent_Line ("Next_Token (Args_I);");
-            Indent := Indent - 3;
-            Indent_Line ("end loop;");
-            Indent := Indent - 3;
-            Indent_Line ("end To_Emacs;");
+            Indent_Line ("   if Bounds = Null_Buffer_Range then");
+            Indent_Line ("      return Cons (Env, Token_Symbols (ID (Wisi_Token)), Env.Qnil);");
+            Indent_Line ("   else");
+            Indent_Line ("      return Cons");
+            Indent_Line ("        (Env, Token_Symbols (ID (Wisi_Token)),");
+            Indent_Line ("         Cons (Env, To_Emacs (Env, Bounds.Begin_Pos), To_Emacs (Env, Bounds.End_Pos)));");
+            Indent_Line ("   end if;");
+            Indent_Line ("end To_Token_List;");
             New_Line;
 
             Indent_Line ("procedure Set_Wisi_Tokens");
@@ -926,17 +785,29 @@ is
             Indent_Line ("   Args    : in Tokens.List.Instance'Class)");
             Indent_Line ("is");
             Indent := Indent + 3;
-            Indent_Line ("Tokens : Emacs_Value_Array (1 .. Args.Length + 1);");
+            Indent_Line ("use Tokens;");
+            Indent_Line ("use Tokens.List;");
+            Indent_Line ("Tokens_1 : Emacs_Value_Array (1 .. Args.Length);");
+            Indent_Line ("Tokens_I : Integer       := Tokens_1'First;");
+            Indent_Line ("Args_I   : List_Iterator := Initial_Iterator (Args);");
             Indent := Indent - 3;
             Indent_Line ("begin");
             Indent := Indent + 3;
-            Indent_Line ("Tokens (1) := Token_Symbols (Nonterm);");
-            Indent_Line ("To_Emacs (Args, Tokens (2 .. Tokens'Last));");
+            Indent_Line
+              ("Funcall (Env, Elisp_Symbols (Set_ID), (Elisp_Symbols (Wisi_Nonterm_ID), Token_Symbols (Nonterm)));");
+            Indent_Line ("loop");
+            Indent := Indent + 3;
+            Indent_Line ("exit when Args_I = Null_Iterator;");
+            Indent_Line ("Tokens_1 (Tokens_I) := To_Token_List (Tokens.List.Token_Handle (Args_I));");
+            Indent_Line ("Tokens_I := Tokens_I + 1;");
+            Indent_Line ("Next_Token (Args_I);");
+            Indent := Indent - 3;
+            Indent_Line ("end loop;");
             Indent_Line ("Funcall");
             Indent_Line (" (Env,");
             Indent_Line ("  Elisp_Symbols (Set_ID),");
             Indent_Line ("  (Elisp_Symbols (Wisi_Tokens_ID),");
-            Indent_Line ("   Funcall (Env, Elisp_Symbols (Vector_ID), Tokens)));");
+            Indent_Line ("   Funcall (Env, Elisp_Symbols (Vector_ID), Tokens_1)));");
             Indent := Indent - 3;
             Indent_Line ("end Set_Wisi_Tokens;");
             New_Line;
@@ -988,7 +859,7 @@ is
                            when Module =>
                               Indent_Line ("Set_Wisi_Tokens (To_ID, Source);");
                               for Line of RHS.Action loop
-                                 Put_Module_Action_Line (Line);
+                                 Wisi.Put_Module_Action_Line (Line);
                               end loop;
                            end case;
                         end if;
@@ -1361,8 +1232,8 @@ is
 
       Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
       Indent_Line ("is begin");
-      Indent_Line ("   OpenToken.Trace_Parse := To_Integer (Env, Elisp_Symbols (Wisi_Debug_ID));");
-      --  FIXME: need Symbol_Value
+      Indent_Line
+        ("   OpenToken.Trace_Parse := To_Integer (Env, Env.symbol_value (Env, Elisp_Symbols (Wisi_Debug_ID)));");
       Indent_Line ("   Parser.Reset;");
       Indent_Line ("   Parser.Parse;");
       Indent_Line ("   return Env.Qnil;");
@@ -1383,8 +1254,8 @@ is
       Indent_Line ("   Lexer_Elisp_Symbols : Lexers.Elisp_Array_Emacs_Value;");
       Indent_Line ("begin");
       Indent_Line ("   " & Package_Name & ".Env := Env;");
-      Indent_Line ("   Intern_Soft_Symbol := Intern (Env, ""intern-soft"");");
-      Indent_Line ("   Message_Symbol     := Intern_Soft (Env, ""message"");");
+      Indent_Line ("   Cons_Symbol   := Intern_Soft (Env, ""cons"");");
+      Indent_Line ("   Vector_Symbol := Intern_Soft (Env, ""vector"");");
       Indent_Line ("   for I in Token_Symbols'Range loop");
       Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
       Indent_Line ("   end loop;");
@@ -1533,6 +1404,7 @@ is
 
    procedure Create_Process_Elisp
    is
+      use Wisi.Utils;
       use Generate_Utils;
 
       File_Name : constant String := Output_File_Root & "-process.el";
@@ -1559,6 +1431,7 @@ is
    procedure Create_Module_Elisp
    is
       use Generate_Utils;
+      use Wisi.Utils;
 
       function To_ID_Image (Name : in Ada.Strings.Unbounded.Unbounded_String) return String
       is begin
@@ -1586,8 +1459,9 @@ is
       New_Line;
 
       --  Lexer tables; also contain terminals for wisi-tokens
-      Indent_Keyword_Table_Elisp (Output_File_Root, "elisp", Keywords, Ada.Strings.Unbounded.To_String'Access);
-      Indent_Keyword_Table_Elisp (Output_File_Root, "module", Keywords, To_ID_Image'Access);
+      Indent_Keyword_Table_Elisp
+        (Output_File_Root, "elisp", Keywords, EOI_Name, Ada.Strings.Unbounded.To_String'Access);
+      Indent_Keyword_Table_Elisp (Output_File_Root, "module", Keywords, EOI_Name, To_ID_Image'Access);
       Indent_Token_Table_Elisp (Output_File_Root, "elisp", Tokens, Ada.Strings.Unbounded.To_String'Access);
       Indent_Token_Table_Elisp (Output_File_Root, "module", Tokens, To_ID_Image'Access);
 
@@ -1647,6 +1521,7 @@ is
    procedure Create_Module_Aux
    is
       use Generate_Utils;
+      use Wisi.Utils;
 
       File : File_Type;
    begin
@@ -1756,19 +1631,11 @@ is
       Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse (env);");
       Indent_Line ("}");
       New_Line;
-      Indent_Line ("static void bind_function (emacs_env *env, const char *name, emacs_value Ffun)");
-      Indent_Line ("{");
-      Indent_Line ("  emacs_value Qfset  = env->intern (env, ""fset"");");
-      Indent_Line ("  emacs_value Qsym   = env->intern (env, name);");
-      Indent_Line ("  emacs_value args[] = { Qsym, Ffun };");
-      Indent_Line ("  env->funcall (env, Qfset, 2, args);");
-      Indent_Line ("}");
-      New_Line;
       Indent_Line ("int emacs_module_init (struct emacs_runtime *ert)");
       Indent_Line ("{");
       Indent_Line ("  emacs_env *env = ert->get_environment (ert);");
       Indent_Line
-        ("  bind_function (env, """ & Lower_Package_Name_Root &
+        ("  env->bind_function (env, """ & Lower_Package_Name_Root &
            "-wisi-module-parse"", env->make_function (env, 1, 1, Fparse));");
       Indent_Line ("  adainit();");
       Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse_init (env);");

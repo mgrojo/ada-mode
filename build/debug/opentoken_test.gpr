@@ -17,6 +17,7 @@
 
 with "../common";
 with "aunit";
+with "aunit_sal_ext";
 with "opentoken";
 project OpenToken_Test is
 

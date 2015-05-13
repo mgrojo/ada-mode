@@ -5,7 +5,7 @@
 @settitle wisi-generate User Guide
 
 @copying
-Copyright @copyright{} 2014 Stephen Leake.
+Copyright @copyright{} 2014-2015 Stephen Leake.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this
@@ -235,15 +235,9 @@ Comments are started by ``;;'' and terminated by end of line.
 @section Prologue
 
 The Prologue contains arbitrary code, copied verbatim into the
-output. For Emacs, this will typically contain:
-
-@verbatim
-%{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
-%}
-@end verbatim
+output. @code{wisi-generate} adds the necessary @code{require} forms
+for the elisp lexer, parser, and wisi actions; you only need to add
+add additional code if you use other actions.
 
 @node Declarations, Rules, Prologue, Syntax
 @section Declarations
@@ -272,21 +266,54 @@ There are two types of tokens; keywords and other:
 and OpenToken lexers recognize them by the given string.
 
 In the Emacs wisi lexer, ``Tokens'' are recognized by Emacs syntax
-properties. There some predefined token classes:
+properties. These are the predefined token classes:
 
 @table @code
 @item <punctuation>
+@verbatim
+%token <punctuation> TICK "'"
+@end verbatim
 A string of characters that have punctuation syntax, and match the
 token string.
 
 @item <symbol>
-A string of characters that have word syntax.
+@verbatim
+%token <symbol> IDENTIFIER
+@end verbatim
+A string of characters that have word syntax, that match no other token.
 
 @item <string-double>
+@verbatim
+%token <string-double> STRING_LITERAL
+@end verbatim
 A string of characters that have string syntax, with double quote delimiters.
 
 @item <string-single>
+@verbatim
+%token <string-single> CHARACTER_LITERAL
+@end verbatim
 A string of characters that have string syntax, with single quote delimiters.
+
+@item <number>
+@verbatim
+%token <number> NUMERIC_LITERAL ada-wisi-number-p ada-wisi
+@end verbatim
+A string of characters that have word syntax, recognized by the
+function given in the third parameter. The fourth parameter is the
+source file for the recognizer (included via @code{require}).
+
+@item <whitespace>
+@verbatim
+%token <whitespace> WHITESPACE ""
+@end verbatim
+Not used by the wisi lexer; required by the Ada lexer. The third argument is ignored.
+
+@item <line_comment>
+@verbatim
+%token <line_comment> COMMENT "--"
+@end verbatim
+Not used by the wisi lexer; required by the Ada lexer. The third
+argument is the comment start syntax.
 
 @end table
 

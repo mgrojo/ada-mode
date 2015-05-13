@@ -159,7 +159,7 @@ source-clean ::
 wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test.gpr $(GNATMAKE_ARGS) $*
+%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe
 	./$*.exe > $*.out 2>&1
@@ -210,7 +210,7 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 	./$*_run.exe -v 2 $< > $*.parse
 	dos2unix $*.parse
 
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
 %.ada : %.l
 	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa.adb.template -O../../wisi/opentoken_aflex_io.adb.template $(AFLEX_ARGS) $<

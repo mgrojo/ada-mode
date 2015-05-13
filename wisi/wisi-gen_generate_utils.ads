@@ -95,40 +95,6 @@ package Wisi.Gen_Generate_Utils is
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance;
    --  Source_File_Name used in errors
 
-   --  code generation
-   Indent : Ada.Text_IO.Positive_Count := 1;
-
-   procedure Indent_Line (Text : in String);
-   --  Put Text indented to Indent to Current_Output, with newline.
-
-   procedure Indent_Keyword_Table_Elisp
-     (Output_File_Root : in     String;
-      Label            : in     String;
-      Keywords         : in     String_Pair_Lists.List;
-      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
-   --  Output via Indent_Line an elisp form named
-   --  Output_File_Root-Label-keyword-table declaring a keyword table
-   --  for the wisi lexer containing Keywords and $eoi, using Image
-   --  (Pair.Name) for the elisp symbol.
-
-   procedure Indent_Token_Table_Elisp
-     (Output_File_Root : in     String;
-      Label            : in     String;
-      Tokens           : in     Token_Lists.List;
-      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
-   --  Output via Indent_Line an elisp form named
-   --  Output_File_Root-Label-token-table declaring a token table for
-   --  the wisi lexer containing Tokens, using Image (Token.Name) for
-   --  the elisp symbol.
-
-   procedure Indent_Names_Elisp
-     (Output_File_Root : in     String;
-      Label            : in     String;
-      Names            : in     String_Lists.List);
-   --  Output via Indent_Line an elisp form named
-   --  Output_File_Root-Label-names declaring an array of symbols
-   --  containing Names.
-
 private
 
    type Token_Cursor_State is

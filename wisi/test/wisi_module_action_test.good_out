@@ -1,0 +1,64 @@
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Test_Action_ID),
+   (1 => Elisp_Numbers (1)));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Containing_Action_ID),
+   (Elisp_Numbers (2),
+    Elisp_Numbers (3)));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Statement_Action_ID),
+   (1 => Vector
+      (Env,
+       (Elisp_Numbers (1),
+        Elisp_Symbols (Function_ID),
+        Elisp_Numbers (2),
+        Elisp_Symbols (Other_ID)))));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Face_Action_ID),
+   (1 => Vector
+      (Env,
+       (Elisp_Numbers (2),
+        Elisp_Symbols (Font_Lock_Function_Name_Face_ID)))));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Motion_Action_ID),
+   (1 => Vector
+      (Env,
+       (Elisp_Numbers (1),
+        Elisp_Numbers (5),
+        Vector
+          (Env,
+           (Elisp_Numbers (6),
+            Elisp_Symbols (Block_Middle_ID),
+            Elisp_Symbols (EXCEPTION_ID),
+            Elisp_Symbols (Block_Middle_ID),
+            Elisp_Symbols (WHEN_ID)))))));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Motion_Action_ID),
+   (1 => Vector
+      (Env,
+       (Elisp_Numbers (1),
+        Elisp_Numbers (3),
+        Vector
+          (Env,
+           (Elisp_Numbers (5),
+            Elisp_Symbols (Statement_Other_ID),
+            Elisp_Symbols (ELSIF_ID),
+            Elisp_Symbols (Block_Middle_ID),
+            Elisp_Symbols (THEN_ID))),
+        Elisp_Numbers (6),
+        Elisp_Numbers (8)))));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Face_Action_ID),
+   (1 => Vector
+      (Env,
+       (Elisp_Numbers (2),
+        Elisp_Symbols (Font_Lock_Function_Name_Face_ID),
+        Elisp_Numbers (8),
+        Elisp_Symbols (Font_Lock_Function_Name_Face_ID)))));

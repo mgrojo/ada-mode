@@ -2,7 +2,7 @@
 --
 --  Utilities for parsing Wisent files
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -33,5 +33,42 @@ package Wisi.Utils is
 
    procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String);
    --  Output error message on Standard_Error for File
+
+   --  code generation
+   Indent : Ada.Text_IO.Positive_Count := 1;
+
+   procedure Indent_Line (Text : in String);
+   --  Put Text indented to Indent to Current_Output, with newline.
+
+   function Elisp_Name_To_Ada (Elisp_Name : in String) return String;
+
+   procedure Indent_Keyword_Table_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Keywords         : in     String_Pair_Lists.List;
+      EOI_Name         : in     Ada.Strings.Unbounded.Unbounded_String;
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-keyword-table declaring a keyword table
+   --  for the wisi lexer containing Keywords and EOI_Name, using Image
+   --  (Pair.Name) for the elisp symbol.
+
+   procedure Indent_Token_Table_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Tokens           : in     Token_Lists.List;
+      Image            : access function (Name : in Ada.Strings.Unbounded.Unbounded_String) return String);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-token-table declaring a token table for
+   --  the wisi lexer containing Tokens, using Image (Token.Name) for
+   --  the elisp symbol.
+
+   procedure Indent_Names_Elisp
+     (Output_File_Root : in     String;
+      Label            : in     String;
+      Names            : in     String_Lists.List);
+   --  Output via Indent_Line an elisp form named
+   --  Output_File_Root-Label-names declaring an array of symbols
+   --  containing Names.
 
 end Wisi.Utils;
