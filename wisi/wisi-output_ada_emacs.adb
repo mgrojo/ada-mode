@@ -623,8 +623,6 @@ is
          end;
 
       when Module =>
-         Add_Elisp_Name ("set");
-         Add_Elisp_Name ("vector");
          Add_Elisp_Name ("wisi-debug");
          Add_Elisp_Name ("wisi-nonterm");
          Add_Elisp_Name ("wisi-tokens");
@@ -793,8 +791,7 @@ is
             Indent := Indent - 3;
             Indent_Line ("begin");
             Indent := Indent + 3;
-            Indent_Line
-              ("Funcall (Env, Elisp_Symbols (Set_ID), (Elisp_Symbols (Wisi_Nonterm_ID), Token_Symbols (Nonterm)));");
+            Indent_Line ("Set (Env, Elisp_Symbols (Wisi_Nonterm_ID), Token_Symbols (Nonterm));");
             Indent_Line ("loop");
             Indent := Indent + 3;
             Indent_Line ("exit when Args_I = Null_Iterator;");
@@ -803,11 +800,10 @@ is
             Indent_Line ("Next_Token (Args_I);");
             Indent := Indent - 3;
             Indent_Line ("end loop;");
-            Indent_Line ("Funcall");
+            Indent_Line ("Set");
             Indent_Line (" (Env,");
-            Indent_Line ("  Elisp_Symbols (Set_ID),");
-            Indent_Line ("  (Elisp_Symbols (Wisi_Tokens_ID),");
-            Indent_Line ("   Funcall (Env, Elisp_Symbols (Vector_ID), Tokens_1)));");
+            Indent_Line ("  Elisp_Symbols (Wisi_Tokens_ID),");
+            Indent_Line ("  Vector (Env, Tokens_1));");
             Indent := Indent - 3;
             Indent_Line ("end Set_Wisi_Tokens;");
             New_Line;
@@ -1254,8 +1250,7 @@ is
       Indent_Line ("   Lexer_Elisp_Symbols : Lexers.Elisp_Array_Emacs_Value;");
       Indent_Line ("begin");
       Indent_Line ("   " & Package_Name & ".Env := Env;");
-      Indent_Line ("   Cons_Symbol   := Intern_Soft (Env, ""cons"");");
-      Indent_Line ("   Vector_Symbol := Intern_Soft (Env, ""vector"");");
+      Indent_Line ("   Emacs_Module_Aux.Init (Env);");
       Indent_Line ("   for I in Token_Symbols'Range loop");
       Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
       Indent_Line ("   end loop;");
