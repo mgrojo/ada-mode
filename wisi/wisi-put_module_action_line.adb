@@ -48,6 +48,23 @@ is
       end if;
    end Item_Image;
 
+   function Scan_Brackets (From : in Integer) return Integer
+   is
+      Bracket_Count : Integer := 1;
+   begin
+      for I in From .. Line'Last loop
+         if Line (I) = ']' then
+            Bracket_Count := Bracket_Count - 1;
+            if Bracket_Count = 0 then
+               return I;
+            end if;
+         elsif Line (I) = '[' then
+            Bracket_Count := Bracket_Count + 1;
+         end if;
+      end loop;
+      raise Programmer_Error with "mismatched brackets: '" & Line & "'";
+   end Scan_Brackets;
+
    type State_Type is (Start, First_Item, Items, Closed_Bracket);
    State : State_Type := Start;
 
@@ -87,12 +104,11 @@ begin
       when First_Item =>
          case Line (I) is
          when '[' =>
-            --  So far, we've only encountered brackets that start in
-            --  the first item as the only item, so 1 => is safe to
-            --  predict here. If that condition does not hold, we'll
-            --  have to scan ahead to see if there are other items at
-            --  the same level.
-            Indent_Line ("(1 => Vector");
+            if Line (Scan_Brackets (I + 1) + 1) = ')' then
+               Indent_Line ("(1 => Vector");
+            else
+               Indent_Line ("(Vector");
+            end if;
             Indent_Line ("   (Env,");
             Indent := Indent + 4;
             First  := I + 1;

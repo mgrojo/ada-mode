@@ -1480,13 +1480,14 @@ is
 
       Indent_Line
         ("(cl-defstruct (" & Lower_Package_Name_Root &
-           "-wisi-module-parser (:include wisi-parser) (:constructor " &
-           Lower_Package_Name_Root & "-make (dll-name))))");
+           "-wisi-module-parser (:include wisi-parser)))");
       New_Line;
-      Indent_Line ("(defun " & Lower_Package_Name_Root & "-make (dll-name)");
+      Indent_Line ("(defun " & Lower_Package_Name_Root & "-wisi-module-parser-make (dll-name)");
       Indent_Line ("  (module-load dll-name)");
       Indent_Line ("  (make-" & Lower_Package_Name_Root & "-wisi-module-parser))");
+      New_Line;
 
+      Indent_Line ("(defvar " & Lower_Package_Name_Root & "-module-lexer nil)");
       Indent_Line
         ("(declare-function " &
            Lower_Package_Name_Root &
@@ -1500,7 +1501,8 @@ is
            Lower_Package_Name_Root &
            "-wisi-module-parser))");
       Indent := Indent + 2;
-      Indent_Line ("(let ((result (" & Lower_Package_Name_Root & "-wisi-module-parse)))");
+      Indent_Line ("(let* ((wisi-lexer " & Lower_Package_Name_Root & "-module-lexer)");
+      Indent_Line ("       (result (" & Lower_Package_Name_Root & "-wisi-module-parse)))");
       --  result is nil for no errors, a string for some error
       Indent_Line ("  (when result");
       Indent_Line ("    (signal 'wisi-parse-error (wisi-error-msg result)))))");

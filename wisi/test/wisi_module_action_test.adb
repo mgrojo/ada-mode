@@ -51,7 +51,7 @@ package body Wisi_Module_Action_Test is
       Create (Computed_File, Out_File, Computed_File_Name);
       Set_Output (Computed_File);
 
-      --  First line; ignored
+      --  First action line; ignored
       Put_Module_Action_Line ("(progn");
 
       Put_Module_Action_Line ("(wisi_test_action 1)");
@@ -61,7 +61,10 @@ package body Wisi_Module_Action_Test is
       Put_Module_Action_Line ("(wisi-motion-action [1 5 [6 block-middle EXCEPTION block-middle WHEN]])");
       Put_Module_Action_Line ("(wisi-motion-action [1 3 [5 statement-other ELSIF block-middle THEN] 6 8])");
 
-      --  Last line; trailing closing paren ignored.
+      --  can't use 1 => for this one.
+      Put_Module_Action_Line ("(wisi-face-action [2 font-lock-type-face] t)");
+
+      --  Last action line; trailing closing paren ignored.
       Put_Module_Action_Line ("(wisi-face-action [2 font-lock-function-name-face 8 font-lock-function-name-face]))");
 
       Set_Output (Standard_Output);

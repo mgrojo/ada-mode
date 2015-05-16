@@ -56,6 +56,14 @@ Funcall
 Funcall
   (Env,
    Elisp_Symbols (Wisi_Face_Action_ID),
+   (Vector
+      (Env,
+       (Elisp_Numbers (2),
+        Elisp_Symbols (Font_Lock_Type_Face_ID))),
+    Elisp_Symbols (T_ID)));
+Funcall
+  (Env,
+   Elisp_Symbols (Wisi_Face_Action_ID),
    (1 => Vector
       (Env,
        (Elisp_Numbers (2),
