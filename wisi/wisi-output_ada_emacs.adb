@@ -626,6 +626,7 @@ is
          Add_Elisp_Name ("wisi-debug");
          Add_Elisp_Name ("wisi-nonterm");
          Add_Elisp_Name ("wisi-tokens");
+         Add_Elisp_Name ("wisi-cache-max");
 
       end case;
 
@@ -813,6 +814,9 @@ is
             Indent_Line ("Action_Counts : array (Token_IDs) of Integer := (others => 0);");
          end if;
 
+         Indent_Line ("Wisi_Cache_Max : Integer;");
+         New_Line;
+
          for Rule of Rules loop
             declare
                LHS_ID : constant Token_IDs := Find_Token_ID (-Rule.Left_Hand_Side);
@@ -831,14 +835,27 @@ is
                         Indent_Line (" (New_Token : out Nonterminals.Class;");
                         Indent_Line ("  Source    : in  Tokens.List.Instance'Class;");
                         Indent_Line ("  To_ID     : in  Token_IDs)");
-                        Indent_Line ("is begin");
+                        Indent_Line ("is");
+                        Indent_Line ("   Bounds : constant Tokens.Buffer_Range := Total_Buffer_Range (Source);");
+                        Indent_Line ("begin");
                         Indent := Indent + 3;
-                        Indent_Line ("New_Token := Get (To_ID, Total_Buffer_Range (Source));");
+                        Indent_Line ("New_Token := Get (To_ID, Bounds);");
 
                         if Profile then
                            Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");
 
                         else
+                           --  We don't execute actions if all tokens
+                           --  are before wisi-cache-max, because
+                           --  later actions can update existing
+                           --  caches, and if the parse fails that
+                           --  won't happen. It also saves time.
+                           --
+                           --  Also skip if no tokens; nothing to do.
+                           --  This can happen when all tokens in a
+                           --  grammar statement are optional.
+                           Indent_Line ("if Bounds.End_Pos > Wisi_Cache_Max and Source.Length > 0 then");
+                           Indent := Indent + 3;
                            case Interface_Kind is
                            when Process =>
                               --  Translate symbols into integer codes, for
@@ -858,6 +875,8 @@ is
                                  Wisi.Put_Module_Action_Line (Line);
                               end loop;
                            end case;
+                           Indent := Indent - 3;
+                           Indent_Line ("end if;");
                         end if;
                         Indent := Indent - 3;
                         Indent_Line ("end " & Name & ";");
@@ -1228,11 +1247,13 @@ is
 
       Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
       Indent_Line ("is begin");
-      Indent_Line
-        ("   OpenToken.Trace_Parse := To_Integer (Env, Env.symbol_value (Env, Elisp_Symbols (Wisi_Debug_ID)));");
-      Indent_Line ("   Parser.Reset;");
-      Indent_Line ("   Parser.Parse;");
-      Indent_Line ("   return Env.Qnil;");
+      Indent := Indent + 3;
+      Indent_Line ("OpenToken.Trace_Parse := To_Integer (Env, Symbol_Value (Env, Elisp_Symbols (Wisi_Debug_ID)));");
+      Indent_Line ("Wisi_Cache_Max := To_Integer (Env, Symbol_Value (Env, Elisp_Symbols (Wisi_Cache_Max_ID)));");
+      Indent_Line ("Parser.Reset;");
+      Indent_Line ("Parser.Parse;");
+      Indent_Line ("return Env.Qnil;");
+      Indent := Indent - 3;
       Indent_Line ("exception");
       Indent_Line ("when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>");
       Indent_Line ("   return To_Emacs (Env, Ada.Exceptions.Exception_Message (E));");
