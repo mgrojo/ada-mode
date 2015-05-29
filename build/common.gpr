@@ -3,7 +3,7 @@ project Common is
 
    for Source_Dirs use (); -- avoids spurious error about "no Ada sources"
 
-   --  These switches are only meaningful when building a library, so they are used in opentoken_lib.gpr
+   --  These switches are only meaningful when building a library, so they are used in fasttoken_lib.gpr
 
    type Lib_Type is ("static", "dynamic");
    Libtype : Lib_Type := External ("LIBTYPE", "dynamic");

@@ -8,9 +8,9 @@ YYLex
 *EOF
 *EOI
 *EOL
+*FastToken
 *GNAT
 *GPL
-*HTML
 *ID
 *IDs
 *IO
@@ -18,10 +18,6 @@ YYLex
 *LALRs
 *LF
 *LHS
-*LR0
-*LR1
-*LRk
 *OS
-*OpenToken
 *RHS
 *YY

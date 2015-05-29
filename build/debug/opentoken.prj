@@ -1,5 +1,0 @@
-gpr_file=opentoken_test_agg.gpr
-
-gnat_stub_opts=-P opentoken_test.gpr
-
-casing=../emacs_case_exceptions

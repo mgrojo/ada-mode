@@ -4,6 +4,17 @@ build/release/Makefile
 build/debug/Makefile
 build/release_process.text
 
+move org.stephe_leake.aunit_ext to ada-france
+
+run all tests with fasttoken name
+    also clean up package hierarchy
+    delete opentoken recognizer; use regexp
+        Test/Association_Grammar_Test
+
+    prune irrelevant tests
+
+    edit all used packages to FastToken name
+
 finish refactor packages
     delete opentoken.trace_indent?
 

@@ -1,4 +1,4 @@
-# common parts of makefiles for OpenToken
+# common parts of makefiles for FastToken
 
 # note that we use .exe for test executables even on non-windows, to
 # keep the makerules simpler.
@@ -12,8 +12,6 @@ VPATH += ../../Test
 VPATH += ../../Examples/ASU_Example_3_6
 VPATH += ../../Examples/ASU_Example_4_46
 VPATH += ../../Examples/ASU_Example_5_10
-VPATH += ../../Examples/Language_Lexer_Examples
-VPATH += ../../Language_Lexers
 VPATH += ../../wisi
 VPATH += ../../wisi/test
 
@@ -46,7 +44,7 @@ tests : token_analyzer_ctd-run.run
 #
 # to parse .wy, build .ads, run parser, we'd like to do:
 #
-# %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
 #
 # but that gets overridden by the simpler .exe rule for other things.
 # So we must list %.ads or %.l explicitly in tests. We do half of
@@ -120,7 +118,7 @@ test_html_lexer_safe-syntax_error.out : test_html_lexer_safe.exe test_html_scan-
 	./$^ $(RUN_ARGS) > $@
 
 test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
-	./test_html_lexer_unsafe.exe ../../Docs/opentoken.html
+	./test_html_lexer_unsafe.exe ../../Docs/fasttoken.html
 
 test_java_lexer.run : test_java_lexer.exe
 	./test_java_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
@@ -136,7 +134,7 @@ uninstall:
 	make -f Install.make install-clean
 
 library:
-	gprbuild -p --RTS=$(ADA_RUN_TIME) -Popentoken_lib
+	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pfasttoken_lib
 
 clean :: test-clean
 	rm -rf obj *.exe
@@ -157,9 +155,9 @@ source-clean ::
 # the test executables are only in the test project file, which requires AUnit
 # Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
 wisi-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken.gpr $(GPRBUILD_ARGS) wisi-generate
+	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-%.check : %.adb force; gnatmake -p -k -gnatc -Popentoken_test_agg.gpr $(GNATMAKE_ARGS) $*
+%.check : %.adb force; gnatmake -p -k -gnatc -Pfasttoken_test_agg.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe
 	./$*.exe > $*.out 2>&1
@@ -186,7 +184,7 @@ DIFF_OPT := -u -w
 # match historical first_state_index, first_parser_label
 %.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs OpenToken_Lexer > $*.parse_table
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs FastToken_Lexer > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
 
@@ -210,10 +208,10 @@ ada_grammar.ads : LEXER ?= Aflex_Lexer
 	./$*_run.exe -v 2 $< > $*.parse
 	dos2unix $*.parse
 
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P opentoken_test_agg.gpr $(GPRBUILD_ARGS) $*
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
 %.ada : %.l
-	aflex -i -s -E -D../../wisi/opentoken_aflex_dfa.adb.template -O../../wisi/opentoken_aflex_io.adb.template $(AFLEX_ARGS) $<
+	aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
 %_yylex.ads : %.ada
 	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada

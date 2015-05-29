@@ -1,0 +1,115 @@
+--  Abstract:
+--
+--  FastToken lexer using compiled regular expressions interpreted at runtime.
+--
+--  This is slower, but easier to use, than the Aflex lexer; it is
+--  used in most of the FastToken unit tests. Since it uses regexp, it
+--  is easy to convert to an Aflex lexer.
+--
+--  Copyright (C) 2015 Stephe Leake
+--
+--  This file is part of the FastToken package.
+--
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The FastToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the FastToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+--
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
+
+pragma License (Modified_GPL);
+
+with Ada.Unchecked_Deallocation;
+with FastToken.Regexp;
+with FastToken.Text_Feeder;
+generic
+   EOF_ID : Token.Token_ID;
+package FastToken.Lexer.Regexp is
+
+   subtype Syntax_ID is Token.Token_ID range Token.Token_ID'First .. Token.Token_ID'Pred (Token.Last_Terminal);
+   --  Last_Terminal must be EOF_ID; checked in Initialize.
+
+   type Syntax_Item is record
+      Regexp : FastToken.Regexp.Regexp;
+      Token  : FastToken.Lexer.Token.Handle;
+      Report : Boolean;
+   end record;
+
+   function Get
+     (R              : in String;
+      Token          : in FastToken.Lexer.Token.Class;
+      Case_Sensitive : in Boolean := True;
+      Report         : in Boolean := True)
+     return Syntax_Item;
+   --  Compiles Regexp with Case_Sensitive, allocates a new token
+   --  object initialized with Token.
+
+   type Syntax is array (Syntax_ID) of Syntax_Item;
+
+   type Instance is new FastToken.Lexer.Instance with private;
+
+   function Initialize
+     (Syntax       : in FastToken.Lexer.Regexp.Syntax;
+      Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
+      Buffer_Size  : in Integer                               := 1024)
+     return FastToken.Lexer.Handle;
+
+   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
+
+   overriding
+   procedure Set_Text_Feeder (Lexer : in out Instance; Feeder : in FastToken.Text_Feeder.Text_Feeder_Ptr);
+
+   overriding
+   function End_Of_Text (Lexer : in Instance) return Boolean;
+
+   overriding
+   function End_Of_Buffered_Text (Lexer : in Instance) return Boolean;
+   --  FIXME: why is this visible?
+
+   overriding
+   procedure Discard_Buffered_Text (Lexer : in out Instance);
+   --  FIXME: is this ever called without Reset?
+
+   overriding procedure Find_Next (Lexer : in out Instance);
+
+   overriding
+   function Line (Lexer : in Instance) return Natural;
+
+   overriding
+   function Column (Lexer : in Instance) return Natural;
+
+   overriding function Lexeme (Lexer : in Instance) return String;
+
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range;
+
+   overriding function Get (Lexer : in Instance) return Token.Class;
+
+private
+
+   type String_Access is access String;
+   procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
+
+   type Instance is new FastToken.Lexer.Instance with
+   record
+      ID          : Token.Token_ID; --  last token read by find_next
+      Syntax      : FastToken.Lexer.Regexp.Syntax;
+      Buffer      : String_Access;
+      Buffer_Head : Integer;
+      Buffer_Tail : Integer;
+      Lexeme_Head : Integer;
+      Lexeme_Tail : Integer;
+   end record;
+
+end FastToken.Lexer.Regexp;

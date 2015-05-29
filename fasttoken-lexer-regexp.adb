@@ -1,0 +1,275 @@
+--  Abstract:
+--
+--  See spec
+--
+--  Copyright (C) 2015 Stephe Leake
+--
+--  This file is part of the FastToken package.
+--
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The FastToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the FastToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+--
+--  As a special exception, if other files instantiate generics from
+--  this unit, or you link this unit with other files to produce an
+--  executable, this unit does not by itself cause the resulting
+--  executable to be covered by the GNU General Public License. This
+--  exception does not however invalidate any other reasons why the
+--  executable file might be covered by the GNU Public License.
+
+pragma License (Modified_GPL);
+
+package body FastToken.Lexer.Regexp is
+
+   procedure Get_More_Text (Lexer : in out Instance; Current_Char : in out Integer)
+   is
+      New_Tail : constant Integer := Lexer.Buffer'First + Lexer.Buffer_Tail - Lexer.Buffer_Head;
+   begin
+      --  Slide current text to start of buffer, get more; adjust
+      --  Current_Char to match.
+
+      Current_Char := Lexer.Buffer'First + Current_Char - Lexer.Buffer_Head;
+
+      Lexer.Buffer (Lexer.Buffer'First .. New_Tail) := Lexer.Buffer (Lexer.Buffer_Head .. Lexer.Buffer_Tail);
+
+      Lexer.Feeder.Get
+        (New_Text => Lexer.Buffer (Lexer.Buffer_Tail + 1 .. Lexer.Buffer'Last),
+         Text_End => Lexer.Buffer_Tail);
+   end Get_More_Text;
+
+   function Find_Best_Match (Lexer : in out Instance) return Boolean
+   is
+      --  Find the longest matching character sequence in the buffer
+      --  that matches a token. If the buffer tail is reached, more
+      --  will be fetched from the text feeder.
+      --
+      --  Return True if a token is matched, False if not.
+
+      use FastToken.Regexp;
+      use type Token.Token_ID;
+
+      Current_Char         : Integer := Lexer.Buffer_Head;
+      Current_State        : Match_State;
+      Current_Match_Length : Integer := 0;
+      Best_Match_ID        : Token.Token_ID;
+      Best_Match_Length    : Natural := 0;
+      Still_Matching       : Boolean := False;
+   begin
+      for I in Syntax_ID loop
+         Clear (Lexer.Syntax (I).Regexp);
+      end loop;
+
+      loop
+         if Current_Char > Lexer.Buffer_Tail then
+            if Lexer.Feeder.End_Of_Text then
+               Best_Match_ID     := EOF_ID;
+               Best_Match_Length := 0;
+            else
+               Get_More_Text (Lexer, Current_Char);
+            end if;
+         end if;
+
+         for I in Syntax_ID loop
+            if State (Lexer.Syntax (I).Regexp) /= Error then
+               Current_State := Match
+                 (Lexer.Syntax (I).Regexp,
+                  Lexer.Buffer (Lexer.Buffer_Head .. Lexer.Buffer_Tail),
+                  Current_Char);
+
+               Current_Match_Length := Current_Char - Lexer.Buffer_Head + 1;
+
+               case Current_State is
+               when Matching =>
+                  Still_Matching := True;
+
+               when Final =>
+                  Still_Matching := True;
+                  if Best_Match_Length < Current_Match_Length then
+                     Best_Match_ID  := I;
+                     Best_Match_Length := Current_Match_Length;
+                  end if;
+
+               when Error =>
+                  null;
+               end case;
+            end if;
+         end loop;
+
+         exit when (not Still_Matching) or Best_Match_ID = EOF_ID;
+
+         if Best_Match_Length = Lexer.Buffer'Length then
+            raise Programmer_Error with
+              "token larger than buffer size of" & Integer'Image (Lexer.Buffer'Length);
+         end if;
+
+         Current_Char := Current_Char + 1;
+      end loop;
+
+      if Best_Match_Length > 0 then
+         Lexer.Lexeme_Head := Lexer.Buffer_Head;
+         Lexer.Lexeme_Tail := Lexer.Buffer_Head + Best_Match_Length - 1;
+         Lexer.ID          := Best_Match_ID;
+
+         Lexer.Buffer_Head := Lexer.Lexeme_Tail + 1;
+         return True;
+      else
+         return False;
+      end if;
+
+   end Find_Best_Match;
+
+   ----------
+   --  Public subprograms
+
+   function Get
+     (R              : in String;
+      Token          : in FastToken.Lexer.Token.Class;
+      Case_Sensitive : in Boolean := True;
+      Report         : in Boolean := True)
+      return Syntax_Item
+   is begin
+      return
+        (FastToken.Regexp.Compile (R, Case_Sensitive),
+         new FastToken.Lexer.Token.Class'(Token),
+         Report);
+   end Get;
+
+   function Initialize
+     (Syntax       : in FastToken.Lexer.Regexp.Syntax;
+      Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
+      Buffer_Size  : in Integer                               := 1024)
+     return FastToken.Lexer.Handle
+   is
+      use type Token.Token_ID;
+      New_Lexer : constant access Instance := new Instance;
+   begin
+      if EOF_ID /= Token.Last_Terminal then
+         raise Programmer_Error with "Last_Terminal must be " & Token.Token_Image (EOF_ID);
+      end if;
+
+      New_Lexer.Syntax := Syntax;
+      New_Lexer.Feeder := Feeder;
+
+      Reset (New_Lexer.all, Buffer_Size);
+
+      return Handle (New_Lexer);
+   end Initialize;
+
+   overriding procedure Reset
+     (Lexer       : in out Instance;
+      Buffer_Size : in     Integer)
+   is begin
+      if Lexer.Buffer = null then
+         Lexer.Buffer := new String (1 .. Buffer_Size);
+      elsif Lexer.Buffer'Size /= Buffer_Size then
+         Free (Lexer.Buffer);
+         Lexer.Buffer := new String (1 .. Buffer_Size);
+      end if;
+
+      Lexer.Lexeme_Head := Lexer.Buffer'First;
+      Lexer.Lexeme_Tail := Lexer.Buffer'First - 1;
+      Lexer.ID          := Token.Token_ID'First;
+      Lexer.Buffer_Head := Lexer.Buffer'First;
+      Lexer.Buffer_Tail := Lexer.Buffer'First - 1;
+   end Reset;
+
+   overriding procedure Set_Text_Feeder
+     (Lexer : in out Instance;
+      Feeder : in FastToken.Text_Feeder.Text_Feeder_Ptr)
+   is begin
+      Lexer.Feeder := Feeder;
+   end Set_Text_Feeder;
+
+   overriding function End_Of_Text
+     (Lexer : in Instance)
+     return Boolean
+   is
+   begin
+      return Lexer.Feeder.End_Of_Text and Lexer.Buffer_Tail < Lexer.Buffer_Head;
+   end End_Of_Text;
+
+   overriding function End_Of_Buffered_Text
+     (Lexer : in Instance)
+     return Boolean
+   is begin
+      raise Programmer_Error with "Unimplemented function lexer.regexp.End_Of_Buffered_Text";
+      return False;
+   end End_Of_Buffered_Text;
+
+   overriding procedure Discard_Buffered_Text
+     (Lexer : in out Instance)
+   is begin
+      raise Programmer_Error with "Unimplemented procedure lexer.regexp.Discard_Buffered_Text";
+   end Discard_Buffered_Text;
+
+   overriding procedure Find_Next (Lexer : in out Instance)
+   is
+      use type Token.Token_ID;
+   begin
+      loop
+         if not Find_Best_Match (Lexer) then
+            raise Syntax_Error with "Unrecognized character '" & Lexer.Buffer (Lexer.Buffer_Head) & "'";
+         end if;
+
+         exit when Lexer.ID = EOF_ID or else Lexer.Syntax (Lexer.ID).Report;
+
+      end loop;
+   end Find_Next;
+
+   overriding function Line
+     (Lexer : in Instance)
+     return Natural
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      --  Not needed for unit tests
+      return 0;
+   end Line;
+
+   overriding function Column
+     (Lexer : in Instance)
+     return Natural
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      --  Not needed for unit tests
+      return 0;
+   end Column;
+
+   overriding function Lexeme (Lexer : in Instance) return String
+   is begin
+      return Lexer.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
+   end Lexeme;
+
+   overriding function Bounds
+     (Lexer : in Instance)
+     return Token.Buffer_Range
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      --  Not needed for unit tests
+      return (0, 0);
+   end Bounds;
+
+   overriding function Get (Lexer : in Instance) return Token.Class
+   is begin
+      --  We allow Create to changing the token stored in the syntax
+      --  list, to avoid another new/free pair.
+
+      Token.Create
+        (Lexeme    => Lexeme (Lexer),
+         Bounds    => Bounds (Lexer),
+         New_Token => Lexer.Syntax (Lexer.ID).Token.all);
+
+      return Lexer.Syntax (Lexer.ID).Token.all;
+   end Get;
+
+end FastToken.Lexer.Regexp;
