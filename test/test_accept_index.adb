@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,28 +20,20 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
-with Ada.Strings.Maps.Constants;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser.LALR.Parser_Lists;
-with OpenToken.Recognizer.Based_Integer;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Identifier;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Analyzer;
-with OpenToken.Token.Integer;
-with OpenToken.Token.Nonterminal;
+with FastToken.Production;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LALR.Parser;
+with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Text_Feeder.String;
+with FastToken.Lexer.Regexp;
+with FastToken.Token.Nonterminal;
 package body Test_Accept_Index is
 
    --  A simple grammar that OpenToken used to get wrong.
    --
    --  set foo = integer;
 
-   type Token_IDs is
+   type Token_ID is
      (Whitespace_ID,
       Equals_ID,
       Int_ID,
@@ -53,54 +45,52 @@ package body Test_Accept_Index is
       Parse_Sequence_ID,
       Statement_ID);
 
-   package Master_Token is new OpenToken.Token (Token_IDs, Equals_ID, Identifier_ID, Token_IDs'Image);
-   package Nonterminal is new Master_Token.Nonterminal;
-   package Production is new OpenToken.Production (Master_Token, Nonterminal);
-   package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser;
-   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
-   package LALR_Parser is new LALRs.Parser (1, Parser_Lists);
-   package LALR_Generator is new LALRs.Generator (Token_IDs'Width, Production_List);
-
-   package Integer_Literal is new Master_Token.Integer;
+   Token_Image_Width : constant Integer := Token_ID'Width;
+   package Token_Pkg is new FastToken.Token (Token_ID, Equals_ID, Identifier_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Lexer is new Lexer_Root.Regexp;
+   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
+   package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LALR_Generator is new LALR.Generator (Token_Image_Width, Production);
 
    --  Define all our tokens
-   Equals : constant Master_Token.Class := Master_Token.Get (Equals_ID);
-   Int    : constant Master_Token.Class := Integer_Literal.Get (Int_ID);
-   EOF    : constant Master_Token.Class := Master_Token.Get (EOF_ID);
+   Equals : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);
+   Int    : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
+   EOF    : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
 
-   Identifier     : constant Master_Token.Class := Master_Token.Get (Identifier_ID);
-   Parse_Sequence : constant Nonterminal.Class  := Nonterminal.Get (Parse_Sequence_ID);
-   Statement      : constant Nonterminal.Class  := Nonterminal.Get (Statement_ID);
+   Identifier     : constant Token_Pkg.Class   := Token_Pkg.Get (Identifier_ID);
+   Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
+   Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
 
-   package Tokenizer is new Master_Token.Analyzer;
-
-   Syntax : constant Tokenizer.Syntax :=
-     (Equals_ID         => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("="), Master_Token.Get (Equals_ID, "=")),
-      Int_ID            => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, Int),
-      Set_ID            => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set"), Master_Token.Get (Set_ID, "set")),
-      EOF_ID            => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Master_Token.Get (EOF_ID)),
-      Identifier_ID     => Tokenizer.Get
-        (OpenToken.Recognizer.Identifier.Get
-           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
-            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
-         Master_Token.Get (Identifier_ID, "identifier")),
-      Whitespace_ID     => Tokenizer.Get
-        (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
+   Syntax : constant Lexer.Syntax :=
+     (
+      Whitespace_ID => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
+      Equals_ID     => Lexer.Get ("=", Token_Pkg.Get (Equals_ID)),
+      Int_ID        => Lexer.Get ("[0-9]+", Int),
+      Set_ID        => Lexer.Get ("set", Token_Pkg.Get (Set_ID)),
+      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+", Token_Pkg.Get (Identifier_ID)),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, Token_Pkg.Get (EOF_ID))
+     );
 
    use type Production.Instance;        --  "<="
-   use type Production_List.Instance;   --  "and"
+   use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Master_Token.List.Instance; --  "&"
+   use type Token_Pkg.List.Instance; --  "&"
 
-   Grammar : constant Production_List.Instance :=
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+
+   Grammar : constant Production.List.Instance :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
-     Parse_Sequence <= Statement & EOF and
-     Statement <= Master_Token.Get (Set_ID) & Identifier & Equals & Int + Nonterminal.Synthesize_Self;
+     Parse_Sequence <= Statement & EOF + Self and
+     Statement <= Token_Pkg.Get (Set_ID) & Identifier & Equals & Int + Self;
 
-   String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
+   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
    Parser        : LALR_Parser.Instance;
 
    ----------
@@ -113,17 +103,15 @@ package body Test_Accept_Index is
       --  The test is that there are no exceptions.
 
       Parser := LALR_Parser.Initialize
-        (Master_Token.Source_Handle (Tokenizer.Initialize (Syntax)),
+        (Lexer.Initialize (Syntax, String_Feeder'Access),
          LALR_Generator.Generate
            (Grammar,
             Trace           => Test.Debug,
             Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
+      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
-      LALR_Parser.Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
-
-      OpenToken.Text_Feeder.String.Set (String_Feeder, "set A = 2");
+      String_Feeder.Set ("set A = 2");
 
       LALR_Parser.Parse (Parser);
 

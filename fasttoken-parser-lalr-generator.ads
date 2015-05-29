@@ -32,7 +32,7 @@ with FastToken.Production;
 with FastToken.Parser.LRk_Item;
 generic
    Token_Image_Width : Integer;
-   with package Production is new FastToken.Production (Token, Nonterminal);
+   with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LALR.Generator is
 
    package LRk is new FastToken.Parser.Lrk_Item (Unknown_State_Index, Unknown_State, 1, Nonterminal, Production);

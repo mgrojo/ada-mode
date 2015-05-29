@@ -25,9 +25,9 @@
 pragma License (GPL);
 
 with GNAT.OS_Lib;
-package OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
+package FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
-   type Instance is new OpenToken.Text_Feeder.Instance with private;
+   type Instance is new FastToken.Text_Feeder.Instance with private;
    type Handle is access all Instance'Class;
 
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr;
@@ -51,7 +51,7 @@ package OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
    --  Count of calls to Get since Reset before end of text.
 private
 
-   type Instance is new OpenToken.Text_Feeder.Instance with record
+   type Instance is new FastToken.Text_Feeder.Instance with record
       File       : GNAT.OS_Lib.File_Descriptor;
       Max_Bytes  : Integer;
       Read_Bytes : Integer;
@@ -59,4 +59,4 @@ private
       Get_Count : Integer;
    end record;
 
-end OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+end FastToken.Text_Feeder.Counted_GNAT_OS_Lib;

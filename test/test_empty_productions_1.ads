@@ -1,9 +1,9 @@
 --  Abstract :
 --
---  Partial test of OpenToken.Production.Parser.LRK_Item and LALR
+--  Partial test of FastToken.Parser.LRK_Item and LALR
 --  handling of empty productions.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

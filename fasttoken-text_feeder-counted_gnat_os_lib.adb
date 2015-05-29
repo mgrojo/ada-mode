@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
+package body FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr
    is begin
@@ -145,4 +145,4 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
       return Feeder.Get_Count;
    end Get_Count;
 
-end OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+end FastToken.Text_Feeder.Counted_GNAT_OS_Lib;

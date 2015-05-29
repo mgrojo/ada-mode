@@ -28,14 +28,7 @@ else
 endif
 
 tests : wisi-generate.exe
-tests : production_test-run.run
-tests : recognizer_based_integer_test.run
-tests : recognizer_integer_test.run
-tests : string_test-run.run
 tests : test_all_harness.diff
-tests : test_html_lexer_safe.diff
-tests : test_html_lexer_safe-syntax_error.diff
-tests : token_analyzer_ctd-run.run
 
 # from ../wisi/test
 #

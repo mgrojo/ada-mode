@@ -32,7 +32,7 @@ with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
 package body Name_Grammar_Test is
 
-   type Token_ID_Type is
+   type Token_ID is
      (Whitespace_ID,
 
       --  terminals
@@ -49,11 +49,10 @@ package body Name_Grammar_Test is
       Statement_ID,
       Symbol_Name_ID);
 
-   Token_Image_Width : constant Integer := Token_ID_Type'Width;
-   package Token_Pkg is new FastToken.Token (Token_ID_Type, Dot_ID, EOF_ID, Token_ID_Type'Image);
+   Token_Image_Width : constant Integer := Token_ID'Width;
+   package Token_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
-
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,16 +18,17 @@
 
 pragma License (GPL);
 
-with AUnit.Check;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Nonterminal;
+with AUnit.Checks;
+with FastToken.Lexer;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Production;
+with FastToken.Token.Nonterminal;
 package body Test_Empty_Productions_4 is
 
    --  A grammar with a null production in the first two nonterms in a
    --  production (from ../wisi/test/empty_production_4.wy)
 
-   type Token_IDs is
+   type Token_ID is
      (
       --  non-reporting
       Whitespace_ID,
@@ -45,42 +46,42 @@ package body Test_Empty_Productions_4 is
       subprogram_declaration_ID,
       overriding_indicator_ID);
 
-   package Tokens_Pkg is new OpenToken.Token (Token_IDs, IDENTIFIER_ID, EOF_ID, Token_IDs'Image);
-   package Nonterminals is new Tokens_Pkg.Nonterminal;
-   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
-   package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser;
-   package LALRs is new Parsers.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
+   package Token_Pkg is new FastToken.Token (Token_ID, IDENTIFIER_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
-   use type Tokens_Pkg.List.Instance;
-   use type Productions.Right_Hand_Side;
-   use type Productions.Instance;
-   use type Production_Lists.Instance;
+   use type Token_Pkg.List.Instance;
+   use type Production.Right_Hand_Side;
+   use type Production.Instance;
+   use type Production.List.Instance;
 
-   function "+" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
-   Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
-   Grammar : constant Production_Lists.Instance :=
-     Nonterminals.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) -- 1
+   Grammar : constant Production.List.Instance :=
+     Nonterminal.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
      and
-     Nonterminals.Get (compilation_unit_ID) <= (+subprogram_declaration_ID) & (+subprogram_declaration_ID) + Self -- 2
+     Nonterminal.Get (compilation_unit_ID) <= (+subprogram_declaration_ID) & (+subprogram_declaration_ID) + Self -- 2
      and
-     Nonterminals.Get (subprogram_declaration_ID) <= (+overriding_indicator_ID) & (+PROCEDURE_ID) &
+     Nonterminal.Get (subprogram_declaration_ID) <= (+overriding_indicator_ID) & (+PROCEDURE_ID) &
      (+IDENTIFIER_ID) & (+SEMICOLON_ID) + Self -- 3
      and
-     Nonterminals.Get (overriding_indicator_ID) <= (+OVERRIDING_ID) + Self -- 4
+     Nonterminal.Get (overriding_indicator_ID) <= (+OVERRIDING_ID) + Self -- 4
      and
-     Nonterminals.Get (overriding_indicator_ID) <= +Self -- 5; empty
+     Nonterminal.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
-     LALR_Generators.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
+     LALR_Generator.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generators.LRk.Derivation_Matrix :=
-     LALR_Generators.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LRk.Derivation_Matrix :=
+     LALR_Generator.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
@@ -88,7 +89,7 @@ package body Test_Empty_Productions_4 is
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use AUnit.Check;
+      use AUnit.Checks;
    begin
       Check ("1", First (subprogram_declaration_ID)(PROCEDURE_ID), True);
    end Test_First;
