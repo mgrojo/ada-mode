@@ -79,7 +79,6 @@ package body Association_Grammar_Test is
 
    Syntax : constant Lexer.Syntax :=
      (
-      --  terminals
       Whitespace_ID    => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
       Comma_ID         => Lexer.Get (",", Tokens.Comma),
       Equal_Greater_ID => Lexer.Get ("=>", Tokens.Equal_Greater),
@@ -102,7 +101,8 @@ package body Association_Grammar_Test is
    Association      : constant Nonterminal.Class := Nonterminal.Get (Association_ID);
    Association_List : constant Nonterminal.Class := Nonterminal.Get (Association_List_ID);
    Statement        : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-   Self             : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    --  valid syntax:
    --  (identifier)
@@ -199,7 +199,7 @@ package body Association_Grammar_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Association_Grammar_Test");
+      return new String'("../../Test/association_grammar_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

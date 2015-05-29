@@ -10,6 +10,7 @@ run all tests with fasttoken name
     also clean up package hierarchy
     delete opentoken recognizer; use regexp
         Test/Association_Grammar_Test passes
+        Test/Name_Grammar_Test passes
 
     prune irrelevant tests
 

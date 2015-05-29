@@ -28,9 +28,6 @@ else
 endif
 
 tests : wisi-generate.exe
-tests : association_token_test-run.diff
-tests : enumerated_token_list_test.run
-tests : name_token_test-run.diff
 tests : production_test-run.run
 tests : recognizer_based_integer_test.run
 tests : recognizer_integer_test.run

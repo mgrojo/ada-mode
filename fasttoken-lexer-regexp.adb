@@ -234,9 +234,7 @@ package body FastToken.Lexer.Regexp is
       end loop;
    end Find_Next;
 
-   overriding function Line
-     (Lexer : in Instance)
-     return Natural
+   overriding function Line (Lexer : in Instance) return Natural
    is
       pragma Unreferenced (Lexer);
    begin
@@ -244,14 +242,10 @@ package body FastToken.Lexer.Regexp is
       return 0;
    end Line;
 
-   overriding function Column
-     (Lexer : in Instance)
-     return Natural
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      --  Not needed for unit tests
-      return 0;
+   overriding function Column (Lexer : in Instance) return Natural
+   is begin
+      --  Useful for unit tests
+      return Lexer.Lexeme_Head;
    end Column;
 
    overriding function Lexeme (Lexer : in Instance) return String
