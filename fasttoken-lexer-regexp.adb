@@ -63,16 +63,19 @@ package body FastToken.Lexer.Regexp is
       Best_Match_Length    : Natural := 0;
       Still_Matching       : Boolean := False;
    begin
+      if Current_Char > Lexer.Buffer_Tail and Lexer.Feeder.End_Of_Text then
+         return False;
+      end if;
+
       for I in Syntax_ID loop
          Clear (Lexer.Syntax (I).Regexp);
       end loop;
 
       loop
+         Still_Matching := False;
+
          if Current_Char > Lexer.Buffer_Tail then
-            if Lexer.Feeder.End_Of_Text then
-               Best_Match_ID     := EOF_ID;
-               Best_Match_Length := 0;
-            else
+            if not Lexer.Feeder.End_Of_Text then
                Get_More_Text (Lexer, Current_Char);
             end if;
          end if;
@@ -84,14 +87,15 @@ package body FastToken.Lexer.Regexp is
                   Lexer.Buffer (Lexer.Buffer_Head .. Lexer.Buffer_Tail),
                   Current_Char);
 
-               Current_Match_Length := Current_Char - Lexer.Buffer_Head + 1;
-
                case Current_State is
                when Matching =>
                   Still_Matching := True;
 
                when Final =>
                   Still_Matching := True;
+
+                  Current_Match_Length := Current_Char - Lexer.Buffer_Head + 1;
+
                   if Best_Match_Length < Current_Match_Length then
                      Best_Match_ID  := I;
                      Best_Match_Length := Current_Match_Length;
@@ -103,7 +107,8 @@ package body FastToken.Lexer.Regexp is
             end if;
          end loop;
 
-         exit when (not Still_Matching) or Best_Match_ID = EOF_ID;
+         exit when (not Still_Matching) or else
+           (Current_Char = Lexer.Buffer_Tail and then Lexer.Feeder.End_Of_Text);
 
          if Best_Match_Length = Lexer.Buffer'Length then
             raise Programmer_Error with
@@ -118,7 +123,12 @@ package body FastToken.Lexer.Regexp is
          Lexer.Lexeme_Tail := Lexer.Buffer_Head + Best_Match_Length - 1;
          Lexer.ID          := Best_Match_ID;
 
-         Lexer.Buffer_Head := Lexer.Lexeme_Tail + 1;
+         if Lexer.Lexeme_Head = Lexer.Buffer_Tail and then Lexer.Buffer (Lexer.Lexeme_Head) = EOF_Character then
+            --  matched EOF; repeat that next time
+            null;
+         else
+            Lexer.Buffer_Head := Lexer.Lexeme_Tail + 1;
+         end if;
          return True;
       else
          return False;
@@ -151,10 +161,6 @@ package body FastToken.Lexer.Regexp is
       use type Token.Token_ID;
       New_Lexer : constant access Instance := new Instance;
    begin
-      if EOF_ID /= Token.Last_Terminal then
-         raise Programmer_Error with "Last_Terminal must be " & Token.Token_Image (EOF_ID);
-      end if;
-
       New_Lexer.Syntax := Syntax;
       New_Lexer.Feeder := Feeder;
 
@@ -216,10 +222,14 @@ package body FastToken.Lexer.Regexp is
    begin
       loop
          if not Find_Best_Match (Lexer) then
-            raise Syntax_Error with "Unrecognized character '" & Lexer.Buffer (Lexer.Buffer_Head) & "'";
+            if Lexer.Buffer_Head > Lexer.Buffer'Last then
+               raise Syntax_Error with "Unrecognized EOF";
+            else
+               raise Syntax_Error with "Unrecognized character '" & Lexer.Buffer (Lexer.Buffer_Head) & "'";
+            end if;
          end if;
 
-         exit when Lexer.ID = EOF_ID or else Lexer.Syntax (Lexer.ID).Report;
+         exit when Lexer.Syntax (Lexer.ID).Report;
 
       end loop;
    end Find_Next;

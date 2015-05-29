@@ -9,7 +9,7 @@ move org.stephe_leake.aunit_ext to ada-france
 run all tests with fasttoken name
     also clean up package hierarchy
     delete opentoken recognizer; use regexp
-        Test/Association_Grammar_Test
+        Test/Association_Grammar_Test passes
 
     prune irrelevant tests
 
@@ -17,10 +17,6 @@ run all tests with fasttoken name
 
 finish refactor packages
     delete opentoken.trace_indent?
-
-    delete token.name?
-
-    delete token.set_id, or doc why not
 
     add aflex/wisi versions to dragon examples
 

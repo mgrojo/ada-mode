@@ -35,11 +35,9 @@ with Ada.Unchecked_Deallocation;
 with FastToken.Regexp;
 with FastToken.Text_Feeder;
 generic
-   EOF_ID : Token.Token_ID;
 package FastToken.Lexer.Regexp is
 
-   subtype Syntax_ID is Token.Token_ID range Token.Token_ID'First .. Token.Token_ID'Pred (Token.Last_Terminal);
-   --  Last_Terminal must be EOF_ID; checked in Initialize.
+   subtype Syntax_ID is Token.Token_ID range Token.Token_ID'First .. Token.Last_Terminal;
 
    type Syntax_Item is record
       Regexp : FastToken.Regexp.Regexp;

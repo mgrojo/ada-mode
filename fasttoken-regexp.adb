@@ -1276,10 +1276,6 @@ package body FastToken.Regexp is
          return Error;
       end if;
 
-      if R.R.Is_Final (R.R.State) then
-         return Final;
-      end if;
-
       if R.R.Case_Sensitive then
          R.R.State := R.R.States (R.R.State, R.R.Map (S (Next)));
       else
@@ -1290,9 +1286,7 @@ package body FastToken.Regexp is
 
       if R.R.State = 0 then
          return Error;
-      end if;
-
-      if R.R.Is_Final (R.R.State) then
+      elsif R.R.Is_Final (R.R.State) then
          return Final;
       else
          return Matching;

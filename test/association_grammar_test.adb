@@ -58,7 +58,7 @@ package body Association_Grammar_Test is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Lexer is new Lexer_Root.Regexp (EOF_ID);
+   package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
    package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
    First_Parser_Label : constant := 1;
@@ -86,7 +86,8 @@ package body Association_Grammar_Test is
       Int_ID           => Lexer.Get ("[0-9]+", Tokens.Integer),
       Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+", Tokens.Identifier),
       Paren_Left_ID    => Lexer.Get ("\(", Tokens.Paren_Left),
-      Paren_Right_ID   => Lexer.Get ("\)", Tokens.Paren_Right)
+      Paren_Right_ID   => Lexer.Get ("\)", Tokens.Paren_Right),
+      EOF_ID           => Lexer.Get ("" & FastToken.EOF_Character, Tokens.EOF)
      );
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -122,11 +123,16 @@ package body Association_Grammar_Test is
 
    procedure Parse_Command (Command : in String)
    is begin
+      Ada.Text_IO.Put_Line ("'" & Command & "'");
+
       FastToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      LALR_Parser.Reset (Parser, Buffer_Size => Command'Length);
+      LALR_Parser.Reset (Parser, Buffer_Size => Command'Length + 1); -- +1 for EOF
 
       LALR_Parser.Parse (Parser);
+
+      Ada.Text_IO.Put_Line ("success");
+      Ada.Text_IO.New_Line;
    exception
    when E : others =>
       AUnit.Assertions.Assert
@@ -165,7 +171,7 @@ package body Association_Grammar_Test is
             Put_Parse_Table => Test.Debug,
             Trace           => Test.Debug));
 
-      FastToken.Trace_Parse := 1;
+      FastToken.Trace_Parse := 2;
 
       Parse_Command ("(identifier)");
       Parse_Command ("(identifier, identifier)");

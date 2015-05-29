@@ -1,4 +1,6 @@
--------------------------------------------------------------------------------
+--  Abstract:
+--
+--  Root of FastToken lexer/parser generator and exector.
 --
 --  Copyright (C) 2009, 2010, 2013 - 2015 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
@@ -30,8 +32,6 @@
 --
 --           FlightSafety International Simulation Systems Division
 --                    Broken Arrow, OK  USA  918-259-4000
---
--------------------------------------------------------------------------------
 
 pragma License (Modified_GPL);
 

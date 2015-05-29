@@ -89,6 +89,9 @@ package FastToken.Lexer is
    procedure Find_Next (Lexer : in out Instance) is abstract;
    --  Locate the next token.
    --
+   --  If text feeder is reporting End_Of_Text, and there is a token
+   --  that matches EOF_Character, return that token, not error.
+   --
    --  Raises Syntax_Error with an appropriate message if no token
    --  is found and there is no default token.
 

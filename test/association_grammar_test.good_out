@@ -45,10 +45,10 @@ success
 '(identifier => identifier)'
  1: 1: PAREN_LEFT_ID : shift and goto state 2
  1: 2: IDENTIFIER_ID : shift and goto state 5
- 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1: 5: EQUAL_GREATER_ID : shift and goto state 12
  1: 12: IDENTIFIER_ID : shift and goto state 13
  1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID
-association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUALS_GREATER_ID, IDENTIFIER_ID
+association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUAL_GREATER_ID, IDENTIFIER_ID
  ... goto state 7
  1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID
 association_list_id_0: ASSOCIATION_LIST_ID ASSOCIATION_ID
@@ -65,10 +65,10 @@ success
 '(integer => identifier)'
  1: 1: PAREN_LEFT_ID : shift and goto state 2
  1: 2: IDENTIFIER_ID : shift and goto state 5
- 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1: 5: EQUAL_GREATER_ID : shift and goto state 12
  1: 12: IDENTIFIER_ID : shift and goto state 13
  1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID
-association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUALS_GREATER_ID, IDENTIFIER_ID
+association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUAL_GREATER_ID, IDENTIFIER_ID
  ... goto state 7
  1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID
 association_list_id_0: ASSOCIATION_LIST_ID ASSOCIATION_ID
@@ -85,17 +85,17 @@ success
 '(identifier => identifier, integer => identifier)'
  1: 1: PAREN_LEFT_ID : shift and goto state 2
  1: 2: IDENTIFIER_ID : shift and goto state 5
- 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1: 5: EQUAL_GREATER_ID : shift and goto state 12
  1: 12: IDENTIFIER_ID : shift and goto state 13
  1: 13: COMMA_ID : reduce 3 tokens to ASSOCIATION_ID
-association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUALS_GREATER_ID, IDENTIFIER_ID
+association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUAL_GREATER_ID, IDENTIFIER_ID
  ... goto state 7
  1: 7: COMMA_ID : shift and goto state 10
  1: 10: IDENTIFIER_ID : shift and goto state 5
- 1: 5: EQUALS_GREATER_ID : shift and goto state 12
+ 1: 5: EQUAL_GREATER_ID : shift and goto state 12
  1: 12: IDENTIFIER_ID : shift and goto state 13
  1: 13: PAREN_RIGHT_ID : reduce 3 tokens to ASSOCIATION_ID
-association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUALS_GREATER_ID, IDENTIFIER_ID
+association_id_0: ASSOCIATION_ID IDENTIFIER_ID, EQUAL_GREATER_ID, IDENTIFIER_ID
  ... goto state 7
  1: 7: PAREN_RIGHT_ID : reduce 1 tokens to ASSOCIATION_LIST_ID
 association_list_id_0: ASSOCIATION_LIST_ID ASSOCIATION_ID
