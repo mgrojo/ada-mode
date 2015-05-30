@@ -1,4 +1,4 @@
-;;; body_instantiation_conflict-wy.el --- Generated parser support file
+;;; body_instantiation_conflict-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 
@@ -19,7 +19,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst body_instantiation_conflict-wy--keyword-table
+(defconst body_instantiation_conflict-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("begin" . BEGIN)
@@ -34,7 +34,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst body_instantiation_conflict-wy--token-table
+(defconst body_instantiation_conflict-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("punctuation"
@@ -50,7 +50,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst body_instantiation_conflict-wy--parse-table
+(defconst body_instantiation_conflict-elisp-parse-table
    (wisi-compile-grammar
    '((SEMICOLON IDENTIFIER STRING_LITERAL BEGIN END IS LEFT_PAREN NEW NULL PROCEDURE RIGHT_PAREN )
      ((compilation_unit
@@ -73,15 +73,15 @@
        ((STRING_LITERAL ))))
      [((default . error) (STRING_LITERAL .  2) (PROCEDURE .  1))
       ((default . error) (IDENTIFIER .  11))
-      ((default . error) ($EOI . (generic_instantiation . 1)) (STRING_LITERAL . (generic_instantiation . 1)) (PROCEDURE . (generic_instantiation . 1)))
-      ((default . error) ($EOI .  10))
+      ((default . error) (EOF . (generic_instantiation . 1)) (STRING_LITERAL . (generic_instantiation . 1)) (PROCEDURE . (generic_instantiation . 1)))
+      ((default . error) (EOF .  10))
       ((default . error) (STRING_LITERAL .  2) (PROCEDURE .  1))
-      ((default . error) ($EOI . (library_item . 0)) (PROCEDURE . (library_item . 0)) (STRING_LITERAL . (library_item . 0)))
+      ((default . error) (EOF . (library_item . 0)) (PROCEDURE . (library_item . 0)) (STRING_LITERAL . (library_item . 0)))
       ((default . error) (IS .  8))
-      ((default . error) ($EOI . (library_item . 1)) (PROCEDURE . (library_item . 1)) (STRING_LITERAL . (library_item . 1)))
+      ((default . error) (EOF . (library_item . 1)) (PROCEDURE . (library_item . 1)) (STRING_LITERAL . (library_item . 1)))
       ((default . error) (BEGIN .  15))
-      ((default . error) ($EOI . (compilation_unit . 0)))
-      ((default . error) ($EOI . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (SEMICOLON . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (NULL . accept) (NEW . accept) (LEFT_PAREN . accept) (IS . accept) (END . accept) (BEGIN . accept))
+      ((default . error) (EOF . (compilation_unit . 0)))
+      ((default . error) (EOF . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (SEMICOLON . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (NULL . accept) (NEW . accept) (LEFT_PAREN . accept) (IS . accept) (END . accept) (BEGIN . accept))
       ((default . error) (IS . ( 12 (parameter_list . 0))) (LEFT_PAREN .  13))
       ((default . error) (NEW .  18))
       ((default . error) (IDENTIFIER .  17))
@@ -93,11 +93,11 @@
       ((default . error) (LEFT_PAREN .  23))
       ((default . error) (IS . (parameter_list . 1)))
       ((default . error) (SEMICOLON .  22))
-      ((default . error) (PROCEDURE . (subprogram_body . 0)) (STRING_LITERAL . (subprogram_body . 0)) ($EOI . (subprogram_body . 0)))
+      ((default . error) (PROCEDURE . (subprogram_body . 0)) (STRING_LITERAL . (subprogram_body . 0)) (EOF . (subprogram_body . 0)))
       ((default . error) (IDENTIFIER .  24))
       ((default . error) (RIGHT_PAREN .  25))
       ((default . error) (SEMICOLON .  26))
-      ((default . error) ($EOI . (generic_instantiation . 0)) (STRING_LITERAL . (generic_instantiation . 0)) (PROCEDURE . (generic_instantiation . 0)))]
+      ((default . error) (EOF . (generic_instantiation . 0)) (STRING_LITERAL . (generic_instantiation . 0)) (PROCEDURE . (generic_instantiation . 0)))]
      [((compilation_unit . 3)(library_item . 4)(subprogram_body . 5)(subprogram_specification . 6)(generic_instantiation . 7))
       nil
       nil
@@ -127,6 +127,6 @@
       nil]))
   "Parser table.")
 
-(provide 'body_instantiation_conflict-wy)
+(provide 'body_instantiation_conflict-elisp)
 
 ;; end of file

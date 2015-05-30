@@ -139,7 +139,7 @@ package Wisi is
 
    Verbosity : Integer := 0;
 
-   type Lexer_Type is (Aflex_Lexer, OpenToken_Lexer, Elisp_Lexer);
+   type Lexer_Type is (Aflex_Lexer, Elisp_Lexer);
 
    type Interface_Type is (Process, Module);
 

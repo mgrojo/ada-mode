@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Put_Trace Production.List.Instance
+--  Put_Trace for types in Production
 --
---  Copyright (C) 2002, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -25,7 +25,7 @@
 
 with Ada.Text_IO;
 generic
-   with procedure Put_Trace_Production (Item : in OpenToken.Production.Instance);
+   with procedure Put_Trace_Action (Item : in Nonterminal.Synthesize);
 
    with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
    --  Accumulate Item in the trace buffer.
@@ -34,8 +34,12 @@ generic
    --  Accumulate Item in the trace buffer, output the trace buffer to
    --  the display.
 
-package OpenToken.Production.List.Put_Trace is
+package FastToken.Production.Put_Trace is
 
    procedure Put_Trace (Item : in Instance);
+   procedure Put_Trace (Item : in Right_Hand_Side);
+   --  Put Item to Put_Trace.
 
-end OpenToken.Production.List.Put_Trace;
+   procedure Put_Trace (Item : in List.Instance);
+
+end FastToken.Production.Put_Trace;

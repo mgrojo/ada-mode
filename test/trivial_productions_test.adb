@@ -1,44 +1,43 @@
--------------------------------------------------------------------------------
+--  Abstract:
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014, 2015 Stephen Leake
+--  See spec
+--
+--  Copyright (C) 2009-2010, 2012-2015 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
---  This file is part of the OpenToken package.
+--  This file is part of the FastToken package.
 --
---  The OpenToken package is free software; you can redistribute it
+--  The FastToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The OpenToken package is
+--  (at your option) any later version. The FastToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the OpenToken package;
+--  GNU General Public License distributed with the FastToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 pragma License (GPL);
 
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser.LALR.Parser_Lists;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Analyzer;
-with OpenToken.Token.Nonterminal;
+with FastToken.Lexer.Regexp;
+with FastToken.Production;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LALR.Parser;
+with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Text_Feeder.String;
+with FastToken.Token.Nonterminal;
 package body Trivial_Productions_Test is
 
-   Feeder : aliased OpenToken.Text_Feeder.String.Instance;
+   Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    ----------
    --  Test procedures
 
    procedure Expression (Test : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      type Token_IDs is
+      type Token_ID is
         (
          --  Terminals
          Symbol_ID, EOF_ID,
@@ -46,59 +45,49 @@ package body Trivial_Productions_Test is
          --  Nonterminals
          E_ID, F_ID, T_ID);
 
-      package Tokens is new OpenToken.Token (Token_IDs, Symbol_ID, EOF_ID, Token_IDs'Image);
-      package Analyzers is new Tokens.Analyzer;
-      package Nonterminals is new Tokens.Nonterminal;
-      package Productions is new OpenToken.Production (Tokens, Nonterminals);
-      package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser;
-      package LALRs is new Parsers.LALR (First_State_Index => 1);
-      package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
-      package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
+      package Token_Pkg is new FastToken.Token (Token_ID, Symbol_ID, EOF_ID, Token_ID'Image);
+      package Nonterminal is new Token_Pkg.Nonterminal;
+      package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+      package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+      package Lexer is new Lexer_Root.Regexp;
+      package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+      package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+      First_Parser_Label : constant := 1;
+      package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
+      package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
-      EOF    : constant Tokens.Class       := Tokens.Get (EOF_ID);
-      Symbol : constant Tokens.Class       := Tokens.Get (Symbol_ID);
-      E      : constant Nonterminals.Class := Nonterminals.Get (E_ID);
-      F      : constant Nonterminals.Class := Nonterminals.Get (F_ID);
-      T      : constant Nonterminals.Class := Nonterminals.Get (T_ID);
+      EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
+      Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
+      E      : constant Nonterminal.Class := Nonterminal.Get (E_ID);
+      F      : constant Nonterminal.Class := Nonterminal.Get (F_ID);
+      T      : constant Nonterminal.Class := Nonterminal.Get (T_ID);
 
-      Syntax : constant Analyzers.Syntax :=
-        (EOF_ID    => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
-         Symbol_ID => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("symbol"), Symbol));
+      Syntax : constant Lexer.Syntax :=
+        (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character, EOF),
+         Symbol_ID => Lexer.Get ("symbol", Symbol));
 
-      Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
+      use type Token_Pkg.List.Instance;
+      use type Production.Right_Hand_Side;
+      use type Production.Instance;
+      use type Production.List.Instance;
 
-      --  Allow infix operators for building productions
-      use type Tokens.List.Instance;
-      use type Productions.Right_Hand_Side;
-      use type Productions.Instance;
-      use type Production_Lists.Instance;
+      Grammar : constant Production.List.Instance :=
+        E <= T & EOF + Nonterminal.Synthesize_Self and
+        T <= F + Nonterminal.Synthesize_Self and
+        F <= Symbol + Nonterminal.Synthesize_Self;
 
-      --  The grammar is:
-      --
-      --  E -> T      expression -> term
-      --  T -> F      term -> factor
-      --  F -> symbol
-
-      Grammar : constant Production_Lists.Instance :=
-        E <= T & EOF + -- OpenToken requires an explicit EOF
-          Nonterminals.Synthesize_Self and
-        T <= F + Nonterminals.Synthesize_Self and
-        F <= Symbol + Nonterminals.Synthesize_Self;
-
-      Parser : LALR_Parsers.Instance;
+      Parser : LALR_Parser.Instance;
 
       Text : constant String := "symbol";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Initialize
-        (Tokens.Source_Handle (Analyzer),
-         LALR_Generators.Generate (Grammar, Trace => Test_Case (Test).Debug));
+      Parser := LALR_Parser.Initialize
+        (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
+         LALR_Generator.Generate (Grammar, Trace => Test_Case (Test).Debug));
 
-      OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Analyzer.Reset;
+      Feeder.Set (Text);
 
       Parser.Parse;
 
@@ -106,11 +95,11 @@ package body Trivial_Productions_Test is
 
    procedure Subprograms (Test : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      --  Hand-written OpenToken grammar matching
+      --  Hand-written FastToken grammar matching
       --  ../wisi/test/subprograms.wy, to show that wisi-generate
       --  produces the same grammar.
 
-      type Token_IDs is
+      type Token_ID is
         (Whitespace_ID,
 
          --  Terminals
@@ -121,81 +110,80 @@ package body Trivial_Productions_Test is
          Right_Paren_ID,
          EOF_ID,
 
-         --  Nonterminals
-         OpenToken_Accept_ID,
+         --  Nonterminal
+         FastToken_Accept_ID,
          Declarations_ID,
          Declaration_ID,
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Tokens is new OpenToken.Token (Token_IDs, Function_ID, EOF_ID, Token_IDs'Image);
-      package Analyzers is new Tokens.Analyzer;
-      package Nonterminals is new Tokens.Nonterminal;
-      package Productions is new OpenToken.Production (Tokens, Nonterminals);
-      package Production_Lists is new Productions.List;
-      package Parsers is new Productions.Parser;
-      package LALRs is new Parsers.LALR (First_State_Index => 1);
-      package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
-      package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
-      package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
+      package Token_Pkg is new FastToken.Token (Token_ID, Function_ID, EOF_ID, Token_ID'Image);
+      package Nonterminal is new Token_Pkg.Nonterminal;
+      package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+      package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+      package Lexer is new Lexer_Root.Regexp;
+      package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+      package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+      First_Parser_Label : constant := 1;
+      package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
+      package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
-      EOF            : constant Tokens.Class := Tokens.Get (EOF_ID);
-      Function_Tok   : constant Tokens.Class := Tokens.Get (Function_ID);
-      Left_Paren     : constant Tokens.Class := Tokens.Get (Left_Paren_ID);
-      Procedure_Tok  : constant Tokens.Class := Tokens.Get (Procedure_ID);
-      Right_Paren    : constant Tokens.Class := Tokens.Get (Right_Paren_ID);
-      Symbol         : constant Tokens.Class := Tokens.Get (Symbol_ID);
+      EOF           : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
+      Function_Tok  : constant Token_Pkg.Class := Token_Pkg.Get (Function_ID);
+      Left_Paren    : constant Token_Pkg.Class := Token_Pkg.Get (Left_Paren_ID);
+      Procedure_Tok : constant Token_Pkg.Class := Token_Pkg.Get (Procedure_ID);
+      Right_Paren   : constant Token_Pkg.Class := Token_Pkg.Get (Right_Paren_ID);
+      Symbol        : constant Token_Pkg.Class := Token_Pkg.Get (Symbol_ID);
 
-      OpenToken_Accept : constant Nonterminals.Class := Nonterminals.Get (OpenToken_Accept_ID);
-      Declarations     : constant Nonterminals.Class := Nonterminals.Get (Declarations_ID);
-      Declaration      : constant Nonterminals.Class := Nonterminals.Get (Declaration_ID);
-      Parameter_List   : constant Nonterminals.Class := Nonterminals.Get (Parameter_List_ID);
-      Subprogram       : constant Nonterminals.Class := Nonterminals.Get (Subprogram_ID);
+      FastToken_Accept : constant Nonterminal.Class := Nonterminal.Get (FastToken_Accept_ID);
+      Declarations     : constant Nonterminal.Class := Nonterminal.Get (Declarations_ID);
+      Declaration      : constant Nonterminal.Class := Nonterminal.Get (Declaration_ID);
+      Parameter_List   : constant Nonterminal.Class := Nonterminal.Get (Parameter_List_ID);
+      Subprogram       : constant Nonterminal.Class := Nonterminal.Get (Subprogram_ID);
 
-      Syntax : constant Analyzers.Syntax :=
-        (EOF_ID         => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, EOF),
-         Function_ID    => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("function"), Function_Tok),
-         Left_Paren_ID  => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("("), Function_Tok),
-         Procedure_ID   => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("procedure"), Procedure_Tok),
-         Right_Paren_ID => Analyzers.Get (OpenToken.Recognizer.Keyword.Get (")"), Function_Tok),
-         Symbol_ID      => Analyzers.Get (OpenToken.Recognizer.Keyword.Get ("symbol"), Symbol),
-         Whitespace_ID  => Analyzers.Get (OpenToken.Recognizer.Character_Set.Get
-           (OpenToken.Recognizer.Character_Set.Standard_Whitespace)));
+      Syntax : constant Lexer.Syntax :=
+        (
+         Whitespace_ID  => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
+         Function_ID    => Lexer.Get ("function", Function_Tok),
+         Left_Paren_ID  => Lexer.Get ("\(", Left_Paren),
+         Procedure_ID   => Lexer.Get ("procedure", Procedure_Tok),
+         Right_Paren_ID => Lexer.Get ("\)", Right_Paren),
+         Symbol_ID      => Lexer.Get ("symbol", Symbol),
+         EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character, EOF)
+        );
 
-      Analyzer : constant Analyzers.Handle := Analyzers.Initialize (Syntax, Feeder'Access);
+      use type Token_Pkg.List.Instance;
+      use type Production.Right_Hand_Side;
+      use type Production.Instance;
+      use type Production.List.Instance;
 
-      --  Allow infix operators for building productions
-      use type Tokens.List.Instance;
-      use type Productions.Right_Hand_Side;
-      use type Productions.Instance;
-      use type Production_Lists.Instance;
+      Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
-      Grammar : constant Production_Lists.Instance :=
-        OpenToken_Accept <= Declarations & EOF + Nonterminals.Synthesize_Self and
-        Declarations     <= Declaration + Nonterminals.Synthesize_Self and
-        Declarations     <= Declarations & Declaration + Nonterminals.Synthesize_Self and
-        Declaration      <= Subprogram + Nonterminals.Synthesize_Self and
-        Subprogram       <= Function_Tok & Parameter_List & Symbol + Nonterminals.Synthesize_Self and
-        Subprogram       <= Procedure_Tok & Parameter_List + Nonterminals.Synthesize_Self and
-        Parameter_List   <= +Nonterminals.Synthesize_Self and
-        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Nonterminals.Synthesize_Self;
+      Grammar : constant Production.List.Instance :=
+        FastToken_Accept <= Declarations & EOF + Self and
+        Declarations     <= Declaration + Self and
+        Declarations     <= Declarations & Declaration + Self and
+        Declaration      <= Subprogram + Self and
+        Subprogram       <= Function_Tok & Parameter_List & Symbol + Self and
+        Subprogram       <= Procedure_Tok & Parameter_List + Self and
+        Parameter_List   <= +Self and
+        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Self;
 
-      Parser : LALR_Parsers.Instance;
+      Parser : LALR_Parser.Instance;
 
       Text : constant String := "function (symbol) symbol procedure";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parsers.Initialize
-        (Tokens.Source_Handle (Analyzer),
-         LALR_Generators.Generate
+      Parser := LALR_Parser.Initialize
+        (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
+         LALR_Generator.Generate
            (Grammar,
             Trace       => Test_Case (Test).Debug,
             Put_Parse_Table => Test_Case (Test).Debug));
 
-      OpenToken.Text_Feeder.String.Set (Feeder, Text);
-      Analyzer.Reset;
-
+      Feeder.Set (Text);
       Parser.Parse;
 
    end Subprograms;
@@ -220,5 +208,5 @@ package body Trivial_Productions_Test is
 
 end Trivial_Productions_Test;
 --  Local Variables:
---  ada-indent-opentoken: t
+--  eval: (ada-indent-opentoken-mode)
 --  End:

@@ -22,7 +22,7 @@ pragma License (GPL);
 
 with Ada.Directories;
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Source_Info;
 package body Test_Generate_Errors is
@@ -56,7 +56,7 @@ package body Test_Generate_Errors is
         (Success,
          "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
 
-      AUnit.Check.Check_Files ("1", Computed_Error_File, Expected_Error_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_Error_File, Expected_Error_File);
    end Run_Test;
 
    ----------

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,15 +19,16 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Gen_OpenToken_AUnit;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Nonterminal;
+with FastToken.Lexer;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Production;
+with FastToken.Token.Nonterminal;
+with Gen_FastToken_AUnit;
 package body Test_Empty_Productions_5 is
 
    --  A grammar with a null production following a nonterm (from ../wisi/test/empty_production_5.wy)
 
-   type Token_IDs is
+   type Token_ID is
      (
       --  non-reporting
       Whitespace_ID,
@@ -47,48 +48,48 @@ package body Test_Empty_Productions_5 is
       name_ID,
       parameter_profile_ID);
 
-   package Tokens_Pkg is new OpenToken.Token (Token_IDs, ACCEPT_ID, EOF_ID, Token_IDs'Image);
-   package Nonterminals is new Tokens_Pkg.Nonterminal;
-   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
-   package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser;
-   package LALRs is new Parsers.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
+   package Token_Pkg is new FastToken.Token (Token_ID, ACCEPT_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
-   use type Tokens_Pkg.List.Instance;
-   use type Productions.Right_Hand_Side;
-   use type Productions.Instance;
-   use type Production_Lists.Instance;
+   use type Token_Pkg.List.Instance;
+   use type Production.Right_Hand_Side;
+   use type Production.Instance;
+   use type Production.List.Instance;
 
-   function "+" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
-   Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
-   Grammar : constant Production_Lists.Instance :=
-     Nonterminals.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) -- 1
+   Grammar : constant Production.List.Instance :=
+     Nonterminal.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
      and
-     Nonterminals.Get (compilation_unit_ID) <= (+accept_statement_ID) & (+accept_statement_ID) + Self -- 2
+     Nonterminal.Get (compilation_unit_ID) <= (+accept_statement_ID) & (+accept_statement_ID) + Self -- 2
      and
-     Nonterminals.Get (accept_statement_ID) <= (+ACCEPT_ID) & (+name_ID) & (+parameter_profile_ID) &
+     Nonterminal.Get (accept_statement_ID) <= (+ACCEPT_ID) & (+name_ID) & (+parameter_profile_ID) &
      (+SEMICOLON_ID) + Self -- 3
      and
-     Nonterminals.Get (name_ID) <= (+IDENTIFIER_ID) + Self -- 4
+     Nonterminal.Get (name_ID) <= (+IDENTIFIER_ID) + Self -- 4
      and
-     Nonterminals.Get (parameter_profile_ID) <= +Self -- 5; empty
+     Nonterminal.Get (parameter_profile_ID) <= +Self -- 5; empty
      and
-     Nonterminals.Get (parameter_profile_ID) <= (+LEFT_PAREN_ID) & (+IDENTIFIER_ID) & (+LEFT_PAREN_ID) + Self -- 6
+     Nonterminal.Get (parameter_profile_ID) <= (+LEFT_PAREN_ID) & (+IDENTIFIER_ID) & (+LEFT_PAREN_ID) + Self -- 6
      ;
 
-   package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, ACCEPT_ID, EOF_ID, Tokens_Pkg, Nonterminals, Productions, Production_Lists,
-      Parsers, 1, LALRs, LALR_Generators, Grammar);
+   package FastToken_AUnit is new Gen_FastToken_AUnit
+     (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
-     LALR_Generators.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
+     LALR_Generator.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generators.LRk.Derivation_Matrix :=
-     LALR_Generators.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LRk.Derivation_Matrix :=
+     LALR_Generator.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
@@ -96,15 +97,15 @@ package body Test_Empty_Productions_5 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generators.LRk;
-      use OpenToken_AUnit;
+      use LALR_Generator.LRk;
+      use FastToken_AUnit;
 
       Kernel : constant Item_Set := Get_Item_Set
         (Prod => 3, -- in grammar
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generators.LRk.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generator.LRk.Lookahead_Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -135,12 +136,12 @@ package body Test_Empty_Productions_5 is
       Expected :=
         (Set       => Expected_Set,
          Goto_List => null,
-         State     => LALRs.Unknown_State,
+         State     => LALR.Unknown_State,
          Next      => null);
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generators.LRk.Put (Expected);
+         LALR_Generator.LRk.Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 

@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with OpenToken.Production.Parser.LALR.Elisp;
+with FastToken.Parser.LALR.Elisp;
 with Wisi.Gen_Generate_Utils;
 procedure Wisi.Output_Elisp
   (Input_File_Name   : in String;
@@ -34,7 +34,7 @@ procedure Wisi.Output_Elisp
 is
    EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF"; -- must match wisi-output_ada_emacs for tests.
 
-   OpenToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
+   FastToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
    function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -42,19 +42,19 @@ is
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, OpenToken_Accept_Name,
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name,
       First_State_Index,
       To_Token_Image => To_Token_Image);
 
-   package Parser_Elisp is new Generate_Utils.LALRs.Elisp (Generate_Utils.Token_Image);
+   package Parser_Elisp is new Generate_Utils.LALR.Elisp (Generate_Utils.Token_Image);
 
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
+   Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LALRs.Parse_Table_Ptr := Generate_Utils.LALR_Generators.Generate
+   Parser : constant Generate_Utils.LALR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
@@ -129,7 +129,7 @@ is
 begin
    if Verbosity > 0 then
       Put_Line ("Grammar:");
-      Generate_Utils.Put_Trace_Production_Lists.Put_Trace (Grammar);
+      Generate_Utils.Put_Trace_Production.Put_Trace (Grammar);
       New_Line;
    end if;
 

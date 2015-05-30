@@ -1,4 +1,4 @@
-;;; case_expression-wy.el --- Generated parser support file
+;;; case_expression-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 
@@ -19,7 +19,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst case_expression-wy--keyword-table
+(defconst case_expression-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("range" . RANGE)
@@ -28,7 +28,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst case_expression-wy--token-table
+(defconst case_expression-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("punctuation"
@@ -37,7 +37,7 @@
       (TICK . "'")
      )
      ("number"
-      (NUMBER_LITERAL . wisi-number-p)
+      (NUMBER_LITERAL wisi-number-p)
      )
      ("symbol"
       (IDENTIFIER)
@@ -46,7 +46,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst case_expression-wy--parse-table
+(defconst case_expression-elisp-parse-table
    (wisi-compile-grammar
    '((DOT_DOT EQUAL_GREATER TICK NUMBER_LITERAL IDENTIFIER RANGE WHEN )
      ((case_expression
@@ -69,9 +69,9 @@
        ((factor_list DOT_DOT factor_list ))))
      [((default . error) (WHEN .  1))
       ((default . error) (IDENTIFIER .  5) (NUMBER_LITERAL .  4))
-      ((default . error) ($EOI .  3))
-      ((default . error) ($EOI . accept) (IDENTIFIER . accept) (NUMBER_LITERAL . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept) (WHEN . accept) (RANGE . accept))
-      ((default . error) ($EOI . (factor . 1)) (DOT_DOT . (factor . 1)) (EQUAL_GREATER . (factor . 1)))
+      ((default . error) (EOF .  3))
+      ((default . error) (EOF . accept) (IDENTIFIER . accept) (NUMBER_LITERAL . accept) (TICK . accept) (EQUAL_GREATER . accept) (DOT_DOT . accept) (WHEN . accept) (RANGE . accept))
+      ((default . error) (EOF . (factor . 1)) (DOT_DOT . (factor . 1)) (EQUAL_GREATER . (factor . 1)))
       ((default . error) (TICK .  14) (DOT_DOT . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice . 0)))
       ((default . error) (EQUAL_GREATER . (choice_expression . 0)))
@@ -83,8 +83,8 @@
       ((default . error) (IDENTIFIER .  16) (NUMBER_LITERAL .  4))
       ((default . error) (RANGE .  15))
       ((default . error) (EQUAL_GREATER . (range_nt . 0)))
-      ((default . error) ($EOI . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
-      ((default . error) ($EOI . (case_expression . 0)))
+      ((default . error) (EOF . (factor . 0)) (EQUAL_GREATER . (factor . 0)))
+      ((default . error) (EOF . (case_expression . 0)))
       ((default . error) (EQUAL_GREATER . (range_nt . 1)))]
      [((case_expression . 2))
       ((choice_expression . 6)(choice_relation . 7)(discrete_choice . 8)(factor . 9)(factor_list . 10)(range_nt . 11))
@@ -107,6 +107,6 @@
       nil]))
   "Parser table.")
 
-(provide 'case_expression-wy)
+(provide 'case_expression-elisp)
 
 ;; end of file

@@ -1,4 +1,4 @@
-;;; identifier_list_name_conflict-wy.el --- Generated parser support file
+;;; identifier_list_name_conflict-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 
@@ -19,7 +19,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst identifier_list_name_conflict-wy--keyword-table
+(defconst identifier_list_name_conflict-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("(" . LEFT_PAREN)
@@ -28,7 +28,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst identifier_list_name_conflict-wy--token-table
+(defconst identifier_list_name_conflict-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("punctuation"
@@ -45,7 +45,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst identifier_list_name_conflict-wy--parse-table
+(defconst identifier_list_name_conflict-elisp-parse-table
    (wisi-compile-grammar
    '((COMMA EQUAL_GREATER STRING_LITERAL IDENTIFIER LEFT_PAREN RIGHT_PAREN )
      ((association
@@ -74,29 +74,29 @@
        ((STRING_LITERAL ))))
      [((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  3) (STRING_LITERAL .  2))
       ((default . error) (IDENTIFIER .  14) (STRING_LITERAL .  13))
-      ((default . error) (RIGHT_PAREN . (name . 1)) ($EOI . (name . 1)) (LEFT_PAREN . (name . 1)) (STRING_LITERAL . (name . 1)) (IDENTIFIER . (name . 1)) (COMMA . (name . 1)))
-      ((default . error) ($EOI . ((identifier_list . 0) (name . 0))) (IDENTIFIER . ((identifier_list . 0) (name . 0))) (STRING_LITERAL . ((identifier_list . 0) (name . 0))) (LEFT_PAREN . ((identifier_list . 0) (name . 0))) (COMMA . ((identifier_list . 0) (name . 0))))
-      ((default . error) ($EOI .  12))
+      ((default . error) (RIGHT_PAREN . (name . 1)) (EOF . (name . 1)) (LEFT_PAREN . (name . 1)) (STRING_LITERAL . (name . 1)) (IDENTIFIER . (name . 1)) (COMMA . (name . 1)))
+      ((default . error) (EOF . ((identifier_list . 0) (name . 0))) (IDENTIFIER . ((identifier_list . 0) (name . 0))) (STRING_LITERAL . ((identifier_list . 0) (name . 0))) (LEFT_PAREN . ((identifier_list . 0) (name . 0))) (COMMA . ((identifier_list . 0) (name . 0))))
+      ((default . error) (EOF .  12))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  3) (STRING_LITERAL .  2))
-      ((default . error) (COMMA .  10) ($EOI . (compilation_unit . 0)) (LEFT_PAREN . (compilation_unit . 0)) (STRING_LITERAL . (compilation_unit . 0)) (IDENTIFIER . (compilation_unit . 0)))
-      ((default . error) ($EOI . (name_list . 0)) (IDENTIFIER . (name_list . 0)) (STRING_LITERAL . (name_list . 0)) (LEFT_PAREN . (name_list . 0)) (COMMA . (name_list . 0)))
-      ((default . error) (COMMA .  9) ($EOI . (compilation_unit . 1)) (LEFT_PAREN . (compilation_unit . 1)) (STRING_LITERAL . (compilation_unit . 1)) (IDENTIFIER . (compilation_unit . 1)))
+      ((default . error) (COMMA .  10) (EOF . (compilation_unit . 0)) (LEFT_PAREN . (compilation_unit . 0)) (STRING_LITERAL . (compilation_unit . 0)) (IDENTIFIER . (compilation_unit . 0)))
+      ((default . error) (EOF . (name_list . 0)) (IDENTIFIER . (name_list . 0)) (STRING_LITERAL . (name_list . 0)) (LEFT_PAREN . (name_list . 0)) (COMMA . (name_list . 0)))
+      ((default . error) (COMMA .  9) (EOF . (compilation_unit . 1)) (LEFT_PAREN . (compilation_unit . 1)) (STRING_LITERAL . (compilation_unit . 1)) (IDENTIFIER . (compilation_unit . 1)))
       ((default . error) (IDENTIFIER .  23) (STRING_LITERAL .  2))
       ((default . error) (IDENTIFIER .  22))
       ((default . error) (LEFT_PAREN .  1) (IDENTIFIER .  3) (STRING_LITERAL .  2))
-      ((default . error) ($EOI . accept) (IDENTIFIER . accept) (STRING_LITERAL . accept) (EQUAL_GREATER . accept) (COMMA . accept) (RIGHT_PAREN . accept) (LEFT_PAREN . accept))
+      ((default . error) (EOF . accept) (IDENTIFIER . accept) (STRING_LITERAL . accept) (EQUAL_GREATER . accept) (COMMA . accept) (RIGHT_PAREN . accept) (LEFT_PAREN . accept))
       ((default . error) (EQUAL_GREATER . (selector_name . 1)))
       ((default . error) (EQUAL_GREATER . (selector_name . 0)))
       ((default . error) (RIGHT_PAREN . (association_list . 0)) (COMMA . (association_list . 0)))
       ((default . error) (COMMA .  20) (RIGHT_PAREN .  19))
       ((default . error) (EQUAL_GREATER .  18))
       ((default . error) (IDENTIFIER .  23) (STRING_LITERAL .  2))
-      ((default . error) ($EOI . (compilation_unit . 2)) (LEFT_PAREN . (compilation_unit . 2)) (STRING_LITERAL . (compilation_unit . 2)) (IDENTIFIER . (compilation_unit . 2)))
+      ((default . error) (EOF . (compilation_unit . 2)) (LEFT_PAREN . (compilation_unit . 2)) (STRING_LITERAL . (compilation_unit . 2)) (IDENTIFIER . (compilation_unit . 2)))
       ((default . error) (IDENTIFIER .  14) (STRING_LITERAL .  13))
-      ((default . error) ($EOI . (compilation . 0)))
-      ((default . error) ($EOI . (identifier_list . 1)) (IDENTIFIER . (identifier_list . 1)) (STRING_LITERAL . (identifier_list . 1)) (LEFT_PAREN . (identifier_list . 1)) (COMMA . (identifier_list . 1)))
-      ((default . error) ($EOI . (name . 0)) (RIGHT_PAREN . (name . 0)) (IDENTIFIER . (name . 0)) (STRING_LITERAL . (name . 0)) (LEFT_PAREN . (name . 0)) (COMMA . (name . 0)))
-      ((default . error) ($EOI . (name_list . 1)) (IDENTIFIER . (name_list . 1)) (STRING_LITERAL . (name_list . 1)) (LEFT_PAREN . (name_list . 1)) (COMMA . (name_list . 1)))
+      ((default . error) (EOF . (compilation . 0)))
+      ((default . error) (EOF . (identifier_list . 1)) (IDENTIFIER . (identifier_list . 1)) (STRING_LITERAL . (identifier_list . 1)) (LEFT_PAREN . (identifier_list . 1)) (COMMA . (identifier_list . 1)))
+      ((default . error) (EOF . (name . 0)) (RIGHT_PAREN . (name . 0)) (IDENTIFIER . (name . 0)) (STRING_LITERAL . (name . 0)) (LEFT_PAREN . (name . 0)) (COMMA . (name . 0)))
+      ((default . error) (EOF . (name_list . 1)) (IDENTIFIER . (name_list . 1)) (STRING_LITERAL . (name_list . 1)) (LEFT_PAREN . (name_list . 1)) (COMMA . (name_list . 1)))
       ((default . error) (RIGHT_PAREN . (association_list . 1)) (COMMA . (association_list . 1)))
       ((default . error) (COMMA . (association . 0)) (RIGHT_PAREN . (association . 0)))]
      [((compilation . 4)(compilation_unit . 5)(identifier_list . 6)(name . 7)(name_list . 8))
@@ -128,6 +128,6 @@
       nil]))
   "Parser table.")
 
-(provide 'identifier_list_name_conflict-wy)
+(provide 'identifier_list_name_conflict-elisp)
 
 ;; end of file

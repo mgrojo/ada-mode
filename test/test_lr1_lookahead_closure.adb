@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,17 +18,18 @@
 
 pragma License (GPL);
 
-with Gen_OpenToken_AUnit;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Nonterminal;
+with FastToken.Lexer;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Production;
+with FastToken.Token.Nonterminal;
+with Gen_FastToken_AUnit;
 package body Test_LR1_Lookahead_Closure is
 
    --  A grammar for a greatly simplified form of the Ada 2012 case
    --  expression; this exposed a bug in Lookahead_Closure. Captured
    --  from one version of ../wisi/test/case_expression.wy.
 
-   type Token_IDs is
+   type Token_ID is
      (
       --  non-reporting
       Whitespace_ID,
@@ -52,50 +53,51 @@ package body Test_LR1_Lookahead_Closure is
       factor_ID,
       factor_list_ID,
       range_nt_ID);
-   package Tokens_Pkg is new OpenToken.Token (Token_IDs, RANGE_ID, EOF_ID, Token_IDs'Image);
-   package Nonterminals is new Tokens_Pkg.Nonterminal;
-   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
-   package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser;
-   package LALRs is new Parsers.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
+
+   package Token_Pkg is new FastToken.Token (Token_ID, RANGE_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
-   use type Tokens_Pkg.List.Instance;
-   use type Productions.Right_Hand_Side;
-   use type Productions.Instance;
-   use type Production_Lists.Instance;
+   use type Token_Pkg.List.Instance;
+   use type Production.Right_Hand_Side;
+   use type Production.Instance;
+   use type Production.List.Instance;
 
-   function "+" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
-   Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
-   Grammar : constant Production_Lists.Instance :=
+   Grammar : constant Production.List.Instance :=
      --  1
-     Nonterminals.Get (opentoken_accept_ID) <= Nonterminals.Get (case_expression_ID) & (+EOF_ID)
+     Nonterminal.Get (opentoken_accept_ID) <= Nonterminal.Get (case_expression_ID) & (+EOF_ID) + Self
      and -- 2
-     Nonterminals.Get (case_expression_ID) <= (+WHEN_ID) & (+discrete_choice_ID) & (+EQUAL_GREATER_ID) + Self
+     Nonterminal.Get (case_expression_ID) <= (+WHEN_ID) & (+discrete_choice_ID) & (+EQUAL_GREATER_ID) + Self
      and -- 3
-     Nonterminals.Get (choice_expression_ID) <= (+choice_relation_ID) + Self
+     Nonterminal.Get (choice_expression_ID) <= (+choice_relation_ID) + Self
      and -- 4
-     Nonterminals.Get (choice_relation_ID) <= (+factor_list_ID) + Self
+     Nonterminal.Get (choice_relation_ID) <= (+factor_list_ID) + Self
      and -- 5
-     Nonterminals.Get (discrete_choice_ID) <= (+choice_expression_ID) + Self
+     Nonterminal.Get (discrete_choice_ID) <= (+choice_expression_ID) + Self
      and -- 6
-     Nonterminals.Get (discrete_choice_ID) <= (+range_nt_ID) + Self
+     Nonterminal.Get (discrete_choice_ID) <= (+range_nt_ID) + Self
      and -- 7
-     Nonterminals.Get (factor_ID) <= (+IDENTIFIER_ID) + Self
+     Nonterminal.Get (factor_ID) <= (+IDENTIFIER_ID) + Self
      and -- 8
-     Nonterminals.Get (factor_list_ID) <= (+factor_ID) + Self
+     Nonterminal.Get (factor_list_ID) <= (+factor_ID) + Self
      and -- 9
-     Nonterminals.Get (range_nt_ID) <= (+IDENTIFIER_ID) & (+TICK_ID) & (+RANGE_ID) + Self
+     Nonterminal.Get (range_nt_ID) <= (+IDENTIFIER_ID) & (+TICK_ID) & (+RANGE_ID) + Self
      and -- 10
-     Nonterminals.Get (range_nt_ID) <= (+factor_list_ID) & (+DOT_DOT_ID) & (+factor_list_ID) + Self
+     Nonterminal.Get (range_nt_ID) <= (+factor_list_ID) & (+DOT_DOT_ID) & (+factor_list_ID) + Self
      ;
 
-   package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, RANGE_ID, EOF_ID, Tokens_Pkg, Nonterminals, Productions, Production_Lists,
-      Parsers, 1, LALRs, LALR_Generators, Grammar);
+   package FastToken_AUnit is new Gen_FastToken_AUnit
+     (Token_ID, RANGE_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
 
    ----------
    --  Test procedures
@@ -104,10 +106,10 @@ package body Test_LR1_Lookahead_Closure is
    is
       Test : Test_Case renames Test_Case (T);
 
-      use LALR_Generators.LRk;
-      use OpenToken_AUnit;
+      use LALR_Generator.LRk;
+      use FastToken_AUnit;
 
-      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generators.LRk.Has_Empty_Production (Grammar);
+      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LRk.Has_Empty_Production (Grammar);
 
       First : constant Derivation_Matrix := First_Derivations
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
@@ -127,7 +129,7 @@ package body Test_LR1_Lookahead_Closure is
       Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
-         State         => LALRs.Unknown_State,
+         State         => LALR.Unknown_State,
          Next          => null);
 
       Expected : Item_Set;

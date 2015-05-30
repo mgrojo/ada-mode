@@ -238,8 +238,8 @@ package body FastToken.Lexer.Regexp is
    is
       pragma Unreferenced (Lexer);
    begin
-      --  Not needed for unit tests
-      return 0;
+      --  Match current unit tests
+      return 1;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Natural

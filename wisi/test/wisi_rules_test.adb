@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2014 Stephen Leake
+--  Copyright (C) 2013-2015 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -21,7 +21,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks;
 with Ada.Containers;
 with Ada.Directories;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -43,7 +43,7 @@ package body Wisi_Rules_Test is
       end if;
    end Delete;
 
-   procedure Check is new AUnit.Check.Gen_Check_Discrete (Ada.Containers.Count_Type);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
 
    procedure Check
      (Label    : in String;
@@ -51,7 +51,7 @@ package body Wisi_Rules_Test is
       Expected : in Wisi.String_Lists.List)
    is
       use Wisi.String_Lists;
-      use AUnit.Check;
+      use AUnit.Checks;
       Computed_I : Cursor := Computed.First;
       Expected_I : Cursor := Expected.First;
    begin
@@ -105,7 +105,7 @@ package body Wisi_Rules_Test is
       Computed : in Wisi.Rule_Lists.List;
       Expected : in Wisi.Rule_Lists.List)
    is
-      use AUnit.Check;
+      use AUnit.Checks;
       use Wisi;
       use Wisi.Rule_Lists;
       Computed_I : Cursor := Computed.First;
@@ -263,7 +263,7 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      use AUnit.Check;
+      use AUnit.Checks;
       Computed   : Wisi.Rule_Lists.List;
       Rule_Count : Integer;
       pragma Unreferenced (Rule_Count);
@@ -289,7 +289,8 @@ package body Wisi_Rules_Test is
          AUnit.Assertions.Assert (False, "1 did not get exception");
       exception
       when Syntax_Error =>
-         --  Error message in standard_output; checked in diff
+         --  Error message "wisi_rules_test.wy:8:0: token number 4  out of range 1 .. 3"
+         --  in standard_output; checked in diff
          null;
       end;
       Close (File);

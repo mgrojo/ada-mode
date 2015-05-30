@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test OpenToken.Production.Parser.LRK_Item.Lookahead_Closure
+--  Test FastToken.Production.Parser.LRK_Item.Lookahead_Closure
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

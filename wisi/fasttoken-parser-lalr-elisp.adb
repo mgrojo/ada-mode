@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
-package body OpenToken.Production.Parser.LALR.Elisp is
+package body FastToken.Parser.LALR.Elisp is
 
    procedure Action_Table (Table : in Parse_Table)
    is begin
@@ -260,4 +260,4 @@ package body OpenToken.Production.Parser.LALR.Elisp is
       Put_Line ("  ""Parser table."")");
    end Output;
 
-end OpenToken.Production.Parser.LALR.Elisp;
+end FastToken.Parser.LALR.Elisp;

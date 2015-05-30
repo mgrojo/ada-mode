@@ -23,7 +23,7 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-package body OpenToken.Production.Put_Trace is
+package body FastToken.Production.Put_Trace is
 
    procedure Put_Trace (Item : in Instance)
    is begin
@@ -41,4 +41,19 @@ package body OpenToken.Production.Put_Trace is
       Put_Trace_Action (Item.Action);
    end Put_Trace;
 
-end OpenToken.Production.Put_Trace;
+   procedure Put_Trace (Item : in List.Instance)
+   is
+      use List;
+      I : List_Iterator := First (Item);
+   begin
+      Put_Trace ("(");
+      loop
+         exit when Is_Done (I);
+         Put_Trace (Current (I));
+         Put_Trace_Line (",");
+         Next (I);
+      end loop;
+      Put_Trace (")");
+   end Put_Trace;
+
+end FastToken.Production.Put_Trace;

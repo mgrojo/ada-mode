@@ -49,7 +49,6 @@ package body Name_Grammar_Test is
       Statement_ID,
       Symbol_Name_ID);
 
-   Token_Image_Width : constant Integer := Token_ID'Width;
    package Token_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
@@ -60,7 +59,7 @@ package body Name_Grammar_Test is
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
    package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LALR.Generator (Token_Image_Width, Production);
+   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
    package Tokens is
       --  For use in right hand sides, syntax.
@@ -135,7 +134,7 @@ package body Name_Grammar_Test is
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
-      FastToken.Text_Feeder.String.Set (String_Feeder, Command);
+      String_Feeder.Set (Command);
 
       Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 

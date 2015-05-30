@@ -32,13 +32,13 @@ BRANCH := $(notdir $(shell cd ..; pwd))
 bz2file : force
 	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
 	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > opentoken-$(ZIP_VERSION).tar.bz2
+	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > fasttoken-$(ZIP_VERSION).tar.bz2
 
 zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/opentoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
+	cd ../..; zip -q -r $(CURDIR)/fasttoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
 tag :
-	mtn tag h:org.opentoken opentoken-$(ZIP_VERSION)
+	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
 
 # end of file

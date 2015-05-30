@@ -6,11 +6,9 @@ build/release_process.text
 
 move org.stephe_leake.aunit_ext to ada-france
 
-run all tests with fasttoken name
-    also clean up package hierarchy
-    delete opentoken recognizer; use regexp
-        Test/Association_Grammar_Test passes
-        Test/Name_Grammar_Test passes
+run all tests with fasttoken
+    build/debug/Makefile
+        t_all done
 
     prune irrelevant tests
 

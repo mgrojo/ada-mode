@@ -1,4 +1,4 @@
-;;; subprograms-wy.el --- Generated parser support file
+;;; subprograms-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
 
 ;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
 
@@ -19,7 +19,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst subprograms-wy--keyword-table
+(defconst subprograms-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("function" . FUNCTION)
@@ -30,7 +30,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst subprograms-wy--token-table
+(defconst subprograms-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("symbol"
@@ -46,7 +46,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst subprograms-wy--parse-table
+(defconst subprograms-elisp-parse-table
    (wisi-compile-grammar
    '((SYMBOL TICK STRING_LITERAL FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN )
      ((compilation_unit
@@ -71,18 +71,18 @@
      [((default . error) (FUNCTION .  1) (PROCEDURE .  2))
       ((default . error) (SYMBOL . (parameter_list . 1)) (LEFT_PAREN .  9) (TICK .  10))
       ((default . error) (SYMBOL . (parameter_list . 1)) (LEFT_PAREN .  9) (TICK .  10))
-      ((default . error) ($EOI .  8))
-      ((default . error) ($EOI . (compilation_unit . 0)) (FUNCTION .  1) (PROCEDURE .  2))
-      ((default . error) ($EOI . (declarations . 0)) (FUNCTION . (declarations . 0)) (PROCEDURE . (declarations . 0)))
-      ((default . error) (PROCEDURE . (declaration . 0)) (FUNCTION . (declaration . 0)) ($EOI . (declaration . 0)))
-      ((default . error) (PROCEDURE . (declarations . 1)) (FUNCTION . (declarations . 1)) ($EOI . (declarations . 1)))
-      ((default . error) ($EOI . accept) (STRING_LITERAL . accept) (TICK . accept) (SYMBOL . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (LEFT_PAREN . accept) (FUNCTION . accept))
+      ((default . error) (EOF .  8))
+      ((default . error) (EOF . (compilation_unit . 0)) (FUNCTION .  1) (PROCEDURE .  2))
+      ((default . error) (EOF . (declarations . 0)) (FUNCTION . (declarations . 0)) (PROCEDURE . (declarations . 0)))
+      ((default . error) (PROCEDURE . (declaration . 0)) (FUNCTION . (declaration . 0)) (EOF . (declaration . 0)))
+      ((default . error) (PROCEDURE . (declarations . 1)) (FUNCTION . (declarations . 1)) (EOF . (declarations . 1)))
+      ((default . error) (EOF . accept) (STRING_LITERAL . accept) (TICK . accept) (SYMBOL . accept) (RIGHT_PAREN . accept) (PROCEDURE . accept) (LEFT_PAREN . accept) (FUNCTION . accept))
       ((default . error) (SYMBOL .  17) (RIGHT_PAREN .  16))
       ((default . error) (STRING_LITERAL .  15))
       ((default . error) (SYMBOL .  14))
       ((default . error) (SYMBOL .  13))
-      ((default . error) ($EOI . (subprogram . 0)) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)))
-      ((default . error) ($EOI . (subprogram . 1)) (FUNCTION . (subprogram . 1)) (PROCEDURE . (subprogram . 1)))
+      ((default . error) (EOF . (subprogram . 0)) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)))
+      ((default . error) (EOF . (subprogram . 1)) (FUNCTION . (subprogram . 1)) (PROCEDURE . (subprogram . 1)))
       ((default . error) (SYMBOL . (parameter_list . 3)))
       ((default . error) (SYMBOL . (parameter_list . 0)))
       ((default . error) (RIGHT_PAREN .  18))
@@ -108,6 +108,6 @@
       nil]))
   "Parser table.")
 
-(provide 'subprograms-wy)
+(provide 'subprograms-elisp)
 
 ;; end of file

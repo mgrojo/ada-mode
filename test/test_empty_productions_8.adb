@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,17 +19,18 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-with Gen_OpenToken_AUnit;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Token.Nonterminal;
+with Gen_FastToken_AUnit;
+with FastToken.Lexer;
+with FastToken.Production;
+with FastToken.Parser.LALR.Generator;
+with FastToken.Token.Nonterminal;
 package body Test_Empty_Productions_8 is
 
    --  A grammar with two consecutive possibly empty productions,
    --  confused with a similar production (from Emacs Ada mode
    --  test/wisi/empty_production_8.wy)
 
-   type Token_IDs is
+   type Token_ID is
      (
       --  non-reporting
       Whitespace_ID,
@@ -52,55 +53,55 @@ package body Test_Empty_Productions_8 is
 
    First_State_Index : constant Integer := 0;
 
-   package Tokens_Pkg is new OpenToken.Token (Token_IDs, COLON_EQUAL_ID, EOF_ID, Token_IDs'Image);
-   package Nonterminals is new Tokens_Pkg.Nonterminal;
-   package Productions is new OpenToken.Production (Tokens_Pkg, Nonterminals);
-   package Production_Lists is new Productions.List;
-   package Parsers is new Productions.Parser;
-   package LALRs is new Parsers.LALR (First_State_Index);
-   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);
+   package Token_Pkg is new FastToken.Token (Token_ID, COLON_EQUAL_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal => Nonterminal);
+   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
-   use type Tokens_Pkg.List.Instance;
-   use type Productions.Right_Hand_Side;
-   use type Productions.Instance;
-   use type Production_Lists.Instance;
+   use type Token_Pkg.List.Instance;
+   use type Production.Right_Hand_Side;
+   use type Production.Instance;
+   use type Production.List.Instance;
 
-   function "+" (Item : in Token_IDs) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
-   Self : Nonterminals.Synthesize renames Nonterminals.Synthesize_Self;
+   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
-   Grammar : constant Production_Lists.Instance :=
-     Nonterminals.Get (opentoken_accept_ID) <= (+object_declaration_list_ID) & (+EOF_ID) -- 1
+   Grammar : constant Production.List.Instance :=
+     Nonterminal.Get (opentoken_accept_ID) <= (+object_declaration_list_ID) & (+EOF_ID) + Self -- 1
      and
-     Nonterminals.Get (object_declaration_list_ID) <= (+object_declaration_ID) + Self -- 2
+     Nonterminal.Get (object_declaration_list_ID) <= (+object_declaration_ID) + Self -- 2
      and
-     Nonterminals.Get (object_declaration_list_ID) <= (+object_declaration_list_ID) & (+object_declaration_ID) +
+     Nonterminal.Get (object_declaration_list_ID) <= (+object_declaration_list_ID) & (+object_declaration_ID) +
      Self -- 3
      and
-     Nonterminals.Get (object_declaration_ID) <= (+IDENTIFIER_ID) & (+aliased_opt_ID) & (+constant_opt_ID) &
+     Nonterminal.Get (object_declaration_ID) <= (+IDENTIFIER_ID) & (+aliased_opt_ID) & (+constant_opt_ID) &
      (+SEMICOLON_ID) + Self -- 4
      and
-     Nonterminals.Get (object_declaration_ID) <= (+IDENTIFIER_ID) & (+constant_opt_ID) & (+COLON_EQUAL_ID) &
+     Nonterminal.Get (object_declaration_ID) <= (+IDENTIFIER_ID) & (+constant_opt_ID) & (+COLON_EQUAL_ID) &
      (+SEMICOLON_ID) + Self -- 5
      and
-     Nonterminals.Get (aliased_opt_ID) <= +Self -- 6
+     Nonterminal.Get (aliased_opt_ID) <= +Self -- 6
      and
-     Nonterminals.Get (aliased_opt_ID) <= (+ALIASED_ID) + Self -- 7
+     Nonterminal.Get (aliased_opt_ID) <= (+ALIASED_ID) + Self -- 7
      and
-     Nonterminals.Get (constant_opt_ID) <= +Self -- 8
+     Nonterminal.Get (constant_opt_ID) <= +Self -- 8
      and
-     Nonterminals.Get (constant_opt_ID) <= (+CONSTANT_ID) + Self -- 9
+     Nonterminal.Get (constant_opt_ID) <= (+CONSTANT_ID) + Self -- 9
      ;
 
-   package OpenToken_AUnit is new Gen_OpenToken_AUnit
-     (Token_IDs, COLON_EQUAL_ID, EOF_ID, Tokens_Pkg, Nonterminals, Productions, Production_Lists,
-      Parsers, First_State_Index, LALRs, LALR_Generators, Grammar);
+   package FastToken_AUnit is new Gen_FastToken_AUnit
+     (Token_ID, COLON_EQUAL_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, First_State_Index, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generators.LRk.Nonterminal_ID_Set :=
-     LALR_Generators.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
+     LALR_Generator.LRk.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generators.LRk.Derivation_Matrix := LALR_Generators.LRk.First_Derivations
+   First : constant LALR_Generator.LRk.Derivation_Matrix := LALR_Generator.LRk.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
@@ -109,17 +110,17 @@ package body Test_Empty_Productions_8 is
    procedure Kernels_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generators.LRk;
+      use LALR_Generator.LRk;
 
       Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => LALRs.Unknown_State_Index (First_State_Index));
+        (Grammar, First, Trace => Test.Debug, First_State_Index => LALR.Unknown_State_Index (First_State_Index));
 
       procedure Check_Kernel
-        (State : in LALRs.State_Index;
+        (State : in LALR.State_Index;
          Prod  : in Integer;
          Dot   : in Integer)
       is
-         use OpenToken_AUnit;
+         use FastToken_AUnit;
          Computed : constant Item_Set_Ptr := Find (State, Kernels);
 
          Expected : constant Item_Set_Ptr := new Item_Set'
@@ -142,7 +143,7 @@ package body Test_Empty_Productions_8 is
             Put (Expected.all);
          end if;
 
-         Check (LALRs.State_Index'Image (State), Computed.all, Expected.all);
+         Check (LALR.State_Index'Image (State), Computed.all, Expected.all);
 
       end Check_Kernel;
 

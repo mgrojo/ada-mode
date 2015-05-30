@@ -46,10 +46,10 @@ is
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
+   Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LALRs.Parse_Table_Ptr := Generate_Utils.LALR_Generators.Generate
+   Parser : constant Generate_Utils.LALR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
@@ -66,13 +66,13 @@ begin
          use Generate_Utils;
       begin
          Put_Line ("Tokens:");
-         for I in Token_IDs'Range loop
-            Put_Line (Token_IDs'Image (I) & " => " & Token_Image (I));
+         for I in Token_ID'Range loop
+            Put_Line (Token_ID'Image (I) & " => " & Token_Image (I));
          end loop;
          New_Line;
 
          Put_Line ("Grammar:");
-         Put_Trace_Production_Lists.Put_Trace (Grammar);
+         Put_Trace_Production.Put_Trace (Grammar);
          New_Line;
       end;
    end if;

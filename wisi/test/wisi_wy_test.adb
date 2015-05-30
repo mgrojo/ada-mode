@@ -22,7 +22,7 @@ pragma License (GPL);
 
 with Ada.Directories;
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks.Text_IO;
 with GNAT.OS_Lib;
 package body Wisi_Wy_Test is
 
@@ -37,8 +37,8 @@ package body Wisi_Wy_Test is
       Success : Boolean;
 
       Wy_File          : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_El_File : constant String        := Ada.Directories.Simple_Name (Test.Root_Name.all) & "-wy.el";
-      Expected_El_File : constant String        := Test.Root_Name.all & "-wy.good_el";
+      Computed_El_File : constant String        := Ada.Directories.Simple_Name (Test.Root_Name.all) & "-elisp.el";
+      Expected_El_File : constant String        := Test.Root_Name.all & "-elisp.good_el";
    begin
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
@@ -51,7 +51,7 @@ package body Wisi_Wy_Test is
         (Success,
          "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
 
-      AUnit.Check.Check_Files ("1", Computed_El_File, Expected_El_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_El_File, Expected_El_File);
    end Run_Test;
 
    ----------

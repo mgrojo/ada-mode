@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test OpenToken.Token.Enumerated.Identifier, .Real_Literal, .String_Literal
+--  Elisp output for Wisi
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -13,18 +13,21 @@
 --  PURPOSE. See the GNU General Public License for more details. You
 --  should have received a copy of the GNU General Public License
 --  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
---  MA 02111-1307, USA.
+--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
+--  MA 02110-1335, USA.
 
-with AUnit.Test_Cases;
-package Test_Token_Identifier_Real_String is
+pragma License (GPL);
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+with Wisi;
+generic
+   with function Token_Image (ID : in Token.Token_ID) return String;
+package FastToken.Parser.LALR.Elisp is
 
-   type Test_Case_Access is access all Test_Case;
+   procedure Output
+     (Elisp_Package : in String;
+      Tokens        : in Wisi.Token_Lists.List;
+      Keywords      : in Wisi.String_Pair_Lists.List;
+      Rules         : in Wisi.Rule_Lists.List;
+      Parser        : in Parse_Table_Ptr);
 
-   overriding procedure Register_Tests (T : in out Test_Case);
-
-   overriding function Name (T : Test_Case) return AUnit.Message_String;
-
-end Test_Token_Identifier_Real_String;
+end FastToken.Parser.LALR.Elisp;

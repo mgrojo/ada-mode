@@ -41,10 +41,10 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end Count_Non_Reporting;
 
-   function Find_Token_ID (Token : in String) return Token_IDs
+   function Find_Token_ID (Token : in String) return Token_ID
    is
       use type Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Result : Token_IDs := Token_IDs'First;
+      Result : Token_ID := Token_ID'First;
    begin
       --  Same order as set_token_images below.
       for Kind of Tokens loop
@@ -90,8 +90,8 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = OpenToken_Accept_Name or
-        Token = "opentoken_accept"
+      if Token = FastToken_Accept_Name or
+        Token = "fasttoken_accept"
       then
          return Result;
       end if;
@@ -101,7 +101,7 @@ package body Wisi.Gen_Generate_Utils is
 
    function Set_Token_Images return ID_Array_Access_String_Type
    is
-      ID           : Token_IDs := Token_IDs'First;
+      ID           : Token_ID := Token_ID'First;
       Token_Images : ID_Array_Access_String_Type;
    begin
       --  same order as output_ada
@@ -142,7 +142,7 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(To_Token_Image (OpenToken_Accept_Name));
+      Token_Images (ID) := new String'(To_Token_Image (FastToken_Accept_Name));
 
       for Token of Token_Images loop
          if Token.all'Length > Token_Image_Width then
@@ -309,14 +309,14 @@ package body Wisi.Gen_Generate_Utils is
             Cursor.State := Done;
          else
             Cursor :=
-              (State       => OpenToken_Accept,
+              (State       => FastToken_Accept,
                Token_Kind  => Wisi.Token_Lists.No_Element,
                Token_Item  => String_Pair_Lists.No_Element,
                Keyword     => String_Pair_Lists.No_Element,
                Nonterminal => Rule_Lists.No_Element);
          end if;
 
-      when OpenToken_Accept =>
+      when FastToken_Accept =>
          Cursor :=
            (State       => Nonterminal,
             Token_Kind  => Wisi.Token_Lists.No_Element,
@@ -369,8 +369,8 @@ package body Wisi.Gen_Generate_Utils is
       when EOI =>
          return EOI_Name;
 
-      when OpenToken_Accept =>
-         return OpenToken_Accept_Name;
+      when FastToken_Accept =>
+         return FastToken_Accept_Name;
 
       when Nonterminal =>
          declare
@@ -390,8 +390,8 @@ package body Wisi.Gen_Generate_Utils is
       use Standard.Ada.Text_IO;
    begin
       Put_Line ("Tokens:");
-      for I in Token_IDs'Range loop
-         Put_Line (Token_IDs'Image (I) & " => " & Token_Image (I));
+      for I in Token_ID'Range loop
+         Put_Line (Token_ID'Image (I) & " => " & Token_Image (I));
       end loop;
       New_Line;
    end Put_Tokens;
@@ -399,26 +399,26 @@ package body Wisi.Gen_Generate_Utils is
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALRs.Conflict_Lists.List
+     return LALR.Conflict_Lists.List
    is
-      use type LALRs.Unknown_State_Index;
-      use type LALRs.Parse_Action_Verbs;
-      Result   : LALRs.Conflict_Lists.List;
-      Conflict : LALRs.Conflict;
+      use type LALR.Unknown_State_Index;
+      use type LALR.Parse_Action_Verbs;
+      Result   : LALR.Conflict_Lists.List;
+      Conflict : LALR.Conflict;
    begin
       Shift_Reduce_Conflict_Count  := 0;
       Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
          Conflict :=
-           (LALRs.Conflict_Parse_Actions'Value (-Item.Action_A),
+           (LALR.Conflict_Parse_Actions'Value (-Item.Action_A),
             Find_Token_ID (-Item.LHS_A),
-            LALRs.Conflict_Parse_Actions'Value (-Item.Action_B),
+            LALR.Conflict_Parse_Actions'Value (-Item.Action_B),
             Find_Token_ID (-Item.LHS_B),
             -1,
             Find_Token_ID (-Item.On));
 
-         if Conflict.Action_A = LALRs.Shift then
+         if Conflict.Action_A = LALR.Shift then
             Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
          else
             Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
@@ -429,27 +429,28 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    exception
    when E : Not_Found =>
-      raise OpenToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
+      raise FastToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Tokens_Pkg.List.Instance; Token : in String) return Tokens_Pkg.List.Instance
+   function "&" (Tokens : in Token_Pkg.List.Instance; Token : in String) return Token_Pkg.List.Instance
    is
-      use Tokens_Pkg.List;
+      use Token_Pkg.List;
    begin
-      return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
+      return Tokens & Token_Pkg.Get (Find_Token_ID (Token));
    end "&";
 
-   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance
+   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance
    is
-      use Productions;
-      use Tokens_Pkg.List;
+      use Production;
+      use Token_Pkg.List;
 
-      Grammar : Production_Lists.Instance;
+      Self : Nonterminal_Pkg.Synthesize renames Nonterminal_Pkg.Synthesize_Self;
+      Grammar : Production.List.Instance;
    begin
       begin
-         Grammar := Production_Lists.Only
-           (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (Find_Token_ID (Start_Token)) &
-              Tokens_Pkg.Get (EOI_ID));
+         Grammar := Production.List.Only
+           (Nonterminal_Pkg.Get (Accept_ID) <= Nonterminal_Pkg.Get (Find_Token_ID (Start_Token)) &
+              Token_Pkg.Get (EOI_ID) + Self);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -463,14 +464,14 @@ package body Wisi.Gen_Generate_Utils is
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  use Production_Lists;
+                  use Production.List;
 
-                  Tokens : Tokens_Pkg.List.Instance;
+                  Tokens : Token_Pkg.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
                   end loop;
-                  Grammar := Grammar and Nonterminals.Get (Find_Token_ID (-Rule.Left_Hand_Side)) <= Tokens + Index;
+                  Grammar := Grammar and Nonterminal_Pkg.Get (Find_Token_ID (-Rule.Left_Hand_Side)) <= Tokens + Index;
                exception
                when E : Not_Found =>
                   Wisi.Utils.Put_Error

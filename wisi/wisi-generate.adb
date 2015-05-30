@@ -1,7 +1,7 @@
 --  Abstract :
 --
---  Non-OpenToken parser for Wisent grammar files, producing Ada or
---  Elisp source files.
+--  Parser for Wisent grammar files, producing Ada or Elisp source
+--  files for a parser.
 --
 --  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
@@ -24,7 +24,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with OpenToken;
+with FastToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
@@ -43,7 +43,7 @@ is
       Put_Line ("wisi-generate [options] {wisent grammar file} {output language} [{lexer} {interface}]");
       Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
-      Put_Line ("'lexer' is one of Aflex_Lexer, OpenToken_Lexer, Elisp_Lexer");
+      Put_Line ("'lexer' is one of Aflex_Lexer, FastToken_Lexer, Elisp_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
       Put_Line ("'interface' is one of Process, Module");
       Put_Line ("only Ada_Emacs takes lexer and interface arguments");
@@ -184,7 +184,7 @@ when E : User_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Put_Usage;
 
-when E : OpenToken.Grammar_Error =>
+when E : FastToken.Grammar_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
 
