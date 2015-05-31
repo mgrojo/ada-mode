@@ -40,6 +40,24 @@ o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 
+ada-mode.texi
+    add "upgrading from 4.0" section
+        obj_dir is now ignored
+        therefore gnatfind requires gpr_file
+
+add gnat_find_opts or obj_dir?
+    see email from Ludovic Brenta
+
+$ADA_...= in .prj:
+    += for list
+    Needs $CUR_DIR (or PRJ_DIR?)
+
+get casing from gpr file
+
+Gpr_query
+    check gnatcoll version for agg support
+    grok --RTS
+
 completion
     (info "(elisp)Completion")
     examples:
@@ -577,8 +595,9 @@ bump versions
                 add release date
                 add new features
                 add timing
-                /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-                (time-it 'wisi-parse-buffer 5)
+                    turn off crashplan, windows update
+                    /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+                    (time-it 'wisi-parse-buffer 5)
 
             ada-mode.el
                 Version:
@@ -629,6 +648,8 @@ Emacs master, gnat 2014:
 
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
+
+Emacs 24.5
 
 Emacs 24.4, gnat 2014, devel ada-mode:
     build/Makefile all

@@ -762,8 +762,10 @@ delete from `wisi-end-caches'."
       )))
 
 (defvar wisi-tokens nil)
-;; keep byte-compiler happy; `wisi-tokens' is bound in action created
-;; by wisi-semantic-action
+(defvar $nterm nil)
+;; keep byte-compiler happy; `wisi-tokens' and `$nterm' are bound in
+;; action created by wisi-semantic-action, and in module parser.
+;; FIXME: $nterm should have wisi- prefix
 
 (defun wisi-statement-action (pairs)
   "Cache information in text properties of tokens.
@@ -842,7 +844,7 @@ grammar action as:
 		     (1+ (car region))
 		     'wisi-cache
 		     (wisi-cache-create
-		      :nonterm    $nterm;; $nterm defined in wisi-semantic-action
+		      :nonterm    $nterm
 		      :token      token
 		      :last       (- (cdr region) (car region))
 		      :class      (or override-start class)

@@ -420,11 +420,11 @@ list."
   ;; contain path info. So we pass a directory to gnat-run-no-prj.
   (let ((start-buffer (current-buffer))
 	(start-file (buffer-file-name))
-	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
 	(opts (when (ada-prj-get 'gnat_stub_opts)
 		(split-string (ada-prj-get 'gnat_stub_opts))))
 	(switches (when (ada-prj-get 'gnat_stub_switches)
 		    (split-string (ada-prj-get 'gnat_stub_switches))))
+	(process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
 	)
 
     ;; Make sure all relevant files are saved to disk.

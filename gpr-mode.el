@@ -55,7 +55,7 @@
     (define-key map "\C-c\C-t" 'ada-case-read-all-exceptions)
     (define-key map "\C-c\C-w" 'ada-case-adjust-at-point)
     (define-key map "\C-c\C-y" 'ada-case-create-exception)
-    (define-key map "\C-c\C-\M-y" (lambda () (ada-case-create-exception nil nil t)))
+    (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
     (define-key map "\M-n" 'skeleton-next-placeholder)
     (define-key map "\M-p" 'skeleton-prev-placeholder)
     map
