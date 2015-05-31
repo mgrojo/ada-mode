@@ -2,7 +2,7 @@
 ;;; Parser.LALR.Generate recognizes that there are actually only two.
 ;;
 %{
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,7 +25,7 @@
 
 %token <symbol> IDENTIFIER
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 %start name
 

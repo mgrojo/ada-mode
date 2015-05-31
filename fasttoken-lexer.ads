@@ -48,11 +48,6 @@ package FastToken.Lexer is
    --  This is appropriate when the Feeder text has been
    --  changed.
 
-   procedure Set_Text_Feeder
-     (Lexer : in out Instance;
-      Feeder   : in     FastToken.Text_Feeder.Text_Feeder_Ptr)
-     is abstract;
-
    function End_Of_Text (Lexer : in Instance) return Boolean is abstract;
    --  True if Lexer's internal buffer is empty, and
    --  Lexer.Text_Feeder reports End_Of_Text.

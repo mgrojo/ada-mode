@@ -34,11 +34,6 @@ package body FastToken.Parser is
       Parser.Analyzer.Reset (Buffer_Size);
    end Reset;
 
-   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr)
-   is begin
-      Parser.Analyzer.Set_Text_Feeder (Feeder);
-   end Set_Text_Feeder;
-
    procedure Discard_Buffered_Text (Parser : in out Instance)
    is begin
       Parser.Analyzer.Discard_Buffered_Text;

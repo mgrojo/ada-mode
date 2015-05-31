@@ -1,3 +1,24 @@
+--  Abstract:
+--
+--  see spec
+--
+--  Copyright (C) 2015 Stephe Leake
+--
+--  This file is part of the FastToken package.
+--
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under the terms of the GNU General Public License
+--  as published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. The FastToken package is
+--  distributed in the hope that it will be useful, but WITHOUT ANY
+--  WARRANTY; without even the implied warranty of MERCHANTABILITY or
+--  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+--  License for more details. You should have received a copy of the
+--  GNU General Public License distributed with the FastToken package;
+--  see file GPL.txt. If not, write to the Free Software Foundation,
+--  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+pragma License (GPL);
 with Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
 with Ada.Command_Line;
@@ -5,7 +26,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib
 is
 
@@ -22,7 +43,7 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   The_Parser : LALR_Parsers.Instance := Create_Parser;
+   The_Parser : LALR_Parser.Instance := Create_Parser;
 
    procedure Use_File (File_Name : in String)
    is
@@ -34,20 +55,20 @@ is
          File : constant File_Descriptor := Open_Read (File_Name, Text);
          --  Mode Text normalizes CR/LF to LF
 
-         Feeder : constant OpenToken.Text_Feeder.Text_Feeder_Ptr :=
-           OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
+         Feeder : constant FastToken.Text_Feeder.Text_Feeder_Ptr :=
+           FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
 
-         Counted_Feeder : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-           OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
+         Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+           FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
 
       begin
          Counted_Feeder.Reset (Integer (File_Length (File)));
-         The_Parser.Set_Text_Feeder (Feeder);
+         The_Parser := Create_Parser (Text_Feeder => Feeder);
       end;
    exception
    when Name_Error =>
       Put_Line (File_Name & " cannot be opened");
-      raise OpenToken.User_Error;
+      raise FastToken.User_Error;
    end Use_File;
 
 begin
@@ -60,7 +81,7 @@ begin
 
       when 3 =>
          if Argument (1) = "-v" then
-            OpenToken.Trace_Parse := Integer'Value (Argument (2));
+            FastToken.Trace_Parse := Integer'Value (Argument (2));
 
          else
             Set_Exit_Status (Failure);
@@ -82,10 +103,10 @@ begin
       return;
    end;
 
-   LALR_Parsers.Parse (The_Parser);
+   The_Parser.Parse;
 
 exception
-when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
    Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
 
 when E : others =>

@@ -32,38 +32,38 @@ tests : test_all_harness.diff
 
 # from ../wisi/test
 #
-# to parse .wy, build .ads, run parser, we'd like to do:
+# to parse .wy, build %yylex.adb, run parser, we'd like to do:
 #
-# %_run.exe : %_run.adb %.ads; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# %_run.exe : %_run.adb %_process_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
 #
 # but that gets overridden by the simpler .exe rule for other things.
-# So we must list %.ads or %.l explicitly in tests. We do half of
-# these tests with the Aflex lexer, to get some testing with that.
+# So we must list %_process_yylex.adb explicitly in tests.
+#
 # Testing with an Emacs module calling the elisp wisi lexer and wisi
 # actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
-tests : empty_production_1_yylex.ads
+tests : empty_production_1_process_yylex.adb
 tests : empty_production_1-parse.diff
-tests : empty_production_2.ads
+tests : empty_production_2_process_yylex.adb
 tests : empty_production_2-parse.diff
-tests : empty_production_3_yylex.ads
+tests : empty_production_3_process_yylex.adb
 tests : empty_production_3-parse.diff
-tests : empty_production_4.ads
+tests : empty_production_4_process_yylex.adb
 tests : empty_production_4-parse.diff
-tests : empty_production_5_yylex.ads
+tests : empty_production_5_process_yylex.adb
 tests : empty_production_5-parse.diff
-tests : empty_production_6.ads
+tests : empty_production_6_process_yylex.adb
 tests : empty_production_6-parse.diff
-tests : empty_production_7_yylex.ads
+tests : empty_production_7_process_yylex.adb
 tests : empty_production_7-parse.diff
-tests : empty_production_8.ads
+tests : empty_production_8_process_yylex.adb
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_yylex.ads
+tests : identifier_list_name_conflict_process_yylex.adb
 tests : identifier_list_name_conflict-parse.diff
-tests : multi_conflict.ads
+tests : multi_conflict_process_yylex.adb
 tests : multi_conflict-parse.diff
-tests : subprograms_yylex.ads
+tests : subprograms_process_yylex.adb
 tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run
@@ -161,7 +161,7 @@ DIFF_OPT := -u -w
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
-	diff $(DIFF_OPT) $(^:parse=el) >> $@
+	diff $(DIFF_OPT) ../../wisi/test/$*-process.good_el $*-process.el >> $@
 	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
@@ -178,11 +178,11 @@ DIFF_OPT := -u -w
 	dos2unix $*.parse_table
 	dos2unix -q $*.el
 
-%.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
-%.l : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs Aflex_Lexer > $*.parse_table
+%_process.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%_process.l : %.wy wisi-generate.exe
+	./wisi-generate.exe $(RUN_ARGS) $< Ada_Emacs Aflex_Lexer process > $*.parse_table
 	dos2unix $*.parse_table
-	dos2unix -q $*.el
+	dos2unix -q $*-process.el
 
 clean :: wisi-clean
 
@@ -192,19 +192,19 @@ wisi-clean :
 
 # for a wisi test
 ada_grammar.ads : RUN_ARGS ?= --profile
-ada_grammar.ads : LEXER ?= Aflex_Lexer
+# FIXME: needed? ada_grammar.ads : LEXER ?= Aflex_Lexer process
 
 %.parse : %.input %_run.exe
-	./$*_run.exe -v 2 $< > $*.parse
+	./$*_run.exe -v 3 $< > $*.parse
 	dos2unix $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
-%.ada : %.l
+%_process_yylex.ada : %_process.l
 	aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
-%_yylex.ads : %.ada
-	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
+%_process_yylex.adb : %_process_yylex.ada
+	gnatchop -w $*_process_yylex.ada $*_process_dfa.ada $*_process_io.ada
 
 clean :: aflex-clean
 
@@ -212,7 +212,7 @@ clean :: aflex-clean
 aflex-clean :
 	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-wy.el
+.PRECIOUS : %_process.ada %.ads %_run.exe %_process.l %.parse %-wy.el
 
 vpath %.wy ../../wisi/test
 vpath %-wy.good_el  ../../wisi/test

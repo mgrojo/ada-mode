@@ -20,43 +20,41 @@ pragma License (GPL);
 
 with Ada.Strings.Bounded;
 with Ada.Tags;
-package body OpenToken.Wisi_Tokens is
+package body FastToken.Wisi_Tokens is
 
-   function Get (ID : in Token_IDs) return Nonterminals.Instance'Class
+   function Get (ID : in Token_ID) return Nonterminal.Instance'Class
    is begin
-      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Tokens.Null_Buffer_Range);
+      return Instance'(Nonterminal.Instance (Nonterminal.Get (ID)) with Token_Pkg.Null_Buffer_Range);
    end Get;
 
-   function Get (ID : in Token_IDs) return Tokens.Handle
+   function Get (ID : in Token_ID) return Token_Pkg.Handle
    is begin
-      return new Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Tokens.Null_Buffer_Range);
+      return new Instance'(Nonterminal.Instance (Nonterminal.Get (ID)) with Token_Pkg.Null_Buffer_Range);
    end Get;
 
    overriding
    procedure Create
      (Lexeme     : in     String;
-      Bounds     : in     Tokens.Buffer_Range;
-      Recognizer : in     Tokens.Recognizer_Handle;
+      Bounds     : in     Token_Pkg.Buffer_Range;
       New_Token  : in out Instance)
    is
-      pragma Unreferenced (Recognizer);
       pragma Unreferenced (Lexeme);
    begin
       New_Token.Buffer_Range := Bounds;
    end Create;
 
-   function Get (ID : in Token_IDs; Buffer_Range : in Tokens.Buffer_Range) return Nonterminals.Instance'Class
+   function Get (ID : in Token_ID; Buffer_Range : in Token_Pkg.Buffer_Range) return Nonterminal.Instance'Class
    is begin
-      return Instance'(Nonterminals.Instance (Nonterminals.Get (ID)) with Buffer_Range);
+      return Instance'(Nonterminal.Instance (Nonterminal.Get (ID)) with Buffer_Range);
    end Get;
 
    function Total_Buffer_Range
-     (Tokens : in Wisi_Tokens.Tokens.List.Instance'Class)
-     return Wisi_Tokens.Tokens.Buffer_Range
+     (Tokens : in Wisi_Tokens.Token_Pkg.List.Instance'Class)
+     return Wisi_Tokens.Token_Pkg.Buffer_Range
    is
-      use Wisi_Tokens.Tokens.List;
-      use Wisi_Tokens.Tokens;
-      I      : List_Iterator := Tokens.Initial_Iterator;
+      use Wisi_Tokens.Token_Pkg.List;
+      use Wisi_Tokens.Token_Pkg;
+      I      : List_Iterator := Tokens.First;
       Result : Buffer_Range  := Null_Buffer_Range;
    begin
       if I = Null_Iterator then
@@ -87,9 +85,9 @@ package body OpenToken.Wisi_Tokens is
    end Total_Buffer_Range;
 
    procedure Self
-     (New_Token : out Nonterminals.Class;
-      Source    : in  Tokens.List.Instance'Class;
-      To_ID     : in  Token_IDs)
+     (New_Token : out Nonterminal.Class;
+      Source    : in  Token_Pkg.List.Instance'Class;
+      To_ID     : in  Token_ID)
    is begin
       New_Token := Get (To_ID, Total_Buffer_Range (Source));
    end Self;
@@ -97,8 +95,8 @@ package body OpenToken.Wisi_Tokens is
    overriding
    function Image (Token : in Instance) return String
    is
-      use Tokens;
-      Name : constant String := Token_Image (Token.ID) & (if Token.Has_Name then Token.Name else "");
+      use Token_Pkg;
+      Name : constant String := Token_Image (Token.ID);
    begin
       if Token.Buffer_Range = Null_Buffer_Range then
          return "(" & Name & ")";
@@ -109,14 +107,14 @@ package body OpenToken.Wisi_Tokens is
       end if;
    end Image;
 
-   function To_Codes (Tokens : in Wisi_Tokens.Tokens.List.Instance'Class) return String
+   function To_Codes (Tokens : in Wisi_Tokens.Token_Pkg.List.Instance'Class) return String
    is
-      use Wisi_Tokens.Tokens.List;
+      use Wisi_Tokens.Token_Pkg.List;
       Chars_Per_Token : constant Integer := 4 + 2 * Integer'Width;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 18 + Tokens.Length * Chars_Per_Token);
       use Bounded;
 
-      I  : List_Iterator := Initial_Iterator (Tokens);
+      I  : List_Iterator := Tokens.First;
 
       --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
       --  RHS of the production.
@@ -130,12 +128,12 @@ package body OpenToken.Wisi_Tokens is
       loop
          exit when I = Null_Iterator;
          declare
-            use type Wisi_Tokens.Tokens.Buffer_Range;
+            use type Wisi_Tokens.Token_Pkg.Buffer_Range;
             Token : Instance renames Instance (Token_Handle (I).all);
          begin
-            Token_Line := Token_Line & '(' & Int_Image (Token_IDs'Pos (ID (I)));
+            Token_Line := Token_Line & '(' & Int_Image (Token_ID'Pos (ID (I)));
 
-            if Token.Buffer_Range /= Wisi_Tokens.Tokens.Null_Buffer_Range then
+            if Token.Buffer_Range /= Wisi_Tokens.Token_Pkg.Null_Buffer_Range then
                Token_Line := Token_Line & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
                  --  Elisp region end is one past the last character
                  Integer'Image (Token.Buffer_Range.End_Pos + 1);
@@ -151,4 +149,4 @@ package body OpenToken.Wisi_Tokens is
       return To_String (Token_Line);
    end To_Codes;
 
-end OpenToken.Wisi_Tokens;
+end FastToken.Wisi_Tokens;

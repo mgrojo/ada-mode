@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Parser for Wisent grammar files, producing Ada or Elisp source
+--  Parser for Wisi grammar files, producing Ada or Elisp source
 --  files for a parser.
 --
 --  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
@@ -40,10 +40,10 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisent grammar file} {output language} [{lexer} {interface}]");
+      Put_Line ("wisi-generate [options] {wisi grammar file} {output language} [{lexer} {interface}]");
       Put_Line ("version 0.00 - experimental");
-      Put_Line ("generate output language source implementing a parser for 'wisent grammar file'");
-      Put_Line ("'lexer' is one of Aflex_Lexer, FastToken_Lexer, Elisp_Lexer");
+      Put_Line ("generate output language source implementing a parser for 'wisi grammar file'");
+      Put_Line ("'lexer' is one of Aflex_Lexer, Elisp_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
       Put_Line ("'interface' is one of Process, Module");
       Put_Line ("only Ada_Emacs takes lexer and interface arguments");

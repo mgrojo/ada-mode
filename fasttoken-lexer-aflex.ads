@@ -31,13 +31,12 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Token.Nonterminal;
 with FastToken.Text_Feeder;
 generic
    Feeder : in out FastToken.Text_Feeder.Text_Feeder_Ptr;
    --  Must represent line end as ASCII.LF (that's what aflex uses).
 
-   with function YYLex return Token_ID;
+   with function YYLex return FastToken.Lexer.Token.Token_ID;
    --  Read tokens from Feeder
 
    with function YY_Text return String;
@@ -59,12 +58,12 @@ generic
    YY_Init              : in out Boolean;
    YY_EOF_Has_Been_Seen : in out Boolean;
 
-   with package Nonterminals is new FastToken.Token.Nonterminal;
-   with function Get_Token (ID : in Token_ID) return Nonterminals.Instance'Class;
+   with function Get_Token (ID : in FastToken.Lexer.Token.Token_ID) return Token.Handle;
+   --  All token objects have the same type
 
 package FastToken.Lexer.Aflex is
 
-   type Instance is new FastToken.Token.Source with private;
+   type Instance is new FastToken.Lexer.Instance with private;
    type Handle is access all Instance;
 
    function Initialize
@@ -74,9 +73,6 @@ package FastToken.Lexer.Aflex is
      return Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
-
-   overriding
-   procedure Set_Text_Feeder (Lexer : in out Instance; Feeder : in FastToken.Text_Feeder.Text_Feeder_Ptr);
 
    overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
@@ -97,19 +93,19 @@ package FastToken.Lexer.Aflex is
    overriding
    function Column (Lexer : in Instance) return Natural;
 
-   overriding function Get (Lexer : in Instance) return FastToken.Token.Class;
+   overriding function Get (Lexer : in Instance) return Token.Class;
 
    overriding function Lexeme (Lexer : in Instance) return String;
 
-   overriding function Bounds (Lexer : in Instance) return Buffer_Range;
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range;
 
 private
 
-   type ID_Array_Tokens is array (Token_ID) of Token.Handle;
+   type ID_Array_Tokens is array (Token.Token_ID) of Token.Handle;
 
-   type Instance is new FastToken.Token.Source with
+   type Instance is new FastToken.Lexer.Instance with
    record
-      Token      : Token_ID; --  last token read by find_next
+      Token      : FastToken.Lexer.Token.Token_ID; --  last token read by find_next
       Token_List : ID_Array_Tokens;
    end record;
 

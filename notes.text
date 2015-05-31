@@ -9,15 +9,12 @@ move org.stephe_leake.aunit_ext to ada-france
 run all tests with fasttoken
     build/debug/Makefile
         t_all done
+        tests done
+        need examples
 
-    prune irrelevant tests
-
-    edit all used packages to FastToken name
 
 finish refactor packages
     delete opentoken.trace_indent?
-
-    add aflex/wisi versions to dragon examples
 
     make install should install wisi-generate.exe
 
@@ -51,7 +48,9 @@ speed up parsing, for Emacs Ada backend
         change run_ada_parser to use counted_gnat_os_lib text_feeder:
             _2 OpenToken.Text_Feeder.counted_gnat_os_lib: 1.426 1.250 1.226
 
-use aflex
+change dragon examples aflex/wisi
+
+aflex
     /Projects/aflex/build/Makefile
     /Projects/aflex/aflex.adb
     source from http://sourceforge.net/projects/p2ada/

@@ -24,13 +24,13 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 %token <line_comment> COMMENT "--"
 
 %start declarations
 
 %conflict SHIFT/REDUCE in state body, declaration on token BEGIN
-%conflict SHIFT/REDUCE in state opentoken_accept, declaration on token EOI
+%conflict SHIFT/REDUCE in state fasttoken_accept, declaration on token EOI
 %conflict SHIFT/REDUCE in state body, declaration on token IS
 
 %%

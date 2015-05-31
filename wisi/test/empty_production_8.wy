@@ -17,7 +17,7 @@
 %token <punctuation> SEMICOLON ";"
 %token <symbol> IDENTIFIER
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 %start object_declaration_list
 

@@ -29,7 +29,6 @@
 pragma License (Modified_GPL);
 
 with FastToken.Lexer;
-with FastToken.Text_Feeder;
 with FastToken.Token;
 generic
    with package Token is new FastToken.Token (<>);
@@ -60,9 +59,6 @@ package FastToken.Parser is
    --  Buffer_Size (if there is a buffer).
    --
    --  Appropriate if the Text_Feeder's input has changed.
-
-   procedure Set_Text_Feeder (Parser : in out Instance; Feeder : in Text_Feeder.Text_Feeder_Ptr);
-   --  Discards input if current text buffer is not empty.
 
    procedure Discard_Buffered_Text (Parser : in out Instance);
    --  Discard text in Parser.Analyzer's internal buffer.

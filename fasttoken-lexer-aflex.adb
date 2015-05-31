@@ -43,10 +43,10 @@ package body FastToken.Lexer.Aflex is
 
       Set_Buffer_Size (Buffer_Size);
 
-      FastToken.Token.Aflex.Feeder := Feeder;
+      FastToken.Lexer.Aflex.Feeder := Feeder;
 
-      for ID in Token_ID loop
-         New_Lexer.Token_List (ID) := new Nonterminals.Class'(Get_Token (ID));
+      for ID in Token.Token_ID loop
+         New_Lexer.Token_List (ID) := Get_Token (ID);
       end loop;
       return New_Lexer;
    end Initialize;
@@ -61,15 +61,6 @@ package body FastToken.Lexer.Aflex is
 
       --  Feeder is not reset here; user resets it.
    end Reset;
-
-   overriding procedure Set_Text_Feeder
-     (Lexer : in out Instance;
-      Feeder : in Text_Feeder.Text_Feeder_Ptr)
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      FastToken.Token.Aflex.Feeder := Feeder;
-   end Set_Text_Feeder;
 
    overriding function End_Of_Text (Lexer : in Instance) return Boolean
    is
@@ -116,14 +107,13 @@ package body FastToken.Lexer.Aflex is
       return YY_Begin_Column;
    end Column;
 
-   overriding function Get (Lexer : in Instance) return FastToken.Token.Class
+   overriding function Get (Lexer : in Instance) return Token.Class
    is
-      Temp : FastToken.Token.Class := Lexer.Token_List (Lexer.Token).all;
+      Temp : Token.Class := Lexer.Token_List (Lexer.Token).all;
    begin
-      Create
+      Token.Create
         (Lexeme     => Lexer.Lexeme,
          Bounds     => Lexer.Bounds,
-         Recognizer => null,
          New_Token  => Temp);
 
       return Temp;
@@ -136,7 +126,7 @@ package body FastToken.Lexer.Aflex is
       return YY_Text;
    end Lexeme;
 
-   overriding function Bounds (Lexer : in Instance) return Buffer_Range
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range
    is
       pragma Unreferenced (Lexer);
    begin

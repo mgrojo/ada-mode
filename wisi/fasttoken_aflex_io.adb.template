@@ -1,6 +1,6 @@
 --  aflex inserts 'with <root>_dfa; use <root>_dfa; -*- mode:ada -*-
 with Ada.Text_IO;
-with OpenToken.Text_Feeder;
+with FastToken.Text_Feeder;
 --%%1 aflex inserts package spec start
 package Dummy is  -- for indentation
 
@@ -29,7 +29,7 @@ package Dummy is  -- for indentation
    Token_At_End_Of_Line           : Boolean    := False;
 --  END OF UMASS CODES.
 
-   Feeder : OpenToken.Text_Feeder.Text_Feeder_Ptr;
+   Feeder : FastToken.Text_Feeder.Text_Feeder_Ptr;
 
    type eob_action_type is
      (EOB_ACT_RESTART_SCAN, -- new text in buffer; scan it
@@ -62,7 +62,7 @@ package Dummy is -- for indentation
       else
          Feeder.Get (Temp, Temp_Last);
 
-         if Temp (Temp_Last) = OpenToken.EOF_Character then
+         if Temp (Temp_Last) = FastToken.EOF_Character then
             Temp_Last := Temp_Last - 1;
          end if;
 
