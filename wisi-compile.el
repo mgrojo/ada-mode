@@ -41,13 +41,18 @@
 ;; produces corresponding elisp source code, similar to that
 ;; produced by semantic-grammar-create-package.
 ;;
-;; wisi-compile-grammar (provided here) generate the automaton
-;; structure required by wisi-parse, using functions from
-;; wisent/comp.el
+;; wisi-compile-grammar (provided here) generates the automaton
+;; structure required by wisi-parse
 ;;
 ;;;;
 
-(require 'semantic/wisent/comp)
+;; These are referenced in the called functions, so they must declared
+;; to be dynamically bound.
+;;
+;; FIXME: They should have a name prefix. Or change to
+;; passing arguments.
+(defvar nrules) ;; used to loop thru rules
+(defvar rcode)  ;; stores parsed actions for wisi-semantic-action
 
 (defun wisi-compose-action (value symbol-array nonterms)
   (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))
@@ -120,7 +125,7 @@ It returns nil; it is called for the user side-effects only."
 	 action-symbol)
 
     (when (eq form '$1)
-      ;; no user action; comp.el wisent-parse-nonterminals provides a
+      ;; no user action; wisi-parse-nonterminals provides a
       ;; default user action of '$1; erase that
       (setq form nil))
 
@@ -133,11 +138,56 @@ It returns nil; it is called for the user side-effects only."
 
     (list (car (aref actn 2)) action-symbol n)))
 
+(defun wisi-parse-nonterminals (defs)
+  "Parse nonterminal definitions in DEFS.
+Fill in each element of the global arrays RCODE with semantic
+action code."
+  (setq rcode  nil
+        nrules 0)
+  (let (def nonterm rhs-list rule rhs rest
+            rhs-length semact iactn)
+    (while defs
+      (setq def      (car defs)
+            defs     (cdr defs)
+            nonterm  (car def)
+            rhs-list (cdr def)
+            iactn    0)
+      (or (consp rhs-list)
+          (error "Invalid nonterminal definition syntax: %S" def))
+      (while rhs-list
+        (setq rule       (car rhs-list)
+              rhs-list   (cdr rhs-list)
+              rhs        (car rule)
+              rest       (cdr rule) ;; action
+              rhs-length (length rhs))
+
+        ;; Check & collect semantic action body
+        (setq semact (vector
+                      (if rest
+                          (if (cdr rest)
+                              (error "Invalid semantic action syntax: %S" rest)
+                            (car rest))
+                        ;; Give a default semantic action body: nil
+                        ;; for an empty rule or $1, the value of the
+                        ;; first symbol in the rule, otherwise.
+			;; FIXME: don't want default rule!
+                        (if (> rhs-length 0) '$1 '()))
+                      rhs-length
+                      (list nonterm iactn))
+              iactn  (1+ iactn)
+              rcode  (cons semact rcode))
+
+        (setq nrules (1+ nrules))))
+
+    ;; create rcode 0 for semantic actions obarray
+    (setq rcode   (vconcat (cons nil (nreverse rcode))))
+    ))
+
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
 GRAMMAR is a list TERMINALS NONTERMS ACTIONS GOTOS, where:
 
-TERMINALS is a list of terminal token symbols.
+TERMINALS is a list of terminal token symbols. FIXME: not used
 
 NONTERMS is a list of productions; each production is a
 list (nonterm (tokens action) ...) where `action' is any lisp form.
@@ -154,7 +204,6 @@ integer - shift; gives new state
 '(nonterm . index) - reduce by nonterm production index.
 
 '(integer (nonterm . index)) - a shift/reduce conflict
-'((nonterm . index) integer) - a reduce/shift conflict
 '((nonterm . index) (nonterm . index)) - a reduce/reduce conflict
 
 The first item in the alist must have the key 'default (not a
@@ -165,35 +214,32 @@ GOTOS is an array indexed by parser state, of alists giving the
 new state after a reduce for each nonterminal legal in that
 state.
 
-The automaton is an array with 3 elements:
+The automaton is an array [parser-actions gotos semantic-actions]:
 
-parser-actions is a copy of the input ACTIONS, with reduction
+- parser-actions is a copy of the input ACTIONS, with reduction
 actions replaced by a list (nonterm action-symbol token-count),
-where `nonterm' is a symbol from NONTERMS, and is the
-non-terminal to reduce to, token-count is the number of tokens in
-the reduction, action-symbol is nil if there is no user action,
-or a symbol from semantic-actions (below).
+where:
 
-gotos is a copy of GOTOS.
+-- nonterm is a symbol from NONTERMS, and is the non-terminal to
+reduce to
 
-semantic-actions is an obarray containing functions that
+-- token-count is the number of tokens in the reduction,
+
+-- action-symbol is nil if there is no user action, or a
+symbol interned in semantic-actions
+
+- gotos is a copy of GOTOS.
+
+- semantic-actions is an obarray containing functions that
 implement the user action for each nonterminal; the function
 names have the format nonterm:index."
-  ;; These are referenced the called functions, so they must declared
-  ;; to be dynamically bound. FIXME: should have name prefix
-  (defvar nrules) (defvar ptable) (defvar rcode) (defvar rlhs) (defvar tags)
-  (defvar token-list) (defvar var-list)
-  (let (nrules ptable rcode rlhs tags token-list var-list)
-    (wisent-parse-grammar;; set global vars used by wisent-semantic-action
-     (cons
-      (nth 0 grammar);; TOKENS
-      (cons nil ;; ASSOCS
-	    (nth 1 grammar));; NONTERMS
-      ))
+  (let (nrules rcode)
+    (wisi-parse-nonterminals (nth 1 grammar))
 
     (aset rcode 0 (make-vector 13 0));; obarray for semantic actions
 
     ;; create semantic action functions, interned in rcode[0]
+    ;; FIXME: build rcode[n] here, not in wisi-parse-nonterminals!
     (let* ((i 1))
       (while (<= i nrules)
 	(wisi-semantic-action i rcode)
