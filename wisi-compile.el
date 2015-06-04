@@ -130,7 +130,7 @@ It returns nil; it is called for the semantic side-effects only."
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
 GRAMMAR is a list TERMINALS NONTERMS ACTIONS GOTOS, where:
 
-TERMINALS is a list of terminal token symbols. FIXME: not used
+TERMINALS is a list of terminal token symbols.
 
 NONTERMS is a list of productions; each production is a
 list (nonterm (tokens semantic-action) ...) where `semantic-action' is
@@ -180,6 +180,12 @@ implement the semantic action for each nonterminal; the function
 names have the format nonterm:index."
   ;; We store named symbols for semantic actions, not just lambda
   ;; functions, so we have a name for debug trace.
+  ;;
+  ;; FIXME: TERMINALS is not used. Eliminating it requires decoupling
+  ;; from OpenToken; we'll do that in the move to FastToken.
+  ;;
+  ;; FIXME: eliminate use of semantic-lex-* in *-wy.el. Similarly
+  ;; requires decoupling from OpenToken
   ;;
   ;; FIXME: can eliminate obarray? We don't need the obarray to
   ;; avoid garbage collection of the symbols; they are all referenced in the compiled grammar.

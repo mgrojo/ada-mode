@@ -113,6 +113,9 @@ package body Format_Paramlist is
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(insert "   ") (ada-align))
    function Create_Parser
      (Parallel : in Integer := 15)
-     return Lalr_Parsers.Instance;
+     return Integer
+   is begin
+      return 1;
+   end Create_Parser;
 
 end Format_Paramlist;
