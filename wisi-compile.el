@@ -46,32 +46,35 @@
 ;;
 ;;;;
 
-;; These are referenced in the called functions, so they must declared
-;; to be dynamically bound.
-;;
-;; FIXME: They should have a name prefix. Or change to
-;; passing arguments.
-(defvar nrules) ;; used to loop thru rules
-(defvar rcode)  ;; stores parsed actions for wisi-semantic-action
-
-(defun wisi-compose-action (value symbol-array nonterms)
-  (let ((symbol (intern-soft (format "%s:%d" (car value) (cdr value)) symbol-array))
-	(rhs (car (nth (cdr value) (cdr (assoc (car value) nonterms))))))
-    (list (car value) symbol (length rhs))
+(defun wisi-compose-action (value symbol-obarray nonterms)
+  (let* ((nonterm (car value))
+	(index   (cdr value))
+	(symbol (intern-soft (format "%s:%d" nonterm index) symbol-obarray))
+	(rhs (car (nth index (cdr (assoc nonterm nonterms))))))
+    (list nonterm symbol (length rhs))
     ))
 
-(defun wisi-replace-actions (action symbol-array nonterms)
+(defun wisi-replace-actions (action symbol-obarray nonterms)
   "Replace semantic action symbol names in ACTION with list as defined in `wisi-compile-grammar'.
-ACTION is the alist for one state from the grammar; NONTERMS is from the grammar.
-Return the new alist."
-  ;; result is (nonterm index action-symbol token-count)
+ACTION is the alist for one state from the grammar, with the form:
+  ((default . error) ITEM ... )
+ITEM is one of:
+reduction  (TOKEN . (NONTERM . INDEX)) where NONTERM . INDEX gives the action symbol name.
+shift (TOKEN . STATE)
+shift/reduce conflict (STATE (NONTERM . INDEX))
+reduce/shift conflict ((NONTERM . INDEX) (NONTERM . INDEX))
+
+SYMBOL-OBARRAY contains the action symbols.
+NONTERMS is from the grammar.
+Return the new action alist."
+  ;; result is list of (nonterm index action-symbol token-count)
   (let (result item)
     (while action
      (setq item (pop action))
      (cond
       ((or
 	(memq (cdr item) '(error accept))
-	(numberp (cdr item)))
+	(numberp (cdr item))) ;; shift
        (push item result))
 
       ((listp (cdr item))
@@ -80,20 +83,20 @@ Return the new alist."
 	  ((symbolp (car value))
 	   ;; reduction
 	   (push (cons (car item)
-		       (wisi-compose-action value symbol-array nonterms))
+		       (wisi-compose-action value symbol-obarray nonterms))
 		 result))
 
 	  ((integerp (car value))
 	   ;; shift/reduce conflict
 	   (push (cons (car item)
 		       (list (car value)
-			     (wisi-compose-action (cadr value) symbol-array nonterms)))
+			     (wisi-compose-action (cadr value) symbol-obarray nonterms)))
 		 result))
 
 	  (t ;; reduce/reduce conflict
 	   (push (cons (car item)
-		       (list (wisi-compose-action (car value) symbol-array nonterms)
-			     (wisi-compose-action (cadr value) symbol-array nonterms)))
+		       (list (wisi-compose-action (car value) symbol-obarray nonterms)
+			     (wisi-compose-action (cadr value) symbol-obarray nonterms)))
 		 result))
 	  )))
 
@@ -103,85 +106,25 @@ Return the new alist."
 
    (reverse result)))
 
-(defun wisi-semantic-action (r rcode)
-  "Define an Elisp function for semantic action at rule R.
-On entry RCODE[R] contains a vector [BODY N (NTERM I)] where BODY
-is the body of the semantic action, N is the number of tokens in
-the production, NTERM is the nonterminal the semantic action
-belongs to, and I is the index of the production and associated
-semantic action in the NTERM rule.  Returns the semantic action
-symbol, which is interned in RCODE[0].
+(defun wisi-semantic-action (form nonterm iactn symbol-obarray)
+  "Define an Elisp semantic action function for a production, interned in SYMBOL-OBARRAY.
+FORM is the body of the semantic action.
+NONTERM is the nonterminal left hand side.
+IACTN is the index of the production in the NTERM rule.
 
 The semantic action function accepts two arguments;
 - $nterm      : the nonterminal
 - wisi-tokens : the list of tokens to be reduced.
 
-It returns nil; it is called for the user side-effects only."
+It returns nil; it is called for the semantic side-effects only."
   ;; based on comp.el wisent-semantic-action
-  (let* ((actn (aref rcode r))
-	 (n    (aref actn 1))         ; number of tokens in production RHS
-	 (name (apply 'format "%s:%d" (aref actn 2)))
-	 (form (aref actn 0))
-	 action-symbol)
+  (let* ((name (format "%s:%d" nonterm iactn))
+	 (action-symbol (intern name symbol-obarray)))
 
-    (when (eq form '$1)
-      ;; no user action; wisi-parse-nonterminals provides a
-      ;; default user action of '$1; erase that
-      (setq form nil))
-
-    (when form
-      (setq action-symbol (intern name (aref rcode 0)))
-      (fset action-symbol
-	    `(lambda ($nterm wisi-tokens)
-	       ,form
-	       nil)))
-
-    (list (car (aref actn 2)) action-symbol n)))
-
-(defun wisi-parse-nonterminals (defs)
-  "Parse nonterminal definitions in DEFS.
-Fill in each element of the global arrays RCODE with semantic
-action code."
-  (setq rcode  nil
-        nrules 0)
-  (let (def nonterm rhs-list rule rhs rest
-            rhs-length semact iactn)
-    (while defs
-      (setq def      (car defs)
-            defs     (cdr defs)
-            nonterm  (car def)
-            rhs-list (cdr def)
-            iactn    0)
-      (or (consp rhs-list)
-          (error "Invalid nonterminal definition syntax: %S" def))
-      (while rhs-list
-        (setq rule       (car rhs-list)
-              rhs-list   (cdr rhs-list)
-              rhs        (car rule)
-              rest       (cdr rule) ;; action
-              rhs-length (length rhs))
-
-        ;; Check & collect semantic action body
-        (setq semact (vector
-                      (if rest
-                          (if (cdr rest)
-                              (error "Invalid semantic action syntax: %S" rest)
-                            (car rest))
-                        ;; Give a default semantic action body: nil
-                        ;; for an empty rule or $1, the value of the
-                        ;; first symbol in the rule, otherwise.
-			;; FIXME: don't want default rule!
-                        (if (> rhs-length 0) '$1 '()))
-                      rhs-length
-                      (list nonterm iactn))
-              iactn  (1+ iactn)
-              rcode  (cons semact rcode))
-
-        (setq nrules (1+ nrules))))
-
-    ;; create rcode 0 for semantic actions obarray
-    (setq rcode   (vconcat (cons nil (nreverse rcode))))
-    ))
+    (fset action-symbol
+	  `(lambda ($nterm wisi-tokens)
+	     ,form
+	     nil))))
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
@@ -190,7 +133,9 @@ GRAMMAR is a list TERMINALS NONTERMS ACTIONS GOTOS, where:
 TERMINALS is a list of terminal token symbols. FIXME: not used
 
 NONTERMS is a list of productions; each production is a
-list (nonterm (tokens action) ...) where `action' is any lisp form.
+list (nonterm (tokens semantic-action) ...) where `semantic-action' is
+any lisp form. The set of (tokens semantic-action) are the right hand
+sides; nonterm is the left hand side.
 
 ACTIONS is an array indexed by parser state, of alists indexed by
 terminal tokens. The value of each item in the alists is one of:
@@ -214,9 +159,9 @@ GOTOS is an array indexed by parser state, of alists giving the
 new state after a reduce for each nonterminal legal in that
 state.
 
-The automaton is an array [parser-actions gotos semantic-actions]:
+The automaton is an array [parser-actions gotos symbol-obarray]:
 
-- parser-actions is a copy of the input ACTIONS, with reduction
+- parser-actions is a copy of the input ACTIONS, with semantic
 actions replaced by a list (nonterm action-symbol token-count),
 where:
 
@@ -225,40 +170,59 @@ reduce to
 
 -- token-count is the number of tokens in the reduction,
 
--- action-symbol is nil if there is no user action, or a
-symbol interned in semantic-actions
+-- action-symbol is nil if there is no semantic action, or a
+symbol interned in symbol-obarray
 
 - gotos is a copy of GOTOS.
 
-- semantic-actions is an obarray containing functions that
-implement the user action for each nonterminal; the function
+- symbol-obarray is an obarray containing functions that
+implement the semantic action for each nonterminal; the function
 names have the format nonterm:index."
-  (let (nrules rcode)
-    (wisi-parse-nonterminals (nth 1 grammar))
+  ;; We store named symbols for semantic actions, not just lambda
+  ;; functions, so we have a name for debug trace.
+  ;;
+  ;; FIXME: can eliminate obarray? We don't need the obarray to
+  ;; avoid garbage collection of the symbols; they are all referenced in the compiled grammar.
+  ;; But each semantic action function has to be defined (and byte-compiled?) somewhere?
+  ;;     currently actions are _not_ byte-compiled; wisi-compile-grammar is run at load time
+  ;;     need 'eval-when-compile' to byte-compile them?
+  ;;     can't byte-compile obarray?
 
-    (aset rcode 0 (make-vector 13 0));; obarray for semantic actions
+  (let ((defs (nth 1 grammar))
+	(symbol-obarray (make-vector 13 0));; for parse actions
+	def nonterm rhs-list rule
+	semantic-action index)
 
-    ;; create semantic action functions, interned in rcode[0]
-    ;; FIXME: build rcode[n] here, not in wisi-parse-nonterminals!
-    (let* ((i 1))
-      (while (<= i nrules)
-	(wisi-semantic-action i rcode)
-	(setq i (1+ i)))
-      )
+    (while defs
+      (setq def      (car defs)
+            defs     (cdr defs)
+            nonterm  (car def)
+            rhs-list (cdr def)
+            index    0)
+      (while rhs-list
+        (setq rule            (car rhs-list)
+              rhs-list        (cdr rhs-list)
+              tokens          (car rule)
+              semantic-action (cadr rule))
 
-    ;; replace semantic actions in ACTIONS with symbols from symbol-array
+	(when semantic-action
+	  (wisi-semantic-action semantic-action nonterm index symbol-obarray))
+
+	(setq index (1+ index))
+	))
+
+    ;; replace semantic actions in ACTIONS with symbols from symbol-obarray
     (let ((nactions (length (nth 2 grammar)))
 	  (actions (nth 2 grammar))
-	  (symbol-array (aref rcode 0))
 	  (i 0))
       (while (< i nactions)
 	(aset actions i
-	      (wisi-replace-actions (aref actions i) symbol-array (nth 1 grammar)))
+	      (wisi-replace-actions (aref actions i) symbol-obarray (nth 1 grammar)))
 	(setq i (1+ i)))
       (vector
        actions
        (nth 3 grammar)
-       symbol-array)
+       symbol-obarray)
       )))
 
 (provide 'wisi-compile)
