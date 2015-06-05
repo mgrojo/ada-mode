@@ -62,7 +62,7 @@ is
            FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
 
       begin
-         Counted_Feeder.Reset (Integer (File_Length (File)));
+         Counted_Feeder.Reset (Integer (File_Length (File)) + 1); -- +1 for EOF
          The_Parser := Create_Parser (Text_Feeder => Feeder);
       end;
    exception

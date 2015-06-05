@@ -187,13 +187,6 @@ package body FastToken.Lexer.Regexp is
       Lexer.Buffer_Tail := Lexer.Buffer'First - 1;
    end Reset;
 
-   overriding procedure Set_Text_Feeder
-     (Lexer : in out Instance;
-      Feeder : in FastToken.Text_Feeder.Text_Feeder_Ptr)
-   is begin
-      Lexer.Feeder := Feeder;
-   end Set_Text_Feeder;
-
    overriding function End_Of_Text
      (Lexer : in Instance)
      return Boolean

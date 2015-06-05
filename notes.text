@@ -4,14 +4,8 @@ build/release/Makefile
 build/debug/Makefile
 build/release_process.text
 
-move org.stephe_leake.aunit_ext to ada-france
-
-run all tests with fasttoken
-    build/debug/Makefile
-        t_all done
-        tests done
-        need examples
-
+run ada-mode tests
+    detail rationale for sjlj on windows/linux
 
 finish refactor packages
     delete opentoken.trace_indent?
@@ -48,9 +42,27 @@ speed up parsing, for Emacs Ada backend
         change run_ada_parser to use counted_gnat_os_lib text_feeder:
             _2 OpenToken.Text_Feeder.counted_gnat_os_lib: 1.426 1.250 1.226
 
-change dragon examples aflex/wisi
+rename wisi to something else?
+    no longer tie to Emacs project
+    wisi-generate => fasttoken-generate
+    just promote wisi dir
 
-aflex
+change dragon examples
+    lexer.regexp; should be easy
+
+    lexer.aflex/wisi-generate
+        need support for different actions
+        move code from tokens to actions
+        change .wy action syntax to require {} (for elisp as well)
+        use Ada code in actions; reference New_Token, Source, To_ID
+            or whatever than changes to
+        add Ada output language to wisi-generate
+            just copy text between {} to action function
+                add constant space prefix to each line; source must meet style check
+
+change wisi tests to use Ada code?
+
+ aflex
     /Projects/aflex/build/Makefile
     /Projects/aflex/aflex.adb
     source from http://sourceforge.net/projects/p2ada/

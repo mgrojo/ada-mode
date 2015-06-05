@@ -130,6 +130,8 @@ begin
          end if;
       end loop;
 
+      --  FIXME: allow ada-mode output functions to read additional options?
+
       Use_Input_File (Argument (Arg_Next));
       Arg_Next := Arg_Next + 1;
 
@@ -163,6 +165,9 @@ begin
    Wisi.Declarations (Input_File, Keywords, Tokens, Start_Token, Conflicts);
    Wisi.Rules (Input_File, Rules, Rule_Count, Action_Count);
 
+   --  FIXME: use run-time factory, dispatching instead of this case
+   --  statement; allow moving output_elisp, output_ada_emacs to
+   --  ada-mode source repository.
    case Output_Language is
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs

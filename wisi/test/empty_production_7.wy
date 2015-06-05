@@ -1,7 +1,6 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
 
 %{
-(require 'wisi)
 %}
 
 %keyword ALIASED "aliased"

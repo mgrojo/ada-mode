@@ -7,11 +7,11 @@ Tokens:
  6 => MODE_ID
  7 => NAME_ID
  8 => PARAMETER_SPECIFICATION_ID
- 9 => OPENTOKEN_ACCEPT_ID
+ 9 => FASTTOKEN_ACCEPT_ID
 
 Parse Table:
 State 1:
-  OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
 
    IDENTIFIER_ID              => shift and goto state 2
    default                    => ERROR
@@ -29,7 +29,7 @@ State 2:
    MODE_ID                    goto state 8
 
 State 3:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
 
    EOF_ID                     => shift and goto state 6
    default                    => ERROR
@@ -51,7 +51,7 @@ State 5:
 
 
 State 6:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/IN_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/IN_ID
 
    EOF_ID                     => accept it
    IDENTIFIER_ID              => accept it

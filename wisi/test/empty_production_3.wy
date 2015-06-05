@@ -2,7 +2,6 @@
 ;;; production, where first can be empty, were handled wrong.
 
 %{
-(require 'wisi)
 %}
 
 %keyword IN "in"

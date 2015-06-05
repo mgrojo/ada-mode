@@ -4,9 +4,6 @@
 ;; action is not output until one parser terminates.
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 %token <punctuation> COLON ":"

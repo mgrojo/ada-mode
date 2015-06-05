@@ -37,7 +37,7 @@ package body FastToken.Lexer.Aflex is
      return Handle
    is
       pragma Unreferenced (First_Column);
-      New_Lexer : constant Handle := new Instance;
+      New_Lexer : constant access Instance := new Instance;
    begin
       --  We don't set New_Lexer.Feeder, because we don't actually use it
 
@@ -48,7 +48,7 @@ package body FastToken.Lexer.Aflex is
       for ID in Token.Token_ID loop
          New_Lexer.Token_List (ID) := Get_Token (ID);
       end loop;
-      return New_Lexer;
+      return Handle (New_Lexer);
    end Initialize;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)

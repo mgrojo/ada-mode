@@ -1,3 +1,11 @@
+read 80
+overriding other procedure proc_1;
+
+other procedure proc_2;
+
+procedure proc_3;
+
+
  1 stack:  1 : , 
  1: 1: (OVERRIDING 1 . 11) : shift and goto state 2
  1 stack:  2 : (OVERRIDING 1 . 11),  1 : , 
@@ -84,4 +92,4 @@ compilation_unit_id_0: (compilation_unit 1 . 79) (subprogram_declaration 1 . 35)
  1: 4: (EOF 79 . 80) : shift and goto state 9
  1 stack:  9 : (EOF 79 . 80),  4 : (compilation_unit 1 . 79),  1 : , 
  1: 9: (EOF 80 . 81) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 80) (compilation_unit 1 . 79), (EOF 79 . 80)
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 80) (compilation_unit 1 . 79), (EOF 79 . 80)

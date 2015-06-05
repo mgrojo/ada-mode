@@ -69,11 +69,6 @@ tests : subprograms-parse.diff
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
 examples : asu_example_5_10_lr-run.run
-examples : ada_count.run
-examples : test_ada_lexer.run
-examples : test_html_lexer_unsafe.run
-examples : test_java_lexer.run
-examples : test_m3_lexer.run
 
 asu_example_3_6-run.run : asu_example_3_6-run.exe
 	cd ../../Examples/ASU_Example_3_6; $(CURDIR)/asu_example_3_6-run.exe
@@ -189,10 +184,6 @@ clean :: wisi-clean
 # delete files created by wisi-generate
 wisi-clean :
 	rm -f *.parse_table *.ads *.adb *.el *.l
-
-# for a wisi test
-ada_grammar.ads : RUN_ARGS ?= --profile
-# FIXME: needed? ada_grammar.ads : LEXER ?= Aflex_Lexer process
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v 3 $< > $*.parse

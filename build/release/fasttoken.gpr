@@ -1,16 +1,15 @@
---  For using OpenToken in other projects, and building OpenToken
+--  For using FastToken in other projects, and building FastToken
 --
 --  This is not in Build because the object and executable paths are
 --  relative to this file.
 --
---  (ediff "../release/opentoken.gpr" "../debug/opentoken.gpr")
+--  (ediff "../release/fasttoken.gpr" "../debug/fasttoken.gpr")
 
 with "../common";
-project OpenToken is
+project FastToken is
 
    for Source_Dirs use
      ("../..",
-      "../../Language_Lexers",
       "../../wisi");
 
    for Object_Dir use "obj";
@@ -38,4 +37,4 @@ project OpenToken is
       for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
    end Binder;
 
-end OpenToken;
+end FastToken;

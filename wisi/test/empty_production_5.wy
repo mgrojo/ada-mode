@@ -1,7 +1,6 @@
 ;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
 
 %{
-(require 'wisi)
 %}
 
 %token <punctuation> SEMICOLON ";"

@@ -1,6 +1,6 @@
--- (ediff "../debug/opentoken_lib.gpr" "opentoken_lib.gpr")
+-- (ediff "../debug/fasttoken_lib.gpr" "fasttoken_lib.gpr")
 with "../common";
-project Opentoken_Lib is
+project FastToken_Lib is
 
    --  Version must change for each user-visible change; it does not
    --  have to match the source package version.
@@ -9,16 +9,15 @@ project Opentoken_Lib is
    for Languages use ("Ada");
    for Source_Dirs use
      ("../..",
-      "../../Language_Lexers",
       "../../wisi"
      );
    for Object_Dir use "libobj" & Common.Run_Time;
-   for Library_Name use "opentoken";
+   for Library_Name use "fasttoken";
    for Library_Dir use "lib" & Common.Run_Time;
    for Library_Kind use Common.Libtype;
 
    --  Library_Version is not used when Library_Kind is "static"
-   for Library_Version use "libopentoken." & Common.Dyn_Lib_Extension & "." & Version;
+   for Library_Version use "libfasttoken." & Common.Dyn_Lib_Extension & "." & Version;
 
    package Compiler is
       case Common.Dyn_Lib_Extension is
@@ -50,4 +49,4 @@ project Opentoken_Lib is
       end case;
    end Builder;
 
-end Opentoken_Lib;
+end FastToken_Lib;

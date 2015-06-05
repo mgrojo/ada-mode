@@ -64,13 +64,12 @@ generic
 package FastToken.Lexer.Aflex is
 
    type Instance is new FastToken.Lexer.Instance with private;
-   type Handle is access all Instance;
 
    function Initialize
      (Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size  : in Integer                               := 1024;
       First_Column : in Integer                               := 1)
-     return Handle;
+     return Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 

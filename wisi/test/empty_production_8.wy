@@ -5,9 +5,6 @@
 ;;; output until after conflict is resolved.
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 %keyword ALIASED "aliased"

@@ -8,11 +8,11 @@ Tokens:
  7 => DECLARATIONS_ID
  8 => DECLARATIVE_PART_ID
  9 => BODY_ID
- 10 => OPENTOKEN_ACCEPT_ID
+ 10 => FASTTOKEN_ACCEPT_ID
 
 Parse Table:
 State 1:
-  OPENTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID EOF_ID
+  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID EOF_ID
 
    EOF_ID              => reduce 0 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
@@ -45,7 +45,7 @@ State 3:
    BODY_ID             goto state 7
 
 State 4:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ EOF_ID
+  FASTTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ EOF_ID
 
    EOF_ID              => shift and goto state 6
    default             => ERROR
@@ -61,7 +61,7 @@ State 5:
 
 
 State 6:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
+  FASTTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
 
    EOF_ID              => accept it
    SEMICOLON_ID        => accept it

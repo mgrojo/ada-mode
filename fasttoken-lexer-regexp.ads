@@ -67,9 +67,6 @@ package FastToken.Lexer.Regexp is
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
    overriding
-   procedure Set_Text_Feeder (Lexer : in out Instance; Feeder : in FastToken.Text_Feeder.Text_Feeder_Ptr);
-
-   overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
 
    overriding

@@ -11,11 +11,11 @@ Tokens:
  10 => STATEMENT_ID
  11 => SEQUENCE_OF_STATEMENTS_ID
  12 => LABEL_OPT_ID
- 13 => OPENTOKEN_ACCEPT_ID
+ 13 => FASTTOKEN_ACCEPT_ID
 
 Parse Table:
 State 1:
-  OPENTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
 
    BEGIN_ID                  => shift and goto state 2
    default                   => ERROR
@@ -34,14 +34,14 @@ State 2:
    LABEL_OPT_ID              goto state 8
 
 State 3:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
 
    EOF_ID                    => shift and goto state 4
    default                   => ERROR
 
 
 State 4:
-  OPENTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/COLON_ID/END_ID/BEGIN_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/COLON_ID/END_ID/BEGIN_ID
 
    EOF_ID                    => accept it
    IDENTIFIER_ID             => accept it

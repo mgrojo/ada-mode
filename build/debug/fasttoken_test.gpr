@@ -11,7 +11,6 @@
 --  GNU General Public License for more details.
 
 --  For running FastToken tests.
---  use installed AdaCore aunit
 --
 --  (ediff "fasttoken_test.gpr" "../release/fasttoken_test.gpr")
 
@@ -46,18 +45,6 @@ project FastToken_Test is
       for Switches ("multi_conflict.adb") use
         FastToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999");
 
-      for Switches ("ada_grammar.adb") use
-        FastToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
-      for Switches ("ada_grammar_1.adb") use
-        FastToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
-      for Switches ("ada_grammar_2.adb") use
-        FastToken.Compiler'Default_Switches ("Ada") & ("-gnatyM999", "-fno-var-tracking-assignments");
-
-      -- Aflex generated code does not follow any style rules
-      -- FIXME: fixed now?
-      -- for Switches ("ada_grammar_2_dfa.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada");
-      -- for Switches ("ada_grammar_2_io.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwKU";
-      -- for Switches ("ada_grammar_2_yylex.adb") use Common.Compiler.Debug_Switches & Common.Compiler'Default_Switches ("Ada") & "-gnatwA";
    end Compiler;
 
    package Builder is
