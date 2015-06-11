@@ -39,6 +39,37 @@ install packages in -Q:
 o.e.a.stephe-1 (from o.e.a): external opentoken parser
 o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
+o.e.a.stephe-4 (from o.e.a): idle
+
+ada-goto-declaration-start
+    fails on task declaration
+        only a problem if misusing C-c C-b ada-make-subprogram-body to make a task body
+        C-x C-e skeleton expand works fine
+
+        ada-make-subprogram-body should throw an error if it's not on a
+        _subprogram_ spec, and recommend C-c C-e in the error message.
+
+        but also fails on
+        task body TA is
+        begin
+           null;
+        end TA;
+
+        fix the latter, see if it fixes ada-make-subprogram-body
+            if not, make it throw an error.
+
+    fails on separate (P) procedure X;
+        C-c C-e works
+
+        but also fails on
+        separate (P)
+        procedure X;
+        is
+        begin
+        end X;
+
+        fix the latter, see if it fixes ada-make-subprogram-body
+            if not, obsolete that.
 
 ada-mode.texi
     add "upgrading from 4.0" section
@@ -48,9 +79,12 @@ ada-mode.texi
 add gnat_find_opts or obj_dir?
     see email from Ludovic Brenta
 
-$ADA_...= in .prj:
+$ADA_OBJECTS_PATH...= in .prj:
     += for list
     Needs $CUR_DIR (or PRJ_DIR?)
+
+    but doesn't fix gnatfind xref problem?
+        test
 
 get casing from gpr file
 
@@ -722,6 +756,9 @@ commit elpa:
     (dvc-push "/Projects/elpa")
     (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
+
+test install from elpa
+    5.1.8 crashed emacs for me
 
 (dvc-state-one ".")
 mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"

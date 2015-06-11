@@ -111,6 +111,9 @@ point at which that max was spawned.")
   list (symbol text start . end), where `symbol' is the terminal
   symbol, `text' is the token string, `start . end' is the range
   in the buffer."
+
+  ;; FIXME: (aref automaton 3) is the obarray storing the semantic actions;
+  ;; not used here (see related FIXME in wisi-compile)
   (let* ((actions (aref automaton 0))
 	 (gotos   (aref automaton 1))
 	 (parser-states ;; vector of parallel parser states

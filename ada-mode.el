@@ -368,7 +368,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-x"   'ada-show-overriding)
     (define-key map "\C-c\M-x"   'ada-show-overridden)
     (define-key map "\C-c\C-y" 	 'ada-case-create-exception)
-    (define-key map "\C-c\M-y"   'ada-case-create-partial-exception)
+    (define-key map "\C-c\C-\M-y" 'ada-case-create-partial-exception)
     (define-key map [C-down-mouse-3] 'ada-popup-menu)
 
     (ada-case-activate-keys map)
@@ -1443,6 +1443,7 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-prj-reparse-select-current ()
   "Reparse the current project file, re-select it.
 Useful when the project file has been edited."
+  ;; FIXME: need to kill gpr-query session if .gpr file has changed (like from non-agg to agg!)
   (ada-parse-prj-file ada-prj-current-file)
   (ada-select-prj-file ada-prj-current-file))
 

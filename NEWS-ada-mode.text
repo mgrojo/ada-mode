@@ -9,6 +9,10 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.9
 
+** Key binding for ada-case-create-partial-exception in ada-mode
+   changed to C-c C-M-y; this is easier to type, and matches the key
+   binding in gpr-mode.
+
 ** ada-case-keyword changed to accept the symbols 'lower-case,
    'upper-case instead of the functions downcase-word, upcase-word.
 
@@ -24,6 +28,12 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    with" clauses after other clauses.
 
 ** ada-align now aligns '=>' in case expressions.
+
+** ada-align-paramlist now handles access function parameters:
+
+   procedure Choose
+     (X, Y, Z    :        Integer;
+      Preference : access function (A, B : Integer) return Boolean);
 
 ** ada-next-statement-keyword now moves to matching close paren if on
    open paren, ada-prev-statement-keyword moves from close paren to

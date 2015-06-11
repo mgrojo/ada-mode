@@ -138,6 +138,12 @@ tool @code{gpr_query}, which supports Ada, C, C++, and any other
 language for which AdaCore gcc provides the @code{-fdump-xref}
 (@code{-fdump-xref} is an AdaCore extension).
 
+@c FIXME: list xref features supported by gpr_query but not gnatfind
+@c at least:
+@c C and C++ source code
+@c ada-xref-overriding-function
+@c ada-xref-overridden-function
+
 @code{gpr_query} requires the @code{gnatcoll} library provided by
 AdaCore, distributed with GNAT GPL 2014.
 
