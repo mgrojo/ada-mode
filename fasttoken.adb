@@ -25,7 +25,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Ada.Text_IO;
 package body FastToken is
 
    function Int_Image (Item : in Integer) return String
@@ -35,12 +34,4 @@ package body FastToken is
    begin
       return Trim (Integer'Image (Item), Both);
    end Int_Image;
-
-   procedure Trace_Put (Message : in String)
-   is
-      use Ada.Strings.Fixed;
-   begin
-      Ada.Text_IO.Put (Trace_Indent * 3 * ' ' & Message);
-   end Trace_Put;
-
 end FastToken;

@@ -69,20 +69,12 @@ package FastToken.Lexer.Aflex is
      (Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size  : in Integer                               := 1024;
       First_Column : in Integer                               := 1)
-     return Lexer.Handle;
+     return FastToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
    overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
-
-   overriding
-   function End_Of_Buffered_Text (Lexer : in Instance) return Boolean;
-   --  FIXME: why is this visible?
-
-   overriding
-   procedure Discard_Buffered_Text (Lexer : in out Instance);
-   --  FIXME: is this ever called without Reset?
 
    overriding procedure Find_Next (Lexer : in out Instance);
 

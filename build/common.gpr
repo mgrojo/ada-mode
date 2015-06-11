@@ -35,9 +35,11 @@ project Common is
          "-fstack-check");
 
       --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
-      --  "potentially unsafe and disruptive optimizations". We include
-      --  -fstack-check because it catches hard-to-find bugs, and the
-      --  processors are so fast.
+      --  "potentially unsafe and disruptive optimizations". We
+      --  include -fstack-check because it catches hard-to-find bugs,
+      --  and the processors are so fast.
+      --  -fno-var-tracking-assignments speeds compiling of large
+      --  files; var tracking is only useful for debugging.
       Release_Switches :=
         ("-g",
          "-O2",
@@ -45,7 +47,8 @@ project Common is
          "-gnatfnoqQ",
          "-gnatwaeL",
          "-gnatyO",
-         "-fstack-check");
+         "-fstack-check",
+         "-fno-var-tracking-assignments");
 
    end Compiler;
 

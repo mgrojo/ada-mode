@@ -98,10 +98,10 @@ package body Test_Empty_Productions_8 is
      (Token_ID, COLON_EQUAL_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, First_State_Index, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
-     LALR_Generator.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
+     LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LRk.Derivation_Matrix := LALR_Generator.LRk.First_Derivations
+   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
@@ -110,7 +110,7 @@ package body Test_Empty_Productions_8 is
    procedure Kernels_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
 
       Kernels : constant Item_Set_List := LR0_Kernels
         (Grammar, First, Trace => Test.Debug, First_State_Index => LALR.Unknown_State_Index (First_State_Index));

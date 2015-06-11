@@ -69,17 +69,6 @@ package body FastToken.Lexer.Aflex is
       return YY_EOF_Has_Been_Seen;
    end End_Of_Text;
 
-   overriding function End_Of_Buffered_Text (Lexer : in Instance) return Boolean
-   is begin
-      raise Programmer_Error;
-      return False;
-   end End_Of_Buffered_Text;
-
-   overriding procedure Discard_Buffered_Text (Lexer : in out Instance)
-   is begin
-      raise Programmer_Error;
-   end Discard_Buffered_Text;
-
    overriding procedure Find_Next (Lexer : in out Instance)
    is begin
       Lexer.Token := YYLex;

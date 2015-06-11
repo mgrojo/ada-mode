@@ -52,49 +52,49 @@ package Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Lookahead_Ptr;
-      Expected : in LALR_Generator.LRk.Item_Lookahead_Ptr);
+      Computed : in LALR_Generator.LR1.Item_Lookahead_Ptr;
+      Expected : in LALR_Generator.LR1.Item_Lookahead_Ptr);
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Ptr;
-      Expected : in LALR_Generator.LRk.Item_Ptr);
+      Computed : in LALR_Generator.LR1.Item_Ptr;
+      Expected : in LALR_Generator.LR1.Item_Ptr);
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Set;
-      Expected : in LALR_Generator.LRk.Item_Set);
+      Computed : in LALR_Generator.LR1.Item_Set;
+      Expected : in LALR_Generator.LR1.Item_Set);
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Set_Reference_Ptr;
-      Expected : in LALR_Generator.LRk.Set_Reference_Ptr);
+      Computed : in LALR_Generator.LR1.Set_Reference_Ptr;
+      Expected : in LALR_Generator.LR1.Set_Reference_Ptr);
 
    function Get_Production (Prod : in Integer) return Production.Instance;
    --  Return Prod production in Grammar.
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LALR_Generator.LRk.Item_Lookahead_Ptr;
+      Lookaheads : in LALR_Generator.LR1.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LALR_Generator.LRk.Item_Ptr := null;
+      Next       : in LALR_Generator.LR1.Item_Ptr := null;
       State      : in LALR.Unknown_State_Index    := LALR.Unknown_State)
-     return LALR_Generator.LRk.Item_Ptr;
+     return LALR_Generator.LR1.Item_Ptr;
    --  Construct an LR1 item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
-      Next : in LALR_Generator.LRk.Item_Set_Ptr)
-     return LALR_Generator.LRk.Item_Set;
+      Next : in LALR_Generator.LR1.Item_Set_Ptr)
+     return LALR_Generator.LR1.Item_Set;
    --  Construct an LR1 item_set with Prod from Grammar, Dot before
    --  token Dot (1 indexed; use last + 1 for after last), null lookaheads
    --  and goto_list.
 
    type Token_Array is array (Positive range <>) of Token_ID;
 
-   function "+" (Item : in Token_Array) return LALR_Generator.LRk.Item_Lookahead_Ptr;
+   function "+" (Item : in Token_Array) return LALR_Generator.LR1.Item_Lookahead_Ptr;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LALR.Parse_Action_Verbs);
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LALR.Unknown_State_Index);

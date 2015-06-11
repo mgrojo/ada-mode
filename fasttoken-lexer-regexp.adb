@@ -195,20 +195,6 @@ package body FastToken.Lexer.Regexp is
       return Lexer.Feeder.End_Of_Text and Lexer.Buffer_Tail < Lexer.Buffer_Head;
    end End_Of_Text;
 
-   overriding function End_Of_Buffered_Text
-     (Lexer : in Instance)
-     return Boolean
-   is begin
-      raise Programmer_Error with "Unimplemented function lexer.regexp.End_Of_Buffered_Text";
-      return False;
-   end End_Of_Buffered_Text;
-
-   overriding procedure Discard_Buffered_Text
-     (Lexer : in out Instance)
-   is begin
-      raise Programmer_Error with "Unimplemented procedure lexer.regexp.Discard_Buffered_Text";
-   end Discard_Buffered_Text;
-
    overriding procedure Find_Next (Lexer : in out Instance)
    is
       use type Token.Token_ID;

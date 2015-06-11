@@ -63,10 +63,4 @@ package FastToken is
    function Int_Image (Item : in Integer) return String;
    --  No leading space
 
-private
-   Trace_Indent : Integer := 0;
-
-   procedure Trace_Put (Message : in String);
-   --  Put Message, indented by 3 * Trace_Indent; no new_line
-
 end FastToken;

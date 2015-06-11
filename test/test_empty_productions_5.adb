@@ -85,11 +85,11 @@ package body Test_Empty_Productions_5 is
      (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
-     LALR_Generator.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
+     LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LRk.Derivation_Matrix :=
-     LALR_Generator.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LR1.Derivation_Matrix :=
+     LALR_Generator.LR1.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
@@ -97,7 +97,7 @@ package body Test_Empty_Productions_5 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       Kernel : constant Item_Set := Get_Item_Set
@@ -105,7 +105,7 @@ package body Test_Empty_Productions_5 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generator.LRk.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generator.LR1.Lookahead_Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -141,7 +141,7 @@ package body Test_Empty_Productions_5 is
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.LRk.Put (Expected);
+         LALR_Generator.LR1.Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 

@@ -509,15 +509,13 @@ is
       Put_Line ("--");
       Put_Prologue (Ada_Syntax => True);
 
-      if not Profile then
-         case Interface_Kind is
-         when Process =>
-            Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
+      case Interface_Kind is
+      when Process =>
+         Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
 
-         when Module =>
-            Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
-         end case;
-      end if;
+      when Module =>
+         Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
+      end case;
 
       case Lexer is
       when Aflex_Lexer =>
@@ -1032,35 +1030,56 @@ is
       for State_Index in Parser'Range loop
          Actions :
          declare
+            use Ada.Strings.Unbounded;
             use Generate_Utils.LALR;
-            Node : Action_Node_Ptr := Parser (State_Index).Action_List;
+            Base_Indent : constant Ada.Text_IO.Count  := Indent;
+            Node        : Action_Node_Ptr := Parser (State_Index).Action_List;
+            Line        : Unbounded_String;
+
+            procedure Append (Item : in String)
+            is
+               --  FIXME: get max line length from command line option
+               Max_Line_Length : constant := 120;
+            begin
+               --  -2 for trailing ); or ,
+               if Indent + Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 2 then
+                  Put_Line (-Trim (Line, Ada.Strings.Right));
+                  Indent := Indent + 2;
+                  Set_Col (Indent);
+                  Line := +Item;
+               else
+                  Line := Line & Item;
+               end if;
+            end Append;
+
          begin
             loop
                exit when Node = null;
                Table_Entry_Count := Table_Entry_Count + 1;
                Set_Col (Indent);
-               Put ("Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol));
+               Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
                declare
                   Action_Node : Parse_Action_Node_Ptr := Node.Action;
                begin
                   case Action_Node.Item.Verb is
                   when Shift =>
-                     Put (", " & State_Image (Action_Node.Item.State));
+                     Append (", ");
+                     Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
                      if Action_Node.Next = null then
                         if Action_Node.Item.Verb = Reduce then
-                           Put (", Reduce");
+                           Append (", Reduce");
                         else
-                           Put (", Accept_It");
+                           Append (", Accept_It");
                         end if;
                      else
                         --  conflict; Verb must be reduce
                         null;
                      end if;
-                     Put
-                       (", " & Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                          Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                          Action_Name (Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                     Append (", ");
+                     Append (Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
+                     Append (Action_Name (Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                   when Error =>
                      null;
                   end case;
@@ -1070,10 +1089,12 @@ is
                      --  Conflict; second action is Shift or Reduce
                      case Action_Node.Item.Verb is
                      when Shift =>
-                        Put (", " & State_Image (Action_Node.Item.State));
+                        Append (", ");
+                        Append (State_Image (Action_Node.Item.State));
                      when Reduce =>
-                        Put
-                          (", " & Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                        Append (", ");
+                        Append
+                          (Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
                              Integer'Image (Action_Node.Item.Token_Count) & ", " &
                              Action_Name (Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                      when others =>
@@ -1082,7 +1103,8 @@ is
                      end case;
                   end if;
                end;
-               Put_Line (");");
+               Put_Line (-Line & ");");
+               Indent := Base_Indent;
                Node := Node.Next;
             end loop;
          end Actions;
@@ -1467,28 +1489,18 @@ is
       --  Grammar files can get very large, so they need some special switches:
       --
       --  'Wisi_Module_Parse_Common.Compiler'Default_Switches' includes 'gnatn', but that hangs
-      --
-      --  gcc gives up without -fno-var-tracking-assignments; it is
-      --  only useful when debugging, which is typically not needed in
-      --  this file.
       Indent_Line ("case Wisi_Module_Parse_Common.Build is");
       Indent_Line ("when ""Debug"" =>");
       Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
       Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
-      Indent_Line ("     (""-O0"", ""-fno-var-tracking-assignments"");");
+      Indent_Line ("     (""-O0"");");
       Indent_Line ("when ""Normal"" =>");
-      Indent_Line ("for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
-      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
-      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
-      Indent_Line ("  (""-O2"", ""-fno-var-tracking-assignments"");");
+      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("     (""-O2"");");
       Indent_Line ("end case;");
-
-      --  Other optimization levels hang here.
-      Indent_Line ("for Switches (""" & Lower_Package_Name_Root & "_module.ads"") use");
-      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Common_Switches &");
-      Indent_Line ("  Wisi_Module_Parse_Common.Compiler.Standard_Style &");
-      Indent_Line ("  (""-O0""); ");
 
       Indent := Indent - 3;
       Indent_Line ("end Compiler;");
@@ -1578,8 +1590,3 @@ when others =>
    Set_Output (Standard_Output);
    raise;
 end Wisi.Output_Ada_Emacs;
---  FIXME: if keep, add to `safe-local-variable-values'
---  parsing is slow, so it gets in the way of interactive typeing due to immediate font-lock. Slow that down.
---  Local Variables:
---  jit-lock-defer-time: 0.5
---  End:

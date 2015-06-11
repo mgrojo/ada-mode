@@ -60,12 +60,6 @@ package FastToken.Parser is
    --
    --  Appropriate if the Text_Feeder's input has changed.
 
-   procedure Discard_Buffered_Text (Parser : in out Instance);
-   --  Discard text in Parser.Analyzer's internal buffer.
-   --
-   --  Appropriate when starting over after a parse error is
-   --  encountered.
-
    function End_Of_Text (Parser : in Instance) return Boolean;
    --  True if the lexer input buffer is empty, and text feeder
    --  reports end of text.

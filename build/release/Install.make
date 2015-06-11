@@ -33,6 +33,7 @@ install: install-clean
 	(cd ../../; tar cf - *.ad[bs]) | tar xf - -C $(I_INC)
 	(cd ../../Language_Lexers; tar cf - *.ad[bs]) | tar xf - -C $(I_INC)
 	(cd ../; tar cf - opentoken.gpr) | tar xf - -C $(I_GPR)
+	strip -o $(I_BIN)/wisi-generate.exe wisi-generate.exe
 
 install-clean :
 	rm -rf $(I_INC)

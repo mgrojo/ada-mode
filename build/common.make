@@ -112,7 +112,7 @@ test_java_lexer.run : test_java_lexer.exe
 test_m3_lexer.run : test_m3_lexer.exe
 	./test_m3_lexer.exe ../../Examples/Language_Lexer_Examples/something.java
 
-install: library
+install: library wisi-generate.exe
 	make -f Install.make install
 
 uninstall:
@@ -205,7 +205,7 @@ aflex-clean :
 
 .PRECIOUS : %_process.ada %.ads %_run.exe %_process.l %.parse %-wy.el
 
-vpath %.wy ../../wisi/test
+vpath %.wy ../../wisi/test ../../time
 vpath %-wy.good_el  ../../wisi/test
 vpath %.good_parse  ../../wisi/test
 vpath %.input  ../../wisi/test

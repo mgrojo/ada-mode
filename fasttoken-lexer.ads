@@ -52,14 +52,6 @@ package FastToken.Lexer is
    --  True if Lexer's internal buffer is empty, and
    --  Lexer.Text_Feeder reports End_Of_Text.
 
-   function End_Of_Buffered_Text (Lexer : in Instance) return Boolean is abstract;
-   --  True if Lexer's internal buffer is empty.
-   --  FIXME: delete?
-
-   procedure Discard_Buffered_Text (Lexer : in out Instance) is abstract;
-   --  Discard text in Lexer's internal buffer. Do this when a
-   --  parse error is encountered, and you want to start over.
-
    function Lexeme (Lexer : in Instance) return String is abstract;
    --  Return the actual text of the last token that was matched.
 

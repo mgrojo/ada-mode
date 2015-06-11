@@ -39,17 +39,25 @@ t_all : test_all_harness.diff
 
 # from ../common.make
 #one : test-clean
-#one : multi_conflict_process_yylex.adb
-#one : multi_conflict-parse.diff
+one : multi_conflict_process_yylex.adb
+one : multi_conflict-parse.diff
 
-aflex.exe : force
-	make -C /Projects/aflex/build install
+# two: ~/bin/aflex.exe
+two: ada_grammar_process.l ada_grammar_process_yylex.adb run_ada_parser.exe
+	bash -c "time ./run_ada_parser 10 ../../time/gnatcoll-xref.adb"
+
+ada_grammar_process.l : ada_grammar.wy wisi-generate.exe
+	./wisi-generate.exe --profile ../../time/ada_grammar.wy Ada_Emacs Aflex_Lexer process
+
+~/bin/aflex.exe : force
+	make -C /Projects/aflex/build ~/bin/aflex.exe
 
 trace :
 	addr2line -e asu_example_5_10_rd-run.exe 0x411a82 0x411aec 0x416f34 0x401783 0x401235 0x401286 0x7c817075
 
 include ../common.make
 
+# (gpr-query-kill-all-sessions)
 # Local Variables:
 # eval: (load-file "../fasttoken.el")
 # eval: (ada-parse-prj-file "fasttoken.prj")

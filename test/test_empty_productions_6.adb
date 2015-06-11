@@ -94,23 +94,23 @@ package body Test_Empty_Productions_6 is
      (Token_ID, COLON_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, First_State_Index, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
-     LALR_Generator.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
+     LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LRk.Derivation_Matrix := LALR_Generator.LRk.First_Derivations
+   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    Accept_Index : constant := 3;
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LRk.Item_Set_List;
+      Kernels  : in LALR_Generator.LR1.Item_Set_List;
       State    : in LALR.Unknown_State_Index;
       Expected : in LALR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Kernel    : constant LALR_Generator.LRk.Item_Set_Ptr := LALR_Generator.LRk.Find (State, Kernels);
+      Kernel    : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
       Conflicts : LALR.Conflict_Lists.List;
       Table     : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
    begin
@@ -133,7 +133,7 @@ package body Test_Empty_Productions_6 is
    is
       Test : Test_Case renames Test_Case (T);
       use LALR;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels
@@ -148,7 +148,7 @@ package body Test_Empty_Productions_6 is
       Parser    : LALR.Parse_Table_Ptr;
    begin
       if Test.Debug then
-         LALR_Generator.LRk.Put (Kernels);
+         LALR_Generator.LR1.Put (Kernels);
       end if;
 
       --  kernel 1:

@@ -69,14 +69,6 @@ package FastToken.Lexer.Regexp is
    overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
 
-   overriding
-   function End_Of_Buffered_Text (Lexer : in Instance) return Boolean;
-   --  FIXME: why is this visible?
-
-   overriding
-   procedure Discard_Buffered_Text (Lexer : in out Instance);
-   --  FIXME: is this ever called without Reset?
-
    overriding procedure Find_Next (Lexer : in out Instance);
 
    overriding

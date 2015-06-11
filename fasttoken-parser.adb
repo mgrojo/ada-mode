@@ -34,11 +34,6 @@ package body FastToken.Parser is
       Parser.Analyzer.Reset (Buffer_Size);
    end Reset;
 
-   procedure Discard_Buffered_Text (Parser : in out Instance)
-   is begin
-      Parser.Analyzer.Discard_Buffered_Text;
-   end Discard_Buffered_Text;
-
    function End_Of_Text (Parser : in Instance) return Boolean
    is begin
       return Parser.Analyzer.End_Of_Text;

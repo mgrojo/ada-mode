@@ -35,8 +35,7 @@ generic
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LALR.Generator is
 
-   package LRk is new FastToken.Parser.Lrk_Item (Unknown_State_Index, Unknown_State, 1, Nonterminal, Production);
-   --  FIXME: rename to LR1
+   package LR1 is new FastToken.Parser.Lrk_Item (Unknown_State_Index, Unknown_State, 1, Nonterminal, Production);
 
    function Generate
      (Grammar                  : in Production.List.Instance;
@@ -70,19 +69,19 @@ package FastToken.Parser.LALR.Generator is
 
    procedure Fill_In_Lookaheads
      (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
-      First                : in     LRk.Derivation_Matrix;
-      Kernels              : in out LRk.Item_Set_List;
+      Has_Empty_Production : in     LR1.Nonterminal_ID_Set;
+      First                : in     LR1.Derivation_Matrix;
+      Kernels              : in out LR1.Item_Set_List;
       Accept_State         : in     State_Index;
       Used_Tokens          : in out Token.Token_Array_Boolean;
       Trace                : in     Boolean);
 
    procedure Add_Actions
-     (Kernel               : in     LRk.Item_Set_Ptr;
+     (Kernel               : in     LR1.Item_Set_Ptr;
       Accept_State         : in     State_Index;
       Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LRk.Nonterminal_ID_Set;
-      First                : in     LRk.Derivation_Matrix;
+      Has_Empty_Production : in     LR1.Nonterminal_ID_Set;
+      First                : in     LR1.Derivation_Matrix;
       Conflicts            : in out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean);

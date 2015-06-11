@@ -106,10 +106,10 @@ package body Test_LR1_Lookahead_Closure is
    is
       Test : Test_Case renames Test_Case (T);
 
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
-      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LRk.Has_Empty_Production (Grammar);
+      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
       First : constant Derivation_Matrix := First_Derivations
         (Grammar, Has_Empty_Production, Trace => Test.Debug);

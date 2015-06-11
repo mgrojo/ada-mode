@@ -77,11 +77,11 @@ package body Test_Empty_Productions_4 is
      Nonterminal.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
-     LALR_Generator.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
+     LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LRk.Derivation_Matrix :=
-     LALR_Generator.LRk.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LR1.Derivation_Matrix :=
+     LALR_Generator.LR1.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

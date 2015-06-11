@@ -61,11 +61,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Lookahead_Ptr;
-      Expected : in LALR_Generator.LRk.Item_Lookahead_Ptr)
+      Computed : in LALR_Generator.LR1.Item_Lookahead_Ptr;
+      Expected : in LALR_Generator.LR1.Item_Lookahead_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       Computed_I : Item_Lookahead_Ptr := Computed;
       Expected_I : Item_Lookahead_Ptr := Expected;
       Index : Integer := 1;
@@ -86,11 +86,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Ptr;
-      Expected : in LALR_Generator.LRk.Item_Ptr)
+      Computed : in LALR_Generator.LR1.Item_Ptr;
+      Expected : in LALR_Generator.LR1.Item_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -118,12 +118,12 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Item_Set;
-      Expected : in LALR_Generator.LRk.Item_Set)
+      Computed : in LALR_Generator.LR1.Item_Set;
+      Expected : in LALR_Generator.LR1.Item_Set)
    is
       use AUnit.Checks;
-      use type LALR_Generator.LRk.Set_Reference_Ptr;
-      use type LALR_Generator.LRk.Item_Set_Ptr;
+      use type LALR_Generator.LR1.Set_Reference_Ptr;
+      use type LALR_Generator.LR1.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set);
@@ -133,11 +133,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LRk.Set_Reference_Ptr;
-      Expected : in LALR_Generator.LRk.Set_Reference_Ptr)
+      Computed : in LALR_Generator.LR1.Set_Reference_Ptr;
+      Expected : in LALR_Generator.LR1.Set_Reference_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       Computed_I : Set_Reference_Ptr := Computed;
       Expected_I : Set_Reference_Ptr := Expected;
       Index      : Integer  := 1;
@@ -175,11 +175,11 @@ package body Gen_FastToken_AUnit is
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LALR_Generator.LRk.Item_Lookahead_Ptr;
+      Lookaheads : in LALR_Generator.LR1.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LALR_Generator.LRk.Item_Ptr := null;
+      Next       : in LALR_Generator.LR1.Item_Ptr := null;
       State      : in LALR.Unknown_State_Index    := LALR.Unknown_State)
-     return LALR_Generator.LRk.Item_Ptr
+     return LALR_Generator.LR1.Item_Ptr
    is
       Grammar_I : Production.List.List_Iterator := Grammar.First;
 
@@ -194,7 +194,7 @@ package body Gen_FastToken_AUnit is
          Token_Pkg.List.Next_Token (Dot_I);
       end loop;
 
-      return new LALR_Generator.LRk.Item_Node'
+      return new LALR_Generator.LR1.Item_Node'
         (Prod       => Production.List.Current (Grammar_I),
          Dot        => Dot_I,
          State      => State,
@@ -205,8 +205,8 @@ package body Gen_FastToken_AUnit is
    function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
-      Next : in LALR_Generator.LRk.Item_Set_Ptr)
-     return LALR_Generator.LRk.Item_Set
+      Next : in LALR_Generator.LR1.Item_Set_Ptr)
+     return LALR_Generator.LR1.Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -219,9 +219,9 @@ package body Gen_FastToken_AUnit is
          Next            => Next);
    end Get_Item_Set;
 
-   function "+" (Item : in Token_Array) return LALR_Generator.LRk.Item_Lookahead_Ptr
+   function "+" (Item : in Token_Array) return LALR_Generator.LR1.Item_Lookahead_Ptr
    is
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       Result : Item_Lookahead_Ptr;
    begin
       for I in reverse Item'Range loop

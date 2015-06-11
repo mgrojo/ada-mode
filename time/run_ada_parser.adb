@@ -1,12 +1,12 @@
 with Ada.Strings.Unbounded;
-with Ada.Command_Line;  use Ada.Command_Line;
+with Ada.Command_Line;        use Ada.Command_Line;
 with Ada.Exceptions;
-with Ada.Text_IO;       use Ada.Text_IO;
-with Ada_Grammar_2;     use Ada_Grammar_2;
-with ada_grammar_2_dfa; use ada_grammar_2_dfa;
+with Ada.Text_IO;             use Ada.Text_IO;
+with Ada_Grammar_Process;     use Ada_Grammar_Process;
+with ada_grammar_process_dfa; use ada_grammar_process_dfa;
 with GNAT.OS_Lib;
-with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
-procedure Run_Ada_Parser_2
+with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
+procedure Run_Ada_Parser
 is
    procedure Put_Usage
    is begin
@@ -23,36 +23,32 @@ is
 
    Count          : Integer;
    File           : GNAT.OS_Lib.File_Descriptor;
-   Counted_Feeder : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Handle;
-   Feeder         : OpenToken.Text_Feeder.Text_Feeder_Ptr;
-   Parser         : LALR_Parsers.Instance := Create_Parser (Terminate_Same_State => True);
+   File_Size      : Integer;
+   Feeder         : FastToken.Text_Feeder.Text_Feeder_Ptr;
+   Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Handle;
+   Parser         : LALR_Parser.Instance;
 
    procedure Use_File (File_Name : in String)
    is
       use GNAT.OS_Lib;
-      File_Size : Integer;
 
    begin
-      Run_Ada_Parser_2.File_Name := +File_Name;
+      Run_Ada_Parser.File_Name := +File_Name;
 
       File := Open_Read (File_Name, Text);
       --  Mode Text normalizes CR/LF to LF
 
-      Feeder := OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
-
-      Counted_Feeder := OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Handle (Feeder);
-
-      File_Size := Integer (File_Length (File));
-
-      ada_grammar_2_dfa.Set_Buffer_Size (File_Size);
-
+      Feeder         := FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
+      Counted_Feeder := FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Handle (Feeder);
+      File_Size      := Integer (File_Length (File));
       Counted_Feeder.Reset (File_Size);
-      Parser.Set_Text_Feeder (Feeder);
+
+      Parser := Create_Parser (Text_Feeder => Feeder, Buffer_Size => File_Size + 2);
 
    exception
    when Name_Error =>
       Put_Line (File_Name & " cannot be opened");
-      raise OpenToken.User_Error;
+      raise FastToken.User_Error;
    end Use_File;
 
 begin
@@ -64,7 +60,7 @@ begin
       Count := Integer'Value (Argument (1));
       Use_File (Argument (2));
 
-      OpenToken.Trace_Parse := 1;
+      FastToken.Trace_Parse := 1;
       aflex_debug           := True;
 
    else
@@ -74,14 +70,14 @@ begin
    end if;
 
    for I in 1 .. Count loop
-      LALR_Parsers.Parse (Parser);
+      Parser.Parse;
       GNAT.OS_Lib.Lseek (File, 0, GNAT.OS_Lib.Seek_Set);
-      Counted_Feeder.Reset (Integer (GNAT.OS_Lib.File_Length (File)));
-      Parser.Reset;
+      Counted_Feeder.Reset (File_Size); -- FIXME; reset should do lseek?
+      Parser.Reset (Buffer_Size => File_Size + 2);
    end loop;
 
 exception
-when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
    Put_Line (-File_Name & ":" & Ada.Exceptions.Exception_Message (E));
    Set_Exit_Status (Failure);
 
@@ -90,4 +86,4 @@ when E : others =>
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Set_Exit_Status (Failure);
 
-end Run_Ada_Parser_2;
+end Run_Ada_Parser;

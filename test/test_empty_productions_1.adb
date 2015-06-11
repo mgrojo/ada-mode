@@ -83,21 +83,21 @@ package body Test_Empty_Productions_1 is
      (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LRk.Nonterminal_ID_Set :=
-     LALR_Generator.LRk.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
+     LALR_Generator.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LRk.Derivation_Matrix := LALR_Generator.LRk.First_Derivations
+   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LALR_Generator.LRk.Item_Set;
+      Kernel   : in LALR_Generator.LR1.Item_Set;
       Symbol   : in Token_ID;
-      Expected : in LALR_Generator.LRk.Item_Set;
+      Expected : in LALR_Generator.LR1.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -112,19 +112,19 @@ package body Test_Empty_Productions_1 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LRk.Item_Set_List;
+      Kernels  : in LALR_Generator.LR1.Item_Set_List;
       State    : in LALR.Unknown_State_Index;
       Expected : in LALR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
       Accept_Index : constant                                 := 1;
-      Kernel       : constant LALR_Generator.LRk.Item_Set_Ptr := LALR_Generator.LRk.Find (State, Kernels);
+      Kernel       : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
       Conflicts    : LALR.Conflict_Lists.List;
       Table        : LALR.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
-         LALR_Generator.LRk.Put (Kernel.all);
+         LALR_Generator.LR1.Put (Kernel.all);
       end if;
 
       LALR_Generator.Add_Actions
@@ -147,7 +147,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       --  kernel:
@@ -194,7 +194,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       --  kernel:
@@ -237,10 +237,10 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
-      Kernels  : constant Item_Set_List := LALR_Generator.LRk.LR0_Kernels
+      Kernels  : constant Item_Set_List := LALR_Generator.LR1.LR0_Kernels
         (Grammar, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
@@ -291,7 +291,7 @@ package body Test_Empty_Productions_1 is
    is
       Test : Test_Case renames Test_Case (T);
       use LALR;
-      use LALR_Generator.LRk;
+      use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels (Grammar, First, Trace => False, First_State_Index => 1);
