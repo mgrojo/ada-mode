@@ -1,8 +1,8 @@
---  Abstract :
+--  Abstract:
 --
---  Config file operations for types in Ada.*
+--  see spec
 --
---  Copyright (C) 2003, 2004, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2005, 2006, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,25 +18,35 @@
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
+--  executable, this  unit  does not  by itself cause  the resulting
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  executable file  might be covered by the  GNU Public License.
 
 pragma License (Modified_GPL);
 
-with SAL.Config_Files; use SAL.Config_Files;
-package Ada_Config is
-   --  Note that this is _not_ Ada . Config; that's illegal
-
-   function Read is new Read_Enum (Standard.Boolean);
-   procedure Write is new Write_Enum (Standard.Boolean);
-
-   function Read is new Read_Iterator_Enum (Standard.Boolean);
-
-   function Read is new Read_Integer (Standard.Integer);
-   procedure Write is new Write_Integer (Standard.Integer);
-
-   function Read is new Read_Iterator_Integer (Standard.Integer);
-
-end Ada_Config;
+function SAL.Generic_Hex_Value (Item : in String) return Number_Type
+is
+   Hex_Value  : Number_Type;
+   Exponent   : Natural;
+   Char_Value : Number_Type;
+   Temp       : Number_Type;
+begin
+   Hex_Value := 0;
+   Exponent  := 0;
+   for I in reverse Item'First .. Item'Last loop
+      Temp := 0;
+      Char_Value := Character'Pos (Item (I));
+      if Char_Value in Character'Pos ('a') .. Character'Pos ('f') then
+         Char_Value := Char_Value - 32;
+      end if;
+      if Char_Value >= Character'Pos ('A') then
+         Temp := (Char_Value - Character'Pos ('A')) + 10;
+      else
+         Temp := Char_Value - Character'Pos ('0');
+      end if;
+      Hex_Value := Hex_Value + (Temp * (16 ** Exponent));
+      Exponent  := Exponent  + 1;
+   end loop;
+   return Hex_Value;
+end SAL.Generic_Hex_Value;

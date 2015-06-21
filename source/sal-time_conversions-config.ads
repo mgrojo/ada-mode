@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Config file operations for types in Ada.*
+--  Config file subprograms for parent.
 --
---  Copyright (C) 2003, 2004, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,25 +18,18 @@
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
+--  executable, this  unit  does not  by itself cause  the resulting
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  executable file  might be covered by the  GNU Public License.
 
-pragma License (Modified_GPL);
+with SAL.Config_Files;
+package SAL.Time_Conversions.Config is
+   --  pragma Elaborate_Body; --  SAL.Config_Files is, but we have no body
 
-with SAL.Config_Files; use SAL.Config_Files;
-package Ada_Config is
-   --  Note that this is _not_ Ada . Config; that's illegal
+   function Read is new SAL.Config_Files.Read_Fixed (SAL.Time_Conversions.Time_Type);
+   function Read is new SAL.Config_Files.Read_Iterator_Fixed (SAL.Time_Conversions.Time_Type);
 
-   function Read is new Read_Enum (Standard.Boolean);
-   procedure Write is new Write_Enum (Standard.Boolean);
+   procedure Write is new SAL.Config_Files.Write_Fixed (SAL.Time_Conversions.Time_Type);
 
-   function Read is new Read_Iterator_Enum (Standard.Boolean);
-
-   function Read is new Read_Integer (Standard.Integer);
-   procedure Write is new Write_Integer (Standard.Integer);
-
-   function Read is new Read_Iterator_Integer (Standard.Integer);
-
-end Ada_Config;
+end SAL.Time_Conversions.Config;

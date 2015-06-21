@@ -1,8 +1,8 @@
---  Abstract :
+--  Abstract:
 --
---  Config file operations for types in Ada.*
+--  see spec
 --
---  Copyright (C) 2003, 2004, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,25 +18,38 @@
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
+--  executable, this  unit  does not  by itself cause  the resulting
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  executable file  might be covered by the  GNU Public License.
 
 pragma License (Modified_GPL);
 
-with SAL.Config_Files; use SAL.Config_Files;
-package Ada_Config is
-   --  Note that this is _not_ Ada . Config; that's illegal
+function SAL.Generic_Float_Image
+  (Item : in Number_Type;
+   Fore : in Natural;
+   Aft  : in Natural)
+  return String
+is
+   Temp  : Integer := Integer (abs Item * Number_Type (10 ** Aft));
+   Digit : Integer;
+   Image : String (1 .. Fore + Aft + 1);
+begin
+   for I in reverse 1 .. Aft loop
+      Digit := Temp mod 10;
+      Temp  := Temp / 10;
 
-   function Read is new Read_Enum (Standard.Boolean);
-   procedure Write is new Write_Enum (Standard.Boolean);
+      Image (Fore + I + 1) := Character'Val (Character'Pos ('0') + Digit);
+   end loop;
 
-   function Read is new Read_Iterator_Enum (Standard.Boolean);
+   Image (Fore + 1) := '.';
 
-   function Read is new Read_Integer (Standard.Integer);
-   procedure Write is new Write_Integer (Standard.Integer);
+   for I in reverse 1 .. Fore loop
+      Digit := Temp mod 10;
+      Temp  := Temp / 10;
 
-   function Read is new Read_Iterator_Integer (Standard.Integer);
+      Image (I) := Character'Val (Character'Pos ('0') + Digit);
+   end loop;
+   return Image;
 
-end Ada_Config;
+end SAL.Generic_Float_Image;

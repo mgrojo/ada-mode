@@ -2,19 +2,29 @@
 --
 --  Run one test, while working on it.
 
-with AUnit.Test_Results.Text_Reporter;
+with AUnit.Options;
+with AUnit.Reporter.Text;
+with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with SAL.AUnit.Test;
+with Ada.Text_IO;
+with GNAT.Traceback.Symbolic;
+with Test_Randomize_Lists;
 procedure Test_One_Harness
 is
-   Suite  : constant Access_Test_Suite := new Test_Suite;
-   Result : AUnit.Test_Results.Result;
+   Suite    : constant Access_Test_Suite := new Test_Suite;
+   Reporter : AUnit.Reporter.Text.Text_Reporter;
+   Result   : AUnit.Test_Results.Result;
+   Status   : AUnit.Status;
 
 begin
-   Add_Test (Suite, new SAL.AUnit.Test.Test_Case);
+   Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => True));
 
-   Run (Suite.all, Result);
+   Run (Suite, AUnit.Options.Default_Options, Result, Status);
 
-   AUnit.Test_Results.Text_Reporter.Report (Result);
+   --  Provide command line option -v to set verbose mode
+   AUnit.Reporter.Text.Report (Reporter, Result);
 
+exception
+when E : others =>
+   Ada.Text_IO.Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Test_One_Harness;

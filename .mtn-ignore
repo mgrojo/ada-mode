@@ -1,1 +1,4 @@
+^build/debug/.*\.exe$
+^build/debug/objects$
+^build/release/.*\.exe$
 ^build/release/objects$

@@ -1,0 +1,21 @@
+--  For use by other projects
+with "standard_common";
+project SAL is
+
+   for Source_Dirs use
+     ("../../source");
+
+   for Object_Dir use "objects";
+   for Exec_Dir use ".";
+
+   package Compiler is
+
+      for Default_Switches ("Ada") use
+        Standard_Common.Compiler.Debug_Switches &
+        Standard_Common.Compiler.Style_Checks &
+        Standard_Common.Compiler'Default_Switches ("Ada");
+
+
+   end Compiler;
+
+end SAL;

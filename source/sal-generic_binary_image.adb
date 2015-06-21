@@ -1,8 +1,8 @@
---  Abstract :
+--  Abstract:
 --
---  Config file operations for types in Ada.*
+--  see spec
 --
---  Copyright (C) 2003, 2004, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2005, 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,25 +18,31 @@
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
+--  executable, this  unit  does not  by itself cause  the resulting
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  executable file  might be covered by the  GNU Public License.
 
 pragma License (Modified_GPL);
 
-with SAL.Config_Files; use SAL.Config_Files;
-package Ada_Config is
-   --  Note that this is _not_ Ada . Config; that's illegal
-
-   function Read is new Read_Enum (Standard.Boolean);
-   procedure Write is new Write_Enum (Standard.Boolean);
-
-   function Read is new Read_Iterator_Enum (Standard.Boolean);
-
-   function Read is new Read_Integer (Standard.Integer);
-   procedure Write is new Write_Integer (Standard.Integer);
-
-   function Read is new Read_Iterator_Integer (Standard.Integer);
-
-end Ada_Config;
+function SAL.Generic_Binary_Image (Item : in Number_Type) return String
+is
+   Temp : Number_Type := Item;
+   Nibble : Number_Type;
+   Image : String (1 .. Nibbles * 4 + Nibbles - 1);
+begin
+   for I in reverse Image'Range loop
+      if I mod 5 = 0 then
+         Image (I) := '_';
+      else
+         Nibble := Temp mod 2;
+         Temp := Temp / 2;
+         if Nibble = 0 then
+            Image (I) := '0';
+         else
+            Image (I) := '1';
+         end if;
+      end if;
+   end loop;
+   return Image;
+end SAL.Generic_Binary_Image;

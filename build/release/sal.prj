@@ -1,0 +1,6 @@
+gpr_file=sal_test_agg.gpr
+
+casing=../sal.casing
+casing=../../../org.stephe_leake.aunit_ext/build/aunit.casing
+
+-- end of file
