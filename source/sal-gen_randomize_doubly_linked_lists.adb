@@ -41,8 +41,8 @@ is
    procedure Random_Next (I : out Cursor)
    is
       --  Produce an integer in range 0 .. source_count - 1, all with equal probability
-      Step_Float : constant Float   := Ada.Numerics.Float_Random.Random (Generator);
-      Step       : constant Integer := Integer (Float'Floor (Float (Source_Count) * Step_Float - Float'Model_Epsilon));
+      Rnd  : constant Float   := Ada.Numerics.Float_Random.Random (Generator);
+      Step : constant Integer := Integer (Float'Floor ((Float (Source_Count) - Float'Model_Epsilon) * Rnd));
    begin
       I := First (Container);
       for J in 1 .. Step loop
