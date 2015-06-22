@@ -31,10 +31,6 @@ is
    use Ada.Containers;
    use Lists;
 
-   --  FIXME: Ada.Containers.Doubly_Linked_Lists doesn't let us move a
-   --  single item from one list to another, so we copy all of source
-   --  to Result and then back again.
-
    Result_Count : constant Count_Type := Container.Length;
    Source_Count : Count_Type          := Result_Count;
    Result       : List;
@@ -62,12 +58,18 @@ begin
    for J in 1 .. Result_Count loop
       Random_Next (I);
 
-      Result.Append (Element (I));
-      Container.Delete (I);
+      Splice
+        (Target   => Result,
+         Before   => No_Element,
+         Source   => Container,
+         Position => I);
 
       Source_Count := Source_Count - 1;
    end loop;
 
-   Container := Result;
+   Splice
+     (Target => Container,
+      Before => No_Element,
+      Source => Result);
 
 end SAL.Gen_Randomize_Doubly_Linked_Lists;
