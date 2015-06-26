@@ -8,7 +8,7 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with Test_Randomize_Lists;
+with Test_Stacks;
 procedure Test_One_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -17,7 +17,7 @@ is
    Status   : AUnit.Status;
 
 begin
-   Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => True));
+   Add_Test (Suite, new Test_Stacks.Test_Case);
 
    Run (Suite, AUnit.Options.Default_Options, Result, Status);
 
