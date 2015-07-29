@@ -90,7 +90,13 @@ get casing from gpr file
 
 Gpr_query
     check gnatcoll version for agg support
+        in gnat gpl 2015
+
+    check gnatinspect for new features
+
     grok --RTS
+
+test with gnat gpl 2015
 
 completion
     (info "(elisp)Completion")

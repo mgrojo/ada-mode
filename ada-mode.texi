@@ -1201,6 +1201,7 @@ project file.
 @item @code{gpr_project_path}   [default: @code{""}]
 Same as @code{ada_project_path}.
 
+@c FIXME: add ada-build project vars
 @end table
 
 @node Moving Through Ada Code, Identifier completion, Project files, Top
