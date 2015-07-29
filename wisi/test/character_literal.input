@@ -1,0 +1,15 @@
+-- These should all yield the same token sequence
+-- FIXME: they don't; need feedback from parser to lexer
+-- FIXME: parse trace reports statement_id:0 !?
+-- FIXME: parse trace stack is printed top on right
+
+-- FIXME: also try with no CHARACTER_LITERAL token; modify Ada grammar
+-- to cope? implement action that rewrites TICK IDENTIFIER TICK as
+-- CHARACTER_LITERAL?
+
+foo
+Character'('C');
+Character'( 'C' );
+Character '('C');
+Character ' ( 'C' );
+

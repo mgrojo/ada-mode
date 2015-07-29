@@ -156,7 +156,6 @@ DIFF_OPT := -u -w
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
-	diff $(DIFF_OPT) ../../wisi/test/$*-process.good_el $*-process.el >> $@
 	diff $(DIFF_OPT) $^ >> $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)

@@ -1,0 +1,52 @@
+;; Test regular expressions vs Ada tick and character literal
+
+%{
+;; Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+%}
+
+;; wisi-generate requires some keywords
+%keyword FOO "foo"
+
+%token <line_comment> COMMENT "--"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> TICK "'"
+%token <punctuation> LEFT_PAREN "("
+%token <punctuation> RIGHT_PAREN ")"
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <symbol> IDENTIFIER
+
+%token <punctuation> CHARACTER_LITERAL '[^']'|''''
+
+%start compilation_unit
+
+%%
+
+compilation_unit
+  : FOO statement_list
+  ;
+
+statement_list
+  : statement
+  | statement_list statement
+  ;
+
+statement
+  : IDENTIFIER TICK LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON ;; "correct"
+  | IDENTIFIER CHARACTER_LITERAL IDENTIFIER TICK RIGHT_PAREN SEMICOLON ;; "wrong"
+  ;
+%%
+
+;;; end of file
