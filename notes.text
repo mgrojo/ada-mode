@@ -41,6 +41,12 @@ o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): idle
 
+wisi-generate write defun for grammar actions
+    so they can be byte compiled
+    faster?
+
+speed up by not binding wisi-tokens for null action
+
 adding "<" => "<" still confuses wisi
 
 ada-goto-declaration-start
@@ -73,11 +79,6 @@ ada-goto-declaration-start
         fix the latter, see if it fixes ada-make-subprogram-body
             if not, obsolete that.
 
-ada-mode.texi
-    add "upgrading from 4.0" section
-        obj_dir is now ignored
-        therefore gnatfind requires gpr_file
-
 add gnat_find_opts or obj_dir?
     see email from Ludovic Brenta
 
@@ -88,8 +89,18 @@ $ADA_OBJECTS_PATH...= in .prj:
     but doesn't fix gnatfind xref problem?
         test
 
+ada-mode.texi
+    add "upgrading from 4.0" section
+        obj_dir is now ignored
+        therefore gnatfind requires gpr_file
+
 add gpr-projects.el in emacs 25
     see project.el
+
+add gpr-ede.el
+    see ede.el
+
+    compare to project
 
 get casing from gpr file
 
