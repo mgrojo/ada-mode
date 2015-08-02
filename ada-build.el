@@ -70,6 +70,9 @@ Overridden by project variable 'check_cmd'."
 Overridden by project variable 'make_cmd'."
   :type 'string)
 
+;; FIXME: make this more intelligent to work on Windows cmd shell?
+;; either detect Windows and drop "./", or expand to full path at
+;; runtime.
 (defcustom ada-build-run-cmd "./${main}"
   "Default command to run the application, in a spawned shell.
 Overridden by project variable 'run_cmd'."
@@ -88,8 +91,8 @@ a list, the prefix is prepended to each list element. For
 example, if src_dir contains 'dir_1 dir_2', '-I${src_dir}'
 expands to '-Idir_1 -Idir_2'.
 
-As a special case, ${full_current} is replaced by the name
-including the directory and extension."
+As a special case, ${full_current} is replaced by the current
+buffer file name including the directory and extension."
 
   (while (string-match "\\(-[^-$ ]+\\)?\\${\\([^}]+\\)}" cmd-string)
     (let ((prefix (match-string 1 cmd-string))

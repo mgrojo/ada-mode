@@ -121,10 +121,14 @@ Gpr_query
     gnatcoll gpl 2015 has full aggregate support
         provide gpr_query_2014, gpr_query_2015, pick one at compile/install time
 
+    check gnatinspect for new features
+
     grok --RTS
         may be already done in 2015:
             for Runtime ("ada") use "stm32f429i-disco-rtos";
 
+
+test with gnat gpl 2015
 
 completion
     (info "(elisp)Completion")
