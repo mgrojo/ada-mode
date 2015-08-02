@@ -150,12 +150,14 @@ AdaCore, distributed with GNAT GPL 2014.
 To build @code{gpr_query}, assuming GNAT GPL 2014 is installed in
 @file{/usr/gnat-gpl-2014}, and @file{/usr/gnat-gpl-2014/bin} is in
 PATH (if you are running Windows, use Cygwin bash to run these
-commands):
+commands, with GNAT GPL bin first in PATH) (note that
+gnatcoll-gpl-2014-src.tar.gz unzips to gnatcoll-1.7w-src):
 
 @example
 tar xf ~/Downloads/gnatcoll-gpl-2014-src.tar.gz
-cd gnatcoll-gpl-2014-src
-./configure --enable-projects --prefix=/usr/gnat-gpl-2014
+cd gnatcoll-1.7w-src
+./configure --prefix=/usr/gnat-gpl-2014
+@c on cygwin, finds cygwin as build type; not a problem
 @c make Gnatcoll_Build=Debug
 @c sudo make Gnatcoll_Build=Debug install
 make

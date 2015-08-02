@@ -175,42 +175,6 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
-%conflict REDUCE/REDUCE in state aggregate, primary on token AMPERSAND
-%conflict REDUCE/REDUCE in state aggregate, primary on token AND
-%conflict REDUCE/REDUCE in state aggregate, primary on token BAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token COLON_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token COMMA
-%conflict REDUCE/REDUCE in state aggregate, primary on token DIGITS
-%conflict REDUCE/REDUCE in state aggregate, primary on token DO
-%conflict REDUCE/REDUCE in state aggregate, primary on token DOT_DOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSE
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSIF
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL_GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token IN
-%conflict REDUCE/REDUCE in state aggregate, primary on token IS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token LOOP
-%conflict REDUCE/REDUCE in state aggregate, primary on token MINUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token MOD
-%conflict REDUCE/REDUCE in state aggregate, primary on token NOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token OF
-%conflict REDUCE/REDUCE in state aggregate, primary on token OR
-%conflict REDUCE/REDUCE in state aggregate, primary on token PLUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token RANGE
-%conflict REDUCE/REDUCE in state aggregate, primary on token REM
-%conflict REDUCE/REDUCE in state aggregate, primary on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state aggregate, primary on token SEMICOLON
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR_STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token THEN
-%conflict REDUCE/REDUCE in state aggregate, primary on token WITH
-%conflict REDUCE/REDUCE in state aggregate, primary on token XOR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
@@ -231,6 +195,7 @@
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state case_expression_alternative_list, case_expression on token COMMA
 %conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
@@ -341,6 +306,11 @@ actual_parameter_part
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
+    (progn
+      (wisi-statement-action [1 open-paren 3 close-paren])
+      (wisi-containing-action 1 2))
   ;
 
 actual_parameter_part_opt
@@ -359,12 +329,8 @@ aggregate
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
-  | LEFT_PAREN case_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
- ;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
-  | LEFT_PAREN if_expression RIGHT_PAREN
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
@@ -680,6 +646,12 @@ conditional_entry_call
       (wisi-statement-action [1 block-start 3 block-middle 5 block-end 7 statement-end])
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4))
+  ;
+
+conditional_quantified_expression
+  : if_expression
+  | case_expression
+  | quantified_expression
   ;
 
 constant_opt
@@ -1698,7 +1670,7 @@ package_specification
       (wisi-containing-action 6 7)
       (wisi-motion-action [1 4 6 8])
       (wisi-face-action [2 font-lock-function-name-face 9 font-lock-function-name-face]))
-  | PACKAGE name aspect_specification_opt IS declarative_part_opt END name
+  | PACKAGE name aspect_specification_opt IS declarative_part_opt END name_opt
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 block-start 6 block-end])
       (wisi-containing-action 1 2)
@@ -1753,17 +1725,13 @@ parameter_specification_list
       (wisi-containing-action 2 3))
   ;
 
-;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
 paren_expression
   : LEFT_PAREN expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
-  | LEFT_PAREN case_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN if_expression RIGHT_PAREN
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
@@ -1784,6 +1752,8 @@ pragma
 pragma_argument_association
   : IDENTIFIER EQUAL_GREATER expression
   | expression
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | conditional_quantified_expression
   | IDENTIFIER TICK IDENTIFIER EQUAL_GREATER expression
   ;
 
@@ -1806,18 +1776,7 @@ primary
  ;; qualified_expression or selected_component.
     (wisi-face-action [2 font-lock-type-face] t)
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by aggregate
-  | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN case_expression RIGHT_PAREN ;; conditional_expression
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN quantified_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
+ ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate
   ;
 
 private_extension_declaration

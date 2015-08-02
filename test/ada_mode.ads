@@ -10,4 +10,5 @@ package Ada_Mode is
       function F return Boolean;
    end;
 
-end Ada_Mode;
+   --  test optional name in 'end'
+end;

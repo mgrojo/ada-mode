@@ -379,6 +379,7 @@ list."
   '(("a-textio" . "Ada.Text_IO")
     ("a-chahan" . "Ada.Characters.Handling")
     ("a-comlin" . "Ada.Command_Line")
+    ("a-contai" . "Ada.Containers")
     ("a-except" . "Ada.Exceptions")
     ("a-numeri" . "Ada.Numerics")
     ("a-string" . "Ada.Strings")

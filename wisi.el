@@ -289,7 +289,7 @@ If at end of buffer, returns `wisent-eoi-term'."
 	  (scan-error
 	   ;; Something screwed up; we should not get here if
 	   ;; syntax-propertize works properly.
-	   (error "wisi-forward-token: forward-sexp failed %s" err)
+	   (signal 'wisi-parse-error (format "wisi-forward-token: forward-sexp failed %s" err))
 	   ))))
 
      (t ;; assuming word or symbol syntax; includes numbers
@@ -442,6 +442,12 @@ Used in before/after change functions.")
   (wisi-delete-cache after)
   )
 
+;; To see the effects of wisi-before-change, wisi-after-change, you need:
+;; (global-font-lock-mode 0)
+;; (setq jit-lock-functions nil)
+;;
+;; otherwise jit-lock runs and overrides them
+
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . end is range of text being deleted
@@ -562,6 +568,9 @@ Used in before/after change functions.")
 	(setq begin-state (syntax-ppss begin))
 	(setq end-state (syntax-ppss end))
 	;; syntax-ppss has moved point to "end".
+
+	;; extend fontification over new text,
+	;; FIXME: but only if it extends a word!
 	(skip-syntax-forward "w_")
 	(setq word-end (point))
 	(goto-char begin)
@@ -592,7 +601,7 @@ Used in before/after change functions.")
 	  ;; no easy way to tell if there is intervening non-string
 	  (setq need-invalidate nil))
 
-	 ((or
+	 ((and
 	   (nth 4 begin-state)
 	   (nth 4 end-state)); in comment
 	  ;; no easy way to detect intervening code
@@ -679,7 +688,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
       (when (> wisi-debug 0)
 	(message msg))
 
+      ;; Don't keep retrying failed parse until text changes again.
       (setq wisi-parse-try nil)
+
       (setq wisi-parse-error-msg nil)
       (setq wisi-end-caches nil)
 

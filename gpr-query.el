@@ -76,10 +76,17 @@
       (set-process-query-on-exit-flag (gpr-query--session-process session) nil)
       (gpr-query-session-wait session)
 
-      ;; check for warnings about invalid directories etc
-      (goto-char (point-min))
-      (when (search-forward "warning:" nil t)
-	(error "gpr_query warnings"))
+      ;; Check for warnings about invalid directories etc. But some
+      ;; warnings are tolerable, so only abort if process actually
+      ;; died.
+      (if (process-live-p (gpr-query--session-process session))
+	  (progn
+	    (goto-char (point-min))
+	    (when (search-forward "warning:" nil t)
+	      (beep)
+	      (message "gpr_query warnings")))
+
+	(error "gpr-query process failed to start"))
       )))
 
 (defun gpr-query--make-session ()
@@ -206,7 +213,7 @@ Uses 'gpr_query'. Returns new list."
   src-dirs)
 
 (defun gpr-query-get-prj-dirs (prj-dirs)
-  "Append list of source dirs in current gpr project to PRJ-DIRS.
+  "Append list of project dirs in current gpr project to PRJ-DIRS.
 Uses 'gpr_query'. Returns new list."
 
   (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))

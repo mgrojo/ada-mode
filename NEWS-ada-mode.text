@@ -9,6 +9,9 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.1.9
 
+** Adding missing grammar statements to allow removing parens around
+   conditional and quantified expressions.
+
 ** Key binding for ada-case-create-partial-exception in ada-mode
    changed to C-c C-M-y; this is easier to type, and matches the key
    binding in gpr-mode.
@@ -48,7 +51,7 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 ** gpr parser handles package renames
 
-** fix bugs
+** fix other bugs
 
 * Ada mode 5.1.8
 10 Apr 2015

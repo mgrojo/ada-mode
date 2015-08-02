@@ -41,6 +41,8 @@ o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): idle
 
+adding "<" => "<" still confuses wisi
+
 ada-goto-declaration-start
     fails on task declaration
         only a problem if misusing C-c C-b ada-make-subprogram-body to make a task body
@@ -86,11 +88,32 @@ $ADA_OBJECTS_PATH...= in .prj:
     but doesn't fix gnatfind xref problem?
         test
 
+add gpr-projects.el in emacs 25
+    see project.el
+
 get casing from gpr file
 
+gnat-core support RTS choice
+    with GNAT GPL 2014:
+    foo.gpr contains:
+       package Builder is
+          for Default_Switches ("ada") use ("--RTS=sjlj");
+       end Builder;
+
+    'gnat list -v -P foo.gpr' returns the wrong system library.
+
+    'gnat list -v --RTS=sjlj' returns the correct system library.
+
+    add project variable 'rts'
+
 Gpr_query
-    check gnatcoll version for agg support
+    gnatcoll gpl 2015 has full aggregate support
+        provide gpr_query_2014, gpr_query_2015, pick one at compile/install time
+
     grok --RTS
+        may be already done in 2015:
+            for Runtime ("ada") use "stm32f429i-disco-rtos";
+
 
 completion
     (info "(elisp)Completion")
@@ -698,7 +721,7 @@ Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     build/Makefile install-elpa # deletes and recompiles
     build/wisi/Makefile all
 
-    (list-packages) install cl-lib for emacs 24.2
+(list-packages) install cl-lib for emacs 24.2
 
 Emacs 24.2, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")

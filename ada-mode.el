@@ -1416,6 +1416,7 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-parse-prj-file (prj-file)
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
+  ;; FIXME: need to kill gpr-query session if .gpr file has changed (like from non-agg to agg!)
   (run-hooks `ada-prj-parse-hook)
   (let ((project (ada-prj-default))
 	(parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
@@ -1443,7 +1444,6 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-prj-reparse-select-current ()
   "Reparse the current project file, re-select it.
 Useful when the project file has been edited."
-  ;; FIXME: need to kill gpr-query session if .gpr file has changed (like from non-agg to agg!)
   (ada-parse-prj-file ada-prj-current-file)
   (ada-select-prj-file ada-prj-current-file))
 

@@ -431,6 +431,33 @@ package body Ada_Mode.Parens is
            (1 .. 2));
    end Slice;
 
+   procedure Quantified_Exression is
+
+      type T is (V1,V2,V3);
+
+      A : array (T) of T := (others => V1);
+
+      -- ARM 4.5.8(4) allows removing the doubled parens
+      -- around a quantified expression
+      pragma Assert (for all X of A => X in V1);
+   begin
+      null;
+   end;
+
+   procedure If_Expr_As_Actual_Parameter is
+
+      function Id (X : Boolean) return Boolean is
+      begin
+         return X;
+      end Id;
+
+      -- ARM 4.5.7(7) allows removing the doubled parens
+      -- around a conditional_expression
+      Tmp : Boolean := Id (if True then True else True);
+   begin
+      null;
+   end If_Expr_As_Actual_Parameter;
+
 end Ada_Mode.Parens;
 --  Local Variables:
 --  ada-indent-comment-gnat: t
