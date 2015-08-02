@@ -20,9 +20,7 @@
 # because that's almost always a bad idea. We use several commands, so
 # the command line doesn't get too long on large directories.
 clean ::
-	rm -f *.TMP
-	rm -f *.d *.dbx
-	rm -f *.exe *.log *.rdl
+	rm -f *.TMP *.exe *.bexch
 	rm -rf objects
 
 gnat-source-clean ::
