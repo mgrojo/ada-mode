@@ -22,7 +22,7 @@ Unzip to a convenient place (we will use ~/ada-mode in the following).
 
 In a shell:
 $ cd ~/ada-mode/build/wisi
-$ byte-compile
+$ make byte-compile
 
 Edit your ~/.emacs, add:
 

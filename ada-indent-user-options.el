@@ -56,15 +56,15 @@ begin
 Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-broken)
 
 (defcustom ada-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.
 Otherwise, they are indented with previous comments or code."
-  :type  'boolean
-  :safe  #'booleanp)
+  :type 'boolean
+  :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-comment-col-0)
 
 (defcustom ada-indent-comment-gnat nil
@@ -78,7 +78,7 @@ That is, one of:
 Otherwise, they are indented as a with previous comments or code."
   :type  'boolean
   :group 'ada-indentation
-  :safe  'booleanp)
+  :safe  #'booleanp)
 (make-variable-buffer-local 'ada-indent-comment-gnat)
 
 (defvar ada-label-indent nil)
@@ -115,8 +115,8 @@ Example :
 An example is:
    type A is
    >>>record"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-record-rel-type)
 
 (defcustom ada-indent-renames 2
@@ -144,8 +144,8 @@ Examples:
    function A (B : Integer)
                return C
    >>>>>>>>>>>renames Foo;"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-renames)
 
 (defcustom ada-indent-return 0
@@ -162,8 +162,8 @@ relative to line containing 'function'.
 An example is:
    function A (B : Integer)
    >>>>>>>>>>>return C;"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-return)
 
 (defvar ada-use-indent nil)
@@ -183,8 +183,8 @@ An example is:
 An example is:
    use Ada.Text_IO,
    >>Ada.Numerics;"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-use)
 
 (defvar ada-when-indent nil)
@@ -225,8 +225,8 @@ An example is:
 An example is:
    with Ada.Text_IO,
    >>Ada.Numerics;"
-  :type  'integer
-  :safe  #'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-with)
 
 (provide 'ada-indent-user-options)
