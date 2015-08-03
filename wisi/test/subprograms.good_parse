@@ -66,4 +66,4 @@ compilation_unit_id_0: (compilation_unit 1 . 37) (declarations 1 . 37)
  1: 4: (EOF 1 . 2) : shift and goto state 9
  1 stack:  9 : (EOF 1 . 2),  4 : (compilation_unit 1 . 37),  1 : , 
  1: 9: (EOF 1 . 2) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 37) (compilation_unit 1 . 37), (EOF 1 . 2)
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 37) (compilation_unit 1 . 37), (EOF 1 . 2)

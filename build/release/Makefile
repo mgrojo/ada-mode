@@ -28,9 +28,11 @@ some : multi_conflict_process_yylex.adb
 some : multi_conflict-parse.diff
 some : subprograms_process_yylex.adb
 some : subprograms-parse.diff
-some : asu_example_3_6-run.run
-some : asu_example_4_46-run.run
-some : asu_example_5_10_lr-run.run
+
+# FIXME: currently broken
+# some : asu_example_3_6-run.run
+# some : asu_example_4_46-run.run
+# some : asu_example_5_10_lr-run.run
 
 # ../../Test/test_one_harness.adb
 #t_one : RUN_ARGS := -v

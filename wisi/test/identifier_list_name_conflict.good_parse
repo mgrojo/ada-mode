@@ -244,8 +244,8 @@ pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), 
  1: 5: (EOF 1 . 2) : shift and goto state 13
  2 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
  2: 13: (EOF 1 . 2) : accept it
-pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 23
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 23
  1 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
  1: 13: (EOF 1 . 2) : accept it
-pending opentoken_accept_id_0: (OPENTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 20
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 20
 identifier_list_name_conflict.input:7:56: Ambiguous parse: 2 parsers active.

@@ -1,11 +1,14 @@
+read 4
+foo
+
  1 stack:  1 : , 
  1: 1: (IDENTIFIER 1 . 4) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 4),  1 : , 
- 1: 2: (EOF 4 . 5) : reduce 1 tokens to name
+ 1: 2: (EOF 1 . 2) : reduce 1 tokens to name
 name_id_0: (name 1 . 4) (IDENTIFIER 1 . 4)
  ... goto state 4
  1 stack:  4 : (name 1 . 4),  1 : , 
- 1: 4: (EOF 4 . 5) : shift and goto state 7
- 1 stack:  7 : (EOF 4 . 5),  4 : (name 1 . 4),  1 : , 
- 1: 7: (EOF 5 . 6) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 5) (name 1 . 4), (EOF 4 . 5)
+ 1: 4: (EOF 1 . 2) : shift and goto state 7
+ 1 stack:  7 : (EOF 1 . 2),  4 : (name 1 . 4),  1 : , 
+ 1: 7: (EOF 1 . 2) : accept it
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 4) (name 1 . 4), (EOF 1 . 2)

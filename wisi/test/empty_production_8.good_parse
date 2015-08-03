@@ -1,3 +1,11 @@
+read 105
+Monitor;
+Monitor constant;
+Monitor aliased;
+Monitor aliased constant;
+Monitor := ;
+Monitor constant := ;
+
  1 stack:  1 : , 
  1: 1: (IDENTIFIER 1 . 8) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 8),  1 : , 
@@ -175,7 +183,7 @@ constant_opt_id_0: (constant_opt 92 . 100) (CONSTANT 92 . 100)
  2 stack:  11 : (COLON_EQUAL 101 . 103),  10 : (constant_opt 92 . 100),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
  2: 11: (SEMICOLON 104 . 105) : shift and goto state 14
  2 stack:  14 : (SEMICOLON 104 . 105),  11 : (COLON_EQUAL 101 . 103),  10 : (constant_opt 92 . 100),  2 : (IDENTIFIER 84 . 91),  3 : (object_declaration_list 1 . 83),  1 : , 
- 2: 14: (EOF 105 . 106) : reduce 4 tokens to object_declaration
+ 2: 14: (EOF 1 . 2) : reduce 4 tokens to object_declaration
 [-9 [(5 84 . 91)(11 92 . 100)(3 101 . 103)(4 104 . 105)]
 (-15 [1 -16 3 -18
 4 -17])
@@ -183,14 +191,14 @@ constant_opt_id_0: (constant_opt 92 . 100) (CONSTANT 92 . 100)
 object_declaration_id_0: (object_declaration 84 . 105) (IDENTIFIER 84 . 91), (constant_opt 92 . 100), (COLON_EQUAL 101 . 103), (SEMICOLON 104 . 105)
  ... goto state 6
  2 stack:  6 : (object_declaration 84 . 105),  3 : (object_declaration_list 1 . 83),  1 : , 
- 2: 6: (EOF 105 . 106) : reduce 2 tokens to object_declaration_list
+ 2: 6: (EOF 1 . 2) : reduce 2 tokens to object_declaration_list
 [-8 [(8 1 . 83)(9 84 . 105)]
 (-12 -13 -14)
 ]
 object_declaration_list_id_0: (object_declaration_list 1 . 105) (object_declaration_list 1 . 83), (object_declaration 84 . 105)
  ... goto state 3
  2 stack:  3 : (object_declaration_list 1 . 105),  1 : , 
- 2: 3: (EOF 105 . 106) : shift and goto state 5
- 2 stack:  5 : (EOF 105 . 106),  3 : (object_declaration_list 1 . 105),  1 : , 
- 2: 5: (EOF 106 . 107) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 106) (object_declaration_list 1 . 105), (EOF 105 . 106)
+ 2: 3: (EOF 1 . 2) : shift and goto state 5
+ 2 stack:  5 : (EOF 1 . 2),  3 : (object_declaration_list 1 . 105),  1 : , 
+ 2: 5: (EOF 1 . 2) : accept it
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 105) (object_declaration_list 1 . 105), (EOF 1 . 2)

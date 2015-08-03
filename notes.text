@@ -4,6 +4,13 @@ build/release/Makefile
 build/debug/Makefile
 build/release_process.text
 
+Ada lexer
+    number:
+        add _
+        add leading integer to distinguish 16 from identifier
+
+    identifier: add leading letter
+
 finish refactor packages
     review FIXME
 

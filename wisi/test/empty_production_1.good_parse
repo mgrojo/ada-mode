@@ -78,4 +78,4 @@ declarative_part_id_0: (declarative_part 43 . 128) (declarations 43 . 128)
  1: 4: (EOF 1 . 2) : shift and goto state 6
  1 stack:  6 : (EOF 1 . 2),  4 : (declarative_part 43 . 128),  1 : , 
  1: 6: (EOF 1 . 2) : accept it
-opentoken_accept_id_0: (OPENTOKEN_ACCEPT 1 . 128) (declarative_part 43 . 128), (EOF 1 . 2)
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 128) (declarative_part 43 . 128), (EOF 1 . 2)
