@@ -11,7 +11,7 @@ all : byte-compile-clean update compile-ada-clean compile-ada autoloads test-cle
 debian-all : byte-compile compile-ada-clean compile-ada autoloads test-clean test-debian
 
 # this updates everything after any source change, without running the tests.
-update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
+update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc

@@ -423,7 +423,7 @@ buffer in another window."
 
 (define-minor-mode gpr-query
   "Minor mode for navigating sources using GNAT cross reference tool.
-Enable mode if ARG is positive"
+Enable mode if ARG is positive."
   :initial-value t
   :lighter       " gpr-query"   ;; mode line
 

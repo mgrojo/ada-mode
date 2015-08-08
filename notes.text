@@ -102,6 +102,9 @@ add gpr-ede.el
 
     compare to project
 
+see http://ecb.sourceforge.net/ for ideas?
+    or add Ada to that?
+
 get casing from gpr file
 
 gnat-core support RTS choice

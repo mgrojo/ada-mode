@@ -129,11 +129,13 @@ Function is called with no arguments.")
   (when gpr-indent-statement
     (funcall gpr-indent-statement)))
 
+;; FIXME: add autocase
+
 (defvar gpr-font-lock-keywords
   (progn
     (list
      ;;
-     ;; keyword plus name.
+     ;; keyword plus name. FIXME: move to grammar action, use gpr-keywords here (see ada-font-lock-keywords).
      (list (concat
 	    "\\<\\("
 	    "package\\|"
@@ -146,8 +148,10 @@ Function is called with no arguments.")
      ;; Main keywords
      (list (concat "\\<"
 		   (regexp-opt
-		    '("abstract" "aggregate" "case" "configuration" "external" "is" "library" "null" "others"
-		      "renames" "standard" "type" "use" "when" "with") t)
+		    '("abstract" "aggregate" "case" "configuration" "external"
+		      "external_as_list" "is" "library" "null" "others"
+		      "renames" "standard" "type" "use" "when" "with")
+		    t)
 		   "\\>")
 	   '(1 font-lock-keyword-face))
      ;;

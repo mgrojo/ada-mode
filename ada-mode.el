@@ -1088,6 +1088,7 @@ User is prompted to choose a file from project variable casing if it is a list."
 
 (defun ada-case-keyword (arg)
   (cl-ecase ada-case-keyword
+    ;; FIXME: keyword might have _; merge with ada-after-keyword-p
     (lower-case (downcase-word arg))
     (upper-case (upcase-word arg))
     ))
@@ -2666,7 +2667,6 @@ The paragraph is indented on the first line."
 
 ;;;; support for font-lock.el
 
-;; casing keywords defined here to keep the two lists together
 (defconst ada-83-keywords
   '("abort" "abs" "accept" "access" "all" "and" "array" "at" "begin"
     "body" "case" "constant" "declare" "delay" "delta" "digits" "do"

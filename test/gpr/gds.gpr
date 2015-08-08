@@ -9,6 +9,9 @@ with "standard_common";
 with "../common_text_io";
 project GDS is
 
+   --  FIXME: add face, autocase test for 'external_as_list'
+   --  for Foo use external_as_list ("bar");
+
    for Source_Dirs use
      ("../auto",
       "../../1553",
@@ -51,4 +54,9 @@ project GDS is
       for Executable_Suffix use ".exe";
    end Builder;
 
+   package Linker is
+      -- Project_Dir attribute
+      -- FIXME: test face, autocase on Project.
+      for Map_File_Option use "-Wl,-Map," & Project'Project_Dir;
+   end Linker;
 end GDS;
