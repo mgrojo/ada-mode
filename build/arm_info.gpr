@@ -76,7 +76,7 @@ project ARM_Info is
         "-gnatVa",
         "-gnatwaCeFKLMP",
         "-fstack-check",
-        "-gnatybefip")
+        "-gnatybefp")
        & External_As_List ("ADAFLAGS", " ");
 
      for Default_Switches ("Ada") use Switches;

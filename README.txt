@@ -49,13 +49,11 @@ source.
 Where do these files come from?
 ===============================
 
-The "upstream" for this distribution is in two pieces:
-
-- Source files for the Ada Reference Manual are released as a ZIP
-archive at http://www.ada-auth.org/arm-files/2012-SRC.zip.
-
-- Source files for the formatter are available via a CVSWeb HTML interface at
+The "upstream" for this distribution is a CVSWeb HTML interface at
 http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ARM/.
+
+The file build/download.py provides simple tools to download the
+upstream source; that is run from build/Makefile.
 
 Usage
 =====
