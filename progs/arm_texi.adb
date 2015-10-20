@@ -2,7 +2,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010 - 2013 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -717,6 +717,7 @@ package body ARM_Texinfo is
       Create (Output_Object.File, Out_File, File_Name);
 
       Put_Line (Output_Object.File, "\input texinfo");
+      Put_Line (Output_Object.File, "@documentencoding ISO-8859-1");
       Put_Line (Output_Object.File, "@dircategory GNU Ada tools");
 
       Put_Line (Output_Object.File, "@direntry");
