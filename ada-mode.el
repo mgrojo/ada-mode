@@ -1086,11 +1086,10 @@ User is prompted to choose a file from project variable casing if it is a list."
 	       (point))))
     (member (downcase word) ada-keywords)))
 
-(defun ada-case-keyword (arg)
+(defun ada-case-keyword (beg end)
   (cl-ecase ada-case-keyword
-    ;; FIXME: keyword might have _; merge with ada-after-keyword-p
-    (lower-case (downcase-word arg))
-    (upper-case (upcase-word arg))
+    (lower-case (downcase-region beg end))
+    (upper-case (upcase-region beg end))
     ))
 
 (defun ada-case-identifier (start end force-case-strict)
@@ -1166,7 +1165,19 @@ Uses `ada-case-identifier', with exceptions defined in
 	  (if (< (point) end)
 	      (setq start (point))
 	    (setq done t))
-	)))))
+          )))))
+
+(defun ada-case-adjust-keyword ()
+  "Adjust the case of the previous word as a keyword.
+'word' here is allowed to be underscore-separated (GPR external_as_list)."
+  (save-excursion
+    (let ((end   (point-marker))
+	  (start (progn (skip-syntax-backward "w_") (point)))
+	  match
+	  next
+	  (done nil))
+      (ada-case-keyword start end)
+    )))
 
 (defun ada-case-adjust (&optional typed-char in-comment)
   "Adjust the case of the word before point.
@@ -1212,7 +1223,7 @@ and treat `ada-case-strict' as t in code.."
 	   (not in-comment)
 	   (not (eq typed-char ?_))
 	   (ada-after-keyword-p))
-	  (ada-case-keyword -1))
+	  (ada-case-adjust-keyword))
 
 	 (t (ada-case-adjust-identifier in-comment))
 	 ))
