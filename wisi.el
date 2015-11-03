@@ -158,6 +158,7 @@
 ;; an appropriate end-point for syntax-propertize, other than
 ;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
 ;; and also call syntax-propertize in wisi-after-change.
+;; FIXME: no longer needed in Emacs 25? (email from Stefan Monnier)
 ;;
 ;;;; code style
 ;;
@@ -1366,14 +1367,28 @@ Return start cache."
 (defun wisi-comment-indent ()
   "For `comment-indent-function'. Indent single line comment to
 the comment on the previous line."
-  ;; This should only be called by comment-indent-new-line or
-  ;; fill-comment-paragraph, so there will be a preceding comment line
-  ;; that we can trust.
-  (save-excursion
-    (forward-comment -1)
-    (if (looking-at comment-start)
-	(current-column)
-      (error "wisi-comment-indent called after non-comment"))))
+  (or
+   (save-excursion
+     (forward-comment -1)
+     (when (looking-at comment-start)
+       ;; There is a preceding comment line.
+       (current-column)))
+
+   ;; Probably called from `comment-indent'; either to insert a new
+   ;; comment, or to indent the first line of an existing one.  In
+   ;; either case, the comment may be after code on the same line.
+   (save-excursion
+     (let ((start-col (current-column)))
+       (back-to-indentation)
+       (if (looking-at comment-start)
+	   ;; An existing comment alone on a line. Return nil, so
+	   ;; `comment-indent' will call `indent-according-to-mode'
+	   nil
+
+	 ;; A comment after code on the same line; point was at the
+	 ;; comment start, so assume it is already correct.
+	 start-col)))
+   ))
 
 (defun wisi-indent-current (offset)
   "Return indentation OFFSET relative to indentation of current line."

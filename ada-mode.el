@@ -2590,7 +2590,17 @@ The paragraph is indented on the first line."
 	   (not (looking-at "[ \t]*--")))
       (error "Not inside comment"))
 
-  (let* ((inhibit-modification-hooks t) ;; don't run parser for font-lock; comment text is exposed
+  ;; fill-region-as-paragraph leaves comment text exposed (without
+  ;; comment prefix) when inserting a newline; don't trigger a parse
+  ;; because of that (in particular, jit-lock requires a parse; other
+  ;; hooks may as well). In general, we don't need to trigger a parse
+  ;; for comment changes.
+  ;;
+  ;; FIXME: add ada-inibit-parse instead; let other change hooks run.
+  ;; FIXME: wisi-after-change still needs to adjust wisi-cache-max
+  ;; FIXME: even better, consider patch suggested by Stefan Monnier to
+  ;; move almost all code out of the change hooks (see email).
+  (let* ((inhibit-modification-hooks t)
 	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
@@ -2598,6 +2608,8 @@ The paragraph is indented on the first line."
 	 ;; all indentation.
 	 (fill-prefix ada-fill-comment-prefix)
 	 (fill-column (current-fill-column)))
+
+    ;; We should run before-change-functions here, but we don't know from/to yet.
 
     ;;  Find end of comment paragraph
     (back-to-indentation)
@@ -2661,9 +2673,8 @@ The paragraph is indented on the first line."
 
     ;; we disabled modification hooks, so font-lock will not run to
     ;; re-fontify the comment prefix; do that here.
-    (when (memq 'jit-lock-after-change after-change-functions)
-      (jit-lock-after-change from to 0))
-    ))
+    ;; FIXME: Use actual original size instead of 0!
+    (run-hook-with-args 'after-change-functions from to 0)))
 
 ;;;; support for font-lock.el
 

@@ -107,4 +107,23 @@ begin
    --EMACSRESULT:t
    --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
 
+   -- Insert a comment after code; used to signal error.
+   --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-at "--$"))
+   E := (1 =>                   --
+           'A');
+   --EMACSRESULT:t
+
+   -- Re-indent a comment after code; we just assume it is correct; use `align' to change it.
+   --EMACSCMD:(progn (forward-line 1)(comment-dwim nil)(end-of-line)(current-column))
+   E := (1 =>    --
+           'A');
+   --EMACSRESULT:19
+
+   -- `comment-dwim' should not change the indentation of the next comment.
+   --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
+   E := (1,
+         --  Be sure to have initialized `Stateful` before calling this.
+         2);
+   --EMACSRESULT:9
+
 end Ada_Mode.Interactive_Common;
