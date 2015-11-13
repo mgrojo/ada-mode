@@ -1,4 +1,8 @@
 ^build/debug/.*\.exe$
 ^build/debug/objects$
+^build/release/.*\.config$
+^build/release/.*\.csv$
+^build/release/.*\.diff$
 ^build/release/.*\.exe$
+^build/release/.*\.out$
 ^build/release/objects$

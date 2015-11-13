@@ -15,10 +15,10 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with Ada.IO_Exceptions;
 with Ada.Text_IO;
 with SAL.Config_Files; use SAL.Config_Files;
@@ -30,12 +30,12 @@ package body Test.Config_Files.Case_Insensitive is
    ----------
    --  Local subprogram declarations
 
-   procedure Test (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+   procedure Test (T : in out AUnit.Test_Cases.Test_Case'Class);
 
    ----------
    --  Subprogram bodies (alphabetical order)
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -44,7 +44,7 @@ package body Test.Config_Files.Case_Insensitive is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test'Access, "Test");
    end Register_Tests;
@@ -86,14 +86,14 @@ package body Test.Config_Files.Case_Insensitive is
       Delete (File);
    end Tear_Down_Case;
 
-   procedure Test (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
 
       Open (Config, File_Name, Missing_File => Ignore, Read_Only => True, Case_Insensitive_Keys => True);
 
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         ("1" = Read (Config, "P1.A.Size"), "P1.A.Size");
 
       Close (Config);

@@ -16,29 +16,29 @@
 --  write to the Free Software Foundation, 59 Temple Place - Suite
 --  330, Boston, MA 02111-1307, USA.
 
+pragma License (GPL);
+
+with AUnit.Assertions;
+with AUnit.Checks;
 with Ada.Calendar;
 with Ada.Exceptions;
 with GNAT.Source_Info;
 with Interfaces;
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Checks;
-with SAL.AUnit.Test_Cases.Registration;
 with SAL.Interfaces_More.AUnit;
-with SAL.Math_Double.AUnit;
 with SAL.Time_Conversions.AUnit;
 package body SAL.Time_Conversions.Test is
 
    --  File_Name is relative to build directory.
-   Leap_Table_File_Name     : constant String := "../../runtime/Source_Common/Test/test_time_conversions-history.txt";
-   Bad_Leap_Table_File_Name : constant String := "../../runtime/Source_Common/Test/bad_history.txt";
+   Leap_Table_File_Name     : constant String := "../../test/test_time_conversions-history.txt";
+   Bad_Leap_Table_File_Name : constant String := "../../test/bad_history.txt";
 
    ----------
    --  Test procedures
 
-   procedure Test_Leap_Year (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Leap_Year (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use Standard.AUnit.Checks;
    begin
       Check ("Leap_Year (1)", Leap_Year (1), False);
       Check ("Leap_Year (2)", Leap_Year (2), False);
@@ -51,7 +51,7 @@ package body SAL.Time_Conversions.Test is
       Check ("Leap_Year (9)", Leap_Year (9), False);
    end Test_Leap_Year;
 
-   procedure Test_Year_Day_Seconds (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Year_Day_Seconds (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -62,7 +62,7 @@ package body SAL.Time_Conversions.Test is
          Seconds      : in Time_Type;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          TAI_Time    : constant Time_Type := To_TAI_Time (Year, Day, Seconds, Absolute => True);
          Out_Year    : Integer;
@@ -103,7 +103,7 @@ package body SAL.Time_Conversions.Test is
 
    end Test_Year_Day_Seconds;
 
-   procedure Test_Days_Seconds (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Days_Seconds (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -116,7 +116,7 @@ package body SAL.Time_Conversions.Test is
          Seconds      : in Time_Type;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          TAI_Time    : constant Time_Type := To_TAI_Time (Days, Seconds);
          Out_Days    : Integer;
@@ -172,7 +172,7 @@ package body SAL.Time_Conversions.Test is
 
    end Test_Days_Seconds;
 
-   procedure Test_Hour_Minute_Seconds (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Hour_Minute_Seconds (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -186,7 +186,7 @@ package body SAL.Time_Conversions.Test is
          Expected_Minute  : in Integer;
          Expected_Seconds : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          TAI_Time    : constant Time_Type := To_TAI_Time (Hour, Minute, Seconds);
          Out_Hour    : Integer;
@@ -235,7 +235,7 @@ package body SAL.Time_Conversions.Test is
          Expected_Seconds => 20.01);
    end Test_Hour_Minute_Seconds;
 
-   procedure Test_String_TAI (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_String_TAI (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -243,7 +243,7 @@ package body SAL.Time_Conversions.Test is
         (ASIST        : in String;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          TAI_Time : constant Time_Type := To_TAI_Time (ASIST, Absolute => True);
       begin
@@ -264,7 +264,7 @@ package body SAL.Time_Conversions.Test is
       Check ("10-021-05:40:20.010", 1642743620.01);
    end Test_String_TAI;
 
-   procedure Test_Extended_ASIST_TAI (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Extended_ASIST_TAI (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -272,7 +272,7 @@ package body SAL.Time_Conversions.Test is
         (ASIST_Expected : in String;
          TAI            : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          ASIST_Computed : constant String    := To_Extended_ASIST_String (TAI);
          TAI_Computed   : constant Time_Type := To_TAI_Time (ASIST_Computed, Absolute => True);
@@ -291,15 +291,16 @@ package body SAL.Time_Conversions.Test is
       Check ("2010-021-05:40:20.010", 1642743620.01);
    end Test_Extended_ASIST_TAI;
 
-   procedure Test_TAI_Julian_Convert (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_TAI_Julian_Convert (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
       procedure Check
         (Input_TAI                 : in Time_Type;
-         Expected_Julian_Centuries : in SAL.Math_Double.Real_Type)
+         Expected_Julian_Centuries : in Long_Float)
       is
-         use SAL.Math_Double.AUnit;
+         use Standard.AUnit.Checks;
+
          Days_Tolerance : constant := 2.0e-6;
          --  There are 8.64e+4 seconds in a day.
 
@@ -320,12 +321,12 @@ package body SAL.Time_Conversions.Test is
       Check (Time_Type (3502935620), 67.8096573947322); --  2069-001-05:40:20
    end Test_TAI_Julian_Convert;
 
-   procedure Test_Julian_TAI_Convert (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Julian_TAI_Convert (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
       procedure Check
-        (Input_Julian_Day : in SAL.Math_Double.Real_Type;
+        (Input_Julian_Day : in Long_Float;
          Expected_TAI     : in Time_Type)
       is
          use SAL.Time_Conversions.AUnit;
@@ -337,24 +338,23 @@ package body SAL.Time_Conversions.Test is
       Check (Julian_Days_1958_TAI + TT_Offset_Days, 0.0);
    end Test_Julian_TAI_Convert;
 
-   procedure Test_J2000_Julian_Centuries (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_J2000_Julian_Centuries (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
-      use SAL.Math_Double;
-      Tolerance : constant Real_Type := 5.0e-11;
+      Tolerance : constant Long_Float := 5.0e-11;
       --  There are 3.15576e+9 seconds in a Julian century.
 
-      procedure Check (TAI_Time : in String; Expected_J2000_Julian_Centuries : in Real_Type)
+      procedure Check (TAI_Time : in String; Expected_J2000_Julian_Centuries : in Long_Float)
       is begin
-         SAL.Math_Double.AUnit.Check
+         Standard.AUnit.Checks.Check
            (TAI_Time,
             To_J2000_Julian_Centuries (To_TAI_Time (TAI_Time, Absolute => True)),
             Expected_J2000_Julian_Centuries,
             Tolerance);
       end Check;
 
-      TT_Offset_Centuries : constant Real_Type := TT_Offset * Julian_Centuries_Per_Second;
+      TT_Offset_Centuries : constant Long_Float := TT_Offset * Julian_Centuries_Per_Second;
    begin
       Check ("2000-001-12:00:00.000", 0.0 + TT_Offset_Centuries);
       Check ("2000-001-18:00:00.000", 0.25 / 36525.0 + TT_Offset_Centuries);
@@ -366,7 +366,7 @@ package body SAL.Time_Conversions.Test is
       Check ("2001-001-12:00:00.000", 366.0 / 36525.0 + TT_Offset_Centuries); -- 2000 is a leap year
    end Test_J2000_Julian_Centuries;
 
-   procedure Test_Extended_String_TAI (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Extended_String_TAI (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -374,7 +374,7 @@ package body SAL.Time_Conversions.Test is
         (ASIST        : in String;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
          TAI_Time : constant Time_Type := To_TAI_Time (ASIST, Absolute => True);
       begin
@@ -391,12 +391,12 @@ package body SAL.Time_Conversions.Test is
       Check ("2010-021-05:40:20.010", 1642743620.01);
    end Test_Extended_String_TAI;
 
-   procedure Test_Floor_Unsigned_16 (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Floor_Unsigned_16 (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use SAL.Interfaces_More.AUnit;
       use Interfaces;
-      use SAL.AUnit.Assertions;
+      use Standard.AUnit.Assertions;
    begin
       Check ("1.0", Floor_Unsigned_16 (1.0), 1);
       Check ("1.1", Floor_Unsigned_16 (1.1), 1);
@@ -428,12 +428,12 @@ package body SAL.Time_Conversions.Test is
 
    end Test_Floor_Unsigned_16;
 
-   procedure Test_To_Microseconds (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_To_Microseconds (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use SAL.Interfaces_More.AUnit;
       use Interfaces;
-      use SAL.AUnit.Assertions;
+      use Standard.AUnit.Assertions;
    begin
       Check ("1.0", Unsigned_32'(To_Microseconds (1.0)), 1_000_000);
       Check ("0.000_001", Unsigned_32'(To_Microseconds (0.000_001)), 1);
@@ -487,7 +487,7 @@ package body SAL.Time_Conversions.Test is
 
    end Test_To_Microseconds;
 
-   procedure Test_Create_Leap_Second_Table (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Create_Leap_Second_Table (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -500,7 +500,7 @@ package body SAL.Time_Conversions.Test is
          Expected_Start_Month : in Month_Type;
          Expected_Leap_Second : in Integer)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Time_Conversions.AUnit;
       begin
          Check
@@ -542,7 +542,7 @@ package body SAL.Time_Conversions.Test is
              Expected_Leap_Second => 32);
    end Test_Create_Leap_Second_Table;
 
-   procedure Test_Bad_Create_Leap_Second_Table (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Bad_Create_Leap_Second_Table (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -552,17 +552,17 @@ package body SAL.Time_Conversions.Test is
       begin
          null;
       end;
-      SAL.AUnit.Assertions.Assert (False, "did not get exception");
+      Standard.AUnit.Assertions.Assert (False, "did not get exception");
    exception
    when E : SAL.Initialization_Error =>
-      SAL.AUnit.Checks.Check
+      Standard.AUnit.Checks.Check
         ("",
          Ada.Exceptions.Exception_Message (E),
          Bad_Leap_Table_File_Name &
            ": 9:0: start time not equal to previous end time.");
    end Test_Bad_Create_Leap_Second_Table;
 
-   procedure Test_Calculate_Day_Of_Year (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Calculate_Day_Of_Year (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       procedure Check
@@ -571,7 +571,7 @@ package body SAL.Time_Conversions.Test is
          Month        : in Month_Type;
          Expected_Day : in Integer)
       is begin
-         SAL.AUnit.Checks.Check (Message, Day_Of_Year (Year, Month), Expected_Day);
+         Standard.AUnit.Checks.Check (Message, Day_Of_Year (Year, Month), Expected_Day);
       end Check;
    begin
       Check
@@ -588,7 +588,7 @@ package body SAL.Time_Conversions.Test is
 
    end Test_Calculate_Day_Of_Year;
 
-   procedure Test_TAI_To_UTC (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_TAI_To_UTC (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       Leap_Table : constant Leap_Second_Table_Type := Create (Leap_Table_File_Name);
@@ -634,7 +634,7 @@ package body SAL.Time_Conversions.Test is
       end loop;
    end Test_TAI_To_UTC;
 
-   procedure Test_GPS (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_GPS (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use SAL.Time_Conversions.AUnit;
@@ -646,7 +646,7 @@ package body SAL.Time_Conversions.Test is
          Seconds      : in Time_Type;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          use SAL.Interfaces_More.AUnit;
          GPS_Time : GPS_Time_Type;
          TAI_Time : constant Time_Type := To_TAI_Time (GPS_Time_Type'(Weeks, Seconds));
@@ -684,7 +684,7 @@ package body SAL.Time_Conversions.Test is
       --  (+ (* 503 604800.0) 319322.10)
    end Test_GPS;
 
-   procedure Test_Calendar (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Calendar (T : in out Standard.AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       use SAL.Time_Conversions.AUnit;
@@ -702,7 +702,7 @@ package body SAL.Time_Conversions.Test is
          Test_Time    : in Test_Time_Type;
          Expected_TAI : in Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          Cal_Time : constant Time := Time_Of (Test_Time.Year, Test_Time.Month, Test_Time.Day, Test_Time.Seconds);
 
          TAI_Time  : constant Time_Type := To_TAI_Time (Cal_Time);
@@ -727,7 +727,7 @@ package body SAL.Time_Conversions.Test is
          Test_Time         : in Time_Type;
          Expected_Calendar : in Test_Time_Type)
       is
-         use SAL.AUnit.Checks;
+         use Standard.AUnit.Checks;
          Computed_Cal_Time  : constant Time := To_Calendar_Time (Test_Time);
          Computed_Test_Time : Test_Time_Type;
       begin
@@ -768,7 +768,7 @@ package body SAL.Time_Conversions.Test is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use Standard.AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Leap_Year'Access, "Test_Leap_Year");
       Register_Routine (T, Test_Year_Day_Seconds'Access, "Test_Year_Day_Seconds");
@@ -790,7 +790,7 @@ package body SAL.Time_Conversions.Test is
       Register_Routine (T, Test_Calendar'Access, "Test_Calendar");
    end Register_Tests;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return Standard.AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

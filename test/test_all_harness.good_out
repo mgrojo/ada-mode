@@ -1,237 +1,81 @@
-   Total Tests Run:  230
 
-   Successful Tests: 230
-Test.Config_Files.Abs_File: Test_Env_Var
-Test.Config_Files.Abs_File: Test_Open_Close
-Test.Config_Files.Append_File: Test_Open_Append
-Bad file name tests: Test_Open
-Test.Config_Files.Base_Tests: Test_Boolean_Value
-Test.Config_Files.Base_Tests: Test_Duration_Value
-Test.Config_Files.Base_Tests: Test_File_Name
-Test.Config_Files.Base_Tests: Test_Float_Value
-Test.Config_Files.Base_Tests: Test_Int_Value
-Test.Config_Files.Base_Tests: Test_Quoted_String_Value
-Test.Config_Files.Base_Tests: Test_String_Value
-Test.Config_Files.Base_Tests: Test_Unsigned_Value
-Test.Config_Files.Base_Tests: Test_Flush_Reopen
-Test.Config_Files.Base_Tests: Test_Is_Present
-Config_Files.Case_Insensitive: Test
-Config_Files.Comment_No_Equal: Run_Test
-../../Source_Common/Test/test-config_files-delete.adb: Plain
-../../Source_Common/Test/test-config_files-delete.adb: Children
-../../Source_Common/Test/test-config_files-delete.adb: Iterators
-Config_Files.Duplicate_Key: Keep_First_Duplicate
-Config_Files.Duplicate_Key: Keep_Last_Duplicate
-Config_Files.Duplicate_Key: Error_Duplicate
-Test.Config_Files.Extra_Key: Test_String
-Test.Config_Files.Extra_Key: Test_Enum
-Test.Config_Files.Extra_Key: Test_Integer
-Test.Config_Files.Extra_Key: Test_Modular
-Test.Config_Files.Extra_Key: Test_Float
-Test.Config_Files.Extra_Key: Test_Fixed
-Test.Config_Files.Extra_Key: Test_Iterator_String
-Test.Config_Files.Extra_Key: Test_Iterator_Enum
-Test.Config_Files.Extra_Key: Test_Iterator_Integer
-Test.Config_Files.Extra_Key: Test_Iterator_Modular
-Test.Config_Files.Extra_Key: Test_Iterator_Float
-Test.Config_Files.Extra_Key: Test_Iterator_Fixed
-Test.Config_Files.Error_Message: Invalid_Enumeral
-Test.Config_Files.Error_Message: Invalid_Integer
-Test.Config_Files.Error_Message: Invalid_Modular
-Test.Config_Files.Error_Message: Invalid_Float
-Test.Config_Files.Error_Message: Invalid_Fixed
-Test.Config_Files.Error_Message: Root_Key
-Config_Files.Iterators: Nominal
-Config_Files.Iterators: Line_Column
-Config_Files.Iterators: Errors
-Config_Files.Iterators_Nested: Nested
-test.config_files.no_file: Test_Open_Error
-test.config_files.no_file: Test_Read_Key_Error
-test.config_files.no_file: Test_Write_Key_Error
-time tests: Write, Read time value
-Test_Poly_Unbounded_Arrays_Find_Linear: Nominal
-SAL.AUnit.Test: Test_Fixed
-SAL.AUnit.Text_IO.Test: Check_Files_Skip_Lines
-SAL.CSV.Test: Test_Read
-SAL.CSV.Test: Test_Space
-SAL.CSV.Test: Quote_Unquote
-SAL.File_Names.Test: Test_Create
-SAL.File_Names.Test: Test_With_Default
-SAL.File_Names.Test: Test_Replace_Environment_Variables
-SAL.File_Names.Test: Test_Resolve_Relative
-SAL.Intel_Hex_IO.Test: Test_16
-SAL.Intel_Hex_IO.Test: Test_20
-SAL.Intel_Hex_IO.Test: Test_32
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Leap_Year
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Year_Day_Seconds
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Days_Seconds
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Hour_Minute_Seconds
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_String_TAI
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Extended_ASIST_TAI
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_TAI_Julian_Convert
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Julian_TAI_Convert
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_J2000_Julian_Centuries
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Extended_String_TAI
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Floor_Unsigned_16
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_To_Microseconds
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Calculate_Day_Of_Year
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Create_Leap_Second_Table
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Bad_Create_Leap_Second_Table
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_TAI_To_UTC
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_GPS
-../../Source_Common/Test/sal-time_conversions-test.adb: Test_Calendar
-../../Source_Common/Test/test_gen_fifo.adb: Run_Test
-../../Source_Common/Test/test_gen_fifo.adb: Test_Count
-SAL.Gen_Queues_Bounded_Nonlimited: Nominal
-SAL.Gen_Queues_Bounded_Nonlimited: Errors
-SAL.Gen_Queues_Bounded_Nonlimited: Overwrite
-Test SAL.Gen_Sets: all
-Test SAL.Gen_Sets: any
-Test SAL.Gen_Sets: first
-Test_Math_Double_Cubic: Test_Cubic
-Test_Math_Double_DOF_6: Test_DOF_6
-Test_Math_Double_DOF_6: Test_DOF_6_DC_Array_DCV_Inverse
-Test_Math_Double_DOF_6: Test_DOF_6_Left
-Test_Math_Double_DOF_6: Test_DOF_6_Wertz
-Test_Math_Double_DOF_6: Test_DOF_6_Integrator_Utils
-Test_Math_Double_DOF_6: Test_DOF_6_Integrator_Utils_Left
-Test_Math_Double_DOF_6: Test_DOF_6_Integrator_Utils_Wertz
-Test_Math_Double_Legendre_Recursive: Test_1
-Test_Math_Double_Manipulator_3_Wertz: Nominal
-../../Source_Common/Test/test_math_double_spherical_harmonics.adb: Nominal
-../../Source_Common/Test/test_math_double_spherical_harmonics.adb: EGM2008
-../../Source_Common/Test/test_math_double_spherical_harmonics.adb: Errors
-Test_Math_Double_Tank: Test_Sphere
-Test_Math_Double_Tank: Test_Sphere_Sect_Height
-Test_Math_Double_Tank: Test_Sphere_Sect_Moments
-../../Source_Common/Test/test_math_float_dof_3.adb: Unit_Vector
-../../Source_Common/Test/test_math_float_dof_3.adb: Mag_Axis
-../../Source_Common/Test/test_math_float_dof_3.adb: Quaternion_Nominal
-../../Source_Common/Test/test_math_float_dof_3.adb: Cart_Vector
-../../Source_Common/Test/test_math_float_dof_3.adb: Celestial
-../../Source_Common/Test/test_math_float_dof_3.adb: CACV_Inverse
-../../Source_Common/Test/test_math_float_dof_3.adb: Rot_Matrix_Nominal
-../../Source_Common/Test/test_math_float_dof_3.adb: Inertia
-../../Source_Common/Test/test_math_float_dof_3.adb: Accel
-Test_Math_Float_DOF_3_Left: Unit_Vector
-Test_Math_Float_DOF_3_Left: To_Mag_Axis
-Test_Math_Float_DOF_3_Left: Quaternion_Nominal
-Test_Math_Float_DOF_3_Left: Quaternion_Zero
-Test_Math_Float_DOF_3_Left: Quaternion_Pi
-Test_Math_Float_DOF_3_Left: Cart_Vector
-Test_Math_Float_DOF_3_Left: ZYX_Euler
-Test_Math_Float_DOF_3_Left: Rot_Matrix_Nominal
-Test_Math_Float_DOF_3_Left: Rot_Matrix_Zero
-Test_Math_Float_DOF_3_Left: Rot_Matrix_Pi
-Test_Math_Float_DOF_3_Left: Inertia
-Test_Math_Float_DOF_3_Wertz: Unit_Vector
-Test_Math_Float_DOF_3_Wertz: Quaternion_Nominal
-Test_Math_Float_DOF_3_Wertz: Quaternion_Zero
-Test_Math_Float_DOF_3_Wertz: Quaternion_Pi
-Test_Math_Float_DOF_3_Wertz: Cart_Vector
-Test_Math_Float_DOF_3_Wertz: Rot_Vector
-Test_Math_Float_DOF_3_Wertz: ZYX_Euler
-Test_Math_Float_DOF_3_Wertz: Rot_Matrix_Nominal
-Test_Math_Float_DOF_3_Wertz: Rot_Matrix_Zero
-Test_Math_Float_DOF_3_Wertz: Rot_Matrix_Pi
-Test_Math_Float_DOF_3_Wertz: Inertia
-Test_Math_Float_DOF_3_Wertz: Light_Vector_Rotation
-Test_Math_Float_DOF_3_Wertz: Units_To_Quat
-Test_Math_Float_DOF_6: Test_Dual_Real
-Test_Math_Float_DOF_6: Test_Dual_Cart_Vector
-Test_Math_Float_DOF_6: Test_Rate_Wrench_Transform
-Test_Math_Float_DOF_6: Test_Dual_Mag_Axis
-Test_Math_Float_DOF_6: Test_Mass_Type
-Test_Math_Float_DOF_6: Test_CM_Mass_Type
-Test_Math_Float_DOF_6: Test_DOF_6_DC_Array_DCV_Inverse
-Test_Math_Float_DOF_6_Config: Test_Read_Pose
-../../Source_Common/Test/test_math_float_dof_6_integrator_utils_left.adb: Zero_Wrench
-../../Source_Common/Test/test_math_float_dof_6_integrator_utils_left.adb: Constant_Wrench
-../../Source_Common/Test/test_math_float_dof_6_integrator_utils_left.adb: Child_Rot_Momentum
-../../Source_Common/Test/test_math_float_dof_6_integrator_utils_left.adb: Non_Principal_Axis
-../../Source_Common/Test/test_math_float_dof_6_integrator_utils_left.adb: Non_Principal_Axis_Tran
-Test_Math_Float_DOF_6_Integrator_Utils_Wertz: Zero_Wrench
-Test_Math_Float_DOF_6_Integrator_Utils_Wertz: Constant_Wrench
-Test_Math_Float_DOF_6_Integrator_Utils_Wertz: Child_Rot_Momentum
-Test_Math_Float_DOF_6_Integrator_Utils_Wertz: Non_Principal_Axis
-Test_Math_Float_DOF_6_Integrator_Utils_Wertz: Non_Principal_Axis_Tran
-Test_Math_Float_DOF_6_Left: Test_Dual_Cart_Vector
-Test_Math_Float_DOF_6_Left: Test_Pose_1
-Test_Math_Float_DOF_6_Left: Test_Pose_2
-Test_Math_Float_DOF_6_Left: Test_Pose_3
-Test_Math_Float_DOF_6_Left: Test_Pose_4
-Test_Math_Float_DOF_6_Left: Test_Pose_5
-Test_Math_Float_DOF_6_Left: Test_Dual_Mag_Axis
-Test_Math_Float_DOF_6_Left: Test_Rate_Wrench_Transform_1
-Test_Math_Float_DOF_6_Left: Test_Rate_Wrench_Transform_2
-Test_Math_Float_DOF_6_Left: Test_Rate_Wrench_Transform_3
-Test_Math_Float_DOF_6_Left: Test_Mass_Type
-Test_Math_Float_DOF_6_Wertz: Test_Dual_Cart_Vector
-Test_Math_Float_DOF_6_Wertz: Test_Pose_1
-Test_Math_Float_DOF_6_Wertz: Test_Pose_2
-Test_Math_Float_DOF_6_Wertz: Test_Pose_5
-Test_Math_Float_DOF_6_Wertz: Test_Dual_Mag_Axis
-Test_Math_Float_DOF_6_Wertz: Test_Rate_Wrench_Transform_1
-Test_Math_Float_DOF_6_Wertz: Test_Rate_Wrench_Transform_2
-Test_Math_Float_DOF_6_Wertz: Test_Rate_Wrench_Transform_3
-Test_Math_Float_DOF_6_Wertz: Test_Mass_Type
-Test_Math_Float_Den_Hart_Left: Test_Den_Hart
-Test_Math_Float_Den_Hart_Left: Test_Mult
-Test_Math_Float_Gen_Runge_Kutta_4th_Left: Integrate Constant
-Test_Math_Float_Gen_Runge_Kutta_4th_Left: Integrate Linear
-Test_Math_Float_Gen_Runge_Kutta_4th_Left: Integrate Quadratic
-Test_Math_Float_Gen_Runge_Kutta_4th_Wertz: Integrate Constant
-Test_Math_Float_Gen_Runge_Kutta_4th_Wertz: Integrate Linear
-Test_Math_Float_Gen_Runge_Kutta_4th_Wertz: Integrate Quadratic
-Test Math_Float.Linear_Fit: Test_Linear_Fit
-Test_Math_Float_Manipulator_6_Left: Jacobian
-Test_Math_Float_Manipulator_6_Left: Jacobian_Change_Frame
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_1
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_2
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_3
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_4
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_5
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_6
-Test_Math_Float_Manipulator_6_Left: T0_T_Ti_7
-test_math_float_manipulator_7_left: Projector
-test_math_float_manipulator_7_left: Gravity
-../../Source_Common/Test/test_math_float_polynomial_fit.adb: Test_First_Order_Fit
-../../Source_Common/Test/test_math_float_polynomial_fit.adb: Test_Second_Order_Fit
-Test_Math_Float_Polynomials: Test_First_Order
-Test_Math_Float_Polynomials: Test_Second_Order
-Test_Math_Float_Polynomials: Test_Short_Order
-Test_Math_Float_Polynomials: Test_Negative_Order
-Test_Math_Float_Polynomials_Inverse: Test_Derivative
-Test_Math_Float_Polynomials_Inverse: Test_First_Order
-Test_Math_Float_Polynomials_Inverse: Test_Second_Order
-test_math_float_scalar: Test_Mod
-test_math_float_scalar: Test_Dead_Band
-test_math_float_scalar: Test_Detent
-test_math_float_scalar: Test_Limit
-test_math_float_scalar: Test_Compute_Limit
-test_math_float_scalar: Test_Clip
-test_math_float_scalar: Test_Less_Equal
-test_math_float_scalar: Test_Scale_Limit
-test_math_float_scalar: Test_Sin_Cos
-test_math_float_scalar: Test_Trig_Sum_Diff
-Test_Math_Float_Scalar_Config: Test_Read_Scale_Limit
-Test_Math_Float_Stats: Test_Stats
-Test_Math_Float_Vector: Nominal
-SAL.Network_Order: all data types
-Test_Poly_Unbouned_Arrays: Nominal
-Test_Poly_Unbouned_Arrays: Prepend_Array
-Test_Poly_Unbouned_Arrays: Double_Ended_Array
-Test_Poly_Unbouned_Arrays: Test_Insert_Before
-Test_Poly_Unbouned_Arrays: Test_Delete
-Test_Poly_Unbouned_Arrays: Test_Iterators
-Test_Poly_lists_Double: Integer_Lists
-Test_Poly_lists_Double: Integer_List_Iterators_Basic
-Test_Poly_lists_Double: Integer_List_Iterator_Copy_Before
-Test_Poly_lists_Double: Integer_List_Truncate
-Test_Poly_lists_Double: Indefinite_Items_Symbols
-Test_Poly_lists_Double: Indefinite_Limited_Items_Puppets
-Test_Poly_lists_Double: Randomize
+OK Test.Config_Files.Abs_File : Test_Env_Var
+OK Test.Config_Files.Abs_File : Test_Open_Close
+OK Test.Config_Files.Append_File : Test_Open_Append
+OK Bad file name tests : Test_Open
+OK Test.Config_Files.Base_Tests : Test_Boolean_Value
+OK Test.Config_Files.Base_Tests : Test_Duration_Value
+OK Test.Config_Files.Base_Tests : Test_File_Name
+OK Test.Config_Files.Base_Tests : Test_Float_Value
+OK Test.Config_Files.Base_Tests : Test_Int_Value
+OK Test.Config_Files.Base_Tests : Test_Quoted_String_Value
+OK Test.Config_Files.Base_Tests : Test_String_Value
+OK Test.Config_Files.Base_Tests : Test_Unsigned_Value
+OK Test.Config_Files.Base_Tests : Test_Flush_Reopen
+OK Test.Config_Files.Base_Tests : Test_Is_Present
+OK Config_Files.Case_Insensitive : Test
+OK Config_Files.Comment_No_Equal : Run_Test
+OK ../../Source_Common/Test/test-config_files-delete.adb : Plain
+OK ../../Source_Common/Test/test-config_files-delete.adb : Children
+OK ../../Source_Common/Test/test-config_files-delete.adb : Iterators
+OK Config_Files.Duplicate_Key : Keep_First_Duplicate
+OK Config_Files.Duplicate_Key : Keep_Last_Duplicate
+OK Config_Files.Duplicate_Key : Error_Duplicate
+OK Test.Config_Files.Extra_Key : Test_String
+OK Test.Config_Files.Extra_Key : Test_Enum
+OK Test.Config_Files.Extra_Key : Test_Integer
+OK Test.Config_Files.Extra_Key : Test_Modular
+OK Test.Config_Files.Extra_Key : Test_Float
+OK Test.Config_Files.Extra_Key : Test_Fixed
+OK Test.Config_Files.Extra_Key : Test_Iterator_String
+OK Test.Config_Files.Extra_Key : Test_Iterator_Enum
+OK Test.Config_Files.Extra_Key : Test_Iterator_Integer
+OK Test.Config_Files.Extra_Key : Test_Iterator_Modular
+OK Test.Config_Files.Extra_Key : Test_Iterator_Float
+OK Test.Config_Files.Extra_Key : Test_Iterator_Fixed
+OK Test.Config_Files.Error_Message : Invalid_Enumeral
+OK Test.Config_Files.Error_Message : Invalid_Integer
+OK Test.Config_Files.Error_Message : Invalid_Modular
+OK Test.Config_Files.Error_Message : Invalid_Float
+OK Test.Config_Files.Error_Message : Invalid_Fixed
+OK Test.Config_Files.Error_Message : Root_Key
+OK Config_Files.Iterators : Nominal
+OK Config_Files.Iterators : Line_Column
+OK Config_Files.Iterators : Errors
+OK Config_Files.Iterators_Nested : Nested
+OK test.config_files.no_file : Test_Open_Error
+OK test.config_files.no_file : Test_Read_Key_Error
+OK test.config_files.no_file : Test_Write_Key_Error
+OK time tests : Write, Read time value
+OK SAL.CSV.Test : Test_Read
+OK SAL.CSV.Test : Test_Space
+OK SAL.CSV.Test : Quote_Unquote
+OK SAL.File_Names.Test : Test_Create
+OK SAL.File_Names.Test : Test_With_Default
+OK SAL.File_Names.Test : Test_Replace_Environment_Variables
+OK SAL.File_Names.Test : Test_Resolve_Relative
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Leap_Year
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Year_Day_Seconds
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Days_Seconds
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Hour_Minute_Seconds
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_String_TAI
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Extended_ASIST_TAI
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_TAI_Julian_Convert
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Julian_TAI_Convert
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_J2000_Julian_Centuries
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Extended_String_TAI
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Floor_Unsigned_16
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_To_Microseconds
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Calculate_Day_Of_Year
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Create_Leap_Second_Table
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Bad_Create_Leap_Second_Table
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_TAI_To_UTC
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_GPS
+OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Calendar
+OK ../../test/test_randomize_lists.adb : Randomize
+OK ../../test/test_stacks.adb : Nominal
 
-   Failed Tests: 0
-
-   Unexpected Errors: 0
+Total Tests Run:   75
+Successful Tests:  75
+Failed Assertions: 0
+Unexpected Errors: 0

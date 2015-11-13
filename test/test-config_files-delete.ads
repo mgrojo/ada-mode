@@ -18,14 +18,13 @@
 
 pragma License (GPL);
 
-with Ada.Strings.Unbounded;
-with SAL.AUnit.Test_Cases;
+with AUnit.Test_Cases;
 package Test.Config_Files.Delete is
 
-   type Test_Case is new SAL.AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
+   overriding function Name (T : Test_Case) return AUnit.Message_String;
 
 end Test.Config_Files.Delete;

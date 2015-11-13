@@ -15,23 +15,23 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
+
+pragma License (GPL);
 
 with Ada.IO_Exceptions;
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+with AUnit.Assertions;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.Bad_File_Name is
 
    ----------
    --  Local subprogram declarations
 
-   procedure Test_Open (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Open (T : in out AUnit.Test_Cases.Test_Case'Class);
 
    ----------
    --  Subprogram bodies (alphabetical order)
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -40,12 +40,12 @@ package body Test.Config_Files.Bad_File_Name is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Open'Access, "Test_Open");
    end Register_Tests;
 
-   procedure Test_Open (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Open (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       Bad_File_Name : constant String := "/bad:/for Windows";
@@ -63,7 +63,7 @@ package body Test.Config_Files.Bad_File_Name is
          Name_Error_Raised := True;
       end;
 
-      SAL.AUnit.Assertions.Assert (Name_Error_Raised, "did not raise Name_Error");
+      AUnit.Assertions.Assert (Name_Error_Raised, "did not raise Name_Error");
 
    end Test_Open;
 

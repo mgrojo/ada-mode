@@ -15,15 +15,15 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with Ada.Characters.Handling;
 with GNAT.Directory_Operations;
 with GNAT.OS_Lib;
 with Interfaces.C;                use Interfaces.C;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files.Boolean;
 with SAL.Config_Files.Duration;
 with SAL.Config_Files;          use SAL.Config_Files;
@@ -62,17 +62,17 @@ package body Test.Config_Files.Base_Tests is
    procedure Check_String (Key : in String; Expected : in String);
    procedure Check_Unsigned (Key : in String; Expected : in unsigned);
 
-   procedure Test_Boolean_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Duration_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_File_Name (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Float_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Flush_Reopen (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Int_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Is_Present (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Boolean_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Duration_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_File_Name (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Float_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Flush_Reopen (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Int_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Is_Present (T : in out AUnit.Test_Cases.Test_Case'Class);
    procedure Test_Quoted_String_Value
-     (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_String_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Unsigned_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+     (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_String_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Unsigned_Value (T : in out AUnit.Test_Cases.Test_Case'Class);
 
 
    ----------
@@ -83,7 +83,7 @@ package body Test.Config_Files.Base_Tests is
       use SAL.Config_Files.Boolean;
       Result_Boolean : constant Boolean := Read (Config, Key, False, Missing_Key => Raise_Exception);
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Result_Boolean = Expected,
          Key & ": " &
            "Expecting " & Boolean'Image (Expected) & ' ' &
@@ -95,7 +95,7 @@ package body Test.Config_Files.Base_Tests is
       use SAL.Config_Files.Duration;
       Result : constant Duration := Read (Config, Key, 0.0, Missing_Key => Raise_Exception);
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Result = Expected,
          Key & ": " &
            "Expecting " & Duration'Image (Expected) & ' ' &
@@ -106,7 +106,7 @@ package body Test.Config_Files.Base_Tests is
    is
       Result_Float : constant Float := Read (Config, Key, 0.0);
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         ((Result_Float - Expected) <= Epsilon,
          Key & ": " &
            "Expecting " & Float'Image (Expected) & ' ' &
@@ -117,7 +117,7 @@ package body Test.Config_Files.Base_Tests is
    is
       Result_Int : constant int := Read (Config, Key, 0);
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Result_Int = Expected,
          Key & ": " &
            "Expecting " & int'Image (Expected) & ' ' &
@@ -128,7 +128,7 @@ package body Test.Config_Files.Base_Tests is
    is
       Result : constant String := Read (Config, Key, "default");
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Result = Expected,
          Key & ": " &
            "Expecting <" & Expected & '>' & ' ' &
@@ -139,7 +139,7 @@ package body Test.Config_Files.Base_Tests is
    is
       Result_Unsigned : constant unsigned := Read (Config, Key, 0);
    begin
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Result_Unsigned = Expected,
          Key & ": " &
            "Expecting " & unsigned'Image (Expected) & ' ' &
@@ -149,7 +149,7 @@ package body Test.Config_Files.Base_Tests is
    ----------
    --  Public routines
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -158,7 +158,7 @@ package body Test.Config_Files.Base_Tests is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Boolean_Value'Access, "Test_Boolean_Value");
       Register_Routine (T, Test_Duration_Value'Access, "Test_Duration_Value");
@@ -202,7 +202,7 @@ package body Test.Config_Files.Base_Tests is
    ----------
    --  Test routines
 
-   procedure Test_Boolean_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Boolean_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -212,7 +212,7 @@ package body Test.Config_Files.Base_Tests is
       Check_Boolean ("Another_Boolean", False);
    end Test_Boolean_Value;
 
-   procedure Test_Duration_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Duration_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       A_Duration : constant Duration := 1234.5;
@@ -221,7 +221,7 @@ package body Test.Config_Files.Base_Tests is
       Check_Duration ("A_Duration", A_Duration);
    end Test_Duration_Value;
 
-   procedure Test_File_Name (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_File_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
 
@@ -245,13 +245,13 @@ package body Test.Config_Files.Base_Tests is
       --  There doesn't seem to be a way to get the GNAT file
       --  utilities to return consistent case for the Windows drive
       --  letter. So we use To_Lower.
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (To_Lower (Found.all) = To_Lower (SAL.Config_Files.Writeable_File_Name (Config)),
          "Expecting '" & Found.all & "' " &
            "Got '" & SAL.Config_Files.Writeable_File_Name (Config) & "'");
    end Test_File_Name;
 
-   procedure Test_Float_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Float_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -261,7 +261,7 @@ package body Test.Config_Files.Base_Tests is
       Check_Float (Float_Section & ".A_Float", A_Float);
    end Test_Float_Value;
 
-   procedure Test_Flush_Reopen (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Flush_Reopen (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -275,7 +275,7 @@ package body Test.Config_Files.Base_Tests is
       Check_Unsigned (Interfaces_Section & ".An_Unsigned", An_Unsigned);
    end Test_Flush_Reopen;
 
-   procedure Test_Int_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Int_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -285,16 +285,16 @@ package body Test.Config_Files.Base_Tests is
       Check_Int (Interfaces_Section & ".An_Int", An_Int);
    end Test_Int_Value;
 
-   procedure Test_Is_Present (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Is_Present (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
    begin
       Check ("A_Boolean", Is_Present (Config, "A_Boolean"), True);
       Check ("No_Boolean", Is_Present (Config, "No_Boolean"), False);
    end Test_Is_Present;
 
-   procedure Test_String_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_String_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -316,7 +316,7 @@ package body Test.Config_Files.Base_Tests is
    end Test_String_Value;
 
    procedure Test_Quoted_String_Value
-     (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+     (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -329,7 +329,7 @@ package body Test.Config_Files.Base_Tests is
       Check_String ("Strings.Quoted", Quoted);
    end Test_Quoted_String_Value;
 
-   procedure Test_Unsigned_Value (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Unsigned_Value (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin

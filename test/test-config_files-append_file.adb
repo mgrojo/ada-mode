@@ -15,12 +15,12 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
 with Ada.Text_IO;
 with SAL.Config_Files; use SAL.Config_Files;
-with SAL.AUnit.Checks; use SAL.AUnit.Checks;
+with AUnit.Checks; use AUnit.Checks;
 package body Test.Config_Files.Append_File is
 
    Config    : Configuration_Type;
@@ -30,7 +30,7 @@ package body Test.Config_Files.Append_File is
    ----------
    --  Test procedures
 
-   procedure Test_Open_Append (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Open_Append (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -48,7 +48,7 @@ package body Test.Config_Files.Append_File is
    ----------
    --  Public bodies (alphabetical order)
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -57,7 +57,7 @@ package body Test.Config_Files.Append_File is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Open_Append'Access, "Test_Open_Append");
    end Register_Tests;

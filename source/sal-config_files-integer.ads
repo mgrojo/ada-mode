@@ -1,9 +1,8 @@
 --  Abstract :
 --
---  Instantiation of Text_IO.Float_IO for Standard.Float, for Ada
---  83 systems.
+--  Instantiation
 --
---  Copyright (C) 2001, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003, 2004, 2009 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,10 +18,16 @@
 --
 --  As a special exception, if other files instantiate generics from
 --  this unit, or you link this unit with other files to produce an
---  executable, this  unit  does not  by itself cause  the resulting
+--  executable, this unit does not by itself cause the resulting
 --  executable to be covered by the GNU General Public License. This
 --  exception does not however invalidate any other reasons why the
---  executable file  might be covered by the  GNU Public License.
---
-with Text_IO;
-package Float_Text_IO is new Text_IO.Float_IO (Float);
+--  executable file might be covered by the GNU Public License.
+
+package SAL.Config_Files.Integer is
+
+   function Read is new Read_Integer (Standard.Integer);
+   procedure Write is new Write_Integer (Standard.Integer);
+
+   function Read is new Read_Iterator_Integer (Standard.Integer);
+
+end SAL.Config_Files.Integer;

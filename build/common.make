@@ -14,7 +14,7 @@ DIFF_OPT = -u -w
 vpath %.adb ../../source
 vpath %.adb ../../test
 
-tests :: test_all_harness.diff
+vpath %.good_out ../../test
 
 test-clean ::
 	rm -f *.config

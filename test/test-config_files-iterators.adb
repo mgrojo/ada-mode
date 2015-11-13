@@ -16,10 +16,11 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with GNAT.OS_Lib;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files.Integer; use SAL.Config_Files.Integer;
 with SAL.Config_Files;         use SAL.Config_Files;
 package body Test.Config_Files.Iterators is
@@ -32,11 +33,11 @@ package body Test.Config_Files.Iterators is
 
    function Read is new Read_Iterator_Integer (Integer);
 
-   procedure Nominal (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
-      use SAL.AUnit.Checks;
+      use AUnit.Assertions;
+      use AUnit.Checks;
 
       Connectors   : Iterator_Type;
       Signal_Count : Integer := 0;
@@ -123,10 +124,10 @@ package body Test.Config_Files.Iterators is
 
    end Nominal;
 
-   procedure Line_Column (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Line_Column (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Connectors   : Iterator_Type;
       Signal_Count : Integer := 0;
@@ -187,10 +188,10 @@ package body Test.Config_Files.Iterators is
 
    end Line_Column;
 
-   procedure Errors (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Errors (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Iterator : Iterator_Type;
    begin
@@ -220,7 +221,7 @@ package body Test.Config_Files.Iterators is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
       Register_Routine (T, Line_Column'Access, "Line_Column");
@@ -272,7 +273,7 @@ package body Test.Config_Files.Iterators is
       Close (Config);
    end Tear_Down_Case;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

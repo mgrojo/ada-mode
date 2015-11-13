@@ -15,14 +15,14 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Interfaces;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files.Boolean;
 with SAL.Config_Files.Duration;
 with SAL.Config_Files.Integer;
@@ -42,10 +42,10 @@ package body Test.Config_Files.Extra_Key is
    ----------
    --  Local subprograms
 
-   procedure Test_String (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_String (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -77,7 +77,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":2:15: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":2:15: unread key");
       end;
 
       --  This time, verify that Is_Present sets the 'read' flag.
@@ -95,10 +95,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_String;
 
-   procedure Test_Enum (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Enum (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -123,7 +123,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:7: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:7: unread key");
       end;
 
       Open (Config, File_Name);
@@ -131,10 +131,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Enum;
 
-   procedure Test_Integer (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Integer (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -159,7 +159,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:10: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:10: unread key");
       end;
 
       Open (Config, File_Name);
@@ -167,10 +167,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Integer;
 
-   procedure Test_Modular (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Modular (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -195,7 +195,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:10: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:10: unread key");
       end;
 
       Open (Config, File_Name);
@@ -203,10 +203,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Modular;
 
-   procedure Test_Float (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Float (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -231,7 +231,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:8: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:8: unread key");
       end;
 
       Open (Config, File_Name);
@@ -239,10 +239,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Float;
 
-   procedure Test_Fixed (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Fixed (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -267,7 +267,7 @@ package body Test.Config_Files.Extra_Key is
          Assert (False, "no exception");
       exception
       when E : SAL.Config_File_Error =>
-         SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:8: unread key");
+         AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":1:8: unread key");
       end;
 
       Open (Config, File_Name);
@@ -278,10 +278,10 @@ package body Test.Config_Files.Extra_Key is
    ----------
    --  Iterators
 
-   procedure Test_Iterator_String (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_String (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -319,10 +319,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Iterator_String;
 
-   procedure Test_Iterator_Enum (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_Enum (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -347,10 +347,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Iterator_Enum;
 
-   procedure Test_Iterator_Integer (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_Integer (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -375,10 +375,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Iterator_Integer;
 
-   procedure Test_Iterator_Modular (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_Modular (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -403,10 +403,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Iterator_Modular;
 
-   procedure Test_Iterator_Float (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_Float (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -431,10 +431,10 @@ package body Test.Config_Files.Extra_Key is
       Close (Config, Unread_Key => Raise_Exception);
    end Test_Iterator_Float;
 
-   procedure Test_Iterator_Fixed (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Iterator_Fixed (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       procedure Create_Config
       is
@@ -464,7 +464,7 @@ package body Test.Config_Files.Extra_Key is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_String'Access, "Test_String");
       Register_Routine (T, Test_Enum'Access, "Test_Enum");
@@ -481,7 +481,7 @@ package body Test.Config_Files.Extra_Key is
       Register_Routine (T, Test_Iterator_Fixed'Access, "Test_Iterator_Fixed");
    end Register_Tests;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

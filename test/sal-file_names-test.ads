@@ -15,15 +15,16 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
-with Ada.Strings.Unbounded;
-with SAL.AUnit.Test_Cases; use SAL.AUnit.Test_Cases;
+
+pragma License (GPL);
+
+with AUnit.Test_Cases; use AUnit.Test_Cases;
 package SAL.File_Names.Test is
 
-   type Test_Case is new SAL.AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access;
+   overriding function Name (T : Test_Case) return AUnit.Message_String;
 
 end SAL.File_Names.Test;

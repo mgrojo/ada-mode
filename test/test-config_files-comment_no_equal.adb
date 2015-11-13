@@ -15,11 +15,11 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
 with Ada.Text_IO;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.Comment_No_Equal is
 
@@ -29,12 +29,12 @@ package body Test.Config_Files.Comment_No_Equal is
    ----------
    --  Local subprogram declarations
 
-   procedure Run_Test (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+   procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class);
 
    ----------
    --  Subprogram bodies (alphabetical order)
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -43,7 +43,7 @@ package body Test.Config_Files.Comment_No_Equal is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Run_Test'Access, "Run_Test");
    end Register_Tests;
@@ -75,12 +75,12 @@ package body Test.Config_Files.Comment_No_Equal is
       Delete (File);
    end Tear_Down_Case;
 
-   procedure Run_Test (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
-      SAL.AUnit.Checks.Check ("[Geometry]", Is_Present (Config, "[Geometry]"), True);
-      SAL.AUnit.Checks.Check ("Left_Top", Is_Present (Config, "Left_Top"), True);
+      AUnit.Checks.Check ("[Geometry]", Is_Present (Config, "[Geometry]"), True);
+      AUnit.Checks.Check ("Left_Top", Is_Present (Config, "Left_Top"), True);
    end Run_Test;
 
 end Test.Config_Files.Comment_No_Equal;

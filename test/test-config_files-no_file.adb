@@ -15,12 +15,12 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
+
+pragma License (GPL);
 
 with Ada.IO_Exceptions;
 with Ada.Text_IO;
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+with AUnit.Assertions;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.No_File is
 
@@ -30,15 +30,15 @@ package body Test.Config_Files.No_File is
    ----------
    --  Local subprogram declarations
 
-   procedure Test_Open_Error (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
-   procedure Test_Read_Key_Error (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Open_Error (T : in out AUnit.Test_Cases.Test_Case'Class);
+   procedure Test_Read_Key_Error (T : in out AUnit.Test_Cases.Test_Case'Class);
    procedure Test_Write_Key_Error
-     (T : in out SAL.AUnit.Test_Cases.Test_Case'Class);
+     (T : in out AUnit.Test_Cases.Test_Case'Class);
 
    ----------
    --  Subprogram bodies (alphabetical order)
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -47,7 +47,7 @@ package body Test.Config_Files.No_File is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Open_Error'Access, "Test_Open_Error");
       Register_Routine (T, Test_Read_Key_Error'Access, "Test_Read_Key_Error");
@@ -72,7 +72,7 @@ package body Test.Config_Files.No_File is
       end;
    end Set_Up_Case;
 
-   procedure Test_Open_Error (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Open_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       Raised_Name_Error : Boolean;
@@ -85,11 +85,11 @@ package body Test.Config_Files.No_File is
          Raised_Name_Error := True;
       end;
 
-      SAL.AUnit.Assertions.Assert (Raised_Name_Error,
+      AUnit.Assertions.Assert (Raised_Name_Error,
                                "Open did not raise Name_Error");
    end Test_Open_Error;
 
-   procedure Test_Read_Key_Error (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Read_Key_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       Raised_Config_File_Error : Boolean;
@@ -114,11 +114,11 @@ package body Test.Config_Files.No_File is
 
       Close (Config);
 
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Raised_Config_File_Error, "Read Strings.Violins did not raise Config_File_Error");
    end Test_Read_Key_Error;
 
-   procedure Test_Write_Key_Error (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Write_Key_Error (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       Raised_Config_File_Error : Boolean;
@@ -140,7 +140,7 @@ package body Test.Config_Files.No_File is
 
       Close (Config);
 
-      SAL.AUnit.Assertions.Assert
+      AUnit.Assertions.Assert
         (Raised_Config_File_Error, "Write Strings.Violins did not raise Config_File_Error");
    end Test_Write_Key_Error;
 

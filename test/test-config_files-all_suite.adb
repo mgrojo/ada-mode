@@ -16,7 +16,7 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-with SAL.AUnit.Test_Suites; use SAL.AUnit.Test_Suites;
+with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test.Config_Files.Abs_File;
 with Test.Config_Files.Append_File;
 with Test.Config_Files.Bad_File_Name;
@@ -31,7 +31,7 @@ with Test.Config_Files.Iterators;
 with Test.Config_Files.Iterators_Nested;
 with Test.Config_Files.No_File;
 with Test.Config_Files.Time_Tests;
-function Test.Config_Files.All_Suite return SAL.AUnit.Test_Suites.Access_Test_Suite
+function Test.Config_Files.All_Suite return AUnit.Test_Suites.Access_Test_Suite
 is
    use Test.Config_Files;
 

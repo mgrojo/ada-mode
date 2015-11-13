@@ -15,13 +15,13 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.Duplicate_Key is
 
@@ -31,37 +31,37 @@ package body Test.Config_Files.Duplicate_Key is
    ----------
    --  Local subprograms
 
-   procedure Keep_Last_Duplicate (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Keep_Last_Duplicate (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
    begin
       Open (Config, File_Name, Duplicate_Key => Keep_Last);
-      SAL.AUnit.Checks.Check ("", Read (Config, "duplicate_key", ""), "Last");
+      AUnit.Checks.Check ("", Read (Config, "duplicate_key", ""), "Last");
       Close (Config);
    end Keep_Last_Duplicate;
 
-   procedure Keep_First_Duplicate (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Keep_First_Duplicate (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
       Open (Config, File_Name, Duplicate_Key => Keep_First);
-      SAL.AUnit.Checks.Check ("", Read (Config, "duplicate_key", ""), "First");
+      AUnit.Checks.Check ("", Read (Config, "duplicate_key", ""), "First");
       Close (Config);
    end Keep_First_Duplicate;
 
-   procedure Error_Duplicate (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Error_Duplicate (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
    begin
       Open (Config, File_Name, Duplicate_Key => Raise_Exception);
       Assert (False, "no exception");
    exception
    when E : SAL.Config_File_Error =>
-      SAL.AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":2:0: duplicate key");
+      AUnit.Checks.Check ("", Ada.Exceptions.Exception_Message (E), File_Name & ":2:0: duplicate key");
    end Error_Duplicate;
 
    ----------
@@ -69,7 +69,7 @@ package body Test.Config_Files.Duplicate_Key is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Keep_First_Duplicate'Access, "Keep_First_Duplicate");
       Register_Routine (T, Keep_Last_Duplicate'Access, "Keep_Last_Duplicate");
@@ -91,7 +91,7 @@ package body Test.Config_Files.Duplicate_Key is
       Close (File);
    end Set_Up_Case;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

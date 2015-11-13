@@ -15,10 +15,10 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
+with AUnit.Assertions;
 with Ada.Environment_Variables;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
@@ -28,7 +28,7 @@ with SAL.Config_Files; use SAL.Config_Files;
 with SAL.File_Names;
 package body Test.Config_Files.Abs_File is
 
-   procedure Test_Env_Var (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Env_Var (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -60,10 +60,10 @@ package body Test.Config_Files.Abs_File is
 
             Close (Config);
 
-            SAL.AUnit.Assertions.Assert (True, ""); --  Just count the test
+            AUnit.Assertions.Assert (True, ""); --  Just count the test
          exception
          when E : others =>
-            SAL.AUnit.Assertions.Assert (False, "unexpected exceptions raised: " & Ada.Exceptions.Exception_Name (E));
+            AUnit.Assertions.Assert (False, "unexpected exceptions raised: " & Ada.Exceptions.Exception_Name (E));
          end;
 
          --  Cleanup; delete file
@@ -77,7 +77,7 @@ package body Test.Config_Files.Abs_File is
       end;
    end Test_Env_Var;
 
-   procedure Test_Open_Close (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Open_Close (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
       File_Name : constant String := "test-config_files-abs.config";
@@ -106,10 +106,10 @@ package body Test.Config_Files.Abs_File is
 
          Close (Config);
 
-         SAL.AUnit.Assertions.Assert (True, ""); --  Just count the test
+         AUnit.Assertions.Assert (True, ""); --  Just count the test
       exception
       when others =>
-         SAL.AUnit.Assertions.Assert (False, "unexpected exceptions raised");
+         AUnit.Assertions.Assert (False, "unexpected exceptions raised");
       end;
 
       --  Cleanup; delete file
@@ -125,7 +125,7 @@ package body Test.Config_Files.Abs_File is
    ----------
    --  public bodies
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -134,7 +134,7 @@ package body Test.Config_Files.Abs_File is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Env_Var'Access, "Test_Env_Var");
       Register_Routine (T, Test_Open_Close'Access, "Test_Open_Close");

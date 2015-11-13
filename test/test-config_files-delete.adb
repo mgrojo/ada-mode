@@ -19,18 +19,17 @@
 pragma License (GPL);
 
 with Ada.Directories;  use Ada.Directories;
-with SAL.AUnit.Test_Cases.Registration;
 with GNAT.Source_Info;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.Delete is
 
    Config_File_Name : constant String := "test-config_files-delete.config";
 
-   procedure Plain (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Plain (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
 
       Config : Configuration_Type;
    begin
@@ -79,10 +78,10 @@ package body Test.Config_Files.Delete is
       Check ("4.1", Is_Present (Config, "5"), True);
    end Plain;
 
-   procedure Children (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Children (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
 
       Config : Configuration_Type;
    begin
@@ -128,10 +127,10 @@ package body Test.Config_Files.Delete is
 
    end Children;
 
-   procedure Iterators (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Iterators (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
 
       Config : Configuration_Type;
       I      : Iterator_Type;
@@ -164,14 +163,14 @@ package body Test.Config_Files.Delete is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Plain'Access, "Plain");
       Register_Routine (T, Children'Access, "Children");
       Register_Routine (T, Iterators'Access, "Iterators");
    end Register_Tests;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

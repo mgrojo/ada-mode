@@ -1,12 +1,9 @@
 # gnu make file for release version of SAL
-#
-# See ../../source/sal.html for complete installation
-# instructions
 
-all : tests
+all : test_all_harness.diff
 
-#../../Source_Common/test/test_all_harness.adb
-#../../Source_Common/test/test_one_harness.adb
+#../../test/test_all_harness.adb
+#../../test/test_one_harness.adb
 t_one : test_one_harness.run
 
 t_all : test_all_harness.diff

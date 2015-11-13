@@ -1,4 +1,7 @@
 --  For use by other projects
+
+with "aunit"; -- for *-aunit.ads
+with "aunit_sal_ext";
 with "standard_common";
 project SAL is
 

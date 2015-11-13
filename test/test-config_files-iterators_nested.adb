@@ -18,11 +18,10 @@
 
 pragma License (GPL);
 
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+with AUnit.Assertions;
 with Ada.Directories;
 with Ada.Text_IO;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 with SAL.Config_Files.Integer;
 with SAL.Config_Files; use SAL.Config_Files;
 package body Test.Config_Files.Iterators_Nested is
@@ -33,11 +32,11 @@ package body Test.Config_Files.Iterators_Nested is
    ----------
    --  Local subprograms
 
-   procedure Nested (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Nested (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
-      use SAL.AUnit.Checks;
+      use AUnit.Assertions;
+      use AUnit.Checks;
       use SAL.Config_Files.Integer;
 
       Cards : Iterator_Type := First (Config, "Card");
@@ -98,7 +97,7 @@ package body Test.Config_Files.Iterators_Nested is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nested'Access, "Nested");
    end Register_Tests;
@@ -147,7 +146,7 @@ package body Test.Config_Files.Iterators_Nested is
       Close (Config);
    end Tear_Down_Case;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

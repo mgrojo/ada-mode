@@ -18,110 +18,39 @@
 
 pragma License (GPL);
 
-with SAL.AUnit.Test_Results.Text_Reporter;
-with SAL.AUnit.Test_Suites;
-with SAL.AUnit.Checks.Test;
-with SAL.AUnit.Checks.Text_IO.Test;
+with AUnit.Options;
+with AUnit.Reporter.Text;
+with AUnit.Test_Results;
+with AUnit.Test_Suites; use AUnit.Test_Suites;
 with SAL.CSV.Test;
 with SAL.File_Names.Test;
-with SAL.Intel_Hex_IO.Test;
 with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
-with Test_Gen_FIFO;
-with Test_Gen_Queues_Bounded_Nonlimited;
-with Test_Gen_Sets;
-with Test_Math_Double_Cubic;
-with Test_Math_Double_DOF_6;
-with Test_Math_Double_Legendre_Recursive;
-with Test_Math_Double_Manipulator_3_Wertz;
-with Test_Math_Double_Spherical_Harmonics;
-with Test_Math_Double_Tank;
-with Test_Math_Float_DOF_3;
-with Test_Math_Float_DOF_3_Left;
-with Test_Math_Float_DOF_3_Wertz;
-with Test_Math_Float_DOF_6;
-with Test_Math_Float_DOF_6_Config;
-with Test_Math_Float_DOF_6_Integrator_Utils_Left;
-with Test_Math_Float_DOF_6_Integrator_Utils_Wertz;
-with Test_Math_Float_DOF_6_Left;
-with Test_Math_Float_DOF_6_Wertz;
-with Test_Math_Float_Den_Hart_Left;
-with Test_Math_Float_Gen_Runge_Kutta_4th_Left;
-with Test_Math_Float_Gen_Runge_Kutta_4th_Wertz;
-with Test_Math_Float_Linear_Fit;
-with Test_Math_Float_Manipulator_6_Left;
-with Test_Math_Float_Manipulator_7_Left;
-with Test_Math_Float_Polynomial_Fit;
-with Test_Math_Float_Polynomials;
-with Test_Math_Float_Polynomials_Inverse;
-with Test_Math_Float_Scalar;
-with Test_Math_Float_Scalar_Config;
-with Test_Math_Float_Stats;
-with Test_Math_Float_Vector;
-with Test_Network_Order;
-with Test_Poly_Lists_Double;
-with Test_Poly_Unbounded_Arrays;
-with Test_Poly_Unbounded_Arrays_Find_Linear;
+--  FIXME: needs work with Test_Gen_Images;
+with Test_Randomize_Lists;
+with Test_Stacks;
 procedure Test_All_Harness
 is
-   use SAL.AUnit.Test_Suites;
-
-   Suite  : constant Access_Test_Suite := new Test_Suite;
-
-   Result : SAL.AUnit.Test_Results.Result;
+   Suite    : constant Access_Test_Suite := new Test_Suite;
+   Reporter : AUnit.Reporter.Text.Text_Reporter;
+   Result   : AUnit.Test_Results.Result;
+   Status   : AUnit.Status;
 
 begin
    --  This is first because it's a suite.
    Add_Test (Suite, Test.Config_Files.All_Suite);
 
-   --  This is before others because it has an Unbounded_Array that is
-   --  initialized at elaboration time; other tests that use
-   --  Test_Storage_Pools will report non-zero initial allocations.
-   Add_Test (Suite, new Test_Poly_Unbounded_Arrays_Find_Linear.Test_Case (Debug_Level => 0));
 
-   Add_Test (Suite, new SAL.AUnit.Checks.Test.Test_Case);
-   Add_Test (Suite, new SAL.AUnit.Checks.Text_IO.Test.Test_Case);
    Add_Test (Suite, new SAL.CSV.Test.Test_Case);
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
-   Add_Test (Suite, new SAL.Intel_Hex_IO.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
-   Add_Test (Suite, new Test_Gen_FIFO.Test_Case);
-   Add_Test (Suite, new Test_Gen_Queues_Bounded_Nonlimited.Test_Case);
-   Add_Test (Suite, new Test_Gen_Sets.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_Cubic.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_DOF_6.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_Legendre_Recursive.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_Manipulator_3_Wertz.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_Spherical_Harmonics.Test_Case);
-   Add_Test (Suite, new Test_Math_Double_Tank.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_3.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_3_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_3_Wertz.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6_Config.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6_Integrator_Utils_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6_Integrator_Utils_Wertz.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_DOF_6_Wertz.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Den_Hart_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Gen_Runge_Kutta_4th_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Gen_Runge_Kutta_4th_Wertz.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Linear_Fit.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Manipulator_6_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Manipulator_7_Left.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Polynomial_Fit.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Polynomials.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Polynomials_Inverse.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Scalar.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Scalar_Config.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Stats.Test_Case);
-   Add_Test (Suite, new Test_Math_Float_Vector.Test_Case);
-   Add_Test (Suite, new Test_Network_Order.Test_Case);
-   Add_Test (Suite, new Test_Poly_Unbounded_Arrays.Test_Case (Debug_Level => 0));
-   Add_Test (Suite, new Test_Poly_Lists_Double.Test_Case (Debug => False));
+--  FIXME: needs work   Add_Test (Suite, new Test_Gen_Images.Test_Case);
+   Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Stacks.Test_Case);
 
-   Run (Suite.all, Result);
+   Run (Suite, AUnit.Options.Default_Options, Result, Status);
 
-   SAL.AUnit.Test_Results.Text_Reporter.Report (Result);
+   --  Provide command line option -v to set verbose mode
+   AUnit.Reporter.Text.Report (Reporter, Result);
 
 end Test_All_Harness;

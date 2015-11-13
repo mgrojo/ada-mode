@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Base test cases for Grace.Config_Files
+--  Test parent
 --
---  Copyright (C) 2002, 2003, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,8 +18,8 @@
 
 pragma License (GPL);
 
-with AUnit.Test_Cases;
-package Test.Config_Files.Base_Tests is
+with AUnit.Test_Cases; use AUnit.Test_Cases;
+package SAL.CSV.Test is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -27,8 +27,4 @@ package Test.Config_Files.Base_Tests is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-   overriding procedure Set_Up_Case (T : in out Test_Case);
-
-   overriding procedure Tear_Down_Case (T : in out Test_Case);
-
-end Test.Config_Files.Base_Tests;
+end SAL.CSV.Test;

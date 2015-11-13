@@ -16,9 +16,10 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-with SAL.AUnit.Test_Cases.Registration;
+pragma License (GPL);
+
 with GNAT.OS_Lib;
-with SAL.AUnit.Checks;
+with AUnit.Checks;
 package body SAL.File_Names.Test is
 
    function Shift (Name : in String) return String
@@ -58,7 +59,7 @@ package body SAL.File_Names.Test is
       Name_Last      : in Natural;
       Extension_Last : in Natural)
    is
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
    begin
       Check (Message & ".Full_Name", Ada.Strings.Unbounded.To_String (File_Name.Full_Name), To_OS (Full_Name));
       Check (Message & ".Device_Last", File_Name.Device_Last, Device_Last);
@@ -71,7 +72,7 @@ package body SAL.File_Names.Test is
    ----------
    --  Test subprograms
 
-   procedure Test_Create (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Create (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -219,7 +220,7 @@ package body SAL.File_Names.Test is
 
    end Test_Create;
 
-   procedure Test_With_Default (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_With_Default (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -309,10 +310,10 @@ package body SAL.File_Names.Test is
 
    end Test_With_Default;
 
-   procedure Test_Replace_Environment_Variables (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Replace_Environment_Variables (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Checks;
+      use AUnit.Checks;
 
       Env_Var_Name  : constant String := "SAL_FILE_NAMES_TEST_ENV";
       Env_Var_Value : constant String := "Env_Value";
@@ -368,7 +369,7 @@ package body SAL.File_Names.Test is
 
    end Test_Replace_Environment_Variables;
 
-   procedure Test_Resolve_Relative (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Resolve_Relative (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
    begin
@@ -452,7 +453,7 @@ package body SAL.File_Names.Test is
    ----------
    --  Public bodies
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
@@ -461,7 +462,7 @@ package body SAL.File_Names.Test is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Test_Create'Access, "Test_Create");
       Register_Routine (T, Test_With_Default'Access, "Test_With_Default");

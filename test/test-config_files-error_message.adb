@@ -15,11 +15,11 @@
 --  distributed with this program; see file COPYING. If not, write to
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
---
+
+pragma License (GPL);
 
 with Ada.Exceptions; use Ada.Exceptions;
-with SAL.AUnit.Assertions;
-with SAL.AUnit.Test_Cases.Registration;
+with AUnit.Assertions;
 with SAL.Config_Files.Boolean; use SAL.Config_Files.Boolean;
 with SAL.Config_Files.Duration; use SAL.Config_Files.Duration;
 with SAL.Config_Files.Integer; use SAL.Config_Files.Integer;
@@ -37,10 +37,10 @@ package body Test.Config_Files.Error_Message is
    ----------
    --  Local subprograms
 
-   procedure Invalid_Enumeral (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Invalid_Enumeral (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Boolean;
       pragma Unreferenced (Data);
@@ -54,10 +54,10 @@ package body Test.Config_Files.Error_Message is
          "got " & Exception_Message (E));
    end Invalid_Enumeral;
 
-   procedure Invalid_Integer (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Invalid_Integer (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Integer;
       pragma Unreferenced (Data);
@@ -72,10 +72,10 @@ package body Test.Config_Files.Error_Message is
 
    end Invalid_Integer;
 
-   procedure Invalid_Modular (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Invalid_Modular (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Modular_Type;
       pragma Unreferenced (Data);
@@ -90,10 +90,10 @@ package body Test.Config_Files.Error_Message is
 
    end Invalid_Modular;
 
-   procedure Invalid_Float (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Invalid_Float (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Float;
       pragma Unreferenced (Data);
@@ -108,10 +108,10 @@ package body Test.Config_Files.Error_Message is
 
    end Invalid_Float;
 
-   procedure Invalid_Fixed (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Invalid_Fixed (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Duration;
       pragma Unreferenced (Data);
@@ -126,10 +126,10 @@ package body Test.Config_Files.Error_Message is
 
    end Invalid_Fixed;
 
-   procedure Root_Key (T : in out SAL.AUnit.Test_Cases.Test_Case'Class)
+   procedure Root_Key (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use SAL.AUnit.Assertions;
+      use AUnit.Assertions;
 
       Data : Duration;
       pragma Unreferenced (Data);
@@ -149,7 +149,7 @@ package body Test.Config_Files.Error_Message is
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
-      use SAL.AUnit.Test_Cases.Registration;
+      use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Invalid_Enumeral'Access, "Invalid_Enumeral");
       Register_Routine (T, Invalid_Integer'Access, "Invalid_Integer");
@@ -186,7 +186,7 @@ package body Test.Config_Files.Error_Message is
       Close (Config);
    end Tear_Down_Case;
 
-   overriding function Name (T : Test_Case) return Ada.Strings.Unbounded.String_Access
+   overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin

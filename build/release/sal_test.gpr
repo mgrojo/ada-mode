@@ -1,5 +1,3 @@
-with "aunit";
-with "aunit_sal_ext";
 with "standard_common";
 with "sal";
 project Sal_Test is
