@@ -41,6 +41,9 @@ o.e.a.stephe-2 (from o.e.a): external gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): idle
 
+ada mode menu:
+    add next-error, show-secondary-error to Navigate
+
 document jit-lock-defer-time:
 
     ;;  In large files, parsing is slow, so it gets in the way of
@@ -107,6 +110,22 @@ ada-mode.texi
 
 add "show all overloads" in navigate
     leave out file, line, col from gpr-query id
+
+fill comments:
+    set `fill-paragraph-function' to `ada-fill-comment-paragraph'
+
+    `ada-fill-comment-paragraph' doesn't respect the region
+
+    fix errors in filling:
+procedure Non_Comment           -- The following line will be removed on M-Q,
+                                --
+is                              --  * if it was an empty comment.
+
+   E : String := (1 =>    -- The following line will stay when pressing M-Q,
+                          --
+                          --  * even though it was empty.
+                    'A');
+
 
 add gpr-projects.el in emacs 25
     see project.el
