@@ -166,4 +166,10 @@ package AUnit.Checks is
       Expected  : in Duration;
       Tolerance : in Duration := 0.0);
 
+   procedure Check
+     (Label     : in String;
+      Computed  : in Long_Float;
+      Expected  : in Long_Float;
+      Tolerance : in Long_Float := 0.0);
+
 end AUnit.Checks;

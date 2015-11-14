@@ -211,4 +211,15 @@ package body AUnit.Checks is
          Label & " got " & Duration'Image (Computed) & " expecting " & Duration'Image (Expected));
    end Check;
 
+   procedure Check
+     (Label     : in String;
+      Computed  : in Long_Float;
+      Expected  : in Long_Float;
+      Tolerance : in Long_Float := 0.0)
+   is begin
+      AUnit.Assertions.Assert
+        (abs (Computed - Expected) <= Tolerance,
+         Label & " got " & Long_Float'Image (Computed) & " expecting " & Long_Float'Image (Expected));
+   end Check;
+
 end AUnit.Checks;
