@@ -648,21 +648,6 @@ read/write access requires a public key:
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
- git config for elpa checkout
-[core]
-	repositoryformatversion = 0
-	filemode = false # don't set exec bits
-	bare = false
-	logallrefupdates = true
-	ignorecase = true
-[remote "origin"]
-	fetch = +refs/heads/master:refs/remotes/origin/master
-	push  = +refs/heads/master
-	url = stephen_leake@git.sv.gnu.org:/srv/git/emacs/elpa.git
-[branch "master"]
-	remote = origin
-	merge = refs/heads/master
-
  release process
 move to external elpa package?
     maybe after add dynamic library for parser
