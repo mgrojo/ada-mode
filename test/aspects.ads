@@ -11,6 +11,12 @@ package Aspects is
      Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
+   type Date_Set is new Iterator_Interfaces.Forward_Iterator with private
+   with
+     Constant_Indexing => Element,
+     Default_Iterator  => Iterate,
+     Iterator_Element  => Ada.Calendar.Time;
+
    procedure Foo (X : Integer;
                   Y : out Integer)
    with Pre => X > 10 and

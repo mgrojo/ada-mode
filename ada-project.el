@@ -3,21 +3,22 @@
 ;; The project backend object is 'ada-project. The actual current
 ;; project is stored in `ada-prj-current-project'.
 
+(require 'ada-mode)
 (require 'project-patches)
 (require 'project-menu)
 
 ;; methods from master project.el; find out if we need these anywhere
-;; (cl-defmethod project-library-roots ((prj (eql 'ada-project)))
+;; (cl-defmethod project-library-roots ((prj (eql ada-project)))
 ;;   ;; IMPROVEME: we could cache this in an ada-project object, but I
 ;;   ;; don't anticipate using this much.
 ;;   (let ((recur-ign (project-flat-to-recursive-ignores (ada-prj-get 'src_dir))))
 ;;     (car recur-ign)))
 
-;; (cl-defmethod project-roots ((prj (eql 'ada-project)))
+;; (cl-defmethod project-roots ((prj (eql ada-project)))
 ;;   ;; Just use project-library-roots.
 ;;   nil)
 
-;; (cl-defmethod project-ignores ((prj (eql 'ada-project)) root)
+;; (cl-defmethod project-ignores ((prj (eql ada-project)) root)
 ;;   ;; IMPROVEME: we could cache this in an ada-project object, but I
 ;;   ;; don't anticipate using this much.
 ;;   (let ((recur-ign (project-flat-to-recursive-ignores (ada-prj-get 'src_dir)))
@@ -30,7 +31,7 @@
 ;; methods from project-patches.el
 ;; (cl-defmethod project-ignore-dir ((prj (eql 'ada-project))) should not be needed.
 
-(cl-defmethod project-find-file ((prj (eql 'ada-project)) filename)
+(cl-defmethod project-find-file ((prj (eql ada-project)) filename)
   (let* ((iter (make-path-iterator
 		:user-path-non-recursive (ada-prj-get 'src_dir)
 		:user-path-recursive nil

@@ -1303,7 +1303,7 @@
         (wisi-containing-action 1 3)
         (wisi-containing-action 6 7)
         (wisi-containing-action 6 8)
-        (wisi-containing-action 4 11)
+        (wisi-containing-action 6 11)
         (wisi-face-action [2 font-lock-type-face]))))
       (private_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON )
