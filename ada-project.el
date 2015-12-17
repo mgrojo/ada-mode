@@ -45,9 +45,7 @@
   )
 
 (push
- (make-project-menu-item
-  :name "Ada mode"
-  :prj 'ada-project)
+ (cons "Ada mode" 'ada-project)
  project-menu-list)
 
 (provide 'ada-project)
