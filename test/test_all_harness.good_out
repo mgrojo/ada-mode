@@ -72,10 +72,12 @@ OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Bad_Create_Leap
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_TAI_To_UTC
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_GPS
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Calendar
+OK ../../test/test_gen_images.adb : Nominal
 OK ../../test/test_randomize_lists.adb : Randomize
 OK ../../test/test_stacks.adb : Nominal
+OK Test_Math_Float_Stats : Test_Stats
 
-Total Tests Run:   75
-Successful Tests:  75
+Total Tests Run:   77
+Successful Tests:  77
 Failed Assertions: 0
 Unexpected Errors: 0

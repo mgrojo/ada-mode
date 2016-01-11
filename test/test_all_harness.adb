@@ -1,9 +1,8 @@
 --  Abstract :
 --
---  Run all AUnit tests for SAL. See Build/*/Makefile for non-AUnit
---  tests.
+--  Run all AUnit tests for SAL.
 --
---  Copyright (C) 2003 - 2009, 2012, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003 - 2009, 2012, 2015, 2016 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -26,9 +25,10 @@ with SAL.CSV.Test;
 with SAL.File_Names.Test;
 with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
---  FIXME: needs work with Test_Gen_Images;
+with Test_Gen_Images;
 with Test_Randomize_Lists;
 with Test_Stacks;
+with Test_Stats;
 procedure Test_All_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -44,9 +44,10 @@ begin
    Add_Test (Suite, new SAL.CSV.Test.Test_Case);
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
---  FIXME: needs work   Add_Test (Suite, new Test_Gen_Images.Test_Case);
+   Add_Test (Suite, new Test_Gen_Images.Test_Case);
    Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Stacks.Test_Case);
+   Add_Test (Suite, new Test_Stats.Test_Case);
 
    Run (Suite, AUnit.Options.Default_Options, Result, Status);
 

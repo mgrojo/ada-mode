@@ -1,12 +1,12 @@
 --  Abstract :
 --
---  Test generic image packages.
+--  See spec.
 --
---  Copyright (C) 2001 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 2, or
+--  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This program is distributed in
 --  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 --  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
@@ -16,13 +16,15 @@
 --  write to the Free Software Foundation, 59 Temple Place - Suite
 --  330, Boston, MA 02111-1307, USA.
 
-with Ada.Text_IO; use Ada.Text_IO;
+pragma License (GPL);
+
+with AUnit.Checks;
 with Interfaces;
 with SAL.Generic_Binary_Image;
 with SAL.Generic_Decimal_Image;
 with SAL.Generic_Float_Image;
-procedure Test_Gen_Images
-is
+package body Test_Gen_Images is
+
    function Binary_Image is new SAL.Generic_Binary_Image
      (Nibbles     => 2,
       Number_Type => Interfaces.Unsigned_8);
@@ -31,10 +33,34 @@ is
 
    function Float_Image is new SAL.Generic_Float_Image (Number_Type => Float);
 
-begin
-   Put_Line ("Binary_Image (16#23#) => " & Binary_Image (16#23#));
+   ----------
+   --  Test procedures
 
-   Put_Line ("Decimal_Image (23, Width => 4) => " & Decimal_Image (23, 4));
+   procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+      use AUnit.Checks;
+   begin
+      Check ("Binary_Image (16#23#)", Binary_Image (16#23#), "0010_0011");
+      Check ("Decimal_Image (23, Width => 4)", Decimal_Image (23, 4), "0023");
+      Check ("Float_Image (-23.5, Fore => 4, Aft => 2)", Float_Image (-23.5, Fore => 4, Aft => 2), "0023.50");
+   end Nominal;
 
-   Put_Line ("Float_Image (-23.5, Fore => 4, Aft => 2) => " & Float_Image (-23.5, Fore => 4, Aft => 2));
+   ----------
+   --  Public routines
+
+   overriding procedure Register_Tests (T : in out Test_Case)
+   is
+      use AUnit.Test_Cases.Registration;
+   begin
+      Register_Routine (T, Nominal'Access, "Nominal");
+   end Register_Tests;
+
+   overriding function Name (T : Test_Case) return AUnit.Message_String
+   is
+      pragma Unreferenced (T);
+   begin
+      return new String'("../../test/test_gen_images.adb");
+   end Name;
+
 end Test_Gen_Images;
