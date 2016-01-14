@@ -88,7 +88,7 @@ gpr-skel.gpr.tmp :
 	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
-	diff -u $< $*.tmp > $*.diff
+	-diff -u $< $*.tmp > $*.diff
 
 .PRECIOUS : %.tmp
 
