@@ -35,31 +35,14 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- next release
-o.e.a.stephe-1 (from o.e.a): external opentoken parser
-o.e.a.stephe-2 (from o.e.a): external gps parser
+ functional (next page for speed issues/ideas)
+o.e.a.stephe-1 (from o.e.a): external process opentoken parser
+o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): idle
 
 ada mode menu:
     add next-error, show-secondary-error to Navigate
-
-document jit-lock-defer-time:
-
-    ;;  In large files, parsing is slow, so it gets in the way of
-    ;;  interactive typing due to immediate font-lock triggering a
-    ;;  parse. Delay the font-lock with:
-    ;;
-    ;; --  Local Variables:
-    ;; --  jit-lock-defer-time: 0.5
-    ;; --  End:
-    (put 'jit-lock-defer-time 'safe-local-variable 'numberp)
-
-wisi-generate write defun for grammar actions
-    so they can be byte compiled
-    faster?
-
-speed up by not binding wisi-tokens for null action
 
 adding "<" => "<" still confuses wisi
 
@@ -205,12 +188,37 @@ after ada-mode is fast enough:
 use eieio class/method for dispatching
     now in cl-lib?
 
-5.1.c:
+ speed up
 
-skip statements at lexer level
-    mark all tokens as level 1 or 2
-    level 1: function begin end if loop etc
-    parse level 2 on demand
+wisi-generate write defun for grammar actions
+    so they can be byte compiled
+    faster?
+
+speed up by not binding wisi-tokens for null action
+
+skip blocks of text unless needed for current user command
+
+    two grammars
+        use elisp parser
+            simplifies debugging, installation
+
+        coarse grammar skips all non-block statements
+
+        sets high level caches that are start/end points for detailed grammar
+
+        invalidate both for any change; "end" can make a new block.
+
+        define both in one .wy file?
+            share keywords, tokens
+
+        start with test language in .wy
+
+
+    skip statements at lexer level?
+         mark all tokens as level 1 or 2
+         level 1: function begin end if loop etc
+         parse level 2 on demand
+
 
 handle parser errors more gracefully
     continue by adding virtual tokens

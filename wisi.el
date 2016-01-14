@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -654,7 +654,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-goto-error ()
   "Move point to position in last error message (if any)."
-  (when (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg)
+  (when (and wisi-parse-error-msg
+	     (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg))
     (let ((line (string-to-number (match-string 1 wisi-parse-error-msg)))
 	  (col (string-to-number (match-string 2 wisi-parse-error-msg))))
       (push-mark)

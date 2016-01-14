@@ -466,7 +466,9 @@ package Ada_Mode.Nominal is -- target 0
 
    type Protected_Interface_1 is protected interface;
 
-   protected type Protected_Child_1 is new Protected_Interface_1 with
+   protected type Protected_Child_1
+   with Convention => Ada
+   is new Protected_Interface_1 with
       entry E1 (X : Integer);
    end Protected_Child_1;
 

@@ -2,7 +2,7 @@
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -568,6 +568,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     (+ (current-column) ada-indent-broken))
 
 		    ((full_type_declaration
+		      protected_type_declaration
 		      single_protected_declaration
 		      single_task_declaration
 		      subtype_declaration
@@ -673,10 +674,21 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		       ))
 
 		    (private_extension_declaration
-		     ;; test/ada_mode-nominal.ads
-		     ;; type Limited_Derived_Type_3 is abstract limited
-		     ;;   new Private_Type_1 with private;
-		     (+ (current-indentation) ada-indent-broken))
+		     (cl-ecase (wisi-cache-token cache)
+		       (WITH
+			;; test/aspects.ads
+			;; type Date_Set is tagged private
+			;; with
+			;; indenting 'with'
+			(current-indentation))
+
+		       (t
+			;; test/ada_mode-nominal.ads
+			;; type Limited_Derived_Type_3 is abstract limited
+			;;   new Private_Type_1 with private;
+			;; indenting 'new'
+			(+ (current-indentation) ada-indent-broken))
+		       ))
 
 		    (private_type_declaration
 		     ;; test/aspects.ads
@@ -771,6 +783,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		  (ada-wisi-indent-list-break cache prev-token))
 
 		 (statement-other
+		  ;; FIXME: when is a statement-start contained by a statement-other?
 		  ;; defer to ada-wisi-after-cache
 		  nil)
 		 ))))

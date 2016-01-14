@@ -446,14 +446,14 @@ package body Ada_Mode.Parens is
 
    procedure If_Expr_As_Actual_Parameter is
 
-      function Id (X : Boolean) return Boolean is
+      function ID (X : Boolean) return Boolean is
       begin
          return X;
-      end Id;
+      end ID;
 
       -- ARM 4.5.7(7) allows removing the doubled parens
       -- around a conditional_expression
-      Tmp : Boolean := Id (if True then True else True);
+      Tmp : Boolean := ID (if True then True else True);
    begin
       null;
    end If_Expr_As_Actual_Parameter;

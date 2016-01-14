@@ -454,6 +454,14 @@ package body Ada_Mode.Nominal is -- target 0
 
    end Task_Type_1;
 
+   --  From a grammar bug report
+   type S is synchronized interface;
+
+   task type T is new S with
+   end T;
+
+   task body T is begin null; end;
+
    ----------
    -- subprograms
 

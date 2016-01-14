@@ -339,6 +339,18 @@ Navigate to subprograms and types by name, from a minibuffer menu.
 @item speedbar
 Navigate to subprograms and types by name, from a list in a dedicated window.
 @item which-func
+@item jit-lock-defer-time
+In large files, parsing is slow, so it gets in the way of
+interactive typing due to immediate font-lock triggering a
+parse. Delay the font-lock by setting an Emacs file-local variable
+in an Ada comment:
+
+@example
+--  Local Variables:
+--  jit-lock-defer-time: 0.5
+--  End:
+@end example
+
 @end table
 
 The above can all be set by the following code in your
