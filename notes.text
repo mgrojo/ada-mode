@@ -41,8 +41,6 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): idle
 
-org.emacs.ada-mode.sjw
-
 "others" clauses in all case statements, that return an indention of 0
 (or something similar) instead of throwing errors. They could still
 throw errors if wisi-debug > 0.

@@ -571,7 +571,6 @@ Used in before/after change functions.")
 	;; syntax-ppss has moved point to "end".
 
 	;; extend fontification over new text,
-	;; FIXME: but only if it extends a word!
 	(skip-syntax-forward "w_")
 	(setq word-end (point))
 	(goto-char begin)

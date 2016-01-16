@@ -793,10 +793,6 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		 (list-break
 		  (ada-wisi-indent-list-break cache prev-token))
 
-		 (statement-other
-		  ;; FIXME: when is a statement-start contained by a statement-other?
-		  ;; defer to ada-wisi-after-cache
-		  nil)
 		 ))))
 	     ))
 	))
@@ -1669,6 +1665,7 @@ Also return cache at start."
   (let* ((cache (wisi-forward-find-class 'name (point-max)))
          (result (wisi-cache-text cache)))
 
+    ;; See comment at ada-mode.el on why we don't overwrite ff-function-name.
     (when (not ff-function-name)
       (setq ff-function-name
 	    (concat

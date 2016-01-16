@@ -1,6 +1,6 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 1994, 1995, 1997 - 2015  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -1172,10 +1172,7 @@ Uses `ada-case-identifier', with exceptions defined in
 'word' here is allowed to be underscore-separated (GPR external_as_list)."
   (save-excursion
     (let ((end   (point-marker))
-	  (start (progn (skip-syntax-backward "w_") (point)))
-	  match
-	  next
-	  (done nil))
+	  (start (progn (skip-syntax-backward "w_") (point))))
       (ada-case-keyword start end)
     )))
 
@@ -2073,6 +2070,10 @@ buffer in another window."
   (interactive "P")
   (ada-check-current-project (buffer-file-name))
 
+  ;; clear ff-function-name, so it either ff-special-constructs or
+  ;; ada-which-function will set it.
+  (setq ff-function-name nil)
+
   (cond
    (mark-active
     (setq ff-function-name (buffer-substring-no-properties (point) (mark)))
@@ -2742,7 +2743,9 @@ The paragraph is indented on the first line."
   (setq local-abbrev-table ada-mode-abbrev-table)
 
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
-  (set (make-local-variable 'syntax-begin-function) nil)
+  (when (boundp 'syntax-begin-function)
+    ;; obsolete in emacs-25.1
+    (set (make-local-variable 'syntax-begin-function) nil))
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
   (set 'case-fold-search t); Ada is case insensitive; the syntax parsing requires this setting

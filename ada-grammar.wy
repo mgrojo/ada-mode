@@ -2201,13 +2201,7 @@ single_protected_declaration
 single_task_declaration
   : TASK IDENTIFIER aspect_specification_opt IS NEW interface_list WITH task_definition SEMICOLON
     (progn
-<<<<<<< variant A
       (wisi-statement-action [1 statement-start 2 name 4 block-middle 7 block-middle 9 statement-end])
->>>>>>> variant B
-      (wisi-statement-action [1 statement-start 2 name 7 block-middle 9 statement-end])
-####### Ancestor
-      (wisi-statement-action [1 block-start 2 name 7 block-middle 9 statement-end])
-======= end
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
       (wisi-containing-action 4 6)

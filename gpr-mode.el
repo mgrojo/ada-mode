@@ -259,7 +259,9 @@ of the package or project point is in or just after, or nil.")
   (setq mode-name "GNAT Project")
   (use-local-map gpr-mode-map)
   (set-syntax-table ada-mode-syntax-table)
-  (set (make-local-variable 'syntax-begin-function) nil)
+  (when (boundp 'syntax-begin-function)
+    ;; obsolete in emacs-25.1
+    (set (make-local-variable 'syntax-begin-function) nil))
   (set 'case-fold-search t); gpr is case insensitive; the syntax parsing requires this setting
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")

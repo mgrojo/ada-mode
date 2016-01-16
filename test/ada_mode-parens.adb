@@ -433,9 +433,9 @@ package body Ada_Mode.Parens is
 
    procedure Weird_List_Break is
    begin
-      Foo (X
-             ,    --  used to get an error here; don't care about the actual indentation
-           Y);
+      Slice_1 (1
+                 ,    --  used to get an error here; don't care about the actual indentation
+               "string");
    end;
 
    procedure Quantified_Exression is
