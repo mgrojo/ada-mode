@@ -693,11 +693,15 @@ check emacs buglist
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
 
+    build stuff to compare with previous release in elpa:
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
 
-        (list-packages) install ada-mode, wisi from public ELPA
+        (list-packages) install ada-mode, wisi, ada-ref-man from public ELPA
 
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.0" "/Projects/elpa/packages/wisi" nil)
+    change versions in compares below to match installed versions.
+
+    compare:
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.1" "/Projects/elpa/packages/wisi" nil)
             NEWS-wisi.text
                 add release date
                 add new features
@@ -705,7 +709,7 @@ bump versions
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.7" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.8" "/Projects/elpa/packages/ada-mode" nil)
             NEWS-ada-mode.text
                 add release date
                 add new features
@@ -719,12 +723,15 @@ bump versions
                 package-requires wisi version
                 ada-mode-version
 
+            more below
+
         (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
             ada-ref-man.el
                 Version:
 
     ada-mode.texi
-        Ada Mode Version
+        @title
+        top node
     README-ada-mode
         first line
     README-ada-ref-man
@@ -738,11 +745,11 @@ bump versions
         ada-ref-man-version
         wisi-version
 
-    /Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html
+    (find-file "/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html")
         ada-mode find-replace i.j.k
         opentoken find-replace i.jk
 
-    /Projects/Web/stephe-leake/emacs/wisi/wisi.html
+    (find-file "/Projects/Web/stephe-leake/emacs/wisi/wisi.html")
         wisi-i.j.k find-replace
         wisi-generate version
         ada-mode i.j.k
@@ -751,7 +758,7 @@ bump versions
     (/Projects/Web/stephe-leake/ada/opentoken.html copied by web makefile)
 
     ~/Web/Makefile
-        ADA-MODE-GZ
+        ADA-MODE-VERSION
 
 verify other metadata
     ada-mode.el

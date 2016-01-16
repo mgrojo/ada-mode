@@ -31,5 +31,4 @@ buffer-local wherever it is set."
   )
 
 (provide 'wisi-compat-24.2)
-
-;; end of file
+;;; wisi-compat-24.2.el ends here

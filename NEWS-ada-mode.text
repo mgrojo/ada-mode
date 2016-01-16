@@ -8,6 +8,14 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 
 * Ada mode 5.1.9
+20 Jan 2016
+
+** New option ada-indent-comment-gnat matches the GNAT style check for
+   comments in all cases (previously, there were some cases where the
+   comment indent algorithm did not match the GNAT check).
+
+** New menu command "Show source file search path"; displays
+   compilation-search-path in a buffer.
 
 ** Adding missing grammar statements to allow removing parens around
    conditional and quantified expressions.
@@ -22,10 +30,6 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 ** ada-case-identifier changed to accept the symbols 'mixed-case,
    'lower-case, 'upper-case instead of the functions 'ada-mixed-case,
    'ada-lower-case, 'ada-upper-case.
-
-** New option ada-indent-comment-gnat matches the GNAT style check for
-   comments in all cases (previously, there were some cases where the
-   comment indent algorithm did not match the GNAT check).
 
 ** ada-fix-add-context-clause now sorts "limited with" and "private
    with" clauses after other clauses.
@@ -42,10 +46,9 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    open paren, ada-prev-statement-keyword moves from close paren to
    open paren.
 
-** New function ada-prj-show-src-path (on the Ada menu) displays
-   compilation-search-path in a buffer.
+** New hook ada-prj-parse-hook, run from ada-parse-prj-file.
 
-** New hook ada-prj-parse-hook, run from ada-parse-prj-file
+** GPR mode now does case adjust similar to Ada mode.
 
 ** gpr parser handles nested case statements without blowing up.
 

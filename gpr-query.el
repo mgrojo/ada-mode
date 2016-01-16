@@ -28,11 +28,7 @@
 ;;
 ;; M-x gpr-query
 
-;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
-  ;; (cond
-  ;;  ((and (= emacs-major-version 24)
-  ;; 	 (= emacs-minor-version 2))
-    (require 'ada-mode-compat-24.2)
+(require 'ada-mode-compat-24.2)
 
 (require 'ada-mode) ;; for ada-prj-*, some other things
 (require 'gnat-core)
