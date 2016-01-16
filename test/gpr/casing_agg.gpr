@@ -1,0 +1,20 @@
+--EMACSCMD:major-mode
+--EMACSRESULT:'gpr-mode
+
+with "foo";
+aggregate project Casing_Agg extends "bar" is
+
+   --EMACSCMD:(ada-case-adjust-buffer)
+
+   for external ("FOO") use ("BAR");
+   --  Only actually allowed in an aggregate project
+
+   Linker_Flags := external_as_list ("foo", " ");
+
+   package Compiler renames Foo.Compiler;
+
+   package Linker extends Foo.Linker is
+      for Attribute ("ada") use ("this", "that");
+   end Linker;
+
+end Casing_Agg;

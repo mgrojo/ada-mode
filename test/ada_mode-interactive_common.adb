@@ -108,7 +108,7 @@ begin
    --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
 
    -- Insert a comment after code; used to signal error.
-   --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-at "--$"))
+   --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-back "--$"))
    E := (1 =>                   --
            'A');
    --EMACSRESULT:t

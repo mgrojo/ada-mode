@@ -579,7 +579,7 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     (+ (current-column) ada-indent-broken))
 
 		    ((full_type_declaration
-		      protected_type_declaration
+                      protected_type_declaration
 		      single_protected_declaration
 		      single_task_declaration
 		      subtype_declaration

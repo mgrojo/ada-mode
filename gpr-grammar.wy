@@ -79,6 +79,7 @@
 %keyword CASE "case"
 %keyword CONFIGURATION "configuration"
 %keyword END "end"
+%keyword EXTENDS "extends"
 %keyword EXTERNAL "external"
 %keyword EXTERNAL_AS_LIST "external_as_list"
 %keyword FOR "for"
@@ -121,6 +122,10 @@ attribute_declaration
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
       (wisi-containing-action 3 4))
   | FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
+      (wisi-containing-action 6 7))
+  | FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
       (wisi-containing-action 6 7))
@@ -228,14 +233,14 @@ name
 project_declaration_opt
   : ;; empty
   | simple_project_declaration
- ;;  | project_extension
+  | project_extension
   ;
 
 ;; (info "(gnat_ugn)Packages")
 package_declaration
   : package_spec
+  | package_extension
   | package_renaming
-  ;; | package_extension
   ;
 
 package_spec
@@ -245,6 +250,13 @@ package_spec
       (wisi-containing-action 3 4))
   ;
 
+package_extension
+  : PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
+      (wisi-containing-action 5 6))
+  ;
+
 package_renaming
   : PACKAGE identifier_opt RENAMES name SEMICOLON
     (progn
@@ -252,10 +264,13 @@ package_renaming
       (wisi-containing-action 3 4))
   ;
 
-;; package_extension ::==
-;;   package <package_>simple_name extends <project_>simple_name.package_identifier is
-;;     {simple_declarative_item}
-;;   end package_identifier ;
+project_extension
+  : PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
+      (wisi-containing-action 5 6))
+  ;
+
 
 ;; (info "(gnat_ugn)Qualified Projects")
 project_qualifier_opt

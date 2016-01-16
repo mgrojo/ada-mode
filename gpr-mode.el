@@ -129,7 +129,32 @@ Function is called with no arguments.")
   (when gpr-indent-statement
     (funcall gpr-indent-statement)))
 
-;; FIXME: add autocase
+(defconst gpr-casing-keywords
+  '(
+    "abstract"
+    "aggregate"
+    "case"
+    "configuration"
+    "end"
+    "extends"
+    "external"
+    "external_as_list"
+    "for"
+    "is"
+    "library"
+    "limited"
+    "null"
+    "others"
+    "package"
+    "project"
+    "renames"
+    "standard"
+    "type"
+    "use"
+    "when"
+    "with"
+    )
+  "List of gpr mode keywords for auto-casing.")
 
 (defvar gpr-font-lock-keywords
   (progn
@@ -148,9 +173,9 @@ Function is called with no arguments.")
      ;; Main keywords
      (list (concat "\\<"
 		   (regexp-opt
-		    '("abstract" "aggregate" "case" "configuration" "external"
-		      "external_as_list" "is" "library" "null" "others"
-		      "renames" "standard" "type" "use" "when" "with")
+		    '("abstract" "aggregate" "case" "configuration" "extends"
+                      "external" "external_as_list" "is" "library" "null"
+                      "others" "renames" "standard" "type" "use" "when" "with")
 		    t)
 		   "\\>")
 	   '(1 font-lock-keyword-face))
@@ -242,6 +267,9 @@ of the package or project point is in or just after, or nil.")
   (set (make-local-variable 'comment-multi-line) nil)
 
   (set (make-local-variable 'require-final-newline) t)
+
+  (ada-case-activate-keys gpr-mode-map)
+  (set (make-local-variable 'ada-keywords) gpr-casing-keywords)
 
   (set (make-local-variable 'font-lock-defaults)
        '(gpr-font-lock-keywords
