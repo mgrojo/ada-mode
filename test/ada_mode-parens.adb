@@ -431,6 +431,13 @@ package body Ada_Mode.Parens is
            (1 .. 2));
    end Slice;
 
+   procedure Weird_List_Break is
+   begin
+      Foo (X
+             ,    --  used to get an error here; don't care about the actual indentation
+           Y);
+   end;
+
    procedure Quantified_Exression is
 
       type T is (V1,V2,V3);

@@ -306,6 +306,17 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	 ;; defer to after-cache)
 	 nil)
 
+	(list-break
+	;; test/ada_mode-parens.adb
+	 ;; Foo (X
+	 ;;        ,    --  used to get an error here; don't care about the actual indentation
+	 ;; indenting ','
+	 ;;
+	 ;; We don't actually care what the indentation is, since this
+	 ;; should only occur while editing; defer to after-cache
+	 ;; avoids an error and does something reasonable.
+	 nil)
+
 	(name
 	 (cond
 	  ((let ((temp (save-excursion (wisi-goto-containing cache))))
