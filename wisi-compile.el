@@ -1,6 +1,6 @@
 ;; wisi-compile.el --- Grammar compiler for the wisi parser, integrating Wisi OpenToken output.  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013, 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015, 2016 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -208,7 +208,6 @@ names have the format nonterm:index."
       (while rhs-list
         (setq rule            (car rhs-list)
               rhs-list        (cdr rhs-list)
-              tokens          (car rule)
               semantic-action (cadr rule))
 
 	(when semantic-action

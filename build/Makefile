@@ -16,15 +16,17 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.9
+export ADA_MODE_VERSION    := 5.1.9
+export ADA_REF_MAN_VERSION := 2012.0
+export WISI_VERSION        := 1.1.2
 
-all : docs pub-ada pub-ada-ref-man pub-wisi build-elpa install-elpa
+all : docs pub-ada pub-ada-ref-man pub-wisi build-elpa uninstall-elpa
 
 docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 zip :
-	tar zcf $(BRANCH)-$(VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
+	tar zcf $(BRANCH)-$(ADA_MODE_VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
 
 
 MANUALS := ada-mode gpr-mode
@@ -100,18 +102,15 @@ build-elpa : force
 # (dvc-state-one "/Projects/elpa/")
 # shell git push
 
+uninstall-elpa :
+	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
+
 # package install from public doesn't work in batch
 install-elpa :
 	emacs -Q --eval '(progn (load-file "install-elpa.el")(kill-emacs))'
 
 install-elpa-review :
 	emacs -Q --eval '(load-file "install-elpa.el")'
-
-install-clean :
-	rm -r ~/.emacs.d/elpa/ada-mode*
-	rm -r ~/.emacs.d/elpa/ada-ref-man*
-	rm -r ~/.emacs.d/elpa/wisi*
-	rm -r ~/.emacs.d/elpa/cl*
 
 ## build gpr_query
 

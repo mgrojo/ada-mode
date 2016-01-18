@@ -672,6 +672,9 @@ move to external elpa package?
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
 
+# uninstall elpa packages before change version
+build/Makefile uninstall-elpa
+
 check for ELPA patches by others
     (dvc-status "/Projects/elpa")
         revert local changes
@@ -739,11 +742,9 @@ bump versions
     README-wisi
         first line
     build/Makefile
-        VERSION
-    build/install-elpa.el
-        ada-mode-version
-        ada-ref-man-version
-        wisi-version
+        ADA_MODE_VERSION
+        ADA_REF_MAN_VERSION
+        WISI_VERSION
 
     (find-file "/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html")
         ada-mode find-replace i.j.k
@@ -771,33 +772,37 @@ Emacs master, gnat 2014:
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
 
-Emacs 24.5
-
-Emacs 24.4, gnat 2014, devel ada-mode:
+prep for other version tests:
     build/Makefile all
-    # pushes to elpa workspace, builds archive, installs
+    # pushes to elpa workspace, builds archive, uninstalls
+
+Emacs 24.5
+    (setenv "ADA_MODE_DIR" "-f package-initialize")
+    build/Makefile install-elpa
+    build/wisi/Makefile all
+    build/Makefile uninstall-elpa
 
 Emacs 24.4, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
+    build/Makefile install-elpa
     build/wisi/Makefile all
+    build/Makefile uninstall-elpa
 
 Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/Makefile install-elpa # deletes and recompiles
+    build/Makefile install-elpa
     build/wisi/Makefile all
-
-(list-packages) install cl-lib for emacs 24.2
+    build/Makefile uninstall-elpa
 
 Emacs 24.2, gnat 2014 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/Makefile install-elpa # deletes and recompiles, installs cl-lib
+    build/Makefile install-elpa
     build/wisi/Makefile all
         ignore byte-compile warnings about 'foo' from cl package called at runtime
-
-    build/Makefile install-clean
+    build/Makefile uninstall-elpa
 
 sync for Debian:
-    Emacs 24.4 for dvc
+    Emacs 25 for dvc
     (dvc-status ".")
     (dvc-status "/Projects/org.opentoken")
     (dvc-sync-run ".")

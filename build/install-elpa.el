@@ -18,7 +18,8 @@
  ((string-equal emacs-version "24.3.1")
   (load-file "install-elpa-24.3.el"))
 
- ((string-equal emacs-version "24.4.1")
+ ((or (string-equal emacs-version "24.4.1")
+      (string-equal emacs-version "24.5.1"))
   (load-file "install-elpa-24.4.el"))
 
  (t
