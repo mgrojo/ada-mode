@@ -18,6 +18,7 @@
 ^build/wisi/.*\.diff$
 ^build/wisi/.*\.el$
 ^build/wisi/.*\.exe$
+^build/wisi/.*\.log$
 ^build/wisi/.*\.output$
 ^build/wisi/.*\.stamp$
 ^build/wisi/.*\.tmp$

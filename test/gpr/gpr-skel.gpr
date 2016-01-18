@@ -22,6 +22,8 @@ project Project_1 is
    --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
    --  MA 02110-1335, USA.
 
+   --  Copyright (C) 2016 gpr-skel All Rights Reserved.
+
    package foo is
    end foo;
 

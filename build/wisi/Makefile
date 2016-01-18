@@ -7,9 +7,6 @@ ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 # "compile-ada" is a test; it verifies the test sources are legal Ada
 all : byte-compile-clean update compile-ada-clean compile-ada autoloads test-clean test
 
-# things that can be done on debian stable (opentoken doesn't build, no gpr_query, no gnatstub)
-debian-all : byte-compile compile-ada-clean compile-ada autoloads test-clean test-debian
-
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 
@@ -19,14 +16,14 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
+# FIXME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
 test : test-ada-gnatxref.stamp
 test : test-ada-gpr_query.stamp
+test : gpr-skel.gpr.diff
 test : test-gpr
 test : test-elisp
-test : gpr-skel.gpr.diff
-
-test-debian : test-ada-gnatxref.stamp test-gpr test-elisp gpr-skel.gpr.diff
+test : summarize
 
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
@@ -106,7 +103,7 @@ clean ::
 	rm -f *-wy.el *.elc
 
 test-clean ::
-	rm -f *.output *.wisi-test *.stamp
+	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../../test/wisi/; rm -f *-wy.el *.output
 
 include ../common.make
@@ -120,6 +117,7 @@ test-ada-gnatxref.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gnatxref
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el
 test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
@@ -128,6 +126,10 @@ test-ada-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gpr_query
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+summarize :
+	cat *.log
 
 # we don't use 'expand-file-name' here because that adds c:/ on windows
 # eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")

@@ -72,8 +72,10 @@ vpath %.gpr ../../test/gpr
 
 # test-ada defined in engine-specific Makefiles, to allow further filtering of ADA_TEST_FILES
 
+# FIXME: this reports *.diff > 0 from previous tests as well
 test-gpr : RUNTEST := run-indent-test-gpr.el
 test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+	find . -name "*.diff" -not -size 0 >> test.log
 
 # emacs to test with
 #
