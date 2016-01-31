@@ -190,6 +190,27 @@
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token ABORT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token ACCEPT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token BEGIN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token CASE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token CHARACTER_LITERAL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token DECLARE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token DELAY
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token EXIT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token FOR
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token GOTO
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token IDENTIFIER
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token IF
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token LOOP
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token NULL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token PRAGMA
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token RAISE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token REQUEUE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token RETURN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token SELECT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token STRING_LITERAL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token WHILE
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
@@ -1253,6 +1274,11 @@ generic_subprogram_declaration
       (wisi-motion-action [1 2]))
   ;
 
+goto_label
+  : LESS_LESS IDENTIFIER GREATER_GREATER
+    (wisi-face-action [2 font-lock-constant-face])
+  ;
+
 handled_sequence_of_statements
   : sequence_of_statements_opt EXCEPTION exception_handler_list_opt
     (progn
@@ -1411,8 +1437,7 @@ iterator_specification_opt
 
 label_opt
   : ;; empty
-  | LESS_LESS IDENTIFIER GREATER_GREATER ;; for goto
-    (wisi-face-action [2 font-lock-constant-face])
+  | goto_label
   | IDENTIFIER COLON ;; on blocks, loops
  ;; goto and block/loop labels merged into label_opt because
  ;; indentation code treats them equally.
@@ -2132,14 +2157,15 @@ select_statement
   | asynchronous_select
   ;
 
-;; Wherever the ARM requires a sequence_of_statements, we allow
-;; nothing; this simplifies indenting skeletons (see ada-skel), and is
-;; more user-friendly for indenting.
 sequence_of_statements
-  : statement ;; label is included in statement
+  : statement
   | sequence_of_statements statement
+  | sequence_of_statements goto_label ;; ignoring list of labels
   ;
 
+;; Wherever the ARM requires a sequence_of_statements, we allow
+;; nothing; this simplifies indenting skeletons (see ada-skel), and is
+;; more user-friendly for indenting while editing.
 sequence_of_statements_opt
   : ;; empty
   | sequence_of_statements

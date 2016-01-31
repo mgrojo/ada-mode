@@ -220,7 +220,7 @@ package body Ada_Mode.Nominal is -- target 0
             --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when C"))
             --EMACSRESULT:t
                when A | Nominal.B =>
-                  null;
+                  goto Label_2;
                   --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "end case"))
                   --EMACSRESULT:t
                when C =>
@@ -235,6 +235,7 @@ package body Ada_Mode.Nominal is -- target 0
                <<Label_1>>
                   D := D - Float (F1);
             end case;
+            <<Label_2>> --  a sequence_of_statements can have a trailing label
          end return;
          --EMACSCMD:(progn(forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose

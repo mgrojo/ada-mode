@@ -636,7 +636,10 @@ Function is called with one optional argument; syntax-ppss result.")
 (defun ada-format-paramlist ()
   "Reformat the parameter list point is in."
   (interactive)
-  (ada-goto-open-paren)
+  (condition-case nil
+      (ada-goto-open-paren)
+    (error
+     (user-error "Not in parameter list")))
   (funcall indent-line-function); so new list is indented properly
 
   (let* ((begin (point))
