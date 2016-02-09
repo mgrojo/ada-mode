@@ -16,6 +16,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    <<Next>>
    end loop;
 
+** Handle package aspects.
+
 * Ada mode 5.1.9
 20 Jan 2016
 

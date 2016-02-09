@@ -552,6 +552,9 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 
 		 (t
 		  (cl-ecase (wisi-cache-nonterm containing)
+
+		    ;; abstract_subprogram_declaration with subprogram_body
+
 		    (aggregate
 		     ;; test/ada_mode-nominal-child.adb
 		     ;; return (Parent_Type_1
@@ -571,6 +574,8 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     ;; indenting 'when'; containing is 'entry'
 		     (+ (current-column) ada-indent-broken))
 
+		    ;; expression_function_declaration with subprogram_body
+
 		    (formal_package_declaration
 		     ;; test/ada_mode-generic_package.ads
 		     ;; with package A_Package_7 is
@@ -579,6 +584,8 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     (+ (current-column) ada-indent-broken))
 
 		    ((full_type_declaration
+
+		      ;; shared code, but out of alphabetical order:
                       protected_type_declaration
 		      single_protected_declaration
 		      single_task_declaration
@@ -660,6 +667,8 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     ;; indenting keyword following 'generic'
 		     (current-column))
 
+		    ;; null_procedure_declaration with subprogram_body
+
 		    (object_declaration
 		     (cl-ecase (wisi-cache-token containing)
 		       (COLON
@@ -683,6 +692,23 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 			;;   := Local_1;
 			(+ (current-indentation) ada-indent-broken))
 		       ))
+
+                    ((package_declaration
+		      package_body)
+ 		     ;; test/ada_mode-nominal.ads
+		     ;; package Ada_Mode.Nominal
+		     ;; with
+		     ;;   SPARK_Mode => On
+		     ;; is
+		     ;; indenting 'with'
+		     ;;
+ 		     ;; test/ada_mode-nominal.adb
+		     ;; package body Ada_Mode.Nominal
+		     ;; with
+		     ;;   SPARK_Mode => On
+		     ;; is
+		     (save-excursion
+                       (current-column)))
 
 		    (private_extension_declaration
 		     (cl-ecase (wisi-cache-token cache)
@@ -708,12 +734,17 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 		     ;; indenting 'with'
 		     (current-indentation))
 
+		    ;; protected_type_declaration with full_type_declaration
+
 		    (qualified_expression
 		     ;; test/ada_mode-nominal-child.ads
 		     ;; Child_Obj_5 : constant Child_Type_1 :=
 		     ;;   (Parent_Type_1'
 		     ;;     (Parent_Element_1 => 1,
 		     (ada-wisi-indent-cache ada-indent-broken containing))
+
+		    ;; single_protected_declaration with full_type_declaration
+		    ;; single_task_declaration with full_type_declaration
 
 		    (statement
 		     (cl-case (wisi-cache-token containing)
@@ -730,11 +761,13 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 			(ada-wisi-indent-cache ada-indent-broken cache))
 		       ))
 
-		    ((abstract_subprogram_declaration
-		      expression_function_declaration
-		      subprogram_body
+		    ((subprogram_body
 		      subprogram_declaration
 		      subprogram_specification
+
+		      ;; shared code, but out of alphabetical order:
+		      abstract_subprogram_declaration
+		      expression_function_declaration
 		      null_procedure_declaration)
 		     (cl-ecase (wisi-cache-token cache)
 		       (IS
@@ -764,6 +797,8 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 			;; indenting 'with'
 			(current-column))
 		       ))
+
+		    ;; subtype_declaration, task_type_declaration with full_type_declaration
 
 		    ))))
 	      )))) ;; end statement-other

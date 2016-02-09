@@ -61,9 +61,14 @@ with Ada_Mode.Library_Procedure;
 with Ada_Mode.Function_2;
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
---EMACSCMD:(progn (end-of-line 3)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
 --EMACSRESULT:t
-package Ada_Mode.Nominal is -- target 0
+package Ada_Mode.Nominal
+with
+  Spark_Mode => On
+is -- target 0
+   --EMACSCMD:(progn (beginning-of-line -0) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+   --EMACSRESULT:t
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)

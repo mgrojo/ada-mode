@@ -1179,7 +1179,7 @@
         (wisi-statement-action [1 block-start 3 name 5 block-middle 7 block-middle
         9 block-end 11 statement-end])
         (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4)
+        (wisi-containing-action 1 4)
         (wisi-containing-action 5 6)
         (wisi-containing-action 7 8)
         (wisi-containing-action 9 10)
@@ -1189,7 +1189,7 @@
         (progn
         (wisi-statement-action [1 block-start 3 name 5 block-middle 7 block-end 9 statement-end])
         (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4)
+        (wisi-containing-action 1 4)
         (wisi-containing-action 5 6)
         (wisi-containing-action 7 8)
         (wisi-motion-action [1 5 7])
@@ -1216,7 +1216,7 @@
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-start 6 block-middle 8 block-end])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 2 3)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 4 5)
         (wisi-containing-action 6 7)
         (wisi-motion-action [1 4 6 8])
@@ -1225,7 +1225,7 @@
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-start 6 block-end])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 2 3)
+        (wisi-containing-action 1 3)
         (wisi-containing-action 4 5)
         (wisi-motion-action [1 4 6])
         (wisi-face-action [2 font-lock-function-name-face 7 font-lock-function-name-face]))))

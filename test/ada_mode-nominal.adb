@@ -14,7 +14,12 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 use Ada.Strings.Unbounded;
-package body Ada_Mode.Nominal is -- target 0
+--EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
+--EMACSRESULT:t
+package body Ada_Mode.Nominal
+with
+  Spark_Mode => On
+is -- target 0
 
    --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
    use Ada.Strings;
