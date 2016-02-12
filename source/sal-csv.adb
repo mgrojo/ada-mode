@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2008 - 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -385,6 +385,11 @@ package body SAL.CSV is
 
       return Result (Result'First .. Result_Last);
    end Unquote;
+
+   function Is_Open (File : in File_Type) return Boolean
+   is begin
+      return Ada.Text_IO.Is_Open (File.File);
+   end Is_Open;
 
    function Name (File : in File_Type) return String
    is begin

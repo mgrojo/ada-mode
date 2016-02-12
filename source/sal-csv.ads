@@ -3,7 +3,7 @@
 --  Support for reading CSV (comma separated value) files. Also
 --  supports other delimiters, including spaces.
 --
---  Copyright (C) 2008 - 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2013, 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -110,6 +110,7 @@ package SAL.CSV is
    --  Inverse of Quote
 
    --  For error messages
+   function Is_Open (File : in File_Type) return Boolean;
    function Name (File : in File_Type) return String;
    function Line (File : in File_Type) return Ada.Text_IO.Positive_Count;
 
