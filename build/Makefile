@@ -25,8 +25,19 @@ all : docs pub-ada pub-ada-ref-man pub-wisi build-elpa uninstall-elpa
 docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
+
+ifeq ($(BRANCH),org.emacs.ada-mode)
+  TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION).tar.gz
+  TAR_DIR := ../../
+  TAR_PAT := org.emacs.ada-mode-$(ADA_MODE_VERSION)
+else
+  TAR_FILE := $(BRANCH).tar.gz
+  TAR_DIR := ../
+  TAR_PAT := $(BRANCH)
+endif
+
 zip :
-	tar zcf $(BRANCH)-$(ADA_MODE_VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
+	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C $(TAR_DIR) $(TAR_PAT)
 
 
 MANUALS := ada-mode gpr-mode

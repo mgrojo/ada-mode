@@ -3,7 +3,7 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2015  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2016  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -147,11 +147,14 @@ language for which AdaCore gcc provides the @code{-fdump-xref}
 @code{gpr_query} requires the @code{gnatcoll} library provided by
 AdaCore, distributed with GNAT GPL 2014.
 
-To build @code{gpr_query}, assuming GNAT GPL 2014 is installed in
-@file{/usr/gnat-gpl-2014}, and @file{/usr/gnat-gpl-2014/bin} is in
-PATH (if you are running Windows, use Cygwin bash to run these
-commands, with GNAT GPL bin first in PATH) (note that
-gnatcoll-gpl-2014-src.tar.gz unzips to gnatcoll-1.7w-src):
+The source code for @code{gpr_query}, is only in the ada-mode source
+distribution (tarball or monotone), not in the Gnu ELPA
+package. Assuming ada-mode source is in $ADA_MODE, GNAT GPL 2014 is
+installed in @file{/usr/gnat-gpl-2014}, and
+@file{/usr/gnat-gpl-2014/bin} is in PATH (if you are running Windows,
+use Cygwin bash to run these commands, with GNAT GPL bin first in
+PATH) (note that gnatcoll-gpl-2014-src.tar.gz unzips to
+gnatcoll-1.7w-src):
 
 @example
 tar xf ~/Downloads/gnatcoll-gpl-2014-src.tar.gz
@@ -162,7 +165,7 @@ cd gnatcoll-1.7w-src
 @c sudo make Gnatcoll_Build=Debug install
 make
 sudo make install
-cd ~/.emacs.d/elpa/ada-mode-5.xx/build
+cd $ADA_MODE/build
 make install
 @end example
 
@@ -1842,12 +1845,15 @@ Generated user guide in HTML format.
 @item *.info
 Generated user guide in Emacs info format.
 
-
 @end table
 
 @item build
 Makefile for building the user guides, publishing to the web page or
-Gnu ELPA. Test drivers.
+Gnu ELPA, and building gpr-query. The main targets are ``all'' which
+builds the ada-mode ELPA packages, and ``install'' which builds and
+installs gpr-query.
+
+Test driver files used by build/Makefile and build/wisi/Makefile.
 
 @item build/wisi
 Makefile for building and testing with the wisi-based
@@ -1857,6 +1863,12 @@ SMIE-based parser, and there might be another parser someday.
 The emacs used to byte-compile and run tests is given by the 'make'
 variable EMACS_EXE, which defaults to 'emacs'; it can be overridden on
 the make command line or by an environment variable.
+
+There are two top-level targets in this Makfile; ``all'' and
+``one''. ``all'' builds everthing and runs all the tests. ``one'' runs
+one test, which makes it easier to work on one test that is failing.
+
+All the other targets are used by the top-level targets.
 
 @item test
 All tests for Ada mode, gpr mode, parser.
