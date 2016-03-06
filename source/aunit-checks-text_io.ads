@@ -4,7 +4,7 @@
 --
 --  Separate from parent to allow parent to be Preelaborated.
 --
---  Copyright (C) 2004 - 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2015, 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -27,6 +27,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Directories;
 with Ada.Text_IO;
 package AUnit.Checks.Text_IO is
    pragma Elaborate_Body; --  Ada.Text_IO
@@ -51,5 +52,17 @@ package AUnit.Checks.Text_IO is
    --
    --  Skip lines in Skip; this allows for lines with time stamps that
    --  are not repeatable.
+
+   ----------
+   --  For Ada.Directories
+
+   procedure Check_File_Count (Directory : in String; Expected : in Integer);
+   --  Check that Directory is an existing directory containing
+   --  exactly Expected regular files.
+
+   procedure Check_File_Exists (Name : in String);
+   --  Check that Name is an existing regular file.
+
+   procedure Check is new Gen_Check_Discrete (Ada.Directories.File_Kind);
 
 end AUnit.Checks.Text_IO;

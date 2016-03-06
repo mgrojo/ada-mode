@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2008, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2008, 2015 - 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -116,5 +116,40 @@ package body AUnit.Checks.Text_IO is
          raise;
       end;
    end Check_Files;
+
+   procedure Check_File_Count (Directory : in String; Expected : in Integer)
+   is
+      use Ada.Directories;
+      Computed : Integer := 0;
+
+      procedure Process_Entry (Dir_Entry : Directory_Entry_Type)
+      is begin
+         Computed := Computed + 1;
+      end Process_Entry;
+   begin
+      Check ("'" & Directory & "' exists", Exists (Directory), True);
+      Check ("'" & Directory & "' is a directory", Kind (Directory), Ada.Directories.Directory);
+
+      Search
+        (Directory,
+         Pattern => "*",
+         Filter  => (Ordinary_File => True, others => False),
+         Process => Process_Entry'Access);
+
+      Check ("'" & Directory & "' file count", Computed, Expected);
+   end Check_File_Count;
+
+   procedure Check_File_Exists (Name : in String)
+   is
+      Result : Boolean;
+   begin
+      begin
+         Result := Ada.Directories.Exists (Name);
+      exception
+      when Ada.Text_IO.Name_Error =>
+         Result := False;
+      end;
+      Check ("'" & Name & "' exists", Result, True);
+   end Check_File_Exists;
 
 end AUnit.Checks.Text_IO;
