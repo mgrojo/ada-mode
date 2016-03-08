@@ -73,6 +73,7 @@ pub-ada : force
 	mkdir -p ../../elpa/packages/ada-mode
 	rm -f ../../elpa/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
+	rm ../../elpa/packages/ada-mode/ada-ref-man.el
 	cp ../dir-ada-mode ../../elpa/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
 	cp ../README-ada-mode ../../elpa/packages/ada-mode/README

@@ -33,16 +33,15 @@ with Ada.Strings.Unbounded; -- end 1
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada.Strings" font-lock-function-name-face)
-limited private with Ada.Strings.Bounded,
+--EMACSCMD:(test-face "Ada.Streams" font-lock-function-name-face)
+limited private with Ada.Streams,
   --EMACSCMD:(test-face "Ada.Containers" font-lock-function-name-face)
   Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
-limited with Ada.Strings.Bounded,
-  Ada.Containers;
+limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)

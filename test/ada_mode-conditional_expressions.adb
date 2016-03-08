@@ -75,8 +75,7 @@ begin
          when 0  => 41,
          when 1  =>
            (if J > 42
-           -- comment indented as code (ada-indent-broken)
-           -- FIXME: conflicts with GNAT style check
+              -- comment indent matching GNAT style check
             then 44
             else 45));
 end Ada_Mode.Conditional_Expressions;
