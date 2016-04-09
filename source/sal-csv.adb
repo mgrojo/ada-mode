@@ -223,7 +223,7 @@ package body SAL.CSV is
       if Comma_Count /= File.Commas'Last then
          raise Initialization_Error with
            "'" & File.Line (1 .. File.Last) & "' (row" & Count'Image (Line (File.File)) & ") has" &
-           Integer'Image (Comma_Count) & " commas";
+           Integer'Image (Comma_Count) & " delimiters";
       end if;
    end Next_Row;
 
