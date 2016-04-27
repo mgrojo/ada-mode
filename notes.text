@@ -194,6 +194,9 @@ use eieio class/method for dispatching
 
  speed up
 
+semantic uses overlays, not text properties; faster?
+    apparently not; discussion on emacs-devel of improving overlay speed by using text property interval trees
+
 wisi-generate write defun for grammar actions
     so they can be byte compiled
     faster?

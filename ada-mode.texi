@@ -1218,6 +1218,16 @@ project file.
 @item @code{gpr_project_path}   [default: @code{""}]
 Same as @code{ada_project_path}.
 
+@item @code{runtime} [default: @code{nil}]
+@c used in gnat-run-gnat
+If set, the name of the runtime, used as the value of the @code{RTS}
+command line option.
+
+@item @code{target} [default: @code{nil}]
+@c used in gnat-run-gnat, ada-gnat-xref-all
+If set, the name of the cross-compilation target, prepended to the
+@code{gnat} executable name.
+
 @c FIXME: add ada-build project vars
 @end table
 

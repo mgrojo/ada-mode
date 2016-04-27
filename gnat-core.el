@@ -3,7 +3,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2015  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -287,9 +287,16 @@ Assumes current buffer is (gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-	 (cmd (append (list command) (list project-file-switch) switches-args)))
+         (target-gnat (concat (ada-prj-get 'target) "gnat"))
+         ;; gnat list understands --RTS without a fully qualified
+         ;; path, gnat find (in particular) doesn't (but it doesn't
+         ;; need to, it uses the ALI files found via the GPR)
+         (runtime
+          (when (and (ada-prj-get 'runtime) (string= command "list"))
+            (list (concat "--RTS=" (ada-prj-get 'runtime)))))
+	 (cmd (append (list command) (list project-file-switch) runtime switches-args)))
 
-    (gnat-run "gnat" cmd nil expected-status)
+    (gnat-run target-gnat cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
