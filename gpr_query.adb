@@ -5,7 +5,7 @@
 --
 --  requires gnatcoll 1.7w 20140330, gnat 7.2.1
 --
---  Copyright (C) 2014-2015 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014-2016 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -45,12 +45,7 @@ with GNATCOLL.VFS;
 with GNATCOLL.VFS_Utils;
 with GNATCOLL.Xref;
 with Makeutl;
-with Namet;
-with Prj.Env;
-with Prj.Err;
-with Prj.Part;
-with Prj.Tree;
-with Sinput.P;
+with Prj;
 procedure Gpr_Query is
    use GNATCOLL;
 
@@ -58,7 +53,6 @@ procedure Gpr_Query is
 
    Db_Error        : exception;
    Invalid_Command : exception;
-   Not_Supported   : exception;
 
    type Os_Type is (Windows, Linux);
    OS : constant Os_Type := (if GNAT.Directory_Operations.Dir_Separator = '/' then Linux else Windows);
@@ -379,257 +373,31 @@ procedure Gpr_Query is
 
    procedure Load_Project (Path : GNATCOLL.VFS.Virtual_File)
    is
-      Temp_Path : GNATCOLL.VFS.Virtual_File := Path;
    begin
-      --  WORKAROUND: gnatcoll 1.6 / GNAT 7.2 GNATCOLL.Projects does
-      --  not support aggregate projects. So handle an important
-      --  special case here.
-      declare
-         use GNATCOLL.VFS;
-         use Prj.Tree;
-         use type Prj.Project_Qualifier;
-
-         Prj_Tree     : constant Project_Node_Tree_Ref := new Project_Node_Tree_Data;
-         Prj_Env      : Environment;
-         Prj_View     : constant Prj.Project_Tree_Ref  := new Prj.Project_Tree_Data;
-         Project      : Project_Node_Id                := Empty_Node;
-         Project_Path : GNAT.Strings.String_Access;
-      begin
-         Initialize (Prj_Tree);
-         Prj.Initialize (Prj_View); -- sets some global vars required for parsing
-
-         --  We need a valid Prj_Env, with the project
-         --  search path containing the default predefined project path and the
-         --  project path environment variables. So we do this here.
-         --
-         --  Note that this relies on getting the .../gnat/bin path
-         --  from the gpr_query command line invocation, so gpr_query
-         --  must be in gnat/bin, and run with the full path.
-         if Makeutl.Executable_Prefix_Path'Length = 0 then
-            Ada.Text_IO.Put_Line ("warning: gpr_query not executed from gnat install dir");
-         end if;
-
-         Prj.Env.Initialize_Default_Project_Path (Prj_Env.Project_Path, Target_Name => "x86-windows");
-         Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
-
-         Trace (Me, "predefined project path '" & Project_Path.all & "'");
-
-         Initialize
-           (Prj_Env,
-            Prj.Create_Flags
-              (Report_Error               => null,
-               When_No_Sources            => Prj.Warning,
-               Require_Sources_Other_Lang => True,
-               Compiler_Driver_Mandatory  => False,
-               Allow_Duplicate_Basenames  => True,
-               Require_Obj_Dirs           => Prj.Warning,
-               Allow_Invalid_External     => Prj.Warning,
-               Missing_Source_Files       => Prj.Warning,
-               Ignore_Missing_With        => False));
-
-         Prj.Err.Initialize;
-
-         Sinput.P.Clear_Source_File_Table;
-         Sinput.P.Reset_First;
-
-         Prj.Part.Parse
-           (Prj_Tree,
-            Project,
-            +Path.Full_Name,
-            Packages_To_Check => GNATCOLL.Projects.No_Packs,
-            Is_Config_File    => False,
-            Env               => Prj_Env,
-            Current_Directory => GNAT.Directory_Operations.Get_Current_Dir);
-
-         if Project = Empty_Node then
-            raise GNATCOLL.Projects.Invalid_Project with "parse project failed";
-         end if;
-
-         if Project_Qualifier_Of (Project, Prj_Tree) = Prj.Aggregate then
-            --  In general, GNATCOLL.Projects cannot handle aggregate
-            --  projects; it can only handle one project tree at a
-            --  time. However, there is one special case we can handle;
-            --  when an aggregate project is used solely to specify
-            --  the Project_Path for a single project.
-            --
-            --  We can't use GNATCOLL.Projects.Attribute_Value,
-            --  because that requires a loaded project, and we can't
-            --  load it if it's an aggregate.
-
-            declare
-               use Namet;
-               Prj_Dir : constant String := +Dir_Name (Path);
-
-               Gpr_File_Name : Name_Id;
-               Gpr_Path_Name : Path_Name_Type;
-
-               function Find_Name_Id (Name : in String) return Name_Id
-               is begin
-                  Name_Buffer (1 .. Name'Length) := Name;
-                  Name_Len                       := Name'Length;
-                  return Name_Find;
-               end Find_Name_Id;
-
-               procedure Fail
-               is begin
-                  raise GNATCOLL.Projects.Invalid_Project with Path.Display_Full_Name &
-                    ": error : Aggregate projects are not supported";
-               end Fail;
-
-               procedure Process_Files (Node : in out Project_Node_Id)
-               is
-               begin
-                  if Node = Empty_Node then
-                     Fail;
-                  end if;
-                  Node := Expression_Of (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Term (Node, Prj_Tree); -- kind = N_term
-
-                  if Next_Term (Node, Prj_Tree) /= Empty_Node then
-                     Fail;
-                  end if;
-
-                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String_List
-                  Node := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
-                  Node := First_Term (Node, Prj_Tree); -- kind = N_Term
-                  Node := Current_Term (Node, Prj_Tree); -- kind = N_Literal_String
-
-                  Gpr_File_Name := String_Value_Of (Node, Prj_Tree);
-
-               end Process_Files;
-
-               procedure Process_Path (Node : in out Project_Node_Id)
-               is
-                  Expression : Project_Node_Id;
-                  Term       : Project_Node_Id;
-               begin
-                  Trace (Me, "project path:");
-                  Node       := Expression_Of (Node, Prj_Tree);            -- kind = N_Expression
-                  Node       := First_Term (Node, Prj_Tree);               -- kind = N_term
-                  Node       := Current_Term (Node, Prj_Tree);             -- kind = N_Literal_String_List
-                  Expression := First_Expression_In_List (Node, Prj_Tree); -- kind = N_Expression
-
-                  All_Paths :
-                  loop
-                     declare
-                        use Ada.Strings.Unbounded;
-                        Path : Unbounded_String;
-                     begin
-
-                        Term := First_Term (Expression, Prj_Tree); -- kind = N_Term
-
-                        All_Terms :
-                        loop
-                           Node := Current_Term (Term, Prj_Tree);
-
-                           case Kind_Of (Node, Prj_Tree) is
-                           when N_Literal_String =>
-                              declare
-                                 Dir : constant String := Get_Name_String (String_Value_Of (Node, Prj_Tree));
-                              begin
-                                 Path := Path & Dir;
-                              end;
-
-                           when N_External_Value =>
-                              declare
-                                 use Ada.Environment_Variables;
-                                 Env_Var_Node : constant Project_Node_Id := External_Reference_Of (Node, Prj_Tree);
-
-                                 Env_Var_Name : constant String :=
-                                   Get_Name_String (String_Value_Of (Env_Var_Node, Prj_Tree));
-                              begin
-                                 if Exists (Env_Var_Name) then
-                                    Path := Path & Value (Env_Var_Name);
-                                 else
-                                    raise Invalid_Command with "Environment variable '" &
-                                      Env_Var_Name & "' not defined.";
-                                 end if;
-                              end;
-
-                           when others =>
-                              raise Not_Supported with "node kind " &
-                                Project_Node_Kind'Image (Kind_Of (Node, Prj_Tree)) &
-                                " not supported";
-                           end case;
-
-                           Term := Next_Term (Term, Prj_Tree);
-                           exit All_Terms when Term = Empty_Node;
-                        end loop All_Terms;
-
-                        declare
-                           Norm_Path : constant String := GNAT.OS_Lib.Normalize_Pathname
-                             (Name      => To_String (Path),
-                              Directory => Prj_Dir);
-                        begin
-                           Trace (Me, Norm_Path);
-                           Prj.Env.Add_Directories (Prj_Env.Project_Path, Norm_Path);
-                        end;
-                     end;
-
-                     Expression := Next_Expression_In_List (Expression, Prj_Tree);
-                     exit All_Paths when Expression = Empty_Node;
-                  end loop All_Paths;
-               end Process_Path;
-
-               Project_Files_Name_Id : constant Name_Id := Find_Name_Id ("project_files");
-               Project_Path_Name_Id  : constant Name_Id := Find_Name_Id ("project_path");
-               Decl                  : Project_Node_Id  := First_Declarative_Item_Of
-                 (Project_Declaration_Of (Project, Prj_Tree), Prj_Tree);
-               Current               : Project_Node_Id;
-
-            begin
-               while Decl /= Empty_Node loop
-                  Current := Current_Item_Node (Decl, Prj_Tree);
-                  case Kind_Of (Current, Prj_Tree) is
-                  when N_Attribute_Declaration =>
-                     if Name_Of (Current, Prj_Tree) = Project_Files_Name_Id then
-                        Process_Files (Current);
-                     elsif Name_Of (Current, Prj_Tree) = Project_Path_Name_Id then
-                        Process_Path (Current);
-                     end if;
-
-                  when others =>
-                     --  Just assume this makes our assumptions invalid.
-                     Fail;
-                  end case;
-                  Decl := Next_Declarative_Item (Decl, Prj_Tree);
-               end loop;
-
-               Prj.Env.Get_Path (Prj_Env.Project_Path, Project_Path);
-               GNATCOLL.Projects.Set_Predefined_Project_Path
-                 (Env.all, From_Path (Filesystem_String (Project_Path.all)));
-
-               Prj.Env.Find_Project
-                 (Prj_Env.Project_Path,
-                  Project_File_Name => Get_Name_String (Gpr_File_Name),
-                  Directory         => String (Dir_Name (Path)),
-                  Path              => Gpr_Path_Name);
-
-               if Gpr_Path_Name = No_Path then
-                  Ada.Text_IO.Put_Line ("project search path:");
-                  Put (GNATCOLL.Projects.Predefined_Project_Path (Env.all));
-                  raise GNATCOLL.Projects.Invalid_Project with
-                    "'" & Get_Name_String (Gpr_File_Name) & "' project file not found";
-               end if;
-
-               Temp_Path := Create_From_UTF8 (Get_Name_String (Gpr_Path_Name));
-            end;
-         end if;
-      end;
+      --  We need a valid Prj_Env, with the project
+      --  search path containing the default predefined project path and the
+      --  project path environment variables. So we do this here.
+      --
+      --  Note that this relies on getting the .../gnat/bin path
+      --  from the gpr_query command line invocation, so gpr_query
+      --  must be in gnat/bin, and run with the full path.
+      if Makeutl.Executable_Prefix_Path'Length = 0 then
+         Ada.Text_IO.Put_Line ("warning: gpr_query not executed from gnat install dir");
+      end if;
 
       begin
          --  Recompute_View => True registers all the source files
          --  (among other things), so we will know that a .[ag]li
          --  belongs to this project
          Tree.Load
-           (Temp_Path, Env,
+           (Path, Env,
             Errors         => Ada.Text_IO.Put_Line'Access,
             Recompute_View => True);
       exception
       when GNATCOLL.Projects.Invalid_Project =>
          Ada.Text_IO.Put_Line ("project search path:");
          Put (GNATCOLL.Projects.Predefined_Project_Path (Env.all));
-         raise GNATCOLL.Projects.Invalid_Project with +Temp_Path.Full_Name & ": invalid project";
+         raise GNATCOLL.Projects.Invalid_Project with +Path.Full_Name & ": invalid project";
       end;
 
       --  Set predefined_source_dirs, depending on the languages used in the project.
