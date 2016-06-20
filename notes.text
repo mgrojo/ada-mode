@@ -39,7 +39,8 @@ install packages in -Q:
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a): idle
+o.e.a.stephe-4 (from o.e.a): gpr_query with gnatcoll 2016
+
 
 "others" clauses in all case statements, that return an indention of 0
 (or something similar) instead of throwing errors. They could still
