@@ -28,4 +28,10 @@ package Ada_Mode.Expression_Functions is
          when A => "Ok ",
          when B | C => "Err",
          when D => "Unk");
+
+   --  Indent after =>
+   function F return Boolean is
+     (for some X of Y =>
+        Pred (X));
+
 end Ada_Mode.Expression_Functions;

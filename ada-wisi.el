@@ -1121,6 +1121,13 @@ cached token, return new indentation for point."
 		   ;; not indenting keyword following 'generic'
 		   (+ (current-column) ada-indent-broken))
 
+                  (paren_expression
+		   ;; test/ada_mode-expression_functions.ads
+		   ;; (for some X of Y =>
+		   ;;    Pred (X));
+		   ;; indenting "Pred"
+                   (+ (current-column) ada-indent))
+
 		  (primary
 		   ;; test/ada_mode-quantified_expressions.adb
 		   ;; if (for some J in 1 .. 10 =>
@@ -1236,6 +1243,14 @@ cached token, return new indentation for point."
 		 ;;   Constant_Indexing => Constant_Reference,
 		 ;; indenting 'Constant_Indexing'; point is on 'with'
 		 (+ (current-indentation) ada-indent-broken))
+
+		(derived_type_definition
+		 ;; test/ada_mode-nominal-child.ads
+		 ;; type Child_Type_1 is new Parent_Type_1 with
+		 ;;   -- comment between 'with' and 'record'
+		 ;;    record
+		 ;; indenting comment
+		 (+ (current-indentation) ada-indent-broken))
 		))
 
 	     ;; otherwise just hanging
@@ -1329,10 +1344,9 @@ cached token, return new indentation for point."
 	    indent)
 
 	   (t
-	    (or
-	     prev-indent
-	     next-indent
-	     (floor indent ada-indent)))
+	    ;; prev-indent and next-indent are both set here;
+	    ;; could add more checks to decide which one to use.
+	     prev-indent)
 	   )
 
 	  ;; not forcing gnat style

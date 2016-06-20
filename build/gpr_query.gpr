@@ -20,6 +20,7 @@ with "gnatcoll";
 with "gnatcoll_iconv";
 with "gnatcoll_readline";
 with "gnatcoll_sqlite";
+with "gnat_util";
 project Gpr_query is
    for Main use ("gpr_query.adb");
 
