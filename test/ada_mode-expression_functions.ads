@@ -29,9 +29,11 @@ package Ada_Mode.Expression_Functions is
          when B | C => "Err",
          when D => "Unk");
 
+   Y : array (1 .. 42) of Integer := (others => 0);
+
    --  Indent after =>
    function F return Boolean is
      (for some X of Y =>
-        Pred (X));
+        X /= 0);
 
 end Ada_Mode.Expression_Functions;
