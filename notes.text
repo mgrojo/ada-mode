@@ -23,10 +23,10 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
   (load "autoloads.el")
-  (load "run-indent-test-wisi")
+  (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/format_paramlist.adb")
+  (run-test "../../test/ada_mode-nominal.ads")
   (ada-wisi-debug-keys))
 
 install packages in -Q:
@@ -51,26 +51,11 @@ improve ada-mode.texi re gpr_query install, use - done
 
 run all tests with 2016
     build/wisi/Makefile
-    gnatcoll 2015 doesn't compile
 
-    compile-ada done
+    all passing
 
-    2016 no longer supports gnatxref; condition failing tests
-        working on it
+do release
 
-    test/subdir/ada_mode-nominal-separate_package_1.adb:14
-        Error: entity not found 'Separate_Package_1:ada_mode-nominal-separate_package_1.adb:14:14'
-        no .ali file
-        try compile all with one command:
-            gprbuild -c -P ada_mode_parent.gpr
-            no help: 'cannot generate code for file test_private.ads (package spec)'
-                that does syntax check; ignore errors? -k
-
-        create a dummy main that with's everything?
-            better than the makefile, faster, doesn't help gpr_query
-            dummy doesn't fully compile; lots of "can't generate code; spec"
-
-        create a main just for ada_mode-nominal-separate_package_1.adb
 
 adding "<" => "<" still confuses wisi
 

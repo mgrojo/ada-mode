@@ -3,4 +3,6 @@
 -- we do _not_ add "..", because gds.gpr withs "../common_text_io",
 -- and that is supposed to avoid the need for ".." here.
 
+-- Note that "." is included by default.
+
 -- end of file

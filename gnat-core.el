@@ -68,6 +68,10 @@
     (message "no project file search path set")
     ))
 
+(defun ada-gnat-default-prj (prj)
+  "For `ada-prj-default-list'."
+  (gnat-prj-add-prj-dir default-directory prj))
+
 (defun gnat-prj-parse-emacs-one (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
@@ -472,6 +476,9 @@ list."
 	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
        )
       )))
+
+;;; setup
+(add-to-list 'ada-prj-default-list 'ada-gnat-default-prj)
 
 (provide 'gnat-core)
 

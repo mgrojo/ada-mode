@@ -17,11 +17,11 @@ package Ada_Mode.Nominal.Child is
       end record;
 
    -- goto parent type declaration for Child_Type_1
-   --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
-   --EMACSRESULT:t
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   --EMACSCMD:(if (eq ada-xref-tool 'gnat) t (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
-   --EMACSRESULT:t
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))
@@ -43,8 +43,8 @@ package Ada_Mode.Nominal.Child is
       Item_2 : out    Character)
      is null;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
-   --EMACSRESULT:t
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    overriding function Function_2a (Param : in Child_Type_1) return Float;
    -- FIXME: test does not distinguish spec from body!
 

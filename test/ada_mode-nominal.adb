@@ -366,6 +366,7 @@ is -- target 0
 
    --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
+      --EMACSRESUT: (not (eq ada-xref-tool 'gnat))
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_Buffer"
 

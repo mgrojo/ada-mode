@@ -40,24 +40,28 @@ limited private with Ada.Streams,
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+-- WORKAROUND: GNAT GPL 2016 'gnat list' does not include run-time directory
 --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded;
---EMACSRESULT:t
+--EMACSRESULT:(not (eq ada-xref-tool 'gnat))
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat)  (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
---EMACSRESULT:t
+--EMACSRESULT:(not (eq ada-xref-tool 'gnat))
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return"))
 with Ada_Mode.Library_Function;
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Procedure is"))
+--EMACSRESULT:t
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
+--EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-spec'
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
+--EMACSRESULT:t
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
@@ -283,7 +287,7 @@ is -- target 0
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
    --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
-   --EMACSRESULT:t
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    -- result in same file
 
    type Private_Type_2 is abstract tagged limited
@@ -427,9 +431,9 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
    protected type Protected_1 is
-      --EMACSRESULT:t
+      --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
 
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_1"
@@ -480,6 +484,7 @@ is -- target 0
 
    --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
    protected Protected_Buffer is
+      --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
       -- a single_protected_type
 
       --EMACSCMD:(ada-which-function)

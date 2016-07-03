@@ -8,8 +8,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
-   --EMACSRESULT:t
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    function "+" (Left : in Day; Right : in Integer) return Day;
 
    function "+" (Left : in Day; Right : in Integer) return Day

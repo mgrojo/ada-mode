@@ -1361,8 +1361,10 @@ Optional PLIST defaults to `ada-prj-current-project'."
 (defvar ada-prj-default-list nil
   ;; project file parse
   "List of functions to add default project variables. Called
-with one argument; the default project properties list. Function
-should add to the properties list and return it.")
+with one argument; the default project properties
+list. `default-directory' is set to the directory containing the
+project file. Function should add to the properties list and
+return it.")
 
 (defvar ada-prj-default-compiler-alist nil
   ;; project file parse
@@ -1430,14 +1432,16 @@ list. Parser must modify or add to the property list and return it.")
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
   ;; FIXME: need to kill gpr-query session if .gpr file has changed (like from non-agg to agg!)
+  (setq prj-file (expand-file-name prj-file))
+
+  (unless (file-readable-p prj-file)
+    (error "Project file '%s' is not readable" prj-file))
+
   (run-hooks `ada-prj-parse-hook)
-  (let ((project (ada-prj-default))
-	(parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
 
-    (setq prj-file (expand-file-name prj-file))
-
-    (unless (file-readable-p prj-file)
-      (error "Project file '%s' is not readable" prj-file))
+  (let* ((default-directory (file-name-directory prj-file))
+	 (project (ada-prj-default))
+	 (parser (cdr (assoc (file-name-extension prj-file) ada-prj-parser-alist))))
 
     (if parser
 	;; parser may reference the "current project", so bind that now.
@@ -1897,7 +1901,7 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
 
 (defun ada-ff-special-with ()
   (let ((package-name (match-string 1)))
-    (setq ff-function-name (concat "^package\\s-+" package-name "\\([^_]\\|$\\)"))
+    (setq ff-function-name (concat "^\\(function\\|procedure\\|package\\)\\s-+" package-name "\\([^_]\\|$\\)"))
     (file-name-nondirectory
      (or
       (ff-get-file-name

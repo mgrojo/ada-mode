@@ -4,21 +4,12 @@
 # correct; in general, we don't care if the indentation does the wrong
 # thing on incorrect code, as long as it doesn't hang or crash.
 # Exceptions noted below in COMPILE_FILES.
-#
-# Similarly, we run gnatlist on the test gpr files (for testing gpr-mode)
-#
-# see test-indent.sh to test user directory nicely
 
 ADA_TEST_FILES := $(shell cd ../../test; ls *.ad[sb])
 ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
 
 ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))# debug only
 ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
-
-ifeq ($(shell uname),Linux)
-# requires gnatstub; not in Debian wheezy
-ADA_TEST_FILES := $(filter-out ada_mode-spec.ads, $(ADA_TEST_FILES))
-endif
 
 GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
@@ -121,8 +112,6 @@ vpath %.ads ../../test ../../test/subdir
 vpath %.adb ../../test ../../test/subdir
 vpath %.gpr ../../test/gpr
 
-# test-ada defined in engine-specific Makefiles, to allow further filtering of ADA_TEST_FILES
-
 # FIXME: this reports *.diff > 0 from previous tests as well
 test-gpr : RUNTEST := run-indent-test-gpr.el
 test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
@@ -157,6 +146,8 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # All gpr-query functions run "gpr_query" in a background process to
 # save startup time. That fails in batch mode; batch mode does not
 # support background processes. So we don't run tests in batch mode.
+# We can't use -nw here because the standard input is not a tty (at
+# least on Windows).
 %.tmp : % $(INDENT.EL)
 	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
@@ -194,9 +185,6 @@ GPRBUILD := gprbuild
 clean :: compile-ada-clean test-clean
 	find ../../ -name "*~" -delete
 
-# .ali files are in source dir, so they are shared between backend
-# tests
-#
 # delete the gpr_query database, to be sure it is rebuilt accurately
 # for the current compiler version.
 compile-ada-clean :
