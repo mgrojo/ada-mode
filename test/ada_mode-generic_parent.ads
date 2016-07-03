@@ -1,11 +1,10 @@
 -- This is to test the indentation of declarations in generics package declarations
+--
+-- named "parent" for historical reasons
 
--- no code before "private" to test beginning of buffer issues in refine-private
+-- no code before "private"
 private
 generic
-   -- just enough to get "overriding" on the child instantiations
-   -- but that didn't actually work, so there is no generic_child.
-
 package Ada_Mode.Generic_Parent is
 
    generic
@@ -18,6 +17,7 @@ package Ada_Mode.Generic_Parent is
    generic
       type Param_Type is range <>;
       type Result_Type is (<>);
+      Default   : in Result_Type;
       Threshold : in Param_Type;
    function Generic_Function (Param_1 : in Param_Type)
                              return Result_Type;

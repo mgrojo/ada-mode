@@ -79,6 +79,7 @@ pub-ada : force
 	cp ../README-ada-mode ../../elpa/packages/ada-mode/README
 	cp ../gnat*.el ../../elpa/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info ../../elpa/packages/ada-mode
+	cp ../gpr_query.adb ../gpr_query.gpr ../../elpa/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form
@@ -148,22 +149,14 @@ endif
 # export Gpr_Query_Build := Debug
 # export Gnatcoll_Build := Debug
 # export BUILD := Debug
-gpr_query$(EXE_EXT) : force
-	gprbuild -p gpr_query.gpr
-
-one : $(INSTALL_BIN)/gpr_query$(EXE_EXT)
-#	gpr_query -P gpr_query.gpr -c project_path
-#	gpr_query -P ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/gds_dscovr_test_agg.gpr -c source_dirs
-#	cd ~/GDS/work_stephe_3/dscovr/build/x86_64_gnu_linux_release/; gpr_query -P gds_dscovr_test_agg.gpr -c source_dirs
-	cd ~/GDS/work_stephe_3/dscovr/build/; gpr_query --force_refresh -P itcsb_time_sync_simics_agg.gpr -c "refs delta_time:itcsb_time_sync.cpp"
-# --autoconf=x86_64_gnu_linux_release/obj_dscovr_tcc_link/auto.cgpr
-#--tracefile .gnatdebug
+../gpr_query$(EXE_EXT) : force
+	gprbuild -p ../gpr_query.gpr
 
 trace :
 	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
 
-$(INSTALL_BIN)/gpr_query$(EXE_EXT) install : gpr_query$(EXE_EXT)
-	cp gpr_query$(EXE_EXT) $(INSTALL_BIN)
+$(INSTALL_BIN)/gpr_query$(EXE_EXT) install : ../gpr_query$(EXE_EXT)
+	cp ../gpr_query$(EXE_EXT) $(INSTALL_BIN)
 
 clean ::
 	rm -rf obj

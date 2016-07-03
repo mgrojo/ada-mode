@@ -1,4 +1,4 @@
-gpr_file=gpr_query.gpr
+gpr_file=../gpr_query.gpr
 
 -- FIXME: get casing from gpr file
 casing=emacs_case_exception

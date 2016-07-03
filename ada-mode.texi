@@ -143,21 +143,23 @@ switch @code{-fdump-xref}. @code{-fdump-xref} is an AdaCore extension,
 not available in FSF GCC.
 
 @code{gpr_query} is an Ada program, which is distributed as source and
-must be built. Its source code is only in the ada-mode source
-distribution (tarball or monotone), not in the Gnu ELPA package.
-
-@c FIXME: list xref features supported by gpr_query but not gnatfind
-@c at least:
-@c ada-xref-overriding-function
-@c ada-xref-overridden-function
+must be built. Its source code is in the Gnu ELPA package.
 
 @code{gpr_query} requires the @code{GNATCOLL} library provided by
-AdaCore, distributed with GNAT GPL 2015 and GNAT GPL 2016, and also
-available at Github (@url{https://github.com/AdaCore/gnatcoll}). The
-notes below assume that the compiler is installed at @file{$prefix},
+AdaCore, distributed with GNAT GPL 2016, and also available at Github
+(@url{https://github.com/AdaCore/gnatcoll}). (The @code{GNATCOLL}
+distributed with GNAT GPL 2015 does not compile cleanly). The notes
+below assume that the compiler is installed at @file{$prefix},
 e.g. @file{/usr/local/gnat-2016}, and that @file{$prefix/bin} is first
 on the @code{PATH}. If you are running Windows, use Cygwin @code{bash}
 to run these commands.
+
+In general, @code{gpr_query} should be compiled with the compiler
+version that is used to generate the user project @file{.ali} files;
+the @file{ali} file format can change with each compiler
+version. @code{gpr_query} creates a database of cross reference
+information; that database must be deleted if the compiler version
+changes, to force a complete rebuild.
 
 @subsection Building GNATCOLL if required
 
@@ -185,8 +187,8 @@ make
 sudo make install
 @end example
 
-To build an sqlite3 executable that is compatible with the database
-created by @code{gpr_query}:
+If you are debugging @file{gpr_query}, you may want to build an
+sqlite3 executable that is compatible with the database it creates:
 
 @example
 cd gnatcoll-gpl-2016-src/src/sqlite/amalgamation/
@@ -195,26 +197,17 @@ gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 
 @subsection Building @code{gpr_query}
 
-The source code for @code{gpr_query} is only in the ada-mode source
-distribution (tarball or monotone), not in the Gnu ELPA package. Tto
-build @code{gpr_query}, assuming ada-mode source is in
-@code{$ADA_MODE},
+To build and install @code{gpr_query}, assuming the
+@code{ada-mode-5.1.9} GNU ELPA package is installed:
 
 @example
-cd $ADA_MODE/build
-make install
+cd ~/.emacs.d/elpa/ada-mode-5.1.9
+gprbuild -p -P gpr_query.gpr
+gprinstall -P gpr_query.gpr
 @end example
 
-@subsection Setup for @code{gpr_query}
-
-To use @code{gpr_query}, you need to add the following to your
-@file{~/.emacs}:
-
-@example
-(require 'gpr-query)
-(add-hook 'ada-mode-hook (lambda ()
-                           (setq ada-xref-tool 'gpr_query)))
-@end example
+@code{ada-mode} will use @code{gpr_query} for cross reference
+functions if @code{gpr_query} is found in @code{PATH}.
 
 @node Upgrading,  , gpr_query, Installation
 @section Upgrading from previous versions
@@ -320,17 +313,9 @@ The project variable @code{ada_xref} (default elisp variable
 the cross-reference-tool-specific functions for corresponding Ada mode
 operations.
 
-The default cross-reference tool is @file{gnatxref}, provided by the
-file @file{ada-gnat-xref.el}. One other tool is supported:
-@file{gpr_query}. To use it, add the following to @file{~/.emacs}:
-
-@example
-(require 'gpr-query)
-@end example
-
-To use @file{gpr_query}, the Ada code @file{gpr_query.adb} must be
-compiled; see @ref{Installation}. In addition, non-Ada code must be
-compiled with the AdaCore gcc extension @code{-fdump-xref}.
+If @file{gpr_query} is found in @code{PATH}, the default
+cross-reference tool is @file{gpr_query}; otherwise it is
+@file{gnatxref}.
 
 To use a cross reference tool other than the above, you must write
 Emacs lisp code that provides the interface to the compiler, and set
@@ -1219,15 +1204,18 @@ Separator character used in compiler search paths.
 @item @code{src_dir}        [default: @code{"."}]
 A list of directories to search for source files.
 
-@item @code{xref_tool}      [default: @code{ada-xref-tool, gnat-xref}]
+@item @code{xref_tool}      [default: @code{ada-xref-tool}]
 Cross reference tool for this project.
+
+If @code{gpr_query} is found in @code{PATH}, @code{ada-xref-tool}
+defaults to @code{'gpr_query}. Otherwise, it defaults to @code{'gnat},
+which uses @code{gnat find}.
 
 @end table
 
 The following variables are valid with the GNAT compiler:
 
 @table @asis
-@c defined in ada-gnat.el ada-gnat-prj-parse-emacs-file; alphabetical order
 @item @code{ada_project_path}   [default: @code{""}]
 @c ada-prj-get 'prj_dir, 'proc_env
 A list of directories to search for GNAT project files.
@@ -1267,7 +1255,25 @@ command line option.
 If set, the name of the cross-compilation target, prepended to the
 @code{gnat} executable name.
 
-@c FIXME: add ada-build project vars
+
+@end table
+
+The following project variables are used by the @code{Ada | Build}
+menu commands:
+
+@table @asis
+@item @code{check_cmd} [default: @code{ada-build-check-cmd}]
+Compiler commannd to syntax check a single file.
+
+@item @code{main} [default: basename of current file name]
+File name of executable to build.
+
+@item @code{make_cmd} [default: @code{ada-build-make-cmd}]
+Command to compile and link the application.
+
+@item @code{run_cmd} [default: @code{ada-build-run-cmd}]
+Command to run the application.
+
 @end table
 
 @node Moving Through Ada Code, Identifier completion, Project files, Top

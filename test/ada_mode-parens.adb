@@ -162,7 +162,8 @@ package body Ada_Mode.Parens is
 
            (22), -- blank line in function call in aggregate (phew!)
 
-         3 => (others => 30));
+         3 => (others => 30),
+         4 => (others => 40));
 
       Check
         ("foo bar",

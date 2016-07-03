@@ -89,7 +89,9 @@ See also `gnat-parse-emacs-final'."
       (setq project
 	    (plist-put project
 		       'gpr_file
-		       (expand-file-name (substitute-in-file-name value))))
+		       (or
+			(locate-file (substitute-in-file-name value) (ada-prj-get 'prj_dir))
+			(expand-file-name (substitute-in-file-name value)))))
       project)
      )))
 

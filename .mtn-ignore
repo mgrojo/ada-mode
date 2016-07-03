@@ -28,8 +28,10 @@
 ^gpr-grammar\.output$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
+^obj$
 ^run_sjw\.text$
 ^test/.*\.ali$
+^test/.*\.o$
 ^test/Example_1/.*\.exe$
 ^test/Example_1/.*\.o$
 ^test/Example_2/hello\.exe$

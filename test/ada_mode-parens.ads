@@ -44,7 +44,7 @@ package Ada_Mode.Parens is
         := 1.0)
      return Float;
 
-   type Array_Type_1 is array (1 .. 4) of Integer;
+   type Array_Type_1 is array (1 .. 3) of Integer;
 
    function Function_2 (Left, Right : in Array_Type_1) return Array_Type_1;
 

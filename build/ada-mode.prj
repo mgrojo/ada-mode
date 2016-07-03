@@ -6,6 +6,6 @@ gpr_file=ada_mode_parent.gpr
 src_dir=..
 
 -- for testing casing exceptions
-casing=test.casing
+-- casing=test.casing
 
 -- end of file

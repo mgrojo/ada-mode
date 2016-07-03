@@ -415,6 +415,7 @@ Values defined by cross reference packages.")
      ["Show references"               ada-show-references          t]
      ["Show overriding"               ada-show-overriding          t]
      ["Show overridden"               ada-show-overridden          t]
+     ["Goto secondary error"          ada-show-secondary-error     t]
      ["Goto prev position"            ada-goto-previous-pos        t]
      ["Next placeholder"              ada-next-placeholder    t]
      ["Previous placeholder"          ada-prev-placeholder    t]
@@ -2887,9 +2888,15 @@ The paragraph is indented on the first line."
 
 (unless (featurep 'ada-xref-tool)
   (cl-case ada-xref-tool
-    ((nil gnat) (require 'ada-gnat-xref))
+    (gnat (require 'ada-gnat-xref))
     (gpr_query (require 'gpr-query))
-    ))
+    (t
+     (if (locate-file "gpr_query" exec-path '("" ".exe"))
+	 (require 'gpr-query)
+       (require 'ada-gnat-xref)))
+    )
+  ;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
+  )
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))

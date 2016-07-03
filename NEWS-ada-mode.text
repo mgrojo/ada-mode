@@ -9,6 +9,15 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 
 * Ada mode 5.2.0
 
+** GNAT 2016 drops support for gnatxref; users must use gpr_query.
+
+** ada-xref-tool now defaults to 'gpr_query if gpr_query executable is
+   found in PATH.
+
+** source code for compiling gpr_query is installed with the Gnu ELPA
+   package; instructions for compiling and installing it are in
+   ada-mode.info.
+
 ** Allow trailing label in a sequence_of_statements:
    loop
       ...
@@ -17,6 +26,10 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    end loop;
 
 ** Handle package aspects.
+
+** gpr_query updated to GNAT GPL 2015/2016.
+
+** several bug fixes
 
 * Ada mode 5.1.9
 20 Jan 2016

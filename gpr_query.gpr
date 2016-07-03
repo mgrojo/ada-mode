@@ -22,7 +22,7 @@ with "gnat_util";
 project Gpr_query is
    for Main use ("gpr_query.adb");
 
-   for Source_Dirs use ("..");
+   for Source_Dirs use (".");
 
    for Object_Dir use "obj";
 
@@ -62,5 +62,9 @@ project Gpr_query is
    package Binder is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;
+
+   package Install is
+      for Mode use "usage";
+   end Install;
 
 end Gpr_query;

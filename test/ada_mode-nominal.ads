@@ -40,23 +40,23 @@ limited private with Ada.Streams,
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
 with Ada_Mode.Library_Function;
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Procedure is"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
 -- test ada-find-other-file on 'with subprogram-spec'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
+--EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
@@ -282,7 +282,7 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    -- result in same file
 
@@ -478,7 +478,7 @@ is -- target 0
 
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
    protected Protected_Buffer is
       -- a single_protected_type
 
@@ -732,6 +732,14 @@ private -- Ada_Mode.Nominal
       end record
    with Pack => True;
 
+   overriding function Function_2g (Param : in Limited_Derived_Type_1) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_1) is abstract;
+
+
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record
          Component_1 : Integer;
@@ -763,6 +771,13 @@ private -- Ada_Mode.Nominal
 
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
 
+   overriding function Function_2g (Param : in Limited_Derived_Type_2) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_2) is abstract;
+
    type Limited_Derived_Type_2a is abstract limited new Private_Type_1
       with record
          Component_1 : Integer;
@@ -770,12 +785,44 @@ private -- Ada_Mode.Nominal
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
      with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_3) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_3) is abstract;
+
    type Limited_Derived_Type_4 is abstract limited new
      Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_4) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_4) is abstract;
+
    type Limited_Derived_Type_5 is abstract limited
      new Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_5) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_5) is abstract;
+
    type Limited_Derived_Type_6 is abstract
      limited new Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_6) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_6) is abstract;
+
    -- rest covered by Private_Type_n
 
    type Incomplete_Type_1 (<>) is tagged;

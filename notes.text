@@ -39,15 +39,38 @@ install packages in -Q:
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a): gpr_query with gnatcoll 2016
+o.e.a.stephe-4 (from o.e.a): available
 
+set ada-xref-tool to gpr_query if gpr_query is in PATH - done in ada-mode.el
 
-"others" clauses in all case statements, that return an indention of 0
-(or something similar) instead of throwing errors. They could still
-throw errors if wisi-debug > 0.
+warn if gnat version > 2014, no gpr_query on path
 
-ada mode menu:
-    add next-error, show-secondary-error to Navigate
+improve ada-mode.texi re gpr_query install, use - done
+    provide enough in ELPA to compile it - done
+    add to build/Makefile elpa - done
+
+run all tests with 2016
+    build/wisi/Makefile
+    gnatcoll 2015 doesn't compile
+
+    compile-ada done
+
+    2016 no longer supports gnatxref; condition failing tests
+        working on it
+
+    test/subdir/ada_mode-nominal-separate_package_1.adb:14
+        Error: entity not found 'Separate_Package_1:ada_mode-nominal-separate_package_1.adb:14:14'
+        no .ali file
+        try compile all with one command:
+            gprbuild -c -P ada_mode_parent.gpr
+            no help: 'cannot generate code for file test_private.ads (package spec)'
+                that does syntax check; ignore errors? -k
+
+        create a dummy main that with's everything?
+            better than the makefile, faster, doesn't help gpr_query
+            dummy doesn't fully compile; lots of "can't generate code; spec"
+
+        create a main just for ada_mode-nominal-separate_package_1.adb
 
 adding "<" => "<" still confuses wisi
 
@@ -190,8 +213,11 @@ face actions in gpr grammar?
 after ada-mode is fast enough:
     built-in ada-mode: (make-obsolete 'ada-mode "use later version from ELPA via `list-packages')
 
-use eieio class/method for dispatching
-    now in cl-lib?
+use cl-lib class/method for dispatching
+
+"others" clauses in all case statements, that return an indention of 0
+(or something similar) instead of throwing errors. They could still
+throw errors if wisi-debug > 0.
 
  speed up
 

@@ -387,6 +387,8 @@ procedure Gpr_Query is
                      Line_Prefix     => "      ")));
          end if;
       end loop;
+      New_Line;
+      Put_Line ("'exit' to quit");
    end Process_Help;
 
    procedure Process_Line (Line : String)
@@ -620,6 +622,8 @@ begin
          return;
       end if;
 
+      Trace (Me, "using project file " & (+Path.Full_Name));
+
       if Show_Progress then
          Progress_Reporter := Display_Progress'Unrestricted_Access;
       end if;
@@ -654,9 +658,6 @@ begin
          --  the database in the directory containing the project file.
          if Temp = No_File then
             Temp := Tree.Root_Project.Project_Path.Dir;
-            Trace
-              (Me, "Root project does not have an object dir:" & ASCII.LF
-                 & "creating database in " & (+Temp.Full_Name.all));
          end if;
 
          Temp := Create_From_Base (Base_Dir => Temp.Full_Name.all, Base_Name => +N);
@@ -674,6 +675,8 @@ begin
       use type GNAT.Strings.String_Access;
       Error : GNAT.Strings.String_Access;
    begin
+      Trace (Me, "using database " & DB_Name.all);
+
       Setup_DB
         (Self  => Xref,
          Tree  => Tree'Unchecked_Access,

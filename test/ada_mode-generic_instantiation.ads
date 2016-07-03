@@ -21,6 +21,7 @@ package Ada_Mode.Generic_Instantiation is
    function Function_1 is new Instance.Generic_Function
      (Param_Type  => Integer,
       Result_Type => Boolean,
+      Default     => False,
       Threshold   => 2);
 
    --EMACSCMD:(test-face "Instance.Generic_Procedure" 'font-lock-function-name-face)

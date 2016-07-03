@@ -1,3 +1,4 @@
+--  does not compile
 --EMACSCMD:(setq skip-recase-test t)
 procedure Parent is
 begin
