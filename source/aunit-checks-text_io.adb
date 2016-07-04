@@ -152,4 +152,11 @@ package body AUnit.Checks.Text_IO is
       Check ("'" & Name & "' exists", Result, True);
    end Check_File_Exists;
 
+   procedure Delete_If_Exists (Name : in String)
+   is begin
+      if Ada.Directories.Exists (Name) then
+         Ada.Directories.Delete_File (Name);
+      end if;
+   end Delete_If_Exists;
+
 end AUnit.Checks.Text_IO;

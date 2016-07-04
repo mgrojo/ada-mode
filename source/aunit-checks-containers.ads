@@ -25,6 +25,7 @@
 
 pragma License (GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
 package AUnit.Checks.Containers is
 
@@ -49,5 +50,18 @@ package AUnit.Checks.Containers is
       Computed       : in Container_Pkg.Vector;
       Expected       : in Container_Pkg.Vector;
       Strict_Indices : in Boolean := True);
+
+   generic
+      type Element_Type is private;
+      with package Container_Pkg is new Ada.Containers.Doubly_Linked_Lists
+        (Element_Type => Element_Type);
+      with procedure Check_Element
+        (Label    : in String;
+         Computed : in Element_Type;
+         Expected : in Element_Type);
+   procedure Gen_Check_Doubly_Linked_List
+     (Label    : in String;
+      Computed : in Container_Pkg.List;
+      Expected : in Container_Pkg.List);
 
 end AUnit.Checks.Containers;

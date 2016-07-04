@@ -25,6 +25,7 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 package body AUnit.Checks.Containers is
 
    procedure Gen_Check_Indefinite_Vector
@@ -48,7 +49,28 @@ package body AUnit.Checks.Containers is
             J := Index_Type'Succ (J);
          end if;
       end loop;
-      null;
    end Gen_Check_Indefinite_Vector;
+
+   procedure Gen_Check_Doubly_Linked_List
+     (Label    : in String;
+      Computed : in Container_Pkg.List;
+      Expected : in Container_Pkg.List)
+   is
+      use Container_Pkg;
+      I : Cursor  := Computed.First;
+      J : Cursor  := Expected.First;
+      K : Integer := 1;
+   begin
+      loop
+         exit when I = No_Element or J = No_Element;
+         Check_Element (Label & Integer'Image (K), Element (I), Element (J));
+         Next (I);
+         Next (J);
+         K := K + 1;
+      end loop;
+
+      Standard.AUnit.Assertions.Assert (I = No_Element and J = No_Element, Label & " different lengths");
+   end Gen_Check_Doubly_Linked_List;
+
 
 end AUnit.Checks.Containers;

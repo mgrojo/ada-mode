@@ -65,4 +65,7 @@ package AUnit.Checks.Text_IO is
 
    procedure Check is new Gen_Check_Discrete (Ada.Directories.File_Kind);
 
+   procedure Delete_If_Exists (Name : in String);
+   --  If Name exists, delete it
+
 end AUnit.Checks.Text_IO;
