@@ -41,19 +41,6 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
-set ada-xref-tool to gpr_query if gpr_query is in PATH - done in ada-mode.el
-
-warn if gnat version > 2014, no gpr_query on path
-
-improve ada-mode.texi re gpr_query install, use - done
-    provide enough in ELPA to compile it - done
-    add to build/Makefile elpa - done
-
-run all tests with 2016
-    build/wisi/Makefile
-
-    all passing
-
 do release
 
 
