@@ -59,6 +59,7 @@ Ada Mode Version 5.1.9
 * Developer overview::
 * GNU Free Documentation License::
 * Index::
+
 @end menu
 
 @node Overview, Installation, Top, Top
@@ -123,7 +124,6 @@ You may also want to install additional utilities:
 @menu
 * Ada Reference Manual::
 * gpr_query::
-* Upgrading::
 @end menu
 
 @node Ada Reference Manual, gpr_query, Installation, Installation
@@ -131,7 +131,7 @@ You may also want to install additional utilities:
 The ELPA package ada-ref-man includes the Ada Reference Manual and
 Annotated Ada Reference Manual in info format.
 
-@node gpr_query, Upgrading, Ada Reference Manual, Installation
+@node gpr_query, , Ada Reference Manual, Installation
 @section gpr_query
 
 Ada mode has support for an external cross reference tool
@@ -208,27 +208,6 @@ gprinstall -P gpr_query.gpr
 
 @code{ada-mode} will use @code{gpr_query} for cross reference
 functions if @code{gpr_query} is found in @code{PATH}.
-
-@node Upgrading,  , gpr_query, Installation
-@section Upgrading from previous versions
-
-See the file NEWS for more details; here we summarize only important
-user interface changes.
-
-@table @samp
-@item from 5.0.1
-    Nothing to do.
-
-@item from 4.01
-There are many user interface and API changes between 4.01 and 5.0.1;
-we only document those that may be hard to diagnose here.
-
-@code{prog-mode-hook} is no longer run by @code{ada-mode};
-@code{ada-mode} is no longer derived from @code{prog-mode}. Use
-@code{ada-mode-hook} instead.
-
-
-@end table
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
@@ -318,7 +297,7 @@ cross-reference tool is @file{gpr_query}; otherwise it is
 @file{gnatxref}.
 
 To use a cross reference tool other than the above, you must write
-Emacs lisp code that provides the interface to the compiler, and set
+Emacs lisp code that provides the interface to the tool, and set
 @code{ada-xref-tool} and the indirection variables.
 
 See @file{ada-gnat-xref.el} and @file{gpr-query.el} for examples.
@@ -332,7 +311,7 @@ on using customize.
 
 To modify a specific variable, you can directly call the function
 @code{customize-variable}; just type @kbd{M-x customize-variable
-@key{RET} @var{variable-name} @key{RET}}).
+@key{RET} @var{variable-name} @key{RET}}.
 
 Alternately, you can specify variable settings in the Emacs
 configuration file, @file{~/.emacs}. This file is coded in Emacs lisp,
@@ -366,6 +345,7 @@ Navigate to subprograms and types by name, from a minibuffer menu.
 @item speedbar
 Navigate to subprograms and types by name, from a list in a dedicated window.
 @item which-func
+Display the current subprogram name in the mode bar.
 @item jit-lock-defer-time
 In large files, parsing is slow, so it gets in the way of
 interactive typing due to immediate font-lock triggering a
@@ -489,16 +469,12 @@ Novices and students typically work on single-file Ada projects. In
 this case, @kbd{C-c C-m} will normally be the only command needed; it
 will build the current file, rather than the last-built main.
 
-There are three ways to change @code{main}:
+There are two ways to change @code{main}:
 
 @enumerate
 @item
 Invoke @samp{Ada | Set main and Build}, which sets @code{main} to
 the current file.
-
-@item
-Invoke @samp{Ada | Project | Edit}, edit @code{main} and
-@code{main}, and click @samp{[save]}
 
 @item
 Invoke @samp{Ada | Project | Load}, and load a project file that specifies @code{main}
@@ -1180,11 +1156,11 @@ before any compiler-specific project variable.
 @item @code{auto_case}      [default: @code{ada-auto-case, t}]
 Non-nil means automatically change case of preceding word while typing.
 
-@item @code{case_identifier}   [default: @code{ada-case-identifier, ada-mixed-case}]
-Function to call to adjust the case of an Ada identifier.
+@item @code{case_identifier}   [default: @code{ada-case-identifier, mixed-case}]
+Indicates how to adjust the case of an Ada identifier.
 
-@item @code{case_keyword}   [default: @code{ada-case-keyword, downcase-word}]
-Function to call to adjust the case of an Ada keyword.
+@item @code{case_keyword}   [default: @code{ada-case-keyword, lower-case}]
+Indicates how to adjust the case of an Ada keyword.
 
 @item @code{case_strict}    [default: @code{ada-case-strict, t}]
 If non-nil, @code{ada-mixed-case} forces @code{Mixed_Case} for identifiers.
@@ -2080,8 +2056,7 @@ compiler. @file{wisi-generate.exe} processes the grammar source
 @file{*-wy.el}. That is compiled into an internal structure containing
 the state transitions and executable actions. The actions can be any
 elisp form; the intent is that they be calls to the action functions
-provided by @file{wisi.el}. @file{wisi-compile.el} uses some features
-provided by @code{semantic}.
+provided by @file{wisi.el}.
 
 @item wisi-parse.el
 Implements the generalized LALR parser.

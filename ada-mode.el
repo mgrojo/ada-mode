@@ -219,7 +219,7 @@ preserved when the list is written back to the file."
 (defcustom ada-case-keyword 'lower-case
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
-Function to call to adjust the case of Ada keywords."
+Indicates how to adjust the case of Ada keywords."
   :type '(choice (const lower-case)
 		 (const upper-case))
   ;; We'd like to specify that the value must be a function that takes
@@ -234,7 +234,7 @@ Function to call to adjust the case of Ada keywords."
 (defcustom ada-case-identifier 'mixed-case
   "Buffer-local value that may override project variable `case_keyword'.
 Global value is default for project variable `case_keyword'.
-Function to call to adjust the case of Ada keywords.
+Indicates how to adjust the case of Ada keywords.
 Called with three args;
 start      - buffer pos of start of identifier
 end        - end of identifier
