@@ -637,14 +637,9 @@ Enable mode if ARG is positive."
   )
 
 (provide 'gpr-query)
-(provide 'ada-xref-tool)
 
 (add-to-list 'compilation-error-regexp-alist-alist
-	     (cons 'gpr-query-ident-file       gpr-query-ident-file-regexp-alist))
-
-(unless (and (boundp 'ada-xref-tool)
-	     (default-value 'ada-xref-tool))
-  (setq ada-xref-tool 'gpr_query))
+	     (cons 'gpr-query-ident-file gpr-query-ident-file-regexp-alist))
 
 (ada-gpr-query)
 

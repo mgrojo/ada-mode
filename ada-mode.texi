@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 
 @titlepage
 @sp 10
-@title Ada Mode Version 5.1.9
+@title Ada Mode Version 5.2.0
 @page
 @vskip 0pt plus 1filll
 @insertcopying
@@ -36,7 +36,7 @@ developing GNU and promoting software freedom.''
 
 @node Top, Overview, (dir), (dir)
 
-Ada Mode Version 5.1.9
+Ada Mode Version 5.2.0
 
 @ifnottex
 @insertcopying
@@ -198,10 +198,10 @@ gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @subsection Building @code{gpr_query}
 
 To build and install @code{gpr_query}, assuming the
-@code{ada-mode-5.1.9} GNU ELPA package is installed:
+@code{ada-mode-5.2.0} GNU ELPA package is installed:
 
 @example
-cd ~/.emacs.d/elpa/ada-mode-5.1.9
+cd ~/.emacs.d/elpa/ada-mode-5.2.0
 gprbuild -p -P gpr_query.gpr
 gprinstall -P gpr_query.gpr
 @end example
