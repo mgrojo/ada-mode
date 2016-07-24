@@ -210,9 +210,5 @@
 (ada-gnat-xref)
 
 (provide 'ada-gnat-xref)
-(provide 'ada-xref-tool)
-
-(unless (default-value 'ada-xref-tool)
-  (set-default 'ada-xref-tool 'gnat))
 
 ;; end of file

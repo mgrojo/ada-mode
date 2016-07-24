@@ -135,6 +135,9 @@ INSTALL_BIN := $(dir $(GNAT_EXE))
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
 
+else ifeq ($(shell uname),Darwin)
+EXE_EXT :=
+
 else
 # windows
 EXE_EXT := .exe
@@ -152,11 +155,8 @@ endif
 ../gpr_query$(EXE_EXT) : force
 	gprbuild -p ../gpr_query.gpr
 
-trace :
-	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
-
 $(INSTALL_BIN)/gpr_query$(EXE_EXT) install : ../gpr_query$(EXE_EXT)
-	cp ../gpr_query$(EXE_EXT) $(INSTALL_BIN)
+	gprinstall -f -P ../gpr_query.gpr
 
 clean ::
 	rm -rf obj

@@ -6,7 +6,7 @@
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.1.9
+;; Version: 5.2.0
 ;; package-requires: ((wisi "1.1.2") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
@@ -168,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.1.9"))
+  (let ((version-string "5.2.0"))
     ;; must match:
     ;; ada-mode.texi
     ;; README-ada-mode
@@ -2890,17 +2890,18 @@ The paragraph is indented on the first line."
 (unless (featurep 'ada-indent-engine)
   (require 'ada-wisi))
 
-(unless (featurep 'ada-xref-tool)
-  (cl-case ada-xref-tool
-    (gnat (require 'ada-gnat-xref))
-    (gpr_query (require 'gpr-query))
-    (t
-     (if (locate-file "gpr_query" exec-path '("" ".exe"))
-	 (require 'gpr-query)
-       (require 'ada-gnat-xref)))
-    )
-  ;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
+(cl-case ada-xref-tool
+  (gnat (require 'ada-gnat-xref))
+  (gpr_query (require 'gpr-query))
+  (t
+   (if (locate-file "gpr_query" exec-path '("" ".exe"))
+       (progn
+         (require 'gpr-query)
+         (setq ada-xref-tool 'gpr_query))
+     (require 'ada-gnat-xref)
+     (setq ada-xref-tool 'gnat)))
   )
+;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))
