@@ -18,6 +18,8 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    package; instructions for compiling and installing it are in
    ada-mode.info.
 
+** better handling of cross-compile targets.
+
 ** Allow trailing label in a sequence_of_statements:
    loop
       ...

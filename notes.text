@@ -698,7 +698,7 @@ bump versions
     change versions in compares below to match installed versions.
 
     compare:
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.1" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.2" "/Projects/elpa/packages/wisi" nil)
             NEWS-wisi.text
                 add release date
                 add new features
@@ -706,14 +706,10 @@ bump versions
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.8" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.9" "/Projects/elpa/packages/ada-mode" nil)
             NEWS-ada-mode.text
                 add release date
                 add new features
-                add timing
-                    turn off crashplan, windows update
-                    /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-                    (time-it 'wisi-parse-buffer 5)
 
             ada-mode.el
                 Version:
@@ -740,17 +736,17 @@ bump versions
         ADA_REF_MAN_VERSION
         WISI_VERSION
 
-    (find-file "/Projects/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html")
+    (find-file "d:/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html")
         ada-mode find-replace i.j.k
         opentoken find-replace i.jk
 
-    (find-file "/Projects/Web/stephe-leake/emacs/wisi/wisi.html")
+    (find-file "d:/Web/stephe-leake/emacs/wisi/wisi.html")
         wisi-i.j.k find-replace
         wisi-generate version
         ada-mode i.j.k
         opentoken version
 
-    (/Projects/Web/stephe-leake/ada/opentoken.html copied by web makefile)
+    (d:/Web/stephe-leake/ada/opentoken.html copied by web makefile)
 
     ~/Web/Makefile
         ADA-MODE-VERSION
@@ -760,7 +756,7 @@ verify other metadata
     ada-ref-man.el
     wisi.el
 
-Emacs master, gnat 2014:
+Emacs master, gnat 2016:
     build/wisi/Makefile all byte-compile-clean
 
 check for latest Emacs release
@@ -776,19 +772,19 @@ Emacs 24.5
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
-Emacs 24.4, gnat 2014 (sal-standard), installed ada-mode:
+Emacs 24.4, gnat 2016 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
-Emacs 24.3, gnat 2014 (sal-standard), installed ada-mode:
+Emacs 24.3, gnat 2016 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
-Emacs 24.2, gnat 2014 (sal-standard), installed ada-mode:
+Emacs 24.2, gnat 2016 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all

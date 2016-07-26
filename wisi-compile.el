@@ -235,5 +235,4 @@ names have the format nonterm:index."
       )))
 
 (provide 'wisi-compile)
-
-;;;; end of file
+;;; wisi-compile.el ends here

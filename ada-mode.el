@@ -7,7 +7,7 @@
 ;; Keywords: languages
 ;;  ada
 ;; Version: 5.2.0
-;; package-requires: ((wisi "1.1.2") (cl-lib "0.4") (emacs "24.2"))
+;; package-requires: ((wisi "1.1.3") (cl-lib "0.4") (emacs "24.2"))
 ;; url: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
