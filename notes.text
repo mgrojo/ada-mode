@@ -41,10 +41,6 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
-test in Debian emacs 24.4.1; can't install?
-
-see elpa commit re doc strings
-
 do release
 
 
@@ -667,14 +663,6 @@ read/write access requires a public key:
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
  release process
-move to external elpa package?
-    maybe after add dynamic library for parser
-    simplifies git management of elpa?
-    - Push the tree you want onto a branch `externals/<pkg>' in the
-      `elpa' repository.
-    - Remove the packages/<pkg> directory in the `master' branch.
-    - Edit `externals-list' in the `master' branch.
-
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
 
