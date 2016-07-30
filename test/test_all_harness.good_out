@@ -50,10 +50,10 @@ OK time tests : Write, Read time value
 OK SAL.CSV.Test : Test_Read
 OK SAL.CSV.Test : Test_Space
 OK SAL.CSV.Test : Quote_Unquote
-OK SAL.File_Names.Test : Test_Create
-OK SAL.File_Names.Test : Test_With_Default
-OK SAL.File_Names.Test : Test_Replace_Environment_Variables
-OK SAL.File_Names.Test : Test_Resolve_Relative
+OK sal-file_names-test.adb : Test_Create
+OK sal-file_names-test.adb : Test_With_Default
+OK sal-file_names-test.adb : Test_Replace_Environment_Variables
+OK sal-file_names-test.adb : Test_Resolve_Relative
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Leap_Year
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Year_Day_Seconds
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Days_Seconds

@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2004 - 2005, 2008 - 2012, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2005, 2008 - 2012, 2015, 2016 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -435,9 +435,32 @@ package body SAL.File_Names.Test is
          Name_Last            => 0,
          Extension_Last       => 0);
 
-      --  Plain dot in current directory
       Check
         ("6",
+         Resolve_Relative
+           (File_Name         => Create ("/home/Stephe/misc/"),
+            Current_Directory => Create ("/projects/books/")),
+         Full_Name            => "/home/Stephe/misc/",
+         Device_Last          => 0,
+         Path_Last            => 18,
+         Name_First           => 0,
+         Name_Last            => 0,
+         Extension_Last       => 0);
+
+      Check
+        ("7",
+         Resolve_Relative
+           (File_Name         => Create ("/home/Stephe/misc/books.db"),
+            Current_Directory => Create ("/projects/books/")),
+         Full_Name            => "/home/Stephe/misc/books.db",
+         Device_Last          => 0,
+         Path_Last            => 18,
+         Name_First           => 19,
+         Name_Last            => 23,
+         Extension_Last       => 26);
+
+      Check
+        ("8",
          Resolve_Relative
            (File_Name         => Create ("../misc/"),
             Current_Directory => Create ("/home/Lynx_5.0/Stephe/")),
@@ -457,7 +480,7 @@ package body SAL.File_Names.Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("SAL.File_Names.Test");
+      return new String'("sal-file_names-test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

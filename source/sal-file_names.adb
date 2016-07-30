@@ -389,26 +389,29 @@ package body SAL.File_Names is
             Target      => Result_Path,
             Target_Last => Result_Path_Last);
 
-      else
-         if '.' = Ada.Strings.Unbounded.Element (File_Name.Full_Name, File_Name.Device_Last + 1) or
-           File_Name.Path_Last = 0
-         then
-            --  Need root path from current_directory
-            if Current_Directory.Device_Last /= 0 then
-               Result_Device_Last := Current_Directory.Device_Last;
-               Result_Device (1 .. Result_Device_Last) := Device (Current_Directory);
-            end if;
-
-            Copy
-              (Source      => Path (Current_Directory),
-               Target      => Result_Path,
-               Target_Last => Result_Path_Last);
-
-            Append
-              (Source      => Path (File_Name),
-               Target      => Result_Path,
-               Target_Last => Result_Path_Last);
+      elsif '.' = Ada.Strings.Unbounded.Element (File_Name.Full_Name, File_Name.Device_Last + 1) or
+        File_Name.Path_Last = 0
+      then
+         --  Need root path from current_directory
+         if Current_Directory.Device_Last /= 0 then
+            Result_Device_Last := Current_Directory.Device_Last;
+            Result_Device (1 .. Result_Device_Last) := Device (Current_Directory);
          end if;
+
+         Copy
+           (Source      => Path (Current_Directory),
+            Target      => Result_Path,
+            Target_Last => Result_Path_Last);
+
+         Append
+           (Source      => Path (File_Name),
+            Target      => Result_Path,
+            Target_Last => Result_Path_Last);
+      else
+         Copy
+           (Source      => Path (File_Name),
+            Target      => Result_Path,
+            Target_Last => Result_Path_Last);
       end if;
 
       Compact_Relative

@@ -1,4 +1,7 @@
 ^build/debug/.*\.exe$
+^build/debug/gpr_query\.db$
+^build/debug/gpr_query\.db-shm$
+^build/debug/gpr_query\.db-wal$
 ^build/debug/objects$
 ^build/release/.*\.config$
 ^build/release/.*\.csv$
