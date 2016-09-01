@@ -1344,7 +1344,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 			     ada-case-exception-file
 			   (list ada-case-exception-file)))
 	(path_sep        path-separator)
-	(proc_env        process-environment)
+	(proc_env        (cl-copy-list process-environment))
 	(src_dir         (list (directory-file-name default-directory)))
 	(xref_tool       ada-xref-tool)
 	))))
@@ -1400,7 +1400,7 @@ Include properties set via `ada-prj-default-compiler-alist',
 			   ada-case-exception-file
 			 (list ada-case-exception-file))
       'path_sep        path-separator;; prj variable so users can override it for their compiler
-      'proc_env        process-environment
+      'proc_env        (cl-copy-list process-environment)
       'src_dir         (if src-dir (list src-dir) nil)
       'xref_tool       ada-xref-tool
       ))
@@ -1574,11 +1574,11 @@ Return new value of PROJECT."
 		  ;; process env var. We don't do expand-file-name
 		  ;; here because the application may be expecting a
 		  ;; simple string.
-		  (let ((process-environment (plist-get project 'proc_env)))
+		  (let ((process-environment (cl-copy-list (plist-get project 'proc_env))))
 		    (setenv (substring (match-string 1) 1)
 			    (substitute-in-file-name (match-string 2)))
 		    (setq project
-			  (plist-put project 'proc_env process-environment)))
+			  (plist-put project 'proc_env (cl-copy-list process-environment))))
 
 		;; not recognized; assume it is a user-defined variable like "comp_opt"
 		(setq project (plist-put project (intern (match-string 1)) (match-string 2)))

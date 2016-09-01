@@ -1583,6 +1583,7 @@
        ((PROTECTED IDENTIFIER aspect_specification_opt IS NEW interface_list WITH protected_definition SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-middle 7 block-middle 9 statement-end])
+        (wisi-motion-action [1 4 [8 block-middle PRIVATE block-end END]])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 6)
@@ -1591,6 +1592,7 @@
        ((PROTECTED IDENTIFIER aspect_specification_opt IS protected_definition SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-middle 6 statement-end])
+        (wisi-motion-action [1 4 [5 block-middle PRIVATE block-end END]])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 5)
@@ -1599,6 +1601,7 @@
        ((TASK IDENTIFIER aspect_specification_opt IS NEW interface_list WITH task_definition SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-middle 7 block-middle 9 statement-end])
+        (wisi-motion-action [1 4 [8 block-middle PRIVATE block-end END]])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 6)
@@ -1607,6 +1610,7 @@
        ((TASK IDENTIFIER aspect_specification_opt IS task_definition SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 block-middle 6 statement-end])
+        (wisi-motion-action [1 4 [5 block-middle PRIVATE block-end END]])
         (wisi-containing-action 1 2)
         (wisi-containing-action 2 3)
         (wisi-containing-action 4 5)

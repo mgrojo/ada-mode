@@ -7,7 +7,15 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.2.1
+
+** GPR_PROJECT_PATH is set in the compilation process environment when
+   the Ada project is selected, and cleared when the project is
+   deselected. This allows selecting other Emacs projects, then
+   returning to an Ada project.
+
 * Ada mode 5.2.0
+26 Jul 2016
 
 ** GNAT 2016 drops support for 'gnat find'; users must use gpr_query.
 

@@ -5,6 +5,7 @@
 ^ada-mode\.info$
 ^autoloads\.el$
 ^build/.*\.exe$
+^build/.*\.sig$
 ^build/.*\.tar\.gz$
 ^build/gpr_query$
 ^build/obj$

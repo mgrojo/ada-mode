@@ -58,13 +58,11 @@
     (setf (gpr-query--session-buffer session) (gnat-run-buffer gpr-query-buffer-name-prefix)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+    (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
 
 	  (project-file (file-name-nondirectory (ada-prj-get 'gpr_file))))
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)
-	    ;; gnatcoll-1.6 can't handle aggregate projects; M910-032
-	    ;; gpr_query can handle some aggregate projects, but not all
 	    (start-process (concat "gpr_query " (buffer-name))
 			   (gpr-query--session-buffer session)
 			   "gpr_query"

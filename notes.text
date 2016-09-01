@@ -41,9 +41,6 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
-do release
-
-
 adding "<" => "<" still confuses wisi
 
 ada-goto-declaration-start
@@ -736,11 +733,11 @@ bump versions
         ADA_REF_MAN_VERSION
         WISI_VERSION
 
-    (find-file "d:/Web/stephe-leake/emacs/ada-mode/emacs-ada-mode.html")
+    (find-file "d:/Web/savannah/ada-mode/index.html")
         ada-mode find-replace i.j.k
         opentoken find-replace i.jk
 
-    (find-file "d:/Web/stephe-leake/emacs/wisi/wisi.html")
+    (find-file "d:/Web/savannah/ada-mode/wisi/wisi.html")
         wisi-i.j.k find-replace
         wisi-generate version
         ada-mode i.j.k
@@ -841,12 +838,22 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.0 ../org.emacs.ada-mode-5.2.0
+
 build/Makefile zip
 
+not under emacs:
+    gpg -b *.tar.gz
+
+    scp *.tar.gz     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+    scp *.tar.gz.sig stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
+
 ~/Web/Makefile
-    ada-mode opentoken wisi
-    sync
-    check
+    ada-mode wisi
+
+(cvs-examine "d:/Web/savannah/ada-mode/" nil)
+
+FIXME: wisi-generate.exe to savannah?
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
     http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
