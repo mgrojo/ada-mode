@@ -9,7 +9,7 @@
 ;;  navigation
 ;; Version: 1.1.3
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
-;; URL: http://stephe-leake.org/emacs/ada-mode/emacs-ada-mode.html
+;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
 ;;

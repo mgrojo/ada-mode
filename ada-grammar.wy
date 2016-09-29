@@ -438,8 +438,7 @@ association_list
   : association_opt
   | association_list COMMA association_opt
     (progn
-      (wisi-statement-action [2 list-break])
-      (wisi-containing-action 2 3))
+      (wisi-statement-action [2 list-break]))
   ;
 
 asynchronous_select

@@ -516,6 +516,18 @@ point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	      (t
 	       (cl-case (wisi-cache-token cache)
 		 (EQUAL_GREATER
+		  ;; test/ada-mode-nominal.adb
+		  ;; when
+		  ;;   A | -- continuation line; ada-indent-broken = 2
+		  ;;   B |
+		  ;;   C
+		  ;;   => -- Ada mode 4.01 indentation
+		  ;; indenting '=>'
+		  ;;
+		  ;; Local_A := (1 => 1.0,
+		  ;;             2
+		  ;;              => 2.0,
+		  ;; indenting '=>'
 		  (+ (current-column) ada-indent-broken))
 
 		 (ELSIF

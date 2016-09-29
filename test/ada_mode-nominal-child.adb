@@ -7,7 +7,7 @@ package body Ada_Mode.Nominal.Child is
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
-      null;
+
    end Procedure_1a;
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
@@ -21,7 +21,7 @@ package body Ada_Mode.Nominal.Child is
       return 0.0;
    end Function_2a;
 
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0.0"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0.0;\n"))
    -- result verified by diff.
    overriding
    function Function_2b (Param : in Child_Type_1) return

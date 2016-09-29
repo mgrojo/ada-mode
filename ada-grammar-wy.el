@@ -285,8 +285,7 @@
        ((association_opt ))
        ((association_list COMMA association_opt )
         (progn
-        (wisi-statement-action [2 list-break])
-        (wisi-containing-action 2 3))))
+        (wisi-statement-action [2 list-break]))))
       (asynchronous_select
        ((SELECT triggering_alternative THEN ABORT sequence_of_statements_opt END SELECT SEMICOLON )
         (progn

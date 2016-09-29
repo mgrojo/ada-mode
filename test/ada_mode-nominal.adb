@@ -628,6 +628,12 @@ is -- target 0
       begin
          return Local_1;
       end Block_1;
+
+      Local_A := (1 => 1.0,
+                  2
+                   => 2.0,
+                  3
+                   => 3.0); -- indentation style from Ludovic Brenta
    end;
 
    not
