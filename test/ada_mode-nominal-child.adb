@@ -3,11 +3,11 @@
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 package body Ada_Mode.Nominal.Child is
 
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "null;"))
    -- result verified by diff.
    overriding procedure Procedure_1a (Item  : in out Child_Type_1)
    is begin
-
+      null;
    end Procedure_1a;
 
    --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
@@ -21,7 +21,7 @@ package body Ada_Mode.Nominal.Child is
       return 0.0;
    end Function_2a;
 
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0.0;\n"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0.0;"))
    -- result verified by diff.
    overriding
    function Function_2b (Param : in Child_Type_1) return

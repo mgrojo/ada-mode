@@ -57,7 +57,7 @@ is
    end Proc_2;
 
    -- function, no parameters
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0;\n"))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
    -- result verified by diff
    function Func_1 return Integer
    is begin
@@ -65,7 +65,7 @@ is
    end Func_1;
 
    -- function, parameters on separate line
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0;\n"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
    -- result verified by diff
    function Func_1
      (A : in Integer)

@@ -612,7 +612,14 @@ is -- target 0
    is
       type Array_Type_1 is array (1 .. 3) of Float;
       type Array_Type_2 is array (1 .. 3) of Array_Type_1;
-      Local_A : Array_Type_2 := (others => (others => 0.0));
+      Local_A : Array_Type_2 :=
+        -- indentation style from Ludovic Brenta
+        (1 => (others => 1.0),
+         2
+          => (others
+               => 2.0),
+         3
+          => (others => 3.0));
    begin
       Procedure_2a
         ;
@@ -628,12 +635,6 @@ is -- target 0
       begin
          return Local_1;
       end Block_1;
-
-      Local_A := (1 => 1.0,
-                  2
-                   => 2.0,
-                  3
-                   => 3.0); -- indentation style from Ludovic Brenta
    end;
 
    not
