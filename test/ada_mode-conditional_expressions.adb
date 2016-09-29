@@ -54,6 +54,24 @@ procedure Ada_Mode.Conditional_Expressions is
                          others
                          =>
                           +1);
+
+   type C_Type is (A, B, Z);
+   C : C_Type := A;
+   M : Boolean := True;
+   function Fun (I : in Integer) return Integer is (I);
+
+   L5 : Boolean :=
+     (case C is
+         when A =>
+            J = 4
+              or else M, --  test case from Piotr Trojanek
+         when B =>
+            Fun (J) = 0
+              or else M,
+         when others =>
+           (1
+              + 2) = 3);
+
    L : Integer := L0;
 begin
    K := (if K < 0 then 42 elsif K = 0 then 43 else (if J > 42 then 44 else 45));

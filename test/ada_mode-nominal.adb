@@ -143,14 +143,14 @@ is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                       "help!";
+                         "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when -- 2"))
                   when -- 3
                        -- pathological case - should put 'raise' on next line
                        -- just ensure it doesn't raise an error
                     E : others => raise
-                    Constraint_Error with "help!";
+                      Constraint_Error with "help!";
                end;
                --EMASCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "when -- 3"))
 
@@ -548,8 +548,8 @@ is -- target 0
       begin
          return
            Local_1 +
-           Local_2 +
-           Local_3;
+             Local_2 +
+             Local_3;
       end;
    end;
 
