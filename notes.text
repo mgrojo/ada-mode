@@ -46,7 +46,9 @@ fixing piotr trojanek's bug
     introduced expression-start, label classes; changes a lot of things
 
     review all test pointers in ada-wisi-before/after-cache
+    done thru ada-wisi-before-cache statement-start block-start
 
+    fix FIXME's
 change Emacs manual section on ada-mode to mention elpa
 
 new syntax in AI12-061:
