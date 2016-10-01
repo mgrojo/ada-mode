@@ -36,24 +36,24 @@ procedure Ada_Mode.Conditional_Expressions is
                          others => +1);
    L3 : Integer := (case J is
                        when 42 =>
-                          -1,
+                         -1,
                        when Integer'First .. 41 =>
-                          0,
+                         0,
                        when others =>
-                          +1);
+                         +1);
    L4 : Integer := (case J is
                        when
                          42
                          =>
-                          -1,
+                         -1,
                        when
                          Integer'First .. 41
                          =>
-                          0,
+                         0,
                        when
                          others
                          =>
-                          +1);
+                         +1);
 
    type C_Type is (A, B, Z);
    C : C_Type := A;
@@ -63,11 +63,11 @@ procedure Ada_Mode.Conditional_Expressions is
    L5 : Boolean :=
      (case C is
          when A =>
-            J = 4
-              or else M, --  test case from Piotr Trojanek
+           J = 4
+             or else M, --  test case from Piotr Trojanek
          when B =>
-            Fun (J) = 0
-              or else M,
+           Fun (J) = 0
+             or else M,
          when others =>
            (1
               + 2) = 3);

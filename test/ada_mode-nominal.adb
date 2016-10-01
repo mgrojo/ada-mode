@@ -616,10 +616,10 @@ is -- target 0
         -- indentation style from Ludovic Brenta
         (1 => (others => 1.0),
          2
-          => (others
-               => 2.0),
+           => (others
+                 => 2.0),
          3
-          => (others => 3.0));
+           => (others => 3.0));
    begin
       Procedure_2a
         ;

@@ -44,11 +44,19 @@ o.e.a.stephe-4 (from o.e.a): expression-start etc
 fixing piotr trojanek's bug
     branch o.e.a.stephe-4
     introduced expression-start, label classes; changes a lot of things
+    rewrite ada-wisi-indent-*
+
+    major indent tests:
+        test/ada_mode-nominal.ads
+        test/ada_mode-nominal.adb
+        test/ada_mode-conditional_expressions.adb
+        test/ada_mode-parens.adb
 
     review all test pointers in ada-wisi-before/after-cache
     done thru ada-wisi-before-cache statement-start block-start
 
     fix FIXME's
+
 change Emacs manual section on ada-mode to mention elpa
 
 new syntax in AI12-061:

@@ -11,8 +11,9 @@ begin
       null;
    end if;
 
-   if (for some J in 1 .. 10 =>
-         J/2 = 0)
+   if
+     (for some J in 1 .. 10 =>
+        J/2 = 0)
    then
       null;
    end if;

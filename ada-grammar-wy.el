@@ -217,19 +217,17 @@
         (wisi-containing-action 1 2)))
        ((LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN )
         (progn
-        (wisi-statement-action [1 open-paren 3 statement-other 5 close-paren])
+        (wisi-statement-action [1 open-paren 5 close-paren])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4)))
+        (wisi-containing-action 1 4)))
        ((LEFT_PAREN conditional_quantified_expression RIGHT_PAREN )
         (progn
         (wisi-statement-action [1 open-paren 3 close-paren])
         (wisi-containing-action 1 2)))
        ((LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN )
         (progn
-        (wisi-statement-action [1 open-paren 3 statement-other 6 close-paren])
-        (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)))
+        (wisi-statement-action [1 open-paren 6 close-paren])
+        (wisi-containing-action 1 2)))
        ((LEFT_PAREN NULL RECORD RIGHT_PAREN )
         (wisi-statement-action [1 open-paren 4 close-paren])))
       (aliased_opt
@@ -275,17 +273,15 @@
         (wisi-statement-action [2 statement-other])
         (wisi-containing-action 2 3)))
        ((CHARACTER_LITERAL EQUAL_GREATER BOX ))
-       ((discrete_choice_list EQUAL_GREATER expression_opt )
-        (progn
-        (wisi-statement-action [2 statement-other])
-        (wisi-containing-action 2 3)))
+       ((discrete_choice_list EQUAL_GREATER expression_opt ))
        ((discrete_choice_list EQUAL_GREATER BOX ))
        ((expression_opt )))
       (association_list
        ((association_opt ))
        ((association_list COMMA association_opt )
         (progn
-        (wisi-statement-action [2 list-break]))))
+        (wisi-statement-action [2 list-break])
+        (wisi-containing-action 2 3))))
       (asynchronous_select
        ((SELECT triggering_alternative THEN ABORT sequence_of_statements_opt END SELECT SEMICOLON )
         (progn
@@ -338,9 +334,8 @@
       (case_expression_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER expression_opt )
         (progn
-        (wisi-statement-action [1 block-middle 3 statement-other])
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 block-middle])
+        (wisi-containing-action 1 4))))
       (case_expression_alternative_list
        ((case_expression_alternative ))
        ((case_expression_alternative_list COMMA case_expression_alternative )
@@ -356,10 +351,9 @@
       (case_statement_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
-        (wisi-statement-action [1 block-middle 3 statement-other])
+        (wisi-statement-action [1 block-middle])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 1 4))))
       (case_statement_alternative_list
        ((case_statement_alternative ))
        ((case_statement_alternative_list case_statement_alternative )))
@@ -640,16 +634,14 @@
       (exception_handler
        ((WHEN IDENTIFIER COLON exception_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
-        (wisi-statement-action [1 block-middle 5 statement-other])
+        (wisi-statement-action [1 block-middle])
         (wisi-containing-action 1 4)
-        (wisi-containing-action 1 5)
-        (wisi-containing-action 5 6)))
+        (wisi-containing-action 1 6)))
        ((WHEN exception_choice_list EQUAL_GREATER sequence_of_statements_opt )
         (progn
-        (wisi-statement-action [1 block-middle 3 statement-other])
+        (wisi-statement-action [1 block-middle])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 1 4))))
       (exception_handler_list
        ((exception_handler ))
        ((exception_handler_list exception_handler )))
@@ -1397,8 +1389,8 @@
       (quantified_expression
        ((FOR quantifier iterator_specification EQUAL_GREATER expression_opt )
         (progn
-        (wisi-statement-action [4 statement-other])
-        (wisi-containing-action 4 5))))
+        (wisi-statement-action [1 expression-start])
+        (wisi-containing-action 1 5))))
       (quantifier
        ((ALL ))
        ((SOME )))
@@ -1518,21 +1510,20 @@
         (wisi-statement-action [1 block-start 3 statement-other])
         (wisi-containing-action 1 2)
         (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4)
-        (wisi-containing-action 3 5)))
+        (wisi-containing-action 1 4)
+        (wisi-containing-action 1 5)))
        ((accept_statement sequence_of_statements_opt ))
        ((WHEN expression_opt EQUAL_GREATER delay_alternative )
         (progn
-        (wisi-statement-action [1 block-start 3 statement-other])
+        (wisi-statement-action [1 block-start])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4)))
+        (wisi-containing-action 1 4)))
        ((delay_alternative ))
        ((WHEN expression_opt EQUAL_GREATER TERMINATE SEMICOLON )
         (progn
-        (wisi-statement-action [1 block-start 3 statement-other 4 statement-start 5 statement-end])
+        (wisi-statement-action [1 block-start 4 statement-start 5 statement-end])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)))
+        (wisi-containing-action 1 4)))
        ((TERMINATE SEMICOLON )
         (wisi-statement-action [1 statement-start 2 statement-end])))
       (select_alternative_list
@@ -1621,7 +1612,7 @@
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 statement-end])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 2 3)
+        (wisi-containing-action 1 3)
         (wisi-face-action [2 font-lock-type-face]))))
       (statement
        ((label_opt simple_statement )
@@ -1779,10 +1770,9 @@
       (variant
        ((WHEN discrete_choice_list EQUAL_GREATER component_list_opt )
         (progn
-        (wisi-statement-action [1 block-middle 3 statement-other])
+        (wisi-statement-action [1 block-middle])
         (wisi-containing-action 1 2)
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4))))
+        (wisi-containing-action 1 4))))
       (unary_adding_operator
        ((PLUS ))
        ((MINUS )))

@@ -26,8 +26,7 @@ package Aspects is
        Y >= X and
        Some_Very_Verbose_Predicate (X, Y);
 
-   procedure Bar (Y : out Integer)
-   with
+   procedure Bar (Y : out Integer) with
      Pre => X > 10 and
             X < 50,
      Post =>
