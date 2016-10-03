@@ -567,7 +567,7 @@ is -- target 0
 
    function Function_2a (Param : in Parent_Type_1) return Float
    is begin
-   Block_1:
+   Block_1 :
       declare -- label, no statements between begin, label
 
          --EMACSCMD:(test-face "1.0e-36" 'font-lock-constant-face)

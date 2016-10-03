@@ -789,7 +789,7 @@ private -- Ada_Mode.Nominal
       end record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
-     with null record;
+      with null record;
 
    overriding function Function_2g (Param : in Limited_Derived_Type_3) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_3) is abstract;

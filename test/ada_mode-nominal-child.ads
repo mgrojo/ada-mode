@@ -86,7 +86,7 @@ package Ada_Mode.Nominal.Child is
 
    Child_Obj_2 : constant Child_Type_1 :=
      (Default_Parent with
-        10, 12.0, True);
+      10, 12.0, True);
 
    Child_Obj_3 : constant Child_Type_1 :=
      (Default_Parent with

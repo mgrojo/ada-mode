@@ -448,8 +448,10 @@ package body Ada_Mode.Parens is
       -- ARM 4.5.8(4) allows removing the doubled parens
       -- around a quantified expression
       pragma Assert (for all X of A => X in V1);
+
+      procedure F1 (Item : in Boolean) is begin null; end;
    begin
-      null;
+      F1 (for all X of A => X in V1);
    end;
 
    procedure If_Expr_As_Actual_Parameter is
