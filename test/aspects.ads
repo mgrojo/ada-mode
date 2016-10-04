@@ -53,10 +53,10 @@ package Aspects is
    end record;
 
    function Wuff return Boolean with Pre =>
-     (for all X in U =>
-        (if X in D then
-           (for some Y in U =>
-              Y in T and (X, Y) in B)));
+       (for all X in U =>
+          (if X in D then
+             (for some Y in U =>
+                Y in T and (X, Y) in B)));
 
    subtype Integer_String is String
    with Dynamic_Predicate => Integer'Value (Integer_String) in Integer
