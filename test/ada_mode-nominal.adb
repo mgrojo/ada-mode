@@ -77,7 +77,8 @@ is -- target 0
 
       --EMACSCMD:(test-face "Function_Access_1" '(nil default))
       return Function_Access_1'Access;
-   end Function_Access_11;
+   end
+     Function_Access_11;
 
    --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
    protected body Protected_1 is -- target 2
@@ -238,6 +239,7 @@ is -- target 0
                   goto Label_1;
                   --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                <<Label_1>>
+                  --  a comment after a label
                   D := D - Float (F1);
             end case;
             <<Label_2>> --  a sequence_of_statements can have a trailing label
@@ -399,22 +401,25 @@ is -- target 0
       null;
    end Executive;
 
-   -- a more typical task
    task body Task_Type_1 is
+      -- a more typical task
       Local_1 : Integer;
       Started : Boolean := False;
    begin
       select
+         --  a comment after 'select'
          accept Start (A) (Param_1 : in Integer);
          Started := True;
       or
          when Started => -- Ada mode 4.01 ada-when-indent, GPS ada-indent
             accept Middle_1 (Param_1 : in Integer) do
+               --  a comment after 'do'
                Local_1 := 0;
             end Middle_1;
             Local_1 := 0;
       or
-         when Started =>
+         when
+           Started =>
             accept Middle_2
               (Param_1 : in Integer)
             do
@@ -435,6 +440,7 @@ is -- target 0
          accept Start (A) (Param_1 : in Integer);
          Local_1 := 0;
       else
+         --  comment after select else
          Local_1 := 2;
       end select;
 

@@ -52,11 +52,8 @@ fixing piotr trojanek's bug
         test/ada_mode-conditional_expressions.adb
         test/ada_mode-parens.adb
 
-    changing ada-wisi-before-cache to use ada-wisi-indent-containing when possible
-        statement-other done
-
-    review all test pointers in ada-wisi-before/after-cache
-    done thru ada-wisi-before-cache statement-start block-start
+    changing ada-wisi-after-cache to use ada-wisi-indent-containing when possible
+        done thru statement-other EQUAL_GREATER; all tests pass
 
     fix FIXME's
 

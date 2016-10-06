@@ -223,7 +223,7 @@ is -- target 0
      Standard.Float;
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
      Standard.Float;
-   type Function_Access_Type_2g is access protected function (A_Param : in Float) return
+   type Function_Access_Type_2g is access protected function return
      access Standard.Float;
    type Function_Access_Type_3 is access protected function (A_Param : in Float)
                                                             return Standard.Float;

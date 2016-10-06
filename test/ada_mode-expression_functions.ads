@@ -6,8 +6,8 @@ package Ada_Mode.Expression_Functions is
    --  Yes, this looks a little weird, but that's due to putting the
    --  argument list on the same line as the function name; see Fun2
    --  below, and/or setting ada-indent-return to 0.
-   not overriding function Fun1 (Really_Really_Long_Argument_List : Boolean)
-                                return Boolean -- a Really_Really_Long_Return_Type
+   function Fun1 (Really_Really_Long_Argument_List : Boolean)
+                 return Boolean -- a Really_Really_Long_Return_Type
      is
      (True) -- a Really_Really_Long_expression
    with Convention => Ada;
