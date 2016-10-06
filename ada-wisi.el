@@ -1045,7 +1045,10 @@ new indentation for point."
 
 	  (statement-start
 	   (cl-case (wisi-cache-token cache)
-	     (WITH ;; with_clause
+	     (WITH
+	      ;; test/ada_mode-nominal.ads
+	      ;; with
+	      ;;   Ada.Text_IO;
 	      (+ (current-column) ada-indent-with))
 
 	     (t
