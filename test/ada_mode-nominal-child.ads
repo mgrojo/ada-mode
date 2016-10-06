@@ -9,7 +9,7 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
    type Child_Type_1 is new Parent_Type_1 with
-   -- comment between 'with' and 'record'
+      -- comment between 'with' and 'record'
       record
          Child_Element_1 : Integer;
          Child_Element_2 : Float;

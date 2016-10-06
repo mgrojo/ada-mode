@@ -876,7 +876,7 @@ new indentation for point."
 	   (ada-wisi-indent-containing 0 cache nil))
 
 	  (statement-other
-	   (cl-ecase (wisi-cache-token cache)
+	   (cl-case (wisi-cache-token cache)
 	     (ABORT
 	      ;; test/subdir/ada_mode-separate_task_body.adb
 	      ;; select
@@ -886,20 +886,6 @@ new indentation for point."
 	      ;;    -- 'abort' indented with ada-indent-broken, since this is part
 	      ;;    Titi;
 	      (ada-wisi-indent-containing ada-indent cache))
-
-	     ((COLON
-	       ;; test/ada_mode-nominal.ads
-	       ;; type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
-	       ;;    Component_1 : Integer; -- end 2
-	       ;;    Component_2 :
-	       ;;      Integer;
-
-	       COLON_EQUAL
-	       ;; test/ada_mode-nominal.adb
-	       ;; Local_3 : constant Float :=
-	       ;;   Local_2;
-	       )
-	      (+ (ada-wisi-current-indentation) ada-indent-broken))
 
 	     (COMMA
 	      (cl-ecase (wisi-cache-nonterm cache)
@@ -921,12 +907,6 @@ new indentation for point."
 		    (ada-wisi-indent-containing ada-indent-with cache))
 		   ))
 		))
-
-	     (ELSIF
-	      ;; test/g-comlin.adb
-	      ;; elsif Index_Switches + Max_Length <= Switches'Last
-	      ;;   and then Switches (Index_Switches + Max_Length) = '?'
-	      (+ (ada-wisi-current-indentation) ada-indent-broken))
 
 	     (EQUAL_GREATER
 	      (cond
@@ -986,92 +966,36 @@ new indentation for point."
 	       ))
 
 	     (IS
-	      (setq cache (wisi-goto-containing cache))
-	      (cl-ecase (wisi-cache-nonterm cache)
-		(expression_function_declaration
-		 ;; test/ada_mode-expression_functions.ads
-		 ;; function Fun1 (Really_Really_Long_Argument_List : Boolean)
-		 ;;               return Boolean -- a Really_Really_Long_Return_Type
-		 ;;   is
-		 ;;   (True) -- a Really_Really_Long_expression
-		 (+ (ada-wisi-current-indentation) ada-indent-broken))
-
+	      (cl-case (wisi-cache-nonterm cache)
 		(full_type_declaration
-		 ;; ada_mode/nominal.ads
+		 ;; test/ada_mode-nominal.ads
 		 ;; type Limited_Derived_Type_1a is abstract limited new
 		 ;;    Private_Type_1 with record
-		 ;;       Component_1 : Integer;
-		 ;; indenting 'Private_Type_1'; look for 'record'
-		 (let ((type-column (current-column)))
-		   (goto-char start)
-		   (if (wisi-forward-find-token 'RECORD (line-end-position) t)
-		       ;; 'record' on line being indented
-		       (+ type-column ada-indent-record-rel-type)
-		     ;; 'record' on later line
-		     (+ type-column ada-indent-broken))))
+		 (goto-char start)
+		 (if (wisi-forward-find-token 'RECORD (line-end-position) t)
+		     ;; 'record' on line being indented
+		     (ada-wisi-indent-containing ada-indent-record-rel-type cache)
+		   ;; 'record' on later line
+		   (ada-wisi-indent-containing ada-indent-broken cache)))
 
-		((formal_type_declaration
-		  ;; test/ada_mode-generic_package.ads
-		  ;; type Synchronized_Formal_Derived_Type is abstract synchronized new Formal_Private_Type and Interface_Type
-		  ;;   with private;
+		(t
+		 ;; test/ada_mode-generic_package.ads
+		 ;; type Synchronized_Formal_Derived_Type is abstract ...
+		 ;;   with private;
 
-		  subtype_declaration
-		  ;; test/ada_mode-nominal.ads
-		  ;;    subtype Subtype_2 is Signed_Integer_Type range 10 ..
-		  ;;      20;
-
-		  private_type_declaration
-		  ;; type Private_Type_2 is abstract tagged limited
-		  ;;  private;
-		  )
-		 (+ (current-column) ada-indent-broken))
-
-		(null_procedure_declaration
+		 ;; test/ada_mode-nominal.ads
+		 ;;    subtype Subtype_2 is Signed_Integer_Type range 10 ..
+		 ;;      20;
+		 ;;
+		 ;; type Private_Type_2 is abstract tagged limited
+		 ;;  private;
+		 ;;
 		 ;; ada_mode-nominal.ads
 		 ;; procedure Procedure_3b is
 		 ;;   null;
-		 ;; indenting null
-		 (+ (current-column) ada-indent-broken))
+		 (ada-wisi-indent-containing ada-indent-broken cache))
 
 		))
-
-	     (LEFT_PAREN
-	      ;; test/indent.ads
-	      ;; C_S_Controls : constant
-	      ;;   CSCL_Type :=
-	      ;;     CSCL_Type'
-	      ;;       (
-	      ;;        1 =>
-	      (+ (current-column) 1))
-
-	     (NEW
-	      ;; ada_mode-nominal.ads
-	      ;; type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with
-	      ;;   private;
-	      ;;
-	      ;; test/ada_mode-generic_instantiation.ads
-	      ;;   procedure Procedure_6 is new
-	      ;;     Instance.Generic_Procedure (Integer, Function_1);
-	      ;; indenting 'Instance'; containing is 'new'
-	      (ada-wisi-indent-containing ada-indent-broken cache))
-
-	     (OF
-	      ;; ada_mode-nominal.ads
-	      ;; Anon_Array_2 : array (1 .. 10) of
-	      ;;   Integer;
-	      (ada-wisi-indent-containing ada-indent-broken cache))
-
-	     (USE
-	      ;; test/foruse.adb
-	      ;; for Command_Labels_Type use
-	      ;;   (Noop              => 0,
-	      (+ (ada-wisi-current-indentation) ada-indent-broken))
-
-	     (WHEN
-	      ;; test/ada_mode-parens.adb
-	      ;; exit when A.all
-	      ;;   or else B.all
-	      (ada-wisi-indent-containing ada-indent-broken cache))
 
 	     (WITH
 	      (cl-ecase (wisi-cache-nonterm cache)
@@ -1079,7 +1003,6 @@ new indentation for point."
 		 ;; test/ada_mode-nominal-child.ads
 		 ;;   (Default_Parent with
 		 ;;    10, 12.0, True);
-		 ;; indenting '10'; containing is '('
 		 (wisi-indent-paren 1))
 
 		(aspect_specification_opt
@@ -1093,14 +1016,27 @@ new indentation for point."
 		(derived_type_definition
 		 ;; test/ada_mode-nominal-child.ads
 		 ;; type Child_Type_1 is new Parent_Type_1 with
-		 ;;   -- comment between 'with' and 'record'
+		 ;;    -- comment between 'with' and 'record'
 		 ;;    record
 		 ;; indenting comment
-		 (+ (current-indentation) ada-indent-broken))
+		 (+ (current-indentation) ada-indent-record-rel-type))
 		))
 
-	     ;; otherwise just hanging
-	     ((ACCEPT IDENTIFIER FUNCTION PROCEDURE RENAMES)
+	     (t
+	      ;; test/ada_mode-nominal.ads
+	      ;; type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
+	      ;;    Component_1 : Integer; -- end 2
+	      ;;    Component_2 :
+	      ;;      Integer;
+	      ;;
+	      ;; test/ada_mode-nominal.adb
+	      ;; Local_3 : constant Float :=
+	      ;;   Local_2;
+	      ;;
+	      ;; test/g-comlin.adb
+	      ;; elsif Index_Switches + Max_Length <= Switches'Last
+	      ;;   and then Switches (Index_Switches + Max_Length) = '?'
+	      ;;
 	      ;; test/ada_mode-long_paren.adb
 	      ;; Packet := new Packet_Type'
 	      ;;   (RT                            => RT,

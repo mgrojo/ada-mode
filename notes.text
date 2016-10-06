@@ -53,7 +53,7 @@ fixing piotr trojanek's bug
         test/ada_mode-parens.adb
 
     changing ada-wisi-after-cache to use ada-wisi-indent-containing when possible
-        done thru statement-other EQUAL_GREATER; all tests pass
+        done thru statement-other; all tests pass
 
     fix FIXME's
 
