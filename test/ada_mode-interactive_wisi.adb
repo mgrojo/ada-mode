@@ -77,6 +77,12 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
+   -- new parameter in a subpgrogram
+   --EMACSCMD:(progn (end-of-line 3)(delete-indentation)(delete-char -1)(insert ";")(ada-indent-newline-indent)(current-column))
+   procedure Local_Proc_1 (Param_1 : in Float;
+                           );
+   --EMACSRESULT:26
+
    -- Adding a body interactively leaves it properly indented, and
    -- caches updated. Start with invalid syntax (missing final ';') -
    -- indent after syntax fixed should indent entire statement.

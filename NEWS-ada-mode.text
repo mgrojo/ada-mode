@@ -14,6 +14,12 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    deselected. This allows selecting other Emacs projects, then
    returning to an Ada project.
 
+** New function ada-show-local-references (bound to C-c C-l) searches
+   for references within the current file only.
+
+** New option ada-xref-full-path (default nil) if t, shows full paths
+   in cross references.
+
 * Ada mode 5.2.0
 26 Jul 2016
 

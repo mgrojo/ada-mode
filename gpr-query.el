@@ -243,9 +243,9 @@ Uses `gpr_query'. Returns new list."
 (defun gpr-query-compilation (identifier file line col cmd comp-err)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
 set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
-  ;; Useful when gpr_query will return a list of references; we use
-  ;; `compilation-start' to run gpr_query, so the user can navigate
-  ;; to each result in turn via `next-error'.
+  ;; Useful when gpr_query will return a list of references; the user
+  ;; can navigate to each result in turn via `next-error'.
+  ;; FIXME: implement ada-xref-full-path.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
 	(result-count 0)
 	target-file target-line target-col)
@@ -555,8 +555,9 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(defun gpr-query-all (identifier file line col)
+(defun gpr-query-all (identifier file line col _local-only)
   "For `ada-xref-all-function', using gpr_query."
+  ;; FIXME: implement local-only
   (gpr-query-compilation identifier file line col "refs" 'gpr-query-ident-file))
 
 (defun gpr-query-parents (identifier file line col)

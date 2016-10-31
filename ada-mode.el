@@ -300,6 +300,12 @@ Useful for setting `ada-xref-tool' and similar vars."
   :type 'function
   :group 'ada)
 
+(defcustom ada-xref-full-path nil
+  "If t, cross-references show the full path to source files; if
+nil, only the file name."
+  :type 'boolean
+  :safe #'booleanp)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -352,6 +358,7 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-e" 	 'ada-expand)
     (define-key map "\C-c\C-f" 	 'ada-show-parse-error)
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
+    (define-key map "\C-c\C-l" 	 'ada-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
     (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
     (define-key map "\C-c\M-n" 	 'ada-next-placeholder)
@@ -2305,6 +2312,7 @@ Called with four arguments:
 - filename containing the identifier
 - line number containing the identifier
 - column of the start of the identifier
+- local-only; if t, show references in current file only
 Displays a buffer in compilation-mode giving locations where the
 identifier is declared or referenced.")
 
@@ -2320,7 +2328,24 @@ identifier is declared or referenced.")
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (1+ (current-column)))
+	   (1+ (current-column))
+	   nil)
+  )
+
+(defun ada-show-local-references ()
+  "Show all references of identifier at point."
+  (interactive)
+  (ada-check-current-project (buffer-file-name))
+
+  (when (null ada-xref-all-function)
+    (error "no cross reference information available"))
+
+  (funcall ada-xref-all-function
+	   (ada-identifier-at-point)
+	   (file-name-nondirectory (buffer-file-name))
+	   (line-number-at-pos)
+	   (1+ (current-column))
+	   t)
   )
 
 (defvar ada-xref-overriding-function nil

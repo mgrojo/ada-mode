@@ -185,6 +185,7 @@
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token IS
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token SEMICOLON
+%conflict REDUCE/REDUCE in state expression_opt, parameter_specification on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
@@ -1746,7 +1747,8 @@ parameter_profile_opt
   ;
 
 parameter_specification
-  : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression_opt
+  : ;; empty
+  | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression_opt
     (wisi-face-action [6 font-lock-type-face])
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
     (wisi-face-action [6 font-lock-type-face])

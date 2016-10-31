@@ -41,21 +41,10 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): expression-start etc
 
-fixing piotr trojanek's bug
-    branch o.e.a.stephe-4
-    introduced expression-start, label classes; changes a lot of things
-    rewrite ada-wisi-indent-*
+if parse fails, preserve the indentation of the line where the user typed RET.
 
-    major indent tests:
-        test/ada_mode-nominal.ads
-        test/ada_mode-nominal.adb
-        test/ada_mode-conditional_expressions.adb
-        test/ada_mode-parens.adb
-
-    changing ada-wisi-after-cache to use ada-wisi-indent-containing when possible
-        done thru statement-other; all tests pass
-
-    fix FIXME's
+C-u C-c C-r append references
+    rewrite gnatxref to not use compilation-start
 
 change Emacs manual section on ada-mode to mention elpa
 
@@ -210,6 +199,10 @@ use cl-lib class/method for dispatching
 throw errors if wisi-debug > 0.
 
  speed up
+
+parser speed dominated by set-text-properties
+    save parse info in _simple_ lisp list, only apply via set-text-properties when needed
+        modify other parser actions to operate on list instead of text-properties
 
 semantic uses overlays, not text properties; faster?
     apparently not; discussion on emacs-devel of improving overlay speed by using text property interval trees
