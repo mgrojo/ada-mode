@@ -5,7 +5,7 @@
 ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
-all : byte-compile-clean update compile-ada-clean compile-ada autoloads test-clean test
+all : byte-compile-clean compile-ada-clean update compile-ada autoloads test-clean test
 
 # this updates everything after any source change, without running the tests.
 update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
