@@ -41,8 +41,6 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
-always use ada-indent-broken for (
-
 if parse fails, preserve the indentation of the line where the user typed RET.
 
 C-u C-c C-r append references
@@ -711,7 +709,7 @@ bump versions
     change versions in compares below to match installed versions.
 
     compare:
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.2" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.3" "/Projects/elpa/packages/wisi" nil)
             NEWS-wisi.text
                 add release date
                 add new features
@@ -719,7 +717,7 @@ bump versions
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.1.9" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.0" "/Projects/elpa/packages/ada-mode" nil)
             NEWS-ada-mode.text
                 add release date
                 add new features
@@ -756,13 +754,12 @@ bump versions
     (find-file "d:/Web/savannah/ada-mode/wisi/wisi.html")
         wisi-i.j.k find-replace
         wisi-generate version
-        ada-mode i.j.k
         opentoken version
 
     (d:/Web/stephe-leake/ada/opentoken.html copied by web makefile)
 
     ~/Web/Makefile
-        ADA-MODE-VERSION
+        ADA_MODE_VERSION
 
 verify other metadata
     ada-mode.el

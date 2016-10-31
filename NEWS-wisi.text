@@ -8,6 +8,7 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 
 * wisi 1.1.4
+31 Oct 2016
 
 ** wisi-validate-cache takes optional error-on-fail arg.
 

@@ -16,9 +16,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 5.2.0
+export ADA_MODE_VERSION    := 5.2.1
 export ADA_REF_MAN_VERSION := 2012.0
-export WISI_VERSION        := 1.1.3
+export WISI_VERSION        := 1.1.4
 
 all : docs pub-ada pub-wisi build-elpa uninstall-elpa
 # all : pub-ada-ref-man
