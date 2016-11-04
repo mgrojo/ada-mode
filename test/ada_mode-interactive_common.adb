@@ -113,11 +113,11 @@ begin
            'A');
    --EMACSRESULT:t
 
-   -- Re-indent a comment after code; we just assume it is correct; use `align' to change it.
+   -- Re-indent a comment after code, to `comment-column'.
    --EMACSCMD:(progn (forward-line 1)(comment-dwim nil)(end-of-line)(current-column))
-   E := (1 =>    --
+   E := (1 =>                   --
            'A');
-   --EMACSRESULT:19
+   --EMACSRESULT:34
 
    -- `comment-dwim' should not change the indentation of the next comment.
    --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))

@@ -1174,11 +1174,16 @@ The value is a file name, which is loaded as an elisp file when the
 project file is parsed or selected. This allows setting Ada mode indentation
 variables, and any arbitrary elisp code used to customize the project.
 
+@item @code{obj_dir}        [default: @code{"."}]
+A list of directories to search for object and cross-reference
+files. Only needed if you are not using GPR files.
+
 @item @code{path_sep}       [default: @code{path-separator}]
 Separator character used in compiler search paths.
 
 @item @code{src_dir}        [default: @code{"."}]
-A list of directories to search for source files.
+A list of directories to search for source files. Added to the source
+directories from a GPR file.
 
 @item @code{xref_tool}      [default: @code{ada-xref-tool}]
 Cross reference tool for this project.

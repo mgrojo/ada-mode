@@ -56,9 +56,11 @@
 	 (switches (concat
                     "-a"
                     (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))))
+	 (dirs (when (ada-prj-get 'obj_dir)
+		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
-      (gnat-run-gnat "find" (list switches arg))
+      (gnat-run-gnat "find" (list switches dirs arg))
 
       (goto-char (point-min))
       (forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
@@ -101,9 +103,11 @@
 		    "-d"
 		    (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
 		    ))
+	 (dirs (when (ada-prj-get 'obj_dir)
+		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
-      (gnat-run-gnat "find" (append switches (list arg)))
+      (gnat-run-gnat "find" (append switches (list dirs arg)))
 
       (goto-char (point-min))
       (forward-line 2); skip GPR_PROJECT_PATH, 'gnat find'
@@ -145,13 +149,18 @@
   ;; is asynchronous, and automatically runs the compilation error
   ;; filter.
 
-  (let* ((cmd (format "%sgnat find -a -r %s %s:%s:%d:%d %s"
+  (let* ((dirs (when (ada-prj-get 'obj_dir)
+		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
+         (project-file (when (ada-prj-get 'gpr_file)
+			 (concat " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
+	 (cmd (format "%sgnat find -a -r %s %s %s:%s:%d:%d %s %s"
                       (or (ada-prj-get 'target) "")
 		      (if ada-xref-full-path "-f" "")
-                      identifier file line col (if local-only file ""))))
+                      dirs identifier file line col project-file (if local-only file ""))))
 
     (with-current-buffer (gnat-run-buffer); for default-directory
-      (let ((compilation-error "reference")
+      (let ((compilation-buffer-name "*compilation-gnatfind*")
+            (compilation-error "reference")
 	    ;; gnat find uses standard gnu format for output, so don't
 	    ;; need to set compilation-error-regexp-alist
 	    )
@@ -161,10 +170,10 @@
 	(when (ada-prj-get 'gpr_file)
 	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
 
-	(compilation-start cmd
-			   'compilation-mode
-			   (lambda (name) (concat "*" name "-gnatfind*")))
-    ))))
+        (compilation-start cmd
+                           'compilation-mode
+                           (lambda (_name) compilation-buffer-name))
+	))))
 
 ;;;;; setup
 

@@ -1353,6 +1353,7 @@ Optional PLIST defaults to `ada-prj-current-project'."
 	(path_sep        path-separator)
 	(proc_env        (cl-copy-list process-environment))
 	(src_dir         (list (directory-file-name default-directory)))
+        (obj_dir         (list (directory-file-name default-directory)))
 	(xref_tool       ada-xref-tool)
 	))))
 
@@ -1507,7 +1508,7 @@ should add to or modify the list and return it.")
   "Parse the Ada mode project file PRJ-FILE, set project properties in PROJECT.
 Return new value of PROJECT."
   (let (;; fields that are lists or that otherwise require special processing
-	casing src_dir
+	casing src_dir obj_dir
 	tmp-prj
 	(parse-one-compiler (cdr (assoc ada-compiler ada-prj-parse-one-compiler)))
 	(parse-final-compiler (cdr (assoc ada-compiler ada-prj-parse-final-compiler)))
@@ -1560,6 +1561,11 @@ Return new value of PROJECT."
                          (expand-file-name (match-string 2)))
                         src_dir :test #'equal))
 
+	   ((string= (match-string 1) "obj_dir")
+	    (cl-pushnew (file-name-as-directory
+			 (expand-file-name (match-string 2)))
+			obj_dir :test #'equal))
+
 	   ((string= (match-string 1) "xref_tool")
 	    (let ((xref (intern (match-string 2))))
 	      (setq project (plist-put project 'xref_tool xref))
@@ -1599,6 +1605,7 @@ Return new value of PROJECT."
     ;; process accumulated lists
     (if casing (setq project (plist-put project 'casing (reverse casing))))
     (if src_dir (setq project (plist-put project 'src_dir (reverse src_dir))))
+    (if obj_dir (setq project (plist-put project 'obj_dir (reverse obj_dir))))
 
     (when parse-final-compiler
       ;; parse-final-compiler may reference the "current project", so
@@ -2813,7 +2820,9 @@ The paragraph is indented on the first line."
   (setq ff-search-directories 'compilation-search-path)
   (when (null (car compilation-search-path))
     ;; find-file doesn't handle nil in search path
-    (setq compilation-search-path (list (file-name-directory (buffer-file-name)))))
+    (setq compilation-search-path (list (if buffer-file-name
+                                            (file-name-directory (buffer-file-name))
+                                          "."))))
   (ada-set-ff-special-constructs)
 
   (set (make-local-variable 'add-log-current-defun-function)
