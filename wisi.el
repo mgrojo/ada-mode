@@ -1371,27 +1371,33 @@ Return start cache."
 (defun wisi-comment-indent ()
   "For `comment-indent-function'. Indent single line comment to
 the comment on the previous line."
+  ;; Called from `comment-indent', either to insert a new comment, or
+  ;; to indent the first line of an existing one.  In either case, the
+  ;; comment may be after code on the same line.  For an existing
+  ;; comment, point is at the start of the starting delimiter.
   (or
    (save-excursion
-     (forward-comment -1)
-     (when (looking-at comment-start)
-       ;; There is a preceding comment line.
-       (current-column)))
+     ;; Check for a preceding comment line; fail if comment follows code.
+     (when (forward-comment -1)
+       ;; For the case:
+       ;;
+       ;; code;-- comment
+       ;;
+       ;; point is on '--', and 'forward-comment' does not move point,
+       ;; returns nil.
+       (when (looking-at comment-start)
+         (current-column))))
 
-   ;; Probably called from `comment-indent'; either to insert a new
-   ;; comment, or to indent the first line of an existing one.  In
-   ;; either case, the comment may be after code on the same line.
    (save-excursion
-     (let ((start-col (current-column)))
-       (back-to-indentation)
-       (if (looking-at comment-start)
-	   ;; An existing comment alone on a line. Return nil, so
-	   ;; `comment-indent' will call `indent-according-to-mode'
-	   nil
+     (back-to-indentation)
+     (if (looking-at comment-start)
+         ;; An existing comment, no code preceding comment, and
+         ;; no comment on preceding line. Return nil, so
+         ;; `comment-indent' will call `indent-according-to-mode'
+         nil
 
-	 ;; A comment after code on the same line; point was at the
-	 ;; comment start, so assume it is already correct.
-	 start-col)))
+       ;; A comment after code on the same line.
+       comment-column))
    ))
 
 (defun wisi-indent-current (offset)
