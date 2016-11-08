@@ -7,6 +7,11 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
 'ada-mode' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* Ada mode 5.2.2
+
+** ada-identifier-at-point properly handles adjacent operator and
+   identifier (ie +Tree).
+
 * Ada mode 5.2.1
 31 Oct 2016
 

@@ -10,8 +10,8 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line 2)(ada-find-other-file nil)(looking-at "package Ada.Strings.Unbounded is"))
---EMACSRESULT: (not (eq ada-xref-tool 'gnat))
+--EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "package Ada.Strings.Unbounded is"))
+--EMACSRESULT: t
 with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
 --EMACSRESULT:""

@@ -246,7 +246,9 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
   ;; FIXME: implement ada-xref-full-path.
-  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line col))
+
+  ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
+  (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
 	(result-count 0)
 	target-file target-line target-col)
     (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
@@ -335,7 +337,7 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
    (thing-at-point 'symbol)
    (file-name-nondirectory (buffer-file-name))
    (line-number-at-pos)
-   (1+ (current-column)))
+   (current-column))
   )
 
 (defun gpr-query-overridden (other-window)
@@ -351,7 +353,7 @@ buffer in another window."
 	  (line-number-at-pos)
 	  (save-excursion
 	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
-	    (1+ (current-column)))
+	    (current-column))
 	  )))
 
     (ada-goto-source (nth 0 target)
@@ -376,7 +378,7 @@ buffer in another window."
 	  (line-number-at-pos)
 	  (save-excursion
 	    (goto-char (car (bounds-of-thing-at-point 'symbol)))
-	    (1+ (current-column)))
+	    (current-column))
 	  )))
 
     (ada-goto-source (nth 0 target)
@@ -450,7 +452,7 @@ Enable mode if ARG is positive."
     ;; can disagree on the case, so convert all to lowercase.
     (setq file (downcase file)))
 
-  (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+  (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line (1+ col)))
 	(decl-loc nil)
 	(body-loc nil)
 	(search-type nil)
@@ -555,7 +557,7 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(defun gpr-query-all (identifier file line col _local-only)
+(defun gpr-query-all (identifier file line col &optional _local-only)
   "For `ada-xref-all-function', using gpr_query."
   ;; FIXME: implement local-only
   (gpr-query-compilation identifier file line col "refs" 'gpr-query-ident-file))
@@ -576,7 +578,7 @@ Enable mode if ARG is positive."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory file) line col))
+  (let ((cmd (format "overridden %s:%s:%d:%d" identifier (file-name-nondirectory file) line (1+ col)))
 	result)
     (with-current-buffer (gpr-query-session-send cmd t)
 

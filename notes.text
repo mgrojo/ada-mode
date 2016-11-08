@@ -768,18 +768,20 @@ verify other metadata
     ada-ref-man.el
     wisi.el
 
-Emacs master, gnat 2016:
-    build/wisi/Makefile all byte-compile-clean
-
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
+
+Emacs 25.1, gnat 2016:
+    build/wisi/Makefile all byte-compile-clean
 
 prep for other version tests:
     build/Makefile all
     # pushes to elpa workspace, builds archive, uninstalls
 
-Emacs 24.5
+Emacs 24.5, gnat 2015, installed elpa (Eurocontrol)
+    (gnat-2015)
     (setenv "ADA_MODE_DIR" "-f package-initialize")
+    org.opentoken/build/release/Makefile clean
     build/Makefile install-elpa
     build/wisi/Makefile all
     build/Makefile uninstall-elpa

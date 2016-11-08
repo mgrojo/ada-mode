@@ -6,8 +6,8 @@
 with Ada.Text_IO;
 --EMACSRESULT:t
 -- Other file from a subunit on a context clause.
---EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
---EMACSRESULT:(not (eq ada-xref-tool 'gnat))
+--EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
+--EMACSRESULT:t
 
 --  WORKAROUND: GNAT GPL 2016 doesn't produce a .ali file for this
 --  file, so gpr_query doesn't work. And gnat find doesn't work either

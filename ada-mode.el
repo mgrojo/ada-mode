@@ -2136,7 +2136,16 @@ identifier.  May be an Ada identifier or operator."
   (when (ada-in-comment-p)
     (error "Inside comment"))
 
-  (skip-chars-backward "a-zA-Z0-9_<>=+\\-\\*/&")
+  ;; Handle adjacent operator/identifer like:
+  ;; test/ada_mode-slices.adb
+  ;;   D1, D2 : Day := +Sun;
+
+  ;; Move to the beginning of the identifier or operator
+  (if (looking-at "[a-zA-Z0-9_]")
+      ;; In an identifier
+      (skip-chars-backward "a-zA-Z0-9_")
+    ;; In an operator
+    (skip-chars-backward "+\\-\\*/&<>="))
 
   ;; Just in front of, or inside, a string => we could have an
   ;; operator function declaration.
@@ -2158,7 +2167,11 @@ identifier.  May be an Ada identifier or operator."
 	 (looking-at (concat "\"\\(" ada-operator-re "\\)\"")))
     (concat "\"" (match-string-no-properties 1) "\""))
 
-   ((looking-at "[a-zA-Z0-9_]+\\|[+\\-*/&=<>]")
+   ((looking-at ada-operator-re)
+    ;; Return quoted operator, as this is what the back end expects.
+    (concat "\"" (match-string-no-properties 0) "\""))
+
+   ((looking-at "[a-zA-Z0-9_]+")
     (match-string-no-properties 0))
 
    (t
@@ -2254,7 +2267,8 @@ Function is called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier (full path)
 - line number containing the identifier
-- column of the start of the identifier
+- Emacs column of the start of the identifier
+Point is on the start of the identifier.
 Returns a list (FILE LINE COLUMN) giving the corresponding location.
 FILE may be absolute, or on `compilation-search-path'.  If point is
 at the specification, the corresponding location is the body, and vice
@@ -2277,7 +2291,7 @@ buffer in another window."
 		  (ada-identifier-at-point)
 		  (buffer-file-name)
 		  (line-number-at-pos)
-		  (1+ (current-column))
+		  (current-column)
 		  )))
 
     (ada-goto-source (nth 0 target)
@@ -2293,7 +2307,7 @@ Function is called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
 - line number containing the identifier
-- column of the start of the identifier
+- Emacs column of the start of the identifier
 Displays a buffer in compilation-mode giving locations of the parent type declarations.")
 
 (defun ada-show-declaration-parents ()
@@ -2308,7 +2322,7 @@ Displays a buffer in compilation-mode giving locations of the parent type declar
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (1+ (current-column)))
+	   (current-column))
   )
 
 (defvar ada-xref-all-function nil
@@ -2318,7 +2332,7 @@ Called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
 - line number containing the identifier
-- column of the start of the identifier
+- Emacs column of the start of the identifier
 - local-only; if t, show references in current file only
 Displays a buffer in compilation-mode giving locations where the
 identifier is declared or referenced.")
@@ -2335,7 +2349,7 @@ identifier is declared or referenced.")
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (1+ (current-column))
+	   (current-column)
 	   nil)
   )
 
@@ -2351,7 +2365,7 @@ identifier is declared or referenced.")
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (1+ (current-column))
+	   (current-column)
 	   t)
   )
 
@@ -2362,7 +2376,7 @@ Called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
 - line number containing the identifier
-- column of the start of the identifier
+- Emacs column of the start of the identifier
 Displays a buffer in compilation-mode giving locations of the overriding declarations.")
 
 (defun ada-show-overriding ()
@@ -2377,7 +2391,7 @@ Displays a buffer in compilation-mode giving locations of the overriding declara
 	   (ada-identifier-at-point)
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
-	   (1+ (current-column)))
+	   (current-column))
   )
 
 (defvar ada-xref-overridden-function nil
@@ -2387,7 +2401,7 @@ Called with four arguments:
 - an Ada identifier or operator_symbol
 - filename containing the identifier
 - line number containing the identifier
-- column of the start of the identifier
+- Emacs column of the start of the identifier
 Returns a list (FILE LINE COLUMN) giving the corresponding location.
 FILE may be absolute, or on `compilation-search-path'.")
 
@@ -2404,7 +2418,7 @@ FILE may be absolute, or on `compilation-search-path'.")
 		  (ada-identifier-at-point)
 		  (file-name-nondirectory (buffer-file-name))
 		  (line-number-at-pos)
-		  (1+ (current-column)))))
+		  (current-column))))
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)

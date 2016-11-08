@@ -43,14 +43,38 @@
 
 (defconst ada-gnat-file-line-col-regexp "\\(.*\\):\\([0-9]+\\):\\([0-9]+\\)")
 
+(defun ada-gnat-xref-adj-col (identifier col)
+  "Return COL adjusted for 1-index, quoted operators."
+  (cond
+   ((eq ?\" (aref identifier 0))
+    ;; There are two cases here:
+    ;;
+    ;; In both cases, gnat find wants the operators quoted, and the
+    ;; column on the +. Gnat column is one-indexed; emacs is 0 indexed.
+    ;;
+    ;; In the first case, the front end passes in a column on the leading ", so we add one.
+    ;;
+    ;; In the second case, the front end passes in a column on the +
+    (cond
+     ((= ?\" (char-after (point)))
+      ;; test/ada_mode-slices.adb
+      ;; function "+" (Left : in Day; Right : in Integer) return Day;
+      (+ 2 col))
+
+     (t
+      ;; test/ada_mode-slices.adb
+      ;; D1, D2 : Day := +Sun;
+      (+ 1 col))
+     ))
+
+   (t
+    ;; Gnat column is one-indexed; emacs is 0 indexed.
+    (+ 1 col))
+   ))
+
 (defun ada-gnat-xref-other (identifier file line col)
   "For `ada-xref-other-function', using `gnat find', which is Ada-specific."
-
-  (when (eq ?\" (aref identifier 0))
-    ;; gnat find wants the quotes on operators, but the column is after the first quote.
-    (setq col (+ 1 col))
-    )
-
+  (setq col (ada-gnat-xref-adj-col identifier col))
   (let* ((file-non-dir (file-name-nondirectory file))
 	 (arg (format "%s:%s:%d:%d" identifier file-non-dir line col))
 	 (switches (concat
@@ -97,7 +121,7 @@
 (defun ada-gnat-xref-parents (identifier file line col)
   "For `ada-xref-parents-function', using `gnat find', which is Ada-specific."
 
-  (let* ((arg (format "%s:%s:%d:%d" identifier file line col))
+  (let* ((arg (format "%s:%s:%d:%d" identifier file line (ada-gnat-xref-adj-col identifier col)))
 	 (switches (list
                     "-a"
 		    "-d"
@@ -156,7 +180,8 @@
 	 (cmd (format "%sgnat find -a -r %s %s %s:%s:%d:%d %s %s"
                       (or (ada-prj-get 'target) "")
 		      (if ada-xref-full-path "-f" "")
-                      dirs identifier file line col project-file (if local-only file ""))))
+                      dirs identifier file line (ada-gnat-xref-adj-col identifier col)
+		      project-file (if local-only file ""))))
 
     (with-current-buffer (gnat-run-buffer); for default-directory
       (let ((compilation-buffer-name "*compilation-gnatfind*")
