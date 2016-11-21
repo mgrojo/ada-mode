@@ -404,36 +404,19 @@ Point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	   nil)
 
 	  (open-paren
-	   ;; In some cases, we indent the leading paren one less than
-	   ;; normal, so the following lines look normal. However, when
-	   ;; ada-indent-broken = 1- ada-indent, the distinction is
-	   ;; moot.
-	   (let ((content (save-excursion (wisi-forward-cache))))
-	     (cond
-	      ((or
-		(memq (wisi-cache-nonterm cache)
-		      '(formal_part)
-		      ;; test/ada_mode-nominal.adb
-		      ;; entry E2
-		      ;;   (X : Integer)
-		      )
-		(memq (wisi-cache-nonterm content)
-		      '(case_expression
-			;; test/ada_mode-conditional_expressions.adb
-			;; K :=
-			;;   (case Bounded (K) is
-
-			if_expression
-			;; test/ada_mode-conditional_expressions.adb
-			;; when 1  =>
-			;;   (if J > 42
-			)))
-
-	       (ada-wisi-indent-containing (1- ada-indent) cache t start))
-
-	      (t
-	       (ada-wisi-indent-containing ada-indent-broken cache t start))
-	      )))
+	   ;; test/ada_mode-nominal.adb
+	   ;; entry E2
+	   ;;   (X : Integer)
+	   ;;
+	   ;; test/ada_mode-conditional_expressions.adb
+	   ;; K :=
+	   ;;   (case Bounded (K) is
+	   ;;
+	   ;; test/ada_mode-conditional_expressions.adb
+	   ;; when 1  =>
+	   ;;   (if J > 42
+	   ;;
+	   (ada-wisi-indent-containing ada-indent-broken cache t start))
 
 	  (return-with-params
 	   ;; test/ada_mode-options-intent_return_1.ads, _2, _3
@@ -1067,6 +1050,53 @@ new indentation for point."
 	  )))
       )))
 
+(defun ada-wisi-comment-gnat (indent after-comment)
+  "Modify INDENT to match gnat rules. Return new indent."
+  (let (prev-indent next-indent)
+    ;; the gnat comment indent style check; comments must
+    ;; be aligned to one of:
+    ;;
+    ;; - multiple of ada-indent
+    ;; - next non-blank line
+    ;; - previous non-blank line
+    ;;
+    ;; Note that we must indent the prev and next lines, in case
+    ;; they are not currently correct.
+    (cond
+     ((= 0 (% indent ada-indent))
+      ;; this will handle comments at bob and eob, so we don't
+      ;; need to worry about those positions in the next checks.
+      indent)
+
+     ((and (setq prev-indent
+		 (if after-comment
+		     (progn (forward-comment -1) (current-column))
+		   (save-excursion (forward-line -1)(indent-according-to-mode)(current-indentation))))
+	   (= indent prev-indent))
+      indent)
+
+     ((and (setq next-indent
+		 ;; we use forward-comment here, instead of
+		 ;; forward-line, because consecutive comment
+		 ;; lines are indented to the current one, which
+		 ;; we don't know yet.
+		 (save-excursion (forward-comment (point-max))(indent-according-to-mode)(current-indentation)))
+	   (= indent next-indent))
+      indent)
+
+     (t
+      (if after-comment
+	  ;; probably after comment that follows code on the same line
+	  ;; test/ada_mode-conditional_expressions.adb
+	  ;; when 0  => 41,  -- comment _not_ matching GNAT style check
+	  ;;                   -- comment matching GNAT
+	  (+ indent (- ada-indent (% indent ada-indent)))
+
+	;; prev-indent and next-indent are both set here;
+	;; could add more checks to decide which one to use.
+	prev-indent))
+     )))
+
 (defun ada-wisi-comment ()
   "Compute indentation of a comment. For `wisi-indent-calculate-functions'."
   ;; We know we are at the first token on a line. We check for comment
@@ -1094,60 +1124,15 @@ new indentation for point."
       (let ((indent (ada-wisi-after-cache))
 	    prev-indent next-indent)
 	(if ada-indent-comment-gnat
-	  ;; match the gnat comment indent style check; comments must
-	  ;; be aligned to one of:
-	  ;;
-	  ;; - multiple of ada-indent
-	  ;; - next non-blank line
-	  ;; - previous non-blank line
-	  ;;
-	  ;; Note that we must indent the prev and next lines, in case
-	  ;; they are not currently correct.
-	  (cond
-	   ((= 0 (% indent ada-indent))
-	    ;; this will handle comments at bob and eob, so we don't
-	    ;; need to worry about those positions in the next checks.
-	    indent)
-
-	   ((and (setq prev-indent
-		       (save-excursion (forward-line -1)(indent-according-to-mode)(current-indentation)))
-		 (= indent prev-indent))
-	    indent)
-
-	   ((and (setq next-indent
-		       ;; we use forward-comment here, instead of
-		       ;; forward-line, because consecutive comment
-		       ;; lines are indented to the current one, which
-		       ;; we don't know yet.
-		       (save-excursion (forward-comment (point-max))(indent-according-to-mode)(current-indentation)))
-		 (= indent next-indent))
-	    indent)
-
-	   (t
-	    ;; prev-indent and next-indent are both set here;
-	    ;; could add more checks to decide which one to use.
-	     prev-indent)
-	   )
-
+	    (ada-wisi-comment-gnat indent nil)
 	  ;; not forcing gnat style
 	  indent)))
 
       (t
        ;; comment is after a comment
-       (forward-comment -1)
        (let ((indent (current-column)))
 	 (if ada-indent-comment-gnat
-	     (cond
-	      ((= 0 (% indent ada-indent))
-	       indent)
-
-	      (t
-	       ;; probably after comment that follows code on the same line
-	       ;; test/ada_mode-conditional_expressions.adb
-	       ;; when 0  => 41,  -- comment _not_ matching GNAT style check
-	       ;;                  -- comment matching GNAT
-	       (+ indent (% indent ada-indent)))
-	      )
+	     (ada-wisi-comment-gnat indent t)
 	   indent)))
       )))
 

@@ -91,7 +91,7 @@ begin
      (case Bounded (K) is
          when -1 => 42,
          when 0  => 41,  -- comment _not_ matching GNAT style check
-                          -- comment matching GNAT
+                           -- comment matching GNAT
          when 1  =>
            (if J > 42
            -- comment indent matching GNAT style check
