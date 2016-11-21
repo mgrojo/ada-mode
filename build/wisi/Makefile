@@ -16,9 +16,16 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
+GNAT_VERSION := $(findstring GPL 2015,$(shell gnat --version))
+
 # FIXME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
+
+ifeq ($(GNAT_VERSION),GPL 2015)
+# 'gnat find -P' not supported after GPL 2015
 test : test-ada-gnatxref.stamp
+endif
+
 test : test-ada-gpr_query.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr
@@ -43,8 +50,8 @@ test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f ada_mode-nominal*
-one : one-clean ada_mode-nominal.ads.diff
+	rm -f ada_mode-nominal-child*
+one : one-clean ada_mode-nominal-child.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

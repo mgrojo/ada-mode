@@ -1135,7 +1135,20 @@ new indentation for point."
       (t
        ;; comment is after a comment
        (forward-comment -1)
-       (current-column))
+       (let ((indent (current-column)))
+	 (if ada-indent-comment-gnat
+	     (cond
+	      ((= 0 (% indent ada-indent))
+	       indent)
+
+	      (t
+	       ;; probably after comment that follows code on the same line
+	       ;; test/ada_mode-conditional_expressions.adb
+	       ;; when 0  => 41,  -- comment _not_ matching GNAT style check
+	       ;;                  -- comment matching GNAT
+	       (+ indent (% indent ada-indent)))
+	      )
+	   indent)))
       )))
 
 (defun ada-wisi-post-parse-fail ()
