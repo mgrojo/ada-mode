@@ -40,7 +40,7 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisent grammar file} {output language}");
+      Put_Line ("wisi-generate [options] {wisi grammar file} {output language}");
       Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source corresponding to 'wisent grammar file'");
       Put_Line ("output language is one of Ada_Emacs, Elisp, Test");
