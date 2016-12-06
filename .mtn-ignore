@@ -8,4 +8,7 @@
 ^build/release/.*\.diff$
 ^build/release/.*\.exe$
 ^build/release/.*\.out$
+^build/release/gpr_query\.db$
+^build/release/gpr_query\.db-shm$
+^build/release/gpr_query\.db-wal$
 ^build/release/objects$
