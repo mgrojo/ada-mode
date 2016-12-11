@@ -447,10 +447,7 @@ Enable mode if ARG is positive."
     (setq identifier (substring identifier 1 (1- (length identifier))))
     )
 
-  (when (eq system-type 'windows-nt)
-    ;; Since Windows file system is case insensitive, GNAT and Emacs
-    ;; can disagree on the case, so convert all to lowercase.
-    (setq file (downcase file)))
+  (setq file (gpr-query--normalize-filename file))
 
   (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line (1+ col)))
 	(decl-loc nil)
@@ -497,12 +494,7 @@ Enable mode if ARG is positive."
 		 (dist       (gpr-query-dist found-line line found-col col))
 		 )
 
-	    (when (eq system-type 'windows-nt)
-	      ;; 'expand-file-name' converts Windows directory
-	      ;; separators to normal Emacs.  Since Windows file
-	      ;; system is case insensitive, GNAT and Emacs can
-	      ;; disagree on the case, so convert all to lowercase.
-	      (setq found-file (downcase (expand-file-name found-file))))
+            (setq found-file (gpr-query--normalize-filename found-file))
 
 	    (when (string-equal found-type "declaration")
 	      (setq decl-loc (list found-file found-line (1- found-col))))
@@ -595,6 +587,20 @@ Enable mode if ARG is positive."
 
       (message "parsing result ... done")
       result)))
+
+(defun gpr-query--normalize-filename (file)
+  "Takes account of filesystem differences."
+  (when (eq system-type 'windows-nt)
+    ;; 'expand-file-name' converts Windows directory
+    ;; separators to normal Emacs.  Since Windows file
+    ;; system is case insensitive, GNAT and Emacs can
+    ;; disagree on the case, so convert all to lowercase.
+    (setq file (downcase (expand-file-name file))))
+  (when (eq system-type 'darwin)
+    ;; case-insensitive case-preserving; so just downcase
+    (setq file (downcase file)))
+  file
+  )
 
 (defun ada-gpr-query-select-prj ()
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
