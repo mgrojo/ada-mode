@@ -4,7 +4,7 @@
 -- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
@@ -162,7 +162,8 @@ package body Ada_Mode.Parens is
 
            (22), -- blank line in function call in aggregate (phew!)
 
-         3 => (others => 30));
+         3 => (others => 30),
+         4 => (others => 40));
 
       Check
         ("foo bar",
@@ -190,7 +191,7 @@ package body Ada_Mode.Parens is
       return 1.0;
    end Function_3;
 
-   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+   --EMACSCMD:(jit-lock-fontify-now)
 
    --EMACSCMD:(test-face "Boolean" font-lock-type-face)
    --EMACSCMD:(progn (forward-line 4)(test-face "Boolean" font-lock-type-face))
@@ -239,9 +240,8 @@ package body Ada_Mode.Parens is
       --EMACSRESULT: t
       while A.all
         or else B.all
-        --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
+        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
         --EMACSRESULT: t
-        -- FIXME (later): conflicts with gnat style check
       loop
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
       end loop;
@@ -334,7 +334,7 @@ package body Ada_Mode.Parens is
       return A;
    end;
 
-   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+   --EMACSCMD:(jit-lock-fontify-now)
 
    --EMACSCMD:(progn (forward-line 9)(test-face "protected" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 8)(test-face "procedure" 'font-lock-keyword-face))
@@ -432,4 +432,43 @@ package body Ada_Mode.Parens is
            (1 .. 2));
    end Slice;
 
+   procedure Weird_List_Break is
+   begin
+      Slice_1 (1
+                 ,    --  used to get an error here; don't care about the actual indentation
+               "string");
+   end;
+
+   procedure Quantified_Exression is
+
+      type T is (V1,V2,V3);
+
+      A : array (T) of T := (others => V1);
+
+      -- ARM 4.5.8(4) allows removing the doubled parens
+      -- around a quantified expression
+      pragma Assert (for all X of A => X in V1);
+
+      procedure F1 (Item : in Boolean) is begin null; end;
+   begin
+      F1 (for all X of A => X in V1);
+   end;
+
+   procedure If_Expr_As_Actual_Parameter is
+
+      function ID (X : Boolean) return Boolean is
+      begin
+         return X;
+      end ID;
+
+      -- ARM 4.5.7(7) allows removing the doubled parens
+      -- around a conditional_expression
+      Tmp : Boolean := ID (if True then True else True);
+   begin
+      null;
+   end If_Expr_As_Actual_Parameter;
+
 end Ada_Mode.Parens;
+--  Local Variables:
+--  ada-indent-comment-gnat: t
+--  End:

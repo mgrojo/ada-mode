@@ -144,7 +144,11 @@
   (require (intern (concat filename "-wy")))
   ;; top level parse action must set `wisi-test-success' t.
 
-  (setq wisi-debug 1);; fail for any parse errors
+  ;; fail for any parse errors.
+  ;;
+  ;; FIXME: report failure in .wisi-test file, so 'make' can run all
+  ;; tests and report all failures.
+  (setq wisi-debug 1)
   (let ((build-dir default-directory)
 	(input-file (concat "../../test/wisi/" filename ".input")))
     (unless (file-readable-p input-file)

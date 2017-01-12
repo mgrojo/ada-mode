@@ -4,7 +4,7 @@
 -- We are editing things in ada-align; don't abort for temporary bad syntax
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 package body Format_Paramlist is
 
@@ -47,7 +47,7 @@ package body Format_Paramlist is
    --EMACSCMD:(progn (forward-line 18)(forward-word 1)(insert "   ") (ada-align))
    --EMACSCMD:(progn (forward-line 16)(test-face "aliased" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 15)(test-face "in" 'font-lock-keyword-face))
-   --EMACSCMD:(progn (forward-line 14)(sit-for 0.01)(test-face "Z" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 14)(jit-lock-fontify-now)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 14)(test-face "out" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "aliased" 'font-lock-keyword-face))
@@ -79,7 +79,7 @@ package body Format_Paramlist is
 
    --  Handle 'not null' without 'access'
    --EMACSCMD:(progn (forward-line 8)(forward-word 1)(insert "   ") (ada-align))
-   --EMACSCMD:(sit-for 0.02);; Let jit-lock activate
+   --EMACSCMD:(jit-lock-fontify-now)
 
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
@@ -99,5 +99,23 @@ package body Format_Paramlist is
    is begin
       null;
    end J;
+
+   --  anonymous access procedure type
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1)(insert "   ") (ada-align))
+   procedure Process
+     (Directory : in              String;
+      Process   : not null access procedure (A : in Integer))
+   is begin
+      null;
+   end Process;
+
+   --  Single parameter, but on its own line
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(insert "   ") (ada-align))
+   function Create_Parser
+     (Parallel : in Integer := 15)
+     return Integer
+   is begin
+      return 1;
+   end Create_Parser;
 
 end Format_Paramlist;

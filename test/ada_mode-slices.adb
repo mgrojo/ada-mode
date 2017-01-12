@@ -22,7 +22,29 @@ procedure Ada_Mode.Slices is
       return 0;
    end "-";
 
-   D1, D2 : Day;
+   --  monadic + for testing ada-goto-declaration
+   function "+" (Item : in Day) return Day
+   is begin
+      return Item;
+   end "+";
+
+   -- FIXME: ada-goto-declaration fails with ada-xref-tool = gnat and
+   -- gnat version > GPL 2015; need a way to test with < GPL 2015.
+   --
+   --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(ada-identifier-at-point))
+   --EMACSRESULT: "\"+\""
+   --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(ada-identifier-at-point))
+   --EMACSRESULT: "Sun"
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 3)(ada-identifier-at-point))
+   --EMACSRESULT: "Sun"
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(ada-identifier-at-point))
+   --EMACSRESULT: "Sun"
+   D1, D2 : Day := +Sun;
+   --EMACSCMD:(progn (end-of-line 0)(backward-char 5)(ada-goto-declaration nil)(looking-at "+\" (Item"))
+   --EMACSRESULT: t
+   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(ada-goto-declaration nil)(looking-at "Sun, Mon,"))
+   --EMACSRESULT: t
+
    N      : Integer;
    Line   : String(1..80);
    Last   : Natural;

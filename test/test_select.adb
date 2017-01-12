@@ -2,16 +2,19 @@
 --  We test the select statement in this package, with the different
 --  possible constructions
 
---EMACSCMD:(sit-for 0.01);;let jit-lock run
+--EMACSCMD:(jit-lock-fontify-now)
 procedure Test_Select is
+
+   subtype Entry_Range is Integer range 1 .. 10;
+
    task type Task_1 (D : Integer) is
       --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
       entry E1;
       --EMACSCMD:(test-face "E2" 'font-lock-function-name-face)
       entry E2 (X : in Integer);
       --EMACSCMD:(test-face "E3" 'font-lock-function-name-face)
-      --EMACSCMD:(test-face "Positive" 'font-lock-type-face)
-      entry E3 (Positive) (A,B : Integer);
+      --EMACSCMD:(test-face "Entry_Range" 'font-lock-type-face)
+      entry E3 (Entry_Range) (A,B : Integer);
    private
       entry E4;
    end Task_1;

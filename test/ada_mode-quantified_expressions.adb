@@ -1,4 +1,4 @@
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 with Ada.Containers.Vectors;
 procedure Ada_Mode.Quantified_Expressions is
@@ -11,8 +11,9 @@ begin
       null;
    end if;
 
-   if (for some J in 1 .. 10 =>
-         J/2 = 0)
+   if
+     (for some J in 1 .. 10 =>
+        J/2 = 0)
    then
       null;
    end if;

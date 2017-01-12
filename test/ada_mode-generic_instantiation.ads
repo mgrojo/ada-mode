@@ -12,7 +12,7 @@ package Ada_Mode.Generic_Instantiation is
    --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation"))
    --EMACSRESULT:t
 
-   --EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+   --EMACSCMD:(jit-lock-fontify-now)
 
    --EMACSCMD:(test-face "Ada_Mode.Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;
@@ -21,6 +21,7 @@ package Ada_Mode.Generic_Instantiation is
    function Function_1 is new Instance.Generic_Function
      (Param_Type  => Integer,
       Result_Type => Boolean,
+      Default     => False,
       Threshold   => 2);
 
    --EMACSCMD:(test-face "Instance.Generic_Procedure" 'font-lock-function-name-face)

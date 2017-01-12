@@ -1,0 +1,29 @@
+-- GNAT project file for compiling test files
+-- WORKAROUND: using subdir/ada_mode_parent.gpr for compiling with GNAT GPL 2016 gives bogus errors like:
+-- ada_mode.adb:3:04: warning: subunit "Ada_Mode.Separate_Protected_Body" in file "ada_mode-separate_protected_body.adb" not found
+
+project Ada_Mode_Compile is
+
+   for Source_Dirs use (".", "subdir");
+
+   -- .ali files are in source dir, so they are shared between backend
+   -- tests
+   for Object_Dir use ".";
+   for Exec_Dir use ".";
+
+   package Compiler is
+      -- We compile with -gnatyN3 to be sure our indentation meets gnat's
+      -- check. We don't check any other style requirements; not needed for
+      -- comparing indentation, and they get in the way.
+
+      for Default_Switches ("Ada") use ("-gnat2012", "-gnatyN3");
+
+      for Switches ("non_ascii.ads") use ("-gnatiw", "-gnatW8");
+
+      -- These files set Ada mode indentation options that violate gnat's check
+      for Switches ("adacore_d304_005_2.adb") use ("-gnaty0");
+      for Switches ("bug_1920.adb") use ("-gnaty0");
+      for Switches ("find_file.ads") use ("-gnaty0");
+      for Switches ("named_block.adb") use ("-gnaty0");
+   end Compiler;
+end Ada_Mode_Compile;

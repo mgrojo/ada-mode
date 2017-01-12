@@ -36,45 +36,68 @@ procedure Ada_Mode.Conditional_Expressions is
                          others => +1);
    L3 : Integer := (case J is
                        when 42 =>
-                          -1,
+                         -1,
                        when Integer'First .. 41 =>
-                          0,
+                         0,
                        when others =>
-                          +1);
+                         +1);
    L4 : Integer := (case J is
                        when
                          42
                          =>
-                          -1,
+                         -1,
                        when
                          Integer'First .. 41
                          =>
-                          0,
+                         0,
                        when
                          others
                          =>
-                          +1);
+                         +1);
+
+   type C_Type is (A, B, Z);
+   C : C_Type := A;
+   M : Boolean := True;
+   function Fun (I : in Integer) return Integer is (I);
+
+   L5 : Boolean :=
+     (case C is
+         when A =>
+           J = 4
+             or else M, --  test case from Piotr Trojanek
+         when B =>
+           Fun (J) = 0
+             or else M,
+         when others =>
+           (1
+              + 2) = 3);
+
    L : Integer := L0;
 begin
    K := (if K < 0 then 42 elsif K = 0 then 43 else (if J > 42 then 44 else 45));
    K := (case Bounded (L) is when -1 => 42, when 0 => 41, when 1 => 43);
    --  embedded case
+   --EMACSCMD: (progn (forward-line 4)(forward-word 2)(delete-char 2)(ada-align))
    K := (if K < 0 then 42
          elsif K = 0 then
            (case J is
-               when 42 => -1,
+               when 42                  => -1,
                when Integer'First .. 41 => 0,
-               when others => +1)
+               when others              => +1)
          else 44);
    --  embedded if with comment
+   --EMACSCMD: (progn (forward-line 4)(forward-word 2)(delete-char 2)(ada-align))
    K :=
      (case Bounded (K) is
          when -1 => 42,
-         when 0 => 41,
-         when 1 =>
+         when 0  => 41,  -- comment _not_ matching GNAT style check
+                           -- comment matching GNAT
+         when 1  =>
            (if J > 42
-              -- comment indented as code (ada-indent-broken)
-              -- FIXME: conflicts with GNAT style check
+           -- comment indent matching GNAT style check
             then 44
             else 45));
 end Ada_Mode.Conditional_Expressions;
+--  Local Variables:
+--  ada-indent-comment-gnat: t
+--  End:

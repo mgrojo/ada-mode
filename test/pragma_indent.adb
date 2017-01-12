@@ -18,10 +18,13 @@ procedure Pragma_Indent is
 
    --  pragma parameter list; same as procedure call
    pragma Import (C, Toto,
-                    "toto");
+                  "toto");
 begin
    --  procedure call; not ada-broken-indent
    Foo (1,
         2,
+        3);
+
+   Foo (1, 2,
         3);
 end Pragma_Indent;

@@ -16,15 +16,29 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-VERSION := 5.1.7
+export ADA_MODE_VERSION    := 5.2.1
+export ADA_REF_MAN_VERSION := 2012.0
+export WISI_VERSION        := 1.1.4
 
-all : docs pub-ada pub-ada-ref-man pub-wisi build-elpa install-elpa
+all : docs pub-ada pub-wisi build-elpa uninstall-elpa
+# all : pub-ada-ref-man
 
 docs : info html
 
 BRANCH := $(notdir $(shell cd ..; pwd))
+
+ifeq ($(BRANCH),org.emacs.ada-mode)
+  TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION).tar.gz
+  TAR_DIR := ../../
+  TAR_PAT := org.emacs.ada-mode-$(ADA_MODE_VERSION)
+else
+  TAR_FILE := $(BRANCH).tar.gz
+  TAR_DIR := ../
+  TAR_PAT := $(BRANCH)
+endif
+
 zip :
-	tar zcf $(BRANCH)-$(VERSION).tar.gz --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C ../../ $(BRANCH)
+	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C $(TAR_DIR) $(TAR_PAT)
 
 
 MANUALS := ada-mode gpr-mode
@@ -54,16 +68,19 @@ source-clean :
 .PHONY : force
 
 # copy files to ELPA ada-mode package
+# First delete all files in ELPA, so we catch files deleted here.
 pub-ada : force
 	rm -rf ../../elpa/archive
 	mkdir -p ../../elpa/packages/ada-mode
-	rm -f ../../elpa/packages/ada-mode/ada-mode-pkg.el
+	rm -f ../../elpa/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
+	rm ../../elpa/packages/ada-mode/ada-ref-man.el
 	cp ../dir-ada-mode ../../elpa/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
 	cp ../README-ada-mode ../../elpa/packages/ada-mode/README
 	cp ../gnat*.el ../../elpa/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info ../../elpa/packages/ada-mode
+	cp ../gpr_query.adb ../gpr_query.gpr ../../elpa/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form
@@ -76,7 +93,7 @@ pub-ada-ref-man : force
 
 # copy files to ELPA wisi package
 pub-wisi : force
-	rm -f ../../elpa/packages/wisi/wisi-pkg.el
+	rm -f ../../elpa/packages/wisi/*
 	cp ../README-wisi ../../elpa/packages/wisi/README
 	cp ../NEWS-wisi.text ../../elpa/packages/wisi/NEWS
 	cp ../wisi*.el ../../elpa/packages/wisi
@@ -99,18 +116,15 @@ build-elpa : force
 # (dvc-state-one "/Projects/elpa/")
 # shell git push
 
+uninstall-elpa :
+	emacs -Q --eval '(progn (load-file "uninstall-elpa.el")(kill-emacs))'
+
 # package install from public doesn't work in batch
 install-elpa :
 	emacs -Q --eval '(progn (load-file "install-elpa.el")(kill-emacs))'
 
 install-elpa-review :
 	emacs -Q --eval '(load-file "install-elpa.el")'
-
-install-clean :
-	rm -r ~/.emacs.d/elpa/ada-mode*
-	rm -r ~/.emacs.d/elpa/ada-ref-man*
-	rm -r ~/.emacs.d/elpa/wisi*
-	rm -r ~/.emacs.d/elpa/cl*
 
 ## build gpr_query, ada_mode_gps_indent
 
@@ -120,6 +134,9 @@ GNAT_EXE    := $(shell which gnat)
 INSTALL_BIN := $(dir $(GNAT_EXE))
 
 ifeq ($(shell uname),Linux)
+EXE_EXT :=
+
+else ifeq ($(shell uname),Darwin)
 EXE_EXT :=
 
 else
@@ -154,10 +171,10 @@ trace :
 	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
 
 $(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
-	cp gpr_query$(EXE_EXT) $(INSTALL_BIN)
+	gprinstall -f -P ../gpr_query.gpr
 
 $(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
-	cp ada_mode_gps_indent$(EXE_EXT) $(INSTALL_BIN)
+	gprinstall -f -P ../ada_mode_gps_indent.gpr
 
 install : install_gpr_query install_ada_mode_gps_indent
 

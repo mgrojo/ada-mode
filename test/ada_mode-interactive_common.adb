@@ -45,7 +45,7 @@ is
    -- result verified by diff.
    procedure Proc_1
    is begin
-      null;
+
    end Proc_1;
 
    -- procedure, parameters on one line
@@ -53,11 +53,11 @@ is
    -- result verified by diff
    procedure Proc_2 (A : in Integer)
    is begin
-      null;
+
    end Proc_2;
 
    -- function, no parameters
-   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0"))
+   --EMACSCMD:(progn (end-of-line 3)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
    -- result verified by diff
    function Func_1 return Integer
    is begin
@@ -65,7 +65,7 @@ is
    end Func_1;
 
    -- function, parameters on separate line
-   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(kill-word 1)(insert "return 0"))
+   --EMACSCMD:(progn (end-of-line 5)(kill-line 4)(insert ";")(ada-make-subprogram-body)(insert "return 0;"))
    -- result verified by diff
    function Func_1
      (A : in Integer)
@@ -75,9 +75,9 @@ is
    end Func_1;
 
    -- Properly highlight keyword next to type identifier when insert/delete separating space
-   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(sit-for 0.01))
+   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(jit-lock-fontify-now))
    --EMACSCMD:(test-face "accessString" 'font-lock-type-face)
-   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(sit-for 0.01))
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(jit-lock-fontify-now))
    --EMACSCMD:(test-face "access" 'font-lock-keyword-face)
    --EMACSCMD:(test-face "String" 'font-lock-type-face)
    Obj_1 : access String;
@@ -106,5 +106,24 @@ begin
    end loop;
    --EMACSRESULT:t
    --EMACSCMD:(progn (beginning-of-line -2)(wisi-goto-statement-end)(looking-back "end loop"))
+
+   -- Insert a comment after code; used to signal error.
+   --EMACSCMD:(progn (end-of-line 2)(backward-delete-char 2)(comment-dwim nil)(looking-back "--$"))
+   E := (1 =>                   --
+           'A');
+   --EMACSRESULT:t
+
+   -- Re-indent a comment after code, to `comment-column'.
+   --EMACSCMD:(progn (forward-line 1)(comment-dwim nil)(end-of-line)(current-column))
+   E := (1 =>                   --
+           'A');
+   --EMACSRESULT:34
+
+   -- `comment-dwim' should not change the indentation of the next comment.
+   --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
+   E := (1,
+         --  a comment
+         2);
+   --EMACSRESULT:9
 
 end Ada_Mode.Interactive_Common;

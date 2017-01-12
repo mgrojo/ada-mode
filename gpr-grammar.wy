@@ -1,6 +1,6 @@
 ;;; Wisi grammar for GNAT project files
 ;;
-;; Copyright (C) 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -41,7 +41,7 @@
 
 ;;; Prologue
 %{
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -55,10 +55,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 ;; Declarations
@@ -83,6 +79,7 @@
 %keyword CASE "case"
 %keyword CONFIGURATION "configuration"
 %keyword END "end"
+%keyword EXTENDS "extends"
 %keyword EXTERNAL "external"
 %keyword EXTERNAL_AS_LIST "external_as_list"
 %keyword FOR "for"
@@ -93,6 +90,7 @@
 %keyword OTHERS "others"
 %keyword PACKAGE "package"
 %keyword PROJECT "project"
+%keyword RENAMES "renames"
 %keyword RIGHT_PAREN ")"
 %keyword STANDARD "standard"
 %keyword TYPE "type"
@@ -105,18 +103,8 @@
 
 %start compilation_unit
 
-%conflict REDUCE/SHIFT in state identifier_opt, term on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state attribute_declaration, declarative_items on token FOR
-%conflict SHIFT/REDUCE in state attribute_declaration, simple_declarative_items on token FOR
+%conflict SHIFT/REDUCE in state term, identifier_opt on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_item, case_items on token WHEN
-%conflict SHIFT/REDUCE in state case_statement, declarative_items on token CASE
-%conflict SHIFT/REDUCE in state case_statement, simple_declarative_items on token CASE
-%conflict SHIFT/REDUCE in state package_spec, declarative_items on token PACKAGE
-%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token IDENTIFIER
-%conflict SHIFT/REDUCE in state simple_declarative_item, declarative_items on token NULL
-%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token IDENTIFIER
-%conflict SHIFT/REDUCE in state simple_declarative_item, simple_declarative_items on token NULL
-%conflict SHIFT/REDUCE in state typed_string_declaration, declarative_items on token TYPE
 
 %%
 ;; grammar rules, non-terminal alphabetical order
@@ -133,7 +121,11 @@ attribute_declaration
     (progn
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
       (wisi-containing-action 3 4))
-  | FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
+  | FOR IDENTIFIER LEFT_PAREN discrete_choice RIGHT_PAREN USE expression SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
+      (wisi-containing-action 6 7))
+  | FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
       (wisi-containing-action 6 7))
@@ -162,9 +154,10 @@ case_statement
 ;; declarations allowed in a case statement are a subset of
 ;; declarative_items, but this simplifies the grammar.
 case_item
-  : WHEN discrete_choice_list EQUAL_GREATER declarative_items
+  : WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt
     (progn
       (wisi-statement-action [1 block-middle 3 block-start])
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
   ;
 
@@ -196,9 +189,13 @@ declarative_item
   ;
 
 declarative_items
-  : ;; empty
-  | declarative_item
+  : declarative_item
   | declarative_items declarative_item
+  ;
+
+declarative_items_opt
+  : ;; empty
+  | declarative_items
   ;
 
 discrete_choice
@@ -236,29 +233,44 @@ name
 project_declaration_opt
   : ;; empty
   | simple_project_declaration
- ;;  | project_extension
+  | project_extension
   ;
 
 ;; (info "(gnat_ugn)Packages")
 package_declaration
   : package_spec
-  ;; | package_renaming
-  ;; | package_extension
+  | package_extension
+  | package_renaming
   ;
 
 package_spec
-  : PACKAGE identifier_opt IS simple_declarative_items END identifier_opt SEMICOLON
+  : PACKAGE identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
       (wisi-containing-action 3 4))
   ;
 
-;; package_renaming ::==
-;;   package <package_>simple_name renames <project_>simple_name.package_identifier ;
-;; package_extension ::==
-;;   package <package_>simple_name extends <project_>simple_name.package_identifier is
-;;     {simple_declarative_item}
-;;   end package_identifier ;
+package_extension
+  : PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
+      (wisi-containing-action 5 6))
+  ;
+
+package_renaming
+  : PACKAGE identifier_opt RENAMES name SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
+      (wisi-containing-action 3 4))
+  ;
+
+project_extension
+  : PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
+      (wisi-containing-action 5 6))
+  ;
+
 
 ;; (info "(gnat_ugn)Qualified Projects")
 project_qualifier_opt
@@ -287,14 +299,8 @@ simple_declarative_item
     (wisi-statement-action [1 statement-start 2 statement-end])
   ;
 
-simple_declarative_items
-  : ;; empty
-  | simple_declarative_item
-  | simple_declarative_items simple_declarative_item
-  ;
-
 simple_project_declaration
-  : PROJECT identifier_opt IS declarative_items END identifier_opt SEMICOLON
+  : PROJECT identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
       (wisi-containing-action 3 4))

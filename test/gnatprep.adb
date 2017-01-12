@@ -14,7 +14,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-mode)
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 procedure Gnatprep is
 

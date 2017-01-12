@@ -1,9 +1,9 @@
-;; Support for running GNAT tools, which support multiple programming
+;; gnat-core.el --- Support for running GNAT tools, which support multiple programming  -*- lexical-binding:t -*-
 ;; languages.
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2014  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -45,34 +45,38 @@
 
     (setq project (plist-put project 'prj_dir prj-dir))
 
-    (let ((process-environment (plist-get project 'proc_env)))
+    (let ((process-environment (cl-copy-list (plist-get project 'proc_env))))
       (setenv "GPR_PROJECT_PATH"
 	      (mapconcat 'identity
 			 (plist-get project 'prj_dir)
 			 (plist-get project 'path_sep)))
 
-      (setq project (plist-put project 'proc_env process-environment))
+      (setq project (plist-put project 'proc_env (cl-copy-list process-environment)))
       )
 
     project))
 
-(defun gnat-prj-show-path ()
-  "For `ada-prj-show-path'."
+(defun gnat-prj-show-prj-path ()
+  "For `ada-prj-show-prj-path'."
     (interactive)
   (if (ada-prj-get 'prj_dir)
       (progn
-	(pop-to-buffer (get-buffer-create "*GNAT project search path*"))
+	(pop-to-buffer (get-buffer-create "*GNAT project file search path*"))
 	(erase-buffer)
 	(dolist (file (ada-prj-get 'prj_dir))
 	  (insert (format "%s\n" file))))
-    (message "no GNAT project search path files")
+    (message "no project file search path set")
     ))
+
+(defun ada-gnat-default-prj (prj)
+  "For `ada-prj-default-list'."
+  (gnat-prj-add-prj-dir default-directory prj))
 
 (defun gnat-prj-parse-emacs-one (name value project)
   "Handle gnat-specific Emacs Ada project file settings.
 Return new PROJECT if NAME recognized, nil otherwise.
 See also `gnat-parse-emacs-final'."
-  (let ((process-environment (plist-get project 'proc_env))); for substitute-in-file-name
+  (let ((process-environment (cl-copy-list (plist-get project 'proc_env)))); for substitute-in-file-name
     (cond
      ((or
        ;; we allow either name here for backward compatibility
@@ -89,7 +93,9 @@ See also `gnat-parse-emacs-final'."
       (setq project
 	    (plist-put project
 		       'gpr_file
-		       (expand-file-name (substitute-in-file-name value))))
+		       (or
+			(locate-file (substitute-in-file-name value) (ada-prj-get 'prj_dir))
+			(expand-file-name (substitute-in-file-name value)))))
       project)
      )))
 
@@ -109,7 +115,7 @@ See also `gnat-parse-emacs-final'."
 
 (defun gnat-get-paths-1 (src-dirs prj-dirs)
   "Append list of source and project dirs in current gpr project to SRC-DIRS, PRJ-DIRS.
-Uses 'gnat list'.  Returns new (SRC-DIRS PRJ-DIRS)."
+Uses `gnat list'.  Returns new (SRC-DIRS PRJ-DIRS)."
   (with-current-buffer (gnat-run-buffer)
     ;; gnat list -v -P can return status 0 or 4; always lists compiler dirs
     ;;
@@ -147,7 +153,7 @@ Uses 'gnat list'.  Returns new (SRC-DIRS PRJ-DIRS)."
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
 	    (if (looking-at "<Current_Directory>")
-                (cl-pushnew "." prj-dirs :test #'equal)
+                (cl-pushnew (directory-file-name default-directory) prj-dirs :test #'equal)
               (let ((f (expand-file-name
                         (buffer-substring-no-properties (point) (point-at-eol)))))
                 (cl-pushnew f prj-dirs :test #'equal)
@@ -162,15 +168,16 @@ Uses 'gnat list'.  Returns new (SRC-DIRS PRJ-DIRS)."
        ))
     (list src-dirs prj-dirs)))
 
+;; FIXME: use a dispatching function instead, with autoload, to
+;; avoid "require" here, and this declare
+;; Using 'require' at top level gives the wrong default ada-xref-tool
+(declare-function gpr-query-get-src-dirs "gpr-query.el" (src-dirs))
+(declare-function gpr-query-get-prj-dirs "gpr-query.el" (prj-dirs))
 (defun gnat-get-paths (project)
   "Add project and/or compiler source, project paths to PROJECT src_dir and/or prj_dir."
   (let ((src-dirs (ada-prj-get 'src_dir project))
 	(prj-dirs (ada-prj-get 'prj_dir project)))
 
-    ;; FIXME: use a dispatching function instead, with autoload, to
-    ;; avoid "require" here, which gives "warning: function not
-    ;; known".
-    ;; Using 'require' at top level gives the wrong default ada-xref-tool
     (cl-ecase (ada-prj-get 'xref_tool project)
       (gnat
        (let ((res (gnat-get-paths-1 src-dirs prj-dirs)))
@@ -257,7 +264,7 @@ Assumes current buffer is (gnat-run-buffer)"
 
   (setq command (cl-delete-if 'null command))
 
-  (let ((process-environment (ada-prj-get 'proc_env)) ;; for GPR_PROJECT_PATH
+  (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
 	status)
 
     (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec)); for debugging
@@ -286,9 +293,16 @@ Assumes current buffer is (gnat-run-buffer)"
   (let* ((project-file-switch
 	  (when (ada-prj-get 'gpr_file)
 	    (concat "-P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-	 (cmd (append (list command) (list project-file-switch) switches-args)))
+         (target-gnat (concat (ada-prj-get 'target) "gnat"))
+         ;; gnat list understands --RTS without a fully qualified
+         ;; path, gnat find (in particular) doesn't (but it doesn't
+         ;; need to, it uses the ALI files found via the GPR)
+         (runtime
+          (when (and (ada-prj-get 'runtime) (string= command "list"))
+            (list (concat "--RTS=" (ada-prj-get 'runtime)))))
+	 (cmd (append (list command) (list project-file-switch) runtime switches-args)))
 
-    (gnat-run "gnat" cmd nil expected-status)
+    (gnat-run target-gnat cmd nil expected-status)
     ))
 
 (defun gnat-run-no-prj (command &optional dir)
@@ -345,6 +359,11 @@ list."
        )
       )))
 
+(defun gnatprep-setup ()
+  (when (boundp 'wisi-indent-calculate-functions)
+    (add-to-list 'wisi-indent-calculate-functions 'gnatprep-indent))
+  )
+
 ;;;; support for xref tools
 (defun ada-gnat-file-name-from-ada-name (ada-name)
   "For `ada-file-name-from-ada-name'."
@@ -373,6 +392,7 @@ list."
   '(("a-textio" . "Ada.Text_IO")
     ("a-chahan" . "Ada.Characters.Handling")
     ("a-comlin" . "Ada.Command_Line")
+    ("a-contai" . "Ada.Containers")
     ("a-except" . "Ada.Exceptions")
     ("a-numeri" . "Ada.Numerics")
     ("a-string" . "Ada.Strings")
@@ -391,9 +411,8 @@ list."
 
 (defun ada-gnat-ada-name-from-file-name (file-name)
   "For `ada-ada-name-from-file-name'."
-  (let* (status
-	 (ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
-	(predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
+  (let* ((ada-name (file-name-sans-extension (file-name-nondirectory file-name)))
+	 (predefined (cdr (assoc ada-name ada-gnat-predefined-package-alist))))
 
     (if predefined
         predefined
@@ -415,19 +434,15 @@ list."
   ;; contain path info. So we pass a directory to gnat-run-no-prj.
   (let ((start-buffer (current-buffer))
 	(start-file (buffer-file-name))
-	;; can also specify gnat stub options/switches in .gpr file, in package 'gnatstub'.
 	(opts (when (ada-prj-get 'gnat_stub_opts)
 		(split-string (ada-prj-get 'gnat_stub_opts))))
 	(switches (when (ada-prj-get 'gnat_stub_switches)
 		    (split-string (ada-prj-get 'gnat_stub_switches))))
+	(process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
 	)
 
-    ;; Make sure all relevant files are saved to disk. This also saves
-    ;; the bogus body buffer created by ff-find-the-other-file, so we
-    ;; need -f gnat stub option. We won't get here if there is an
-    ;; existing body file.
+    ;; Make sure all relevant files are saved to disk.
     (save-some-buffers t)
-    (cl-pushnew "-f" opts :test #'equal)
     (with-current-buffer (gnat-run-buffer)
       (gnat-run-no-prj
        (append (list "stub") opts (list start-file "-cargs") switches)
@@ -461,6 +476,9 @@ list."
 	 (match-beginning 3) (match-end 3) 'syntax-table '(2 . nil)))
        )
       )))
+
+;;; setup
+(add-to-list 'ada-prj-default-list 'ada-gnat-default-prj)
 
 (provide 'gnat-core)
 

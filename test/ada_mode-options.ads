@@ -28,5 +28,5 @@ END Ada_Mode.Options;
 -- Local Variables:
 -- ada-indent-record-rel-type: 0
 -- ada-indent-comment-col-0: t
--- ada-case-keyword: upcase-word
+-- ada-case-keyword: upper-case
 -- End:

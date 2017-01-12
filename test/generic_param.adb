@@ -1,6 +1,6 @@
 --  Tests the indentation after a generic statement and some faces
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 procedure Generic_Param is
 

@@ -1,7 +1,8 @@
+--EMACSCMD:(jit-lock-fontify-now)
 
---EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" '(nil default)))
+--EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" font-lock-function-name-face))
 with
-  Ada.Text_IO; -- font-lock doesn't work across newline
+  Ada.Text_IO;
 
 -- don't indent this comment with the previous; blank line between
 --
@@ -23,8 +24,6 @@ with
 --EMACSCMD:ada-prj-current-file
 --EMACSRESULT:(expand-file-name "subdir/ada_mode.adp")
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
-
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 1"))
@@ -34,37 +33,45 @@ with Ada.Strings.Unbounded; -- end 1
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada.Strings" font-lock-function-name-face)
-limited private with Ada.Strings.Bounded,
+--EMACSCMD:(test-face "Ada.Streams" font-lock-function-name-face)
+limited private with Ada.Streams,
   --EMACSCMD:(test-face "Ada.Containers" font-lock-function-name-face)
   Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+-- WORKAROUND: GNAT GPL 2016 'gnat list' does not include run-time directory
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
-limited with Ada.Strings.Bounded,
-  Ada.Containers;
+limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
+--EMACSCMD:(progn  (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Function return"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return"))
 with Ada_Mode.Library_Function;
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Library_Procedure is"))
+--EMACSRESULT:t
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
+--EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-spec'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Ada_Mode.Function_2 return Boolean;"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
+--EMACSRESULT:t
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
---EMACSCMD:(progn (end-of-line 3)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
 --EMACSRESULT:t
-package Ada_Mode.Nominal is -- target 0
+package Ada_Mode.Nominal
+with
+  Spark_Mode => On
+is -- target 0
+   --EMACSCMD:(progn (beginning-of-line -0) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+   --EMACSRESULT:t
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
@@ -216,7 +223,7 @@ package Ada_Mode.Nominal is -- target 0
      Standard.Float;
    type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
      Standard.Float;
-   type Function_Access_Type_2g is access protected function (A_Param : in Float) return
+   type Function_Access_Type_2g is access protected function return
      access Standard.Float;
    type Function_Access_Type_3 is access protected function (A_Param : in Float)
                                                             return Standard.Float;
@@ -257,6 +264,7 @@ package Ada_Mode.Nominal is -- target 0
    --EMACSCMD:(test-face "of" font-lock-keyword-face)
    --EMACSCMD:(test-face "Object_Access_Type_1" font-lock-type-face)
    type Unconstrained_Array_Type_1 is array (Integer range <>, Standard.Character range <>) of Object_Access_Type_1;
+   type Access_Unconstrained_Array_Type_1 is access Unconstrained_Array_Type_1 (1 .. 10, 'A' .. 'D');
    type Unconstrained_Array_Type_2 is array (Integer range <>, Standard.Character range <>) of
      Object_Access_Type_1;
    type Unconstrained_Array_Type_3 is array (Integer range <>, Standard.Character range <>)
@@ -323,6 +331,7 @@ package Ada_Mode.Nominal is -- target 0
       Component_2   : Integer := 2;
       Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
    end record;
+   --EMACSCMD:(test-face "Record_Type_1" font-lock-type-face)
    for Record_Type_1 use
       record
          --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
@@ -345,15 +354,22 @@ package Ada_Mode.Nominal is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end record"))
    --EMACSRESULT:t
-   type Record_Type_3 (Discriminant_1 : access Integer) is tagged record
-      --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
-      --EMACSRESULT:t
-      Component_1 : Integer; -- end 2
-      Component_2 :
-        Integer;
-      Component_3
-        : Integer;
-   end record;
+   --EMACSCMD:(test-face-1 "access" "Standard.Integer" font-lock-type-face)
+   type Record_Type_3
+     (Discriminant_1 : access Standard.Integer;
+      --EMACSCMD:(test-face "Standard.Integer" font-lock-type-face)
+      Discriminant_2 : Standard.Integer;
+      --EMACSCMD:(test-face "Ada_Mode.Nominal.Object_Access_Type_0a" font-lock-type-face)
+      Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
+     is tagged record
+        --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
+        --EMACSRESULT:t
+        Component_1 : Integer; -- end 2
+        Component_2 :
+          Integer;
+        Component_3
+          : Integer;
+     end record;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
@@ -456,10 +472,19 @@ package Ada_Mode.Nominal is -- target 0
       -- A comment just before 'end'
    end Protected_1;
 
+   type Protected_Interface_1 is protected interface;
+
+   protected type Protected_Child_1
+   with Convention => Ada
+   is new Protected_Interface_1 with
+      entry E1 (X : Integer);
+   end Protected_Child_1;
+
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
    --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
    protected Protected_Buffer is
+      --EMACSRESULT:t
       -- a single_protected_type
 
       --EMACSCMD:(ada-which-function)
@@ -532,7 +557,10 @@ package Ada_Mode.Nominal is -- target 0
    P_8
      : Ada.Strings.Unbounded.String_Access;
 
-   task type Task_Type_1 (Name : access String) is
+   task type Task_Type_1 (Name : access String)
+   with
+     Storage_Size => 512 + 256
+   is
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Task_Type_1"
 
@@ -559,7 +587,7 @@ package Ada_Mode.Nominal is -- target 0
    end record;
 
    -- test that comment prefix is properly fontified
-   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(sit-for 0.1)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
+   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(jit-lock-fontify-now)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
    --EMACSRESULT: 11
 
    -- a filled comment. Now is the time for all good parsers to come
@@ -629,11 +657,15 @@ package Ada_Mode.Nominal is -- target 0
      (Param : in Parent_Type_1)
      return Float; -- end 5
 
+   --EMACSCMD:(progn (end-of-line 3)(ada-which-function))
+   --EMACSRESULT:"Function_2g"
    function Function_2g
      (Param : in Private_Type_1)
      return Float
        is abstract;
    --  comment after 'is abstract', aligned with 'function'
+
+   function Function_2h (Param : in Parent_Type_1) return Float is (1.0); -- expression function
 
    Default_Parent : constant Parent_Type_1 :=
      (Parent_Element_1 => 1,
@@ -705,6 +737,14 @@ private -- Ada_Mode.Nominal
       end record
    with Pack => True;
 
+   overriding function Function_2g (Param : in Limited_Derived_Type_1) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_1) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_1) is abstract;
+
+
    type Limited_Derived_Type_1a is abstract limited new
       Private_Type_1 with record
          Component_1 : Integer;
@@ -736,19 +776,58 @@ private -- Ada_Mode.Nominal
 
    type Limited_Derived_Type_2 is abstract limited new Private_Type_1 with null record;
 
+   overriding function Function_2g (Param : in Limited_Derived_Type_2) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_2) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_2) is abstract;
+
    type Limited_Derived_Type_2a is abstract limited new Private_Type_1
       with record
          Component_1 : Integer;
       end record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
-     with null record;
+      with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_3) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_3) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_3) is abstract;
+
    type Limited_Derived_Type_4 is abstract limited new
      Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_4) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_4) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_4) is abstract;
+
    type Limited_Derived_Type_5 is abstract limited
      new Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_5) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_5) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_5) is abstract;
+
    type Limited_Derived_Type_6 is abstract
      limited new Private_Type_1 with null record;
+
+   overriding function Function_2g (Param : in Limited_Derived_Type_6) return Float is abstract;
+   overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_2 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_3 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_4 (Item : access Limited_Derived_Type_6) is abstract;
+   overriding procedure Abstract_Procedure_5 (Item : access Limited_Derived_Type_6) is abstract;
+
    -- rest covered by Private_Type_n
 
    type Incomplete_Type_1 (<>) is tagged;

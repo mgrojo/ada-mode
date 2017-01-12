@@ -1,6 +1,6 @@
-;;; user options shared by Ada mode indentation engines
+;; user options shared by Ada mode indentation engines  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2012, 2013, 2015  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Contributors: Simon Wright <simon.j.wright@mac.com>
@@ -36,8 +36,7 @@ procedure Foo is
 begin
 >>>null;"
   :type 'integer
-  :group 'ada-indentation
-  :safe 'integerp)
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent)
 
 (defvar ada-broken-indent nil)
@@ -57,18 +56,30 @@ begin
 Example :
    My_Var : My_Type :=
    >>(Field1 => Value);"
-  :type  'integer
-  :group 'ada-indentation
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-broken)
 
 (defcustom ada-indent-comment-col-0 nil
   "If non-nil, comments currently starting in column 0 are left in column 0.
 Otherwise, they are indented with previous comments or code."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'ada-indent-comment-col-0)
+
+(defcustom ada-indent-comment-gnat nil
+  "If non-nil, comments are indented to meet the GNAT comment style check.
+That is, one of:
+
+- multiple of ada-indent
+- next non-blank line
+- previous non-blank line
+
+Otherwise, they are indented as a with previous comments or code."
   :type  'boolean
   :group 'ada-indentation
-  :safe  'booleanp)
-(make-variable-buffer-local 'ada-indent-comment-col-0)
+  :safe  #'booleanp)
+(make-variable-buffer-local 'ada-indent-comment-gnat)
 
 (defvar ada-label-indent nil)
 (make-obsolete-variable
@@ -95,25 +106,23 @@ Example :
    <<Label_2>>
    <<<<Foo := 0;"
   :type  'integer
-  :group 'ada-indentation
-  :safe  'integerp)
+  :safe  #'integerp)
 (make-variable-buffer-local 'ada-indent-label)
 
 (defcustom ada-indent-record-rel-type 3
-  "Indentation for 'record' relative to 'type' or 'use'.
+  "Indentation for `record' relative to `type' or `use'.
 
 An example is:
    type A is
    >>>record"
-  :type  'integer
-  :group 'ada-indent
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-record-rel-type)
 
 (defcustom ada-indent-renames 2
-  "Indentation for 'renames' relative to the matching subprogram keyword.
+  "Indentation for `renames' relative to the matching subprogram keyword.
 
-For 'renames' of non-subprograms the indentation is
+For `renames' of non-subprograms the indentation is
 `ada-indent-broken' relative to the line containing the matching
 keyword.
 
@@ -135,28 +144,26 @@ Examples:
    function A (B : Integer)
                return C
    >>>>>>>>>>>renames Foo;"
-  :type  'integer
-  :group 'ada-indent
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-renames)
 
 (defcustom ada-indent-return 0
-  "Indentation for 'return' relative to the matching 'function' keyword.
+  "Indentation for `return' relative to the matching `function' keyword.
 
 If the function has parameters, then if `ada-indent-return' is
 zero or less the indentation is abs `ada-indent-return' relative
 to the open parenthesis; if `ada-indent-return' is one or more,
-indentation is relative to line containing 'function'.
+indentation is relative to line containing `function'.
 
 If the function has no parameters, `ada-indent-broken' is used
-relative to line containing 'function'.
+relative to line containing `function'.
 
 An example is:
    function A (B : Integer)
    >>>>>>>>>>>return C;"
-  :type  'integer
-  :group 'ada-indent
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-return)
 
 (defvar ada-use-indent nil)
@@ -171,14 +178,13 @@ An example is:
 	(message "WARNING: setting `ada-indent-use' to obsolete `ada-use-indent'")
 	ada-use-indent)
       ada-indent-broken)
-  "Indentation for the lines in a 'use' statement.
+  "Indentation for the lines in a `use' statement.
 
 An example is:
    use Ada.Text_IO,
    >>Ada.Numerics;"
-  :type  'integer
-  :group 'ada
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-use)
 
 (defvar ada-when-indent nil)
@@ -193,14 +199,13 @@ An example is:
 	(message "WARNING: setting `ada-indent-when' to obsolete `ada-when-indent'")
 	ada-when-indent)
       3)
-  "Indentation for 'when' relative to 'exception', 'case', 'or' in select.
+  "Indentation for `when' relative to `exception', `case', `or' in select.
 
 An example is:
    case A is
    >>>when B =>"
   :type  'integer
-  :group 'ada-indent
-  :safe  'integerp)
+  :safe  #'integerp)
 (make-variable-buffer-local 'ada-indent-when)
 
 (defvar ada-with-indent nil)
@@ -215,14 +220,13 @@ An example is:
 	(message "WARNING: setting `ada-indent-with' to obsolete `ada-with-indent'")
 	ada-with-indent)
       ada-indent-broken)
-  "Indentation for the lines in a 'with' context clause.
+  "Indentation for the lines in a `with' context clause.
 
 An example is:
    with Ada.Text_IO,
    >>Ada.Numerics;"
-  :type  'integer
-  :group 'ada
-  :safe  'integerp)
+  :type 'integer
+  :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-with)
 
 (provide 'ada-indent-user-options)

@@ -5,13 +5,10 @@
 ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 
 # "compile-ada" is a test; it verifies the test sources are legal Ada
-all : update compile-ada-clean compile-ada autoloads test-clean test
-
-# things that can be done on debian stable (opentoken doesn't build, no gpr_query, no gnatstub)
-debian-all : byte-compile compile-ada-clean compile-ada autoloads test-clean test-debian
+all : byte-compile-clean compile-ada-clean update compile-ada autoloads test-clean test
 
 # this updates everything after any source change, without running the tests.
-update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
+update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 
 # *-wy.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
@@ -19,14 +16,21 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el  byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
+GNAT_VERSION := $(findstring GPL 2015,$(shell gnat --version))
+
+# FIXME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
+
+ifeq ($(GNAT_VERSION),GPL 2015)
+# 'gnat find -P' not supported after GPL 2015
 test : test-ada-gnatxref.stamp
+endif
+
 test : test-ada-gpr_query.stamp
+test : gpr-skel.gpr.diff
 test : test-gpr
 test : test-elisp
-test : gpr-skel.gpr.diff
-
-test-debian : test-ada-gnatxref.stamp test-gpr test-elisp gpr-skel.gpr.diff
+test : summarize
 
 # test-elisp debug:
 # (progn (add-to-list 'load-path (expand-file-name "../../test")) (load "ada-mode-test.el"))
@@ -44,10 +48,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-#one : RUNTEST := run-indent-test-wisi.el
+one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f ada-number-literal.wisi-test
-one : one-clean ada-number-literal.wisi-test
+	rm -f ada_mode-nominal-child*
+one : one-clean ada_mode-nominal-child.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -56,6 +60,13 @@ vpath %.el ../../ .
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
+WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
+export ADA_PROJECT_PATH=../../test/:../../test/subdir
+
+# we don't build %-wy.el here
+INDENT.EL := ada-wisi.el gpr-wisi.el
+
+else ifeq ($(shell uname),Darwin)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
@@ -99,7 +110,7 @@ clean ::
 	rm -f *-wy.el *.elc
 
 test-clean ::
-	rm -f *.output *.wisi-test *.stamp
+	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../../test/wisi/; rm -f *-wy.el *.output
 
 include ../common.make
@@ -113,6 +124,7 @@ test-ada-gnatxref.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gnatxref
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el
 test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
@@ -121,6 +133,10 @@ test-ada-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gpr_query
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+summarize :
+	cat *.log
 
 test-ada-gps : RUNTEST := run-indent-test-gps.el
 test-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))

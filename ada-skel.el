@@ -1,6 +1,6 @@
-;;; ada-skel.el --- an extension to Ada mode for inserting statement skeletons
+;;; ada-skel.el --- Extension to Ada mode for inserting statement skeletons  -*- lexical-binding:t -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1996-2014  Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1996-2016  Free Software Foundation, Inc.
 
 ;; Authors: Stephen Leake <stephen_leake@stephe-leake.org>
 
@@ -74,11 +74,11 @@
 --  This text was inserted by ada-skel-initial-string;
 --  M-x customize-variable <RET> ada-skel-initial-string <RET>
 --  (info \"(ada-mode)Statement skeletons\")"
-  "*String to insert in empty buffer.
+  "String to insert in empty buffer.
 This could end in a token recognized by `ada-skel-expand'."
   :type 'string
   :group 'ada
-  :safe 'stringp)
+  :safe #'stringp)
 
 (define-skeleton ada-skel-user-restricted
   "Example copyright/license skeleton, with automatic year and owner."
@@ -104,6 +104,34 @@ This could end in a token recognized by `ada-skel-expand'."
   "--  distributed with this program; see file COPYING. If not, write to\n"
   "--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,\n"
   "--  MA 02110-1335, USA.\n"
+  "\n"
+  "pragma License (GPL);\n"
+
+)
+
+(define-skeleton ada-skel-modified-gpl
+  "Modified GPLv3 copyright/license skeleton, with automatic year and owner."
+  ()
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "--\n"
+  "--  This program is free software; you can redistribute it and/or\n"
+  "--  modify it under terms of the GNU General Public License as\n"
+  "--  published by the Free Software Foundation; either version 3, or (at\n"
+  "--  your option) any later version. This program is distributed in the\n"
+  "--  hope that it will be useful, but WITHOUT ANY WARRANTY; without even\n"
+  "--  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR\n"
+  "--  PURPOSE. See the GNU General Public License for more details. You\n"
+  "--  should have received a copy of the GNU General Public License\n"
+  "--  distributed with this program; see file COPYING. If not, write to\n"
+  "--  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,\n"
+  "--  MA 02110-1335, USA.\n"
+  "--\n"
+  "--  As a special exception, if other files instantiate generics from\n"
+  "--  this unit, or you link this unit with other files to produce an\n"
+  "--  executable, this  unit  does not  by itself cause  the resulting\n"
+  "--  executable to be covered by the GNU General Public License. This\n"
+  "--  exception does not however invalidate any other reasons why the\n"
+  "--  executable file  might be covered by the  GNU Public License.\n"
   "\n"
   "pragma License (GPL);\n"
 
@@ -298,6 +326,7 @@ See `ada-find-other-file' to create library level package body from spec."
     ("case" . ada-skel-case)
     ("copyright_license"
      ("GPL" . ada-skel-gpl)
+     ("Modified GPL" . ada-skel-modified-gpl)
      ("restricted" . ada-skel-user-restricted))
     ("declare" . ada-skel-declare)
     ("entry" . ada-skel-entry)
@@ -453,10 +482,10 @@ it is a name, and use the word before that as the token."
 (provide 'ada-skeletons)
 (provide 'ada-skel)
 
-(setq ada-expand 'ada-skel-expand)
-(setq ada-next-placeholder 'ada-skel-next-placeholder)
-(setq ada-prev-placeholder 'ada-skel-prev-placeholder)
+(setq ada-expand #'ada-skel-expand)
+(setq ada-next-placeholder #'ada-skel-next-placeholder)
+(setq ada-prev-placeholder #'ada-skel-prev-placeholder)
 
-(add-hook 'ada-mode-hook 'ada-skel-setup)
+(add-hook 'ada-mode-hook #'ada-skel-setup)
 
 ;;; ada-skel.el ends here

@@ -5,8 +5,7 @@
 package body Ada_Skel is
 
    --  skeletons in ada-skel function alphabetical order, except split
-   --  into declarations and statements (the ada-wisi parser insists on
-   --  that)
+   --  into declarations and statements
 
    --  ada-skel-record
    --EMACSCMD:(progn (forward-line 1)(kill-line 2)(insert "record record_type_1\n")(funcall ada-expand))

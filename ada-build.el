@@ -1,7 +1,7 @@
-;;; ada-build.el --- extensions to ada-mode for compiling and running
-;;; Ada projects without 'make' or similar tool
+;; ada-build.el --- Extensions to ada-mode for compiling and running  -*- lexical-binding:t -*-
+;; Ada projects without 'make' or similar tool
 ;;
-;;; Copyright (C) 1994, 1995, 1997 - 2014  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997 - 2016  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -34,11 +34,10 @@
 ;; compiling and running capabilities in Ada mode 4.01, done in 2013 by
 ;; Stephen Leake <stephen_leake@stephe-leake.org>.
 
-(when (and (= emacs-major-version 24)
-	   (= emacs-minor-version 2))
-  (require 'ada-mode-compat-24.2))
+(require 'ada-mode-compat-24.2)
 
 (require 'ada-mode)
+(require 'cl-lib)
 
 ;;;; User customization
 
@@ -52,35 +51,33 @@
 		 (const prompt-default)
 		 (const prompt-exist)
 		 (const error))
-  :group 'ada-build
-  :safe  'symbolp)
+  :safe  #'symbolp)
 
 (defcustom ada-build-confirm-command nil
   "If non-nil, prompt for confirmation/edit of each command before it is run."
   :type  'boolean
-  :group 'ada-build
-  :safe  'booleanp)
+  :safe  #'booleanp)
 
 (defcustom ada-build-check-cmd
   (concat "${cross_prefix}gnatmake -u -c -gnatc ${gnatmake_opt} ${full_current} -cargs -I${src_dir} ${comp_opt}")
   "Default command to syntax check a single file.
-Overridden by project variable 'check_cmd'."
-  :type 'string
-  :group 'ada-build)
+Overridden by project variable `check_cmd'."
+  :type 'string)
 
 (defcustom ada-build-make-cmd
   (concat "${cross_prefix}gnatmake -P${gpr_file} -o ${main} ${main} ${gnatmake_opt} "
 	  "-cargs -I${src_dir} ${comp_opt} -bargs ${bind_opt} -largs ${link_opt}")
-  "Default command to compile the application.
-Overridden by project variable 'make_cmd'."
-  :type 'string
-  :group 'ada-build)
+  "Default command and link to compile the application.
+Overridden by project variable `make_cmd'."
+  :type 'string)
 
+;; FIXME: make this more intelligent to work on Windows cmd shell?
+;; either detect Windows and drop "./", or expand to full path at
+;; runtime.
 (defcustom ada-build-run-cmd "./${main}"
   "Default command to run the application, in a spawned shell.
-Overridden by project variable 'run_cmd'."
-  :type 'string
-  :group 'ada-build)
+Overridden by project variable `run_cmd'."
+  :type 'string)
 
 ;;;; code
 
@@ -89,14 +86,14 @@ Overridden by project variable 'run_cmd'."
 ${var} is a project variable or environment variable, $var an
 environment variable.
 
-A prefix may be specified with the format '-<prefix>${var}'; then
+A prefix may be specified with the format `-<prefix>${var}'; then
 the value is expanded with the prefix prepended. If the value is
 a list, the prefix is prepended to each list element. For
-example, if src_dir contains 'dir_1 dir_2', '-I${src_dir}'
-expands to '-Idir_1 -Idir_2'.
+example, if src_dir contains `dir_1 dir_2', `-I${src_dir}'
+expands to `-Idir_1 -Idir_2'.
 
-As a special case, ${full_current} is replaced by the name
-including the directory and extension."
+As a special case, ${full_current} is replaced by the current
+buffer file name including the directory and extension."
 
   (while (string-match "\\(-[^-$ ]+\\)?\\${\\([^}]+\\)}" cmd-string)
     (let ((prefix (match-string 1 cmd-string))
@@ -157,7 +154,7 @@ including the directory and extension."
 (defun ada-build-find-select-prj-file ()
   "Search for a project file in the current directory, parse and select it.
 The file must have the same basename as the project variable
-'main' or the current buffer if 'main' is nil, and extension from
+`main' or the current buffer if `main' is nil, and extension from
 `ada-prj-file-extensions'.  Returns non-nil if a file is
 selected, nil otherwise."
   (let* ((base-file-name (file-name-base
@@ -253,7 +250,7 @@ If CONFIRM or `ada-build-confirm-command' are non-nil, ask for
 user confirmation of the command, using PROMPT."
   (ada-build-require-project-file)
   (let ((cmd (ada-prj-get prj-field))
-	(process-environment (ada-prj-get 'proc_env)))
+	(process-environment (cl-copy-list (ada-prj-get 'proc_env))))
 
     (unless cmd
       (setq cmd '("")

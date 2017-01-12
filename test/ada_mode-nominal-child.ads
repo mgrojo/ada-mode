@@ -1,6 +1,6 @@
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 package Ada_Mode.Nominal.Child is
 
@@ -9,6 +9,7 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(test-face "Parent_Type_1" font-lock-type-face)
    --EMACSCMD:(test-face "with" font-lock-keyword-face)
    type Child_Type_1 is new Parent_Type_1 with
+      -- comment between 'with' and 'record'
       record
          Child_Element_1 : Integer;
          Child_Element_2 : Float;
@@ -19,8 +20,8 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   --EMACSCMD:(if (eq ada-xref-tool 'gnat) t (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
-   --EMACSRESULT:t
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
+   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))
@@ -75,6 +76,9 @@ package Ada_Mode.Nominal.Child is
      return Float   -- from ada-indent-return
      renames Function_2f_Different_Name;  -- from ada-indent-renames
 
+   overriding
+   function Function_2h (Param : in Child_Type_1) return Float is (1.0); -- overriding with expression function
+
    function Child_Add (Left, Right : in Child_Type_1) return Child_Type_1;
 
    Child_Obj_1 : constant Child_Type_1 :=
@@ -114,3 +118,6 @@ package Ada_Mode.Nominal.Child is
       Child_Element_3 => True);
 
 end Ada_Mode.Nominal.Child;
+--  Local Variables:
+--  ada-indent-comment-gnat: t
+--  End:

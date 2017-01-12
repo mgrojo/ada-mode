@@ -1,12 +1,12 @@
 -- This is to test the indentation of declarations in generics package declarations
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:(if (featurep 'ada-wisi) "" nil)
+--EMACSRESULT:""
 pragma License (GPL);
 
 with Ada.Text_IO;
@@ -14,15 +14,15 @@ with Ada.Text_IO;
 --EMACSRESULT: t
 with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
---EMACSRESULT:(if (featurep 'ada-wisi) "" nil)
+--EMACSRESULT:""
 
---EMACSCMD:(progn (ada-next-statement-keyword)(looking-at "generic$"))
---EMACSRESULT: (if (featurep 'ada-wisi) t nil)
+--EMACSCMD:(progn (end-of-line)(ada-next-statement-keyword)(looking-at "generic$"))
+--EMACSRESULT: t
 --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))
---EMACSRESULT:(if (featurep 'ada-wisi) t nil)
+--EMACSRESULT: t
 generic
    --EMACSCMD:(ada-which-function)
-   --EMACSRESULT:(if (featurep 'ada-wisi) "Ada_Mode.Generic_Package" nil)
+   --EMACSRESULT:"Ada_Mode.Generic_Package"
 
    use Ada.Text_IO;
 

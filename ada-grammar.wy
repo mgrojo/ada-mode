@@ -1,6 +1,6 @@
 ;;; Wisi grammar for Ada
 ;;
-;; Copyright (C) 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2016 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -35,7 +35,7 @@
 
 ;;; Prologue
 %{
-;; Copyright (C) 2013  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -49,10 +49,6 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 ;; Declarations
@@ -167,6 +163,9 @@
 ;; Must be before IDENTIFIER; otherwise recognized as an identifier
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
+;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+%token <whitespace> WHITESPACE ""
+%token <line_comment> COMMENT "--"
 %token <symbol> IDENTIFIER
 %token <string-double> STRING_LITERAL
 %token <string-single> CHARACTER_LITERAL
@@ -176,42 +175,8 @@
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
-%conflict REDUCE/REDUCE in state aggregate, primary on token AMPERSAND
-%conflict REDUCE/REDUCE in state aggregate, primary on token AND
-%conflict REDUCE/REDUCE in state aggregate, primary on token BAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token COLON_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token COMMA
-%conflict REDUCE/REDUCE in state aggregate, primary on token DIGITS
-%conflict REDUCE/REDUCE in state aggregate, primary on token DO
-%conflict REDUCE/REDUCE in state aggregate, primary on token DOT_DOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSE
-%conflict REDUCE/REDUCE in state aggregate, primary on token ELSIF
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token EQUAL_GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER
-%conflict REDUCE/REDUCE in state aggregate, primary on token GREATER_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token IN
-%conflict REDUCE/REDUCE in state aggregate, primary on token IS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS
-%conflict REDUCE/REDUCE in state aggregate, primary on token LESS_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token LOOP
-%conflict REDUCE/REDUCE in state aggregate, primary on token MINUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token MOD
-%conflict REDUCE/REDUCE in state aggregate, primary on token NOT
-%conflict REDUCE/REDUCE in state aggregate, primary on token OF
-%conflict REDUCE/REDUCE in state aggregate, primary on token OR
-%conflict REDUCE/REDUCE in state aggregate, primary on token PLUS
-%conflict REDUCE/REDUCE in state aggregate, primary on token RANGE
-%conflict REDUCE/REDUCE in state aggregate, primary on token REM
-%conflict REDUCE/REDUCE in state aggregate, primary on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state aggregate, primary on token SEMICOLON
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH
-%conflict REDUCE/REDUCE in state aggregate, primary on token SLASH_EQUAL
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token STAR_STAR
-%conflict REDUCE/REDUCE in state aggregate, primary on token THEN
-%conflict REDUCE/REDUCE in state aggregate, primary on token WITH
-%conflict REDUCE/REDUCE in state aggregate, primary on token XOR
+%conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
+%conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
@@ -220,43 +185,64 @@
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token IS
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token SEMICOLON
+%conflict REDUCE/REDUCE in state expression_opt, parameter_specification on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
-%conflict REDUCE/SHIFT in state aliased_opt, declaration on token CONSTANT
-%conflict REDUCE/SHIFT in state aspect_specification_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, package_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, protected_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, subprogram_body_stub on token IS
-%conflict REDUCE/SHIFT in state aspect_specification_opt, task_body_stub on token IS
-%conflict REDUCE/SHIFT in state attribute_designator, actual_parameter_part on token LEFT_PAREN
-%conflict REDUCE/SHIFT in state attribute_designator, attribute_reference on token TICK
-%conflict REDUCE/SHIFT in state attribute_designator, selected_component on token DOT
-%conflict REDUCE/SHIFT in state expression, relation_and_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_and_then_list on token AND
-%conflict REDUCE/SHIFT in state expression, relation_or_else_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_or_list on token OR
-%conflict REDUCE/SHIFT in state expression, relation_xor_list on token XOR
-%conflict REDUCE/SHIFT in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token FUNCTION
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PACKAGE
-%conflict REDUCE/SHIFT in state generic_formal_part, generic_renaming_declaration on token PROCEDURE
-%conflict REDUCE/SHIFT in state identifier_list, object_renaming_declaration on token COLON
-%conflict REDUCE/SHIFT in state name, aspect_clause on token USE
-%conflict REDUCE/SHIFT in state name, pragma_argument_association on token TICK
-%conflict REDUCE/SHIFT in state parameter_profile_opt, generic_instantiation on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, expression_function_declaration on token IS
-%conflict REDUCE/SHIFT in state subprogram_specification, null_procedure_declaration on token IS
+%conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
+%conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token ABORT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token ACCEPT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token BEGIN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token CASE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token CHARACTER_LITERAL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token DECLARE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token DELAY
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token EXIT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token FOR
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token GOTO
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token IDENTIFIER
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token IF
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token LOOP
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token NULL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token PRAGMA
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token RAISE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token REQUEUE
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token RETURN
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token SELECT
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token STRING_LITERAL
+%conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token WHILE
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
+%conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
+%conflict SHIFT/REDUCE in state generic_instantiation, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
-%conflict SHIFT/REDUCE in state name, discrete_subtype_definition on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
+%conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
+%conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
+%conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
+%conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
+%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
 
 %%
 ;;;; grammar rules
@@ -335,11 +321,16 @@ access_definition ;; same as access_type_definition for our purposes
     (progn
       (wisi-statement-action [4 name-paren])
       (wisi-containing-action 4 5)
-      (wisi-motion-action [4 [5 return-1 RETURN return-2 RETURN]]))
+      (wisi-motion-action [4 [5 return-with-params RETURN return-without-params RETURN]]))
   ;
 
 actual_parameter_part
   : LEFT_PAREN association_list RIGHT_PAREN
+    (progn
+      (wisi-statement-action [1 open-paren 3 close-paren])
+      (wisi-containing-action 1 2))
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
@@ -355,22 +346,18 @@ aggregate
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
-  | LEFT_PAREN expression WITH association_list RIGHT_PAREN ;; extension_aggregate
+  | LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN ;; extension_aggregate
     (progn
       (wisi-statement-action [1 open-paren 3 statement-other 5 close-paren])
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
-  | LEFT_PAREN case_expression RIGHT_PAREN
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
- ;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
-  | LEFT_PAREN if_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN expression WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
+  | LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
     (progn
       (wisi-statement-action [1 open-paren 3 statement-other 6 close-paren])
       (wisi-containing-action 1 2)
@@ -405,7 +392,7 @@ array_type_definition
   ;
 
 aspect_clause
-  : FOR attribute_reference USE expression SEMICOLON ;; attribute_definition_clause
+  : FOR attribute_reference USE expression_opt SEMICOLON ;; attribute_definition_clause
     (progn
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
       (wisi-containing-action 3 4))
@@ -428,7 +415,7 @@ aspect_specification_opt
   ;
 
 assignment_statement
-  : name COLON_EQUAL expression SEMICOLON
+  : name COLON_EQUAL expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 statement-other 4 statement-end])
       (wisi-containing-action 2 3))
@@ -436,17 +423,14 @@ assignment_statement
 
 association_opt
   : ;; empty
-  | CHARACTER_LITERAL EQUAL_GREATER expression ;; part of selector_name that does not overlap name
-    (progn
-      (wisi-statement-action [2 statement-other])
-      (wisi-containing-action 2 3))
+  | CHARACTER_LITERAL EQUAL_GREATER expression_opt ;; part of selector_name that does not overlap name
   | CHARACTER_LITERAL EQUAL_GREATER BOX ;; from formal_package_association_list
-  | discrete_choice_list EQUAL_GREATER expression
+  | discrete_choice_list EQUAL_GREATER expression_opt
     (progn
       (wisi-statement-action [2 statement-other])
-      (wisi-containing-action 2 3))
+      (wisi-containing-action 2 3)) ;; for indenting aspects
   | discrete_choice_list EQUAL_GREATER BOX
-  | expression_opt ;; so (foo, ) is indented properly while editing
+  | expression_opt
   ;
 
 association_list
@@ -455,6 +439,9 @@ association_list
     (progn
       (wisi-statement-action [2 list-break])
       (wisi-containing-action 2 3))
+ ;; FIXME: do this here
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+
   ;
 
 asynchronous_select
@@ -466,14 +453,13 @@ asynchronous_select
   ;
 
 at_clause
-  : FOR direct_name USE AT expression SEMICOLON
+  : FOR direct_name USE AT expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-other 6 statement-end])
       (wisi-containing-action 4 5))
   ;
 
 attribute_reference : name TICK attribute_designator ;
-;; FIXME: name could be a type
 
 attribute_designator
 ;; IDENTIFIER LEFT_PAREN expression RIGHT_PAREN is redundant with name
@@ -509,7 +495,7 @@ body : proper_body | body_stub ;
 body_stub : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
 
 case_expression
-  : CASE expression IS case_expression_alternative_list
+  : CASE expression_opt IS case_expression_alternative_list
     (progn
       (wisi-statement-action [1 statement-start 3 block-middle])
       (wisi-containing-action 1 2)
@@ -517,9 +503,10 @@ case_expression
   ;
 
 case_expression_alternative
-  : WHEN discrete_choice_list EQUAL_GREATER expression
+  : WHEN discrete_choice_list EQUAL_GREATER expression_opt
     (progn
       (wisi-statement-action [1 block-middle 3 statement-other])
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
   ;
 
@@ -527,8 +514,7 @@ case_expression_alternative_list
   : case_expression_alternative
   | case_expression_alternative_list COMMA case_expression_alternative
     (progn
-      (wisi-statement-action [2 list-break])
-      (wisi-containing-action 2 3))
+      (wisi-statement-action [2 list-break]))
   ;
 
 case_statement
@@ -545,6 +531,7 @@ case_statement_alternative
     (progn
       (wisi-statement-action [1 block-middle 3 statement-other])
       (wisi-containing-action 1 2)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
   ;
 
@@ -626,7 +613,7 @@ component_clause_list
   ;
 
 component_declaration
-  : identifier_list COLON component_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
+  : identifier_list COLON component_definition COLON_EQUAL expression_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 statement-other 4 statement-other 7 statement-end])
       (wisi-containing-action 2 3)
@@ -683,6 +670,12 @@ conditional_entry_call
       (wisi-containing-action 3 4))
   ;
 
+conditional_quantified_expression
+  : if_expression
+  | case_expression
+  | quantified_expression
+  ;
+
 constant_opt
   : ;; empty
   | CONSTANT
@@ -713,7 +706,7 @@ declaration
   | generic_declaration
   | generic_instantiation
   | null_procedure_declaration
-  | identifier_list COLON CONSTANT COLON_EQUAL expression SEMICOLON ;; number_declaration
+  | identifier_list COLON CONSTANT COLON_EQUAL expression_opt SEMICOLON ;; number_declaration
     (progn
       (wisi-statement-action [1 statement-start 6 statement-end])
       (wisi-containing-action 1 5))
@@ -742,11 +735,11 @@ declarative_part_opt
 delay_alternative : delay_statement sequence_of_statements_opt ;
 
 delay_statement
-  : DELAY UNTIL expression SEMICOLON
+  : DELAY UNTIL expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
       (wisi-containing-action 1 3))
-  | DELAY expression SEMICOLON
+  | DELAY expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 statement-end])
       (wisi-containing-action 1 2))
@@ -809,9 +802,9 @@ discriminant_part_opt
 
 discriminant_specification_opt
   : ;; empty
-  | identifier_list COLON null_exclusion_opt_name_type COLON_EQUAL expression
+  | identifier_list COLON null_exclusion_opt_name_type COLON_EQUAL expression_opt
   | identifier_list COLON null_exclusion_opt_name_type
-  | identifier_list COLON access_definition COLON_EQUAL expression
+  | identifier_list COLON access_definition COLON_EQUAL expression_opt
   | identifier_list COLON access_definition
   ;
 
@@ -824,7 +817,7 @@ discriminant_specification_list
   ;
 
 elsif_expression_item
-  : ELSIF expression THEN expression
+  : ELSIF expression_opt THEN expression_opt
     (progn
       (wisi-statement-action [1 statement-other 3 block-middle])
       (wisi-containing-action 1 2)
@@ -911,10 +904,10 @@ enumeration_literal_list
 
 enumeration_representation_clause
   : FOR name USE aggregate SEMICOLON
- ;; FIXME: name is a type
     (progn
-      (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-      (wisi-containing-action 3 4))
+      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-containing-action 1 4)
+      (wisi-face-action [2 font-lock-type-face]))
   ;
 
 enumeration_type_definition
@@ -942,11 +935,13 @@ exception_handler
     (progn
       (wisi-statement-action [1 block-middle 5 statement-other])
       (wisi-containing-action 1 4)
+      (wisi-containing-action 1 5)
       (wisi-containing-action 5 6))
   | WHEN exception_choice_list EQUAL_GREATER sequence_of_statements_opt
     (progn
       (wisi-statement-action [1 block-middle 3 statement-other])
       (wisi-containing-action 1 2)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 3 4))
   ;
 
@@ -963,8 +958,8 @@ exception_handler_list_opt
 exit_statement
   : EXIT identifier_opt WHEN expression_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-      (wisi-containing-action 3 4))
+      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-containing-action 1 4))
   | EXIT identifier_opt SEMICOLON
     (wisi-statement-action [1 statement-start 3 statement-end])
   ;
@@ -981,19 +976,29 @@ expression
 expression_opt
   : ;; empty for user friendly
   | expression
+    (wisi-statement-action [1 expression-start])
+    (wisi-containing-action 1 1)
   ;
 
 expression_function_declaration
   : overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON
- ;; IS does not start a block, so it is not cached
+ ;; IS does not start a block, so it is not "block-middle".
+ ;;
+ ;; We override the cache on "function_specification", so
+ ;; wisi-statement-action will handle an empty
+ ;; "overriding_indicator_opt" correctly. FIXME: should not have to do
+ ;; this, but it is also done in other grammar statements.
     (progn
-      (wisi-statement-action [1 statement-start 2 statement-other 6 statement-end])
-      (wisi-containing-action 2 4)
+      (wisi-statement-action [1 statement-start 2 block-middle 3 statement-other 6 statement-end])
+      (wisi-containing-action 3 4)
       (wisi-containing-action 2 5))
   ;
 
 extended_return_object_declaration
-  : IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication COLON_EQUAL expression
+  : IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication COLON_EQUAL expression_opt
+    (progn
+      (wisi-statement-action [1 statement-start 6 statement-other])
+      (wisi-containing-action 6 7))
   | IDENTIFIER COLON aliased_opt constant_opt return_subtype_indication
   ;
 
@@ -1023,7 +1028,7 @@ factor
   ;
 
 formal_object_declaration
-  : identifier_list COLON mode_opt null_exclusion_opt name COLON_EQUAL expression aspect_specification_opt
+  : identifier_list COLON mode_opt null_exclusion_opt name COLON_EQUAL expression_opt aspect_specification_opt
     SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 6 statement-other 9 statement-end])
@@ -1035,7 +1040,7 @@ formal_object_declaration
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-containing-action 5 6)
       (wisi-face-action [5 font-lock-type-face]))
-  | identifier_list COLON mode_opt access_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
+  | identifier_list COLON mode_opt access_definition COLON_EQUAL expression_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 5 statement-other 8 statement-end])
       (wisi-containing-action 5 6)
@@ -1166,7 +1171,7 @@ function_specification
       (wisi-statement-action [1 statement-other 2 name])
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 3)
-      (wisi-motion-action [1 [3 return-1 RETURN return-2 RETURN]])
+      (wisi-motion-action [1 [3 return-with-params RETURN return-without-params RETURN]])
       (wisi-face-action [2 font-lock-function-name-face]))
   ;
 
@@ -1212,21 +1217,21 @@ generic_instantiation
  ;; name generic_actual_part is included in name as a function call
   : PACKAGE name IS NEW name aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 name 4 statement-other 7 statement-end])
-      (wisi-containing-action 4 5)
-      (wisi-containing-action 5 6)
+      (wisi-statement-action [1 statement-start 2 name 3 statement-other 7 statement-end])
+      (wisi-containing-action 3 5)
+      (wisi-containing-action 3 6)
       (wisi-face-action [2 font-lock-function-name-face 5 font-lock-function-name-face]))
   | overriding_indicator_opt PROCEDURE name IS NEW name aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 block-middle 3 name 5 statement-other 8 statement-end])
-      (wisi-containing-action 5 6)
-      (wisi-containing-action 6 7)
+      (wisi-statement-action [1 statement-start 2 block-middle 3 name 4 statement-other 8 statement-end])
+      (wisi-containing-action 4 6)
+      (wisi-containing-action 4 7)
       (wisi-face-action [3 font-lock-function-name-face 6 font-lock-function-name-face]))
   | overriding_indicator_opt FUNCTION name IS NEW name aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 block-middle 3 name 5 statement-other 8 statement-end])
-      (wisi-containing-action 5 6)
-      (wisi-containing-action 6 7)
+      (wisi-statement-action [1 statement-start 2 block-middle 3 name 4 statement-other 8 statement-end])
+      (wisi-containing-action 4 6)
+      (wisi-containing-action 4 7)
       (wisi-face-action [3 font-lock-function-name-face 6 font-lock-function-name-face]))
   ;
 
@@ -1272,6 +1277,11 @@ generic_subprogram_declaration
       (wisi-motion-action [1 2]))
   ;
 
+goto_label
+  : LESS_LESS IDENTIFIER GREATER_GREATER
+    (wisi-face-action [2 font-lock-constant-face])
+  ;
+
 handled_sequence_of_statements
   : sequence_of_statements_opt EXCEPTION exception_handler_list_opt
     (progn
@@ -1291,7 +1301,7 @@ identifier_opt
   ;
 
 if_expression
-  : IF expression THEN expression elsif_expression_list ELSE expression
+  : IF expression_opt THEN expression_opt elsif_expression_list ELSE expression_opt
     (progn
       (wisi-statement-action [1 statement-start 3 block-middle 6 block-middle])
       (wisi-containing-action 1 2)
@@ -1299,21 +1309,21 @@ if_expression
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
       (wisi-motion-action [1 3 [5 statement-other ELSIF block-middle THEN] 6]))
-  | IF expression THEN expression elsif_expression_list
+  | IF expression_opt THEN expression_opt elsif_expression_list
     (progn
       (wisi-statement-action [1 statement-start 3 block-middle])
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 3 5)
       (wisi-motion-action [1 3 [5 statement-other ELSIF block-middle THEN]]))
-  | IF expression THEN expression ELSE expression
+  | IF expression_opt THEN expression_opt ELSE expression_opt
     (progn
       (wisi-statement-action [1 statement-start 3 block-middle 5 block-middle])
       (wisi-containing-action 1 2)
       (wisi-containing-action 3 4)
       (wisi-containing-action 5 6)
       (wisi-motion-action [1 3 5]))
-  | IF expression THEN expression
+  | IF expression_opt THEN expression_opt
     (progn
       (wisi-statement-action [1 statement-start 3 block-middle])
       (wisi-containing-action 1 2)
@@ -1429,12 +1439,14 @@ iterator_specification_opt
   ;
 
 label_opt
-  : ;; empty
-  | LESS_LESS IDENTIFIER GREATER_GREATER ;; for goto
-    (wisi-face-action [2 font-lock-constant-face])
-  | IDENTIFIER COLON ;; on blocks, loops
  ;; goto and block/loop labels merged into label_opt because
  ;; indentation code treats them equally.
+
+  : ;; empty
+  | goto_label
+    (wisi-statement-action [1 label])
+  | IDENTIFIER COLON ;; on blocks, loops
+    (wisi-statement-action [1 label])
   ;
 
 library_item
@@ -1491,7 +1503,7 @@ membership_choice
 
 mod_clause_opt
   : ;; empty
-  | AT MOD expression SEMICOLON
+  | AT MOD expression_opt SEMICOLON
   ;
 
 mode_opt
@@ -1520,16 +1532,15 @@ name
  ;; | explicit_dereference
  ;; | indexed_component
 
- ;; ARM has name ( discrete_subtype_definition ) here, but thats
+ ;; ARM has name ( discrete_subtype_definition ) here, but that's
  ;; partly redundant with name actual_parameter_part; this is the
  ;; part that is not redundant.
-  | name LEFT_PAREN range RIGHT_PAREN ;; slice
+  | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
     (progn
       (wisi-statement-action [1 name-paren 2 open-paren 4 close-paren])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3))
-  | selected_component ;; starts with name; extend to cover all
-    (wisi-extend-action 1)
+  | selected_component
   | attribute_reference ;; starts with name
   | name actual_parameter_part
  ;; type_conversion, function_call, procedure call, generic instantiation.
@@ -1572,7 +1583,7 @@ null_procedure_declaration
   ;
 
 object_declaration
-  : identifier_list COLON aliased_opt constant_opt subtype_indication COLON_EQUAL expression aspect_specification_opt SEMICOLON
+  : identifier_list COLON aliased_opt constant_opt subtype_indication COLON_EQUAL expression_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 statement-other 6 statement-other 9 statement-end])
       (wisi-containing-action 2 5)
@@ -1584,7 +1595,7 @@ object_declaration
       (wisi-containing-action 2 5)
       (wisi-containing-action 1 6))
 
-  | identifier_list COLON aliased_opt constant_opt access_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
+  | identifier_list COLON aliased_opt constant_opt access_definition COLON_EQUAL expression_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 statement-other 6 statement-other 9 statement-end])
       (wisi-containing-action 2 5)
@@ -1595,7 +1606,7 @@ object_declaration
       (wisi-statement-action [1 statement-start 2 statement-other 7 statement-end])
       (wisi-containing-action 2 5)
       (wisi-containing-action 1 6))
-  | identifier_list COLON aliased_opt constant_opt array_type_definition COLON_EQUAL expression aspect_specification_opt SEMICOLON
+  | identifier_list COLON aliased_opt constant_opt array_type_definition COLON_EQUAL expression_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 statement-other 6 statement-other 9 statement-end])
       (wisi-containing-action 2 5)
@@ -1647,17 +1658,19 @@ package_body
       (wisi-statement-action [1 block-start 3 name 5 block-middle 7 block-middle
                                 9 block-end 11 statement-end])
       (wisi-containing-action 1 3)
-      (wisi-containing-action 3 4)
+      (wisi-containing-action 1 4)
       (wisi-containing-action 5 6)
       (wisi-containing-action 7 8)
+      (wisi-containing-action 9 10)
       (wisi-motion-action [1 5 7 [8 block-middle EXCEPTION block-middle WHEN] 9])
       (wisi-face-action [3 font-lock-function-name-face 10 font-lock-function-name-face]))
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     (progn
       (wisi-statement-action [1 block-start 3 name 5 block-middle 7 block-end 9 statement-end])
       (wisi-containing-action 1 3)
-      (wisi-containing-action 3 4)
+      (wisi-containing-action 1 4)
       (wisi-containing-action 5 6)
+      (wisi-containing-action 7 8)
       (wisi-motion-action [1 5 7])
       (wisi-face-action [3 font-lock-function-name-face 8 font-lock-function-name-face]))
   ;
@@ -1690,16 +1703,16 @@ package_specification
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 block-start 6 block-middle 8 block-end])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 4 5)
       (wisi-containing-action 6 7)
       (wisi-motion-action [1 4 6 8])
       (wisi-face-action [2 font-lock-function-name-face 9 font-lock-function-name-face]))
-  | PACKAGE name aspect_specification_opt IS declarative_part_opt END name
+  | PACKAGE name aspect_specification_opt IS declarative_part_opt END name_opt
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 block-start 6 block-end])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-containing-action 4 5)
       (wisi-motion-action [1 4 6])
       (wisi-face-action [2 font-lock-function-name-face 7 font-lock-function-name-face]))
@@ -1708,20 +1721,20 @@ package_specification
 parameter_and_result_profile
   : formal_part RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action [2 return-1]);; for ada-indent-return
+      (wisi-statement-action [2 return-with-params]);; for ada-indent-return
       (wisi-containing-action 2 4)
       (wisi-face-action [4 font-lock-type-face]))
-  | RETURN name_opt
+  | RETURN null_exclusion_opt name_opt
     (progn
-      (wisi-statement-action [1 return-2])
-      (wisi-face-action [2 font-lock-type-face]))
+      (wisi-statement-action [1 return-without-params])
+      (wisi-face-action [3 font-lock-type-face]))
   | formal_part RETURN access_definition
     (progn
-      (wisi-statement-action [2 return-1])
+      (wisi-statement-action [2 return-with-params])
       (wisi-containing-action 2 3))
   | RETURN access_definition
     (progn
-      (wisi-statement-action [1 return-2])
+      (wisi-statement-action [1 return-without-params])
       (wisi-containing-action 1 2))
   ;
 
@@ -1734,11 +1747,12 @@ parameter_profile_opt
   ;
 
 parameter_specification
-  : identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression
+  : ;; empty
+  | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name COLON_EQUAL expression_opt
     (wisi-face-action [6 font-lock-type-face])
   | identifier_list COLON aliased_opt mode_opt null_exclusion_opt name
     (wisi-face-action [6 font-lock-type-face])
-  | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression
+  | identifier_list COLON aliased_opt access_definition COLON_EQUAL expression_opt
   | identifier_list COLON aliased_opt access_definition
   ;
 
@@ -1750,24 +1764,27 @@ parameter_specification_list
       (wisi-containing-action 2 3))
   ;
 
-;; ARM 4.5.7 7 allows ( conditional_expression ) instead of (( conditional_expression ))
 paren_expression
-  : LEFT_PAREN expression RIGHT_PAREN
+  : LEFT_PAREN expression_opt RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
-  | LEFT_PAREN case_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN if_expression RIGHT_PAREN
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
   ;
 
 pragma
-  : PRAGMA IDENTIFIER LEFT_PAREN pragma_argument_association_list RIGHT_PAREN SEMICOLON
+  : PRAGMA IDENTIFIER LEFT_PAREN association_list RIGHT_PAREN SEMICOLON
+ ;; ARM has 'pragma_argument_association'; this is a superset, and reduces redundancy
+    (progn
+      (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-end])
+      (wisi-containing-action 3 4)
+      (wisi-face-action [2 font-lock-function-name-face]))
+ ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
+  | PRAGMA IDENTIFIER LEFT_PAREN conditional_quantified_expression RIGHT_PAREN SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-end])
       (wisi-containing-action 3 4)
@@ -1776,17 +1793,6 @@ pragma
     (progn
       (wisi-statement-action [1 statement-start 3 statement-end])
       (wisi-face-action [2 font-lock-function-name-face]))
-  ;
-
-pragma_argument_association
-  : IDENTIFIER EQUAL_GREATER expression
-  | expression
-  | IDENTIFIER TICK IDENTIFIER EQUAL_GREATER expression
-  ;
-
-pragma_argument_association_list
-  : pragma_argument_association
-  | pragma_argument_association_list COMMA pragma_argument_association
   ;
 
 ;; prefix is name
@@ -1799,41 +1805,31 @@ primary
   | aggregate
   | name
   | NEW name
- ;; allocator, leaving out subpool_specification. 'name' might be a
- ;; qualified_expression, in which case this face overrides that.
+ ;; allocator, leaving out subpool_specification. Valid overrides occur when 'name' is a
+ ;; qualified_expression or selected_component.
     (wisi-face-action [2 font-lock-type-face] t)
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by aggregate
-  | LEFT_PAREN if_expression RIGHT_PAREN ;; conditional_expression
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN case_expression RIGHT_PAREN ;; conditional_expression
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
-  | LEFT_PAREN quantified_expression RIGHT_PAREN
-    (progn
-      (wisi-statement-action [1 open-paren 3 close-paren])
-      (wisi-containing-action 1 2))
+ ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate
   ;
 
 private_extension_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication
     and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 name 6 statement-other 12 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 statement-other 12 statement-end])
       (wisi-containing-action 1 3)
-      (wisi-containing-action 6 7)
-      (wisi-containing-action 6 8)
-      (wisi-containing-action 2 11)
+      (wisi-containing-action 4 7)
+      (wisi-containing-action 4 8)
+      (wisi-containing-action 4 11)
       (wisi-face-action [2 font-lock-type-face]))
   ;
 
 private_type_declaration
   : TYPE IDENTIFIER discriminant_part_opt IS abstract_tagged_limited_opt PRIVATE aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 name 8 statement-end])
-      (wisi-containing-action 1 7)
+      (wisi-statement-action [1 statement-start 2 name 4 statement-other 8 statement-end])
+      (wisi-containing-action 1 3)
+      (wisi-containing-action 4 7)
       (wisi-face-action [2 font-lock-type-face]))
   ;
 
@@ -1894,6 +1890,8 @@ protected_operation_item
   : subprogram_declaration
   | subprogram_body
   | entry_body
+  | expression_function_declaration
+  | null_procedure_declaration
   | aspect_clause
   ;
 
@@ -1916,15 +1914,15 @@ protected_type_declaration
   : PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH
     protected_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 name 6 block-start 11 statement-end])
-      (wisi-containing-action 1 3)
+      (wisi-statement-action [1 statement-start 3 name 6 block-middle 9 block-middle 11 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-containing-action 3 5)
-      (wisi-containing-action 9 10)
+      (wisi-containing-action 6 10)
       (wisi-face-action [3 font-lock-type-face]))
   | PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 name 6 block-start 8 statement-end])
-      (wisi-containing-action 1 3)
+      (wisi-statement-action [1 statement-start 3 name 6 block-middle 8 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
       (wisi-face-action [3 font-lock-type-face]))
@@ -1941,10 +1939,10 @@ qualified_expression
   ;
 
 quantified_expression
-  : FOR quantifier iterator_specification EQUAL_GREATER expression
+  : FOR quantifier iterator_specification EQUAL_GREATER expression_opt
     (progn
-      (wisi-statement-action [4 statement-other])
-      (wisi-containing-action 4 5))
+      (wisi-statement-action [1 expression-start])
+      (wisi-containing-action 1 5))
   ;
 
 quantifier : ALL | SOME ;
@@ -1953,13 +1951,13 @@ quantifier : ALL | SOME ;
 ;; adds raise_expression
 raise_expression
   : RAISE name
-  | RAISE name WITH expression
+  | RAISE name WITH expression_opt
   ;
 
 raise_statement
   : RAISE SEMICOLON
     (wisi-statement-action [1 statement-start 2 statement-end])
-  | RAISE name WITH expression SEMICOLON
+  | RAISE name WITH expression_opt SEMICOLON
  ;; no need to tag WITH; that just confuses the indentation logic
     (progn
       (wisi-statement-action [1 statement-start 5 statement-end])
@@ -1969,12 +1967,20 @@ raise_statement
   ;
 
 range
-  : name TICK RANGE LEFT_PAREN expression RIGHT_PAREN ;; range_attribute_reference
+  : name TICK RANGE LEFT_PAREN expression_opt RIGHT_PAREN ;; range_attribute_reference
     (progn
       (wisi-statement-action [4 open-paren 6 close-paren])
       (wisi-containing-action 4 5))
   | name TICK RANGE ;; range_attribute_reference
   | simple_expression DOT_DOT simple_expression
+  ;
+
+range_list
+  : range
+  | range_list COMMA range
+    (progn
+      (wisi-statement-action [2 list-break])
+      (wisi-containing-action 2 3))
   ;
 
 real_range_specification_opt
@@ -1992,10 +1998,10 @@ record_definition
 
 record_representation_clause
   : FOR name USE record_rep SEMICOLON
- ;; FIXME: name is a type
     (progn
       (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 3 4)
+      (wisi-face-action [2 font-lock-type-face]))
   ;
 
 record_rep
@@ -2074,6 +2080,7 @@ return_subtype_indication
 
 selected_component
   : name DOT IDENTIFIER
+    (wisi-extend-action 1 3)
   | name DOT CHARACTER_LITERAL
 
   | name DOT STRING_LITERAL
@@ -2107,25 +2114,27 @@ selective_accept
   ;
 
 select_alternative
- ;; we cant use guard_opt here because when present a guard is a
+ ;; we can't use guard_opt here because when present a guard is a
  ;; block-start, but when absent there is no block-start
-  : WHEN expression EQUAL_GREATER accept_statement sequence_of_statements_opt ;; guard accept_alternative
+  : WHEN expression_opt EQUAL_GREATER accept_statement sequence_of_statements_opt ;; guard accept_alternative
     (progn
       (wisi-statement-action [1 block-start 3 statement-other])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 4)
-      (wisi-containing-action 3 5))
+      (wisi-containing-action 1 3)
+      (wisi-containing-action 1 4)
+      (wisi-containing-action 1 5))
   | accept_statement sequence_of_statements_opt ;; accept_alternative
-  | WHEN expression EQUAL_GREATER delay_alternative
+  | WHEN expression_opt EQUAL_GREATER delay_alternative
     (progn
-      (wisi-statement-action [1 block-start 3 statement-other])
+      (wisi-statement-action [1 block-start])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 1 4))
   | delay_alternative
-  | WHEN expression EQUAL_GREATER TERMINATE SEMICOLON ;; terminate_alternative
+  | WHEN expression_opt EQUAL_GREATER TERMINATE SEMICOLON ;; terminate_alternative
     (progn
-      (wisi-statement-action [1 block-start 3 statement-other 4 statement-start 5 statement-end])
-      (wisi-containing-action 1 2))
+      (wisi-statement-action [1 block-start 4 statement-start 5 statement-end])
+      (wisi-containing-action 1 2)
+      (wisi-containing-action 1 4))
   | TERMINATE SEMICOLON ;; terminate_alternative
     (wisi-statement-action [1 statement-start 2 statement-end])
   ;
@@ -2148,14 +2157,15 @@ select_statement
   | asynchronous_select
   ;
 
-;; Wherever the ARM requires a sequence_of_statements, we allow
-;; nothing; this simplifies indenting skeletons (see ada-skel), and is
-;; more user-friendly for indenting.
 sequence_of_statements
-  : statement ;; label is included in statement
+  : statement
   | sequence_of_statements statement
+  | sequence_of_statements goto_label ;; ignoring list of labels
   ;
 
+;; Wherever the ARM requires a sequence_of_statements, we allow
+;; nothing; this simplifies indenting skeletons (see ada-skel), and is
+;; more user-friendly for indenting while editing.
 sequence_of_statements_opt
   : ;; empty
   | sequence_of_statements
@@ -2169,7 +2179,7 @@ simple_expression
 simple_return_statement
   : RETURN SEMICOLON
     (wisi-statement-action [1 statement-start 2 statement-end])
-  | RETURN expression SEMICOLON
+  | RETURN expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 statement-end])
       (wisi-containing-action 1 2))
@@ -2199,14 +2209,17 @@ simple_statement
 single_protected_declaration
   : PROTECTED IDENTIFIER aspect_specification_opt IS NEW interface_list WITH protected_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 block-start 2 name 7 block-middle 9 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 block-middle 7 block-middle 9 statement-end])
+      (wisi-motion-action [1 4 [8 block-middle PRIVATE block-end END]])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
+      (wisi-containing-action 4 6)
       (wisi-containing-action 7 8)
       (wisi-face-action [2 font-lock-type-face]))
   | PROTECTED IDENTIFIER aspect_specification_opt IS protected_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 block-start 2 name 4 block-middle 6 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 block-middle 6 statement-end])
+      (wisi-motion-action [1 4 [5 block-middle PRIVATE block-end END]])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
       (wisi-containing-action 4 5)
@@ -2216,32 +2229,35 @@ single_protected_declaration
 single_task_declaration
   : TASK IDENTIFIER aspect_specification_opt IS NEW interface_list WITH task_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 block-start 2 name 7 block-middle 9 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 block-middle 7 block-middle 9 statement-end])
+      (wisi-motion-action [1 4 [8 block-middle PRIVATE block-end END]])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
+      (wisi-containing-action 4 6)
       (wisi-containing-action 7 8)
       (wisi-face-action [2 font-lock-type-face]))
   | TASK IDENTIFIER aspect_specification_opt IS task_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 block-start 2 name 4 block-middle 6 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 block-middle 6 statement-end])
+      (wisi-motion-action [1 4 [5 block-middle PRIVATE block-end END]])
       (wisi-containing-action 1 2)
       (wisi-containing-action 2 3)
       (wisi-containing-action 4 5)
       (wisi-face-action [2 font-lock-type-face]))
   | TASK IDENTIFIER aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 4 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 4 statement-end])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 2 3)
+      (wisi-containing-action 1 3)
       (wisi-face-action [2 font-lock-type-face]))
   ;
 
 ;; ignoring list of labels on one statement
 statement
   : label_opt simple_statement
-    (wisi-statement-action [1 statement-start 2 statement-other])
+    (wisi-statement-action [2 statement-start])
   | label_opt compound_statement
-    (wisi-statement-action [1 statement-start 2 statement-other])
+    (wisi-statement-action [2 statement-start])
   ;
 
 subprogram_body
@@ -2363,19 +2379,22 @@ task_type_declaration
   : TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS NEW interface_list WITH task_definition
     SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 name 10 statement-other 11 statement-end])
+      (wisi-statement-action [1 statement-start 3 name 6 block-middle 9 block-middle 11 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-containing-action 3 5)
-      (wisi-containing-action 9 10)
-      (wisi-face-action [2 font-lock-type-face]))
+      (wisi-containing-action 6 10)
+      (wisi-face-action [3 font-lock-type-face]))
   | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS task_definition SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 name 6 block-start 8 statement-end])
+      (wisi-statement-action [1 statement-start 3 name 6 block-middle 8 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-containing-action 3 5)
       (wisi-containing-action 6 7)
       (wisi-face-action [3 font-lock-type-face]))
   | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 name 6 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-containing-action 3 5)
       (wisi-face-action [3 font-lock-type-face]))
   ;
@@ -2414,10 +2433,10 @@ type_declaration
 type_definition
   : enumeration_type_definition
   | RANGE simple_expression DOT_DOT simple_expression ;; integer_type_definition
-  | MOD expression
-  | DIGITS expression real_range_specification_opt ;; real_type_definition, floating_point_type_definition
-  | DELTA expression real_range_specification_opt ;; ordinary_fixed_point_definition
-  | DELTA expression DIGITS expression real_range_specification_opt ;; decimal_fixed_point_definition
+  | MOD expression_opt
+  | DIGITS expression_opt real_range_specification_opt ;; real_type_definition, floating_point_type_definition
+  | DELTA expression_opt real_range_specification_opt ;; ordinary_fixed_point_definition
+  | DELTA expression_opt DIGITS expression_opt real_range_specification_opt ;; decimal_fixed_point_definition
   | array_type_definition
   | record_type_definition
   | access_definition ;; access_type_definition
@@ -2440,9 +2459,9 @@ variant_list
 variant
   : WHEN discrete_choice_list EQUAL_GREATER component_list_opt
     (progn
-      (wisi-statement-action [1 block-middle 3 statement-other])
+      (wisi-statement-action [1 block-middle])
       (wisi-containing-action 1 2)
-      (wisi-containing-action 3 4))
+      (wisi-containing-action 1 4))
   ;
 
 unary_adding_operator : PLUS | MINUS ; ;; + | -

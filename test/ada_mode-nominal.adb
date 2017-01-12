@@ -1,6 +1,6 @@
 -- A comment before the first code
 
---EMACSCMD:(sit-for 0.01);; Let jit-lock activate
+--EMACSCMD:(jit-lock-fontify-now)
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
@@ -14,7 +14,12 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(test-face "use" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 use Ada.Strings.Unbounded;
-package body Ada_Mode.Nominal is -- target 0
+--EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
+--EMACSRESULT:t
+package body Ada_Mode.Nominal
+with
+  Spark_Mode => On
+is -- target 0
 
    --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
    use Ada.Strings;
@@ -72,7 +77,8 @@ package body Ada_Mode.Nominal is -- target 0
 
       --EMACSCMD:(test-face "Function_Access_1" '(nil default))
       return Function_Access_1'Access;
-   end Function_Access_11;
+   end
+     Function_Access_11;
 
    --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
    protected body Protected_1 is -- target 2
@@ -138,14 +144,14 @@ package body Ada_Mode.Nominal is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                       "help!";
+                         "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when -- 2"))
                   when -- 3
                        -- pathological case - should put 'raise' on next line
                        -- just ensure it doesn't raise an error
                     E : others => raise
-                    Constraint_Error with "help!";
+                      Constraint_Error with "help!";
                end;
                --EMASCMD:(progn (end-of-line 0)(backward-word 2)(ada-prev-statement-keyword)(looking-at "when -- 3"))
 
@@ -195,7 +201,8 @@ package body Ada_Mode.Nominal is -- target 0
       begin
          --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "end F1"))
          --EMACSRESULT: t
-         return B : Integer := Local_Function;
+         return B : Integer :=
+           (Local_Function);
          -- non-do extended return
       end F1;
 
@@ -219,7 +226,7 @@ package body Ada_Mode.Nominal is -- target 0
             --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when C"))
             --EMACSRESULT:t
                when A | Nominal.B =>
-                  null;
+                  goto Label_2;
                   --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "end case"))
                   --EMACSRESULT:t
                when C =>
@@ -232,8 +239,10 @@ package body Ada_Mode.Nominal is -- target 0
                   goto Label_1;
                   --EMACSCMD:(test-face "Label_1" font-lock-constant-face)
                <<Label_1>>
+                  --  a comment after a label
                   D := D - Float (F1);
             end case;
+            <<Label_2>> --  a sequence_of_statements can have a trailing label
          end return;
          --EMACSCMD:(progn(forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose
@@ -353,8 +362,13 @@ package body Ada_Mode.Nominal is -- target 0
       end; -- no P2
    end Protected_1;
 
+   protected body Protected_Child_1 is
+      entry E1 (X : Integer) when True is begin null; end E1;
+   end Protected_Child_1;
+
    --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
+      --EMACSRESUT: t
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_Buffer"
 
@@ -375,12 +389,10 @@ package body Ada_Mode.Nominal is -- target 0
       end Read;
    end Protected_Buffer;
 
-   --------------------------------------------------------
-   --  6804-008: problem for indentation after a task declaration
-   --  The problem was caused by the task declaration with no
-   --  block attached
-   --------------------------------------------------------
-   task Executive;
+   task Executive
+   with
+     Storage_Size => 512 + 256,
+     Priority => 5;
    task body Executive is -- target 5
    begin
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
@@ -389,22 +401,25 @@ package body Ada_Mode.Nominal is -- target 0
       null;
    end Executive;
 
-   -- a more typical task
    task body Task_Type_1 is
+      -- a more typical task
       Local_1 : Integer;
       Started : Boolean := False;
    begin
       select
+         --  a comment after 'select'
          accept Start (A) (Param_1 : in Integer);
          Started := True;
       or
          when Started => -- Ada mode 4.01 ada-when-indent, GPS ada-indent
             accept Middle_1 (Param_1 : in Integer) do
+               --  a comment after 'do'
                Local_1 := 0;
             end Middle_1;
             Local_1 := 0;
       or
-         when Started =>
+         when
+           Started =>
             accept Middle_2
               (Param_1 : in Integer)
             do
@@ -425,6 +440,7 @@ package body Ada_Mode.Nominal is -- target 0
          accept Start (A) (Param_1 : in Integer);
          Local_1 := 0;
       else
+         --  comment after select else
          Local_1 := 2;
       end select;
 
@@ -450,6 +466,14 @@ package body Ada_Mode.Nominal is -- target 0
       end select;
 
    end Task_Type_1;
+
+   --  From a grammar bug report
+   type S is synchronized interface;
+
+   task type T is new S with
+   end T;
+
+   task body T is begin null; end;
 
    ----------
    -- subprograms
@@ -530,8 +554,8 @@ package body Ada_Mode.Nominal is -- target 0
       begin
          return
            Local_1 +
-           Local_2 +
-           Local_3;
+             Local_2 +
+             Local_3;
       end;
    end;
 
@@ -549,7 +573,7 @@ package body Ada_Mode.Nominal is -- target 0
 
    function Function_2a (Param : in Parent_Type_1) return Float
    is begin
-   Block_1:
+   Block_1 :
       declare -- label, no statements between begin, label
 
          --EMACSCMD:(test-face "1.0e-36" 'font-lock-constant-face)
@@ -594,7 +618,14 @@ package body Ada_Mode.Nominal is -- target 0
    is
       type Array_Type_1 is array (1 .. 3) of Float;
       type Array_Type_2 is array (1 .. 3) of Array_Type_1;
-      Local_A : Array_Type_2 := (others => (others => 0.0));
+      Local_A : Array_Type_2 :=
+        -- indentation style from Ludovic Brenta
+        (1 => (others => 1.0),
+         2
+           => (others
+                 => 2.0),
+         3
+           => (others => 3.0));
    begin
       Procedure_2a
         ;
@@ -660,11 +691,11 @@ package body Ada_Mode.Nominal is -- target 0
    -- rest of newline placement covered in spec
 
    --EMACSCMD:(test-face "new" 'font-lock-keyword-face)
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 3)(test-face "new" 'font-lock-keyword-face))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 4)(test-face "new" 'font-lock-keyword-face))
    --EMACSCMD:(test-face "Record_Type_3" 'font-lock-type-face)
    --EMACSCMD:(progn (forward-line 1)(forward-word 3)(test-face "Record_Type_3" 'font-lock-type-face))
    --EMACSCMD:(test-face "1234" 'font-lock-constant-face)
-   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234));
+   Object_3 : access Record_Type_3 := new Record_Type_3 (new Integer'(1234), 1, new Float'(1.234));
 begin
    null;
 end Ada_Mode.Nominal;

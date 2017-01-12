@@ -44,7 +44,7 @@ package Ada_Mode.Parens is
         := 1.0)
      return Float;
 
-   type Array_Type_1 is array (1 .. 4) of Integer;
+   type Array_Type_1 is array (1 .. 3) of Integer;
 
    function Function_2 (Left, Right : in Array_Type_1) return Array_Type_1;
 
@@ -54,4 +54,11 @@ package Ada_Mode.Parens is
    --EMACSCMD:(progn (end-of-line 3)(delete-char -1)(forward-word -1)(prog1 (ada-in-paramlist-p)(end-of-line 1)(insert ";")))
    --EMACSRESULT:nil
    A : Integer := 1 + (5 * 3);
+
+   --  GNAT GPL 2014 accepts this without parens around the enitre
+   --  expression, but that's a compiler bug.
+   function Expression_Function_1 (V : Integer) return Boolean
+     is ((V = V and then True)
+           or else True);
+
 end Ada_Mode.Parens;
