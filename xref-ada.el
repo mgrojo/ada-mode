@@ -1,6 +1,6 @@
 ;; xref-ada.el --- ada-mode backend for xref.el -*-lexical-binding:t-*-
 ;;
-;; not loaded from ada-mode.el yet; xref not in released emacs.
+;; requires emacs 25
 
 (eval-and-compile
   (when (> emacs-major-version 24)

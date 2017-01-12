@@ -558,6 +558,11 @@ Prompt user if more than one."
            (t
             nil)))
 
+	  ((looking-at "(style) reserved words must be all lower case")
+	   (set-buffer source-buffer)
+	   (downcase-word 1)
+	   t)
+
 	  ((looking-at "(style) space not allowed")
 	   (set-buffer source-buffer)
 	   ;; Error places point on space. More than one trailing space

@@ -1063,7 +1063,8 @@ new indentation for point."
     ;; Note that we must indent the prev and next lines, in case
     ;; they are not currently correct.
     (cond
-     ((= 0 (% indent ada-indent))
+     ((and (not after-comment)
+	   (= 0 (% indent ada-indent)))
       ;; this will handle comments at bob and eob, so we don't
       ;; need to worry about those positions in the next checks.
       indent)
