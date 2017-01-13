@@ -86,7 +86,7 @@
         (progn
         (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
         (wisi-containing-action 3 4)))
-       ((FOR IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON )
+       ((FOR IDENTIFIER LEFT_PAREN discrete_choice RIGHT_PAREN USE expression SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
         (wisi-containing-action 6 7)))
@@ -315,9 +315,9 @@
       ((default . error) (USE .  87) (LEFT_PAREN .  86))
       ((default . error) (DOT .  40) (IS .  85))
       ((default . error) (STRING_LITERAL .  84))
-      ((default . error) (RIGHT_PAREN .  111))
-      ((default . error) (END . (case_items . 0)) (WHEN . ( 108 (case_items . 0))))
-      ((default . error) (STRING_LITERAL .  107))
+      ((default . error) (RIGHT_PAREN .  113))
+      ((default . error) (END . (case_items . 0)) (WHEN . ( 110 (case_items . 0))))
+      ((default . error) (RIGHT_PAREN . (discrete_choice . 0)) (STRING_LITERAL .  108) (OTHERS .  107))
       ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (STRING_LITERAL .  105))
       ((default . error) (DOT . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  21))
@@ -338,15 +338,15 @@
       ((default . error) (DOT .  40) (IS .  121))
       ((default . error) (RIGHT_PAREN .  120))
       ((default . error) (AMPERSAND .  41) (SEMICOLON .  119))
+      ((default . error) (RIGHT_PAREN . (discrete_choice . 2)) (VERTICAL_BAR . (discrete_choice . 2)) (EQUAL_GREATER . (discrete_choice . 2)))
+      ((default . error) (RIGHT_PAREN . (discrete_choice . 1)) (VERTICAL_BAR . (discrete_choice . 1)) (EQUAL_GREATER . (discrete_choice . 1)))
       ((default . error) (RIGHT_PAREN .  118))
-      ((default . error) (VERTICAL_BAR . (discrete_choice . 0)) (EQUAL_GREATER . (discrete_choice . 0)) (STRING_LITERAL .  115) (OTHERS .  114))
+      ((default . error) (VERTICAL_BAR . (discrete_choice . 0)) (EQUAL_GREATER . (discrete_choice . 0)) (STRING_LITERAL .  108) (OTHERS .  107))
       ((default . error) (END . (case_items . 1)) (WHEN . (case_items . 1)))
-      ((default . error) (END .  112) (WHEN .  108))
+      ((default . error) (END .  114) (WHEN .  110))
       ((default . error) (AMPERSAND . (attribute_reference . 1)) (SEMICOLON . (attribute_reference . 1)) (RIGHT_PAREN . (attribute_reference . 1)) (COMMA . (attribute_reference . 1)))
       ((default . error) (CASE .  135))
       ((default . error) (WHEN . (case_items . 2)) (END . (case_items . 2)))
-      ((default . error) (VERTICAL_BAR . (discrete_choice . 2)) (EQUAL_GREATER . (discrete_choice . 2)))
-      ((default . error) (VERTICAL_BAR . (discrete_choice . 1)) (EQUAL_GREATER . (discrete_choice . 1)))
       ((default . error) (EQUAL_GREATER . (discrete_choice_list . 0)) (VERTICAL_BAR . (discrete_choice_list . 0)))
       ((default . error) (VERTICAL_BAR .  134) (EQUAL_GREATER .  133))
       ((default . error) (USE .  132))
@@ -365,7 +365,7 @@
       ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (END . (declarative_items_opt . 0)) (WHEN . (declarative_items_opt . 0)) (TYPE .  58) (IDENTIFIER .  59) (NULL .  56) (CASE .  54) (FOR .  55) (PACKAGE .  57))
-      ((default . error) (EQUAL_GREATER . (discrete_choice . 0)) (VERTICAL_BAR . (discrete_choice . 0)) (STRING_LITERAL .  115) (OTHERS .  114))
+      ((default . error) (EQUAL_GREATER . (discrete_choice . 0)) (VERTICAL_BAR . (discrete_choice . 0)) (STRING_LITERAL .  108) (OTHERS .  107))
       ((default . error) (SEMICOLON .  136))
       ((default . error) (WHEN . (case_statement . 0)) (END . (case_statement . 0)) (IDENTIFIER . (case_statement . 0)) (TYPE . (case_statement . 0)) (PACKAGE . (case_statement . 0)) (NULL . (case_statement . 0)) (FOR . (case_statement . 0)) (CASE . (case_statement . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice_list . 1)) (VERTICAL_BAR . (discrete_choice_list . 1)))
@@ -463,8 +463,8 @@
       nil
       nil
       nil
-      ((case_item . 109)(case_items . 110))
-      nil
+      ((case_item . 111)(case_items . 112))
+      ((discrete_choice . 109))
       ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 106)(external_value . 27)(identifier_opt . 28)(name . 29)(string_expression . 30)(string_primary . 31)(term . 33))
       nil
       ((identifier_opt . 28)(name . 104))
@@ -486,11 +486,11 @@
       nil
       nil
       nil
+      nil
+      nil
       ((discrete_choice . 116)(discrete_choice_list . 117))
       nil
-      ((case_item . 113))
-      nil
-      nil
+      ((case_item . 115))
       nil
       nil
       nil

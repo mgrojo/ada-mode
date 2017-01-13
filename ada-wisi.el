@@ -1,8 +1,8 @@
-, 2017;;; ada-wisi.el --- Indentation engine for Ada mode, using the wisi generalized LALR parser  -*- lexical-binding:t -*-
+;;; ada-wisi.el --- Indentation engine for Ada mode, using the wisi generalized LALR parser  -*- lexical-binding:t -*-
 ;;
 ;; [1] ISO/IEC 8652:2012(E); Ada 2012 reference manual
 ;;
-;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -1122,8 +1122,7 @@ new indentation for point."
       ;; would align the comment with the block-middle, which is wrong. So
       ;; we only call ada-wisi-after-cache.
 
-      (let ((indent (ada-wisi-after-cache))
-	    prev-indent next-indent)
+      (let ((indent (ada-wisi-after-cache)))
 	(if ada-indent-comment-gnat
 	    (ada-wisi-comment-gnat indent nil)
 	  ;; not forcing gnat style

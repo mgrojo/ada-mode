@@ -41,6 +41,13 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
+add fall-back logic
+    use ada_mode_gps_indent when wisi-parse fails
+
+ada_mode_gps_indent.gpr use gps.gpr?
+    reduce source installed?
+    or doc why not
+
 more ada-comment-gnat
                Mime_Type : constant String :=
                  --  MIME types from https://www.iana.org/assignments/media-types/media-types.xhtml

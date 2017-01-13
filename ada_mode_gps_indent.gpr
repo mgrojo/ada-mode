@@ -16,7 +16,6 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
---  GPS source must be configured (tested with MSYS2 64 bit)
 with "gnat_util";
 with "gnatcoll_sqlite";
 with "gnatcoll_iconv";
@@ -24,14 +23,8 @@ project Ada_Mode_GPS_Indent is
    for Main use ("ada_mode_gps_indent.adb");
 
    for Source_Dirs use
-     ("..",
+     (".",
       External ("GPS_ROOT") & "/common/core/src",
-      -- External ("GPS_ROOT") & "/gnatlib/src/generated",
-      -- External ("GPS_ROOT") & "/gnatlib/src/iconv",
-      -- External ("GPS_ROOT") & "/gnatlib/src/iconv/no_iconv",
-      -- External ("GPS_ROOT") & "/gnatlib/src/",
-      -- External ("GPS_ROOT") & "/gnatlib/src/sqlite/",
-      -- External ("GPS_ROOT") & "/gnatlib/src/sqlite/no_sqlite",
       External ("GPS_ROOT") & "/syntax/src",
       External ("GPS_ROOT") & "/language/src/"
       );

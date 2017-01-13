@@ -1,9 +1,9 @@
-, 2017\input texinfo  @c -*-texinfo-*-
+\input texinfo  @c -*-texinfo-*-
 @setfilename ../../info/ada-mode
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999 - 2016  Free Software Foundation, Inc.
+Copyright @copyright{} 1999 - 2017  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -163,7 +163,7 @@ version. @code{gpr_query} creates a database of cross reference
 information; that database must be deleted if the compiler version
 changes, to force a complete rebuild.
 
-@subsection Building GNATCOLL if required
+@subsection Building GNATCOLL
 
 @code{GNATCOLL} may already be installed on your system: if it is,
 @file{$prefix/lib/gnat} will contain @file{gnatcoll} GPR files. If
@@ -200,16 +200,58 @@ gcc -O2 -o sqlite3 shell.c sqlite3.c -ldl -lpthread
 @subsection Building @code{gpr_query}
 
 To build and install @code{gpr_query}, assuming the
-@code{ada-mode-5.2.0} GNU ELPA package is installed:
+@code{ada-mode-5.2.xx} GNU ELPA package is installed:
 
 @example
-cd ~/.emacs.d/elpa/ada-mode-5.2.0
+cd ~/.emacs.d/elpa/ada-mode-5.2.xx
 gprbuild -p -P gpr_query.gpr
 gprinstall -P gpr_query.gpr
 @end example
 
 @code{ada-mode} will use @code{gpr_query} for cross reference
 functions if @code{gpr_query} is found in @code{PATH}.
+
+@node ada_mode_gps_indent, Upgrading, gpr_query, Installation
+@section ada_mode_gps_indent
+@file{ada-gps} is an alternate indentation engine, using the
+indentation engine from AdaCore's GPS. It is very fast for indenting
+single lines in very large files; the default ada-wisi is slow in that
+case.
+
+To install it, assuming the @code{ada-mode-5.2.xx} GNU ELPA package is
+installed:
+@itemize
+@item
+Install @file{gnatcoll} as above (@ref{Building GNATCOLL}).
+
+@item
+Download GPS source from @url{libre.adacore.com}.
+
+@item
+Unpack GPS source somewhere convenient
+
+@item
+Edit the GPS @file{configure} script; comment out the section ``detect
+libclang'' (full GPS uses libclang; ada_mode_gps_client does not).
+
+@item
+Configure GPS (use Cygwin on Windows). This creates
+@file{common/core/src/config.ads}.
+@example
+cd <...>/gps-gpl-xxx-src
+./configure
+@end example
+
+@item
+compile @file{ada_mode_gps_indent.adb}:
+@example
+cd ~/.emacs.d/elpa/ada-mode-5.xx/build/Makefile
+export GPS_ROOT=<path to GPS>
+gprbuild -p -P ada_mode_gps_indent.gpr
+gprinstall -p -P ada_mode_gps_indent.gpr
+@end example
+
+@end itemize
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode

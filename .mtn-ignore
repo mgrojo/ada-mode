@@ -1,10 +1,9 @@
 ^.*\.elc$
-^NUL$
+^.*\.exe$
 ^ada-grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^autoloads\.el$
-^build/.*\.exe$
 ^build/.*\.sig$
 ^build/.*\.tar\.gz$
 ^build/gpr_query$
@@ -18,7 +17,6 @@
 ^build/wisi/.*\.ali$
 ^build/wisi/.*\.diff$
 ^build/wisi/.*\.el$
-^build/wisi/.*\.exe$
 ^build/wisi/.*\.log$
 ^build/wisi/.*\.output$
 ^build/wisi/.*\.stamp$
@@ -33,9 +31,7 @@
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/.*\.o$
-^test/Example_1/.*\.exe$
 ^test/Example_1/.*\.o$
-^test/Example_2/hello\.exe$
 ^test/Example_2/hello\.o$
 ^test/Example_4/Gnat_Project/hello_pkg\.o$
 ^test/debug\.adb$
