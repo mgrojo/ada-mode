@@ -53,6 +53,7 @@ test fall-back logic
         add a loop
 
     test on Debian
+        same problem, smaller buffer
 
     test on Emacs 24.5
         Windows 8.1: no error (sigh)

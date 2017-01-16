@@ -225,7 +225,16 @@ installed:
 Install @file{gnatcoll} as above (@ref{Building GNATCOLL}).
 
 @item
-Download GPS source from @url{libre.adacore.com}.
+From @url{libre.adacore.com}, download:
+@itemize
+@item
+GPS source
+@item
+gtkada installer - only needed for configure
+@end itemize
+
+@item
+Install gtkada in current gnat compiler location
 
 @item
 Unpack GPS source somewhere convenient
@@ -243,7 +252,7 @@ cd <...>/gps-gpl-xxx-src
 @end example
 
 @item
-compile @file{ada_mode_gps_indent.adb}:
+Compile and install @file{ada_mode_gps_indent.adb}:
 @example
 cd ~/.emacs.d/elpa/ada-mode-5.xx/build/Makefile
 export GPS_ROOT=<path to GPS>

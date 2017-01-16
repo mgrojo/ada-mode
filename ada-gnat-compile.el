@@ -6,7 +6,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -37,6 +37,7 @@
 (require 'cl-lib)
 (require 'compile)
 (require 'gnat-core)
+(require 'ada-fix-error)
 
 ;;;;; code
 

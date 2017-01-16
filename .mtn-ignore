@@ -3,6 +3,7 @@
 ^ada-grammar\.output$
 ^ada-mode\.html$
 ^ada-mode\.info$
+^ada_mode_gps_indent$
 ^autoloads\.el$
 ^build/.*\.sig$
 ^build/.*\.tar\.gz$
