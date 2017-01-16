@@ -2,7 +2,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2014  Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -25,7 +25,9 @@
 (require 'ada-mode)
 
 (defcustom ada-gps-size-threshold 100000
-  "Max size (in characters) for using ada-wisi indentation engine."
+  "Max size (in characters) for using ada-wisi indentation engine.
+Buffers larger than this will use ada-gps indentation engine,
+which is faster on large buffers."
   :type 'integer
   :group 'ada-indentation
   :safe 'integerp)
@@ -48,7 +50,7 @@
 
 (defconst ada-gps-buffer-name " *ada_gps*")
 
-;; ada-gps-exec declared in ada-mode for auto-detection of indent engine
+;; ada-gps-indent-exec declared in ada-mode for auto-detection of indent engine
 
 (defun ada-gps--start-process ()
   "Start the session process running ada_gps."
@@ -56,9 +58,9 @@
     ;; user may have killed buffer
     (setf (ada-gps--session-buffer ada-gps-session) (get-buffer-create ada-gps-buffer-name)))
 
-  (let ((exec-file (locate-file ada-gps-exec exec-path '("" ".exe"))))
+  (let ((exec-file (locate-file ada-gps-indent-exec exec-path '("" ".exe"))))
     (unless exec-file
-      (error "%s not found on `exec-path'" ada-gps-exec))
+      (error "%s not found on `exec-path'" ada-gps-indent-exec))
 
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
       (erase-buffer); delete any previous messages, prompt
@@ -145,30 +147,36 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
 ;;;;; indenting
 
+(defun ada-gps-indent-compute ()
+  "For `wisi-indent-fallback'; compute indent for current line."
+  (save-excursion
+    ;; send complete current line
+    (end-of-line)
+    (ada-gps-session-send
+     (format "compute_indent %d %d" (line-number-at-pos) (1- (position-bytes (point)))) nil t)
+    (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
+    )
+  (with-current-buffer (ada-gps--session-buffer ada-gps-session)
+    (goto-char (point-min))
+    (if (looking-at (concat " *\\([0-9]+\\)$"))
+	(string-to-number (match-string 1))
+
+      ;; gps did not compute indent for some reason
+      (when (> ada-gps-debug 0)
+	(message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max))))
+      0)
+    ))
+
 (defun ada-gps-indent-line ()
   "Indent current line using the ada-gps indentation engine."
   (interactive)
   (let ((savep (point))
-	indent)
+	(indent (ada-gps-indent-compute)))
+
     (save-excursion
       (back-to-indentation)
-      (when (>= (point) savep) (setq savep nil))
-
-      ;; send complete current line
-      (end-of-line)
-      (ada-gps-session-send
-       (format "compute_indent %d %d" (line-number-at-pos) (1- (position-bytes (point)))) nil t)
-      (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
-      )
-    (with-current-buffer (ada-gps--session-buffer ada-gps-session)
-      (goto-char (point-min))
-      (if (looking-at (concat " *\\([0-9]+\\)$"))
-	  (setq indent (string-to-number (match-string 1)))
-	;; gps did not compute indent for some reason
-	(when (> ada-gps-debug 0)
-	  (message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max))))
-	(setq indent 0))
-      )
+      (when (>= (point) savep)
+	(setq savep nil)))
 
     (if savep
 	;; point was inside line text; leave it there
@@ -182,31 +190,30 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   "Set up a buffer for indenting with ada-gps."
   (set (make-local-variable 'indent-line-function) 'ada-gps-indent-line)
   (ada-gps-require-session)
-
-  ;; FIXME: need this?
-  ;; (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
-
-  ;; FIXME: fontify 'return' (see ada-wisi-post-local-vars)
   )
 
 (require 'ada-wisi)
 
 (defun ada-gps-or-wisi-setup ()
-  "If buffer size > `ada-gps-size-threshold', use ada-gps; otherwise use ada-wisi indentation engine,"
+  "If buffer size > `ada-gps-size-threshold', use ada-gps;
+otherwise use ada-wisi indentation engine with ada-gps fallback,"
   (if (> (point-max) ada-gps-size-threshold)
       (progn
 	(ada-gps-setup)
 
 	;; locally clear global function pointers set by loading ada-wisi
 	(set (make-local-variable 'ada-fix-context-clause) nil)
-	(set (make-local-variable 'ada-goto-declaration-start) nil)
 	(set (make-local-variable 'ada-goto-declaration-end) nil)
+	(set (make-local-variable 'ada-goto-declaration-start) nil)
 	(set (make-local-variable 'ada-goto-declarative-region-start) nil)
 	(set (make-local-variable 'ada-goto-end) nil)
+	(set (make-local-variable 'ada-goto-subunit-name) nil)
+	(set (make-local-variable 'ada-in-case-expression) nil)
 	(set (make-local-variable 'ada-in-paramlist-p) nil)
 	(set (make-local-variable 'ada-indent-statement) nil)
 	(set (make-local-variable 'ada-make-subprogram-body) nil)
 	(set (make-local-variable 'ada-next-statement-keyword) nil)
+	(set (make-local-variable 'ada-on-context-clause) nil)
 	(set (make-local-variable 'ada-prev-statement-keyword) nil)
 	(set (make-local-variable 'ada-reset-parser) nil)
 	(set (make-local-variable 'ada-scan-paramlist) nil)
@@ -214,16 +221,16 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 	(set (make-local-variable 'ada-which-function) nil)
 	)
 
-    (ada-wisi-setup))
-  )
+    (ada-wisi-setup)
+    (setq wisi-indent-fallback 'ada-gps-indent-compute)
+    ))
 
-(unless (locate-file ada-gps-exec exec-path '("" ".exe"))
-  (error "%s not found on `exec-path'" ada-gps-exec))
+(provide 'ada-gps)
+
+(unless (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
+  (error "%s not found on `exec-path'" ada-gps-indent-exec))
 
 (add-hook 'ada-mode-hook 'ada-gps-or-wisi-setup)
 (setq ada-mode-hook (delq 'ada-wisi-setup ada-mode-hook))
-
-(provide 'ada-gps)
-(provide 'ada-indent-engine)
 
 ;; end of file

@@ -143,13 +143,14 @@ else
 # windows
 EXE_EXT := .exe
 
-ada_mode_gps_indent$(EXE_EXT) : export GPS_ROOT ?= /Projects/gps-release-ide-6.0.1-src/
+ada_mode_gps_indent$(EXE_EXT) : export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
 
 endif
 
 # for debugging:
 export Gnatcoll_Build := Debug
 # export Gpr_Query_Build := Debug
+export Ada_Mode_GPS_Indent_Build := Debug
 export BUILD := Debug
 
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
@@ -162,31 +163,31 @@ gpr_query$(EXE_EXT) : force
 
 # (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
 ada_mode_gps_indent$(EXE_EXT) : force
-	gprbuild -p ada_mode_gps_indent.gpr
+	gprbuild -p ../ada_mode_gps_indent.gpr
 
 one : ada_mode_gps_indent$(EXE_EXT)
 	./ada_mode_gps_indent$(EXE_EXT) < commands.txt
 
 trace :
-	addr2line -e gpr_query 0x925505 0x4166d3 0x40cb34 0x391ae1ed1b 0x40cb77
+	addr2line -e ../ada_mode_gps_indent.exe 0x96c9bd 0x96b1f6 0x96b24a 0x401cb6 0x989036 0x4013db 0x759e7c02 0x7708ab8d 0x7708ab58
 
 $(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -P ../gpr_query.gpr
 
 $(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
-	gprinstall -f -P ../ada_mode_gps_indent.gpr
+	gprinstall -f -p -P ../ada_mode_gps_indent.gpr
 
 install : install_gpr_query install_ada_mode_gps_indent
 
 clean ::
-	rm -rf obj
-	rm -rf gpr_query$(EXE_EXT)
-	rm -rf ada_mode_gps_indent$(EXE_EXT)
+	rm -rf ../obj
+	rm -rf ../gpr_query$(EXE_EXT)
+	rm -rf ../ada_mode_gps_indent$(EXE_EXT)
 
 # (getenv "GPR_PROJECT_PATH")
 
 # Local Variables:
-# eval: (setenv "GPS_ROOT" "/Projects/gps-release-ide-6.0.1-src")
+# eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 # eval: (ada-parse-prj-file "ada_mode_gps_indent.prj")
 # eval: (ada-select-prj-file "ada_mode_gps_indent.prj")
 # end:

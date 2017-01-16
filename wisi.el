@@ -1,6 +1,6 @@
 ;;; wisi.el --- Utilities for implementing an indentation/navigation engine using a generalized LALR parser -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -1452,6 +1452,18 @@ correct. Must leave point at indentation of current line.")
 (defvar-local wisi-indent-failed nil
   "Non-nil when wisi-indent-line fails due to parse failing; cleared when indent succeeds.")
 
+(defvar-local wisi-indent-fallback 'wisi-indent-fallback-default
+  "Function to compute indent for current line when wisi parse fails.")
+
+(defun wisi-indent-fallback-default ()
+  ;; no indent info at point. Assume user is
+  ;; editing; indent to previous line, fix it
+  ;; after parse succeeds
+  (setq wisi-indent-failed t)
+  (forward-line -1);; safe at bob
+  (back-to-indentation)
+  (current-column))
+
 (defun wisi-indent-line ()
   "Indent current line using the wisi indentation engine."
   (interactive)
@@ -1467,14 +1479,7 @@ correct. Must leave point at indentation of current line.")
 
       (if (> (point) wisi-cache-max)
 	  ;; parse failed
-	  (progn
-	    ;; no indent info at point. Assume user is
-	    ;; editing; indent to previous line, fix it
-	    ;; after parse succeeds
-	    (setq wisi-indent-failed t)
-	    (forward-line -1);; safe at bob
-	    (back-to-indentation)
-	    (setq indent (current-column)))
+	  (setq indent (funcall wisi-indent-fallback))
 
 	;; parse succeeded
 	(when wisi-indent-failed

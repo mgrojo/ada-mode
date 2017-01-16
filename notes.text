@@ -1,5 +1,13 @@
 General notes on Emacs Ada mode
 
+build/Makefile
+build/wisi/Makefile
+
+o.e.a.stephe-1 (from o.e.a): external process opentoken parser
+o.e.a.stephe-2 (from o.e.a): external process gps parser
+o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
+o.e.a.stephe-4 (from o.e.a): available
+
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)
 
@@ -35,14 +43,20 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- functional (next page for speed issues/ideas)
-o.e.a.stephe-1 (from o.e.a): external process opentoken parser
-o.e.a.stephe-2 (from o.e.a): external process gps parser
-o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a): available
 
-add fall-back logic
-    use ada_mode_gps_indent when wisi-parse fails
+ functional (next page for speed issues/ideas)
+(setq ada-gps-debug 1)
+
+test fall-back logic
+    test/ada_mode-interactive_common.adb:104 failing
+    emacs sends 4096 of 4411 bytes, ada doesn't wait for the rest!
+        test on debian
+            ask philippe to report bug/ask question - see email
+        add a loop
+
+    test on Debian
+
+    test on Emacs 24.5
 
 ada_mode_gps_indent.gpr use gps.gpr?
     reduce source installed?

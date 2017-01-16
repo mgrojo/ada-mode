@@ -34,6 +34,7 @@ COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPI
 COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))

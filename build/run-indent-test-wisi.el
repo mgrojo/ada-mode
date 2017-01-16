@@ -2,6 +2,7 @@
 
 ;; ada-mode, gpr-mode default to ada-wisi, gpr-wisi
 ;; ada-xref-tool defaults to gpr_query if that is in path
+;; ada-gps is fallback indent if ada_mode_gps_indent is in path
 
 (setq ada-xref-tool 'gnat)
 

@@ -306,7 +306,7 @@ nil, only the file name."
   :type 'boolean
   :safe #'booleanp)
 
-(defcustom ada-gps-exec "ada_mode_gps_indent"
+(defcustom ada-gps-indent-exec "ada_mode_gps_indent"
   ;; declared here, not in ada-gps.el, for auto-detection of indent engine below
   "Name of executable to use for ada_mode_gps_indent,"
   :type 'string
@@ -2941,10 +2941,8 @@ The paragraph is indented on the first line."
 
 (require 'ada-build)
 
-(unless (featurep 'ada-indent-engine)
-  (if (locate-file ada-gps-exec exec-path '("" ".exe"))
-      (require 'ada-gps)
-    (require 'ada-wisi)))
+(when (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
+  (require 'ada-gps))
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))

@@ -50,8 +50,8 @@ test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f ada_mode-nominal-child*
-one : one-clean ada_mode-nominal-child.ads.diff
+	rm -f ada_mode-interactive_common*
+one : one-clean ada_mode-interactive_common.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -138,6 +138,7 @@ test-ada-gpr_query.stamp : force
 summarize :
 	cat *.log
 
+# compare gps indent to ada-wisi indent
 test-ada-gps : RUNTEST := run-indent-test-gps.el
 test-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
