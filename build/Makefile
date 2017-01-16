@@ -5,13 +5,13 @@
 # test packages from process-archive: (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # test packages from all-in-place: (setq package-archives (list (cons "test" "/Projects/elpa/packages")))
 #
-# Ideally we'd have 5 packages with dependencies:
+# Ideally we'd have 5 elpa packages with dependencies:
 #
-# ada-mode     => gnat-core, wisi, gpr-query
-# gpr-mode     => gnat-core, wisi
-# gnat-core    =>
+# ada-mode  => gnat-core, wisi, gpr-query
+# gpr-mode  => gnat-core, wisi
+# gnat-core =>
 # gpr_query => gnat-core
-# wisi         =>
+# wisi 	    =>
 #
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
