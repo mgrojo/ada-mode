@@ -35,6 +35,9 @@ procedure Ada_Mode_GPS_Indent is
 
    Programmer_Error : exception;
 
+   Version : constant String := "1.0";
+   --  Must match ada-gps.el ada-gps-exe-version
+
    Prompt : constant String := "GPS_Indent> ";
 
    --  Indentation parameters to Analyze_Ada_Source
@@ -56,6 +59,9 @@ procedure Ada_Mode_GPS_Indent is
       Put_Line ("each command starts with a two-character decimal count of bytes in command");
       New_Line;
       Put_Line ("Commands: ");
+      New_Line;
+      Put_Line ("07version");
+      Put_Line ("  outputs: <version>");
       New_Line;
       Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>");
       New_Line;
@@ -224,6 +230,9 @@ begin
 
          if Command_Line (1 .. Last) = "exit" then
             exit Commands;
+
+         elsif Command_Line (1 .. Last) = "version" then
+            Put_Line (Version);
 
          elsif Command_Line (1 .. Last) = "set_params" then
             declare

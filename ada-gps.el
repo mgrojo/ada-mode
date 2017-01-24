@@ -34,6 +34,9 @@ which is faster on large buffers."
 
 (defvar ada-gps-debug 0)
 
+(defconst ada-gps-indent-exec-version "1.0"
+  "Version of ada_mode_gps_indent executable this code expects.")
+
 ;;;;; sessions
 
 ;; ada_mode_gps_indent runs a loop, waiting for indentation requests.
@@ -69,10 +72,7 @@ which is faster on large buffers."
       (set-process-query-on-exit-flag (ada-gps--session-process ada-gps-session) nil)
       (ada-gps-session-wait)
 
-      ;; check for warnings about invalid directories etc
-      (goto-char (point-min))
-      (when (search-forward "warning:" nil t)
-	(error "ada_gps warnings"))
+      (ada-gps-check-version)
       )))
 
 (defun ada-gps-show-proc-id ()
@@ -145,6 +145,17 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (when (process-live-p (ada-gps--session-process ada-gps-session))
     (process-send-string (ada-gps--session-process ada-gps-session) "04exit")
     ))
+
+(defun ada-gps-check-version ()
+  "Throw an error if gps executable version does not match expected."
+  (ada-gps-session-send "version" t t)
+  (with-current-buffer (ada-gps--session-buffer ada-gps-session)
+    (goto-char (point-min))
+    (when (not (looking-at ada-gps-indent-exec-version))
+      (error "Incorrect version for '%s'; found '%s', expecting '%s'."
+	     ada-gps-indent-exec
+	     (buffer-substring (point-min) (line-end-position))
+	     ada-gps-indent-exec-version))))
 
 (defun ada-gps-show-buffer ()
   "Show ada-gps buffer."

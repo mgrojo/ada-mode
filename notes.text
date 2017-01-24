@@ -47,8 +47,6 @@ install packages in -Q:
  functional (next page for speed issues/ideas)
 (setq ada-gps-debug 1)
 
-add ada_mode_gps_indent version number, check it
-
 test/gps_indent_options.adb
     more gps options:
         Indent_Decl         => 2, -- ?
