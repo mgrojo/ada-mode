@@ -1050,8 +1050,14 @@ new indentation for point."
 	  )))
       )))
 
-(defun ada-wisi-comment-gnat (indent after-comment)
-  "Modify INDENT to match gnat rules. Return new indent."
+(defun ada-wisi-comment-gnat (indent after)
+  "Modify INDENT to match gnat rules. Return new indent.
+INDENT must be indent computed by `ada-wisi-after-cache'.
+AFTER indicates what is on the previous line; one of:
+
+code:         blank line, or code with no trailing comment
+code-comment: code with trailing comment
+comment:      comment"
   (let (prev-indent next-indent)
     ;; the gnat comment indent style check; comments must
     ;; be aligned to one of:
@@ -1063,14 +1069,14 @@ new indentation for point."
     ;; Note that we must indent the prev and next lines, in case
     ;; they are not currently correct.
     (cond
-     ((and (not after-comment)
+     ((and (not (eq after 'comment))
 	   (= 0 (% indent ada-indent)))
       ;; this will handle comments at bob and eob, so we don't
       ;; need to worry about those positions in the next checks.
       indent)
 
      ((and (setq prev-indent
-		 (if after-comment
+		 (if (eq after 'comment)
 		     (progn (forward-comment -1) (current-column))
 		   (save-excursion (forward-line -1)(indent-according-to-mode)(current-indentation))))
 	   (= indent prev-indent))
@@ -1086,16 +1092,28 @@ new indentation for point."
       indent)
 
      (t
-      (if after-comment
-	  ;; probably after comment that follows code on the same line
-	  ;; test/ada_mode-conditional_expressions.adb
-	  ;; when 0  => 41,  -- comment _not_ matching GNAT style check
-	  ;;                   -- comment matching GNAT
-	  (+ indent (- ada-indent (% indent ada-indent)))
+      (cl-ecase after
+	(code-comment
+	 ;; After comment that follows code on the same line
+	 ;; test/ada_mode-conditional_expressions.adb
+	 ;;
+	 ;; then 44     -- comment matching GNAT
+	 ;;             -- second line
+	 ;;
+	 ;; else 45)); -- comment _not_ matching GNAT style check
+	 ;;             -- comment matching GNAT
+	 ;;
+	 (+ indent (- ada-indent (% indent ada-indent))))
 
-	;; prev-indent and next-indent are both set here;
-	;; could add more checks to decide which one to use.
-	prev-indent))
+	((code comment)
+	 ;; After code with no trailing comment, or after comment
+	 ;; test/ada_mode-conditional_expressions.adb
+	 ;; (if J > 42
+	 ;; -- comment indent matching GNAT style check
+	 ;; -- second line of comment
+	 prev-indent)
+
+	))
      )))
 
 (defun ada-wisi-comment ()
@@ -1103,38 +1121,61 @@ new indentation for point."
   ;; We know we are at the first token on a line. We check for comment
   ;; syntax, not comment-start, to accomodate gnatprep, skeleton
   ;; placeholders, etc.
-  (when (and (not (= (point) (point-max))) ;; no char after EOB!
-	     (= 11 (syntax-class (syntax-after (point)))))
+  (cond
+   ((not (and (not (= (point) (point-max))) ;; no char after EOB!
+	      (= 11 (syntax-class (syntax-after (point))))))
+    ;; not looking at comment
+    nil)
 
-    ;; We are at a comment; indent to previous code or comment.
-    (cond
-     ((and ada-indent-comment-col-0
-	   (= 0 (current-column)))
-      0)
+   ;; We are at a comment; indent to previous code or comment.
+   ((and ada-indent-comment-col-0
+	 (= 0 (current-column)))
+    0)
 
-     ((or
-       (save-excursion (forward-line -1) (looking-at "\\s *$"))
-       (save-excursion (forward-comment -1)(not (looking-at comment-start))))
-      ;; comment is after a blank line or code; indent as if code
-      ;;
-      ;; ada-wisi-before-cache will find the keyword _after_ the
-      ;; comment, which could be a block-middle or block-end, and that
-      ;; would align the comment with the block-middle, which is wrong. So
-      ;; we only call ada-wisi-after-cache.
+   (t
+    (let (after indent)
+      (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
+	  ;; after blank line
+	  (setq after 'code)
 
-      (let ((indent (ada-wisi-after-cache)))
-	(if ada-indent-comment-gnat
-	    (ada-wisi-comment-gnat indent nil)
-	  ;; not forcing gnat style
-	  indent)))
+	(save-excursion
+	  (forward-comment -1)
+	  (if (eolp)
+	      ;; no comment on previous line
+	      (setq after 'code)
 
-      (t
-       ;; comment is after a comment
-       (let ((indent (current-column)))
+	    (setq indent (current-column))
+	    (if (not (= indent (progn (back-to-indentation) (current-column))))
+		;; previous line has comment following code
+		(setq after 'code-comment)
+	      ;; previous line has plain comment
+	      (setq indent (current-column))
+	      (setq after 'comment)
+	      )))
+	)
+
+      (cl-ecase after
+	(code
+	 ;; ada-wisi-before-cache will find the keyword _after_ the
+	 ;; comment, which could be a block-middle or block-end, and that
+	 ;; would align the comment with the block-middle, which is wrong. So
+	 ;; we only call ada-wisi-after-cache.
+	 (let ((indent (ada-wisi-after-cache)))
+	   (if ada-indent-comment-gnat
+	       (ada-wisi-comment-gnat indent 'code)
+	     ;; not forcing gnat style
+	     indent)))
+
+	(comment
+	 ;; assume previous line indented correctly
+	 indent)
+
+	(code-comment
 	 (if ada-indent-comment-gnat
-	     (ada-wisi-comment-gnat indent t)
-	   indent)))
-      )))
+	     (ada-wisi-comment-gnat indent 'code-comment)
+	   indent))
+	)))
+   ))
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
