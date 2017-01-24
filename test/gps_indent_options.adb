@@ -17,7 +17,7 @@ begin
   end case;
 end;
 -- Local Variables:
--- eval: (ada-gps-setup)
+-- ada-gps-size-threshold: 0
 -- ada-indent:        2
 -- ada-indent-broken: 1
 -- ada-indent-when:   0

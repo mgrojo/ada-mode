@@ -155,13 +155,20 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
 ;;;;; indenting
 
+(defun ada-gps-send-params ()
+  "Send indentation params to current gps session."
+  (ada-gps-session-send
+   (format "set_params %d %d %d" ada-indent ada-indent-broken ada-indent-when)
+   t t))
+
+(defconst ada-gps-output-regexp " *\\([0-9]+\\) +\\([0-9]+\\)$"
+  "Matches gps process output for one line.")
+
 (defun ada-gps-indent-compute ()
   "For `wisi-indent-fallback'; compute indent for current line."
 
   ;; always send indent parameters - we don't track what buffer we are in
-  (ada-gps-session-send
-   (format "set_params %d %d %d" ada-indent ada-indent-broken ada-indent-when)
-   t t)
+  (ada-gps-send-params)
 
   (save-excursion
     ;; send complete current line
@@ -172,8 +179,8 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
     )
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
     (goto-char (point-min))
-    (if (looking-at (concat " *\\([0-9]+\\)$"))
-	(string-to-number (match-string 1))
+    (if (looking-at ada-gps-output-regexp)
+	(string-to-number (match-string 2))
 
       ;; gps did not compute indent for some reason
       (when (> ada-gps-debug 0)
@@ -199,10 +206,51 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
       (indent-line-to indent))
     ))
 
+(defun ada-gps-indent-region (start end)
+  "For `indent-region-function'; indent lines in region START END using GPS."
+
+  ;; always send indent parameters - we don't track what buffer we are in
+  (ada-gps-send-params)
+
+  ;; send complete lines
+  (goto-char end)
+  (setq end (line-end-position))
+
+  (let ((source-buffer (current-buffer))
+	(start-line (line-number-at-pos start))
+	(end-line (line-number-at-pos end)))
+
+    (ada-gps-session-send
+     (format "compute_region_indent %d %d %d" start-line end-line (1- (position-bytes end))) nil t)
+    (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
+
+    (with-current-buffer (ada-gps--session-buffer ada-gps-session)
+      ;; buffer contains two numbers per line; Emacs line number,
+      ;; indent. Or an error message.
+      (goto-char (point-min))
+      (while (not (looking-at ada-gps-prompt))
+	(if (looking-at ada-gps-output-regexp)
+	    (let ((line (string-to-number (match-string 1)))
+		  (indent (string-to-number (match-string 2))))
+	      (with-current-buffer source-buffer
+		(goto-char (point-min))
+		(forward-line (1- line))
+		(indent-line-to indent))
+
+	      (forward-line 1))
+
+	  ;; else some error message
+	  (when (> ada-gps-debug 0)
+	    (message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max)))
+	    (goto-char (point-max)))
+	  ))
+    )))
+;;;;; setup
 
 (defun ada-gps-setup ()
   "Set up a buffer for indenting with ada-gps."
   (set (make-local-variable 'indent-line-function) 'ada-gps-indent-line)
+  (set (make-local-variable 'indent-region-function) 'ada-gps-indent-region)
   (ada-gps-require-session)
   )
 
@@ -211,6 +259,12 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 (defun ada-gps-or-wisi-setup ()
   "If buffer size > `ada-gps-size-threshold', use ada-gps;
 otherwise use ada-wisi indentation engine with ada-gps fallback,"
+  ;; ada-gps-size-threshold can be set in file-local variables, which
+  ;; are parsed after ada-mode-hook runs.
+  (add-hook 'hack-local-variables-hook 'ada-gps-post-local-vars nil t))
+
+(defun ada-gps-post-local-vars ()
+  "See `ada-gsp-or-wisi-setup'"
   (if (> (point-max) ada-gps-size-threshold)
       (progn
 	(ada-gps-setup)
@@ -236,6 +290,7 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
 	)
 
     (ada-wisi-setup)
+    (set (make-local-variable 'indent-region-function) nil)
     (setq wisi-indent-fallback 'ada-gps-indent-compute)
     ))
 

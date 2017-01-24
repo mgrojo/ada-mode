@@ -62,8 +62,11 @@ procedure Ada_Mode_GPS_Indent is
       Put_Line ("NNcompute_indent <line> <text_byte_count><text>");
       Put_Line ("  first line is 1 (emacs convention)");
       Put_Line ("  text must be UTF8 encoded");
-      Put_Line ("  outputs: <indent><newline>");
+      Put_Line ("  outputs: <line number> <indent><newline>");
       Put_Line ("  no indent is 0 (emacs convention)");
+      New_Line;
+      Put_Line ("NNcompute_region_indent <start line> <end line> <text_byte_count><text>");
+      Put_Line ("  outputs for each line: <line number> <indent><newline>");
 
       Put_Line ("04exit");
 
@@ -143,16 +146,61 @@ procedure Ada_Mode_GPS_Indent is
       Last    : in Natural;
       Replace : in String)
    is
-      pragma Unreferenced (Line);
       pragma Unreferenced (Last);
    begin
       --  analyze calls replace_cb for ":", ":=" etc. We only
       --  want the leading spaces, for indentation.
       if Replace'Length > 0 and First = 1 then
-         Put_Line (Natural'Image (Replace'Length));
+         Put_Line (Natural'Image (Line) & Natural'Image (Replace'Length));
       end if;
    end Replace_Cb;
 
+   procedure Compute_Indent
+     (Start_Line : in Natural;
+      End_Line   : in Natural;
+      Byte_Count : in Integer)
+   is
+      use Ada.Strings.Unbounded;
+      Buffer : aliased String_Access := new String (1 .. Byte_Count);
+   begin
+      Read_Input (Buffer.all'Address, Byte_Count);
+
+      Ada_Analyzer.Analyze_Ada_Source
+        (Buffer.all, GNATCOLL.Symbols.Allocate,
+         Indent_Params          =>
+           (Indent_Level        => Indent_Level,
+            Indent_Continue     => Indent_Continue,
+            Indent_Decl         => 2,
+            Indent_Conditional  => 1,
+            Indent_Record       => 3,
+            Indent_Case_Extra   => Indent_Case_Extra,
+            Casing_Policy       => Case_Handling.Disabled,
+            Reserved_Casing     => Case_Handling.Unchanged,
+            Ident_Casing        => Case_Handling.Unchanged,
+            Format_Operators    => True,
+            Use_Tabs            => False,
+            Align_On_Colons     => False,
+            Align_On_Arrows     => False,
+            Align_Decl_On_Colon => False,
+            Indent_Comments     => True,
+            Stick_Comments      => False),
+         From                   => Start_Line,
+         To                     => End_Line,
+         Replace                => Replace_Cb'Unrestricted_Access);
+
+      Free (Buffer);
+   exception
+   when E : others =>
+      declare
+         use Ada.Exceptions;
+         use GNAT.Traceback.Symbolic;
+      begin
+         Put_Line ("analyze failed on '" & Buffer.all & "'");
+         Put_Line ("Exception : " & Exception_Name (E));
+         Put_Line (Exception_Message (E));
+         Put_Line (Symbolic_Traceback (E));
+      end;
+   end Compute_Indent;
 begin
 
    Commands :
@@ -196,49 +244,19 @@ begin
 
          elsif Command_Line (1 .. Last) = "compute_indent" then
             declare
-               use Ada.Strings.Unbounded;
-
-               Indent_Line : constant Integer      := Get_Integer (Command_Line, Last);
-               Byte_Count  : constant Integer      := Get_Integer (Command_Line, Last);
-               Buffer      : aliased String_Access := new String (1 .. Byte_Count);
+               Line       : constant Integer := Get_Integer (Command_Line, Last);
+               Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
             begin
-               Read_Input (Buffer.all'Address, Byte_Count);
+               Compute_Indent (Line, Line, Byte_Count);
+            end;
 
-               Ada_Analyzer.Analyze_Ada_Source
-                 (Buffer.all, GNATCOLL.Symbols.Allocate,
-                  Indent_Params          =>
-                    (Indent_Level        => Indent_Level,
-                     Indent_Continue     => Indent_Continue,
-                     Indent_Decl         => 2,
-                     Indent_Conditional  => 1,
-                     Indent_Record       => 3,
-                     Indent_Case_Extra   => Indent_Case_Extra,
-                     Casing_Policy       => Case_Handling.Disabled,
-                     Reserved_Casing     => Case_Handling.Unchanged,
-                     Ident_Casing        => Case_Handling.Unchanged,
-                     Format_Operators    => True,
-                     Use_Tabs            => False,
-                     Align_On_Colons     => False,
-                     Align_On_Arrows     => False,
-                     Align_Decl_On_Colon => False,
-                     Indent_Comments     => True,
-                     Stick_Comments      => False),
-                  From                   => Indent_Line,
-                  To                     => Indent_Line,
-                  Replace                => Replace_Cb'Unrestricted_Access);
-
-               Free (Buffer);
-            exception
-            when E : others =>
-               declare
-                  use Ada.Exceptions;
-                  use GNAT.Traceback.Symbolic;
-               begin
-                  Put_Line ("analyze failed on '" & Buffer.all & "'");
-                  Put_Line ("Exception : " & Exception_Name (E));
-                  Put_Line (Exception_Message (E));
-                  Put_Line (Symbolic_Traceback (E));
-               end;
+         elsif Command_Line (1 .. Last) = "compute_region_indent" then
+            declare
+               Start_Line : constant Integer := Get_Integer (Command_Line, Last);
+               End_Line   : constant Integer := Get_Integer (Command_Line, Last);
+               Byte_Count : constant Integer := Get_Integer (Command_Line, Last);
+            begin
+               Compute_Indent (Start_Line, End_Line, Byte_Count);
             end;
 
          else

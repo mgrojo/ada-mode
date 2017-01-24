@@ -47,7 +47,7 @@ install packages in -Q:
  functional (next page for speed issues/ideas)
 (setq ada-gps-debug 1)
 
-set indent-region-function to speed up gps indent
+add ada_mode_gps_indent version number, check it
 
 test/gps_indent_options.adb
     more gps options:
@@ -297,9 +297,8 @@ skip blocks of text unless needed for current user command
     Version in a_m_gps_i for upgrade control
 
 
-    c:/apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
-        7081 lines, 241060 chars
-        copied to build/foo.adb
+    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
+        7252 lines, 256857 chars
 
     wisi timing:
     (progn
