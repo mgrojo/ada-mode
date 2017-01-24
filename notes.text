@@ -41,20 +41,9 @@ o.e.a.stephe-2 (from o.e.a): external process gps parser
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
-more ada-comment-gnat
-               Mime_Type : constant String :=
-                 --  MIME types from https://www.iana.org/assignments/media-types/media-types.xhtml
-               --  also GNAT/share/examples/aws/web_elements/mime.types
-                 (if    Ext = "jpg" then "image/jpeg"
-                  elsif Ext = "mp3" then "audio/mpeg"
-                  elsif Ext = "pdf" then "application/pdf"
-                  else "");
-
+https://www.emacswiki.org/emacs/AdaMode
 
 update ada-mode-keys.el on savannah
-
-fix ada-wisi-before-cache (open_paren to always use ada-indent-broken
-    as NEWS-ada-mode.text says
 
 maybe add option ada-indent-paren-rel-rhs
     see email
@@ -912,5 +901,8 @@ https://savannah.nongnu.org/projects/ada-mode
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
+
+check https://www.emacswiki.org/emacs/AdaMode
+
 
 -- end of file

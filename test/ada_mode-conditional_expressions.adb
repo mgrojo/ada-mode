@@ -89,14 +89,20 @@ begin
    --EMACSCMD: (progn (forward-line 4)(forward-word 2)(delete-char 2)(ada-align))
    K :=
      (case Bounded (K) is
-         when -1 => 42,
-         when 0  => 41,  -- comment _not_ matching GNAT style check
-                           -- comment matching GNAT
+         when -1 => 42, -- '=>' aligned with next line
+         when 0  => 41,
          when 1  =>
+
            (if J > 42
            -- comment indent matching GNAT style check
-            then 44
-            else 45));
+           -- second line of comment
+
+            then 44     -- comment matching GNAT
+                        -- second line
+
+            else 45)); -- comment _not_ matching GNAT style check
+                        -- comment matching GNAT
+
 end Ada_Mode.Conditional_Expressions;
 --  Local Variables:
 --  ada-indent-comment-gnat: t
