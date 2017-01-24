@@ -37,15 +37,28 @@ procedure Ada_Mode_GPS_Indent is
 
    Prompt : constant String := "GPS_Indent> ";
 
+   --  Indentation parameters to Analyze_Ada_Source
+   --  Defaults for debugging.
+   Indent_Level      : Natural               := 0; -- ada-indent
+   Indent_Continue   : Natural               := 0; -- ada-broken-indent
+   Indent_Case_Extra : Language.Indent_Style := Language.Non_RM_Style; -- derived from ada-indent-when
+
+   --  Indent_Decl        : Natural;      -- ?
+   --  Indent_Conditional : Natural;      -- ?
+   --  Indent_Record      : Natural;      -- ?
+   --  Stick_Comments     : Boolean;      -- ?
+
    procedure Usage
    is
    begin
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
       Put_Line ("each command starts with a two-character decimal count of bytes in command");
-
+      New_Line;
       Put_Line ("Commands: ");
-
+      New_Line;
+      Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>");
+      New_Line;
       Put_Line ("NNcompute_indent <line> <text_byte_count><text>");
       Put_Line ("  first line is 1 (emacs convention)");
       Put_Line ("  text must be UTF8 encoded");
@@ -164,6 +177,23 @@ begin
          if Command_Line (1 .. Last) = "exit" then
             exit Commands;
 
+         elsif Command_Line (1 .. Last) = "set_params" then
+            declare
+               Ada_Indent        : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Broken_Indent : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Indent_When   : constant Integer := Get_Integer (Command_Line, Last);
+            begin
+               Indent_Level    := Ada_Indent;
+               Indent_Continue := Ada_Broken_Indent;
+
+               if Ada_Indent_When = 0 then
+                  Indent_Case_Extra := Language.Non_RM_Style;
+               else
+                  Indent_Case_Extra := Language.RM_Style;
+                  --  IMPROVEME: maybe Automatic if ada-indent-when < 0?
+               end if;
+            end;
+
          elsif Command_Line (1 .. Last) = "compute_indent" then
             declare
                use Ada.Strings.Unbounded;
@@ -177,19 +207,19 @@ begin
                Ada_Analyzer.Analyze_Ada_Source
                  (Buffer.all, GNATCOLL.Symbols.Allocate,
                   Indent_Params          =>
-                    (Indent_Level        => 3, -- FIXME: get from ada-mode
-                     Indent_Continue     => 2,
+                    (Indent_Level        => Indent_Level,
+                     Indent_Continue     => Indent_Continue,
                      Indent_Decl         => 2,
                      Indent_Conditional  => 1,
                      Indent_Record       => 3,
-                     Indent_Case_Extra   => Language.Automatic,
+                     Indent_Case_Extra   => Indent_Case_Extra,
                      Casing_Policy       => Case_Handling.Disabled,
                      Reserved_Casing     => Case_Handling.Unchanged,
                      Ident_Casing        => Case_Handling.Unchanged,
                      Format_Operators    => True,
                      Use_Tabs            => False,
-                     Align_On_Colons     => True, -- FIXME: get from ada-mdoe
-                     Align_On_Arrows     => True,
+                     Align_On_Colons     => False,
+                     Align_On_Arrows     => False,
                      Align_Decl_On_Colon => False,
                      Indent_Comments     => True,
                      Stick_Comments      => False),

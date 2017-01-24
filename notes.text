@@ -47,17 +47,25 @@ install packages in -Q:
  functional (next page for speed issues/ideas)
 (setq ada-gps-debug 1)
 
+set indent-region-function to speed up gps indent
+
+test/gps_indent_options.adb
+    more gps options:
+        Indent_Decl         => 2, -- ?
+        Indent_Conditional  => 1, -- ?
+        Indent_Record       => 3, -- ?
+        Stick_Comments     : Boolean;      -- ?
+
+editing;
+    when hit return with invalid syntax, does not indent
+
+add ada-gps-size-threshold to user guide; explain how to get gps only
+
 test fall-back logic
-    test/ada_mode-interactive_common.adb:104 failing
-    emacs sends 4096 of 4411 bytes, ada doesn't wait for the rest!
-        add a loop
+    Windows; seems fine
 
-    test on Debian
-        same problem, smaller buffer
-
-    test on Emacs 24.5
-        Windows 8.1: no error (sigh)
-        -> there must be some extra delay in Emacs 25.1; gnat.os_lib read must have a timeout
+    Debian
+        occasionally hangs
 
 ada_mode_gps_indent.gpr use gps.gpr?
     reduce source installed?

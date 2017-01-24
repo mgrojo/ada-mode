@@ -75,6 +75,14 @@ which is faster on large buffers."
 	(error "ada_gps warnings"))
       )))
 
+(defun ada-gps-show-proc-id ()
+  "Display ada-gps process id, for attaching with debugger."
+  (interactive)
+  (if (process-live-p (ada-gps--session-process ada-gps-session))
+      (message "ada-gps process id: %d" (process-id (ada-gps--session-process ada-gps-session)))
+    (message "ada-gps process not live")
+    ))
+
 (defun ada-gps-require-session ()
   "Create ada-gps session if not active."
   (unless (and (ada-gps--session-process ada-gps-session)
@@ -149,6 +157,12 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
 (defun ada-gps-indent-compute ()
   "For `wisi-indent-fallback'; compute indent for current line."
+
+  ;; always send indent parameters - we don't track what buffer we are in
+  (ada-gps-session-send
+   (format "set_params %d %d %d" ada-indent ada-indent-broken ada-indent-when)
+   t t)
+
   (save-excursion
     ;; send complete current line
     (end-of-line)
