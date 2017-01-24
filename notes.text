@@ -49,9 +49,6 @@ install packages in -Q:
 
 test/gps_indent_options.adb
     more gps options:
-        Indent_Decl         => 2, -- ?
-        Indent_Conditional  => 1, -- ?
-        Indent_Record       => 3, -- ?
         Stick_Comments     : Boolean;      -- ?
 
 editing;

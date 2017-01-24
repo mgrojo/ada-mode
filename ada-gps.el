@@ -169,7 +169,11 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 (defun ada-gps-send-params ()
   "Send indentation params to current gps session."
   (ada-gps-session-send
-   (format "set_params %d %d %d" ada-indent ada-indent-broken ada-indent-when)
+   (format "set_params %d %d %d %d"
+	   ada-indent
+	   ada-indent-broken
+	   ada-indent-when
+	   ada-indent-record-rel-type)
    t t))
 
 (defconst ada-gps-output-regexp " *\\([0-9]+\\) +\\([0-9]+\\)$"

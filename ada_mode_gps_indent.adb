@@ -42,13 +42,11 @@ procedure Ada_Mode_GPS_Indent is
 
    --  Indentation parameters to Analyze_Ada_Source
    --  Defaults for debugging.
-   Indent_Level      : Natural               := 0; -- ada-indent
-   Indent_Continue   : Natural               := 0; -- ada-broken-indent
+   Indent_Level      : Natural               := 0;                     -- ada-indent
+   Indent_Continue   : Natural               := 0;                     -- ada-broken-indent
    Indent_Case_Extra : Language.Indent_Style := Language.Non_RM_Style; -- derived from ada-indent-when
+   Indent_Record     : Natural               := 0;                     -- ada-indent-record-rel-type
 
-   --  Indent_Decl        : Natural;      -- ?
-   --  Indent_Conditional : Natural;      -- ?
-   --  Indent_Record      : Natural;      -- ?
    --  Stick_Comments     : Boolean;      -- ?
 
    procedure Usage
@@ -176,9 +174,9 @@ procedure Ada_Mode_GPS_Indent is
          Indent_Params          =>
            (Indent_Level        => Indent_Level,
             Indent_Continue     => Indent_Continue,
-            Indent_Decl         => 2,
-            Indent_Conditional  => 1,
-            Indent_Record       => 3,
+            Indent_Decl         => 2, -- no ada-mode equivalent
+            Indent_Conditional  => 1, -- no ada-mode equivalent
+            Indent_Record       => Indent_Record,
             Indent_Case_Extra   => Indent_Case_Extra,
             Casing_Policy       => Case_Handling.Disabled,
             Reserved_Casing     => Case_Handling.Unchanged,
@@ -236,12 +234,14 @@ begin
 
          elsif Command_Line (1 .. Last) = "set_params" then
             declare
-               Ada_Indent        : constant Integer := Get_Integer (Command_Line, Last);
-               Ada_Broken_Indent : constant Integer := Get_Integer (Command_Line, Last);
-               Ada_Indent_When   : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Indent                 : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Broken_Indent          : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Indent_When            : constant Integer := Get_Integer (Command_Line, Last);
+               Ada_Indent_Record_Rel_Type : constant Integer := Get_Integer (Command_Line, Last);
             begin
                Indent_Level    := Ada_Indent;
                Indent_Continue := Ada_Broken_Indent;
+               Indent_Record   := Ada_Indent_Record_Rel_Type;
 
                if Ada_Indent_When = 0 then
                   Indent_Case_Extra := Language.Non_RM_Style;
