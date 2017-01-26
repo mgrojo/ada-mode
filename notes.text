@@ -56,12 +56,6 @@ editing;
 
 add ada-gps-size-threshold to user guide; explain how to get gps only
 
-test fall-back logic
-    Windows; seems fine
-
-    Debian
-        occasionally hangs
-
 ada_mode_gps_indent.gpr use gps.gpr?
     reduce source installed?
     or doc why not

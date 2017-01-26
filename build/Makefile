@@ -136,6 +136,8 @@ INSTALL_BIN := $(dir $(GNAT_EXE))
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
 
+export GPS_ROOT ?= /Projects/gps-gpl-2016-src/
+
 else ifeq ($(shell uname),Darwin)
 EXE_EXT :=
 
@@ -143,7 +145,7 @@ else
 # windows
 EXE_EXT := .exe
 
-ada_mode_gps_indent$(EXE_EXT) : export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
+export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
 
 endif
 
@@ -185,9 +187,9 @@ clean ::
 	rm -rf ../ada_mode_gps_indent$(EXE_EXT)
 
 # (getenv "GPR_PROJECT_PATH")
+# eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 
 # Local Variables:
-# eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 # eval: (ada-parse-prj-file "ada_mode_gps_indent.prj")
 # eval: (ada-select-prj-file "ada_mode_gps_indent.prj")
 # end:

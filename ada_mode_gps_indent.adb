@@ -58,10 +58,10 @@ procedure Ada_Mode_GPS_Indent is
       New_Line;
       Put_Line ("Commands: ");
       New_Line;
-      Put_Line ("07version");
+      Put_Line ("08version\n");
       Put_Line ("  outputs: <version>");
       New_Line;
-      Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>");
+      Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>\n");
       New_Line;
       Put_Line ("NNcompute_indent <line> <text_byte_count><text>");
       Put_Line ("  first line is 1 (emacs convention)");
@@ -222,6 +222,9 @@ begin
 
          if Last = 0 then
             Last := Command_Line'Last;
+            if Command_Line (Last) = ASCII.LF then
+               Last := Last - 1;
+            end if;
          else
             Last := Last - 1;
          end if;
