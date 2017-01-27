@@ -22,6 +22,7 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Analyzer;
@@ -48,6 +49,9 @@ procedure Ada_Mode_GPS_Indent is
    Indent_Record     : Natural               := 0;                     -- ada-indent-record-rel-type
 
    --  Stick_Comments     : Boolean;      -- ?
+
+   Whitespace : constant Ada.Strings.Maps.Character_Set :=
+     Ada.Strings.Maps.To_Set (' ' & ASCII.LF);
 
    procedure Usage
    is
@@ -122,12 +126,12 @@ procedure Ada_Mode_GPS_Indent is
    is
       use Ada.Exceptions;
       use Ada.Strings.Fixed;
-      First : constant Integer := Last + 2;
+      First : constant Integer := Last + 2; -- final char of previous word/integer, space
    begin
       Last := Index
-        (Source  => Source,
-         Pattern => " ",
-         From    => First);
+        (Source => Source,
+         Set    => Whitespace,
+         From   => First);
 
       if Last = 0 then
          Last := Source'Last;
@@ -218,13 +222,10 @@ begin
          Last           : Integer;
       begin
          Read_Input (Command_Line'Address, Command_Length);
-         Last := Index (Source => Command_Line, Pattern => " ");
+         Last := Index (Source => Command_Line, Set => Whitespace);
 
          if Last = 0 then
             Last := Command_Line'Last;
-            if Command_Line (Last) = ASCII.LF then
-               Last := Last - 1;
-            end if;
          else
             Last := Last - 1;
          end if;
