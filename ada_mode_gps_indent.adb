@@ -22,7 +22,6 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
-with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Analyzer;
@@ -48,11 +47,6 @@ procedure Ada_Mode_GPS_Indent is
    Indent_Case_Extra : Language.Indent_Style := Language.Non_RM_Style; -- derived from ada-indent-when
    Indent_Record     : Natural               := 0;                     -- ada-indent-record-rel-type
 
-   --  Stick_Comments     : Boolean;      -- ?
-
-   Whitespace : constant Ada.Strings.Maps.Character_Set :=
-     Ada.Strings.Maps.To_Set (' ' & ASCII.LF);
-
    procedure Usage
    is
    begin
@@ -62,10 +56,10 @@ procedure Ada_Mode_GPS_Indent is
       New_Line;
       Put_Line ("Commands: ");
       New_Line;
-      Put_Line ("08version\n");
+      Put_Line ("07version");
       Put_Line ("  outputs: <version>");
       New_Line;
-      Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>\n");
+      Put_Line ("NNset_params <ada-indent> <ada-indent-broken> <ada-indent-when>");
       New_Line;
       Put_Line ("NNcompute_indent <line> <text_byte_count><text>");
       Put_Line ("  first line is 1 (emacs convention)");
@@ -129,9 +123,9 @@ procedure Ada_Mode_GPS_Indent is
       First : constant Integer := Last + 2; -- final char of previous word/integer, space
    begin
       Last := Index
-        (Source => Source,
-         Set    => Whitespace,
-         From   => First);
+        (Source  => Source,
+         Pattern => " ",
+         From    => First);
 
       if Last = 0 then
          Last := Source'Last;
@@ -191,7 +185,7 @@ procedure Ada_Mode_GPS_Indent is
             Align_On_Arrows     => False,
             Align_Decl_On_Colon => False,
             Indent_Comments     => True,
-            Stick_Comments      => False),
+            Stick_Comments      => False), -- no ada-mode equivalent
          From                   => Start_Line,
          To                     => End_Line,
          Replace                => Replace_Cb'Unrestricted_Access);
@@ -222,7 +216,7 @@ begin
          Last           : Integer;
       begin
          Read_Input (Command_Line'Address, Command_Length);
-         Last := Index (Source => Command_Line, Set => Whitespace);
+         Last := Index (Source => Command_Line, Pattern => " ");
 
          if Last = 0 then
             Last := Command_Line'Last;

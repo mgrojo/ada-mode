@@ -61,7 +61,7 @@ which is faster on large buffers."
     ;; user may have killed buffer
     (setf (ada-gps--session-buffer ada-gps-session) (get-buffer-create ada-gps-buffer-name)))
 
-  (let ((process-connection-type t) ;; on Linux use pty, which is flushed by \n. No need for flush on Windows
+  (let ((process-connection-type nil) ;; use a pipe; no need for \n or flush on Linux or Windows
 	(exec-file (locate-file ada-gps-indent-exec exec-path '("" ".exe"))))
     (unless exec-file
       (error "%s not found on `exec-path'" ada-gps-indent-exec))
@@ -141,12 +141,12 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 (defun ada-gps-kill-session ()
   (interactive)
   (when (process-live-p (ada-gps--session-process ada-gps-session))
-    (process-send-string (ada-gps--session-process ada-gps-session) "05exit\n")
+    (process-send-string (ada-gps--session-process ada-gps-session) "04exit")
     ))
 
 (defun ada-gps-check-version ()
   "Throw an error if gps executable version does not match expected."
-  (ada-gps-session-send "version\n" t t)
+  (ada-gps-session-send "version" t t)
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
     (goto-char (point-min))
     (when (not (looking-at ada-gps-indent-exec-version))
@@ -167,7 +167,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 (defun ada-gps-send-params ()
   "Send indentation params to current gps session."
   (ada-gps-session-send
-   (format "set_params %d %d %d %d\n"
+   (format "set_params %d %d %d %d"
 	   ada-indent
 	   ada-indent-broken
 	   ada-indent-when
