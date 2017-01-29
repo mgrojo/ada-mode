@@ -161,7 +161,7 @@ export BUILD := Debug
 # (setenv "GPR_PROJECT_PATH" nil)
 # export GPR_PROJECT_PATH := -:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.7w-src/src
 gpr_query$(EXE_EXT) : force
-	gprbuild -p gpr_query.gpr
+	gprbuild -p ../gpr_query.gpr
 
 # (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
 ada_mode_gps_indent$(EXE_EXT) : force
