@@ -16,4 +16,4 @@ begin
       --EMACSCMD:6
       B := 0;
 
-end Ada_Mode.Interactive_GPS_Fallback;
+   end Ada_Mode.Interactive_GPS_Fallback;

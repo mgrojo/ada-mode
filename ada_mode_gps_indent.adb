@@ -48,14 +48,11 @@ procedure Ada_Mode_GPS_Indent is
    Indent_Case_Extra : Language.Indent_Style := Language.Non_RM_Style; -- derived from ada-indent-when
    Indent_Record     : Natural               := 0;                     -- ada-indent-record-rel-type
 
-   --  Stick_Comments     : Boolean;      -- ?
-
    Whitespace : constant Ada.Strings.Maps.Character_Set :=
      Ada.Strings.Maps.To_Set (' ' & ASCII.LF);
 
    procedure Usage
-   is
-   begin
+   is begin
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
       Put_Line ("each command starts with a two-character decimal count of bytes in command");
@@ -75,11 +72,8 @@ procedure Ada_Mode_GPS_Indent is
       New_Line;
       Put_Line ("NNcompute_region_indent <start line> <end line> <text_byte_count><text>");
       Put_Line ("  outputs for each line: <line number> <indent><newline>");
-
+      New_Line;
       Put_Line ("04exit");
-
-      --  FIXME: need protocol for indent settings
-
    end Usage;
 
    procedure Read_Input
@@ -191,7 +185,7 @@ procedure Ada_Mode_GPS_Indent is
             Align_On_Arrows     => False,
             Align_Decl_On_Colon => False,
             Indent_Comments     => True,
-            Stick_Comments      => False),
+            Stick_Comments      => False), -- no ada-mode equivalent
          From                   => Start_Line,
          To                     => End_Line,
          Replace                => Replace_Cb'Unrestricted_Access);

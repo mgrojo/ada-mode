@@ -47,12 +47,41 @@ install packages in -Q:
  functional (next page for speed issues/ideas)
 (setq ada-gps-debug 1)
 
-test/gps_indent_options.adb
-    more gps options:
-        Stick_Comments     : Boolean;      -- ?
 
-editing;
-    when hit return with invalid syntax, does not indent
+bug in ada-indent-return handling
+    test/ada_mode-generic_package.ads
+
+        with function Concrete_Function_3
+               return Float is <>;
+
+    should be ada-indent-broken relative to 'with'
+
+gps vs wisi
+    when hit return with invalid syntax, does not indent until type some code
+
+    comments aligned with prev code, not next
+
+    missing ada-indent-label
+
+    conditional expressions different continuation
+
+    expression function "is"
+
+    generic renaming
+
+    generic package continuation
+
+    named association continuation
+
+    missing ada-indent-renames > 0
+
+    overriding continuation
+
+    bug in record field; ada_mode-nominal-child.ads
+
+    aspect continuation
+
+    anonymous access function return type
 
 add ada-gps-size-threshold to user guide; explain how to get gps only
 

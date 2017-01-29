@@ -146,6 +146,7 @@ test-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 # we don't use 'expand-file-name' here because that adds c:/ on windows
 # eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
