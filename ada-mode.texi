@@ -60,6 +60,68 @@ Ada Mode Version 5.2.1
 * GNU Free Documentation License::
 * Index::
 
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Installation
+
+* Ada Reference Manual::
+* gpr_query::
+* ada_mode_gps_indent::
+
+gpr_query
+
+* Building GNATCOLL::
+
+ada_mode_gps_indent
+
+* ada_mode_gps_indent install::
+* ada_mode_gps_indent configure::
+
+Customizing Ada mode
+
+* Non-standard file names::
+* Other compiler::
+* Other cross-reference::
+* Other customization::
+
+Compiling Executing
+
+* Compile commands::
+* Compiling Examples::
+* Compiler errors::
+
+Compiling Examples
+
+* No project files::            Just menus
+* Set compiler options::        A basic Ada mode project file
+* Set source search path::      Source in multiple directories
+* Use GNAT project file::
+* Use multiple GNAT project files::
+* Use a Makefile::
+
+Project files
+
+* Project file overview::
+* Project file variables::
+
+Developer overview
+
+* Directory structure::
+* Package organization::
+* OpenToken::
+* ELPA::
+* Savannah::
+* ada-france::
+
+Package organization
+
+* Ada mode::
+* gpr mode::
+* GNAT core::
+* Wisi::
+
+@end detailmenu
 @end menu
 
 @node Overview, Installation, Top, Top
@@ -125,7 +187,6 @@ You may also want to install additional utilities:
 * Ada Reference Manual::
 * gpr_query::
 * ada_mode_gps_indent::
-* Upgrading::
 @end menu
 
 @node Ada Reference Manual, gpr_query, Installation, Installation
@@ -163,6 +224,11 @@ version. @code{gpr_query} creates a database of cross reference
 information; that database must be deleted if the compiler version
 changes, to force a complete rebuild.
 
+@menu
+* Building GNATCOLL::
+@end menu
+
+@node Building GNATCOLL
 @subsection Building GNATCOLL
 
 @code{GNATCOLL} may already be installed on your system: if it is,
@@ -211,18 +277,28 @@ gprinstall -P gpr_query.gpr
 @code{ada-mode} will use @code{gpr_query} for cross reference
 functions if @code{gpr_query} is found in @code{PATH}.
 
-@node ada_mode_gps_indent, Upgrading, gpr_query, Installation
+@node ada_mode_gps_indent, , gpr_query, Installation
 @section ada_mode_gps_indent
-@file{ada-gps} is an alternate indentation engine, using the
-indentation engine from AdaCore's GPS. It is very fast for indenting
-single lines in very large files; the default ada-wisi is slow in that
-case.
+@file{ada_mode_gps_indent} is an alternate indentation engine, using the
+indentation engine from AdaCore's GPS. It is fast for indenting in
+very large files; the default ada-wisi is slow in that case. It also
+tolerates syntax errors, producing reasonable indentation.
 
-To install it, assuming the @code{ada-mode-5.2.xx} GNU ELPA package is
-installed:
+It can be used either as the primary indentation engine, or as a
+fallback when ada-wisi fails due to syntax errors or in large files.
+
+@menu
+* ada_mode_gps_indent install::
+* ada_mode_gps_indent configure::
+@end menu
+
+@node ada_mode_gps_indent install
+@subsection Install
+To install @code{ada_mode_gps_indent}, assuming the
+@code{ada-mode-5.2.xx} GNU ELPA package is installed:
 @itemize
 @item
-Install @file{gnatcoll} as above (@ref{Building GNATCOLL}).
+Install @file{gnatcoll} (@ref{Building GNATCOLL}).
 
 @item
 From @url{libre.adacore.com}, download:
@@ -230,14 +306,14 @@ From @url{libre.adacore.com}, download:
 @item
 GPS source
 @item
-gtkada installer - only needed for configure
+gtkada installer - only needed for GPS configure
 @end itemize
 
 @item
-Install gtkada in current gnat compiler location
+Install gtkada in current gnat compiler location.
 
 @item
-Unpack GPS source somewhere convenient
+Unpack GPS source somewhere convenient.
 
 @item
 Edit the GPS @file{configure} script; comment out the section ``detect
@@ -262,6 +338,25 @@ gprinstall -p -P ada_mode_gps_indent.gpr
 
 @end itemize
 
+@node ada_mode_gps_indent configure
+@subsection Configure
+By default, @code{ada-mode} will use @code{ada_mode_gps_indent} as a
+fallback indentation engine if @code{ada_mode_gps_indent} is found on
+@code{PATH}.
+
+Large files (determined by @code{ada-gps-size-threshold}) will use
+@code{ada_mode_gps_indent} as the primary indentation engine.
+
+To force the use of @code{ada_mode_gps_indent}, set
+@code{ada-gps-size-threshold} to 0, either globally, or in a
+file-local variable:
+
+@example
+--  Local Variables:
+--  ada-gps-size-threshold : 0
+--  End:
+@end example
+
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode
 
@@ -274,7 +369,6 @@ the tutorial (@kbd{C-h t}).
 * Non-standard file names::
 * Other compiler::
 * Other cross-reference::
-* Other indentation::
 * Other customization::
 @end menu
 
