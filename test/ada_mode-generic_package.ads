@@ -97,7 +97,7 @@ generic
    with function Concrete_Function_2 return Float
      is <>;
    with function Concrete_Function_3
-          return Float is <>;
+     return Float is <>;
    with function Concrete_Function_4
      (Foo : in Integer)
      return Float is <>;

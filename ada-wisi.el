@@ -434,10 +434,11 @@ Point must be on CACHE. PREV-TOKEN is the token before the one being indented."
 	      )))
 
 	  (return-without-params;; no parameter list
-	   ;; test/ada_mode-options-intent_return_1.ads, _2, _3
-	   ;; indenting 'return' with no ()
+	   ;; test/ada_mode-generic_package.ads
+	   ;; with function Concrete_Function_3
+	   ;;   return Float is <>;
 	   (wisi-goto-containing cache nil) ;; matching 'function'
-	   (+ (current-column) ada-indent-broken))
+	   (+ (current-indentation) ada-indent-broken))
 
 	  (statement-end
 	   (ada-wisi-indent-containing ada-indent-broken cache t))

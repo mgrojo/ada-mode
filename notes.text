@@ -45,16 +45,6 @@ install packages in -Q:
 
 
  functional (next page for speed issues/ideas)
-(setq ada-gps-debug 1)
-
-
-bug in ada-indent-return handling
-    test/ada_mode-generic_package.ads
-
-        with function Concrete_Function_3
-               return Float is <>;
-
-    should be ada-indent-broken relative to 'with'
 
 gps vs wisi
     when hit return with invalid syntax, does not indent until type some code
