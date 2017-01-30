@@ -2132,7 +2132,8 @@ buffer in another window."
   )
 
 (defvar ada-operator-re
-  "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\|<=\\|<\\|>=\\|>"
+  "\\+\\|-\\|/\\|\\*\\*\\|\\*\\|=\\|&\\|\\<\\(abs\\|mod\\|rem\\|and\\|not\\|or\\|xor\\)\\>\\|<=\\|<\\|>=\\|>"
+  ;; This can match 'or' in This_Or_That if '_' does not have word syntax (the default).
   "Regexp matching Ada operator_symbol.")
 
 (defun ada-identifier-at-point ()
