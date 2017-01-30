@@ -1,6 +1,6 @@
 ;;; Wisi grammar for Ada
 ;;
-;; Copyright (C) 2012 - 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2012 - 2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -439,9 +439,6 @@ association_list
     (progn
       (wisi-statement-action [2 list-break])
       (wisi-containing-action 2 3))
- ;; FIXME: do this here
- ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
-
   ;
 
 asynchronous_select
@@ -976,8 +973,9 @@ expression
 expression_opt
   : ;; empty for user friendly
   | expression
-    (wisi-statement-action [1 expression-start])
-    (wisi-containing-action 1 1)
+    (progn
+      (wisi-statement-action [1 expression-start])
+      (wisi-containing-action 1 1))
   ;
 
 expression_function_declaration

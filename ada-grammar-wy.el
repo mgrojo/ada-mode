@@ -671,8 +671,9 @@
       (expression_opt
        (())
        ((expression )
+        (progn
         (wisi-statement-action [1 expression-start])
-        (wisi-containing-action 1 1)))
+        (wisi-containing-action 1 1))))
       (expression_function_declaration
        ((overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON )
         (progn
