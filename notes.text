@@ -73,8 +73,6 @@ gps vs wisi
 
     anonymous access function return type
 
-add ada-gps-size-threshold to user guide; explain how to get gps only
-
 ada_mode_gps_indent.gpr use gps.gpr?
     reduce source installed?
     or doc why not
@@ -86,22 +84,13 @@ update ada-mode-keys.el on savannah
 maybe add option ada-indent-paren-rel-rhs
     see email
 
-indent bug:
-   Report (Description =>
-             "DLA/CHG Message"
-               & Safe_Image ("toto")
-             & " => message is discarded !!");
-
-   Report (Description =>
-             "DLA/CHG Message"
-               & "toto"
-               & " => message is discarded !!");
-
-    see email for analysis
-
 C-u C-c C-r append references
     rewrite gnatxref to not use compilation-start
     or use xref
+
+gpr_query does not see libraries?
+    need clear example; libadalang mains vs langkit?
+    compare to GPS, gnatinspect
 
 change Emacs manual section on ada-mode to mention elpa
 
