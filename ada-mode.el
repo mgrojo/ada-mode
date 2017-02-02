@@ -2341,12 +2341,14 @@ Called with four arguments:
 - line number containing the identifier
 - Emacs column of the start of the identifier
 - local-only; if t, show references in current file only
+- append; if t, keep previous output in result buffer
 Displays a buffer in compilation-mode giving locations where the
 identifier is declared or referenced.")
 
-(defun ada-show-references ()
-  "Show all references of identifier at point."
-  (interactive)
+(defun ada-show-references (&optional append)
+  "Show all references of identifier at point.
+With prefix, keep previous references in output buffer."
+  (interactive "P")
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-all-function)
@@ -2357,12 +2359,14 @@ identifier is declared or referenced.")
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
 	   (current-column)
-	   nil)
+	   nil ;; local-only
+	   append)
   )
 
-(defun ada-show-local-references ()
-  "Show all references of identifier at point."
-  (interactive)
+(defun ada-show-local-references (&optional append)
+  "Show all references of identifier at point.
+With prefix, keep previous references in output buffer."
+  (interactive "P")
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-all-function)
@@ -2373,7 +2377,8 @@ identifier is declared or referenced.")
 	   (file-name-nondirectory (buffer-file-name))
 	   (line-number-at-pos)
 	   (current-column)
-	   t)
+	   t ;; local-only
+	   append)
   )
 
 (defvar ada-xref-overriding-function nil

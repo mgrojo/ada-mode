@@ -20,6 +20,8 @@ export ADA_MODE_VERSION    := 5.2.1
 export ADA_REF_MAN_VERSION := 2012.0
 export WISI_VERSION        := 1.1.4
 
+ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
+
 all : docs pub-ada pub-wisi build-elpa uninstall-elpa
 # all : pub-ada-ref-man
 
@@ -70,45 +72,45 @@ source-clean :
 # copy files to ELPA ada-mode package
 # First delete all files in ELPA, so we catch files deleted here.
 pub-ada : force
-	rm -rf ../../elpa/archive
-	mkdir -p ../../elpa/packages/ada-mode
-	rm -f ../../elpa/packages/ada-mode/*
-	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text ../../elpa/packages/ada-mode
-	rm ../../elpa/packages/ada-mode/ada-ref-man.el
-	cp ../dir-ada-mode ../../elpa/packages/ada-mode/dir
-	cp ../NEWS-ada-mode.text ../../elpa/packages/ada-mode/NEWS
-	cp ../README-ada-mode ../../elpa/packages/ada-mode/README
-	cp ../gnat*.el ../../elpa/packages/ada-mode
-	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info ../../elpa/packages/ada-mode
-	cp ../gpr_query.adb ../gpr_query.gpr ../../elpa/packages/ada-mode
+	rm -rf $(ELPA_ROOT)/archive
+	mkdir -p $(ELPA_ROOT)/packages/ada-mode
+	rm -f $(ELPA_ROOT)/packages/ada-mode/*
+	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
+	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
+	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
+	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
+	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
+	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
+	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../gpr_query.adb ../gpr_query.gpr $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form
 pub-ada-ref-man : force
-	cp ../ada-ref-man.el ../../elpa/packages/ada-ref-man/
-	cp ../README-ada-ref-man ../../elpa/packages/ada-ref-man/README
-	cp ../dir-ada-ref-man ../../elpa/packages/ada-ref-man/dir
-	cp $(ARM_INFO)/build/arm2012.info ../../elpa/packages/ada-ref-man
-	cp $(ARM_INFO)/build/aarm2012.info ../../elpa/packages/ada-ref-man
+	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
+	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
+	cp ../dir-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/dir
+	cp $(ARM_INFO)/build/arm2012.info $(ELPA_ROOT)/packages/ada-ref-man
+	cp $(ARM_INFO)/build/aarm2012.info $(ELPA_ROOT)/packages/ada-ref-man
 
 # copy files to ELPA wisi package
 pub-wisi : force
-	rm -f ../../elpa/packages/wisi/*
-	cp ../README-wisi ../../elpa/packages/wisi/README
-	cp ../NEWS-wisi.text ../../elpa/packages/wisi/NEWS
-	cp ../wisi*.el ../../elpa/packages/wisi
+	rm -f $(ELPA_ROOT)/packages/wisi/*
+	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
+	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
+	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
 
 # 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
 # Other packages are often broken, so just build ours, by only copying
 # ours into archive-tmp
 build-elpa : force
-	rm -rf ../../elpa/archive-tmp
-	mkdir -p ../../elpa/archive-tmp/packages
-	cp -a ../../elpa/packages/ada-mode ../../elpa/archive-tmp/packages
-	cp -a ../../elpa/packages/ada-ref-man ../../elpa/archive-tmp/packages
-	cp -a ../../elpa/packages/wisi     ../../elpa/archive-tmp/packages
-	make -C ../../elpa/ process-archive
+	rm -rf $(ELPA_ROOT)/archive-tmp
+	mkdir -p $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_ROOT)/packages/ada-mode $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_ROOT)/packages/ada-ref-man $(ELPA_ROOT)/archive-tmp/packages
+	cp -a $(ELPA_ROOT)/packages/wisi     $(ELPA_ROOT)/archive-tmp/packages
+	make -C $(ELPA_ROOT)/ process-archive
 
 # (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # (list-packages)

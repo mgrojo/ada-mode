@@ -23,6 +23,7 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'ada-mode)
+(require 'ada-indent-user-options)
 
 (defcustom ada-gps-size-threshold 100000
   "Max size (in characters) for using ada-wisi indentation engine.

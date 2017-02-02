@@ -5,7 +5,7 @@
 ;;
 ;; GNAT is provided by AdaCore; see http://libre.adacore.com/
 ;;
-;;; Copyright (C) 2012 - 2016  Free Software Foundation, Inc.
+;;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -167,7 +167,7 @@
 		     )
     ))
 
-(defun ada-gnat-xref-all (identifier file line col local-only)
+(defun ada-gnat-xref-all (identifier file line col local-only append)
   "For `ada-xref-all-function'."
   ;; we use `compilation-start' to run gnat, not `gnat-run', so it
   ;; is asynchronous, and automatically runs the compilation error
@@ -188,16 +188,23 @@
             (compilation-error "reference")
 	    ;; gnat find uses standard gnu format for output, so don't
 	    ;; need to set compilation-error-regexp-alist
-	    )
+	    prev-content)
 	;; compilation-environment is buffer-local; don't set in 'let'
 	(setq compilation-environment (ada-prj-get 'proc_env))
 
-	(when (ada-prj-get 'gpr_file)
-	  (setq cmd (concat cmd " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
+	;; WORKAROUND: the 'compilation' API doesn't let us specify "append", so we use this.
+	(with-current-buffer (get-buffer-create compilation-buffer-name)
+	  (when append
+	    (setq prev-content (buffer-substring (point-min) (point-max))))
 
-        (compilation-start cmd
-                           'compilation-mode
-                           (lambda (_name) compilation-buffer-name))
+	  (compilation-start cmd
+			     'compilation-mode
+			     (lambda (_name) compilation-buffer-name))
+	  (when append
+	    (let ((inhibit-read-only t))
+	      (save-excursion
+		(goto-char (point-min))
+		(insert prev-content)))))
 	))))
 
 ;;;;; setup

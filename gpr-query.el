@@ -229,7 +229,7 @@ Uses `gpr_query'. Returns new list."
   ;; C:\Projects\GDS\work_dscovr_release\common\1553\gds-mil_std_1553-utf.ads:252:25
   ;; /Projects/GDS/work_dscovr_release/common/1553/gds-mil_std_1553-utf.ads:252:25
   "\\(\\(?:.:\\\\\\|/\\)[^:]*\\):\\([0123456789]+\\):\\([0123456789]+\\)"
-  ;; 1                          2                   3
+  ;; 1                             2                   3
   "Regexp matching <file>:<line>:<column>")
 
 (defconst gpr-query-ident-file-regexp-alist
@@ -246,6 +246,10 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
   ;; FIXME: implement ada-xref-full-path.
+  ;;
+  ;; FIXME: implement append. not as simple as just not erasing
+  ;; buffer; need to mess with compilation--ensure-parse cache to get
+  ;; new lines parsed.
 
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
@@ -549,9 +553,9 @@ Enable mode if ARG is positive."
       (message "parsing result ... done")
       result)))
 
-(defun gpr-query-all (identifier file line col &optional _local-only)
+(defun gpr-query-all (identifier file line col &optional _local-only _append)
   "For `ada-xref-all-function', using gpr_query."
-  ;; FIXME: implement local-only
+  ;; FIXME: implement local-only, append
   (gpr-query-compilation identifier file line col "refs" 'gpr-query-ident-file))
 
 (defun gpr-query-parents (identifier file line col)

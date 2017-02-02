@@ -46,6 +46,12 @@ install packages in -Q:
 
  functional (next page for speed issues/ideas)
 
+gpr-query
+    compilation output does not fontify filenames properly
+    only leading "c:" is highlighted
+    goes to correct location, so something is working
+    chase thru compilation--ensure-parse
+
 gps vs wisi
     when hit return with invalid syntax, does not indent until type some code
 
