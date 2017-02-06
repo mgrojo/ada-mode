@@ -3,7 +3,7 @@
 ;; gpr-query supports Ada and any gcc language that supports the
 ;; AdaCore -fdump-xref switch (which includes C, C++).
 ;;
-;; Copyright (C) 2013 - 2016  Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2017  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -49,13 +49,21 @@
   (process nil) ;; running gpr_query
   (buffer nil)) ;; receives output of gpr_query
 
-(defconst gpr-query-buffer-name-prefix " *gpr_query-")
+;; Starting the buffer name with a space hides it from some lists, and
+;; also disables font-lock. We sometimes use it to display xref
+;; locations in compilation-mode, so we want font-lock enabled.
+;;
+;; IMPROVEME: copy the xref info to a true user buffer, optionally an
+;; *xref* buffer.
+(defconst gpr-query-buffer-name-prefix "*gpr_query-")
 
 (defun gpr-query--start-process (session)
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
     ;; user may have killed buffer
-    (setf (gpr-query--session-buffer session) (gnat-run-buffer gpr-query-buffer-name-prefix)))
+    (setf (gpr-query--session-buffer session) (gnat-run-buffer gpr-query-buffer-name-prefix))
+    (with-current-buffer (gpr-query--session-buffer session)
+      (compilation-mode)))
 
   (with-current-buffer (gpr-query--session-buffer session)
     (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
@@ -242,7 +250,7 @@ Uses `gpr_query'. Returns new list."
 
 (defun gpr-query-compilation (identifier file line col cmd comp-err)
   "Run gpr_query IDENTIFIER:FILE:LINE:COL CMD,
-set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
+with compilation-error-regexp-alist set to COMP-ERR."
   ;; Useful when gpr_query will return a list of references; the user
   ;; can navigate to each result in turn via `next-error'.
   ;; FIXME: implement ada-xref-full-path.
@@ -256,7 +264,6 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
 	(result-count 0)
 	target-file target-line target-col)
     (with-current-buffer (gpr-query--session-buffer (gpr-query-cached-session))
-      (compilation-mode)
       (setq buffer-read-only nil)
       (set (make-local-variable 'compilation-error-regexp-alist) (list comp-err))
       (gpr-query-session-send cmd-1 t)
@@ -264,17 +271,15 @@ set compilation-mode with compilation-error-regexp-alist set to COMP-ERR."
       ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
 
-      (font-lock-ensure)
-      ;; pre Emacs 25, font-lock-ensure applies compilation-message
-      ;; text properties
-      ;;
-      ;; post Emacs 25, compilation-next-error applies
-      ;; compilation-message text properties on the fly via
-      ;; compilation--ensure-parse. But that doesn't apply face text
-      ;; properties.
-      ;;
-      ;; IMPROVEME: next-error works, but the font colors are not
-      ;; right (bad regexp?)
+      (if (< emacs-major-version 25)
+	  ;; pre Emacs 25, font-lock-ensure applies compilation-message
+	  ;; text properties
+	  (font-lock-ensure)
+
+	;; post Emacs 25, compilation-next-error applies
+	;; compilation-message and font-lock-face text properties on
+	;; the fly via compilation--ensure-parse.
+	nil)
 
       (goto-char (point-min))
       (cond
