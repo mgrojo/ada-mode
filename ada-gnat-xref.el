@@ -72,19 +72,38 @@
     (+ 1 col))
    ))
 
+(defun ada-gnat-xref-common-cmd ()
+  "Returns the gnatfind command to run to find cross-references."
+  (format "%sgnatfind" (or (ada-prj-get 'target) "")))
+
+(defun ada-gnat-xref-common-args (identifier file line col)
+  "Returns a list of arguments to pass to gnatfind.  The caller
+may add more args to the result before calling gnatfind.  Some
+elements of the result may be nil."
+  (list "-a"
+        (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
+        (when ada-xref-full-path "-f")
+        (when (ada-prj-get 'gpr_file)
+          (concat "-p" (file-name-nondirectory (ada-prj-get 'gpr_file))))
+	;; src_dir contains Source_Dirs from gpr_file, but user may
+	;; also have added others, and duplication doesn't
+	;; hurt. Similarly for obj_dir.
+        (when (ada-prj-get 'src_dir)
+          (concat "-aI" (mapconcat 'identity (ada-prj-get 'src_dir) ":")))
+        (when (ada-prj-get 'obj_dir)
+          (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":")))
+        (format "%s:%s:%d:%d"
+                identifier
+                (file-name-nondirectory file)
+                line
+                (ada-gnat-xref-adj-col identifier col))))
+
 (defun ada-gnat-xref-other (identifier file line col)
-  "For `ada-xref-other-function', using `gnat find', which is Ada-specific."
-  (setq col (ada-gnat-xref-adj-col identifier col))
+  "For `ada-xref-other-function', using `gnatfind', which is Ada-specific."
   (let* ((file-non-dir (file-name-nondirectory file))
-	 (arg (format "%s:%s:%d:%d" identifier file-non-dir line col))
-	 (switches (concat
-                    "-a"
-                    (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))))
-	 (dirs (when (ada-prj-get 'obj_dir)
-		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
-      (gnat-run-gnat "find" (list switches dirs arg))
+      (gnat-run (ada-gnat-xref-common-cmd) (ada-gnat-xref-common-args identifier file line col))
 
       (goto-char (point-min))
       (forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
@@ -119,19 +138,12 @@
     result))
 
 (defun ada-gnat-xref-parents (identifier file line col)
-  "For `ada-xref-parents-function', using `gnat find', which is Ada-specific."
+  "For `ada-xref-parents-function', using `gnatfind', which is Ada-specific."
 
-  (let* ((arg (format "%s:%s:%d:%d" identifier file line (ada-gnat-xref-adj-col identifier col)))
-	 (switches (list
-                    "-a"
-		    "-d"
-		    (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
-		    ))
-	 (dirs (when (ada-prj-get 'obj_dir)
-		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
+  (let* ((arg (ada-gnat-xref-common-args identifier file line col))
 	 (result nil))
     (with-current-buffer (gnat-run-buffer)
-      (gnat-run-gnat "find" (append switches (list dirs arg)))
+      (gnat-run (ada-gnat-xref-common-cmd) (cons "-d" arg))
 
       (goto-char (point-min))
       (forward-line 2); skip GPR_PROJECT_PATH, 'gnat find'
@@ -173,18 +185,12 @@
   ;; is asynchronous, and automatically runs the compilation error
   ;; filter.
 
-  (let* ((dirs (when (ada-prj-get 'obj_dir)
-		 (concat "-aO" (mapconcat 'identity (ada-prj-get 'obj_dir) ":"))))
-         (project-file (when (ada-prj-get 'gpr_file)
-			 (concat " -P" (file-name-nondirectory (ada-prj-get 'gpr_file)))))
-	 (cmd (format "%sgnat find -a -r %s %s %s:%s:%d:%d %s %s"
-                      (or (ada-prj-get 'target) "")
-		      (if ada-xref-full-path "-f" "")
-                      dirs identifier file line (ada-gnat-xref-adj-col identifier col)
-		      project-file (if local-only file ""))))
+  (let* ((arg (ada-gnat-xref-common-args identifier file line col)))
+    (setq arg (cons "-r" arg))
+    (when local-only (setq arg (append arg file nil)))
 
     (with-current-buffer (gnat-run-buffer); for default-directory
-      (let ((compilation-buffer-name "*compilation-gnatfind*")
+      (let ((compilation-buffer-name "*gnatfind*")
             (compilation-error "reference")
 	    ;; gnat find uses standard gnu format for output, so don't
 	    ;; need to set compilation-error-regexp-alist
@@ -197,7 +203,9 @@
 	  (when append
 	    (setq prev-content (buffer-substring (point-min) (point-max))))
 
-	  (compilation-start cmd
+	  (compilation-start (mapconcat (lambda (a) (or a ""))
+					(cons (ada-gnat-xref-common-cmd) arg)
+					" ")
 			     'compilation-mode
 			     (lambda (_name) compilation-buffer-name))
 	  (when append
