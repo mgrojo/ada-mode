@@ -505,19 +505,20 @@ Enable mode if ARG is positive."
 
             (setq found-file (gpr-query--normalize-filename found-file))
 
-	    (when (string-equal found-type "declaration")
+	    (cond
+	     ((string-equal found-type "declaration")
 	      (setq decl-loc (list found-file found-line (1- found-col))))
 
-	    (when (or
-		   (string-equal found-type "body")
-		   (string-equal found-type "full declaration"))
+	     ((or
+	       (string-equal found-type "body")
+	       (string-equal found-type "full declaration"))
 	      (setq body-loc (list found-file found-line (1- found-col))))
+	     )
 
-	    (when
-		;; The source may have changed since the xref database
-		;; was computed, so allow for fuzzy matches.
-		(and (equal found-file file)
-		     (< dist min-distance))
+	    (when (and (equal found-file file)
+		       (< dist min-distance))
+	      ;; The source may have changed since the xref database
+	      ;; was computed, so allow for fuzzy matches.
 	      (setq min-distance dist)
 	      (setq search-type found-type))
 	    ))

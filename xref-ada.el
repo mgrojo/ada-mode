@@ -46,7 +46,7 @@
 	   'xref-ada-identifier
 	   (list ':file (buffer-file-name)
 		 ':line (line-number-at-pos)
-		 ':column (1+ (current-column)))
+		 ':column (current-column))
 	   ident)
 	  ident)
 	(error
