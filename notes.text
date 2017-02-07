@@ -46,6 +46,8 @@ install packages in -Q:
 
  functional (next page for speed issues/ideas)
 
+see pdf-tools for ideas on compiling during package install
+
 gps vs wisi
     when hit return with invalid syntax, does not indent until type some code
 

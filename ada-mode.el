@@ -2947,8 +2947,9 @@ The paragraph is indented on the first line."
 
 (require 'ada-build)
 
-(when (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
-  (require 'ada-gps))
+(if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
+    (require 'ada-gps)
+  (require 'ada-wisi))
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))
