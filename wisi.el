@@ -1577,7 +1577,8 @@ correct. Must leave point at indentation of current line.")
   (setq wisi-keyword-table keyword-table)
   (setq wisi-parse-table parse-table)
 
-  (setq wisi-indent-calculate-functions indent-calculate)
+  ;; file local variables may have added opentoken, gnatprep
+  (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
 
   (setq wisi-post-parse-fail-hook post-parse-fail)

@@ -63,7 +63,8 @@
     ;; user may have killed buffer
     (setf (gpr-query--session-buffer session) (gnat-run-buffer gpr-query-buffer-name-prefix))
     (with-current-buffer (gpr-query--session-buffer session)
-      (compilation-mode)))
+      (compilation-mode)
+      (setq buffer-read-only nil)))
 
   (with-current-buffer (gpr-query--session-buffer session)
     (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
@@ -95,7 +96,8 @@
   "Create and return a session for the current project file."
   (let ((session
 	 (make-gpr-query--session
-	  :buffer (gnat-run-buffer gpr-query-buffer-name-prefix))))
+	  :buffer nil
+	  :process nil)))
     (gpr-query--start-process session)
     session))
 
@@ -279,7 +281,10 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	;; post Emacs 25, compilation-next-error applies
 	;; compilation-message and font-lock-face text properties on
 	;; the fly via compilation--ensure-parse.
-	nil)
+	;;
+	;; 'compilation--flush-parse' is in before-change-functions,
+	;; but sometimes that doesn't work.
+	(compilation--flush-parse (point-min) (point-max)))
 
       (goto-char (point-min))
       (cond
@@ -298,7 +303,6 @@ with compilation-error-regexp-alist set to COMP-ERR."
 	 ;; fetch the compilation-message while in the
 	 ;; session-buffer. and call ada-goot-source outside the
 	 ;; with-current-buffer above.
-	 (compilation--ensure-parse (point-max))
 	 (let* ((msg (compilation-next-error 0))
                 ;; IMPROVEME: '--' indicates internal-only. But we can't
                 ;; use compile-goto-error, because that displays the

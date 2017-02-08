@@ -36,24 +36,24 @@ procedure Ada_Mode.Conditional_Expressions is
                          others => +1);
    L3 : Integer := (case J is
                        when 42 =>
-                         -1,
+                          -1,
                        when Integer'First .. 41 =>
-                         0,
+                          0,
                        when others =>
-                         +1);
+                          +1);
    L4 : Integer := (case J is
                        when
                          42
                          =>
-                         -1,
+                          -1,
                        when
                          Integer'First .. 41
                          =>
-                         0,
+                          0,
                        when
                          others
                          =>
-                         +1);
+                          +1);
 
    type C_Type is (A, B, Z);
    C : C_Type := A;
@@ -63,14 +63,14 @@ procedure Ada_Mode.Conditional_Expressions is
    L5 : Boolean :=
      (case C is
          when A =>
-           J = 4
-             or else M, --  test case from Piotr Trojanek
+            J = 4
+              or else M, --  test case from Piotr Trojanek
          when B =>
-           Fun (J) = 0
-             or else M,
+            Fun (J) = 0
+              or else M,
          when others =>
-           (1
-              + 2) = 3);
+            (1
+               + 2) = 3);
 
    L : Integer := L0;
 begin
@@ -93,14 +93,14 @@ begin
          when 0  => 41,
          when 1  =>
 
-           (if J > 42
-           -- comment indent matching GNAT style check
-           -- second line of comment
+            (if J > 42
+               -- comment indent matching GNAT style check
+               -- second line of comment
 
-            then 44     -- comment matching GNAT
+             then 44    -- comment matching GNAT
                         -- second line
 
-            else 45)); -- comment _not_ matching GNAT style check
+             else 45)); -- comment _not_ matching GNAT style check
                         -- comment matching GNAT
 
 end Ada_Mode.Conditional_Expressions;

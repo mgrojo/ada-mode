@@ -87,8 +87,10 @@ SYNTAX_FILES  := $(SYNTAX_FILES) adacore_8529_012.ads
 COMPILE_FILES := $(filter-out aspects.ads, $(COMPILE_FILES))# complicated aspects
 SYNTAX_FILES  := $(SYNTAX_FILES) aspects.ads
 
+COMPILE_FILES := $(filter-out bug_2016_11_21_01.adb, $(COMPILE_FILES))# missing declarations
 COMPILE_FILES := $(filter-out g-comlin.adb, $(COMPILE_FILES))# copied from gnat runtime; gnat won't compile it!
 COMPILE_FILES := $(filter-out gnatprep.adb, $(COMPILE_FILES))# could run thru gnatprep, but it's not worth it.
+COMPILE_FILES := $(filter-out gps_indent_options.adb, $(COMPILE_FILES))# gnat style, cases
 COMPILE_FILES := $(filter-out highlight.adb, $(COMPILE_FILES))# font-lock only
 
 # GNAT GPL 2016 complains about compiling these; not clear why

@@ -1447,20 +1447,30 @@
       (record_type_definition
        ((abstract_tagged_limited_opt record_definition )))
       (relation_and_list
-       ((relation AND relation ))
-       ((relation_and_list AND relation )))
+       ((relation AND relation )
+        (wisi-statement-action [3 expression-start]))
+       ((relation_and_list AND relation )
+        (wisi-statement-action [3 expression-start])))
       (relation_and_then_list
-       ((relation AND THEN relation ))
-       ((relation_and_then_list AND THEN relation )))
+       ((relation AND THEN relation )
+        (wisi-statement-action [4 expression-start]))
+       ((relation_and_then_list AND THEN relation )
+        (wisi-statement-action [4 expression-start])))
       (relation_or_list
-       ((relation OR relation ))
-       ((relation_or_list OR relation )))
+       ((relation OR relation )
+        (wisi-statement-action [3 expression-start]))
+       ((relation_or_list OR relation )
+        (wisi-statement-action [3 expression-start])))
       (relation_or_else_list
-       ((relation OR ELSE relation ))
-       ((relation_or_else_list OR ELSE relation )))
+       ((relation OR ELSE relation )
+        (wisi-statement-action [4 expression-start]))
+       ((relation_or_else_list OR ELSE relation )
+        (wisi-statement-action [4 expression-start])))
       (relation_xor_list
-       ((relation XOR relation ))
-       ((relation_xor_list XOR relation )))
+       ((relation XOR relation )
+        (wisi-statement-action [3 expression-start]))
+       ((relation_xor_list XOR relation )
+        (wisi-statement-action [3 expression-start])))
       (relation
        ((simple_expression ))
        ((simple_expression relational_operator simple_expression ))

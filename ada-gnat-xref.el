@@ -119,14 +119,14 @@ elements of the result may be nil."
 	    ;; error in *.gpr; ignore here.
 	    (forward-line 1)
 	  ;; else process line
-	  (let ((found-file (match-string 1))
+	  (let ((found-file (file-name-nondirectory (match-string 1)))
 		(found-line (string-to-number (match-string 2)))
 		(found-col  (string-to-number (match-string 3))))
 	    (if (not
 		 (and
 		  (equal file-non-dir found-file)
 		  (= line found-line)
-		  (= col found-col)))
+		  (= (ada-gnat-xref-adj-col identifier col) found-col)))
 		;; found other item
 		(setq result (list found-file found-line (1- found-col)))
 	      (forward-line 1))

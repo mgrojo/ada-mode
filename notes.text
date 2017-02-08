@@ -25,17 +25,31 @@ run test from emacs -Q using installed elpa:
 
 run test from emacs -Q using source:
 (progn
-  (add-to-list 'exec-path "/apps/GNAT-gpl_2014/bin")
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
   (load "autoloads.el")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
   (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-nominal.ads")
+  (run-test "../../test/gnatprep.adb")
   (ada-wisi-debug-keys))
+
+(progn
+  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
+  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (setq debug-on-error t)
+  (load "autoloads.el")
+  (require 'ada-mode)
+  (setq default-directory "/Projects/org.emacs.ada-mode/")
+  (load "run-indent-test-wisi-gpr_query")
+  (setq wisi-debug 1)
+  (find-file "/Projects/org.emacs.ada-mode/test/gnatprep.adb")
+  )
 
 install packages in -Q:
 (progn
@@ -45,6 +59,18 @@ install packages in -Q:
 
 
  functional (next page for speed issues/ideas)
+
+add local, append to NEWS
+
+ada-indent-hanging-rel-exp
+    see FIXME: in ada-wisi.el
+    need input from ludovic
+
+    add to NEWS
+    add to .texi
+
+run gnat-xref tests with gnat 2015
+
 
 see pdf-tools for ideas on compiling during package install
 

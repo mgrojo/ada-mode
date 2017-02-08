@@ -217,7 +217,7 @@ package body Ada_Mode.Parens is
         or else (B.all
                    --EMACSCMD:(test-face "then" 'font-lock-keyword-face)
                    and then C
-                   and then D)  --  requires ada-indent-validate-cache-paren
+                   and then D)
       then
          null;
       end if;

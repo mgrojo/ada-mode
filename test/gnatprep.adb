@@ -7,12 +7,12 @@
 -- gnatprep indentation is enabled by `ada-*-setup', which is added to
 -- ada-mode-hook when a project file is selected. When this file is
 -- run as a test, no project file has been selected before the file is
--- opened, so gnatprep indentation is not enabled. So we run ada-mode
--- again after selecting the project file.
+-- opened, so gnatprep indentation is not enabled. So we run
+-- gnatprep-setup explicitly.
 
 --EMACSCMD:(ada-parse-prj-file "ada_mode.gpr")
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
---EMACSCMD:(ada-mode)
+--EMACSCMD:(gnatprep-setup)
 
 --EMACSCMD:(jit-lock-fontify-now)
 
@@ -23,17 +23,17 @@ begin
       -- Can't use 'test-face' here because it skips comments, and gnatprep lines have comment syntax.
       --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #if Gnat_Compiler
-      --EMACSRESULT:font-lock-preprocessor-face
+--EMACSRESULT:font-lock-preprocessor-face
       A := 1;
       --EMACSCMD:(progn (forward-line 1)(syntax-class (syntax-after (point))))
 #elsif Other_Compiler
-      --EMACSRESULT:11
+--EMACSRESULT:11
       A := 2;
 #else
       B := 3;
       --EMACSCMD:(progn (forward-line 1)(face-at-point))
 #end if;
-      --EMACSRESULT:font-lock-preprocessor-face
+--EMACSRESULT:font-lock-preprocessor-face
       A := 3;
 
    end if;

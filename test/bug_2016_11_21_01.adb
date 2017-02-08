@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  bug reported by Ludovic Brenta
+--  bug reported by Ludovic Brenta. does not compile
 --
 
 procedure Bug_2016_11_21_01

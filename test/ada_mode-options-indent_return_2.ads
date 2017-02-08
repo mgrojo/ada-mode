@@ -23,7 +23,7 @@ package Ada_Mode.Options.Indent_Return_2 is
         return Integer;   -- from ada-indent-return
 
    type G is access function
-                       return Integer; -- from ada-indent-broken
+      return Integer; -- from ada-indent-broken
 
    type H is access function (C : Integer)
                          return Integer;  -- from ada-indent-return
@@ -35,7 +35,7 @@ package Ada_Mode.Options.Indent_Return_2 is
       with function J (B : Integer)
                 return Integer;   --  from ada-indent-return
       with function K
-              return Integer;   --  from ada-indent-broken
+         return Integer;   --  from ada-indent-broken
    package L is
    end L;
 

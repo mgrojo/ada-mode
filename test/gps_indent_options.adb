@@ -1,4 +1,5 @@
---  Demonstrate that gps indentation engine respects ada-mode indent params
+--  Demonstrate that gps indentation engine respects ada-mode indent params,
+--  does not compile; fails gnat style checks, missing cases.
 
 procedure Gps_Indent_Options is
 

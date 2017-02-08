@@ -2016,27 +2016,37 @@ record_type_definition
 
 relation_and_list
   : relation AND relation
+    (wisi-statement-action [3 expression-start])
   | relation_and_list AND relation
+    (wisi-statement-action [3 expression-start])
   ;
 
 relation_and_then_list
   : relation AND THEN relation
+    (wisi-statement-action [4 expression-start])
   | relation_and_then_list AND THEN relation
+    (wisi-statement-action [4 expression-start])
   ;
 
 relation_or_list
   : relation OR relation
+    (wisi-statement-action [3 expression-start])
   | relation_or_list OR relation
+    (wisi-statement-action [3 expression-start])
   ;
 
 relation_or_else_list
   : relation OR ELSE relation
+    (wisi-statement-action [4 expression-start])
   | relation_or_else_list OR ELSE relation
+    (wisi-statement-action [4 expression-start])
   ;
 
 relation_xor_list
   : relation XOR relation
+    (wisi-statement-action [3 expression-start])
   | relation_xor_list XOR relation
+    (wisi-statement-action [3 expression-start])
   ;
 
 ;; http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0022-1.txt?rev=1.13

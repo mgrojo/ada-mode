@@ -229,6 +229,13 @@ An example is:
   :safe #'integerp)
 (make-variable-buffer-local 'ada-indent-with)
 
+(defcustom ada-indent-hanging-rel-exp nil
+  "If non-nil, indent hanging lines relative to start of expression.
+Otherwise, indent relative to previous line."
+  :type 'boolean
+  :safe #'booleanp)
+(make-variable-buffer-local 'ada-indent-hanging-rel-exp)
+
 (provide 'ada-indent-user-options)
 
 ;; end file
