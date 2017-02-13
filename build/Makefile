@@ -39,6 +39,13 @@ else
   TAR_PAT := $(BRANCH)
 endif
 
+DATE := $(shell date +%Y-%m-%d)
+# tarball of installed ELPA packages, for sending to customers without good monotone access
+elpa-zip : docs pub-ada pub-wisi build-elpa install-elpa ada-mode-elpa-$(DATE).tar.gz
+
+ada-mode-elpa-$(DATE).tar.gz :
+	tar zcf ada-mode-elpa-$(DATE).tar.gz -C ~/.emacs.d/elpa ada-ref-man-$(ADA_REF_MAN_VERSION) ada-mode-$(ADA_MODE_VERSION) wisi-$(WISI_VERSION)
+
 zip :
 	tar zcf $(TAR_FILE) --exclude _MTN --exclude "autoloads.el" --exclude "gpr_query.db*" --exclude "*~" --exclude "*.ali" --exclude "*.diff" --exclude "*.elc" --exclude "*.exe" --exclude "obj" --exclude "*.output" --exclude "*.stamp" --exclude "*.tar.gz"  --exclude "*.tmp" --exclude "*.wisi-test" -C $(TAR_DIR) $(TAR_PAT)
 
@@ -82,7 +89,7 @@ pub-ada : force
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
-	cp ../gpr_query.adb ../gpr_query.gpr $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form

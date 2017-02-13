@@ -81,13 +81,9 @@
 may add more args to the result before calling gnatfind.  Some
 elements of the result may be nil."
   (list "-a"
-        (when (ada-prj-get 'gpr_ext) (concat "--ext=" (ada-prj-get 'gpr_ext)))
         (when ada-xref-full-path "-f")
-        (when (ada-prj-get 'gpr_file)
-          (concat "-p" (file-name-nondirectory (ada-prj-get 'gpr_file))))
-	;; src_dir contains Source_Dirs from gpr_file, but user may
-	;; also have added others, and duplication doesn't
-	;; hurt. Similarly for obj_dir.
+	;; src_dir contains Source_Dirs from gpr_file, Similarly for
+	;; obj_dir. So we don't need to pass the gpr file.
         (when (ada-prj-get 'src_dir)
           (concat "-aI" (mapconcat 'identity (ada-prj-get 'src_dir) ":")))
         (when (ada-prj-get 'obj_dir)

@@ -60,7 +60,8 @@ install packages in -Q:
 
  functional (next page for speed issues/ideas)
 
-add local, append to NEWS
+gpr_query --help show relevant trace settings
+    add -v; shows *.ali
 
 ada-indent-hanging-rel-exp
     see FIXME: in ada-wisi.el
@@ -68,9 +69,6 @@ ada-indent-hanging-rel-exp
 
     add to NEWS
     add to .texi
-
-run gnat-xref tests with gnat 2015
-
 
 see pdf-tools for ideas on compiling during package install
 

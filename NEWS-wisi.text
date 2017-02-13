@@ -9,6 +9,9 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 
 * wisi 1.1.5
 
+** wisi-indent-fallback allows setting the indent engine to use when
+   the wisi engine fails.
+
 ** wisi-comment-indent now uses comment-column for comments following
    code on the same line.
 

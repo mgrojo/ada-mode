@@ -13,7 +13,7 @@ Please send Emacs Ada mode bug reports to bug-gnu-emacs@gnu.org, with
    argument, set by interactive prefix; if non-nil, preserve previous
    output in references buffer.
 
-** Support gps indentation engine, either as primary or backup. See
+** Support GPS indentation engine, either as primary or backup. See
    user guide for how to set it up; it requires compiling Ada code.
 
 ** ada-identifier-at-point properly handles adjacent operator and

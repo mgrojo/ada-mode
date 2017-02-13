@@ -5,9 +5,9 @@
 
 (package-initialize)
 
-(setq ada-mode-version "5.1.9")
+(setq ada-mode-version "5.2.1")
 (setq ada-ref-man-version "2012.0")
-(setq wisi-version "1.1.2")
+(setq wisi-version "1.1.4")
 
 (cond
  ;; package handler details change between emacs versions
@@ -19,7 +19,8 @@
   (load-file "install-elpa-24.3.el"))
 
  ((or (string-equal emacs-version "24.4.1")
-      (string-equal emacs-version "24.5.1"))
+      (string-equal emacs-version "24.5.1")
+      (= emacs-major-version 25))
   (load-file "install-elpa-24.4.el"))
 
  (t

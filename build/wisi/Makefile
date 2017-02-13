@@ -16,15 +16,17 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
-GNAT_VERSION := $(findstring GPL 2015,$(shell gnat --version))
-
 # FIXME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
 
-ifeq ($(GNAT_VERSION),GPL 2015)
-# 'gnat find -P' not supported after GPL 2015
-test : test-ada-gnatxref.stamp
-endif
+# The various gnatxref tests no longer work with any GPL version of GNAT.
+# But some customers still manage to use them, so we rely on their
+# testing.
+#
+# GPL 2016: 'gnatlist' does not include system libraries
+# GPL 2015: 'gnatfind -pada_mode_parent.gpr' can't find ada_mode-nominal.ali
+# GPL 2014: can't compile ada_mode-nominal.ads protected type
+# test : test-ada-gnatxref.stamp
 
 test : test-ada-gpr_query.stamp
 test : gpr-skel.gpr.diff
@@ -50,8 +52,8 @@ test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f ada_mode-interactive_common*
-one : one-clean ada_mode-interactive_common.adb.diff
+	rm -f ada_mode-nominal*
+one : one-clean ada_mode-nominal.ads.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
