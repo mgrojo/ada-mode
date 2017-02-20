@@ -183,7 +183,7 @@ elements of the result may be nil."
 
   (let* ((arg (ada-gnat-xref-common-args identifier file line col)))
     (setq arg (cons "-r" arg))
-    (when local-only (setq arg (append arg file nil)))
+    (when local-only (setq arg (append arg (list file))))
 
     (with-current-buffer (gnat-run-buffer); for default-directory
       (let ((compilation-buffer-name "*gnatfind*")

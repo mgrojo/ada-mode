@@ -29,6 +29,16 @@ package Ada_Mode.Expression_Functions is
          when B | C => "Err",
          when D => "Unk");
 
+   --  Don't require extra parens for aggregate result in expression function
+   type Result is record
+      A : Integer;
+      B : Integer;
+   end record;
+
+   function Key return Result is
+     (A => 1,
+      B => 2);
+
    Y : array (1 .. 42) of Integer := (others => 0);
 
    --  Indent after =>

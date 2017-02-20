@@ -232,6 +232,7 @@
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
 %conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state paren_expression, association_opt on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
 %conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
@@ -1767,6 +1768,13 @@ paren_expression
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
+
+ ;; GNAT allows this in expression functions
+  | LEFT_PAREN association_list RIGHT_PAREN
+    (progn
+      (wisi-statement-action [1 open-paren 3 close-paren])
+      (wisi-containing-action 1 2))
+
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
     (progn

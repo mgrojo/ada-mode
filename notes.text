@@ -60,6 +60,27 @@ install packages in -Q:
 
  functional (next page for speed issues/ideas)
 
+test/flight.adb
+    wisi grammar error
+    (setq ada-gps-size-threshold 400000)
+    problem is expression function with aggregate result; need extra parens?
+    ARM 6.8 says expression_function_declaration ::=
+        [overriding_indicator]
+        function_specification is
+            (expression)
+            [aspect_specification];
+
+        with no explicit permission to remove the parens.
+
+        ARM 4.5.7(7) gives explicit permission for conditional_expression
+        4.3 has no similar paragraph for aggregate
+
+add "right click context menu for navigation"
+    subset of Ada | Navigate using identifier under mouse
+
+ada_mode_gps_indent install:
+    edit GPS configure to delete gtk, rather than configure gtk
+
 gpr_query --help show relevant trace settings
     add -v; shows *.ali
 
