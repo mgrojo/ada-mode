@@ -1769,7 +1769,6 @@ paren_expression
       (wisi-statement-action [1 open-paren 3 close-paren])
       (wisi-containing-action 1 2))
 
- ;; GNAT allows this in expression functions
   | LEFT_PAREN association_list RIGHT_PAREN
     (progn
       (wisi-statement-action [1 open-paren 3 close-paren])

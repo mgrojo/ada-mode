@@ -460,31 +460,36 @@ Values defined by cross reference packages.")
      ["Reset parser"                  ada-reset-parser             t]
      )))
 
-;; This doesn't need to be buffer-local because there can be only one
-;; popup menu at a time.
-(defvar ada-context-menu-on-identifier nil)
-
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
-    ["Make body for subprogram"      ada-make-subprogram-body     t]
-    ["Goto declaration/body"         ada-goto-declaration         :included ada-context-menu-on-identifier]
-    ["Show parent declarations"      ada-show-declaration-parents :included ada-context-menu-on-identifier]
-    ["Show references"               ada-show-references          :included ada-context-menu-on-identifier]
-    ["Show overriding"               ada-show-overriding          :included ada-context-menu-on-identifier]
-    ["Show overridden"               ada-show-overridden          :included ada-context-menu-on-identifier]
-    ["Expand skeleton"               ada-expand                        t]
-    ["Create full case exception"    ada-case-create-exception         t]
-    ["Create partial case exception" ada-case-create-partial-exception t]
+    ["Goto declaration/body"         ada-goto-declaration         t]
+    ["Show parent declarations"      ada-show-declaration-parents t]
+    ["Goto next statement keyword"   ada-next-statement-keyword   t]
+    ["Goto declaration start"        ada-goto-declaration-start   t]
+    ["Goto declaration end"          ada-goto-declaration-end     t]
+    ["Show parent declarations"      ada-show-declaration-parents t]
+    ["Show references"               ada-show-references          t]
+    ["Show overriding"               ada-show-overriding          t]
+    ["Show overridden"               ada-show-overridden          t]
+    ["Goto next statement keyword"   ada-next-statement-keyword   t]
+    ["Goto prev statement keyword"   ada-next-statement-keyword   t]
 
     ["-"                nil nil]
+
     ["Align"                       ada-align                  t]
+    ["Comment/uncomment selection" comment-dwim               t]
+    ["Fill comment paragraph"         ada-fill-comment-paragraph           (ada-in-comment-p)]
+    ["Fill comment paragraph justify" (ada-fill-comment-paragraph 'full)   (ada-in-comment-p)]
+    ["Fill comment paragraph postfix" (ada-fill-comment-paragraph 'full t) (ada-in-comment-p)]
     ["Adjust case at point"        ada-case-adjust-at-point   (not (use-region-p))]
     ["Adjust case region"          ada-case-adjust-region     (use-region-p)]
+    ["Create full case exception"    ada-case-create-exception         t]
+    ["Create partial case exception" ada-case-create-partial-exception t]
     ["Indent current statement"    ada-indent-statement       t]
-    ["Goto next statement keyword" ada-next-statement-keyword t]
-    ["Goto prev statement keyword" ada-next-statement-keyword t]
-    ["Other File"                  ada-find-other-file        t]))
+    ["Expand skeleton"               ada-expand                        t]
+    ["Make body for subprogram"    ada-make-subprogram-body   t]
+    ))
 
 (defun ada-popup-menu ()
   "Pops up `ada-context-menu'.
