@@ -36,6 +36,7 @@
 (require 'ada-fix-error)
 (require 'compile)
 (require 'gnat-core)
+(defvar ada-gnat-debug-run);; gnat-core requires ada-mode, which requires ada-gnat-xref
 
 ;;;;; code
 
@@ -96,8 +97,7 @@ elements of the result may be nil."
 
 (defun ada-gnat-xref-other (identifier file line col)
   "For `ada-xref-other-function', using `gnatfind', which is Ada-specific."
-  (let* ((file-non-dir (file-name-nondirectory file))
-	 (result nil))
+  (let* ((result nil))
     (with-current-buffer (gnat-run-buffer)
       (gnat-run (ada-gnat-xref-common-cmd) (ada-gnat-xref-common-args identifier file line col))
 
@@ -115,12 +115,12 @@ elements of the result may be nil."
 	    ;; error in *.gpr; ignore here.
 	    (forward-line 1)
 	  ;; else process line
-	  (let ((found-file (file-name-nondirectory (match-string 1)))
+	  (let ((found-file (match-string 1))
 		(found-line (string-to-number (match-string 2)))
 		(found-col  (string-to-number (match-string 3))))
 	    (if (not
 		 (and
-		  (equal file-non-dir found-file)
+		  (equal file found-file)
 		  (= line found-line)
 		  (= (ada-gnat-xref-adj-col identifier col) found-col)))
 		;; found other item
@@ -188,6 +188,9 @@ elements of the result may be nil."
     (with-current-buffer (gnat-run-buffer); for default-directory
       (let ((compilation-buffer-name "*gnatfind*")
             (compilation-error "reference")
+            (command-and-args (mapconcat (lambda (a) (or a ""))
+                                         (cons (ada-gnat-xref-common-cmd) arg)
+                                         " "))
 	    ;; gnat find uses standard gnu format for output, so don't
 	    ;; need to set compilation-error-regexp-alist
 	    prev-content)
@@ -199,9 +202,13 @@ elements of the result may be nil."
 	  (when append
 	    (setq prev-content (buffer-substring (point-min) (point-max))))
 
-	  (compilation-start (mapconcat (lambda (a) (or a ""))
-					(cons (ada-gnat-xref-common-cmd) arg)
-					" ")
+          (if (not ada-gnat-debug-run)
+              ;; hide the command and arguments using text properties, show only the bare minimum
+              (setq command-and-args
+                    (propertize command-and-args
+                                'display
+                                (format "References to %s at %s:%d:%d" identifier file line col))))
+	  (compilation-start command-and-args
 			     'compilation-mode
 			     (lambda (_name) compilation-buffer-name))
 	  (when append

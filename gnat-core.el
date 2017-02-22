@@ -28,6 +28,14 @@
 
 ;;;;; code
 
+(defcustom ada-gnat-debug-run nil
+  "If t, compilation buffers containing a GNAT command will show
+the command.  Otherwise, they will show only the output of the
+command.  This applies e.g. to *gnatfind* buffers."
+  :type 'boolean
+  :safe  #'booleanp
+  :group 'ada)
+
 ;;;; project file handling
 
 (defun gnat-prj-add-prj-dir (dir project)
@@ -286,9 +294,10 @@ Assumes current buffer is (gnat-run-buffer)"
   (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
 	status)
 
-    (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec)); for debugging
-    (mapc (lambda (str) (insert (concat str " "))) command); for debugging
-    (newline)
+    (when ada-gnat-debug-run
+      (insert (format "GPR_PROJECT_PATH=%s\n%s " (getenv "GPR_PROJECT_PATH") exec))
+      (mapc (lambda (str) (insert (concat str " "))) command)
+      (newline))
 
     (setq status (apply 'call-process exec nil t nil command))
     (cond
@@ -331,9 +340,10 @@ which is displayed on error."
   (set 'buffer-read-only nil)
   (erase-buffer)
 
-  (setq command (cl-delete-if 'null command))
-  (mapc (lambda (str) (insert (concat str " "))) command)
-  (newline)
+  (when ada-gnat-debug-run
+    (setq command (cl-delete-if 'null command))
+    (mapc (lambda (str) (insert (concat str " "))) command)
+    (newline))
 
   (let ((default-directory (or dir default-directory))
 	status)
