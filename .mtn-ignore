@@ -10,6 +10,7 @@
 ^build/.*\.toc$
 ^build/.*\.txt$
 ^build/\.gdbinit$
+^build/__pycache__$
 ^build/html$
 ^build/objects$
 ^build/txt$

@@ -84,12 +84,12 @@ build/Makefile
     if no new version, bump trailing digit in ZIP_VERSION
         otherwise, reset digit to 1
 
-    update-upstream
+    update_upstream
 
 (dvc-status "../org.adaic.arm_form.upstream")
     commit message "update from upstream"
 
-(xmtn-propagate-one "../org.adaic.arm_form.upstream" ".")
+(dvc-propagate-one "../org.adaic.arm_form.upstream" ".")
 
 build/Makefile
     all publish

@@ -125,7 +125,7 @@ trace :
 	addr2line -e arm_form.exe 0x5c12e7 0x5c598e 0x43e05b 0x446c5b 0x448369 0x545205 0x4e9221 0x4e3b1a 0x5831a1 0x5ad295 0x5adee9 0x4cb3f5 0x401850 0x401235 0x401286 0x7c817075
 
 # year is latest standard; bump trailing digit for any change.
-ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).2
+ZIP_VERSION := $(lastword $(AVAILABLE_YEARS)).3
 
 INFO_ARCHIVE := arm_info-$(ZIP_VERSION).tar.gz
 SOURCE_ARCHIVE  := arm_info-$(ZIP_VERSION)-src.tar.gz

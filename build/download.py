@@ -122,7 +122,7 @@ cvsweb = CVSWeb (hostname = 'www.ada-auth.org',
                  top_directory = 'arm')
 tags = { '1995':'Final_TC1',
          '2005':'Amend_Final',
-         '2012':'Ada2012_Final' }
+         '2012':'Ada2012_TC1' }
 
 if len (sys.argv) == 2 and sys.argv [1] == 'progs':
     download_subdir (cvsweb, 'progs',
