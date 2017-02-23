@@ -102,7 +102,7 @@ elements of the result may be nil."
       (gnat-run (ada-gnat-xref-common-cmd) (ada-gnat-xref-common-args identifier file line col))
 
       (goto-char (point-min))
-      (forward-line 2); skip ADA_PROJECT_PATH, 'gnat find'
+      (when ada-gnat-debug-run (forward-line 2)); skip ADA_PROJECT_PATH, 'gnat find'
 
       ;; gnat find returns two items; the starting point, and the 'other' point
       (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
@@ -142,7 +142,7 @@ elements of the result may be nil."
       (gnat-run (ada-gnat-xref-common-cmd) (cons "-d" arg))
 
       (goto-char (point-min))
-      (forward-line 2); skip GPR_PROJECT_PATH, 'gnat find'
+      (when ada-gnat-debug-run (forward-line 2)); skip GPR_PROJECT_PATH, 'gnat find'
 
       ;; gnat find returns two items; the starting point, and the 'other' point
       (unless (looking-at (concat ada-gnat-file-line-col-regexp ":"))
@@ -202,12 +202,12 @@ elements of the result may be nil."
 	  (when append
 	    (setq prev-content (buffer-substring (point-min) (point-max))))
 
-          (if (not ada-gnat-debug-run)
-              ;; hide the command and arguments using text properties, show only the bare minimum
-              (setq command-and-args
-                    (propertize command-and-args
-                                'display
-                                (format "References to %s at %s:%d:%d" identifier file line col))))
+          (unless ada-gnat-debug-run
+	    ;; hide the command and arguments using text properties, show only the bare minimum
+	    (setq command-and-args
+		  (propertize command-and-args
+			      'display
+			      (format "References to %s at %s:%d:%d" identifier file line col))))
 	  (compilation-start command-and-args
 			     'compilation-mode
 			     (lambda (_name) compilation-buffer-name))

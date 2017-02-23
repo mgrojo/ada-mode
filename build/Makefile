@@ -17,13 +17,13 @@
 # require ada-mode. And it's not worth making gnat-core a package.
 
 export ADA_MODE_VERSION    := 5.2.1
-export ADA_REF_MAN_VERSION := 2012.0
+export ADA_REF_MAN_VERSION := 2012.3
 export WISI_VERSION        := 1.1.4
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
 all : docs pub-ada pub-wisi build-elpa uninstall-elpa
-# all : pub-ada-ref-man
+all : pub-ada-ref-man
 
 docs : info html
 
@@ -92,7 +92,7 @@ pub-ada : force
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
 
 # copy files to ELPA ada-ref-man package
-pub-ada-ref-man: ARM_INFO ?= c:/Projects/arm_info/org.adaic.arm_form
+pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
 pub-ada-ref-man : force
 	cp ../ada-ref-man.el $(ELPA_ROOT)/packages/ada-ref-man/
 	cp ../README-ada-ref-man $(ELPA_ROOT)/packages/ada-ref-man/README
