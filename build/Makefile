@@ -61,9 +61,9 @@ SOURCE_DIR_2012 := ../source_2012
 
 # See progs/command.txt.
 CHANGES      := New-Only
-# See inside SOURCE_DIR_YEAR/DOCUMENT.msm for possible values.
+# See arm_form.exe help for possible values
 VERSION_2005 := 2
-VERSION_2012 := 3
+VERSION_2012 := 4
 
 # Mapping from document acronyms to Randy's file names
 MASTER_arm  := rm.msm
@@ -78,7 +78,7 @@ define doc_year_build
   # store the temporary result into the versioned source directory.
   $(d)$(y).texinfo: arm_form.exe $(SOURCES_$(y))
 	cd $(SOURCE_DIR_$(y)); \
-        $(CURDIR)/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) ./; \
+        $(CURDIR)/$$< $(MASTER_$(d)) info $(CHANGES) $(VERSION_$(y)) $(VERSION_$(y)) ./; \
         mv `sed -ne '/^@FilePrefix{\(.*\)}/{s//\L\1/p;q}' $(MASTER_$(d))`.texinfo $(CURDIR)/$$@
   clean::
 	rm -f $(d)$(y).texinfo
@@ -87,7 +87,7 @@ define doc_year_build
 	rm -f -r $$@
 	mkdir --parents $$@
 	cd $(SOURCE_DIR_$(y)); \
-        $(CURDIR)/$$< $(MASTER_$(d)) HTML $(CHANGES) $(VERSION_$(y)) $(CURDIR)/$$@/
+        $(CURDIR)/$$< $(MASTER_$(d)) HTML $(CHANGES) $(VERSION_$(y)) $(VERSION_$(y)) $(CURDIR)/$$@/
   clean::
 	rm -f -r $(d)$(y).html
 
@@ -95,7 +95,7 @@ define doc_year_build
 	rm -f -r $$@
 	mkdir --parents $$@
 	cd $(SOURCE_DIR_$(y)); \
-        $(CURDIR)/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) $(CURDIR)/$$@/
+        $(CURDIR)/$$< $(MASTER_$(d)) Text $(CHANGES) $(VERSION_$(y)) $(VERSION_$(y)) $(CURDIR)/$$@/
   clean::
 	rm -f -r $(d)$(y).txt
 

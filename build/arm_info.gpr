@@ -98,7 +98,7 @@ project ARM_Info is
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";
 
-      for Switches ("ARM_FORM.ADA") use ("-o", "arm_form.exe");
+      for Executable ("ARM_FORM.ADA") use "arm_form.exe";
    end Builder;
 
   package Linker is

@@ -2,7 +2,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -24,17 +24,17 @@ package body ARM_Texinfo is
    -- Ancient  - S L - Developed package as add-on to Arm_Form.
    -- 10/19/11 - RLB - Integrated outside-developed package into Arm_Form.
    --                  Commented out/replaced Ada 2005 features (this is
-   --		       Ada 95 code). Updated for a few other changes since
-   --		       the last update.
+   --                  Ada 95 code). Updated for a few other changes since
+   --                  the last update.
    -- 10/25/11 - RLB - Added old insertion version to Revised_Clause_Header.
    --  4/ 1/12 - S L - Implemented remaining Texinfo implementation.
    --  4/22/12 - S L - Move @dircategory, @direntry before first @node.
    --  4/28/12 - S L - Add @w{} after @anchor; otherwise following whitespace
-   --		       is dropped.
+   --                  is dropped.
    --  8/31/12 - RLB - Added Output_Path.
    -- 10/18/12 - RLB - Added additional hanging styles.
    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
-   --		       Revised_Clause_Header.
+   --                  Revised_Clause_Header.
    --  3/12/13 - S L - use correct version in direntry
 
 
@@ -146,9 +146,9 @@ package body ARM_Texinfo is
          when Unnumbered_Section | Clause | Subclause | Subsubclause =>
             null;
 
-	 when ARM_Contents.Dead_Clause  =>
-	    raise Program_Error with "Dead_Clause header??";
-		-- No headers for dead clauses.
+         when ARM_Contents.Dead_Clause  =>
+            raise Program_Error with "Dead_Clause header??";
+                -- No headers for dead clauses.
 
          end case;
       end Put_Top_Menu_Item;
@@ -467,8 +467,8 @@ package body ARM_Texinfo is
 
          case Item_Level is
          when Section | Unnumbered_Section |
-	      Normative_Annex | Informative_Annex | Plain_Annex |
-	      Subclause | Subsubclause =>
+              Normative_Annex | Informative_Annex | Plain_Annex |
+              Subclause | Subsubclause =>
             --  We are doing Clause here
             null;
 
@@ -509,8 +509,8 @@ package body ARM_Texinfo is
 
          case Item_Level is
             when Section | Unnumbered_Section |
-		 Normative_Annex | Informative_Annex | Plain_Annex |
-		 Clause | Subsubclause =>
+                 Normative_Annex | Informative_Annex | Plain_Annex |
+                 Clause | Subsubclause =>
                --  We are doing Subclause here
                null;
 
@@ -728,6 +728,9 @@ package body ARM_Texinfo is
          when '3' =>
             Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2012).");
             Put_Line (Output_Object.File, "* Annotated ARM: (arm2012).");
+         when '4' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual TC1: (arm2012).");
+            Put_Line (Output_Object.File, "* Annotated ARM TC1: (arm2012).");
          when others =>
             Ada.Exceptions.Raise_Exception
               (ARM_Output.Not_Valid_Error'Identity,
@@ -1266,7 +1269,7 @@ package body ARM_Texinfo is
       pragma Unreferenced (Old_Header_Text);
    begin
       Clause_Header (Output_Object, New_Header_Text, Level, Clause_Number,
-		     Top_Level_Subdivision_Name, No_Page_Break);
+                     Top_Level_Subdivision_Name, No_Page_Break);
    end Revised_Clause_Header;
 
    procedure Section
@@ -1575,7 +1578,7 @@ package body ARM_Texinfo is
 
          when Giant_Hanging |
            Small_Giant_Hanging |
-	   Wide_Hanging |
+           Wide_Hanging |
            Small_Wide_Hanging |
            Medium_Hanging |
            Small_Medium_Hanging |
