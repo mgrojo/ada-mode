@@ -1,9 +1,9 @@
 @Part(03, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:03 $}
+@Comment{$Date: 2016/02/09 04:55:40 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/03c.mss,v $}
-@Comment{$Revision: 1.128 $}
+@Comment{$Revision: 1.136 $}
 
 @LabeledClause{Tagged Types and Type Extensions}
 
@@ -491,17 +491,20 @@ in the chain is not visible].@Defn2{Term=[descendant],Sec=[at run-time]}]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00260-02]}
 @ChgRef{Version=[3],Kind=[RevisedAdded]}@ChgNote{Paragraph number changed}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0056-1]}
 @ChgAdded{Version=[2],Text=[The function Parent_Tag returns the tag of the
 parent type of the type whose tag is T. If the type does not have a parent type
-(that is, it was not declared by a derived_type_declaration), then No_Tag is
-returned.]}
+(that is, it was not @Chg{Version=[4],New=[defined],Old=[declared]} by a
+@Chg{Version=[4],New=[@nt{derived_type_definition}],Old=[derived_type_declaration]}),
+then No_Tag is returned.]}
 
 @begin{Ramification}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
 @ChgAdded{Version=[2],Text=[The parent type is always the parent of the full
 type; a private extension appears to define a parent type, but it does not
 (only the various forms of derivation do that). As this is a run-time
-operation, ignoring privateness is OK.]}
+operation, ignoring @Chg{Version=[4],New=[privacy],Old=[privateness]} is OK.]}
 @end{Ramification}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00405-01]}
@@ -630,8 +633,14 @@ create dispatching constructors for streams; in particular, this can be used to
 construct overridings for T'Class'Input.]}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
-@ChgAdded{Version=[2],Text=[Note that any tagged type will match T (see
-@RefSecNum{Formal Private and Derived Types}).]}
+@ChgRef{Version=[5],Kind=[Revised],ARef=[AI12-0005-1]}
+@ChgAdded{Version=[2],Text=[Note that @Chg{Version=[5],New=[almost ],Old=[]}any
+tagged type @Chg{Version=[5],New=[can be used in an instance of
+Generic_Dispatching_Constructor. Using a tagged incomplete view or a tagged
+partial view before the completion of the type in such an instance would be
+illegal; all other tagged types can be used in an instance of
+Generic_Dispatching_Constructor],Old=[will match T (see
+@RefSecNum{Formal Private and Derived Types})]}.]}
 @end{Discussion}
 
 @end{StaticSem}
@@ -1146,7 +1155,7 @@ Furthermore, a formal tagged limited private type can be extended with
 limited components,
 but the actual might not be limited,
 which would allow assignment of limited types,
-which is bad. ]}Hence, we have to disallow this
+which is bad.]} Hence, we have to disallow this
 case@Chg{Version=[2],New=[],Old=[ as well]}.
 
 @ChgRef{Version=[2],Kind=[Added]}
@@ -1511,11 +1520,13 @@ operand in a call on a dispatching operation.
 @end(Reason)
 @begin(Ramification)
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00252-01]}@ChgNote{Add info about prefix calls}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0039-1]}
   This rule applies to all expressions
   or @nt<name>s with a specific expected type, not just those that
   are actual parameters to a dispatching call. This rule does not apply to
-  a membership test whose @nt<expression> is class-wide,
-  since any type that covers the tested type is explicitly allowed.
+  a membership test whose
+  @Chg{Version=[4],New=[@SynI{tested_}@nt{simple_expression}],Old=[@nt<expression>]}
+  is class-wide, since any type that covers the tested type is explicitly allowed.
   See @RefSecNum(Relational Operators and Membership Tests).@Chg{Version=[2],
   New=[ This rule also doesn't apply to a @nt{selected_component} whose
   @nt{selector_name} is a subprogram, since the rules explicitly say that
@@ -2254,12 +2265,13 @@ R had been a private child of Q, it would have been legal.]}
   @end{Ramification}
 
   @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00391-01]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0080-1]}
   Otherwise, the subprogram shall be overridden with a nonabstract
   subprogram@Chg{Version=[2],New=[ or, in the case of a private extension
-  inheriting a function with a controlling result, have a full type that is
-  a null extension],Old=[]}@Redundant[;
-  for a type declared in the visible part of a package,
-  the overriding may be either in the visible or the private part].
+  inheriting a @Chg{Version=[4],New=[nonabstract ],Old=[]}function with a
+  controlling result, have a full type that is a null
+  extension],Old=[]}@Redundant[; for a type declared in the visible part of
+  a package, the overriding may be either in the visible or the private part].
   @Chg{Version=[2],New=[Such a subprogram is said to
   @i{require overriding}.@Defn{require overriding} ],Old=[]}However,
   if the type is a generic formal type,
@@ -3627,7 +3639,9 @@ can be applied to access types
 @Leading@keepnext@i{Examples of access-to-object types:}
 @begin{Example}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00433-01]}
-@key[type] Peripheral_Ref @key<is @Chg{Version=[2],New=[not null ],Old=[]}access> Peripheral;  --@RI[  see @RefSecNum{Variant Parts and Discrete Choices}]
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0056-1]}
+@Chg{Version=[4],New=[@key[type] Frame @key<is access> Matrix;    --@RI[  see @RefSecNum{Array Types}]
+],Old=[]}@key[type] Peripheral_Ref @key<is @Chg{Version=[2],New=[not null ],Old=[]}access> Peripheral;  --@RI[  see @RefSecNum{Variant Parts and Discrete Choices}]
 @key[type] Binop_Ptr @key[is access all] Binary_Operation'Class;
                                            --@RI[ general access-to-class-wide, see @RefSecNum{Type Extensions}]
 @end{Example}
@@ -3784,6 +3798,7 @@ rhs="@key{type} @Syn2{defining_identifier} [@Syn2{discriminant_part}]@Chg{Versio
 
 @begin{StaticSem}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00326-01]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0137-1]}
 @ChgAdded{Version=[2],Text=[@Defn{incomplete type}@Defn{incomplete view}
 An @nt{incomplete_type_declaration} declares
 an @i{incomplete view} of a
@@ -3791,11 +3806,14 @@ type and its first subtype; the first subtype is unconstrained if
 a @nt<discriminant_part> appears. If the
 @nt{incomplete_@!type_@!declaration} includes the reserved word @key{tagged}, it
 declares a @i{tagged incomplete view}.@Defn2{Term=[incomplete view],Sec=[tagged]}@Defn{tagged incomplete view}
-@Redundant[An incomplete view of a type is a limited view of the type (see @RefSecNum{Limited Types}).]]}
+@Chg{Version=[4],New=[If @i{T} denotes a tagged incomplete view, then
+@i{T}'Class denotes a tagged incomplete view. ],Old=[]}@Redundant[An incomplete
+view of a type is a limited view of the type (see @RefSecNum{Limited Types}).]]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00326-01]}
-@ChgAdded{Version=[2],Type=[Leading],Text=[Given an access type @i{A} whose designated
-type @i{T} is an incomplete view, a dereference of a value of type @i{A} also
+@ChgAdded{Version=[2],Type=[Leading],Text=[Given an access type @i{A} whose
+designated type @i{T} is
+an incomplete view, a dereference of a value of type @i{A} also
 has this incomplete view except when:]}
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0208-1]}
@@ -3825,7 +3843,8 @@ of @i{T} and @i{T} is an incomplete view declared by an
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0162-1]}
 @ChgAdded{Version=[2],Text=[In these cases, the dereference has the
 @Chg{Version=[3],New=[],Old=[full ]}view
-of @i{T}@Chg{Version=[3],New=[ visible at the point of the dereference],Old=[]}.]}
+of @i{T}@Chg{Version=[3],New=[
+visible at the point of the dereference],Old=[]}.]}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
   @ChgAdded{Version=[2],Type=[Leading],Text=[We need the @lquotes@;in
@@ -4341,6 +4360,17 @@ not at all) for different designated subtypes.
   formal incomplete types (see @RefSecNum{Formal Private and Derived Types}).]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0137-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigndum:> Changed the wording to clarify
+  that the class-wide type associated with a specific tagged type that has
+  an incomplete view is also an incomplete view.
+  While this was previously undefined, an interpretation where it is not
+  an incomplete view is leads to semantic nonsense, and thus we don't consider
+  this a potential incompatibility, as compilers most likely are doing the
+  right thing.]}
+@end{DiffWord2012}
+
 
 @LabeledSubClause{Operations of Access Types}
 
@@ -4509,13 +4539,15 @@ given master directly depends
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00162-01],ARef=[AI95-00416-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0235-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0067-1],ARef=[AI12-0089-1]}
 An entity or view @Chg{Version=[2],New=[defined],Old=[created]} by a
 declaration@Chg{Version=[2],New=[ and created as part of its elaboration],Old=[]}
 has the same accessibility level
 as the innermost @Chg{Version=[2],New=[],Old=[enclosing ]}master
 @Chg{Version=[2],New=[of the declaration ],Old=[]}except in the
 cases of renaming and derived access types described below.
-@Chg{Version=[3],New=[Other than for an explicitly aliased parameter, a
+@Chg{Version=[3],New=[Other than for an explicitly aliased
+parameter@Chg{Version=[4],New=[ of a function or generic function],Old=[]}, a
 formal],Old=[A]} parameter of a
 @Chg{Version=[3],New=[callable entity],Old=[master]} has the same
 accessibility level as the master@Chg{Version=[3],New=[ representing the
@@ -4528,11 +4560,15 @@ invocation of the entity],Old=[]}.
 @end{Reason}
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00416-01]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
   @ChgAdded{Version=[2],Text=[This rule defines the accessibility of all
-  named access types, as well as the accessibility level of all anonymous
-  access types other than those for access parameters and access discriminants.
-  Special rules exist for the accessibility level of such anonymous types.
-  Components, stand-alone objects, and function results whose
+  named access types, as well as the accessibility level of
+  @Chg{Version=[4],New=[],Old=[all ]}anonymous
+  access types @Chg{Version=[4],New=[in a @nt{component_definition}],Old=[other
+  than those for access parameters and access discriminants.]} Special rules
+  exist for the accessibility level of @Chg{Version=[4],New=[other],Old=[such]}
+  anonymous types. Components@Chg{Version=[4],New=[],Old=[,
+  stand-alone objects, and function results]} whose
   (anonymous) type is defined by an @nt{access_definition} have
   accessibility levels corresponding to named access types defined at
   the same point.]}
@@ -4591,6 +4627,7 @@ the operand.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00318-02],ARef=[AI95-00416-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0234-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0027-1]}
 @Chg{Version=[2],New=[The],Old=[For a function whose result type is a
 return-by-reference type,
 the accessibility level of the result object is the same as
@@ -4604,7 +4641,9 @@ object is that of the
 accessibility level of an @nt{aggregate} @Chg{Version=[3],New=[],Old=[or the
 result of a function call ]}is that of the innermost
 master that evaluates the @nt{aggregate}@Chg{Version=[3],New=[],Old=[ or
-function call]}],Old=[execution of the called function]}.
+function call]}],Old=[execution of the called
+function]}.@Chg{Version=[4],New=[ Corresponding rules apply to a value conversion
+(see @RefSecNum{Type Conversions}).],Old=[]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0234-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The accessibility level of the result
@@ -4887,7 +4926,14 @@ types with @lquotes@;normal@rquotes@; accessibility, as those typically don't
 include the extra information needed to make a call.]}
 @end{Reason}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0070-1]}
+@ChgAdded{Version=[4],Text=[The accessibility level of the anonymous access
+subtype defined by a @nt{return_subtype_indication} that is
+an @nt{access_definition} (see @RefSecNum{Return Statements})
+is that of the result subtype of the enclosing function.]}
+
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0148-1],ARef=[AI05-0240-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0070-1]}@ChgNote{Just to reflect the paragraph number change}
 @ChgAdded{Version=[3],Text=[The accessibility level of the type of a stand-alone
 object of an anonymous access-to-object type is the same as the accessibility
 level of the type of the access value most recently assigned to the
@@ -4895,6 +4941,7 @@ object@Redundant[; accessibility checks ensure that this
 is never deeper than that of the declaration of the stand-alone object].]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0142-4],ARef=[AI05-0240-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0070-1]}@ChgNote{Just to reflect the paragraph number change}
 @ChgAdded{Version=[3],Text=[The accessibility level of an explicitly aliased
 (see @RefSecNum{Subprogram Declarations}) formal parameter in a function body is
 determined by the point of call; it is the same level that the return object
@@ -5066,8 +5113,12 @@ checks.]}
 @end{Ramification}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0142-4],ARef=[AI05-0235-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0089-1],ARef=[AI12-0157-1]}
 @ChgAdded{Version=[3],Text=[Inside a return statement that applies to a function
-@i<F>, when determining whether the accessibility level of an explicitly aliased
+@Chg{Version=[4],New=[or generic function ],Old=[]}@i<F>,
+@Chg{Version=[4],New=[or the return expression of an expression function
+@i<F>, ],Old=[]}when determining
+whether the accessibility level of an explicitly aliased
 parameter of @i<F> is statically deeper than the level of the return object of
 @i<F>, the level of the return object is considered to be the same as that of
 the level of the explicitly aliased parameter; for statically comparing with the
@@ -5075,13 +5126,18 @@ level of other entities, an explicitly aliased parameter of @i<F> is considered 
 have the accessibility level of the body of @i<F>.]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0051-1],ARef=[AI05-0234-1],ARef=[AI05-0235-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0089-1],ARef=[AI12-0157-1]}
 @ChgAdded{Version=[3],Text=[For determining whether a level is statically deeper
-than the level of the anonymous access type of an access result of a function,
-when within a return statement that applies to the function, the level
+than the level of the anonymous access type of an access result of a
+function@Chg{Version=[4],New=[ or generic function @i<F>],Old=[]},
+when within a return statement that applies to
+@Chg{Version=[4],New=[@i<F> or the return expression of expression
+function @i<F>],Old=[the function]}, the level
 of the master of the call is presumed to be the same as that of the level
-of the master that elaborated the function body.]}
+of the master that elaborated the@Chg{Version=[4],New=[],Old=[ function]}
+body@Chg{Version=[4],New=[ of @i<F>],Old=[]}.]}
 
-@begin{Honest}
+@Chg{Version=[4],New=[ or generic function @i<F>],Old=[]}@begin{Honest}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0235-1]}
   @ChgAdded{Version=[3],Text=[This rule has no effect if the previous bullet
   also applies (that is, the @ldquote@;a level@rdquote is of
@@ -5617,13 +5673,15 @@ denotes an aliased view of an object}:
 
     @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00363-01]}
     @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0041-1]}
+    @ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0095-1]}
     @ChgAdded{Version=[2],Text=[@i{D} shall be discriminated in its full view
     and unconstrained in any partial view, and the designated subtype of
-    @i{A} shall be unconstrained.@Chg{Version=[3],New=[ For the purposes
+    @i{A} shall be unconstrained.@Chg{Version=[3],New=[@Chg{Version=[4],New=[],
+    Old=[ For the purposes
     of determining within a generic body whether @i{D} is unconstrained
     in any partial view, a discriminated subtype is
     considered to have a constrained partial view if it is a descendant
-    of an untagged generic formal private or derived type.],Old=[]}]}
+    of an untagged generic formal private or derived type.]}],Old=[]}]}
   @end{InnerItemize}
   @begin{ImplNote}
     This ensures
@@ -5641,6 +5699,16 @@ denotes an aliased view of an object}:
   in order to allow an access attribute of an unconstrained discriminated
   object, only that any partial view that does exist is unconstrained.],Old=[]}
   @end{Ramification}
+
+  @begin{Discussion}
+    @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0095-1]}
+    @ChgAdded{Version=[4],Text=[We assume the worst in a generic body whether
+    or not a formal subtype has a constrained partial view; specifically, in a
+    generic body a discriminated subtype is considered to have a constrained
+    partial view if it is a descendant of an untagged generic formal private
+    or derived type (see @RefSecNum{Formal Private and Derived Types} for the
+    formal definition of this rule).]}
+  @end{Discussion}
 
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0041-1]}
   The accessibility level of the view shall not be statically deeper
@@ -5751,7 +5819,7 @@ denotes a subprogram}:
     invisible to this part of the
     rule.@Chg{Version=[2],New=[ @lquotes@;Declared within the declarative region of
     the generic@rquotes@; is referring to child and nested generic
-    units.],Old=[]}This rule is partly to prevent contract model problems
+    units.],Old=[]} This rule is partly to prevent contract model problems
     with respect to the accessibility rules,
     and partly to ease shared-generic-body implementations,
     in which a subprogram declared in an instance needs to have a
@@ -6090,6 +6158,52 @@ uses of anonymous access types.]}
   access-to-object parameter.]}
 @end{DiffWord2005}
 
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0027-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  Defined the accessibility of a value conversion, so that it is treated like
+  an @nt{aggregate} built at the point of the conversion. This was
+  previously unspecified, so this change might be
+  incompatible if an Ada implementation treated the accessibility of such
+  conversions as that of the operand type; in that case, previous legal
+  conversions probably will become illegal as the lifetime of the conversion
+  is very short. However, code that could tell this difference is fairly rare
+  (taking 'Access of a component of a result of a type conversion), code
+  depending on this accessibility was not portable, and such code could have
+  created an immediately dangling pointer if the conversion actually made
+  a copy (which is necessary in some instances).]}
+@end{Incompatible2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0067-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Corrected so that it is clear
+  that explicitly aliased parameters in procedures have the same accessibility
+  as other parameters. Only explicitly aliased parameters in functions are
+  special.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0070-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> The accessibility of
+  an anonymous access type of an @nt{extended_return_statement} is defined
+  here rather than in @RefSecNum{Return Statements} so that all accessibility
+  rules are here.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0089-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Corrected a number of rules so
+  that they clearly apply to generic functions as well as functions. (Remember,
+  a generic function is not a function.)]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0095-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Moved the assume the worst rule
+  about constrainedness of the prefix of attribute Access to
+  @RefSecNum{Formal Private and Derived Types}, as a number of places in the
+  Standard need this rule.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0157-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Ensured that the statically
+  deeper relationship applies within the return expression of an expression
+  function. (Dynamic properties apply by equivalence, but static properties
+  are handled separately.)]}
+@end{DiffWord2012}
 
 
 @RMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}

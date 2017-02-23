@@ -1,10 +1,10 @@
 @Part(09, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:04 $}
+@Comment{$Date: 2015/04/03 04:12:42 $}
 @LabeledSection{Tasks and Synchronization}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/09.mss,v $}
-@Comment{$Revision: 1.118 $}
+@Comment{$Revision: 1.124 $}
 
 @begin{Intro}
 
@@ -813,8 +813,9 @@ Each task (other than an environment task @em see @RefSecNum(Program Execution))
 @i(depends) on one or more masters
 (see @RefSecNum(Completion and Finalization)), as follows:
 @begin(itemize)
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0070-1]}
 If the task is created by the evaluation of an @nt<allocator>
-for a given access type,
+for a given @Chg{Version=[4],New=[named ],Old=[]}access type,
 it depends on each master that includes the
 elaboration of the declaration of the ultimate ancestor of the given
 access type.
@@ -971,9 +972,17 @@ selecting the @nt<terminate_alternative>, but before termination.
 @begin{DiffWord95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00416-01]}
   @ChgAdded{Version=[2],Text=[Added missing wording that explained the
-  master of tasks that are neither object declarations nor allocators,
+  master of tasks that are neither @nt{object_declaration}s nor @nt{allocator}s,
   such as function returns.]}
 @end{DiffWord95}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0070-1]}
+  @ChgAdded{Version=[4],Text=[@B<Corrigendum:> Ensured that the master of
+  tasks that are not @nt{allocator}s of named access types is correctly
+  determined. (Ignoring the accessibility rules of
+  @RefSecNum{Operations of Access Types} could not be intended.)]}
+@end{DiffWord2012}
 
 
 @RMNewPageVer{Version=[2]}@Comment{For printed version of Ada 2005 RM}
@@ -1051,10 +1060,13 @@ a named protected object of that type.
   @key{end} [@SynI{protected_}@Syn2{identifier}];"}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0009],ARef=[AI95-00137-01]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0147-1]}
 @Syn{lhs=<protected_operation_item>,
   rhs="@Syn2{subprogram_declaration}
      | @Syn2{subprogram_body}
-     | @Syn2{entry_body}
+     | @Chg{Version=[4],New=[@Syn2{null_procedure_declaration}
+     | @Syn2{expression_function_declaration}
+     | ],Old=[]}@Syn2{entry_body}
      | @Chg{New=[@Syn2{aspect_clause}],Old=[@Syn2{representation_clause}]}"}
 
 @begin{SyntaxText}
@@ -1615,11 +1627,11 @@ protected units do not exist in Ada 83.
 @begin{Incompatible2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0291-1]}
   @ChgAdded{Version=[3],Text=[@Defn{incompatibilities with Ada 2005}
-  When an inherited subprogram is implemented by a protected function, the
-  first parameter has to be an @key[in] parameter, but not
-  an access-to-variable type. Ada 2005 allowed access-to-variable parameters
-  in this case; the parameter will need to be changed to access-to-constant
-  with the addition of the @key[constant] keyword.]}
+  @b<Correction:> When an inherited subprogram is implemented by a protected
+  function, the first parameter has to be an @key[in] parameter, but not
+  an access-to-variable type. Original Ada 2005 allowed access-to-variable
+  parameters in this case; the parameter will need to be changed to
+  access-to-constant with the addition of the @key[constant] keyword.]}
 @end{Incompatible2005}
 
 @begin{Extend2005}
@@ -1640,6 +1652,15 @@ protected units do not exist in Ada 83.
   @ChgAdded{Version=[3],Text=[@b<Correction:> Added the missing
   defining name in the no conflicting primitive operation rule.]}
 @end{DiffWord2005}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0147-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}
+  @b<Corrigendum:> Null procedures and expression functions are allowed
+  in protected bodies. We consider this an omission, as there is no
+  reason why the convinient shorthand notations should not be allowed
+  in this context.]}
+@end{Extend2012}
 
 
 @LabeledClause{Intertask Communication}
@@ -1962,6 +1983,35 @@ the current instance is defined to be a variable
   for a protected procedure (or protected entry).
 @end(Ramification)
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0129-1]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[For a type declared by a
+@nt{protected_type_declaration} or for the
+anonymous type of an object declared by a @nt{single_protected_declaration},
+the following language-defined type-related representation aspect
+may be specified:]}
+
+@begin{Description}
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[Exclusive_Functions@\The type of aspect
+  Exclusive_Functions is Boolean. If not specified (including by inheritance),
+  the aspect is False.@AspectDefn{Exclusive_Functions}]}
+
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[@\A value of True for this aspect indicates that
+  protected functions behave in the same way as protected procedures
+  with respect to mutual exclusion and queue servicing (see below).]}
+
+  @ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Exclusive_Functions],
+    Text=[@ChgAdded{Version=[4],Text=[Specifies mutual exclusion behavior of
+      protected functions in a protected type.]}]}
+@end{Description}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0129-1]}
+@ChgAdded{Version=[4],Text=[A protected procedure or entry is an @i<exclusive>
+protected operation.@Defn2{Term=[exclusive],Sec=[protected operation]} A
+protected function of a protected type @i<P> is an exclusive protected
+operation if the Exclusive_Functions aspect of @i<P> is True.]}
+
 @end{StaticSem}
 
 @begin{RunTime}
@@ -1983,20 +2033,26 @@ subprogram is executed.
 @Redundant[A protected action can also be started by an entry call
 (see @RefSecNum{Entry Calls}).]
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0129-1]}
 @leading@Defn{protected action}
 A new protected action is not started on a protected object
 while another protected action on the same protected object is underway,
-unless both actions are the result of a call on a protected function.
+unless both actions are the result of a call on a
+@Chg{Version=[4],New=[nonexclusive ],Old=[]}protected function.
 This rule is expressible in terms of the execution resource
 associated with the protected object:
 @begin(Itemize)
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0129-1]}
 @Defn2{Term=[protected action], Sec=(start)}
 @Defn2{Term=[acquire], Sec=(execution resource associated with protected object)}
 @i(Starting) a protected action on a protected object
 corresponds to @i(acquiring) the execution resource associated
-with the protected object, either for concurrent read-only access
-if the protected action is for a call on a protected function,
-or for exclusive read-write access otherwise;
+with the protected object, either
+for @Chg{Version=[4],New=[exclusive read-write],Old=[concurrent read-only]}
+access if the protected action is for a call on @Chg{Version=[4],New=[an
+exclusive protected operation],Old=[a protected function]}, or
+for @Chg{Version=[4],New=[concurrent read-only],Old=[exclusive read-write]}
+access otherwise;
 
 @Defn2{Term=[protected action], Sec=(complete)}
 @Defn2{Term=[release], Sec=(execution resource associated with protected object)}
@@ -2004,8 +2060,10 @@ or for exclusive read-write access otherwise;
 corresponds to @i(releasing) the associated execution resource.
 @end(Itemize)
 
-@Redundant[After performing an operation on a protected object other than
-a call on a protected function, but prior
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0129-1]}
+@Redundant[After performing an @Chg{Version=[4],New=[exclusive
+protected ],Old=[]}operation on a protected object@Chg{Version=[4],New=[],Old=[
+other than a call on a protected function]}, but prior
 to completing the associated protected action,
 the entry queues (if any)
 of the protected object are
@@ -2157,6 +2215,14 @@ Control.Release;
   (somewhat pessimistic) behavior of protected actions by converting the
   Bounded Error into a required check.]}
 @end{DiffWord95}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0129-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}
+  @b<Corrigendum:> Aspect Exclusive_Functions is new. The term
+  @ldquote@;exclusive protected operations@rdquote is new.]}
+@end{Extend2012}
+
 
 
 @LabeledSubClause{Entries and Accept Statements}
@@ -2818,9 +2884,12 @@ the following circumstances:
   a @nt<selective_accept> with a corresponding
   open @nt<accept_alternative>;
 
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0129-1]}
   If after performing, as part of a protected action on the
-  associated protected object, an operation on the object other than
-  a call on a protected function,
+  associated protected object, an
+  @Chg{Version=[4],New=[exclusive protected ],Old=[]}operation
+  on the object@Chg{Version=[4],New=[],Old=[ other than
+  a call on a protected function]},
   the entry is checked and found to be open.
 @end(Itemize)
 
@@ -2932,17 +3001,22 @@ without waiting for the entire protected action to complete.
   Old=[@RefSecNum(Task Information)]}).
 @end(Reason)
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0129-1]}
 When the entry of a protected object is checked to see whether it
 is open, the implementation need not reevaluate
 the @nt<condition> of the corresponding @nt<entry_barrier>
 if no variable or attribute referenced by
 the @nt<condition> (directly or indirectly)
-has been altered
-by the execution (or cancellation) of a protected procedure or entry call
-on the object since the @nt<condition> was last evaluated.
+has been altered by the execution (or cancellation) of a
+@Chg{Version=[4],New=[],Old=[protected procedure or entry ]}call
+@Chg{Version=[4],New=[to an exclusive protected operation of],Old=[on]} the
+object since the @nt<condition> was last evaluated.
 @begin(Ramification)
+  @ChgRef{Version=[4],Kind=[Revised]}
   Changes to variables referenced by an entry barrier that
-  result from actions outside of a protected procedure or entry call on the
+  result from actions outside of a
+  @Chg{Version=[4],New=[],Old=[protected procedure or entry ]}call
+  @Chg{Version=[4],New=[to an exclusive protected operation of],Old=[on]} the
   protected object need not be "noticed." For example, if
   a global variable is referenced by an entry barrier, it should not
   be altered (except as part of a protected action on the object) any
@@ -3079,6 +3153,14 @@ Flags(3).Seize;                       --@RI[  see @RefSecNum(Protected Units and
 @end{Example}
 @end{Examples}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0129-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Revised wording to talk
+  about @ldquote@;exclusive protected operations@rdquote
+  (see @RefSecNum{Protected Subprograms and Protected Actions}).]}
+@end{DiffWord2012}
+
+
 @LabeledSubClause{Requeue Statements}
 
 @begin{Intro}
@@ -3133,7 +3215,50 @@ shall be subtype conformant with
 the profile of the innermost enclosing callable construct.
 @Defn2{Term=[subtype conformance],Sec=(required)}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0090-1]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[Given a requeue_statement where the
+innermost enclosing callable construct is for an entry @i<E1>, for every
+@Redundant[specific or class-wide ]postcondition expression @i<P1> that
+applies to @i<E1>, there shall exist a postcondition expression @i<P2> that
+applies to the requeue target @i<E2> such that]}
+@begin{Itemize}
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[@i<P1> is fully conformant with
+  the expression produced by replacing each reference in @i<P2> to a formal
+  parameter of @i<E2> with a reference to the corresponding formal paramter
+  of @i<E1>; and]}
+
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[if @i<P1> is enabled, then @i<P2> is also enabled.]}
+@end{Itemize}
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[Roughly speaking, the postcondition of the requeue
+  target is required to imply that of the enclosing callable construct.]}
+@end{Discussion}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0090-1]}
+@ChgAdded{Version=[4],Text=[The requeue target shall not have an applicable
+specific or class-wide postcondition which includes an Old
+attribute_reference.]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0090-1]}
+@ChgAdded{Version=[4],Text=[If the requeue target is declared immediately
+within the @nt{task_definition} of a named task type or the
+@nt{protected_definition} of a named protected type, and if the requeue
+statement occurs within the body of that type, and if the requeue is an external
+requeue, then the requeue target shall not have a specific or class-wide
+postcondition which includes a name denoting either the current instance of that
+type or any entity declared within the declaration of that type.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[The above pair of rules always apply; they
+  don't depend on whether or not any of the postconditions are enabled.]}
+@end{Discussion}
+
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0030-2],ARef=[AI05-0215-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0090-1]}@Comment{Just a number change}
 @ChgAdded{Version=[3],Text=[If the target is a procedure, the name shall
 denote a renaming of an entry, or shall denote a view or a prefixed view of a
 primitive subprogram of a synchronized interface, where the first parameter
@@ -3196,17 +3321,17 @@ of the @nt<entry_declaration>@Chg{Version=[3],New=[ for the @nt{entry_body}],Old
 @begin{RunTime}
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0090-1]}
 @PDefn2{Term=[execution], Sec=(requeue_statement)}
 The execution of a @nt{requeue_statement} proceeds by first evaluating the
 @Chg{Version=[3],New=[@SynI{procedure_or_entry_}],Old=[@SynI(entry_)]}@nt<name>@Redundant[,
 including the @nt<prefix> identifying the target task
-or protected object and the @nt<expression>
-identifying the entry
-within an entry family, if any].
-The @nt{entry_body} or @nt{accept_statement}
-enclosing the @nt{requeue_statement} is then
-completed@Redundant[, finalized, and left
-(see @RefSecNum(Completion and Finalization))].
+or protected object and the @nt<expression> identifying the entry within an
+entry family, if any]. @Chg{Version=[4],New=[Precondition checks are then
+performed as for a call to the requeue target entry or subprogram. ],Old=[]}The
+@nt{entry_body} or @nt{accept_statement} enclosing the @nt{requeue_statement} is
+then completed@Redundant[, finalized, and
+left (see @RefSecNum(Completion and Finalization))].
 
 @PDefn2{Term=[execution], Sec=(requeue task entry)}
 For the execution of a requeue on an entry of a target task,
@@ -3241,10 +3366,13 @@ object, after leaving the enclosing callable construct:
 @end(Itemize)
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0030-2]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI05-0090-1]}
 If the @Chg{Version=[3],New=[requeue target],Old=[new entry]}
 named in the @nt<requeue_statement>
 has formal parameters, then during the execution of the
-@nt<accept_statement> or @nt<entry_body> corresponding to the new entry,
+@nt<accept_statement> or @nt<entry_body> corresponding to the new
+entry@Chg{Version=[4],New=[ and during the checking of
+any preconditions of the new entry],Old=[]},
 the formal parameters denote the same objects as
 did the corresponding formal parameters
 of the callable construct completed by the requeue.
@@ -3318,6 +3446,29 @@ The @nt<requeue_statement> is new.
   to requeue on operations of synchronized interfaces that are
   declared to be an entry.]}
 @end{Extend2005}
+
+@begin{Inconsistent2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{inconsistencies with Ada 2012}@b<Corrigendum:>
+  We now define that any preconditions of the requeue target are evaluated
+  as part of a @nt<requeue_statement>. Original Ada 2012 did not specify this,
+  so a program that requeues when the preconditions fail will raise an
+  exception when none would happen in original Ada 2012. We don't expect this
+  to be a problem, as in that case, the entry body would be called with some
+  of its preconditions evaluating as False; the body is likely to assume that
+  they are true and probably will have failed in some other way anyway.]}
+@end{Inconsistent2012}
+
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0090-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  If a requeue target has a different postcondition than the original
+  entry, the requeue is now illegal. In such a case, the original postcondition
+  would never have been evaluated, and assumptions that the caller relied upon
+  might not be true. A requeue should be invisible to the caller with respect
+  to any postconditions; thus we only allow it when the original entry has no
+  postconditions or the requeue target has (at least) the same postconditions.]}
+@end{Incompatible2012}
 
 
 @LabeledClause{Delay Statements, Duration, and Time}
@@ -3786,14 +3937,16 @@ environment (such as POSIX).]}
 
 @begin{Reason}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
   @ChgAdded{Version=[2],Text=[We want to be able to specify the difference
   between any two arbitrary time zones. You might think that 1440 (24 hours)
   would be enough, but there are places (like Tonga, which is UTC+13hr) which
-  are more than 12 hours than UTC. Combined with summer time (known as daylight
-  saving time in some parts of the world) @en which switches opposite in the
-  northern and souther hemispheres @en and even greater differences are
-  possible. We know of cases of a 26 hours difference, so we err on the safe
-  side by selecting 28 hours as the limit.]}
+  are more than 12 hours @Chg{Version=[4],New=[different ],Old=[]}than UTC.
+  Combined with summer time (known as daylight saving time in some parts of the
+  world) @en which switches opposite in the northern and
+  @Chg{Version=[4],New=[southern],Old=[souther]} hemispheres @en and even greater
+  differences are possible. We know of cases of a 26 hours difference, so we err
+  on the safe side by selecting 28 hours as the limit.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -5087,6 +5240,9 @@ executed after the @nt<abortable_part> is left.
 @key(end) @key(select);
 @end(Example)
 
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0098-1]}
+@ChgAdded{Version=[4],Text=[Note that these examples presume that there are
+abort completion points within the execution of the @nt{abortable_part}.]}
 @end{Examples}
 
 @begin{Extend83}
@@ -5459,12 +5615,14 @@ independently if the hardware efficiently supports it.
 
 @begin{Ramification}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0009-1],ARef=[AI05-0201-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0001-1]}
 @ChgAdded{Version=[3],Text=[An atomic object (including atomic
 components) is always independently addressable from any other nonoverlapping
-object. Any @nt{aspect_specification} or representation item which would prevent
-this from being true should be rejected, notwithstanding what this Standard says
-elsewhere. Note, however, that the components of an atomic object are not
-necessarily atomic.]}
+object. @Chg{Version=[4],New=[@nt{Aspect_specification}s and representation
+items cannot change that fact],Old=[Any @nt{aspect_specification} or
+representation item which would prevent this from being true should be rejected,
+notwithstanding what this Standard says elsewhere]}. Note, however, that the
+components of an atomic object are not necessarily atomic.]}
 @end{Ramification}
 @end{StaticSem}
 
@@ -5732,7 +5890,7 @@ objects of a type covered by Queue'Class.]}
 @ChgAdded{Version=[2],Text=[   @key(procedure) Append(Person : @key(in) Person_Name) @key(is)
    @key(begin)
       @key(if) Count = Pool'Length @key(then)
-         @key(raise) Queue_Error @key(with) "Buffer Full";  --@RI[ see @RefSecNum{Raise Statements}]
+         @key(raise) Queue_Error @key(with) "Buffer Full";  --@RI[ see @RefSecNum{Raise Statements and Raise Expressions}]
       @key(end if);
       Pool(In_Index) := Person;
       In_Index       := (In_Index @key(mod) Pool'Length) + 1;
@@ -5753,7 +5911,7 @@ objects of a type covered by Queue'Class.]}
 @ChgAdded{Version=[2],Text=[   @key(procedure) Remove_First(Person : @key(out) Person_Name) @key(is)
    @key(begin)
       @key(if) Count = 0 @key(then)
-         @key(raise) Queue_Error @key(with) "Buffer Empty"; --@RI[ see @RefSecNum{Raise Statements}]
+         @key(raise) Queue_Error @key(with) "Buffer Empty"; --@RI[ see @RefSecNum{Raise Statements and Raise Expressions}]
       @key(end if);
       Person    := Pool(Out_Index);
       Out_Index := (Out_Index @key(mod) Pool'Length) + 1;

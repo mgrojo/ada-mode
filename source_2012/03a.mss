@@ -1,10 +1,10 @@
 @Part(03, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:02 $}
+@Comment{$Date: 2016/02/12 05:25:37 $}
 @LabeledSection{Declarations and Types}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/03a.mss,v $}
-@Comment{$Revision: 1.122 $}
+@Comment{$Revision: 1.132 $}
 
 @begin{Intro}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0299-1]}
@@ -713,7 +713,7 @@ type.@Defn2{Term=[part], Sec=(of a type)}@Defn2{Term=[component], Sec=(of a type
 @PDefn{constraint}
 The set of possible values for an object of a given type can be
 subjected to a condition that is called a @i(constraint)
-@Defn{null constraint}
+@Defn{null constraint}@Defn2{Term=[constraint],Sec=[null]}
 (the case
 of a @i(null constraint) that specifies no restriction is also
 included)@Redundant[;
@@ -1585,9 +1585,12 @@ to the declared subtype. In addition, predicate specifications apply to
 certain other subtypes:]}
 @begin{Itemize}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[For a (first) subtype defined by a derived
-  type declaration, the predicates of the parent subtype and the progenitor
-  subtypes apply.]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1],ARef=[AI12-0099-1]}
+  @ChgAdded{Version=[3],Text=[For a (first) subtype defined by a
+  @Chg{Version=[4],New=[],Old=[derived ]}type declaration,
+  @Chg{Version=[4],New=[any],Old=[the]}
+  predicates of @Chg{Version=[4],New=[],Old=[the ]}parent
+  @Chg{Version=[4],New=[or],Old=[subtype and the]} progenitor subtypes apply.]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[For a subtype created by a @nt{subtype_indication},
@@ -1595,10 +1598,12 @@ certain other subtypes:]}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3]}
-@ChgAdded{Version=[3],Text=[The @i<predicate> of a subtype consists of all
+@ChgRef{Version=[4],Kind=[Deleted],ARef=[AI12-0071-1]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[The @i<predicate>
+of a subtype consists of all
 predicate specifications that apply, and-ed together; if no predicate
 specifications apply, the predicate is True @Redundant[(in particular, the
-predicate of a base subtype is True)].@Defn2{Term=[Predicate],Sec=(of a subtype)}]}
+predicate of a base subtype is True)].@Defn2{Term=[Predicate],Sec=(of a subtype)}]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0290-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[Predicate checks are defined to be
@@ -1630,10 +1635,14 @@ follows:@Defn2{Term=[enabled],Sec=[predicate checks]}@Defn2{Term=[disabled],Sec=
   @end{Itemize}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[If a subtype is defined by a derived type
-  declaration that does not include a predicate specification, then predicate
-  checks are enabled for the subtype if and only if predicate checks are enabled
-  for at least one of the parent subtype and the progenitor subtypes;]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0099-1]}
+  @ChgAdded{Version=[3],Text=[If a subtype is defined by a
+  @Chg{Version=[4],New=[],Old=[derived ]}type declaration
+  that does not include a predicate specification, then predicate
+  checks are enabled for the subtype if and only if
+  @Chg{Version=[4],New=[any ],Old=[]}predicate checks are enabled
+  for @Chg{Version=[4],New=[],Old=[at least one of the ]}parent
+  @Chg{Version=[4],New=[or],Old=[subtype and the]} progenitor subtypes;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[If a subtype is created by a
@@ -1655,16 +1664,40 @@ follows:@Defn2{Term=[enabled],Sec=[predicate checks]}@Defn2{Term=[disabled],Sec=
     wording above.]}
 
     @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
     @ChgAdded{Version=[3],Text=[Even when predicate checks are disabled,
-    a predicate cam affect various @LegalityTitle, the results of membership
+    a predicate @Chg{Version=[4],New=[can],Old=[cam]} affect various
+    @LegalityTitle, the results of membership
     tests, the items in a @key[for] loop, and the result of the Valid
     attribute.]}
 @end{Discussion}
 
 @end{Itemize}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[For a subtype with a directly-specified predicate
+aspect, the following additional language-defined aspect may be specified with
+an @nt{aspect_specification} (see @RefSecNum{Aspect Specifications}):]}
+
+@begin{Description}
+@ChgRef{Version=[4],Kind=[Added]}
+@ChgAdded{Version=[4],Text=[Predicate_Failure@\
+   This aspect shall be specified by an @nt{expression}, which
+   determines the action to be performed when a predicate check fails because a
+   directly-specified predicate aspect of the subtype evaluates to
+   False, as explained below.]}
+@end{Description}
+@ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Predicate_Failure],
+  InitialVersion=[4],
+  Text=[@ChgAdded{Version=[4],Text=[Action to be performed when a predicate
+  check fails.]}]}
 @end{StaticSem}
 
+@begin{Resolution}
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[The expected type for the Predicate_Failure
+@nt{expression} is String.]}
+@end{Resolution}
 
 @begin{Legality}
 
@@ -1677,7 +1710,9 @@ the following:@Defn{predicate-static}@Defn2{Term=[expression],Sec=[predicate-sta
   @ChgAdded{Version=[3],Text=[a static expression;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[a membership test whose @nt{simple_expression}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0039-1]}
+  @ChgAdded{Version=[3],Text=[a membership test whose
+  @Chg{Version=[4],New=[@i<tested_>@nt{simple_expression}],Old=[@nt{simple_expression}]}
   is the current instance, and whose @nt{membership_choice_list} meets the
   requirements for a static membership test
   (see @RefSecNum{Static Expressions and Static Subtypes});]}
@@ -1693,7 +1728,10 @@ the following:@Defn{predicate-static}@Defn2{Term=[expression],Sec=[predicate-sta
   static expression;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
-  @ChgAdded{Version=[3],Text=[a call to a predefined boolean logical operator,
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0099-1]}
+  @ChgAdded{Version=[3],Text=[a call to a predefined boolean
+  @Chg{Version=[4],New=[],Old=[logical ]}operator@Chg{Version=[4],New=[
+  @key[and], @key[or], @key[xor], or @key[not]],Old=[]},
   where each operand is predicate-static;]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0269-1]}
@@ -1789,31 +1827,116 @@ unit.@PDefn{generic contract issue}]}
 @end{Legality}
 
 @begin{Runtime}
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI125-0071]}
+@ChgAdded{Version=[4],Text=[If any of the above @LegalityTitle is violated in an
+instance of a generic unit, Program_Error is raised at the point of the
+violation.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This is the usual way around the contract model;
+  this applies even in instance bodies. Note that errors in instance
+  specifications will be detected at compile-time by the "re-check" of the
+  specification, only errors in the body should raise Program_Error.]}
+@end{Discussion}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0071-1]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[To determine whether a value
+@i<satisfies the predicates> of a subtype @i<S>,
+the following tests are performed in the following order, until one of
+the tests fails, in which case the predicates are not satisfied and no further
+tests are performed, or all of the tests succeed, in which case the
+predicates are
+satisfied:@Defn2{Term=[satisfies the predicates],Sec=(of a subtype)}@Defn{predicates satisfied}]}
+
+@begin{Itemize}
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[the value is first tested to determine whether it
+  satisfies any constraints or any null exclusion of @i<S>;]}
+
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Type=[Leading],Text=[then:]}
+
+@begin{Itemize}
+    @ChgRef{Version=[4],Kind=[Added]}
+    @ChgAdded{Version=[4],Text=[if @i<S> is a first subtype, the value is
+      tested to determine whether it satisfies the predicates of the parent
+      and progenitor subtypes (if any) of @i<S> (in an arbitrary order);]}
+
+@begin{Ramification}
+    @ChgRef{Version=[4],Kind=[AddedNormal]}
+    @ChgAdded{Version=[4],Text=[This rule has an effect for derived types
+      (which have a parent subtype and may have progenitors) and for
+      task and protected types (which may have progentitors). Other kinds
+      of type declarations can have neither, and no test is required for
+      other first subtypes.]}
+@end{Ramification}
+
+    @ChgRef{Version=[4],Kind=[Added]}
+    @ChgAdded{Version=[4],Text=[if @i<S> is defined by a
+      @nt{subtype_indication}, the value is tested to determine whether it
+      satisfies the predicates of the subtype denoted by the @nt{subtype_mark}
+      of the @nt{subtype_indication};]}
+@end{Itemize}
+
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[finally, if @i<S> is defined by a declaration to
+    which one or more predicate specifications apply, the predicates are
+    evaluated (in an arbitrary order) to test that all of them yield True for
+    the given value.]}
+@end{Itemize}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[It is important to stop on the first of the above
+    steps that fails, as later steps might presume that the earlier steps had
+    succeeded.]}
+@end{Discussion}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0290-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[If predicate checks are enabled for a
 given subtype, then:]}
 @begin{DescribeCode}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[@Redundant[On every subtype conversion, the
-  predicate of the target subtype is evaluated, and a check is performed that the
-  predicate is True. This includes all parameter passing, except for certain
-  parameters passed by reference, which are covered by the following rule: ] After
-  normal completion and leaving of a subprogram, for each @key[in out] or
-  @key[out] parameter
-  that is passed by reference, the predicate of the subtype of the actual is
-  evaluated, and a check is performed that the predicate is True. For an object created
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0054-2],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[3],Text=[@Redundant[On every subtype conversion,
+  @Chg{Version=[4],New=[],Old=[the predicate of the target subtype
+  is evaluated, and ]}a check is performed that
+  the @Chg{Version=[4],New=[operand satisfies the predicates of the target
+  subtype], Old=[predicate is True]}. This includes all parameter passing,
+  except for certain parameters passed by reference, which are covered by the
+  following rule: ] After normal completion and leaving of a subprogram,
+  for each @key[in out] or @key[out] parameter that is passed by reference,
+  @Chg{Version=[4],New=[],Old=[the predicate of the subtype of the actual is
+  evaluated, and ]}a check is performed that the @Chg{Version=[4],New=[value of
+  the parameter satisfies the predicates of the subtype of the
+  actual],Old=[predicate is True]}. For an object created
   by an @nt{object_declaration} with no explicit initialization @nt{expression},
   or by an uninitialized @nt{allocator}, if any subcomponents have
-  @nt{default_expression}s, the predicate of the
-  nominal subtype of the created object is evaluated, and a check is performed
-  that the predicate is True. Assertions.Assertion_Error is raised if any
-  of these checks fail.@Defn2{Term=[predicate check],
+  @nt{default_expression}s, @Chg{Version=[4],New=[],Old=[the predicate of the
+  nominal subtype of the created object is evaluated, and ]}a check is performed
+  that the @Chg{Version=[4],New=[value of
+  the created object satisfies the predicates of the nominal subtype],
+  Old=[predicate is True]}.@Chg{Version=[4],New=[],Old=[ Assertions.Assertion_Error
+  is raised if any of these checks fail.]}@Defn2{Term=[predicate check],
   Sec=[@key[in out] parameters]}@Defn2{Term=[predicate check],
   Sec=[@nt{object_declaration}]}@Defn2{Term=[predicate check],
   Sec=[@nt{allocator}]}@Defn2{Term=[check, language-defined],
-  Sec=[controlled by assertion policy]}@Defn2{Term=(Assertion_Error),
-  Sec=(raised by failure of run-time check)}]}
+  Sec=[controlled by assertion policy]}@Chg{Version=[4],New=[],
+  Old=[@Defn2{Term=(Assertion_Error), Sec=(raised by failure of run-time check)}]}]}
+
+  @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0054-2]}
+  @ChgAdded{Version=[4],Text=[If any of the predicate checks fail,
+  Assertion_Error is raised, unless the subtype whose directly-specified predicate
+  aspect evaluated to False also has a directly-specified Predicate_Failure
+  aspect. In that case, the specified Predicate_Failure @nt{expression} is
+  evaluated; if the evaluation of the Predicate_Failure @nt{expression}
+  propagates an exception occurrence, then this occurrence is propagated for the
+  failure of the predicate check; otherwise, Assertion_Error is raised, with an
+  associated message string defined by the value of the Predicate_Failure
+  @nt{expression}. In the absence of such a Predicate_Failure aspect, an
+  implementation-defined message string is associated with the Assertion_Error
+  exception.@Defn2{Term=(Assertion_Error), Sec=(raised by failure of run-time check)}]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -1827,24 +1950,35 @@ given subtype, then:]}
   presence of potentially invalid values, just as constraint checks can be
   removed.]}
 @end{ImplNote}
+
+@ChgImplDef{Version=[4],Kind=[AddedNormal],Text=[@ChgAdded{Version=[4],
+  Text=[The message string associated with the Assertion_Error exception
+  raised by the failure of a predicate check if there is no applicable
+  Predicate_Failure aspect.]}]}
 @end{DescribeCode}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0262-1]}
-@ChgAdded{Version=[3],Text=[A value @i<satisfies> a predicate if the
-predicate is True for that value.@PDefn2{Term=[satisfies], Sec=(a subtype predicate)}]}
+@ChgRef{Version=[4],Kind=[Deleted],ARef=[AI125-0071]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[A value @i<satisfies> a
+predicate if the predicate is True for that
+value.@PDefn2{Term=[satisfies], Sec=(a subtype predicate)}]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0276-1]}
-@ChgAdded{Version=[3],Text=[If any of the above @LegalityTitle is violated in an
-instance of a generic unit, Program_Error is raised at the point of the
-violation.]}
+@ChgRef{Version=[4],Kind=[Deleted],ARef=[AI125-0071]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[If any of the above
+@LegalityTitle is violated in an instance of a generic unit, Program_Error is
+raised at the point of the violation.]}]}
 
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[This is the usual way around the contract model;
-  this applies even in instance bodies. Note that errors in instance
-  specifications will be detected at compile-time by the "re-check" of the
-  specification, only errors in the body should raise Program_Error.]}
+  @ChgRef{Version=[4],Kind=[Deleted]}
+  @ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[This is the usual
+  way around the contract model; this applies even in instance bodies. Note
+  that errors in instance specifications will be detected at compile-time
+  by the "re-check" of the specification, only errors in the body should
+  raise Program_Error.]}]}
 @end{Discussion}
+
 @end{Runtime}
 
 @begin{Notes}
@@ -1859,14 +1993,131 @@ variables and other invalid values. A Dynamic_Predicate, on the other hand, is
 checked as specified above, but can become False at other times. For example,
 the predicate of a record subtype is not checked when a subcomponent is
 modified.]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+@ChgAdded{Version=[4],Text=[No predicates apply to the base subtype of a
+scalar type; every value of a scalar type @i<T> is considered to satisfy
+the predicates of @i<T>'Base.]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[Predicate_Failure @nt{expression}s are never
+evaluated during the evaluation of a membership test (see
+@RefSecNum{Relational Operators and Membership Tests}) or Valid attribute
+(see @RefSecNum{The Valid Attribute}).]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[A Predicate_Failure @nt{expression} can be a
+@nt{raise_expression} (see @RefSecNum{Raise Statements and Raise Expressions}).]}
 @end{Notes}
 
+@begin{Examples}
+@begin(Example)
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[@key[subtype] Basic_Letter @key[is] Character -- @examcom[See @RefSecNum{The Package Characters.Handling} for "basic letter".]
+   @key[with] Static_Predicate => Basic_Letter @key[in] 'A'..'Z' | 'a'..'z' | '@latin1(198)' | '@latin1(230)' | '@latin1(208)' | '@latin1(240)' | '@latin1(222)' | '@latin1(254)' | '@latin1(223)';]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Text=[@key[subtype] Even_Integer @key[is] Integer
+   @key[with] Dynamic_Predicate => Even_Integer @key[mod] 2 = 0,
+       Predicate_Failure => "Even_Integer must be a multiple of 2";]}
+@end(Example)
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[@i{Text_IO (see
+@RefSecNum{The Package Text_IO}) could have used predicates to describe some
+common exceptional conditions as follows:}]}
+
+@begin(Example)
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[@key[with] Ada.IO_Exceptions;
+@key[package] Ada.Text_IO @key[is]]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   @key[type] File_Type @key[is limited private];]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   @key[subtype] Open_File_Type @key[is] File_Type
+      @key[with] Dynamic_Predicate => Is_Open (Open_File_Type),
+           Predicate_Failure => @key[raise] Status_Error @key[with] "File not open";
+   @key[subtype] Input_File_Type @key[is] Open_File_Type
+      @key[with] Dynamic_Predicate => Mode (Input_File_Type) = In_File,
+           Predicate_Failure => @key[raise] Mode_Error @key[with] "Cannot read file: " &
+              Name (Input_File_Type);
+   @key[subtype] Output_File_Type @key[is] Open_File_Type
+      @key[with] Dynamic_Predicate => Mode (Output_File_Type) /= In_File,
+           Predicate_Failure => @key[raise] Mode_Error @key[with] "Cannot write file: " &
+              Name (Output_File_Type);]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   ...]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   @key[function] Mode (File : @key[in] Open_File_Type) @key[return] File_Mode;
+   @key[function] Name (File : @key[in] Open_File_Type) @key[return] String;
+   @key[function] Form (File : @key[in] Open_File_Type) @key[return] String;]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   ...]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   @key[procedure] Get (File : @key[in] Input_File_Type; Item : @key[out] Character);]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   @key[procedure] Put (File : @key[in] Output_File_Type; Item : @key[in] Character);]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   ...]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[   -- @examcom[Similarly for all of the other input and output subprograms.]]}
+
+@begin{Discussion}
+  @ChgRef{Version=[5],Kind=[AddedNormal]}
+  @ChgAdded{Version=[5],Text=[We didn't change the language-defined Text_IO
+  this way for Ada 202x as it would be incompatible in marginal cases: these
+  subprogram specifications would not be subtype conformant with existing
+  access-to-subprogram types, so Put_Line'Access (for instance) would become
+  illegal in existing code. The gain would not be worth the disruption.]}
+@end{Discussion}
+
+@end(Example)
+@end{Examples}
 
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0153-3],ARef=[AI05-0262-1],ARef=[AI05-0276-1],ARef=[AI05-0290-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   Predicate aspects are new in Ada 2012.]}
 @end{Extend2005}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0054-2]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}
+  @b<Corrigendum:> The Predicate_Failure aspect is new. We can consider this
+  a correction as it is always possible for implementers to add
+  implementation-defined aspects, so the same is true for language-defined
+  aspects.]}
+@end{Extend2012}
+
+@begin{Diffword2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Specified the order of
+  evaluation of most predicates, by defining the new term "satisfies the
+  predicates of the subtype". This is not inconsistent, as the order
+  previously was unspecified, so any code depending on the order was
+  incorrect. The change is necessary so that the Predicate_Failure
+  aspect has consistent results in cases where multiple predicates and
+  aspects apply; see the Ada.Text_IO example above for such a case.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0099-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Revised wording to ensure all
+  kinds of types are covered, including the anonymous task associated with
+  a @nt{single_task_declaration}, and generalized it.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0099-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Revised wording to list the
+  boolean operators that can be predicate-static, to eliminate confusion
+  about whether @key[not] is included.]}
+@end{Diffword2012}
 
 
 
@@ -4857,8 +5108,38 @@ paragraphs are ever renumbered.}
        the same result given the same sequence of characters]}.
     @end(Reason)
 
-@end(description)
 @EndPrefixType{}
+@end(description)
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0124-1]}
+@ChgAdded{Version=[4],Type=[Leading],Keepnext=[T],Text=[For @PrefixType{a
+@nt{prefix} X that denotes an object of a scalar type@Redundant[ (after
+any implicit dereference)]}, the following attributes are defined:]}
+
+@begin(description)
+@ChgAttribute{Version=[4],Kind=[Added],ChginAnnex=[T],
+  Leading=<F>, Prefix=<X>, AttrName=<Wide_Wide_Image>,
+  InitialVersion=[4], ARef=[AI12-0124-1],
+  Text=[@Chg{Version=[4],New=[X'Wide_Wide_Image denotes the result of
+  calling function S'Wide_Wide_Image with @i<Arg> being X, where S is the
+  nominal subtype of X.],Old=[]}]}
+
+@ChgAttribute{Version=[4],Kind=[Added],ChginAnnex=[T],
+  Leading=<F>, Prefix=<X>, AttrName=<Wide_Image>,
+  InitialVersion=[4], ARef=[AI12-0124-1],
+  Text=[@Chg{Version=[4],New=[X'Wide_Image denotes the result of
+  calling function S'Wide_Image with @i<Arg> being X, where S is the
+  nominal subtype of X.],Old=[]}]}
+
+@ChgAttribute{Version=[4],Kind=[Added],ChginAnnex=[T],
+  Leading=<F>, Prefix=<X>, AttrName=<Image>,
+  InitialVersion=[4], ARef=[AI12-0124-1],
+  Text=[@Chg{Version=[4],New=[X'Image denotes the result of
+  calling function S'Image with @i<Arg> being X, where S is the
+  nominal subtype of X.],Old=[]}]}
+
+@EndPrefixType{}
+@end(description)
 @end{RunTime}
 
 @begin{ImplPerm}
@@ -5101,6 +5382,14 @@ More explicit rules are provided for nongraphic characters.
   The new aspect Default_Value allows defining implicit initial values (see
   @RefSecNum{Object Declarations}) for scalar types.]}
 @end{Extend2005}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0124-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}
+  @b<Corrigendum:> An object can be now used as the prefix of the Image
+  attribute (as well as Wide_Image and Wide_Wide_Image), a
+  convenience feature already present in some implementations.]}
+@end{Extend2012}
 
 
 
@@ -6130,22 +6419,34 @@ We considered allowing
 @EndPrefixType{}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0297-1]}
-@ChgAdded{Version=[3],Type=[Leading],Text=[For @PrefixType{every static
-discrete subtype S for which there exists at least one value belonging to S
-that satisfies any predicate of S},
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0071-1]}
+@ChgAdded{Version=[3],Type=[Leading],Text=[For @ChgPrefixType{Version=[4],
+Kind=[Revised],Text=[every static discrete subtype S for which there exists
+at least one value belonging to S that satisfies
+@Chg<Version=[4],New=[the predicates],Old=[any predicate]> of S]},
 the following attributes are defined:]}
 
 @begin(Description)
-@ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
+@ChgNote{Original: @ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
   Leading=<F>, Prefix=<S>, AttrName=<First_Valid>, ARef=[AI05-0297-1],
+  We don't have a way to change multiple versions for attributes.}}
+@ChgAttribute{Version=[4],Kind=[RevisedAdded],ChginAnnex=[T],
+  Leading=<F>, Prefix=<S>, AttrName=<First_Valid>,
+  InitialVersion=[3], ARef=[AI05-0297-1], ARef=[AI12-0071-1],
   Text=[@Chg{Version=[3],New=[S'First_Valid denotes the smallest value
-        that belongs to S and satisfies the predicate of S.
+        that belongs to S and satisfies the
+        @Chg{Version=[4],New=[predicates],Old=[predicate]} of S.
         The value of this attribute is of the type of S.],Old=[]}]}
 
-@ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
+@ChgNote{Original: @ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
   Leading=<F>, Prefix=<S>, AttrName=<Last_Valid>, ARef=[AI05-0297-1],
+  We don't have a way to change multiple versions for attributes.}}
+@ChgAttribute{Version=[4],Kind=[RevisedAdded],ChginAnnex=[T],
+  Leading=<F>, Prefix=<S>, AttrName=<Last_Valid>,
+  InitialVersion=[3], ARef=[AI05-0297-1], ARef=[AI12-0071-1],
   Text=[@Chg{Version=[3],New=[S'Last_Valid denotes the largest value
-        that belongs to S and satisfies the predicate of S. The value of
+        that belongs to S and satisfies the
+        @Chg{Version=[4],New=[predicates],Old=[predicate]} of S. The value of
         this attribute is of the type of S.],Old=[]}]}
 @end(Description)
 @EndPrefixType{}
@@ -6258,6 +6559,13 @@ been generalized to apply to real types as well
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}
   The attributes S'First_Valid and S'Last_Valid are new.]}
 @end{Extend2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of the
+  attributes S'First_Valid and S'Last_Valid to use the new term
+  "satisfies the predicates" (see @RefSecNum{Subtype Predicates}).]}
+@end{DiffWord2012}
 
 
 @LabeledSubClause{Real Types}
@@ -6742,8 +7050,9 @@ absolute value, called the @i(delta) of the fixed point type.
 @Syn{lhs=<decimal_fixed_point_definition>,rhs="
    @key{delta} @SynI{static_}@Syn2{expression} @key{digits} @SynI{static_}@Syn2{expression} [@Syn2{real_range_specification}]"}
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0152-1]}
 @Syn{lhs=<digits_constraint>,rhs="
-   @key{digits} @SynI{static_}@Syn2{expression} [@Syn2{range_constraint}]"}
+   @key{digits} @SynI{static_}@Chg{Version=[4],New=[@Syn2{simple_expression}],Old=[@Syn2{expression}]} [@Syn2{range_constraint}]"}
 @end{Syntax}
 
 @begin{Resolution}
@@ -6763,6 +7072,10 @@ for its first subtype (the @i(digits) of the first subtype)
 is specified by the @nt<expression> given
 after the reserved word @key(digits); this @nt<expression>
 is expected to be of any integer type.
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0159-1]}
+@ChgAdded{Version=[4],Text=[The @nt{simple_expression} of a
+@nt{digits_constraint} is expected to be of any integer type.]}
 @end{Resolution}
 
 @begin{Legality}
@@ -6880,15 +7193,18 @@ Otherwise, the range of the first subtype is
 The elaboration of a @nt<fixed_point_definition>
 creates the fixed point type and its first subtype.
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0152-1]}
 For a @nt<digits_constraint> on a decimal fixed point subtype with
 a given @i(delta), if it does not have a @nt<range_constraint>,
 then it specifies an implicit range
 @en@;(10**@i(D)@en@;1)*@i(delta) .. +(10**@i(D)@en@;1)*@i(delta),
-where @i(D) is the value of the @nt<expression>.
+where @i(D) is the value of the
+@Chg{Version=[4],New=[@nt<simple_expression>],Old=[@nt<expression>]}.
 @Defn2{Term=[compatibility],
   Sec=(digits_constraint with a decimal fixed point subtype)}
 A @nt<digits_constraint> is @i(compatible) with a decimal
-fixed point subtype if the value of the @nt<expression>
+fixed point subtype if the value of the
+@Chg{Version=[4],New=[@nt<simple_expression>],Old=[@nt<expression>]}
 is no greater than the @i(digits) of the subtype,
 and if it specifies (explicitly
 or implicitly) a range that is compatible with the subtype.
@@ -6929,6 +7245,7 @@ or implicitly) a range that is compatible with the subtype.
   the subtype being defined, either explicit or implicit.
 @end(Discussion)
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0152-1]}
 @PDefn2{Term=[elaboration], Sec=(digits_constraint)}
 The elaboration of a @nt<digits_constraint> consists of the
 elaboration of the @nt<range_constraint>, if any.
@@ -6936,7 +7253,8 @@ elaboration of the @nt<range_constraint>, if any.
 If a @nt<range_constraint> is given, a check is made that
 the bounds of the range are both in the range
 @en@;(10**@i(D)@en@;1)*@i(delta) .. +(10**@i(D)@en@;1)*@i(delta),
-where @i(D) is the value of the (static) @nt<expression>
+where @i(D) is the value of the (static)
+@Chg{Version=[4],New=[@nt<simple_expression>],Old=[@nt<expression>]}
 given after the reserved word @key(digits).
 @Defn2{Term=(Constraint_Error),Sec=(raised by failure of run-time check)}
 If this check fails, Constraint_Error is raised.
@@ -7038,6 +7356,27 @@ Obsolescent features (to be compatible with Ada 83's
 machine numbers of fixed point types; this is needed by the static
 evaluation rules.]}
 @end{DiffWord95}
+
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0152-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  Changed the syntax so that the value following @key[digits] in a
+  @nt<digits_constraint> is a @nt<simple_expression>. This is compatible
+  with one very unlikely exception: if the @key[digits] expression is
+  a static expression of a modular type using an unparenthesized logical
+  operator (like @key[and] or @key[or]). Parenthesizing the expression
+  will make it legal in that case. The change is necessary to eliminate
+  syntax ambguities in @nt<derived_type_definition>s.]}
+@end{Incompatible2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0159-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum>:Added wording to define the
+  expected type for a @nt{digits_constraint}. This was missing since Ada 95,
+  but as it is obvious and unchanged from Ada 83, we don't consider it an
+  incompatibility.]}
+@end{DiffWord2012}
+
 
 
 @LabeledSubClause{Operations of Fixed Point Types}

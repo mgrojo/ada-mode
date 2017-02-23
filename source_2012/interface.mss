@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/interface.mss,v $ }
-@comment{ $Revision: 1.68 $ $Date: 2012/11/28 23:53:06 $ $Author: randy $ }
+@comment{ $Revision: 1.74 $ $Date: 2015/04/03 04:12:43 $ $Author: randy $ }
 @Part(interface, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:06 $}
+@Comment{$Date: 2015/04/03 04:12:43 $}
 @LabeledNormativeAnnex{Interface to Other Languages}
 
 @begin{Intro}
@@ -274,6 +274,12 @@ Convention @i[L] has been specified for T@Chg{Version=[3],New=[],Old=[ in
 a @nt[pragma] Convention]}, and T is @i{eligible for
 convention @i[L]}; that is:
 @begin[inneritemize]
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0135-1]}
+@ChgAdded{Version=[4],Text=[T is an enumeration type such that all
+internal codes (whether assigned by default or explicitly) are within
+an implementation-defined range that includes at least the range of
+values 0 .. 2**15@en@;1;]}
+
 T is an array type with either an
 unconstrained or statically-constrained first subtype, and
 its component type is @i[L]-compatible,
@@ -603,6 +609,7 @@ when @Chg{Version=[3],New=[specifying the],Old=[@nt[pragma]]} Export
 @Chg{Version=[3],New=[aspect as True ],Old=[]}is supported.]}]}
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0135-1]}
 For each supported convention @i[L] other than Intrinsic,
 an implementation should support @Chg{Version=[3],New=[specifying
 the ],Old=[]}Import and Export @Chg{Version=[3],New=[aspects],Old=[@nt{pragma}s]}
@@ -611,7 +618,9 @@ subprograms, and @Chg{Version=[3],New=[the],Old=[@nt(pragma)]}
 Convention @Chg{Version=[3],New=[aspect ],Old=[]}for @i[L]-eligible types and for subprograms,
 presuming the other language has corresponding features.
 @Chg{Version=[3],New=[Specifying the ],Old=[@nt{Pragma}]} Convention
-@Chg{Version=[3],New=[aspect ],Old=[]}need not be supported for scalar types.
+@Chg{Version=[3],New=[aspect ],Old=[]}need not be supported for scalar
+types@Chg{Version=[4],New=[, other than enumeration types whose internal codes
+fall within the range 0 .. 2**15@en@;1],Old=[]}.
 @ChgImplAdvice{Version=[3],Kind=[RevisedAdded],InitialVersion=[2],
 Text=[@ChgAdded{Version=[2],
 Text=[For each supported convention @i[L] other than Intrinsic,
@@ -735,7 +744,9 @@ that violates Ada semantics.]}
 @end{Notes}
 
 @begin{Examples}
-@leading@keepnext@i{Example of interfacing pragmas:}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0080-1]}
+@leading@keepnext@i{Example of interfacing
+@Chg{Version=[4],New=[aspects],Old=[pragmas]}:}
 @begin{Example}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1],ARef=[AI05-0269-1]}
 @key[package] Fortran_Library @key[is]
@@ -795,6 +806,14 @@ upward compatibility.
   are new; @nt{pragma}s Convention, Import, and Export are now obsolescent.]}
 @end{Extend2005}
 
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0135-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}@b<Corrigendum:>
+  Added a suggestion that convention be supported for enumeration types.
+  This will make the use of enumeration types portable for implementations
+  that support interfacing to a particular language.]}
+@end{Extend2012}
+
 
 @LabeledClause{The Package Interfaces}
 @begin{Intro}
@@ -830,7 +849,7 @@ and its language-defined descendants.}
       @key[return] Unsigned_@RI{n};
    @key[function] Rotate_Right (Value : Unsigned_@RI{n}; Amount : Natural)
       @key[return] Unsigned_@RI{n};
-   ...
+   ...@Defn{Shift_Left}@Defn{Shift_Right}@Defn{Shift_Right_Arithmetic}@Defn{Rotate_Left}@Defn{Rotate_Right}
 @key[end] Interfaces;
 @end{Example}
 @end{StaticSem}
@@ -844,7 +863,7 @@ if supported by the target architecture,
 for each @i{n} that is at least the size
 of a storage element and that is a factor of the word size.
 The names of these types are of the form Integer_@i{n} for the
-signed types, and Unsigned_@i{n} for the modular types;
+signed types, and Unsigned_@i{n} for the modular types;@Defn{Unsigned_N}@Defn{Integer_N}
 @begin{Ramification}
 For example, for a typical 32-bit machine the corresponding
 types might be Integer_8, Unsigned_8,
@@ -897,7 +916,7 @@ The names for these floating point types are not specified.
 @Defn{IEEE floating point arithmetic}
 However, if IEEE arithmetic is supported, then the names
 should be IEEE_Float_32 and IEEE_Float_64 for single and double
-precision, respectively.
+precision, respectively.@Defn{IEEE_Float_32}@Defn{IEEE_Float_64}
 
 @end{ImplNote}
 @end{Itemize}
@@ -1013,6 +1032,7 @@ Old=[Interfacing with C]}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0059],ARef=[AI95-00131-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00376-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0028-1]}
 @Defn{interface to C}
 @Defn{C interface}
 The facilities relevant to interfacing with
@@ -1022,8 +1042,10 @@ the C++ language ],Old=[]}are the package Interfaces.C and its children@Chg{Vers
 @Chg{Version=[3],New=[],Old=[Import, Export, and]}
 Convention @Chg{Version=[3],New=[aspect],Old=[pragmas]}
 with @Chg{Version=[3],New=[@SynI{convention_}@nt{identifier}s],Old=[@SynI{convention_}@nt{identifier}]}
-C@Chg{New=[@Chg{Version=[3],New=[ and],Old=[; and support for the Convention
-pragma with @SynI{convention_}@nt{identifier}]} C_Pass_By_Copy],Old=[]}.
+C@Chg{New=[@Chg{Version=[3],New=[@Chg{Version=[4],New=[,],Old=[ and]}],Old=[;
+and support for the Convention pragma with @SynI{convention_}@nt{identifier}]}
+C_Pass_By_Copy@Chg{Version=[4],New=[, and any of the C_Variadic_@i<n> conventions
+described below],Old=[]}],Old=[]}.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00376-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI95-0262-1],ARef=[AI95-0299-1]}
@@ -1568,6 +1590,27 @@ C-compatible.]}
 C_Pass_By_Copy-compatible@Chg{Version=[3],New=[,],Old=[]}
 then it is also C-compatible.]}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0028-1]}
+@ChgAdded{Version=[4],Text=[The identifiers C_Variadic_0, C_Variadic_1,
+C_Variadic_2, and so on are @SynI{convention_}@nt{identifier}s. These conventions
+are said to be @i<C_Variadic>. The convention C_Variadic_@i<n> is the calling convention
+for a variadic C function taking @i<n> fixed parameters and then a variable
+number of additional parameters. The C_Variadic_@i<n> convention shall only be
+specified as the convention aspect for a subprogram, or for an
+access-to-subprogram type, having at least @i<n> parameters. A type is
+compatible with a C_Variadic convention if and only if the type is
+C-compatible.@Defn{C_Variadic}@Defn2{Term=[variadic],Sec=[C]}]}
+
+@begin{Honest}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[It is implementation defined what the largest
+  @i<n> in C_Variadic_@i<n> is supported. We don't say this because it
+  complicates the wording and it is true for almost any
+  @SynI{convention_}@nt{identifier} (only Ada is required to be supported by the
+  language, all others need to be documented in order for programmers to know
+  that they are available).]}
+@end{Honest}
+
 @end{StaticSem}
 
 @begin{ImplReq}
@@ -1638,6 +1681,12 @@ The programmer can also choose an Ada procedure when
 the C function returns an int that is to be discarded.@end{discussion}
 
 An Ada function corresponds to a non-void C function.
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0135-1]}
+@ChgAdded{Version=[4],Text=[An Ada enumeration type corresponds to a C
+enumeration type with corresponding enumeration literals having the same
+internal codes, provided the internal codes fall within the range of the C int
+type.]}
 
 An Ada @key[in] scalar parameter is passed as a scalar argument to a C function.
 
@@ -1715,8 +1764,10 @@ where Item_Type is the corresponding Ada type,
 Unchecked conversions can be used to obtain
 the effect of C unions.]}
 
-A C function that takes a variable number of arguments
-can correspond to several Ada subprograms, taking various
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0028-1]}
+A @Chg{Version=[4],New=[variadic ],Old=[]}C function
+@Chg{Version=[4],New=[],Old=[that takes a variable number of arguments ]}can
+correspond to several Ada subprograms, taking various
 specific numbers and types of parameters.
 @end{Notes}
 
@@ -1817,6 +1868,20 @@ specific numbers and types of parameters.
   the language definition said), so little existing code should be impacted.]}
 @end{Incompatible2005}
 
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0028-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}@b<Corrigendum:>
+  The @SynI{convention_}@nt{identifier}s C_Variadic_0, C_Variadic_1, and so on
+  are new. These are classified as a correction as any implementation can add
+  such identifiers and it is important that special conventions be available for
+  variadic functions as typical x64 conventions are different for normal and
+  variadic C functions.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0135-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Defined the correspondence
+  between an Ada enumeration type and a C enumeration type; implementations
+  should support convention C for enumeration types.]}
+@end{Extend2012}
 
 
 @NotISORMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}

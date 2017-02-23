@@ -1,10 +1,10 @@
 @Part(10, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:04 $}
+@Comment{$Date: 2015/04/03 04:12:42 $}
 @LabeledSection{Program Structure and Compilation Issues}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/10.mss,v $}
-@Comment{$Revision: 1.102 $}
+@Comment{$Revision: 1.106 $}
 @Comment{Corrigendum changes added, 2000/04/24, RLB}
 
 @begin{Intro}
@@ -1650,16 +1650,19 @@ that is disallowed by @RefSec{Compilation Units - Library Units}.
 @end{Discussion}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<package_body_stub>,rhs="@Chg{Version=[3],New=<
    >,Old=[]}@key{package} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
       [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<task_body_stub>,rhs="@Chg{Version=[3],New=<
    >,Old=[]}@key{task} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
       [@Syn2{aspect_specification}]>,Old=[]};"}
 
 
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0267-1]}
 @Syn{lhs=<protected_body_stub>,rhs="@Chg{Version=[3],New=<
    >,Old=[]}@key{protected} @key{body} @Syn2{defining_identifier} @key{is} @key{separate}@Chg{Version=[3],New=<
       [@Syn2{aspect_specification}]>,Old=[]};"}
@@ -3721,6 +3724,20 @@ model.]}
 
 @end{Legality}
 
+@begin{Erron}
+  @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0076-1]}
+  @ChgAdded{Version=[4],Text=[Execution is erroneous if some operation (other
+  than the initialization or finalization of the object) modifies the value of a
+  constant object declared at library-level in a pure package.]}
+
+  @begin{Discussion}
+    @ChgRef{Version=[4],Kind=[AddedNormal]}
+    @ChgAdded{Version=[4],Text=[This could be accomplished via a
+    self-referencing pointer or via squirrelling a writable pointer to a
+    controlled object.]}
+  @end{Discussion}
+@end{Erron}
+
 @begin{ImplPerm}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00366-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0219-1]}
@@ -4053,4 +4070,14 @@ required to appear last.
   The old wording just said "limited type", which can change via visibility
   and thus isn't appropriate for dynamic semantics permissions.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0076-1]}
+  @ChgAdded{Version=[4],Text=[@B<Corrigendum:> Explicitly stated that modifying
+  a library-level constant in a pure package is erroneous. We don't document
+  this as inconsistent as implementations certainly can still do whatever they
+  were previously doing (no change is required); moreover, this case (and many
+  more) were erroneous in Ada 2005 and before, so we're just restoring the
+  previous semantics.]}
+@end{DiffWord2012}
 

@@ -1,10 +1,10 @@
 @Part(08, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:03 $}
+@Comment{$Date: 2015/04/03 04:12:42 $}
 @LabeledSection{Visibility Rules}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/08.mss,v $}
-@Comment{$Revision: 1.100 $}
+@Comment{$Revision: 1.106 $}
 
 @begin{Intro}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0299-1]}
@@ -61,6 +61,9 @@ called its @i{declarative region},
 @begin(itemize)
   any declaration, other than that of an enumeration type,
   that is not a completion @Redundant[of a previous declaration];
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0094-1]}
+  @ChgAdded{Version=[4],Text=[an @nt{access_definition};]}
 
   a @nt{block_statement};
 
@@ -287,6 +290,29 @@ region, but not within either the declaration or the body.
 (see @RefSecNum{Return Statements}) is added to the list
 of constructs that have a declarative region.]}
 @end{DiffWord95}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0094-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}@b<Corrigendum:>
+  @nt{access_definition} is added to the list of constructs that have
+  a declarative region. This allows parameter names declared in anonymous
+  access type subprogram types to be the same as other names declared
+  outside. For instance:]}
+@begin{Example}
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[@key[type] Foo @key[is record]
+   A : Natural;
+   B : @key[access] procedure (A : Boolean);
+@key[end record];]}
+@end{Example}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This is now legal, as one would expect; it
+  was illegal in previous versions of Ada as the parameter A and the
+  component A were homographs in the same declarative region
+  (see @RefSecNum{Visibility}). Note that some implementations already allow
+  this common sense interpretation, so this extension may in fact be used
+  in existing code.]}
+@end{Extend2012}
 
 
 @LabeledClause{Scope of Declarations}
@@ -540,6 +566,13 @@ Therefore, the scope of a declaration that occurs immediately within
 the body might include some children.
 @end{Itemize}
 @end{Ramification}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0003-1]}@Comment{As usual,
+    we let the paragraph numbers of non-normative text change}
+@ChgAdded{Version=[4],Text=[The immediate scope of a pragma that is not used
+as a configuration pragma is defined to be the@Defn2{Term=[immediate scope], Sec=(of a pragma)}
+region extending from immediately after the pragma
+to the end of the declarative region immediately enclosing the pragma.]}
 @end{StaticSem}
 
 @begin{Notes}
@@ -634,6 +667,12 @@ because R does not mention Q in a @nt{with_clause}.
   is defined for similar reasons that it was defined for
   @nt{attribute_definition_clause}s.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0003-1]}
+  @ChgAdded{Version=[4],Text=[The immediate scope of a @nt{pragma} is
+  defined as it is used in other rules in the Standard.]}
+@end{DiffWord2012}
 
 
 @LabeledClause{Visibility}
@@ -1483,8 +1522,10 @@ complex than they already are.]}
 
 @begin{DiffWord2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0177-1]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0157-1]}
   @ChgAdded{Version=[3],Text=[Added wording so that the parameters of an
-  @nt{expression_@!function_@!declaration} are visible in the @nt{expression}
+  @nt{expression_@!function_@!declaration} are visible in the
+  @Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
   of the function. (It would be pretty useless without such a rule.)]}
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0183-1]}
@@ -3027,7 +3068,9 @@ A @nt{pragma_argument_association}.
   and ambiguity applies to a complete context.
 @end{Reason}
 
-The @nt{expression} of a @nt{case_statement}.
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0040-1]}
+The @Chg{Version=[4],New=[@SynI[selecting_]@nt{expression}],Old=[@nt{expression}]}
+of a @nt{case_statement}@Chg{Version=[4],New=[ or @nt{case_expression}],Old=[]}.
 @begin{Ramification}
   This means that the @nt{expression} is resolved without looking
   at the choices.
@@ -3177,6 +3220,24 @@ and all of the views declared by those declarations.
   a case like @key{access} T'Class appearing within the declarative region of
   T: here T denotes the type, not the current instance.]}
   @end{Discussion}
+
+  @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0068-1]}
+  @ChgAdded{Version=[4],NoPrefix=[T],Text=[Within an @nt{aspect_specification}
+  for a type or subtype, the current instance represents a value of the type;
+  it is not an object. The nominal subtype of this value is given by the
+  subtype itself (the first subtype in the case of a @nt{type_declaration}),
+  prior to applying any predicate specified directly on the type or subtype. If
+  the type or subtype is by-reference, the associated object with the value
+  is the object associated (see @RefSecNum{Formal Parameter Modes}) with the
+  execution of the usage name.]}
+
+  @begin{Ramification}
+    @ChgRef{Version=[4],Kind=[AddedNormal]}
+    @ChgAdded{Version=[4],Text=[For the purposes of @LegalityTitle, the current
+    instance acts as a value within an @nt{aspect_specification}. It might
+    really be an object (and has to be for a by-reference type), but
+    that isn't discoverable by direct use of the name of the current instance.]}
+  @end{Ramification}
 
   @Defn2{Term=[current instance], Sec=(of a generic unit)}
   If a usage name appears within the declarative region of a
@@ -3375,10 +3436,12 @@ in a class in scope.
 @end{Discussion}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0102-1],ARef=[AI05-0149-1],ARef=[AI05-0299-1]}
-@ChgAdded{Version=[3],Text=[Other than for the @nt{simple_expression} of a
-membership test, if the expected type for a @nt{name} or @nt{expression} is not
-the same as the actual type of the @nt{name} or @nt{expression}, the actual type
-shall be convertible to the expected type (see
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0039-1]}
+@ChgAdded{Version=[3],Text=[Other than for the
+@Chg{Version=[4],New=[@SynI{tested_}@nt{simple_expression}],Old=[@nt{simple_expression}]}
+of a membership test, if the expected type for a @nt{name} or @nt{expression}
+is not the same as the actual type of the @nt{name} or @nt{expression}, the
+actual type shall be convertible to the expected type (see
 @RefSecNum{Type Conversions});@Defn2{Term=[implicit conversion],
 Sec=[legality]}@PDefn2{Term=[convertible],Sec=(required)} further, if the
 expected type is a named access-to-object type with designated type @i<D1> and
@@ -3747,4 +3810,32 @@ Proc (List); -- @RI[OK in Ada 95, ambiguous in Ada 2005.]]}
   This rule was scattered about the Standard, we moved a single generalized
   version here.]}
 @end{DiffWord2005}
+
+@begin{Inconsistent2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0068-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{inconsistencies with Ada 2012}@b<Corrigendum:>
+  Added a rule to specify that the current instance of a type or subtype is
+  a value within an @nt{aspect_specification}. This could be inconsistent if
+  a predicate or invariant uses the Constrained attribute on the current
+  instance (it will always be False now, while it might have returned True
+  in original Ada 2012). More likely, a usage of a current instance as a prefix
+  of an attribute will become illegal (such as Size or Alignment). Any such
+  code is very tricky. Moreover, as this is a new feature of Ada 2012, there
+  are not that many predicates and invariants, and the ones that exist are
+  very unlikely to be this tricky. Thus we do not believe that there will be
+  any practical effect to this change, other than to explicitly allow
+  common implementation strategies.]}
+@end{Inconsistent2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0040-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added wording to clarify that
+  the @SynI{selecting_}@nt{expression} of a @nt{case_expression} is a
+  complete context, just like that of a @nt{case_statement}. Clearly, everyone
+  expects these to work the same way. Moreover, since it would be a lot of extra
+  work to treat @nt{case_expression}s differently, it is quite unlikely that any
+  compiler would implement the much more complicated resolution necessary (and
+  we are not aware of any that did). Therefore, we didn't document this as a
+  potential incompatibility.]}
+@end{DiffWord2012}
 

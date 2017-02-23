@@ -1,9 +1,9 @@
 @Part(13, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:04 $}
+@Comment{$Date: 2015/04/03 04:12:42 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/13b.mss,v $}
-@Comment{$Revision: 1.100 $}
+@Comment{$Revision: 1.112 $}
 
 @RMNewPage
 @LabeledClause{The Package System}
@@ -1315,23 +1315,26 @@ and the like.
 @end{Intro}
 
 @begin{StaticSem}
-@Leading@;For @PrefixType{a
-@nt<prefix> X that denotes a scalar object
-@Redundant[(after any implicit dereference)]},
+@Leading@;For @PrefixType{a @nt<prefix> X that
+denotes a scalar object @Redundant[(after any implicit dereference)]},
 the following attribute is defined:
 @begin(description)
-@ChgAttribute{Version=[3],Kind=[Revised],ChginAnnex=[T],
+@Comment{We ought to have a separate change for version [3] here, but
+we don't have that capability.}
+@ChgAttribute{Version=[4],Kind=[Revised],ChginAnnex=[T],
   Leading=<F>, Prefix=<X>, AttrName=<Valid>,
-  ARef=[AI05-0153-3],
+  ARef=[AI05-0153-3], ARef=[AI12-0071-1], InitialVersion=[0],
   Text=<Yields True if and only if
 the object denoted by X is normal@Chg{Version=[3],New=[,],Old=[ and]} has a
-valid representation@Chg{Version=[3],New=[, and the predicate@Defn2{Term=[predicate evaluated],Sec=[Valid attribute]}
-of the nominal subtype of X evaluates to True],Old=[]}.
-The value of this attribute is of the predefined type Boolean.>}
+valid representation@Chg{Version=[3],New=[, and @Chg{Version=[4],New=[then,
+if the preceding conditions hold, the value of X also satisfies the
+predicates@Defn2{Term=[predicates satisfied required],Sec=[Valid attribute]}], Old=[the
+predicate@Defn2{Term=[predicate evaluated],Sec=[Valid attribute]}]}
+of the nominal subtype of X@Chg{Version=[4],New=[],Old=[ evaluates to
+True]}],Old=[]}. The value of this attribute is of the predefined type Boolean.>}
 @begin{Ramification}
   Having checked that X'Valid is True, it is safe to read the
-  value of X without fear of erroneous execution
-  caused by abnormality,
+  value of X without fear of erroneous execution caused by abnormality,
   or a bounded error caused by an invalid representation.
   Such a read will produce a value in the subtype of X.
 @end{Ramification}
@@ -1360,9 +1363,27 @@ of a language-defined check
 use of an object whose Address has been specified.
 @end{Itemize}
 
-X'Valid is not considered to be a read of X;
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
+@Chg{Version=[4],New=[Determining whether X is normal and has a valid
+representation as part of the evaluation of ],Old=[]}X'Valid is not considered
+to @Chg{Version=[4],New=[include an evaluation],Old=[be a read]} of X;
 hence, it is not an error to check the validity
-of invalid data.
+of @Chg{Version=[4],New=[an object that is invalid or abnormal.
+Determining whether X satisfies the predicates of its nominal
+subtype may include an evaluation of X, but only after
+it has been determined that X has a valid representation],Old=[invalid data]}.
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+@ChgAdded{Version=[4],NoPrefix=[T],Text=[If X is volatile, the evaluation of
+X'Valid is considered a read of X.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[Since an implementation is not allowed to add,
+  remove, or reorder accesses to volatile objects, we have to define X'Valid
+  as a read so that it is implementable for most subtypes as the value
+  of the object is required.]}
+@end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00426-01]}
 @ChgAdded{Version=[2],Text=[The Valid attribute may be used to check the
@@ -1421,6 +1442,14 @@ X'Valid is new in Ada 95.
   the subtype of the object.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of the
+  attributes X'Valid to use the new term
+  "satisfies the predicates" (see @RefSecNum{Subtype Predicates}).
+  Also updated the notes to make sense when evaluating predicates and
+  testing validity of volatile objects.]}
+@end{DiffWord2012}
 
 
 @LabeledClause{Unchecked Access Value Creation}
@@ -1767,16 +1796,27 @@ contiguous block of memory (although each allocation returns
 a pointer to a contiguous block of memory).
 @end{Ramification}
 
-If Storage_Size is specified for an access type,
-then the Storage_Size of this pool is at least that requested,
-and the storage for the pool is reclaimed when the master containing
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0043-1]}
+If Storage_Size is specified for an access type@Chg{Version=[4],New=[ @i<T>,
+an implementation-defined pool @i<P> is used for the type. The],Old=[, then the]}
+Storage_Size of @Chg{Version=[4],New=[@i<P>],Old=[this pool]} is at least
+that requested, and the storage for @Chg{Version=[4],New=[@i<P>],Old=[the pool]}
+is reclaimed when the master containing
 the declaration of the access type is left.
 @Defn2{Term=[Storage_Error],Sec=(raised by failure of run-time check)}
-If the implementation cannot satisfy the request,
-Storage_Error is raised at the point of the
-@nt{attribute_@!definition_@!clause}.
-If neither Storage_Pool nor Storage_Size are specified,
-then the meaning of Storage_Size is implementation defined.
+If the implementation cannot satisfy the request, Storage_Error is raised at the
+@Chg{Version=[4],New=[freezing ],Old=[]}point of @Chg{Version=[4],New=[type
+@i<T>. The storage pool @i<P> is used only for allocators returning type @i<T>
+or other access types specified to use @i<T>'Storage_Pool. Storage_Error is
+raised by an @nt{allocator} returning such a type if the storage space of @i<P>
+is exhausted (additional memory is not allocated).],Old=[the
+@nt{attribute_@!definition_@!clause}. If neither Storage_Pool nor Storage_Size
+are specified, then the meaning of Storage_Size is implementation defined.]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0043-1]}
+@ChgAdded{Version=[4],Text=[If neither Storage_Pool nor Storage_Size are
+specified, then the meaning of Storage_Size is implementation defined.]}
+
 @ChgImplDef{Version=[2],Kind=[Revised],InitialVersion=[0],Text=[The meaning of
 Storage_Size@Chg{Version=[2], New=[ when neither the
 Storage_Size nor the Storage_Pool is specified for an access type],Old=[]}.]}
@@ -2336,6 +2376,12 @@ objects incorrectly by missing various cases.
   up to Max_Alignment_For_Allocation. This eases implementation in some cases.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0043-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Tightened up the description of
+  the implementation-defined pool used when Storage_Size is specified. This
+  is not intended to change any implementation.]}
+@end{DiffWord2012}
 
 
 @LabeledRevisedSubClause{Version=[3],New=[Storage Allocation Attributes],
@@ -2356,7 +2402,8 @@ the following @Chg{Version=[3],New=[attributes are],Old=[attribute is]} defined:
 @ChgAttribute{Version=[3],Kind=[Revised],ChginAnnex=[T],
   Leading=<F>, Prefix=<S>, AttrName=<Max_Size_In_Storage_Elements>,
   ARef=[AI95-00256-01],ARef=[AI95-00416-01],ARef=[AI05-0193-1],
-  Text=<Denotes the maximum value for Size_In_Storage_Elements
+  InitialVersion=[0], Text=<Denotes the maximum value for
+Size_In_Storage_Elements
 that @Chg{Version=[2],New=[could],Old=[will]} be requested @Chg{Version=[2],
 New=[by the implementation ],Old=[]}via Allocate for an access type whose
 designated subtype is S.@Chg{Version=[2],New=[@Chg{Version=[3],New=[],Old=[ For a type with access
@@ -2373,10 +2420,10 @@ S'Max_Size_In_Storage_Elements might be very large.
 
 @ChgAttribute{Version=[3], Kind=[AddedNormal], ChginAnnex=[T], Leading=[F],
   Prefix=<S>, AttrName=<Max_Alignment_For_Allocation>, ARef=[AI05-0193-1],
-  Text=<@Chg{Version=[3],New=[Denotes the maximum value for Alignment that
-  could be requested by the implementation via Allocate for an access type
-  whose designated subtype is S. The value of this attribute is of type
-  @i{universal_integer}.],Old=[]}>}
+  InitialVersion=[3], Text=<@Chg{Version=[3],New=[Denotes the maximum value for
+  Alignment that could be requested by the implementation via Allocate for
+  an access type whose designated subtype is S. The value of this attribute
+  is of type @i{universal_integer}.],Old=[]}>}
 @EndPrefixType{}
 @end{Description}
 @end{StaticSem}
@@ -2525,12 +2572,14 @@ or it might deallocate @i{y} and then @i{x}.]}
 @end{Enumerate}
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00416-01]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0148-1]}
 @IndexSee{Term=[freed],See=(nonexistent)}
 @Defn{nonexistent}
 @PDefn2{Term=[exist],Sec=[cease to]}
 @PDefn2{Term=[cease to exist],Sec=[object]}
-After Free(X), the object designated by X, and any
-subcomponents @Chg{Version=[2],New=[(and coextensions) ],Old=[]}thereof, no
+After @Chg{Version=[4],New=[the finalization step of ],Old=[]}Free(X), the
+object designated by X, and any subcomponents
+@Chg{Version=[2],New=[(and coextensions) ],Old=[]}thereof, no
 longer exist; their storage can be reused for other purposes.
 @end{RunTime}
 
@@ -2569,6 +2618,74 @@ is not reclaimed prior to task termination.
 @begin{Ramification}
   The storage might never be reclaimed.
 @end{Ramification}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0148-1]}
+@ChgAdded{Version=[4],Text=[An access value that designates a nonexistent object is called a
+@i<dangling reference>.@Defn{dangling reference}@Defn2{Term=[reference],Sec=[dangling]}]}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[These can result from use of
+    Unchecked_Deallocation, Unchecked_Deallocate_Subpool, and attribute
+    Unchecked_Access. Bad results from Unchecked_Conversion and from
+    stream-oriented attributes are abnormal by @RefSecNum{Data Validity},
+    which is stronger and thus takes precedence.]}
+@end{Discussion}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0148-1]}
+@ChgAdded{Version=[4],Text=[@Redundant[If a dangling reference is dereferenced
+(implicitly or explicitly), execution is erroneous (see below).] If there is
+no explicit or implicit dereference, then it is a bounded error
+@Leading@PDefn2{Term=(bounded error),Sec=(cause)}to evaluate an
+expression whose result is a dangling reference. If the error is detected,
+either Constraint_Error or Program_Error is raised.
+@Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}
+@Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
+Otherwise, execution
+proceeds normally, but with the possibility that the access value designates
+some other existing object.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[If a dangling reference is compared with another
+    access value, a result of either True or False is allowed. We need to allow
+    this so that simple implementations of access values (for instance, as a
+    bare address) can work if the memory in question is reused. (The formal
+    definition of access equality is that it returns True if both access values
+    designate the same object; that can never be True if one of the values is a
+    dangling reference, and the other is not, but both values could refer to the
+    same memory.) Membership tests that do not involve an implicit dereference
+    generally do not depend on the access value at all.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[We allow Constraint_Error to be raised here so
+    that dangling reference and null pointer checks can be combined into a
+    single check. If different exceptions are required, then the checks have to
+    be made separately - but there's little semantic difference (neither
+    designate a usable object).]}
+@end{Reason}
+
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[If a dangling reference is assigned into an
+    object, including being passed to a formal parameter, that object also
+    contains a dangling reference afterwards.]}
+@end{Ramification}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[For equality and membership operations on
+    composite types, this applies to any parts that are access types, as these
+    operations are created based on the operations of the components (which
+    triggers the bounded error). For other operations on composite types, the
+    bounded error is not triggered. For instance, an assignment of a composite
+    object with a subcomponent that is a dangling reference has to work
+    normally; no exception can be raised, but the target object will have a
+    subcomponent that is a dangling references, and a (direct) use of that
+    subcomponent is again a bounded error. This is similar to the way that
+    assignments of invalid subcomponents are handled (see
+    @RefSecNum{Data Validity}).]}
+@end{Discussion}
 @end{Bounded}
 
 @begin{Erron}
@@ -2669,13 +2786,54 @@ This is implied by the rules of @RefSecNum{Formal Access Types}.
   for access types where @nt{allocator}s would be banned.]}
 @end{DiffWord2005}
 
+@begin{Inconsistent2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0148-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{inconsistencies with Ada 2012}
+  @b<Corrigendum:> Defined a "dangling reference", and specified that
+  a dangling reference might designate some other existing object.
+  This allows simple implementations of access values and reuse of
+  object memory after deallocation. In prior versions of Ada, "=" between
+  a dangling reference and an access to an existing object has to return
+  False, even if the existing object and the object designated by the
+  dangling reference are
+  allocated in the same memory. A program that depended upon that could break
+  with this revised rule. However, as a practical matter, almost all Ada
+  implementations use simple implementations of access types that do not meet
+  that requirement. So such a program would not work (consistently) on
+  most Ada implementations; thus the change shouldn't break any existing
+  programs - it just aligns the Standard with actual practice.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0148-1]}
+  @ChgAdded{Version=[4],Text=[A side effect of this change is to allow an
+  Ada implementation to detect dangling references in more places. This
+  does not require any Ada implementation to change, and if the implementation
+  does change, it just means that errors will be detected earlier.]}
+@end{Inconsistent2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0148-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that deallocated
+  objects cease to exist after finalization but before Deallocate is called.
+  This is necessary to prevent erroneous execution from being triggered by
+  the rules in @RefSecNum{Storage Management} in the time between the end
+  of finalization and the end of the call to the instance of
+  Unchecked_Deallocation.]}
+@end{DiffWord2012}
+
+
+
 
 @LabeledRevisedSubClause{Version=[3],New=[Default Storage Pools],
 Old=[Pragma Controlled]}
 
 @begin{Intro}
-@ChgRef{Version=[3],Kind=[Deleted],ARef=[AI05-0229-1]}
-@ChgDeleted{Version=[3],Text=[@Redundant[Pragma Controlled is used to prevent
+@ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0003-1]}
+@Chg{Version=[3],New=[@Chg{Version=[4],New=[@Redundant[Pragma and aspect
+Default_Storage_Pool specify the storage pool that
+will be used in the absence of an explicit specification of a storage pool or
+storage size for an access type.]],Old=[]}],Old=[@Redundant[Pragma Controlled
+is used to prevent
 any automatic reclamation of storage (garbage collection) for the objects
 created by @nt<allocator>s of a given access type.]]}
 @end{Intro}
@@ -2700,8 +2858,9 @@ Finalization.Controlled.]}
 @end{Discussion}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0003-1]}
 @AddedSyn{Version=[3],lhs=<@Chg{Version=[3],New=<storage_pool_indicator>,Old=<>}>,
-rhs="@Chg{Version=[3],New=<@SynI{storage_pool_}@Syn2{name} | @key[null]>,Old=<>}"}
+rhs="@Chg{Version=[3],New=<@SynI{storage_pool_}@Syn2{name} | @key[null]@Chg{Version=[4],New=< | Standard>,Old=<>}>,Old=<>}"}
 
 @begin{SyntaxText}
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
@@ -2723,20 +2882,55 @@ of type Root_Storage_Pool'Class.]}
 Old=[The @SynI{first_subtype_}@nt<local_name> of a @nt{pragma} Controlled
 shall denote a nonderived access subtype.]}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0003-1]}
+@ChgAdded{Version=[4],Text=[The Standard @nt{storage_pool_indicator} is an
+identifier specific to a pragma (see @RefSecNum{Pragmas}) and does not denote
+any declaration. If the @nt{storage_pool_indicator} is Standard, then there
+shall not be a declaration with @nt{defining_identifier} Standard that is
+immediately visible at the point of the pragma, other than package Standard
+itself.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[We considered having the Standard
+  @nt{storage_pool_indicator} resolve to package Standard rather than
+  being an identifier specific to a pragma. That would eliminate the need for a
+  special check. But it would be bizarre to have something that could resolve to
+  either an object or a (single) package, and resolving to package Standard
+  would imply that the standard pool is an object declared in that package. A
+  storage pool object must be a variable (see @RefSecNum{Storage Management}),
+  yet preelaborable packages depend on package Standard, which would require
+  implementers to implement the standard storage pool with
+  Preelaborable_Initialization, which is an unnecessary restriction.]}
+
+  @ChgRef{Version=[4],Kind=[Added]}
+  @ChgAdded{Version=[4],Text=[No declaration of Standard can ever be
+    use-visible, as the language-defined nonoverloadable definition of
+    Standard will hide any use-visible declarations. Thus we need only concern
+    ourselves with eliminating any possible confusion with regard to
+    immediately visible declarations with the @nt{defining_identifier} Standard.]}
+@end{Reason}
+
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0003-1]}
 @ChgAdded{Version=[3],Text=[If the @nt{pragma} is used as a configuration pragma,
-the @nt{storage_pool_indicator} shall be @key[null], and it defines the
-@i<default pool>@Defn{default pool}@Defn2{Term=[storage pool],Sec=[default]}@Defn2{Term=[pool],Sec=[default]} to be @b<null> within all
+the @nt{storage_pool_indicator} shall be@Chg{Version=[4],New=[ either],Old=[]}
+@key[null]@Chg{Version=[4],New=[ or Standard],Old=[]}, and it defines the
+@i<default pool>@Defn{default pool}@Defn2{Term=[storage pool],Sec=[default]}@Defn2{Term=[pool],Sec=[default]} to
+be @Chg{Version=[4],New=[the given @nt{storage_pool_indicator}],Old=[@b<null>]}
+within all
 applicable compilation units (see @RefSecNum{Pragmas and Program Units}),
 except within the immediate scope of
 another @nt{pragma} Default_Storage_Pool. Otherwise, @Redundant[the pragma
 occurs immediately within a sequence of declarations, and] it defines the
-default pool within the immediate scope of the pragma to be either @key[null] or
-the pool denoted by the @SynI{storage_pool_}@nt{name}, except within the
-immediate scope of a later pragma Default_Storage_Pool. @Redundant[Thus, an
-inner pragma overrides an outer one.]]}
+default pool within the immediate scope of the pragma to be
+@Chg{Version=[4],New=[the given @nt{storage_pool_indicator}],Old=[either
+@key[null] or the pool denoted by the @SynI{storage_pool_}@nt{name}]}, except
+within the immediate scope of a later pragma Default_Storage_Pool.
+@Redundant[Thus, an inner pragma overrides an outer one.]]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1],ARef=[AI05-0262-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded]}@Comment{Just to mark the fact that the paragraph number changed}
 @ChgAdded{Version=[3],Text=[A @nt{pragma} Default_Storage_Pool shall not be used
 as a configuration pragma that applies to a compilation unit that is within the
 immediate scope of another @nt{pragma} Default_Storage_Pool.]}
@@ -2767,15 +2961,16 @@ immediate scope of another @nt{pragma} Default_Storage_Pool.]}
 
 @begin{StaticSem}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0190-1],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0003-1]}
 @Chg{Version=[3],New=[The language-defined aspect Default_Storage_Pool may be
 specified for a generic instance; it defines the default pool for
 access types within an instance.@AspectDefn{Default_Storage_Pool}
-The expected type for the
+@Chg{Version=[4],New=[],Old=[The expected type for the
 Default_Storage_Pool aspect is Root_Storage_Pool'Class. The @nt{aspect_definition}
-must be a name that denotes a variable. This aspect overrides any
+must be a @nt{name} that denotes a variable. This aspect overrides any
 Default_Storage_Pool pragma that might apply to the generic unit; if the aspect
 is not specified, the default pool of the instance is that defined for the
-generic unit],
+generic unit]}],
 Old=[@PDefn2{Term=[representation pragma], Sec=(Controlled)}
 @PDefn2{Term=[pragma, representation], Sec=(Controlled)}
 A @nt{pragma} Controlled is a representation pragma
@@ -2783,8 +2978,33 @@ A @nt{pragma} Controlled is a representation pragma
 @Defn2{Term=[controlled], Sec=(aspect of representation)}
 that specifies the @i{controlled} aspect of representation]}.
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0003-1]}
+@ChgAdded{Version=[4],Text=[The Default_Storage_Pool aspect may be specified as
+Standard, which is an identifier specific to an aspect (see
+@RefSecNum{Aspect Specifications}) and defines the default pool to be
+Standard. In this case, there shall not be a declaration with
+@nt{defining_identifier} Standard that is immediately visible at the point
+of the aspect specification, other than package Standard itself.]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0003-1]}
+@ChgAdded{Version=[4],Text=[Otherwise, the expected type for the
+Default_Storage_Pool aspect is Root_Storage_Pool'Class and the @nt{aspect_definition}
+shall be a @nt{name} that denotes a variable. This aspect overrides any
+Default_Storage_Pool pragma that might apply to the generic unit; if the aspect
+is not specified, the default pool of the instance is that defined for the
+generic unit.]}
+
   @ChgAspectDesc{Version=[3],Kind=[AddedNormal],Aspect=[Default_Storage_Pool],
     Text=[@ChgAdded{Version=[3],Text=[Default storage pool for a generic instance.]}]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0136-1]}
+@ChgAdded{Version=[4],Text=[The effect of specifying the aspect
+Default_Storage_Pool on an instance of a language-defined generic unit is
+implementation-defined.]}
+
+  @ChgImplDef{Version=[4],Kind=[Added],
+    Text=[@ChgAdded{Version=[4],Text=[The effect of specifying aspect
+    Default_Storage_Pool on an instance of a language-defined generic unit.]}]}
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0190-1],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[]}@Comment{Conditional leading}
@@ -2804,14 +3024,19 @@ while the objects still exist.]}
   @Redundant[Therefore, an @nt{allocator} for such a type is illegal.]]}
 
   @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
-  @ChgAdded{Version=[3],Text=[If the default pool is nonnull, the Storage_Pool
+  @ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0003-1]}
+  @ChgAdded{Version=[3],Text=[If the default pool is @Chg{Version=[4],New=[neither
+  @key[null] nor Standard],Old=[nonnull]}, the Storage_Pool
   attribute is that pool.]}
 
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0190-1]}
-@ChgAdded{Version=[3],Text=[@Redundant[Otherwise, there is no default pool; the standard storage
-pool is used for the type as described in @RefSecNum{Storage Management}.]]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0003-1]}
+@ChgAdded{Version=[3],Text=[Otherwise@Chg{Version=[4],New=[ (including when
+the default pool is specified as Standard),],Old=[, there is no
+default pool;]} the standard storage
+pool is used for the type as described in @RefSecNum{Storage Management}.]}
 
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0190-1],ARef=[AI05-0229-1]}
@@ -2977,7 +3202,7 @@ then garbage collection is not performed for objects in that pool.]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0190-1],ARef=[AI05-0229-1]}
 @Chg{Version=[3],New=[An object created by an @nt{allocator} that is passed as
 the actual parameter to an access parameter may be allocated on the stack, and
-automatically reclaimed, regardless of the default pool.],
+automatically reclaimed, regardless of the default pool],
 Old=[An implementation need not support garbage collection, in
 which case, a pragma Controlled has no effect]}.
 @begin{Discussion}
@@ -3024,8 +3249,10 @@ to ensure that all @nt{allocator}s use the default pool.]}
 
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0190-1]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}The
-  pragma Default_Storage_Pool is new.]}
+  pragma Default_Storage_Pool @Chg{Version=[4],New=[and aspect
+  Default_Storage_Pool are],Old=[is]} new.]}
 @end{Extend2005}
 
 @begin{DiffWord2005}
@@ -3039,6 +3266,20 @@ to ensure that all @nt{allocator}s use the default pool.]}
   Unchecked_Deallocation or Unchecked_Deallocate_Subpool), so that garbage
   collection of such objects would be ineffective in the standard mode anyway.]}
 @end{DiffWord2005}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0003-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}@b<Corrigendum:>
+  The @nt{storage_pool_indicator} Standard is new.]}
+@end{Extend2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0136-1]}
+  @ChgAdded{Version=[4],Text=[@b{Corrigendum:} We now explicitly say that
+  the behavior of language-defined generic units when given the
+  Default_Storage_Pool aspect is implementation-defined. Portable code
+  cannot rely on such a package using a particular pool implementation.]}
+@end{DiffWord2012}
 
 
 @LabeledAddedSubClause{Version=[3],Name=[Storage Subpools]}
@@ -3163,6 +3404,7 @@ and are the run-time representation of a subpool.]]}
 @end{TheProof}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0111-3]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI05-0145-1]}
 @ChgAdded{Version=[3],Text=[Each subpool @i<belongs>@Defn2{Term=[belongs],Sec=[subpool to a pool]}
 to a single storage pool @Redundant[(which will always be a pool
 that supports subpools)]. An access to the pool that a subpool belongs to can
@@ -3170,7 +3412,9 @@ be obtained by calling Pool_of_Subpool with the subpool handle.
 Set_Pool_of_Subpool causes the subpool of the subpool handle to belong to the
 given pool@Redundant[; this is intended to be called from subpool constructors
 like Create_Subpool.] Set_Pool_of_Subpool propagates Program_Error if the
-subpool already belongs to a pool.]}
+subpool already belongs to a pool.@Chg{Version=[4],New=[ If Set_Pool_of_Subpool
+has not yet been called for a subpool, Pool_of_Subpool returns
+@Key[null].],Old=[]}]}
 
 @begin{Discussion}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -3298,6 +3542,15 @@ propagates Program_Error.]}
 
 @end{Runtime}
 
+@begin{Erron}
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0142-1]}
+@PDefn2{Term=(erroneous execution),Sec=(cause)}
+@ChgAdded{Version=[4],Text=[If Allocate_From_Subpool does not meet one or more
+of the requirements on the Allocate procedure as given in the Erroneous
+Execution rules of @RefSecNum{Storage Management}, then the program execution
+is erroneous.]}
+@end{Erron}
+
 @begin{ImplPerm}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0111-3]}
@@ -3371,6 +3624,22 @@ additional information with each subpool provided by Create_Subpool.]}
   package System.Storage_Pools.Subpools are new.]}
 @end{Extend2005}
 
+@begin{Diffword2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0142-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum>: Clarified that an incorrect
+  implementation of Allocate_From_Subpool causes execution to become erroneous.
+  The wording already said that the requirements of Allocate apply to
+  Allocate_From_Subpool, so we're just confirming the consequences of violating
+  those requirements also apply.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0145-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum>: Clarified that Pool_of_Subpool
+  returns @key[null] if Set_Pool_of_Subpool has not been called. As that can
+  be inferred from the definition, and all known existing implementations
+  return @key[null] in this case, we document this as a wording change rather
+  than a possible inconsistency.]}
+@end{Diffword2012}
+
 
 @LabeledAddedSubClause{Version=[3],Name=[Subpool Reclamation]}
 
@@ -3408,6 +3677,10 @@ following effects:]}
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[Any of the objects allocated from the subpool that
 still exist are finalized in an arbitrary order;@PDefn2{Term=[arbitrary order],Sec=[allowed]}]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0148-1]}
+@ChgAdded{Version=[4],Text=[All of the objects allocated from the subpool
+cease to exist;@PDefn2{Term=[exist],Sec=[cease to]}]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[The following @Redundant[dispatching] call is then made:]}
@@ -3459,6 +3732,16 @@ happen when the collection of the access type is finalized).]}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0111-3]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}Unchecked_Deallocate_Subpool is new.]}
 @end{Extend2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0148-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added missing wording to state
+  that the objects cease to exist after the completion of finalization.
+  This is formally an inconsistency (it would be possible to depend on the
+  fact that objects finalized by Unchecked_Deallocate_Subpool still exist),
+  but that violates every sane expectation for a procedure called
+  "Deallocate" something.]}
+@end{DiffWord2012}
 
 
 @ISOOnlyRMNewPageVer{Version=[3]}@Comment{For ISO version of Ada 2012 Standard}
@@ -3515,9 +3798,10 @@ complete implementation of the classic Mark/Release pool using subpools:]}
    @key[type] Subpool_Array @key[is array] (Subpool_Indexes) @key[of aliased] MR_Subpool;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0298-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0134-1]}
 @ChgAdded{Version=[3],Text=[   @key[type] Mark_Release_Pool_Type (Pool_Size : Storage_Count) @key[is new]
       Subpools.Root_Storage_Pool_With_Subpools @key[with record]
-      Storage         : Storage_Array (0 .. Pool_Size-1);
+      Storage         : Storage_Array (0 .. Pool_Size@Chg{Version=[4],New=[],Old=[-1]});
       Next_Allocation : Storage_Count := 0;
       Markers         : Subpool_Array;
       Current_Pool    : Subpool_Indexes := 1;
@@ -3634,7 +3918,12 @@ complete implementation of the classic Mark/Release pool using subpools:]}
       @key[end if];]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[      -- @Examcom{Correct the alignment if necessary:}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0080-1]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[      -- @Examcom{Check for the maximum supported alignment, which is the alignment of the storage area:}
+      @key[if] Alignment > Pool.Storage'Alignment @key[then]
+         @key[raise] Program_Error;
+      @key[end if];
+],Old=[]}      -- @Examcom{Correct the alignment if necessary:}
       Pool.Next_Allocation := Pool.Next_Allocation +
          ((-Pool.Next_Allocation) @key[mod] Alignment);
       @key[if] Pool.Next_Allocation + Size_In_Storage_Elements >
@@ -4430,7 +4719,8 @@ Item'First is Stream_Element_Offset'First, Read will raise Constraint_Error.]}
 The @Chg{Version=[3],New=[type-related ],Old=[]}@Chg{New=[operational
 attributes ],Old=[]}Write, Read, Output, and
 Input @Chg{New=[],Old=[attributes ]}convert values to a
-stream of elements and reconstruct values from a stream.
+stream of elements and reconstruct values from a
+stream.@Defn{stream-oriented attributes}@Defn2{Term=[attribute],Sec=[stream-oriented]}
 @end{Intro}
 
 @begin{StaticSem}
@@ -4440,11 +4730,10 @@ stream of elements and reconstruct values from a stream.
 an elementary type @i(T)}, the following representation attribute is defined:]}
 @begin{Description}
 
-@Comment{Originally Version=[2],Kind=[Added], but we don't have a way to do both;
-  also, Kind should be RevisedAdded, but that changes the attribute name to not inserted.}
-@ChgAttribute{Version=[3],Kind=[Added],ChginAnnex=[T],
+@Comment{Originally Version=[2],Kind=[Added]}
+@ChgAttribute{Version=[3],Kind=[RevisedAdded],ChginAnnex=[T],
   Leading=<T>, Prefix=<S>, AttrName=<Stream_Size>, ARef=[AI95-00270-01], ARef=[AI05-0194-1],
-  Text=[@Chg{Version=[2],New=[Denotes the number of bits
+  InitialVersion=[2], Text=[@Chg{Version=[2],New=[Denotes the number of bits
   @Chg{Version=[3],New=[read from or written to a stream by the
   default implementations of S'Read and S'Write],Old=[occupied
   in a stream by items of subtype S]}. Hence, the number of stream elements
@@ -4990,6 +5279,7 @@ the type is completed.]}
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0040],ARef=[AI95-00108-01]}
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00195-01],ARef=[AI95-00251-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0039-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0106-1],ARef=[AI12-0121-1]}
 @PDefn2{Term=[specifiable], Sec=(of Read for a type)}
 @PDefn2{Term=[specifiable], Sec=(of Write for a type)}
 @PDefn2{Term=[specifiable], Sec=(of Input for a type)}
@@ -5000,7 +5290,15 @@ the type is completed.]}
 @Defn{Output clause}
 The stream-oriented attributes may be specified
 for any type via an @nt{attribute_definition_clause}.
-@Chg{Version=[2],New=[The subprogram name given in such a
+@Chg{Version=[4],New=[@Redundant[Alternatively, each of the
+specific stream-oriented attributes may be specified using an
+@nt{aspect_specification} on any @nt{type_declaration}, with the aspect name
+being the corresponding attribute name.] Each of the class-wide stream-oriented
+attributes may be specified using an @nt{aspect_specification} for a
+tagged type @i<T> using the name of the stream-oriented attribute followed
+by 'Class; such class-wide aspects do not
+apply to other descendants of @i<T>.],Old=[@Chg{Version=[2],New=[The
+subprogram name given in such a
 clause shall @Chg{Version=[3],New=[statically denote a subprogram that
 is not],Old=[not denote]} an abstract subprogram. Furthermore, if a
 stream-oriented attribute is specified for an interface type by an
@@ -5015,13 +5313,18 @@ the attribute has been specified for an ancestor type],Old=[]}.
 For an @nt{attribute_@!definition_@!clause} specifying one of these
 attributes, the subtype of the Item parameter shall be the base subtype
 if scalar, and the first subtype otherwise.
-The same rule applies to the result of the Input function.]}
+The same rule applies to the result of the Input function.]}]}
 @ChgNote{Most of the old text is moved down}
 @Chg{Version=[3],New=[@AspectDefn{Read}@AspectDefn{Write}@AspectDefn{Input}@AspectDefn{Output}],Old=[]}
+@Chg{Version=[4],New=[@AspectDefn{Read'Class}@AspectDefn{Write'Class}@AspectDefn{Input'Class}@AspectDefn{Output'Class}],Old=[]}
 
-@begin{Reason}@ChgNote{This belongs below}
-  @ChgRef{Version=[2],Kind=[Deleted],ARef=[AI95-00195-01]}
-  @ChgDeleted{Version=[2],Text=[This is to simplify implementation.]}
+@begin{Reason}
+  @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00195-01]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0106-1]}
+  @Chg{Version=[4],New=[We need the last sentence to override the blanket rule
+    given in @RefSecNum{Aspect Specifications} that aspect'Class applies to the
+    type and all descendants.],Old=[@Chg{Version=[2],New=[],Old=[This is to simplify
+    implementation.]}]}
 @end{Reason}
 
 @begin{Discussion}@ChgNote{This is junk}
@@ -5035,6 +5338,38 @@ The same rule applies to the result of the Input function.]}
   for the attributes can be called when those are constructed from a directly
   specified ancestor.],Old=[]}]}
 @end{Discussion}
+
+@begin{TheProof}
+  @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0121-1]}
+  @ChgAdded{Version=[4],Text=[@RefSecNum{Aspect Specifications} says that all
+  operational attributes can be specified with an aspect_specification.]}
+@end{TheProof}
+
+@ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Read'Class],
+  Text=[@ChgAdded{Version=[4],Text=[Procedure to read a value from a stream for
+    the class-wide type associated with a given type.]}]}
+
+@ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Write'Class],
+  Text=[@ChgAdded{Version=[4],Text=[Procedure to write a value to a stream for a
+    the class-wide type associated with a given type.]}]}
+
+@ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Input'Class],
+  Text=[@ChgAdded{Version=[4],Text=[Function to read a value from a stream for a
+    the class-wide type associated with a given type, including
+    any bounds and discriminants.]}]}
+
+@ChgAspectDesc{Version=[4],Kind=[Added],Aspect=[Output'Class],
+  Text=[@ChgAdded{Version=[4],Text=[Procedure to write a value to a stream for a
+    the class-wide type associated with a given type, including
+    any bounds and discriminants.]}]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0121-1]}
+@ChgAdded{Version=[4],Text=[The subprogram name given in such an
+@nt{attribute_@!definition_@!clause} or @nt{aspect_@!specification} shall
+statically denote a subprogram that is not an abstract subprogram. Furthermore,
+if a specific stream-oriented attribute is specified for an interface type, the
+subprogram name given in the @nt{attribute_definition_clause} or
+@nt{aspect_specification} shall statically denote a null procedure.]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00251-01]}
@@ -5191,11 +5526,15 @@ declared.]}
 @end{Reason}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00195-01]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0030-1]}
 @ChgAdded{Version=[2],Text=[An @nt{attribute_reference} for one of the
 stream-oriented attributes is illegal unless the attribute is available at
 the place of the @nt{attribute_reference}. Furthermore, an
 @nt{attribute_reference} for @i<T>'Input is illegal if @i<T> is an abstract
-type.]}
+type.@Chg{Version=[4],New=[@PDefn{generic contract issue} In addition to the
+places where @LegalityTitle normally apply (see
+@RefSecNum{Generic Instantiation}), these rules also apply in the private
+part of an instance of a generic unit.],Old=[]}]}
 
 @begin{Discussion}
   @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -5212,6 +5551,35 @@ type.]}
   it. We don't have to discuss whether the attribute is specified, as it cannot
   be: any function returning the type would have to be abstract, and we do not
   allow specifying an attribute with an abstract subprogram.]}
+@end{Discussion}
+
+@begin{Honest}
+  @ChgRef{Version=[4],Kind=[AddedNormal],Aref=[AI12-0030-1]}
+  @ChgAdded{Version=[4],Text=[@ldquote@;These rules apply@rdquote refers to
+  just this paragraph and not to the rest of the rules in this section.
+  This rule probably should have been a @LegalityName, but the word
+  @ldquote@;illegal@rdquote should key the reader that this is a @LegalityName,
+  no matter under what text heading it occurs.]}
+@end{Honest}
+
+@ChgRef{Version=[4],Kind=[Added],Aref=[AI12-0030-1]}
+@ChgAdded{Version=[4],Text=[Unless inherited from a parent type, if any, for an
+untagged type having a task, protected, or explicitly limited record part, the
+default implementation of each of the Read, Write, Input, and Output attributes
+raises Program_Error and performs no other action.]}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal],Aref=[AI12-0030-1]}
+  @ChgAdded{Version=[4],Text=[It might seem that there is no need to specify the
+  behavior of the default implementation of a streaming attribute of, for
+  example, a task type because there is no way that it can be invoked. It is
+  possible, however, to construct an example where such a stream attribute can
+  be invoked. This involves using a formal untagged limited derived type for
+  which some streaming attribute is available (because it was explicitly
+  specified for the ancestor type) and a corresponding actual type for which the
+  attribute is unspecified (because the derivation occurred before the aspect
+  was specified for the ancestor type and the specification was therefore not
+  inherited).]}
 @end{Discussion}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00195-01]}
@@ -5584,6 +5952,30 @@ class-wide types descended from S.
   has no effect on and is not effected by user-defined stream attributes.]}
 @end{DiffWord2005}
 
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0106-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}@b<Corrigendum:>
+  Defined how to specify a class-wide stream-oriented attribute using an
+  @nt{aspect_specification}. It was always intended that this was possible,
+  but the method was not clear, as a class-wide type never has an explicit
+  declaration.]}
+@end{Extend2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0030-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Defined the runtime
+  effect of stream attributes for untagged limited types, as there
+  is a weird corner case where they can be called. We don't specify this
+  as an inconsistency, as it doesn't make semantic sense to stream a task,
+  and nothing useful could have been done with that, so it should not
+  exist in any programs.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0106-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that the same
+  @LegalityTitle apply when a stream-oriented attribute is specified
+  via an @nt{aspect_specification} as applied when it is specified via
+  an @nt{attribute_definition_clause}.]}
+@end{DiffWord2012}
 
 
 @ISOOnlyRMNewPageVer{Version=[3]}@Comment{For ISO version of Ada 2012 Standard}
@@ -5798,6 +6190,7 @@ frozen.]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0014]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0017-1],ARef=[AI05-0019-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0103-1]}
 @Defn2{Term=[freezing],
   Sec=(entity caused by the end of an enclosing construct)}
 The end of a @nt{declarative_part}, @nt{protected_body},
@@ -5806,8 +6199,9 @@ causes @i(freezing) of each
 entity @Chg{Version=[3],New=[and profile ],Old=[]}declared within it,
 except for incomplete types.
 @Defn2{Term=[freezing], Sec=(entity caused by a body)}
-A noninstance body@Chg{New=[ other than a renames-as-body],Old=[]} causes
-freezing of each entity @Chg{Version=[3],New=[and profile ],Old=[]}declared
+A @Chg{Version=[4],New=[@nt{proper_body}, @nt{body_stub}, or
+@nt{entry_body}],Old=[noninstance body@Chg{New=[ other than a renames-as-body],Old=[]}]}
+causes freezing of each entity @Chg{Version=[3],New=[and profile ],Old=[]}declared
 before it within the same @nt{declarative_part}@Chg{Version=[3],
 New=[ that is not an incomplete type; it only causes
 freezing of an incomplete type if the body is within the immediate scope of the
@@ -5860,13 +6254,26 @@ incomplete type],Old=[]}.
   at the containing @nt{declarative_part}.
 
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0177-1]}
-  @ChgAdded{Version=[3],Text=[Note that @ldquote@;body@rdquote includes
-  @nt{null_procedure_declaration}s and @nt{expression_function_declaration}s
-  when those are used as completions, as well as @nt{entry_body}s (see
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0103-1]}
+  @ChgAdded{Version=[3],Text=[Note that
+  @Chg{Version=[4],New=[],Old=[@ldquote@;body@rdquote
+  includes ]}@nt{null_procedure_declaration}s and
+  @nt{expression_function_declaration}s@Chg{Version=[4],New=[ (even],Old=[]}
+  when those are used as completions@Chg{Version=[4],New=[)],Old=[]},
+  as well as @Chg{Version=[4],New=[@nt{generic_instantiation}s and
+  renames-as-bodies do not necessarily cause freezing; each have their
+  own specific rules],Old=[@nt{entry_body}s (see
   @RefSecNum{Completions of Declarations}). These all cause freezing,
-  along with @nt{proper_body}s and @nt{body_stub}s.]}
-
+  along with @nt{proper_body}s and @nt{body_stub}s]}.]}
 @end{Reason}
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0103-1]}
+  @ChgAdded{Version=[4],Text=[Note that the rule about proper bodies being
+  freezing only applies in @nt{declarative_part}s. All of the kinds of bodies
+  (see @RefSecNum{Completions of Declarations} @en keep in mind the
+  difference from @nt{body}s) that are allowed in a package specification have
+  their own freezing rules, so they don't need to be covered by the above rule.]}
+@end{Ramification}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0046],ARef=[AI95-00106-01]}
 @Leading@RootDefn2{Term=[freezing], Sec=(entity caused by a construct)}
@@ -5903,6 +6310,25 @@ causes freezing.
   formal incomplete type parameter may denote an incomplete or private type
   which is not completely defined at the point of the @nt{generic_instantiation}.]}
 @end{Ramification}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0103-1],ARef=[AI12-0157-1]}
+@ChgAdded{Version=[4],Text=[At the occurrence of an
+@nt{expression_function_declaration} that is a
+completion, the return expression of the expression function causes freezing.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0103-1]}
+  @ChgAdded{Version=[4],Text=[This rule prevents calls through access values to an expression
+that might have unfrozen parts. Typically, elaboration checks and other
+freezing rules prevent this, but in this case the completion is elaborated
+and since this is not a @nt{body} it does not by itself freeze
+anything that precedes it.]}
+@end{Reason}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0132-1],ARef=[AI12-0157-1]}
+@ChgAdded{Version=[4],Text=[At the occurrence of a renames-as-body whose
+@SynI<callable_entity_>@nt{name} denotes an expression function, the
+return expression of the expression function causes freezing.]}
 
 @PDefn2{Term=[freezing], Sec=(object_declaration)}
 The occurrence of an @nt<object_declaration> that has no corresponding
@@ -5958,6 +6384,7 @@ at the end of the immediately enclosing declaration list.]}
 
 @ChgRef{Version=[1],Kind=[Revised],Ref=[8652/0046],ARef=[AI95-00106-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0177-1],ARef=[AI05-0183-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI05-0157-1]}
 @PDefn2{Term=[freezing], Sec=(by an expression)}
 A static expression @Chg{Version=[3],New=[(other than within an
 @nt{aspect_specification}) ],Old=[]}causes freezing where it occurs.
@@ -5965,7 +6392,8 @@ A static expression @Chg{Version=[3],New=[(other than within an
 An object name or],Old=[A]} nonstatic expression causes freezing where it
 occurs, unless the @Chg{New=[name or ],Old=[]}expression is part of a
 @nt<default_expression>, a @nt<default_name>, @Chg{Version=[3],New=[the
-@nt{expression} of an expression function, an @nt{aspect_specification},
+@Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
+of an expression function, an @nt{aspect_specification},
 ],Old=[]}or a per-object expression of a component's @nt{constraint}, in which
 case, the freezing occurs later as part of another construct@Chg{Version=[3],New=[
 or at the freezing point of an associated entity],Old=[]}.
@@ -6034,12 +6462,15 @@ hence no forcing occurrence of T.
 @end{Ramification}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0019-1],ARef=[AI05-0177-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0157-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=[freezing], Sec=(profile of a function call)}
 @PDefn2{Term=[freezing], Sec=(expression of an expression function by a call)}
 At the place where a function call causes freezing, the profile of the function is
 frozen. Furthermore, if a parameter of the call is defaulted, the
 @nt{default_expression} for that parameter causes freezing. If the function call
-is to an expression function, the @nt{expression} of the expression function
+is to an expression function, the
+@Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
+of the expression function
 causes freezing.]}
 
 @begin{Reason}
@@ -6058,15 +6489,21 @@ causes freezing.]}
 @end{Reason}
 @begin{Ramification}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0177-1]}
-  @ChgAdded{Version=[3],Text=[Freezing of the @nt{expression} of an expression
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0103-1],ARef=[AI12-0157-1]}
+  @ChgAdded{Version=[3],Text=[Freezing of the
+  @Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
+  of an expression
   function only needs to be considered when the expression function is in the
-  same compilation unit and there are no intervening bodies; the end of a
-  declarative_part or library package freezes everything in it, and a body
-  freezes everything declared before it.]}
+  same compilation unit and there are no intervening
+  @Chg{Version=[4],New=[@nt{body}s],Old=[bodies]}; the end of a
+  @nt{declarative_part} or library package freezes everything in it, and
+  a @Chg{Version=[4],New=[@nt{body}],Old=[body]} freezes everything
+  declared before it.]}
 @end{Ramification}
 
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0019-1],ARef=[AI05-0177-1],ARef=[AI05-0296-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0157-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=[freezing], Sec=(profile of a callable entity by an instantiation)}
 @PDefn2{Term=[freezing], Sec=(expression of an expression function by an instantiation)}
 At the place where a @nt{generic_instantiation} causes freezing of a callable
@@ -6074,8 +6511,9 @@ entity, the profile of that entity is frozen
 unless the formal subprogram corresponding to the callable entity has a
 parameter or result of a formal untagged incomplete type;
 if the callable entity is
-an expression function, the @nt{expression} of the expression function causes
-freezing.]}
+an expression function, the
+@Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
+of the expression function causes freezing.]}
 
 @begin{Reason}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -6085,9 +6523,11 @@ freezing.]}
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0177-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0157-1]}
 @ChgAdded{Version=[3],Text=[@PDefn2{Term=[freezing], Sec=(expression of an expression function by Access attribute)}
 At the place where a use of the Access or Unchecked_Access attribute whose
-@nt{prefix} denotes an expression function causes freezing, the @nt{expression}
+@nt{prefix} denotes an expression function causes freezing, the
+@Chg{Version=[4],New=[return expression],Old=[@nt{expression}]}
 of the expression function causes freezing.]}
 
 @begin{Reason}
@@ -6106,7 +6546,8 @@ unfrozen expressions. Consider:]}
       (A + Flub'Size); -- @Examcom[The expression is not frozen here.]]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[   @key[type] Bar @key[is access function] Foo (A : @key[in] Natural) @key[return] Natural;]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
+@ChgAdded{Version=[3],Text=[   @key[type] Bar @key[is access function] @Chg{Version=[4],New=[],Old=[Foo ]}(A : @key[in] Natural) @key[return] Natural;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   P : Bar := Foo'Access; -- @Examcom[(A)]]}
@@ -6115,7 +6556,7 @@ unfrozen expressions. Consider:]}
 @ChgAdded{Version=[3],Text=[   Val : Natural := P.@key[all](5); -- @Examcom[(B)]]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[end Pack;]}
+@ChgAdded{Version=[3],Text=[@key[end] Pack;]}
 @end{Example}
 
   @ChgRef{Version=[3],Kind=[AddedNormal]}
@@ -6617,4 +7058,14 @@ Old=[@ntf{attribute_representation_clause}]} has been generalized.
   @ChgAdded{Version=[3],Text=[Added freezing rules for formal incomplete types;
   the corresponding actual is not frozen.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0103-1],ARef=[AI12-0132-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified when and what an
+  @nt{expression_function_declaration} that is a completion or that is the
+  target of a renames-as-body freezes. This is formally an incompatibility,
+  but as all known implementations freeze expression functions more
+  aggressively than allowed by either the old or new wording, practically this
+  will be an extension.]}
+@end{DiffWord2012}
 

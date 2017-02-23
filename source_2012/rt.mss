@@ -1,7 +1,7 @@
 @Comment{ $Source: e:\\cvsroot/ARM/Source/rt.mss,v $ }
-@comment{ $Revision: 1.114 $ $Date: 2012/11/28 23:53:05 $ $Author: randy $ }
+@comment{ $Revision: 1.120 $ $Date: 2016/02/12 05:25:38 $ $Author: randy $ }
 @Part(realtime, Root="ada.mss")
-@Comment{$Date: 2012/11/28 23:53:05 $}
+@Comment{$Date: 2016/02/12 05:25:38 $}
 
 @LabeledNormativeAnnex{Real-Time Systems}
 
@@ -278,20 +278,24 @@ in a @nt{protected_definition}]}
 is discussed in @RefSecNum{Priority Ceiling Locking}.
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0081-1]}
 @Defn2{Term=[creation], Sec=(of a task object)}
 The @nt{expression} @Chg{Version=[3],New=[specified for the],Old=[in a]}
-Priority or Interrupt_Priority @Chg{Version=[3],New=[aspect of a task],
-Old=[pragma that
-appears in a @nt{task_definition}]} is evaluated for each task object
+Priority or Interrupt_Priority @Chg{Version=[3],New=[aspect of a
+task@Chg{Version=[4],New=[ type],Old=[]}],Old=[pragma that
+appears in a @nt{task_definition}]} is evaluated
+@Chg{Version=[4],New=[],Old=[for ]}each
+@Chg{Version=[4],New=[time an],Old=[task]}
+object@Chg{Version=[4],New=[ of the task type is created],Old=[]}
 (see @RefSecNum{Task Units and Task Objects}).
 For @Chg{Version=[3],New=[the],Old=[a]} Priority @Chg{Version=[3],New=[aspect],Old=[pragma]},
 the value of the @nt{expression} is converted to the subtype Priority;
 for @Chg{Version=[3],New=[the],Old=[an]}
 Interrupt_Priority @Chg{Version=[3],New=[aspect],Old=[pragma]}, this value
 is converted to the subtype Any_Priority.
-The priority value is then associated with the task object whose
-@Chg{Version=[3],New=[task declaration specifies the
-aspect],Old=[@nt{task_definition} contains the pragma]}.
+The priority value is then associated with the task
+object@Chg{Version=[4],New=[],Old=[whose @Chg{Version=[3],New=[task declaration
+specifies the aspect],Old=[@nt{task_definition} contains the pragma]}]}.
 @Chg{Version=[3],New=[@PDefn2{Term=[implicit subtype conversion],Sec=(Priority aspect)}
 @PDefn2{Term=[implicit subtype conversion],Sec=(Interrupt_Priority aspect)}],
 Old=[@PDefn2{Term=[implicit subtype conversion],Sec=(pragma Priority)}
@@ -427,6 +431,12 @@ The description of the Priority pragma has been moved to this annex.
   Aspects Priority and Interrupt_Priority are new; @nt{pragma}s
   Priority and Interrupt_Priority are now obsolescent.]}
 @end{Extend2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0081-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified when the Priority
+  and Interrupt_Priority aspect expressions are evaluated.]}
+@end{DiffWord2012}
 
 
 @LabeledClause{Priority Scheduling}
@@ -705,6 +715,14 @@ deferred while the affected task performs a protected action.]}
   defined in a package that is also referenced in a @nt{use_clause}, the entity
   @i<E> may no longer be use-visible, resulting in errors. This should be rare
   and is easily fixed if it does occur.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0166-1],ARef=[AI12-0005-1]}
+  @ChgAdded{Version=[4],Text=[Package Dispatching was a Pure package, but
+  now is Preelaborated with the addition of Yield. This is incompatible as
+  Dispatching can no longer be depended upon from a Pure package. This
+  should happen rarely in practice as the only contents was the exception
+  Dispatching_Policy_Error and none of the child packages that could raise
+  that exception are pure.]}
 @end{Incompatible2005}
 
 
@@ -2098,11 +2116,13 @@ the corresponding protected object.
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00327-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0051-1]}
 If an Interrupt_Handler or Attach_Handler @Chg{Version=[3],New=[aspect],
 Old=[pragma]} (see @RefSecNum{Protected Procedure Handlers})
 @Chg{Version=[3],New=[is specified for a protected subprogram of a
-protected type that does not have the ],Old=[appears in a
-@nt{protected_definition} without an]} Interrupt_Priority
+protected type that does not have @Chg{Version=[4],New=[either ],Old=[]}the
+],Old=[appears in a @nt{protected_definition} without an]}
+@Chg{Version=[4],New=[Priority or ],Old=[]}Interrupt_Priority
 @Chg{Version=[3],New=[aspect specified],Old=[pragma]}, the
 @Chg{Version=[2],New=[initial],Old=[ceiling]} priority of protected objects
 of that type is implementation defined,
@@ -2316,6 +2336,13 @@ calls another protected operation on the same protected object).
   Interrupt_Priority as @nt{pragma}s
   Priority and Interrupt_Priority are now obsolescent.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0051-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that the Priority
+  aspect can be used to set the initial ceiling priority of a protected object
+  that contains an interrupt handler.]}
+@end{DiffWord2012}
 
 
 @RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
@@ -3196,18 +3223,50 @@ Old=[@Defn2{Term=[restrictions],Sec=(No_Asynchronous_Control)}No_Asynchronous_Co
 @end{Ramification}
 
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0055-1]}
+@ChgAdded{Version=[4],Text=[@Defn2{Term=[restrictions],Sec=(No_Dynamic_CPU_Assignment)}@Defn{No_Dynamic_CPU_Assigmment restriction}
+   No_Dynamic_CPU_Assignment @\No task has the CPU aspect specified to be
+    a non-static expression.
+    Each task (including the environment task) that has the CPU aspect
+    specified as Not_A_Specific_CPU will be assigned to a particular
+    implementation-defined CPU. The same is true for the environment task
+    when the CPU aspect is not specified. @Redundant[Any other task without
+    a CPU aspect will activate and execute on the same processor as its
+    activating task.]]}
+@begin{TheProof}
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[The processor of a task without a CPU aspect is
+   defined in @RefSecNum{Multiprocessor Implementation}, and this restriction
+   guarantees that the activator always has a CPU assigned.]}
+@end{TheProof}
+@begin{Reason}
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[This restriction prevents any migration of tasks.]}
+@end{Reason}
+@begin{Ramification}
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[If no CPU aspects are specified, then the program
+   will run on a single CPU, as all of the tasks will be activated directly or
+   indirectly by the environment task, and the rules require the same CPU to be
+   used as the activating task. ]}
+@end{Ramification}
+@ChgImplDef{Version=[4],Kind=[Added],Text=[@ChgAdded{Version=[4],
+Text=[When restriction No_Dynamic_CPU_Assignment applies to a partition,
+   the processor on which a task with a CPU value of a Not_A_Specific_CPU
+   will execute.]}]}
+
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Local_Protected_Objects)}@Chg{Version=[3],New=[@Defn{No_Local_Protected_Objects restriction}],
    Old=[]}No_Local_Protected_Objects @\Protected
-   objects @Chg{Version=[2],New=[are],Old=[shall be]} declared only at
+   objects @Chg{Version=[3],New=[are],Old=[shall be]} declared only at
    library level.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00297-01]}
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Local_Timing_Events)}@Chg{Version=[3],New=[@Defn{No_Local_Timing_Events restriction}],
    Old=[]}No_Local_Timing_Events @\Timing_Events
-   @Chg{Version=[2],New=[are],Old=[shall be]} declared only at library level.]}
+   @Chg{Version=[3],New=[are],Old=[shall be]} declared only at library level.]}
 
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(No_Protected_Type_Allocators)}@Chg{Version=[3],New=[@Defn{No_Protected_Type_Allocators restriction}],
@@ -3251,6 +3310,21 @@ Old=[@Defn2{Term=[restrictions],Sec=(No_Asynchronous_Control)}No_Asynchronous_Co
   the Set_Specific_Handler and Specific_Handler subprograms
   in Task_Termination.]}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0117-1]}
+@ChgAdded{Version=[4],Text=[@Defn2{Term=[restrictions],Sec=(No_Tasks_Unassigned_To_CPU)}@Defn{No_Tasks_Unassigned_To_CPU restriction}
+   No_Tasks_Unassigned_To_CPU @\The CPU aspect is specified for the environment
+   task. No CPU aspect is specified to be statically equal to
+   Not_A_Specific_CPU. If aspect CPU is specified (dynamically) to the value
+   Not_A_Specific_CPU, then Program_Error is raised. If Set_CPU or
+   Delay_Until_And_Set_CPU are called with the CPU parameter equal to
+   Not_A_Specific_CPU, then Program_Error is raised.]}
+@begin{Ramification}
+@ChgRef{Version=[4],Kind=[AddedNormal]}
+@ChgAdded{Version=[4],Text=[If this restriction is used in a context for which
+restriction No_Dynamic_CPU_Assignment is in effect, then no runtime check
+is needed when specifying the CPU aspect. If the restriction is used with
+the Ravenscar profile, no runtime checks are needed.]}
+@end{Ramification}
 @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00305-01]}
 @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0013-1]}
 @ChgAdded{Version=[2],Text=[@Defn2{Term=[restrictions],Sec=(Simple_Barriers)}@Chg{Version=[3],New=[@Defn{Simple_Barriers restriction}],
@@ -3516,6 +3590,20 @@ The above Storage_Checks can be suppressed with pragma Suppress.
   for class-wide types. This might be an extension if the compiler
   assumed the worst in the past (it is now a runtime check).]}
 @end{DiffWord2005}
+
+@begin{Extend2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0055-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{extensions to Ada 2012}
+  @b{Corrigendum:} Restriction No_Dynamic_CPU_Assignment is newly
+  added to Ada, for use as part of the Ravenscar profile
+  (see @RefSecNum{The Ravenscar Profile}).]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0117-1]}
+  @ChgAdded{Version=[4],Text=[@b{Corrigendum:} Restriction
+  No_Tasks_Unassigned_To_CPU is newly added to Ada; it ensures that no
+  task is running on an implementation-defined CPU so that task scheduling
+  can be analyzed.]}
+@end{Extend2012}
 
 
 
@@ -4666,13 +4754,15 @@ pragmas that is defined for each run-time profile.]}]}
 
 @begin{Example}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI95-00249-01],ARef=[AI95-00297-01],ARef=[AI95-00394-01],ARef=[AI05-0171-1],ARef=[AI05-0246-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0055-1],ARef=[AI12-0073-1]}
 @ChgAdded{Version=[3],Text=[
 @key{pragma} Task_Dispatching_Policy (FIFO_Within_Priorities);
 @key{pragma} Locking_Policy (Ceiling_Locking);
 @key{pragma} Detect_Blocking;
 @key{pragma} Restrictions (
               No_Abort_Statements,
-              No_Dynamic_Attachment,
+              No_Dynamic_Attachment@Chg{Version=[4],New=[,
+              No_Dynamic_CPU_Assignment],Old=[]},
               No_Dynamic_Priorities,
               No_Implicit_Heap_Allocations,
               No_Local_Protected_Objects,
@@ -4692,7 +4782,8 @@ pragmas that is defined for each run-time profile.]}]}
               No_Dependence => Ada.Asynchronous_Task_Control,
               No_Dependence => Ada.Calendar,
               No_Dependence => Ada.Execution_Time.Group_Budgets,
-              No_Dependence => Ada.Execution_Time.Timers,
+              No_Dependence => Ada.Execution_Time.Timers@Chg{Version=[4],New=[,
+              No_Dependence => Ada.Synchronous_Barriers,],Old=[]}
               No_Dependence => Ada.Task_Attributes@Chg{Version=[3],New=[,
               No_Dependence => System.Multiprocessors.Dispatching_Domains],Old=[]});]}
 @end{Example}
@@ -4725,22 +4816,24 @@ are ever renumbered.}
 
 @begin{ImplReq}
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
-@ChgAdded{Version=[3],Text=[A task shall only be on the ready queues of one
-processor, and the
+@ChgRef{Version=[4],Kind=[Deleted],ARef=[AI12-0055-1]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[A task shall only be
+on the ready queues of one processor, and the
 processor to which a task belongs shall be defined statically.
 Whenever a task running on a processor reaches a task dispatching point,
 it goes back to the ready queues of the same processor. A task with
 a CPU value of Not_A_Specific_CPU will execute on an implementation
 defined processor. @Redundant[A task without a CPU aspect will activate and
-execute on the same processor as its activating task.]]}
+execute on the same processor as its activating task.]]}]}
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
-  @ChgAdded{Version=[3],Text=[The processor of a task without a CPU aspect is
-  defined in @RefSecNum{Multiprocessor Implementation}.]}
+  @ChgRef{Version=[4],Kind=[DeletedNoDelMsg]}
+  @ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[],Old=[The processor of a
+  task without a CPU aspect is defined in @RefSecNum{Multiprocessor Implementation}.]}]}
 @end{TheProof}
-@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
+@Comment{@ChgImplDef{Version=[3],Kind=[Added],Text=[@ChgAdded{Version=[3],
 Text=[The processor on which a task with a CPU value of a Not_A_Specific_CPU
-will execute when the Ravenscar profile is in effect.]}]}
+will execute when the Ravenscar profile is in effect.]}]}}
 @end{ImplReq}
 
 @begin{ImplAdvice}
@@ -4759,6 +4852,18 @@ and disjoint ready queue.]}]}
 @ChgAdded{Version=[3],Text=[The effect of the Max_Entry_Queue_Length => 1
 restriction applies only to protected entry queues due to the accompanying
 restriction of Max_Task_Entries => 0.]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0055-1]}
+@ChgAdded{Version=[4],Text=[When the Ravenscar profile is in effect (via the
+effect of the No_Dynamic_CPU_Assignment restriction), all of the tasks in the
+partition will execute on a single CPU unless the programmer explicitly uses
+aspect CPU to specify the CPU assignments for tasks. The use of multiple CPUs
+requires care, as many guarantees of single CPU scheduling no longer apply.]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0055-1]}
+@ChgAdded{Version=[4],Text=[It is not recommended to specify the CPU of a task
+to be Not_A_Specific_CPU when the Ravenscar profile is in effect. How a
+partition executes strongly depends on the assignment of tasks to CPUs.]}
 @end{Notes}
 
 @begin{Extend95}
@@ -4774,6 +4879,26 @@ restriction of Max_Task_Entries => 0.]}
   @ChgAdded{Version=[3],Text=[How Ravenscar behaves on a multiprocessor
   system is now defined.]}
 @end{DiffWord2005}
+
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0073-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  The Ravenscar profile no longer allows the use of package Synchronous_Barriers,
+  as this package violates the fundamental Ravenscar requirement that each
+  waiting point can only block (and release) a single task. This is incompatible
+  with the published Ada 2012 standard, but it is unlikely that any existing
+  Ravenscar runtime ever usefully supported barriers.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0055-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:>The Ravenscar profile (via the
+  effect of the new restriction No_Dynamic_CPU_Assignment) no longer allows
+  setting the CPU aspect of a task to a non-static value. While this was
+  allowed, an implementation would have had to come up with a creative
+  interpretation of the Ada 2012 requirement to define the association of
+  tasks to processors statically. As such, the new check is more likely to
+  catch bugs than break a working program.]}
+@end{Incompatible2012}
+
 
 @Comment{Moved the following to the previous subclause...
 @RMNewPageVer{Version=[2]}@Comment{For printed RM Ada 2005}
@@ -6128,10 +6253,15 @@ interface type.]}
 @begin{Runtime}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0081-1]}
 @ChgAdded{Version=[3],Text=[The @nt{expression} specified for the CPU aspect
-of a task is evaluated for each task object (see
+of a task@Chg{Version=[4],New=[ type],Old=[]} is evaluated
+@Chg{Version=[4],New=[],Old=[for ]}each
+@Chg{Version=[4],New=[time an],Old=[task]} object
+@Chg{Version=[4],New=[of the task type is created ],Old=[]}(see
 @RefSecNum{Task Units and Task Objects}). The CPU value is then associated with
-the task object whose task declaration specifies the aspect.]}
+the task object@Chg{Version=[4],New=[],Old=[ whose task declaration specifies
+the aspect]}.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0171-1],ARef=[AI05-0229-1]}
 @ChgAdded{Version=[3],Text=[The CPU aspect has no effect if it is specified for
@@ -6166,6 +6296,13 @@ defined to have failed, and it becomes a completed task (see
   The package System.Multiprocessors and the CPU aspect are new.]}
 @end{Extend2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0081-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified when the CPU
+  aspect expression is evaluated.]}
+@end{DiffWord2012}
+
+
 @NotISORMNewPageVer{Version=[3]}@Comment{For printed version of Ada 2012 RM}
 @LabeledAddedSubClause{Version=[3],Name=[Multiprocessor Dispatching Domains]}
 
@@ -6196,13 +6333,24 @@ language-defined library package exists:]}
 @ChgAdded{Version=[3],Text=[   @AdaObjDefn{System_Dispatching_Domain} : @key[constant] Dispatching_Domain;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Create} (First, Last : CPU) @key[return] Dispatching_Domain;]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Create} (First@Chg{Version=[4],New=[],Old=[, Last]} : CPU@Chg{Version=[4],New=[; Last : CPU_Range],Old=[]}) @key[return] Dispatching_Domain;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_First_CPU} (Domain : Dispatching_Domain) @key[return] CPU;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
-@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_Last_CPU}  (Domain : Dispatching_Domain) @key[return] CPU;]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_Last_CPU}  (Domain : Dispatching_Domain) @key[return] @Chg{Version=[4],New=[CPU_Range],Old=[CPU]};]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[4],Text=[   @key[type] @AdaTypeDefn{CPU_Set} @key[is array](CPU @key[range] <>) @key[of] Boolean;]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[4],Text=[   @key[function] @AdaSubDefn{Create} (Set : CPU_Set) @key[return] Dispatching_Domain;]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[4],Text=[   @key[function] @AdaSubDefn{Get_CPU_Set} (Domain : Dispatching_Domain) @key[return] CPU_Set;]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal]}
 @ChgAdded{Version=[3],Text=[   @key[function] @AdaSubDefn{Get_Dispatching_Domain}
@@ -6240,11 +6388,19 @@ language-defined library package exists:]}
 @end{Example}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
-@ChgAdded{Version=[3],Text=[The type Dispatching_Domain represents a series of
-processors on which a task may execute. Each processor is contained within
-exactly one Dispatching_Domain. System_Dispatching_Domain contains the processor
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0082-1]}
+@ChgAdded{Version=[3],Text=[@Chg{Version=[4],New=[A @i{dispatching
+domain}@Defn{dispatching domain}],Old=[The type Dispatching_Domain]}
+represents a @Chg{Version=[4],New=[set],Old=[series]}
+of processors on which a task may execute. Each processor
+is contained within exactly one @Chg{Version=[4],New=[dispatching
+domain],Old=[Dispatching_Domain]}.
+@Chg{Version=[4],New=[An object of type Dispatching_Domain identifies a
+dispatching domain. ],Old=[]}System_Dispatching_Domain
+@Chg{Version=[4],New=[identifies a domain that ],Old=[]}contains the processor
 or processors on which the environment task executes. At program start-up all
-processors are contained within System_Dispatching_Domain.]}
+processors are contained within
+@Chg{Version=[4],New=[this domain],Old=[System_Dispatching_Domain]}.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
 @ChgAdded{Version=[3],Type=[Leading],Text=[For a task type (including the
@@ -6277,10 +6433,16 @@ for a task interface.]}
 @begin{Runtime}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
 @ChgAdded{Version=[3],Text=[The expression specified for the Dispatching_Domain
-aspect of a task is evaluated for each task object (see
-@RefSecNum{Task Units and Task Objects}). The Dispatching_Domain value is then
-associated with the task object whose task declaration specifies the aspect.]}
+aspect of a task @Chg{Version=[4],New=[type ],Old=[]}is evaluated
+@Chg{Version=[4],New=[each time an object of the task type is created],Old=[for
+each task object]} (see @RefSecNum{Task Units and Task Objects}).
+@Chg{Version=[4],New=[If the identified dispatching domain is empty, then
+Dispatching_Domain_Error is raised; otherwise the newly created task is assigned
+to the domain identified by the value of the expression],Old=[The
+Dispatching_Domain value is then associated with the task object whose task
+declaration specifies the aspect]}.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
 @ChgAdded{Version=[3],Text=[If a task is not explicitly assigned to any domain,
@@ -6288,68 +6450,95 @@ it is assigned to that of the activating task. A task always executes on some
 CPU in its domain.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
-@ChgAdded{Version=[3],Text=[If both Dispatching_Domain and CPU are specified for
-a task, and the CPU value is not contained within the range of processors for
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0082-1]}
+@ChgAdded{Version=[3],Text=[If both @Chg{Version=[4],New=[the dispatching
+domain],Old=[Dispatching_Domain]} and CPU are specified for
+a task, and the CPU value is not contained within the
+@Chg{Version=[4],New=[set],Old=[range]} of processors for
 the domain (and is not Not_A_Specific_CPU), the activation of the task is
 defined to have failed, and it becomes a completed task (see
 @RefSecNum{Task Execution - Task Activation}).]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
-@ChgAdded{Version=[3],Text=[The function Create creates and returns a
-Dispatching_Domain containing all the processors in the range First .. Last.
-These processors are removed from System_Dispatching_Domain. A call of Create
-will raise Dispatching_Domain_Error if any designated processor is not currently
-in System_Dispatching_Domain, or if the system cannot support a distinct domain
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[3],Text=[The function Create @Chg{Version=[4],New=[with First
+and Last parameters ],Old=[]}creates and returns a @Chg{Version=[4],New=[dispatching
+domain],Old=[Dispatching_Domain]} containing
+all the processors in the range First .. Last. @Chg{Version=[4],New=[The
+function Create with a Set parameter creates and returns a dispatching domain
+containing the processors for which Set(I) is True.],Old=[]} These processors
+are removed from System_Dispatching_Domain. A call of Create will raise
+Dispatching_Domain_Error if any designated processor is not currently in
+System_Dispatching_Domain, or if the system cannot support a distinct domain
 over the processors identified, or if a processor has a task assigned to it, or
 if the allocation would leave System_Dispatching_Domain empty. A call of Create
 will raise Dispatching_Domain_Error if the calling task is not the environment
 task, or if Create is called after the call to the main subprogram.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
 @ChgAdded{Version=[3],Text=[The function Get_First_CPU returns the first CPU in
-Domain; Get_Last_CPU returns the last one.]}
+Domain@Chg{Version=[4],New=[, or CPU'First if Domain is empty],Old=[]};
+Get_Last_CPU returns the last @Chg{Version=[4],New=[CPU in Domain, or
+CPU_Range'First if Domain is empty. The function Get_CPU_Set(D) returns an array
+whose low bound is Get_First_CPU(D), whose high bound is Get_Last_CPU(D), with
+True values in the Set corresponding to the CPUs that are in the given
+Domain],Old=[one]}.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0082-1]}
 @ChgAdded{Version=[3],Text=[The function Get_Dispatching_Domain returns the
-Dispatching_Domain on which the task is assigned.]}
+@Chg{Version=[4],New=[dispatching domain],Old=[Dispatching_Domain]} on
+which the task is assigned.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1],ARef=[AI05-0278-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0033-1]}
 @ChgAdded{Version=[3],Text=[A call of the procedure Assign_Task assigns task T
-to the CPU within Dispatching_Domain Domain. Task T can now execute only on CPU
-unless CPU designates Not_A_Specific_CPU, in which case it can execute on any
-processor within Domain. The exception Dispatching_Domain_Error is propagated if
-T is already assigned to a Dispatching_Domain other than
-System_Dispatching_Domain, or if CPU is not one of the processors of Domain (and
+to the CPU within @Chg{Version=[4],New=[the dispatching domain],Old=[Dispatching_Domain]}
+Domain. Task T can now execute only on
+CPU@Chg{Version=[4],New=[,],Old=[]} unless CPU designates
+Not_A_Specific_CPU@Chg{Version=[4],New=[],Old=[,]} in which case it can
+execute on any processor within Domain. The exception Dispatching_Domain_Error
+is propagated if@Chg{Version=[4],New=[ Domain is empty,],Old=[]}
+T is already assigned to
+a @Chg{Version=[4],New=[dispatching domain],Old=[Dispatching_Domain]} other
+than System_Dispatching_Domain, or if CPU is not one of the processors of Domain (and
 is not Not_A_Specific_CPU). A call of Assign_Task is a task dispatching point
 for task T unless T is inside of a protected action, in which case the effect on
 task T is delayed until its next task dispatching point. If T is the
 Current_Task the effect is immediate if T is not inside a protected action,
-otherwise the effect is as soon as practical. Assigning a task to
-System_Dispatching_Domain that is already assigned to that domain has no
+otherwise the effect is as soon as practical. Assigning a task
+@Chg{Version=[4],New=[already assigned ],Old=[]}to System_Dispatching_Domain
+@Chg{Version=[4],New=[],Old=[that is already assigned ]}to that domain has no
 effect.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1],ARef=[AI05-0278-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0082-1]}
 @ChgAdded{Version=[3],Text=[A call of procedure Set_CPU assigns task T to the
 CPU. Task T can now execute only on CPU, unless CPU designates
 Not_A_Specific_CPU, in which case it can execute on any processor within its
-Dispatching_Domain. The exception Dispatching_Domain_Error is propagated if CPU
-is not one of the processors of the Dispatching_Domain on which T is assigned
-(and is not Not_A_Specific_CPU). A call of Set_CPU is a task dispatching point
-for task T unless T is inside of a protected action, in which case the effect on
-task T is delayed until its next task dispatching point. If T is the
-Current_Task the effect is immediate if T is not inside a protected action,
-otherwise the effect is as soon as practical.]}
+@Chg{Version=[4],New=[dispatching domain],Old=[Dispatching_Domain]}. The
+exception Dispatching_Domain_Error is propagated if CPU is not one of the
+processors of the @Chg{Version=[4],New=[dispatching
+domain],Old=[Dispatching_Domain]} on which T is assigned (and is not
+Not_A_Specific_CPU). A call of Set_CPU is a task dispatching point for task T
+unless T is inside of a protected action, in which case the effect on task T is
+delayed until its next task dispatching point. If T is the Current_Task the
+effect is immediate if T is not inside a protected action, otherwise the effect
+is as soon as practical.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
 @ChgAdded{Version=[3],Text=[The function Get_CPU returns the processor assigned
 to task T, or Not_A_Specific_CPU if the task is not assigned to a processor.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0167-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0082-1]}
 @ChgAdded{Version=[3],Text=[A call of Delay_Until_And_Set_CPU delays the calling
 task for the designated time and then assigns the task to the specified
 processor when the delay expires. The exception Dispatching_Domain_Error is
 propagated if P is not one of the processors of the calling task's
-Dispatching_Domain (and is not Not_A_Specific_CPU).]}
+@Chg{Version=[4],New=[dispatching domain],Old=[Dispatching_Domain]} (and is
+not Not_A_Specific_CPU).]}
 
 @end{Runtime}
 
@@ -6360,6 +6549,40 @@ Dispatching_Domain (and is not Not_A_Specific_CPU).]}
 Assign_Task, Set_CPU, Get_CPU and Delay_Until_And_Set_CPU atomically with
 respect to any of these operations on the same dispatching_domain, processor or
 task.]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0048-1]}
+@ChgAdded{Version=[4],Text=[Any task that belongs to the system dispatching
+domain can execute on any CPU within that domain, unless the assignment of the
+task has been specified.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This ensures that priorities and deadlines are
+  respected within the system dispatching domain. There is no such guarantee
+  between different domains.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[We only need to talk about the system dispatching
+  domain here, because Assign_Task and Set_CPU already have such wording for
+  tasks that are assigned explicitly to a dispatching domain and specify
+  Not_a_Specific_CPU.]}
+@end{Reason}
+
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[If no dispatching domains are created, all tasks
+  can execute on all processors. (As always, implementation-defined dispatching
+  policies may have other rules, so a partition that does not specify any
+  language-defined dispatching policy may do anything at all and in particular
+  does not need to follow this rule.]}
+@end{Ramification}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[A task can be assigned to a specific CPU by
+  specifying the aspect CPU for a task, or by calling a dynamic operation like
+  Set_CPU or Assign_Task.]}
+@end{Discussion}
 
 @end{ImplReq}
 
@@ -6372,6 +6595,14 @@ disjoint ready queues.]}
 @ChgImplAdvice{Version=[3],Kind=[AddedNormal],Text=[@ChgAdded{Version=[3],
 Text=[Each dispatching domain should have separate and
 disjoint ready queues.]}]}
+
+@begin{Honest}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0048-1]}
+  @ChgAdded{Version=[4],Text=[@ldquote@;Ready queue@rdquote here doesn't mean
+  the conceptual "ready queue" as defined in @RefSecNum{The Task Dispatching Model}
+  (one per processor); this rule is talking about the ready queues used by the
+  implementation.]}
+@end{Honest}
 
 @end{ImplAdvice}
 
@@ -6406,3 +6637,47 @@ attempt is made to exceed this number.]}
   Dispatching_Domains are new.]}
 @end{Extend2005}
 
+@begin{Inconsistent2012}
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0033-1]}
+@ChgAdded{Version=[4],Text=[@Defn{inconsistencies with Ada 2012}
+@b{Corrigendum:} We now explicitly allow empty dispatching domains, as it
+would be difficult to avoid declaring them when a system is configured
+at runtime. Therefore, assigning a task to an empty domain now
+raises Dispatching_Domain_Error; creating such a domain should
+not raise Dispatching_Domain_Error. If an implementation does
+something different in these cases, and a program depends on
+that difference, the program could malfunction. This seems
+very unlikely (if no exception is ever raised, the task assigned
+to the empty domain could never run; if the exception is raised earlier,
+the program can't do anything useful).]}
+@end{Inconsistent2012}
+
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0033-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  The subtypes of the parameter or result of several routines were changed
+  to support empty domains. These changes will cause rules requiring
+  subtype conformance to fail on these routines (such as 'Access). We
+  believe such uses are unlikely. In addition, type CPU_Set and function
+  Get_CPU_Set, along with an overloaded Create are newly added to this package.
+  If Multiprocessors.Dispatching_Domains is referenced in a @nt{use_clause},
+  and an entity @i<E> with the same @nt{defining_identifier} as a new entity
+  in this package is defined in a package that is also referenced in a
+  @nt{use_clause}, the entity @i<E> may no longer be use-visible, resulting
+  in errors. This should be rare and is easily fixed if it does occur.]}
+@end{Incompatible2012}
+
+@begin{Diffword2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0048-1]}
+  @ChgAdded{Version=[4],Text=[@b{Corrigendum:} Added wording to clarify that
+  all tasks can execute on all CPUs of the system dispatching domain by
+  default.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0082-1]}
+  @ChgAdded{Version=[4],Text=[@b{Corrigndum:} Added a definition to clarify
+  that a "dispatching domain" is a concept which is identified by an
+  object of type Dispatching_Domain; more than one object might identify
+  the same dispatching domain (for instance, the result of function
+  Get_Dispatching_Domain is a different object but identifies the same
+  dispatching domain).]}
+@end{Diffword2012}

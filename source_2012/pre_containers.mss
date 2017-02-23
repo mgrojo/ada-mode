@@ -1,8 +1,8 @@
 @comment{ $Source: e:\\cvsroot/ARM/Source/pre_containers.mss,v $ }
-@comment{ $Revision: 1.95 $ $Date: 2012/11/28 23:53:05 $ $Author: randy $ }
+@comment{ $Revision: 1.99 $ $Date: 2015/04/03 04:12:43 $ $Author: randy $ }
 @Part(precontainers, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:05 $}
+@Comment{$Date: 2015/04/03 04:12:43 $}
 
 @RMNewPage
 @LabeledAddedClause{Version=[2],Name=[Containers]}
@@ -250,6 +250,68 @@ implementers are unlikely to increase their support costs by fielding
 implementations that are unstable if given buggy hash functions, et al.]}
 @end{ImplNote}
 
+@begin{StaticSem}
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0035-1]}
+@ChgAdded{Version=[4],Text=[Certain subprograms declared within instances of
+some of the generic packages presented in this clause are said to @i<perform
+indefinite insertion>. These subprograms are those corresponding (in the sense
+of the copying described in subclause @RefSecNum{Generic Instantiation}) to
+subprograms that have formal parameters of a generic formal indefinite type and
+that are identified as performing indefinite insertion in the subclause defining
+the generic package.@Defn{perform indefinite insertion}]}
+
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0035-1]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[If a subprogram performs indefinite
+insertion, then certain run-time checks are performed as part of a call to the
+subprogram; if any of these checks fail, then the resulting exception is
+propagated to the caller and the container is not modified by the call. These
+checks are performed for each parameter corresponding (in the sense of the
+copying described in @RefSecNum{Generic Instantiation}) to a parameter in the
+corresponding generic whose type is a generic formal indefinite type. The checks
+performed for a given parameter are those checks explicitly specified in
+subclause @RefSecNum{Allocators} that would be performed as part of the
+evaluation of an initialized allocator whose access type is declared immediately
+within the instance, where:]}
+
+@begin{Itemize}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[the value of the @nt{qualified_expression} is
+  that of the parameter; and]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[the designated subtype of the access type is the
+  subtype of the parameter; and]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[finalization of the collection of the access type
+  has started if and only if the finalization of the instance has started.]}
+@end{Itemize}
+
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[The phrase "explicitly specified" means those
+  checks for which subclause @RefSecNum{Allocators} includes the phrase "<some
+  exception> is raised if ...". It does not refer, for example, to any checks
+  performed as part of any subtype conversion. In particular, this wording
+  includes the checks described in subclause @RefSecNum{Allocators} to be
+  performed in the case of a class-wide designated type, and of a designated
+  subtype that has access discriminant parts. These checks are needed to prevent
+  containers from outliving their contained (Element_Type or Key_Type) values.]}
+@end{Discussion}
+@begin{ImplNote}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[These rules have a dual purpose. Mainly, we are
+  @i{requiring} checks needed to prevent dangling references. As a side effect, we
+  are also @i{allowing} checks needed to permit an implementation of a container
+  generic to make use of access types in a straightforward way. As an example of
+  the second purpose, suppose that an implementation does declare such an access
+  type and suppose further that the finalization of the collection of the
+  access type has started. These rules allow Program_Error to be propagated
+  in this case (as specified in @RefSecNum{Allocators}); this is necessary to
+  allow an all-Ada implementation of these packages.]}
+@end{ImplNote}
+@end{StaticSem}
+
 @begin{Extend95}
   @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0299-1]}
@@ -263,6 +325,14 @@ implementations that are unstable if given buggy hash functions, et al.]}
   @ChgAdded{Version=[3],Text=[@b<Correction:> Added a definition of
   strict weak ordering.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI05-0035-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added a definition of
+  @ldquote@;performs indefinite insertion@rdquote. This is used in
+  other subclauses and any resulting inconsistencies are documented
+  there.]}
+@end{DiffWord2012}
 
 
 @LabeledAddedSubclause{Version=[2],Name=[The Package Containers]}
@@ -986,6 +1056,7 @@ parameter.]}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0110-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a vector]}
 @Defn2{Term=[tampering],Sec=[prohibited for a vector]}
 When tampering with cursors is @i<prohibited> for a particular vector object
@@ -994,7 +1065,9 @@ that is defined to tamper with the cursors of @i<V>, leaving @i<V> unmodified.
 Similarly, when tampering with elements is @i<prohibited> for a particular vector
 object @i<V>, Program_Error is propagated by a call of any language-defined
 subprogram that is defined to tamper with the elements of @i<V> @Redundant[(or
-tamper with the cursors of @i<V>)], leaving @i<V> unmodified.]}
+tamper with the cursors of @i<V>)], leaving @i<V>
+unmodified.@Chg{Version=[4],New=[ These checks are made before any other
+defined behavior of the body of the language-defined subprogram.],Old=[]}]}
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
@@ -1784,9 +1857,10 @@ and then Position is set to To_Cursor (Container, @i<T>).]}
 
 @begin{Example}
 @ChgRef{Version=[2],Kind=[AddedNormal]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0080-1]}
 @ChgAdded{Version=[2],KeepNext=[T],Text=[@key{procedure} Prepend (Container : @key{in out} Vector;
-                   New_Item  : @key{in}     Vector;
-                   Count     : @key{in}     Count_Type := 1);]}
+                   New_Item  : @key{in}     Vector@Chg{Version=[4],New=[],Old=[;
+                   Count     : @key{in}     Count_Type := 1]});]}
 @end{Example}
 
 @ChgRef{Version=[2],Kind=[AddedNormal],ARef=[AI95-00302-03]}
@@ -2814,6 +2888,13 @@ value of Last_Index.]}
   made and the exception raised.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0110-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that tampering checks
+  precede all other checks made by a subprogram (but come after those associated
+  with the call).]}
+@end{DiffWord2012}
+
 
 @LabeledAddedSubclause{Version=[2],
 Name=[The Generic Package Containers.Doubly_Linked_Lists]}
@@ -3263,6 +3344,7 @@ a parameter.]}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0110-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a list]}
 @Defn2{Term=[tampering],Sec=[prohibited for a list]}
 When tampering with cursors is @i<prohibited> for a particular list object
@@ -3271,7 +3353,9 @@ that is defined to tamper with the cursors of @i<L>, leaving @i<L> unmodified.
 Similarly, when tampering with elements is @i<prohibited> for a particular list
 object @i<L>, Program_Error is propagated by a call of any language-defined
 subprogram that is defined to tamper with the elements of @i<L> @Redundant[(or
-tamper with the cursors of @i<L>)], leaving @i<L> unmodified.]}
+tamper with the cursors of @i<L>)], leaving @i<L>
+unmodified.@Chg{Version=[4],New=[ These checks are made before any other
+defined behavior of the body of the language-defined subprogram.],Old=[]}]}
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
@@ -4441,6 +4525,12 @@ probably not a stable sort.]}
   made and the exception raised.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0110-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that tampering checks
+  precede all other checks made by a subprogram (but come after those associated
+  with the call).]}
+@end{DiffWord2012}
 
 @LabeledAddedSubclause{Version=[2],Name=[Maps]}
 
@@ -4599,6 +4689,7 @@ as a parameter.]}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0110-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a map]}
 @Defn2{Term=[tampering],Sec=[prohibited for a map]}
 When tampering with cursors is @i<prohibited> for a particular map object
@@ -4607,7 +4698,9 @@ that is defined to tamper with the cursors of @i<M>, leaving @i<M> unmodified.
 Similarly, when tampering with elements is @i<prohibited> for a particular map
 object @i<M>, Program_Error is propagated by a call of any language-defined
 subprogram that is defined to tamper with the elements of @i<M> @Redundant[(or
-tamper with the cursors of @i<M>)], leaving @i<M> unmodified.]}
+tamper with the cursors of @i<M>)], leaving @i<M>
+unmodified.@Chg{Version=[4],New=[ These checks are made before any other
+defined behavior of the body of the language-defined subprogram.],Old=[]}]}
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
@@ -5440,6 +5533,13 @@ unless specified by the operation.]}]}
   prohibits tampering in order to more clearly define where the check is
   made and the exception raised.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0110-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that tampering checks
+  precede all other checks made by a subprogram (but come after those associated
+  with the call).]}
+@end{DiffWord2012}
 
 
 @LabeledAddedSubclause{Version=[2],Name=[The Generic Package Containers.Hashed_Maps]}
@@ -6947,6 +7047,7 @@ object @i<S> if:]}
 @end{Itemize}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0265-1]}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0110-1]}
 @ChgAdded{Version=[3],Text=[@Defn2{Term=[prohibited],Sec=[tampering with a set]}
 @Defn2{Term=[tampering],Sec=[prohibited for a set]}
 When tampering with cursors is @i<prohibited> for a particular set object
@@ -6955,7 +7056,9 @@ that is defined to tamper with the cursors of @i<S>, leaving @i<S> unmodified.
 Similarly, when tampering with elements is @i<prohibited> for a particular set
 object @i<S>, Program_Error is propagated by a call of any language-defined
 subprogram that is defined to tamper with the elements of @i<S> @Redundant[(or
-tamper with the cursors of @i<S>)], leaving @i<S> unmodified.]}
+tamper with the cursors of @i<S>)], leaving @i<S>
+unmodified.@Chg{Version=[4],New=[ These checks are made before any other
+defined behavior of the body of the language-defined subprogram.],Old=[]}]}
 @begin{TheProof}
   @ChgRef{Version=[3],Kind=[AddedNormal]}
   @ChgAdded{Version=[3],Text=[Tampering with elements includes tampering with
@@ -7958,6 +8061,12 @@ unless specified by the operation.]}]}
   made and the exception raised.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0110-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified that tampering checks
+  precede all other checks made by a subprogram (but come after those associated
+  with the call).]}
+@end{DiffWord2012}
 
 
 @LabeledAddedSubclause{Version=[2],Name=[The Generic Package Containers.Hashed_Sets]}

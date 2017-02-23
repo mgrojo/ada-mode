@@ -1,9 +1,9 @@
 @Part(04, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:03 $}
+@Comment{$Date: 2014/07/24 04:20:38 $}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/04b.mss,v $}
-@Comment{$Revision: 1.63 $}
+@Comment{$Revision: 1.66 $}
 
 @LabeledClause{Type Conversions}
 
@@ -99,9 +99,19 @@ is interpreted only as a @nt<name>;
 the operand of a value conversion
 is interpreted as an @nt<expression>.
 @begin{Reason}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0005-1]}
   This formally resolves the syntactic ambiguity between
-  the two forms of @nt<type_conversion>, not that it really matters.
+  the two forms of @nt<type_conversion>@Chg{Version=[4],New=[.
+  This matters as an @nt{expression} that is a @nt{name} is evaluated and
+  represents a value while a @nt{name} by itself can be an object; we want
+  a view conversion to be an object],Old=[, not that it really matters]}.
 @end{Reason}
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0005-1]}
+  @ChgAdded{Version=[4],Text=[This wording uses "interpreted as" rather than
+  "shall be" so that this rule is not used to resolve overloading; it is
+  solely about evaluation as described above.]}
+@end{Ramification}
 
 @end{Resolution}
 
@@ -539,6 +549,16 @@ Further, if the operand type is not @i<universal_@!access>:]}
       to clients of the partial view.]}
     @end{Reason}
 
+    @begin{Discussion}
+      @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0095-1]}
+      @ChgAdded{Version=[4],Text=[We assume the worst in a generic body whether
+      or not a formal subtype has a constrained partial view; specifically, in a
+      generic body a discriminated subtype is considered to have a constrained
+      partial view if it is a descendant of an untagged generic formal private
+      or derived type (see @RefSecNum{Formal Private and Derived Types} for the
+      formal definition of this rule).]}
+    @end{Discussion}
+
   @end(innerinneritemize)
   @begin{Reason}
     @ChgRef{Version=[2],Kind=[AddedNormal]}
@@ -554,18 +574,19 @@ Further, if the operand type is not @i<universal_@!access>:]}
 
   @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00251-01]}
   @ChgRef{Version=[3],Kind=[RevisedAdded],ARef=[AI05-0148-1],ARef=[AI05-0248-1]}
+  @ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0027-1]}
   @Chg{Version=[2],New=[@PDefn2{Term=[accessibility rule],Sec=(type conversion)}
   The accessibility level of the operand type shall not be statically
   deeper than that of the target type@Chg{Version=[3],New=[, unless the target
   type is an anonymous access type of a stand-alone object. If the target type
   is that of such a stand-alone object, the accessibility level of the operand
   type shall not be statically deeper than that of the declaration of the
-  stand-alone object],Old=[]}.
+  stand-alone object],Old=[]}.@Chg{Version=[4],New=[],Old=[
   @PDefn{generic contract issue}
   In addition to the places where @LegalityTitle normally apply
   (see @RefSecNum{Generic Instantiation}),
   this rule applies also in the private part of an
-  instance of a generic unit.],Old=[]}
+  instance of a generic unit.]}],Old=[]}
   @begin{Ramification}
     @ChgRef{Version=[2],Kind=[AddedNormal]}
     @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0148-1]}
@@ -612,14 +633,15 @@ the operand type is not @i<universal_@!access>:]}
   @Defn2{Term=[subtype conformance],Sec=(required)}],Old=[]}
 
   @ChgRef{Version=[2],Kind=[Added],ARef=[AI95-00251-01]}
+  @ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0027-1]}
   @Chg{Version=[2],New=[@PDefn2{Term=[accessibility rule],Sec=(type conversion)}
   The accessibility level of the operand type shall not be statically
-  deeper than that of the target type.
+  deeper than that of the target type.@Chg{Version=[4],New=[],Old=[
   @PDefn{generic contract issue}
   In addition to the places where @LegalityTitle normally apply
   (see @RefSecNum{Generic Instantiation}),
   this rule applies also in the private part of an
-  instance of a generic unit.
+  instance of a generic unit.]}
   If the operand type is declared within a generic body,
   the target type shall be declared within the generic body.],Old=[]}
 
@@ -637,6 +659,24 @@ the operand type is not @i<universal_@!access>:]}
 @end(inneritemize)
 
 @end(itemize)
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0027-1]}
+@ChgAdded{Version=[4],Text=[@PDefn{generic contract issue}
+In addition to the places where @LegalityTitle normally apply
+(see @RefSecNum{Generic Instantiation}),
+these rules apply also in the private part of an
+instance of a generic unit.]}
+@begin{Discussion}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This applies to @i<all> of the @LegalityTitle
+  in this section. It won't matter for the majority of these rules, but
+  in any case that it does, we want to apply the same recheck in the private
+  part. (Ada got the default wrong for these, as there is only one known case
+  where we don't want to recheck in the private part,
+  see derivations without record extensions in
+  @RefSecNum{Derived Types and Classes}.)]}
+@end{Discussion}
+
 @end{Legality}
 
 @begin{StaticSem}
@@ -898,6 +938,7 @@ Access Type Conversion
 
 @ChgRef{Version=[2],Kind=[Revised],ARef=[AI95-00231-01]}
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0153-3],ARef=[AI05-0290-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
 @IndexCheck{Range_Check}
 @IndexCheck{Discriminant_Check}
 @IndexCheck{Index_Check}
@@ -909,8 +950,10 @@ New=[ If the target subtype excludes null,
 then a check is made that the value is not null.],Old=[]}@Chg{Version=[3],
 New=[ If predicate checks are enabled
 for the target subtype (see @RefSecNum{Subtype Predicates}), a check
-is performed that the predicate of the target subtype is satisfied for the
-value.@Defn2{Term=[predicate check],
+is performed that the @Chg{Version=[4],New=[value satisfies the
+predicates],Old=[predicate]} of the target
+subtype@Chg{Version=[4],New=[],Old=[ is satisfied for the
+value]}.@Defn2{Term=[predicate check],
 Sec=[subtype conversion]}@Defn2{Term=[check, language-defined],
 Sec=[controlled by assertion policy]}],Old=[]}
 @begin{Ramification}
@@ -956,30 +999,37 @@ performed as above for a value conversion.
   might raise Constraint_Error);
   @PDefn2{Term=[implicit subtype conversion],Sec=(assignment to view conversion)}
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0074-1]}
   Reading the value of the view yields the result of converting
   the value of the operand object to the target subtype
   (which might raise Constraint_Error), except if the object
-  is of an access type and the view conversion is passed
-  as an @key(out) parameter;
-  in this latter case,
-  the value of the operand object is used to initialize
-  the formal parameter without
-  checking against any constraint of the target subtype
-  (see @RefSecNum(Parameter Associations)).
+  is of an @Chg{Version=[4],New=[elementary],Old=[access]} type and the
+  view conversion is passed as an @key(out) parameter;
+  in this latter case, the value of the operand object
+  @Chg{Version=[4],New=[may be],Old=[is]} used to initialize the
+  formal parameter without checking against any constraint of the
+  target subtype
+  (@Chg{Version=[4],New=[as described more precisely in],Old=[see]}
+  @RefSecNum(Parameter Associations)).
   @PDefn2{Term=[implicit subtype conversion],Sec=(reading a view conversion)}
   @begin(Reason)
+    @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0074-1]}
     This ensures that even an @key(out) parameter of
-    an access type is initialized reasonably.
+    an @Chg{Version=[4],New=[elementary],Old=[access]} type is
+    initialized reasonably.
   @end(Reason)
 @end(itemize)
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0290-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0096-1]}
 @Defn2{Term=[Program_Error],Sec=(raised by failure of run-time check)}
 @Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}@Chg{Version=[3],New=[
 @Defn2{Term=(Assertion_Error),Sec=(raised by failure of run-time check)}],Old=[]}
 If an Accessibility_Check fails, Program_Error is raised.
-@Chg{Version=[3],New=[If a predicate check fails, Assertions.Assertion_Error is
-raised. ],Old=[]}Any other check associated with a conversion raises
+@Chg{Version=[3],New=[If a predicate check fails, @Chg{Version=[4],New=[the
+effect is as defined in subclause @RefSec{Subtype Predicates}],
+Old=[Assertions.Assertion_Error is
+raised]}. ],Old=[]}Any other check associated with a conversion raises
 Constraint_Error if it fails.
 
 Conversion to a type is the same as conversion to an unconstrained
@@ -997,6 +1047,40 @@ to an unconstrained scalar subtype,
 can raise Constraint_Error if the value is outside the base range of the
 type.
 @end{Ramification}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0027-1]}
+@ChgAdded{Version=[4],Type=[Leading],Text=[Evaluation of a value conversion of a
+composite type either creates a new anonymous object@Redundant[ (similar to the
+object created by the evaluation of an @nt{aggregate} or a function call)] or
+yields a new view of the operand object without creating a new object:]}
+
+@begin{Itemize}
+   @ChgRef{Version=[4],Kind=[Added]}
+   @ChgAdded{Version=[4],Text=[If the target type is a by-reference type and
+   there is a type that is an ancestor of both the target type and the operand
+   type then no new object is created;]}
+
+   @ChgRef{Version=[4],Kind=[Added]}
+   @ChgAdded{Version=[4],Text=[If the target type is an array type having
+   aliased components and the operand type is an array type having unaliased
+   components, then a new object is created;]}
+
+   @ChgRef{Version=[4],Kind=[Added]}
+   @ChgAdded{Version=[4],Text=[Otherwise, it is unspecified whether a new object
+   is created.@PDefn{unspecified}]}
+@end{Itemize}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0027-1]}
+@ChgAdded{Version=[4],Text=[If a new object is created, then the initialization
+of that object is an assignment operation.]}
+
+@begin{Reason}
+   @ChgRef{Version=[4],Kind=[Added]}
+   @ChgAdded{Version=[4],Text=[This makes a difference in the case of converting
+   from an array type with unaliased components to one with aliased components
+   if the element type has a controlled part.]}
+@end{Reason}
+
 @end{RunTime}
 
 @begin{Notes}
@@ -1248,6 +1332,53 @@ as a @nt<name>.
   @RefSecNum{Subtype Predicates}) are enforced on subtype conversion.]}
 @end{Diffword2005}
 
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0095-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Because of a rule added in
+  @RefSecNum{Formal Private and Derived Types}, the checks for the
+  legality of an access type conversion in a generic body were strengthened
+  to use an assume the worst rule. This case is rather unlikely as a formal
+  private or derived type with discriminants is required along with a
+  conversion between two access types whose designated types don't statically
+  match, and any such programs were at risk having objects disappear while
+  valid access values still pointed at them.]}
+@end{Incompatible2012}
+
+@begin{Diffword2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0027-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Moved the generic boilerplate
+  so that it covers all @LegalityTitle in this subclause. This was always
+  intended, but it is not expected to change anything other than conversions
+  between unrelated arrays.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0027-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added a formal definition of
+  the copy potentially created by a value conversion of a composite type,
+  so properties like finalization and accessibility are properly defined.
+  This model was always intended and expected (else
+  @RefSecNum{Change of Representation} would not work), but it was not
+  previously formally defined.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of
+  type conversions to use the new term "satisfies the predicates"
+  (see @RefSecNum{Subtype Predicates}).]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0074-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Clarified the wording
+  describing the effect of view conversions of @key[out] parameters
+  such that it is clear that the detailed effect is defined in
+  @RefSecNum(Parameter Associations), not here.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0096-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of
+  type conversions so that the exception raise or other effect of a failed
+  predicate check is as defined in @RefSecNum{Subtype Predicates}; we don't
+  want to repeat those rules here. This doesn't change the behavior for
+  predicate checks possible in original Ada 2012, only ones using the new
+  aspect Predicate_Failure.]}
+@end{Diffword2012}
+
 
 @LabeledClause{Qualified Expressions}
 
@@ -1283,6 +1414,7 @@ is the subtype denoted by the @nt{subtype_mark}.]}
 @end{StaticSem}
 
 @begin{RunTime}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0100-1]}
 @PDefn2{Term=[evaluation], Sec=(qualified_expression)}
 @IndexCheck{Range_Check}
 @IndexCheck{Discriminant_Check}
@@ -1294,11 +1426,20 @@ and checks that its value belongs to the subtype denoted by
 the @nt{subtype_mark}.
 @PDefn2{Term=[implicit subtype conversion],Sec=(qualified_expression)}
 @Defn2{Term=[Constraint_Error],Sec=(raised by failure of run-time check)}
-The exception Constraint_Error is raised if this check fails.
+The exception Constraint_Error is raised if this check fails.@Chg{Version=[4],
+New=[ Furthermore, if predicate checks are enabled for the subtype
+denoted by the @nt{subtype_mark}, a check is performed as defined in
+subclause @RefSec{Subtype Predicates} that the value satifies the predicates
+of the subtype.],Old=[]}
 @begin{Ramification}
   This is one of the few contexts in Ada 95 where implicit subtype conversion
   is not performed prior to a constraint check, and hence no
   @lquotes@;sliding@rquotes@; of array bounds is provided.
+
+  @ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0100-1]}
+  @ChgAdded{Version=[4],Text=[The effect of a failed predicate check
+  is as defined in @RefSecNum{Subtype Predicates}; such a check could raise
+  any exception, not just Constraint_Error or Assertion_Error.]}
 @end{Ramification}
 @begin{Reason}
   Implicit subtype conversion is not provided because a
@@ -1307,6 +1448,11 @@ The exception Constraint_Error is raised if this check fails.
   than a request for conversion. An explicit @nt<type_conversion> can
   be used rather than a @nt<qualified_expression> if subtype
   conversion is desired.
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0100-1]}
+  @ChgAdded{Version=[4],Text=[We do a predicate check here so that
+  a @nt{qualified_expression} never allows something that the equivalent
+  @nt{type_conversion} would not allow.]}
 @end{Reason}
 @end{RunTime}
 
@@ -1340,6 +1486,18 @@ Dozen'(1 | 3 | 5 | 7 => 2, @key(others) => 0) @RI[-- see @RefSecNum{Type Convers
   @ChgAdded{Version=[3],Text=[Added a definition of
   the nominal subtype of a @nt{qualified_expression}.]}
 @end{DiffWord2005}
+
+@begin{Inconsistent2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0100-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{inconsistencies with Ada 2012}@b<Corrigendum:>
+  A @nt{qualified_expression} now performs a predicate check for the named
+  subtype (if it is enabled). Original Ada 2012 did not include that check
+  (an omission). While this is formally inconsistent (an exception could
+  be raised when none would be raised by original Ada 2012), cases when this
+  could be the case are likely to be rare (the qualified expression would have
+  to have a stricter subtype than the following usage) and the check is more
+  likely to detect bugs than be unexpected.]}
+@end{Inconsistent2012}
 
 
 @LabeledClause{Allocators}
@@ -2092,10 +2250,13 @@ for strings.
 @end{Reason}
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0158-1],ARef=[AI05-0269-1]}
-a membership test
-whose @nt{simple_expression} is a static expression,
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0039-1]}
+a membership test whose
+@Chg{Version=[4],New=[@SynI{tested_}@nt{simple_expression}],Old=[@nt{simple_expression}]}
+is a static expression,
 and whose @Chg{Version=[3],New=[@nt{membership_choice_list} consists only of
-@nt{membership_choice}s that are either static @nt{choice_expression}s,
+@nt{membership_choice}s that are either static
+@Chg{Version=[4],New=[@SynI{choice_}@nt{simple_expression}s],Old=[@nt{choice_expression}s]},
 static @nt{range}s, or @nt{subtype_mark}s that denote],Old=[@nt{range}
 is a static range or whose @nt{subtype_mark} denotes]} a
 static @Redundant[(scalar or string)] subtype;
@@ -2200,7 +2361,6 @@ The length we're talking about is the maximum number of characters in
 the value represented by a @nt{string_literal},
 not the number of characters in the source representation;
 the quotes don't count.
-
 @end{Reason}
 
 @Defn2{Term=[static], Sec=(range)}
@@ -2355,7 +2515,10 @@ reasoning applies to the "of a @nt{case_expression}" of the last bullet.]}
 whose value is not covered by the corresponding @nt{discrete_choice_list}; or]}
 
 @ChgRef{Version=[3],Kind=[Added],ARef=[AI05-0158-1]}
-@ChgAdded{Version=[3],Text=[a @nt{choice_expression} (or a @nt{simple_expression}
+@ChgRef{Version=[4],Kind=[RevisedAdded],ARef=[AI12-0039-1]}
+@ChgAdded{Version=[3],Text=[a
+@Chg{Version=[4],New=[@SynI{choice_}@nt{simple_expression}],Old=[@nt{choice_expression}]}
+(or a @nt{simple_expression}
 of a @nt{range} that occurs as a @nt{membership_choice} of a
 @nt{membership_choice_list}) of a static membership test that is preceded in
 the enclosing @nt{membership_choice_list} by another item whose individual
@@ -2868,11 +3031,13 @@ compatible with a subtype @i<S2> if:]}
     @ChgAdded{Version=[3],Text=[all predicate specifications that apply to
     @i<S2> apply also to @i<S1>, or]}
 
-    @ChgRef{Version=[3],Kind=[AddedNormal]}
+    @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0290-1]}
+    @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
     @ChgAdded{Version=[3],Text=[both subtypes are static, every value that
-    satisfies the predicate of @i<S1> also satisfies the predicate of @i<S2>,
-    and it is not the case that both types each have at least one applicable
-    predicate specification, predicate checks are enabled (see
+    satisfies the @Chg{Version=[4],New=[predicates],Old=[predicate]} of @i<S1>
+    also satisfies the @Chg{Version=[4],New=[predicates],Old=[predicate]} of
+    @i<S2>, and it is not the case that both types each have at least one
+    applicable predicate specification, predicate checks are enabled (see
     @RefSecNum{Pragmas Assert and Assertion_Policy}) for @i<S2>, and
     predicate checks are not enabled for @i<S1>.]}
   @end{InnerItemize}
@@ -2908,3 +3073,10 @@ This subclause is new to Ada 95.
   @ChgAdded{Version=[3],Text=[Modified static matching and static compatibility
   to take predicate aspects (see @RefSecNum{Subtype Predicates}) into account.]}
 @end{DiffWord2005}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of
+  static compatibility to use the new term "satisfies the predicates"
+  (see @RefSecNum{Subtype Predicates}).]}
+@end{Diffword2012}

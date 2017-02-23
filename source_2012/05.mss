@@ -1,10 +1,10 @@
 @Part(05, Root="ada.mss")
 
-@Comment{$Date: 2012/11/28 23:53:03 $}
+@Comment{$Date: 2016/02/09 04:55:40 $}
 @LabeledSection{Statements}
 
 @Comment{$Source: e:\\cvsroot/ARM/Source/05.mss,v $}
-@Comment{$Revision: 1.59 $}
+@Comment{$Revision: 1.65 $}
 
 @begin{Intro}
 @Redundant[A @nt{statement} defines an action to be performed upon
@@ -508,8 +508,9 @@ Shade := Blue;
 Next_Frame(F)(M, N) := 2.5;        --@RI{  see @RefSecNum{Indexed Components}}
 U := Dot_Product(V, W);            --@RI{  see @RefSecNum{Subprogram Bodies}}
 
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0056-1]}
 Writer := (Status => Open, Unit => Printer, Line_Count => 60);  --@RI{ see @RefSecNum{Variant Parts and Discrete Choices}}
-Next_Car.@key[all] := (72074, @key[null]);    --@RI{  see @RefSecNum{Incomplete Type Declarations}}
+@Chg{Version=[4],New=[Next],Old=[Next_Car]}.@key[all] := (72074, @key[null]@Chg{Version=[4],New=[, Head],Old=[]});@Chg{Version=[4],New=[],Old=[ ]}   --@RI{  see @RefSecNum{Incomplete Type Declarations}}
 @end{Example}
 
 @begin{WideAbove}
@@ -743,6 +744,7 @@ Old=[]}as follows:
   @end{Discussion}
 @begin{itemize}
   @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0003-1],ARef=[AI05-0153-3],ARef=[AI05-0188-1],ARef=[AI05-0262-1]}
+  @ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
   If the @Chg{Version=[3],New=[@SynI{selecting_}],Old=[]}@nt{expression} is a @nt{name}
   @Redundant[(including a
   @nt<type_conversion>@Chg{Version=[3],New=[, @nt{qualified_expression},],Old=[]}
@@ -753,9 +755,11 @@ Old=[]}as follows:
   scalar subtype,]}
   then each non-@key{others} @nt{discrete_choice} shall cover only values in
   that subtype@Chg{Version=[3],New=[ that satisfy its
-  predicate (see @RefSecNum{Subtype Predicates})],Old=[]},
+  @Chg{Version=[4],New=[predicates],Old=[predicate]} (see
+  @RefSecNum{Subtype Predicates})],Old=[]},
   and each value of that subtype@Chg{Version=[3],New=[ that satisfies its
-  predicate],Old=[]} shall be covered by some @nt{discrete_choice}
+  @Chg{Version=[4],New=[predicates],Old=[predicate]}],Old=[]} shall be
+  covered by some @nt{discrete_choice}
   @Redundant[(either explicitly or by @key(others))].
   @begin{Ramification}
     Although not official @nt<name>s of objects, a value conversion
@@ -859,8 +863,11 @@ perhaps due to being outside the base range),
 Constraint_Error is raised.
 @begin{Ramification}
 
-In this case, the value is outside the base range of its type,
-or is an invalid representation.
+@ChgRef{Version=[5],Kind=[Revised],ARef=[AI12-0005-1]}
+  In this case, the value @Chg{Version=[5],New=[fails to satisfy its
+  (static) predicate (possible when the predicate is disabled),],Old=[]}
+  is outside the base range of its type,
+  or is an invalid representation.
 
 @end{Ramification}
 @end{RunTime}
@@ -996,6 +1003,13 @@ for @nt<name>s, rather than being separated out along with
   which @nt{expression} is being talked about in the wording.]}
 @end{Diffword2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of
+  case coverage to use the new term "satisfies the predicates"
+  (see @RefSecNum{Subtype Predicates}).]}
+@end{Diffword2012}
+
 
 @LabeledClause{Loop Statements}
 
@@ -1055,6 +1069,7 @@ execution of the @nt{sequence_of_@!statements}; if the value of the
 if False, the execution of the @nt{loop_@!statement} is complete.
 
 @ChgRef{Version=[3],Kind=[Revised],ARef=[AI05-0139-2],ARef=[AI05-0262-1]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0071-1]}
 @PDefn2{Term=[execution],
   Sec=(loop_statement with a for iteration_scheme)}
 @PDefn2{Term=[elaboration], Sec=(loop_parameter_specification)}
@@ -1072,7 +1087,8 @@ the execution of the
 @nt{sequence_of_@!statements} is executed once for each value of the
 discrete subtype defined by the
 @nt{discrete_@!subtype_@!definition}
-@Chg{Version=[3],New=[that satisfies the predicate of the subtype ],Old=[]}(or
+@Chg{Version=[3],New=[that satisfies the
+@Chg{Version=[4],New=[predicates],Old=[predicate]} of the subtype ],Old=[]}(or
 until the loop is left as a consequence of a transfer of control).
 @Defn2{Term=[assignment operation], Sec=(during execution of a @key{for} loop)}
 Prior to each such iteration,
@@ -1208,6 +1224,13 @@ The constant-ness of loop parameters is specified in
   appropriate subclause.]}
 @end{DiffWord2005}
 
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0071-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Updated wording of
+  loop execution to use the new term "satisfies the predicates"
+  (see @RefSecNum{Subtype Predicates}).]}
+@end{Diffword2012}
+
 
 @LabeledAddedSubClause{Version=[3],Name=[User-Defined Iterator Types]}
 
@@ -1304,6 +1327,16 @@ Text=<@ChgAdded{Version=[3],Text=[An iterable container type is one that has
 user-defined behavior for iteration, via the Default_Iterator and
 Iterator_Element aspects.]}>}
 
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0138-1]}
+@ChgAdded{Version=[4],Text=[The Default_Iterator and Iterator_Element aspects
+are nonoverridable (see @RefSecNum{Aspect Specifications}).]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This ensures that all descendants of an
+  iterable container type have aspects with the same properties. This prevents
+  generic contract problems with formal derived types.]}
+@end{Reason}
 @end{StaticSem}
 
 @begin{Legality}
@@ -1372,12 +1405,22 @@ properties:]}
 
 @end{Legality}
 
-
 @begin{Extend2005}
   @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
   @ChgAdded{Version=[3],Text=[@Defn{extensions to Ada 2005}User-defined
   iterator types are new in Ada 2012.]}
 @end{Extend2005}
+
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0138-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada 2012}@b<Corrigendum:>
+  Defined Default_Iterator and Iterator_Element to be nonoveridable, which
+  makes redefinitions and hiding of these aspects illegal. It's possible that
+  some program could violate one of these new restrictions, but in most cases
+  this can easily be worked around by using overriding rather than
+  redefinition.]}
+@end{Incompatible2012}
+
 
 
 @LabeledAddedSubClause{Version=[3],Name=[Generalized Loop Iteration]}
@@ -1428,17 +1471,65 @@ In a reverse container element iterator, the default iterator type for the type
 of the @SynI<iterable_>@nt{name} shall be a reversible iterator type.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
-@ChgAdded{Version=[3],Text=[The type of the @nt{subtype_indication}, if any,
-of an array component iterator shall cover the component type of the type
-of the @SynI<iterable_>@nt{name}. The type of the @nt{subtype_indication},
-if any, of a container element iterator shall cover the default element type
-for the type of the @SynI<iterable_>@nt{name}.]}
+@ChgRef{Version=[4],Kind=[Revised],ARef=[AI12-0151-1]}
+@ChgAdded{Version=[3],Text=[The @Chg{Version=[4],New=[subtype defined
+by],Old=[type of]} the @nt{subtype_indication}, if any, of an array component
+iterator shall @Chg{Version=[4],New=[statically match],Old=[cover]} the
+component @Chg{Version=[4],New=[subtype],Old=[type]} of the type of the
+@SynI<iterable_>@nt{name}. The @Chg{Version=[4],New=[subtype defined
+by],Old=[type of]} the @nt{subtype_indication}, if any, of a container element
+iterator shall @Chg{Version=[4],New=[statically match],Old=[cover]} the default
+element @Chg{Version=[4],New=[subtype],Old=[type]} for the type of the
+@SynI<iterable_>@nt{name}.]}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2]}
 @ChgAdded{Version=[3],Text=[In a container element iterator whose
 @SynI<iterable_>@nt{name} has type @i<T>, if the @SynI<iterable_>@nt{name}
 denotes a constant or the Variable_Indexing aspect is not specified for @i<T>,
 then the Constant_Indexing aspect shall be specified for @i<T>.]}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0047-1]}
+@ChgAdded{Version=[4],Text=[The @SynI<iterator_>@nt{name} or
+@SynI<iterable_>@nt{name} of an @nt{iterator_specification} shall
+not denote a subcomponent that depends on discriminants of an object
+whose nominal subtype is unconstrained, unless the object is known
+to be constrained.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This is the same rule that applies to
+  renames; it serves the same purpose of preventing the object from
+  disappearing while the iterator is still using it.]}
+@end{Reason}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0120-1]}
+@ChgAdded{Version=[4],Text=[A container element iterator is illegal if the
+call of the default iterator function that creates the loop iterator
+(see below) is illegal.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This can happen if the parameter to the default
+  iterator function is @key[in out] and the @SynI<iterable_>@nt{name} is a
+  constant. The wording applies to any reason that the call would be illegal,
+  as it's possible that one of the default parameters would be illegal, or
+  that some accessibility check would fail.]}
+@end{Ramification}
+
+@ChgRef{Version=[4],Kind=[Added],ARef=[AI12-0120-1]}
+@ChgAdded{Version=[4],Text=[A generalized iterator is illegal if the iteration
+cursor subtype of the @SynI<iterator_>@nt{name} is a limited type at the point
+of the generalized iterator. A container element iterator is illegal if the
+default cursor subtype of the type of the @SynI<iterable_>@nt{name} is a limited
+type at the point of the container element iterator.]}
+
+@begin{Reason}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[If the cursor type is limited, the assignment to
+  the loop parameter for a generalized iterator would be illegal. The same is
+  true for a container element iterator. We have to say "at the point of the
+  iterator" as the limitedness of a type can change due to visibility.]}
+@end{Reason}
 
 @end{Legality}
 
@@ -1467,6 +1558,17 @@ is a constant if the @SynI{iterable_}@nt{name} denotes a constant, or if
 the Variable_Indexing aspect is not specified for the type of the
 @SynI{iterable_}@nt{name}; otherwise it is a variable.]}
 
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0093-1]}
+  @ChgAdded{Version=[4],Text=[The loop parameter of a generalized iterator has
+  the same accessibility as the loop statement. This means that the loop
+  parameter object is finalized when the loop statement is left. (It also may be
+  finalized as part of assigning a new value to the loop parameter.) For array
+  component iterators and container element iterators, the loop parameter
+  directly denotes an element of the array or container and has the
+  accessibility of the associated array or container.]}
+@end{Ramification}
+
 @end{StaticSem}
 
 @begin{Runtime}
@@ -1493,6 +1595,17 @@ or the loop is left as a consequence of a transfer of control. For a reverse
 generalized iterator, the operations Last and Previous are called rather than
 First and Next.]}
 
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0093-1]}
+  @ChgAdded{Version=[4],Text=[The loop parameter of a generalized iterator is a
+  variable of which the user only has a constant view. It follows the normal
+  rules for a variable of its nominal subtype. In particular, if the nominal
+  subtype is indefinite, the variable is constrained by its initial value.
+  Similarly, if the nominal subtype is class-wide, the variable (like all
+  variables) has the tag of the initial value. Constraint_Error may be raised by
+  a subsequent iteration if Next or Previous return an object with a different
+  tag or constraint.]}
+@end{Ramification}
 
 @ChgRef{Version=[3],Kind=[AddedNormal],ARef=[AI05-0139-2],ARef=[AI05-0292-1]}
 @ChgAdded{Version=[3],Text=[For an array component iterator, the
@@ -1543,6 +1656,17 @@ loop parameter is a constant (see above), then the indexing uses the default
 constant indexing function for the type of the iterable container object for the
 loop; otherwise it uses the default variable indexing function.]}
 
+@ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0120-1]}
+@ChgAdded{Version=[4],Text=[Any exception propagated by the execution of a
+generalized iterator or container element iterator is propagated by the
+immediately enclosing loop statement.]}
+
+@begin{Ramification}
+  @ChgRef{Version=[4],Kind=[AddedNormal]}
+  @ChgAdded{Version=[4],Text=[This text covers exceptions raised by called
+  functions that make up the execution of the iterator as well as
+  exceptions raised by the assignment to the loop parameter or cursor.]}
+@end{Ramification}
 @end{Runtime}
 
 @begin{Examples}
@@ -1568,7 +1692,50 @@ packages in @RefSecNum{The Generic Package Containers.Vectors} and
   of loop iteration are new.]}
 @end{Extend2005}
 
+@begin{Incompatible2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0047-1]}
+  @ChgAdded{Version=[4],Text=[@Defn{incompatibilities with Ada
+  2012}@b<Corrigendum:> Added a rule to ensure that the object being iterated
+  cannot be a component that could disappear before the loop completes. This
+  could be incompatible by making a loop that was legal (and worked correctly,
+  so long as the enclosing object is not modified during the loop) from the
+  original Ada 2012 illegal in corrected Ada 2012. Such loops should be pretty
+  rare, especially as these iterator forms are new to Ada 2012.]}
 
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0120-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added rules to reject loops
+  if the call to the default iterator function for a container element
+  iterator is illegal, or if the cursor type of an iterator is limited.
+  These are formally incompatible with original Ada 2012, but as it's unlikely
+  that any Ada 2012 compiler ever allowed the illegal usages in an expansion
+  of a loop (it's much more likely that they would have just caused an internal
+  error in the compiler), this should have no effect in practice.]}
+
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0151-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added a requirement that the
+  given subtype statically match the subtype of the element or component for
+  a component element iterator or array component iterator. Original Ada 2012
+  text allowed any type that covered the subtype of the element or component,
+  but that led to questions of what the meaning was if they are different.
+  In this case, the element is essentially a renaming of the container element,
+  and it doesn't make sense for the constraints to be different. Ignoring
+  explicitly defined constraints in renames is a mistake that we don't want
+  to continue, thus we require static matching. This means that some programs
+  might be illegal, but those programs were misleading at best, and
+  potentially would raise unexpected exceptions because the element values
+  might have been invalid or abnormal with respect to the declared constraint.]}
+@end{Incompatible2012}
+
+@begin{DiffWord2012}
+  @ChgRef{Version=[4],Kind=[AddedNormal],ARef=[AI12-0120-1]}
+  @ChgAdded{Version=[4],Text=[@b<Corrigendum:> Added wording to specify that
+  a loop propagates any exceptions propagated by the execution of an iterator.
+  Since that's what naturally would happen from a macro-style expansion of the
+  parts of an iterator, and no other interpretation makes sense given the way
+  the rest of Ada works, we consider it so unlikely that any Ada 2012
+  implementation ever did anything else that we don't document this as a
+  possible inconsistency.]}
+@end{DiffWord2012}
 
 
 @RMNewPageVer{Version=[0]}@Comment{For printed version of Ada 95}
