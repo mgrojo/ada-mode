@@ -1,4 +1,4 @@
-with ARM_Input,
+with --ARM_Input,
      Ada.Text_IO;
 package body ARM_String is
 

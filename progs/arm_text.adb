@@ -1,6 +1,6 @@
-with ARM_Output,
-     ARM_Contents,
-     Ada.Text_IO,
+with --ARM_Output,
+     --ARM_Contents,
+     --Ada.Text_IO,
      Ada.Exceptions,
      Ada.Strings.Fixed;
 package body ARM_Text is
@@ -188,6 +188,7 @@ package body ARM_Text is
 	    Ada.Text_IO.Close (Output_Object.Output_File);
 	end if;
 	-- Create a new file for this section:
+        -- Unix directory separators for Windows and Debian
 	Ada.Text_IO.Create (Output_Object.Output_File, Ada.Text_IO.Out_File,
             Output_Object.Output_Path(1..Output_Object.Output_Path_Len) &
 	        Ada.Strings.Fixed.Trim (Output_Object.File_Prefix, Ada.Strings.Right) &

@@ -4,15 +4,15 @@ with Ada.Text_IO,
      Ada.Strings.Unbounded;
 with ARM_Input,
      ARM_File,
-     ARM_Format,
+     --ARM_Format, redundant
      ARM_Output,
      ARM_Text,
      ARM_Texinfo,
      ARM_HTML,
      ARM_RTF,
-     ARM_Corr,
-     ARM_Master,
-     ARM_Contents;
+     ARM_Corr;
+     --ARM_Master,
+     --ARM_Contents;
 package body ARM_Master is
 
     --
@@ -763,12 +763,12 @@ package body ARM_Master is
 		            Source_Data(Source_Length).File_Name_Len := ILen + 4;
 			    Ada.Strings.Fixed.Move (
 					Target => Source_Data(Source_Length).File_Name,
-				        Source => Item(1..ILen) & ".MSS");
+				        Source => Ada.Characters.Handling.To_Lower (Item(1..ILen)) & ".mss");
 			else
 		            Source_Data(Source_Length).File_Name_Len := ILen;
 			    Ada.Strings.Fixed.Move (
 				        Target => Source_Data(Source_Length).File_Name,
-				        Source => Item(1..ILen));
+				        Source => Ada.Characters.Handling.To_Lower (Item(1..ILen)));
 			end if;
 		    -- else no parameter, error already produced.
 		    end if;
@@ -899,7 +899,7 @@ package body ARM_Master is
 
 		when File_Prefix =>
 		    -- @FilePrefix{<File_Prefix>}
-		    Output_File_Prefix := +Get_Single_String;
+		    Output_File_Prefix := +Ada.Characters.Handling.To_Lower (Get_Single_String);
 		    Ada.Text_IO.Put_Line("File Prefix is " &
 			(+Output_File_Prefix));
 
@@ -1443,6 +1443,7 @@ package body ARM_Master is
 		    ARM_TexInfo.Create (Output,
 				        File_Prefix => +Output_File_Prefix,
 				        Output_Path => Output_Path,
+                                        Change_Version => Change_Version,
 				        Title => Get_Versioned_String (Document_Title, Change_Version));
 	            Generate_Sources (Output);
 	            ARM_TexInfo.Close (Output);

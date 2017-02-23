@@ -1,0 +1,16 @@
+^build/.*\.exe$
+^build/.*\.gz$
+^build/.*\.html$
+^build/.*\.info$
+^build/.*\.log$
+^build/.*\.pdf$
+^build/.*\.stamp$
+^build/.*\.tex$
+^build/.*\.texinfo$
+^build/.*\.toc$
+^build/.*\.txt$
+^build/\.gdbinit$
+^build/__pycache__$
+^build/html$
+^build/objects$
+^build/txt$

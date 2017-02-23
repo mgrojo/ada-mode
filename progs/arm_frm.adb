@@ -1,12 +1,12 @@
-with ARM_Output,
-     ARM_Input,
+with -- ARM_Output, -- redudant with spec
+--   ARM_Input,
      ARM_File,
      ARM_String,
-     ARM_Contents,
-     ARM_Database,
+--   ARM_Contents,
+--   ARM_Database,
      ARM_Syntax,
      ARM_Index,
-     ARM_Subindex,
+--   ARM_Subindex,
      ARM_Format.Data,
      Ada.Text_IO,
      Ada.Characters.Handling,
@@ -1316,7 +1316,7 @@ Ada.Text_IO.Put_Line ("%% Oops, can't find out if AARM paragraph, line " & ARM_I
 	            Format_Object.Current_Paragraph_String(1 .. PNum_Pred'Last-1) :=
 		        PNum_Pred(2..PNum_Pred'Last);
 		    AARM_Sub_Num (Format_Object.Next_AARM_Sub);
-	            Format_Object.Current_Paragraph_Len := Format_Object.Current_Paragraph_Len;
+	            -- Format_Object.Current_Paragraph_Len := Format_Object.Current_Paragraph_Len; -- useless assign
 	            if Update_Numbers then
 		        Format_Object.Next_AARM_Sub := Character'Succ(Format_Object.Next_AARM_Sub);
 			Format_Object.Next_AARM_Insert_Para := 1;
@@ -11084,7 +11084,7 @@ Ada.Text_IO.Put_Line ("Attempt to write into a deleted paragraph, on line " & AR
 	exception
 	    when others =>
 		Ada.Text_IO.Put_Line ("** Unable to open file " & File_Name);
-		return;
+		raise;
 	end;
 	if Starts_New_Section then
 	    Format_Object.Clause_Number := (Section => Section_Number,

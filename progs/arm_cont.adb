@@ -1,6 +1,6 @@
 with Ada.Characters.Handling;
 --with Ada.Text_IO; -- Debug.
-with Ada.Exceptions;
+--with Ada.Exceptions;
 package body ARM_Contents is
 
     --

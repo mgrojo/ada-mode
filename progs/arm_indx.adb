@@ -1,4 +1,4 @@
-with ARM_Output,
+with -- ARM_Output, redundant with spec
      ARM_Contents,
      Ada.Exceptions,
      Ada.Characters.Handling,

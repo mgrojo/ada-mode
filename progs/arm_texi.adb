@@ -2,7 +2,7 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body ARM_Texinfo is
 
-   --  Copyright (C) 2003, 2007, 2010, 2011, 2012 Stephen Leake.  All Rights Reserved.
+   --  Copyright (C) 2003, 2007, 2010 - 2013, 2015 Stephen Leake.  All Rights Reserved.
    --  E-Mail: stephen_leake@acm.org
    --
    --  This library is free software; you can redistribute it and/or
@@ -35,6 +35,7 @@ package body ARM_Texinfo is
    -- 10/18/12 - RLB - Added additional hanging styles.
    -- 11/26/12 - RLB - Added subdivision names to Clause_Header and
    --		       Revised_Clause_Header.
+   --  3/12/13 - S L - use correct version in direntry
 
 
    use Ada.Text_IO;
@@ -42,9 +43,7 @@ package body ARM_Texinfo is
    Indentation : constant := 5;
 
    --  VERSION: This is fragile; it changes with each version of the manual.
-   Index_Clause      : constant String    := "0.4";
    Index_Clause_Name : constant String    := "Index";
-   Index_Clause_Next : constant String    := "operators";
    Operators_Clause  : constant String    := "operators";
    Last_Index_Clause : constant Character := 'Y';
 
@@ -165,8 +164,8 @@ package body ARM_Texinfo is
       Put_Line (Output_Object.File, "* Index ::    Index"); --  Not in ARM sources
       Put_Line (Output_Object.File, "@end menu");
 
-      -- @node current, next, prev, up
-      Put_Line (Output_Object.File, "@node Front Matter, 0.1, Top, Top");
+      -- @node current
+      Put_Line (Output_Object.File, "@node Front Matter");
       Put_Line (Output_Object.File, "@chapter Front Matter");
    end End_Title_Page;
 
@@ -406,12 +405,8 @@ package body ARM_Texinfo is
       --  Put_Line (Output_Object.File, "* Z::"); --  VERSION: No entries in Z
       Put_Line (Output_Object.File, "@end menu");
 
-      --  @node current, next, prev, up
-      Put_Line
-        (Output_Object.File,
-         "@node " & Operators_Clause &
-           ", A, " & Index_Clause_Name &
-           ", " & Index_Clause_Name);
+      --  @node current
+      Put_Line (Output_Object.File, "@node " & Operators_Clause);
 
       Put_Line (Output_Object.File, "@section operators");
    end Index_Menu;
@@ -549,45 +544,6 @@ package body ARM_Texinfo is
 
       procedure Put_Subclause_Menu is new For_Each (Put_Subclause_Menu_Item);
 
-      function Safe_Next_Clause (Clause : in String) return String
-      is begin
-         if Clause = Index_Clause then
-            return Index_Clause_Next;
-         else
-            declare
-               Result : constant String := ARM_Contents.Next_Clause (Clause);
-            begin
-               if Result = Index_Clause then
-                  return Index_Clause_Name;
-               else
-                  return Result;
-               end if;
-            end;
-         end if;
-      exception
-      when Not_Found_Error =>
-         return "";
-      end Safe_Next_Clause;
-
-      function Safe_Previous_Clause (Clause : in String) return String
-      is begin
-         return ARM_Contents.Previous_Clause (Clause);
-      exception
-      when Not_Found_Error =>
-         return "";
-      end Safe_Previous_Clause;
-
-      function Safe_Parent_Clause (Clause : in String) return String
-      is
-         Temp : constant String := ARM_Contents.Parent_Clause (Clause_Number);
-      begin
-         if Temp'Length = 0 or Temp = "0" then
-            return "Top";
-         else
-            return Temp;
-         end if;
-      end Safe_Parent_Clause;
-
    begin
       Check_Not_In_Paragraph (Output_Object);
 
@@ -600,14 +556,9 @@ package body ARM_Texinfo is
          --  This section has no content; don't confuse makeinfo.
          return;
 
-      elsif Clause_Number = Index_Clause and Header_Text = Index_Clause_Name then
+      elsif Header_Text = Index_Clause_Name then
 
-         Put_Line
-           (Output_Object.File,
-            "@node " & Index_Clause_Name &
-              ", " & Index_Clause_Next &
-              ", " & Safe_Previous_Clause (Clause_Number) &
-              ", " & Safe_Parent_Clause (Clause_Number));
+         Put_Line (Output_Object.File, "@node " & Index_Clause_Name);
 
          Put_Line (Output_Object.File, "@chapter Index");
          Output_Object.State := Index_Start;
@@ -672,12 +623,7 @@ package body ARM_Texinfo is
 
       end case;
 
-      Put_Line
-        (Output_Object.File,
-         "@node " & Clause_Number &
-           ", " & Safe_Next_Clause (Clause_Number) &
-           ", " & Safe_Previous_Clause (Clause_Number) &
-           ", " & Safe_Parent_Clause (Clause_Number));
+      Put_Line (Output_Object.File, "@node " & Clause_Number);
 
       case Level is
       when Section =>
@@ -750,10 +696,11 @@ package body ARM_Texinfo is
    end Close;
 
    procedure Create
-     (Output_Object : in out Texinfo_Output_Type;
-      File_Prefix   : in     String;
-      Output_Path   : in     String;
-      Title         : in     String)
+     (Output_Object  : in out Texinfo_Output_Type;
+      File_Prefix    : in     String;
+      Output_Path    : in     String;
+      Change_Version : in     ARM_Contents.Change_Version_Type;
+      Title          : in     String)
    is
       File_Name : constant String := Output_Path &
          Ada.Strings.Fixed.Trim (File_Prefix, Ada.Strings.Right) &
@@ -770,10 +717,22 @@ package body ARM_Texinfo is
       Create (Output_Object.File, Out_File, File_Name);
 
       Put_Line (Output_Object.File, "\input texinfo");
+      Put_Line (Output_Object.File, "@documentencoding ISO-8859-1");
       Put_Line (Output_Object.File, "@dircategory GNU Ada tools");
+
       Put_Line (Output_Object.File, "@direntry");
-      Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2005).");
-      Put_Line (Output_Object.File, "* Annotated ARM: (aarm2005).");
+      case Change_Version is
+         when '2' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2005).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (arm2005).");
+         when '3' =>
+            Put_Line (Output_Object.File, "* Ada Reference Manual: (arm2012).");
+            Put_Line (Output_Object.File, "* Annotated ARM: (arm2012).");
+         when others =>
+            Ada.Exceptions.Raise_Exception
+              (ARM_Output.Not_Valid_Error'Identity,
+               "unsupported Change_Version");
+      end case;
       Put_Line (Output_Object.File, "@end direntry");
 
       Put_Line (Output_Object.File, "@settitle " & Title);
@@ -1241,30 +1200,8 @@ package body ARM_Texinfo is
          when 'A' .. Last_Index_Clause =>
             --  Index section heading
 
-            --  @node current, next, prev, up
-            case Char is
-            when 'A' =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", B, " & Operators_Clause &
-                    ", " & Index_Clause_Name);
-
-            when Last_Index_Clause =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", , " & Character'Pred (Char) &
-                    ", " & Index_Clause_Name);
-
-            when others =>
-               Put_Line
-                 (Output_Object.File,
-                  "@node " & Char &
-                    ", " & Character'Succ (Char) &
-                    ", " & Character'Pred (Char) &
-                    ", " & Index_Clause_Name);
-            end case;
+            --  @node current
+            Put_Line (Output_Object.File, "@node " & Char);
 
             --  Add non-break space so Emacs info will use big bold
             --  font for single letter titles.
@@ -1443,7 +1380,7 @@ package body ARM_Texinfo is
       when ARM_Output.EM_Dash =>
          Ordinary_Text (Output_Object, "--");
       when ARM_Output.EN_Dash =>
-         Ordinary_Text (Output_Object, "--");
+         Ordinary_Text (Output_Object, "-"); -- used for '-' in binary_adding_operator
       when ARM_Output.GEQ =>
          Ordinary_Text (Output_Object, ">=");
       when ARM_Output.LEQ =>
@@ -1878,7 +1815,7 @@ package body ARM_Texinfo is
       --  Used in section 2.3 Identifiers examples, 2.5 character
       --  literals examples, 2.6 string literals examples, 3.3.1
       --  Object Declarations examples, 4.4 Expressions examples
-      Put_Line (Output_Object.File, "[Unicode" & ARM_Output.Unicode_Type'Image (Char) & "]");
+      Put (Output_Object.File, "[Unicode" & ARM_Output.Unicode_Type'Image (Char) & "]");
    end Unicode_Character;
 
    procedure URL_Link
