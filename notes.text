@@ -4,7 +4,7 @@ build/Makefile
 build/wisi/Makefile
 
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
-o.e.a.stephe-2 (from o.e.a): external process gps parser
+o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a): available
 
@@ -57,10 +57,30 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
+ compute indent via indent-actions in grammar
+
+apply Stefan's patch for wisi-before/after-change
+    get some testing with it
+
+start with gpr-grammar.wy
+    edited, compiles
+
+    write wisi-indent-region
+        run parser, only execute indent actions
+            each action check wisi-current-action: one of (indent, face, navigate)
+        wisi-indent-action:
+            skip if not overlap wisi-indent-region
+            accumulate list of indents, one per line in region
+
+    wisi-parse-max is alist (face, navigate); indent does not store any state
+
+    write wisi-indent-action
+
+    change wisi-indent-line to call wisi-indent-region
 
  functional (next page for speed issues/ideas)
 
-update ARM-info to include corrigendum
+don't need to call syntax-propertize in emacs 25?
 
 ada_mode_gps_indent install:
     edit GPS configure to delete gtk, rather than configure gtk
@@ -282,13 +302,15 @@ emacs 25 compile.el supports HYPERLINK in compilation regexp; use for secondary 
  speed up, handle bad grammar
 
 Use adacore langkit to generate parser, run as module
+    too hard to design AST types for grammar, since don't need them for ada-mode; maybe ok if that's already done
 
 parser speed dominated by set-text-properties
-    save parse info in _simple_ lisp list, only apply via set-text-properties when needed
-        modify other parser actions to operate on list instead of text-properties
+    compute indent directly in parser actions
+        indent-action takes list of delta_indent, one per token
+    only set text properties for other things
 
-semantic uses overlays, not text properties; faster?
-    apparently not; discussion on emacs-devel of improving overlay speed by using text property interval trees
+convert OpenToken to generate tables for LR1 parser
+    add error handling
 
 wisi-generate write defun for grammar actions
     so they can be byte compiled
@@ -700,15 +722,6 @@ ada-align-paramlist
     handle wrapping due to line length limit?
 
     handle single-line trailing comments, or longer comments, in paramlist?
-
-parser is too slow
-    try byte-compile - not enough
-    see incremental LALR [dickgrune] 9.7.4
-    ~/Backup/eBooks/twagner-thesis.pdf
-    cache parser state periodically (every 200 token caches?), resume parse from last avail cache
-        won't help much; still need to parse to end of file
-        won't help at all on first parse
-        unless it's incremental in idle time!
 
 DEC Ada legacy code
     foo.a for spec, foo_b.a for body

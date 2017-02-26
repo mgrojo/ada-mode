@@ -261,8 +261,11 @@
 ;; implemented by repeated productions. Most names are simplified to
 ;; just "name".
 ;;
-;; BNF not copied until part of it is encountered in a test,
-;; part not needed left commented out.
+;; The EBNF in LRM Annex P is not LALR(1), so we use a generalized
+;; LALR(1) parser (see wisi-parse, wisi-compile).
+;;
+;; To tolerate some invalid syntax during editing, we relax the
+;; grammar, mainly by allowing many items to be empty.
 
 abstract_limited_synchronized_opt
   : ;; empty

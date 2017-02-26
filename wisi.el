@@ -31,34 +31,18 @@
 
 ;;;; History: see NEWS-wisi.text
 ;;
-;;;; indentation algorithm overview
+;; 'wisi' was originally short for "wisent indentation engine", but
+;; now is just a name.
 ;;
-;; This design is inspired in part by experience writing a SMIE
-;; indentation engine for Ada, and the wisent parser.
+;; The approach to indenting a given token is to parse the buffer,
+;; computing a delta indent at each parse action.
 ;;
-;; The general approach to indenting a given token is to find the
-;; start of the statement it is part of, or some other relevant point
-;; in the statement, and indent relative to that.  So we need a parser
-;; that lets us find statement indent points from arbitrary places in
-;; the code.
+;; The parser actions may also cache face and navigation information
+;; as text properties of tokens in statements.
 ;;
-;; For example, the grammar for Ada as represented by the EBNF in LRM
-;; Annex P is not LALR(1), so we use a generalized LALR(1) parser (see
-;; wisi-parse, wisi-compile).
-;;
-;; The parser actions cache indentation and other information as text
-;; properties of tokens in statements.
-;;
-;; An indentation engine moves text in the buffer, as does user
-;; editing, so we can't rely on character positions remaining
-;; constant.  So the parser actions use markers to store
-;; positions.  Text properties also move with the text.
-;;
-;; The stored information includes a marker at each statement indent
-;; point.  Thus, the indentation algorithm is: find the previous token
-;; with cached information, and either indent from it, or fetch from
-;; it the marker for a previous statement indent point, and indent
-;; relative to that.
+;; The three reasons to run the parser (indent, face, navigate) occur
+;; at different times (user indent, font-lock, user navigate), so only
+;; the relevant parser actions are run.
 ;;
 ;; Since we have a cache (the text properties), we need to consider
 ;; when to invalidate it.  Ideally, we invalidate only when a change to
@@ -74,7 +58,7 @@
 ;;; Handling parse errors:
 ;;
 ;; When a parse fails, the cache information before the failure point
-;; is only partly correct, and there is no cache informaiton after the
+;; is only partly correct, and there is no cache information after the
 ;; failure point.
 ;;
 ;; However, in the case where a parse previously succeeded, and the
@@ -83,58 +67,8 @@
 ;; wisi-before change; the parser does not apply actions before that
 ;; point.
 ;;
-;; This allows navigation and indentation in the text preceding the
-;; edit point, and saves some time.
-;;
-;;;; comparison to the SMIE parser
-;;
-;; The central problem to be solved in building the SMIE parser is
-;; grammar precedence conflicts; the general solution is refining
-;; keywords so that each new keyword can be assigned a unique
-;; precedence.  This means ad hoc code must be written to determine the
-;; correct refinement for each language keyword from the surrounding
-;; tokens.  In effect, for a complex language like Ada, the knowledge
-;; of the language grammar is mostly embedded in the refinement code;
-;; only a small amount is in the refined grammar.  Implementing a SMIE
-;; parser for a new language involves the same amount of work as the
-;; first language.
-;;
-;; Using a generalized LALR parser avoids that particular problem;
-;; assuming the language is already defined by a grammar, it is only a
-;; matter of a format change to teach the wisi parser the
-;; language.  The problem in a wisi indentation engine is caching the
-;; output of the parser in a useful way, since we can't start the
-;; parser from arbitrary places in the code (as we can with the SMIE
-;; parser). A second problem is determining when to invalidate the
-;; cache.  But these problems are independent of the language being
-;; parsed, so once we have one wisi indentation engine working,
-;; adapting it to new languages should be quite simple.
-;;
-;; The SMIE parser does not find the start of each statement, only the
-;; first language keyword in each statement; additional code must be
-;; written to find the statement start and indent points.  The wisi
-;; parser finds the statement start and indent points directly.
-;;
-;; In SMIE, it is best if each grammar rule is a complete statement,
-;; so forward-sexp will traverse the entire statement.  If nested
-;; non-terminals are used, forward-sexp may stop inside one of the
-;; nested non-terminals.  This problem does not occur with the wisi
-;; parser.
-;;
-;; A downside of the wisi parser is conflicts in the grammar; they can
-;; be much more difficult to resolve than in the SMIE parser.  The
-;; generalized parser helps by handling conflicts, but it does so by
-;; running multiple parsers in parallel, persuing each choice in the
-;; conflict.  If the conflict is due to a genuine ambiguity, both paths
-;; will succeed, which causes the parse to fail, since it is not clear
-;; which set of text properties to store.  Even if one branch
-;; ultimately fails, running parallel parsers over large sections of
-;; code is slow.  Finally, this approach can lead to exponential growth
-;; in the number of parsers.  So grammar conflicts must still be
-;; analyzed and minimized.
-;;
-;; In addition, the complete grammar must be specified; in smie, it is
-;; often possible to specify a subset of the grammar.
+;; This allows navigation in the text preceding the edit point, and
+;; saves some time.
 ;;
 ;;;; grammar compiler and parser
 ;;
@@ -153,19 +87,11 @@
 ;;;; lexer
 ;;
 ;; The lexer is `wisi-forward-token'. It relies on syntax properties,
-;; so syntax-propertize must be called on the text to be lexed before
-;; wisi-forward-token is called. In general, it is hard to determine
-;; an appropriate end-point for syntax-propertize, other than
-;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
-;; and also call syntax-propertize in wisi-after-change.
-;; FIXME: no longer needed in Emacs 25? (email from Stefan Monnier)
-;;
-;;;; code style
-;;
-;; 'wisi' was originally short for "wisent indentation engine", but
-;; now is just a name.
-;;
-;; not using lexical-binding because we support Emacs 23
+;; so (in Emacs < 25) syntax-propertize must be called on the text to
+;; be lexed before wisi-forward-token is called. In general, it is
+;; hard to determine an appropriate end-point for syntax-propertize,
+;; other than point-max. So we call (syntax-propertize point-max) in
+;; wisi-setup, and also call syntax-propertize in wisi-after-change.
 ;;
 ;;;;;
 
@@ -412,10 +338,6 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-parse-try nil
   "Non-nil when parse is needed - cleared when parse succeeds.")
 
-(defvar-local wisi-change-need-invalidate nil
-  "When non-nil, buffer position to invalidate from.
-Used in before/after change functions.")
-
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
@@ -430,122 +352,42 @@ Used in before/after change functions.")
 (defun wisi-invalidate-cache(&optional after)
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
   (interactive)
-  (if (not after)
-      (setq after (point-min))
-    (setq after
-	(save-excursion
-	  (goto-char after)
-	  (line-beginning-position))))
+  (setq after
+	(if (not after)
+	    (point-min)
+	  (save-excursion
+	    (goto-char after)
+	    (line-beginning-position))))
   (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
-  (setq wisi-cache-max after)
+  (move-marker wisi-cache-max after)
   (setq wisi-parse-try t)
-  (syntax-ppss-flush-cache after)
   (wisi-delete-cache after)
   )
 
-;; To see the effects of wisi-before-change, wisi-after-change, you need:
+;; wisi--change-* keep track of buffer modifications.
+;; If wisi--change-end comes before wisi--change-beg, it means there were
+;; no modifications.
+(defvar-local wisi--change-beg most-positive-fixnum
+  "First position where a change may have taken place.")
+
+(defvar-local wisi--change-end nil
+  "Marker pointing to the last position where a change may have taken place.")
+
+;; To see the effect of wisi-before-change, you need:
 ;; (global-font-lock-mode 0)
 ;; (setq jit-lock-functions nil)
 ;;
-;; otherwise jit-lock runs and overrides them
+;; otherwise jit-lock runs and overrides it
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
   ;; begin . end is range of text being deleted
+  (setq wisi--change-beg (min wisi--change-beg begin))
+  (when (> end wisi--change-end)
+    (move-marker wisi--change-end end)))
 
-  ;; If jit-lock-after-change is before wisi-after-change in
-  ;; after-change-functions, it might use any invalid caches in the
-  ;; inserted text.
-  ;;
-  ;; So we check for that here, and ensure it is after
-  ;; wisi-after-change, which deletes the invalid caches
-  (when (boundp 'jit-lock-mode)
-    (when (memq 'wisi-after-change (memq 'jit-lock-after-change after-change-functions))
-      (setq after-change-functions (delete 'wisi-after-change after-change-functions))
-      (add-hook 'after-change-functions 'wisi-after-change nil t))
-    )
-
-  (setq wisi-change-need-invalidate nil)
-
-  (when (> end begin)
-    (save-excursion
-      ;; (info "(elisp)Parser State")
-      (let* ((begin-state (syntax-ppss begin))
-	     (end-state (syntax-ppss end))
-	     ;; syntax-ppss has moved point to "end".
-	     (word-end (progn (skip-syntax-forward "w_")(point))))
-
-	;; Remove grammar face from word(s) containing change region;
-	;; might be changing to/from a keyword. See
-	;; test/ada_mode-interactive_common.adb Obj_1
-	(goto-char begin)
-	(skip-syntax-backward "w_")
-	(with-silent-modifications
-	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil)))
-
-	(if (<= wisi-cache-max begin)
-	    ;; Change is in unvalidated region; either the parse was
-	    ;; failing, or there is more than one top-level grammar
-	    ;; symbol in buffer.
-	    (when wisi-parse-failed
-	      ;; The parse was failing, probably due to bad syntax; this
-	      ;; change may have fixed it, so try reparse.
-	      (setq wisi-parse-try t))
-
-	  ;; else change is in validated region
-	  ;;
-	  ;; don't invalidate parse for whitespace, string, or comment changes
-	  (cond
-	   ((and
-	     (nth 3 begin-state); in string
-	     (nth 3 end-state)))
-	   ;; no easy way to tell if there is intervening non-string
-
-	   ((and
-	     (nth 4 begin-state); in comment
-	     (nth 4 end-state))
-	    ;; too hard to detect case where there is intervening
-	    ;; code; no easy way to go to end of comment if not
-	    ;; newline
-	    )
-
-	   ;; Deleting whitespace generally does not require parse, but
-	   ;; deleting all whitespace between two words does; check that
-	   ;; there is whitespace on at least one side of the deleted
-	   ;; text.
-	   ;;
-	   ;; We are not in a comment (checked above), so treat
-	   ;; comment end as whitespace in case it is newline, except
-	   ;; deleting a comment end at begin means commenting the
-	   ;; current line; requires parse.
-	   ((and
-	     (eq (car (syntax-after begin)) 0) ; whitespace
-	     (memq (car (syntax-after (1- end))) '(0 12)) ; whitespace, comment end
-	     (or
-	      (memq (car (syntax-after (1- begin))) '(0 12))
-	      (memq (car (syntax-after end)) '(0 12)))
-	     (progn
-	       (goto-char begin)
-	       (skip-syntax-forward " >" end)
-	       (eq (point) end))))
-
-	   (t
-	    (setq wisi-change-need-invalidate
-		  (progn
-		    (goto-char begin)
-		    ;; note that because of the checks above, this never
-		    ;; triggers a parse, so it's fast
-		    (wisi-goto-statement-start)
-		    (point))))
-	   )))
-      ))
-  )
-
-(defun wisi-after-change (begin end length)
-  "For `after-change-functions'."
-  ;; begin . end is range of text being inserted (empty if equal);
-  ;; length is the size of the deleted text.
-
+(defun wisi--after-change (begin end)
+  "Update wisi text properties for changes in region BEG END."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
   (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
@@ -562,9 +404,7 @@ Used in before/after change functions.")
   ;; might be changing to/from a keyword. See
   ;; test/ada_mode-interactive_common.adb Obj_1
   (save-excursion
-    ;; (info "(elisp)Parser State")
-    (let ((need-invalidate wisi-change-need-invalidate)
-	  begin-state end-state word-end)
+    (let (need-invalidate begin-state end-state word-end)
       (when (> end begin)
 	(setq begin-state (syntax-ppss begin))
 	(setq end-state (syntax-ppss end))
@@ -586,12 +426,8 @@ Used in before/after change functions.")
 	    (setq wisi-parse-try t))
 
 	;; Change is in validated region
+	;; (info "(elisp)Parser State")
 	(cond
-	 (wisi-change-need-invalidate
-	  ;; wisi-before change determined the removed text alters the
-	  ;; parse
-	  )
-
 	 ((= end begin)
 	  (setq need-invalidate nil))
 
@@ -599,12 +435,16 @@ Used in before/after change functions.")
 	   (nth 3 begin-state); in string
 	   (nth 3 end-state))
 	  ;; no easy way to tell if there is intervening non-string
+          ;; FIXME: Of course there is, just test if
+          ;;    (= (nth 8 begin-state) (nth 8 end-state))
 	  (setq need-invalidate nil))
 
 	 ((and
 	   (nth 4 begin-state)
 	   (nth 4 end-state)); in comment
-	  ;; no easy way to detect intervening code
+	  ;; no easy way to detect intervening non-comment
+          ;; FIXME: Of course there is, just test if
+          ;;    (= (nth 8 begin-state) (nth 8 end-state))
 	  (setq need-invalidate nil)
 	  ;; no caches to remove
 	  )
@@ -635,12 +475,8 @@ Used in before/after change functions.")
 		  (point))))
 	 )
 
-	(if need-invalidate
-	    (wisi-invalidate-cache need-invalidate)
-
-	  ;; else move cache-max by the net change length.
-	  (setq wisi-cache-max
-		(+ wisi-cache-max (- end begin length))) )
+	(when need-invalidate
+	    (wisi-invalidate-cache need-invalidate))
 	))
     ))
 
@@ -682,6 +518,17 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-validate-cache (pos &optional error-on-fail)
   "Ensure cached data is valid at least up to POS in current buffer."
+  (when (< wisi--change-beg wisi--change-end)
+    ;; There have been buffer changes since last parse. so make sure
+    ;; we update the existing parsing data first.
+    (let ((beg wisi--change-beg)
+          (end wisi--change-end))
+      (setq wisi--change-beg most-positive-fixnum)
+      (move-marker wisi--change-end (point-min))
+      (wisi--after-change beg end)))
+
+  ;; Now we can rely on wisi-cache-max.
+
   (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
     ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
     (when (and wisi-parse-try
@@ -1584,13 +1431,13 @@ correct. Must leave point at indentation of current line.")
   (setq wisi-post-parse-fail-hook post-parse-fail)
   (setq wisi-indent-failed nil)
 
-  (add-hook 'before-change-functions 'wisi-before-change nil t)
-  (add-hook 'after-change-functions 'wisi-after-change nil t)
+  (add-hook 'before-change-functions #'wisi-before-change 'append t)
+  (setq wisi--change-end (copy-marker (point-min) t))
 
   (when (functionp 'jit-lock-register)
       (jit-lock-register 'wisi-fontify-region))
 
-  ;; see comments on "lexer" above re syntax-propertize
+  ;; See comments on "lexer" above re syntax-propertize.
   (syntax-propertize (point-max))
 
   (wisi-invalidate-cache)
