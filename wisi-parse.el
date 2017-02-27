@@ -96,9 +96,18 @@ point at which that max was spawned.")
 (defvar-local wisi-cache-max (make-marker)
   "Maximimum position in buffer where wisi-cache text properties are valid.")
 
+(cl-defstruct wisi-tok
+  token  ;; symbol from a token table
+  region ;; cons giving buffer region containing token text
+
+  line
+  ;; If token is in indent region, and is the first token on the line,
+  ;; set to line number at start of token; otherwise nil.
+  )
+
 (defun wisi-token-text (token)
   "Return buffer text from token range."
-  (let ((region (cdr token)))
+  (let ((region (wisi-tok-region token)))
     (and region
        (buffer-substring-no-properties (car region) (cdr region)))))
 
