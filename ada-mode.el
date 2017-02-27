@@ -2680,9 +2680,6 @@ The paragraph is indented on the first line."
   ;; for comment changes.
   ;;
   ;; FIXME: add ada-inibit-parse instead; let other change hooks run.
-  ;; FIXME: wisi-after-change still needs to adjust wisi-cache-max
-  ;; FIXME: even better, consider patch suggested by Stefan Monnier to
-  ;; move almost all code out of the change hooks (see email).
   (let* ((inhibit-modification-hooks t)
 	 indent from to
 	 (opos (point-marker))
@@ -2890,7 +2887,7 @@ The paragraph is indented on the first line."
   ;; not run when the text is first loaded into the buffer. Recover
   ;; from that.
   (syntax-ppss-flush-cache (point-min))
-  (syntax-propertize (point-max))
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )

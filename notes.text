@@ -59,28 +59,46 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-apply Stefan's patch for wisi-before/after-change
-    get some testing with it
-
 start with gpr-grammar.wy
     edited, compiles
 
-    write wisi-indent-region
-        run parser, only execute indent actions
-            each action check wisi-current-action: one of (indent, face, navigate)
-        wisi-indent-action:
-            skip if not overlap wisi-indent-region
-            accumulate list of indents, one per line in region
+    convert wisi-forward-token to use structs
+        time; compare to non-struct
 
-    wisi-parse-max is alist (face, navigate); indent does not store any state
+        (setq ada-gps-size-threshold most-positive-fixnum)
+        d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
+                7252 lines, 256857 chars
+        (time-it 'wisi-lex-buffer 10)
+
+        structs:     Total 2.454529 seconds; per iteration 0.245453
+        non-struct:  Total 2.102593 seconds; per iteration 0.210259
+        count-lines: Total 3.411111 seconds; per iteration 0.341111
+
+    need to detect line change
+        tokens store line number
+            wisi-forward-token compute efficiently
+            count-lines is efficient when used incrementally
+            too slow
+
+        for lines in indent region, store pos at start
 
     write wisi-indent-action
+            accumulate list of indents, one per line in region
 
-    change wisi-indent-line to call wisi-indent-region
+    test gpr
+
+    delete wisi-indent-*, *-wisi-before/after-*
+
+wisi-cache-max is alist (face, navigate); indent does not store any state
+
+wisi-containing-action needed for navigation?
+    goto-decl-start?
+
+handle ada-wisi-opentoken
+    similar to comment; call before parse
+    change reliance on cache to search for := token
 
  functional (next page for speed issues/ideas)
-
-don't need to call syntax-propertize in emacs 25?
 
 ada_mode_gps_indent install:
     edit GPS configure to delete gtk, rather than configure gtk

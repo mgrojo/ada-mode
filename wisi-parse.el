@@ -1,6 +1,6 @@
 ;;; wisi-parse.el --- Wisi parser  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2013-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2013-2015, 2017  Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -27,7 +27,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'semantic/wisent)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
 ;; (when (and (= emacs-major-version 24)
@@ -43,6 +42,9 @@ the grammar is excessively redundant.")
 (defvar wisi-parse-max-parallel-current (cons 0 0)
   "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
 point at which that max was spawned.")
+
+(defvar wisi-parse-max-stack-size 500
+  "Maximum parse stack size")
 
 (defvar wisi-debug 0
   "wisi debug mode:
@@ -67,7 +69,6 @@ point at which that max was spawned.")
   stack
   ;; Each stack item takes two slots: (token-symbol token-text (token-start . token-end)), state
   ;; token-text is nil for nonterminals.
-  ;; this is _not_ the same as the wisent-parse stack; that leaves out token-symbol.
 
   sp ;; stack pointer
 
@@ -92,7 +93,7 @@ point at which that max was spawned.")
      'error-message
      "wisi parse error")
 
-(defvar-local wisi-cache-max 0
+(defvar-local wisi-cache-max (make-marker)
   "Maximimum position in buffer where wisi-cache text properties are valid.")
 
 (defun wisi-token-text (token)
@@ -121,7 +122,7 @@ point at which that max was spawned.")
 	   (make-wisi-parser-state
 	    :label 0
 	    :active  'shift
-	    :stack   (make-vector wisent-parse-max-stack-size nil)
+	    :stack   (make-vector wisi-parse-max-stack-size nil)
 	    :sp      0
 	    :pending nil)))
 	 (active-parser-count 1)
@@ -413,6 +414,13 @@ nil, `shift', or `accept'."
       (wisi-parse-exec-action (nth 0 func-args) (nth 1 func-args) (cl-caddr func-args)))
     ))
 
+(defmacro wisi-parse-action (i al)
+  "Return the parser action.
+I is a token item number and AL is the list of (item . action)
+available at current state.  The first element of AL contains the
+default action for this state."
+  `(cdr (or (assq ,i ,al) (car ,al))))
+
 (defun wisi-parse-1 (token parser-state pendingp actions gotos)
   "Perform one shift or reduce on PARSER-STATE.
 If PENDINGP, push actions onto PARSER-STATE.pending; otherwise execute them.
@@ -420,7 +428,7 @@ See `wisi-parse' for full details.
 Return nil or new parser (a wisi-parse-state struct)."
   (let* ((state (aref (wisi-parser-state-stack parser-state)
 		(wisi-parser-state-sp parser-state)))
-	 (parse-action (wisent-parse-action (car token) (aref actions state)))
+	 (parse-action (wisi-parse-action (car token) (aref actions state)))
 	 new-parser-state)
 
     (when (> wisi-debug 1)

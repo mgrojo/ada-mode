@@ -1711,7 +1711,7 @@ TOKEN-TEXT; move point to just past token."
 	      ada-grammar-wy--parse-table)
 
   ;; Handle escaped quotes in strings
-  (setq wisi-string-quote-escape-doubled t)
+  (setf (wisi-lex-string-quote-escape-doubled wisi--lexer) t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
   )
