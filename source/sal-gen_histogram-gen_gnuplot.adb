@@ -23,6 +23,7 @@
 pragma License (GPL);
 
 with Ada.Directories;
+with Ada.Float_Text_IO;
 with Ada.Text_IO;
 package body SAL.Gen_Histogram.Gen_Gnuplot is
 
@@ -39,12 +40,15 @@ package body SAL.Gen_Histogram.Gen_Gnuplot is
    end Create_File;
 
    procedure Put_Plot
-     (Histogram      : in Object;
-      Data_File_Name : in String;
-      Plot_File_Name : in String;
-      X_Label        : in String)
+     (Histogram     : in Object;
+      Title         : in String;
+      X_Label       : in String)
    is
       use Ada.Text_IO;
+      use Ada.Float_Text_IO;
+
+      Data_File_Name : constant String := Title  & "_histogram.dat";
+      Plot_File_Name : constant String := Title  & "_histogram.gnuplot";
 
       Data_File : File_Type;
       --  Histogram data:
@@ -58,13 +62,20 @@ package body SAL.Gen_Histogram.Gen_Gnuplot is
       Create_File (Plot_File, Plot_File_Name);
 
       for I in Histogram.Bins'Range loop
-         Put_Line (Data_File, Integer'Image (I) & Integer'Image (Histogram.Bins (I)));
+         Put (Data_File, Float (I) * Units_Per_Bin, Aft => 1, Exp => 0);
+         Put_Line (Data_File, Integer'Image (Histogram.Bins (I)));
       end loop;
 
       Put_Line (Plot_File, "set term png size 950,480");
       Put_Line (Plot_File, "set style data histograms");
       Put_Line (Plot_File, "set style histogram cluster");
-      Put_Line (Plot_File, "plot '" & Data_File_Name & "' using 2 title '" & X_Label & "'");
+      Put_Line (Plot_File, "set ylabel ""count""");
+      Put_Line (Plot_File, "set xlabel """ & X_Label & """");
+      Put_Line (Plot_File, "set title """ & Title & """");
+      Put_Line (Plot_File, "set key off");
+
+      --  can't specify column for xdata with histogram style.
+      Put_Line (Plot_File, "plot '" & Data_File_Name & "' using 2:xticlabels(1) title '" & X_Label & "'");
 
       Close (Data_File);
       Close (Plot_File);

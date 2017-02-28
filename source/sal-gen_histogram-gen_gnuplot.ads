@@ -19,13 +19,13 @@
 pragma License (GPL);
 
 generic
+   Units_Per_Bin : in Float;
 package SAL.Gen_Histogram.Gen_Gnuplot is
 
    procedure Put_Plot
-     (Histogram      : in Object;
-      Data_File_Name : in String;
-      Plot_File_Name : in String;
-      X_Label        : in String);
+     (Histogram : in Object;
+      Title     : in String;
+      X_Label   : in String);
    --  Create a file (deleting if exists) containing gnuplot commands
    --  to create plot of Histogram data.
 
