@@ -35,8 +35,9 @@ private
    subtype Bin_Index is Integer range Bin_Min .. Bin_Max;
    type Bins is array (Bin_Index) of Integer;
    type Object is tagged record
-      Bins      : SAL.Gen_Histogram.Bins := (others => 0);
-      Max_Count : Integer                := 0;
+      Bins        : SAL.Gen_Histogram.Bins := (others => 0);
+      Max_Count   : Integer                := 0;
+      Total_Count : Integer                := 0;
    end record;
 
 end SAL.Gen_Histogram;

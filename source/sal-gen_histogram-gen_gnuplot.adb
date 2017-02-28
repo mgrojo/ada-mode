@@ -71,7 +71,7 @@ package body SAL.Gen_Histogram.Gen_Gnuplot is
       Put_Line (Plot_File, "set style histogram cluster");
       Put_Line (Plot_File, "set ylabel ""count""");
       Put_Line (Plot_File, "set xlabel """ & X_Label & """");
-      Put_Line (Plot_File, "set title """ & Title & """");
+      Put_Line (Plot_File, "set title """ & Title & " (total" & Integer'Image (Histogram.Total_Count) & ")""");
       Put_Line (Plot_File, "set key off");
 
       --  can't specify column for xdata with histogram style.

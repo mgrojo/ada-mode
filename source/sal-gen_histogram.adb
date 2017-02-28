@@ -30,6 +30,7 @@ package body SAL.Gen_Histogram is
       Bin : constant Integer := Integer'Max (Bin_Min, Integer'Min (Bin_Max, To_Bin (Item)));
    begin
       Inc (Histogram.Bins (Bin));
+      Inc (Histogram.Total_Count);
 
       if Histogram.Bins (Bin) > Histogram.Max_Count then
          Histogram.Max_Count := Histogram.Bins (Bin);
