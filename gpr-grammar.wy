@@ -111,7 +111,7 @@
 
 aggregate
   : LEFT_PAREN string_list RIGHT_PAREN
-    (wisi-indent-action [0 (1+ (- (wisi-token-column 1) (current-indentation))) 0])
+    (wisi-indent-action [-1 (1+ (- (wisi-token-column 1) (current-indentation))) -1])
   ;
 
 attribute_declaration
@@ -226,12 +226,6 @@ name
   | name DOT IDENTIFIER
   ;
 
-project_declaration_opt
-  : ;; empty
-  | simple_project_declaration
-  | project_extension
-  ;
-
 ;; (info "(gnat_ugn)Packages")
 package_declaration
   : package_spec
@@ -250,7 +244,7 @@ package_extension
   : PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 9 statement-end])
-      (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0 gpr-indent 0 0 0]))
+      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 gpr-indent 0 0 0]))
   ;
 
 package_renaming
@@ -259,11 +253,18 @@ package_renaming
       (wisi-statement-action [1 statement-start 5 statement-end]))
   ;
 
+project_declaration_opt
+  : ;; empty
+  | simple_project_declaration
+  | project_extension
+  ;
+
 project_extension
   : PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 9 statement-end])
-      (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0 gpr-indent 0 0 0]))
+      (wisi-indent-comments-action 6 gpr-indent)
+      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 gpr-indent 0 0 0]))
   ;
 
 ;; (info "(gnat_ugn)Qualified Projects")

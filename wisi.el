@@ -139,8 +139,8 @@
   ;; data used while running parser for indent.
   region ;; region being indented.
   indent ;; array of indentation for lines in region
-  first-line ;; line number of first line in region (for computing index into line-begin or indent)
-  line-begin ;; array of beginning-of-line positions in region
+  first-line ;; line number of first line in region (for computing index into indent)
+  line-begin ;; array of beginning-of-line positions in buffer
   last-line ;; index into line-begin of last line where first token found
   )
 
@@ -186,7 +186,7 @@ If at end of buffer, returns `wisi-eoi-term'."
   (let ((start (point))
 	;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
 	(syntax (syntax-class (syntax-after (point))))
-	token-id token-text line line-index)
+	token-id token-text line)
     (cond
      ((eobp)
       (setq token-id wisi-eoi-term))
@@ -257,21 +257,17 @@ If at end of buffer, returns `wisi-eoi-term'."
       (signal 'wisi-parse-error
 	      (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
-    (when (and (eq wisi--parse-action 'indent)
-	       (>= start (car (wisi-ind-region wisi--indent)))
-	       (<  start (cdr (wisi-ind-region wisi--indent))))
-
+    (when (and (not (eobp))
+	       (eq wisi--parse-action 'indent))
       (if (wisi-ind-last-line wisi--indent)
 	  (progn
-	    (setq line (wisi-ind-last-line wisi--indent))
-	    (setq line-index (1+ (- line (wisi-ind-first-line wisi--indent))))
-	    (if (>= start (aref (wisi-ind-line-begin wisi--indent) line-index))
+	    (setq line (wisi-ind-last-line wisi--indent));; also index into wisi-ind-line-begin
+	    (if (>= start (aref (wisi-ind-line-begin wisi--indent) line))
 		;; first token on next non-blank line
 		(progn
 		  ;; skip blank lines
-		  (while (and (< (1+ line-index) (length (wisi-ind-line-begin wisi--indent)))
-			      (>= start (aref (wisi-ind-line-begin wisi--indent) (1+ line-index))))
-		    (setq line-index (1+ line-index))
+		  (while (and (< (1+ line) (length (wisi-ind-line-begin wisi--indent)))
+			      (>= start (aref (wisi-ind-line-begin wisi--indent) (1+ line))))
 		    (setq line (1+ line)))
 		  (setq line (1+ line))
 		  (setf (wisi-ind-last-line wisi--indent) line))
@@ -638,7 +634,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
   (when (< (point-max) wisi-size-threshold)
-    (wisi-validate-cache end)))
+    (let ((wisi--parse-action 'face))
+      (wisi-validate-cache end))))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -1014,12 +1011,15 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 (defun wisi--indent-token (tok delta)
   "Add DELTA to all indents in TOK region."
   (let ((end (cdr (wisi-tok-region tok)))
+	(i (1- (wisi-tok-line tok)));; index to wisi-ind-line-begin
 	(j (- (wisi-tok-line tok) (wisi-ind-first-line wisi--indent)))
-	(max-j (length (wisi-ind-line-begin wisi--indent)))
+	(max-j (length (wisi-ind-indent wisi--indent)))
 	)
-    (while (and (< j max-j)
-		(< (aref (wisi-ind-line-begin wisi--indent) j) end))
-      (aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j)))
+    (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
+      (when (and (<= 0 j)
+		 (< j max-j))
+	(aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j))))
+      (setq i (1+ i))
       (setq j (1+ j))
       )))
 
@@ -1029,12 +1029,35 @@ For use in grammar indent actions."
   (goto-char (car (wisi-tok-region (aref wisi-tokens (1- token-number)))))
   (current-column))
 
+(defun wisi-indent-comments-action (token-number delta)
+  "Indent comment lines before token TOKEN-NUMBER by DELTA."
+  (let* ((tok (aref wisi-tokens (1- token-number)))
+	 (line (wisi-tok-line tok))
+	 (i (when line (1- line)))
+	 (j (when line (- line (wisi-ind-first-line wisi--indent))))
+	 (max-j (length (wisi-ind-indent wisi--indent)))
+	 start)
+    (when line
+      (save-excursion
+	(goto-char (car (wisi-tok-region tok)))
+	(forward-comment (- (point)))
+	(when (> (point) (line-beginning-position)) (forward-line 1))
+	(setq start (point)))
+
+      (while (< start (aref (wisi-ind-line-begin wisi--indent) i))
+
+	(when (and (>= j 0)
+		   (< j max-j))
+	  (aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j))))
+	(setq i (1- i))
+	(setq j (1- j)))
+      )))
+
 (defun wisi-indent-action (deltas)
   "Accumulate `wisi--indents' from DELTAS."
     (dotimes (i (length wisi-tokens))
       (let ((tok (aref wisi-tokens i))
-	    (delta (aref deltas i))
-	    j)
+	    (delta (aref deltas i)))
 	(cond
 	 ((symbolp delta)
 	  (setq delta (symbol-value delta)))
@@ -1363,10 +1386,9 @@ Called with BEGIN END.")
       (forward-line 1)
       (indent-line-to col))))
 
-(defun wisi--set-line-begin (begin)
+(defun wisi--set-line-begin ()
   "Set line-begin field of `wisi--indent'."
-  (goto-char begin)
-  (goto-char (line-beginning-position))
+  (goto-char (point-min))
 
   (dotimes (i (length (wisi-ind-line-begin wisi--indent)))
     (aset (wisi-ind-line-begin wisi--indent) i (copy-marker (point)))
@@ -1375,17 +1397,17 @@ Called with BEGIN END.")
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
   (let* ((wisi--parse-action 'indent)
-	 (line-count (count-lines begin end))
+	 (wisi-cache-max (copy-marker (point-min)))
 	 (wisi--indent
 	  (make-wisi-ind
 	   :region (cons begin end)
 	   :first-line (line-number-at-pos begin)
-	   :line-begin (make-vector (1+ line-count) 0)
-	   :indent (make-vector line-count 0)
+	   :line-begin (make-vector (1+ (count-lines (point-min) (point-max))) 0)
+	   :indent (make-vector (count-lines begin end) 0)
 	   :last-line nil))
 	 indent)
 
-    (wisi--set-line-begin begin)
+    (wisi--set-line-begin)
     (wisi-run-parse)
 
     (if wisi-parse-failed
@@ -1398,9 +1420,10 @@ Called with BEGIN END.")
       ;; apply indent action results
       (goto-char begin)
 
-      (dotimes (i (length (wisi-ind-indent wisi--indent)))
-	(goto-char (aref (wisi-ind-line-begin wisi--indent) i))
-	(indent-line-to (aref (wisi-ind-indent wisi--indent) i)))
+      (dotimes (j (length (wisi-ind-indent wisi--indent)))
+	(let ((i (+ -1 j (wisi-ind-first-line wisi--indent))))
+	  (goto-char (aref (wisi-ind-line-begin wisi--indent) i))
+	  (indent-line-to (aref (wisi-ind-indent wisi--indent) j))))
 
       (when wisi-indent-failed
 	;; previous parse failed
@@ -1422,19 +1445,20 @@ Called with BEGIN END.")
 
 (defun wisi-indent-line ()
   "For `indent-line-function'."
-  (let ((savep (copy-marker (point))))
+  (let ((savep (copy-marker (point)))
+	(restore t))
     (back-to-indentation)
-    (when (>= (point) savep) (setq savep nil))
+    (when (> (point) savep)
+      (setq restore nil))
 
     (wisi-indent-region (line-beginning-position) (line-beginning-position 2))
 
-    (if savep
-	;; point was inside line text; leave it there
-	(goto-char savep)
+    (goto-char savep)
 
-      ;; point was before line text; move to start of text
-      (back-to-indentation)
-      )))
+    (when restore
+      ;; point was inside line text; leave it there
+      (back-to-indentation))
+    ))
 
 ;;;; debug
 (defun wisi-parse-buffer (&optional parse-action)
@@ -1537,6 +1561,7 @@ Called with BEGIN END.")
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
+  (set (make-local-variable 'indent-region-function) 'wisi-indent-region)
 
   (setq wisi-post-indent-fail-hook post-indent-fail)
   (setq wisi-indent-failed nil)

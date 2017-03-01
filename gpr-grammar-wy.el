@@ -78,7 +78,7 @@
    '((AMPERSAND COLON COLON_EQUALS COMMA DOT EQUAL_GREATER QUOTE SEMICOLON VERTICAL_BAR IDENTIFIER STRING_LITERAL ABSTRACT AGGREGATE CASE CONFIGURATION END EXTENDS EXTERNAL EXTERNAL_AS_LIST FOR IS LEFT_PAREN LIBRARY NULL OTHERS PACKAGE PROJECT RENAMES RIGHT_PAREN STANDARD TYPE USE WHEN WITH )
      ((aggregate
        ((LEFT_PAREN string_list RIGHT_PAREN )
-        (wisi-indent-action [0 (1+ (- (wisi-token-column 1) (current-indentation))) 0])))
+        (wisi-indent-action [-1 (1+ (- (wisi-token-column 1) (current-indentation))) -1])))
       (attribute_declaration
        ((FOR IDENTIFIER USE expression SEMICOLON )
         (progn
@@ -149,10 +149,6 @@
       (name
        ((identifier_opt ))
        ((name DOT IDENTIFIER )))
-      (project_declaration_opt
-       (())
-       ((simple_project_declaration ))
-       ((project_extension )))
       (package_declaration
        ((package_spec ))
        ((package_extension ))
@@ -166,16 +162,21 @@
        ((PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 9 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0 gpr-indent 0 0 0]))))
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 gpr-indent 0 0 0]))))
       (package_renaming
        ((PACKAGE identifier_opt RENAMES name SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end]))))
+      (project_declaration_opt
+       (())
+       ((simple_project_declaration ))
+       ((project_extension )))
       (project_extension
        ((PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 9 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0 gpr-indent 0 0 0]))))
+        (wisi-indent-comments-action 6 gpr-indent-broken)
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 gpr-indent 0 0 0]))))
       (project_qualifier_opt
        (())
        ((ABSTRACT ))

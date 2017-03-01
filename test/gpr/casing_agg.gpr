@@ -2,7 +2,10 @@
 --EMACSRESULT:'gpr-mode
 
 with "foo";
-aggregate project Casing_Agg extends "bar" is
+aggregate
+project Casing_Agg
+extends "bar"
+is
 
    --EMACSCMD:(ada-case-adjust-buffer)
 

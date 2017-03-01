@@ -73,7 +73,8 @@ start with gpr-grammar.wy
         count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
         line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
 
-    test/gpr/simple.gpr
+    test/gpr/casing_agg.gpr
+
 
     delete wisi-indent-*, *-wisi-before/after-*
 

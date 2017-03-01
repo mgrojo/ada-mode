@@ -410,7 +410,7 @@ nil, `shift', or `accept'."
 	  (funcall func nonterm tokens)
 
 	(when (> wisi-debug 1)
-	  (message "... action skipped; before wisi-cache-max %d" wisi-cache-max)))
+	  (message "... action skipped; before wisi-cache-max %d" (marker-position wisi-cache-max))))
 
     (when (> wisi-debug 1)
       (message "... action skipped; no tokens"))

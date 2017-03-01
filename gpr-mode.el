@@ -1,6 +1,6 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -248,6 +248,23 @@ of the package or project point is in or just after, or nil.")
   (ada-parse-prj-file (or file (buffer-file-name)))
   (ada-select-prj-file (or file (buffer-file-name))))
 
+(defun gpr-syntax-propertize (start end)
+  "Assign `syntax-table' properties in accessible part of buffer.
+In particular, character constants are set to have string syntax."
+  ;; (info "(elisp)Syntax Properties")
+  ;;
+  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
+  ;; syntax-propertize-extend-region-functions is set to
+  ;; syntax-propertize-wholelines by default.
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
+    (goto-char start)
+    (save-match-data
+      (while (re-search-forward "--" end t); comment start
+	(put-text-property
+	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
+  )))
+
 ;;;;
 ;;;###autoload
 (defun gpr-mode ()
@@ -258,7 +275,8 @@ of the package or project point is in or just after, or nil.")
   (setq major-mode 'gpr-mode)
   (setq mode-name "GNAT Project")
   (use-local-map gpr-mode-map)
-  (set-syntax-table ada-mode-syntax-table)
+  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
+  (set (make-local-variable 'syntax-propertize-function) 'gpr-syntax-propertize)
   (when (boundp 'syntax-begin-function)
     ;; obsolete in emacs-25.1
     (set (make-local-variable 'syntax-begin-function) nil))

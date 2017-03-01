@@ -137,6 +137,15 @@ test-ada-gpr_query.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
+test-gpr-indent: RUNTEST := run-indent-test-wisi.el
+test-gpr-indent: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+
+test-gpr-indent.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-gpr-indent
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
 summarize :
 	cat *.log
 
