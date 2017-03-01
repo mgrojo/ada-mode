@@ -1,6 +1,6 @@
 ;; gpr-wisi.el --- Indentation engine for gpr mode, using the wisi parser  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2013 - 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -30,8 +30,7 @@
 ;;
 ;;;;
 
-;; we reuse some stuff from ada-mode
-(require 'ada-indent-user-options)
+(require 'gpr-indent-user-options)
 (require 'gpr-grammar-wy)
 (require 'gpr-mode)
 (require 'wisi)
@@ -187,8 +186,7 @@ or containing ancestor of CACHE that is at a line beginning."
 ;;;;
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(gpr-wisi-before-cache
-		gpr-wisi-after-cache)
+  (wisi-setup '()
 	      'gpr-wisi-post-parse-fail
 	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table

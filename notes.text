@@ -63,30 +63,17 @@ start with gpr-grammar.wy
     edited, compiles
 
     convert wisi-forward-token to use structs
-        time; compare to non-struct
-
         (setq ada-gps-size-threshold most-positive-fixnum)
         d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
                 7252 lines, 256857 chars
         (time-it 'wisi-lex-buffer 10)
 
-        structs:                           Total 2.454529 seconds; per iteration 0.245453
         non-struct:                        Total 2.102593 seconds; per iteration 0.210259
+        structs:                           Total 2.454529 seconds; per iteration 0.245453
         count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
         line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
 
-    need to detect line change
-        tokens store line number
-            wisi-forward-token compute efficiently
-            count-lines is efficient when used incrementally
-            too slow?
-
-        for lines in indent region, store pos at start
-
-    write wisi-indent-action
-            accumulate list of indents, one per line in region
-
-    test gpr
+    test/gpr/simple.gpr
 
     delete wisi-indent-*, *-wisi-before/after-*
 

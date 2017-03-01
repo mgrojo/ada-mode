@@ -388,8 +388,10 @@ nil, `shift', or `accept'."
   (let ((result (if tokens 0 (point))))
     (mapc
      (lambda (token)
-       (when (cddr token)
-	 (setq result (max (cddr token) result))))
+       ;; FIXME: when can a token not have a region?
+       ;; (when (cdr (wisi-tok-region token))
+       (setq result (max (cdr (wisi-tok-region token)) result)))
+     ;;)
      tokens)
     result)
   )
@@ -437,7 +439,7 @@ See `wisi-parse' for full details.
 Return nil or new parser (a wisi-parse-state struct)."
   (let* ((state (aref (wisi-parser-state-stack parser-state)
 		(wisi-parser-state-sp parser-state)))
-	 (parse-action (wisi-parse-action (car token) (aref actions state)))
+	 (parse-action (wisi-parse-action (wisi-tok-token token) (aref actions state)))
 	 new-parser-state)
 
     (when (> wisi-debug 1)
@@ -508,18 +510,18 @@ Return nil."
   "Return a pair (START . END), the buffer region for a nonterminal.
 STACK is the parser stack.  I and J are the indices in STACK of
 the first and last tokens of the nonterminal."
-  (let ((start (cadr (aref stack i)))
-        (end   (cddr (aref stack j))))
+  (let ((start (car (wisi-tok-region (aref stack i))))
+        (end   (cdr (wisi-tok-region (aref stack j)))))
     (while (and (or (not start) (not end))
 		(/= i j))
       (cond
        ((not start)
 	;; item i is an empty production
-	(setq start (cadr (aref stack (setq i (+ i 2))))))
+	(setq start (car (wisi-tok-region (aref stack (setq i (+ i 2)))))))
 
        ((not end)
 	;; item j is an empty production
-	(setq end (cddr (aref stack (setq j (- j 2))))))
+	(setq end (cdr (wisi-tok-region (aref stack (setq j (- j 2)))))))
 
        (t (setq i j))))
     (and start end (cons start end))))
@@ -534,18 +536,23 @@ the first and last tokens of the nonterminal."
 			   (wisi-nonterm-bounds stack (- sp (* 2 (1- token-count)) 1) (1- sp))))
 	 (post-reduce-state (aref stack (- sp (* 2 token-count))))
 	 (new-state (cdr (assoc nonterm (aref gotos post-reduce-state))))
-	 (tokens (make-vector token-count nil)))
+	 (tokens (make-vector token-count nil))
+	 line)
 
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
 
-    (when (nth 1 action)
-      ;; don't need wisi-tokens for a null user action
-      (dotimes (i token-count)
-	(aset tokens (- token-count i 1) (aref stack (- sp (* 2 i) 1)))))
+    (dotimes (i token-count)
+      (let ((tok (aref stack (- sp (* 2 i) 1))))
+	(when (nth 1 action)
+	  ;; don't need wisi-tokens for a null user action
+	  (aset tokens (- token-count i 1) tok))
+	(when (wisi-tok-line tok)
+	  (setq line (if line (min line (wisi-tok-line tok)) (wisi-tok-line tok))))
+	))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
-    (aset stack (1- sp) (cons nonterm nonterm-region))
+    (aset stack (1- sp) (make-wisi-tok :token nonterm :region nonterm-region :line line))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
 
