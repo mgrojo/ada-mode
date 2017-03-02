@@ -381,8 +381,18 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
 
-(defvar-local wisi-parse-try nil
+(defvar-local wisi--parse-try
+  (list
+   (cons 'face t)
+   (cons 'navigate t)
+   (cons 'indent t))
   "Non-nil when parse is needed - cleared when parse succeeds.")
+
+(defun wisi-parse-try (&optional parse-action)
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--parse-try)))
+
+(defun set-wisi-parse-try (value &optional parse-action)
+  (setcdr (assoc (or parse-action wisi--parse-action) wisi--parse-try) value))
 
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
@@ -395,7 +405,7 @@ wisi-forward-token, but does not look up symbol."
     ;; reason, and they are likely to be right anyway.
     ))
 
-(defun wisi-invalidate-cache(&optional after)
+(defun wisi-invalidate-cache (&optional after)
   "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
   (interactive)
   (setq after
@@ -405,8 +415,10 @@ wisi-forward-token, but does not look up symbol."
 	    (goto-char after)
 	    (line-beginning-position))))
   (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
-  (move-marker wisi-cache-max after)
-  (setq wisi-parse-try t)
+  (move-marker (wisi-cache-max 'face) after)
+  (move-marker (wisi-cache-max 'navigate) after)
+  (set-wisi-parse-try t 'face)
+  (set-wisi-parse-try t 'navigate)
   (wisi-delete-cache after)
   )
 
@@ -465,12 +477,13 @@ wisi-forward-token, but does not look up symbol."
 	(with-silent-modifications
 	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil))))
 
-      (if (<= wisi-cache-max begin)
+      (if (<= (wisi-cache-max) begin)
 	  ;; Change is in unvalidated region
 	  (when wisi-parse-failed
 	    ;; The parse was failing, probably due to bad syntax; this
 	    ;; change may have fixed it, so try reparse.
-	    (setq wisi-parse-try t))
+	    (set-wisi-parse-try t 'face)
+	    (set-wisi-parse-try t 'navigate))
 
 	;; Change is in validated region
 	;; (info "(elisp)Parser State")
@@ -553,7 +566,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (wisi-goto-error)
     (message wisi-parse-error-msg))
 
-   (wisi-parse-try
+   ((wisi-parse-try wisi--last-parse-action)
     (message "need parse"))
 
    (t
@@ -579,14 +592,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  (setq wisi-parse-failed nil)
 	  (cl-ecase wisi--parse-action
 	    ((face navigate)
-	     (move-marker wisi-cache-max (point)))
+	     (move-marker (wisi-cache-max) (point)))
 	    (indent nil)
 	    ))
       (wisi-parse-error
        (cl-ecase wisi--parse-action
 	 ((face navigate)
 	  ;; delete caches past wisi-cache-max added by failed parse
-	  (wisi-delete-cache wisi-cache-max))
+	  (wisi-delete-cache (wisi-cache-max)))
 	 (indent nil))
        (setq wisi-parse-failed t)
        (setq wisi-parse-error-msg (cdr err)))
@@ -604,38 +617,43 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(message "%s done" msg))
       ))
 
-(defun wisi-validate-cache (pos &optional error-on-fail)
-  "Ensure cached data for `wisi--parse-action' is valid at least up to POS in current buffer."
-  (when (< wisi--change-beg wisi--change-end)
-    ;; There have been buffer changes since last parse. so make sure
-    ;; we update the existing parsing data first.
-    (let ((beg wisi--change-beg)
-          (end wisi--change-end))
-      (setq wisi--change-beg most-positive-fixnum)
-      (move-marker wisi--change-end (point-min))
-      (wisi--after-change beg end)))
+(defvar-local wisi--last-parse-action nil
+  "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
 
-  ;; Now we can rely on wisi-cache-max.
+(defun wisi-validate-cache (pos error-on-fail parse-action)
+  "Ensure cached data for PARSE-ACTION is valid at least up to POS in current buffer."
+  (let ((wisi--parse-action parse-action))
+    (when (< wisi--change-beg wisi--change-end)
+      ;; There have been buffer changes since last parse. so make sure
+      ;; we update the existing parsing data first.
+      (let ((beg wisi--change-beg)
+	    (end wisi--change-end))
+	(setq wisi--change-beg most-positive-fixnum)
+	(move-marker wisi--change-end (point-min))
+	(wisi--after-change beg end)))
 
-  ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
-  (when (and wisi-parse-try
-	     (<= wisi-cache-max pos))
+    ;; Now we can rely on wisi-cache-max.
 
-    ;; Don't keep retrying failed parse until text changes again.
-    (setq wisi-parse-try nil)
-    (setq wisi-end-caches nil)
+    ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
+    (when (and (wisi-parse-try)
+	       (<= (wisi-cache-max) pos))
 
-    (wisi-run-parse)
+      ;; Don't keep retrying failed parse until text changes again.
+      (set-wisi-parse-try nil)
+      (setq wisi-end-caches nil);; only used by navigate
 
-    (when (and error-on-fail (not (>= wisi-cache-max pos)))
-      (error "parse failed"))
-    ))
+      (wisi-run-parse)
+
+      (setq wisi--last-parse-action wisi--parse-action)
+
+      (when (and error-on-fail (not (>= (wisi-cache-max) pos)))
+	(error "parse failed"))
+      )))
 
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
   (when (< (point-max) wisi-size-threshold)
-    (let ((wisi--parse-action 'face))
-      (wisi-validate-cache end))))
+    (wisi-validate-cache end nil 'face)))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -675,10 +693,9 @@ delete from `wisi-end-caches'."
       )))
 
 (defvar wisi-tokens nil)
-(defvar $nterm nil)
-;; keep byte-compiler happy; `wisi-tokens' and `$nterm' are bound in
+(defvar wisi-nterm nil)
+;; keep byte-compiler happy; `wisi-tokens' and `wisi-nterm' are bound in
 ;; action created by wisi-semantic-action, and in module parser.
-;; FIXME: $nterm should have wisi- prefix
 
 (defun wisi-statement-action (pairs)
   "Cache navigation information in text properties of tokens.
@@ -697,8 +714,8 @@ grammar action as:
 	    (i 0))
 	(while (< i (length pairs))
 	  (let* ((number (1- (aref pairs i)))
-		 (region (cdr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
-		 (token (car (aref wisi-tokens number)))
+		 (region (wisi-tok-region (aref wisi-tokens number)))
+		 (token (wisi-tok-token (aref wisi-tokens number)))
 		 (class (aref pairs (setq i (1+ i))))
 		 (mark
 		  ;; Marker one char into token, so indent-line-to
@@ -742,7 +759,7 @@ grammar action as:
 			  (t
 			   (setf (wisi-cache-class cache) (or override-start class)))
 			  )
-			(setf (wisi-cache-nonterm cache) $nterm)
+			(setf (wisi-cache-nonterm cache) wisi-nterm)
 			(setf (wisi-cache-containing cache) first-keyword-mark)
 			(unless (wisi-cache-end cache)
 			  (if wisi-end-caches
@@ -758,7 +775,7 @@ grammar action as:
 		       (1+ (car region))
 		       'wisi-cache
 		       (wisi-cache-create
-			:nonterm    $nterm
+			:nonterm    wisi-nterm
 			:token      token
 			:last       (- (cdr region) (car region))
 			:class      (or override-start class)
@@ -787,6 +804,55 @@ grammar action as:
 		(setq override-start class)))
 	    ))
 	))))
+
+(defun wisi-containing-action (containing-token contained-token)
+  "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
+If CONTAINING-TOKEN is empty, the next token number is used."
+  (when (eq wisi--parse-action 'navigate)
+    (let* ((containing-region (wisi-tok-region (aref wisi-tokens (1- containing-token))))
+	   (contained-region (wisi-tok-region (aref wisi-tokens (1- contained-token)))))
+
+      (unless containing-region ;;
+	(signal 'wisi-parse-error
+		(wisi-error-msg
+		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
+		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+
+      (unless (or (not contained-region) ;; contained-token is empty
+		  (wisi-get-cache (car containing-region)))
+	(signal 'wisi-parse-error
+		(wisi-error-msg
+		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
+		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+
+      (while (not containing-region)
+	;; containing-token is empty; use next
+	(setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
+
+      (when contained-region
+	;; nil when empty production, may not contain any caches
+	(save-excursion
+	  (goto-char (cdr contained-region))
+	  (let ((cache (wisi-backward-cache))
+		(mark (copy-marker (1+ (car containing-region)))))
+	    (while cache
+
+	      ;; skip blocks that are already marked
+	      (while (and (>= (point) (car contained-region))
+			  (markerp (wisi-cache-containing cache)))
+		(goto-char (1- (wisi-cache-containing cache)))
+		(setq cache (wisi-get-cache (point))))
+
+	      (if (or (and (= (car containing-region) (car contained-region))
+			   (<= (point) (car contained-region)))
+		      (< (point) (car contained-region)))
+		  ;; done
+		  (setq cache nil)
+
+		;; else set mark, loop
+		(setf (wisi-cache-containing cache) mark)
+		(setq cache (wisi-backward-cache)))
+	      )))))))
 
 (defun wisi--match-class-token (cache class-tokens)
   "Return t if CACHE matches CLASS-TOKENS.
@@ -830,7 +896,7 @@ vector [number class token_id class token_id ...]:
 	    (setq i (1+ i))
 	    (cond
 	     ((numberp token-number)
-	      (setq region (cdr (aref wisi-tokens (1- token-number))))
+	      (setq region (wisi-tok-region (aref wisi-tokens (1- token-number))))
 	      (when region
 		(setq cache (wisi-get-cache (car region)))
 		(setq mark (copy-marker (1+ (car region))))
@@ -849,7 +915,7 @@ vector [number class token_id class token_id ...]:
 	      ;; token-number may contain 0, 1, or more 'class token_id' pairs
 	      ;; the corresponding region may be empty
 	      ;; there must have been a prev keyword
-	      (setq region (cdr (aref wisi-tokens (1- (aref token-number 0)))))
+	      (setq region (wisi-tok-region (aref wisi-tokens (1- (aref token-number 0)))))
 	      (when region ;; not an empty token
 		;; We must search for all targets at the same time, to
 		;; get the motion order right.
@@ -879,8 +945,8 @@ vector [number class token_id class token_id ...]:
 (defun wisi-extend-action (first last)
   "Extend text of cache at token FIRST to cover all tokens thru LAST."
   (when (eq wisi--parse-action 'face)
-    (let* ((first-region (cdr (aref wisi-tokens (1- first))));; wisi-tokens is let-bound in wisi-parse-reduce
-	   (last-region (cdr (aref wisi-tokens (1- last))))
+    (let* ((first-region (wisi-tok-region (aref wisi-tokens (1- first))))
+	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
 	   cache)
 
       (when first-region
@@ -946,7 +1012,7 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	(setq face (aref pairs (setq i (1+ i))))
 	(cond
 	 ((integerp number)
-	  (setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+	  (setq region (wisi-tok-region (aref wisi-tokens (1- number))))
 	  (when region
 	    (save-excursion
 	      (goto-char (car region))
@@ -961,7 +1027,7 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	      )))
 
 	 ((vectorp number)
-	  (setq region (cdr (aref wisi-tokens (1- (aref number 0)))))
+	  (setq region (wisi-tok-region (aref wisi-tokens (1- (aref number 0)))))
 	  (when region
 	    (while (< j (length number))
 	      (setq tokens (cons (aref number j) tokens))
@@ -992,7 +1058,7 @@ If NO-OVERRIDE is non-nil, don't override existing face."
       (while (< i (length pairs))
 	(setq number (aref pairs i))
 	(setq face (aref pairs (setq i (1+ i))))
-	(setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
+	(setq region (wisi-tok-region (aref wisi-tokens (1- number))))
 	(when region
 	  (save-excursion
 	    (goto-char (car region))
@@ -1023,34 +1089,73 @@ If NO-OVERRIDE is non-nil, don't override existing face."
       (setq j (1+ j))
       )))
 
-(defun wisi-token-column (token-number)
-  "Return column of start of token TOKEN-NUMBER in `wisi-tokens'.
+(defun wisi-token-delta (token-number)
+  "Return position of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation.
 For use in grammar indent actions."
-  (goto-char (car (wisi-tok-region (aref wisi-tokens (1- token-number)))))
-  (current-column))
+  (let ((tok (aref wisi-tokens (1- token-number)))
+	result)
+    (goto-char (car (wisi-tok-region tok)))
+    (setq result (- (current-column) (current-indentation)))
+    ;; FIXME: move to gpr/ada-wisi?
+    (cl-case (wisi-tok-token tok)
+      (LEFT_PAREN
+       ;; test/gpr/simple.gpr
+       ;; type GNAT_Version_Type
+       ;;   is ("7.0.1",
+       ;;       "6.2.2", "6.2.1",
+       ;; ...
+       ;; for Source_Dirs use
+       ;;  ("../auto",
+       ;;   External ("GNAT_VERSION") & "/foo",
+       (if (= 0 result)
+	   ;; paren is first token on line
+	   result
+	 (1+ result)))
+      )))
 
 (defun wisi-indent-comments-action (token-number delta)
-  "Indent comment lines before token TOKEN-NUMBER by DELTA."
+  "Indent comment lines before and after token TOKEN-NUMBER by DELTA."
   (let* ((tok (aref wisi-tokens (1- token-number)))
+	 (region (wisi-tok-region tok))
 	 (line (wisi-tok-line tok))
-	 (i (when line (1- line)))
-	 (j (when line (- line (wisi-ind-first-line wisi--indent))))
-	 (max-j (length (wisi-ind-indent wisi--indent)))
-	 start)
+	 i j max-j other)
     (when line
+      ;; indent lines before token
+      (setq line (1- line))
+      (setq i (1- line));; index to wisi-ind-line-begin
+      (setq j (- line (wisi-ind-first-line wisi--indent)))
+      (setq max-j (length (wisi-ind-indent wisi--indent)))
+
       (save-excursion
-	(goto-char (car (wisi-tok-region tok)))
+	(goto-char (car region))
 	(forward-comment (- (point)))
 	(when (> (point) (line-beginning-position)) (forward-line 1))
-	(setq start (point)))
+	(setq other (point)))
 
-      (while (< start (aref (wisi-ind-line-begin wisi--indent) i))
-
+      (while (<= other (aref (wisi-ind-line-begin wisi--indent) i))
 	(when (and (>= j 0)
 		   (< j max-j))
 	  (aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j))))
 	(setq i (1- i))
 	(setq j (1- j)))
+
+      ;; indent lines after token
+      (setq line (+ 1 line (count-lines (car region) (cdr region))))
+      (setq i (1- line));; index to wisi-ind-line-begin
+      (setq j (- line (wisi-ind-first-line wisi--indent)))
+
+      (save-excursion
+	(goto-char (cdr region))
+	(forward-comment (point))
+	(beginning-of-line)
+	(setq other (point)))
+
+      (while (> other (aref (wisi-ind-line-begin wisi--indent) i))
+	(when (and (>= j 0)
+		   (< j max-j))
+	  (aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j))))
+	(setq i (1+ i))
+	(setq j (1+ j)))
       )))
 
 (defun wisi-indent-action (deltas)
@@ -1187,7 +1292,7 @@ If LIMIT (a buffer position) is reached, throw an error."
   "If not at a cached token, move forward to next
 cache. Otherwise move to cache-next, or next cache if nil.
 Return cache found."
-  (wisi-validate-cache (point-max) t) ;; ensure there is a next cache to move to
+  (wisi-validate-cache (point-max) t 'navigate) ;; ensure there is a next cache to move to
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((next (wisi-cache-next cache)))
@@ -1203,7 +1308,7 @@ Return cache found."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
   (let ((cache (wisi-get-cache (point))))
     (if cache
 	(let ((prev (wisi-cache-prev cache)))
@@ -1253,7 +1358,7 @@ Return start cache."
   "Move point to token at start of statement point is in or after.
 Return start cache."
   (interactive)
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
   (let ((cache (wisi-get-cache (point))))
     (unless cache
       (setq cache (wisi-backward-cache)))
@@ -1262,7 +1367,7 @@ Return start cache."
 (defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
   (let ((cache (or (wisi-get-cache (point))
 		   (wisi-forward-cache))))
     (when (wisi-cache-end cache)
@@ -1336,8 +1441,8 @@ of CACHE with class statement-start or block-start."
   (+ (current-indentation) offset))
 
 (defun wisi-indent-statement ()
-  "Indent region given by `wisi-goto-start' on cache at or before point, then wisi-cache-end."
-  (wisi-validate-cache (point) t)
+  "Indent region given by `wisi-goto-start', `wisi-cache-end'."
+  (wisi-validate-cache (point) t 'navigate)
 
   (save-excursion
     (let ((cache (or (wisi-get-cache (point))
@@ -1397,7 +1502,6 @@ Called with BEGIN END.")
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
   (let* ((wisi--parse-action 'indent)
-	 (wisi-cache-max (copy-marker (point-min)))
 	 (wisi--indent
 	  (make-wisi-ind
 	   :region (cons begin end)
@@ -1446,10 +1550,10 @@ Called with BEGIN END.")
 (defun wisi-indent-line ()
   "For `indent-line-function'."
   (let ((savep (copy-marker (point)))
-	(restore t))
+	(restore nil))
     (back-to-indentation)
     (when (> (point) savep)
-      (setq restore nil))
+      (setq restore t))
 
     (wisi-indent-region (line-beginning-position) (line-beginning-position 2))
 
@@ -1465,9 +1569,9 @@ Called with BEGIN END.")
   (interactive)
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
   (if parse-action
-      (let ((wisi--parse-action parse-action))
+      (progn
 	(wisi-invalidate-cache)
-	(wisi-validate-cache (point-max)) t)
+	(wisi-validate-cache (point-max) t parse-action))
 
     (wisi-indent-region (point-min) (point-max))
     ))
@@ -1487,7 +1591,7 @@ Called with BEGIN END.")
 	   :indent (make-vector line-count 0)
 	   :last-line nil)))
 
-    (wisi--set-line-begin (point-min))
+    (wisi--set-line-begin)
 
     (goto-char (point-min))
     (while (not (eq wisi-eoi-term (wisi-tok-token (wisi-forward-token)))))
@@ -1515,7 +1619,7 @@ Called with BEGIN END.")
 (defun wisi-show-cache-max ()
   (interactive)
   (push-mark)
-  (goto-char wisi-cache-max))
+  (goto-char (wisi-cache-max)))
 
 ;;;;; setup
 
@@ -1558,6 +1662,12 @@ Called with BEGIN END.")
 
   (setq wisi-parse-table parse-table)
 
+  (setq wisi--cache-max
+	(list
+	 (cons 'face (copy-marker (point-min)))
+	 (cons 'navigate (copy-marker (point-min)))
+	 (cons 'indent (copy-marker (point-min)))))
+
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
@@ -1574,8 +1684,6 @@ Called with BEGIN END.")
 
   ;; See comments on "lexer" above re syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
-
-  (wisi-invalidate-cache)
   )
 
 (provide 'wisi)

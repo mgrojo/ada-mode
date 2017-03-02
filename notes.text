@@ -59,29 +59,26 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-start with gpr-grammar.wy
-    edited, compiles
+test-gpr passes
 
-    convert wisi-forward-token to use structs
-        (setq ada-gps-size-threshold most-positive-fixnum)
-        d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
-                7252 lines, 256857 chars
-        (time-it 'wisi-lex-buffer 10)
+edit ada-wisi-setup
 
-        non-struct:                        Total 2.102593 seconds; per iteration 0.210259
-        structs:                           Total 2.454529 seconds; per iteration 0.245453
-        count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
-        line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
+edit ada-grammar.wy
 
-    test/gpr/casing_agg.gpr
+test-ada
 
+delete wisi-indent-*, *-wisi-before/after-*
 
-    delete wisi-indent-*, *-wisi-before/after-*
+convert wisi-forward-token to use structs
+    (setq ada-gps-size-threshold most-positive-fixnum)
+    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
+            7252 lines, 256857 chars
+    (time-it 'wisi-lex-buffer 10)
 
-wisi-cache-max is alist (face, navigate); indent does not store any state
-
-wisi-containing-action needed for navigation?
-    goto-decl-start?
+    non-struct:                        Total 2.102593 seconds; per iteration 0.210259
+    structs:                           Total 2.454529 seconds; per iteration 0.245453
+    count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
+    line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
 
 handle ada-wisi-opentoken
     similar to comment; call before parse

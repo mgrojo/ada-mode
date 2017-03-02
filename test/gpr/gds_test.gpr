@@ -8,16 +8,16 @@ with "gds";
 project GDS_Test is
 
    for Source_Dirs use
-     ("../../1553/test",
-      "../../asist_if/test",
-      "../../base/test",
-      "../../bsr",
-      "../../hardware/test",
-      "../../itos_if/test",
-      "../../lynx/test",
-      "../../models/test",
-      "../../spacewire/test",
-      "../../system/test");
+    ("../../1553/test",
+     "../../asist_if/test",
+     "../../base/test",
+     "../../bsr",
+     "../../hardware/test",
+     "../../itos_if/test",
+     "../../lynx/test",
+     "../../models/test",
+     "../../spacewire/test",
+     "../../system/test");
 
    for Object_Dir use "objects";
    for Exec_Dir use ".";

@@ -115,11 +115,6 @@ vpath %.ads ../../test ../../test/subdir
 vpath %.adb ../../test ../../test/subdir
 vpath %.gpr ../../test/gpr
 
-# FIXME: this reports *.diff > 0 from previous tests as well
-test-gpr : RUNTEST := run-indent-test-gpr.el
-test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
-	find . -name "*.diff" -not -size 0 >> test.log
-
 # emacs to test with
 #
 # This can be overridden on the 'make' command line or by an external

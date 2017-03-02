@@ -93,8 +93,16 @@ point at which that max was spawned.")
      'error-message
      "wisi parse error")
 
-(defvar-local wisi-cache-max (make-marker)
-  "Maximimum position in buffer where wisi-cache text properties are valid.")
+(defvar-local wisi--cache-max
+  (list
+   (cons 'face nil)
+   (cons 'navigate nil)
+   (cons 'indent nil))
+  "Alist of maximimum position in buffer where parser text properties are valid.")
+
+(defun wisi-cache-max (&optional parse-action)
+  ;; (move-marker (wisi-cache-max) foo) works
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max)))
 
 (cl-defstruct wisi-tok
   token  ;; symbol from a token table
@@ -405,12 +413,12 @@ nil, `shift', or `accept'."
   ;; Also skip if no tokens; nothing to do. This can happen when all
   ;; tokens in a grammar statement are optional.
   (if (< 0 (length tokens))
-      (if (>= (wisi-parse-max-pos tokens) wisi-cache-max)
+      (if (>= (wisi-parse-max-pos tokens) (wisi-cache-max))
 
 	  (funcall func nonterm tokens)
 
 	(when (> wisi-debug 1)
-	  (message "... action skipped; before wisi-cache-max %d" (marker-position wisi-cache-max))))
+	  (message "... action skipped; before wisi-cache-max %d" (marker-position (wisi-cache-max)))))
 
     (when (> wisi-debug 1)
       (message "... action skipped; no tokens"))

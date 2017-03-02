@@ -52,8 +52,8 @@ test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi.el
 one-clean:
-	rm -f ada_mode-nominal*
-one : one-clean ada_mode-nominal.ads.diff
+	rm -f gds.gpr*
+one : one-clean gds.gpr.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -137,12 +137,12 @@ test-ada-gpr_query.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-gpr-indent: RUNTEST := run-indent-test-wisi.el
-test-gpr-indent: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+test-gpr: RUNTEST := run-indent-test-wisi.el
+test-gpr: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
-test-gpr-indent.stamp : force
+test-gpr.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-gpr-indent
+	$(MAKE) test-gpr
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 

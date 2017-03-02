@@ -159,9 +159,9 @@ or containing ancestor of CACHE that is at a line beginning."
 
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
-  (wisi-validate-cache (point))
+  (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> wisi-cache-max (point))
+  (when (> (wisi-cache-max 'navigate) (point))
     (let ((cache (wisi-backward-cache)))
       (while (and cache
 		  (not (and
