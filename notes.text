@@ -59,13 +59,12 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-test-gpr passes
+test-ada-gpr_query.stamp
 
-edit ada-wisi-setup
+test/access_in_record.ads error in jit-lock
+    in wisi-extend-action
 
-edit ada-grammar.wy
-
-test-ada
+rename ada/gpr-wisi-class-list wisi-class-list
 
 delete wisi-indent-*, *-wisi-before/after-*
 

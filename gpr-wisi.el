@@ -37,14 +37,8 @@
 
 (defconst gpr-wisi-class-list
   '(
-    block-start
-    block-middle
-    block-end
-    close-paren
-    list-break
-    open-paren
+    motion
     statement-end
-    statement-other
     statement-start
     ))
 

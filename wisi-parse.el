@@ -396,10 +396,9 @@ nil, `shift', or `accept'."
   (let ((result (if tokens 0 (point))))
     (mapc
      (lambda (token)
-       ;; FIXME: when can a token not have a region?
-       ;; (when (cdr (wisi-tok-region token))
-       (setq result (max (cdr (wisi-tok-region token)) result)))
-     ;;)
+       ;; a token has a null region when it is an optional token that is empty
+       (when (cdr (wisi-tok-region token))
+	 (setq result (max (cdr (wisi-tok-region token)) result))))
      tokens)
     result)
   )

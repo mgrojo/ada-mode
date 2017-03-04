@@ -34,22 +34,9 @@
 (require 'wisi)
 
 (defconst ada-wisi-class-list
-  '(
-    block-end
-    block-middle ;; not start of statement
-    block-start ;; start of block is start of statement
-    close-paren
-    expression-start
-    label
-    list-break
-    name
-    name-paren ;; anything that looks like a procedure call, since the grammar can't distinguish most of them
-    open-paren
-    return
-    return-with-params
-    return-without-params
+  '(motion ;; motion-action
     statement-end
-    statement-other
+    statement-override ;; see NOT OVERRIDING
     statement-start
     ))
 
@@ -1218,7 +1205,7 @@ comment:      comment"
 
 (defun ada-wisi-context-clause ()
   "For `ada-fix-context-clause'."
-  (wisi-validate-cache (point-max) t)
+  (wisi-validate-cache (point-max) t 'navigate)
   (save-excursion
     (goto-char (point-min))
     (let ((begin nil)
@@ -1266,7 +1253,7 @@ comment:      comment"
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."
-  (wisi-validate-cache (point-max) t)
+  (wisi-validate-cache (point-max) t 'navigate)
 
   (let ((end nil)
 	cache
@@ -1298,7 +1285,7 @@ comment:      comment"
 (defun ada-wisi-goto-declaration-start ()
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
 
   (let ((cache (wisi-get-cache (point)))
 	(done nil))
@@ -1343,7 +1330,7 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
 
   (let ((done nil)
 	(first t)
@@ -1405,7 +1392,7 @@ Also return cache at start."
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)
   "For `ada-in-paramlist-p'."
-  (wisi-validate-cache (point))
+  (wisi-validate-cache (point) nil 'navigate)
   ;; (info "(elisp)Parser State" "*syntax-ppss*")
   (let ((parse-result (or parse-result (syntax-ppss)))
 	 cache)
@@ -1417,7 +1404,7 @@ Also return cache at start."
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
 
   (let* ((begin (point))
 	 (end (save-excursion (wisi-forward-find-class 'statement-end (point-max)) (point)))
@@ -1440,7 +1427,7 @@ Also return cache at start."
 
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
-  (wisi-validate-cache end t)
+  (wisi-validate-cache end t 'navigate)
 
   (goto-char begin)
   (let (token
@@ -1552,9 +1539,9 @@ Also return cache at start."
 
 (defun ada-wisi-which-function ()
   "For `ada-which-function'."
-  (wisi-validate-cache (point))
+  (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> wisi-cache-max (point))
+  (when (> (wisi-cache-max) (point))
     (save-excursion
       (let ((result nil)
 	    (cache (condition-case nil (ada-wisi-goto-declaration-start) (error nil))))
@@ -1701,9 +1688,7 @@ TOKEN-TEXT; move point to just past token."
 
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(ada-wisi-comment
-		ada-wisi-before-cache
-		ada-wisi-after-cache)
+  (wisi-setup '(ada-wisi-comment)
 	      'ada-wisi-post-parse-fail
 	      ada-wisi-class-list
 	      ada-grammar-wy--keyword-table

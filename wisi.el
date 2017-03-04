@@ -971,15 +971,17 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
     (when (> wisi-debug 1)
       (let ((cur-face (get-text-property (car region) 'font-lock-face)))
 	(when cur-face
-	  (unless override-no-error
-	    (message "%s:%d overriding face %s with %s on '%s'"
-		     (buffer-file-name)
-		     (line-number-at-pos (car region))
-		     face
-		     cur-face
-		     (buffer-substring-no-properties (car region) (cdr region))))
+	  ;; FIXME: debugging
+	  ;;	  (unless override-no-error
+	  ;;	    (message "%s:%d overriding face %s with %s on '%s'"
+	  (error "%s:%d overriding face %s with %s on '%s'"
+		 (buffer-file-name)
+		 (line-number-at-pos (car region))
+		 face
+		 cur-face
+		 (buffer-substring-no-properties (car region) (cdr region))))
 
-	  )))
+	))
     (with-silent-modifications
       (add-text-properties
        (car region) (cdr region)
@@ -989,18 +991,16 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
     ))
 
 (defun wisi-face-action (pairs &optional no-override)
-  "Cache face information in text properties of tokens.
+  "Set face information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
 token-number may be an integer, or a vector [integer token_id token_id ...]
 
-For an integer token-number, apply face to the first cached token
-in the range covered by wisi-tokens[token-number]. If there are
-no cached tokens, apply face to entire wisi-tokens[token-number]
+For an integer token-number, apply face to wisi-tokens[token-number]
 region.
 
-For a vector token-number, apply face to the first cached token
+FIXME: For a vector token-number, apply face to the first cached token
 in the range matching one of token_id covered by
 wisi-tokens[token-number].
 
@@ -1014,19 +1014,11 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	 ((integerp number)
 	  (setq region (wisi-tok-region (aref wisi-tokens (1- number))))
 	  (when region
-	    (save-excursion
-	      (goto-char (car region))
-	      (setq cache (or (wisi-get-cache (point))
-			      (wisi-forward-cache)))
-	      (if (< (point) (cdr region))
-		  (when cache
-		    (wisi--face-action-1 face (wisi-cache-region cache) no-override))
-
-		;; no caches in region; just apply face to region
-		(wisi--face-action-1 face region no-override))
-	      )))
+	    (wisi--face-action-1 face region no-override)))
 
 	 ((vectorp number)
+	  ;; FIXME: debugging
+	  (error "wisi-face-action with vector token number")
 	  (setq region (wisi-tok-region (aref wisi-tokens (1- (aref number 0)))))
 	  (when region
 	    (while (< j (length number))
@@ -1040,36 +1032,6 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 		(wisi--face-action-1 face (wisi-cache-region cache) no-override))
 	      )))
 	 )
-	(setq i (1+ i))
-
-	))))
-
-(defun wisi-face-list-action (pairs &optional no-override)
-  "Cache face information in text properties of tokens.
-Intended as a grammar non-terminal action.
-
-PAIRS is a vector of the form [token-number face token-number face ...]
-token-number is an integer. Apply face to all cached tokens
-in the range covered by wisi-tokens[token-number].
-
-If NO-OVERRIDE is non-nil, don't override existing face."
-  (when (eq wisi--parse-action 'face)
-    (let (number region face cache (i 0))
-      (while (< i (length pairs))
-	(setq number (aref pairs i))
-	(setq face (aref pairs (setq i (1+ i))))
-	(setq region (wisi-tok-region (aref wisi-tokens (1- number))))
-	(when region
-	  (save-excursion
-	    (goto-char (car region))
-	    (setq cache (or (wisi-get-cache (point))
-			    (wisi-forward-cache)))
-	    (while (<= (point) (cdr region))
-	      (when cache
-		(wisi--face-action-1 face (wisi-cache-region cache) no-override))
-	      (setq cache (wisi-forward-cache))
-	      )))
-
 	(setq i (1+ i))
 
 	))))
@@ -1160,6 +1122,7 @@ For use in grammar indent actions."
 
 (defun wisi-indent-action (deltas)
   "Accumulate `wisi--indents' from DELTAS."
+  (when (eq wisi--parse-action 'indent)
     (dotimes (i (length wisi-tokens))
       (let ((tok (aref wisi-tokens i))
 	    (delta (aref deltas i)))
@@ -1176,7 +1139,7 @@ For use in grammar indent actions."
 
 	(when (wisi-tok-line tok)
 	  (wisi--indent-token tok delta))
-	)))
+	))))
 
 ;;;; motion
 (defun wisi-backward-cache ()

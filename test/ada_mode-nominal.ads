@@ -46,7 +46,8 @@ limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Containers.Vectors" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Containers.Bounded_Doubly_Linked_Lists" font-lock-function-name-face)
 --EMACSCMD:(progn  (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
