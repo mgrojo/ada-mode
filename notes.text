@@ -304,6 +304,8 @@ emacs 25 compile.el supports HYPERLINK in compilation regexp; use for secondary 
 
  speed up, handle bad grammar
 
+implement packrat in fasttoken, generate elisp
+
 Use adacore langkit to generate parser, run as module
     too hard to design AST types for grammar, since don't need them for ada-mode; maybe ok if that's already done
 
