@@ -412,7 +412,7 @@ list."
 	"0"))
 
       (goto-char (point-min))
-      (forward-line 1); skip  cmd
+      (when ada-gnat-debug-run (forward-line 1)); skip  cmd
       (setq result (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
       )
     result))

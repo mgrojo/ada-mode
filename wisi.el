@@ -1459,7 +1459,6 @@ correct. Must leave point at indentation of current line.")
   ;; no indent info at point. Assume user is
   ;; editing; indent to previous line, fix it
   ;; after parse succeeds
-  (setq wisi-indent-failed t)
   (forward-line -1);; safe at bob
   (back-to-indentation)
   (current-column))
@@ -1478,8 +1477,9 @@ correct. Must leave point at indentation of current line.")
 	(wisi-validate-cache (line-end-position))) ;; include at lease the first token on this line
 
       (if (> (point) wisi-cache-max)
-	  ;; parse failed
-	  (setq indent (funcall wisi-indent-fallback))
+	  (progn
+	      (setq wisi-indent-failed t)
+	      (setq indent (funcall wisi-indent-fallback)))
 
 	;; parse succeeded
 	(when wisi-indent-failed
