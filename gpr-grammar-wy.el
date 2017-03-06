@@ -110,6 +110,7 @@
       (case_item
        ((WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt )
         (progn
+        (wisi-statement-action [1 motion])
         (wisi-indent-comments-action 4 gpr-indent)
         (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent]))))
       (case_items

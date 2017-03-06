@@ -123,7 +123,9 @@ begin
    --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
    E := (1,
          --  a comment
-         2);
+         2,
+         -- another comment
+         3);
    --EMACSRESULT:9
 
 end Ada_Mode.Interactive_Common;

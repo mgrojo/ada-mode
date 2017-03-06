@@ -397,12 +397,11 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
-(defun wisi-delete-cache (after)
+(defun wisi--delete-cache (after)
   (with-silent-modifications
     (remove-text-properties after (point-max) '(wisi-cache nil))
-    ;; We don't remove 'font-lock-face; that's annoying to the user,
-    ;; since they won't be restored until a parse for some other
-    ;; reason, and they are likely to be right anyway.
+    (remove-text-properties after (point-max) '(wisi-face nil))
+    ;; We don't remove 'font-lock-face; that's handled by font-lock.
     ))
 
 (defun wisi-invalidate-cache (&optional after)
@@ -419,7 +418,7 @@ wisi-forward-token, but does not look up symbol."
   (move-marker (wisi-cache-max 'navigate) after)
   (set-wisi-parse-try t 'face)
   (set-wisi-parse-try t 'navigate)
-  (wisi-delete-cache after)
+  (wisi--delete-cache after)
   )
 
 ;; wisi--change-* keep track of buffer modifications.
@@ -579,8 +578,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-run-parse ()
   "Run the parser."
   (let ((msg (when (> wisi-debug 0)
-	       (format "wisi: parsing %s:%d ..."
-		       (buffer-name) (line-number-at-pos (point))))))
+	       (format "wisi: parsing %s %s:%d ..."
+		       wisi--parse-action
+		       (buffer-name)
+		       (line-number-at-pos (point))))))
     (when (> wisi-debug 0)
       (message msg))
 
@@ -599,7 +600,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
        (cl-ecase wisi--parse-action
 	 ((face navigate)
 	  ;; delete caches past wisi-cache-max added by failed parse
-	  (wisi-delete-cache (wisi-cache-max)))
+	  (wisi--delete-cache (wisi-cache-max)))
 	 (indent nil))
        (setq wisi-parse-failed t)
        (setq wisi-parse-error-msg (cdr err)))
@@ -661,10 +662,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (and containing
 	 (wisi-get-cache (1- containing)))))
 
-(defun wisi-cache-region (cache)
-  "Return region designated by cache.
-Point must be at cache."
-  (cons (point) (+ (point) (wisi-cache-last cache))))
+(defun wisi-cache-region (cache &optional start)
+  "Return region designated by START (default point) to cache last."
+  (unless start (setq start (point)))
+  (cons start (+ start (wisi-cache-last cache))))
 
 (defun wisi-cache-text (cache)
   "Return property-less buffer substring designated by cache.
@@ -942,7 +943,36 @@ vector [number class token_id class token_id ...]:
 	    ))
 	))))
 
-(defun wisi-extend-action (first last)
+(defun wisi-face-mark-action (tokens)
+  "Cache face information in text properties of tokens.
+Intended as a grammar action.
+
+TOKENS is a vector of the form [TOKEN-NUMBER ...] where
+TOKEN-NUMBER is a (1 indexed) token number in the production."
+  (when (eq wisi--parse-action 'face)
+    (let ((i 0))
+      (while (< i (length tokens))
+	(let* ((number (1- (aref tokens i)))
+	       (region (wisi-tok-region (aref wisi-tokens number))))
+
+	  (setq i (1+ i))
+
+	  (when region
+	    ;; region can be null on an optional token
+	    (when (get-text-property (car region) 'wisi-face)
+	      (error "wisi-face-mark-action: overwritting cache"))
+	    (with-silent-modifications
+	      (put-text-property
+	       (car region)
+	       (1+ (car region))
+	       'wisi-face
+	       (wisi-cache-create
+		:last (- (cdr region) (car region)))
+	       ))
+ 	    )))
+      )))
+
+(defun wisi-face-extend-action (first last)
   "Extend text of cache at token FIRST to cover all tokens thru LAST."
   (when (eq wisi--parse-action 'face)
     (let* ((first-region (wisi-tok-region (aref wisi-tokens (1- first))))
@@ -950,7 +980,7 @@ vector [number class token_id class token_id ...]:
 	   cache)
 
       (when first-region
-	(setq cache (wisi-get-cache (car first-region)))
+	(setq cache (get-text-property (car first-region) 'wisi-face))
 	(setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
 	)
       )))
@@ -960,7 +990,7 @@ vector [number class token_id class token_id ...]:
 If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existing face."
   (when region
     ;; We allow overriding a face property, because we don't want to
-    ;; delete them in wisi-invalidate (see comments there). On the
+    ;; delete them in wisi-invalidate-cache (see comments there). On the
     ;; other hand, it can be an error, so keep this debug
     ;; code. However, to validly report errors, note that
     ;; font-lock-face properties must be removed first, or the buffer
@@ -990,23 +1020,20 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
 	'fontified t)))
     ))
 
-(defun wisi-face-action (pairs &optional no-override)
-  "Set face information in text properties of tokens.
+(defun wisi-face-apply-action (pairs &optional no-override)
+  "Set face information in `wisi-face' text properties of tokens.
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
 token-number may be an integer, or a vector [integer token_id token_id ...]
 
-For an integer token-number, apply face to wisi-tokens[token-number]
-region.
-
-FIXME: For a vector token-number, apply face to the first cached token
-in the range matching one of token_id covered by
-wisi-tokens[token-number].
+For an integer token-number, apply face to the first cached token
+in the wisi-tokens[token-number] region, or to all of the region
+if there is no cache.
 
 If NO-OVERRIDE is non-nil, don't override existing face."
   (when (eq wisi--parse-action 'face)
-    (let (number region face (tokens nil) cache (i 0) (j 1))
+    (let (number region face cache (i 0))
       (while (< i (length pairs))
 	(setq number (aref pairs i))
 	(setq face (aref pairs (setq i (1+ i))))
@@ -1014,23 +1041,18 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	 ((integerp number)
 	  (setq region (wisi-tok-region (aref wisi-tokens (1- number))))
 	  (when region
+	    ;; region can be null for an optional token
+	    (setq cache (get-text-property (car region) 'wisi-face))
+	    (when cache
+	      ;; cache is null when applying a face to a token
+	      ;; directly, without first calling
+	      ;; wisi-face-mark-action.
+	      (setq region (wisi-cache-region cache (car region))))
 	    (wisi--face-action-1 face region no-override)))
 
-	 ((vectorp number)
-	  ;; FIXME: debugging
-	  (error "wisi-face-action with vector token number")
-	  (setq region (wisi-tok-region (aref wisi-tokens (1- (aref number 0)))))
-	  (when region
-	    (while (< j (length number))
-	      (setq tokens (cons (aref number j) tokens))
-	      (setq j (1+ j)))
-	    (save-excursion
-	      (goto-char (car region))
-	      (setq cache (wisi-forward-find-token tokens (cdr region) t))
-	      ;; might be looking for IDENTIFIER in name, but only have "*".
-	      (when cache
-		(wisi--face-action-1 face (wisi-cache-region cache) no-override))
-	      )))
+	 (t
+	  ;; catch conversion errors from previous grammar syntax
+	  (error "wisi-face-action with non-integer token number"))
 	 )
 	(setq i (1+ i))
 
@@ -1056,24 +1078,27 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 For use in grammar indent actions."
   (let ((tok (aref wisi-tokens (1- token-number)))
 	result)
-    (goto-char (car (wisi-tok-region tok)))
-    (setq result (- (current-column) (current-indentation)))
-    ;; FIXME: move to gpr/ada-wisi?
-    (cl-case (wisi-tok-token tok)
-      (LEFT_PAREN
-       ;; test/gpr/simple.gpr
-       ;; type GNAT_Version_Type
-       ;;   is ("7.0.1",
-       ;;       "6.2.2", "6.2.1",
-       ;; ...
-       ;; for Source_Dirs use
-       ;;  ("../auto",
-       ;;   External ("GNAT_VERSION") & "/foo",
-       (if (= 0 result)
-	   ;; paren is first token on line
-	   result
-	 (1+ result)))
-      )))
+    (save-excursion
+      (goto-char (car (wisi-tok-region tok)))
+      (setq result (- (current-column) (current-indentation)))
+      ;; FIXME: move to gpr/ada-wisi?
+      (cl-case (wisi-tok-token tok)
+	(LEFT_PAREN
+	 ;; test/gpr/simple.gpr
+	 ;; type GNAT_Version_Type
+	 ;;   is ("7.0.1",
+	 ;;       "6.2.2", "6.2.1",
+	 ;; ...
+	 ;; for Source_Dirs use
+	 ;;  ("../auto",
+	 ;;   External ("GNAT_VERSION") & "/foo",
+	 (if (= 0 result)
+	     ;; paren is first token on line
+	     result
+	   (1+ result)))
+	(t
+	 result)
+	))))
 
 (defun wisi-indent-comments-action (token-number delta)
   "Indent comment lines before and after token TOKEN-NUMBER by DELTA."
@@ -1253,12 +1278,13 @@ If LIMIT (a buffer position) is reached, throw an error."
 
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
-cache. Otherwise move to cache-next, or next cache if nil.
-Return cache found."
+cache. Otherwise move to cache-next, or cache-end, or next cache
+if both nil.  Return cache found."
   (wisi-validate-cache (point-max) t 'navigate) ;; ensure there is a next cache to move to
   (let ((cache (wisi-get-cache (point))))
     (if cache
-	(let ((next (wisi-cache-next cache)))
+	(let ((next (or (wisi-cache-next cache)
+			(wisi-cache-end cache))))
 	  (if next
 	      (goto-char (1- next))
 	    (wisi-forward-token)
@@ -1563,7 +1589,8 @@ Called with BEGIN END.")
 (defun wisi-show-cache ()
   "Show cache at point."
   (interactive)
-  (message "%s" (wisi-get-cache (point))))
+  (message "%s" (or (wisi-get-cache (point))
+		    (get-text-property (point) 'wisi-face))))
 
 (defun wisi-show-token ()
   "Move forward across one keyword, show token_id."

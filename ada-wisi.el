@@ -35,6 +35,7 @@
 
 (defconst ada-wisi-class-list
   '(motion ;; motion-action
+    name ;; for ada-wisi-which-function
     statement-end
     statement-override ;; see NOT OVERRIDING
     statement-start
@@ -1057,8 +1058,8 @@ new indentation for point."
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
-INDENT must be indent computed by `ada-wisi-after-cache'.
-AFTER indicates what is on the previous line; one of:
+INDENT must be indent computed by the normal indentation
+algorithm.  AFTER indicates what is on the previous line; one of:
 
 code:         blank line, or code with no trailing comment
 code-comment: code with trailing comment
@@ -1122,23 +1123,20 @@ comment:      comment"
      )))
 
 (defun ada-wisi-comment ()
-  "Compute indentation of a comment. For `wisi-indent-calculate-functions'."
+  "Modify indentation of a comment to respect `ada-indent-comment-gnat'.
+For `wisi-indent-calculate-functions'."
   ;; We know we are at the first token on a line. We check for comment
   ;; syntax, not comment-start, to accomodate gnatprep, skeleton
   ;; placeholders, etc.
-  (cond
-   ((not (and (not (= (point) (point-max))) ;; no char after EOB!
-	      (= 11 (syntax-class (syntax-after (point))))))
-    ;; not looking at comment
-    nil)
+  ;;
+  ;; The normal indentation algorithm has already indented the
+  ;; comment.
+  (when (and ada-indent-comment-gnat
+	     (not (= (point) (point-max))) ;; no char after EOB!
+	     (= 11 (syntax-class (syntax-after (point)))))
 
-   ;; We are at a comment; indent to previous code or comment.
-   ((and ada-indent-comment-col-0
-	 (= 0 (current-column)))
-    0)
-
-   (t
-    (let (after indent)
+    (let (after
+	  (indent (current-column)))
       (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
 	  ;; after blank line
 	  (setq after 'code)
@@ -1161,26 +1159,16 @@ comment:      comment"
 
       (cl-ecase after
 	(code
-	 ;; ada-wisi-before-cache will find the keyword _after_ the
-	 ;; comment, which could be a block-middle or block-end, and that
-	 ;; would align the comment with the block-middle, which is wrong. So
-	 ;; we only call ada-wisi-after-cache.
-	 (let ((indent (ada-wisi-after-cache)))
-	   (if ada-indent-comment-gnat
-	       (ada-wisi-comment-gnat indent 'code)
-	     ;; not forcing gnat style
-	     indent)))
+	 (ada-wisi-comment-gnat indent 'code))
 
 	(comment
 	 ;; assume previous line indented correctly
 	 indent)
 
 	(code-comment
-	 (if ada-indent-comment-gnat
-	     (ada-wisi-comment-gnat indent 'code-comment)
-	   indent))
-	)))
-   ))
+	 (ada-wisi-comment-gnat indent 'code-comment))
+	))
+    ))
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."
@@ -1255,23 +1243,14 @@ comment:      comment"
   "For `ada-goto-subunit-name'."
   (wisi-validate-cache (point-max) t 'navigate)
 
-  (let ((end nil)
-	cache
+  (let (cache
 	(name-pos nil))
     (save-excursion
       ;; move to top declaration
       (goto-char (point-min))
       (setq cache (or (wisi-get-cache (point))
 		      (wisi-forward-cache)))
-      (while (not end)
-	(cl-case (wisi-cache-nonterm cache)
-	  ((pragma use_clause with_clause)
-	   (wisi-goto-end-1 cache)
-	   (setq cache (wisi-forward-cache)))
-	  (t
-	   ;; start of compilation unit
-	   (setq end t))
-	  ))
+
       (when (eq (wisi-cache-nonterm cache) 'subunit)
 	(wisi-forward-find-class 'name (point-max)) ;; parent name
 	(wisi-forward-token)
@@ -1541,7 +1520,7 @@ Also return cache at start."
   "For `ada-which-function'."
   (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> (wisi-cache-max) (point))
+  (when (> (wisi-cache-max 'navigate) (point))
     (save-excursion
       (let ((result nil)
 	    (cache (condition-case nil (ada-wisi-goto-declaration-start) (error nil))))

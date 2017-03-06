@@ -40,15 +40,15 @@ run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
   (setq debug-on-error t)
   (load "autoloads.el")
   (require 'ada-mode)
-  (setq default-directory "/Projects/org.emacs.ada-mode/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode/test/gnatprep.adb")
+  (find-file "/Projects/org.emacs.ada-mode/test/ada_mode-commented_library_procedure.adb")
   )
 
 install packages in -Q:
@@ -59,10 +59,26 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
+wisi-forward-token skip comment after token, record 'comment-present' field in token
+   process comment after each token if comment-present; process initial comments in top level
+
+test/debug.adb
+    comment indented twice
+
+    2, 3 indented wrong
+        also indented twice?
+
+test/ada_mode-interactive_common.adb
+    access face wrong
+        jit-lock-fontify-now doesn't! (sigh)
+    indent comment wrong
+        need wisi-indent-comment-action somewhere?
+
 test-ada-gpr_query.stamp
 
-test/access_in_record.ads error in jit-lock
-    in wisi-extend-action
+review fixmes
+
+test skeleton insert
 
 rename ada/gpr-wisi-class-list wisi-class-list
 
