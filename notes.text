@@ -59,20 +59,9 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-wisi-forward-token skip comment after token, record 'comment-present' field in token
-   process comment after each token if comment-present; process initial comments in top level
-
-test/debug.adb
-    comment indented twice
-
-    2, 3 indented wrong
-        also indented twice?
-
 test/ada_mode-interactive_common.adb
-    access face wrong
-        jit-lock-fontify-now doesn't! (sigh)
-    indent comment wrong
-        need wisi-indent-comment-action somewhere?
+    face on access
+        bug in wisi-before-change?
 
 test-ada-gpr_query.stamp
 

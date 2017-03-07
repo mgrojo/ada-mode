@@ -109,8 +109,16 @@ point at which that max was spawned.")
   region ;; cons giving buffer region containing token text
 
   line
-  ;; If token is in indent region, and is the first token on the line,
+  ;; If parsing for indent, and token is the first token on a line,
   ;; set to line number at start of token; otherwise nil.
+
+  ;; The following are non-nil if token is followed by a comment, or
+  ;; if not parsing for indent. For nonterminals, `comment-line' is
+  ;; the first comment line in the nonterminal region, and
+  ;; `comment-end' is the end of the last comment in or immediately
+  ;; following the nonterminal region.
+  comment-line ;; first line in comment
+  comment-end ;; position at end of comment
   )
 
 (defun wisi-token-text (token)
@@ -126,9 +134,7 @@ point at which that max was spawned.")
 
 - LEXER is a function with no argument called by the parser to
   obtain the next token from the current buffer after point, as a
-  list (symbol text start . end), where `symbol' is the terminal
-  symbol, `text' is the token string, `start . end' is the range
-  in the buffer."
+  wisi-tok object."
 
   ;; FIXME: (aref automaton 3) is the obarray storing the semantic actions;
   ;; not used here (see related FIXME in wisi-compile)
@@ -150,6 +156,7 @@ point at which that max was spawned.")
 	 )
 
     (goto-char (point-min))
+    (forward-comment (point-max))
     (aset (wisi-parser-state-stack (aref parser-states 0)) 0 0)
 
     (setq token (funcall lexer))
@@ -544,7 +551,7 @@ the first and last tokens of the nonterminal."
 	 (post-reduce-state (aref stack (- sp (* 2 token-count))))
 	 (new-state (cdr (assoc nonterm (aref gotos post-reduce-state))))
 	 (tokens (make-vector token-count nil))
-	 line)
+	 line comment-line comment-end)
 
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
@@ -554,12 +561,26 @@ the first and last tokens of the nonterminal."
 	(when (nth 1 action)
 	  ;; don't need wisi-tokens for a null user action
 	  (aset tokens (- token-count i 1) tok))
-	(when (wisi-tok-line tok)
-	  (setq line (if line (min line (wisi-tok-line tok)) (wisi-tok-line tok))))
-	))
+	(when (eq wisi--parse-action 'indent)
+	  (when (wisi-tok-line tok)
+	    (setq line (if line (min line (wisi-tok-line tok)) (wisi-tok-line tok))))
+	  (when (wisi-tok-comment-line tok)
+	    (if comment-line
+		(progn
+		  (setq comment-line (min comment-line (wisi-tok-comment-line tok)))
+		  (setq comment-end  (max comment-end  (wisi-tok-comment-end  tok))))
+	      (setq comment-line (wisi-tok-comment-line tok))
+	      (setq comment-end  (wisi-tok-comment-end  tok))
+	      )))))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
-    (aset stack (1- sp) (make-wisi-tok :token nonterm :region nonterm-region :line line))
+    (aset stack (1- sp)
+	  (make-wisi-tok
+	   :token nonterm
+	   :region nonterm-region
+	   :line line
+	   :comment-line comment-line
+	   :comment-end comment-end))
     (aset stack sp new-state)
     (setf (wisi-parser-state-sp parser-state) sp)
 
