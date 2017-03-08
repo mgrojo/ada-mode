@@ -352,7 +352,7 @@ is -- target 0
 
       procedure P1 is
       begin
-         null;
+         return;
          --EMACSCMD:(test-face "P1" 'font-lock-function-name-face)
       end P1;
 

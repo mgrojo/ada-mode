@@ -151,7 +151,7 @@
 ;; struct wisi-tok defined in wisi-parse.el
 
 (defvar wisi--parse-action nil
-  ;; not buffer-local; only let-bound in wisi-indent-region, FIXME: when is it set to 'face, 'navigate?
+  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
   "Reason current parse is begin run; one of
 {indent, face, navigate}.")
 
@@ -426,9 +426,7 @@ wisi-forward-token, but does not look up symbol."
 
 (defun wisi--delete-cache (after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache nil))
-    (remove-text-properties after (point-max) '(wisi-face nil))
-    ;; We don't remove 'font-lock-face; that's handled by font-lock.
+    (remove-text-properties after (point-max) '(wisi-cache nil wisi-face nil 'font-lock-face nil))
     ))
 
 (defun wisi-invalidate-cache (&optional after)
@@ -440,7 +438,7 @@ wisi-forward-token, but does not look up symbol."
 	  (save-excursion
 	    (goto-char after)
 	    (line-beginning-position))))
-  (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
+  (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%d" (current-buffer) after))
   (move-marker (wisi-cache-max 'face) after)
   (move-marker (wisi-cache-max 'navigate) after)
   (set-wisi-parse-try t 'face)
@@ -470,7 +468,26 @@ wisi-forward-token, but does not look up symbol."
   (when (> end wisi--change-end)
     (move-marker wisi--change-end end)))
 
-(defun wisi--after-change (begin end)
+(defun wisi-after-change (begin end _length)
+  "For `after-change-functions'"
+  ;; begin . end is range of text being inserted (empty if equal);
+  ;; length is the size of the deleted text.
+  ;;
+  ;; This change might be changing to/from a keyword; trigger
+  ;; font-lock. See test/ada_mode-interactive_common.adb Obj_1.
+  (save-excursion
+    (let (word-end)
+      (goto-char end)
+      (skip-syntax-forward "w_")
+      (setq word-end (point))
+      (goto-char begin)
+      (skip-syntax-backward "w_")
+      (with-silent-modifications
+	(remove-text-properties (point) word-end '(font-lock-face nil fontified nil)))
+      )
+    ))
+
+(defun wisi--post-change (begin end)
   "Update wisi text properties for changes in region BEG END."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
@@ -485,23 +502,13 @@ wisi-forward-token, but does not look up symbol."
   (with-silent-modifications
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
-  ;; Also remove grammar face from word(s) containing change region;
-  ;; might be changing to/from a keyword. See
-  ;; test/ada_mode-interactive_common.adb Obj_1
   (save-excursion
-    (let (need-invalidate begin-state end-state word-end)
+    (let ((need-invalidate begin)
+	  begin-state end-state)
       (when (> end begin)
 	(setq begin-state (syntax-ppss begin))
-	(setq end-state (syntax-ppss end))
+	(setq end-state (syntax-ppss end)))
 	;; syntax-ppss has moved point to "end".
-
-	;; extend fontification over new text,
-	(skip-syntax-forward "w_")
-	(setq word-end (point))
-	(goto-char begin)
-	(skip-syntax-backward "w_")
-	(with-silent-modifications
-	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil))))
 
       (if (<= (wisi-cache-max) begin)
 	  ;; Change is in unvalidated region
@@ -515,7 +522,9 @@ wisi-forward-token, but does not look up symbol."
 	;; (info "(elisp)Parser State")
 	(cond
 	 ((= end begin)
-	  (setq need-invalidate nil))
+	  ;; May have deleted whitespace, joining two words; or
+	  ;; deleted chars in a word, changing it to or from a keyword
+	  nil)
 
 	 ((and
 	   (nth 3 begin-state); in string
@@ -651,14 +660,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-validate-cache (pos error-on-fail parse-action)
   "Ensure cached data for PARSE-ACTION is valid at least up to POS in current buffer."
   (let ((wisi--parse-action parse-action))
-    (when (< wisi--change-beg wisi--change-end)
+    (when (<= wisi--change-beg wisi--change-end)
       ;; There have been buffer changes since last parse. so make sure
       ;; we update the existing parsing data first.
       (let ((beg wisi--change-beg)
-	    (end wisi--change-end))
+	    (end (marker-position wisi--change-end)))
 	(setq wisi--change-beg most-positive-fixnum)
 	(move-marker wisi--change-end (point-min))
-	(wisi--after-change beg end)))
+	(wisi--post-change beg end)))
 
     ;; Now we can rely on wisi-cache-max.
 
@@ -1111,7 +1120,7 @@ For use in grammar indent actions."
     (save-excursion
       (goto-char (car (wisi-tok-region tok)))
       (setq result (- (current-column) (current-indentation)))
-      ;; FIXME: move to gpr/ada-wisi?
+      ;; FIXME: move to gpr/ada-wisi? or put (1+ in grammar
       (cl-case (wisi-tok-token tok)
 	(LEFT_PAREN
 	 ;; test/gpr/simple.gpr
@@ -1166,22 +1175,24 @@ lower level rule. Otherwise return DELTA."
     (dotimes (token-index (length wisi-tokens))
       (let ((tok (aref wisi-tokens token-index))
 	    (delta (aref deltas token-index)))
-	(cond
-	 ((symbolp delta)
-	  (setq delta (symbol-value delta)))
-	 ((listp delta)
-	  (save-excursion
-	    (goto-char (car (wisi-tok-region tok)))
-	    (setq delta (eval delta))))
-	 (t
-	  ;; assume delta is an integer
-	  nil))
+	(when (wisi-tok-region tok)
+	  ;; region is null when optional nonterminal is empty
+	  (cond
+	   ((symbolp delta)
+	    (setq delta (symbol-value delta)))
+	   ((listp delta)
+	    (save-excursion
+	      (goto-char (car (wisi-tok-region tok)))
+	      (setq delta (eval delta))))
+	   (t
+	    ;; assume delta is an integer
+	    nil))
 
-	(when (and (< 0 delta)
-		   (or (wisi-tok-line tok)
-		       (wisi-tok-comment-end tok)))
-	  (wisi--indent-token tok delta))
-	))))
+	  (when (and (not (= 0 delta))
+		     (or (wisi-tok-line tok)
+			 (wisi-tok-comment-end tok)))
+	    (wisi--indent-token tok delta))
+	  )))))
 
 (defun wisi--indent-leading-comments ()
   "Set `wisi-ind-indent to 0 for comment lines before first token in buffer.
@@ -1676,6 +1687,12 @@ Called with BEGIN END.")
 	 (cons 'navigate (copy-marker (point-min)))
 	 (cons 'indent (copy-marker (point-min)))))
 
+  (setq wisi--parse-try
+	(list
+	 (cons 'face t)
+	 (cons 'navigate t)
+	 (cons 'indent t)))
+
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
@@ -1685,9 +1702,10 @@ Called with BEGIN END.")
   (setq wisi-indent-failed nil)
 
   (add-hook 'before-change-functions #'wisi-before-change 'append t)
+  (add-hook 'after-change-functions #'wisi-after-change nil t)
   (setq wisi--change-end (copy-marker (point-min) t))
 
-  (when (functionp 'jit-lock-register);; FIXME: in emacs 24?
+  (when (functionp 'jit-lock-register);; FIXME: in emacs 24.5; emacs 24.2?
       (jit-lock-register 'wisi-fontify-region))
 
   ;; See comments on "lexer" above re syntax-propertize.

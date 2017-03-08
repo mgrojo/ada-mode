@@ -1301,7 +1301,7 @@ label_opt
   | goto_label
     (wisi-indent-action [ada-indent-label])
   | IDENTIFIER COLON ;; on blocks, loops
-    (wisi-indent-action [ada-indent-label])
+    (wisi-indent-action [ada-indent-label 0])
   ;
 
 library_item

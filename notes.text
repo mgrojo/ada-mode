@@ -59,9 +59,7 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-test/ada_mode-interactive_common.adb
-    face on access
-        bug in wisi-before-change?
+change ( .. ) to [0 (wisi-delta ada-indent-broken) 0]
 
 test-ada-gpr_query.stamp
 
@@ -73,7 +71,20 @@ rename ada/gpr-wisi-class-list wisi-class-list
 
 delete wisi-indent-*, *-wisi-before/after-*
 
-convert wisi-forward-token to use structs
+time indent
+    (setq ada-gps-size-threshold most-positive-fixnum)
+    test/gnatcoll-xref.adb  (copy to avoid messing up original)
+
+    ada-mode 5.2
+        (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+        gps: per iteration 4.463700
+        wisi: per iteration 8.331166
+
+    ada-mode 6.x
+        (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+        wisi: per iteration 2.484650
+
+time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)
     d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
             7252 lines, 256857 chars
