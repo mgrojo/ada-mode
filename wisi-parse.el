@@ -112,6 +112,8 @@ point at which that max was spawned.")
   ;; If parsing for indent, and token is the first token on a line,
   ;; set to line number at start of token; otherwise nil.
 
+  nonterminal ;; t if a nonterminal
+
   ;; The following are non-nil if token is followed by a comment, or
   ;; if not parsing for indent. For nonterminals, `comment-line' is
   ;; the first comment line in the nonterminal region, and
@@ -579,6 +581,7 @@ the first and last tokens of the nonterminal."
 	   :token nonterm
 	   :region nonterm-region
 	   :line line
+	   :nonterminal t
 	   :comment-line comment-line
 	   :comment-end comment-end))
     (aset stack sp new-state)

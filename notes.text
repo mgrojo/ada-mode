@@ -59,8 +59,6 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-change ( .. ) to [0 (wisi-delta ada-indent-broken) 0]
-
 test-ada-gpr_query.stamp
 
 review fixmes

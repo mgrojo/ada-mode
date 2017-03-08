@@ -322,10 +322,10 @@ access_definition ;; same as access_type_definition for our purposes
 
 actual_parameter_part
   : LEFT_PAREN association_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 actual_parameter_part_opt
@@ -335,12 +335,12 @@ actual_parameter_part_opt
 
 aggregate
   : LEFT_PAREN association_list RIGHT_PAREN ;; record_aggregate, named_array_aggregate, positional_array_aggregate
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   | LEFT_PAREN expression_opt WITH association_list RIGHT_PAREN ;; extension_aggregate
     (wisi-indent-action [-1 (wisi-token-delta 1) (wisi-token-delta 1) (wisi-token-delta 1) -1])
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   | LEFT_PAREN expression_opt WITH NULL RECORD RIGHT_PAREN ;; extension_aggregate with null record
     (wisi-indent-action [-1 (wisi-token-delta 1) (wisi-token-delta 1) 0 0 -1])
   | LEFT_PAREN NULL RECORD RIGHT_PAREN
@@ -389,7 +389,7 @@ assignment_statement
   : name COLON_EQUAL expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
-      (wisi-indent-action [0 ada-indent-broken (wisi-indent-paren ada-indent-broken) ada-indent-broken]))
+      (wisi-indent-action [0 ada-indent-broken (wisi-indent-paren ada-indent-broken) 0]))
   ;
 
 association_opt
@@ -551,7 +551,7 @@ component_clause
   : IDENTIFIER AT simple_expression RANGE simple_expression DOT_DOT simple_expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken  0]))
+      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   ;
 
 component_clause_list
@@ -729,7 +729,7 @@ discriminant_part_opt
   : ;; empty
   | LEFT_PAREN BOX RIGHT_PAREN ;; (<>) unknown_discriminant_part
   | LEFT_PAREN discriminant_specification_list RIGHT_PAREN;; known_discriminant_part
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 discriminant_specification_opt
@@ -827,7 +827,7 @@ enumeration_representation_clause
 
 enumeration_type_definition
   : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 exception_choice : name | OTHERS ;
@@ -959,7 +959,7 @@ formal_object_declaration
 
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 formal_subprogram_declaration
@@ -1241,7 +1241,7 @@ incomplete_type_declaration
 
 index_constraint
   : LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 index_subtype_definition : name RANGE BOX ;
@@ -1586,14 +1586,14 @@ parameter_specification_list
 
 paren_expression
   : LEFT_PAREN expression_opt RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
 
   | LEFT_PAREN association_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
 
  ;; ARM 4.5.7(7), ARM 4.5.8(4) allow ( conditional|quantified_expression ) instead of (( ... ))
   | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
   ;
 
 pragma

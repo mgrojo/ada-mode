@@ -290,18 +290,23 @@ If at end of buffer, return `wisi-eoi-term'."
 	(setf (wisi-ind-last-line wisi--indent) line)
 	)
 
+      (skip-syntax-forward "-")
+      (when (< 0 (save-excursion (skip-syntax-forward "<")))
+	;; comment starts on same line as code; ignore. FIXME: assumes newline ends comment
+	(forward-comment 1))
+
       (while (forward-comment 1) ;; skips whitespace, comment, whitespace.
 	(setq comment-end (point)))
 
-      (when comment-end
-	(setq comment-line
-	      (or line
-		  (1+ (wisi-ind-last-line wisi--indent))))
-	(unless (>= comment-end
-		    (aref (wisi-ind-line-begin wisi--indent) comment-line))
-	  ;; comment contains no newlines
-	  (setq comment-end nil)
-	  (setq comment-line nil)))
+      (if comment-end
+	  (progn
+	    (setq comment-line (1+ (wisi-ind-last-line wisi--indent)))
+	    (unless (>= comment-end
+			(aref (wisi-ind-line-begin wisi--indent) comment-line))
+	      ;; comment contains no newlines
+	      (setq comment-end nil)
+	      (setq comment-line nil)))
+	(setq comment-line nil))
       )
 
     (make-wisi-tok
@@ -1094,16 +1099,11 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 
 	))))
 
-(defun wisi--indent-token (tok delta)
-  "Add DELTA to all indents in TOK region and following comment region."
-  (let* ((end (max (or (wisi-tok-comment-end tok) 0)
-		   (cdr (wisi-tok-region tok))))
-	 (line (min (or (wisi-tok-line tok) most-positive-fixnum)
-		    (or (wisi-tok-comment-line tok) most-positive-fixnum)))
-	 (i (1- line));; index to wisi-ind-line-begin
-	 (j (- line (wisi-ind-first-line wisi--indent)))
-	 (max-j (length (wisi-ind-indent wisi--indent)))
-	 )
+(defun wisi--indent-token-1 (line end delta)
+  (let ((i (1- line));; index to wisi-ind-line-begin
+	(j (- line (wisi-ind-first-line wisi--indent)))
+	(max-j (length (wisi-ind-indent wisi--indent)))
+	)
     (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
       (when (and (<= 0 j)
 		 (< j max-j))
@@ -1112,29 +1112,36 @@ If NO-OVERRIDE is non-nil, don't override existing face."
       (setq j (1+ j))
       )))
 
+(defun wisi--indent-token (tok token-delta comment-delta)
+  "Add TOKEN-DELTA to all indents in TOK region, COMMENT-DELTA in following comment region."
+  (if (wisi-tok-nonterminal tok)
+      ;; comments are internal to tok
+      (let ((line (min (or (wisi-tok-line tok) most-positive-fixnum)
+		       (or (wisi-tok-comment-line tok) most-positive-fixnum)))
+	    (end (max (or (wisi-tok-comment-end tok) 0)
+		      (cdr (wisi-tok-region tok)))))
+	(when (and line end)
+	  (wisi--indent-token-1 line end token-delta)))
+
+    ;; token
+    (let ((line (wisi-tok-line tok))
+	  (end (cdr (wisi-tok-region tok))))
+      (when (and line end)
+	(wisi--indent-token-1 line end token-delta)))
+
+    ;; comment
+    (let* ((end (wisi-tok-comment-end tok))
+	   (line (wisi-tok-comment-line tok)))
+      (when (and line end)
+	(wisi--indent-token-1 line end comment-delta)))
+    ))
+
 (defun wisi-token-delta (token-number)
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation.
 For use in grammar indent actions."
-  (let ((tok (aref wisi-tokens (1- token-number)))
-	result)
-    (save-excursion
-      (goto-char (car (wisi-tok-region tok)))
-      (setq result (- (current-column) (current-indentation)))
-      ;; FIXME: move to gpr/ada-wisi? or put (1+ in grammar
-      (cl-case (wisi-tok-token tok)
-	(LEFT_PAREN
-	 ;; test/gpr/simple.gpr
-	 ;; type GNAT_Version_Type
-	 ;;   is ("7.0.1",
-	 ;;       "6.2.2", "6.2.1",
-	 ;; ...
-	 ;; for Source_Dirs use
-	 ;;  ("../auto",
-	 ;;   External ("GNAT_VERSION") & "/foo",
-	 (1+ result))
-	(t
-	 result)
-	))))
+  (save-excursion
+    (goto-char (car (wisi-tok-region (aref wisi-tokens (1- token-number)))))
+    (- (current-column) (current-indentation))))
 
 (defvar token-index nil
   "Index into `wisi-tokens', bound in `wisi-indent-action'.
@@ -1169,29 +1176,42 @@ lower level rule. Otherwise return DELTA."
       delta)
     ))
 
+(defun wisi--indent-compute-delta (delta tok)
+  "Return evaluation of DELTA."
+  (cond
+   ((symbolp delta)
+    (symbol-value delta))
+   ((listp delta)
+    (save-excursion
+      (goto-char (car (wisi-tok-region tok)))
+      (eval delta)))
+   (t
+    ;; assume delta is an integer
+    delta)))
+
 (defun wisi-indent-action (deltas)
   "Accumulate `wisi--indents' from DELTAS."
   (when (eq wisi--parse-action 'indent)
     (dotimes (token-index (length wisi-tokens))
-      (let ((tok (aref wisi-tokens token-index))
-	    (delta (aref deltas token-index)))
+      (let* ((tok (aref wisi-tokens token-index))
+	     (token-delta (aref deltas token-index))
+	     (comment-delta
+	      (and (not (wisi-tok-nonterminal tok))
+		   (< token-index (1- (length wisi-tokens)))
+		   (aref deltas (1+ token-index)))))
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
-	  (cond
-	   ((symbolp delta)
-	    (setq delta (symbol-value delta)))
-	   ((listp delta)
-	    (save-excursion
-	      (goto-char (car (wisi-tok-region tok)))
-	      (setq delta (eval delta))))
-	   (t
-	    ;; assume delta is an integer
-	    nil))
+	  (setq token-delta (wisi--indent-compute-delta token-delta tok))
+	  (setq comment-delta
+		(if comment-delta
+		    (wisi--indent-compute-delta comment-delta tok)
+		  token-delta))
 
-	  (when (and (not (= 0 delta))
+	  (when (and (or (not (= 0 token-delta))
+			 (not (= 0 comment-delta)))
 		     (or (wisi-tok-line tok)
 			 (wisi-tok-comment-end tok)))
-	    (wisi--indent-token tok delta))
+	    (wisi--indent-token tok token-delta comment-delta))
 	  )))))
 
 (defun wisi--indent-leading-comments ()
