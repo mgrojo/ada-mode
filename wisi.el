@@ -264,22 +264,18 @@ If at end of buffer, return `wisi-eoi-term'."
 
     (setq end (point))
 
-    (if (not (and (not (eobp))
-		  (eq wisi--parse-action 'indent)))
-	;; not parsing for indent; don't track line numbers
-	(forward-comment (point-max))
+    (forward-comment (point-max))
 
-      ;; track line numbers
+    (when (and (not (eobp))
+	       (eq wisi--parse-action 'indent))
+      ;; parsing for indent; track line numbers
+
       (if (wisi-ind-last-line wisi--indent)
 	  (progn
-	    (setq line (wisi-ind-last-line wisi--indent));; also index into wisi-ind-line-begin
+	    (setq line (wisi-ind-last-line wisi--indent))
 	    (if (>= start (aref (wisi-ind-line-begin wisi--indent) line))
 		;; first token on next non-blank line
 		(progn
-		  ;; skip blank lines
-		  (while (and (< (1+ line) (length (wisi-ind-line-begin wisi--indent)))
-			      (>= start (aref (wisi-ind-line-begin wisi--indent) (1+ line))))
-		    (setq line (1+ line)))
 		  (setq line (1+ line))
 		  (setf (wisi-ind-last-line wisi--indent) line))
 	      ;; other token on line
@@ -290,24 +286,21 @@ If at end of buffer, return `wisi-eoi-term'."
 	(setf (wisi-ind-last-line wisi--indent) line)
 	)
 
-      (skip-syntax-forward "-")
-      (when (< 0 (save-excursion (skip-syntax-forward "<")))
-	;; comment starts on same line as code; ignore. FIXME: assumes newline ends comment
-	(forward-comment 1))
+      ;; set comment-line, comment-end
+      (when (and (< (1+ (wisi-ind-last-line wisi--indent)) (length (wisi-ind-line-begin wisi--indent)))
+		 (>= (point) (aref (wisi-ind-line-begin wisi--indent)
+				 (1+ (wisi-ind-last-line wisi--indent)))))
+	(setq comment-line (1+ (wisi-ind-last-line wisi--indent)))
+	(setf (wisi-ind-last-line wisi--indent) comment-line)
+	(setq comment-end (line-end-position 0)))
 
-      (while (forward-comment 1) ;; skips whitespace, comment, whitespace.
-	(setq comment-end (point)))
+      ;; count blank or comment lines following token
+      (when comment-end
+	(while (and (< (1+ (wisi-ind-last-line wisi--indent)) (length (wisi-ind-line-begin wisi--indent)))
+		    (>= comment-end (aref (wisi-ind-line-begin wisi--indent) (wisi-ind-last-line wisi--indent))))
+	  (setf (wisi-ind-last-line wisi--indent) (1+ (wisi-ind-last-line wisi--indent))))
 
-      (if comment-end
-	  (progn
-	    (setq comment-line (1+ (wisi-ind-last-line wisi--indent)))
-	    (unless (>= comment-end
-			(aref (wisi-ind-line-begin wisi--indent) comment-line))
-	      ;; comment contains no newlines
-	      (setq comment-end nil)
-	      (setq comment-line nil)))
-	(setq comment-line nil))
-      )
+      ))
 
     (make-wisi-tok
      :token token-id
@@ -1194,23 +1187,27 @@ lower level rule. Otherwise return DELTA."
   (when (eq wisi--parse-action 'indent)
     (dotimes (token-index (length wisi-tokens))
       (let* ((tok (aref wisi-tokens token-index))
-	     (token-delta (aref deltas token-index))
+	     (token-delta
+	      (and (wisi-tok-line tok)
+		   (aref deltas token-index)))
 	     (comment-delta
 	      (and (not (wisi-tok-nonterminal tok))
+		   (wisi-tok-comment-line tok)
 		   (< token-index (1- (length wisi-tokens)))
 		   (aref deltas (1+ token-index)))))
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
-	  (setq token-delta (wisi--indent-compute-delta token-delta tok))
+	  (setq token-delta
+		(when token-delta
+		  (wisi--indent-compute-delta token-delta tok)))
 	  (setq comment-delta
-		(if comment-delta
-		    (wisi--indent-compute-delta comment-delta tok)
-		  token-delta))
+		(when comment-delta
+		  (wisi--indent-compute-delta comment-delta tok)))
 
-	  (when (and (or (not (= 0 token-delta))
-			 (not (= 0 comment-delta)))
-		     (or (wisi-tok-line tok)
-			 (wisi-tok-comment-end tok)))
+	  (when (or (and token-delta
+			 (not (= 0 token-delta)))
+		    (and comment-delta
+			 (not (= 0 comment-delta))))
 	    (wisi--indent-token tok token-delta comment-delta))
 	  )))))
 
@@ -1588,18 +1585,19 @@ Called with BEGIN END.")
 (defun wisi-indent-line ()
   "For `indent-line-function'."
   (let ((savep (copy-marker (point)))
-	(restore nil))
+	(to-indent nil))
     (back-to-indentation)
     (when (> (point) savep)
-      (setq restore t))
+      (setq to-indent t))
 
     (wisi-indent-region (line-beginning-position) (line-beginning-position 2))
+    ;; leaves point at beginning of line after current line
 
-    (goto-char savep)
-
-    (when restore
-      ;; point was inside line text; leave it there
-      (back-to-indentation))
+    (if to-indent
+	(progn
+	 (forward-line -1)
+	 (back-to-indentation))
+      (goto-char savep))
     ))
 
 ;;;; debug
@@ -1642,10 +1640,11 @@ Called with BEGIN END.")
 		    (get-text-property (point) 'wisi-face))))
 
 (defun wisi-show-token ()
-  "Move forward across one keyword, show token_id."
+  "Move forward across one keyword, show token."
   (interactive)
-  (let ((token (wisi-forward-token)))
-    (message "%s" (car token))))
+  (let* ((wisi--parse-action nil)
+	 (token (wisi-forward-token)))
+    (message "%s" token)))
 
 (defun wisi-show-containing-or-previous-cache ()
   (interactive)

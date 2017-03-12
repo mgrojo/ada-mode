@@ -114,13 +114,14 @@ point at which that max was spawned.")
 
   nonterminal ;; t if a nonterminal
 
-  ;; The following are non-nil if token is followed by a comment, or
-  ;; if not parsing for indent. For nonterminals, `comment-line' is
-  ;; the first comment line in the nonterminal region, and
-  ;; `comment-end' is the end of the last comment in or immediately
-  ;; following the nonterminal region.
-  comment-line ;; first line in comment
-  comment-end ;; position at end of comment
+  ;; The following are non-nil if token is followed by blank or
+  ;; comment lines, or if not parsing for indent. For nonterminals,
+  ;; `comment-line' is the first blank or comment line in the
+  ;; nonterminal region, and `comment-end' is the end of the last
+  ;; blank or comment line in or immediately following the nonterminal
+  ;; region.
+  comment-line ;; first blank or comment line following token
+  comment-end ;; position at end of blank or comment lines
   )
 
 (defun wisi-token-text (token)
