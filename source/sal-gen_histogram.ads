@@ -29,6 +29,8 @@ package SAL.Gen_Histogram is
 
    type Object is tagged private;
 
+   Null_Histogram : constant Object;
+
    procedure Accumulate (Histogram : in out Object; Item : in Value);
 
 private
@@ -39,5 +41,10 @@ private
       Max_Count   : Integer                := 0;
       Total_Count : Integer                := 0;
    end record;
+
+   Null_Histogram : constant Object :=
+     (Bins        => (others => 0),
+      Max_Count   => 0,
+      Total_Count => 0);
 
 end SAL.Gen_Histogram;

@@ -2,7 +2,7 @@
 --
 --  Statistics; mean, standard deviation, min, max.
 --
---  Copyright (C) 2003, 2005, 2009, 2012, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003, 2005, 2009, 2012, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -31,6 +31,8 @@ package SAL.Gen_Stats is
 
    type Stats_Type is tagged private;
    --  tagged to allow "object.method" notation
+
+   Null_Stats : constant Stats_Type;
 
    procedure Reset (Stats : in out Stats_Type);
    --  Reset accumulated values, count to zero.
@@ -68,5 +70,12 @@ private
       Min         : Real_Type := Real_Type'Last;
       Max         : Real_Type := Real_Type'First;
    end record;
+
+   Null_Stats : constant Stats_Type :=
+     (Count       => 0,
+      Sum         => 0.0,
+      Sum_Squared => 0.0,
+      Min         => Real_Type'Last,
+      Max         => Real_Type'First);
 
 end SAL.Gen_Stats;
