@@ -379,21 +379,16 @@ wisi-forward-token, but does not look up symbol."
   ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
   ;;
-  ;; 'block-middle - a block keyword (ie: if then else end), not at the start of a statement
-  ;;
-  ;; 'block-start - a block keyword at the start of a statement
-  ;;
   ;; 'statement-start - the start of a statement
   ;;
-  ;; 'open-paren
+  ;; 'statement-end - the end of a statement
+  ;;
+  ;; 'motion - a statement keyword
   ;;
   ;; others are language-specific
 
   containing
-  ;; Marker at the containing keyword for this token.
-  ;; A containing keyword is an indent point; the start of a
-  ;; statement, or 'begin', 'then' or 'else' for a block of
-  ;; statements, etc.
+  ;; Marker at the start of the containing statement for this token.
   ;; nil only for first token in buffer
 
   prev ;; marker at previous motion token in statement; nil if none
@@ -766,34 +761,14 @@ grammar action as:
 	    (if region
 		(progn
 		  (if (setq cache (wisi-get-cache (car region)))
-		      ;; We are processing a previously set non-terminal; ie generic_formal_part in
-		      ;;
-		      ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
-		      ;;    (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
-		      ;;
-		      ;; or simple_statement in
+		      ;; We are processing a previously set non-terminal; ie simple_statement in
 		      ;;
 		      ;; statement : label_opt simple_statement
 		      ;;
 		      ;; override nonterm, class, containing
 		      ;; set end only if not set yet (due to failed parse)
 		      (progn
-			(cl-case (wisi-cache-class cache)
-			  (block-start
-			   (setf (wisi-cache-class cache)
-				 (cond
-				  ((eq override-start nil)
-				   (cond
-				    ((memq class '(block-start statement-start)) 'block-start)
-				    (t 'block-middle)))
-
-				  ((memq override-start '(block-start statement-start)) 'block-start)
-
-				  (t (error "unexpected override-start"))
-				  )))
-			  (t
-			   (setf (wisi-cache-class cache) (or override-start class)))
-			  )
+			(setf (wisi-cache-class cache) (or override-start class))
 			(setf (wisi-cache-nonterm cache) wisi-nterm)
 			(setf (wisi-cache-containing cache) first-keyword-mark)
 			(unless (wisi-cache-end cache)
@@ -824,7 +799,7 @@ grammar action as:
 		  (when first-item
 		    (setq first-item nil)
 		    (when (or override-start
-			      (memq class '(block-start statement-start)))
+			      (eq class 'statement-start))
 		      (setq override-start nil)
 		      (setq first-keyword-mark mark)))
 
@@ -835,7 +810,7 @@ grammar action as:
 	      ;; region is nil when a production is empty; if the first
 	      ;; token is a start, override the class on the next token.
 	      (when (and first-item
-			 (memq class '(block-middle block-start statement-start)))
+			 (eq class 'statement-start))
 		(setq override-start class)))
 	    ))
 	))))
@@ -889,23 +864,22 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		(setq cache (wisi-backward-cache)))
 	      )))))))
 
-(defun wisi--match-class-token (cache class-tokens)
-  "Return t if CACHE matches CLASS-TOKENS.
-CLASS-TOKENS is a vector [number class token_id class token_id ...].
+(defun wisi--match-token (cache tokens)
+  "Return t if CACHE has id from TOKENS.
+TOKENS is a vector [number token_id token_id ...].
 number is ignored."
   (let ((i 1)
 	(done nil)
 	(result nil)
-	class token)
-    (while (and (not done)
-		(< i (length class-tokens)))
-      (setq class (aref class-tokens i))
-      (setq token (aref class-tokens (setq i (1+ i))))
-      (setq i (1+ i))
-      (when (and (eq class (wisi-cache-class cache))
-		 (eq token (wisi-cache-token cache)))
-	(setq result t
-	      done t))
+	token)
+    (while (and cache
+		(not done)
+		(< i (length tokens)))
+      (setq token (aref tokens i))
+      (if (eq token (wisi-cache-token cache))
+	  (setq result t
+		done t)
+	(setq i (1+ i)))
       )
     result))
 
@@ -915,9 +889,9 @@ TOKEN-NUMBERS is a vector with each element one of:
 
 number: the token number; mark that token
 
-vector [number class token_id]:
-vector [number class token_id class token_id ...]:
-   mark all tokens in number nonterminal matching (class token_id) with nil prev/next."
+vector [number token_id]:
+vector [number token_id token_id ...]:
+   mark all tokens in number nonterminal matching token_id with nil prev/next."
   (when (eq wisi--parse-action 'navigate)
     (save-excursion
       (let (prev-keyword-mark
@@ -936,20 +910,26 @@ vector [number class token_id class token_id ...]:
 		(setq cache (wisi-get-cache (car region)))
 		(setq mark (copy-marker (1+ (car region))))
 
-		(when (and prev-keyword-mark
-			   cache
-			   (null (wisi-cache-prev cache)))
-		  (setf (wisi-cache-prev cache) prev-keyword-mark)
-		  (setf (wisi-cache-next prev-cache) mark))
+		(if prev-keyword-mark
+		    (when
+			;; Don't include this token if prev/next already set
+			;; by a lower level statement
+			(and (null (wisi-cache-prev cache))
+			     (null (wisi-cache-next prev-cache)))
+		      (setf (wisi-cache-prev cache) prev-keyword-mark)
+		      (setf (wisi-cache-next prev-cache) mark)
+		      (setq prev-keyword-mark mark)
+		      (setq prev-cache cache))
 
-		(setq prev-keyword-mark mark)
-		(setq prev-cache cache)
+		  ;; else first token; save as prev
+		  (setq prev-keyword-mark mark)
+		  (setq prev-cache cache))
 		))
 
 	     ((vectorp token-number)
-	      ;; token-number may contain 0, 1, or more 'class token_id' pairs
+	      ;; token-number may contain 0, 1, or more token_ids
 	      ;; the corresponding region may be empty
-	      ;; there must have been a prev keyword
+	      ;; there may not have been a prev keyword
 	      (setq region (wisi-tok-region (aref wisi-tokens (1- (aref token-number 0)))))
 	      (when region ;; not an empty token
 		;; We must search for all targets at the same time, to
@@ -958,12 +938,20 @@ vector [number class token_id class token_id ...]:
 		(setq cache (or (wisi-get-cache (point))
 				(wisi-forward-cache)))
 		(while (< (point) (cdr region))
-		  (when (wisi--match-class-token cache token-number)
-		    (when (null (wisi-cache-prev cache))
-		      (setf (wisi-cache-prev cache) prev-keyword-mark))
-		    (when (null (wisi-cache-next cache))
-		      (setq mark (copy-marker (1+ (point))))
-		      (setf (wisi-cache-next prev-cache) mark)
+		  (when (wisi--match-token cache token-number)
+		    (setq mark (copy-marker (1+ (point))))
+
+		    (if prev-keyword-mark
+			;; Don't include this token if prev/next already
+			;; set by a lower level statement
+			(when (and (null (wisi-cache-prev cache))
+				   (null (wisi-cache-next prev-cache)))
+			  (setf (wisi-cache-prev cache) prev-keyword-mark)
+			  (setf (wisi-cache-next prev-cache) mark)
+			  (setq prev-keyword-mark mark)
+			  (setq prev-cache cache))
+
+		      ;; else first token; save as prev
 		      (setq prev-keyword-mark mark)
 		      (setq prev-cache cache)))
 
@@ -1059,11 +1047,10 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
-token-number may be an integer, or a vector [integer token_id token_id ...]
 
-For an integer token-number, apply face to the first cached token
-in the wisi-tokens[token-number] region, or to all of the region
-if there is no cache.
+Apply face to the first token in the wisi-tokens[token-number]
+region marked with text property `wisi-face', or to all of the
+region if there is no cache.
 
 If NO-OVERRIDE is non-nil, don't override existing face."
   (when (eq wisi--parse-action 'face)
@@ -1089,7 +1076,37 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	  (error "wisi-face-action with non-integer token number"))
 	 )
 	(setq i (1+ i))
+	))))
 
+(defun wisi-face-apply-list-action (pairs)
+  "Set face information in `wisi-face' text properties of tokens.
+Intended as a grammar non-terminal action.
+
+PAIRS is a vector of the form [token-number face token-number face ...]
+
+Apply face to all tokens marked with `wisi-face' text property in
+the wisi-tokens[token-number] region."
+  (when (eq wisi--parse-action 'face)
+    (let (number token-region face-region face cache (i 0) pos)
+      (while (< i (length pairs))
+	(setq number (aref pairs i))
+	(setq face (aref pairs (setq i (1+ i))))
+	(setq token-region (wisi-tok-region (aref wisi-tokens (1- number))))
+	(when token-region
+	  ;; region can be null for an optional token
+	  (setq pos (car token-region))
+	  (save-excursion
+	    (while (and pos
+			(< pos (cdr token-region)))
+	      (goto-char pos)
+	      (setq cache (get-text-property (point) 'wisi-face))
+	      (setq face-region (wisi-cache-region cache))
+	      (wisi--face-action-1 face face-region nil)
+	      (forward-char 1);; move past current 'wisi-face property
+	      (setq pos (next-single-property-change (point) 'wisi-face))
+	      ;; pos is nil at eob
+	      )))
+	(setq i (1+ i))
 	))))
 
 (defun wisi--indent-token-1 (line end delta)
@@ -1392,12 +1409,12 @@ Return cache for paren, or nil if no containing paren."
   cache)
 
 (defun wisi-goto-start (cache)
-  "Move point to containing ancestor of CACHE that has class block-start or statement-start.
+  "Move point to containing ancestor of CACHE that has class statement-start.
 Return start cache."
   (when
     ;; cache nil at bob, or on cache in partially parsed statement
     (while (and cache
-		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
+		(not (eq (wisi-cache-class cache) 'statement-start)))
       (setq cache (wisi-goto-containing cache)))
     )
   cache)

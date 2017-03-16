@@ -30,20 +30,20 @@ is -- target 0
 
    --EMACSCMD:(progn (forward-line 4) (back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- target 1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+   --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at "use type Standard"))
    --EMACSRESULT:t
    function Function_Access_1
      (A_Param : in Float)
      return access
        Standard.Float
    is -- target 1
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "use type Standard"))
       --EMACSRESULT:t
       use type Standard.Float;
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "use type Standard"))
       --EMACSRESULT:t
    begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "use type Standard"))
       --EMACSRESULT:t
       if A_Param > 0.0 then
          -- EMACSCMD:(test-face "new" font-lock-keyword-face)
@@ -83,7 +83,7 @@ is -- target 0
    --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
    protected body Protected_1 is -- target 2
 
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "function F1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -111,10 +111,10 @@ is -- target 0
                          --EMACSCMD:(progn (end-of-line -2)(backward-word 2)(ada-next-statement-keyword)(looking-at "elsif False -- 2"))
                          --EMACSRESULT: t
 
-               --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+               --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "Bad_Thing"))
                --EMACSRESULT:t
                begin -- 2
-                     --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 3"))
+                     --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "Bad_Thing"))
                      --EMACSRESULT:t
 
                   --EMACSCMD:(test-face "Integer" '(nil default))
@@ -188,25 +188,25 @@ is -- target 0
 
                --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "then -- 3"))
                --EMACSRESULT: t
-               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "end if; -- 5"))
+               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "; -- 5"))
                --EMACSRESULT: t
             else -- 4
                return 0;
-               --EMACSCMD:(progn (forward-line 4)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "else -- 4"))
+               --EMACSCMD:(progn (forward-line 4)(forward-word 2)(ada-prev-statement-keyword)(looking-at "else -- 4"))
                --EMACSRESULT: t
-               --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-next-statement-keyword)(looking-at "; -- 5"))
+               --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(looking-at "; -- 5"))
                --EMACSRESULT: t
             end if; -- 5
          end Local_Function;
       begin
-         --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "end F1"))
+         --EMACSCMD:(progn (end-of-line 0)(backward-word 1)(ada-next-statement-keyword)(looking-at "; -- 6"))
          --EMACSRESULT: t
          return B : Integer :=
            (Local_Function);
          -- non-do extended return
-      end F1;
+      end F1; -- 6
 
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "function F1"))
       --EMACSRESULT:t
 
       function F2 (Param_1 : Discrete_Type_1; B : Float) return Float
@@ -217,7 +217,7 @@ is -- target 0
          do
             -- extended return with do
             --EMACSCMD:(progn(forward-line -3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "do"))
-            --EMACSCMD:(progn(forward-line -3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end return"))
+            --EMACSCMD:(progn(forward-line -3)(back-to-indentation)(ada-next-statement-keyword)(looking-at "; -- 8"))
 
             --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when A | Nominal.B"))
             --EMACSRESULT:t
@@ -227,7 +227,7 @@ is -- target 0
             --EMACSRESULT:t
                when A | Nominal.B =>
                   goto Label_2;
-                  --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "end case"))
+                  --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "; -- 7"))
                   --EMACSRESULT:t
                when C =>
                   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(insert "   ")(ada-align))
@@ -241,10 +241,10 @@ is -- target 0
                <<Label_1>>
                   --  a comment after a label
                   D := D - Float (F1);
-            end case;
+            end case; -- 7
             <<Label_2>> --  a sequence_of_statements can have a trailing label
-         end return;
-         --EMACSCMD:(progn(forward-line -1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "do"))
+         end return; -- 8
+         --EMACSCMD:(progn(forward-line -1)(forward-word 2)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose
 
       --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
@@ -253,7 +253,7 @@ is -- target 0
          Tmp : Integer := 0;
          Local_4 : Discrete_Type_1 := A;
          --EMACSCMD:(progn (forward-line 2)(forward-comment 1)(ada-prev-statement-keyword)(looking-at "is -- target E1"))
-         --EMACSCMD:(progn (forward-line 1)(forward-comment 1)(ada-next-statement-keyword)(looking-at "end E1;"))
+         --EMACSCMD:(progn (forward-line 1)(forward-comment 1)(ada-next-statement-keyword)(looking-at "; -- E1"))
       begin
          Local_1 :=
            X + Tmp;
@@ -328,7 +328,7 @@ is -- target 0
 
          -- A comment before 'end'
          --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
-      end E1;
+      end E1; -- E1
 
       entry E2
         (X : Integer)
@@ -393,9 +393,9 @@ is -- target 0
    with
      Storage_Size => 512 + 256,
      Priority => 5;
-   task body Executive is -- target 5
-   begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
+   task body Executive is
+   begin -- target 5
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 5"))
       --EMACSRESULT:t
 
       null;
@@ -489,9 +489,9 @@ is -- target 0
    not
    overriding
    procedure Procedure_1f (Item : in out Parent_Type_1)
-   is -- target 6
-   begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 6"))
+   is
+   begin -- target 6
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 6"))
       --EMACSRESULT:t
       null;
    end Procedure_1f;
@@ -504,7 +504,7 @@ is -- target 0
       raise Constraint_Error with Ada.Text_IO.Count'Image (Line (File)) &
         "foo";
    end;
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "use Ada.Strings;"))
    --EMACSRESULT:t
 
    function Function_1a return Float
@@ -522,14 +522,14 @@ is -- target 0
    is
       Local_1 : constant := 3.0;
    begin
-      declare -- target 8
+      declare
 
          -- no label, zero statements between begin, declare
          --EMACSCMD:(progn (ada-goto-end) (looking-at "; -- target 9"))
-      begin
+      begin -- target 8
          return Local_1;
       exception
-         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 8"))
+         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 8"))
          --EMACSRESULT:t
 
          when others =>

@@ -680,12 +680,9 @@ For `wisi-indent-calculate-functions'."
 
 (defun ada-wisi-declarative-region-start-p (cache)
   "Return t if cache is a keyword starting a declarative region."
-  (cl-case (wisi-cache-token cache)
-   (DECLARE t)
-   (IS
-    (memq (wisi-cache-class cache) '(block-start block-middle)))
-   (t nil)
-   ))
+  (memq (wisi-cache-token cache) '(DECLARE IS))
+  ;; IS has a cache only marked if start of declarative region
+  )
 
 (defun ada-wisi-context-clause ()
   "For `ada-fix-context-clause'."
@@ -825,44 +822,38 @@ Also return cache at start."
 	    (wisi-forward-token)
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
-	  ((block-middle block-end)
+	  ((motion statement-end)
 	   (setq cache (wisi-prev-statement-cache cache)))
 
 	  (statement-start
-	   ;; 1) test/ada_mode-nominal.adb
-	   ;;    protected body Protected_1 is -- target 2
-	   ;;        <point>
-	   ;;    want target 2
-	   ;;
-	   ;; 2) test/ada_mode-nominal.adb
-	   ;;    function Function_Access_1
-	   ;;      (A_Param <point> : in Float)
-	   ;;      return
-	   ;;        Standard.Float
-	   ;;    is -- target 1
-	   ;;    want target 1
-	   ;;
-	   ;; 3) test/ada_mode-nominal-child.adb
-	   ;;    overriding <point> function Function_2c (Param : in Child_Type_1)
-	   ;;                                    return Float
-	   ;;    is -- target Function_2c
-	   ;;    want target
-
 	   (if first
-	       ;; case 1
+	       ;; This is the cache at or after point when this
+	       ;; command was invoked; we want the declarative region
+	       ;; of the containing statement, not the declarative
+	       ;; region of this statement.
 	       (setq cache (wisi-goto-containing cache t))
-	     ;; case 2, 3
+
 	     (cl-case (wisi-cache-nonterm cache)
-	       (subprogram_body
+	       ((entry_body package_body package_specification protected_body subprogram_body task_body)
+		;; FIXME: find 'PRIVATE in package_spec?
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache))))
+
+	       ((protected_type_declaration single_protected_declaration single_task_declaration task_type_declaration)
+		(while (not (eq 'IS (wisi-cache-token cache)))
+		  (setq cache (wisi-next-statement-cache cache)))
+		(when (save-excursion (eq 'NEW (wisi-tok-token (wisi-forward-token))))
+		  (while (not (eq 'WITH (wisi-cache-token cache)))
+		    (setq cache (wisi-next-statement-cache cache)))))
+
 	       (t
 		(setq cache (wisi-goto-containing cache t)))
 	       )))
+
 	  (t
 	   (setq cache (wisi-goto-containing cache t)))
 	  ))
-      (when first (setq first nil)))
+      (setq first nil))
     ))
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)

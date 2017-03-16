@@ -11,11 +11,11 @@
 --EMACSCMD:(setq wisi-debug 0)
 
 -- Test the buffer does parse
---EMACSCMD:(progn (wisi-parse-buffer) wisi-cache-max)
+--EMACSCMD:(progn (wisi-parse-buffer 'font) (wisi-cache-max 'font))
 --EMACSRESULT:(point-max)
 
 -- Test cache invalidation when inserting code programmatically
---EMACSCMD:(progn(forward-line 2)(insert "with A;\n") wisi-cache-max)
+--EMACSCMD:(progn(forward-line 2)(insert "with A;\n") (wisi-cache-max 'font))
 --EMACSRESULT:(point-min)
 procedure Ada_Mode.Interactive_Wisi
 is
@@ -23,46 +23,46 @@ is
    --EMACSCMD:(wisi-parse-buffer)
 
    -- Inserting/deleting space (ie indenting) does not invalidate cache.
-   --EMACSCMD:(progn (forward-line -1)(back-to-indentation)(insert "  ") wisi-cache-max)
+   --EMACSCMD:(progn (forward-line -1)(back-to-indentation)(insert "  ") (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
-   --EMACSCMD:(progn (forward-line -3)(back-to-indentation)(delete-char -2) wisi-cache-max)
+   --EMACSCMD:(progn (forward-line -3)(back-to-indentation)(delete-char -2) (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
 
    -- adding text inside a string does not invalidate cache
    A : constant String :=
      "hi there!";
-   --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ")wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ") (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
 
    -- Delete/insert range including close quote of string invalidates cache
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 1)(backward-delete-char 2)(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 1)(backward-delete-char 2)(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position 4)
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 1)(execute-kbd-macro "o\"")(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 1)(execute-kbd-macro "o\"")(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
    Obj_2 : constant String := "foo";
 
    -- Delete/insert range including open quote of string invalidates cache
-   --EMACSCMD:(progn (end-of-line 5)(backward-char 4)(backward-delete-char 2)(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 5)(backward-char 4)(backward-delete-char 2)(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position 4)
-   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(execute-kbd-macro "\"f")(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(execute-kbd-macro "\"f")(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
    Obj_3 : constant String := "foo";
 
    -- adding text inside a comment does not invalidate cache
-   --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ")wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 0)(forward-word -1)(insert "some text ")(wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
 
    -- delete/insert range including comment start invalidates cache
-   --EMACSCMD:(progn (beginning-of-line 0)(kill-word 1) wisi-cache-max)
+   --EMACSCMD:(progn (beginning-of-line 0)(kill-word 1) (wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position -7)
-   --EMACSCMD:(progn (beginning-of-line -2)(execute-kbd-macro "   -- delete")(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (beginning-of-line -2)(execute-kbd-macro "   -- delete")(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
 
    -- delete/insert range including comment end invalidates cache
 
-   --EMACSCMD:(progn (end-of-line 0)(backward-delete-char 1) wisi-cache-max)
+   --EMACSCMD:(progn (end-of-line 0)(backward-delete-char 1) (wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position -13)
-   --EMACSCMD:(progn (beginning-of-line -1)(execute-kbd-macro "\n")(jit-lock-fontify-now) wisi-cache-max)
+   --EMACSCMD:(progn (beginning-of-line -1)(execute-kbd-macro "\n")(jit-lock-fontify-now) (wisi-cache-max 'font))
    --EMACSRESULT:(point-max)
 
    -- Newline before a blank line
@@ -89,7 +89,7 @@ is
    -- fallback should indent properly.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
-   --EMACSRESULT:(if (eq wisi-indent-fallback 'wisi-indent-fallback-default) 5 0)
+   --EMACSRESULT:(if (eq wisi-indent-region-fallback 'wisi-indent-region-fallback-default) 5 0)
    --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
@@ -116,7 +116,7 @@ is
 
 begin
    --  extending block
-   --EMACSCMD:(progn (forward-line 4)(kill-line 1)(forward-line 1)(yank) wisi-cache-max)
+   --EMACSCMD:(progn (forward-line 4)(kill-line 1)(forward-line 1)(yank) (wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position 3)
    begin -- target extending
       Stuff_2;
@@ -143,7 +143,7 @@ begin
    --
    -- - indent properly
 
-   --EMACSCMD:(progn (forward-line 11)(kill-line 2)(forward-line -2)(yank)(forward-line -1)(kill-line)wisi-cache-max)
+   --EMACSCMD:(progn (forward-line 11)(kill-line 2)(forward-line -2)(yank)(forward-line -1)(kill-line)(wisi-cache-max 'font))
    --EMACSRESULT:(line-beginning-position 8)
    --EMACSCMD:(progn (forward-line 7)(wisi-validate-cache (line-end-position)))
    --EMACSCMD:(progn (forward-line 6)(back-to-indentation)(wisi-get-cache (point)))

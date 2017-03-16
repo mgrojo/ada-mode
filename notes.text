@@ -59,7 +59,23 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
+newline before 'procedure' leaves point on prev line
+    indent leaves point on wrong line
+    change indented region to begin/end current line?
+
+test/ada_mode-interactive_wisi.adb:15 wisi-cache-max is a function
+    edited
+
+test goto-declarative-region-start in begin-end block with no declare
+    should error out, not hang.
+
+test/ada_mode-interactive_gps_fallback.adb
+    hangs
+
+
 test-ada-gpr_query.stamp
+
+delete 'end' processing, use next-statement-keyword to look for 'end'?
 
 c:/Projects/smm.main/source/smm-server.adb:181
     next-statement on case 'when' goes to nested exception handler 'when'
