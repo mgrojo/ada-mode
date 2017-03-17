@@ -641,7 +641,7 @@
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))))
       (formal_part
        ((LEFT_PAREN parameter_specification_list RIGHT_PAREN )
-        (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])))
+        (wisi-indent-action [0 (1+ (wisi-token-delta 1)) (1+ (wisi-token-delta 1))])))
       (formal_subprogram_declaration
        ((WITH subprogram_specification IS subprogram_default aspect_specification_opt SEMICOLON )
         (progn

@@ -1114,7 +1114,7 @@ the wisi-tokens[token-number] region."
 	(j (- line (wisi-ind-first-line wisi--indent)))
 	(max-j (length (wisi-ind-indent wisi--indent)))
 	)
-    (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
+    (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
       (when (and (<= 0 j)
 		 (< j max-j))
 	(aset (wisi-ind-indent wisi--indent) j (+ delta (aref (wisi-ind-indent wisi--indent) j))))
@@ -1558,7 +1558,7 @@ Called with BEGIN END.")
 	   :region (cons begin end)
 	   :first-line (line-number-at-pos begin)
 	   :line-begin (make-vector (1+ (count-lines (point-min) (point-max))) 0)
-	   :indent (make-vector (count-lines begin end) 0)
+	   :indent (make-vector (max 1 (count-lines begin end)) 0)
 	   :last-line nil))
 	 indent)
 
@@ -1604,17 +1604,13 @@ Called with BEGIN END.")
   (let ((savep (copy-marker (point)))
 	(to-indent nil))
     (back-to-indentation)
-    (when (> (point) savep)
+    (when (>= (point) savep)
       (setq to-indent t))
 
-    (wisi-indent-region (line-beginning-position) (line-beginning-position 2))
-    ;; leaves point at beginning of line after current line
+    (wisi-indent-region (line-beginning-position) (line-end-position))
 
-    (if to-indent
-	(progn
-	 (forward-line -1)
-	 (back-to-indentation))
-      (goto-char savep))
+    (goto-char savep)
+    (when to-indent (back-to-indentation))
     ))
 
 ;;;; debug

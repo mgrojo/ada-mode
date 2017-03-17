@@ -236,7 +236,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
     (ada-gps-session-send
      (format "compute_region_indent %d %d %d" start-line end-line (1- (position-bytes end))) nil t)
-    (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
+    (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
 
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
       ;; buffer contains two numbers per line; Emacs line number,

@@ -59,21 +59,23 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-newline before 'procedure' leaves point on prev line
-    indent leaves point on wrong line
-    change indented region to begin/end current line?
+test/ada_mode-interactive_wisi.adb
+    failing
+        once a line indent is set by wisi-token-delta, it should be incremented only by ref line
+            change wisi-ind-indent; see comments there
+                fix wisi--indent-token-1 to set ref-base
+                need all lines in wisi-ind-indent, to hold ref-base
+                    or extend dynamically? see if it's too slow
+                    wisi-indent-region keep track of which lines to actually indent
 
-test/ada_mode-interactive_wisi.adb:15 wisi-cache-max is a function
-    edited
+    use wisi-token-delta for all RIGHT_PAREN
 
-test goto-declarative-region-start in begin-end block with no declare
-    should error out, not hang.
-
-test/ada_mode-interactive_gps_fallback.adb
-    hangs
-
+c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.ads:50: error: (can’t find ’Ada.Containers.Bounded_Doubly_Linked_Lists’)
 
 test-ada-gpr_query.stamp
+
+test goto-declarative-region-start in begin-end block with no declare
+    should goto containing, not hang.
 
 delete 'end' processing, use next-statement-keyword to look for 'end'?
 

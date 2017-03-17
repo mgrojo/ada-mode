@@ -971,7 +971,7 @@ formal_object_declaration
 
 formal_part
   : LEFT_PAREN parameter_specification_list RIGHT_PAREN
-    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) 0])
+    (wisi-indent-action [0 (1+ (wisi-token-delta 1)) (1+ (wisi-token-delta 1))])
   ;
 
 formal_subprogram_declaration
