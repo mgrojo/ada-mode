@@ -30,7 +30,7 @@ is
    --EMACSCMD:(progn (end-of-line 3)(delete-indentation)(delete-char -1)(insert ";")(ada-indent-newline-indent) (current-column))
    procedure Local_Proc_1 (Param_1 : in Float;
                            );
-   --EMACSRESULT:26
+   --EMACSRESULT:27
 
    -- Adding a body interactively leaves it properly indented, and
    -- caches updated. Start with invalid syntax (missing final ';'),
@@ -70,37 +70,4 @@ begin
    end; -- target extending
    Stuff_3;
 
-   --EMACSCMD:(progn (forward-line -2)(forward-word 1)(wisi-goto-statement-start) (looking-at "begin -- target extending"))
-   --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -4)(forward-word 1)(wisi-goto-statement-end) (looking-at "; -- target extending"))
-   --EMACSRESULT:t
-
-   -- merging one 'if' into another, as an 'elsif'. This encountered
-   -- a bug in an earlier version.
-   --
-   -- Scenario:
-   --
-   -- - Paste the 'if'; parse is triggered by font-lock, succeeds
-   --
-   -- - Edit the 'if', leaving 'if then'; parse is triggered by
-   --   font-lock, fails, leaving wisi-cache-max before 'if'
-   --
-   -- - Finish editing the 'elsif'; parse is triggered by font-lock,
-   --   changing the IDENTIFIER cache to ELSIF.
-   --
-   -- - indent properly
-
-   --EMACSCMD:(progn (forward-line 11)(kill-line 2)(forward-line -2)(yank)(forward-line -1)(kill-line)(marker-position (wisi-cache-max 'face)))
-   --EMACSRESULT:(line-beginning-position 8)
-   --EMACSCMD:(progn (forward-line 7)(wisi-validate-cache (line-end-position)))
-   --EMACSCMD:(progn (forward-line 6)(back-to-indentation)(wisi-get-cache (point)))
-   --EMACSRESULT:nil
-   --EMACSCMD:(progn (forward-line 4)(back-to-indentation)(insert "el")(wisi-validate-cache (line-end-position))(insert "s")(wisi-validate-cache (line-end-position)))
-   --EMACSCMD:(progn (forward-line 3)(back-to-indentation)(wisi-cache-token (wisi-get-cache (point))))
-   --EMACSRESULT:'ELSIF
-   if  then
-   else
-   end if;
-   if  then
-   end if;
 end Ada_Mode.Interactive_Wisi;

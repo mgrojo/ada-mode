@@ -2,6 +2,7 @@
 
 ;; Default includes mtn, among others, which is broken in Emacs 22.2
 (setq vc-handled-backends '(CVS))
+(setq eval-expression-debug-on-error nil)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
