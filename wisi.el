@@ -423,7 +423,7 @@ wisi-forward-token, but does not look up symbol."
 (defun wisi-parse-try (&optional parse-action)
   (cdr (assoc (or parse-action wisi--parse-action) wisi--parse-try)))
 
-(defun set-wisi-parse-try (value &optional parse-action)
+(defun wisi-set-parse-try (value &optional parse-action)
   (setcdr (assoc (or parse-action wisi--parse-action) wisi--parse-try) value))
 
 (defvar-local wisi-end-caches nil
@@ -446,8 +446,8 @@ wisi-forward-token, but does not look up symbol."
   (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%d" (current-buffer) after))
   (move-marker (wisi-cache-max 'face) after)
   (move-marker (wisi-cache-max 'navigate) after)
-  (set-wisi-parse-try t 'face)
-  (set-wisi-parse-try t 'navigate)
+  (wisi-set-parse-try t 'face)
+  (wisi-set-parse-try t 'navigate)
   (wisi--delete-cache after)
   )
 
@@ -520,8 +520,8 @@ wisi-forward-token, but does not look up symbol."
 	  (when wisi-parse-failed
 	    ;; The parse was failing, probably due to bad syntax; this
 	    ;; change may have fixed it, so try reparse.
-	    (set-wisi-parse-try t 'face)
-	    (set-wisi-parse-try t 'navigate))
+	    (wisi-set-parse-try t 'face)
+	    (wisi-set-parse-try t 'navigate))
 
 	;; Change is in validated region
 	;; (info "(elisp)Parser State")
@@ -681,7 +681,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	       (<= (wisi-cache-max) pos))
 
       ;; Don't keep retrying failed parse until text changes again.
-      (set-wisi-parse-try nil)
+      (wisi-set-parse-try nil)
       (setq wisi-end-caches nil);; only used by navigate
 
       (wisi--run-parse)
@@ -876,23 +876,25 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		(setq cache (wisi-backward-cache)))
 	      )))))))
 
-(defun wisi--match-token (cache tokens)
-  "Return t if CACHE has id from TOKENS.
+(defun wisi--match-token (cache tokens start)
+  "Return t if CACHE has id from TOKENS and containing equal to START.
 TOKENS is a vector [number token_id token_id ...].
 number is ignored."
   (let ((i 1)
 	(done nil)
 	(result nil)
 	token)
-    (while (and cache
-		(not done)
-		(< i (length tokens)))
-      (setq token (aref tokens i))
-      (if (eq token (wisi-cache-token cache))
-	  (setq result t
-		done t)
-	(setq i (1+ i)))
-      )
+    (when (and (wisi-cache-containing cache)
+	       ;; containing points to cache, which is stored one char after token start.
+	       (= (1+ start) (wisi-cache-containing cache)))
+      (while (and (not done)
+		  (< i (length tokens)))
+	(setq token (aref tokens i))
+	(if (eq token (wisi-cache-token cache))
+	    (setq result t
+		  done t)
+	  (setq i (1+ i)))
+	))
     result))
 
 (defun wisi-motion-action (token-numbers)
@@ -908,6 +910,8 @@ vector [number token_id token_id ...]:
     (save-excursion
       (let (prev-keyword-mark
 	    prev-cache
+	    token
+	    start
 	    cache
 	    mark
 	    (i 0))
@@ -917,17 +921,23 @@ vector [number token_id token_id ...]:
 	    (setq i (1+ i))
 	    (cond
 	     ((numberp token-number)
-	      (setq region (wisi-tok-region (aref wisi-tokens (1- token-number))))
+	      (setq token (aref wisi-tokens (1- token-number)))
+	      (setq region (wisi-tok-region token))
 	      (when region
+		(unless start (setq start (car region)))
 		(setq cache (wisi-get-cache (car region)))
 		(setq mark (copy-marker (1+ (car region))))
 
 		(if prev-keyword-mark
 		    (when
-			;; Don't include this token if prev/next already set
-			;; by a lower level statement
-			(and (null (wisi-cache-prev cache))
-			     (null (wisi-cache-next prev-cache)))
+			;; Don't include this token if prev/next
+			;; already set by a lower level statement. We
+			;; do override if terminal, to recover after
+			;; edit.
+			(or (null (wisi-tok-nonterminal token))
+			    (and
+			     (null (wisi-cache-prev cache))
+			     (null (wisi-cache-next prev-cache))))
 		      (setf (wisi-cache-prev cache) prev-keyword-mark)
 		      (setf (wisi-cache-next prev-cache) mark)
 		      (setq prev-keyword-mark mark)
@@ -939,18 +949,20 @@ vector [number token_id token_id ...]:
 		))
 
 	     ((vectorp token-number)
-	      ;; token-number may contain 0, 1, or more token_ids
+	      ;; token-number may contain 1 or more token_ids
 	      ;; the corresponding region may be empty
 	      ;; there may not have been a prev keyword
 	      (setq region (wisi-tok-region (aref wisi-tokens (1- (aref token-number 0)))))
 	      (when region ;; not an empty token
 		;; We must search for all targets at the same time, to
 		;; get the motion order right.
+		(unless start (setq start (car region)))
 		(goto-char (car region))
-		(setq cache (or (wisi-get-cache (point))
-				(wisi-forward-cache)))
+		(setq cache (wisi-get-cache (point)))
+		;;  FIXME: why do we need forward-cache?
+		;; (wisi-forward-cache)))
 		(while (< (point) (cdr region))
-		  (when (wisi--match-token cache token-number)
+		  (when (wisi--match-token cache token-number start)
 		    (setq mark (copy-marker (1+ (point))))
 
 		    (if prev-keyword-mark

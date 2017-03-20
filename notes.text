@@ -67,10 +67,12 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-test/debug.adb
+test/ada_mode-interactive_gps_fallback.adb
+    still hanging!
 
 
-c:/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.ads:50: error: (can’t find ’Ada.Containers.Bounded_Doubly_Linked_Lists’)
+test/ada_mode-nominal.adb
+    motion on function body wrong
 
 test-ada-gpr_query.stamp
 

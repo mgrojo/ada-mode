@@ -432,8 +432,14 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
-   protected type Protected_1 is
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- Protected_1"))
+   --EMACSRESULT:t
+   protected type Protected_1 is -- Protected_1
+      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "protected type Protected_1"))
+      --EMACSRESULT:t
+      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -460,7 +466,11 @@ is -- target 0
       --EMACSRESULT:t
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
-   private
+   private -- Protected_1
+     --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "is -- Protected_1"))
+   --EMACSRESULT:t
+     --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "; -- Protected_1"))
+   --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
@@ -471,7 +481,7 @@ is -- target 0
       Local_4 : Integer;
 
       -- A comment just before 'end'
-   end Protected_1;
+   end Protected_1; -- Protected_1
 
    type Protected_Interface_1 is protected interface;
 
@@ -715,7 +725,7 @@ is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "end Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "; -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 private -- Ada_Mode.Nominal
 
@@ -839,8 +849,8 @@ private -- Ada_Mode.Nominal
    type Incomplete_Type_4
      (<>) is tagged;
 
-end Ada_Mode.Nominal;
---EMACSCMD:(progn (forward-line -1) (ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+end Ada_Mode.Nominal; -- Ada_Mode.Nominal
+--EMACSCMD:(progn (forward-line -1) (ada-next-statement-keyword)(ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70

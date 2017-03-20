@@ -17,7 +17,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
     (condition-case err
-	(search-forward token (line-end-position))
+	(search-forward token (line-end-position 2))
       (error
        (error "can't find '%s'" token)))
 
