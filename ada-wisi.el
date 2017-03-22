@@ -71,7 +71,7 @@ comment:      comment"
      ((and (setq prev-indent
 		 (if (eq after 'comment)
 		     (progn (forward-comment -1) (current-column))
-		   (save-excursion (forward-line -1)(indent-according-to-mode)(current-indentation))))
+		   (save-excursion (forward-line -1)(current-indentation))))
 	   (= indent prev-indent))
       indent)
 
@@ -80,7 +80,7 @@ comment:      comment"
 		 ;; forward-line, because consecutive comment
 		 ;; lines are indented to the current one, which
 		 ;; we don't know yet.
-		 (save-excursion (forward-comment (point-max))(indent-according-to-mode)(current-indentation)))
+		 (save-excursion (forward-comment (point-max))(current-indentation)))
 	   (= indent next-indent))
       indent)
 
@@ -110,18 +110,19 @@ comment:      comment"
      )))
 
 (defun ada-wisi-comment ()
-  "Modify indentation of a comment to respect `ada-indent-comment-gnat'.
-For `wisi-indent-calculate-functions'."
+  "Modify indentation of a comment:
+For `wisi-indent-calculate-functions'.
+- align to previous comment after code.
+- respect `ada-indent-comment-gnat'."
   ;; We know we are at the first token on a line. We check for comment
   ;; syntax, not comment-start, to accomodate gnatprep, skeleton
   ;; placeholders, etc.
   ;;
   ;; The normal indentation algorithm has already indented the
   ;; comment.
-  (when (and ada-indent-comment-gnat
-	     (not (= (point) (point-max))) ;; no char after EOB!
-	     (= 11 (syntax-class (syntax-after (point)))))
+  (when (= 11 (syntax-class (syntax-after (point)))) ;; nil at eob
 
+    ;; We are looking at a comment; check for preceding comments, code
     (let (after
 	  (indent (current-column)))
       (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
@@ -146,16 +147,25 @@ For `wisi-indent-calculate-functions'."
 
       (cl-ecase after
 	(code
-	 (ada-wisi-comment-gnat indent 'code))
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code)
+	   indent))
 
 	(comment
-	 ;; assume previous line indented correctly
 	 indent)
 
 	(code-comment
-	 (ada-wisi-comment-gnat indent 'code-comment))
-	))
-    ))
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code-comment)
+
+	   ;; After comment that follows code on the same line
+	   ;; test/ada_mode-nominal.adb
+	   ;;
+	   ;; begin -- 2
+	   ;;       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "Bad_Thing"))
+	   (save-excursion (forward-comment -1)(current-column)))
+	 ))
+      )))
 
 (defun ada-wisi-post-parse-fail ()
   "For `wisi-post-parse-fail-hook'."

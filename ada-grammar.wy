@@ -789,7 +789,17 @@ entry_body
       (wisi-containing-action 1 9)
       (wisi-motion-action [1 4 6 8 12])
       (wisi-face-apply-action [2 font-lock-function-name-face 11 font-lock-function-name-face ])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0 ada-indent 0
+
+      ;; test/ada_mode-nominal.adb
+      ;; entry E2
+      ;;   (X : Integer)
+      ;;   when Local_1 = 0 and not
+      ;;     (Local_2 = 1)
+      ;;
+      ;; entry E3
+      ;;   (X : Integer) when Local_1 = 0 and not
+      ;;     (Local_2 = 1)
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (* 2 ada-indent-broken) 0 ada-indent 0
                              ada-indent 0 0 0]))
   ;
 
@@ -934,8 +944,12 @@ extended_return_statement
       (wisi-indent-action [0 ada-indent-broken 0 ada-indent 0 0 0]))
   | RETURN extended_return_object_declaration SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 statement-end])
-      (wisi-indent-action [0 ada-indent-broken 0]))
+      (wisi-statement-action [1 statement-start 3 statement-end]))
+      ;; indent the same as a simple return statment
+      ;; test/ada_mode-nominal.adb
+      ;; return B : Integer :=
+      ;;   (Local_Function);
+      ;; (wisi-indent-action [0 0 0]))
   ;
 
 ;; designator is merged with name
@@ -1317,7 +1331,7 @@ iterator_specification_opt
 label_opt
   : ;; empty
   | goto_label
-    (wisi-indent-action [ada-indent-label])
+    (wisi-indent-action [[ada-indent-label 0]])
   | IDENTIFIER COLON ;; on blocks, loops
     (wisi-indent-action [ada-indent-label 0])
   ;
@@ -1785,7 +1799,14 @@ raise_statement
   | RAISE name WITH expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 5 statement-end])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken (* 2 ada-indent-broken) 0]))
+      ;; test/ada_mode-nominal.adb
+      ;; raise Constraint_Error with
+      ;;   "help!";
+      ;;
+      ;; raise Constraint_Error
+      ;;   with Integer'Image (1) &
+      ;;   "help!";
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | RAISE name SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 statement-end])
@@ -2041,19 +2062,19 @@ single_task_declaration
       (wisi-containing-action 1 8)
       (wisi-motion-action [1 4 [8 PRIVATE]])
       (wisi-face-apply-action [2 font-lock-type-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent 0]))
+      (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent 0]))
   | TASK IDENTIFIER aspect_specification_opt IS task_definition SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 motion 6 statement-end])
       (wisi-containing-action 1 5)
       (wisi-motion-action [1 4 [5 PRIVATE]])
       (wisi-face-apply-action [2 font-lock-type-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent 0]))
+      (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent 0]))
   | TASK IDENTIFIER aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
       (wisi-face-apply-action [2 font-lock-type-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 ada-indent-broken 0 0]))
   ;
 
 ;; ignoring list of labels on one statement

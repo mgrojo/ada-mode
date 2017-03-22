@@ -68,7 +68,9 @@ install packages in -Q:
  compute indent via indent-actions in grammar
 
 test/ada_mode-nominal.adb
-    comment lines following trailing comment
+    comment after label; move ada-indent-label to uses of label_opt
+
+test comment after block label, before declare/begin
 
 test-ada-gpr_query.stamp
 

@@ -1175,8 +1175,8 @@ the wisi-tokens[token-number] region."
 
 (defun wisi--indent-token (tok token-delta comment-delta)
   "Add TOKEN-DELTA to all indents in TOK region, COMMENT-DELTA in following comment region."
-  (if (wisi-tok-nonterminal tok)
-      ;; comments are internal to tok
+  (if (null comment-delta)
+      ;; comments are internal to tok, with the same indentation
       (let ((line (min (or (wisi-tok-line tok) most-positive-fixnum)
 		       (or (wisi-tok-comment-line tok) most-positive-fixnum)))
 	    (end (max (or (wisi-tok-comment-end tok) 0)
@@ -1234,7 +1234,17 @@ For use in `wisi-indent-action' delta expressions.")
    ))
 
 (defun wisi-indent-action (deltas)
-  "Accumulate `wisi--indents' from DELTAS."
+  "Accumulate `wisi--indents' from DELTAS.
+DELTAS is an array; each element can be:
+- an integer
+- a symbol
+- a lisp form
+- an array.
+
+The first three are evaluated to give the delta. An array must
+have two elements, giving the code and following comment
+deltas. Otherwise the comment delta is the following delta in
+DELTAS."
   (when (eq wisi--parse-action 'indent)
     (dotimes (token-index (length wisi-tokens))
       (let* ((tok (aref wisi-tokens token-index))
@@ -1242,15 +1252,25 @@ For use in `wisi-indent-action' delta expressions.")
 	      (and (wisi-tok-line tok)
 		   (aref deltas token-index)))
 	     (comment-delta
-	      (and (not (wisi-tok-nonterminal tok))
-		   (wisi-tok-comment-line tok)
+	      (cond
+	       ((arrayp token-delta)
+		(aref token-delta 1))
+
+	       ((and (not (wisi-tok-nonterminal tok))
+		     (wisi-tok-comment-line tok)
 		   (< token-index (1- (length wisi-tokens)))
-		   (aref deltas (1+ token-index)))))
+		   (aref deltas (1+ token-index)))))))
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
 	  (setq token-delta
 		(when token-delta
-		  (wisi--indent-compute-delta token-delta tok)))
+		  (cond
+		   ((arrayp token-delta)
+		    (wisi--indent-compute-delta (aref token-delta 0) tok))
+
+		   (t
+		    (wisi--indent-compute-delta token-delta tok)))))
+
 	  (setq comment-delta
 		(when comment-delta
 		  (wisi--indent-compute-delta comment-delta tok)))
@@ -1651,8 +1671,7 @@ Called with BEGIN END.")
 
 	;; run wisi-indent-calculate-functions
 	(goto-char begin)
-	(setq end (min end (point-max))) ;; may have been marker moved by indent
-	(while (< (point) end)
+	(while (< (point) end-mark)
 	  (back-to-indentation)
 	  (setq indent
 		(run-hook-with-args-until-success 'wisi-indent-calculate-functions))

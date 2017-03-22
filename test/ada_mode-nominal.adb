@@ -144,7 +144,7 @@ is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                         "help!";
+                       "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when -- 2"))
                   when -- 3
@@ -222,9 +222,9 @@ is -- target 0
             --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when A | Nominal.B"))
             --EMACSRESULT:t
             case Param_1 is
-            -- comment after "is", before "when"
-            --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when C"))
-            --EMACSRESULT:t
+               -- comment after "is", before "when"
+               --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "when C"))
+               --EMACSRESULT:t
                when A | Nominal.B =>
                   goto Label_2;
                   --EMACSCMD:(progn (forward-line 2) (back-to-indentation) (ada-next-statement-keyword)(looking-at "; -- 7"))
@@ -244,7 +244,7 @@ is -- target 0
             end case; -- 7
             <<Label_2>> --  a sequence_of_statements can have a trailing label
          end return; -- 8
-         --EMACSCMD:(progn(forward-line -1)(forward-word 2)(ada-prev-statement-keyword)(looking-at "do"))
+                     --EMACSCMD:(progn(forward-line -1)(forward-word 2)(ada-prev-statement-keyword)(looking-at "do"))
       end; -- no F2 on purpose
 
       --EMACSCMD:(test-face "E1" 'font-lock-function-name-face)
@@ -270,9 +270,8 @@ is -- target 0
                   Local_1 := Local_1 + Local_1;
 
                   case Local_1 is
-                  -- 'exit when' was confused with 'case ... when'
-                  --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(ada-next-statement-keyword)(looking-at "when 2 =>"))
-                  --EMACSRESULT:t
+                     --EMACSCMD:(progn (forward-line 2)(ada-next-statement-keyword)(ada-next-statement-keyword)(looking-at "when 2 =>"))
+                     --EMACSRESULT:t
                      when 1 =>
                         exit when Tmp > 1;
                      when 2 => -- at one point, this was mis-refined as "when-exit"
@@ -332,8 +331,6 @@ is -- target 0
 
       entry E2
         (X : Integer)
-        -- an expression with 'not' to see if we need that in the
-        -- grammar (conflicts with 'not null')
         when Local_1 = 0 and not
           (Local_2 = 1)
       is
@@ -395,8 +392,8 @@ is -- target 0
      Priority => 5;
    task body Executive is
    begin -- target 5
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 5"))
-      --EMACSRESULT:t
+         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 5"))
+         --EMACSRESULT:t
 
       null;
    end Executive;

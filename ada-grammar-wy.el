@@ -171,8 +171,7 @@
       (abstract_subprogram_declaration
        ((overriding_indicator_opt subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-        (wisi-indent-action [0 0 0 0 0 0]))))
+        (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end]))))
       (accept_statement
        ((ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt DO handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn
@@ -513,7 +512,7 @@
         (wisi-containing-action 1 9)
         (wisi-motion-action [1 4 6 8 12])
         (wisi-face-apply-action [2 font-lock-function-name-face 11 font-lock-function-name-face ])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0 ada-indent 0
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (* 2 ada-indent-broken) 0 ada-indent 0
         ada-indent 0 0 0]))))
       (entry_body_formal_part
        ((LEFT_PAREN FOR IDENTIFIER IN discrete_subtype_definition RIGHT_PAREN parameter_profile_opt )
@@ -613,8 +612,7 @@
         (wisi-indent-action [0 ada-indent-broken 0 ada-indent 0 0 0])))
        ((RETURN extended_return_object_declaration SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 statement-end])
-        (wisi-indent-action [0 ada-indent-broken 0]))))
+        (wisi-statement-action [1 statement-start 3 statement-end]))))
       (factor
        ((primary STAR_STAR primary ))
        ((primary ))
@@ -897,7 +895,7 @@
       (label_opt
        (())
        ((goto_label )
-        (wisi-indent-action [ada-indent-label]))
+        (wisi-indent-action [[ada-indent-label 0]]))
        ((IDENTIFIER COLON )
         (wisi-indent-action [ada-indent-label 0])))
       (library_item
@@ -1236,7 +1234,7 @@
        ((RAISE name WITH expression_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (* 2 ada-indent-broken) 0])))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((RAISE name SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 statement-end])
@@ -1411,19 +1409,19 @@
         (wisi-containing-action 1 8)
         (wisi-motion-action [1 4 [8 PRIVATE]])
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent 0])))
+        (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent 0])))
        ((TASK IDENTIFIER aspect_specification_opt IS task_definition SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 motion 6 statement-end])
         (wisi-containing-action 1 5)
         (wisi-motion-action [1 4 [5 PRIVATE]])
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent 0])))
+        (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent 0])))
        ((TASK IDENTIFIER aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0]))))
+        (wisi-indent-action [0 ada-indent-broken 0 0]))))
       (statement
        ((label_opt simple_statement ))
        ((label_opt compound_statement )))
