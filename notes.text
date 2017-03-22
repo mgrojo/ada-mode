@@ -56,7 +56,7 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (load "autoloads.el")
   (require 'ada-mode)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_wisi.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_gps_fallback.adb")
   )
 
 install packages in -Q:
@@ -67,12 +67,8 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
-test/ada_mode-interactive_gps_fallback.adb
-    still hanging!
-
-
 test/ada_mode-nominal.adb
-    motion on function body wrong
+    comment lines following trailing comment
 
 test-ada-gpr_query.stamp
 

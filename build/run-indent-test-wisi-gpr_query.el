@@ -2,8 +2,6 @@
 
 (setq ada-xref-tool 'gpr_query)
 
-(setq ada-gps-indent-exec "no-such-program");; FIXME: don't use gps fallback, it seems to be broken
-
 (require 'run-indent-test)
 
 (setq wisi-debug 1);; report parse errors

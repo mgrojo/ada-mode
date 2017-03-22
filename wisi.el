@@ -877,16 +877,19 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	      )))))))
 
 (defun wisi--match-token (cache tokens start)
-  "Return t if CACHE has id from TOKENS and containing equal to START.
+  "Return t if CACHE has id from TOKENS and is at START or has containing equal to START.
+point must be at cache token start.
 TOKENS is a vector [number token_id token_id ...].
 number is ignored."
   (let ((i 1)
 	(done nil)
 	(result nil)
 	token)
-    (when (and (wisi-cache-containing cache)
-	       ;; containing points to cache, which is stored one char after token start.
-	       (= (1+ start) (wisi-cache-containing cache)))
+    (when (or (= start (point))
+	      (and (wisi-cache-containing cache)
+		   ;; containing points to cache, which is stored one
+		   ;; char after token start.
+		   (= (1+ start) (wisi-cache-containing cache))))
       (while (and (not done)
 		  (< i (length tokens)))
 	(setq token (aref tokens i))
@@ -1568,7 +1571,8 @@ Called with BEGIN END.")
   (forward-line -1);; safe at bob
   (back-to-indentation)
   (let ((col (current-column)))
-    (while (< (point) end)
+    (while (and (not (eobp))
+		(< (point) end))
       (forward-line 1)
       (indent-line-to col))))
 
@@ -1582,78 +1586,81 @@ Called with BEGIN END.")
 
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
-  (let* ((end-mark (copy-marker end))
-	 (wisi--parse-action 'indent)
-	 (line-count (1+ (count-lines (point-min) (point-max))))
-	 (wisi--indent
-	  (make-wisi-ind
-	   :region (cons begin end)
-	   :line-begin (make-vector line-count 0)
-	   :indent (make-vector line-count 0)
-	   :last-line nil))
-	 indent
-	 (anchor-indent nil))
+  (save-excursion
+    ;; align-region assumes indent-region does not move point
 
-    (wisi--set-line-begin)
-    (wisi--indent-leading-comments)
-    (wisi--run-parse)
+    (let* ((end-mark (copy-marker end))
+	   (wisi--parse-action 'indent)
+	   (line-count (1+ (count-lines (point-min) (point-max))))
+	   (wisi--indent
+	    (make-wisi-ind
+	     :region (cons begin end)
+	     :line-begin (make-vector line-count 0)
+	     :indent (make-vector line-count 0)
+	     :last-line nil))
+	   indent
+	   (anchor-indent nil))
 
-    (if wisi-parse-failed
-	(progn
-	  (setq wisi-indent-failed t)
-	  (setq indent (funcall wisi-indent-region-fallback begin end)))
+      (wisi--set-line-begin)
+      (wisi--indent-leading-comments)
+      (wisi--run-parse)
 
-      ;; parse succeeded
-      ;;
-      ;; apply indent action results
-      (goto-char begin)
+      (if wisi-parse-failed
+	  (progn
+	    (setq wisi-indent-failed t)
+	    (setq indent (funcall wisi-indent-region-fallback begin end)))
 
-      (dotimes (i (length (wisi-ind-indent wisi--indent)))
-	(let ((indent (aref (wisi-ind-indent wisi--indent) i)))
+	;; parse succeeded
+	;;
+	;; apply indent action results
+	(goto-char begin)
 
-	  (cond
-	   ((integerp indent)
-	    )
+	(dotimes (i (length (wisi-ind-indent wisi--indent)))
+	  (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
 
-	   ((consp indent)
-	    (cl-ecase (car indent)
-	      (anchor
-	       (setq anchor-indent (cdr indent))
-	       (setq indent anchor-indent))
+	    (cond
+	     ((integerp indent)
+	      )
 
-	      (anchored
-	       (setq indent (+ anchor-indent (cdr indent))))
-	      ))
+	     ((consp indent)
+	      (cl-ecase (car indent)
+		(anchor
+		 (setq anchor-indent (cdr indent))
+		 (setq indent anchor-indent))
 
-	   (t
-	    (error "wisi-indent-region: invalid form in wisi-ind-indent"))
-	   )
+		(anchored
+		 (setq indent (+ anchor-indent (cdr indent))))
+		))
 
-	  (let ((pos (aref (wisi-ind-line-begin wisi--indent) i)))
-	    (when (and (>= pos begin)
-		       (<= pos end))
-	      (goto-char pos)
-	      (indent-line-to indent)))
-	  ))
+	     (t
+	      (error "wisi-indent-region: invalid form in wisi-ind-indent"))
+	     )
 
-      (when wisi-indent-failed
-	;; previous parse failed
-	(setq wisi-indent-failed nil)
-	(goto-char end-mark)
-	(run-hooks 'wisi-post-indent-fail-hook))
+	    (let ((pos (aref (wisi-ind-line-begin wisi--indent) i)))
+	      (when (and (>= pos begin)
+			 (<= pos end))
+		(goto-char pos)
+		(indent-line-to indent)))
+	    ))
 
-      ;; run wisi-indent-calculate-functions
-      (goto-char begin)
-      (setq end (min end (point-max))) ;; may have been marker moved by indent
-      (while (< (point) end)
-	(back-to-indentation)
-	(setq indent
-	      (run-hook-with-args-until-success 'wisi-indent-calculate-functions))
-	(when indent
-	  (indent-line-to indent))
+	(when wisi-indent-failed
+	  ;; previous parse failed
+	  (setq wisi-indent-failed nil)
+	  (goto-char end-mark)
+	  (run-hooks 'wisi-post-indent-fail-hook))
 
-	(forward-line 1))
-      )))
+	;; run wisi-indent-calculate-functions
+	(goto-char begin)
+	(setq end (min end (point-max))) ;; may have been marker moved by indent
+	(while (< (point) end)
+	  (back-to-indentation)
+	  (setq indent
+		(run-hook-with-args-until-success 'wisi-indent-calculate-functions))
+	  (when indent
+	    (indent-line-to indent))
+
+	  (forward-line 1))
+	))))
 
 (defun wisi-indent-line ()
   "For `indent-line-function'."
