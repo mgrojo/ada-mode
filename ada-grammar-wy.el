@@ -1317,7 +1317,7 @@
         (wisi-containing-action 1 2)
         (wisi-containing-action 1 4)
         (wisi-motion-action [1 [2 OR WHEN] 3 7])
-        (wisi-indent-action [0 0 0 ada-indent 0 0 0])))
+        (wisi-indent-action [[0 ada-indent] 0 0 ada-indent 0 0 0])))
        ((SELECT select_alternative_list_opt END SELECT SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
@@ -1340,11 +1340,12 @@
        ((TERMINATE SEMICOLON )
         (wisi-statement-action [1 statement-start 2 statement-end])))
       (select_alternative_list
-       ((select_alternative ))
+       ((select_alternative )
+        (wisi-indent-action [ada-indent]))
        ((select_alternative_list OR select_alternative )
         (progn
         (wisi-statement-action [2 motion])
-        (wisi-indent-action [ada-indent 0 ada-indent]))))
+        (wisi-indent-action [0 0 ada-indent]))))
       (select_alternative_list_opt
        (())
        ((select_alternative_list )))

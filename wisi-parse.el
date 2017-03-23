@@ -108,11 +108,17 @@ point at which that max was spawned.")
   token  ;; symbol from a token table
   region ;; cons giving buffer region containing token text
 
-  line
-  ;; If parsing for indent, and token is the first token on a line,
-  ;; set to line number at start of token; otherwise nil.
-
   nonterminal ;; t if a nonterminal
+
+  ;; The following are set if parsing for indent.
+
+  line ;; Line number at start of token. Nil for empty nonterminals
+
+  first
+  ;; For terminals, t if token is the first token on a line.
+  ;; For nonterminals, line number of first contained terminal that is
+  ;; first on its line.
+  ;; Otherwise nil.
 
   ;; The following are non-nil if token is followed by blank or
   ;; comment lines, or if not parsing for indent. For nonterminals,
@@ -554,7 +560,7 @@ the first and last tokens of the nonterminal."
 	 (post-reduce-state (aref stack (- sp (* 2 token-count))))
 	 (new-state (cdr (assoc nonterm (aref gotos post-reduce-state))))
 	 (tokens (make-vector token-count nil))
-	 line comment-line comment-end)
+	 line first comment-line comment-end)
 
     (when (not new-state)
       (error "no goto for %s %d" nonterm post-reduce-state))
@@ -565,24 +571,25 @@ the first and last tokens of the nonterminal."
 	  ;; don't need wisi-tokens for a null user action
 	  (aset tokens (- token-count i 1) tok))
 	(when (eq wisi--parse-action 'indent)
-	  (when (wisi-tok-line tok)
-	    (setq line (if line (min line (wisi-tok-line tok)) (wisi-tok-line tok))))
+	  (setq line (wisi-tok-line tok))
+	  (if (wisi-tok-nonterminal tok)
+	      (when (wisi-tok-first tok)
+		(setq first (wisi-tok-first tok)))
+	    (when (wisi-tok-first tok)
+	      (setq first (wisi-tok-line tok))))
 	  (when (wisi-tok-comment-line tok)
-	    (if comment-line
-		(progn
-		  (setq comment-line (min comment-line (wisi-tok-comment-line tok)))
-		  (setq comment-end  (max comment-end  (wisi-tok-comment-end  tok))))
-	      (setq comment-line (wisi-tok-comment-line tok))
-	      (setq comment-end  (wisi-tok-comment-end  tok))
-	      )))))
+	    (setq comment-line (wisi-tok-comment-line tok))
+	    (setq comment-end  (wisi-tok-comment-end  tok))
+	    ))))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp)
 	  (make-wisi-tok
 	   :token nonterm
 	   :region nonterm-region
-	   :line line
 	   :nonterminal t
+	   :line line
+	   :first first
 	   :comment-line comment-line
 	   :comment-end comment-end))
     (aset stack sp new-state)

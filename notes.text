@@ -67,8 +67,10 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
+test/debug.adb
+
 test/ada_mode-nominal.adb
-    comment after label; move ada-indent-label to uses of label_opt
+    Function_Access_11 indent second return
 
 test comment after block label, before declare/begin
 
