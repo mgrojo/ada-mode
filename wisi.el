@@ -1227,32 +1227,20 @@ the wisi-tokens[token-number] region."
 
 (defun wisi--indent-token (tok token-delta comment-delta)
   "Add TOKEN-DELTA to all indents in TOK region, COMMENT-DELTA in following comment region."
-  (if (and (wisi-tok-nonterminal tok)
-	   (null comment-delta))
-      ;; comments are internal to tok, with the same indentation
-      (let ((line (min (or (wisi-tok-first tok) most-positive-fixnum)
-		       (or (wisi-tok-comment-line tok) most-positive-fixnum)))
-	    (end (max (or (wisi-tok-comment-end tok) 0)
-		      (cdr (wisi-tok-region tok)))))
-	(when (and line end)
-	  (wisi--indent-token-1 line end token-delta)))
+  ;; token
+  (let ((line (if (wisi-tok-nonterminal tok)
+		  (wisi-tok-first tok)
+		(when (wisi-tok-first tok) (wisi-tok-line tok))))
+	(end (cdr (wisi-tok-region tok))))
+    (when (and line end token-delta)
+      (wisi--indent-token-1 line end token-delta)))
 
-    ;; tok is terminal or nonterminal with explicit comment-delta
-
-    ;; token
-    (let ((line (if (wisi-tok-nonterminal tok)
-		    (wisi-tok-first tok)
-		  (when (wisi-tok-first tok) (wisi-tok-line tok))))
-	  (end (cdr (wisi-tok-region tok))))
-      (when (and line end)
-	(wisi--indent-token-1 line end token-delta)))
-
-    ;; comment
-    (let* ((line (wisi-tok-comment-line tok))
-	   (end (wisi-tok-comment-end tok)))
-      (when (and line end)
-	(wisi--indent-token-1 line end comment-delta)))
-    ))
+  ;; comment
+  (let ((line (wisi-tok-comment-line tok))
+	(end (wisi-tok-comment-end tok)))
+    (when (and line end comment-delta)
+      (wisi--indent-token-1 line end comment-delta)))
+  )
 
 (defun wisi-anchored-delta (token-number offset)
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
@@ -1290,6 +1278,10 @@ For use in grammar indent actions."
    ((symbolp delta)
     (symbol-value delta))
 
+   ((vectorp delta)
+    ;; [token comment] as comment indent from preceding delta
+    (wisi--indent-compute-delta (aref delta 0) tok))
+
    (t
     (save-excursion
       (goto-char (car (wisi-tok-region tok)))
@@ -1319,10 +1311,11 @@ DELTAS."
 	       ((vectorp token-delta)
 		(aref token-delta 1))
 
-	       ((and (not (wisi-tok-nonterminal tok))
-		     (wisi-tok-comment-line tok)
-		   (< token-index (1- (length wisi-tokens)))
-		   (aref deltas (1+ token-index)))))))
+	       ((and (wisi-tok-comment-line tok)
+		     (< token-index (1- (length wisi-tokens))))
+		(aref deltas (1+ token-index)))
+	       ))
+	     )
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
 	  (setq token-delta
@@ -1710,7 +1703,7 @@ Called with BEGIN END.")
 		 (while (member (length anchor-indent) (nth 1 indent))
 		   (pop anchor-indent))
 
-		 (dotimes (ai (length (nth 1 indent)))
+		 (dotimes (_i (length (nth 1 indent)))
 		   (push (nth 2 indent) anchor-indent))
 
 		 (setq indent (car anchor-indent)))
@@ -1729,7 +1722,7 @@ Called with BEGIN END.")
 
 	      (let* ((cur-anchor (car anchor-indent))
 		     (new-indent (+ cur-anchor (nth 2 (aref indent 1)))))
-		(dotimes (ai (length (nth 1 (aref indent 0))))
+		(dotimes (_i (length (nth 1 (aref indent 0))))
 		  (push new-indent anchor-indent))
 		(setq indent new-indent)
 		))

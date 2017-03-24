@@ -67,9 +67,18 @@ install packages in -Q:
 
  compute indent via indent-actions in grammar
 
+tab indents two lines
+
+indent vector
+    [(anchor nest 0) (anchored nest delta)]
+    should be:
+    (anchor nest (anchored nest delta))
+
 test/debug.adb
 
 test/ada_mode-nominal.adb
+    Function_1c return expression; hanging
+    (wisi-indent-hanging ada-indent-broken (* 2 ada-indent-broken))
 
 test/ada_mode-parens.adb
 

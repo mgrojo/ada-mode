@@ -454,8 +454,8 @@ is -- target 0
       select
          delay 1.0;
       then
-         -- The comment after 'null' below has no space between ';'
-         -- and '--'
+        -- The comment after 'null' below has no space between ';'
+        -- and '--'
 
         abort -- ada-mode 4.01 broken indent
          null;-- ada-mode 4.01 gets this wrong; it uses another broken indent.
@@ -488,8 +488,8 @@ is -- target 0
    procedure Procedure_1f (Item : in out Parent_Type_1)
    is
    begin -- target 6
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 6"))
-      --EMACSRESULT:t
+         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "begin -- target 6"))
+         --EMACSRESULT:t
       null;
    end Procedure_1f;
 

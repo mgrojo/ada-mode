@@ -120,12 +120,8 @@ point at which that max was spawned.")
   ;; first on its line.
   ;; Otherwise nil.
 
-  ;; The following are non-nil if token is followed by blank or
-  ;; comment lines, or if not parsing for indent. For nonterminals,
-  ;; `comment-line' is the first blank or comment line in the
-  ;; nonterminal region, and `comment-end' is the end of the last
-  ;; blank or comment line in or immediately following the nonterminal
-  ;; region.
+  ;; The following are non-nil if token (terminal or non-terminal) is
+  ;; followed by blank or comment lines, or if not parsing for indent.
   comment-line ;; first blank or comment line following token
   comment-end ;; position at end of blank or comment lines
   )
@@ -529,10 +525,11 @@ Return nil."
     (setf (wisi-parser-state-active parser-state) 'reduce))
    ))
 
-(defun wisi-nonterm-bounds (stack i j)
-  "Return a pair (START . END), the buffer region for a nonterminal.
-STACK is the parser stack.  I and J are the indices in STACK of
-the first and last tokens of the nonterminal."
+(defun wisi-first-last (stack i j)
+  "Return a pair (FIRST . LAST), indices for the first and last
+non-empty tokens for a nonterminal; or nil if all tokens are
+empty. STACK is the parser stack.  I and J are the indices in
+STACK of the first and last tokens of the nonterminal."
   (let ((start (car (wisi-tok-region (aref stack i))))
         (end   (cdr (wisi-tok-region (aref stack j)))))
     (while (and (or (not start) (not end))
@@ -547,7 +544,10 @@ the first and last tokens of the nonterminal."
 	(setq end (cdr (wisi-tok-region (aref stack (setq j (- j 2)))))))
 
        (t (setq i j))))
-    (and start end (cons start end))))
+
+    (when (and start end)
+      (cons i j))
+    ))
 
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
@@ -555,8 +555,12 @@ the first and last tokens of the nonterminal."
 	 (sp (wisi-parser-state-sp parser-state)); copy
 	 (token-count (nth 2 action))
 	 (nonterm (nth 0 action))
-	 (nonterm-region (when (> token-count 0)
-			   (wisi-nonterm-bounds stack (- sp (* 2 (1- token-count)) 1) (1- sp))))
+	 (first-last (when (> token-count 0)
+		       (wisi-first-last stack (- sp (* 2 (1- token-count)) 1) (1- sp))))
+	 (nonterm-region (when first-last
+			   (cons
+			    (car (wisi-tok-region (aref stack (car first-last))))
+			    (cdr (wisi-tok-region (aref stack (cdr first-last)))))))
 	 (post-reduce-state (aref stack (- sp (* 2 token-count))))
 	 (new-state (cdr (assoc nonterm (aref gotos post-reduce-state))))
 	 (tokens (make-vector token-count nil))
@@ -570,6 +574,7 @@ the first and last tokens of the nonterminal."
 	(when (nth 1 action)
 	  ;; don't need wisi-tokens for a null user action
 	  (aset tokens (- token-count i 1) tok))
+
 	(when (eq wisi--parse-action 'indent)
 	  (setq line (wisi-tok-line tok))
 	  (if (wisi-tok-nonterminal tok)
@@ -577,10 +582,14 @@ the first and last tokens of the nonterminal."
 		(setq first (wisi-tok-first tok)))
 	    (when (wisi-tok-first tok)
 	      (setq first (wisi-tok-line tok))))
-	  (when (wisi-tok-comment-line tok)
-	    (setq comment-line (wisi-tok-comment-line tok))
-	    (setq comment-end  (wisi-tok-comment-end  tok))
-	    ))))
+	  )))
+
+    (when (and (eq wisi--parse-action 'indent)
+	       first-last)
+      (let ((tok (aref stack (cdr first-last))))
+	(when (wisi-tok-comment-line tok)
+	  (setq comment-line (wisi-tok-comment-line tok))
+	  (setq comment-end (wisi-tok-comment-end tok)))))
 
     (setq sp (+ 2 (- sp (* 2 token-count))))
     (aset stack (1- sp)
