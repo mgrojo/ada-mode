@@ -1131,11 +1131,34 @@ the wisi-tokens[token-number] region."
 
 (defun wisi--indent-token-1 (line end delta)
   (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
+	(paren-first (when (and (listp delta)
+				(eq 'hanging (car delta)))
+		       (nth 2 delta)))
 	indent)
+
     (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
       (setq indent (aref (wisi-ind-indent wisi--indent) i))
 
-      (aset (wisi-ind-indent wisi--indent) i (+ delta indent))
+      (cond
+       ((integerp delta)
+	(aset (wisi-ind-indent wisi--indent) i (+ delta indent)))
+
+       ((and (listp delta)
+	     (eq 'hanging (car delta)))
+	;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
+	(if (= i (1- (nth 1 delta)))
+	    ;; first line of token
+	    (aset (wisi-ind-indent wisi--indent) i (+ (nth 3 delta) indent))
+
+	  ;; hanging lines
+	  (when (= paren-first
+		   (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
+	    ;; don't apply hanging indent in nested parens.
+	    (aset (wisi-ind-indent wisi--indent) i (+ (nth 4 delta) indent)))
+	  ))
+       (t
+	(error "wisi--indent-token-1: invalid delta: %s" delta))
+       )
 
       (setq i (1+ i))
       )))
@@ -1166,6 +1189,36 @@ For use in grammar indent actions."
     (goto-char pos)
     (+ offset (- (current-column) (current-indentation)))
     ))
+
+(defvar wisi-token-index nil
+  "Index of current token in `wisi-tokens'.
+Let-bound in `wisi-indent-action', for grammar actions.")
+
+(defun wisi-hanging (delta1 delta2)
+  "Return indent with DETLA1 for first line, DELTA2 for following lines.
+For use in grammar indent actions."
+  (let ((tok (aref wisi-tokens wisi-token-index)))
+    ;; tok is a nonterminal; this function makes no sense for terminals
+
+    (if (= (wisi-tok-first tok) (wisi-tok-line tok))
+	;; first token in nonterminal is also first on a line; apply hangning
+	;; test/ada_mode-nominal.adb
+	;; return
+	;;   Local_1 +
+	;;     Local_2 +
+	;;     Local_3;
+	(list 'hanging
+	      (wisi-tok-line tok) ;; first line of token
+	      (nth 0 (syntax-ppss (car (wisi-tok-region tok)))) ;; paren nest level at tok
+	      delta1
+	      delta2)
+
+      ;; don't apply hangning
+      ;; test/ada_mode-nominal.adb
+      ;; return 1.0 +
+      ;;   Function_2a (Parent_Type_1'(1, 2.0, False)) +
+      ;;   12.0;
+      delta1)))
 
 (defun wisi--indent-compute-delta (delta tok)
   "Return evaluation of DELTA."
@@ -1199,31 +1252,26 @@ have two elements, giving the code and following comment
 deltas. Otherwise the comment delta is the following delta in
 DELTAS."
   (when (eq wisi--parse-action 'indent)
-    (dotimes (token-index (length wisi-tokens))
-      (let* ((tok (aref wisi-tokens token-index))
+    (dotimes (wisi-token-index (length wisi-tokens))
+      (let* ((tok (aref wisi-tokens wisi-token-index))
 	     (token-delta
 	      (and (wisi-tok-first tok)
-		   (aref deltas token-index)))
+		   (aref deltas wisi-token-index)))
 	     (comment-delta
 	      (cond
 	       ((vectorp token-delta)
 		(aref token-delta 1))
 
 	       ((and (wisi-tok-comment-line tok)
-		     (< token-index (1- (length wisi-tokens))))
-		(aref deltas (1+ token-index)))
+		     (< wisi-token-index (1- (length wisi-tokens))))
+		(aref deltas (1+ wisi-token-index)))
 	       ))
 	     )
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
 	  (setq token-delta
 		(when token-delta
-		  (cond
-		   ((vectorp token-delta)
-		    (wisi--indent-compute-delta (aref token-delta 0) tok))
-
-		   (t
-		    (wisi--indent-compute-delta token-delta tok)))))
+		  (wisi--indent-compute-delta token-delta tok)))
 
 	  (setq comment-delta
 		(when comment-delta

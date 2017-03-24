@@ -590,7 +590,8 @@
        ((relation_xor_list )))
       (expression_opt
        (())
-       ((expression )))
+       ((expression )
+        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])))
       (expression_function_declaration
        ((overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON )
         (progn

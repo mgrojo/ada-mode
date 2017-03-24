@@ -510,7 +510,6 @@ is -- target 0
       Procedure_2a;
       return 1.0 +
         Function_2a (Parent_Type_1'(1, 2.0, False)) +
-        -- multi-line expression that happens to have a cache at a line start
         12.0;
       --EMACSCMD:(test-face "Function_1a" 'font-lock-function-name-face)
    end Function_1a;
@@ -559,7 +558,7 @@ is -- target 0
    function Function_1d return Float
    is begin
       Procedure_2a
-        ; -- hanging statement, to test that declare does not indent on it
+      ; -- pathological case; we don't really care what this indent is
       Procedure_2a;
 
       declare -- no label, two statements between begin, declare
@@ -624,8 +623,7 @@ is -- target 0
          3
            => (others => 3.0));
    begin
-      Procedure_2a
-        ;
+      Procedure_2a;
 
       -- second begin block
       begin

@@ -70,10 +70,10 @@ install packages in -Q:
 tab indents two lines
 
 test/debug.adb
+    function_2f; return indented wrong
 
 test/ada_mode-nominal.adb
-    Function_1c return expression; hanging
-    (wisi-indent-hanging ada-indent-broken (* 2 ada-indent-broken))
+
 
 test/ada_mode-parens.adb
 

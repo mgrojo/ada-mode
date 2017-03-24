@@ -913,6 +913,7 @@ expression
 expression_opt
   : ;; empty for user friendly
   | expression
+    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])
   ;
 
 expression_function_declaration
