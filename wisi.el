@@ -1180,7 +1180,7 @@ the wisi-tokens[token-number] region."
       (wisi--indent-token-1 line end comment-delta)))
   )
 
-(defun wisi-anchored-delta (token-number offset)
+(defun wisi-anchored (token-number offset)
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
 For use in grammar indent actions."
   (let* ((tok (aref wisi-tokens (1- token-number)))

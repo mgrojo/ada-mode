@@ -71,6 +71,10 @@ tab indents two lines
 
 test/debug.adb
     function_2f; return indented wrong
+    need a way to not apply ada-indent-broken from function_declaration
+        but do apply all others
+        rewrite grammar indent?
+        provide ada-indent-return
 
 test/ada_mode-nominal.adb
 
