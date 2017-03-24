@@ -314,7 +314,8 @@ accept_statement
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   ;
 
-access_definition ;; same as access_type_definition for our purposes
+;; same as access_type_definition for our purposes
+access_definition
   : null_exclusion_opt ACCESS general_access_modifier_opt name
     (wisi-face-apply-action [4 font-lock-type-face])
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt

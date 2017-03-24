@@ -124,6 +124,19 @@ package body Ada_Mode.Parens is
          (7, 8, 9),
          (10, 11, 12));
 
+      type Tensor_Type is array (1 ..2) of Matrix_Type;
+      B : Tensor_Type :=
+        (((1,
+           2, 3),
+          (4,
+           5, 6),
+          (7, 8, 9),
+          (10, 11, 12)),
+         ((1, 2, 3),
+          (4, 5, 6),
+          (7, 8, 9),
+          (10, 11, 12)));
+
       function To_Array (First : in Integer) return Array_Type_1
       is begin
          return

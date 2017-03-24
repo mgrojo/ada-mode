@@ -152,7 +152,7 @@ Examples:
   "Indentation for `return' relative to the matching `function' keyword.
 
 If the function has parameters, then if `ada-indent-return' is
-zero or less the indentation is abs `ada-indent-return' relative
+zero or less, the indentation is abs `ada-indent-return' relative
 to the open parenthesis; if `ada-indent-return' is one or more,
 indentation is relative to line containing `function'.
 

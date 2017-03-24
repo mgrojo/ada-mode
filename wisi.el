@@ -137,19 +137,24 @@
 
 (cl-defstruct wisi-ind
   ;; data used while running parser for indent.
-  region ;; region being indented.
-
   indent
   ;; vector of indentation for all lines in buffer
   ;; each element can be one of:
   ;; - integer : indent
-  ;; - cons ('anchor . indent)  : base indent for following 'anchored lines
+  ;;
+  ;; - list ('anchor NEST indent)  :
+  ;; indent for current line, base indent for following 'anchored
+  ;; lines; for opening parens
   ;;
   ;; - list ('anchored nest delta) :
-  ;; indent = delta + 'anchor line indent; for parens
+  ;; indent = delta + 'anchor line indent; for lines inside parens
   ;; nest is nesting level of parens
   ;;
-  ;; - vector [('anchor , indent) ('anchored nest delta)] : for nested parens
+  ;; - vector [('anchor NEST 0) ('anchored nest delta)]
+  ;; for nested parens
+  ;;
+  ;; NEST in an 'anchor form is the nesting level of an open paren; it
+  ;; is a list, for multiple left parens on a single line.
 
   line-begin ;; vector of beginning-of-line positions in buffer
   last-line ;; index into line-begin of line containing last token
@@ -1141,6 +1146,11 @@ the wisi-tokens[token-number] region."
 	(setq i (1+ i))
 	))))
 
+(defun wisi--inc-anchor-nest (indent)
+  (dotimes (i (length (nth 1 indent)))
+    (setf (nth i (nth 1 indent)) (1+ (nth i (nth 1 indent))))
+    ))
+
 (defun wisi--indent-token-1 (line end delta)
   (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
 	indent)
@@ -1156,20 +1166,21 @@ the wisi-tokens[token-number] region."
 	 ((consp indent)
 	  (cl-ecase (car indent)
 	    (anchor
-	     (setcdr indent (+ delta (cdr indent))))
+	     (setf (nth 2 indent) (+ delta (nth 2 indent))))
 	    (anchored
 	     ;; not affected by this indent
 	     )))
 
 	 ((vectorp indent)
-	  (setcdr (aref indent 0) (+ delta (cdr (aref indent 0)))))
+	  ;; not affected by this indent
+	  )
 
 	 (t
 	  (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
 	 ))
 
        ((and (consp delta)
-	     (eq 'anchored (car delta))) ;; from wisi-token-delta
+	     (eq 'anchored (car delta))) ;; from wisi-anchored-delta
 	(cond
 	 ((integerp indent)
 	  (let ((temp (copy-sequence delta)))
@@ -1179,17 +1190,29 @@ the wisi-tokens[token-number] region."
 	 ((consp indent)
 	  (cl-ecase (car indent)
 	    (anchor
+	     (wisi--inc-anchor-nest indent)
+
+	     ;; accumulate delta
 	     (let ((temp (copy-sequence delta)))
-	       (setf (nth 2 temp) (+ (cdr indent) (nth 2 temp)))
+	       (setf (nth 2 temp) (+ (nth 2 indent) (nth 2 temp)))
+	       (setf (nth 2 indent) 0)
 	       (aset (wisi-ind-indent wisi--indent) i
 		     (vector indent temp))))
+
 	    (anchored
 	     ;; increase nest level
 	     (setf (nth 1 indent) (1+ (nth 1 indent)))
 	     )))
 
-	 ;; Can't have vector indent here; that would be one line with
-	 ;; two anchors.
+	 ((vectorp indent)
+	  (let ((anchored (aref indent 1)))
+
+	    ;; increase anchor nest level
+	    (wisi--inc-anchor-nest (aref indent 0))
+
+	    ;; increase anchored nest level
+	    (setf (nth 1 anchored) (1+ (nth 1 anchored)))
+	    ))
 
 	 (t
 	  (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
@@ -1236,9 +1259,22 @@ the wisi-tokens[token-number] region."
 For use in grammar indent actions."
   (let* ((tok (aref wisi-tokens (1- token-number)))
 	 (i (1- (wisi-tok-line tok)))
-	 (pos (car (wisi-tok-region tok))))
+	 (pos (car (wisi-tok-region tok)))
+	 (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if non-scalar
 
-    (aset (wisi-ind-indent wisi--indent) i (cons 'anchor (aref (wisi-ind-indent wisi--indent) i)))
+    (cond
+     ((integerp indent)
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
+
+     ((and (listp indent)
+	   (eq 'anchor (car indent)))
+      (push (1+ (car (nth 1 indent))) (nth 1 indent)))
+
+     ((vectorp indent)
+      (push (1+ (car (nth 1 (aref indent 0)))) (nth 1 (aref indent 0))))
+
+     (t
+      (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
 
     (save-excursion
       (goto-char pos)
@@ -1306,7 +1342,7 @@ DELTAS."
 			 (or (consp token-delta)
 			     (not (= 0 token-delta))))
 		    (and comment-delta
-			 (or (consp token-delta)
+			 (or (consp comment-delta)
 			     (not (= 0 comment-delta)))))
 	    (wisi--indent-token tok token-delta comment-delta))
 	  )))))
@@ -1641,7 +1677,6 @@ Called with BEGIN END.")
 	   (line-count (1+ (count-lines (point-min) (point-max))))
 	   (wisi--indent
 	    (make-wisi-ind
-	     :region (cons begin end)
 	     :line-begin (make-vector line-count 0)
 	     :indent (make-vector line-count 0)
 	     :last-line nil))
@@ -1671,7 +1706,13 @@ Called with BEGIN END.")
 	     ((consp indent)
 	      (cl-ecase (car indent)
 		(anchor
-		 (push (cdr indent) anchor-indent)
+		 ;; finish previous anchor at same level
+		 (while (member (length anchor-indent) (nth 1 indent))
+		   (pop anchor-indent))
+
+		 (dotimes (ai (length (nth 1 indent)))
+		   (push (nth 2 indent) anchor-indent))
+
 		 (setq indent (car anchor-indent)))
 
 		(anchored
@@ -1682,9 +1723,15 @@ Called with BEGIN END.")
 		))
 
 	     ((vectorp indent)
-	      (let ((cur-anchor (car anchor-indent)))
-		(push (cdr (aref indent 0)) anchor-indent);; new anchor
-		(setq indent (+ cur-anchor (nth 2 (aref indent 1)))) ;; anchored to current anchor
+	      ;; finish previous anchor at same level
+	      (while (member (length anchor-indent) (nth 1 (aref indent 0)))
+		(pop anchor-indent))
+
+	      (let* ((cur-anchor (car anchor-indent))
+		     (new-indent (+ cur-anchor (nth 2 (aref indent 1)))))
+		(dotimes (ai (length (nth 1 (aref indent 0))))
+		  (push new-indent anchor-indent))
+		(setq indent new-indent)
 		))
 
 	     (t
@@ -1751,7 +1798,6 @@ Called with BEGIN END.")
 	 (line-count (1+ (count-lines (point-min) (point-max))))
 	 (wisi--indent
 	  (make-wisi-ind
-	   :region (cons (point-min) (point-max))
 	   :line-begin (make-vector line-count 0)
 	   :indent (make-vector line-count 0)
 	   :last-line nil)))

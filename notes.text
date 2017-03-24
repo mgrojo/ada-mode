@@ -70,7 +70,9 @@ install packages in -Q:
 test/debug.adb
 
 test/ada_mode-nominal.adb
-    Function_Access_11 indent second return
+
+test/ada_mode-parens.adb
+
 
 test comment after block label, before declare/begin
 
