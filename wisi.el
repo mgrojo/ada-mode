@@ -439,8 +439,10 @@ wisi-forward-token, but does not look up symbol."
   (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%d" (current-buffer) after))
   (move-marker (wisi-cache-max 'face) after)
   (move-marker (wisi-cache-max 'navigate) after)
+  (move-marker (wisi-cache-max 'indent) after)
   (wisi-set-parse-try t 'face)
   (wisi-set-parse-try t 'navigate)
+  (wisi-set-parse-try t 'indent)
   (wisi--delete-cache after)
   )
 
@@ -508,13 +510,16 @@ wisi-forward-token, but does not look up symbol."
 	(setq end-state (syntax-ppss end)))
 	;; syntax-ppss has moved point to "end".
 
-      (if (<= (wisi-cache-max) begin)
+      (if (or (<= (wisi-cache-max 'face) begin)
+	      (<= (wisi-cache-max 'navigate) begin)
+	      (<= (wisi-cache-max 'indent) begin))
 	  ;; Change is in unvalidated region
 	  (when wisi-parse-failed
 	    ;; The parse was failing, probably due to bad syntax; this
 	    ;; change may have fixed it, so try reparse.
 	    (wisi-set-parse-try t 'face)
-	    (wisi-set-parse-try t 'navigate))
+	    (wisi-set-parse-try t 'navigate)
+	    (wisi-set-parse-try t 'indent))
 
 	;; Change is in validated region
 	;; (info "(elisp)Parser State")
@@ -528,27 +533,27 @@ wisi-forward-token, but does not look up symbol."
 	   (nth 3 begin-state); in string
 	   (nth 3 end-state))
 	  ;; no easy way to tell if there is intervening non-string
-          ;; FIXME: Of course there is, just test if
-          ;;    (= (nth 8 begin-state) (nth 8 end-state))
+          ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
 	  (setq need-invalidate nil))
 
 	 ((and
 	   (nth 4 begin-state)
 	   (nth 4 end-state)); in comment
 	  ;; no easy way to detect intervening non-comment
-          ;; FIXME: Of course there is, just test if
-          ;;    (= (nth 8 begin-state) (nth 8 end-state))
+          ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
 	  (setq need-invalidate nil)
 	  ;; no caches to remove
 	  )
 
-	 ;; Adding whitespace generally does not require parse, but in
+	 ;; Adding whitespace affects indentation, but generally does
+	 ;; not require parse for syntax (face and navigation), but in
 	 ;; the middle of word it does; check that there was
 	 ;; whitespace on at least one side of the inserted text.
 	 ;;
 	 ;; We are not in a comment (checked above), so treat
 	 ;; comment end as whitespace in case it is newline
 	 ((and
+	   (not (eq wisi--parse-action 'indent))
 	   (or
 	    (memq (car (syntax-after (1- begin))) '(0 12)); whitespace, comment end
 	    (memq (car (syntax-after end)) '(0 12)))
@@ -569,7 +574,7 @@ wisi-forward-token, but does not look up symbol."
 	 )
 
 	(when need-invalidate
-	    (wisi-invalidate-cache need-invalidate))
+	  (wisi-invalidate-cache need-invalidate))
 	))
     ))
 
@@ -625,11 +630,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(save-excursion
 	  (wisi-parse wisi-parse-table #'wisi-forward-token)
 	  (setq wisi-parse-failed nil)
-	  (cl-ecase wisi--parse-action
-	    ((face navigate)
-	     (move-marker (wisi-cache-max) (point)))
-	    (indent nil)
-	    ))
+	  (move-marker (wisi-cache-max) (point))
+	  )
       (wisi-parse-error
        (cl-ecase wisi--parse-action
 	 ((face navigate)
@@ -655,17 +657,22 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defvar-local wisi--last-parse-action nil
   "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
 
+(defun wisi--check-change ()
+  "Process `wisi--change-beg', `wisi--change-end'.
+`wisi--parse-action' must be bound."
+  (when (<= wisi--change-beg wisi--change-end)
+    ;; There have been buffer changes since last parse. so make sure
+    ;; we update the existing parsing data first.
+    (let ((beg wisi--change-beg)
+	  (end (marker-position wisi--change-end)))
+      (setq wisi--change-beg most-positive-fixnum)
+      (move-marker wisi--change-end (point-min))
+      (wisi--post-change beg end))))
+
 (defun wisi-validate-cache (pos error-on-fail parse-action)
   "Ensure cached data for PARSE-ACTION is valid at least up to POS in current buffer."
   (let ((wisi--parse-action parse-action))
-    (when (<= wisi--change-beg wisi--change-end)
-      ;; There have been buffer changes since last parse. so make sure
-      ;; we update the existing parsing data first.
-      (let ((beg wisi--change-beg)
-	    (end (marker-position wisi--change-end)))
-	(setq wisi--change-beg most-positive-fixnum)
-	(move-marker wisi--change-end (point-min))
-	(wisi--post-change beg end)))
+    (wisi--check-change)
 
     ;; Now we can rely on wisi-cache-max.
 
@@ -675,11 +682,11 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
       ;; Don't keep retrying failed parse until text changes again.
       (wisi-set-parse-try nil)
+      (setq wisi--last-parse-action wisi--parse-action)
+
       (setq wisi-end-caches nil);; only used by navigate
 
       (wisi--run-parse)
-
-      (setq wisi--last-parse-action wisi--parse-action)
 
       (when (and error-on-fail (not (>= (wisi-cache-max) pos)))
 	(error "parse failed"))
@@ -1608,57 +1615,69 @@ Called with BEGIN END.")
 
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
-  (save-excursion
-    ;; align-region assumes indent-region does not move point
+  (let ((wisi--parse-action 'indent))
+    (wisi--check-change)
 
-    (let* ((end-mark (copy-marker end))
-	   (wisi--parse-action 'indent)
-	   (line-count (1+ (count-lines (point-min) (point-max))))
-	   (wisi--indent
-	    (make-wisi-ind
-	     :line-begin (make-vector line-count 0)
-	     :indent (make-vector line-count 0)
-	     :last-line nil)))
+    ;; align calls indent on the same region once for each rule
+    ;; processed; we do nothing unless the buffer has changed.
 
-      (wisi--set-line-begin)
-      (wisi--indent-leading-comments)
-      (wisi--run-parse)
+    (when (and (wisi-parse-try)
+	       (<= (wisi-cache-max) end))
 
-      (if wisi-parse-failed
-	  (progn
-	    (setq wisi-indent-failed t)
-	    (funcall wisi-indent-region-fallback begin end))
+      (wisi-set-parse-try nil)
+      (setq wisi--last-parse-action wisi--parse-action)
 
-	;; parse succeeded
-	;;
-	;; apply indent action results
-	(goto-char begin)
+      (save-excursion
+	;; align-region assumes indent-region does not move point
 
-	(dotimes (i (length (wisi-ind-indent wisi--indent)))
-	  (let ((indent (aref (wisi-ind-indent wisi--indent) i))
-		(pos (aref (wisi-ind-line-begin wisi--indent) i)))
-	    (when (and (>= pos begin)
-		       (<= pos end))
-	      (goto-char pos)
-	      (indent-line-to indent))))
+	(let* ((end-mark (copy-marker end))
+	       (line-count (1+ (count-lines (point-min) (point-max))))
+	       (wisi--indent
+		(make-wisi-ind
+		 :line-begin (make-vector line-count 0)
+		 :indent (make-vector line-count 0)
+		 :last-line nil)))
 
-	(when wisi-indent-failed
-	  ;; previous parse failed
-	  (setq wisi-indent-failed nil)
-	  (goto-char end-mark)
-	  (run-hooks 'wisi-post-indent-fail-hook))
+	  (wisi--set-line-begin)
+	  (wisi--indent-leading-comments)
+	  (wisi--run-parse)
 
-	;; run wisi-indent-calculate-functions
-	(goto-char begin)
-	(while (< (point) end-mark)
-	  (back-to-indentation)
-	  (let ((indent
-		 (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
-	    (when indent
-	      (indent-line-to indent)))
+	  (if wisi-parse-failed
+	      (progn
+		(setq wisi-indent-failed t)
+		(funcall wisi-indent-region-fallback begin end))
 
-	  (forward-line 1))
-	))))
+	    ;; parse succeeded
+	    ;;
+	    ;; apply indent action results
+	    (goto-char begin)
+
+	    (dotimes (i (length (wisi-ind-indent wisi--indent)))
+	      (let ((indent (aref (wisi-ind-indent wisi--indent) i))
+		    (pos (aref (wisi-ind-line-begin wisi--indent) i)))
+		(when (and (>= pos begin)
+			   (<= pos end))
+		  (goto-char pos)
+		  (indent-line-to indent))))
+
+	    (when wisi-indent-failed
+	      ;; previous parse failed
+	      (setq wisi-indent-failed nil)
+	      (goto-char end-mark)
+	      (run-hooks 'wisi-post-indent-fail-hook))
+
+	    ;; run wisi-indent-calculate-functions
+	    (goto-char begin)
+	    (while (< (point) end-mark)
+	      (back-to-indentation)
+	      (let ((indent
+		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		(when indent
+		  (indent-line-to indent)))
+
+	      (forward-line 1))
+	    ))))
+    ))
 
 (defun wisi-indent-line ()
   "For `indent-line-function'."
