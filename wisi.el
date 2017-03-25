@@ -630,7 +630,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	(save-excursion
 	  (wisi-parse wisi-parse-table #'wisi-forward-token)
 	  (setq wisi-parse-failed nil)
-	  (move-marker (wisi-cache-max) (point))
+	  (when wisi--parse-action
+	    ;; allow running with no actions to time pure parsing
+	    (move-marker (wisi-cache-max) (point)))
 	  )
       (wisi-parse-error
        (cl-ecase wisi--parse-action

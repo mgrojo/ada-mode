@@ -69,17 +69,12 @@ install packages in -Q:
 
 tab indents two lines
 
-align region is slow
-    on 5 var decl in smm-server.adb
-    calls parser to navigate, then indent
-        could do both at once
-
 test/debug.adb
     function_2f; return indented wrong
     need a way to not apply ada-indent-broken from function_declaration
         but do apply all others
         rewrite grammar indent?
-        provide ada-indent-return
+        ada-indent-return
 
 test/ada_mode-nominal.adb
 
@@ -94,27 +89,42 @@ test-ada-gpr_query.stamp
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.
 
-delete 'end' processing, use next-statement-keyword to look for 'end'?
-
-c:/Projects/smm.main/source/smm-server.adb:181
-    next-statement on case 'when' goes to nested exception handler 'when'
-
-    line 82 indent:
-               Least_Recent_Songs
-                 (Db, Category, Songs,
-                   Song_Count     => Count,
-
 review fixmes
 
 test skeleton insert
 
 rename ada/gpr-wisi-class-list wisi-class-list
 
-delete wisi-indent-*, *-wisi-before/after-*
+align region is slow
+    on 5 var decl in smm-server.adb
+    calls parser to navigate, then indent
+        could do both at once
+        or do navigate in font-lock parse
+
+    indent compute only lines needed
+        skip nonterms that don't overlap
+
+    delete 'end' processing, use next-statement-keyword to look for 'end'?
+
+
+    (time-it (lambda () (wisi-invalidate-cache) (wisi-validate-cache (point-max) t 'navigate)) 1)
+            gnatcoll-xref.adb: 2.220942 seconds
+            smm-server.adb: 0.111099
+
+    (time-it (lambda () (wisi-invalidate-cache) (wisi-indent-region (point-min) (point-max))) 1)
+        gnatcoll-xref.adb: 5.173755 seconds
+        smm-server.adb: 0.124231
+
+    (time-it 'ada-align 1)
+        smm-server.adb: 0.241679 ~ (+ 0.124231 0.111099) 340 lines, ~13k char
+        5.2.1 smm-server.adb: 0.009062 (parse done by font-lock in idle time)
+
+    (time-it (lambda() (let ((wisi--parse-action nil)) (wisi--run-parse))) 1)
+        smm-server.adb:
 
 time indent
     (setq ada-gps-size-threshold most-positive-fixnum)
-    test/gnatcoll-xref.adb  (copy to avoid messing up original)
+    gnatcoll-xref.adb  (copy to avoid messing up original)
 
     ada-mode 5.2
         (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
