@@ -24,20 +24,9 @@ run test from emacs -Q using installed elpa:
   (run-test "ada-number-literal"))
 
 run test from emacs -Q using source:
-(progn
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (setq debug-on-error t)
-  (load "autoloads.el")
-  (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/gnatprep.adb")
-  (ada-wisi-debug-keys))
 
 (progn
+  (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
@@ -48,7 +37,9 @@ run test from emacs -Q using source:
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_wisi.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.adb")
+  (ada-wisi-debug-keys)
+  (run-test-here)
   )
 
 (progn
@@ -70,14 +61,6 @@ install packages in -Q:
 tab indents two lines
 
 test/debug.adb
-    function_2f; return indented wrong
-    need a way to not apply ada-indent-broken from function_declaration
-        but do apply all others
-        rewrite grammar indent?
-        ada-indent-return
-
-test/ada_mode-nominal.adb
-
 
 test/ada_mode-parens.adb
 
@@ -94,6 +77,14 @@ review fixmes
 test skeleton insert
 
 rename ada/gpr-wisi-class-list wisi-class-list
+
+indent max-cache doesn't work
+    if only indent one line, cache marks whole buffer as indented
+
+    set "indented" cache on each line?
+    set wisi-parse-try if interactive?
+
+    set align-indent-before false?
 
 align region is slow
     on 5 var decl in smm-server.adb

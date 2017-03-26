@@ -663,8 +663,7 @@ is -- target 0
    function Function_2f (Param : in Parent_Type_1)
                         return Float is
    begin
-      Procedure_2a
-        ;
+      Procedure_2a;
       Procedure_2a;
       begin -- no declare, two statements
          return 1.0;

@@ -1586,17 +1586,17 @@ parameter_and_result_profile
   : formal_part RETURN null_exclusion_opt name_opt
     (progn
       (wisi-face-apply-action [4 font-lock-type-face])
-      (wisi-indent-action [0 (if (<= 0 ada-indent-return) (wisi-anchored 1 ada-indent-return) ada-indent-return) ada-indent-broken ada-indent-broken]))
+      (wisi-indent-action [0 (ada-indent-return 1) 0 0]))
   | RETURN null_exclusion_opt name_opt
     (progn
       (wisi-face-apply-action [3 font-lock-type-face])
-      (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken]))
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
   | formal_part RETURN access_definition
     (progn
-      (wisi-indent-action [0 (if (<= 0 ada-indent-return) (wisi-anchored 1 ada-indent-return) ada-indent-return) ada-indent-broken]))
+      (wisi-indent-action [0 (ada-indent-return 1) ada-indent-broken]))
   | RETURN access_definition
     (progn
-      (wisi-indent-action [ada-indent-broken ada-indent-broken]))
+      (wisi-indent-action [0 ada-indent-broken]))
   ;
 
 ;; parameter_association is merged into association

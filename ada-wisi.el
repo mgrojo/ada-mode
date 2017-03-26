@@ -43,6 +43,19 @@
 
 ;;;; indentation
 
+(defun ada-indent-return (token-number)
+  "Implement `ada-indent-return' option in a grammar action."
+  (if (<= 0 ada-indent-return)
+      (let ((result (wisi-anchored token-number (abs ada-indent-return))))
+	(if (= (abs ada-indent-return) result)
+	    ;; open paren is first on line
+	    result
+
+	  ;; we will later get an extra ada-indent-broken; subtract it now
+	  (- result ada-indent-broken)))
+
+    ada-indent-return))
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation

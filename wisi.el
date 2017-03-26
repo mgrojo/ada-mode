@@ -422,29 +422,32 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
-(defun wisi--delete-cache (after)
+(defun wisi--delete-face-cache (after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache nil wisi-face nil 'font-lock-face nil))
+    (remove-text-properties after (point-max) '(wisi-face nil 'font-lock-face nil))
     ))
 
-(defun wisi-invalidate-cache (&optional after)
-  "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
-  (interactive)
+(defun wisi--delete-navigate-cache (after)
+  (with-silent-modifications
+    (remove-text-properties after (point-max) '(wisi-cache nil))
+    ))
+
+(defun wisi-invalidate-cache (action after)
+  "Invalidate ACTION parsing for the current buffer from AFTER to end of buffer."
   (setq after
-	(if (not after)
-	    (point-min)
-	  (save-excursion
-	    (goto-char after)
-	    (line-beginning-position))))
-  (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%d" (current-buffer) after))
-  (move-marker (wisi-cache-max 'face) after)
-  (move-marker (wisi-cache-max 'navigate) after)
-  (move-marker (wisi-cache-max 'indent) after)
-  (wisi-set-parse-try t 'face)
-  (wisi-set-parse-try t 'navigate)
-  (wisi-set-parse-try t 'indent)
-  (wisi--delete-cache after)
-  )
+	(save-excursion
+	  (goto-char after)
+	  (line-beginning-position)))
+  (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%s:%d" action (current-buffer) after))
+  (move-marker (wisi-cache-max action) after)
+  (wisi-set-parse-try t action)
+  (cond
+   ((eq 'face action)
+    (wisi--delete-face-cache after))
+
+   ((eq 'navigate action)
+    (wisi--delete-navigate-cache after))
+   ))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were
@@ -503,16 +506,19 @@ wisi-forward-token, but does not look up symbol."
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
   (save-excursion
-    (let ((need-invalidate begin)
+    (let ((invalidate-face begin)
+	  (invalidate-navigate begin)
+	  (invalidate-indent begin)
 	  begin-state end-state)
+
       (when (> end begin)
 	(setq begin-state (syntax-ppss begin))
 	(setq end-state (syntax-ppss end)))
-	;; syntax-ppss has moved point to "end".
+      ;; syntax-ppss has moved point to "end".
 
-      (if (or (<= (wisi-cache-max 'face) begin)
-	      (<= (wisi-cache-max 'navigate) begin)
-	      (<= (wisi-cache-max 'indent) begin))
+      (if (and (<= (wisi-cache-max 'face) begin)
+	       (<= (wisi-cache-max 'navigate) begin)
+	       (<= (wisi-cache-max 'indent) begin))
 	  ;; Change is in unvalidated region
 	  (when wisi-parse-failed
 	    ;; The parse was failing, probably due to bad syntax; this
@@ -534,14 +540,18 @@ wisi-forward-token, but does not look up symbol."
 	   (nth 3 end-state))
 	  ;; no easy way to tell if there is intervening non-string
           ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
-	  (setq need-invalidate nil))
+	  (setq invalidate-face nil
+		invalidate-navigate nil
+		invalidate-indent nil))
 
 	 ((and
 	   (nth 4 begin-state)
 	   (nth 4 end-state)); in comment
 	  ;; no easy way to detect intervening non-comment
           ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
-	  (setq need-invalidate nil)
+	  (setq invalidate-face nil
+		invalidate-navigate nil
+		invalidate-indent nil)
 	  ;; no caches to remove
 	  )
 
@@ -553,28 +563,32 @@ wisi-forward-token, but does not look up symbol."
 	 ;; We are not in a comment (checked above), so treat
 	 ;; comment end as whitespace in case it is newline
 	 ((and
-	   (not (eq wisi--parse-action 'indent))
 	   (or
 	    (memq (car (syntax-after (1- begin))) '(0 12)); whitespace, comment end
 	    (memq (car (syntax-after end)) '(0 12)))
 	   (progn
-	    (goto-char begin)
-	    (skip-syntax-forward " >" end)
-	    (eq (point) end)))
-	  (setq need-invalidate nil))
+	     (goto-char begin)
+	     (skip-syntax-forward " >" end)
+	     (eq (point) end)))
+	  (setq invalidate-face nil
+		invalidate-navigate nil))
 
 	 (t
-	  (setq need-invalidate
-		(progn
-		  (goto-char begin)
-		  ;; note that because of the checks above, this never
-		  ;; triggers a parse, so it's fast
-		  (wisi-goto-statement-start)
-		  (point))))
+	  (let ((pos
+		 (progn
+		   (goto-char begin)
+		   ;; note that because of the checks above, this never
+		   ;; triggers a parse, so it's fast
+		   (wisi-goto-statement-start)
+		   (point))))
+	    (setq invalidate-face pos
+		  invalidate-navigate pos
+		  invalidate-indent pos)))
 	 )
 
-	(when need-invalidate
-	  (wisi-invalidate-cache need-invalidate))
+	(when invalidate-face (wisi-invalidate-cache 'face invalidate-face))
+	(when invalidate-navigate (wisi-invalidate-cache 'navigate invalidate-navigate))
+	(when invalidate-indent (wisi-invalidate-cache 'indent invalidate-indent))
 	))
     ))
 
@@ -636,9 +650,12 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  )
       (wisi-parse-error
        (cl-ecase wisi--parse-action
-	 ((face navigate)
+	 (face
 	  ;; delete caches past wisi-cache-max added by failed parse
-	  (wisi--delete-cache (wisi-cache-max)))
+	  (wisi--delete-face-cache (wisi-cache-max)))
+	 (navigate
+	  ;; delete caches past wisi-cache-max added by failed parse
+	  (wisi--delete-navigate-cache (wisi-cache-max)))
 	 (indent nil))
        (setq wisi-parse-failed t)
        (setq wisi-parse-error-msg (cdr err)))
@@ -1623,10 +1640,16 @@ Called with BEGIN END.")
     ;; align calls indent on the same region once for each rule
     ;; processed; we do nothing unless the buffer has changed.
 
-    (when (and (wisi-parse-try)
-	       (<= (wisi-cache-max) end))
+    ;; FIXME wisi-max-cache 'indent marks whole buffer indented even
+    ;; if only indented one line. Need some cache mechanism to speed
+    ;; up align; it calls indent for each rule
+    (when t
+      ;; (and (wisi-parse-try)
+      ;; 	       (<= (wisi-cache-max) end))
+      ;;  (wisi-set-parse-try nil)
+      (move-marker (wisi-cache-max) (point-min))
+      ;; end FIXME:
 
-      (wisi-set-parse-try nil)
       (setq wisi--last-parse-action wisi--parse-action)
 
       (save-excursion
@@ -1658,7 +1681,7 @@ Called with BEGIN END.")
 	      (let ((indent (aref (wisi-ind-indent wisi--indent) i))
 		    (pos (aref (wisi-ind-line-begin wisi--indent) i)))
 		(when (and (>= pos begin)
-			   (<= pos end))
+			   (<= pos end-mark))
 		  (goto-char pos)
 		  (indent-line-to indent))))
 
@@ -1701,9 +1724,10 @@ Called with BEGIN END.")
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
   (if parse-action
       (progn
-	(wisi-invalidate-cache)
+	(wisi-invalidate-cache parse-action (point-min))
 	(wisi-validate-cache (point-max) t parse-action))
 
+    (wisi-invalidate-cache 'indent (point-min))
     (wisi-indent-region (point-min) (point-max))
     ))
 
