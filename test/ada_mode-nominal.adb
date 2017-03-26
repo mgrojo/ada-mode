@@ -631,7 +631,8 @@ is -- target 0
       end;
 
    Block_1 :
-      declare -- label, two statements between begin, label
+      -- label, two statements between begin, label
+      declare
          Local_1 : constant Float := Local_A (1)(2); -- test that refine-begin can skip parens
       begin
          return Local_1;

@@ -56,16 +56,46 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
+ Edebug displays
+in wisi--indent-token-1:
+
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   i
+   delta
+   ))
+
+in wisi-indent-action:
+
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   tok
+   token-delta
+   comment-delta
+   ))
+
+in wisi-parse-reduce:
+
+(setq edebug-eval-list
+ '(nonterm
+   tok
+   first
+   ))
+
  compute indent via indent-actions in grammar
 
-tab indents two lines
+need option for indent comment to trailing
+    in 5.2?
 
 test/debug.adb
 
-test/ada_mode-parens.adb
-
-
-test comment after block label, before declare/begin
+test/ada_mode-interactive_common.adb
+    104 : parse failed
+    106 : "
+    107 : arrayp nil
+        works in main editor
 
 test-ada-gpr_query.stamp
 
@@ -123,7 +153,7 @@ time indent
         wisi: per iteration 8.331166
 
     ada-mode 6.x
-        (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+        (time-it 'wisi-parse-buffer 1)
         wisi: per iteration 2.484650
 
 time wisi-forward-token use structs

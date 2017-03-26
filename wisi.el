@@ -32,12 +32,13 @@
 ;;;; History: see NEWS-wisi.text
 ;;
 ;; 'wisi' was originally short for "wisent indentation engine", but
-;; now is just a name.
+;; now is just a name. wisi was developed to support Emacs ada-mode
+;; 5.0 indentation, font-lock, and navigation, which are parser based.
 ;;
 ;; The approach to indenting a given token is to parse the buffer,
 ;; computing a delta indent at each parse action.
 ;;
-;; The parser actions may also cache face and navigation information
+;; The parser actions also cache face and navigation information
 ;; as text properties of tokens in statements.
 ;;
 ;; The three reasons to run the parser (indent, face, navigate) occur
@@ -72,26 +73,34 @@
 ;;
 ;;;; grammar compiler and parser
 ;;
-;; Since we are using a generalized LALR(1) parser, we cannot use any
-;; of the wisent grammar functions.  We use OpenToken wisi-generate
-;; to compile BNF to Elisp source (similar to
-;; semantic-grammar-create-package), and wisi-compile-grammar to
-;; compile that to the parser table.
+;; There are two other parsing engines available in Emacs:
 ;;
-;; Semantic provides a complex lexer, more complicated than we need
-;; for indentation.  So we use the elisp lexer, which consists of
-;; `forward-comment', `skip-syntax-forward', and `scan-sexp'.  We wrap
-;; that in functions that return tokens in the form wisi-parse
-;; expects.
+;; - SMIE
 ;;
-;;;; lexer
+;;   We don't use this because it is designed to parse small snippets
+;;   of code. For Ada indentation, we always need to parse the entire
+;;   buffer.
 ;;
-;; The lexer is `wisi-forward-token'. It relies on syntax properties,
-;; so (in Emacs < 25) syntax-propertize must be called on the text to
-;; be lexed before wisi-forward-token is called. In general, it is
-;; hard to determine an appropriate end-point for syntax-propertize,
-;; other than point-max. So we call (syntax-propertize point-max) in
-;; wisi-setup, and also call syntax-propertize in wisi-after-change.
+;; - semantic
+;;
+;;   The Ada grammar as given in the Ada language reference manual is
+;;   not LALR(1). So we use a generalized parser. In addition, the
+;;   semantic lexer is more complex, and gives different information
+;;   than we need.
+;;
+;; We use OpenToken wisi-generate to compile BNF to Elisp source, and
+;; wisi-compile-grammar to compile that to the parser table. See
+;; ada-mode info for more information on the developer tools used for
+;; ada-mode.
+;;
+;;;; syntax-propertize
+;;
+;; `wisi-forward-token' relies on syntax properties, so (in Emacs <
+;; 25) syntax-propertize must be called on the text to be lexed before
+;; wisi-forward-token is called. In general, it is hard to determine
+;; an appropriate end-point for syntax-propertize, other than
+;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
+;; and also call syntax-propertize in wisi--post-change.
 ;;
 ;;;;;
 
@@ -139,12 +148,29 @@
   ;; data used while running parser for indent.
   indent
   ;; vector of indentation for all lines in buffer
+  ;; each element can be one of:
+  ;; - integer : indent
+  ;;
+  ;; - list ('anchor NEST indent)  :
+  ;; indent for current line, base indent for following 'anchored
+  ;; lines; for opening parens
+  ;;
+  ;; - list ('anchored NEST delta) :
+  ;; indent = delta + 'anchor line indent; for lines indented relative to anchor
+  ;;
+  ;; - list ('anchor NEST ('anchored NEST delta))
+  ;; for nested anchors
+  ;;
+  ;; NEST in an 'anchor form is the nesting level of an open paren; it
+  ;; is a list, for multiple left parens on a single line. In an
+  ;; 'anchored form it is the nesting level on that line.
 
   line-begin ;; vector of beginning-of-line positions in buffer
   last-line ;; index into line-begin of line containing last token
 
-  ;; Possible optimization; limit `indent' to lines in indent region;
-  ;; don't compute indent for lines not being indented.
+  ;; Possible optimization; limit `indent' to lines in indent region,
+  ;; dynamically expanded to include 'anchored; don't compute indent
+  ;; for lines not being indented.
   )
 
 (defvar wisi--indent
@@ -574,6 +600,8 @@ wisi-forward-token, but does not look up symbol."
 		invalidate-navigate nil))
 
 	 (t
+	  ;; Move navigate begin to start of statement, to avoid
+	  ;; partially navigable statements.
 	  (let ((pos
 		 (progn
 		   (goto-char begin)
@@ -581,9 +609,7 @@ wisi-forward-token, but does not look up symbol."
 		   ;; triggers a parse, so it's fast
 		   (wisi-goto-statement-start)
 		   (point))))
-	    (setq invalidate-face pos
-		  invalidate-navigate pos
-		  invalidate-indent pos)))
+	    (setq invalidate-navigate pos)))
 	 )
 
 	(when invalidate-face (wisi-invalidate-cache 'face invalidate-face))
@@ -1155,6 +1181,31 @@ the wisi-tokens[token-number] region."
 	(setq i (1+ i))
 	))))
 
+(defun wisi--inc-anchor-nest (indent)
+  (dotimes (i (length (nth 1 indent)))
+    (setf (nth i (nth 1 indent)) (1+ (nth i (nth 1 indent))))
+    ))
+
+(defun wisi--inc-indent (i delta)
+  "Add DELTA (an integer) to the indent at index I."
+  (let ((indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
+
+    (cond
+     ((integerp indent)
+      (aset (wisi-ind-indent wisi--indent) i (+ delta indent)))
+
+     ((listp indent)
+      (cl-ecase (car indent)
+	(anchor
+	 (setf (nth 2 indent) (+ delta (nth 2 indent))))
+	(anchored
+	 ;; not affected by this indent
+	 )))
+
+     (t
+      (error "wisi--inc-indent: invalid form in wisi-ind-indent: %s" indent))
+     )))
+
 (defun wisi--indent-token-1 (line end delta)
   (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
 	(paren-first (when (and (listp delta)
@@ -1163,29 +1214,64 @@ the wisi-tokens[token-number] region."
 	indent)
 
     (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
-      (setq indent (aref (wisi-ind-indent wisi--indent) i))
 
       (cond
        ((integerp delta)
-	(aset (wisi-ind-indent wisi--indent) i (+ delta indent)))
+	(wisi--inc-indent i delta))
 
-       ((and (listp delta)
-	     (eq 'hanging (car delta)))
-	;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
-	(if (= i (1- (nth 1 delta)))
-	    ;; first line of token
-	    (aset (wisi-ind-indent wisi--indent) i (+ (nth 3 delta) indent))
+       ((listp delta)
+	(cond
+	 ((eq 'anchored (car delta))
+	  ;; From wisi-anchored; delta is ('anchored 1 delta)
+	  (setq indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
 
-	  ;; hanging lines
-	  (when (= paren-first
-		   (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
-	    ;; don't apply hanging indent in nested parens.
-	    (aset (wisi-ind-indent wisi--indent) i (+ (nth 4 delta) indent)))
-	  ))
+	  (cond
+	   ((integerp indent)
+	    (let ((temp (copy-sequence delta)))
+	      (setf (nth 2 temp) (+ indent (nth 2 temp)))
+	      (aset (wisi-ind-indent wisi--indent) i temp)))
+
+	   ((listp indent)
+	    (wisi--inc-anchor-nest indent)
+
+	    (cond
+	     ((integerp (nth 2 indent))
+	      (let ((delta1 (copy-sequence delta)))
+		(setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
+		(setf (nth 2 indent) delta1)))
+
+	     ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
+	      (let ((anchored (nth 2 indent)))
+		(setf (nth 1 anchored) (1+ (nth 1 anchored)))))
+
+	     (t
+	      (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
+	     ))
+
+	   (t
+	    (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
+	   ))
+
+	 ((eq 'hanging (car delta))
+	  ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
+	  (if (= i (1- (nth 1 delta)))
+	      ;; first line of token
+	      (wisi--inc-indent i (nth 3 delta))
+
+	    ;; hanging lines
+	    (when (= paren-first
+		     (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
+	      ;; don't apply hanging indent in nested parens.
+	      (wisi--inc-indent i (nth 4 delta)))
+	    ))
+
+	 (t
+	  (error "wisi--indent-token-1: invalid delta: %s" delta))
+	 ))
+
        (t
 	(error "wisi--indent-token-1: invalid delta: %s" delta))
        )
-
       (setq i (1+ i))
       )))
 
@@ -1210,10 +1296,44 @@ the wisi-tokens[token-number] region."
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
 For use in grammar indent actions."
   (let* ((tok (aref wisi-tokens (1- token-number)))
-	 (pos (car (wisi-tok-region tok))))
+	 (pos (car (wisi-tok-region tok)))
+	 delta)
 
     (goto-char pos)
-    (+ offset (- (current-column) (current-indentation)))
+    (setq delta (+ offset (- (current-column) (current-indentation))))
+
+    ;; tok may be a terminal or non-terminal
+    (if (or (eq t (wisi-tok-first tok))
+	    (and (wisi-tok-first tok)
+	     (= (wisi-tok-first tok) (wisi-tok-line tok))))
+	;; First token in nonterminal is also first on a line; no need
+	;; for anchored.
+	;;
+	;; test/ada_mode-parens.adb
+	;; Local_5 : Integer :=
+	;;   (1 + 2 +
+	;;      3);
+	delta
+
+      ;; Need anchored.
+      ;;
+      ;; test/ada_mode-parens.adb
+      ;; Local_2 : Integer := (1 + 2 +
+      ;;                         3);
+      (let* ((i (1- (wisi-tok-line tok)))
+	     (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
+	(cond
+	 ((integerp indent)
+	  (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
+
+	 ((listp indent)
+	  (push (1+ (car (nth 1 indent))) (nth 1 indent)))
+
+	 (t
+	  (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
+
+	(list 'anchored 1 delta)
+	))
     ))
 
 (defvar wisi-token-index nil
@@ -1227,7 +1347,7 @@ For use in grammar indent actions."
     ;; tok is a nonterminal; this function makes no sense for terminals
 
     (if (= (wisi-tok-first tok) (wisi-tok-line tok))
-	;; first token in nonterminal is also first on a line; apply hangning
+	;; first token in nonterminal is also first on a line; apply hanging
 	;; test/ada_mode-nominal.adb
 	;; return
 	;;   Local_1 +
@@ -1661,7 +1781,8 @@ Called with BEGIN END.")
 		(make-wisi-ind
 		 :line-begin (make-vector line-count 0)
 		 :indent (make-vector line-count 0)
-		 :last-line nil)))
+		 :last-line nil))
+	   (anchor-indent nil))
 
 	  (wisi--set-line-begin)
 	  (wisi--indent-leading-comments)
@@ -1680,6 +1801,47 @@ Called with BEGIN END.")
 	    (dotimes (i (length (wisi-ind-indent wisi--indent)))
 	      (let ((indent (aref (wisi-ind-indent wisi--indent) i))
 		    (pos (aref (wisi-ind-line-begin wisi--indent) i)))
+		(cond
+		 ((integerp indent))
+
+		 ((listp indent)
+		  (let ((indent2 (nth 2 indent)))
+		    (cond
+		     ((eq 'anchor (car indent))
+		      ;; finish previous anchor at same level
+		      (while (member (length anchor-indent) (nth 1 indent))
+			(pop anchor-indent))
+
+		      (cond
+		       ((integerp indent2)
+			(dotimes (_i (length (nth 1 indent)))
+			  (push indent2 anchor-indent))
+			(setq indent (car anchor-indent)))
+
+		       ((listp indent2) ;; 'anchored
+			(let* ((cur-anchor (car anchor-indent))
+			       (new-indent (+ cur-anchor (nth 2 indent2))))
+			  (dotimes (_i (length (nth 1 indent)))
+			    (push new-indent anchor-indent))
+			  (setq indent new-indent)))
+		       (t
+			(error "wisi-indent-region: invalid form in wisi-ind-indent"))
+		       ))
+
+		     ((eq 'anchored (car indent))
+		      (when (not (= (nth 1 indent) (length anchor-indent)))
+			(pop anchor-indent))
+
+		      (setq indent (+ (car anchor-indent) indent2)))
+
+		     (t
+		      (error "wisi-indent-region: invalid form in wisi-ind-indent"))
+		     )))
+
+		 (t
+		  (error "wisi-indent-region: invalid form in wisi-ind-indent"))
+		 )
+
 		(when (and (>= pos begin)
 			   (<= pos end-mark))
 		  (goto-char pos)

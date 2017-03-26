@@ -116,8 +116,10 @@ point at which that max was spawned.")
 
   first
   ;; For terminals, t if token is the first token on a line.
-  ;; For nonterminals, line number of first contained terminal that is
-  ;; first on its line.
+  ;;
+  ;; For nonterminals, line number of first contained line that needs
+  ;; indenting; it is a comment, or begins with a contained token.
+  ;;
   ;; Otherwise nil.
 
   ;; The following are non-nil if token (terminal or non-terminal) is
@@ -581,9 +583,10 @@ STACK of the first and last tokens of the nonterminal."
 	  (if (wisi-tok-nonterminal tok)
 	      (when (wisi-tok-first tok)
 		(setq first (wisi-tok-first tok)))
-	    (when (wisi-tok-first tok)
-	      (setq first (wisi-tok-line tok))))
-	  )))
+	    (setq first (or (and (wisi-tok-first tok) (wisi-tok-line tok))
+			    (wisi-tok-comment-line tok)
+			    first))
+	    ))))
 
     (when (and (eq wisi--parse-action 'indent)
 	       first-last)

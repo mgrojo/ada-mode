@@ -850,7 +850,8 @@ private -- Ada_Mode.Nominal
      (<>) is tagged;
 
 end Ada_Mode.Nominal; -- Ada_Mode.Nominal
---EMACSCMD:(progn (forward-line -1) (ada-next-statement-keyword)(ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+
+--EMACSCMD:(progn (forward-line -2) (ada-next-statement-keyword)(ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70

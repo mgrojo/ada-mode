@@ -1082,14 +1082,18 @@
        ((formal_part RETURN null_exclusion_opt name_opt )
         (progn
         (wisi-face-apply-action [4 font-lock-type-face])
-        (wisi-indent-action [0 (ada-indent-return 1) 0 0])))
+        (wisi-indent-action [0
+        (ada-indent-return 1 0)
+        (ada-indent-return 1 ada-indent-broken)
+        (ada-indent-return 1 ada-indent-broken)])))
        ((RETURN null_exclusion_opt name_opt )
         (progn
         (wisi-face-apply-action [3 font-lock-type-face])
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken])))
        ((formal_part RETURN access_definition )
         (progn
-        (wisi-indent-action [0 (ada-indent-return 1) ada-indent-broken])))
+        (wisi-indent-action [0 (ada-indent-return 1 0)
+        (ada-indent-return 1 ada-indent-broken)])))
        ((RETURN access_definition )
         (progn
         (wisi-indent-action [0 ada-indent-broken]))))
