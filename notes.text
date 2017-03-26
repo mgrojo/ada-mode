@@ -64,6 +64,7 @@ in wisi--indent-token-1:
    wisi-nterm
    i
    delta
+   indent
    ))
 
 in wisi-indent-action:

@@ -1199,7 +1199,7 @@ the wisi-tokens[token-number] region."
 	(anchor
 	 (setf (nth 2 indent) (+ delta (nth 2 indent))))
 	(anchored
-	 ;; not affected by this indent
+	 ;; not affected by this delta
 	 )))
 
      (t
@@ -1232,25 +1232,35 @@ the wisi-tokens[token-number] region."
 	      (aset (wisi-ind-indent wisi--indent) i temp)))
 
 	   ((listp indent)
-	    (wisi--inc-anchor-nest indent)
-
 	    (cond
-	     ((integerp (nth 2 indent))
-	      (let ((delta1 (copy-sequence delta)))
-		(setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
-		(setf (nth 2 indent) delta1)))
+	     ((eq 'anchor (car indent))
+	      (wisi--inc-anchor-nest indent)
 
-	     ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
-	      (let ((anchored (nth 2 indent)))
-		(setf (nth 1 anchored) (1+ (nth 1 anchored)))))
+	      (cond
+	       ((integerp (nth 2 indent))
+		(let ((delta1 (copy-sequence delta)))
+		  (setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
+		  (setf (nth 2 indent) delta1)))
+
+	       ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
+		(let ((anchored (nth 2 indent)))
+		  (setf (nth 1 anchored) (1+ (nth 1 anchored)))))
+
+	       (t
+		(error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
+	       )) ;; 'anchor
+
+	     ((eq 'anchored (car indent))
+	      ;; not affected by this delta
+	      )
 
 	     (t
 	      (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
-	     ))
+	     )) ;; listp indent
 
 	   (t
 	    (error "wisi--indent-token-1: invalid form in wisi-ind-indent: %s" indent))
-	   ))
+	   )) ;; (eq 'anchored (car delta))
 
 	 ((eq 'hanging (car delta))
 	  ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
@@ -1267,7 +1277,7 @@ the wisi-tokens[token-number] region."
 
 	 (t
 	  (error "wisi--indent-token-1: invalid delta: %s" delta))
-	 ))
+	 )) ;; listp delta
 
        (t
 	(error "wisi--indent-token-1: invalid delta: %s" delta))
