@@ -39,6 +39,7 @@
     statement-end
     statement-override ;; see NOT OVERRIDING
     statement-start
+    misc ;; other stuff
     ))
 
 ;;;; indentation
@@ -404,7 +405,8 @@ Also return cache at start."
   (wisi-validate-cache end t 'navigate)
 
   (goto-char begin)
-  (let (token
+  (let (tok
+	token
 	text
 	identifiers
 	(aliased-p nil)
@@ -423,19 +425,17 @@ Also return cache at start."
 	paramlist
 	(done nil))
     (while (not done)
-      (let ((token-text (wisi-forward-token)))
-	(setq token (nth 0 token-text))
-	(setq text  (wisi-token-text token-text)))
+      (setq tok (wisi-forward-token))
+      (setq token (wisi-tok-token tok))
+      (setq text  (wisi-token-text tok))
       (cond
        ((equal token 'COMMA) nil);; multiple identifiers
 
        ((equal token 'COLON)
 	;; identifiers done. find type-begin; there may be no mode
-	(skip-syntax-forward " ")
 	(setq type-begin (point))
 	(save-excursion
-	  (while (member (car (wisi-forward-token)) '(ALIASED IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
-	    (skip-syntax-forward " ")
+	  (while (member (wisi-tok-token (wisi-forward-token)) '(ALIASED IN OUT NOT NULL ACCESS CONSTANT PROTECTED))
 	    (setq type-begin (point)))))
 
        ((equal token 'ALIASED) (setq aliased-p t))
@@ -450,10 +450,10 @@ Also return cache at start."
        ((equal token 'PROTECTED) (setq protected-p t))
 
        ((equal token 'COLON_EQUAL)
-	(setq type-end (save-excursion (backward-char 2) (skip-syntax-backward " ") (point)))
-	(skip-syntax-forward " ")
+	(setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point)))
 	(setq default-begin (point))
-	(wisi-forward-find-token 'SEMICOLON end t))
+	(wisi-forward-find-token 'SEMICOLON end t)
+	(wisi-backward-token))
 
        ((equal token 'LEFT_PAREN)
 	;; anonymous access procedure type
@@ -461,12 +461,12 @@ Also return cache at start."
 
        ((member token '(SEMICOLON RIGHT_PAREN))
 	(when (not type-end)
-	  (setq type-end (save-excursion (backward-char 1) (skip-syntax-backward " ") (point))))
+	  (setq type-end (save-excursion (goto-char (car (wisi-tok-region tok))) (skip-syntax-backward " ") (point))))
 
 	(setq type (buffer-substring-no-properties type-begin type-end))
 
 	(when default-begin
-	  (setq default (buffer-substring-no-properties default-begin (1- (point)))))
+	  (setq default (buffer-substring-no-properties default-begin (car (wisi-tok-region tok)))))
 
 	(when (equal token 'RIGHT_PAREN)
 	  (setq done t))
@@ -491,7 +491,7 @@ Also return cache at start."
 
        (t
 	(when (not type-begin)
-          (cl-pushnew text identifiers :test #'equal)))
+          (push text identifiers)))
        ))
     paramlist))
 
@@ -549,12 +549,12 @@ Also return cache at start."
 	      generic_subprogram_declaration ;; after 'generic'
 	      null_procedure_declaration)
 	     (setq result (ada-wisi-which-function-1
-			   (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+			   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
 			   nil))) ;; no 'body' keyword in subprogram bodies
 
 	    (subprogram_body
 	     (setq result (ada-wisi-which-function-1
-			   (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
+			   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
 			   nil)))
 
 	    (task_type_declaration

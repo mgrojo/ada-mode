@@ -139,15 +139,15 @@ package body Ada_Mode.Parens is
           (10, 11, 12)));
 
       C : Tensor_Type := (((1,
-                              2, 3),
-                             (4,
-                              5, 6),
-                             (7, 8, 9),
-                             (10, 11, 12)),
-                            ((1, 2, 3),
-                             (4, 5, 6),
-                             (7, 8, 9),
-                             (10, 11, 12)));
+                            2, 3),
+                           (4,
+                            5, 6),
+                           (7, 8, 9),
+                           (10, 11, 12)),
+                          ((1, 2, 3),
+                           (4, 5, 6),
+                           (7, 8, 9),
+                           (10, 11, 12)));
 
       function To_Array (First : in Integer) return Array_Type_1
       is begin
@@ -261,23 +261,23 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 1"))
       --EMACSRESULT: t
       while A.all
         or else B.all
-        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
+        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "; -- target 2"))
         --EMACSRESULT: t
-      loop
+      loop -- target 1
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
-      end loop;
+      end loop; -- target 2
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 3"))
       --EMACSRESULT: t
       while A.all
         or else (B.all
                    and then C
                    and then D)
-      loop
+      loop -- target 3
          null;
       end loop;
 
@@ -429,7 +429,7 @@ package body Ada_Mode.Parens is
       There    : constant String := " there";
       Out_File : Ada.Text_IO.File_Type;
    begin
-      Ada.Text_IO.Put_Line ("Hello" & ' ' & -- test ada-indent-next keyword with string, character literal
+      Ada.Text_IO.Put_Line ("Hello" & ' ' &
                               "World");
 
       Ada.Text_IO.Put_Line (Out_File,
@@ -460,7 +460,7 @@ package body Ada_Mode.Parens is
    procedure Weird_List_Break is
    begin
       Slice_1 (1
-                 ,    --  used to get an error here; don't care about the actual indentation
+               ,    --  used to get an error here; don't care about the actual indentation
                "string");
    end;
 

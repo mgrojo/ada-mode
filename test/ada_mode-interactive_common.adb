@@ -98,7 +98,6 @@ begin
       E := 'z';
    end;
 
-   -- Properly set end marker after edit
    --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
    for File_Name in File_Names loop
    end loop;

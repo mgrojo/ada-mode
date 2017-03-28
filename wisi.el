@@ -153,7 +153,7 @@
   ;;
   ;; - list ('anchor NEST indent)  :
   ;; indent for current line, base indent for following 'anchored
-  ;; lines; for opening parens
+  ;; lines; for opening parens and other uses.
   ;;
   ;; - list ('anchored NEST delta) :
   ;; indent = delta + 'anchor line indent; for lines indented relative to anchor
@@ -161,8 +161,8 @@
   ;; - list ('anchor NEST ('anchored NEST delta))
   ;; for nested anchors
   ;;
-  ;; NEST in an 'anchor form is the nesting level of an open paren; it
-  ;; is a list, for multiple left parens on a single line. In an
+  ;; NEST in an 'anchor form is the nesting level of anchors; it
+  ;; is a list, for multiple anchors on a single line. In an
   ;; 'anchored form it is the nesting level on that line.
 
   line-begin ;; vector of beginning-of-line positions in buffer
@@ -344,7 +344,7 @@ If at end of buffer, return `wisi-eoi-term'."
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments.
 Does _not_ handle numbers with wisi-number-p; just sees
-lower-level syntax.  Return (nil start . end) - same structure as
+lower-level syntax.  Return a `wisi-tok' - same structure as
 wisi-forward-token, but does not look up symbol."
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
@@ -385,7 +385,10 @@ wisi-forward-token, but does not look up symbol."
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
      )
-    (cons nil (cons (point) end))
+
+    (make-wisi-tok
+     :token nil
+     :region (cons (point) end))
     ))
 
 ;;;; token info cache
@@ -599,17 +602,6 @@ wisi-forward-token, but does not look up symbol."
 	  (setq invalidate-face nil
 		invalidate-navigate nil))
 
-	 (t
-	  ;; Move navigate begin to start of statement, to avoid
-	  ;; partially navigable statements.
-	  (let ((pos
-		 (progn
-		   (goto-char begin)
-		   ;; note that because of the checks above, this never
-		   ;; triggers a parse, so it's fast
-		   (wisi-goto-statement-start)
-		   (point))))
-	    (setq invalidate-navigate pos)))
 	 )
 
 	(when invalidate-face (wisi-invalidate-cache 'face invalidate-face))
@@ -734,7 +726,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
       (wisi--run-parse)
 
       (when (and error-on-fail (not (>= (wisi-cache-max) pos)))
-	(error "parse failed"))
+	(error "parse %s failed" parse-action))
       )))
 
 (defun wisi-fontify-region (_begin end)
@@ -1054,7 +1046,7 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 	  (when region
 	    ;; region can be null on an optional token
 	    (when (get-text-property (car region) 'wisi-face)
-	      (error "wisi-face-mark-action: overwritting cache"))
+	      (error "wisi-face-mark-action: overwriting cache"))
 	    (with-silent-modifications
 	      (put-text-property
 	       (car region)
@@ -1195,16 +1187,34 @@ the wisi-tokens[token-number] region."
       (aset (wisi-ind-indent wisi--indent) i (+ delta indent)))
 
      ((listp indent)
-      (cl-ecase (car indent)
-	(anchor
-	 (setf (nth 2 indent) (+ delta (nth 2 indent))))
-	(anchored
-	 ;; not affected by this delta
-	 )))
+      (cond
+       ((eq 'anchor (car indent))
+	(when (integerp (nth 2 indent))
+	  (setf (nth 2 indent) (+ delta (nth 2 indent)))
+	  ;; else anchored; not affected by this delta
+	  ))
+
+       ((eq 'anchored (car indent))
+	;; not affected by this delta
+	)))
 
      (t
       (error "wisi--inc-indent: invalid form in wisi-ind-indent: %s" indent))
      )))
+
+(defun wisi--indent-non-zero (i)
+  "Return non-nil if indent at index I is non-zero."
+  (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
+    (cond
+     ((integerp indent)
+      (= 0 indent))
+
+     ((listp indent)
+      (cond
+       ((eq 'anchor (car indent))
+	(= 0 (nth 2 indent)))
+
+       (t nil))))))
 
 (defun wisi--indent-token-1 (line end delta)
   (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
@@ -1243,6 +1253,7 @@ the wisi-tokens[token-number] region."
 		  (setf (nth 2 indent) delta1)))
 
 	       ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
+		;; increment anchored nest
 		(let ((anchored (nth 2 indent)))
 		  (setf (nth 1 anchored) (1+ (nth 1 anchored)))))
 
@@ -1251,7 +1262,9 @@ the wisi-tokens[token-number] region."
 	       )) ;; 'anchor
 
 	     ((eq 'anchored (car indent))
-	      ;; not affected by this delta
+	      ;; increment nest
+	      (setf (nth 1 indent) (1+ (nth 1 indent)))
+	      ;; indent not affected by this delta
 	      )
 
 	     (t
@@ -1268,12 +1281,24 @@ the wisi-tokens[token-number] region."
 	      ;; first line of token
 	      (wisi--inc-indent i (nth 3 delta))
 
-	    ;; hanging lines
-	    (when (= paren-first
-		     (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
-	      ;; don't apply hanging indent in nested parens.
-	      (wisi--inc-indent i (nth 4 delta)))
-	    ))
+	    ;; don't apply hanging indent in nested parens.
+	    ;; test/ada_mode-parens.adb
+	    ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+	    ;;   Ada.Strings.Maps."or"
+	    ;;     (Ada.Strings.Maps.To_Set (' '),
+	    ;;
+	    ;; don't apply hanging indent if indent already non-zero
+	    ;; test/ada_mode-parens.adb
+	    ;; Slice_1
+	    ;;   (1,
+	    ;;    C
+	    ;;      (1 .. 2));
+	    ;; indent set by name:2 (slice)
+	    (when (and (= paren-first
+			  (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
+		       (wisi--indent-non-zero i))
+		(wisi--inc-indent i (nth 4 delta)))
+	      ))
 
 	 (t
 	  (error "wisi--indent-token-1: invalid delta: %s" delta))
@@ -1312,39 +1337,50 @@ For use in grammar indent actions."
     (goto-char pos)
     (setq delta (+ offset (- (current-column) (current-indentation))))
 
-    ;; tok may be a terminal or non-terminal
-    (if (or (eq t (wisi-tok-first tok))
-	    (and (wisi-tok-first tok)
-	     (= (wisi-tok-first tok) (wisi-tok-line tok))))
-	;; First token in nonterminal is also first on a line; no need
-	;; for anchored.
-	;;
-	;; test/ada_mode-parens.adb
-	;; Local_5 : Integer :=
-	;;   (1 + 2 +
-	;;      3);
-	delta
+    ;; tok may be a terminal or a non-terminal.
+    ;;
+    ;; Typically, we use anchored to indent relative to a token buried in a line:
+    ;;
+    ;; test/ada_mode-parens.adb
+    ;; Local_2 : Integer := (1 + 2 +
+    ;;                         3);
+    ;;
+    ;; If tok is a nonterminal, and the first token in tok is also
+    ;; first on a line, we don't need anchored to compute the
+    ;; delta:
+    ;; test/ada_mode-parens.adb
+    ;; Local_5 : Integer :=
+    ;;   (1 + 2 +
+    ;;      3);
+    ;;
+    ;; However, in some places we need anchored to prevent later
+    ;; deltas from accumulating:
+    ;;
+    ;; test/ada_mode-parens.adb
+    ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+    ;;   Ada.Strings.Maps."or"
+    ;;     (Ada.Strings.Maps.To_Set (' '),
+    ;;
+    ;; here the function call actual parameter part is indented both
+    ;; by 'name' and by 'expression', we use anchored to keep the
+    ;; 'name' indent.
+    ;;
+    ;; So we apply anchored whether tok is first or not
 
-      ;; Need anchored.
-      ;;
-      ;; test/ada_mode-parens.adb
-      ;; Local_2 : Integer := (1 + 2 +
-      ;;                         3);
-      (let* ((i (1- (wisi-tok-line tok)))
-	     (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
-	(cond
-	 ((integerp indent)
-	  (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
+    (let* ((i (1- (wisi-tok-line tok)))
+	   (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
+      (cond
+       ((integerp indent)
+	(aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
 
-	 ((listp indent)
-	  (push (1+ (car (nth 1 indent))) (nth 1 indent)))
+       ((listp indent)
+	(push (1+ (car (nth 1 indent))) (nth 1 indent)))
 
-	 (t
-	  (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
+       (t
+	(error "wisi-anchored-delta: invalid form in indent: %s" indent)))
 
-	(list 'anchored 1 delta)
-	))
-    ))
+      (list 'anchored 1 delta)
+      )))
 
 (defvar wisi-token-index nil
   "Index of current token in `wisi-tokens'.
@@ -1353,23 +1389,36 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 (defun wisi-hanging (delta1 delta2)
   "Return indent with DETLA1 for first line, DELTA2 for following lines.
 For use in grammar indent actions."
-  (let ((tok (aref wisi-tokens wisi-token-index)))
+  (let* ((tok (aref wisi-tokens wisi-token-index))
+	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok)))) ;; moves point to tok
+	 )
     ;; tok is a nonterminal; this function makes no sense for terminals
 
-    (if (= (wisi-tok-first tok) (wisi-tok-line tok))
-	;; first token in nonterminal is also first on a line; apply hanging
-	;; test/ada_mode-nominal.adb
-	;; return
-	;;   Local_1 +
-	;;     Local_2 +
-	;;     Local_3;
+    (if (or
+	 (= (wisi-tok-first tok) (wisi-tok-line tok))
+	 ;; First token in nonterminal is also first on a line
+	 ;;
+	 ;; test/ada_mode-nominal.adb
+	 ;; return
+	 ;;   Local_1 +
+	 ;;     Local_2 +
+	 ;;     Local_3;
+	 ;;
+	 (and (nth 1 tok-syntax)
+	      (= (nth 1 tok-syntax) (car (wisi-tok-region (wisi-backward-token)))))
+	 ;; tok is in parens
+	 ;;
+	 ;; test/ada_mode-parens.adb
+	 ;; Local_2 : Integer := (1 + 2 +
+	 ;;                         3);
+	 )
 	(list 'hanging
 	      (wisi-tok-line tok) ;; first line of token
-	      (nth 0 (syntax-ppss (car (wisi-tok-region tok)))) ;; paren nest level at tok
+	      (nth 0 tok-syntax) ;; paren nest level at tok
 	      delta1
 	      delta2)
 
-      ;; don't apply hangning
+      ;; don't apply hanging
       ;; test/ada_mode-nominal.adb
       ;; return 1.0 +
       ;;   Function_2a (Parent_Type_1'(1, 2.0, False)) +
@@ -1523,28 +1572,26 @@ If LIMIT (a buffer position) is reached, throw an error."
     cache))
 
 (defun wisi-forward-find-token (token limit &optional noerror)
-  "Search forward for a token that has a cache with TOKEN.
-If point is at a matching token, return that token.
-TOKEN may be a list; stop on any cache that has a member of the list.
-Return cache, or nil if at end of buffer.
-If LIMIT (a buffer position) is reached, then if NOERROR is nil, throw an
-error, if non-nil, return nil."
+  "Search forward for TOKEN.
+If point is at a matching token, return that token.  TOKEN may be
+a list; stop on any member of the list.  Return `wisi-tok'
+struct, or if LIMIT (a buffer position) is reached, then if
+NOERROR is nil, throw an error, if non-nil, return nil."
   (let ((token-list (cond
 		     ((listp token) token)
 		     (t (list token))))
-	(cache (wisi-get-cache (point)))
+	(tok (wisi-forward-token))
 	(done nil))
     (while (not (or done
-		    (and cache
-			 (memq (wisi-cache-token cache) token-list))))
-      (setq cache (wisi-forward-cache))
-      (when (>= (point) limit)
+		    (memq (wisi-tok-token tok) token-list)))
+      (setq tok (wisi-forward-token))
+      (when (or (>= (point) limit)
+		(eobp))
+	(goto-char limit)
 	(if noerror
-	    (progn
-	      (setq done t)
-	      (setq cache nil))
-	  (error "cache with token %s not found" token))))
-    cache))
+	    (setq done t)
+	  (error "token %s not found" token))))
+    tok))
 
 (defun wisi-forward-find-nonterm (nonterm limit)
   "Search forward for a token that has a cache with NONTERM.
@@ -1818,8 +1865,9 @@ Called with BEGIN END.")
 		  (let ((indent2 (nth 2 indent)))
 		    (cond
 		     ((eq 'anchor (car indent))
-		      ;; finish previous anchor at same level
-		      (while (member (length anchor-indent) (nth 1 indent))
+		      ;; Finish previous anchors
+		      (while (or (> (length anchor-indent) (car (nth 1 indent)))
+				 (member (length anchor-indent) (nth 1 indent)))
 			(pop anchor-indent))
 
 		      (cond

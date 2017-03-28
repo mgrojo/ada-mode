@@ -26,20 +26,19 @@ run test from emacs -Q using installed elpa:
 run test from emacs -Q using source:
 
 (progn
-  (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
-  (setq debug-on-error t)
+  ;; (setq debug-on-error t)
   (load "autoloads.el")
   (require 'ada-mode)
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.adb")
+  ;; (setq wisi-debug 1)
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/debug.adb")
   (ada-wisi-debug-keys)
-  (run-test-here)
+;  (run-test-here)
   )
 
 (progn
@@ -47,7 +46,7 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (load "autoloads.el")
   (require 'ada-mode)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_gps_fallback.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_common.adb")
   )
 
 install packages in -Q:
@@ -57,8 +56,8 @@ install packages in -Q:
  (list-packages))
 
  Edebug displays
-in wisi--indent-token-1:
 
+in wisi--indent-token-1:
 (setq edebug-eval-list
  '((wisi-ind-indent wisi--indent)
    wisi-nterm
@@ -68,17 +67,25 @@ in wisi--indent-token-1:
    ))
 
 in wisi-indent-action:
-
 (setq edebug-eval-list
  '((wisi-ind-indent wisi--indent)
    wisi-nterm
+   wisi-tokens
+   deltas
    tok
    token-delta
    comment-delta
    ))
 
-in wisi-parse-reduce:
+wisi-indent-region:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   anchor-indent
+   i
+   indent
+   ))
 
+in wisi-parse-reduce:
 (setq edebug-eval-list
  '(nonterm
    tok
@@ -92,11 +99,10 @@ need option for indent comment to trailing
 
 test/debug.adb
 
-test/ada_mode-interactive_common.adb
-    104 : parse failed
-    106 : "
-    107 : arrayp nil
-        works in main editor
+test/ada_mode-nominal.ads
+    8 failures
+    record indent; implement ada-indent-record-rel-type
+
 
 test-ada-gpr_query.stamp
 

@@ -199,8 +199,4 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   )
 
 (provide 'run-indent-test)
-
-;; Local Variables:
-;; eval: (add-to-list 'load-path (expand-file-name "../"))
-;; End:
 ;; end of file
