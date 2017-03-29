@@ -236,7 +236,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 
     (ada-gps-session-send
      (format "compute_region_indent %d %d %d" start-line end-line (1- (position-bytes end))) nil t)
-    (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
+    (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
 
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
       ;; buffer contains two numbers per line; Emacs line number,
@@ -281,27 +281,9 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
   "See `ada-gsp-or-wisi-setup'"
   (if (> (point-max) ada-gps-size-threshold)
       (progn
-	(ada-gps-setup)
-
-	;; locally clear global function pointers set by loading ada-wisi
-	(set (make-local-variable 'ada-fix-context-clause) nil)
-	(set (make-local-variable 'ada-goto-declaration-end) nil)
-	(set (make-local-variable 'ada-goto-declaration-start) nil)
-	(set (make-local-variable 'ada-goto-declarative-region-start) nil)
-	(set (make-local-variable 'ada-goto-end) nil)
-	(set (make-local-variable 'ada-goto-subunit-name) nil)
-	(set (make-local-variable 'ada-in-case-expression) nil)
-	(set (make-local-variable 'ada-in-paramlist-p) nil)
-	(set (make-local-variable 'ada-indent-statement) nil)
-	(set (make-local-variable 'ada-make-subprogram-body) nil)
-	(set (make-local-variable 'ada-next-statement-keyword) nil)
-	(set (make-local-variable 'ada-on-context-clause) nil)
-	(set (make-local-variable 'ada-prev-statement-keyword) nil)
-	(set (make-local-variable 'ada-reset-parser) nil)
-	(set (make-local-variable 'ada-scan-paramlist) nil)
-	(set (make-local-variable 'ada-show-parse-error) nil)
-	(set (make-local-variable 'ada-which-function) nil)
-	)
+	;; use ada-gps for indent, ada-wisi for face, navigation
+	(ada-wisi-setup)
+	(ada-gps-setup))
 
     (ada-wisi-setup)
     (set (make-local-variable 'indent-region-function) nil)

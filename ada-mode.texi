@@ -287,6 +287,9 @@ tolerates syntax errors, producing reasonable indentation.
 It can be used either as the primary indentation engine, or as a
 fallback when ada-wisi fails due to syntax errors or in large files.
 
+In either case, the ada-wisi parser is still used for syntax
+highlighting (font-lock) and navigation.
+
 @menu
 * ada_mode_gps_indent install::
 * ada_mode_gps_indent configure::
@@ -356,6 +359,10 @@ file-local variable:
 --  ada-gps-size-threshold : 0
 --  End:
 @end example
+
+In addition, files larger than @code{wisi-size-threshold} will not run
+the wisi parser for font-lock; some syntax highlighting will be
+lost. This provides better response in files where the parser is slow.
 
 @node Customization, Compiling Executing, Installation, Top
 @chapter Customizing Ada mode

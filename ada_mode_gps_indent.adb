@@ -181,7 +181,13 @@ procedure Ada_Mode_GPS_Indent is
             Align_On_Arrows     => False,
             Align_Decl_On_Colon => False,
             Indent_Comments     => True,
-            Stick_Comments      => False), -- no ada-mode equivalent
+            Stick_Comments      => True), -- no ada-mode equivalent.
+         --  Stick_Comments = True causes comments to align to comments after code:
+         --  A := 1; -- trailing comment
+         --          -- aligned with trailing comment
+         --
+         --  but not all the time (witness this comment, sigh).
+
          From                   => Start_Line,
          To                     => End_Line,
          Replace                => Replace_Cb'Unrestricted_Access);

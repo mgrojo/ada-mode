@@ -120,7 +120,8 @@ elements of the result may be nil."
 		(found-col  (string-to-number (match-string 3))))
 	    (if (not
 		 (and
-		  (equal file found-file)
+		  ;; due to symbolic links, only the non-dir filename is comparable.
+		  (equal (file-name-nondirectory file) (file-name-nondirectory found-file))
 		  (= line found-line)
 		  (= (ada-gnat-xref-adj-col identifier col) found-col)))
 		;; found other item

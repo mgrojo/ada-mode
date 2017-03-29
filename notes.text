@@ -60,6 +60,43 @@ install packages in -Q:
 
  functional (next page for speed issues/ideas)
 
+ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
+    use wisi parser for navigation, face with gps for indent; done
+
+ada_mode_gps_indent bug #2: does not honor ada-broken-indent
+    style change to put '&' at end of line fixes it
+    otherwise needs GPS code patch
+
+ada_mode_gps_indent bug #3: comments inside expressions badly indented
+    maybe post processor for comments.
+
+ada_mode_gps_indent bug #4: multiline comments starting after code
+    partial fix: Stick_Comments => True -  done
+    full fix: post processor for comments
+
+ada_mode_gps_indent bug #5: jumps to column zero after RET
+    insert fictious code when call GPS?
+    post processor indent blank line to previous + ada-indent-broken?
+
+ Eurocontrol settings:
+(progn
+    (setq ada-gps-size-threshold 0)
+    (setq ada-indent-broken 2))
+
+test/debug.adb
+
+if wisi is too slow on large buffers:
+    see o.e.a.stephe-2 parse-action
+    modify grammar actions:
+        (cl-ecase wisi-indent-engine
+         (gps ;; reduced to just face, nav
+            (wisi-statement-action ...)
+            (wisi-containing-action ...))
+         (wisi
+            ... current code))
+ada-mode-gps-indent hangs if indent single blank line via ada-gps-indent-region?
+    does not hang if use ada-gps-indent-line?
+
 ada_mode_gps_indent install:
     edit GPS configure to delete gtk, rather than configure gtk
 

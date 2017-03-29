@@ -6,7 +6,7 @@
 (package-initialize)
 
 (setq ada-mode-version "5.2.1")
-(setq ada-ref-man-version "2012.0")
+(setq ada-ref-man-version "2012.3")
 (setq wisi-version "1.1.4")
 
 (cond
