@@ -38,17 +38,17 @@ run test from emacs -Q using source:
   (ada-wisi-debug-keys))
 
 (progn
+  (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (setq debug-on-error t)
+  ; (setq debug-on-error t)
   (load "autoloads.el")
   (require 'ada-mode)
   (setq default-directory "/Projects/org.emacs.ada-mode/")
-  (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode/test/gnatprep.adb")
+  (load "run-indent-test-gps")
+  (find-file "/Projects/org.emacs.ada-mode/test/ada-gps/ada_gps_bug_005.adb")
   )
 
 install packages in -Q:
@@ -58,7 +58,7 @@ install packages in -Q:
  (list-packages))
 
 
- functional (next page for speed issues/ideas)
+ Eurocontrol bugs:
 
 ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
     use wisi parser for navigation, face with gps for indent; done
@@ -75,15 +75,26 @@ ada_mode_gps_indent bug #4: multiline comments starting after code
     full fix: post processor for comments
 
 ada_mode_gps_indent bug #5: jumps to column zero after RET
-    insert fictious code when call GPS?
+    insert fictitious code when call GPS?
     post processor indent blank line to previous + ada-indent-broken?
+
+ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
+   The_TV := E (Query, (Def_Restriction.Traffic_Volume,
+                Def_Traffic_Volume.Convert
+                  (CASA_Main.TV_Identifier)));
+
+    requires GPS patch
 
  Eurocontrol settings:
 (progn
     (setq ada-gps-size-threshold 0)
     (setq ada-indent-broken 2))
-
 test/debug.adb
+
+test/ada-gps/ada_gps_bug_005.adb
+
+(setq ada-gps-size-threshold 100000)
+test/debug_wisi.adb
 
 if wisi is too slow on large buffers:
     see o.e.a.stephe-2 parse-action

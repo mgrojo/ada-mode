@@ -50,10 +50,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-wisi.el
+one : RUNTEST := run-indent-test-gps.el
 one-clean:
-	rm -f ada_mode-nominal*
-one : one-clean ada_mode-nominal.ads.diff
+	rm -f ada_gps_bug_005.adb*
+one : one-clean ada_gps_bug_005.adb.diff
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -140,11 +140,21 @@ test-ada-gpr_query.stamp : force
 summarize :
 	cat *.log
 
-# compare gps indent to ada-wisi indent
+# ada-gps specific tests
 test-ada-gps : RUNTEST := run-indent-test-gps.el
-test-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-gps : $(addsuffix .diff, $(ADA_GPS_TEST_FILES))
 
 test-ada-gps.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gps
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+# compare gps indent to ada-wisi indent
+compare-ada-gps : RUNTEST := run-indent-test-gps.el
+compare-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+compare-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@

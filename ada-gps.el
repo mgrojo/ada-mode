@@ -178,6 +178,13 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 (defconst ada-gps-output-regexp " *\\([0-9]+\\) +\\([0-9]+\\)$"
   "Matches gps process output for one line.")
 
+(defvar-local ada-gps-indent-functions nil
+  "Functions to compute indentation special cases.
+Called with point at current indentation of a line; return
+indentation column, or nil if function does not know how to
+indent that line. Run after parser indentation, so other lines
+are indented correctly.")
+
 (defun ada-gps-indent-compute ()
   "For `wisi-indent-fallback'; compute indent for current line."
 
@@ -203,25 +210,21 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
     ))
 
 (defun ada-gps-indent-line ()
-  "Indent current line using the ada-gps indentation engine."
-  (interactive)
-  (let ((savep (point))
-	(indent (ada-gps-indent-compute)))
+  "For `indent-line-function'; indent current line using the ada-gps indentation engine."
+  (let ((savep (copy-marker (point)))
+	(to-indent nil))
+    (back-to-indentation)
+    (when (>= (point) savep)
+      (setq to-indent t))
 
-    (save-excursion
-      (back-to-indentation)
-      (when (>= (point) savep)
-	(setq savep nil)))
+    (ada-gps-indent-region (line-beginning-position) (line-end-position))
 
-    (if savep
-	;; point was inside line text; leave it there
-	(save-excursion (indent-line-to indent))
-      ;; point was before line text; move to start of text
-      (indent-line-to indent))
+    (goto-char savep)
+    (when to-indent (back-to-indentation))
     ))
 
-(defun ada-gps-indent-region (start end)
-  "For `indent-region-function'; indent lines in region START END using GPS."
+(defun ada-gps-indent-region (begin end)
+  "For `indent-region-function'; indent lines in region BEGIN END using GPS."
 
   ;; always send indent parameters - we don't track what buffer we are in
   (ada-gps-send-params)
@@ -231,11 +234,11 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (setq end (line-end-position))
 
   (let ((source-buffer (current-buffer))
-	(start-line (line-number-at-pos start))
+	(begin-line (line-number-at-pos begin))
 	(end-line (line-number-at-pos end)))
 
     (ada-gps-session-send
-     (format "compute_region_indent %d %d %d" start-line end-line (1- (position-bytes end))) nil t)
+     (format "compute_region_indent %d %d %d" begin-line end-line (1- (position-bytes end))) nil t)
     (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
 
     (with-current-buffer (ada-gps--session-buffer ada-gps-session)
@@ -248,8 +251,9 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 		  (indent (string-to-number (match-string 2))))
 	      (with-current-buffer source-buffer
 		(goto-char (point-min))
-		(forward-line (1- line))
-		(indent-line-to indent))
+		(forward-line (1- line)) ;; FIXME: count forward from prev indented line
+		(indent-line-to indent)
+		)
 
 	      (forward-line 1))
 
@@ -258,7 +262,117 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
 	    (message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max)))
 	    (goto-char (point-max)))
 	  ))
-    )))
+      )
+
+    ;; run ada-gps-indent-functions on region
+    (goto-char begin)
+    (let ((line begin-line)
+	  indent)
+      (while (<= line end-line)
+	(back-to-indentation)
+	(setq indent
+	      (run-hook-with-args-until-success 'ada-gps-indent-functions))
+	(when indent
+	  (indent-line-to indent))
+	(forward-line 1)
+	(setq line (1+ line))
+	))
+    ))
+
+(defun ada-gps-comment ()
+  "Modify indentation of a comment:
+For `ada-gps-indent-functions'.
+- align to previous comment after code.
+- align to previous code
+- respect `ada-indent-comment-gnat'."
+  ;; We know we are at the first token on a line. We check for comment
+  ;; syntax, not comment-start, to accomodate gnatprep, skeleton
+  ;; placeholders, etc.
+  ;;
+  ;; The ada-gps indentation algorithm has already indented the
+  ;; comment; however, it gets this wrong in many cases, so we don't
+  ;; trust it. We compare the ada-gps indent to previous and following
+  ;; code indent, then choose the best fit.
+  (when (and (not (eobp))
+	     (= 11 (syntax-class (syntax-after (point)))))
+
+    ;; We are looking at a comment; check for preceding comments, code
+    (let (after
+	  (indent (current-column))
+	  prev-indent next-indent)
+
+      (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
+	  ;; after blank line - find a code line
+	  (save-excursion
+	    (setq after 'code)
+	    (forward-line -1)
+	    (while (or (bobp)
+		       (looking-at "\\s *$"))
+	      (forward-line -1))
+	    (if (bobp)
+		(setq indent 0)
+	      (back-to-indentation)
+	      (setq prev-indent (current-column)))
+	    )
+
+	;; after a code line
+	(save-excursion
+	  (forward-comment -1)
+	  (if (eolp)
+	      ;; no comment on previous line
+	      (progn
+		(setq after 'code)
+		(back-to-indentation)
+		(setq prev-indent (current-column)))
+
+	    (setq prev-indent (current-column))
+	    (if (not (= prev-indent (progn (back-to-indentation) (current-column))))
+		;; previous line has comment following code
+		(setq after 'code-comment)
+	      ;; previous line has plain comment
+	      (setq after 'comment)
+	      )))
+	)
+
+      (cl-ecase after
+	(code
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code)
+
+	   ;; Find indent of following code
+	   (save-excursion
+	     (forward-line 1)
+	     (while (or (eobp)
+			(looking-at "\\s *$"))
+	       (forward-line 1))
+	     (if (eobp)
+		 (setq next-indent 0)
+	       (back-to-indentation)
+	       (setq next-indent (current-column))))
+
+	   (cond
+	    ((or (= indent prev-indent)
+		 (= indent next-indent))
+	     indent)
+	    (t
+	     prev-indent))))
+
+	(comment
+	 prev-indent)
+
+	(code-comment
+	 (if ada-indent-comment-gnat
+	     (ada-wisi-comment-gnat indent 'code-comment)
+
+	   ;; After comment that follows code on the same line
+	   ;; test/ada_mode-nominal.adb
+	   ;;
+	   ;; begin -- 2
+	   ;;       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "Bad_Thing"))
+	   prev-indent)
+	 ))
+      )))
+
 ;;;;; setup
 
 (defun ada-gps-setup ()
@@ -266,6 +380,9 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (set (make-local-variable 'indent-line-function) 'ada-gps-indent-line)
   (set (make-local-variable 'indent-region-function) 'ada-gps-indent-region)
   (ada-gps-require-session)
+
+  ;; file local variables may have added opentoken, gnatprep
+  (setq ada-gps-indent-functions (append ada-gps-indent-functions (list #'ada-gps-comment)))
   )
 
 (require 'ada-wisi)

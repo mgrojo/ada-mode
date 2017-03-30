@@ -109,10 +109,12 @@ SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
+ADA_GPS_TEST_FILES := $(shell cd ../../test/ada-gps; ls *.ad[sb])
+
 .PHONY : all nominal one test test-clean
 
-vpath %.ads ../../test ../../test/subdir
-vpath %.adb ../../test ../../test/subdir
+vpath %.ads ../../test ../../test/subdir ../../test/ada-gps
+vpath %.adb ../../test ../../test/subdir ../../test/ada-gps
 vpath %.gpr ../../test/gpr
 
 # FIXME: this reports *.diff > 0 from previous tests as well
