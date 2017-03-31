@@ -217,7 +217,18 @@ are indented correctly.")
     (when (>= (point) savep)
       (setq to-indent t))
 
-    (ada-gps-indent-region (line-beginning-position) (line-end-position))
+    (if (eolp)
+	;; Indenting a blank line. Insert some text so the GPS engine
+	;; won't return 0.
+	(progn
+	  (insert "bogus")
+	  (ada-gps-indent-region (line-beginning-position) (line-end-position))
+	  (backward-char 1)
+	  (backward-delete-char 5))
+
+      ;; indenting a non-blank line
+      (ada-gps-indent-region (line-beginning-position) (line-end-position))
+      )
 
     (goto-char savep)
     (when to-indent (back-to-indentation))

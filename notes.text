@@ -91,8 +91,6 @@ ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
     (setq ada-indent-broken 2))
 test/debug.adb
 
-test/ada-gps/ada_gps_bug_005.adb
-
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
 
