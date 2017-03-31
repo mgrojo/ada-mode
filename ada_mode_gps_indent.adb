@@ -35,8 +35,9 @@ procedure Ada_Mode_GPS_Indent is
 
    Programmer_Error : exception;
 
-   Version : constant String := "1.0";
-   --  Must match ada-gps.el ada-gps-exe-version
+   Version : constant String := "1.01";
+   --  Must match ada-gps.el ada-gps-indent-exec-version.
+   --  Bump for any change, including patches to GPS code.
 
    Prompt : constant String := "GPS_Indent> ";
 
@@ -175,7 +176,7 @@ procedure Ada_Mode_GPS_Indent is
             Casing_Policy       => Case_Handling.Disabled,
             Reserved_Casing     => Case_Handling.Unchanged,
             Ident_Casing        => Case_Handling.Unchanged,
-            Format_Operators    => True,
+            Format_Operators    => False,
             Use_Tabs            => False,
             Align_On_Colons     => False,
             Align_On_Arrows     => False,

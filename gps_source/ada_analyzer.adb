@@ -4253,7 +4253,7 @@ package body Ada_Analyzer is
                   end if;
 
                   if (Num_Parens = 0
-                      or else Prev_Token in Tok_Vertical_Bar
+                      or else Prev_Token in Tok_Ampersand | Tok_Vertical_Bar
                       or else Prev_Prev_Token
                                 in Tok_Arrow | Tok_Then | Tok_Else)
                     and then Local_Top_Token.Token /= Tok_When

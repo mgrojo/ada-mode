@@ -35,7 +35,7 @@ which is faster on large buffers."
 
 (defvar ada-gps-debug 0)
 
-(defconst ada-gps-indent-exec-version "1.0"
+(defconst ada-gps-indent-exec-version "1.01"
   "Version of ada_mode_gps_indent executable this code expects.")
 
 ;;;;; sessions
@@ -150,7 +150,7 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (ada-gps-session-send "version" t t)
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
     (goto-char (point-min))
-    (when (not (looking-at ada-gps-indent-exec-version))
+    (when (not (looking-at (concat ada-gps-indent-exec-version "$")))
       (error "Incorrect version for '%s'; found '%s', expecting '%s'."
 	     ada-gps-indent-exec
 	     (buffer-substring (point-min) (line-end-position))
