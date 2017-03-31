@@ -68,15 +68,14 @@ ada_mode_gps_indent bug #2: does not honor ada-broken-indent
     otherwise needs GPS code patch
 
 ada_mode_gps_indent bug #3: comments inside expressions badly indented
-    maybe post processor for comments.
+    post processor for comments. - done
 
 ada_mode_gps_indent bug #4: multiline comments starting after code
     partial fix: Stick_Comments => True -  done
-    full fix: post processor for comments
+    full fix: post processor for comments - done
 
 ada_mode_gps_indent bug #5: jumps to column zero after RET
-    insert fictitious code when call GPS?
-    post processor indent blank line to previous + ada-indent-broken?
+    insert fictitious code when call GPS - done
 
 ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
    The_TV := E (Query, (Def_Restriction.Traffic_Volume,
@@ -90,6 +89,12 @@ ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
     (setq ada-gps-size-threshold 0)
     (setq ada-indent-broken 2))
 test/debug.adb
+
+test/ada-gps/ada_gps_bug_002.adb
+    write debug driver, trace gps code
+    indent of leading & is done in Next_Word (punctuation, operators are not "words")
+    do_indent called with Continuation => false
+    patched ada_analyzer.adb:4256; add Tok_Ampersand
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb

@@ -22,12 +22,20 @@ with "gnatcoll_iconv";
 project Ada_Mode_GPS_Indent is
    for Main use ("ada_mode_gps_indent.adb");
 
-   for Source_Dirs use
-     (".",
-      External ("GPS_ROOT") & "/common/core/src",
-      External ("GPS_ROOT") & "/syntax/src",
-      External ("GPS_ROOT") & "/language/src/"
-      );
+   type GPS_Source_Type is ("ada-mode", "GPS");
+   GPS_Source : GPS_Source_Type := External ("Ada_Mode_GPS_Source", "ada-mode");
+
+   case GPS_Source is
+   when "ada-mode" =>
+      for Source_Dirs use (".", "gps_source");
+   when "GPS" =>
+      for Source_Dirs use
+        (".",
+         External ("GPS_ROOT") & "/common/core/src",
+         External ("GPS_ROOT") & "/syntax/src",
+         External ("GPS_ROOT") & "/language/src/"
+        );
+   end case;
 
    for Object_Dir use "obj";
 

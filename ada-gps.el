@@ -237,58 +237,66 @@ are indented correctly.")
 (defun ada-gps-indent-region (begin end)
   "For `indent-region-function'; indent lines in region BEGIN END using GPS."
 
-  ;; always send indent parameters - we don't track what buffer we are in
-  (ada-gps-send-params)
+  (save-excursion
+    ;; always send indent parameters - we don't track what buffer we are in
+    (ada-gps-send-params)
 
-  ;; send complete lines
-  (goto-char end)
-  (setq end (line-end-position))
+    ;; send complete lines
+    (goto-char end)
+    (setq end (line-end-position))
 
-  (let ((source-buffer (current-buffer))
-	(begin-line (line-number-at-pos begin))
-	(end-line (line-number-at-pos end)))
+    (let ((source-buffer (current-buffer))
+	  (begin-line (line-number-at-pos begin))
+	  (end-line (line-number-at-pos end))
+	  (failed nil))
 
-    (ada-gps-session-send
-     (format "compute_region_indent %d %d %d" begin-line end-line (1- (position-bytes end))) nil t)
-    (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
+      (ada-gps-session-send
+       (format "compute_region_indent %d %d %d" begin-line end-line (1- (position-bytes end))) nil t)
+      (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
 
-    (with-current-buffer (ada-gps--session-buffer ada-gps-session)
-      ;; buffer contains two numbers per line; Emacs line number,
-      ;; indent. Or an error message.
-      (goto-char (point-min))
-      (while (not (looking-at ada-gps-prompt))
-	(if (looking-at ada-gps-output-regexp)
-	    (let ((line (string-to-number (match-string 1)))
-		  (indent (string-to-number (match-string 2))))
-	      (with-current-buffer source-buffer
-		(goto-char (point-min))
-		(forward-line (1- line)) ;; FIXME: count forward from prev indented line
-		(indent-line-to indent)
-		)
+      (with-current-buffer (ada-gps--session-buffer ada-gps-session)
+	;; buffer contains two numbers per line; Emacs line number,
+	;; indent. Or an error message.
+	(goto-char (point-min))
+	(while (and (not failed)
+		    (not (looking-at ada-gps-prompt)))
+	  (if (looking-at ada-gps-output-regexp)
+	      (let ((line (string-to-number (match-string 1)))
+		    (indent (string-to-number (match-string 2))))
+		(with-current-buffer source-buffer
+		  (goto-char (point-min))
+		  (forward-line (1- line)) ;; FIXME: count forward from prev indented line
+		  (indent-line-to indent)
+		  )
 
-	      (forward-line 1))
+		(forward-line 1))
 
-	  ;; else some error message
-	  (when (> ada-gps-debug 0)
-	    (message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max)))
-	    (goto-char (point-max)))
+	    ;; else some error message
+	    (setq failed t)
+	    (cond
+	     ((> ada-gps-debug 0)
+	      (message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max)))
+	      (goto-char (point-max)))
+	     (t
+	      (message "ada-gps indent failed")
+	      )))
 	  ))
-      )
 
-    ;; run ada-gps-indent-functions on region
-    (goto-char begin)
-    (let ((line begin-line)
-	  indent)
-      (while (<= line end-line)
-	(back-to-indentation)
-	(setq indent
-	      (run-hook-with-args-until-success 'ada-gps-indent-functions))
-	(when indent
-	  (indent-line-to indent))
-	(forward-line 1)
-	(setq line (1+ line))
-	))
-    ))
+      (unless failed
+	;; run ada-gps-indent-functions on region
+	(goto-char begin)
+	(let ((line begin-line)
+	      indent)
+	  (while (<= line end-line)
+	    (back-to-indentation)
+	    (setq indent
+		  (run-hook-with-args-until-success 'ada-gps-indent-functions))
+	    (when indent
+	      (indent-line-to indent))
+	    (forward-line 1)
+	    (setq line (1+ line))
+	    )))
+      )))
 
 (defun ada-gps-comment ()
   "Modify indentation of a comment:
