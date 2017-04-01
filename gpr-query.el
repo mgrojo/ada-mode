@@ -66,7 +66,9 @@
       (compilation-mode)))
 
   (with-current-buffer (gpr-query--session-buffer session)
-    (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))) ;; for GPR_PROJECT_PATH
+    (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env)))
+	  ;; for GPR_PROJECT_PATH, other env vars set in ada-mode
+	  ;; project files and used by gpr files.
 
 	  (project-file (file-name-nondirectory (ada-prj-get 'gpr_file))))
       (erase-buffer); delete any previous messages, prompt

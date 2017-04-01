@@ -1,6 +1,6 @@
 ;;; Wisi grammar for GNAT project files
 ;;
-;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2015, 2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
@@ -307,10 +307,6 @@ simple_project_declaration
   ;
 
 ;; (info "(gnat_ugn)Expressions")
-string_expression
-  : string_primary
-  ;
-
 string_primary
   : STRING_LITERAL
   | name;; variable_name
@@ -319,19 +315,19 @@ string_primary
   ;
 
 ;; (info "(gnat_ugn)Expressions")
-;; we merge that string_list into term, and use 'string_list' for 'string_expression {, string_expression}'
+;; we merge that string_list into term, and use 'string_list' for 'string_primary {, string_primary}'
 string_list
-  : expression
-  | string_list COMMA expression
+  : string_primary
+  | string_list COMMA string_primary
     (progn
       (wisi-statement-action [2 list-break])
       (wisi-containing-action 2 3))
   ;
 
 ;; see string_list for info reference
-;; string_variable_name covered by string_expression
+;; string_variable_name covered by string_primary
 term
-  : string_expression
+  : string_primary
   | LEFT_PAREN RIGHT_PAREN
   | aggregate
   ;
