@@ -910,10 +910,6 @@ package body Ada_Analyzer is
       --  - Tok_Arrow
       --  - Tok_Colon_Equal (not supported yet)
 
-      function Find_Arrow (P : Natural) return Natural;
-      --  Return the location of the first '=>' token on the current line,
-      --  0 if none.
-
       procedure Replace_Text
         (First : Natural;
          Last  : Natural;
@@ -1053,61 +1049,6 @@ package body Ada_Analyzer is
                  Line_Start (Buffer, Top_Token.Profile_Start) + 1);
          end if;
       end Indent_Function_Return;
-
-      ----------------
-      -- Find_Arrow --
-      ----------------
-
-      function Find_Arrow (P : Natural) return Natural is
-         J : Natural;
-      begin
-         J := P;
-
-         loop
-            exit when J >= Buffer'Last;
-
-            case Buffer (J) is
-               when '>' =>
-                  if Buffer (J - 1) = '=' then
-                     return J - 1;
-                  end if;
-
-               when '"' =>
-                  if Buffer (J - 1) /= ''' then
-                     J := J + 1;
-                     Skip_To_Char (Buffer, J, '"');
-                  end if;
-
-               when '-' =>
-                  if Buffer (J + 1) = '-' then
-                     --  A comment, return
-                     return 0;
-                  end if;
-
-               when '(' =>
-                  if Buffer (J - 1) /= '''
-                    or else Buffer (J + 1) /= '''
-                  then
-                     return 0;
-                  end if;
-
-               when ';' =>
-                  if Buffer (J - 1) /= ''' then
-                     return 0;
-                  end if;
-
-               when ASCII.LF =>
-                  return 0;
-
-               when others =>
-                  null;
-            end case;
-
-            J := J + 1;
-         end loop;
-
-         return 0;
-      end Find_Arrow;
 
       -----------------------
       -- Compute_Alignment --
@@ -3899,34 +3840,20 @@ package body Ada_Analyzer is
                   begin
                      if Top (Paren_Stack).all = Conditional then
                         Level := P - Start_Of_Line + Padding
-                                 + Indent_Conditional;
+                          + Indent_Conditional;
 
-                     elsif In_Declaration = Subprogram_Decl
-                       or else Top (Paren_Stack).all = Type_Declaration
-                       or else Prev_Prev_Token = Tok_Arrow
-                       or else (Format and then
-                                (Num_Parens = 1
-                                 or else Find_Arrow (P + 1) /= 0))
-                     then
+                     else
+                        --  ../test/ada-gps/ada_gps_bug_006.adb
+                        --    The_TV := E (Query, (Def_Restriction.Traffic_Volume,
                         Tmp_Index := P + 1;
 
                         while Tmp_Index <= Buffer'Last
-                           and then Buffer (Tmp_Index) = ' '
+                          and then Buffer (Tmp_Index) = ' '
                         loop
                            Tmp_Index := Tmp_Index + 1;
                         end loop;
 
                         Level := Tmp_Index - Start_Of_Line + Padding;
-                     else
-                        if Top (Indents).Level = None then
-                           Level := Num_Spaces + Adjust;
-                        elsif Prev_Prev_Token = Tok_Left_Paren
-                          or else Top (Indents).Line = L
-                        then
-                           Level := Top (Indents).Level;
-                        else
-                           Level := Top (Indents).Level + Adjust;
-                        end if;
                      end if;
 
                      Val := Top (Indents).Continuation_Val;

@@ -145,7 +145,7 @@ INSTALL_BIN := $(dir $(GNAT_EXE))
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
 
-export GPS_ROOT ?= /Projects/gps-gpl-2016-src/
+# export GPS_ROOT ?= /Projects/gps-gpl-2016-src/
 
 else ifeq ($(shell uname),Darwin)
 EXE_EXT :=
@@ -154,7 +154,7 @@ else
 # windows
 EXE_EXT := .exe
 
-export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
+# export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
 
 endif
 
@@ -176,6 +176,9 @@ gpr_query$(EXE_EXT) : force
 ada_mode_gps_indent$(EXE_EXT) : force
 	gprbuild -p ../ada_mode_gps_indent.gpr
 
+debug_gps_indent$(EXE_EXT) : force
+	gprbuild -p ../ada_mode_gps_indent.gpr debug_gps_indent
+
 one : ada_mode_gps_indent$(EXE_EXT)
 	./ada_mode_gps_indent$(EXE_EXT) < commands.txt
 
@@ -186,7 +189,7 @@ $(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -P ../gpr_query.gpr
 
 $(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
-	gprinstall -f -p -P ../ada_mode_gps_indent.gpr
+	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
 install : install_gpr_query install_ada_mode_gps_indent
 
