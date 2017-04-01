@@ -35,8 +35,11 @@ which is faster on large buffers."
 
 (defvar ada-gps-debug 0)
 
-(defconst ada-gps-indent-exec-version "1.01"
-  "Version of ada_mode_gps_indent executable this code expects.")
+(defconst ada-gps-indent-exec-api-version "1"
+  "API version of ada_mode_gps_indent executable this code expects.")
+
+(defvar ada-gps-indent-exec-patch-level nil
+  "Patch level of ada_mode_gps_indent executable.")
 
 ;;;;; sessions
 
@@ -150,11 +153,15 @@ If PREFIX is non-nil, prefix with count of bytes in cmd."
   (ada-gps-session-send "version" t t)
   (with-current-buffer (ada-gps--session-buffer ada-gps-session)
     (goto-char (point-min))
-    (when (not (looking-at (concat ada-gps-indent-exec-version "$")))
-      (error "Incorrect version for '%s'; found '%s', expecting '%s'."
+    ;; We accept any patch level
+    (when (not (looking-at (concat ada-gps-indent-exec-api-version "\\....$")))
+      (error "Incorrect API version for '%s'; found '%s', expecting '%s'."
 	     ada-gps-indent-exec
 	     (buffer-substring (point-min) (line-end-position))
-	     ada-gps-indent-exec-version))))
+	     ada-gps-indent-exec-api-version))
+
+    (setq ada-gps-indent-exec-patch-level
+	  (buffer-substring (- (line-end-position) 3) (line-end-position)))))
 
 (defun ada-gps-show-buffer ()
   "Show ada-gps buffer."
@@ -220,10 +227,11 @@ are indented correctly.")
     (if (eolp)
 	;; Indenting a blank line. Insert some text so the GPS engine
 	;; won't return 0.
+	;;
+	;; test/ada-gps/ada_gps_bug_005.adb
 	(progn
 	  (insert "bogus")
 	  (ada-gps-indent-region (line-beginning-position) (line-end-position))
-	  (backward-char 1)
 	  (backward-delete-char 5))
 
       ;; indenting a non-blank line

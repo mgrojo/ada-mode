@@ -10,6 +10,9 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 ** Support GPS indentation engine, either as primary or backup. See
    user guide for how to set it up; it requires compiling Ada code.
 
+** ada_mode_gps_indent patch level 001 fixes ada-gps bugs 2, 6. See
+   test/ada-gps for bug descriptions/tests.
+
 ** ada-identifier-at-point properly handles adjacent operator and
    identifier (ie +Tree).
 

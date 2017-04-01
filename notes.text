@@ -65,7 +65,7 @@ ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
 
 ada_mode_gps_indent bug #2: does not honor ada-broken-indent
     style change to put '&' at end of line fixes it
-    otherwise needs GPS code patch
+    otherwise needs GPS code patch - done
 
 ada_mode_gps_indent bug #3: comments inside expressions badly indented
     post processor for comments. - done
@@ -82,20 +82,13 @@ ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
                 Def_Traffic_Volume.Convert
                   (CASA_Main.TV_Identifier)));
 
-    requires GPS patch
+    requires GPS patch; done
 
  Eurocontrol settings:
 (progn
     (setq ada-gps-size-threshold 0)
     (setq ada-indent-broken 2))
 test/debug.adb
-
-test/ada-gps/ada_gps_bug_002.adb
-    patched ada_analyzer.adb:4256; add Tok_Ampersand; fixed!
-
-test/ada-gps/ada_gps_bug_006.adb
-    write test
-    change debug, find patch
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb

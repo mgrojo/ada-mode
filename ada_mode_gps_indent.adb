@@ -35,9 +35,13 @@ procedure Ada_Mode_GPS_Indent is
 
    Programmer_Error : exception;
 
-   Version : constant String := "1.01";
-   --  Must match ada-gps.el ada-gps-indent-exec-version.
-   --  Bump for any change, including patches to GPS code.
+   Version : constant String := "1.001";
+   --  Format: API_version . patch_level
+   --
+   --  API_version match ada-gps.el ada-gps-indent-exec-api-version.
+   --
+   --  Bump API_version for change in commands/response; bump patch
+   --  level for patches to GPS indentation code.
 
    Prompt : constant String := "GPS_Indent> ";
 
