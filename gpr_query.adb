@@ -5,7 +5,7 @@
 --
 --  requires gnatcoll 1.7w 20140330, gnat 7.2.1
 --
---  Copyright (C) 2014-2016 Free Software Foundation All Rights Reserved.
+--  Copyright (C) 2014-2017 Free Software Foundation All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -551,7 +551,7 @@ begin
         (Cmdline,
          Output      => Traces_Config_File'Access,
          Long_Switch => "--tracefile=",
-         Help        => "Specify a traces configuration file");
+         Help        => "Specify a traces configuration file, set projects lib verbose");
 
       Getopt (Cmdline, Callback => null);
    end;

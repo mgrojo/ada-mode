@@ -306,7 +306,7 @@ Prompt user if more than one."
 	   t)
 
 ;;;; strings
-	  ((looking-at (concat "misspelling of " ada-gnat-quoted-name-regexp))
+	  ((looking-at (concat "\\(possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)
 	     (looking-at ada-name-regexp)
