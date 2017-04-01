@@ -282,13 +282,17 @@ functions if @code{gpr_query} is found in @code{PATH}.
 @file{ada_mode_gps_indent} is an alternate indentation engine, using the
 indentation engine from AdaCore's GPS. It is fast for indenting in
 very large files; the default ada-wisi is slow in that case. It also
-tolerates syntax errors, producing reasonable indentation.
+tolerates most syntax errors, producing reasonable indentation.
 
 It can be used either as the primary indentation engine, or as a
 fallback when ada-wisi fails due to syntax errors or in large files.
 
 In either case, the ada-wisi parser is still used for syntax
 highlighting (font-lock) and navigation.
+
+The ada-mode Gnu ELPA package includes a copy of the source code for
+the GPS indentation engine from GPS GPS 2016, patched to be more
+consistent with the ada-wisi indentation engine.
 
 @menu
 * ada_mode_gps_indent install::
@@ -302,33 +306,6 @@ To install @code{ada_mode_gps_indent}, assuming the
 @itemize
 @item
 Install @file{gnatcoll} (@ref{Building GNATCOLL}).
-
-@item
-From @url{libre.adacore.com}, download:
-@itemize
-@item
-GPS source
-@item
-gtkada installer - only needed for GPS configure
-@end itemize
-
-@item
-Install gtkada in current gnat compiler location.
-
-@item
-Unpack GPS source somewhere convenient.
-
-@item
-Edit the GPS @file{configure} script; comment out the section ``detect
-libclang'' (full GPS uses libclang; ada_mode_gps_client does not).
-
-@item
-Configure GPS (use Cygwin on Windows). This creates
-@file{common/core/src/config.ads}.
-@example
-cd <...>/gps-gpl-xxx-src
-./configure
-@end example
 
 @item
 Compile and install @file{ada_mode_gps_indent.adb}:
