@@ -93,6 +93,8 @@ test/debug.adb
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
 
+ada_mode_gps_indent 1.001 compiled for linux in c:/tmp
+
 if wisi is too slow on large buffers:
     see o.e.a.stephe-2 parse-action
     modify grammar actions:
