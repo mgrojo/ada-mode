@@ -81,7 +81,7 @@ source-clean :
 pub-ada : force
 	rm -rf $(ELPA_ROOT)/archive
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode
-	rm -f $(ELPA_ROOT)/packages/ada-mode/*
+	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
@@ -90,6 +90,8 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
+	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
+	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
 # copy files to ELPA ada-ref-man package
 pub-ada-ref-man: ARM_INFO ?= c:/Projects/org.adaic.arm_form
