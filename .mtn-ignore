@@ -28,6 +28,7 @@
 ^gpr-grammar\.output$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
+^gpr_query$
 ^gpr_query\.db$
 ^obj$
 ^run_sjw\.text$

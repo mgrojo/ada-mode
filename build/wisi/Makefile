@@ -62,7 +62,7 @@ vpath %.el ../../ .
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
+WISI_OPENTOKEN ?= /Projects/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 # we don't build %-wy.el here
@@ -96,7 +96,12 @@ endif
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+ifeq ($(shell uname),Linux)
+else ifeq ($(shell uname),Darwin)
+else
+# windows
 	cd ./$(<D); dos2unix $(@F)
+endif
 
 # ../../../org.opentoken/wisi/wisi-generate.adb
 $(WISI_OPENTOKEN)/wisi-generate.exe : force

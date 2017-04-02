@@ -159,10 +159,10 @@ EXE_EXT := .exe
 endif
 
 # for debugging:
-export Gnatcoll_Build := Debug
+#export Gnatcoll_Build := Debug
 # export Gpr_Query_Build := Debug
-export Ada_Mode_GPS_Indent_Build := Debug
-export BUILD := Debug
+#export Ada_Mode_GPS_Indent_Build := Debug
+#export BUILD := Debug
 
 # '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
 # set in Emacs for gud-gdb
