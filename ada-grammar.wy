@@ -321,9 +321,9 @@ access_definition
   : null_exclusion_opt ACCESS general_access_modifier_opt name
     (wisi-face-apply-action [4 font-lock-type-face])
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
-    (wisi-indent-action [0 0 0 0 ada-indent-broken])
+    (wisi-indent-action* 4 [0 0 0 0 ada-indent-broken])
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
-    (wisi-indent-action [0 0 0 0 ada-indent-broken])
+    (wisi-indent-action* 4 [0 0 0 0 ada-indent-broken])
   ;
 
 actual_parameter_part
@@ -1629,24 +1629,9 @@ package_specification
   ;
 
 parameter_and_result_profile
-  : formal_part RETURN null_exclusion_opt name_opt
-    (progn
-      (wisi-face-apply-action [4 font-lock-type-face])
-      (wisi-indent-action [0
-                           (ada-indent-return 1 0)
-                           (wisi-anchored 2 ada-indent-broken)
-                           (wisi-anchored 2 ada-indent-broken)]))
-  | RETURN null_exclusion_opt name_opt
-    (progn
-      (wisi-face-apply-action [3 font-lock-type-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
-  | formal_part RETURN access_definition
-    (progn
-      (wisi-indent-action [0 (ada-indent-return 1 0)
-                             (wisi-anchored 2 ada-indent-broken)]))
-  | RETURN access_definition
-    (progn
-      (wisi-indent-action [0 ada-indent-broken]))
+  : formal_part result_profile
+    (wisi-indent-action [0 (ada-indent-return 1 0)])
+  | result_profile
   ;
 
 ;; parameter_association is merged into association
@@ -1959,6 +1944,19 @@ requeue_statement
     (wisi-statement-action [1 statement-start 5 statement-end])
   | REQUEUE name SEMICOLON
     (wisi-statement-action [1 statement-start 3 statement-end])
+  ;
+
+;; not in LRM; used to implement consistent indentation
+result_profile
+  : RETURN null_exclusion_opt name_opt
+    (progn
+      (wisi-face-apply-action [3 font-lock-type-face])
+      (wisi-indent-action* 1
+                           [0
+                           (wisi-anchored* 1 ada-indent-broken)
+                           (wisi-anchored* 1 ada-indent-broken)]))
+  | RETURN access_definition
+    (wisi-indent-action* 1 [0 ada-indent-broken])
   ;
 
 return_subtype_indication

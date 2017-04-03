@@ -47,9 +47,13 @@
 (defun ada-indent-return (token-number offset)
   "Implement `ada-indent-return' option in a grammar action.
 TOKEN-NUMBER is the formal_part token."
-  (if (<= 0 ada-indent-return)
-      (wisi-anchored token-number (+ offset (abs ada-indent-return)))
-    (+ offset ada-indent-return)))
+  ;; wisi-token-index must be the return token, or a nonterminal
+  ;; starting with the return token.
+  (let ((return-tok (aref wisi-tokens wisi-token-index)))
+    (if (and (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
+	     (<= 0 ada-indent-return))
+	(wisi-anchored token-number (+ offset (abs ada-indent-return)))
+      (+ offset ada-indent-return))))
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.

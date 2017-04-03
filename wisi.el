@@ -1378,6 +1378,14 @@ For use in grammar indent actions."
       (list 'anchored 1 delta)
       )))
 
+(defun wisi-anchored* (token-number offset)
+  "If TOKEN-NUMBER token in `wisi-tokens' is first on a line,
+anchor the current token to it at OFFSET.
+Otherwise return 0."
+  (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
+      (wisi-anchored token-number offset)
+    0))
+
 (defvar wisi-token-index nil
   "Index of current token in `wisi-tokens'.
 Let-bound in `wisi-indent-action', for grammar actions.")
@@ -1486,6 +1494,23 @@ DELTAS."
 			     (not (= 0 comment-delta)))))
 	    (wisi--indent-token tok token-delta comment-delta))
 	  )))))
+
+(defun wisi-indent-action* (n deltas)
+  "If any of the first N tokens in `wisi-tokens' is first on a line,
+call `wisi-indent-action' with DETLAS.  Otherwise do nothing."
+  (when (eq wisi--parse-action 'indent)
+    (let ((done nil)
+	  (i 0)
+	  tok)
+      (while (and (not done)
+		  (< i n))
+	(setq tok (aref wisi-tokens i))
+	(setq i (1+ i))
+	(when (and (wisi-tok-region tok)
+		   (wisi-tok-first tok))
+	  (setq done t)
+	  (wisi-indent-action deltas))
+	))))
 
 (defun wisi--indent-leading-comments ()
   "Set `wisi-ind-indent to 0 for comment lines before first token in buffer.
