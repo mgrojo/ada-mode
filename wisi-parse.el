@@ -579,7 +579,7 @@ STACK of the first and last tokens of the nonterminal."
 	  (aset tokens (- token-count i 1) tok))
 
 	(when (eq wisi--parse-action 'indent)
-	  (setq line (wisi-tok-line tok))
+	  (setq line (or (wisi-tok-line tok) line))
 	  (if (wisi-tok-nonterminal tok)
 	      (when (wisi-tok-first tok)
 		(setq first (wisi-tok-first tok)))

@@ -45,7 +45,8 @@
 ;;;; indentation
 
 (defun ada-indent-return (token-number offset)
-  "Implement `ada-indent-return' option in a grammar action."
+  "Implement `ada-indent-return' option in a grammar action.
+TOKEN-NUMBER is the formal_part token."
   (if (<= 0 ada-indent-return)
       (wisi-anchored token-number (+ offset (abs ada-indent-return)))
     (+ offset ada-indent-return)))
@@ -127,7 +128,8 @@ For `wisi-indent-calculate-functions'.
   ;;
   ;; The normal indentation algorithm has already indented the
   ;; comment.
-  (when (= 11 (syntax-class (syntax-after (point)))) ;; nil at eob
+  (when (and (not (eobp))
+	     (= 11 (syntax-class (syntax-after (point)))))
 
     ;; We are looking at a comment; check for preceding comments, code
     (let (after

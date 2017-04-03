@@ -72,6 +72,7 @@ in wisi-indent-action:
    wisi-nterm
    wisi-tokens
    deltas
+   wisi-token-index
    tok
    token-delta
    comment-delta
@@ -94,15 +95,13 @@ in wisi-parse-reduce:
 
  compute indent via indent-actions in grammar
 
-need option for indent comment to trailing
-    in 5.2?
-
 test/debug.adb
+    function_access-type_1a .. 2g need work
+        don't anchor to return unless it is first on line
 
 test/ada_mode-nominal.ads
-    8 failures
     record indent; implement ada-indent-record-rel-type
-
+    lots of diffs
 
 test-ada-gpr_query.stamp
 

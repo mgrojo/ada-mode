@@ -1286,17 +1286,8 @@ the wisi-tokens[token-number] region."
 	    ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
 	    ;;   Ada.Strings.Maps."or"
 	    ;;     (Ada.Strings.Maps.To_Set (' '),
-	    ;;
-	    ;; don't apply hanging indent if indent already non-zero
-	    ;; test/ada_mode-parens.adb
-	    ;; Slice_1
-	    ;;   (1,
-	    ;;    C
-	    ;;      (1 .. 2));
-	    ;; indent set by name:2 (slice)
-	    (when (and (= paren-first
-			  (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
-		       (wisi--indent-non-zero i))
+	    (when (= paren-first
+		     (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
 		(wisi--inc-indent i (nth 4 delta)))
 	      ))
 
@@ -1373,8 +1364,13 @@ For use in grammar indent actions."
        ((integerp indent)
 	(aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
 
-       ((listp indent)
+       ((and (listp indent)
+	     (eq 'anchor (car indent)))
 	(push (1+ (car (nth 1 indent))) (nth 1 indent)))
+
+       ((and (listp indent)
+	     (eq 'anchored (car indent)))
+	(aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) (copy-sequence indent))))
 
        (t
 	(error "wisi-anchored-delta: invalid form in indent: %s" indent)))
@@ -1561,10 +1557,11 @@ Returns cache, or nil if at end of buffer."
     ))
 
 (defun wisi-forward-find-class (class limit)
-  "Search forward for a token that has a cache with CLASS.
+  "Search at point or forward for a token that has a cache with CLASS.
 Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((cache (wisi-forward-cache)))
+  (let ((cache (or (wisi-get-cache (point))
+		   (wisi-forward-cache))))
     (while (not (eq class (wisi-cache-class cache)))
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
@@ -1769,10 +1766,10 @@ the comment on the previous line."
       )))
 
 (defvar-local wisi-indent-calculate-functions nil
-  "Functions to compute indentation special cases, including
-comments.  Called with point at current indentation of a line;
-return indentation column, or nil if function does not know how
-to indent that line. Run after parser indentation, so other lines
+  "Functions to compute indentation special cases.
+Called with point at current indentation of a line; return
+indentation column, or nil if function does not know how to
+indent that line. Run after parser indentation, so other lines
 are indented correctly.")
 
 (defvar-local wisi-post-indent-fail-hook
@@ -1865,13 +1862,13 @@ Called with BEGIN END.")
 		  (let ((indent2 (nth 2 indent)))
 		    (cond
 		     ((eq 'anchor (car indent))
-		      ;; Finish previous anchors
-		      (while (or (> (length anchor-indent) (car (nth 1 indent)))
-				 (member (length anchor-indent) (nth 1 indent)))
-			(pop anchor-indent))
-
 		      (cond
 		       ((integerp indent2)
+			;; Finish previous anchors
+			(while (or (> (length anchor-indent) (car (nth 1 indent)))
+				   (member (length anchor-indent) (nth 1 indent)))
+			  (pop anchor-indent))
+
 			(dotimes (_i (length (nth 1 indent)))
 			  (push indent2 anchor-indent))
 			(setq indent (car anchor-indent)))
@@ -1879,6 +1876,11 @@ Called with BEGIN END.")
 		       ((listp indent2) ;; 'anchored
 			(let* ((cur-anchor (car anchor-indent))
 			       (new-indent (+ cur-anchor (nth 2 indent2))))
+			  ;; Finish previous anchors
+			  (while (or (> (length anchor-indent) (car (nth 1 indent)))
+				     (member (length anchor-indent) (nth 1 indent)))
+			    (pop anchor-indent))
+
 			  (dotimes (_i (length (nth 1 indent)))
 			    (push new-indent anchor-indent))
 			  (setq indent new-indent)))

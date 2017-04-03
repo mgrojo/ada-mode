@@ -112,7 +112,7 @@ is -- target 0
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
-     ; -- we don't really care
+   ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
@@ -247,7 +247,7 @@ is -- target 0
      protected function
        (A_Param : in Float)
        return Standard.Float;
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -1)(ada-which-function))
    --EMACSRESULT:"Ada_Mode.Nominal"
 
    -- a pathological case
