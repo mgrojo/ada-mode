@@ -6,7 +6,8 @@ build/wisi/Makefile
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a): available
+o.e.a.stephe-4 (from o.e.a.s-2):
+o.e.a.stephe-5 (from o.e.a): gpr_query completion table
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)
@@ -64,36 +65,54 @@ ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
     use wisi parser for navigation, face with gps for indent; done
 
 ada_mode_gps_indent bug #2: does not honor ada-broken-indent
-    style change to put '&' at end of line fixes it
-    otherwise needs GPS code patch - done
+    GPS code patch - done
 
 ada_mode_gps_indent bug #3: comments inside expressions badly indented
     post processor for comments. - done
 
 ada_mode_gps_indent bug #4: multiline comments starting after code
-    partial fix: Stick_Comments => True -  done
-    full fix: post processor for comments - done
+    post processor for comments - done
 
 ada_mode_gps_indent bug #5: jumps to column zero after RET
     insert fictitious code when call GPS - done
 
 ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
-   The_TV := E (Query, (Def_Restriction.Traffic_Volume,
-                Def_Traffic_Volume.Convert
-                  (CASA_Main.TV_Identifier)));
+    GPS code patch - done
 
-    requires GPS patch; done
+ada_mode_gps_indent bug #7: comments after last parameter and end of statement
+    fix ada-gps-comment - done
 
- Eurocontrol settings:
+ada_mode_gps_indent bug #8: double ada-indent-broken in rare cases
+    bug triggered by coding standard violation; low priority
+    needs GPS code patch; waiting for AdaCore
+
+ Eurocontrol work:
 (progn
     (setq ada-gps-size-threshold 0)
-    (setq ada-indent-broken 2))
+    (setq ada-indent 2)
+    (setq ada-indent-broken 2)
+    (setq ada-indent-record-rel-type 2)
+    (ada-indent-hanging-rel-exp t))
 test/debug.adb
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
 
+test/ada-gps/ada_gps_bug_007.adb
+
 ada_mode_gps_indent 1.001 compiled for linux in c:/tmp
+
+download GPS 17.1, verify and report GPS bugs
+    see email for list
+
+ada-indent-hanging-rel-exp
+    see FIXME: in ada-wisi.el
+    need input from ludovic
+
+    add to NEWS
+    add to .texi
+
+    not relevant for gps?
 
 if wisi is too slow on large buffers:
     see o.e.a.stephe-2 parse-action
@@ -104,21 +123,9 @@ if wisi is too slow on large buffers:
             (wisi-containing-action ...))
          (wisi
             ... current code))
-ada-mode-gps-indent hangs if indent single blank line via ada-gps-indent-region?
-    does not hang if use ada-gps-indent-line?
-
-ada_mode_gps_indent install:
-    edit GPS configure to delete gtk, rather than configure gtk
 
 gpr_query --help show relevant trace settings
     add -v; shows *.ali
-
-ada-indent-hanging-rel-exp
-    see FIXME: in ada-wisi.el
-    need input from ludovic
-
-    add to NEWS
-    add to .texi
 
 see pdf-tools for ideas on compiling during package install
 
@@ -156,9 +163,6 @@ ada_mode_gps_indent.gpr use gps.gpr?
 https://www.emacswiki.org/emacs/AdaMode
 
 update ada-mode-keys.el on savannah
-
-maybe add option ada-indent-paren-rel-rhs
-    see email
 
 C-u C-c C-r append references
     rewrite gnatxref to not use compilation-start

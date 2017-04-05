@@ -306,6 +306,17 @@ are indented correctly.")
 	    )))
       )))
 
+(defun ada-gps--comment-goto-start()
+  ;; If comment is after a terminal semicolon, indent to
+  ;; beginning of statement, not prev line.
+  ;;
+  ;; test/ada-gps/ada_gps_bug_007.adb
+  (let (cache)
+    (end-of-line)
+    (wisi-backward-token)
+    (when (setq cache (wisi-get-cache (point)))
+      (wisi-goto-start cache))))
+
 (defun ada-gps-comment ()
   "Modify indentation of a comment:
 For `ada-gps-indent-functions'.
@@ -324,9 +335,8 @@ For `ada-gps-indent-functions'.
 	     (= 11 (syntax-class (syntax-after (point)))))
 
     ;; We are looking at a comment; check for preceding comments, code
-    (let (after
-	  (indent (current-column))
-	  prev-indent next-indent)
+    (let ((indent (current-column))
+	  after prev-indent next-indent)
 
       (if (save-excursion (forward-line -1) (looking-at "\\s *$"))
 	  ;; after blank line - find a code line
@@ -337,7 +347,9 @@ For `ada-gps-indent-functions'.
 		       (looking-at "\\s *$"))
 	      (forward-line -1))
 	    (if (bobp)
-		(setq indent 0)
+		(setq prev-indent 0)
+
+	      (ada-gps--comment-goto-start)
 	      (back-to-indentation)
 	      (setq prev-indent (current-column)))
 	    )
@@ -349,6 +361,7 @@ For `ada-gps-indent-functions'.
 	      ;; no comment on previous line
 	      (progn
 		(setq after 'code)
+		(ada-gps--comment-goto-start)
 		(back-to-indentation)
 		(setq prev-indent (current-column)))
 
