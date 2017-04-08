@@ -55,6 +55,18 @@ TOKEN-NUMBER is the formal_part token."
 	(wisi-anchored token-number (+ offset (abs ada-indent-return)))
       (+ offset ada-indent-return))))
 
+(defun ada-indent-record()
+  "Return delta to implement `ada-indent-record-rel-type'.
+For use in grammar action."
+  (let ((record-tok (aref wisi-tokens wisi-token-index))
+	type-tok)
+    (if (not (wisi-tok-first record-tok))
+	0
+      (setq type-tok (wisi-parse-find-token 'TYPE))
+      (goto-char (car (wisi-tok-region type-tok)))
+      (wisi-anchored-1 type-tok ada-indent-record-rel-type))
+    ))
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation

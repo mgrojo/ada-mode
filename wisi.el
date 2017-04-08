@@ -1318,11 +1318,10 @@ the wisi-tokens[token-number] region."
       (wisi--indent-token-1 line end comment-delta)))
   )
 
-(defun wisi-anchored (token-number offset)
-  "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
+(defun wisi-anchored-1 (tok offset)
+  "Return offset of TOK relative to current indentation + OFFSET.
 For use in grammar indent actions."
-  (let* ((tok (aref wisi-tokens (1- token-number)))
-	 (pos (car (wisi-tok-region tok)))
+  (let* ((pos (car (wisi-tok-region tok)))
 	 delta)
 
     (goto-char pos)
@@ -1378,6 +1377,11 @@ For use in grammar indent actions."
       (list 'anchored 1 delta)
       )))
 
+(defun wisi-anchored (token-number offset)
+  "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
+For use in grammar indent actions."
+  (wisi-anchored-1 (aref wisi-tokens (1- token-number)) offset))
+
 (defun wisi-anchored* (token-number offset)
   "If TOKEN-NUMBER token in `wisi-tokens' is first on a line,
 anchor the current token to it at OFFSET.
@@ -1385,6 +1389,11 @@ Otherwise return 0."
   (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
       (wisi-anchored token-number offset)
     0))
+
+(defun wisi-anchored% (token-number offset)
+  "Anchor the current token at OFFSET from the first token on the line containing TOKEN-NUMBER
+in `wisi-tokens'."
+  (wisi-anchored-1 (wisi-parse-first-token (wisi-tok-line (aref wisi-tokens (1- token-number)))) offset))
 
 (defvar wisi-token-index nil
   "Index of current token in `wisi-tokens'.

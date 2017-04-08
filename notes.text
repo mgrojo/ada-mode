@@ -96,18 +96,16 @@ in wisi-parse-reduce:
  compute indent via indent-actions in grammar
 
 test/debug.adb
-    record_type_1
-
-inhibit change hooks while indenting
 
 test/ada_mode-nominal.ads
-    record indent; implement ada-indent-record-rel-type
     lots of diffs
 
 test-ada-gpr_query.stamp
 
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.
+
+inhibit change hooks while indenting?
 
 review fixmes
 

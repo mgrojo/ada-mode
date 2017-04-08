@@ -67,8 +67,7 @@ point at which that max was spawned.")
   ;; 'pending-shift, 'pending-reduce - newly created parser; see wisi-parse
 
   stack
-  ;; Each stack item takes two slots: (token-symbol token-text (token-start . token-end)), state
-  ;; token-text is nil for nonterminals.
+  ;; Each stack item takes two slots: wisi-tok, state
 
   sp ;; stack pointer
 
@@ -552,9 +551,51 @@ STACK of the first and last tokens of the nonterminal."
       (cons i j))
     ))
 
+(defvar wisi-parser-state nil
+  "Let-bound in `wisi-parse-reduce', used in `wisi-parse-find-token'.")
+
+(defun wisi-parse-find-token (token-symbol)
+  "Find token with TOKEN-SYMBOL on current parser stack, return token struct.
+For use in grammar actions."
+  ;; Called from wisi-parse-exec-action in wisi-parse-reduce
+  (let* ((stack (wisi-parser-state-stack wisi-parser-state))
+	 (sp (1- (wisi-parser-state-sp wisi-parser-state)))
+	 (tok (aref stack sp)))
+    (while (and (> sp 0)
+		(not (eq token-symbol (wisi-tok-token tok))))
+      (setq sp (- sp 2))
+      (setq tok (aref stack sp)))
+    (if (= sp 0)
+	(error "token %s not found on parser stack" token-symbol)
+      tok)
+    ))
+
+(defun wisi-parse-first-token (line)
+  "Find first token on LINE on current parser stack, return token struct.
+For use in grammar actions."
+  ;; Called from wisi-parse-exec-action in wisi-parse-reduce
+  (let* ((stack (wisi-parser-state-stack wisi-parser-state))
+	 (sp (1- (wisi-parser-state-sp wisi-parser-state)))
+	 (tok (aref stack sp)))
+    (while (and (> sp 0)
+		(not
+		 (and
+		  (wisi-tok-first tok)
+		  (or (if (wisi-tok-nonterminal tok)
+			  (= line (wisi-tok-first tok))
+			(= line (wisi-tok-line tok))))
+		  )))
+      (setq sp (- sp 2))
+      (setq tok (aref stack sp)))
+    (if (= sp 0)
+	(error "first token on line %s not found on parser stack" line)
+      tok)
+    ))
+
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
-  (let* ((stack (wisi-parser-state-stack parser-state)); reference
+  (let* ((wisi-parser-state parser-state);; reference, for wisi-parse-find-token
+	 (stack (wisi-parser-state-stack parser-state)); reference
 	 (sp (wisi-parser-state-sp parser-state)); copy
 	 (token-count (nth 2 action))
 	 (nonterm (nth 0 action))
