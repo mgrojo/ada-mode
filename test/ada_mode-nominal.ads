@@ -346,7 +346,8 @@ is -- target 0
       Component_2 : Integer := 2;
       Component_3 : Integer := 3;
    end record;
-   for Record_Type_2 use record at mod 4;
+   for Record_Type_2 use record
+      at mod 4;
       Component_1 at 0 range 0 .. 31;
       Component_2 at 0 range 32 .. 63;
       Component_3 at 0 range 64 .. 95;
@@ -467,10 +468,10 @@ is -- target 0
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
    private -- Protected_1
-     --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "is -- Protected_1"))
-   --EMACSRESULT:t
-     --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "; -- Protected_1"))
-   --EMACSRESULT:t
+      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "is -- Protected_1"))
+      --EMACSRESULT:t
+      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "; -- Protected_1"))
+      --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly

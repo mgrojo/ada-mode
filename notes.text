@@ -97,15 +97,13 @@ in wisi-parse-reduce:
 
 test/debug.adb
 
-test/ada_mode-nominal.ads
-    lots of diffs
-
 test-ada-gpr_query.stamp
 
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.
 
-inhibit change hooks while indenting?
+anchor comment after 'is' in full_type_declaration to next line?
+    easier when cache indent on newline
 
 review fixmes
 
@@ -122,6 +120,8 @@ indent max-cache doesn't work
     set align-indent-before false?
 
 align region is slow
+    inhibit change hooks while indenting/aligning?
+
     on 5 var decl in smm-server.adb
     calls parser to navigate, then indent
         could do both at once

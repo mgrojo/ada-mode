@@ -1221,7 +1221,7 @@ the wisi-tokens[token-number] region."
 	(paren-first (when (and (listp delta)
 				(eq 'hanging (car delta)))
 		       (nth 2 delta)))
-	indent)
+	indent override)
 
     (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
 
@@ -1232,14 +1232,18 @@ the wisi-tokens[token-number] region."
        ((listp delta)
 	(cond
 	 ((eq 'anchored (car delta))
-	  ;; From wisi-anchored; delta is ('anchored 1 delta)
+	  ;; From wisi-anchored; delta is ('anchored <1 | -1> delta)
 	  (setq indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
+	  (setq override (= 1 (nth 1 delta)))
 
 	  (cond
 	   ((integerp indent)
-	    (let ((temp (copy-sequence delta)))
-	      (setf (nth 2 temp) (+ indent (nth 2 temp)))
-	      (aset (wisi-ind-indent wisi--indent) i temp)))
+	    (when (or override
+		      (= indent 0))
+	      (let ((temp (copy-sequence delta)))
+		(setf (nth 1 temp) 1)
+		(setf (nth 2 temp) (+ indent (nth 2 temp)))
+		(aset (wisi-ind-indent wisi--indent) i temp))))
 
 	   ((listp indent)
 	    (cond
@@ -1248,9 +1252,11 @@ the wisi-tokens[token-number] region."
 
 	      (cond
 	       ((integerp (nth 2 indent))
-		(let ((delta1 (copy-sequence delta)))
-		  (setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
-		  (setf (nth 2 indent) delta1)))
+		(when (or override
+			  (= (nth 2 indent) 0))
+		  (let ((delta1 (copy-sequence delta)))
+		    (setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
+		    (setf (nth 2 indent) delta1))))
 
 	       ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
 		;; increment anchored nest
@@ -1318,7 +1324,7 @@ the wisi-tokens[token-number] region."
       (wisi--indent-token-1 line end comment-delta)))
   )
 
-(defun wisi-anchored-1 (tok offset)
+(defun wisi-anchored-1 (tok offset &optional no-override)
   "Return offset of TOK relative to current indentation + OFFSET.
 For use in grammar indent actions."
   (let* ((pos (car (wisi-tok-region tok)))
@@ -1374,7 +1380,10 @@ For use in grammar indent actions."
        (t
 	(error "wisi-anchored-delta: invalid form in indent: %s" indent)))
 
-      (list 'anchored 1 delta)
+      (list
+       'anchored
+       (if no-override -1 1)
+       delta)
       )))
 
 (defun wisi-anchored (token-number offset)
@@ -1392,8 +1401,8 @@ Otherwise return 0."
 
 (defun wisi-anchored% (token-number offset)
   "Anchor the current token at OFFSET from the first token on the line containing TOKEN-NUMBER
-in `wisi-tokens'."
-  (wisi-anchored-1 (wisi-parse-first-token (wisi-tok-line (aref wisi-tokens (1- token-number)))) offset))
+in `wisi-tokens', but don't override existing indent."
+  (wisi-anchored-1 (wisi-parse-first-token token-number) offset t))
 
 (defvar wisi-token-index nil
   "Index of current token in `wisi-tokens'.
@@ -1477,8 +1486,8 @@ DELTAS."
 		   (aref deltas wisi-token-index)))
 	     (comment-delta
 	      (cond
-	       ((vectorp token-delta)
-		(aref token-delta 1))
+	       ((vectorp (aref deltas wisi-token-index))
+		(aref (aref deltas wisi-token-index) 1))
 
 	       ((and (wisi-tok-comment-line tok)
 		     (< wisi-token-index (1- (length wisi-tokens))))

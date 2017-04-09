@@ -193,9 +193,11 @@
         (wisi-face-apply-action [4 font-lock-type-face])
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])))
        ((null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt )
-        (wisi-indent-action* 4 [0 0 0 0 ada-indent-broken]))
+        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+        (wisi-anchored% 4 ada-indent-broken)]))
        ((null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile )
-        (wisi-indent-action* 4 [0 0 0 0 ada-indent-broken])))
+        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+        (wisi-anchored% 4 ada-indent-broken)])))
       (actual_parameter_part
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)]))
@@ -723,7 +725,7 @@
         (wisi-statement-action [1 statement-start 2 name 7 statement-end])
         (wisi-containing-action 1 5)
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0 0])))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent-broken ada-indent-broken] 0 0 0])))
        ((task_type_declaration ))
        ((protected_type_declaration )))
       (function_specification
@@ -1270,14 +1272,16 @@
        ((RANGE simple_expression DOT_DOT simple_expression )))
       (record_definition
        ((RECORD component_list_opt END RECORD )
-        (wisi-indent-action [(ada-indent-record) (wisi-anchored% 1 ada-indent) (wisi-anchored% 1 0) (wisi-anchored% 1 0)]))
-       ((NULL RECORD )))
+        (wisi-indent-action [(ada-indent-record 'TYPE) (wisi-anchored% 1 ada-indent) (wisi-anchored% 1 0) (wisi-anchored% 1 0)]))
+       ((NULL RECORD )
+        (wisi-indent-action [ada-indent-broken ada-indent-broken])))
       (record_representation_clause
        ((FOR name USE RECORD mod_clause_opt component_clause_list END RECORD SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent 0 0 0]))))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (ada-indent-record 1) (wisi-anchored% 4 ada-indent)
+        (wisi-anchored% 4 ada-indent) (wisi-anchored% 4 0) (wisi-anchored% 4 0) 0]))))
       (relation_and_list
        ((relation AND relation ))
        ((relation_and_list AND relation )))
@@ -1581,7 +1585,8 @@
        ((DIGITS expression_opt real_range_specification_opt ))
        ((DELTA expression_opt real_range_specification_opt ))
        ((DELTA expression_opt DIGITS expression_opt real_range_specification_opt ))
-       ((array_type_definition ))
+       ((array_type_definition )
+        (wisi-indent-action [(wisi-hanging ada-indent-broken ada-indent-broken)]))
        ((abstract_tagged_limited_opt record_definition )
         (wisi-indent-action [ada-indent-broken 0]))
        ((access_definition ))
