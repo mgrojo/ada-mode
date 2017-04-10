@@ -97,7 +97,12 @@ in wisi-parse-reduce:
 
 test/debug.adb
 
+test/ada_skel.adb
+    crashes wrong-type-argument: (arrayp nil)
+
 test-ada-gpr_query.stamp
+    (dired "c:/Projects/org.emacs.ada-mode.stephe-2/build/wisi/*.diff")
+    lots of diffs
 
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.

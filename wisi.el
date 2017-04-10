@@ -1405,10 +1405,10 @@ For use in grammar indent actions."
      delta)
     ))
 
-(defun wisi-anchored (token-number offset)
+(defun wisi-anchored (token-number offset &optional no-accumulate)
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
 For use in grammar indent actions."
-  (wisi-anchored-1 (aref wisi-tokens (1- token-number)) offset))
+  (wisi-anchored-1 (aref wisi-tokens (1- token-number)) offset no-accumulate))
 
 (defun wisi-anchored* (token-number offset)
   "If TOKEN-NUMBER token in `wisi-tokens' is first on a line,
@@ -1416,6 +1416,14 @@ anchor the current token to it at OFFSET.
 Otherwise return 0."
   (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
       (wisi-anchored token-number offset)
+    0))
+
+(defun wisi-anchored*- (token-number offset)
+  "If existing indent is zero, and TOKEN-NUMBER token in `wisi-tokens' is first on a line,
+anchor the current token to it at OFFSET.
+Otherwise return 0."
+  (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
+      (wisi-anchored token-number offset t)
     0))
 
 (defun wisi-anchored% (token-number offset)
@@ -1426,7 +1434,7 @@ in `wisi-tokens'."
    (wisi-tok-line (aref wisi-tokens wisi-token-index))
    offset nil))
 
-(defun wisi-anchored%* (token-number offset)
+(defun wisi-anchored%- (token-number offset)
   "If existing indent is zero, anchor the current token at OFFSET
 from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'."
   (wisi-anchored-2

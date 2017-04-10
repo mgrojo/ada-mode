@@ -181,7 +181,7 @@
         (wisi-containing-action 1 6)
         (wisi-motion-action [1 5 [6 EXCEPTION WHEN]])
         (wisi-face-apply-action [2 font-lock-function-name-face 8 font-lock-function-name-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0])))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0 0])))
        ((ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
@@ -195,10 +195,10 @@
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])))
        ((null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt )
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-        (wisi-anchored%* 4 ada-indent-broken)]))
+        (wisi-anchored%- 4 ada-indent-broken)]))
        ((null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile )
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-        (wisi-anchored%* 4 ada-indent-broken)])))
+        (wisi-anchored%- 4 ada-indent-broken)])))
       (actual_parameter_part
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 1)]))
@@ -249,8 +249,9 @@
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
        ((CHARACTER_LITERAL EQUAL_GREATER BOX ))
        ((discrete_choice_list EQUAL_GREATER expression_opt )
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
-       ((discrete_choice_list EQUAL_GREATER BOX ))
+        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken ada-indent-broken]))
+       ((discrete_choice_list EQUAL_GREATER BOX )
+        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken]))
        ((expression_opt )))
       (association_list
        ((association_opt ))
@@ -482,8 +483,7 @@
       (discrete_choice_list
        (())
        ((discrete_choice ))
-       ((discrete_choice_list BAR discrete_choice )
-        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken ada-indent-broken])))
+       ((discrete_choice_list BAR discrete_choice )))
       (discrete_subtype_definition
        ((subtype_indication ))
        ((range )))
@@ -1342,7 +1342,7 @@
         (wisi-anchored* 1 ada-indent-broken)
         (wisi-anchored* 1 ada-indent-broken)])))
        ((RETURN access_definition )
-        (wisi-indent-action* 1 [0 ada-indent-broken])))
+        (wisi-indent-action* 1 [0 (wisi-anchored*- 1 ada-indent-broken)])))
       (return_subtype_indication
        ((subtype_indication ))
        ((access_definition )))
@@ -1532,7 +1532,7 @@
         (wisi-motion-action [1 5 7 11])
         (wisi-face-apply-action [3 font-lock-type-face 10 font-lock-type-face])
         (wisi-indent-action [0 0 ada-indent-broken 0 0 [ada-indent ada-indent]
-        0 [ada-indent ada-indent] 0]))))
+        0 [ada-indent ada-indent] 0 0 0]))))
       (task_body_stub
        ((TASK BODY IDENTIFIER IS SEPARATE aspect_specification_opt SEMICOLON )
         (progn
@@ -1622,7 +1622,7 @@
        ((WHEN discrete_choice_list EQUAL_GREATER component_list_opt )
         (progn
         (wisi-statement-action [1 motion])
-        (wisi-indent-action [ada-indent-when ada-indent-broken ada-indent ada-indent]))))
+        (wisi-indent-action [ada-indent-when (wisi-hanging 0 ada-indent-broken) ada-indent ada-indent]))))
       (unary_adding_operator
        ((PLUS ))
        ((MINUS )))
