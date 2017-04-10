@@ -50,10 +50,10 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-wisi.el
+one : RUNTEST := run-indent-test-wisi-gpr_query.el
 one-clean:
-	rm -f gds.gpr*
-one : one-clean gds.gpr.diff
+	rm -f ada_mode-nominal.ads*
+one : one-clean ada_mode-nominal.ads.diff-run
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .

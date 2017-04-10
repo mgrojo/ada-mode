@@ -55,26 +55,53 @@ TOKEN-NUMBER is the formal_part token."
 	(wisi-anchored token-number (+ offset (abs ada-indent-return)))
       (+ offset ada-indent-return))))
 
-(defun ada-indent-record(token)
+(defun ada-indent-record (anchor-token record-token offset)
   "Return delta to implement `ada-indent-record-rel-type'.
-TOKEN is the token to anchor 'record' to; it is one of:
+
+ANCHOR-TOKEN is the token to anchor line containing 'record' to; it is one of:
 integer; token number in `wisi-tokens'
 symbol: token id to find in the parser stack.
 
+RECORD-TOKEN is the token number of 'record'.
+
 For use in grammar action."
-  (let ((record-tok (aref wisi-tokens wisi-token-index))
-	anchor-tok)
-    (if (not (wisi-tok-first record-tok))
-	0
-      (cond
-       ((integerp token)
-	(setq anchor-tok (aref wisi-tokens (1- token))))
-       ((symbolp token)
-	(setq anchor-tok (wisi-parse-find-token token)))
-       )
-      (goto-char (car (wisi-tok-region anchor-tok)))
-      (wisi-anchored-1 anchor-tok ada-indent-record-rel-type))
-    ))
+  (let ((record-tok (aref wisi-tokens (1- record-token)))
+	(anchor-tok
+	 (cond
+	  ((integerp anchor-token)
+	   (aref wisi-tokens (1- anchor-token)))
+	  ((symbolp anchor-token)
+	   (wisi-parse-find-token anchor-token))
+	  )))
+    (cond
+     ((and (= wisi-token-index (1- record-token))
+	   (= offset 0))
+      ;; Indenting 'record'
+      ;; offset is non-zero when indenting comments after record.
+      ;; Anchor line.
+      (wisi-anchored-2 (wisi-tok-line anchor-tok) (wisi-tok-line record-tok) ada-indent-record-rel-type nil))
+
+     (t ;; indenting comment, component or 'end'
+
+      ;; ensure 'record' line is anchored
+      (let ((indent (aref (wisi-ind-indent wisi--indent) (1- (wisi-tok-line record-tok))))
+	    delta)
+	(unless (and (listp indent)
+		     (eq 'anchor (car indent)))
+	  (setq
+	   delta
+	   (wisi-anchored-2
+	    (wisi-tok-line anchor-tok) (wisi-tok-line record-tok) ada-indent-record-rel-type nil))
+	  (unless (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
+	    (wisi--indent-token-1 (wisi-tok-line record-tok) (cdr (wisi-tok-region record-tok)) delta))))
+
+      ;; anchor current line
+      (wisi-anchored-1
+       anchor-tok
+       (if (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
+	   offset
+	 (+ offset ada-indent-record-rel-type))))
+     )))
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.

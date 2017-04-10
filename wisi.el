@@ -1221,7 +1221,7 @@ the wisi-tokens[token-number] region."
 	(paren-first (when (and (listp delta)
 				(eq 'hanging (car delta)))
 		       (nth 2 delta)))
-	indent override)
+	indent accumulate)
 
     (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
 
@@ -1234,11 +1234,11 @@ the wisi-tokens[token-number] region."
 	 ((eq 'anchored (car delta))
 	  ;; From wisi-anchored; delta is ('anchored <1 | -1> delta)
 	  (setq indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
-	  (setq override (= 1 (nth 1 delta)))
+	  (setq accumulate (= 1 (nth 1 delta)))
 
 	  (cond
 	   ((integerp indent)
-	    (when (or override
+	    (when (or accumulate
 		      (= indent 0))
 	      (let ((temp (copy-sequence delta)))
 		(setf (nth 1 temp) 1)
@@ -1252,7 +1252,7 @@ the wisi-tokens[token-number] region."
 
 	      (cond
 	       ((integerp (nth 2 indent))
-		(when (or override
+		(when (or accumulate
 			  (= (nth 2 indent) 0))
 		  (let ((delta1 (copy-sequence delta)))
 		    (setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
@@ -1307,24 +1307,23 @@ the wisi-tokens[token-number] region."
       (setq i (1+ i))
       )))
 
-(defun wisi--indent-token (tok token-delta comment-delta)
-  "Add TOKEN-DELTA to all indents in TOK region, COMMENT-DELTA in following comment region."
-  ;; token
+(defun wisi--indent-token (tok token-delta)
+  "Add TOKEN-DELTA to all indents in TOK region,"
   (let ((line (if (wisi-tok-nonterminal tok)
 		  (wisi-tok-first tok)
 		(when (wisi-tok-first tok) (wisi-tok-line tok))))
 	(end (cdr (wisi-tok-region tok))))
     (when (and line end token-delta)
-      (wisi--indent-token-1 line end token-delta)))
+      (wisi--indent-token-1 line end token-delta))))
 
-  ;; comment
+(defun wisi--indent-comment (tok comment-delta)
+  "Add COMMENT-DELTA to all indents in comment region following TOK."
   (let ((line (wisi-tok-comment-line tok))
 	(end (wisi-tok-comment-end tok)))
     (when (and line end comment-delta)
-      (wisi--indent-token-1 line end comment-delta)))
-  )
+      (wisi--indent-token-1 line end comment-delta))))
 
-(defun wisi-anchored-1 (tok offset &optional no-override)
+(defun wisi-anchored-1 (tok offset &optional no-accumulate)
   "Return offset of TOK relative to current indentation + OFFSET.
 For use in grammar indent actions."
   (let* ((pos (car (wisi-tok-region tok)))
@@ -1332,59 +1331,79 @@ For use in grammar indent actions."
 
     (goto-char pos)
     (setq delta (+ offset (- (current-column) (current-indentation))))
+    (wisi-anchored-2 (wisi-tok-line tok) (wisi-tok-line (aref wisi-tokens wisi-token-index)) delta no-accumulate)))
 
-    ;; tok may be a terminal or a non-terminal.
-    ;;
-    ;; Typically, we use anchored to indent relative to a token buried in a line:
-    ;;
-    ;; test/ada_mode-parens.adb
-    ;; Local_2 : Integer := (1 + 2 +
-    ;;                         3);
-    ;;
-    ;; If tok is a nonterminal, and the first token in tok is also
-    ;; first on a line, we don't need anchored to compute the
-    ;; delta:
-    ;; test/ada_mode-parens.adb
-    ;; Local_5 : Integer :=
-    ;;   (1 + 2 +
-    ;;      3);
-    ;;
-    ;; However, in some places we need anchored to prevent later
-    ;; deltas from accumulating:
-    ;;
-    ;; test/ada_mode-parens.adb
-    ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
-    ;;   Ada.Strings.Maps."or"
-    ;;     (Ada.Strings.Maps.To_Set (' '),
-    ;;
-    ;; here the function call actual parameter part is indented both
-    ;; by 'name' and by 'expression', we use anchored to keep the
-    ;; 'name' indent.
-    ;;
-    ;; So we apply anchored whether tok is first or not
+(defun wisi-anchored-2 (anchor-line indent-line delta no-accumulate)
+  "Set ANCHOR-LINE as anchor, increment anchors to INDENT-LINE, return anchored delta."
+  ;; tok may be a terminal or a non-terminal.
+  ;;
+  ;; Typically, we use anchored to indent relative to a token buried in a line:
+  ;;
+  ;; test/ada_mode-parens.adb
+  ;; Local_2 : Integer := (1 + 2 +
+  ;;                         3);
+  ;;
+  ;; If tok is a nonterminal, and the first token in tok is also
+  ;; first on a line, we don't need anchored to compute the
+  ;; delta:
+  ;; test/ada_mode-parens.adb
+  ;; Local_5 : Integer :=
+  ;;   (1 + 2 +
+  ;;      3);
+  ;;
+  ;; However, in some places we need anchored to prevent later
+  ;; deltas from accumulating:
+  ;;
+  ;; test/ada_mode-parens.adb
+  ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+  ;;   Ada.Strings.Maps."or"
+  ;;     (Ada.Strings.Maps.To_Set (' '),
+  ;;
+  ;; here the function call actual parameter part is indented both
+  ;; by 'name' and by 'expression', we use anchored to keep the
+  ;; 'name' indent.
+  ;;
+  ;; So we apply anchored whether tok is first or not
 
-    (let* ((i (1- (wisi-tok-line tok)))
-	   (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
-      (cond
-       ((integerp indent)
-	(aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
+  (let* ((i (1- anchor-line))
+	 (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
 
-       ((and (listp indent)
-	     (eq 'anchor (car indent)))
-	(push (1+ (car (nth 1 indent))) (nth 1 indent)))
+    ;; Set anchor
+    (cond
+     ((integerp indent)
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
 
-       ((and (listp indent)
-	     (eq 'anchored (car indent)))
-	(aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) (copy-sequence indent))))
+     ((and (listp indent)
+	   (eq 'anchor (car indent)))
+      (push (1+ (car (nth 1 indent))) (nth 1 indent)))
 
-       (t
-	(error "wisi-anchored-delta: invalid form in indent: %s" indent)))
+     ((and (listp indent)
+	   (eq 'anchored (car indent)))
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) (copy-sequence indent))))
 
-      (list
-       'anchored
-       (if no-override -1 1)
-       delta)
-      )))
+     (t
+      (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
+
+    ;; Increment nest level of intervening anchors
+    (setq i (1+ i))
+    (while (< i indent-line)
+      ;; indent-line anchor will be incremented in wisi--indent-token-1
+      (setq indent (aref (wisi-ind-indent wisi--indent) i))
+      (when (listp indent)
+	(cond
+	 ((eq 'anchor (car indent))
+	  (wisi--inc-anchor-nest indent))
+
+	 ((eq 'anchored (car indent))
+	  (setf (nth 1 indent) (1+ (nth 1 indent))))
+	  ))
+      (setq i (1+ i)))
+
+    (list
+     'anchored
+     (if no-accumulate -1 1)
+     delta)
+    ))
 
 (defun wisi-anchored (token-number offset)
   "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
@@ -1401,8 +1420,19 @@ Otherwise return 0."
 
 (defun wisi-anchored% (token-number offset)
   "Anchor the current token at OFFSET from the first token on the line containing TOKEN-NUMBER
-in `wisi-tokens', but don't override existing indent."
-  (wisi-anchored-1 (wisi-parse-first-token token-number) offset t))
+in `wisi-tokens'."
+  (wisi-anchored-2
+   (wisi-tok-line (aref wisi-tokens (1- token-number)))
+   (wisi-tok-line (aref wisi-tokens wisi-token-index))
+   offset nil))
+
+(defun wisi-anchored%* (token-number offset)
+  "If existing indent is zero, anchor the current token at OFFSET
+from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'."
+  (wisi-anchored-2
+   (wisi-tok-line (aref wisi-tokens (1- token-number)))
+   (wisi-tok-line (aref wisi-tokens wisi-token-index))
+   offset t))
 
 (defvar wisi-token-index nil
   "Index of current token in `wisi-tokens'.
@@ -1500,17 +1530,19 @@ DELTAS."
 		(when token-delta
 		  (wisi--indent-compute-delta token-delta tok)))
 
+	  (when (and token-delta
+		     (or (consp token-delta)
+			 (not (= 0 token-delta))))
+	    (wisi--indent-token tok token-delta))
+
 	  (setq comment-delta
 		(when comment-delta
 		  (wisi--indent-compute-delta comment-delta tok)))
 
-	  (when (or (and token-delta
-			 (or (consp token-delta)
-			     (not (= 0 token-delta))))
-		    (and comment-delta
-			 (or (consp comment-delta)
-			     (not (= 0 comment-delta)))))
-	    (wisi--indent-token tok token-delta comment-delta))
+	  (when (and comment-delta
+		     (or (consp comment-delta)
+			 (not (= 0 comment-delta))))
+	    (wisi--indent-comment tok comment-delta))
 	  )))))
 
 (defun wisi-indent-action* (n deltas)

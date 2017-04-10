@@ -110,7 +110,7 @@ Example :
 (make-variable-buffer-local 'ada-indent-label)
 
 (defcustom ada-indent-record-rel-type 3
-  "Indentation for `record' relative to `type' or `use'.
+  "Indentation for line containing `record' relative to `type' or `for'.
 
 An example is:
    type A is
