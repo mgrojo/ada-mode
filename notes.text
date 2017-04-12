@@ -97,6 +97,9 @@ in wisi-parse-reduce:
 
 test/debug.adb
 
+test/ada_mode-nominal-child.ads
+    comment between 'with' and 'record'
+
 test/ada_mode-nominal.adb:238
     face cache screwed up
     race condition with display/font-lock (sigh)

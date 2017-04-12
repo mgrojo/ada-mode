@@ -146,6 +146,35 @@ For use in grammar action."
 	 (+ offset ada-indent-record-rel-type))))
      )))
 
+(defun ada-indent-renames (token-number)
+  "Implement `ada-indent-return' option in a subprogram renaming grammar action.
+TOKEN-NUMBER is the subprogram_specification token."
+  ;; wisi-token-index is the renames token.
+  (let* ((subp-tok (aref wisi-tokens (1- token-number)))
+	 (subp-line (wisi-tok-line subp-tok))
+	 (renames-tok (aref wisi-tokens wisi-token-index))
+	 (paren-pos
+	  (progn (goto-char (car (wisi-tok-region subp-tok)))
+		 (search-forward "(" (cdr (wisi-tok-region subp-tok)) t)))
+	 (paren-line subp-line))
+
+    (cond
+     (paren-pos
+      (cond
+       ((<= 0 ada-indent-renames)
+	(while (< (aref (wisi-ind-line-begin wisi--indent) paren-line) paren-pos)
+	  (setq paren-line (1+ paren-line)))
+
+	(wisi-anchored-2 paren-line (wisi-tok-line renames-tok) (abs ada-indent-renames) nil))
+
+       (t
+	(wisi-anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-renames nil))
+       ))
+
+     (t
+      (wisi-anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
+     )))
+
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
 INDENT must be indent computed by the normal indentation

@@ -1026,16 +1026,16 @@ formal_subprogram_declaration
  ;; formal_concrete_subprogram_declaration
     (progn
       (wisi-statement-action [1 statement-start 6 statement-end])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | WITH subprogram_specification aspect_specification_opt SEMICOLON ;; formal_concrete_subprogram_declaration
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken 0]))
   | WITH subprogram_specification IS ABSTRACT subprogram_default aspect_specification_opt SEMICOLON
  ;; formal_abstract_subprogram_declaration
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | WITH subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON
  ;; formal_abstract_subprogram_declaration
     (progn
@@ -1148,9 +1148,7 @@ generic_formal_part
       (wisi-statement-action [1 statement-start])
       (wisi-indent-action [0 ada-indent]))
   | GENERIC
-    (progn
-      (wisi-statement-action [1 statement-start])
-      (wisi-indent-action [0 ada-indent]))
+    (wisi-statement-action [1 statement-start])
   ;
 
 generic_formal_parameter_declarations
@@ -1190,8 +1188,8 @@ generic_package_declaration
   : generic_formal_part package_specification SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 2 motion 3 statement-end])
-      (wisi-motion-action [1 2]))
-    ;; (wisi-indent-action [0 0 0])
+      (wisi-motion-action [1 2])
+      (wisi-indent-action [[0 ada-indent] 0 0]))
   ;
 
 generic_renaming_declaration
@@ -1204,12 +1202,12 @@ generic_renaming_declaration
     (progn
       (wisi-statement-action [1 statement-start  7 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
-      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0]))
   | GENERIC FUNCTION name RENAMES name aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
-      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0]))
   ;
 
 generic_subprogram_declaration
@@ -2201,9 +2199,7 @@ subprogram_renaming_declaration
     (progn
       (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
       (wisi-face-apply-action [4 font-lock-function-name-face])
-      ;; FIXME: need to rearrange so grammar determines presence/absense of parameters. see ada-indent-return above.
-      ;; or use a function ada-wisi-indent-renames
-      (wisi-indent-action [0 0 ada-indent-renames ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 (ada-indent-renames 2) ada-indent-broken ada-indent-broken 0]))
   ;
 
 subprogram_specification

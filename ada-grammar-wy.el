@@ -468,7 +468,8 @@
        ((abstract_limited_opt NEW name and_interface_list_opt WITH record_definition )
         (progn
         (wisi-face-apply-action [3 font-lock-type-face])
-        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
+        [ada-indent-broken ada-indent-record-rel-type] 0])))
        ((abstract_limited_opt NEW name constraint_opt )
         (progn
         (wisi-face-apply-action [3 font-lock-type-face])
@@ -672,15 +673,15 @@
        ((WITH subprogram_specification IS subprogram_default aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 6 statement-end])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((WITH subprogram_specification aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [0 0 ada-indent-broken 0])))
        ((WITH subprogram_specification IS ABSTRACT subprogram_default aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((WITH subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 6 statement-end])
@@ -757,9 +758,7 @@
         (wisi-statement-action [1 statement-start])
         (wisi-indent-action [0 ada-indent])))
        ((GENERIC )
-        (progn
-        (wisi-statement-action [1 statement-start])
-        (wisi-indent-action [0 ada-indent]))))
+        (wisi-statement-action [1 statement-start])))
       (generic_formal_parameter_declarations
        ((generic_formal_parameter_declaration ))
        ((generic_formal_parameter_declarations generic_formal_parameter_declaration )))
@@ -790,7 +789,8 @@
        ((generic_formal_part package_specification SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 motion 3 statement-end])
-        (wisi-motion-action [1 2]))))
+        (wisi-motion-action [1 2])
+        (wisi-indent-action [[0 ada-indent] 0 0]))))
       (generic_renaming_declaration
        ((GENERIC PACKAGE name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
@@ -801,12 +801,12 @@
         (progn
         (wisi-statement-action [1 statement-start  7 statement-end])
         (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
-        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0])))
        ((GENERIC FUNCTION name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
         (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
-        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))))
+        (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0]))))
       (generic_subprogram_declaration
        ((generic_formal_part subprogram_specification aspect_specification_opt SEMICOLON )
         (progn
@@ -1505,7 +1505,7 @@
         (progn
         (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
         (wisi-face-apply-action [4 font-lock-function-name-face])
-        (wisi-indent-action [0 0 ada-indent-renames ada-indent-broken ada-indent-broken 0]))))
+        (wisi-indent-action [0 0 (ada-indent-renames 2) ada-indent-broken ada-indent-broken 0]))))
       (subprogram_specification
        ((procedure_specification ))
        ((function_specification )))

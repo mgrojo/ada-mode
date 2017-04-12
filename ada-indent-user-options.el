@@ -120,20 +120,19 @@ An example is:
 (make-variable-buffer-local 'ada-indent-record-rel-type)
 
 (defcustom ada-indent-renames 2
-  "Indentation for `renames' relative to the matching subprogram keyword.
+  "Indentation for `renames' relative to the subprogram keyword.
 
 For `renames' of non-subprograms the indentation is
-`ada-indent-broken' relative to the line containing the matching
-keyword.
+`ada-indent-broken' relative to the start of the statement.
 
 If the subprogram has parameters then if `ada-indent-renames' is
 zero or less the indentation is abs `ada-indent-renames' relative
 to the open parenthesis; if `ada-indent-renames' is one or more
-the indentation is relative to the line containing the keyword.
+the indentation is relative to the line containing the subprogram
+keyword ('function' or 'procedure').
 
 If the subprogram has no parameters then the indentation is
-`ada-indent-broken' relative to the indentation of the line
-containing the keyword.
+`ada-indent-broken' relative to the line containing the keyword.
 
 Examples:
    ada-indent-renames = 2
