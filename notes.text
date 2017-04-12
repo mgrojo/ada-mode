@@ -97,6 +97,10 @@ in wisi-parse-reduce:
 
 test/debug.adb
 
+test/ada_mode-nominal.adb:238
+    face cache screwed up
+    race condition with display/font-lock (sigh)
+
 test/ada_skel.adb
     crashes wrong-type-argument: (arrayp nil)
 
@@ -182,6 +186,8 @@ handle ada-wisi-opentoken
     change reliance on cache to search for := token
 
  functional (next page for speed issues/ideas)
+http://langserver.org/
+    open protocol for IDE/compiler communication
 
 ada_mode_gps_indent install:
     edit GPS configure to delete gtk, rather than configure gtk

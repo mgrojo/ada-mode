@@ -44,6 +44,49 @@
 
 ;;;; indentation
 
+(defun ada-indent-aggregate ()
+  "Return indent for an aggregate (0 or -1)."
+  ;; In our grammar, 'aggregate' can be an Ada aggregate, or a
+  ;; parenthesized expression.
+  ;;
+  ;; We always want an 'aggregate' to be indented by
+  ;; ada-indent-broken. However, in some places in the grammar,
+  ;; 'aggregate' is indented by ada-indent. The following checks for
+  ;; those places, and returns a correction value.
+  ;;
+  ;; `ada-indent-aggregate' is used in only one place in the grammar,
+  ;; in 'primary'.
+  (let ((prev-token (wisi-tok-token (wisi-parse-prev-token 1))))
+    (cl-case prev-token
+      (EQUAL_GREATER
+       ;; in association_opt or case_expression_alternative
+       (let ((prev-3-token (wisi-tok-token (wisi-parse-prev-token 3))))
+	 (cl-case prev-3-token
+	   (WHEN ;; case_expression_alternative
+	    ;;
+	    ;; test/ada_mode-conditional_expressions.adb
+	    ;; when 1  =>
+	    ;;
+	    ;;    (if J > 42
+	    (- ada-indent-broken ada-indent))
+
+	   (t
+	    ;; association_opt
+	    ;;
+	    ;; test/ada_mode-long_paren.adb
+            ;; RX_Enable                     =>
+            ;;   (RX_Torque_Subaddress |
+	    0)
+	   )))
+
+      ((ELSE ;; in if_expression
+	THEN) ;; in elsif_expression_item or if_expression
+       (- ada-indent-broken ada-indent))
+
+      (t
+       0))
+    ))
+
 (defun ada-indent-return (token-number offset)
   "Implement `ada-indent-return' option in a grammar action.
 TOKEN-NUMBER is the formal_part token."
@@ -287,13 +330,9 @@ For `wisi-indent-calculate-functions'.
 (defun ada-wisi-in-case-expression ()
   "For `ada-in-case-expression'."
   (save-excursion
-    ;; Used by ada-align, which does indent, which will require parse
-    ;; We know we are in a paren.
+    ;; Used by ada-align; we know we are in a paren.
     (ada-goto-open-paren 1)
-    (let ((cache (wisi-get-cache (point))))
-      (and cache
-	   (eq (wisi-cache-nonterm cache) 'case_expression)))
-    ))
+    (eq (wisi-tok-token (wisi-forward-token)) 'CASE)))
 
 (defun ada-wisi-goto-subunit-name ()
   "For `ada-goto-subunit-name'."

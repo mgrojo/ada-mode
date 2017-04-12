@@ -570,39 +570,12 @@ For use in grammar actions."
       tok)
     ))
 
-(defun wisi-parse-first-token (token-number)
-  "Find first token on LINE in `wisi-tokens' or on current parser stack,
-return token struct.  For use in grammar actions."
-  ;; Called from wisi-parse-exec-action in wisi-parse-reduce
-  (let* ((line (wisi-tok-line (aref wisi-tokens (1- token-number))))
-	 (stack (wisi-parser-state-stack wisi-parser-state))
-	 (sp (1- (wisi-parser-state-sp wisi-parser-state)))
-	 tok
-	 (wisi-tokens-done nil)
-	 (done nil))
-    (while (and (> sp 0)
-		(not done))
-      (if wisi-tokens-done
-	  (setq tok (aref stack sp))
-	(setq tok (aref wisi-tokens (1- token-number))))
-
-      (when (and
-	     (wisi-tok-first tok)
-	     (or (if (wisi-tok-nonterminal tok)
-		     (= line (wisi-tok-first tok))
-		   (= line (wisi-tok-line tok)))))
-	(setq done t))
-
-      (if wisi-tokens-done
-	  (setq sp (- sp 2))
-	(setq token-number (1- token-number))
-	(setq wisi-tokens-done (= 0 token-number)))
-      )
-
-    (if (= sp 0)
-	(error "first token on line %s not found on wisi-tokens or parser stack" line)
-      tok)
-    ))
+(defun wisi-parse-prev-token (n)
+  "Return the Nth token on the stack before the token currently being reduced.
+For use in grammar actions."
+  (let* ((stack (wisi-parser-state-stack wisi-parser-state))
+	 (sp (1- (wisi-parser-state-sp wisi-parser-state))))
+    (aref stack (- sp (* 2 n)))))
 
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."
