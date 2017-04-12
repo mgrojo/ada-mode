@@ -591,6 +591,7 @@ Prompt user if more than one."
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
   (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; There is no common convention for a file extension for gnatprep files.
   ;;
@@ -617,6 +618,7 @@ Prompt user if more than one."
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq 'gnatprep-syntax-propertize ada-syntax-propertize-hook))
   (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; don't need to delete from compilation-search-path; completely rewritten in ada-select-prj-file
   (setq compilation-environment nil)

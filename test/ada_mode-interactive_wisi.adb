@@ -26,11 +26,13 @@ is
    function Local_Function_1 return Float;
    --EMACSRESULT:3
 
-   -- new parameter in a subpgrogram
+   -- New parameter in a subpgrogram. See comment in
+   -- ada_mode-parens.adb Local_10 on hanging paren indent.
+
    --EMACSCMD:(progn (end-of-line 3)(delete-indentation)(delete-char -1)(insert ";")(ada-indent-newline-indent) (current-column))
    procedure Local_Proc_1 (Param_1 : in Float;
-                           );
-   --EMACSRESULT:27
+                          );
+   --EMACSRESULT:26
 
    -- Adding a body interactively leaves it properly indented, and
    -- caches updated. Start with invalid syntax (missing final ';'),

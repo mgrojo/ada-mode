@@ -95,12 +95,15 @@
 ;;
 ;;;; syntax-propertize
 ;;
-;; `wisi-forward-token' relies on syntax properties, so (in Emacs <
-;; 25) syntax-propertize must be called on the text to be lexed before
-;; wisi-forward-token is called. In general, it is hard to determine
-;; an appropriate end-point for syntax-propertize, other than
-;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
-;; and also call syntax-propertize in wisi--post-change.
+;; `wisi-forward-token' relies on syntax properties, so
+;; syntax-propertize must be called on the text to be lexed before
+;; wisi-forward-token is called.
+;;
+;; Emacs >= 25 calls syntax-propertize transparently in the low-level
+;; lexer functions.
+;;
+;; In Emacs < 25, We call syntax-propertize in wisi-setup, and in
+;; wisi--post-change.
 ;;
 ;;;;;
 
@@ -121,6 +124,12 @@
   :group 'wisi
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-size-threshold)
+
+(defvar wisi-comment-col-0 nil
+  "If non-nil, comments currently starting in column 0 are left in column 0.
+Otherwise, they are indented with previous comments or code.
+Normally set from a language-specific option.")
+(make-variable-buffer-local 'wisi-indent-comment-col-0)
 
 ;;;; lexer
 
@@ -523,7 +532,7 @@ wisi-forward-token, but does not look up symbol."
   "Update wisi text properties for changes in region BEG END."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
-  ;; see comments above on "lexer" re syntax-propertize
+  ;; see comments above on syntax-propertize
   (when (< emacs-major-version 25) (syntax-propertize end))
 
   ;; Remove caches on inserted text, which could have caches from
@@ -1320,7 +1329,9 @@ the wisi-tokens[token-number] region."
   "Add COMMENT-DELTA to all indents in comment region following TOK."
   (let ((line (wisi-tok-comment-line tok))
 	(end (wisi-tok-comment-end tok)))
-    (when (and line end comment-delta)
+    (when (and line end comment-delta
+	       (or (not wisi-comment-col-0)
+		   (/= 11 (syntax-class (syntax-after (aref (wisi-ind-line-begin wisi--indent) (1- line)))))))
       (wisi--indent-token-1 line end comment-delta))))
 
 (defun wisi-anchored-1 (tok offset &optional no-accumulate)
@@ -2149,7 +2160,7 @@ Called with BEGIN END.")
   (when (functionp 'jit-lock-register);; FIXME: in emacs 24.5; emacs 24.2?
       (jit-lock-register 'wisi-fontify-region))
 
-  ;; See comments on "lexer" above re syntax-propertize.
+  ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
   )
 

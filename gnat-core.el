@@ -376,6 +376,8 @@ list."
   (when (equal (char-after) ?\#) 0))
 
 (defun gnatprep-syntax-propertize (start end)
+  ;; FIXME: debugging
+  (message "gnatprep-syntax-propertize %s %s" start end)
   (goto-char start)
   (save-match-data
     (while (re-search-forward

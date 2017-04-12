@@ -36,7 +36,7 @@ run test from emacs -Q using source:
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
   (ada-wisi-debug-keys)
   (run-test-here)
   )
@@ -46,7 +46,7 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (load "autoloads.el")
   (require 'ada-mode)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-interactive_common.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
   )
 
 install packages in -Q:
@@ -96,6 +96,13 @@ in wisi-parse-reduce:
  compute indent via indent-actions in grammar
 
 test/debug.adb
+
+test/hanging.adb
+    ada-indent-hanging-rel-exp
+
+indent.ads
+    should depend on ada-indent-hanging-rel-exp?
+    nested hanging?
 
 test-ada-gpr_query.stamp
     (dired "c:/Projects/org.emacs.ada-mode.stephe-2/build/wisi/*.diff")

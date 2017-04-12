@@ -107,11 +107,24 @@
 TOKEN-NUMBER is the formal_part token."
   ;; wisi-token-index must be the return token, or a nonterminal
   ;; starting with the return token.
+  ;;
+  ;; The grammar handles checking for no params; we know token-number
+  ;; is non-nil.
   (let ((return-tok (aref wisi-tokens wisi-token-index)))
-    (if (and (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
-	     (<= 0 ada-indent-return))
-	(wisi-anchored token-number (+ offset (abs ada-indent-return)))
-      (+ offset ada-indent-return))))
+    (if (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
+	;; return is first on a line; needs indenting
+	(cond
+	 ((>= 0 ada-indent-return)
+	  ;; realtive to paren
+	  (wisi-anchored token-number (+ offset (abs ada-indent-return))))
+
+	 (t
+	  ;; relative to 'function'
+	  (wisi-anchored-1 (wisi-parse-find-token 'FUNCTION) (+ offset ada-indent-return)))
+	 )
+
+      ;; 'return' not first on line
+      0)))
 
 (defun ada-indent-record (anchor-token record-token offset)
   "Return delta to implement `ada-indent-record-rel-type'.
@@ -171,16 +184,19 @@ TOKEN-NUMBER is the subprogram_specification token."
 	 (paren-pos
 	  (progn (goto-char (car (wisi-tok-region subp-tok)))
 		 (search-forward "(" (cdr (wisi-tok-region subp-tok)) t)))
-	 (paren-line subp-line))
+	 (paren-line subp-line)
+	 delta)
 
     (cond
      (paren-pos
       (cond
-       ((<= 0 ada-indent-renames)
+       ((>= 0 ada-indent-renames)
+	(setq delta (+ (abs ada-indent-renames) -1 (- (current-column) (current-indentation))))
+
 	(while (< (aref (wisi-ind-line-begin wisi--indent) paren-line) paren-pos)
 	  (setq paren-line (1+ paren-line)))
 
-	(wisi-anchored-2 paren-line (wisi-tok-line renames-tok) (abs ada-indent-renames) nil))
+	(wisi-anchored-2 paren-line (wisi-tok-line renames-tok) delta nil))
 
        (t
 	(wisi-anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-renames nil))
@@ -714,7 +730,7 @@ Also return cache at start."
 
 (defun ada-wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
-syntax for a real literal; otherwise nil. point is after
+syntax for a numeric literal; otherwise nil. point is after
 TOKEN-TEXT; move point to just past token."
   ;; test in test/wisi/ada-number-literal.input
   ;;
@@ -805,6 +821,8 @@ TOKEN-TEXT; move point to just past token."
 	      ada-grammar-wy--keyword-table
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)
+
+  (setq wisi-comment-col-0 ada-indent-comment-col-0)
 
   ;; Handle escaped quotes in strings
   (setf (wisi-lex-string-quote-escape-doubled wisi--lexer) t)
