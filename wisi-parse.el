@@ -253,11 +253,8 @@ point at which that max was spawned.")
 
 		(1
 		 (setf (wisi-parser-state-active parser-state) nil); Don't save error for later.
-		 (let ((parser-state (aref parser-states (wisi-active-parser parser-states))))
-		   (wisi-execute-pending (wisi-parser-state-label parser-state)
-					 (wisi-parser-state-pending parser-state))
-		   (setf (wisi-parser-state-pending parser-state) nil)
-		   ))
+		 (wisi-parse-execute-pending (aref parser-states (wisi-active-parser parser-states))))
+
 		(t
 		 ;; We were in a parallel parse, and this parser
 		 ;; failed; mark it inactive, don't save error for
@@ -395,11 +392,7 @@ nil, `shift', or `accept'."
 		  ;; identical, but either is good enough for
 		  ;; indentation and navigation, so we just do the
 		  ;; actions for the one that is not terminating.
-		  (let ((parser-state (aref parser-states parser-i)))
-		    (wisi-execute-pending (wisi-parser-state-label parser-state)
-					  (wisi-parser-state-pending parser-state))
-		    (setf (wisi-parser-state-pending parser-state) nil)
-		    ))
+		  (wisi-parse-execute-pending (aref parser-states parser-i)))
 		))))
 	)))
   active-parser-count)
@@ -437,13 +430,20 @@ nil, `shift', or `accept'."
       (message "... action skipped; no tokens"))
     ))
 
-(defun wisi-execute-pending (parser-label pending)
-  (when (> wisi-debug 1) (message "%d: pending actions:" parser-label))
-  (while pending
-    (when (> wisi-debug 1) (message "%s" (car pending)))
+(defun wisi-parse-execute-pending (parser-state)
+  (let ((wisi-parser-state parser-state);; reference, for wisi-parse-find-token
+	(pending (wisi-parser-state-pending parser-state)))
 
-    (let ((func-args (pop pending)))
-      (wisi-parse-exec-action (nth 0 func-args) (nth 1 func-args) (cl-caddr func-args)))
+    (when (> wisi-debug 1)
+      (message "%d: pending actions:" (wisi-parser-state-label parser-state)))
+
+    (while pending
+      (when (> wisi-debug 1) (message "%s" (car pending)))
+
+      (let ((func-args (pop pending)))
+	(wisi-parse-exec-action (nth 0 func-args) (nth 1 func-args) (cl-caddr func-args)))
+      )
+    (setf (wisi-parser-state-pending parser-state) nil)
     ))
 
 (defmacro wisi-parse-action (i al)

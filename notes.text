@@ -30,15 +30,15 @@ run test from emacs -Q using source:
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
-  ;; (setq debug-on-error t)
+  (setq debug-on-error t)
   (load "autoloads.el")
   (require 'ada-mode)
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
-  ;; (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/debug.adb")
+  (setq wisi-debug 1)
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/ada_mode-nominal.adb")
   (ada-wisi-debug-keys)
-;  (run-test-here)
+  (run-test-here)
   )
 
 (progn
@@ -96,16 +96,6 @@ in wisi-parse-reduce:
  compute indent via indent-actions in grammar
 
 test/debug.adb
-
-test/ada_mode-nominal-child.ads
-    comment between 'with' and 'record'
-
-test/ada_mode-nominal.adb:238
-    face cache screwed up
-    race condition with display/font-lock (sigh)
-
-test/ada_skel.adb
-    crashes wrong-type-argument: (arrayp nil)
 
 test-ada-gpr_query.stamp
     (dired "c:/Projects/org.emacs.ada-mode.stephe-2/build/wisi/*.diff")

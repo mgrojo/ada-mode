@@ -58,29 +58,44 @@
   ;; in 'primary'.
   (let ((prev-token (wisi-tok-token (wisi-parse-prev-token 1))))
     (cl-case prev-token
+      (ELSE ;; in if_expression or boolean shortcut "or else"
+       (cl-case (wisi-tok-token (wisi-parse-prev-token 2))
+	 (OR
+	  ;; boolean shortcut
+	  ;;
+	  ;; test/ada_mode-parens.adb
+	  ;; or else ((B.all
+	  ;;             and then C)
+	  ;;            or else
+	  ;;            (D
+	  0)
+
+	 (t ;; if_expression
+	  (- ada-indent-broken ada-indent))
+	 ))
+
       (EQUAL_GREATER
        ;; in association_opt or case_expression_alternative
-       (let ((prev-3-token (wisi-tok-token (wisi-parse-prev-token 3))))
-	 (cl-case prev-3-token
-	   (WHEN ;; case_expression_alternative
-	    ;;
-	    ;; test/ada_mode-conditional_expressions.adb
-	    ;; when 1  =>
-	    ;;
-	    ;;    (if J > 42
-	    (- ada-indent-broken ada-indent))
+       (cl-case (wisi-tok-token (wisi-parse-prev-token 3))
+	 (WHEN
+	  ;; case_expression_alternative
+	  ;;
+	  ;; test/ada_mode-conditional_expressions.adb
+	  ;; when 1  =>
+	  ;;
+	  ;;    (if J > 42
+	  (- ada-indent-broken ada-indent))
 
-	   (t
-	    ;; association_opt
-	    ;;
-	    ;; test/ada_mode-long_paren.adb
-            ;; RX_Enable                     =>
-            ;;   (RX_Torque_Subaddress |
-	    0)
-	   )))
+	 (t
+	  ;; association_opt
+	  ;;
+	  ;; test/ada_mode-long_paren.adb
+	  ;; RX_Enable                     =>
+	  ;;   (RX_Torque_Subaddress |
+	  0)
+	 ))
 
-      ((ELSE ;; in if_expression
-	THEN) ;; in elsif_expression_item or if_expression
+      (THEN ;; in elsif_expression_item or if_expression
        (- ada-indent-broken ada-indent))
 
       (t

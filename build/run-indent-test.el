@@ -13,6 +13,7 @@
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
+    (wisi-validate-cache (line-end-position 3) nil 'face)
     (when (ada-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
