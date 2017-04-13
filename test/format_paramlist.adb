@@ -66,8 +66,8 @@ package body Format_Paramlist is
       C : aliased access          Z;
       D : aliased not null access Z;
       E : aliased                 Z)
-     --EMACSCMD:(test-face "is" 'font-lock-keyword-face))
-     --EMACSCMD:(test-face "begin" 'font-lock-keyword-face))
+      --EMACSCMD:(test-face "is" 'font-lock-keyword-face))
+      --EMACSCMD:(test-face "begin" 'font-lock-keyword-face))
    is begin
       null;
    end H;

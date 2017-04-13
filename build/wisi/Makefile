@@ -52,8 +52,8 @@ test-wisi :: subprograms.wisi-test
 
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
 one-clean:
-	rm -f ada_mode-nominal.ads*
-one : one-clean ada_mode-nominal.ads.diff-run
+	rm -f ada_mode-options-indent_return_3.ads*
+one : one-clean ada_mode-options-indent_return_3.ads.diff-run
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -118,6 +118,9 @@ test-clean ::
 include ../common.make
 
 .PHONY : force
+
+diffs : force
+	find . -name "*.diff" -not -size 0
 
 test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
 test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))

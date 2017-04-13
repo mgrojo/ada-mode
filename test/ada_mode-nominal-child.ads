@@ -62,7 +62,7 @@ package Ada_Mode.Nominal.Child is
    function Function_2d
      (Param : in Child_Type_1)
      return Float   -- from ada-indent-return
-       renames Function_2d_Different_Name;  -- from ada-indent-renames
+     renames Function_2d_Different_Name;  -- from ada-indent-renames
 
    overriding function
      Function_2e (Param : in Child_Type_1) return Float;
@@ -74,7 +74,7 @@ package Ada_Mode.Nominal.Child is
    overriding function Function_2f
      (Param : in Child_Type_1)
      return Float   -- from ada-indent-return
-       renames Function_2f_Different_Name;  -- from ada-indent-renames
+     renames Function_2f_Different_Name;  -- from ada-indent-renames
 
    overriding
    function Function_2h (Param : in Child_Type_1) return Float is (1.0); -- overriding with expression function

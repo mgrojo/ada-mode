@@ -95,12 +95,18 @@ in wisi-parse-reduce:
 
  compute indent via indent-actions in grammar
 
+dvc-ediff-add-log-entry in .ads gets wrong name
+    test/ada_mode-nominal_child.ads Function_2f
+
 test/debug.adb
+
+test/aspects.ads
+    should depend on ada-indent-hanging-rel-exp?
 
 test/hanging.adb
     ada-indent-hanging-rel-exp
 
-indent.ads
+test/indent.ads
     should depend on ada-indent-hanging-rel-exp?
     nested hanging?
 

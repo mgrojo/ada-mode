@@ -1628,7 +1628,7 @@
        ((CASE direct_name_opt IS variant_list END CASE SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-when 0 0 0 0]))))
+        (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when 0 0 0]))))
       (variant_list
        ((variant ))
        ((variant_list variant )))
