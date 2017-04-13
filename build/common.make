@@ -131,7 +131,7 @@ gpr-skel.gpr.tmp :
 	-diff -u $< $*.tmp > $*.diff
 
 %.diff-run : % %.tmp
-	diff -u $< $*.tmp
+	-diff -u $< $*.tmp
 
 .PRECIOUS : %.tmp
 

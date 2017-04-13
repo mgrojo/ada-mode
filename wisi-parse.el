@@ -574,8 +574,10 @@ For use in grammar actions."
   "Return the Nth token on the stack before the token currently being reduced.
 For use in grammar actions."
   (let* ((stack (wisi-parser-state-stack wisi-parser-state))
-	 (sp (1- (wisi-parser-state-sp wisi-parser-state))))
-    (aref stack (- sp (* 2 n)))))
+	 (sp (1- (wisi-parser-state-sp wisi-parser-state)))
+	 (i (- sp (* 2 n))))
+    (when (> i 0)
+      (aref stack i))))
 
 (defun wisi-parse-reduce (action parser-state pendingp gotos)
   "Reduce PARSER-STATE.stack, and execute or pend ACTION."

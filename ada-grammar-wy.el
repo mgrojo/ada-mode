@@ -1521,7 +1521,7 @@
         (progn
         (wisi-statement-action [1 statement-start 6 statement-end])
         (wisi-face-apply-action [2 font-lock-type-face])
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0]))))
       (subtype_indication
        ((NOT NULL name constraint )
         (wisi-face-apply-action [3 font-lock-type-face]))

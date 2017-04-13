@@ -77,7 +77,6 @@ That is, one of:
 
 Otherwise, they are indented as a with previous comments or code."
   :type  'boolean
-  :group 'ada-indentation
   :safe  #'booleanp)
 (make-variable-buffer-local 'ada-indent-comment-gnat)
 
@@ -229,8 +228,8 @@ An example is:
 (make-variable-buffer-local 'ada-indent-with)
 
 (defcustom ada-indent-hanging-rel-exp nil
-  "If non-nil, indent hanging lines relative to start of expression.
-Otherwise, indent relative to previous line."
+  "If nil, indent hanging lines in an expression relative to the first line.
+Otherwise, indent by `ada-indent-broken' relative to the start of the expression."
   :type 'boolean
   :safe #'booleanp)
 (make-variable-buffer-local 'ada-indent-hanging-rel-exp)

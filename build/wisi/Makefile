@@ -50,10 +50,12 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
+ONE_TEST_FILES := aspects.ads
+ONE_TEST_FILES += hanging.adb
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
-one-clean:
-	rm -f ada_mode-options-indent_return_3.ads*
-one : one-clean ada_mode-options-indent_return_3.ads.diff-run
+one-clean: force
+	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -119,8 +121,9 @@ include ../common.make
 
 .PHONY : force
 
+# suitable for copying to ../../notes.text
 diffs : force
-	find . -name "*.diff" -not -size 0
+	cd ../../; find build/wisi -name "*.diff" -not -size 0
 
 test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
 test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))

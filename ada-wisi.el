@@ -102,29 +102,26 @@
        0))
     ))
 
-(defun ada-indent-return (token-number offset)
-  "Implement `ada-indent-return' option in a grammar action.
-TOKEN-NUMBER is the formal_part token."
-  ;; wisi-token-index must be the return token, or a nonterminal
-  ;; starting with the return token.
-  ;;
-  ;; The grammar handles checking for no params; we know token-number
-  ;; is non-nil.
-  (let ((return-tok (aref wisi-tokens wisi-token-index)))
-    (if (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
-	;; return is first on a line; needs indenting
-	(cond
-	 ((>= 0 ada-indent-return)
-	  ;; realtive to paren
-	  (wisi-anchored token-number (+ offset (abs ada-indent-return))))
+(defun ada-indent-hanging()
+  "For `wisi-indent-hanging'. Determine indent style from context."
+  ;; ada-mode 5.2 used a special case for aspect specification
+  ;; expressions; we implement that here. Otherwise, implement
+  ;; ada-indent-hanging-rel-exp.
+  (cond
+   ((or (let ((prev-3 (wisi-parse-prev-token 3)))
+	  (and prev-3
+	       (eq 'WITH (wisi-tok-token prev-3))))
+	(let ((prev-5 (wisi-parse-prev-token 5)))
+	  (and prev-5
+	       (eq 'WITH (wisi-tok-token prev-5))))) ; aspect_specification_opt
+    0)
 
-	 (t
-	  ;; relative to 'function'
-	  (wisi-anchored-1 (wisi-parse-find-token 'FUNCTION) (+ offset ada-indent-return)))
-	 )
+   (ada-indent-hanging-rel-exp
+    ada-indent-broken)
 
-      ;; 'return' not first on line
-      0)))
+   (t
+    nil)
+   ))
 
 (defun ada-indent-record (anchor-token record-token offset)
   "Return delta to implement `ada-indent-record-rel-type'.
@@ -205,6 +202,30 @@ TOKEN-NUMBER is the subprogram_specification token."
      (t
       (wisi-anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
      )))
+
+(defun ada-indent-return (token-number offset)
+  "Implement `ada-indent-return' option in a grammar action.
+TOKEN-NUMBER is the formal_part token."
+  ;; wisi-token-index must be the return token, or a nonterminal
+  ;; starting with the return token.
+  ;;
+  ;; The grammar handles checking for no params; we know token-number
+  ;; is non-nil.
+  (let ((return-tok (aref wisi-tokens wisi-token-index)))
+    (if (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
+	;; return is first on a line; needs indenting
+	(cond
+	 ((>= 0 ada-indent-return)
+	  ;; realtive to paren
+	  (wisi-anchored token-number (+ offset (abs ada-indent-return))))
+
+	 (t
+	  ;; relative to 'function'
+	  (wisi-anchored-1 (wisi-parse-find-token 'FUNCTION) (+ offset ada-indent-return)))
+	 )
+
+      ;; 'return' not first on line
+      0)))
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
@@ -443,6 +464,7 @@ Also return cache at start."
 		    ((abstract_subprogram_declaration
 		      subprogram_body
 		      subprogram_declaration
+		      subprogram_renaming_declaration
 		      null_procedure_declaration)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
@@ -699,6 +721,7 @@ Also return cache at start."
 
 	    ((abstract_subprogram_declaration
 	      subprogram_declaration
+	      subprogram_renaming_declaration
 	      generic_subprogram_declaration ;; after 'generic'
 	      null_procedure_declaration)
 	     (setq result (ada-wisi-which-function-1
@@ -822,7 +845,8 @@ TOKEN-TEXT; move point to just past token."
 	      ada-grammar-wy--token-table
 	      ada-grammar-wy--parse-table)
 
-  (setq wisi-comment-col-0 ada-indent-comment-col-0)
+  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
+  (setq wisi-indent-hanging #'ada-indent-hanging)
 
   ;; Handle escaped quotes in strings
   (setf (wisi-lex-string-quote-escape-doubled wisi--lexer) t)
