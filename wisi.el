@@ -1473,32 +1473,41 @@ Otherwise return 0."
       (wisi-anchored token-number offset t)
     0))
 
+(defun wisi--paren-in-anchor-line (anchor-tok offset)
+  "If there is an opening paren containing ANCHOR-TOK in the same line as ANCHOR-TOK,
+return OFFSET plus the delta from the line begin to the paren
+position. Otherwise return OFFSET."
+  (let* ((tok-syntax (syntax-ppss (car (wisi-tok-region anchor-tok))))
+	 (paren-pos (nth 1 tok-syntax))
+	 (anchor-line (wisi-tok-line anchor-tok)))
+
+    (when (and paren-pos ;; in paren
+	      (< paren-pos (aref (wisi-ind-line-begin wisi--indent) (1- anchor-line))))
+      ;; paren not in anchor line
+      (setq paren-pos nil))
+
+    (if paren-pos
+	(progn
+	  (goto-char paren-pos)
+	  (+ 1 (- (current-column) (current-indentation)) offset))
+      offset)
+    ))
+
 (defun wisi-anchored% (token-number offset &optional no-accumulate)
   "Anchor the current token at OFFSET from either the first token on the line
 containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line."
-  (let* ((tok (aref wisi-tokens wisi-token-index))
+  (let* ((indent-tok (aref wisi-tokens wisi-token-index))
 	 ;; tok is a nonterminal; this function makes no sense for terminals
-	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok))))
-	 (paren-pos (nth 1 tok-syntax))
-	 (anchor-line (wisi-tok-line (aref wisi-tokens (1- token-number))))
-	 (anchor-paren (when (and (< 0 (nth 0 tok-syntax));; in paren
-				  (> paren-pos (aref (wisi-ind-line-begin wisi--indent) (1- anchor-line))))
-			 ;; paren in anchor line
-			 anchor-line)))
+	 (anchor-tok (aref wisi-tokens (1- token-number))))
 
     (wisi-anchored-2
-     anchor-line
+     (wisi-tok-line anchor-tok)
 
      (if wisi-indent-comment
-	 (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
-       (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index)))) ;; end
+	 (wisi-tok-comment-end indent-tok)
+       (cdr (wisi-tok-region indent-tok))) ;; end
 
-     (if anchor-paren
-	 (progn
-	   (goto-char paren-pos)
-	   (+ (- (current-column) (current-indentation)) offset))
-       offset) ;; offset
-
+     (wisi--paren-in-anchor-line anchor-tok offset)
      no-accumulate)
     ))
 
@@ -1767,12 +1776,15 @@ if both nil.  Return cache found."
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
   (wisi-validate-cache (point) t 'navigate)
-  (let ((cache (wisi-get-cache (point))))
-    (if cache
-	(let ((prev (wisi-cache-prev cache)))
-	  (if prev
-	      (goto-char (1- prev))
-	    (wisi-backward-cache)))
+  (let ((cache (wisi-get-cache (point)))
+	prev)
+    (when cache
+      (setq prev (wisi-cache-prev cache))
+      (unless prev
+	(unless (eq 'statement-start (wisi-cache-class cache))
+	  (setq prev (wisi-cache-containing cache)))))
+    (if prev
+	(goto-char (1- prev))
       (wisi-backward-cache))
   ))
 
@@ -2016,17 +2028,23 @@ Called with BEGIN END.")
 
 			  (setq new-indent (+ (car anchor-indent) (nth 2 indent2)))
 
+			  (while (member (length anchor-indent) (nth 1 indent))
+			    ;; finished with new-indent anchor
+			    (pop anchor-indent))
+
 			  (dotimes (_i (length (nth 1 indent)))
 			    (push new-indent anchor-indent))
 
-			  (setq indent new-indent)))
+			  (setq indent new-indent)
+			  ))
 
 		       (t
 			(error "wisi-indent-region: invalid form in wisi-ind-indent"))
 		       ))
 
 		     ((eq 'anchored (car indent))
-		      (when (not (= (nth 1 indent) (length anchor-indent)))
+		      ;; Finish previous anchors down to current
+		      (while (> (length anchor-indent) (nth 1 indent))
 			(pop anchor-indent))
 
 		      (setq indent (+ (car anchor-indent) indent2)))

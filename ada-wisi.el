@@ -130,10 +130,16 @@
 
    (t
     (if (/= (wisi-tok-line tok) (wisi-tok-first tok))
-	;; first token in tok is not first in line; don't use hanging
-	;; FIXME: wrong; this applies upper level indent; we want to ignore that
-	;; try no-accumulate
-	(list 0 0)
+	;; First token in tok is not first in line; don't accumulate higher level indents.
+	(list
+	 0
+	 (wisi-anchored-2
+	  (wisi-tok-line tok);; anchor-line
+	  (cdr (wisi-tok-region tok));; end
+	  (wisi--paren-in-anchor-line tok delta2)
+	  t);; no-accumulate
+	 )
+
       (list delta1 delta2)))
    ))
 

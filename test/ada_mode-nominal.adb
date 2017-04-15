@@ -39,9 +39,9 @@ is -- target 0
    Record_1_Object_2 : constant Record_Type_1 :=
      (Component_1 |
         Component_2 =>
-        1 +
-          2 +
-          3,
+          1 +
+            2 +
+            3,
       Component_356 =>
         1.0);
 

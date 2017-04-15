@@ -57,6 +57,13 @@ install packages in -Q:
 
  Edebug displays
 
+in wisi-parse-reduce:
+(setq edebug-eval-list
+ '(nonterm
+   tok
+   first
+   ))
+
 in wisi--indent-token-1:
 (setq edebug-eval-list
  '((wisi-ind-indent wisi--indent)
@@ -84,35 +91,29 @@ wisi-indent-region:
    anchor-indent
    i
    indent
-   ))
-
-in wisi-parse-reduce:
-(setq edebug-eval-list
- '(nonterm
-   tok
-   first
+   new-indent
    ))
 
  compute indent via indent-actions in grammar
 
 test/debug.adb
 
-wisi-anchored-%-
-    still needed?
+build/wisi/ada_mode-conditional_expressions.adb.diff
+    L4
+        anchor exp to 'when' as 4, skips anchor 3
+        anchor 3 lines pop 4 before it is done
+        need array of anchors, explicit pop
+            (anchor (new) (finished))
 
-test/ada_mode-nominal.ads, test/ada_mode-nominal-child.ads
-    indents wrong
-        threw away ada-indent-broken from hanging, used higher level instead
-        should throw away higher level; try no-accumulate
-
-test/indent.ads
-    build/wisi/indent.ads.diff
-    should depend on ada-indent-hanging-rel-exp?
-    nested hanging?
+        scan nonterm to see if anchor needed, max present?
+            don't need to renumber
 
 test-ada-gpr_query.stamp
     (dired "c:/Projects/org.emacs.ada-mode.stephe-2/build/wisi/*.diff")
     lots of diffs
+
+wisi-anchored-%-
+    still needed?
 
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.
@@ -136,6 +137,8 @@ indent max-cache doesn't work
 
 align region is slow
     inhibit change hooks while indenting/aligning?
+
+    skip computing indent in nonterms not in indent region.
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
