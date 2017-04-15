@@ -131,13 +131,13 @@ Otherwise, they are indented with previous comments or code.
 Normally set from a language-specific option.")
 (make-variable-buffer-local 'wisi-indent-comment-col-0)
 
-(defvar wisi-indent-hanging nil
-  "If nil, indent hanging lines in a nonterminal relative to first line of the nonterminal.
-Otherwise must be an integer, or a function taking no
-args and returning nil or an integer; the indent of
-the second and following lines within a nonterminal relative to
-the start of the nonterminal.  Normally set from a
-language-specific option.")
+(defvar wisi-indent-hanging-function nil
+  "Language-specific implementation of `wisi-hanging'.
+A function taking four args TOK TOK-SYNTAX DELTA1 DELTA2, and returning a list (DELTA1 DELTA2).
+TOK is a `wisi-tok' struct for the token being indented.
+TOK-SYNTAX is the result of `syntax-ppss' at the start of TOK.
+DELTA1, DELTA2 are the indents of the first and following lines
+within the nonterminal.  point is at start of TOK, and may be moved.")
 (make-variable-buffer-local 'wisi-indent-comment-col-0)
 
 ;;;; lexer
@@ -173,15 +173,18 @@ language-specific option.")
   ;; indent for current line, base indent for following 'anchored
   ;; lines; for opening parens and other uses.
   ;;
-  ;; - list ('anchored NEST delta) :
+  ;; - list ('anchored NEST delta no-accumulate) :
   ;; indent = delta + 'anchor line indent; for lines indented relative to anchor
   ;;
-  ;; - list ('anchor NEST ('anchored NEST delta))
+  ;; - list ('anchor NEST ('anchored NEST delta  no-accumulate))
   ;; for nested anchors
   ;;
   ;; NEST in an 'anchor form is the nesting level of anchors; it
   ;; is a list, for multiple anchors on a single line. In an
   ;; 'anchored form it is the nesting level on that line.
+  ;;
+  ;; 'no-accumulate', if non-nil, indicates that subsequent deltas
+  ;; should not be accumulated.
 
   line-begin ;; vector of beginning-of-line positions in buffer
   last-line ;; index into line-begin of line containing last token
@@ -1189,6 +1192,16 @@ the wisi-tokens[token-number] region."
 	(setq i (1+ i))
 	))))
 
+;;;; indent action
+
+(defvar wisi-token-index nil
+  "Index of current token in `wisi-tokens'.
+Let-bound in `wisi-indent-action', for grammar actions.")
+
+(defvar wisi-indent-comment nil
+  "Non-nil if computing indent for comment.
+Let-bound in `wisi-indent-action', for grammar actions.")
+
 (defun wisi--inc-anchor-nest (indent)
   (dotimes (i (length (nth 1 indent)))
     (setf (nth i (nth 1 indent)) (1+ (nth i (nth 1 indent))))
@@ -1220,24 +1233,22 @@ the wisi-tokens[token-number] region."
 
 (defun wisi--set-anchored (delta i)
   "Apply DELTA (an anchored indent) to indent I."
-  ;; From wisi-anchored; delta is ('anchored <1 | -1> delta)
+  ;; delta is from wisi-anchored; ('anchored 1 delta no-accumulate)
   (let ((indent (aref (wisi-ind-indent wisi--indent) i))
-	(accumulate (= 1 (nth 1 delta))))
+	(accumulate (not (nth 3 delta))))
 
+    ;; FIXME: simplify?
     (cond
      ((integerp indent)
       (when (or accumulate
 		(= indent 0))
 	(let ((temp (copy-sequence delta)))
-	  (setf (nth 1 temp) 1)
 	  (setf (nth 2 temp) (+ indent (nth 2 temp)))
 	  (aset (wisi-ind-indent wisi--indent) i temp))))
 
      ((listp indent)
       (cond
        ((eq 'anchor (car indent))
-	(wisi--inc-anchor-nest indent)
-
 	(cond
 	 ((integerp (nth 2 indent))
 	  (when (or accumulate
@@ -1247,19 +1258,15 @@ the wisi-tokens[token-number] region."
 	      (setf (nth 2 indent) delta1))))
 
 	 ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
-	  ;; increment anchored nest
-	  (let ((anchored (nth 2 indent)))
-	    (setf (nth 1 anchored) (1+ (nth 1 anchored)))))
+	  nil)
 
 	 (t
 	  (error "wisi--set-anchored: invalid form in wisi-ind-indent: %s" indent))
 	 )) ;; 'anchor
 
        ((eq 'anchored (car indent))
-	;; increment nest
-	(setf (nth 1 indent) (1+ (nth 1 indent)))
 	;; indent not affected by this delta
-	)
+	nil)
 
        (t
 	(error "wisi--set-anchored: invalid form in wisi-ind-indent: %s" indent))
@@ -1359,15 +1366,22 @@ the wisi-tokens[token-number] region."
 (defun wisi-anchored-1 (tok offset &optional no-accumulate)
   "Return offset of TOK relative to current indentation + OFFSET.
 For use in grammar indent actions."
-  (let* ((pos (car (wisi-tok-region tok)))
-	 delta)
+  (let ((pos (car (wisi-tok-region tok)))
+	delta)
 
     (goto-char pos)
     (setq delta (+ offset (- (current-column) (current-indentation))))
-    (wisi-anchored-2 (wisi-tok-line tok) (wisi-tok-line (aref wisi-tokens wisi-token-index)) delta no-accumulate)))
+    (wisi-anchored-2
+     (wisi-tok-line tok) ;; anchor-line
+     (if wisi-indent-comment
+	 (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
+       (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index))));; end
+     delta
+     no-accumulate)
+    ))
 
-(defun wisi-anchored-2 (anchor-line indent-line delta no-accumulate)
-  "Set ANCHOR-LINE as anchor, increment anchors to INDENT-LINE, return anchored delta."
+(defun wisi-anchored-2 (anchor-line end delta no-accumulate)
+  "Set ANCHOR-LINE as anchor, increment anchors thru END, return anchored delta."
   ;; tok may be a terminal or a non-terminal.
   ;;
   ;; Typically, we use anchored to indent relative to a token buried in a line:
@@ -1399,7 +1413,8 @@ For use in grammar indent actions."
   ;; So we apply anchored whether tok is first or not
 
   (let* ((i (1- anchor-line))
-	 (indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
+	 (indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
+	 indent2)
 
     ;; Set anchor
     (cond
@@ -1417,25 +1432,24 @@ For use in grammar indent actions."
      (t
       (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
 
-    ;; Increment nest level of intervening anchors
+    ;; Increment nest level of affected anchors
     (setq i (1+ i))
-    (while (< i indent-line)
-      ;; indent-line anchor will be incremented in wisi--indent-token-1
+    (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
       (setq indent (aref (wisi-ind-indent wisi--indent) i))
       (when (listp indent)
 	(cond
 	 ((eq 'anchor (car indent))
-	  (wisi--inc-anchor-nest indent))
+	  (wisi--inc-anchor-nest indent)
+	  (setq indent2 (nth 2 indent))
+	  (when (listp indent2)
+	    (setf (nth 1 indent2) (1+ (nth 1 indent2)))))
 
 	 ((eq 'anchored (car indent))
 	  (setf (nth 1 indent) (1+ (nth 1 indent))))
-	  ))
+	 ))
       (setq i (1+ i)))
 
-    (list
-     'anchored
-     (if no-accumulate -1 1)
-     delta)
+    (list 'anchored 1 delta no-accumulate)
     ))
 
 (defun wisi-anchored (token-number offset &optional no-accumulate)
@@ -1459,80 +1473,66 @@ Otherwise return 0."
       (wisi-anchored token-number offset t)
     0))
 
-(defun wisi-anchored% (token-number offset)
-  "Anchor the current token at OFFSET from the first token on the line containing TOKEN-NUMBER
-in `wisi-tokens'."
-  (wisi-anchored-2
-   (wisi-tok-line (aref wisi-tokens (1- token-number)))
-   (wisi-tok-line (aref wisi-tokens wisi-token-index))
-   offset nil))
+(defun wisi-anchored% (token-number offset &optional no-accumulate)
+  "Anchor the current token at OFFSET from either the first token on the line
+containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line."
+  (let* ((tok (aref wisi-tokens wisi-token-index))
+	 ;; tok is a nonterminal; this function makes no sense for terminals
+	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok))))
+	 (paren-pos (nth 1 tok-syntax))
+	 (anchor-line (wisi-tok-line (aref wisi-tokens (1- token-number))))
+	 (anchor-paren (when (and (< 0 (nth 0 tok-syntax));; in paren
+				  (> paren-pos (aref (wisi-ind-line-begin wisi--indent) (1- anchor-line))))
+			 ;; paren in anchor line
+			 anchor-line)))
+
+    (wisi-anchored-2
+     anchor-line
+
+     (if wisi-indent-comment
+	 (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
+       (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index)))) ;; end
+
+     (if anchor-paren
+	 (progn
+	   (goto-char paren-pos)
+	   (+ (- (current-column) (current-indentation)) offset))
+       offset) ;; offset
+
+     no-accumulate)
+    ))
 
 (defun wisi-anchored%- (token-number offset)
   "If existing indent is zero, anchor the current token at OFFSET
 from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'."
-  (wisi-anchored-2
-   (wisi-tok-line (aref wisi-tokens (1- token-number)))
-   (wisi-tok-line (aref wisi-tokens wisi-token-index))
-   offset t))
-
-(defvar wisi-token-index nil
-  "Index of current token in `wisi-tokens'.
-Let-bound in `wisi-indent-action', for grammar actions.")
+  (wisi-anchored% token-number offset t))
 
 (defun wisi-hanging (delta1 delta2)
   "Return indent with DETLA1 for first line, DELTA2 for following lines.
 For use in grammar indent actions."
-  (let* ((tok (aref wisi-tokens wisi-token-index))
-	 ;; tok is a nonterminal; this function makes no sense for terminals
-	 (tok-syntax (syntax-ppss (car (wisi-tok-region tok)))) ;; moves point to tok
-	 (indent-hanging wisi-indent-hanging))
+  (if wisi-indent-comment
+      delta1
 
-    (when (functionp wisi-indent-hanging)
-      (setq indent-hanging (funcall wisi-indent-hanging)))
+    (let* ((tok (aref wisi-tokens wisi-token-index))
+	   ;; tok is a nonterminal; this function makes no sense for terminals
+	   (tok-syntax (syntax-ppss (car (wisi-tok-region tok)))))
+      ;; syntax-ppss moves point to start of tok
 
-    (if (or
-	 (= (wisi-tok-first tok) (wisi-tok-line tok))
-	 ;; First token in nonterminal is also first on a line
-	 ;;
-	 ;; test/ada_mode-nominal.adb
-	 ;; return
-	 ;;   Local_1 +
-	 ;;     Local_2 +
-	 ;;     Local_3;
-	 ;; nonterminal is expression starting with Local_1
+      (if (functionp wisi-indent-hanging-function)
+	  (let ((indent-hanging (funcall wisi-indent-hanging-function tok tok-syntax delta1 delta2)))
+	    (list 'hanging
+		  (wisi-tok-line tok) ;; first line of token
+		  (nth 0 tok-syntax) ;; paren nest level at tok
+		  (nth 0 indent-hanging)
+		  (nth 1 indent-hanging)))
 
-	 (and (nth 1 tok-syntax)
-	      (= (nth 1 tok-syntax) (car (wisi-tok-region (wisi-backward-token)))))
-	 ;; tok is in parens
-	 ;;
-	 ;; test/ada_mode-parens.adb
-	 ;; Local_2 : Integer := (1 + 2 +
-	 ;;                         3);
-	 ;; nonterminal is expression starting with 1
-
-	 indent-hanging
-	 ;; test/hanging.adb
-	 ;;   := F_Long_Name
-	 ;;        (A => True,
-	 ;; nonterminal is expression starting with F_Long_Name
-	 )
-
-	(progn
-	  (when indent-hanging
-	    (setq delta2 (wisi-anchored-1 tok indent-hanging)))
-
-	  (list 'hanging
-		(wisi-tok-line tok) ;; first line of token
-		(nth 0 tok-syntax) ;; paren nest level at tok
-		delta1
-		delta2))
-
-      ;; don't apply hanging
-      ;; test/ada_mode-nominal.adb
-      ;; return 1.0 +
-      ;;   Function_2a (Parent_Type_1'(1, 2.0, False)) +
-      ;;   12.0;
-      delta1)))
+	(list 'hanging
+	      (wisi-tok-line tok) ;; first line of token
+	      (nth 0 tok-syntax) ;; paren nest level at tok
+	      delta1
+	      (wisi-anchored-2 (wisi-tok-line tok) (cdr (wisi-tok-region tok)) delta2 nil))
+	))
+    ))
 
 (defun wisi--indent-compute-delta (delta tok)
   "Return evaluation of DELTA."
@@ -1544,7 +1544,9 @@ For use in grammar indent actions."
     (symbol-value delta))
 
    ((vectorp delta)
-    ;; [token comment] as comment indent from preceding delta
+    ;; [token comment]
+    ;; if wisi-indent-comment, we are indenting the comments of the
+    ;; previous token; they should align with the 'token' delta.
     (wisi--indent-compute-delta (aref delta 0) tok))
 
    (t ;; form
@@ -1568,38 +1570,39 @@ DELTAS."
   (when (eq wisi--parse-action 'indent)
     (dotimes (wisi-token-index (length wisi-tokens))
       (let* ((tok (aref wisi-tokens wisi-token-index))
-	     (token-delta
-	      (and (wisi-tok-first tok)
-		   (aref deltas wisi-token-index)))
+	     (token-delta (aref deltas wisi-token-index))
 	     (comment-delta
 	      (cond
-	       ((vectorp (aref deltas wisi-token-index))
-		(aref (aref deltas wisi-token-index) 1))
+	       ((vectorp token-delta)
+		(aref token-delta 1))
 
-	       ((and (wisi-tok-comment-line tok)
-		     (< wisi-token-index (1- (length wisi-tokens))))
+	       ((< wisi-token-index (1- (length wisi-tokens)))
 		(aref deltas (1+ wisi-token-index)))
-	       ))
-	     )
+	       )))
 	(when (wisi-tok-region tok)
 	  ;; region is null when optional nonterminal is empty
-	  (setq token-delta
-		(when token-delta
-		  (wisi--indent-compute-delta token-delta tok)))
+	  (let ((wisi-indent-comment nil))
+	    (setq token-delta
+		  (when (and token-delta
+			     (wisi-tok-first tok))
+		    (wisi--indent-compute-delta token-delta tok)))
 
-	  (when (and token-delta
-		     (or (consp token-delta)
-			 (not (= 0 token-delta))))
-	    (wisi--indent-token tok token-delta))
+	    (when (and token-delta
+		       (or (consp token-delta)
+			   (not (= 0 token-delta))))
+	      (wisi--indent-token tok token-delta))
 
-	  (setq comment-delta
-		(when comment-delta
-		  (wisi--indent-compute-delta comment-delta tok)))
+	    (setq wisi-indent-comment t)
+	    (setq comment-delta
+		  (when (and comment-delta
+			     (wisi-tok-comment-line tok))
+		    (wisi--indent-compute-delta comment-delta tok)))
 
-	  (when (and comment-delta
-		     (or (consp comment-delta)
-			 (not (= 0 comment-delta))))
-	    (wisi--indent-comment tok comment-delta))
+	    (when (and comment-delta
+		       (or (consp comment-delta)
+			   (not (= 0 comment-delta))))
+	      (wisi--indent-comment tok comment-delta))
+	    )
 	  )))))
 
 (defun wisi-indent-action* (n deltas)
@@ -2006,16 +2009,18 @@ Called with BEGIN END.")
 			(setq indent (car anchor-indent)))
 
 		       ((listp indent2) ;; 'anchored
-			(let* ((cur-anchor (car anchor-indent))
-			       (new-indent (+ cur-anchor (nth 2 indent2))))
-			  ;; Finish previous anchors
-			  (while (or (> (length anchor-indent) (car (nth 1 indent)))
-				     (member (length anchor-indent) (nth 1 indent)))
+			(let (new-indent)
+			  ;; Finish previous anchors down to current
+			  (while (> (length anchor-indent) (nth 1 indent2))
 			    (pop anchor-indent))
+
+			  (setq new-indent (+ (car anchor-indent) (nth 2 indent2)))
 
 			  (dotimes (_i (length (nth 1 indent)))
 			    (push new-indent anchor-indent))
+
 			  (setq indent new-indent)))
+
 		       (t
 			(error "wisi-indent-region: invalid form in wisi-ind-indent"))
 		       ))

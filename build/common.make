@@ -148,8 +148,9 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # save startup time. That fails in batch mode; batch mode does not
 # support background processes. So we don't run tests in batch mode.
 # We can't use -nw here because the standard input is not a tty (at
-# least on Windows).
-%.tmp : % $(INDENT.EL)
+# least on Windows). We don't include any other dependencies, because
+# the complete list is complex, and we sometimes want to ignore it.
+%.tmp : %
 	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)

@@ -97,6 +97,14 @@ in wisi-parse-reduce:
 
 test/debug.adb
 
+wisi-anchored-%-
+    still needed?
+
+test/ada_mode-nominal.ads, test/ada_mode-nominal-child.ads
+    indents wrong
+        threw away ada-indent-broken from hanging, used higher level instead
+        should throw away higher level; try no-accumulate
+
 test/indent.ads
     build/wisi/indent.ads.diff
     should depend on ada-indent-hanging-rel-exp?
@@ -128,6 +136,10 @@ indent max-cache doesn't work
 
 align region is slow
     inhibit change hooks while indenting/aligning?
+
+    wisi-anchored-2, wisi--indent-token-1
+        don't apply anchor if all lines already anchored
+        don't loop thru lines more than once?
 
     on 5 var decl in smm-server.adb
     calls parser to navigate, then indent

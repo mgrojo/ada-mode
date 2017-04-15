@@ -50,8 +50,8 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-ONE_TEST_FILES := aspects.ads
-ONE_TEST_FILES += hanging.adb
+ONE_TEST_FILES := ada_mode-nominal.ads
+ONE_TEST_FILES += ada_mode-nominal-child.ads
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
@@ -67,23 +67,14 @@ ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
-
 else ifeq ($(shell uname),Darwin)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
-
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
 
 else
 # windows
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
-
-# we build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 
 endif
 

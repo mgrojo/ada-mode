@@ -28,6 +28,23 @@ is -- target 0
    --EMACSCMD:(test-face "procedure" font-lock-keyword-face)
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
+   Record_1_Object_1 : constant Record_Type_1 :=
+     (Component_1 |
+        Component_2 => 1 +
+          2 +
+          3,
+      Component_356 =>
+        1.0);
+
+   Record_1_Object_2 : constant Record_Type_1 :=
+     (Component_1 |
+        Component_2 =>
+        1 +
+          2 +
+          3,
+      Component_356 =>
+        1.0);
+
    --EMACSCMD:(progn (forward-line 4) (back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- target 1"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 3)(forward-word 1) (ada-goto-declarative-region-start)(looking-at "use type Standard"))
@@ -144,7 +161,7 @@ is -- target 0
                     =>        -- ""
                      raise Constraint_Error
                        with Integer'Image (1) &
-                       "help!";
+                         "help!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(ada-prev-statement-keyword)(looking-at "when -- 2"))
                   when -- 3
