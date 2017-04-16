@@ -98,22 +98,10 @@ wisi-indent-region:
 
 test/debug.adb
 
-build/wisi/ada_mode-conditional_expressions.adb.diff
-    L4
-        anchor exp to 'when' as 4, skips anchor 3
-        anchor 3 lines pop 4 before it is done
-        need array of anchors, explicit pop
-            (anchor (new) (finished))
-
-        scan nonterm to see if anchor needed, max present?
-            don't need to renumber
-
-test-ada-gpr_query.stamp
-    (dired "c:/Projects/org.emacs.ada-mode.stephe-2/build/wisi/*.diff")
-    lots of diffs
-
 wisi-anchored-%-
     still needed?
+
+ada-indent-hanging need no-accumulate?
 
 test goto-declarative-region-start in begin-end block with no declare
     should goto containing, not hang.

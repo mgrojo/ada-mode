@@ -102,7 +102,7 @@
        0))
     ))
 
-(defun ada-indent-hanging(tok _tok-syntax delta1 delta2)
+(defun ada-indent-hanging (tok _tok-syntax delta1 delta2)
   "For `wisi-indent-hanging-function'. Determine indent style from context."
   ;; ada-mode 5.2 used a special case for aspect specification
   ;; expressions; we implement that here. Otherwise, implement

@@ -110,6 +110,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'wisi-parse)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
@@ -169,25 +170,20 @@ within the nonterminal.  point is at start of TOK, and may be moved.")
   ;; each element can be one of:
   ;; - integer : indent
   ;;
-  ;; - list ('anchor NEST indent)  :
+  ;; - list ('anchor (start-id ...) indent)  :
   ;; indent for current line, base indent for following 'anchored
-  ;; lines; for opening parens and other uses.
+  ;; lines. Start-id is list of ids anchored at this line. For parens
+  ;; and other uses.
   ;;
-  ;; - list ('anchored NEST delta no-accumulate) :
-  ;; indent = delta + 'anchor line indent; for lines indented relative to anchor
+  ;; - list ('anchored id delta) :
+  ;; indent = delta + 'anchor id line indent; for lines indented
+  ;; relative to anchor.
   ;;
-  ;; - list ('anchor NEST ('anchored NEST delta  no-accumulate))
+  ;; - list ('anchor (start-id ...) ('anchored NEST delta))
   ;; for nested anchors
-  ;;
-  ;; NEST in an 'anchor form is the nesting level of anchors; it
-  ;; is a list, for multiple anchors on a single line. In an
-  ;; 'anchored form it is the nesting level on that line.
-  ;;
-  ;; 'no-accumulate', if non-nil, indicates that subsequent deltas
-  ;; should not be accumulated.
 
   line-begin ;; vector of beginning-of-line positions in buffer
-  last-line ;; index into line-begin of line containing last token
+  last-line ;; index into line-begin of line containing last lexed token
 
   ;; Possible optimization; limit `indent' to lines in indent region,
   ;; dynamically expanded to include 'anchored; don't compute indent
@@ -1202,12 +1198,7 @@ Let-bound in `wisi-indent-action', for grammar actions.")
   "Non-nil if computing indent for comment.
 Let-bound in `wisi-indent-action', for grammar actions.")
 
-(defun wisi--inc-anchor-nest (indent)
-  (dotimes (i (length (nth 1 indent)))
-    (setf (nth i (nth 1 indent)) (1+ (nth i (nth 1 indent))))
-    ))
-
-(defun wisi--inc-indent (i delta)
+(defun wisi--apply-int (i delta)
   "Add DELTA (an integer) to the indent at index I."
   (let ((indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
 
@@ -1228,76 +1219,41 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 	)))
 
      (t
-      (error "wisi--inc-indent: invalid form in wisi-ind-indent: %s" indent))
+      (error "wisi--apply-int: invalid form in wisi-ind-indent: %s" indent))
      )))
 
-(defun wisi--set-anchored (delta i)
+(defun wisi--apply-anchored (delta i)
   "Apply DELTA (an anchored indent) to indent I."
   ;; delta is from wisi-anchored; ('anchored 1 delta no-accumulate)
   (let ((indent (aref (wisi-ind-indent wisi--indent) i))
 	(accumulate (not (nth 3 delta))))
 
-    ;; FIXME: simplify?
     (cond
      ((integerp indent)
       (when (or accumulate
 		(= indent 0))
-	(let ((temp (copy-sequence delta)))
-	  (setf (nth 2 temp) (+ indent (nth 2 temp)))
+	(let ((temp (seq-take delta 3)))
+    	  (setf (nth 2 temp) (+ indent (nth 2 temp)))
 	  (aset (wisi-ind-indent wisi--indent) i temp))))
 
-     ((listp indent)
-      (cond
-       ((eq 'anchor (car indent))
-	(cond
-	 ((integerp (nth 2 indent))
-	  (when (or accumulate
-		    (= (nth 2 indent) 0))
-	    (let ((delta1 (copy-sequence delta)))
-	      (setf (nth 2 delta1) (+ (nth 2 indent) (nth 2 delta1)))
-	      (setf (nth 2 indent) delta1))))
-
-	 ((listp (nth 2 indent)) ;; (anchor nest (anchored nest delta))
-	  nil)
-
-	 (t
-	  (error "wisi--set-anchored: invalid form in wisi-ind-indent: %s" indent))
-	 )) ;; 'anchor
-
-       ((eq 'anchored (car indent))
-	;; indent not affected by this delta
-	nil)
-
-       (t
-	(error "wisi--set-anchored: invalid form in wisi-ind-indent: %s" indent))
-       )) ;; listp indent
-
-     (t
-      (error "wisi--set-anchored: invalid form in wisi-ind-indent: %s" indent))
+     ((and (listp indent)
+	   (eq 'anchor (car indent))
+	   (integerp (nth 2 indent)))
+      (when (or accumulate
+		(= (nth 2 indent) 0))
+	(let ((temp (seq-take delta 3)))
+	  (setf (nth 2 temp) (+ (nth 2 indent) (nth 2 temp)))
+	  (setf (nth 2 indent) temp))))
      )))
 
-(defun wisi--indent-non-zero (i)
-  "Return non-nil if indent at index I is non-zero."
-  (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
-    (cond
-     ((integerp indent)
-      (= 0 indent))
-
-     ((listp indent)
-      (cond
-       ((eq 'anchor (car indent))
-	(= 0 (nth 2 indent)))
-
-       (t nil))))))
-
 (defun wisi--indent-token-1 (line end delta)
+  "Apply indent DELTA to all lines from LINE (a line number) thru END (a buffer position)."
   (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
 	(paren-first (when (and (listp delta)
 				(eq 'hanging (car delta)))
 		       (nth 2 delta))))
 
     (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
-
       (unless
 	  (and ;; no check for called from wisi--indent-comment;
 	       ;; comments within tokens are indented by
@@ -1306,19 +1262,19 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 	       (= 11 (syntax-class (syntax-after (aref (wisi-ind-line-begin wisi--indent) i)))))
 	(cond
 	 ((integerp delta)
-	  (wisi--inc-indent i delta))
+	  (wisi--apply-int i delta))
 
 	 ((listp delta)
 	  (cond
 	   ((eq 'anchored (car delta))
-	    (wisi--set-anchored delta i))
+	    (wisi--apply-anchored delta i))
 
 	   ((eq 'hanging (car delta))
 	    ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
 	    ;; delta2 may be anchored
 	    (if (= i (1- (nth 1 delta)))
 		;; first line of token
-		(wisi--inc-indent i (nth 3 delta))
+		(wisi--apply-int i (nth 3 delta))
 
 	      ;; don't apply hanging indent in nested parens.
 	      ;; test/ada_mode-parens.adb
@@ -1330,10 +1286,10 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 		(let ((delta2 (nth 4 delta)))
 		  (cond
 		   ((integerp delta2)
-		    (wisi--inc-indent i delta2))
+		    (wisi--apply-int i delta2))
 
 		   (t ;; anchored
-		    (wisi--set-anchored delta2 i))
+		    (wisi--apply-anchored delta2 i))
 		   )))
 	      ))
 
@@ -1380,23 +1336,43 @@ For use in grammar indent actions."
      no-accumulate)
     ))
 
+(defun wisi--max-anchor (begin-line end)
+  (let ((i (1- begin-line))
+	(result 0))
+    (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
+      (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
+	(when (listp indent)
+	  (cond
+	   ((eq 'anchor (car indent))
+	    (setq result (max result (car (nth 1 indent))))
+	    (when (listp (nth 2 indent))
+	      (setq result (max result (nth 1 (nth 2 indent))))
+	      ))
+	   (t ;; anchored
+	    (setq result (max result (nth 1 indent))))
+	   )))
+      (setq i (1+ i)))
+    result
+    ))
+
 (defun wisi-anchored-2 (anchor-line end delta no-accumulate)
   "Set ANCHOR-LINE as anchor, increment anchors thru END, return anchored delta."
-  ;; tok may be a terminal or a non-terminal.
-  ;;
   ;; Typically, we use anchored to indent relative to a token buried in a line:
   ;;
   ;; test/ada_mode-parens.adb
   ;; Local_2 : Integer := (1 + 2 +
   ;;                         3);
+  ;; line starting with '3' is anchored to '('
   ;;
-  ;; If tok is a nonterminal, and the first token in tok is also
-  ;; first on a line, we don't need anchored to compute the
+  ;; If the anchor is a nonterminal, and the first token in the anchor
+  ;; is also first on a line, we don't need anchored to compute the
   ;; delta:
+  ;;
   ;; test/ada_mode-parens.adb
   ;; Local_5 : Integer :=
   ;;   (1 + 2 +
   ;;      3);
+  ;; delta for line starting with '3' can just be '3'.
   ;;
   ;; However, in some places we need anchored to prevent later
   ;; deltas from accumulating:
@@ -1406,50 +1382,33 @@ For use in grammar indent actions."
   ;;   Ada.Strings.Maps."or"
   ;;     (Ada.Strings.Maps.To_Set (' '),
   ;;
-  ;; here the function call actual parameter part is indented both
-  ;; by 'name' and by 'expression', we use anchored to keep the
-  ;; 'name' indent.
+  ;; here the function call actual parameter part is indented first
+  ;; by 'name' and by 'expression'; we use anchored to keep the
+  ;; 'name' indent and ignore the later addition.
   ;;
-  ;; So we apply anchored whether tok is first or not
+  ;; So we apply anchored whether the anchor token is first or not.
 
   (let* ((i (1- anchor-line))
 	 (indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
-	 indent2)
+	 (anchor-id (1+ (wisi--max-anchor anchor-line end))))
 
     ;; Set anchor
     (cond
      ((integerp indent)
-      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) indent)))
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list anchor-id) indent)))
 
      ((and (listp indent)
 	   (eq 'anchor (car indent)))
-      (push (1+ (car (nth 1 indent))) (nth 1 indent)))
+      (push anchor-id (nth 1 indent)))
 
      ((and (listp indent)
 	   (eq 'anchored (car indent)))
-      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list 1) (copy-sequence indent))))
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list anchor-id) (copy-sequence indent))))
 
      (t
       (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
 
-    ;; Increment nest level of affected anchors
-    (setq i (1+ i))
-    (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
-      (setq indent (aref (wisi-ind-indent wisi--indent) i))
-      (when (listp indent)
-	(cond
-	 ((eq 'anchor (car indent))
-	  (wisi--inc-anchor-nest indent)
-	  (setq indent2 (nth 2 indent))
-	  (when (listp indent2)
-	    (setf (nth 1 indent2) (1+ (nth 1 indent2)))))
-
-	 ((eq 'anchored (car indent))
-	  (setf (nth 1 indent) (1+ (nth 1 indent))))
-	 ))
-      (setq i (1+ i)))
-
-    (list 'anchored 1 delta no-accumulate)
+    (list 'anchored anchor-id delta no-accumulate)
     ))
 
 (defun wisi-anchored (token-number offset &optional no-accumulate)
@@ -1953,17 +1912,19 @@ Called with BEGIN END.")
     (aset (wisi-ind-line-begin wisi--indent) i (copy-marker (point)))
     (forward-line 1)))
 
+(defconst wisi-indent-max-anchor-depth 10)
+
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
   (let ((wisi--parse-action 'indent))
     (wisi--check-change)
 
-    ;; align calls indent on the same region once for each rule
-    ;; processed; we do nothing unless the buffer has changed.
+    ;; `align-region' calls `indent-region' on the same region once
+    ;; for each rule processed; we do nothing unless the buffer has
+    ;; changed.
 
     ;; FIXME: wisi-max-cache 'indent marks whole buffer indented even
-    ;; if only indented one line. Need some cache mechanism to speed
-    ;; up align; it calls indent for each rule
+    ;; if only indented one line. Need a per-line cache mechanism
     (when t
       ;; (and (wisi-parse-try)
       ;; 	       (<= (wisi-cache-max) end))
@@ -1974,7 +1935,7 @@ Called with BEGIN END.")
       (setq wisi--last-parse-action wisi--parse-action)
 
       (save-excursion
-	;; align-region assumes indent-region does not move point
+	;; `align-region' assumes `indent-region' does not move point
 
 	(let* ((end-mark (copy-marker end))
 	       (line-count (1+ (count-lines (point-min) (point-max))))
@@ -1983,7 +1944,7 @@ Called with BEGIN END.")
 		 :line-begin (make-vector line-count 0)
 		 :indent (make-vector line-count 0)
 		 :last-line nil))
-	   (anchor-indent nil))
+	       (anchor-indent (make-vector wisi-indent-max-anchor-depth 0)))
 
 	  (wisi--set-line-begin)
 	  (wisi--indent-leading-comments)
@@ -2006,61 +1967,41 @@ Called with BEGIN END.")
 		 ((integerp indent))
 
 		 ((listp indent)
-		  (let ((indent2 (nth 2 indent)))
+		  (let ((anchor-ids (nth 1 indent))
+			(indent2 (nth 2 indent)))
 		    (cond
 		     ((eq 'anchor (car indent))
 		      (cond
 		       ((integerp indent2)
-			;; Finish previous anchors
-			(while (or (> (length anchor-indent) (car (nth 1 indent)))
-				   (member (length anchor-indent) (nth 1 indent)))
-			  (pop anchor-indent))
-
-			(dotimes (_i (length (nth 1 indent)))
-			  (push indent2 anchor-indent))
-			(setq indent (car anchor-indent)))
+			(dotimes (i (length anchor-ids))
+			  (aset anchor-indent (nth i anchor-ids) indent2))
+			(setq indent indent2))
 
 		       ((listp indent2) ;; 'anchored
-			(let (new-indent)
-			  ;; Finish previous anchors down to current
-			  (while (> (length anchor-indent) (nth 1 indent2))
-			    (pop anchor-indent))
+			(setq indent (+ (aref anchor-indent (nth 1 indent2)) (nth 2 indent2)))
 
-			  (setq new-indent (+ (car anchor-indent) (nth 2 indent2)))
-
-			  (while (member (length anchor-indent) (nth 1 indent))
-			    ;; finished with new-indent anchor
-			    (pop anchor-indent))
-
-			  (dotimes (_i (length (nth 1 indent)))
-			    (push new-indent anchor-indent))
-
-			  (setq indent new-indent)
-			  ))
+			(dotimes (i (length anchor-ids))
+			  (aset anchor-indent (nth i anchor-ids) indent)))
 
 		       (t
-			(error "wisi-indent-region: invalid form in wisi-ind-indent"))
-		       ))
+			(error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+		       ));; 'anchor
 
 		     ((eq 'anchored (car indent))
-		      ;; Finish previous anchors down to current
-		      (while (> (length anchor-indent) (nth 1 indent))
-			(pop anchor-indent))
-
-		      (setq indent (+ (car anchor-indent) indent2)))
+		      (setq indent (+ (aref anchor-indent (nth 1 indent)) indent2)))
 
 		     (t
-		      (error "wisi-indent-region: invalid form in wisi-ind-indent"))
-		     )))
+		      (error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+		     )));; listp indent
 
 		 (t
-		  (error "wisi-indent-region: invalid form in wisi-ind-indent"))
-		 )
+		  (error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+		 );; cond indent
 
 		(when (and (>= pos begin)
 			   (<= pos end-mark))
 		  (goto-char pos)
-		  (indent-line-to indent))))
+		  (indent-line-to indent)))) ;; dotimes lines
 
 	    (when wisi-indent-failed
 	      ;; previous parse failed
@@ -2069,15 +2010,16 @@ Called with BEGIN END.")
 	      (run-hooks 'wisi-post-indent-fail-hook))
 
 	    ;; run wisi-indent-calculate-functions
-	    (goto-char begin)
-	    (while (< (point) end-mark)
-	      (back-to-indentation)
-	      (let ((indent
-		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
-		(when indent
-		  (indent-line-to indent)))
+	    (when wisi-indent-calculate-functions
+	      (goto-char begin)
+	      (while (< (point) end-mark)
+		(back-to-indentation)
+		(let ((indent
+		       (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		  (when indent
+		    (indent-line-to indent)))
 
-	      (forward-line 1))
+		(forward-line 1)))
 	    ))))
     ))
 
