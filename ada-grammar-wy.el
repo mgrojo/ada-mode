@@ -195,7 +195,7 @@
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])))
        ((null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt )
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-        (wisi-anchored%- 4 ada-indent-broken)]))
+        (wisi-anchored% 4 ada-indent-broken)]))
        ((null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile )
         (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
         (wisi-anchored%- 4 ada-indent-broken)])))
@@ -1183,7 +1183,7 @@
         (wisi-indent-action [(ada-indent-aggregate)]))
        ((name ))
        ((NEW name )
-        (wisi-face-apply-action [2 font-lock-type-face] t)))
+        (wisi-face-apply-action [2 font-lock-type-face])))
       (private_extension_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS abstract_limited_synchronized_opt NEW subtype_indication and_interface_list_opt WITH PRIVATE aspect_specification_opt SEMICOLON )
         (progn

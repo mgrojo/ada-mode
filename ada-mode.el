@@ -2664,6 +2664,8 @@ package body file, containing skeleton code that will compile.")
 
 ;;;; fill-comment
 
+(defvar wisi-inibit-parse nil);; in wisi.el; so far that's the only parser we use.
+
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
 If JUSTIFY is non-nil, each line is justified as well.
@@ -2678,11 +2680,8 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph leaves comment text exposed (without
   ;; comment prefix) when inserting a newline; don't trigger a parse
   ;; because of that (in particular, jit-lock requires a parse; other
-  ;; hooks may as well). In general, we don't need to trigger a parse
-  ;; for comment changes.
-  ;;
-  ;; FIXME: add ada-inibit-parse instead; let other change hooks run.
-  (let* ((inhibit-modification-hooks t)
+  ;; hooks may as well).
+  (let* ((wisi-inhibit-parse t)
 	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
@@ -2751,12 +2750,7 @@ The paragraph is indented on the first line."
 	    (forward-line))
 	  ))
 
-    (goto-char opos)
-
-    ;; we disabled modification hooks, so font-lock will not run to
-    ;; re-fontify the comment prefix; do that here.
-    ;; FIXME: Use actual original size instead of 0!
-    (run-hook-with-args 'after-change-functions from to 0)))
+    (goto-char opos)))
 
 ;;;; support for font-lock.el
 
@@ -2966,7 +2960,6 @@ The paragraph is indented on the first line."
      (require 'ada-gnat-xref)
      (setq ada-xref-tool 'gnat)))
   )
-;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))

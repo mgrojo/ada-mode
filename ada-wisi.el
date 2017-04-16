@@ -130,14 +130,15 @@
 
    (t
     (if (/= (wisi-tok-line tok) (wisi-tok-first tok))
-	;; First token in tok is not first in line; don't accumulate higher level indents.
+	;; First token in tok is not first in line; anchor to ignore
+	;; higher level indents.
 	(list
 	 0
 	 (wisi-anchored-2
 	  (wisi-tok-line tok);; anchor-line
 	  (cdr (wisi-tok-region tok));; end
 	  (wisi--paren-in-anchor-line tok delta2)
-	  t);; no-accumulate
+	  nil);; no-accumulate
 	 )
 
       (list delta1 delta2)))
@@ -388,8 +389,8 @@ For `wisi-indent-calculate-functions'.
 
 (defun ada-wisi-declarative-region-start-p (cache)
   "Return t if cache is a keyword starting a declarative region."
-  (memq (wisi-cache-token cache) '(DECLARE IS))
-  ;; IS has a cache only marked if start of declarative region
+  (memq (wisi-cache-token cache) '(DECLARE IS PRIVATE))
+  ;; IS has a cache only if start of declarative region
   )
 
 (defun ada-wisi-context-clause ()
@@ -511,6 +512,7 @@ Also return cache at start."
 
   (let ((done nil)
 	(first t)
+	(start-pos (point))
 	(cache
 	 (or
 	  (wisi-get-cache (point))
@@ -522,7 +524,8 @@ Also return cache at start."
 	  ;;     function ... is ... end;
 	  (wisi-forward-cache))))
     (while (not done)
-      (if (ada-wisi-declarative-region-start-p cache)
+      (if (and (< (point) start-pos)
+	       (ada-wisi-declarative-region-start-p cache))
 	  (progn
 	    (wisi-forward-token)
 	    (setq done t))
@@ -539,8 +542,13 @@ Also return cache at start."
 	       (setq cache (wisi-goto-containing cache t))
 
 	     (cl-case (wisi-cache-nonterm cache)
-	       ((entry_body package_body package_specification protected_body subprogram_body task_body)
-		;; FIXME: find 'PRIVATE in package_spec?
+	       (package_declaration
+		(wisi-goto-end-1 cache)
+		(setq cache (wisi-get-cache (point)))
+		(while (not (memq (wisi-cache-token cache) '(IS PRIVATE)))
+		  (setq cache (wisi-prev-statement-cache cache))))
+
+	       ((entry_body package_body package_declaration protected_body subprogram_body task_body)
 		(while (not (eq 'IS (wisi-cache-token cache)))
 		  (setq cache (wisi-next-statement-cache cache))))
 

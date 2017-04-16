@@ -98,22 +98,15 @@ wisi-indent-region:
 
 test/debug.adb
 
-wisi-anchored-%-
-    still needed?
-
-ada-indent-hanging need no-accumulate?
-
-test goto-declarative-region-start in begin-end block with no declare
-    should goto containing, not hang.
-
-anchor comment after 'is' in full_type_declaration to next line?
-    easier when cache indent on newline
-
 review fixmes
 
 test skeleton insert
 
+run all other tests
+
 rename ada/gpr-wisi-class-list wisi-class-list
+
+test-gpr
 
 indent max-cache doesn't work
     if only indent one line, cache marks whole buffer as indented
@@ -163,13 +156,30 @@ time indent
     gnatcoll-xref.adb  (copy to avoid messing up original)
 
     ada-mode 5.2
-        (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+        indent whole buffer:
+            (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+
         gps: per iteration 4.463700
         wisi: per iteration 8.331166
 
+        indent one line
+
     ada-mode 6.x
-        (time-it 'wisi-parse-buffer 1)
-        wisi: per iteration 2.484650
+        indent whole buffer:
+            (time-it 'wisi-parse-buffer 1)
+
+        indent first line: (time-it (lambda() (goto-line 1) (indent-for-tab-command)) 1)
+        indent middle line: (time-it (lambda() (goto-line 3500) (indent-for-tab-command)) 1)
+        indent last line: (time-it (lambda() (goto-line 7251) (indent-for-tab-command)) 1)
+
+        march 8 2017; sort of working
+            wisi whole buffer: per iteration 2.484650
+
+        april 16 2017; all Ada tests pass
+            wisi whole buffer: per iteration 3.516
+            wisi first line: per iteration 2.594025, 2.562731, 2.578430
+            wisi middle line: per iteration 2.562810, 2.791537, 2.750257
+            wisi last line: per iteration 2.750262, 2.750256
 
 time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)

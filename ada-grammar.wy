@@ -324,8 +324,11 @@ access_definition
       (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
     (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                                           (wisi-anchored%- 4 ada-indent-broken)])
+                                           (wisi-anchored% 4 ada-indent-broken)])
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
+ ;; test/ada_mode-nominal.ads
+ ;; type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
+ ;;   Standard.Float;
     (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                                            (wisi-anchored%- 4 ada-indent-broken)])
   ;
@@ -956,8 +959,7 @@ expression_function_declaration
  ;;
  ;; We override the cache on "function_specification", so
  ;; wisi-statement-action will handle an empty
- ;; "overriding_indicator_opt" correctly. FIXME: should not have to do
- ;; this, but it is also done in other grammar statements.
+ ;; "overriding_indicator_opt" correctly.
     (progn
       (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
       (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken 0 0]))
@@ -1125,7 +1127,13 @@ full_type_declaration
       (wisi-statement-action [1 statement-start 2 name 7 statement-end])
       (wisi-containing-action 1 5) ;; for goto-declaration-start
       (wisi-face-apply-action [2 font-lock-type-face])
-      ;; indentation of 'type_definition' done there, for ada-indent-record-rel-type.
+
+      ;; Indentation of 'type_definition' done there, for
+      ;; ada-indent-record-rel-type.
+      ;;
+      ;; FIXME: indentation of comment after 'is' should be
+      ;; ada-indent-record if type_definition is a record. Worse if
+      ;; ada-indent-comment-gnat is t. Need 'anchor to next line'.
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent-broken ada-indent-broken] 0 0 0]))
   | task_type_declaration
   | protected_type_declaration
@@ -1744,9 +1752,8 @@ primary
     (wisi-indent-action [(ada-indent-aggregate)])
   | name
   | NEW name
- ;; allocator, leaving out subpool_specification. Valid overrides occur when 'name' is a
- ;; qualified_expression or selected_component.
-    (wisi-face-apply-action [2 font-lock-type-face] t)
+ ;; allocator, leaving out subpool_specification.
+    (wisi-face-apply-action [2 font-lock-type-face])
  ;; | LEFT_PAREN expression RIGHT_PAREN ;; covered by aggregate
  ;; | LEFT_PAREN conditional_quantified_expression RIGHT_PAREN ; covered by aggregate
   ;
@@ -2008,6 +2015,11 @@ result_profile
                             (wisi-anchored* 1 ada-indent-broken)
                             (wisi-anchored* 1 ada-indent-broken)]))
   | RETURN access_definition
+ ;; test/ada_mode-nominal.adb
+ ;; function Function_Access_1
+ ;;   (A_Param : in Float)
+ ;;   return access
+ ;;     Standard.Float
     (wisi-indent-action* 1 [0 (wisi-anchored*- 1 ada-indent-broken)])
   ;
 

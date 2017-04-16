@@ -141,6 +141,11 @@ DELTA1, DELTA2 are the indents of the first and following lines
 within the nonterminal.  point is at start of TOK, and may be moved.")
 (make-variable-buffer-local 'wisi-indent-comment-col-0)
 
+(defvar wisi-inhibit-parse nil
+  "When non-nil, don't run the parser.
+Language code can set this non-nil when syntax is known to be
+invalid temporarily, or when making lots of changes.")
+
 ;;;; lexer
 
 (cl-defstruct wisi-lex
@@ -731,7 +736,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     ;; Now we can rely on wisi-cache-max.
 
     ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
-    (when (and (wisi-parse-try)
+    (when (and (not wisi-inhibit-parse)
+	       (wisi-parse-try)
 	       (<= (wisi-cache-max) pos))
 
       ;; Don't keep retrying failed parse until text changes again.
@@ -1086,33 +1092,9 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 	)
       )))
 
-(defun wisi--face-action-1 (face region &optional override-no-error)
-  "Apply FACE to REGION.
-If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existing face."
+(defun wisi--face-action-1 (face region)
+  "Apply FACE to REGION."
   (when region
-    ;; We allow overriding a face property, because we don't want to
-    ;; delete them in wisi-invalidate-cache (see comments there). On the
-    ;; other hand, it can be an error, so keep this debug
-    ;; code. However, to validly report errors, note that
-    ;; font-lock-face properties must be removed first, or the buffer
-    ;; must be fresh (never parsed), and wisi-debug must be > 1.
-    ;;
-    ;; Grammar sets override-no-error when a higher-level production might
-    ;; override a face in a lower-level production.
-    (when (> wisi-debug 1)
-      (let ((cur-face (get-text-property (car region) 'font-lock-face)))
-	(when cur-face
-	  ;; FIXME: debugging
-	  ;;	  (unless override-no-error
-	  ;;	    (message "%s:%d overriding face %s with %s on '%s'"
-	  (error "%s:%d overriding face %s with %s on '%s'"
-		 (buffer-file-name)
-		 (line-number-at-pos (car region))
-		 face
-		 cur-face
-		 (buffer-substring-no-properties (car region) (cdr region))))
-
-	))
     (with-silent-modifications
       (add-text-properties
        (car region) (cdr region)
@@ -1121,7 +1103,7 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
 	'fontified t)))
     ))
 
-(defun wisi-face-apply-action (pairs &optional no-override)
+(defun wisi-face-apply-action (pairs)
   "Set face information in `wisi-face' text properties of tokens.
 Intended as a grammar non-terminal action.
 
@@ -1129,9 +1111,7 @@ PAIRS is a vector of the form [token-number face token-number face ...]
 
 Apply face to the first token in the wisi-tokens[token-number]
 region marked with text property `wisi-face', or to all of the
-region if there is no cache.
-
-If NO-OVERRIDE is non-nil, don't override existing face."
+region if there is no cache."
   (when (eq wisi--parse-action 'face)
     (let (number region face cache (i 0))
       (while (< i (length pairs))
@@ -1148,7 +1128,7 @@ If NO-OVERRIDE is non-nil, don't override existing face."
 	      ;; directly, without first calling
 	      ;; wisi-face-mark-action.
 	      (setq region (wisi-cache-region cache (car region))))
-	    (wisi--face-action-1 face region no-override)))
+	    (wisi--face-action-1 face region)))
 
 	 (t
 	  ;; catch conversion errors from previous grammar syntax
@@ -1180,7 +1160,7 @@ the wisi-tokens[token-number] region."
 	      (goto-char pos)
 	      (setq cache (get-text-property (point) 'wisi-face))
 	      (setq face-region (wisi-cache-region cache))
-	      (wisi--face-action-1 face face-region nil)
+	      (wisi--face-action-1 face face-region)
 	      (forward-char 1);; move past current 'wisi-face property
 	      (setq pos (next-single-property-change (point) 'wisi-face))
 	      ;; pos is nil at eob
@@ -1912,7 +1892,7 @@ Called with BEGIN END.")
     (aset (wisi-ind-line-begin wisi--indent) i (copy-marker (point)))
     (forward-line 1)))
 
-(defconst wisi-indent-max-anchor-depth 10)
+(defconst wisi-indent-max-anchor-depth 20)
 
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
