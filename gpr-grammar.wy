@@ -111,24 +111,21 @@
 
 aggregate
   : LEFT_PAREN string_list RIGHT_PAREN
-    (wisi-indent-action [-1 (wisi-token-delta 1) -1])
+    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
   ;
 
 attribute_declaration
   : FOR IDENTIFIER USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 5 statement-end])
-      (wisi-indent-comments-action 4 gpr-indent-broken)
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0]))
   | FOR IDENTIFIER LEFT_PAREN discrete_choice RIGHT_PAREN USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-comments-action 7 gpr-indent-broken)
       (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0 gpr-indent-broken 0]))
   | FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-comments-action 7 gpr-indent-broken)
       (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0 gpr-indent-broken 0]))
   ;
 
@@ -148,7 +145,6 @@ case_statement
   : CASE name IS case_items END CASE SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
-      (wisi-indent-comments-action 4 gpr-indent-when)
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-when 0 0 0]))
   ;
 
@@ -158,7 +154,6 @@ case_item
   : WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt
     (progn
       (wisi-statement-action [1 motion])
-      (wisi-indent-comments-action 4 gpr-indent)
       (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent]))
   ;
 
@@ -243,7 +238,6 @@ package_spec
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-containing-action 1 4)
-      (wisi-indent-comments-action 4 gpr-indent)
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent 0 0 0]))
   ;
 
@@ -272,7 +266,6 @@ project_extension
     (progn
       (wisi-statement-action [1 statement-start 9 statement-end])
       (wisi-containing-action 1 6)
-      (wisi-indent-comments-action 6 gpr-indent)
       (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 gpr-indent 0 0 0]))
   ;
 
@@ -308,8 +301,7 @@ simple_project_declaration
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-containing-action 1 4)
-      (wisi-indent-comments-action 4 gpr-indent)
-      (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent 0 0 0]))
+      (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))
   ;
 
 ;; (info "(gnat_ugn)Expressions")

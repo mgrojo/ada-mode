@@ -146,7 +146,7 @@
 
   ;; fail for any parse errors.
   ;;
-  ;; FIXME: report failure in .wisi-test file, so 'make' can run all
+  ;; IMPROVEME: report failure in .wisi-test file, so 'make' can run all
   ;; tests and report all failures.
   (setq wisi-debug 1)
   (let ((build-dir default-directory)

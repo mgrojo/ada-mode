@@ -13,18 +13,18 @@ project GDS is
    --  for Foo use external_as_list ("bar");
 
    for Source_Dirs use
-    ("../auto",
-     "../../1553",
-     "../../asist_if",
-     "../../base",
-     "../../fpga",
-     "../../hardware",
-     "../../itos_if",
-     "../../models",
-     "../../models/sofa",
-     "../../spacewire",
-     "../../system",
-     "../../windows");
+     ("../auto",
+      "../../1553",
+      "../../asist_if",
+      "../../base",
+      "../../fpga",
+      "../../hardware",
+      "../../itos_if",
+      "../../models",
+      "../../models/sofa",
+      "../../spacewire",
+      "../../system",
+      "../../windows");
 
    for Object_Dir use "objects";
    for Exec_Dir use ".";

@@ -104,9 +104,13 @@ test skeleton insert
 
 run all other tests
 
+add gpr motion
+
 rename ada/gpr-wisi-class-list wisi-class-list
 
-test-gpr
+switch to fasttoken
+
+add syntax error handling
 
 indent max-cache doesn't work
     if only indent one line, cache marks whole buffer as indented
