@@ -315,10 +315,10 @@ string_primary
   ;
 
 ;; (info "(gnat_ugn)Expressions")
-;; we merge that string_list into term, and use 'string_list' for 'string_primary {, string_primary}'
+;; we merge that string_list into term, and use 'string_list' for 'string_expression {, string_expression}'
 string_list
-  : string_primary
-  | string_list COMMA string_primary
+  : expression
+  | string_list COMMA expression
     (progn
       (wisi-statement-action [2 list-break])
       (wisi-containing-action 2 3))

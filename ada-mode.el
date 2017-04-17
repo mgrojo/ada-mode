@@ -366,11 +366,11 @@ Values defined by cross reference packages.")
     (define-key map "\C-c\C-i" 	 'ada-indent-statement)
     (define-key map "\C-c\C-l" 	 'ada-show-local-references)
     (define-key map "\C-c\C-m"   'ada-build-set-make)
-    (define-key map "\C-c\C-n" 	 'ada-next-statement-keyword)
+    (define-key map "\C-c\C-n" 	 'forward-sexp)
     (define-key map "\C-c\M-n" 	 'ada-next-placeholder)
     (define-key map "\C-c\C-o" 	 'ada-find-other-file)
     (define-key map "\C-c\M-o" 	 'ada-find-other-file-noset)
-    (define-key map "\C-c\C-p" 	 'ada-prev-statement-keyword)
+    (define-key map "\C-c\C-p" 	 'backward-sexp)
     (define-key map "\C-c\M-p" 	 'ada-prev-placeholder)
     (define-key map "\C-c\C-q" 	 'ada-xref-refresh)
     (define-key map "\C-c\C-r" 	 'ada-show-references)
@@ -421,7 +421,8 @@ Values defined by cross reference packages.")
      ["Other file don't find decl"    ada-find-other-file-noset    t]
      ["Find file in project"          ada-find-file                t]
      ["Goto declaration/body"         ada-goto-declaration         t]
-     ["Goto next statement keyword"   ada-next-statement-keyword   t]
+     ["Goto next statement keyword"   forward-sexp   t]
+     ["Goto prev statement keyword"   backward-sexp   t]
      ["Goto declaration start"        ada-goto-declaration-start   t]
      ["Goto declaration end"          ada-goto-declaration-end     t]
      ["Show parent declarations"      ada-show-declaration-parents t]
@@ -465,15 +466,14 @@ Values defined by cross reference packages.")
   '("Ada"
     ["Goto declaration/body"         ada-goto-declaration         t]
     ["Show parent declarations"      ada-show-declaration-parents t]
-    ["Goto next statement keyword"   ada-next-statement-keyword   t]
     ["Goto declaration start"        ada-goto-declaration-start   t]
     ["Goto declaration end"          ada-goto-declaration-end     t]
     ["Show parent declarations"      ada-show-declaration-parents t]
     ["Show references"               ada-show-references          t]
     ["Show overriding"               ada-show-overriding          t]
     ["Show overridden"               ada-show-overridden          t]
-    ["Goto next statement keyword"   ada-next-statement-keyword   t]
-    ["Goto prev statement keyword"   ada-next-statement-keyword   t]
+    ["Goto next statement keyword"   forward-sexp   t]
+    ["Goto prev statement keyword"   backward-sexp   t]
 
     ["-"                nil nil]
 
@@ -2552,15 +2552,6 @@ is currently in.  Called with no parameters.")
   (when ada-goto-declarative-region-start
     (funcall ada-goto-declarative-region-start)))
 
-(defvar ada-next-statement-keyword nil
-  ;; Supplied by indentation engine
-  "Function called with no parameters; it should move forward to
-the next keyword in the statement following the one point is
-in (ie from `if' to `then'). If not in a keyword, move forward to
-the next keyword in the current statement. If at the last
-keyword, move forward to the first keyword in the next statement
-or next keyword in the containing statement.")
-
 (defvar ada-goto-end nil
   ;; Supplied by indentation engine
   "Function to move point to end of the declaration or statement point is in or before.
@@ -2570,42 +2561,6 @@ Called with no parameters.")
   "Call `ada-goto-end'."
   (when ada-goto-end
     (funcall ada-goto-end)))
-
-(defun ada-next-statement-keyword ()
-  ;; Supplied by indentation engine
-  "See `ada-next-statement-keyword' variable. In addition,
-if on open parenthesis move to matching closing parenthesis."
-  (interactive)
-  (if (= (syntax-class (syntax-after (point))) 4)
-      ;; on open paren
-      (forward-sexp)
-
-    ;; else move by keyword
-    (when ada-next-statement-keyword
-      (unless (region-active-p)
-	(push-mark))
-      (funcall ada-next-statement-keyword))))
-
-(defvar ada-prev-statement-keyword nil
-  ;; Supplied by indentation engine
-  "Function called with no parameters; it should move to the previous
-keyword in the statement following the one point is in (ie from
-`then' to `if').  If at the first keyword, move to the previous
-keyword in the previous statement or containing statement.")
-
-(defun ada-prev-statement-keyword ()
-  "See `ada-prev-statement-keyword' variable. In addition,
-if on close parenthesis move to matching open parenthesis."
-  (interactive)
-  (if (= (syntax-class (syntax-after (1- (point)))) 5)
-      ;; on close paren
-      (backward-sexp)
-
-    ;; else move by keyword
-    (when ada-prev-statement-keyword
-      (unless (region-active-p)
-	(push-mark))
-      (funcall ada-prev-statement-keyword))))
 
 ;;;; code creation
 

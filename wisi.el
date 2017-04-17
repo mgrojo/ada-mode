@@ -1295,6 +1295,21 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
       (wisi-backward-cache))
   ))
 
+(defun wisi-forward-sexp (&optional arg)
+  "For `forward-sexp-function'."
+  (interactive "^p")
+  (or arg (setq arg 1))
+  (if (= (syntax-class (syntax-after (point))) 4)
+      ;; on open paren
+      (let ((forward-sexp-function nil))
+	(forward-sexp arg))
+
+    (dotimes (_i (abs arg))
+      (if (> arg 0)
+	  (wisi-forward-statement-keyword)
+	(wisi-backward-statement-keyword)))
+    ))
+
 (defun wisi-goto-containing (cache &optional error)
   "Move point to containing token for CACHE, return cache at that point.
 If ERROR, throw error when CACHE has no container; else return nil."
@@ -1580,6 +1595,7 @@ correct. Must leave point at indentation of current line.")
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
   (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
+  (set (make-local-variable 'forward-sexp-function) #'wisi-forward-sexp)
 
   (setq wisi-post-parse-fail-hook post-parse-fail)
   (setq wisi-indent-failed nil)
