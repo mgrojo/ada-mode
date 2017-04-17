@@ -7,6 +7,8 @@ with "standard_common";
 --EMACSCMD:(progn (forward-line 2)(ff-find-the-other-file)(looking-at "-- for testing"))
 --EMACSRESULT:t
 with "../common_text_io";
+--EMACSCMD:(test-face "project" font-lock-keyword-face)
+--EMACSCMD:(test-face "GDS" font-lock-function-name-face)
 project GDS is
 
    --  FIXME: add face, autocase test for 'external_as_list'
@@ -60,4 +62,6 @@ project GDS is
       -- FIXME: test face, autocase on Project.
       for Map_File_Option use "-Wl,-Map," & Project'Project_Dir;
    end Linker;
+
+   --EMACSCMD:(test-face "GDS" font-lock-function-name-face)
 end GDS;

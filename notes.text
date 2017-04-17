@@ -99,6 +99,8 @@ wisi-indent-region:
 test/debug.adb
 
 review fixmes
+    done thru gpr keywords
+
 
 test skeleton insert
 

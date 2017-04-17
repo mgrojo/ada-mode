@@ -42,28 +42,6 @@
     statement-start
     ))
 
-(defun gpr-wisi-indent-cache (offset cache)
-  "Return indentation of OFFSET relative to indentation of line containing CACHE
-or containing ancestor of CACHE that is at a line beginning."
-  (let ((indent (current-indentation)))
-    (while (and cache
-		(not (= (current-column) indent)))
-      (when (eq 'WHEN (wisi-cache-token cache))
-	(setq offset (+ offset ada-indent-when)))
-      (setq cache (wisi-goto-containing cache))
-      (setq indent (current-indentation)))
-  (+ (current-indentation) offset)
-  ))
-
-(defun gpr-wisi-indent-containing (offset cache)
-  "Return indentation of OFFSET relative to containing ancestor of CACHE that is at a line beginning."
-  (gpr-wisi-indent-cache offset (wisi-goto-containing cache)))
-
-(defun gpr-wisi-post-parse-fail ()
-  "For `wisi-post-parse-fail-hook'."
-  ;; keep it simple :)
-  nil)
-
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
   (wisi-validate-cache (point) nil 'navigate)
@@ -94,7 +72,7 @@ or containing ancestor of CACHE that is at a line beginning."
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
   (wisi-setup '()
-	      'gpr-wisi-post-parse-fail
+	      nil
 	      gpr-wisi-class-list
 	      gpr-grammar-wy--keyword-table
 	      gpr-grammar-wy--token-table

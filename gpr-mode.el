@@ -129,7 +129,7 @@ Function is called with no arguments.")
   (when gpr-indent-statement
     (funcall gpr-indent-statement)))
 
-(defconst gpr-casing-keywords
+(defconst gpr-keywords
   '(
     "abstract"
     "aggregate"
@@ -154,37 +154,13 @@ Function is called with no arguments.")
     "when"
     "with"
     )
-  "List of gpr mode keywords for auto-casing.")
+  "List of gpr mode keywords for font-lock and auto-casing.")
 
 (defvar gpr-font-lock-keywords
-  (progn
-    (list
-     ;;
-     ;; keyword plus name. FIXME: move to grammar action, use gpr-keywords here (see ada-font-lock-keywords).
-     (list (concat
-	    "\\<\\("
-	    "package\\|"
-	    "project\\|"
-	    "for"
-	    "\\)\\>[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
-     ;;
-     ;; Main keywords
-     (list (concat "\\<"
-		   (regexp-opt
-		    '("abstract" "aggregate" "case" "configuration" "extends"
-                      "external" "external_as_list" "is" "library" "null"
-                      "others" "renames" "standard" "type" "use" "when" "with")
-		    t)
-		   "\\>")
-	   '(1 font-lock-keyword-face))
-     ;;
-     ;; Anything following end and not already fontified is a body name.
-     '("\\<\\(end\\)\\>\\([ \t]+\\)?\\(\\(\\sw\\|[_.]\\)+\\)?"
-       (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-     ;;
-     ))
+  ;; Grammar actions set `font-lock-face' property for all
+  ;; non-keyword tokens that need it.
+  (list
+   (list (concat "\\<" (regexp-opt gpr-keywords t) "\\>") '(0 font-lock-keyword-face)))
   "Expressions to highlight in gpr mode.")
 
 (defun gpr-ff-special-with ()
@@ -289,7 +265,7 @@ In particular, character constants are set to have string syntax."
   (set (make-local-variable 'require-final-newline) t)
 
   (ada-case-activate-keys gpr-mode-map)
-  (set (make-local-variable 'ada-keywords) gpr-casing-keywords)
+  (set (make-local-variable 'ada-keywords) gpr-keywords)
 
   (set (make-local-variable 'font-lock-defaults)
        '(gpr-font-lock-keywords
