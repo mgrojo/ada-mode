@@ -1,3 +1,12 @@
+read 141
+-- a simple entry_body, with empty declarations
+is begin;
+
+-- one declaration; an entry_body with empty declarations
+is
+    is begin;
+begin;
+
 spawn parser from 1 (2 active)
  2 stack:  1 : , 
  2: 1: (IS 49 . 51) : reduce 0 tokens to declaration
@@ -152,4 +161,4 @@ pending declaration_id_0: (declaration)  action count: 27
  15: 7: (IS 49 . 51) : reduce 2 tokens to declarations
 pending declarations_id_0: (declarations) (declarations), (declaration) action count: 28
  ... goto state 4
-empty_production_2.input:2:0: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
+empty_production_2.input:2:1: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)

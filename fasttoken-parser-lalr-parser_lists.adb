@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014-2015  All Rights Reserved.
+--  Copyright (C) 2014-2015, 2017  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -53,7 +53,7 @@ package body FastToken.Parser.LALR.Parser_Lists is
    is begin
       --  WORKAROUND: with 'Access, Debian gnat 4.9.2 reports
       --  "non-local pointer cannot point to local object", even
-      --  though GNAT Pro 7.3.1 and GNAT GPL 2014 allow 'Access There
+      --  though GNAT Pro 7.3.1 and GNAT GPL 2014 allow 'Access. There
       --  doesn't seem to be a way to use a legitimate access param
       --  while still meeting the Iterator requirements.
       return (List'Unchecked_Access, Ptr => List.Head);
@@ -482,7 +482,8 @@ package body FastToken.Parser.LALR.Parser_Lists is
    is
       pragma Unreferenced (Container);
    begin
-      return (Element => Position.Item'Access);
+      --  WORKAROUND: gcc 6 reports an error for Position.Item'Access here; this passes all tests
+      return (Element => Position.all.Item'Access);
    end Constant_Reference;
 
    type List_Access_Constant is access constant List;

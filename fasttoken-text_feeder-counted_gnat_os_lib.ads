@@ -8,7 +8,7 @@
 --  return until some rather large buffer fills up. This does not
 --  happen with GNAT_OS_Lib.Read.
 --
---  Copyright (C) 2014, 2015  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -41,7 +41,7 @@ package FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
       Text_End :    out Integer);
 
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
-   --  Returns True after Max_Bytes has been read, or the .
+   --  Returns True after Max_Bytes has been read.
 
    procedure Discard_Rest_Of_Input (Feeder : in out Instance);
 
