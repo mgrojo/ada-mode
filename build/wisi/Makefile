@@ -16,7 +16,7 @@ update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
 byte-compile : byte-compile-clean
 	cd ../../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
-# FIXME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
+# IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
 test : test-wisi
 
 # The various gnatxref tests no longer work with any GPL version of GNAT.

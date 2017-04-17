@@ -1,7 +1,7 @@
 ;;; ada-fix-error.el --- utilities for automatically fixing  -*- lexical-binding:t -*-
 ;; errors reported by the compiler.
 
-;; Copyright (C) 1999-2009, 2012-2015 Free Software Foundation, Inc.
+;; Copyright (C) 1999-2009, 2012-2015, 2017 Free Software Foundation, Inc.
 
 ;; Author     : Stephen Leake      <Stephen_Leake@stephe-leake.org>
 ;; Maintainer : Stephen Leake      <Stephen_Leake@stephe-leake.org>
@@ -206,7 +206,7 @@ point and return nil.")
     (with-current-buffer compilation-last-buffer
       (when (not (ada-get-compilation-message))
 	(beep)
-	(message "FIXME: ada-fix-compiler-error")
+	(message "ada-fix-compiler-error")
 	;; not clear why this can happen, but it has
 	(compilation-next-error 1))
       (let ((comp-buf-pt (point))

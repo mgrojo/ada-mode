@@ -2,7 +2,6 @@ xref_tool=gpr_query
 
 gpr_file=../ada_mode_gps_indent.gpr
 
--- FIXME: get casing from gpr file
 casing=emacs_case_exception
 
 -- end of file

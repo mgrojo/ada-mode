@@ -63,42 +63,63 @@ install packages in -Q:
 
 ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
     use wisi parser for navigation, face with gps for indent; done
+    AdaCore ticket: not reported
 
 ada_mode_gps_indent bug #2: does not honor ada-broken-indent
     GPS code patch - done
+    AdaCore ticket: Q406-078
 
 ada_mode_gps_indent bug #3: comments inside expressions badly indented
     post processor for comments. - done
+    AdaCore ticket: Q406-082
 
 ada_mode_gps_indent bug #4: multiline comments starting after code
     post processor for comments - done
+    AdaCore ticket: Q406-083
 
 ada_mode_gps_indent bug #5: jumps to column zero after RET
     insert fictitious code when call GPS - done
+    AdaCore ticket: not reported
 
 ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
     GPS code patch - done
+    AdaCore ticket: Q406-085
 
 ada_mode_gps_indent bug #7: comments after last parameter and end of statement
     fix ada-gps-comment - done
+    AdaCore ticket: not reported; GPS gets it right
 
 ada_mode_gps_indent bug #8: double ada-indent-broken in rare cases
     bug triggered by coding standard violation; low priority
     needs GPS code patch; waiting for AdaCore
+    AdaCore ticket: Q406-088
+
+ada_mode_gps_indent bug #9: hanging indent in expressions
+    bug in GPS
+    'and' expression also wrong in ada-wisi
+    also tests ada-indent-hanging-rel-exp
+
+ada_mode_gps_indent bug #10: more comments, ada-gps only
+    GPS gets this right
+    fix other comment cases in gps code, delete ada-gps-comment
+
+ada_mode_gps_indent bug #11: hanging indent in named association
+    bug in GPS
+
+ada_mode_gps_indent bug #12: comment align with hanging code.
+    bug in GPS
 
  Eurocontrol work:
-(progn
-    (setq ada-gps-size-threshold 0)
-    (setq ada-indent 2)
-    (setq ada-indent-broken 2)
-    (setq ada-indent-record-rel-type 2)
-    (ada-indent-hanging-rel-exp t))
+(setq ada-gps-size-threshold 0)
 test/debug.adb
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
 
-test/ada-gps/ada_gps_bug_007.adb
+AdaCore suggests using the libadalang indentation engine
+    see Q406-078
+    doesn't tolerate syntax errors yet
+    fix as much of ada-gps as possible, then wait for libadalang to replace it
 
 ada_mode_gps_indent 1.001 compiled for linux in c:/tmp
 
@@ -114,6 +135,13 @@ ada-indent-hanging-rel-exp
 
     not relevant for gps?
 
+    more cases:
+
+    if FTFX.Main_CASA_Result.Suspension.Status /= Previous_Suspension_Info.Status
+      or FTFX.Main_CASA_Result.Suspension.Delay_Threshold_Exceeded_Reg
+        /= Previous_Suspension_Info.Delay_Threshold_Exceeded_Reg
+    wisi aligns "/=" with "or"
+
 if wisi is too slow on large buffers:
     see o.e.a.stephe-2 parse-action
     modify grammar actions:
@@ -123,6 +151,25 @@ if wisi is too slow on large buffers:
             (wisi-containing-action ...))
          (wisi
             ... current code))
+
+ wisi work
+
+indent bugs:
+   if not Update_Flight_Status
+     and then FTFX.Covering.Cumulative_Shift > Time.Zero
+     and then Input_ATOT /= Time.None_Time
+     and then Normal_Flight.Profiles (Flight_Model.CTFM) /= Curtain.Profile.None
+       and then Input_ATOT /= Take_Off_Time (Normal_Flight, Flight_Model.CTFM)
+   then
+   end if;
+
+   C :=
+     Fim.Kind (Action_Info.Message) /= Fim.DLA
+       and Fim.Kind (Action_Info.Message) /= Fim.APL
+         and Fim.Kind (Action_Info.Message) /= Fim.ACH
+           and Fim.Kind (Action_Info.Message) /= Fim.ARR
+             and Fim.Kind (Action_Info.Message) /= Fim.DEP;
+
 
 gpr_query --help show relevant trace settings
     add -v; shows *.ali

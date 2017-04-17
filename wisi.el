@@ -1587,8 +1587,7 @@ correct. Must leave point at indentation of current line.")
   (add-hook 'before-change-functions 'wisi-before-change nil t)
   (add-hook 'after-change-functions 'wisi-after-change nil t)
 
-  (when (functionp 'jit-lock-register)
-      (jit-lock-register 'wisi-fontify-region))
+  (jit-lock-register 'wisi-fontify-region)
 
   ;; see comments on "lexer" above re syntax-propertize
   (syntax-propertize (point-max))

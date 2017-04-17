@@ -26,7 +26,7 @@
 	   (funcall
 	    ada-xref-other-function
 	    identifier file line column)))
-      ;; FIXME: change ada-xref-other-function to return xref-file-location
+      ;; IMPROVEME: change ada-xref-other-function to return xref-file-location
       (list
        (xref-make
 	identifier
@@ -55,7 +55,7 @@
 
 ;; (defun xref-ada-identifer-completion-table (identifer)
 ;;   "For `xref-identifier-completion-table-function'."
-;;   ;; FIXME: implement gpr or asis backend
+;;   ;; IMPROVEME: implement gpr or asis backend
 ;;    nil)
 
 (define-minor-mode xref-ada-mode ()
@@ -68,7 +68,5 @@
     (setq xref-backend-functions (remq #'xref-ada-find-backend xref-backend-functions))))
 
 (add-hook 'ada-mode-hook 'xref-ada-mode)
-
-;; FIXME: add gpr-query backend for C++, C?
 
 (provide 'xref-ada)

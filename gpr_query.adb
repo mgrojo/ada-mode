@@ -320,7 +320,6 @@ procedure Gpr_Query is
 
       elsif GNATCOLL.Xref.Is_Fuzzy_Match (Ref.Entity) then
          Ada.Text_IO.Put_Line ("warning: fuzzy match for the entity");
-         --  FIXME: gnat-query.el look for this, prompt for reparse?
       end if;
 
       return Ref.Entity;

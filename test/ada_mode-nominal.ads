@@ -46,7 +46,8 @@ limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Containers.Vectors" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada.Containers.Bounded_Doubly_Linked_Lists" font-lock-function-name-face)
 --EMACSCMD:(progn  (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
@@ -246,7 +247,7 @@ is -- target 0
      protected function
        (A_Param : in Float)
        return Standard.Float;
-   --EMACSCMD:(progn (beginning-of-line)(forward-line -1)(ada-which-function))
+   --EMACSCMD:(progn (forward-line -1)(ada-which-function))
    --EMACSRESULT:"Ada_Mode.Nominal"
 
    -- a pathological case
@@ -345,7 +346,8 @@ is -- target 0
       Component_2 : Integer := 2;
       Component_3 : Integer := 3;
    end record;
-   for Record_Type_2 use record at mod 4;
+   for Record_Type_2 use record
+      at mod 4;
       Component_1 at 0 range 0 .. 31;
       Component_2 at 0 range 32 .. 63;
       Component_3 at 0 range 64 .. 95;
@@ -431,8 +433,14 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 2)(backward-word 2)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
-   protected type Protected_1 is
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSRESULT:t
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- Protected_1"))
+   --EMACSRESULT:t
+   protected type Protected_1 is -- Protected_1
+      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "protected type Protected_1"))
+      --EMACSRESULT:t
+      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -459,7 +467,11 @@ is -- target 0
       --EMACSRESULT:t
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
-   private
+   private -- Protected_1
+      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (ada-prev-statement-keyword)(looking-at "is -- Protected_1"))
+      --EMACSRESULT:t
+      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (ada-next-statement-keyword)(looking-at "; -- Protected_1"))
+      --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling
       -- indefinite lists of objects properly
@@ -470,7 +482,7 @@ is -- target 0
       Local_4 : Integer;
 
       -- A comment just before 'end'
-   end Protected_1;
+   end Protected_1; -- Protected_1
 
    type Protected_Interface_1 is protected interface;
 

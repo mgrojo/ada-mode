@@ -313,8 +313,9 @@ are indented correctly.")
   ;; test/ada-gps/ada_gps_bug_007.adb
   (let (cache)
     (end-of-line)
+    (wisi-validate-cache (point))
     (wisi-backward-token)
-    (when (setq cache (wisi-get-cache (point)))
+    (when (eq 'statement-end (wisi-cache-class (setq cache (wisi-get-cache (point)))))
       (wisi-goto-start cache))))
 
 (defun ada-gps-comment ()
