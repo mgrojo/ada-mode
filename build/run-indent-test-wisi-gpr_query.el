@@ -1,4 +1,4 @@
-;; run tests using gpr_query, otherwise ada-mode, gpr-mode defaults
+;; run Ada tests using gpr_query, otherwise ada-mode, gpr-mode defaults
 
 (setq ada-xref-tool 'gpr_query)
 

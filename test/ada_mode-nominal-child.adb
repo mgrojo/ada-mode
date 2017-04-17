@@ -30,12 +30,12 @@ package body Ada_Mode.Nominal.Child is
       return 0.0;
    end Function_2b;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at " -- target Function_2c"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declarative-region-start)(looking-at "begin -- target Function_2c"))
    --EMACSRESULT:t
    overriding function Function_2c (Param : in Child_Type_1)
                                    return Float
-   is -- target Function_2c
-   begin
+   is
+   begin -- target Function_2c
       return 0.0;
    end Function_2c;
 

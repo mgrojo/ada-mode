@@ -50,10 +50,12 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-gps.el
-one-clean:
-	rm -f ada_gps_bug_005.adb*
-one : one-clean ada_gps_bug_005.adb.diff
+ONE_TEST_FILES := ada_mode-nominal.ads
+ONE_TEST_FILES += ada_mode-nominal-child.ads
+one : RUNTEST := run-indent-test-wisi-gpr_query.el
+one-clean: force
+	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -65,23 +67,14 @@ ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN ?= /Projects/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
-
 else ifeq ($(shell uname),Darwin)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
-
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
 
 else
 # windows
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
-
-# we build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 
 endif
 
@@ -124,6 +117,10 @@ include ../common.make
 
 .PHONY : force
 
+# suitable for copying to ../../notes.text
+diffs : force
+	cd ../../; find build/wisi -name "*.diff" -not -size 0
+
 test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
 test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
@@ -139,6 +136,15 @@ test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 test-ada-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gpr_query
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+test-gpr: RUNTEST := run-indent-test-wisi.el
+test-gpr: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+
+test-gpr.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-gpr
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 

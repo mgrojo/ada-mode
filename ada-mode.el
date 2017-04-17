@@ -1805,8 +1805,10 @@ Called by `syntax-propertize', which is called by font-lock in
 race conditions with the grammar parser.")
 
 (defun ada-syntax-propertize (start end)
-  "Assign `syntax-table' properties in accessible part of buffer.
-In particular, character constants are set to have string syntax."
+  "For `syntax-propertize-function'.
+Assign `syntax-table' properties in region START .. END.
+In particular, character constants are set to have string syntax.
+Runs `ada-syntax-propertize-hook'."
   ;; (info "(elisp)Syntax Properties")
   ;;
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
@@ -2661,6 +2663,8 @@ package body file, containing skeleton code that will compile.")
 
 ;;;; fill-comment
 
+(defvar wisi-inibit-parse nil);; in wisi.el; so far that's the only parser we use.
+
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
 If JUSTIFY is non-nil, each line is justified as well.
@@ -2675,14 +2679,8 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph leaves comment text exposed (without
   ;; comment prefix) when inserting a newline; don't trigger a parse
   ;; because of that (in particular, jit-lock requires a parse; other
-  ;; hooks may as well). In general, we don't need to trigger a parse
-  ;; for comment changes.
-  ;;
-  ;; FIXME: add ada-inibit-parse instead; let other change hooks run.
-  ;; FIXME: wisi-after-change still needs to adjust wisi-cache-max
-  ;; FIXME: even better, consider patch suggested by Stefan Monnier to
-  ;; move almost all code out of the change hooks (see email).
-  (let* ((inhibit-modification-hooks t)
+  ;; hooks may as well).
+  (let* ((wisi-inhibit-parse t)
 	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
@@ -2751,12 +2749,7 @@ The paragraph is indented on the first line."
 	    (forward-line))
 	  ))
 
-    (goto-char opos)
-
-    ;; we disabled modification hooks, so font-lock will not run to
-    ;; re-fontify the comment prefix; do that here.
-    ;; FIXME: Use actual original size instead of 0!
-    (run-hook-with-args 'after-change-functions from to 0)))
+    (goto-char opos)))
 
 ;;;; support for font-lock.el
 
@@ -2889,7 +2882,7 @@ The paragraph is indented on the first line."
   ;; not run when the text is first loaded into the buffer. Recover
   ;; from that.
   (syntax-ppss-flush-cache (point-min))
-  (syntax-propertize (point-max))
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )
@@ -2966,7 +2959,6 @@ The paragraph is indented on the first line."
      (require 'ada-gnat-xref)
      (setq ada-xref-tool 'gnat)))
   )
-;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))

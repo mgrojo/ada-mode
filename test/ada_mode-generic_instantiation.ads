@@ -9,7 +9,7 @@ with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private
 package Ada_Mode.Generic_Instantiation is
-   --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation"))
+   --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(beginning-of-line)(looking-at "end Ada_Mode.Generic_Instantiation;"))
    --EMACSRESULT:t
 
    --EMACSCMD:(jit-lock-fontify-now)
@@ -32,7 +32,6 @@ package Ada_Mode.Generic_Instantiation is
    procedure Procedure_3 is new Instance.Generic_Procedure
      (Integer, Function_1);
 
-   -- multi-line font-lock doesn't work
    procedure Procedure_4 is new Instance.
      Generic_Procedure (Integer, Function_1);
    procedure Procedure_5 is new Instance
@@ -44,7 +43,6 @@ package Ada_Mode.Generic_Instantiation is
    procedure Procedure_8
      is new Instance.Generic_Procedure (Integer, Function_1);
 
-   -- multi-line works here, because this is in the parser
    --EMACSCMD:(progn (forward-line 2)(test-face "Instance.Generic_Function" 'font-lock-function-name-face))
    generic function Gen_Function_1 renames
      Instance.Generic_Function;

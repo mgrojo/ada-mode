@@ -117,11 +117,6 @@ vpath %.ads ../../test ../../test/subdir ../../test/ada-gps
 vpath %.adb ../../test ../../test/subdir ../../test/ada-gps
 vpath %.gpr ../../test/gpr
 
-# FIXME: this reports *.diff > 0 from previous tests as well
-test-gpr : RUNTEST := run-indent-test-gpr.el
-test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
-	find . -name "*.diff" -not -size 0 >> test.log
-
 # emacs to test with
 #
 # This can be overridden on the 'make' command line or by an external
@@ -136,6 +131,9 @@ gpr-skel.gpr.tmp :
 
 %.diff : % %.tmp
 	-diff -u $< $*.tmp > $*.diff
+
+%.diff-run : % %.tmp
+	-diff -u $< $*.tmp
 
 .PRECIOUS : %.tmp
 
@@ -152,8 +150,9 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # save startup time. That fails in batch mode; batch mode does not
 # support background processes. So we don't run tests in batch mode.
 # We can't use -nw here because the standard input is not a tty (at
-# least on Windows).
-%.tmp : % $(INDENT.EL)
+# least on Windows). We don't include any other dependencies, because
+# the complete list is complex, and we sometimes want to ignore it.
+%.tmp : %
 	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)

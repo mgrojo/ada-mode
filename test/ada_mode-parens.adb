@@ -74,6 +74,11 @@ package body Ada_Mode.Parens is
          "123" &
            "456" &
            "789"
+        -- There are conflicting requirements on indenting a hanging
+        -- right paren; when entering new code, we want it aligned
+        -- where the new code would be. When left hanging, we want it
+        -- aligned with the matching left paren. We choose the
+        -- latter, partly for backward compatibility.
         );
 
       --  function call (actually type conversion, but it's the same indentation) in aggregate
@@ -123,6 +128,31 @@ package body Ada_Mode.Parens is
          (4, 5, 6),
          (7, 8, 9),
          (10, 11, 12));
+
+      --  Test highly nested aggregates
+      type Tensor_Type is array (1 ..2) of Matrix_Type;
+      B : Tensor_Type :=
+        (((1,
+           2, 3),
+          (4,
+           5, 6),
+          (7, 8, 9),
+          (10, 11, 12)),
+         ((1, 2, 3),
+          (4, 5, 6),
+          (7, 8, 9),
+          (10, 11, 12)));
+
+      C : Tensor_Type := (((1,
+                            2, 3),
+                           (4,
+                            5, 6),
+                           (7, 8, 9),
+                           (10, 11, 12)),
+                          ((1, 2, 3),
+                           (4, 5, 6),
+                           (7, 8, 9),
+                           (10, 11, 12)));
 
       function To_Array (First : in Integer) return Array_Type_1
       is begin
@@ -236,23 +266,23 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 1"))
       --EMACSRESULT: t
       while A.all
         or else B.all
-        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "end loop"))
+        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "; -- target 2"))
         --EMACSRESULT: t
-      loop
+      loop -- target 1
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
-      end loop;
+      end loop; -- target 2
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 3"))
       --EMACSRESULT: t
       while A.all
         or else (B.all
                    and then C
                    and then D)
-      loop
+      loop -- target 3
          null;
       end loop;
 
@@ -404,7 +434,7 @@ package body Ada_Mode.Parens is
       There    : constant String := " there";
       Out_File : Ada.Text_IO.File_Type;
    begin
-      Ada.Text_IO.Put_Line ("Hello" & ' ' & -- test ada-indent-next keyword with string, character literal
+      Ada.Text_IO.Put_Line ("Hello" & ' ' &
                               "World");
 
       Ada.Text_IO.Put_Line (Out_File,
@@ -435,7 +465,7 @@ package body Ada_Mode.Parens is
    procedure Weird_List_Break is
    begin
       Slice_1 (1
-                 ,    --  used to get an error here; don't care about the actual indentation
+               ,    --  used to get an error here; don't care about the actual indentation
                "string");
    end;
 

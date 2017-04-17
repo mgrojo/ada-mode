@@ -43,8 +43,7 @@
   ;; included in package specs that exist solely to define OpenToken
   ;; grammar fragments.
   (save-excursion
-    (let ((token-text (wisi-token-text (wisi-backward-token)))
-	  cache)
+    (let ((token-text (wisi-token-text (wisi-backward-token))))
       (cond
        ((equal token-text "<=")
 	(+ (current-indentation) ada-indent-broken))
@@ -55,14 +54,13 @@
 
        ((equal token-text "and")
 	;; test/ada_mode-opentoken.ads
-	;; Tokens.Statement <= Add_Statement and
-	;; Add_Statement <=
-	;;   ... and
-	;; Add_Statement <=
+	;; Grammar : constant Production_List.Instance :=
+	;;   Tokens.Statement <= Add_Statement and
+	;;   Add_Statement <=
+	;;     ... and
+	;;   Add_Statement <=
 	;;
-	(setq cache (wisi-goto-containing (wisi-backward-cache))) ;; Tokens.Statement
-	(wisi-goto-containing cache);; :=
-
+	(wisi-goto-statement-start) ;; Grammar : constant
 	(+ (current-indentation) ada-indent-broken))
        ))))
 

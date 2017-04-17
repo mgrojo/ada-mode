@@ -5,19 +5,17 @@ package Access_In_Record is
 
    --  Indenting (A'Access) gives "wisi-indent-line: Wrong type argument: number-or-marker-p, nil"
    type A
-     is new Ada.Streams.Root_Stream_Type with record
-        Finalizer : A_Finalizer
-          (A'Access);
-        Length    : Natural := 0;
-     end record;
+      is new Ada.Streams.Root_Stream_Type with record
+         Finalizer : A_Finalizer
+           (A'Access);
+         Length    : Natural := 0;
+      end record;
 
-   --  indent "is new" => align "is new ..." with ":"
    type Wrong_Layout_With_Private (R : access Integer)
      is new A with private;
 
 private
 
-   --  No problem here.
    type Wrong_Layout_With_Private (R : access Integer)
      is new A with null record;
 
