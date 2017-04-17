@@ -77,7 +77,14 @@
   (interactive "Mgrammar filename: ")
   (let ((parse-table (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
 	(wisi-test-success nil)
-	(expected-result t))
+	(expected-result t)
+	(wisi--cache-max
+	 (list
+	  (cons 'face (copy-marker (point-min)))
+	  (cons 'navigate (copy-marker (point-min)))
+	  (cons 'indent (copy-marker (point-min)))))
+	(wisi--parse-action 'navigate)) ;; for wisi-statement-action
+
     ;; use Ada style comments in source
     (set-syntax-table test-syntax-table)
     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
@@ -85,7 +92,7 @@
 
     (wisi-setup
      nil ;; indent-calculate
-     nil ;; post-parse-fail
+     nil ;; post-indent-fail
      test-class-list
      (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
      (symbol-value (intern-soft (concat filename "-wy--token-table")))
@@ -97,19 +104,14 @@
       (setq expected-result (eval (buffer-substring-no-properties (point) (line-end-position)))))
 
     (goto-char (point-min))
-    (if debug-on-error
-	;; let 'debug-on-error' work
+    (condition-case-unless-debug err
 	(wisi-parse parse-table 'wisi-forward-token)
-
-      ;; not debug
-      (condition-case err
-	  (wisi-parse parse-table 'wisi-forward-token)
-        ;; parse action must set wisi-test-success t
-	(error
-	 (setq wisi-test-success
-	       (equal (cadr err) expected-result))
-	 (unless wisi-test-success
-	   (message (cadr err))))))
+      ;; parse action must set wisi-test-success t
+      (error
+       (setq wisi-test-success
+	     (equal (cadr err) expected-result))
+       (unless wisi-test-success
+	 (message (cadr err)))))
     (unless wisi-test-success
       (error "parse test failed")))
 

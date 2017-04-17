@@ -508,11 +508,12 @@ Also return cache at start."
 
 (defun ada-wisi-goto-declarative-region-start ()
   "For `ada-goto-declarative-region-start', which see."
-  (wisi-validate-cache (point) t 'navigate)
+  (wisi-validate-cache (point-max) t 'navigate)
 
   (let ((done nil)
 	(first t)
-	(start-pos (point))
+	start-pos
+	(in-package-spec nil)
 	(cache
 	 (or
 	  (wisi-get-cache (point))
@@ -523,8 +524,14 @@ Also return cache at start."
 	  ;;     <point>
 	  ;;     function ... is ... end;
 	  (wisi-forward-cache))))
+
+    ;; If this is called with point in a comment after 'is', then the
+    ;; declarative region starts after the comment; don't hang in a
+    ;; package spec.
+    (setq start-pos (point))
     (while (not done)
-      (if (and (< (point) start-pos)
+      (if (and (or (not in-package-spec)
+		   (< (point) start-pos))
 	       (ada-wisi-declarative-region-start-p cache))
 	  (progn
 	    (wisi-forward-token)
@@ -543,6 +550,7 @@ Also return cache at start."
 
 	     (cl-case (wisi-cache-nonterm cache)
 	       (package_declaration
+		(setq in-package-spec t)
 		(wisi-goto-end-1 cache)
 		(setq cache (wisi-get-cache (point)))
 		(while (not (memq (wisi-cache-token cache) '(IS PRIVATE)))

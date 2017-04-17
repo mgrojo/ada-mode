@@ -324,8 +324,8 @@ string_primary
 ;; (info "(gnat_ugn)Expressions")
 ;; we merge that string_list into term, and use 'string_list' for 'string_expression {, string_expression}'
 string_list
-  : string_primary
-  | string_list COMMA string_primary
+  : expression
+  | string_list COMMA expression
   ;
 
 ;; see string_list for info reference

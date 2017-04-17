@@ -98,10 +98,6 @@ wisi-indent-region:
 
 test/debug.adb
 
-test skeleton insert
-
-run all other tests
-
 add gpr motion
 
 rename ada/gpr-wisi-class-list wisi-class-list
