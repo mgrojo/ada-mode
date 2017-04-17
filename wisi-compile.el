@@ -1,6 +1,6 @@
 ;; wisi-compile.el --- Grammar compiler for the wisi parser, integrating Wisi OpenToken output.  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012, 2013, 2015 - 2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2013, 2015-2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -128,7 +128,8 @@ It returns nil; it is called for the semantic side-effects only."
     (fset action-symbol
 	  `(lambda (wisi-nterm wisi-tokens)
 	     ,form
-	     nil))))
+	     nil))
+    (byte-compile action-symbol)))
 
 (defun wisi-compile-grammar (grammar)
   "Compile the LALR(1) GRAMMAR; return the automaton for wisi-parse.
