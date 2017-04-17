@@ -587,24 +587,20 @@ wisi-forward-token, but does not look up symbol."
 	  nil)
 
 	 ((and
-	   (nth 3 begin-state); in string
-	   (nth 3 end-state))
-	  ;; no easy way to tell if there is intervening non-string
-          ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
+	   (nth 3 begin-state);; in string
+	   (nth 3 end-state)
+	   (= (nth 8 begin-state) (nth 8 end-state)));; no intervening non-string
 	  (setq invalidate-face nil
 		invalidate-navigate nil
 		invalidate-indent nil))
 
 	 ((and
-	   (nth 4 begin-state)
-	   (nth 4 end-state)); in comment
-	  ;; no easy way to detect intervening non-comment
-          ;; FIXME: (= (nth 8 begin-state) (nth 8 end-state))
+	   (nth 4 begin-state) ; in comment
+	   (nth 4 end-state)
+	   (= (nth 8 begin-state) (nth 8 end-state))) ;; no intervening non-comment
 	  (setq invalidate-face nil
 		invalidate-navigate nil
-		invalidate-indent nil)
-	  ;; no caches to remove
-	  )
+		invalidate-indent nil))
 
 	 ;; Adding whitespace affects indentation, but generally does
 	 ;; not require parse for syntax (face and navigation), but in
