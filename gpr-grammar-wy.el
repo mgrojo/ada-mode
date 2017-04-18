@@ -213,8 +213,8 @@
        ((external_value ))
        ((attribute_reference )))
       (string_list
-       ((string_primary ))
-       ((string_list COMMA string_primary )
+       ((expression ))
+       ((string_list COMMA expression )
         (progn
         (wisi-statement-action [2 list-break])
         (wisi-containing-action 2 3))))
@@ -231,12 +231,12 @@
        ((WITH string_list SEMICOLON ))))
      [((default . error) (ABSTRACT . (context_clause_opt . 0)) (AGGREGATE . (context_clause_opt . 0)) (CONFIGURATION . (context_clause_opt . 0)) (LIBRARY . (context_clause_opt . 0)) (STANDARD . (context_clause_opt . 0)) (PROJECT . (context_clause_opt . 0)) ($EOI . (context_clause_opt . 0)) (WITH .  7))
       ((default . error) ($EOI . (project_qualifier_opt . 1)) (PROJECT . (project_qualifier_opt . 1)))
-      ((default . error) (LIBRARY .  30) ($EOI . (project_qualifier_opt . 3)) (PROJECT . (project_qualifier_opt . 3)))
+      ((default . error) (LIBRARY .  34) ($EOI . (project_qualifier_opt . 3)) (PROJECT . (project_qualifier_opt . 3)))
       ((default . error) ($EOI . (project_qualifier_opt . 6)) (PROJECT . (project_qualifier_opt . 6)))
       ((default . error) ($EOI . (project_qualifier_opt . 5)) (PROJECT . (project_qualifier_opt . 5)))
-      ((default . error) (EXTENDS . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  20))
+      ((default . error) (EXTENDS . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  21))
       ((default . error) ($EOI . (project_qualifier_opt . 2)) (PROJECT . (project_qualifier_opt . 2)))
-      ((default . error) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) ($EOI .  16))
       ((default . error) (ABSTRACT . (context_clause_opt . 1)) (AGGREGATE . (context_clause_opt . 1)) (CONFIGURATION . (context_clause_opt . 1)) (LIBRARY . (context_clause_opt . 1)) (STANDARD . (context_clause_opt . 1)) (PROJECT . (context_clause_opt . 1)) ($EOI . (context_clause_opt . 1)) (WITH .  7))
       ((default . error) (PROJECT . (project_qualifier_opt . 0)) ($EOI . (project_qualifier_opt . 0)) (ABSTRACT .  1) (STANDARD .  6) (AGGREGATE .  2) (LIBRARY .  4) (CONFIGURATION .  3))
@@ -246,100 +246,101 @@
       ((default . error) ($EOI . (project_declaration_opt . 0)) (PROJECT .  5))
       ((default . error) (WITH . (context_clause . 1)) (ABSTRACT . (context_clause . 1)) (AGGREGATE . (context_clause . 1)) (CONFIGURATION . (context_clause . 1)) (LIBRARY . (context_clause . 1)) (STANDARD . (context_clause . 1)) (PROJECT . (context_clause . 1)) ($EOI . (context_clause . 1)))
       ((default . error) ($EOI . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (VERTICAL_BAR . accept) (SEMICOLON . accept) (QUOTE . accept) (EQUAL_GREATER . accept) (DOT . accept) (COMMA . accept) (COLON_EQUALS . accept) (COLON . accept) (AMPERSAND . accept) (WITH . accept) (WHEN . accept) (USE . accept) (TYPE . accept) (STANDARD . accept) (RIGHT_PAREN . accept) (RENAMES . accept) (PROJECT . accept) (PACKAGE . accept) (OTHERS . accept) (NULL . accept) (LIBRARY . accept) (LEFT_PAREN . accept) (IS . accept) (FOR . accept) (EXTERNAL_AS_LIST . accept) (EXTERNAL . accept) (EXTENDS . accept) (END . accept) (CONFIGURATION . accept) (CASE . accept) (AGGREGATE . accept) (ABSTRACT . accept))
-      ((default . error) (LEFT_PAREN .  37))
-      ((default . error) (LEFT_PAREN .  37))
+      ((default . error) (LEFT_PAREN .  44))
+      ((default . error) (LEFT_PAREN .  44))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . ( 42 (identifier_opt . 0))) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (QUOTE . (attribute_prefix . 0)))
-      ((default . error) (EXTENDS . (identifier_opt . 1)) (RENAMES . (identifier_opt . 1)) (IS . (identifier_opt . 1)) (COMMA . (identifier_opt . 1)) (RIGHT_PAREN . (identifier_opt . 1)) (DOT . (identifier_opt . 1)) (AMPERSAND . (identifier_opt . 1)) (QUOTE . (identifier_opt . 1)) (SEMICOLON . (identifier_opt . 1)))
+      ((default . error) (COMMA . (identifier_opt . 1)) (RIGHT_PAREN . (identifier_opt . 1)) (EXTENDS . (identifier_opt . 1)) (RENAMES . (identifier_opt . 1)) (IS . (identifier_opt . 1)) (DOT . (identifier_opt . 1)) (AMPERSAND . (identifier_opt . 1)) (QUOTE . (identifier_opt . 1)) (SEMICOLON . (identifier_opt . 1)))
       ((default . error) (COMMA . (string_primary . 0)) (RIGHT_PAREN . (string_primary . 0)) (SEMICOLON . (string_primary . 0)) (AMPERSAND . (string_primary . 0)))
-      ((default . error) (QUOTE .  36))
+      ((default . error) (RIGHT_PAREN . (term . 2)) (COMMA . (term . 2)) (AMPERSAND . (term . 2)) (SEMICOLON . (term . 2)))
+      ((default . error) (QUOTE .  41))
       ((default . error) (COMMA . (string_primary . 3)) (RIGHT_PAREN . (string_primary . 3)) (SEMICOLON . (string_primary . 3)) (AMPERSAND . (string_primary . 3)))
+      ((default . error) (SEMICOLON . (string_list . 0)) (RIGHT_PAREN . (string_list . 0)) (COMMA . (string_list . 0)) (AMPERSAND .  40))
       ((default . error) (COMMA . (string_primary . 2)) (RIGHT_PAREN . (string_primary . 2)) (SEMICOLON . (string_primary . 2)) (AMPERSAND . (string_primary . 2)))
-      ((default . error) (IS . (name . 0)) (RIGHT_PAREN . (name . 0)) (COMMA . (name . 0)) (AMPERSAND . (name . 0)) (SEMICOLON . (name . 0)) (DOT . (name . 0)) (QUOTE . (name . 0)))
-      ((default . error) (COMMA . (string_primary . 1)) (RIGHT_PAREN . (string_primary . 1)) (SEMICOLON . (string_primary . 1)) (AMPERSAND . (string_primary . 1)) (DOT .  35) (QUOTE . (attribute_prefix . 1)))
-      ((default . error) (SEMICOLON . (string_list . 0)) (RIGHT_PAREN . (string_list . 0)) (COMMA . (string_list . 0)))
-      ((default . error) (COMMA .  33) (SEMICOLON .  34))
-      ((default . error) (EXTENDS .  31) (IS .  32))
+      ((default . error) (RIGHT_PAREN . (name . 0)) (COMMA . (name . 0)) (IS . (name . 0)) (AMPERSAND . (name . 0)) (SEMICOLON . (name . 0)) (DOT . (name . 0)) (QUOTE . (name . 0)))
+      ((default . error) (COMMA . (string_primary . 1)) (RIGHT_PAREN . (string_primary . 1)) (SEMICOLON . (string_primary . 1)) (AMPERSAND . (string_primary . 1)) (DOT .  39) (QUOTE . (attribute_prefix . 1)))
+      ((default . error) (RIGHT_PAREN . (term . 0)) (COMMA . (term . 0)) (AMPERSAND . (term . 0)) (SEMICOLON . (term . 0)))
+      ((default . error) (COMMA .  37) (SEMICOLON .  38))
+      ((default . error) (COMMA . (expression . 0)) (RIGHT_PAREN . (expression . 0)) (SEMICOLON . (expression . 0)) (AMPERSAND . (expression . 0)))
+      ((default . error) (EXTENDS .  35) (IS .  36))
       ((default . error) ($EOI . (project_qualifier_opt . 4)) (PROJECT . (project_qualifier_opt . 4)))
-      ((default . error) (STRING_LITERAL .  62))
-      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
+      ((default . error) (STRING_LITERAL .  70))
+      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (WITH . (with_clause . 0)) (ABSTRACT . (with_clause . 0)) (AGGREGATE . (with_clause . 0)) (CONFIGURATION . (with_clause . 0)) (LIBRARY . (with_clause . 0)) (STANDARD . (with_clause . 0)) (PROJECT . (with_clause . 0)) ($EOI . (with_clause . 0)))
-      ((default . error) (IDENTIFIER .  43))
-      ((default . error) (IDENTIFIER .  42))
-      ((default . error) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
+      ((default . error) (IDENTIFIER .  51))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (RIGHT_PAREN . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
+      ((default . error) (IDENTIFIER .  49))
+      ((default . error) (SEMICOLON . (term . 1)) (AMPERSAND . (term . 1)) (COMMA . (term . 1)) (RIGHT_PAREN . (term . 1)))
+      ((default . error) (COMMA .  37) (RIGHT_PAREN .  48))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (SEMICOLON . (external_value . 1)) (AMPERSAND . (external_value . 1)) (COMMA . (external_value . 1)) (RIGHT_PAREN . (external_value . 1)))
       ((default . error) (SEMICOLON . (external_value . 0)) (AMPERSAND . (external_value . 0)) (COMMA . (external_value . 0)) (RIGHT_PAREN . (external_value . 0)))
       ((default . error) ($EOI . (compilation_unit . 0)))
-      ((default . error) (COMMA .  33) (RIGHT_PAREN .  75))
-      ((default . error) (LEFT_PAREN .  74) (RIGHT_PAREN . (attribute_reference . 0)) (COMMA . (attribute_reference . 0)) (AMPERSAND . (attribute_reference . 0)) (SEMICOLON . (attribute_reference . 0)))
+      ((default . error) (COMMA . (aggregate . 0)) (RIGHT_PAREN . (aggregate . 0)) (SEMICOLON . (aggregate . 0)) (AMPERSAND . (aggregate . 0)))
+      ((default . error) (LEFT_PAREN .  82) (RIGHT_PAREN . (attribute_reference . 0)) (COMMA . (attribute_reference . 0)) (AMPERSAND . (attribute_reference . 0)) (SEMICOLON . (attribute_reference . 0)))
+      ((default . error) (SEMICOLON . (expression . 1)) (COMMA . (expression . 1)) (RIGHT_PAREN . (expression . 1)) (AMPERSAND . (expression . 1)))
       ((default . error) (IS . (name . 1)) (RIGHT_PAREN . (name . 1)) (COMMA . (name . 1)) (AMPERSAND . (name . 1)) (SEMICOLON . (name . 1)) (DOT . (name . 1)) (QUOTE . (name . 1)))
-      ((default . error) (RIGHT_PAREN . (string_list . 1)) (SEMICOLON . (string_list . 1)) (COMMA . (string_list . 1)))
-      ((default . error) (DOT . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  20))
-      ((default . error) (EXTERNAL .  71) (IDENTIFIER .  72))
-      ((default . error) (SEMICOLON .  70))
-      ((default . error) (IS . (identifier_opt . 0)) (EXTENDS . (identifier_opt . 0)) (RENAMES . (identifier_opt . 0)) (IDENTIFIER .  20))
-      ((default . error) (IDENTIFIER .  68))
-      ((default . error) (COLON .  66) (COLON_EQUALS .  67))
+      ((default . error) (AMPERSAND .  40) (RIGHT_PAREN . (string_list . 1)) (SEMICOLON . (string_list . 1)) (COMMA . (string_list . 1)))
+      ((default . error) (DOT . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  21))
+      ((default . error) (EXTERNAL .  79) (IDENTIFIER .  80))
+      ((default . error) (SEMICOLON .  78))
+      ((default . error) (IS . (identifier_opt . 0)) (EXTENDS . (identifier_opt . 0)) (RENAMES . (identifier_opt . 0)) (IDENTIFIER .  21))
+      ((default . error) (IDENTIFIER .  76))
+      ((default . error) (COLON .  74) (COLON_EQUALS .  75))
       ((default . error) (WHEN . (simple_declarative_item . 2)) (END . (simple_declarative_item . 2)) (CASE . (simple_declarative_item . 2)) (FOR . (simple_declarative_item . 2)) (NULL . (simple_declarative_item . 2)) (PACKAGE . (simple_declarative_item . 2)) (TYPE . (simple_declarative_item . 2)) (IDENTIFIER . (simple_declarative_item . 2)))
       ((default . error) (WHEN . (simple_declarative_item . 3)) (END . (simple_declarative_item . 3)) (CASE . (simple_declarative_item . 3)) (FOR . (simple_declarative_item . 3)) (NULL . (simple_declarative_item . 3)) (PACKAGE . (simple_declarative_item . 3)) (TYPE . (simple_declarative_item . 3)) (IDENTIFIER . (simple_declarative_item . 3)))
       ((default . error) (WHEN . (declarative_items . 0)) (END . (declarative_items . 0)) (CASE . (declarative_items . 0)) (FOR . (declarative_items . 0)) (NULL . (declarative_items . 0)) (PACKAGE . (declarative_items . 0)) (TYPE . (declarative_items . 0)) (IDENTIFIER . (declarative_items . 0)))
-      ((default . error) (WHEN . (declarative_items_opt . 1)) (END . (declarative_items_opt . 1)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (END .  64))
+      ((default . error) (WHEN . (declarative_items_opt . 1)) (END . (declarative_items_opt . 1)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (END .  72))
       ((default . error) (WHEN . (declarative_item . 2)) (END . (declarative_item . 2)) (IDENTIFIER . (declarative_item . 2)) (TYPE . (declarative_item . 2)) (PACKAGE . (declarative_item . 2)) (NULL . (declarative_item . 2)) (FOR . (declarative_item . 2)) (CASE . (declarative_item . 2)))
       ((default . error) (WHEN . (package_declaration . 0)) (END . (package_declaration . 0)) (CASE . (package_declaration . 0)) (FOR . (package_declaration . 0)) (NULL . (package_declaration . 0)) (PACKAGE . (package_declaration . 0)) (TYPE . (package_declaration . 0)) (IDENTIFIER . (package_declaration . 0)))
       ((default . error) (WHEN . (package_declaration . 1)) (END . (package_declaration . 1)) (CASE . (package_declaration . 1)) (FOR . (package_declaration . 1)) (NULL . (package_declaration . 1)) (PACKAGE . (package_declaration . 1)) (TYPE . (package_declaration . 1)) (IDENTIFIER . (package_declaration . 1)))
       ((default . error) (WHEN . (package_declaration . 2)) (END . (package_declaration . 2)) (CASE . (package_declaration . 2)) (FOR . (package_declaration . 2)) (NULL . (package_declaration . 2)) (PACKAGE . (package_declaration . 2)) (TYPE . (package_declaration . 2)) (IDENTIFIER . (package_declaration . 2)))
       ((default . error) (WHEN . (declarative_item . 0)) (END . (declarative_item . 0)) (IDENTIFIER . (declarative_item . 0)) (TYPE . (declarative_item . 0)) (PACKAGE . (declarative_item . 0)) (NULL . (declarative_item . 0)) (FOR . (declarative_item . 0)) (CASE . (declarative_item . 0)))
       ((default . error) (WHEN . (declarative_item . 1)) (END . (declarative_item . 1)) (IDENTIFIER . (declarative_item . 1)) (TYPE . (declarative_item . 1)) (PACKAGE . (declarative_item . 1)) (NULL . (declarative_item . 1)) (FOR . (declarative_item . 1)) (CASE . (declarative_item . 1)))
-      ((default . error) (IS .  63))
-      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  20))
+      ((default . error) (IS .  71))
+      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  21))
       ((default . error) (WHEN . (declarative_items . 1)) (IDENTIFIER . (declarative_items . 1)) (TYPE . (declarative_items . 1)) (PACKAGE . (declarative_items . 1)) (NULL . (declarative_items . 1)) (FOR . (declarative_items . 1)) (CASE . (declarative_items . 1)) (END . (declarative_items . 1)))
-      ((default . error) (IDENTIFIER .  90))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (IS .  84))
-      ((default . error) (IS .  82) (EXTENDS .  81) (RENAMES .  83))
+      ((default . error) (IDENTIFIER .  93))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
+      ((default . error) (IS .  91))
+      ((default . error) (IS .  89) (EXTENDS .  88) (RENAMES .  90))
       ((default . error) (WHEN . (simple_declarative_item . 4)) (IDENTIFIER . (simple_declarative_item . 4)) (TYPE . (simple_declarative_item . 4)) (PACKAGE . (simple_declarative_item . 4)) (NULL . (simple_declarative_item . 4)) (FOR . (simple_declarative_item . 4)) (CASE . (simple_declarative_item . 4)) (END . (simple_declarative_item . 4)))
-      ((default . error) (LEFT_PAREN .  80))
-      ((default . error) (USE .  79) (LEFT_PAREN .  78))
-      ((default . error) (DOT .  35) (IS .  77))
-      ((default . error) (STRING_LITERAL .  76))
-      ((default . error) (AMPERSAND . (aggregate . 0)) (COMMA . (aggregate . 0)) (RIGHT_PAREN . (aggregate . 0)) (SEMICOLON . (aggregate . 0)))
-      ((default . error) (RIGHT_PAREN .  111))
-      ((default . error) (END . (case_items . 0)) (WHEN . ( 108 (case_items . 0))))
-      ((default . error) (RIGHT_PAREN . (discrete_choice . 0)) (STRING_LITERAL .  106) (OTHERS .  105))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (STRING_LITERAL .  103))
-      ((default . error) (DOT . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  20))
-      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  20))
-      ((default . error) (LEFT_PAREN .  37))
-      ((default . error) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (COMMA . (identifier_opt . 0)) (RIGHT_PAREN . ( 98 (identifier_opt . 0))) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (AMPERSAND . (term . 2)) (SEMICOLON . (term . 2)))
-      ((default . error) (AMPERSAND .  96) (SEMICOLON .  97))
-      ((default . error) (AMPERSAND . (term . 0)) (SEMICOLON . (term . 0)))
-      ((default . error) (SEMICOLON . (expression . 0)) (AMPERSAND . (expression . 0)))
-      ((default . error) (COLON_EQUALS .  95))
-      ((default . error) (SEMICOLON .  94))
-      ((default . error) (END .  93))
-      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  20))
+      ((default . error) (LEFT_PAREN .  87))
+      ((default . error) (USE .  86) (LEFT_PAREN .  85))
+      ((default . error) (DOT .  39) (IS .  84))
+      ((default . error) (STRING_LITERAL .  83))
+      ((default . error) (RIGHT_PAREN .  112))
+      ((default . error) (END . (case_items . 0)) (WHEN . ( 109 (case_items . 0))))
+      ((default . error) (RIGHT_PAREN . (discrete_choice . 0)) (STRING_LITERAL .  107) (OTHERS .  106))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
+      ((default . error) (STRING_LITERAL .  104))
+      ((default . error) (DOT . (identifier_opt . 0)) (IS . (identifier_opt . 0)) (IDENTIFIER .  21))
+      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  21))
+      ((default . error) (LEFT_PAREN .  44))
+      ((default . error) (AMPERSAND .  40) (SEMICOLON .  99))
+      ((default . error) (COLON_EQUALS .  98))
+      ((default . error) (SEMICOLON .  97))
+      ((default . error) (END .  96))
+      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  21))
       ((default . error) ($EOI . (simple_project_declaration . 0)))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
       ((default . error) (WHEN . (simple_declarative_item . 0)) (IDENTIFIER . (simple_declarative_item . 0)) (TYPE . (simple_declarative_item . 0)) (PACKAGE . (simple_declarative_item . 0)) (NULL . (simple_declarative_item . 0)) (FOR . (simple_declarative_item . 0)) (CASE . (simple_declarative_item . 0)) (END . (simple_declarative_item . 0)))
-      ((default . error) (SEMICOLON . (term . 1)) (AMPERSAND . (term . 1)))
-      ((default . error) (SEMICOLON .  122))
-      ((default . error) (DOT .  35) (SEMICOLON .  121))
-      ((default . error) (END .  120))
-      ((default . error) (DOT .  35) (IS .  119))
-      ((default . error) (RIGHT_PAREN .  118))
-      ((default . error) (AMPERSAND .  96) (SEMICOLON .  117))
+      ((default . error) (SEMICOLON .  123))
+      ((default . error) (DOT .  39) (SEMICOLON .  122))
+      ((default . error) (END .  121))
+      ((default . error) (DOT .  39) (IS .  120))
+      ((default . error) (RIGHT_PAREN .  119))
+      ((default . error) (AMPERSAND .  40) (SEMICOLON .  118))
       ((default . error) (RIGHT_PAREN . (discrete_choice . 2)) (VERTICAL_BAR . (discrete_choice . 2)) (EQUAL_GREATER . (discrete_choice . 2)))
       ((default . error) (RIGHT_PAREN . (discrete_choice . 1)) (VERTICAL_BAR . (discrete_choice . 1)) (EQUAL_GREATER . (discrete_choice . 1)))
-      ((default . error) (RIGHT_PAREN .  116))
-      ((default . error) (VERTICAL_BAR . (discrete_choice . 0)) (EQUAL_GREATER . (discrete_choice . 0)) (STRING_LITERAL .  106) (OTHERS .  105))
+      ((default . error) (RIGHT_PAREN .  117))
+      ((default . error) (VERTICAL_BAR . (discrete_choice . 0)) (EQUAL_GREATER . (discrete_choice . 0)) (STRING_LITERAL .  107) (OTHERS .  106))
       ((default . error) (END . (case_items . 1)) (WHEN . (case_items . 1)))
-      ((default . error) (END .  112) (WHEN .  108))
+      ((default . error) (END .  113) (WHEN .  109))
       ((default . error) (SEMICOLON . (attribute_reference . 1)) (AMPERSAND . (attribute_reference . 1)) (COMMA . (attribute_reference . 1)) (RIGHT_PAREN . (attribute_reference . 1)))
       ((default . error) (CASE .  134))
       ((default . error) (WHEN . (case_items . 2)) (END . (case_items . 2)))
@@ -348,28 +349,27 @@
       ((default . error) (USE .  131))
       ((default . error) (WHEN . (attribute_declaration . 0)) (END . (attribute_declaration . 0)) (IDENTIFIER . (attribute_declaration . 0)) (TYPE . (attribute_declaration . 0)) (PACKAGE . (attribute_declaration . 0)) (NULL . (attribute_declaration . 0)) (FOR . (attribute_declaration . 0)) (CASE . (attribute_declaration . 0)))
       ((default . error) (USE .  130))
-      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  20))
+      ((default . error) (END . (declarative_items_opt . 0)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  21))
       ((default . error) (WHEN . (package_renaming . 0)) (END . (package_renaming . 0)) (IDENTIFIER . (package_renaming . 0)) (TYPE . (package_renaming . 0)) (PACKAGE . (package_renaming . 0)) (NULL . (package_renaming . 0)) (FOR . (package_renaming . 0)) (CASE . (package_renaming . 0)))
       ((default . error) (WHEN . (typed_string_declaration . 0)) (END . (typed_string_declaration . 0)) (CASE . (typed_string_declaration . 0)) (FOR . (typed_string_declaration . 0)) (NULL . (typed_string_declaration . 0)) (PACKAGE . (typed_string_declaration . 0)) (TYPE . (typed_string_declaration . 0)) (IDENTIFIER . (typed_string_declaration . 0)))
-      ((default . error) (SEMICOLON . (expression . 1)) (AMPERSAND . (expression . 1)))
-      ((default . error) (AMPERSAND .  96) (SEMICOLON .  127))
+      ((default . error) (AMPERSAND .  40) (SEMICOLON .  127))
       ((default . error) (SEMICOLON .  126))
       ((default . error) ($EOI . (project_extension . 0)))
       ((default . error) (WHEN . (simple_declarative_item . 1)) (IDENTIFIER . (simple_declarative_item . 1)) (TYPE . (simple_declarative_item . 1)) (PACKAGE . (simple_declarative_item . 1)) (NULL . (simple_declarative_item . 1)) (FOR . (simple_declarative_item . 1)) (CASE . (simple_declarative_item . 1)) (END . (simple_declarative_item . 1)))
       ((default . error) (SEMICOLON .  141))
       ((default . error) (END .  140))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (LEFT_PAREN .  85) (STRING_LITERAL .  21) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  20) (PROJECT .  19))
-      ((default . error) (END . (declarative_items_opt . 0)) (WHEN . (declarative_items_opt . 0)) (TYPE .  49) (IDENTIFIER .  50) (NULL .  47) (CASE .  45) (FOR .  46) (PACKAGE .  48))
-      ((default . error) (EQUAL_GREATER . (discrete_choice . 0)) (VERTICAL_BAR . (discrete_choice . 0)) (STRING_LITERAL .  106) (OTHERS .  105))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
+      ((default . error) (LEFT_PAREN .  19) (STRING_LITERAL .  22) (EXTERNAL .  17) (EXTERNAL_AS_LIST .  18) (DOT . (identifier_opt . 0)) (SEMICOLON . (identifier_opt . 0)) (AMPERSAND . (identifier_opt . 0)) (QUOTE . (identifier_opt . 0)) (IDENTIFIER .  21) (PROJECT .  20))
+      ((default . error) (END . (declarative_items_opt . 0)) (WHEN . (declarative_items_opt . 0)) (TYPE .  57) (IDENTIFIER .  58) (NULL .  55) (CASE .  53) (FOR .  54) (PACKAGE .  56))
+      ((default . error) (EQUAL_GREATER . (discrete_choice . 0)) (VERTICAL_BAR . (discrete_choice . 0)) (STRING_LITERAL .  107) (OTHERS .  106))
       ((default . error) (SEMICOLON .  135))
       ((default . error) (WHEN . (case_statement . 0)) (END . (case_statement . 0)) (IDENTIFIER . (case_statement . 0)) (TYPE . (case_statement . 0)) (PACKAGE . (case_statement . 0)) (NULL . (case_statement . 0)) (FOR . (case_statement . 0)) (CASE . (case_statement . 0)))
       ((default . error) (EQUAL_GREATER . (discrete_choice_list . 1)) (VERTICAL_BAR . (discrete_choice_list . 1)))
       ((default . error) (END . (case_item . 0)) (WHEN . (case_item . 0)))
-      ((default . error) (AMPERSAND .  96) (SEMICOLON .  144))
-      ((default . error) (AMPERSAND .  96) (SEMICOLON .  143))
-      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  20))
+      ((default . error) (AMPERSAND .  40) (SEMICOLON .  144))
+      ((default . error) (AMPERSAND .  40) (SEMICOLON .  143))
+      ((default . error) (SEMICOLON . (identifier_opt . 0)) (IDENTIFIER .  21))
       ((default . error) (WHEN . (package_spec . 0)) (END . (package_spec . 0)) (IDENTIFIER . (package_spec . 0)) (TYPE . (package_spec . 0)) (PACKAGE . (package_spec . 0)) (NULL . (package_spec . 0)) (FOR . (package_spec . 0)) (CASE . (package_spec . 0)))
       ((default . error) (SEMICOLON .  145))
       ((default . error) (WHEN . (attribute_declaration . 2)) (CASE . (attribute_declaration . 2)) (FOR . (attribute_declaration . 2)) (NULL . (attribute_declaration . 2)) (PACKAGE . (attribute_declaration . 2)) (TYPE . (attribute_declaration . 2)) (IDENTIFIER . (attribute_declaration . 2)) (END . (attribute_declaration . 2)))
@@ -380,24 +380,21 @@
       nil
       nil
       nil
-      ((identifier_opt . 29))
+      ((identifier_opt . 33))
       nil
-      ((attribute_prefix . 22)(attribute_reference . 23)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 27)(string_list . 28))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 26)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(string_list . 31)(term . 32))
       nil
       ((with_clause . 15))
       ((project_qualifier_opt . 14))
       nil
       nil
       nil
-      ((project_declaration_opt . 40)(project_extension . 11)(simple_project_declaration . 12))
+      ((project_declaration_opt . 47)(project_extension . 11)(simple_project_declaration . 12))
       nil
       nil
-      ((aggregate . 39))
-      ((aggregate . 38))
-      nil
-      nil
-      nil
-      nil
+      ((aggregate . 46))
+      ((aggregate . 45))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 26)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(string_list . 43)(term . 32))
       nil
       nil
       nil
@@ -407,12 +404,6 @@
       nil
       nil
       nil
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 53)(declarative_items . 54)(declarative_items_opt . 55)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
-      ((attribute_prefix . 22)(attribute_reference . 23)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 44))
-      nil
-      nil
-      nil
-      ((attribute_prefix . 22)(attribute_reference . 23)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 27)(string_list . 41))
       nil
       nil
       nil
@@ -420,16 +411,15 @@
       nil
       nil
       nil
-      ((identifier_opt . 25)(name . 73))
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 61)(declarative_items . 62)(declarative_items_opt . 63)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 52)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
       nil
       nil
-      ((identifier_opt . 69))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 50))
       nil
       nil
       nil
-      nil
-      nil
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 65)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 26)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(string_list . 43)(term . 32))
       nil
       nil
       nil
@@ -438,40 +428,52 @@
       nil
       nil
       nil
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 53)(declarative_items . 54)(declarative_items_opt . 92)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
-      ((identifier_opt . 91))
+      ((identifier_opt . 28)(name . 81))
       nil
       nil
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(expression . 87)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 89))
-      nil
-      nil
+      ((identifier_opt . 77))
       nil
       nil
       nil
       nil
       nil
-      nil
-      nil
-      ((case_item . 109)(case_items . 110))
-      ((discrete_choice . 107))
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(expression . 104)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 89))
-      nil
-      ((identifier_opt . 25)(name . 102))
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 53)(declarative_items . 54)(declarative_items_opt . 101)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
-      ((identifier_opt . 25)(name . 100))
-      ((aggregate . 99))
-      ((attribute_prefix . 22)(attribute_reference . 23)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 27)(string_list . 41))
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 73)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
       nil
       nil
       nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 61)(declarative_items . 62)(declarative_items_opt . 95)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
+      ((identifier_opt . 94))
+      nil
+      nil
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 92)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      ((case_item . 110)(case_items . 111))
+      ((discrete_choice . 108))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 105)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
+      nil
+      ((identifier_opt . 28)(name . 103))
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 61)(declarative_items . 62)(declarative_items_opt . 102)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
+      ((identifier_opt . 28)(name . 101))
+      ((aggregate . 100))
       nil
       nil
       nil
       nil
       ((identifier_opt . 125))
       nil
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(expression . 124)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 89))
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 123))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 124)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
       nil
       nil
       nil
@@ -482,11 +484,9 @@
       nil
       nil
       nil
+      ((discrete_choice . 115)(discrete_choice_list . 116))
       nil
-      ((discrete_choice . 114)(discrete_choice_list . 115))
-      nil
-      ((case_item . 113))
-      nil
+      ((case_item . 114))
       nil
       nil
       nil
@@ -494,7 +494,8 @@
       nil
       nil
       nil
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 53)(declarative_items . 54)(declarative_items_opt . 129)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
+      nil
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 61)(declarative_items . 62)(declarative_items_opt . 129)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
       ((identifier_opt . 128))
       nil
       nil
@@ -504,10 +505,9 @@
       nil
       nil
       nil
-      nil
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(expression . 139)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 89))
-      ((aggregate . 86)(attribute_prefix . 22)(attribute_reference . 23)(expression . 138)(external_value . 24)(identifier_opt . 25)(name . 26)(string_primary . 88)(term . 89))
-      ((attribute_declaration . 51)(case_statement . 52)(declarative_item . 53)(declarative_items . 54)(declarative_items_opt . 137)(package_declaration . 56)(package_spec . 57)(package_extension . 58)(package_renaming . 59)(simple_declarative_item . 60)(typed_string_declaration . 61))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 139)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
+      ((aggregate . 23)(attribute_prefix . 24)(attribute_reference . 25)(expression . 138)(external_value . 27)(identifier_opt . 28)(name . 29)(string_primary . 30)(term . 32))
+      ((attribute_declaration . 59)(case_statement . 60)(declarative_item . 61)(declarative_items . 62)(declarative_items_opt . 137)(package_declaration . 64)(package_spec . 65)(package_extension . 66)(package_renaming . 67)(simple_declarative_item . 68)(typed_string_declaration . 69))
       ((discrete_choice . 136))
       nil
       nil
