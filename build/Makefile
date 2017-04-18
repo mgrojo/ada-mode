@@ -1,6 +1,6 @@
 # common tasks; see subdirectories for Ada builds
 
-ZIP_VERSION := 6.0a
+ZIP_VERSION := 6.0b
 #w-$(shell date +%Y-%m-%d)
 
 .PHONY : zip force

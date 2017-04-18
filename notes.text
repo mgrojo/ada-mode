@@ -1,4 +1,5 @@
 Misc notes on current work
+build/release_process.text
 
 build/release/Makefile
 build/debug/Makefile

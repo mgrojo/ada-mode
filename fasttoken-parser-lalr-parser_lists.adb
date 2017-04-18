@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014-2015, 2017  All Rights Reserved.
+--  Copyright (C) 2014-2016  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

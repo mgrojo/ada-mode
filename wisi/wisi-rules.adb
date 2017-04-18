@@ -2,7 +2,7 @@
 --
 --  Parse the production rules from Input_File, add to List.
 --
---  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -52,6 +52,7 @@ is
       First     : Integer   := 0;
       Last_Char : Character := Line (Line'First);
    begin
+      --  Verify that integers in Line are valid token numbers
       for I in Line'Range loop
          case Line (I) is
          when '0' .. '9' =>
@@ -59,11 +60,11 @@ is
                First := I;
             end if;
 
-         when ' ' =>
+         when ' ' | ']' | ')' =>
             if First > 0 then
-               Number := Integer'Value (Line (First .. I));
+               Number := Integer'Value (Line (First .. I - 1));
                if Number > Token_Count then
-                  raise Syntax_Error with "token number " & Line (First .. I) &
+                  raise Syntax_Error with "token number " & Line (First .. I - 1) &
                     " out of range 1 .." & Integer'Image (Token_Count);
                end if;
                First := 0;

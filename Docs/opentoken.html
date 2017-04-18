@@ -11,12 +11,12 @@
 <h1> OpenToken</h1>
 <p><a href="#History">History</a></p>
 
-<h1> current version: 6.0a</h1>
+<h1> current version: 6.0b</h1>
 
 <p>OpenToken may be obtained in several ways:
 <ul>
-  <li><a href="opentoken-6.0a.tar.bz2">source Gnu tar bzip2 opentoken-6.0a.tar.bz2</a>
-  <li><a href="opentoken-6.0a.zip">source zip opentoken-6.0a.zip</a>
+  <li><a href="opentoken-6.0b.tar.bz2">source Gnu tar bzip2 opentoken-6.0b.tar.bz2</a>
+  <li><a href="opentoken-6.0b.zip">source zip opentoken-6.0b.zip</a>
   <li>Debian binary package "libopentoken", source package "opentoken"
   <li><a href="http://www.stephe-leake.org/ada-france-access.html">monotone server www.ada-france.org</a>, branch org.opentoken. Maintained by <a href="mailto:ludovic@ludovic-brenta.org">Ludovic Brenta</a>
 </ul>
@@ -86,9 +86,9 @@ the longest input lexeme wins. This is not as efficient as the
 generated code lexer. But it is easier to use, because the recognizers
 are already written, well documented, and can be independently tested.
 
-  The generated code lexer is provided by support for Aflex generated
-  lexers. This requires Aflex 1.5, which has been modified to work
-  with OpenToken.
+<p>The generated code lexer is provided by support for Aflex generated
+lexers. This requires Aflex 1.5, which has been modified to work
+with OpenToken.
 
 <p>Ada's type safety features make misbehaving lexers and parsers
 easier to debug. In addition, OpenToken includes a trace feature, that
@@ -149,7 +149,13 @@ mailing list and discussion board mentioned there are no longer used.
   <li>Add support for Aflex generated lexers - requires Aflex 1.5
 </ul>
 
-<h3>Version 6.0a 5 Apr 2014</h3>
+<h3>Version 6.0b 10 May 2015</h3>
+<ul>
+  <li>Fix minor bugs reported in 6.0a
+
+</ul>
+
+<h3>Version 6.0a 5 Apr 2015</h3>
 <ul>
   <li>Extend parser to generalized LALR (spawn parallel parsers) to handle conflicts
   <li>Extensive API changes to support the restructured parser.
@@ -557,6 +563,6 @@ agree. Bravo!
 <img src="../images/emacs.png" alt="Created with Emacs" width="100" height="30"></a>
 <a href="http://www.adaic.org/">
 <img src="../images/adapowered2.png" alt="powered by Ada" width="200" height="50"></a>
-<!-- hhmts start --> Last modified: Tue Jan 01 23:39:35 EST 2013 <!-- hhmts end -->
+<!-- hhmts start --> Last modified: Mon Apr 17 21:19:09 CDT 2017 <!-- hhmts end -->
 </body>
 </html>
