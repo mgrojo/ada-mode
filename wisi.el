@@ -1727,16 +1727,21 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
   "For `forward-sexp-function'."
   (interactive "^p")
   (or arg (setq arg 1))
-  (if (= (syntax-class (syntax-after (point))) 4)
-      ;; on open paren
-      (let ((forward-sexp-function nil))
-	(forward-sexp arg))
+  (cond
+   ((and (> arg 0) (= 4 (syntax-class (syntax-after (point)))))  ;; on open paren
+    (let ((forward-sexp-function nil))
+      (forward-sexp arg)))
 
+   ((and (< arg 0) (= (syntax-class (syntax-after (1- (point)))) 5)) ;; after close paren
+    (let ((forward-sexp-function nil))
+      (forward-sexp arg)))
+
+   (t
     (dotimes (_i (abs arg))
       (if (> arg 0)
 	  (wisi-forward-statement-keyword)
-	(wisi-backward-statement-keyword)))
-    ))
+	(wisi-backward-statement-keyword))))
+   ))
 
 (defun wisi-goto-containing (cache &optional error)
   "Move point to containing token for CACHE, return cache at that point.
@@ -1803,7 +1808,7 @@ Return start cache."
   (wisi-get-cache (point)))
 
 (defun wisi-prev-statement-cache (cache)
-  "Move point to CACHE-next, return cache; error if nil."
+  "Move point to CACHE-prev, return cache; error if nil."
   (when (not (markerp (wisi-cache-prev cache)))
     (error "no prev statement cache"))
   (goto-char (1- (wisi-cache-prev cache)))

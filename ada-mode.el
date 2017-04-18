@@ -423,6 +423,7 @@ Values defined by cross reference packages.")
      ["Goto declaration/body"         ada-goto-declaration         t]
      ["Goto next statement keyword"   forward-sexp   t]
      ["Goto prev statement keyword"   backward-sexp   t]
+     ["Goto declarative region start" ada-goto-declarative-region-start   t]
      ["Goto declaration start"        ada-goto-declaration-start   t]
      ["Goto declaration end"          ada-goto-declaration-end     t]
      ["Show parent declarations"      ada-show-declaration-parents t]
@@ -466,6 +467,7 @@ Values defined by cross reference packages.")
   '("Ada"
     ["Goto declaration/body"         ada-goto-declaration         t]
     ["Show parent declarations"      ada-show-declaration-parents t]
+    ["Goto declarative region start" ada-goto-declarative-region-start   t]
     ["Goto declaration start"        ada-goto-declaration-start   t]
     ["Goto declaration end"          ada-goto-declaration-end     t]
     ["Show parent declarations"      ada-show-declaration-parents t]
