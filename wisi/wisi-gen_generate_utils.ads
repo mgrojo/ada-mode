@@ -3,24 +3,24 @@
 --  Utilities for translating input file structures to FastToken
 --  structures needed for LALR.Generate.
 --
---  Copyright (C) 2014, 2015  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
 --
---  This program is free software; you can redistribute it and/or
---  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version. This program is distributed in the
---  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
---  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
---  PURPOSE. See the GNU General Public License for more details. You
---  should have received a copy of the GNU General Public License
---  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
---  MA 02110-1335, USA.
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production.Put_Trace;
 with FastToken.Token.Nonterminal;
 generic
@@ -81,8 +81,8 @@ package Wisi.Gen_Generate_Utils is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal => Nonterminal_Pkg);
-   package LALR_Generator is new LALR.Generator (Token_Image_Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal_Pkg);
+   package LALR_Generator is new LR.LALR_Generator (Token_Image_Width, Production);
 
    procedure Put_Trace_Action (Item : in Nonterminal_Pkg.Synthesize) is null;
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);
@@ -90,7 +90,7 @@ package Wisi.Gen_Generate_Utils is
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALR.Conflict_Lists.List;
+     return LR.Conflict_Lists.List;
 
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance;
    --  Source_File_Name used in errors

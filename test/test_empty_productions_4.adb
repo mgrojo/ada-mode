@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with AUnit.Checks;
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 package body Test_Empty_Productions_4 is
@@ -51,8 +51,8 @@ package body Test_Empty_Productions_4 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;

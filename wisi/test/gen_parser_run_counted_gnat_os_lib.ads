@@ -21,8 +21,8 @@
 pragma License (GPL);
 
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Parser;
-with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder;
 with FastToken.Token.Nonterminal;
 generic
@@ -37,16 +37,16 @@ generic
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    with package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal);
+   with package LR is new Parser_Root.LR (First_State_Index, Nonterminal);
    First_Parser_Label : in Integer;
-   with package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
-   with package LALR_Parser is new LALR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);
+   with package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
+   with package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);
 
    with function Create_Parser
      (Max_Parallel         : in Integer := 15;
       Terminate_Same_State : in Boolean := False;
       Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size          : in Integer                               := 1024)
-     return LALR_Parser.Instance;
+     return LR_Parser.Instance;
 
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib;

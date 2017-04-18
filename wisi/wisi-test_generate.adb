@@ -3,21 +3,21 @@
 --  Run LALR_Generators.Generate, for testing. Exceptions raised by
 --  Generate are propagated.
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  This program is free software; you can redistribute it and/or
---  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version. This program is distributed in the
---  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
---  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
---  PURPOSE. See the GNU General Public License for more details. You
---  should have received a copy of the GNU General Public License
---  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
---  MA 02110-1335, USA.
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
 with Ada.Text_IO;
 with Wisi.Gen_Generate_Utils;
@@ -49,7 +49,7 @@ is
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LALR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
+   Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,

@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -59,8 +59,8 @@ package body Test_LR1_Lookahead_Closure is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -97,7 +97,7 @@ package body Test_LR1_Lookahead_Closure is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, RANGE_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
+      Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
 
    ----------
    --  Test procedures
@@ -129,7 +129,7 @@ package body Test_LR1_Lookahead_Closure is
       Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
-         State         => LALR.Unknown_State,
+         State         => LR.Unknown_State,
          Next          => null);
 
       Expected : Item_Set;

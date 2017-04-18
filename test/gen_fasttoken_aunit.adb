@@ -61,11 +61,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LR1.Item_Lookahead_Ptr;
-      Expected : in LALR_Generator.LR1.Item_Lookahead_Ptr)
+      Computed : in Generators.LR1.Item_Lookahead_Ptr;
+      Expected : in Generators.LR1.Item_Lookahead_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       Computed_I : Item_Lookahead_Ptr := Computed;
       Expected_I : Item_Lookahead_Ptr := Expected;
       Index : Integer := 1;
@@ -86,11 +86,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LR1.Item_Ptr;
-      Expected : in LALR_Generator.LR1.Item_Ptr)
+      Computed : in Generators.LR1.Item_Ptr;
+      Expected : in Generators.LR1.Item_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -118,12 +118,12 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LR1.Item_Set;
-      Expected : in LALR_Generator.LR1.Item_Set)
+      Computed : in Generators.LR1.Item_Set;
+      Expected : in Generators.LR1.Item_Set)
    is
       use AUnit.Checks;
-      use type LALR_Generator.LR1.Set_Reference_Ptr;
-      use type LALR_Generator.LR1.Item_Set_Ptr;
+      use type Generators.LR1.Set_Reference_Ptr;
+      use type Generators.LR1.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set);
@@ -133,11 +133,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR_Generator.LR1.Set_Reference_Ptr;
-      Expected : in LALR_Generator.LR1.Set_Reference_Ptr)
+      Computed : in Generators.LR1.Set_Reference_Ptr;
+      Expected : in Generators.LR1.Set_Reference_Ptr)
    is
       use AUnit.Checks;
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       Computed_I : Set_Reference_Ptr := Computed;
       Expected_I : Set_Reference_Ptr := Expected;
       Index      : Integer  := 1;
@@ -175,11 +175,11 @@ package body Gen_FastToken_AUnit is
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LALR_Generator.LR1.Item_Lookahead_Ptr;
+      Lookaheads : in Generators.LR1.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in LALR_Generator.LR1.Item_Ptr := null;
-      State      : in LALR.Unknown_State_Index    := LALR.Unknown_State)
-     return LALR_Generator.LR1.Item_Ptr
+      Next       : in Generators.LR1.Item_Ptr         := null;
+      State      : in LR.Unknown_State_Index := LR.Unknown_State)
+     return Generators.LR1.Item_Ptr
    is
       Grammar_I : Production.List.List_Iterator := Grammar.First;
 
@@ -194,7 +194,7 @@ package body Gen_FastToken_AUnit is
          Token_Pkg.List.Next_Token (Dot_I);
       end loop;
 
-      return new LALR_Generator.LR1.Item_Node'
+      return new Generators.LR1.Item_Node'
         (Prod       => Production.List.Current (Grammar_I),
          Dot        => Dot_I,
          State      => State,
@@ -205,8 +205,8 @@ package body Gen_FastToken_AUnit is
    function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
-      Next : in LALR_Generator.LR1.Item_Set_Ptr)
-     return LALR_Generator.LR1.Item_Set
+      Next : in Generators.LR1.Item_Set_Ptr)
+     return Generators.LR1.Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -215,13 +215,13 @@ package body Gen_FastToken_AUnit is
             Dot        => Dot,
             Next       => null),
          Goto_List       => null,
-         State           => LALR.Unknown_State,
+         State           => LR.Unknown_State,
          Next            => Next);
    end Get_Item_Set;
 
-   function "+" (Item : in Token_Array) return LALR_Generator.LR1.Item_Lookahead_Ptr
+   function "+" (Item : in Token_Array) return Generators.LR1.Item_Lookahead_Ptr
    is
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       Result : Item_Lookahead_Ptr;
    begin
       for I in reverse Item'Range loop
@@ -235,11 +235,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR.Parse_Action_Rec;
-      Expected : in LALR.Parse_Action_Rec)
+      Computed : in LR.Parse_Action_Rec;
+      Expected : in LR.Parse_Action_Rec)
    is
       use AUnit.Checks;
-      use LALR;
+      use LR;
    begin
       Check (Label & ".Verb", Computed.Verb, Expected.Verb);
       case Computed.Verb is
@@ -257,13 +257,13 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR.Parse_Action_Node_Ptr;
-      Expected : in LALR.Parse_Action_Node_Ptr)
+      Computed : in LR.Parse_Action_Node_Ptr;
+      Expected : in LR.Parse_Action_Node_Ptr)
    is
       use AUnit.Checks;
-      use type LALR.Parse_Action_Node_Ptr;
-      Computed_I : LALR.Parse_Action_Node_Ptr := Computed;
-      Expected_I : LALR.Parse_Action_Node_Ptr := Expected;
+      use type LR.Parse_Action_Node_Ptr;
+      Computed_I : LR.Parse_Action_Node_Ptr := Computed;
+      Expected_I : LR.Parse_Action_Node_Ptr := Expected;
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
@@ -284,12 +284,12 @@ package body Gen_FastToken_AUnit is
       end loop;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.Action_Node_Ptr; Expected : in LALR.Action_Node_Ptr)
+   procedure Check (Label : in String; Computed : in LR.Action_Node_Ptr; Expected : in LR.Action_Node_Ptr)
    is
       use AUnit.Checks;
-      use type LALR.Action_Node_Ptr;
-      Computed_I : LALR.Action_Node_Ptr := Computed;
-      Expected_I : LALR.Action_Node_Ptr := Expected;
+      use type LR.Action_Node_Ptr;
+      Computed_I : LR.Action_Node_Ptr := Computed;
+      Expected_I : LR.Action_Node_Ptr := Expected;
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
@@ -311,12 +311,12 @@ package body Gen_FastToken_AUnit is
       end loop;
    end Check;
 
-   procedure Check (Label : in String; Computed : in LALR.Goto_Node_Ptr; Expected : in LALR.Goto_Node_Ptr)
+   procedure Check (Label : in String; Computed : in LR.Goto_Node_Ptr; Expected : in LR.Goto_Node_Ptr)
    is
       use AUnit.Checks;
-      use type LALR.Goto_Node_Ptr;
-      Computed_I : LALR.Goto_Node_Ptr := Computed;
-      Expected_I : LALR.Goto_Node_Ptr := Expected;
+      use type LR.Goto_Node_Ptr;
+      Computed_I : LR.Goto_Node_Ptr := Computed;
+      Expected_I : LR.Goto_Node_Ptr := Expected;
       Index      : Integer  := 1;
    begin
       if Computed /= null or Expected /= null then
@@ -340,8 +340,8 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LALR.Parse_State;
-      Expected : in LALR.Parse_State)
+      Computed : in LR.Parse_State;
+      Expected : in LR.Parse_State)
    is begin
       Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
       Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);

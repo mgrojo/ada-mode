@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -53,8 +53,8 @@ package body Test_Empty_Productions_5 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -83,7 +83,7 @@ package body Test_Empty_Productions_5 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
+      Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
      LALR_Generator.LR1.Has_Empty_Production (Grammar);
@@ -136,7 +136,7 @@ package body Test_Empty_Productions_5 is
       Expected :=
         (Set       => Expected_Set,
          Goto_List => null,
-         State     => LALR.Unknown_State,
+         State     => LR.Unknown_State,
          Next      => null);
 
       if Test.Debug then

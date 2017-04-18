@@ -12,19 +12,19 @@
 --
 --  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
 --
---  This program is free software; you can redistribute it and/or
---  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version. This program is distributed in the
---  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
---  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
---  PURPOSE. See the GNU General Public License for more details. You
---  should have received a copy of the GNU General Public License
---  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
---  MA 02110-1335, USA.
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
 with FastToken;
@@ -84,7 +84,7 @@ is
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LALR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
+   Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
       Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
@@ -345,9 +345,9 @@ is
       end case;
       Put_Line ("with FastToken.Lexer;");
       Put_Line ("with FastToken.Production;");
-      Put_Line ("with FastToken.Parser.LALR.Generator;");
-      Put_Line ("with FastToken.Parser.LALR.Parser;");
-      Put_Line ("with FastToken.Parser.LALR.Parser_Lists;");
+      Put_Line ("with FastToken.Parser.LR.LALR_Generator;");
+      Put_Line ("with FastToken.Parser.LR.Parser;");
+      Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
       Put_Line ("with FastToken.Token.Nonterminal;");
       Put_Line ("with FastToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
@@ -423,13 +423,13 @@ is
       Indent_Line ("package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);");
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
-      Indent_Line ("package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal);");
-      Indent_Line ("package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);");
+      Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Nonterminal);");
+      Indent_Line ("package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
-      Indent_Line ("package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
+      Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
       Indent_Line
-        ("package LALR_Parser is new LALR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
+        ("package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
       New_Line;
 
       Indent_Line ("package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens");
@@ -444,7 +444,7 @@ is
          Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
          Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
          Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
-         Indent_Line ("  return LALR_Parser.Instance;");
+         Indent_Line ("  return LR_Parser.Instance;");
          New_Line;
          Indent_Line ("Wisi_Cache_Max : Integer := 0;");
 
@@ -860,11 +860,11 @@ is
 
       --  This procedure is called for Shift actions
       Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State       : in out LALR.Parse_State;");
+      Indent_Line ("  (State       : in out LR.Parse_State;");
       Indent_Line ("   Symbol      : in     Token_ID;");
-      Indent_Line ("   State_Index : in     LALR.State_Index)");
+      Indent_Line ("   State_Index : in     LR.State_Index)");
       Indent_Line ("is");
-      Indent_Line ("   use LALR;");
+      Indent_Line ("   use LR;");
       Indent_Line ("   Action : constant Parse_Action_Rec := (Shift, State_Index);");
       Indent_Line ("begin");
       Indent := Indent + 3;
@@ -876,14 +876,14 @@ is
 
       --  This procedure is called for Reduce or Accept_It actions
       Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State           : in out LALR.Parse_State;");
+      Indent_Line ("  (State           : in out LR.Parse_State;");
       Indent_Line ("   Symbol          : in     Token_ID;");
-      Indent_Line ("   Verb            : in     LALR.Parse_Action_Verbs;");
+      Indent_Line ("   Verb            : in     LR.Parse_Action_Verbs;");
       Indent_Line ("   LHS_ID          : in     Token_ID;");
       Indent_Line ("   RHS_Token_Count : in     Natural;");
       Indent_Line ("   Synthesize      : in     Nonterminal.Synthesize)");
       Indent_Line ("is");
-      Indent_Line ("   use LALR;");
+      Indent_Line ("   use LR;");
       Indent_Line ("   use Production;");
       Indent_Line ("   Action : Parse_Action_Rec;");
       Indent_Line
@@ -907,14 +907,14 @@ is
       if Shift_Reduce_Conflict_Count > 0 then
          --  This procedure is called for Shift/Reduce conflicts
          Indent_Line ("procedure Add_Action");
-         Indent_Line ("  (State       : in out LALR.Parse_State;");
+         Indent_Line ("  (State       : in out LR.Parse_State;");
          Indent_Line ("   Symbol      : in     Token_ID;");
-         Indent_Line ("   State_Index : in     LALR.State_Index;");
+         Indent_Line ("   State_Index : in     LR.State_Index;");
          Indent_Line ("   LHS_ID      : in     Token_ID;");
          Indent_Line ("   RHS_Token_Count : in     Natural;");
          Indent_Line ("   Synthesize  : in     Nonterminal.Synthesize)");
          Indent_Line ("is");
-         Indent_Line ("   use LALR;");
+         Indent_Line ("   use LR;");
          Indent_Line ("   use Production;");
          Indent_Line ("   Action_1 : constant Parse_Action_Rec := (Shift, State_Index);");
          Indent_Line
@@ -935,7 +935,7 @@ is
       if Reduce_Reduce_Conflict_Count > 0 then
          --  This procedure is called for Reduce/Reduce conflicts
          Indent_Line ("procedure Add_Action");
-         Indent_Line ("  (State             : in out LALR.Parse_State;");
+         Indent_Line ("  (State             : in out LR.Parse_State;");
          Indent_Line ("   Symbol            : in     Token_ID;");
          Indent_Line ("   LHS_ID_1          : in     Token_ID;");
          Indent_Line ("   RHS_Token_Count_1 : in     Natural;");
@@ -945,7 +945,7 @@ is
          Indent_Line ("   Synthesize_2      : in     Nonterminal.Synthesize)");
          Indent_Line ("is");
          Indent := Indent + 3;
-         Indent_Line ("use LALR;");
+         Indent_Line ("use LR;");
          Indent_Line ("use Production;");
          Indent_Line
            ("LHS_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens_Pkg.Get (LHS_ID_1));");
@@ -969,10 +969,10 @@ is
       --  This procedure is called for Error actions
       --  Error action must be last in list
       Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State  : in out LALR.Parse_State;");
+      Indent_Line ("  (State  : in out LR.Parse_State;");
       Indent_Line ("   Symbol : in     Token_ID)");
       Indent_Line ("is");
-      Indent_Line ("   use LALR;");
+      Indent_Line ("   use LR;");
       Indent_Line ("   Action : constant Parse_Action_Rec := (Verb => Error);");
       Indent_Line ("   Node   : Action_Node_Ptr           := State.Action_List;");
       Indent_Line ("begin");
@@ -988,13 +988,13 @@ is
 
       Indent_Line ("procedure Add_Goto");
       Indent := Indent + 2;
-      Indent_Line ("(State    : in out LALR.Parse_State;");
+      Indent_Line ("(State    : in out LR.Parse_State;");
       Indent := Indent + 1;
       Indent_Line ("Symbol   : in     Token_ID;");
-      Indent_Line ("To_State : in     LALR.State_Index)");
+      Indent_Line ("To_State : in     LR.State_Index)");
       Indent := Indent - 3;
       Indent_Line ("is");
-      Indent_Line ("   use LALR;");
+      Indent_Line ("   use LR;");
       Indent_Line ("begin");
       Indent := Indent + 3;
       Indent_Line ("State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);");
@@ -1015,14 +1015,14 @@ is
          Indent_Line ("   Max_Parallel        : in Integer := 15)");
       end case;
 
-      Indent_Line ("  return LALR_Parser.Instance");
+      Indent_Line ("  return LR_Parser.Instance");
       Indent_Line ("is");
       Indent := Indent + 3;
-      Indent_Line ("use LALR;");
+      Indent_Line ("use LR;");
       Indent_Line ("use Production;");
       Indent_Line
         ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
-           LALR.State_Image (Parser'First) & " .. " & LALR.State_Image (Parser'Last) & ");");
+           LR.State_Image (Parser'First) & " .. " & LR.State_Image (Parser'Last) & ");");
       Indent := Indent - 3;
       Indent_Line ("begin");
       Indent := Indent + 3;
@@ -1031,7 +1031,7 @@ is
          Actions :
          declare
             use Ada.Strings.Unbounded;
-            use Generate_Utils.LALR;
+            use Generate_Utils.LR;
             Base_Indent : constant Ada.Text_IO.Count  := Indent;
             Node        : Action_Node_Ptr := Parser (State_Index).Action_List;
             Line        : Unbounded_String;
@@ -1077,9 +1077,10 @@ is
                         null;
                      end if;
                      Append (", ");
-                     Append (Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
                      Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
-                     Append (Action_Name (Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                     Append
+                       (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                   when Error =>
                      null;
                   end case;
@@ -1094,12 +1095,13 @@ is
                      when Reduce =>
                         Append (", ");
                         Append
-                          (Token_Image (Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
                              Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name (Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                             Action_Name
+                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                      when others =>
                         raise Programmer_Error with "second action verb: " &
-                          LALR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                          LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                      end case;
                   end if;
                end;
@@ -1111,7 +1113,7 @@ is
 
          Gotos :
          declare
-            use Generate_Utils.LALR;
+            use Generate_Utils.LR;
             Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
          begin
             loop
@@ -1144,7 +1146,7 @@ is
       when Process =>
          null;
       when Module =>
-         Indent_Line ("Parser : LALR_Parser.Instance;");
+         Indent_Line ("Parser : LR_Parser.Instance;");
          New_Line;
 
          Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
@@ -1208,7 +1210,7 @@ is
            Integer'Image (Action_Count) & " actions," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
            Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-           LALR.State_Index'Image (Parser'Last) & " states," &
+           LR.State_Index'Image (Parser'Last) & " states," &
            Integer'Image (Table_Entry_Count) & " table entries");
    end Create_Ada_Body;
 

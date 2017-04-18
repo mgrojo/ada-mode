@@ -1,7 +1,7 @@
 --  Abstract :
 --
 --
---  Copyright (C) 2002, 2003, 2010, 2012, 2014 - 2015 Stephe Leake
+--  Copyright (C) 2002, 2003, 2010, 2012, 2014 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -31,27 +31,27 @@ package body FastToken.Parser is
 
    procedure Reset (Parser : in out Instance; Buffer_Size : in Integer := 0)
    is begin
-      Parser.Analyzer.Reset (Buffer_Size);
+      Parser.Lexer.Reset (Buffer_Size);
    end Reset;
 
    function End_Of_Text (Parser : in Instance) return Boolean
    is begin
-      return Parser.Analyzer.End_Of_Text;
+      return Parser.Lexer.End_Of_Text;
    end End_Of_Text;
 
    function Line (Parser : in Instance) return Natural is
    begin
-      return Parser.Analyzer.Line;
+      return Parser.Lexer.Line;
    end Line;
 
    function Column (Parser : in Instance) return Natural is
    begin
-      return Parser.Analyzer.Column;
+      return Parser.Lexer.Column;
    end Column;
 
    function Last_Char_Pos (Parser : in Instance) return Integer
    is begin
-      return Parser.Analyzer.Bounds.End_Pos;
+      return Parser.Lexer.Bounds.End_Pos;
    end Last_Char_Pos;
 
 end FastToken.Parser;

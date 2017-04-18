@@ -5,6 +5,25 @@ build/release/Makefile
 build/debug/Makefile
 build/release_process.text
 
+ current work
+
+rename lalr stuff:
+        parser.lr
+        parser.lr.lalr_generator
+                 .lr1_generator
+                 .parser
+
+        parser.packrat
+                      .generator
+                      .parser
+
+    running all tests
+
+add LR1 table generator
+    copy lalr tests
+
+add syntax error handling
+
 Ada lexer
     number:
         add _
@@ -12,45 +31,9 @@ Ada lexer
 
     identifier: add leading letter
 
-finish refactor packages
-    review FIXME
-
-rename wisi to something else?
-    no longer tie to Emacs project
-    wisi-generate => fasttoken-generate
-    just promote wisi dir
-
-speed up parsing, for Emacs Ada backend
-    1 parse of gnatcoll-xref.adb needs to be < 0.2 second
-
-    measure progress:
-        all times are per iteration
-        with wisi-generate Ada_Emacs
-        time ./run_ada_parser.exe /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > debug.parse
-
-        opentoken.stephe: 0.608, 0.920, 0.811, 0.842
-        opentoken.stephe-1: refactor linked_lists, enumerated: 0.577 0.811 0.842 0.814 0.827
-
-        with wisi-generate --profile Ada_Emacs
-        time ./run_ada_parser_*.exe 10 ../../wisi/test/gnatcoll-xref.adb
-
-        run_ada_parser_1 : --profile Opentoken_Lexer Ada_Emacs
-        run_ada_parser_2 : --profile Aflex_Lexer Ada_Emacs
-
-        refactor linked_lists, enumerated:
-            _1 OpenToken.Text_Feeder.Text_IO : 0.3413 0.3453 0.3448
-            _2 aflex text feeder             : 0.1901 0.1815 0.1789
-                1.8 times faster; leaves 0.02 for elisp actions (almost fast enough)
-
-        change aflex to use OpenToken text_feeder (heading for Emacs buffer):
-            _2 OpenToken.Text_Feeder.Text_IO: 0.1435 0.1170 0.1201
-                2.7 times faster than _1 OpenToken.Text_Feeder.Text_IO; 0.127 parse; 0.073 for elisp actions
-
-        change run_ada_parser to use counted_gnat_os_lib text_feeder:
-            _2 OpenToken.Text_Feeder.counted_gnat_os_lib: 0.1426 0.1250 0.1226
-
-        change to fasttoken:
-            _2 0.1154 0.1170 0.1170
+review FIXME
+    ./fasttoken-parser-lalr-parser.adb:346:            --  FIXME: free everything
+        add Controlled to stuff
 
 change dragon examples
     lexer.regexp; should be easy

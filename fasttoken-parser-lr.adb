@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015 Stephe Leake
+--  Copyright (C) 2013-2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -28,7 +28,7 @@
 pragma License (GPL);
 
 with Ada.Strings.Fixed;
-package body FastToken.Parser.LALR is
+package body FastToken.Parser.LR is
 
    function State_Image (Item : in State_Index) return String
    is
@@ -38,4 +38,4 @@ package body FastToken.Parser.LALR is
       return Trim (State_Index'Image (Item), Both);
    end State_Image;
 
-end FastToken.Parser.LALR;
+end FastToken.Parser.LR;

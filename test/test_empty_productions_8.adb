@@ -22,7 +22,7 @@ with Ada.Text_IO;
 with Gen_FastToken_AUnit;
 with FastToken.Lexer;
 with FastToken.Production;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Token.Nonterminal;
 package body Test_Empty_Productions_8 is
 
@@ -58,8 +58,8 @@ package body Test_Empty_Productions_8 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -96,7 +96,7 @@ package body Test_Empty_Productions_8 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, COLON_EQUAL_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LALR, LALR_Generator, Grammar);
+      Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
      LALR_Generator.LR1.Has_Empty_Production (Grammar);
@@ -113,10 +113,10 @@ package body Test_Empty_Productions_8 is
       use LALR_Generator.LR1;
 
       Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => LALR.Unknown_State_Index (First_State_Index));
+        (Grammar, First, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
 
       procedure Check_Kernel
-        (State : in LALR.State_Index;
+        (State : in LR.State_Index;
          Prod  : in Integer;
          Dot   : in Integer)
       is
@@ -143,7 +143,7 @@ package body Test_Empty_Productions_8 is
             Put (Expected.all);
          end if;
 
-         Check (LALR.State_Index'Image (State), Computed.all, Expected.all);
+         Check (LR.State_Index'Image (State), Computed.all, Expected.all);
 
       end Check_Kernel;
 

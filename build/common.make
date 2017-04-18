@@ -130,7 +130,7 @@ distclean :: clean
 
 test-clean :
 	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
-	rm -f *.ads *.adb
+	rm -f *.ads *.adb *.l
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v

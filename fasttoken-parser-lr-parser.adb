@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002 - 2005, 2008 - 2015 Stephe Leake
+--  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -29,7 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
-package body FastToken.Parser.LALR.Parser is
+package body FastToken.Parser.LR.Parser is
 
    --  Return the action for the given state index and terminal ID.
    --  The final action in the action list for a state (the error
@@ -332,15 +332,15 @@ package body FastToken.Parser.LALR.Parser is
 
          case Current_Verb is
          when Shift =>
-            Parser.Analyzer.Find_Next;
+            Parser.Lexer.Find_Next;
             Token.Free (Current_Token);
-            Current_Token := new Token.Class'(Parser.Analyzer.Get);
+            Current_Token := new Token.Class'(Parser.Lexer.Get);
 
          when Accept_It =>
             --  Done.
             if Parsers.Count > 1 then
                raise Parse_Error with
-                 Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                 Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                  ": Ambiguous parse:" & Integer'Image (Parsers.Count) & " parsers active.";
             end if;
             --  FIXME: free everything
@@ -353,14 +353,14 @@ package body FastToken.Parser.LALR.Parser is
             --  All parsers errored; report errors
             declare
                ID     : constant String := Current_Token.Image;
-               Lexeme : constant String := Parser.Analyzer.Lexeme;
+               Lexeme : constant String := Parser.Lexer.Lexeme;
 
                --  FIXME: merge expecting from all active parsers
                Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
             begin
                --  FIXME: free everything
                raise Syntax_Error with
-                 Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                 Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                  ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
                  "; found " & ID & " '" & Lexeme & "'";
             end;
@@ -412,7 +412,7 @@ package body FastToken.Parser.LALR.Parser is
                   --  conflict; spawn a new parser
                   if Parsers.Count = Parser.Max_Parallel then
                      raise Parse_Error with
-                       Int_Image (Parser.Analyzer.Line) & ":" & Int_Image (Parser.Analyzer.Column) &
+                       Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                        ": too many parallel parsers required in grammar state" &
                        State_Index'Image (Current_Parser.Peek.State) &
                        "; simplify grammar, or increase max-parallel (" &
@@ -452,4 +452,4 @@ package body FastToken.Parser.LALR.Parser is
    end Initialize;
 
 
-end FastToken.Parser.LALR.Parser;
+end FastToken.Parser.LR.Parser;

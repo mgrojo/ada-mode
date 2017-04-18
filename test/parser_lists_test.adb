@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2014, 2015 Stephen Leake
+--  Copyright (C) 2014, 2015, 2017 Stephen Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -24,7 +24,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Token.Nonterminal;
 package body Parser_Lists_Test is
 
@@ -36,13 +36,13 @@ package body Parser_Lists_Test is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALRs is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 0);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);
 
    --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Token_ID);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LALRs.Parse_Action_Verbs);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LALRs.Unknown_State_Index);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Parse_Action_Verbs);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Unknown_State_Index);
    procedure Check is new AUnit.Checks.Gen_Check_Access (Token_Pkg.Class, Token_Pkg.Handle);
 
    procedure Check
@@ -61,7 +61,7 @@ package body Parser_Lists_Test is
    procedure Init (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use LALRs;
+      use LR;
       use Parser_Lists;
       use AUnit.Checks;
 
@@ -81,7 +81,7 @@ package body Parser_Lists_Test is
    procedure Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use LALRs;
+      use LR;
       use Parser_Lists;
       use AUnit.Checks;
 
@@ -119,7 +119,7 @@ package body Parser_Lists_Test is
    procedure Parser_List (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use LALRs;
+      use LR;
       use Parser_Lists;
       use AUnit.Checks;
 
@@ -169,7 +169,7 @@ package body Parser_Lists_Test is
    procedure Stack_Equal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use LALRs;
+      use LR;
       use Parser_Lists;
       use AUnit.Checks;
 
@@ -203,7 +203,7 @@ package body Parser_Lists_Test is
    procedure Pending (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use LALRs;
+      use LR;
       use Parser_Lists;
       use AUnit.Checks;
 
@@ -252,7 +252,7 @@ package body Parser_Lists_Test is
 
       use AUnit.Checks;
       use Parser_Lists;
-      use LALRs;
+      use LR;
       use Token_Pkg.List;
       use Parser_Lists_Test;
 

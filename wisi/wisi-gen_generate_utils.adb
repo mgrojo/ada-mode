@@ -399,26 +399,26 @@ package body Wisi.Gen_Generate_Utils is
    function To_Conflicts
      (Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALR.Conflict_Lists.List
+     return LR.Conflict_Lists.List
    is
-      use type LALR.Unknown_State_Index;
-      use type LALR.Parse_Action_Verbs;
-      Result   : LALR.Conflict_Lists.List;
-      Conflict : LALR.Conflict;
+      use type LR.Unknown_State_Index;
+      use type LR.Parse_Action_Verbs;
+      Result   : LR.Conflict_Lists.List;
+      Conflict : LR.Conflict;
    begin
       Shift_Reduce_Conflict_Count  := 0;
       Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
          Conflict :=
-           (LALR.Conflict_Parse_Actions'Value (-Item.Action_A),
+           (LR.Conflict_Parse_Actions'Value (-Item.Action_A),
             Find_Token_ID (-Item.LHS_A),
-            LALR.Conflict_Parse_Actions'Value (-Item.Action_B),
+            LR.Conflict_Parse_Actions'Value (-Item.Action_B),
             Find_Token_ID (-Item.LHS_B),
             -1,
             Find_Token_ID (-Item.On));
 
-         if Conflict.Action_A = LALR.Shift then
+         if Conflict.Action_A = LR.Shift then
             Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
          else
             Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;

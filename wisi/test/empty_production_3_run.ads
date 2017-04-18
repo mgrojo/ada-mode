@@ -12,8 +12,8 @@ procedure Empty_Production_3_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
    Empty_Production_3_Process.Lexer_Root,
    Empty_Production_3_Process.Parser_Root,
    Empty_Production_3_Process.First_State_Index,
-   Empty_Production_3_Process.LALR,
+   Empty_Production_3_Process.LR,
    Empty_Production_3_Process.First_Parser_Label,
    Empty_Production_3_Process.Parser_Lists,
-   Empty_Production_3_Process.LALR_Parser,
+   Empty_Production_3_Process.LR_Parser,
    Empty_Production_3_Process.Create_Parser);

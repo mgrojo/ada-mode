@@ -1,30 +1,22 @@
 --  Abstract :
 --
---  Utilities used by the generalized LALR parser. It is a library
---  package, rather than private within LALR.Parser, for unit tests.
+--  Utilities used by a generalized LR parser.
 --
---  Copyright (C) 2014-2015 Stephe Leake
+--  Copyright (C) 2014-2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
 --  The FastToken package is free software; you can redistribute it
---  and/or modify it under the terms of the GNU General Public License
---  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
---  distributed in the hope that it will be useful, but WITHOUT ANY
---  WARRANTY; without even the implied warranty of MERCHANTABILITY or
---  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
---  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
---  see file GPL.txt. If not, write to the Free Software Foundation,
---  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHAN- TABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
 --
---  As a special exception, if other files instantiate generics from
---  this unit, or you link this unit with other files to produce an
---  executable, this unit does not by itself cause the resulting
---  executable to be covered by the GNU General Public License. This
---  exception does not however invalidate any other reasons why the
---  executable file might be covered by the GNU Public License.
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
 
@@ -40,7 +32,7 @@ generic
    --  Accumulate Item in the trace buffer, output the trace buffer to
    --  the display.
 
-package FastToken.Parser.LALR.Parser_Lists is
+package FastToken.Parser.LR.Parser_Lists is
 
    type Parser_State is private;
 
@@ -216,4 +208,4 @@ private
       Ptr  : Parser_Node_Access;
    end record;
 
-end FastToken.Parser.LALR.Parser_Lists;
+end FastToken.Parser.LR.Parser_Lists;

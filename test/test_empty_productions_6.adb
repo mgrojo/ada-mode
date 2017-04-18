@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -59,8 +59,8 @@ package body Test_Empty_Productions_6 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -92,7 +92,7 @@ package body Test_Empty_Productions_6 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, COLON_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LALR, LALR_Generator, Grammar);
+      Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
      LALR_Generator.LR1.Has_Empty_Production (Grammar);
@@ -105,14 +105,14 @@ package body Test_Empty_Productions_6 is
    procedure Test_Actions
      (Label    : in String;
       Kernels  : in LALR_Generator.LR1.Item_Set_List;
-      State    : in LALR.Unknown_State_Index;
-      Expected : in LALR.Parse_State;
+      State    : in LR.Unknown_State_Index;
+      Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
       Kernel    : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
-      Conflicts : LALR.Conflict_Lists.List;
-      Table     : LALR.Parse_Table (1 .. LALR.State_Index (Kernels.Size));
+      Conflicts : LR.Conflict_Lists.List;
+      Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin
       LALR_Generator.Add_Actions
         (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
@@ -132,20 +132,20 @@ package body Test_Empty_Productions_6 is
    procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR;
+      use LR;
       use LALR_Generator.LR1;
       use FastToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels
         (Grammar, First,
          Trace             => False,
-         First_State_Index => LALR.State_Index (First_State_Index));
+         First_State_Index => LR.State_Index (First_State_Index));
 
       Expected : Parse_State;
       Conflict : Parse_Action_Node_Ptr;
 
-      Conflicts : LALR.Conflict_Lists.List;
-      Parser    : LALR.Parse_Table_Ptr;
+      Conflicts : LR.Conflict_Lists.List;
+      Parser    : LR.Parse_Table_Ptr;
    begin
       if Test.Debug then
          LALR_Generator.LR1.Put (Kernels);

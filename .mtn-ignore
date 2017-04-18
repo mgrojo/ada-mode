@@ -42,6 +42,9 @@
 ^build/release/.*\.parse_table$
 ^build/release/.*\.text$
 ^build/release/.*\.txt$
+^build/release/gpr_query\.db$
+^build/release/gpr_query\.db-shm$
+^build/release/gpr_query\.db-wal$
 ^build/release/libobjsjlj$
 ^build/release/libobjzcx$
 ^build/release/libsjlj$

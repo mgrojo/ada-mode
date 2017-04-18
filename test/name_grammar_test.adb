@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002-2003, 2009, 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002-2003, 2009, 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,9 +24,9 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
-with FastToken.Parser.LALR.Generator;
-with FastToken.Parser.LALR.Parser;
-with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
@@ -55,11 +55,11 @@ package body Name_Grammar_Test is
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
    First_Parser_Label : constant := 1;
-   package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
-   package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Generators is new LR.LALR_Generator (Token_ID'Width, Production);
 
    package Tokens is
       --  For use in right hand sides, syntax.
@@ -130,7 +130,7 @@ package body Name_Grammar_Test is
      Tokens.Component      <= Tokens.Dot & Tokens.Identifier + Self and
      Tokens.Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Self;
 
-   procedure Parse_Command (Lable : in String; Parser : in out LALR_Parser.Instance; Command : in String)
+   procedure Parse_Command (Lable : in String; Parser : in out Parsers.Instance; Command : in String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
@@ -177,9 +177,9 @@ package body Name_Grammar_Test is
 
       Put_Line ("Simple Parser");
       declare
-         Parser : LALR_Parser.Instance := LALR_Parser.Initialize
+         Parser : Parsers.Instance := Parsers.Initialize
            (Lexer.Initialize (Syntax, String_Feeder'Access),
-            LALR_Generator.Generate
+            Generators.Generate
               (Simple_Grammar,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
@@ -192,9 +192,9 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Medium Parser");
       declare
-         Parser : LALR_Parser.Instance := LALR_Parser.Initialize
+         Parser : Parsers.Instance := Parsers.Initialize
            (Lexer.Initialize (Syntax, String_Feeder'Access),
-            LALR_Generator.Generate
+            Generators.Generate
               (Medium_Grammar,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
@@ -207,9 +207,9 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : LALR_Parser.Instance := LALR_Parser.Initialize
+         Parser : Parsers.Instance := Parsers.Initialize
            (Lexer.Initialize (Syntax, String_Feeder'Access),
-            LALR_Generator.Generate
+            Generators.Generate
               (Full_Grammar,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,

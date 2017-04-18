@@ -2,7 +2,7 @@
 --
 --  An abstract interface for a parser for grammars.
 --
---  Copyright (C) 2002, 2003, 2010, 2012 - 2015 Stephe Leake
+--  Copyright (C) 2002, 2003, 2010, 2012 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -37,15 +37,14 @@ package FastToken.Parser is
 
    --  Make generic params visible in child packages (ie
    --  fasttoken-parser-lalr-parser.ads); FastToken.Parser.Lexer does
-   --  not work.
+   --  not work. Private does not work either.
    package Token_Pkg renames Token;
    package Lexer_Pkg renames Lexer;
 
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged record
-      Analyzer : Lexer.Handle;
-      --  FIXME: rename to Lexer
+      Lexer : Lexer_Pkg.Handle;
    end record;
 
    procedure Parse (Parser : in out Instance) is abstract;

@@ -12,8 +12,8 @@ procedure Identifier_List_Name_Conflict_Run is new Gen_Parser_Run_Counted_GNAT_O
    Identifier_List_Name_Conflict_Process.Lexer_Root,
    Identifier_List_Name_Conflict_Process.Parser_Root,
    Identifier_List_Name_Conflict_Process.First_State_Index,
-   Identifier_List_Name_Conflict_Process.LALR,
+   Identifier_List_Name_Conflict_Process.LR,
    Identifier_List_Name_Conflict_Process.First_Parser_Label,
    Identifier_List_Name_Conflict_Process.Parser_Lists,
-   Identifier_List_Name_Conflict_Process.LALR_Parser,
+   Identifier_List_Name_Conflict_Process.LR_Parser,
    Identifier_List_Name_Conflict_Process.Create_Parser);

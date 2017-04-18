@@ -23,9 +23,9 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with FastToken.Lexer.Regexp;
 with FastToken.Production;
-with FastToken.Parser.LALR.Generator;
-with FastToken.Parser.LALR.Parser;
-with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
 package body Test_LR_Expecting is
@@ -67,11 +67,11 @@ package body Test_LR_Expecting is
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
    First_Parser_Label : constant := 1;
-   package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
-   package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Terminals
    EOF        : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
@@ -131,7 +131,7 @@ package body Test_LR_Expecting is
      Verify_Statement.Grammar;
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
-   Parser        : LALR_Parser.Instance;
+   Parser        : LR_Parser.Instance;
 
    procedure Execute
      (Command          : in String;
@@ -155,7 +155,7 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parser.Initialize
+      Parser := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, String_Feeder'Access),
          LALR_Generator.Generate
            (Grammar,

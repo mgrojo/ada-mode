@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada.Text_IO;
 with FastToken.Lexer;
-with FastToken.Parser.LALR.Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -52,8 +52,8 @@ package body Test_Empty_Productions_1 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   package Generators is new LR.LALR_Generator (Token_ID'Width, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -81,23 +81,23 @@ package body Test_Empty_Productions_1 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LALR, LALR_Generator, Grammar);
+      Lexer_Root, Parser_Root, 1, LR, Generators, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
-     LALR_Generator.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant Generators.LR1.Nonterminal_ID_Set :=
+     Generators.LR1.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
+   First : constant Generators.LR1.Derivation_Matrix := Generators.LR1.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LALR_Generator.LR1.Item_Set;
+      Kernel   : in Generators.LR1.Item_Set;
       Symbol   : in Token_ID;
-      Expected : in LALR_Generator.LR1.Item_Set;
+      Expected : in Generators.LR1.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       use FastToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -112,22 +112,22 @@ package body Test_Empty_Productions_1 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LR1.Item_Set_List;
-      State    : in LALR.Unknown_State_Index;
-      Expected : in LALR.Parse_State;
+      Kernels  : in Generators.LR1.Item_Set_List;
+      State    : in LR.Unknown_State_Index;
+      Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
       Accept_Index : constant                                 := 1;
-      Kernel       : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
-      Conflicts    : LALR.Conflict_Lists.List;
-      Table        : LALR.Parse_Table (1 .. Kernels.Size);
+      Kernel       : constant Generators.LR1.Item_Set_Ptr := Generators.LR1.Find (State, Kernels);
+      Conflicts    : LR.Conflict_Lists.List;
+      Table        : LR.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
-         LALR_Generator.LR1.Put (Kernel.all);
+         Generators.LR1.Put (Kernel.all);
       end if;
 
-      LALR_Generator.Add_Actions
+      Generators.Add_Actions
         (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       Check (Label, Table (Kernel.State), Expected);
@@ -147,7 +147,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       use FastToken_AUnit;
 
       --  kernel:
@@ -180,7 +180,7 @@ package body Test_Empty_Productions_1 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         State     => LALR.Unknown_State,
+         State     => LR.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
@@ -194,7 +194,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       use FastToken_AUnit;
 
       --  kernel:
@@ -227,7 +227,7 @@ package body Test_Empty_Productions_1 is
       Expected :=
         (Set       => null,
          Goto_List => null,
-         State     => LALR.Unknown_State,
+         State     => LR.Unknown_State,
          Next      => null);
 
       Test_Goto_Transitions ("2", Kernel, SEMICOLON_ID, Expected, Test.Debug);
@@ -237,10 +237,10 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use Generators.LR1;
       use FastToken_AUnit;
 
-      Kernels  : constant Item_Set_List := LALR_Generator.LR1.LR0_Kernels
+      Kernels  : constant Item_Set_List := Generators.LR1.LR0_Kernels
         (Grammar, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
@@ -290,8 +290,8 @@ package body Test_Empty_Productions_1 is
    procedure Actions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR;
-      use LALR_Generator.LR1;
+      use LR;
+      use Generators.LR1;
       use FastToken_AUnit;
 
       Kernels : constant Item_Set_List := LR0_Kernels (Grammar, First, Trace => False, First_State_Index => 1);

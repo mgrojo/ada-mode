@@ -1,17 +1,16 @@
 --  Abstract :
 --
---  Root package of an implementation of an LALR (Look-Ahead
---  Left-to-right scanning Rightmost-deriving) parser for grammars
---  defined by a production list. It contains types shared by the
---  parse table generator in child package generator, and the parser
---  in child package parser.
+--  Root package of an implementation of an LR (Left-to-right scanning
+--  Rightmost-deriving) parser for grammars defined by a production
+--  list. It contains types shared by the parse table generators and
+--  the parser.
 --
 --  References:
 --
 --  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book").
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015 Stephe Leake
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -42,7 +41,7 @@ with FastToken.Token.Nonterminal;
 generic
    First_State_Index : in Natural;
    with package Nonterminal is new Token.Nonterminal;
-package FastToken.Parser.LALR is
+package FastToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
 
@@ -141,4 +140,4 @@ package FastToken.Parser.LALR is
    function State_Image (Item : in State_Index) return String;
    --  no leading space
 
-end FastToken.Parser.LALR;
+end FastToken.Parser.LR;

@@ -23,9 +23,9 @@ pragma License (GPL);
 
 with FastToken.Lexer.Regexp;
 with FastToken.Production;
-with FastToken.Parser.LALR.Generator;
-with FastToken.Parser.LALR.Parser;
-with FastToken.Parser.LALR.Parser_Lists;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
 package body Trivial_Productions_Test is
@@ -51,11 +51,11 @@ package body Trivial_Productions_Test is
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-      package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+      package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
       First_Parser_Label : constant := 1;
-      package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
-      package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
       EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
       Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
@@ -77,13 +77,13 @@ package body Trivial_Productions_Test is
         T <= F + Nonterminal.Synthesize_Self and
         F <= Symbol + Nonterminal.Synthesize_Self;
 
-      Parser : LALR_Parser.Instance;
+      Parser : LR_Parser.Instance;
 
       Text : constant String := "symbol";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parser.Initialize
+      Parser := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
          LALR_Generator.Generate (Grammar, Trace => Test_Case (Test).Debug));
 
@@ -123,11 +123,11 @@ package body Trivial_Productions_Test is
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-      package LALR is new Parser_Root.LALR (First_State_Index => 1, Nonterminal => Nonterminal);
+      package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
       First_Parser_Label : constant := 1;
-      package Parser_Lists is new LALR.Parser_Lists (First_Parser_Label);
-      package LALR_Parser is new LALR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LALR_Generator is new LALR.Generator (Token_ID'Width, Production);
+      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
 
       EOF           : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
       Function_Tok  : constant Token_Pkg.Class := Token_Pkg.Get (Function_ID);
@@ -170,13 +170,13 @@ package body Trivial_Productions_Test is
         Parameter_List   <= +Self and
         Parameter_List   <= Left_Paren & Symbol & Right_Paren + Self;
 
-      Parser : LALR_Parser.Instance;
+      Parser : LR_Parser.Instance;
 
       Text : constant String := "function (symbol) symbol procedure";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LALR_Parser.Initialize
+      Parser := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
          LALR_Generator.Generate
            (Grammar,

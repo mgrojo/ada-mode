@@ -12,8 +12,8 @@ procedure Subprograms_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
    Subprograms_Process.Lexer_Root,
    Subprograms_Process.Parser_Root,
    Subprograms_Process.First_State_Index,
-   Subprograms_Process.LALR,
+   Subprograms_Process.LR,
    Subprograms_Process.First_Parser_Label,
    Subprograms_Process.Parser_Lists,
-   Subprograms_Process.LALR_Parser,
+   Subprograms_Process.LR_Parser,
    Subprograms_Process.Create_Parser);

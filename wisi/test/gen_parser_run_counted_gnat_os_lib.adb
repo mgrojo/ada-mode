@@ -43,7 +43,7 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   The_Parser : LALR_Parser.Instance := Create_Parser;
+   The_Parser : LR_Parser.Instance := Create_Parser;
 
    procedure Use_File (File_Name : in String)
    is
