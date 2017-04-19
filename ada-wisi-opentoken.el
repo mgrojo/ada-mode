@@ -67,11 +67,11 @@
        ))))
 
 (defconst ada-wisi-opentoken-align
-  "Align rule for OpenToken grammar definitions."
   '(ada-opentoken
     (regexp  . "[^=]\\(\\s-*\\)<=")
     (valid   . (lambda() (not (ada-in-comment-p))))
-    (modes   . '(ada-mode))))
+    (modes   . '(ada-mode)))
+  "Align rule for OpenToken grammar definitions.")
 
 ;;;###autoload
 (define-minor-mode ada-indent-opentoken-mode

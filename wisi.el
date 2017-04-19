@@ -1267,20 +1267,23 @@ If LIMIT (a buffer position) is reached, throw an error."
 
 (defun wisi-forward-statement-keyword ()
   "If not at a cached token, move forward to next
-cache. Otherwise move to cache-next, or next cache if nil.
-Return cache found."
-  (wisi-validate-cache (point-max) t) ;; ensure there is a next cache to move to
-  (let ((cache (wisi-get-cache (point))))
-    (if cache
-	(let ((next (wisi-cache-next cache)))
-	  (if next
-	      (goto-char (1- next))
-	    (wisi-forward-token)
-	    (wisi-forward-cache)))
-      (wisi-forward-cache))
-    )
-  (wisi-get-cache (point))
-  )
+cache. Otherwise move to cache-next, or cache-end, or next cache
+if both nil.  Return cache found."
+  (unless (eobp)
+    (wisi-validate-cache (point-max) t) ;; ensure there is a next cache to move to
+    (let ((cache (wisi-get-cache (point))))
+      (if (and cache
+	       (not (eq (wisi-cache-class cache) 'statement-end)))
+	  (let ((next (or (wisi-cache-next cache)
+			  (wisi-cache-end cache))))
+	    (if next
+		(goto-char (1- next))
+	      (wisi-forward-token)
+	      (wisi-forward-cache)))
+	(wisi-forward-cache))
+      )
+    (wisi-get-cache (point))
+    ))
 
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
