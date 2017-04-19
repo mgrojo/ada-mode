@@ -1062,8 +1062,6 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 
 	  (when region
 	    ;; region can be null on an optional token
-	    (when (get-text-property (car region) 'wisi-face)
-	      (error "wisi-face-mark-action: overwriting cache"))
 	    (with-silent-modifications
 	      (put-text-property
 	       (car region)

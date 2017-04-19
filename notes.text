@@ -94,17 +94,21 @@ wisi-indent-region:
    new-indent
    ))
 
- compute indent via indent-actions in grammar
-
 test/debug.adb
+test/debug.ads
 
-add gpr motion
+ current issues:
 
-rename ada/gpr-wisi-class-list wisi-class-list
+move wisi-max-cache out of wisi-parse.el
 
-switch to fasttoken
+bad indent:
+                        Append
+                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
+                             Action_Name
+                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
 
-add syntax error handling
+    last line should be indented
 
 indent max-cache doesn't work
     if only indent one line, cache marks whole buffer as indented
@@ -115,8 +119,6 @@ indent max-cache doesn't work
     set align-indent-before false?
 
 indent is slow
-    add 'byte-compile' to wisi-compile-grammar
-
     inhibit change hooks while indenting/aligning?
 
     skip computing indent in nonterms not in indent region.
@@ -180,6 +182,9 @@ time indent
             wisi first line: per iteration 2.594025, 2.562731, 2.578430
             wisi middle line: per iteration 2.562810, 2.791537, 2.750257
             wisi last line: per iteration 2.750262, 2.750256
+
+        apr 17 add byte-compile in wisi-semantic-action
+            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
 
 time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)
@@ -519,23 +524,6 @@ emacs 25 compile.el supports HYPERLINK in compilation regexp; use for secondary 
  speed up, handle bad grammar
 
 implement packrat in fasttoken, generate elisp
-
-Use adacore langkit to generate parser, run as module
-    too hard to design AST types for grammar, since don't need them for ada-mode; maybe ok if that's already done
-
-parser speed dominated by set-text-properties
-    compute indent directly in parser actions
-        indent-action takes list of delta_indent, one per token
-    only set text properties for other things
-
-convert OpenToken to generate tables for LR1 parser
-    add error handling
-
-wisi-generate write defun for grammar actions
-    so they can be byte compiled
-    faster?
-
-speed up by not binding wisi-tokens for null action
 
 skip blocks of text unless needed for current user command
 

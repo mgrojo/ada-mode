@@ -397,18 +397,6 @@ nil, `shift', or `accept'."
 	)))
   active-parser-count)
 
-(defun wisi-parse-max-pos (tokens)
-  "Return max position in tokens, or point if tokens nil."
-  (let ((result (if tokens 0 (point))))
-    (mapc
-     (lambda (token)
-       ;; a token has a null region when it is an optional token that is empty
-       (when (cdr (wisi-tok-region token))
-	 (setq result (max (cdr (wisi-tok-region token)) result))))
-     tokens)
-    result)
-  )
-
 (defun wisi-parse-exec-action (func nonterm tokens)
   "Execute action if all tokens past wisi-cache-max."
   ;; We don't execute actions if all tokens are before wisi-cache-max,
@@ -418,13 +406,8 @@ nil, `shift', or `accept'."
   ;; Also skip if no tokens; nothing to do. This can happen when all
   ;; tokens in a grammar statement are optional.
   (if (< 0 (length tokens))
-      (if (and wisi--parse-action
-	       (>= (wisi-parse-max-pos tokens) (wisi-cache-max)))
-
-	  (funcall func nonterm tokens)
-
-	(when (> wisi-debug 1)
-	  (message "... action skipped; before wisi-cache-max %d" (marker-position (wisi-cache-max)))))
+      (when wisi--parse-action
+	(funcall func nonterm tokens))
 
     (when (> wisi-debug 1)
       (message "... action skipped; no tokens"))
