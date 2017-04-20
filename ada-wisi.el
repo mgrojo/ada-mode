@@ -28,7 +28,7 @@
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada-grammar-wy)
+(require 'ada-grammar-elisp)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -409,11 +409,11 @@ For `wisi-indent-calculate-functions'.
 	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
-	     (setq begin (point-at-bol)))
+	     (setq begin (line-beginning-position)))
 	   (wisi-goto-end-1 cache))
 	  (t
 	   ;; start of compilation unit
-	   (setq end (point-at-bol))
+	   (setq end (line-beginning-position))
 	   (unless begin
 	     (setq begin end)))
 	  ))
@@ -538,7 +538,10 @@ Also return cache at start."
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
 	  ((motion statement-end)
-	   (setq cache (wisi-prev-statement-cache cache)))
+	   (setq cache
+		 (wisi-get-cache
+		  (1- (or (wisi-cache-prev cache)
+			  (wisi-cache-containing cache))))))
 
 	  (statement-start
 	   (if first
@@ -878,9 +881,9 @@ TOKEN-TEXT; move point to just past token."
   (wisi-setup '(ada-wisi-comment)
 	      'ada-wisi-post-parse-fail
 	      ada-wisi-class-list
-	      ada-grammar-wy--keyword-table
-	      ada-grammar-wy--token-table
-	      ada-grammar-wy--parse-table)
+	      ada-grammar-elisp-keyword-table
+	      ada-grammar-elisp-token-table
+	      ada-grammar-elisp-parse-table)
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   (setq wisi-indent-hanging-function #'ada-indent-hanging)

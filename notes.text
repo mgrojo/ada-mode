@@ -4,9 +4,9 @@ build/Makefile
 build/wisi/Makefile
 
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
-o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
+o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
+o.e.a.stephe-4 (from o.e.a.s-2):
 o.e.a.stephe-5 (from o.e.a): gpr_query completion table
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
@@ -43,10 +43,12 @@ run test from emacs -Q using source:
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
   (load "autoloads.el")
   (require 'ada-mode)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
+  (setq wisi-debug 2)
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/access_in_record.ads")
+  (wisi-parse-buffer 'navigate)
   )
 
 install packages in -Q:
@@ -55,60 +57,57 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
- Edebug displays
+ syntax error handling
 
-in wisi-parse-reduce:
-(setq edebug-eval-list
- '(nonterm
-   tok
-   first
-   ))
+/Projects/org.fasttoken/notes.text
+/Projects/org.fasttoken/build/release/Makefile
 
-in wisi--indent-token-1:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   wisi-nterm
-   i
-   delta
-   indent
-   ))
+generated file is *-grammar-elisp.el
+    contents are different from OpenToken
+    run all ada, gpr tests
 
-in wisi-indent-action:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   wisi-nterm
-   wisi-tokens
-   deltas
-   wisi-token-index
-   tok
-   token-delta
-   comment-delta
-   ))
 
-wisi-indent-region:
-(setq edebug-eval-list
- '((wisi-ind-indent wisi--indent)
-   anchor-indent
-   i
-   indent
-   new-indent
-   ))
+add FastToken LR1 table generator
 
-test/debug.adb
-test/debug.ads
+add error handling
 
- current issues:
+5.1.d:
 
-move wisi-max-cache out of wisi-parse.el
+handle parser errors more gracefully
+    continue by adding virtual tokens
+        find shortest path from current state to defined action on next real token
+            go thru FIRST, look for actions on next token, use first found
+                provide grammar source hint for picking? (prefer semicolon, or 'then')
+            if none, recurse (breadth-first search)
+        can compute at grammar compile time
+        add result as 'error' entry in state machine?
 
-bad indent:
-                        Append
-                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name
-                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+        cache for virtual end token (if one needed) located after last real token in sentence
+            needed for 'goto end', and for setting something in 'end' field
+            add space if at eob?
 
-    last line should be indented
+        no storage cache for other virtual tokens
+
+        adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
+            that will later add 'end if;' before the next 'end', which will be wrong
+                no problem; it will be deleted by invalidate-cache when the new 'end if' is typed/parsed
+                invalidate-cache must also delete refs to the virtual token?
+                    they will be overwritten?
+
+    don't use virtual tokens for indent
+        => don't set markers to them
+
+    show location of virtual tokens in 'show parse error'?
+        could be many
+
+can abandon parse when reach desired point (not just for errors)
+
+    if command is 'goto-end', "desired point" is end of current statement
+    in goto-end, check if end reached is virtual; if so, reparse
+
+
+
+ indent issues
 
 indent max-cache doesn't work
     if only indent one line, cache marks whole buffer as indented
@@ -119,6 +118,8 @@ indent max-cache doesn't work
     set align-indent-before false?
 
 indent is slow
+    add 'byte-compile' to wisi-compile-grammar
+
     inhibit change hooks while indenting/aligning?
 
     skip computing indent in nonterms not in indent region.
@@ -182,9 +183,6 @@ time indent
             wisi first line: per iteration 2.594025, 2.562731, 2.578430
             wisi middle line: per iteration 2.562810, 2.791537, 2.750257
             wisi last line: per iteration 2.750262, 2.750256
-
-        apr 17 add byte-compile in wisi-semantic-action
-            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
 
 time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)
@@ -548,86 +546,6 @@ skip blocks of text unless needed for current user command
          level 1: function begin end if loop etc
          parse level 2 on demand
 
-5.1.c: GPS sub-process indentation engine
-    build/Makefile
-
-    (progn
-      (require 'ada-gps)
-      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent")))
-
-    Version in a_m_gps_i for upgrade control
-
-
-    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
-        7252 lines, 256857 chars
-
-    wisi timing:
-    (progn
-        (ada-wisi-setup)
-        (wisi-invalidate-cache)
-        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
-        2.062000
-
-    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
-        0.531000
-
-    (progn
-        (goto-char (point-max))
-        (forward-line -3)
-        (time-it 'indent-according-to-mode 10))
-        0.001 seconds
-
-    ada-gps timing:
-    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
-        ~700 seconds?
-
-    (progn
-        (goto-char (point-max))
-        (forward-line -3)
-        (time-it 'indent-according-to-mode 10))
-        Total 1.857000 seconds; per iteration 0.185700
-
-    include *.adb, build/Makefile in ELPA for gpr_query, ada_mode_gps_indent
-
-5.1.d:
-
-handle parser errors more gracefully
-    continue by adding virtual tokens
-        find shortest path from current state to defined action on next real token
-            go thru FIRST, look for actions on next token, use first found
-                provide grammar source hint for picking? (prefer semicolon, or 'then')
-            if none, recurse (breadth-first search)
-        can compute at grammar compile time
-        add result as 'error' entry in state machine?
-
-        cache for virtual end token (if one needed) located after last real token in sentence
-            needed for 'goto end', and for setting something in 'end' field
-            add space if at eob?
-
-        no storage cache for other virtual tokens
-
-        adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
-            that will later add 'end if;' before the next 'end', which will be wrong
-                no problem; it will be deleted by invalidate-cache when the new 'end if' is typed/parsed
-                invalidate-cache must also delete refs to the virtual token?
-                    they will be overwritten?
-
-    don't use virtual tokens for indent
-        => don't set markers to them
-
-    show location of virtual tokens in 'show parse error'?
-        could be many
-
-can abandon parse when reach desired point (not just for errors)
-    ada-indent-region parse to end of region
-        avoids reparsing for every line
-        or is there an indent-region hook for that?
-
-        handle ada-gps better
-
-    if command is 'goto-end', "desired point" is end of current statement
-    in goto-end, check if end reached is virtual; if so, reparse
-
 5.1.x: misc
 
 if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
@@ -972,6 +890,45 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
     12 sep 2013: sent email
 
  relevant files, debug hints
+Edebug displays
+
+in wisi-parse-reduce:
+(setq edebug-eval-list
+ '(nonterm
+   tok
+   first
+   ))
+
+in wisi--indent-token-1:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   i
+   delta
+   indent
+   ))
+
+in wisi-indent-action:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   wisi-tokens
+   deltas
+   wisi-token-index
+   tok
+   token-delta
+   comment-delta
+   ))
+
+wisi-indent-region:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   anchor-indent
+   i
+   indent
+   new-indent
+   ))
+
 (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
     B - profiler-report-render-reversed-calltree shows low-level time hogs
 
