@@ -162,7 +162,9 @@ invalid temporarily, or when making lots of changes.")
   number-p ;; function that determines if argument is a number literal
   )
 
-(defconst wisi-eoi-term '$EOI
+(defconst wisi-eoi-term 'Wisi_EOI
+  ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
+  ;; be part of a valid Ada identifer.
   "End Of Input token.")
 
 (defvar-local wisi--lexer nil
@@ -490,7 +492,7 @@ wisi-forward-token, but does not look up symbol."
 	  (goto-char after)
 	  (line-beginning-position)))
   (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%s:%d" action (current-buffer) after))
-  (move-marker (wisi-cache-max action) after)
+  (move-marker (wisi-cache-max action) (min after (wisi-cache-max action)))
   (wisi-set-parse-try t action)
   (cond
    ((eq 'face action)
