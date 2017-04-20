@@ -16,9 +16,9 @@ with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)
 --EMACSRESULT:""
 
---EMACSCMD:(progn (end-of-line)(ada-next-statement-keyword)(looking-at "generic$"))
+--EMACSCMD:(progn (end-of-line)(forward-sexp)(looking-at "generic$"))
 --EMACSRESULT: t
---EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "package Ada_Mode.Generic_Package"))
+--EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "package Ada_Mode.Generic_Package"))
 --EMACSRESULT: t
 generic
    --EMACSCMD:(ada-which-function)

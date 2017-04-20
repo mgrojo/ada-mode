@@ -65,13 +65,13 @@ with Ada_Mode.Function_2;
 --EMACSRESULT:t
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
 --EMACSRESULT:t
---EMACSCMD:(progn (beginning-of-line 3) (ada-next-statement-keyword)(looking-at "is -- target 0"))
+--EMACSCMD:(progn (beginning-of-line 3) (forward-sexp)(looking-at "is -- target 0"))
 --EMACSRESULT:t
 package Ada_Mode.Nominal
 with
   Spark_Mode => On
 is -- target 0
-   --EMACSCMD:(progn (beginning-of-line -0) (ada-next-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 
    --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "pragma Elaborate_Body"))
@@ -437,13 +437,13 @@ is -- target 0
    -- result in other file
    --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (ada-next-statement-keyword)(looking-at "is -- Protected_1"))
+   --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
    protected type Protected_1 is -- Protected_1
 
-      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (ada-prev-statement-keyword)(looking-at "protected type Protected_1"))
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (ada-next-statement-keyword)(looking-at "private -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -472,9 +472,9 @@ is -- target 0
       -- indentation engine aligned this with 'private'.
    private -- Protected_1
 
-      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (ada-prev-statement-keyword)(looking-at "is -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (ada-next-statement-keyword)(looking-at "; -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
       --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling
@@ -730,11 +730,11 @@ is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2) (ada-next-statement-keyword)(looking-at "; -- Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "; -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 private -- Ada_Mode.Nominal
 
-   --EMACSCMD:(progn (forward-line -2) (ada-prev-statement-keyword)(looking-at "is -- target 0"))
+   --EMACSCMD:(progn (forward-line -2) (backward-sexp)(looking-at "is -- target 0"))
    --EMACSRESULT:t
 
    type Private_Type_1 is abstract tagged limited null record;
@@ -858,7 +858,7 @@ private -- Ada_Mode.Nominal
 
 end Ada_Mode.Nominal; -- Ada_Mode.Nominal
 
---EMACSCMD:(progn (forward-line -2) (ada-next-statement-keyword)(ada-prev-statement-keyword)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSCMD:(progn (forward-line -2) (ada-next-statement-keyword)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70

@@ -266,17 +266,17 @@ package body Ada_Mode.Parens is
          null;
       end if;
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 1"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp)(looking-at "loop -- target 1"))
       --EMACSRESULT: t
       while A.all
         or else B.all
-        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "; -- target 2"))
+        --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp)(looking-at "; -- target 2"))
         --EMACSRESULT: t
       loop -- target 1
          if A = null then B.all := False; end if; -- cached keywords between 'loop' and 'end loop'
       end loop; -- target 2
 
-      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(ada-next-statement-keyword)(looking-at "loop -- target 3"))
+      --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-sexp)(looking-at "loop -- target 3"))
       --EMACSRESULT: t
       while A.all
         or else (B.all
