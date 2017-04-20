@@ -858,7 +858,7 @@ private -- Ada_Mode.Nominal
 
 end Ada_Mode.Nominal; -- Ada_Mode.Nominal
 
---EMACSCMD:(progn (forward-line -2) (ada-next-statement-keyword)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
+--EMACSCMD:(progn (forward-line -2) (forward-sexp)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70

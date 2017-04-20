@@ -131,7 +131,7 @@
       (TICK . "'")
      )
      ("number"
-      (NUMERIC_LITERAL ada-wisi-number-p)
+      (NUMERIC_LITERAL . ada-wisi-number-p)
      )
      ("symbol"
       (IDENTIFIER)

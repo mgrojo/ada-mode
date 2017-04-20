@@ -62,18 +62,10 @@ install packages in -Q:
 /Projects/org.fasttoken/notes.text
 /Projects/org.fasttoken/build/release/Makefile
 
-generated file is *-grammar-elisp.el
-    contents are different from OpenToken
-    run all ada, gpr tests
-
-
 add FastToken LR1 table generator
 
 add error handling
 
-5.1.d:
-
-handle parser errors more gracefully
     continue by adding virtual tokens
         find shortest path from current state to defined action on next real token
             go thru FIRST, look for actions on next token, use first found
