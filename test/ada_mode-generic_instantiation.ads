@@ -9,7 +9,7 @@ with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private
 package Ada_Mode.Generic_Instantiation is
-   --EMACSCMD:(progn (end-of-line 0)(backward-word)(ada-next-statement-keyword)(looking-at "end Ada_Mode.Generic_Instantiation"))
+   --EMACSCMD:(progn (end-of-line 0)(backward-word)(forward-sexp)(looking-at "end Ada_Mode.Generic_Instantiation"))
    --EMACSRESULT:t
 
    --EMACSCMD:(jit-lock-fontify-now)

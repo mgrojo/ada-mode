@@ -1381,6 +1381,7 @@
         (wisi-containing-action 1 4)
         (wisi-containing-action 3 5)
         (wisi-containing-action 6 10)
+        (wisi-motion-action [1 6 [10 block-middle PRIVATE] 11])
         (wisi-face-action [3 font-lock-type-face])))
        ((PROTECTED TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS protected_definition SEMICOLON )
         (progn
@@ -1388,6 +1389,7 @@
         (wisi-containing-action 1 4)
         (wisi-containing-action 3 5)
         (wisi-containing-action 6 7)
+        (wisi-motion-action [1 6 [7 block-middle PRIVATE] 8])
         (wisi-face-action [3 font-lock-type-face]))))
       (qualified_expression
        ((name TICK aggregate )

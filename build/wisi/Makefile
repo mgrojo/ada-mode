@@ -65,23 +65,14 @@ ifeq ($(shell uname),Linux)
 WISI_OPENTOKEN ?= /Projects/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
-
 else ifeq ($(shell uname),Darwin)
 WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
-
-# we don't build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el
 
 else
 # windows
 WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
-
-# we build %-wy.el here
-INDENT.EL := ada-wisi.el gpr-wisi.el ../../gpr-grammar-wy.el ../../ada-grammar-wy.el
 
 endif
 
