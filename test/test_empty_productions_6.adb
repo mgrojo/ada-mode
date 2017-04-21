@@ -59,8 +59,8 @@ package body Test_Empty_Productions_6 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -91,36 +91,34 @@ package body Test_Empty_Productions_6 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, COLON_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, COLON_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
-     LALR_Generator.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
+     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
+   First : constant LALR_Generator.LR1_Items.Derivation_Matrix := LALR_Generator.LR1_Items.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
-
-   Accept_Index : constant := 3;
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LR1.Item_Set_List;
+      Kernels  : in LALR_Generator.LR1_Items.Item_Set_List;
       State    : in LR.Unknown_State_Index;
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Kernel    : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
+      Kernel    : constant LALR_Generator.LR1_Items.Item_Set_Ptr := LALR_Generator.LR1_Items.Find (State, Kernels);
       Conflicts : LR.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin
       LALR_Generator.Add_Actions
-        (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+        (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       if Debug then
-         LALR_Generator.Put (Table (Kernel.State));
+         LR.Put (Table (Kernel.State));
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.Put (Expected);
+         LR.Put (Expected);
       end if;
 
       Check (Label, Table (Kernel.State), Expected);
@@ -133,11 +131,11 @@ package body Test_Empty_Productions_6 is
    is
       Test : Test_Case renames Test_Case (T);
       use LR;
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
-      Kernels : constant Item_Set_List := LR0_Kernels
-        (Grammar, First,
+      Kernels : constant Item_Set_List := LALR_Generator.LR1_Items.Kernels
+        (Grammar, First, EOF_ID,
          Trace             => False,
          First_State_Index => LR.State_Index (First_State_Index));
 
@@ -148,22 +146,21 @@ package body Test_Empty_Productions_6 is
       Parser    : LR.Parse_Table_Ptr;
    begin
       if Test.Debug then
-         LALR_Generator.LR1.Put (Kernels);
+         LALR_Generator.LR1_Items.Put (Kernels);
       end if;
 
-      --  kernel 1:
-      --
-      --  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON
+      --  State 1:
+      --    COMPILATION_UNIT_ID <= BEGIN_ID ^ SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID
       --
       --  Expected actions:
-      --  IDENTIFIER_ID => shift and goto 7
+      --  IDENTIFIER_ID => shift and goto 3
       --  IDENTIFIER_ID => reduce 0 tokens to label_opt_id
       --  default  => ERROR
 
       --  Expected reduction gotos:
-      --  label_opt_ID => Set 7
-      --  statement_ID => Set 5
-      --  sequence_of_statements_ID => Set 6
+      --  label_opt_ID              => State 6
+      --  statement_ID              => State 4
+      --  sequence_of_statements_ID => State 5
 
       Expected.Action_List := new Action_Node'
         (Symbol  => Token_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
@@ -184,7 +181,7 @@ package body Test_Empty_Productions_6 is
       Conflict := new Parse_Action_Node'
         (Item     =>
            (Verb  => Shift,
-            State => 4),
+            State => 3),
          Next     => Conflict);
 
       Expected.Action_List := new Action_Node'
@@ -194,17 +191,17 @@ package body Test_Empty_Productions_6 is
 
       Expected.Goto_List := new Goto_Node'
         (Symbol => label_opt_ID,
-         State  => 7,
-         Next   => Expected.Goto_List);
-
-      Expected.Goto_List := new Goto_Node'
-        (Symbol => sequence_of_statements_ID,
          State  => 6,
          Next   => Expected.Goto_List);
 
       Expected.Goto_List := new Goto_Node'
-        (Symbol => statement_ID,
+        (Symbol => sequence_of_statements_ID,
          State  => 5,
+         Next   => Expected.Goto_List);
+
+      Expected.Goto_List := new Goto_Node'
+        (Symbol => statement_ID,
+         State  => 4,
          Next   => Expected.Goto_List);
 
       Test_Actions ("1", Kernels, 1, Expected, Test.Debug);

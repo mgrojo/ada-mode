@@ -59,8 +59,9 @@ package body Test_LR1_Lookahead_Closure is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -96,7 +97,7 @@ package body Test_LR1_Lookahead_Closure is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, RANGE_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, RANGE_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
 
    ----------
@@ -106,15 +107,16 @@ package body Test_LR1_Lookahead_Closure is
    is
       Test : Test_Case renames Test_Case (T);
 
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
-      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LR1.Has_Empty_Production (Grammar);
+      Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
       First : constant Derivation_Matrix := First_Derivations
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
 
-      Kernels : Item_Set_List := LR0_Kernels (Grammar, First, Test.Debug, First_State_Index => 1);
+      Kernels : Item_Set_List := LALR_Generator.LR1_Items.Kernels
+        (Grammar, First, EOF_ID, Test.Debug, First_State_Index);
 
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is

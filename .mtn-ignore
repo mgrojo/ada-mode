@@ -17,6 +17,9 @@
 ^build/debug/.*\.parse_table$
 ^build/debug/.*\.text$
 ^build/debug/.*\.txt$
+^build/debug/gpr_query\.db$
+^build/debug/gpr_query\.db-shm$
+^build/debug/gpr_query\.db-wal$
 ^build/debug/libobjsjlj$
 ^build/debug/libobjzcx$
 ^build/debug/libsjlj$

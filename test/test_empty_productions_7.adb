@@ -56,8 +56,8 @@ package body Test_Empty_Productions_7 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -90,26 +90,24 @@ package body Test_Empty_Productions_7 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, ALIASED_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, ALIASED_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
-     LALR_Generator.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
+     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1.Derivation_Matrix := LALR_Generator.LR1.First_Derivations
+   First : constant LALR_Generator.LR1_Items.Derivation_Matrix := LALR_Generator.LR1_Items.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
-
-   Accept_Index : constant := 5;
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in LALR_Generator.LR1.Item_Set;
+      Kernel   : in LALR_Generator.LR1_Items.Item_Set;
       Symbol   : in Token_ID;
-      Expected : in LALR_Generator.LR1.Item_Set;
+      Expected : in LALR_Generator.LR1_Items.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -124,24 +122,24 @@ package body Test_Empty_Productions_7 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LR1.Item_Set_List;
+      Kernels  : in LALR_Generator.LR1_Items.Item_Set_List;
       State    : in LR.State_Index;
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Kernel    : constant LALR_Generator.LR1.Item_Set_Ptr := LALR_Generator.LR1.Find (State, Kernels);
+      Kernel    : constant LALR_Generator.LR1_Items.Item_Set_Ptr := LALR_Generator.LR1_Items.Find (State, Kernels);
       Conflicts : LR.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin
       LALR_Generator.Add_Actions
-        (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+        (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       if Debug then
          Ada.Text_IO.Put_Line ("Computed:");
-         LALR_Generator.Put (Table (Kernel.State));
+         LR.Put (Table (Kernel.State));
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.Put (Expected);
+         LR.Put (Expected);
       end if;
 
       Check (Label, Table (Kernel.State), Expected);
@@ -153,7 +151,7 @@ package body Test_Empty_Productions_7 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -164,7 +162,7 @@ package body Test_Empty_Productions_7 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generator.LR1.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generator.LR1_Items.Lookahead_Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -203,7 +201,7 @@ package body Test_Empty_Productions_7 is
       if Test.Debug then
          --  computed output by Lookahead_Closure
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.LR1.Put (Expected);
+         LALR_Generator.LR1_Items.Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 
@@ -213,7 +211,7 @@ package body Test_Empty_Productions_7 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -268,7 +266,7 @@ package body Test_Empty_Productions_7 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -323,20 +321,22 @@ package body Test_Empty_Productions_7 is
       Test : Test_Case renames Test_Case (T);
       use LR;
       use LALR_Generator;
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
       Used_Tokens : Token_Pkg.Token_Array_Boolean := (others => False);
 
-      Kernels : Item_Set_List := LR0_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
+      Accept_Index : constant := 5;
+
+      Kernels : Item_Set_List := LALR_Generator.LR1_Items.Kernels
+        (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
 
       Expected : Parse_State;
    begin
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Accept_Index, Used_Tokens, Test.Debug);
 
       if Test.Debug then
-         LALR_Generator.LR1.Put (Kernels);
+         LALR_Generator.LR1_Items.Put (Kernels);
       end if;
 
       --  kernel 2:

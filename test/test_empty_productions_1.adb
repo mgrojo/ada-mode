@@ -52,8 +52,9 @@ package body Test_Empty_Productions_1 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package Generators is new LR.LALR_Generator (Token_ID'Width, Production);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package Generators is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -80,24 +81,24 @@ package body Test_Empty_Productions_1 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, BEGIN_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LR, Generators, Grammar);
 
-   Has_Empty_Production : constant Generators.LR1.Nonterminal_ID_Set :=
-     Generators.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant Generators.LR1_Items.Nonterminal_ID_Set :=
+     Generators.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant Generators.LR1.Derivation_Matrix := Generators.LR1.First_Derivations
+   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First_Derivations
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in Generators.LR1.Item_Set;
+      Kernel   : in Generators.LR1_Items.Item_Set;
       Symbol   : in Token_ID;
-      Expected : in Generators.LR1.Item_Set;
+      Expected : in Generators.LR1_Items.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use Generators.LR1;
+      use Generators.LR1_Items;
       use FastToken_AUnit;
       Computed : constant Item_Set := Goto_Transitions (Kernel, Symbol, First, Grammar);
    begin
@@ -112,23 +113,22 @@ package body Test_Empty_Productions_1 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in Generators.LR1.Item_Set_List;
+      Kernels  : in Generators.LR1_Items.Item_Set_List;
       State    : in LR.Unknown_State_Index;
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Accept_Index : constant                                 := 1;
-      Kernel       : constant Generators.LR1.Item_Set_Ptr := Generators.LR1.Find (State, Kernels);
-      Conflicts    : LR.Conflict_Lists.List;
-      Table        : LR.Parse_Table (1 .. Kernels.Size);
+      Kernel    : constant Generators.LR1_Items.Item_Set_Ptr := Generators.LR1_Items.Find (State, Kernels);
+      Conflicts : LR.Conflict_Lists.List;
+      Table     : LR.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
-         Generators.LR1.Put (Kernel.all);
+         Generators.LR1_Items.Put (Kernel.all);
       end if;
 
       Generators.Add_Actions
-        (Kernel, Accept_Index, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+        (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
 
       Check (Label, Table (Kernel.State), Expected);
    end Test_Actions;
@@ -147,7 +147,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1;
+      use Generators.LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -194,7 +194,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1;
+      use Generators.LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -237,11 +237,11 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1;
+      use Generators.LR1_Items;
       use FastToken_AUnit;
 
-      Kernels  : constant Item_Set_List := Generators.LR1.LR0_Kernels
-        (Grammar, First, Trace => False, First_State_Index => 1);
+      Kernels  : constant Item_Set_List := Generators.LR1_Items.Kernels
+        (Grammar, First, EOF_ID, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Set_Reference_Ptr;
 
@@ -251,7 +251,7 @@ package body Test_Empty_Productions_1 is
 
       --  Expected goto_list:
       --  BODY_ID => DECLARATIONS_ID <= BODY_ID ^ ; Set 5
-      --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 8
+      --  DECLARATIVE_PART_ID => BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID ; Set 7
       --  DECLARATIONS_ID =>
       --    DECLARATIVE_PART_ID <= DECLARATIONS_ID ^
       --    DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID ; Set 3
@@ -270,7 +270,7 @@ package body Test_Empty_Productions_1 is
 
       Expected := new Set_Reference'
         (Symbol => declarative_part_ID,
-         Set    => new Item_Set'(Set => null, Goto_List => null, State => 8, Next => null),
+         Set    => new Item_Set'(Set => null, Goto_List => null, State => 7, Next => null),
          Next   => Expected);
 
       Expected := new Set_Reference'
@@ -283,7 +283,7 @@ package body Test_Empty_Productions_1 is
          Ada.Text_IO.Put_Line ("Expected:"); Put (Expected);
       end if;
 
-      Check ("1", Kernel.Goto_List, Expected);
+      Check ("", Kernel.Goto_List, Expected);
 
    end Goto_Set_1;
 
@@ -291,10 +291,11 @@ package body Test_Empty_Productions_1 is
    is
       Test : Test_Case renames Test_Case (T);
       use LR;
-      use Generators.LR1;
+      use Generators.LR1_Items;
       use FastToken_AUnit;
 
-      Kernels : constant Item_Set_List := LR0_Kernels (Grammar, First, Trace => False, First_State_Index => 1);
+      Kernels : constant Item_Set_List := Generators.LR1_Items.Kernels
+        (Grammar, First, EOF_ID, Trace => False, First_State_Index => 1);
 
       Expected : Parse_State;
    begin
@@ -309,7 +310,7 @@ package body Test_Empty_Productions_1 is
 
       --  Expected reduction gotos:
       --  DECLARATIONS_ID => Set 3
-      --  DECLARATIVE_PART_ID => Set 8
+      --  DECLARATIVE_PART_ID => Set 7
       --  BODY_ID => Set 5
       Expected.Action_List := new Action_Node'
         (Symbol  => Token_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
@@ -346,7 +347,7 @@ package body Test_Empty_Productions_1 is
 
       Expected.Goto_List := new Goto_Node'
         (Symbol => declarative_part_ID,
-         State  => 8,
+         State  => 7,
          Next   => Expected.Goto_List);
 
       Expected.Goto_List := new Goto_Node'

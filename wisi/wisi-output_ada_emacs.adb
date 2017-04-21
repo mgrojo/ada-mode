@@ -10,7 +10,7 @@
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp wisi actions directly.
 --
---  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  The FastToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -50,7 +50,11 @@ procedure Wisi.Output_Ada_Emacs
 is
    use type Ada.Containers.Count_Type;
 
-   EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF";
+   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
+   --  EOI_Name must match wisi-output_elisp.adb EOI_Name, which must
+   --  match Emacs ada-mode wisi.el wisi-eoi-term. It must
+   --  be a valid Ada identifier when "_ID" is appended.
+
    FastToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"FASTTOKEN_ACCEPT";
 
    function To_Token_Ada_Name (Item : in String) return String

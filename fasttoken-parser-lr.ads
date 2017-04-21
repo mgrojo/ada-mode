@@ -40,6 +40,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with FastToken.Token.Nonterminal;
 generic
    First_State_Index : in Natural;
+   Token_Image_Width : Integer;
    with package Nonterminal is new Token.Nonterminal;
 package FastToken.Parser.LR is
 
@@ -109,6 +110,34 @@ package FastToken.Parser.LR is
       Goto_List   : Goto_Node_Ptr;
    end record;
 
+   procedure Add_Action
+     (State       : in out LR.Parse_State;
+      Symbol      : in     Token_Pkg.Token_ID;
+      State_Index : in     LR.State_Index);
+   --  Add a Shift action to State. For building the parse table.
+
+   procedure Add_Action
+     (State           : in out LR.Parse_State;
+      Symbol          : in     Token_Pkg.Token_ID;
+      Verb            : in     LR.Parse_Action_Verbs;
+      LHS_ID          : in     Token_Pkg.Token_ID;
+      RHS_Token_Count : in     Natural;
+      Synthesize      : in     Nonterminal.Synthesize);
+     --  Add a Reduce or Accept_It action to State. For building
+     --  the parse table.
+
+   procedure Add_Action
+     (State  : in out LR.Parse_State;
+      Symbol : in     Token_Pkg.Token_ID);
+   --  Add an Error action to State.
+
+   procedure Add_Goto
+     (State    : in out LR.Parse_State;
+      Symbol   : in     Token_Pkg.Token_ID;
+      To_State : in     LR.State_Index);
+   --  Add a Goto to State. For building
+   --  the parse table.
+
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -139,5 +168,10 @@ package FastToken.Parser.LR is
 
    function State_Image (Item : in State_Index) return String;
    --  no leading space
+
+   procedure Put (Item : in Parse_Action_Rec);
+   procedure Put (Action : in Parse_Action_Node_Ptr);
+   procedure Put (State : in Parse_State);
+   procedure Put (Table : in Parse_Table);
 
 end FastToken.Parser.LR;

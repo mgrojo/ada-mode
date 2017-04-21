@@ -67,38 +67,37 @@
       (relation
        ((primary IN membership_choice ))))
      [((default . error) (IDENTIFIER .  2) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
-      ((default . error) (IDENTIFIER .  13) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
-      ((default . error) (TICK .  12) (RIGHT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (LEFT_PAREN . (primary . 0)) (DOT_DOT . (primary . 0)))
-      ((default . error) (EOF . (primary . 1)) (RIGHT_PAREN . (primary . 1)) (STRING_LITERAL . (primary . 1)) (IDENTIFIER . (primary . 1)) (LEFT_PAREN . (primary . 1)) (DOT_DOT . (primary . 1)) (IN . (primary . 1)))
-      ((default . error) (EOF .  11))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
+      ((default . error) (TICK .  11) (RIGHT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (LEFT_PAREN . (primary . 0)) (DOT_DOT . (primary . 0)))
+      ((default . error) (Wisi_EOI . (primary . 1)) (RIGHT_PAREN . (primary . 1)) (STRING_LITERAL . (primary . 1)) (IDENTIFIER . (primary . 1)) (LEFT_PAREN . (primary . 1)) (DOT_DOT . (primary . 1)) (IN . (primary . 1)))
+      ((default . error) (Wisi_EOI . accept))
       ((default . error) (IDENTIFIER .  2) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
       ((default . error) (DOT_DOT .  8) (RIGHT_PAREN . (membership_choice . 0)) (LEFT_PAREN . (membership_choice . 0)) (IDENTIFIER . (membership_choice . 0)) (STRING_LITERAL . (membership_choice . 0)))
       ((default . error) (RIGHT_PAREN . (membership_choice . 1)) (LEFT_PAREN . (membership_choice . 1)) (IDENTIFIER . (membership_choice . 1)) (STRING_LITERAL . (membership_choice . 1)))
-      ((default . error) (IDENTIFIER .  13) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
       ((default . error) (DOT_DOT .  8))
-      ((default . error) (EOF . (compilation_unit . 0)))
-      ((default . error) (EOF . accept) (STRING_LITERAL . accept) (IDENTIFIER . accept) (TICK . accept) (DOT_DOT . accept) (RIGHT_PAREN . accept) (RANGE . accept) (LEFT_PAREN . accept) (IN . accept))
-      ((default . error) (RANGE .  18))
-      ((default . error) (EOF . (primary . 0)) (RIGHT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (LEFT_PAREN . (primary . 0)) (IN . (primary . 0)))
-      ((default . error) (IN .  17))
-      ((default . error) (RIGHT_PAREN .  16))
-      ((default . error) (EOF . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (STRING_LITERAL . (primary . 2)) (IDENTIFIER . (primary . 2)) (LEFT_PAREN . (primary . 2)) (DOT_DOT . (primary . 2)) (IN . (primary . 2)))
+      ((default . error) (Wisi_EOI . (compilation_unit . 0)))
+      ((default . error) (RANGE .  17))
+      ((default . error) (Wisi_EOI . (primary . 0)) (RIGHT_PAREN . (primary . 0)) (STRING_LITERAL . (primary . 0)) (IDENTIFIER . (primary . 0)) (LEFT_PAREN . (primary . 0)) (IN . (primary . 0)))
+      ((default . error) (IN .  16))
+      ((default . error) (RIGHT_PAREN .  15))
+      ((default . error) (Wisi_EOI . (primary . 2)) (RIGHT_PAREN . (primary . 2)) (STRING_LITERAL . (primary . 2)) (IDENTIFIER . (primary . 2)) (LEFT_PAREN . (primary . 2)) (DOT_DOT . (primary . 2)) (IN . (primary . 2)))
       ((default . error) (IDENTIFIER .  2) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
-      ((default . error) (RIGHT_PAREN . (range . 1)) (EOF . (range . 1)) (STRING_LITERAL . (range . 1)) (IDENTIFIER . (range . 1)) (LEFT_PAREN . ( 20 (range . 1))))
-      ((default . error) (EOF . (range . 2)) (RIGHT_PAREN . (range . 2)) (STRING_LITERAL . (range . 2)) (IDENTIFIER . (range . 2)) (LEFT_PAREN . (range . 2)))
-      ((default . error) (IDENTIFIER .  13) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
+      ((default . error) (RIGHT_PAREN . (range . 1)) (Wisi_EOI . (range . 1)) (STRING_LITERAL . (range . 1)) (IDENTIFIER . (range . 1)) (LEFT_PAREN . ( 19 (range . 1))))
+      ((default . error) (Wisi_EOI . (range . 2)) (RIGHT_PAREN . (range . 2)) (STRING_LITERAL . (range . 2)) (IDENTIFIER . (range . 2)) (LEFT_PAREN . (range . 2)))
+      ((default . error) (IDENTIFIER .  12) (STRING_LITERAL .  3) (LEFT_PAREN .  1))
       ((default . error) (RIGHT_PAREN . (relation . 0)))
-      ((default . error) (RIGHT_PAREN .  23))
-      ((default . error) (EOF . (range . 0)) (RIGHT_PAREN . (range . 0)) (LEFT_PAREN . (range . 0)) (IDENTIFIER . (range . 0)) (STRING_LITERAL . (range . 0)))]
+      ((default . error) (RIGHT_PAREN .  22))
+      ((default . error) (Wisi_EOI . (range . 0)) (RIGHT_PAREN . (range . 0)) (LEFT_PAREN . (range . 0)) (IDENTIFIER . (range . 0)) (STRING_LITERAL . (range . 0)))]
      [((compilation_unit . 4)(membership_choice . 5)(primary . 6)(range . 7))
-      ((primary . 14)(relation . 15))
+      ((primary . 13)(relation . 14))
       nil
       nil
       nil
       ((primary . 9)(range . 10))
       nil
       nil
-      ((primary . 19))
+      ((primary . 18))
       nil
       nil
       nil
@@ -106,11 +105,10 @@
       nil
       nil
       nil
+      ((membership_choice . 20)(primary . 6)(range . 7))
       nil
-      ((membership_choice . 21)(primary . 6)(range . 7))
       nil
-      nil
-      ((primary . 14)(relation . 22))
+      ((primary . 13)(relation . 21))
       nil
       nil
       nil]))

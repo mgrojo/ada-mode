@@ -81,8 +81,8 @@ package Wisi.Gen_Generate_Utils is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal_Pkg);
-   package LALR_Generator is new LR.LALR_Generator (Token_Image_Width, Production);
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg);
+   package LALR_Generator is new LR.LALR_Generator (EOI_ID, Production);
 
    procedure Put_Trace_Action (Item : in Nonterminal_Pkg.Synthesize) is null;
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);

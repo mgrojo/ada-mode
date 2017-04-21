@@ -55,11 +55,12 @@ package body Name_Grammar_Test is
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Generators is new LR.LALR_Generator (Token_ID'Width, Production);
+   package Generators is new LR.LALR_Generator (EOF_ID, Production);
 
    package Tokens is
       --  For use in right hand sides, syntax.

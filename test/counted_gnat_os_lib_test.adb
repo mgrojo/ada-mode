@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2014, 2015 Stephen Leake
+--  Copyright (C) 2014, 2015, 2017 Stephen Leake
 --
 --  This file is part of the FastToken package.
 --

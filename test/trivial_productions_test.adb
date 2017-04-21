@@ -51,11 +51,12 @@ package body Trivial_Productions_Test is
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-      package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+      First_State_Index : constant := 1;
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
       package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+      package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
       EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
       Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
@@ -93,8 +94,10 @@ package body Trivial_Productions_Test is
 
    end Expression;
 
-   procedure Subprograms (Test : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Subprograms (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      Test : Test_Case renames Test_Case (T);
+
       --  Hand-written FastToken grammar matching
       --  ../wisi/test/subprograms.wy, to show that wisi-generate
       --  produces the same grammar.
@@ -123,11 +126,12 @@ package body Trivial_Productions_Test is
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-      package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+      First_State_Index : constant := 1;
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
       package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+      package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
       EOF           : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
       Function_Tok  : constant Token_Pkg.Class := Token_Pkg.Get (Function_ID);
@@ -180,10 +184,11 @@ package body Trivial_Productions_Test is
         (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
          LALR_Generator.Generate
            (Grammar,
-            Trace       => Test_Case (Test).Debug,
-            Put_Parse_Table => Test_Case (Test).Debug));
+            Trace       => Test.Debug,
+            Put_Parse_Table => Test.Debug));
 
       Feeder.Set (Text);
+      FastToken.Trace_Parse := (if Test.Debug then 1 else 0);
       Parser.Parse;
 
    end Subprograms;

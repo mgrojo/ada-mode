@@ -24,11 +24,11 @@ pragma License (Modified_GPL);
 with FastToken.Production;
 with FastToken.Parser.LRk_Item;
 generic
-   Token_Image_Width : Integer;
+   EOF_Token : in Token_Pkg.Token_ID;
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LR.LALR_Generator is
 
-   package LR1 is new FastToken.Parser.Lrk_Item (Unknown_State_Index, Unknown_State, 1, Nonterminal, Production);
+   package LR1_Items is new FastToken.Parser.Lrk_Item (Unknown_State_Index, Unknown_State, 1, Nonterminal, Production);
 
    function Generate
      (Grammar                  : in Production.List.Instance;
@@ -58,23 +58,20 @@ package FastToken.Parser.LR.LALR_Generator is
    ----------
    --  Visible for unit tests
 
-   procedure Put (State : in Parse_State);
-
    procedure Fill_In_Lookaheads
      (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1.Nonterminal_ID_Set;
-      First                : in     LR1.Derivation_Matrix;
-      Kernels              : in out LR1.Item_Set_List;
+      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      First                : in     LR1_Items.Derivation_Matrix;
+      Kernels              : in out LR1_Items.Item_Set_List;
       Accept_State         : in     State_Index;
       Used_Tokens          : in out Token.Token_Array_Boolean;
       Trace                : in     Boolean);
 
    procedure Add_Actions
-     (Kernel               : in     LR1.Item_Set_Ptr;
-      Accept_State         : in     State_Index;
+     (Kernel               : in     LR1_Items.Item_Set_Ptr;
       Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1.Nonterminal_ID_Set;
-      First                : in     LR1.Derivation_Matrix;
+      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      First                : in     LR1_Items.Derivation_Matrix;
       Conflicts            : in out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean);

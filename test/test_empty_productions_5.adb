@@ -53,8 +53,9 @@ package body Test_Empty_Productions_5 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -82,14 +83,14 @@ package body Test_Empty_Productions_5 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, ACCEPT_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
-     LALR_Generator.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
+     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1.Derivation_Matrix :=
-     LALR_Generator.LR1.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
+     LALR_Generator.LR1_Items.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
@@ -97,7 +98,7 @@ package body Test_Empty_Productions_5 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1;
+      use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
       Kernel : constant Item_Set := Get_Item_Set
@@ -105,7 +106,7 @@ package body Test_Empty_Productions_5 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generator.LR1.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generator.LR1_Items.Lookahead_Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -141,7 +142,7 @@ package body Test_Empty_Productions_5 is
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.LR1.Put (Expected);
+         LALR_Generator.LR1_Items.Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 

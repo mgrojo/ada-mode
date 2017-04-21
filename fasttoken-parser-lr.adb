@@ -28,6 +28,7 @@
 pragma License (GPL);
 
 with Ada.Strings.Fixed;
+with Ada.Text_IO;
 package body FastToken.Parser.LR is
 
    function State_Image (Item : in State_Index) return String
@@ -37,5 +38,136 @@ package body FastToken.Parser.LR is
    begin
       return Trim (State_Index'Image (Item), Both);
    end State_Image;
+
+   procedure Add_Action
+     (State       : in out LR.Parse_State;
+      Symbol      : in     Token_Pkg.Token_ID;
+      State_Index : in     LR.State_Index)
+   is
+      Action : constant Parse_Action_Rec := (Shift, State_Index);
+   begin
+      State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);
+   end Add_Action;
+
+   procedure Add_Action
+     (State           : in out LR.Parse_State;
+      Symbol          : in     Token_Pkg.Token_ID;
+      Verb            : in     LR.Parse_Action_Verbs;
+      LHS_ID          : in     Token_Pkg.Token_ID;
+      RHS_Token_Count : in     Natural;
+      Synthesize      : in     Nonterminal.Synthesize)
+   is
+      Action : Parse_Action_Rec;
+      LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));
+   begin
+      case Verb is
+      when Reduce =>
+         Action := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);
+      when Accept_It =>
+         Action := (Accept_It, LHS, Synthesize, 0, RHS_Token_Count);
+      when others =>
+         null;
+      end case;
+      State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);
+   end Add_Action;
+
+   procedure Add_Action
+     (State  : in out LR.Parse_State;
+      Symbol : in     Token_Pkg.Token_ID)
+   is
+      Action : constant Parse_Action_Rec := (Verb => Error);
+      Node   : Action_Node_Ptr           := State.Action_List;
+   begin
+      loop
+         exit when Node.Next = null;
+         Node := Node.Next;
+      end loop;
+      Node.Next := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
+   end Add_Action;
+
+   procedure Add_Goto
+     (State    : in out LR.Parse_State;
+      Symbol   : in     Token_Pkg.Token_ID;
+      To_State : in     LR.State_Index)
+   is begin
+      State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);
+   end Add_Goto;
+
+   procedure Put (Item : in Parse_Action_Rec)
+   is
+      use Ada.Text_IO;
+   begin
+      case Item.Verb is
+      when Shift =>
+         Put ("shift and goto state" & State_Index'Image (Item.State));
+
+      when Reduce =>
+         Put
+           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
+      when Accept_It =>
+         Put ("accept it");
+      when Error =>
+         Put ("ERROR");
+      end case;
+   end Put;
+
+   procedure Put (Action : in Parse_Action_Node_Ptr)
+   is
+      use Ada.Text_IO;
+      Ptr    : Parse_Action_Node_Ptr   := Action;
+      Column : constant Positive_Count := Col;
+   begin
+      loop
+         Put (Ptr.Item);
+         Ptr := Ptr.Next;
+         exit when Ptr = null;
+         Put_Line (",");
+         Set_Col (Column);
+      end loop;
+   end Put;
+
+   procedure Put (State : in Parse_State)
+   is
+      use Ada.Text_IO;
+      use Ada.Strings.Fixed;
+      Action_Ptr : Action_Node_Ptr := State.Action_List;
+      Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
+   begin
+      while Action_Ptr /= null loop
+         if Action_Ptr.Next = null then
+            Put ("   default" & (Token_Image_Width - 7) * ' ' & " => ");
+            Put (Action_Ptr.Action);
+            New_Line;
+         else
+            Put ("   " & Token.Token_Image (Action_Ptr.Symbol) &
+                   (Token_Image_Width - Token.Token_Image (Action_Ptr.Symbol)'Length) * ' '
+                   & " => ");
+            Put (Action_Ptr.Action);
+            New_Line;
+         end if;
+         Action_Ptr := Action_Ptr.Next;
+      end loop;
+
+      New_Line;
+
+      while Goto_Ptr /= null loop
+         Put_Line
+           ("   " & Token.Token_Image (Goto_Ptr.Symbol) &
+              (Token_Image_Width - Token.Token_Image (Goto_Ptr.Symbol)'Length) * ' ' &
+              " goto state" & State_Index'Image (Goto_Ptr.State));
+         Goto_Ptr := Goto_Ptr.Next;
+      end loop;
+   end Put;
+
+   procedure Put (Table : in Parse_Table)
+   is
+      use Ada.Text_IO;
+   begin
+      for State in Table'Range loop
+         Put_Line ("State" & State_Index'Image (State) & ":");
+         Put (Table (State));
+         New_Line;
+      end loop;
+   end Put;
 
 end FastToken.Parser.LR;

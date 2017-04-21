@@ -3,7 +3,7 @@
 --  see spec
 --
 --
---  Copyright (C) 2009, 2014, 2015 Stephe Leake
+--  Copyright (C) 2009, 2014, 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -246,7 +246,14 @@ package body FastToken.Token is
       begin
          loop
             exit when I = Null_Iterator;
-            Put_Trace (Token_Handle (I).Image);
+            if Token_Handle (I) = null
+            then
+               --  This is certainly a bug, but it's easier to find
+               --  from this output than an exception.
+               Put_Trace ("error: null token");
+            else
+               Put_Trace (Token_Handle (I).Image);
+            end if;
             Next_Token (I);
             if I /= Null_Iterator then
                Put_Trace (", ");

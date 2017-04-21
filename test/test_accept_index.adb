@@ -53,10 +53,11 @@ package body Test_Accept_Index is
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
    First_Parser_Label : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Generators is new LR.LALR_Generator (Token_Image_Width, Production);
+   package Generators is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Define all our tokens
    Equals : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);

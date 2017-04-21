@@ -32,7 +32,9 @@ procedure Wisi.Output_Elisp
    Rules             : in Rule_Lists.List;
    First_State_Index : in Integer)
 is
-   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF"; -- must match wisi-output_ada_emacs for tests.
+   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
+   --  See comments in wisi-output_ada_emacs.adb EOI_Name for what
+   --  this must match.
 
    FastToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
@@ -109,12 +111,7 @@ is
                if 0 = Length (Token.Value) then
                   Put_Line ("      (" & (-Token.Name) & ")");
                else
-                  if -Kind.Kind = """number""" then
-                     --  allow for (<token> <number-p> <require>)
-                     Put_Line ("      (" & (-Token.Name) & " " & (-Token.Value) & ")");
-                  else
-                     Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
-                  end if;
+                  Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
                end if;
             end loop;
             Put_Line ("     )");

@@ -36,7 +36,8 @@ package body Parser_Lists_Test is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);
 
    --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.

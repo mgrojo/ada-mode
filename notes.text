@@ -7,20 +7,18 @@ build/release_process.text
 
  current work
 
-rename lalr stuff:
-        parser.lr
-        parser.lr.lalr_generator
-                 .lr1_generator
-                 .parser
-
-        parser.packrat
-                      .generator
-                      .parser
-
-    running all tests
+write test for example 4.45 LALR
+    written, failing
 
 add LR1 table generator
-    copy lalr tests
+    write test for example 4.43
+
+    LR algorithm in red dragon 4.10; LALR in 4.11
+        LALR extracts LR1 item cores; skip that step in Kernels
+
+    factor out common code to parser-lr-generator_utils
+
+    copy lalr tests?
 
 add syntax error handling
 

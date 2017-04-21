@@ -2,7 +2,7 @@
 --
 --  Types and operatorion for LR(k) items.
 --
---  Copyright (C) 2003, 2008, 2013-2015 Stephe Leake
+--  Copyright (C) 2003, 2008, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -175,7 +175,8 @@ package FastToken.Parser.LRk_Item is
       Trace                : in Boolean)
      return Derivation_Matrix;
    --  For each nonterminal in the given grammar, find the set of
-   --  tokens that its first term could start with.
+   --  tokens (terminal or nonterminal) that its first term could
+   --  start with.
 
    function Lookahead_Closure
      (Set                  : in Item_Set;
@@ -196,9 +197,10 @@ package FastToken.Parser.LRk_Item is
    procedure Free (Subject : in out Item_Set);
    procedure Free (Subject : in out Item_Set_List);
 
-   function LR0_Kernels
+   function Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Derivation_Matrix;
+      EOF_Token         : in Token.Token_ID;
       Trace             : in Boolean;
       First_State_Index : in Unknown_State_Index)
      return Item_Set_List;

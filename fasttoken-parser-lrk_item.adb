@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2002, 2003, 2008, 2009, 2012, 2013, 2014, 2015 Stephe Leake
+--  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -605,10 +605,10 @@ package body FastToken.Parser.LRk_Item is
    end Lookahead_Closure;
 
    function Goto_Transitions
-     (Kernel               : in Item_Set;
-      Symbol               : in Token.Token_ID;
-      First                : in Derivation_Matrix;
-      Grammar              : in Production.List.Instance)
+     (Kernel  : in Item_Set;
+      Symbol  : in Token.Token_ID;
+      First   : in Derivation_Matrix;
+      Grammar : in Production.List.Instance)
      return Item_Set
    is
       use Token.List;
@@ -633,7 +633,7 @@ package body FastToken.Parser.LRk_Item is
                Goto_Set.Set := new Item_Node'
                  (Prod       => Item.Prod,
                   Dot        => Next_Token (Item.Dot),
-                  State      => Unknown_State, -- replaced in LR0_Kernels
+                  State      => Unknown_State, -- replaced in Kernels
                   Lookaheads => Item.Lookaheads,
                   Next       => Goto_Set.Set);
             end if;
@@ -657,7 +657,7 @@ package body FastToken.Parser.LRk_Item is
                            New_Item : constant Item_Node :=
                              (Prod       => Prod,
                               Dot        => Next_Token (RHS_I),
-                              State      => Unknown_State, -- replaced in LR0_Kernels
+                              State      => Unknown_State, -- replaced in Kernels
                               Lookaheads => null,
                               Next       => Goto_Set.Set);
                         begin
@@ -726,13 +726,17 @@ package body FastToken.Parser.LRk_Item is
       end loop;
    end Free;
 
-   function LR0_Kernels
+   function Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Derivation_Matrix;
+      EOF_Token         : in Token.Token_ID;
       Trace             : in Boolean;
       First_State_Index : in Unknown_State_Index)
      return Item_Set_List
    is
+      use type Token.List.List_Iterator;
+      use type Token.Token_ID;
+
       Kernel_List : Item_Set_List :=
         (Head         => new Item_Set'
            (Set       => new Item_Node'
@@ -768,7 +772,16 @@ package body FastToken.Parser.LRk_Item is
 
             for Symbol in Token.Token_ID loop
 
-               New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
+               if Checking_Set.Set.Dot /= Token.List.Null_Iterator and then
+                (Symbol = EOF_Token and
+                   Token.List.ID (Checking_Set.Set.Dot) = EOF_Token)
+               then
+                  --  This is the start symbol accept production;
+                  --  don't need a kernel with dot after EOF.
+                  New_Items.Set := null;
+               else
+                  New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
+               end if;
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then
@@ -838,7 +851,7 @@ package body FastToken.Parser.LRk_Item is
       end if;
 
       return Kernel_List;
-   end LR0_Kernels;
+   end Kernels;
 
    function Token_Name (Subject : in Token.Handle) return String is
    begin

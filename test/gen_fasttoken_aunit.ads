@@ -25,17 +25,18 @@ with FastToken.Production;
 with FastToken.Token.Nonterminal;
 generic
    type Token_ID is (<>);
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
+   First_Terminal    : in Token_ID;
+   Last_Terminal     : in Token_ID;
+   EOF_Token         : in Token_ID;
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
    with package Nonterminal is new Token_Pkg.Nonterminal;
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    with package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Nonterminal => Nonterminal);
-   with package Generators is new LR.LALR_Generator (Token_ID'Width, Production);
-   Grammar : in Production.List.Instance;
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal => Nonterminal);
+   with package Generators is new LR.LALR_Generator (EOF_Token, Production);
+   Grammar           : in Production.List.Instance;
 package Gen_FastToken_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Token_ID);
@@ -51,50 +52,80 @@ package Gen_FastToken_AUnit is
       Expected : in Production.Instance);
 
    procedure Check
-     (Label    : in String;
-      Computed : in Generators.LR1.Item_Lookahead_Ptr;
-      Expected : in Generators.LR1.Item_Lookahead_Ptr);
+     is new AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Boolean,
+      Index_Type  => Token_ID,
+      Array_Type  => Generators.LR1_Items.Token_ID_Set,
+      Check_Index => Check,
+      Check_Item  => AUnit.Checks.Check);
+
+   procedure Check
+     is new AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Generators.LR1_Items.Token_ID_Set,
+      Index_Type  => Parser_Root.Nonterminal_ID,
+      Array_Type  => Generators.LR1_Items.Derivation_Matrix,
+      Check_Index => Check,
+      Check_Item  => Check);
 
    procedure Check
      (Label    : in String;
-      Computed : in Generators.LR1.Item_Ptr;
-      Expected : in Generators.LR1.Item_Ptr);
+      Computed : in Generators.LR1_Items.Item_Lookahead_Ptr;
+      Expected : in Generators.LR1_Items.Item_Lookahead_Ptr);
 
    procedure Check
      (Label    : in String;
-      Computed : in Generators.LR1.Item_Set;
-      Expected : in Generators.LR1.Item_Set);
+      Computed : in Generators.LR1_Items.Item_Ptr;
+      Expected : in Generators.LR1_Items.Item_Ptr);
 
    procedure Check
      (Label    : in String;
-      Computed : in Generators.LR1.Set_Reference_Ptr;
-      Expected : in Generators.LR1.Set_Reference_Ptr);
+      Computed : in Generators.LR1_Items.Item_Set;
+      Expected : in Generators.LR1_Items.Item_Set);
+
+   function "&" (Left, Right : in Generators.LR1_Items.Set_Reference) return Generators.LR1_Items.Set_Reference_Ptr;
+   function "&"
+     (Left  : in Generators.LR1_Items.Set_Reference_Ptr;
+      Right : in Generators.LR1_Items.Set_Reference)
+     return Generators.LR1_Items.Set_Reference_Ptr;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Generators.LR1_Items.Set_Reference_Ptr;
+      Expected : in Generators.LR1_Items.Set_Reference_Ptr);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Generators.LR1_Items.Item_Set_Ptr;
+      Expected : in Generators.LR1_Items.Item_Set_Ptr);
 
    function Get_Production (Prod : in Integer) return Production.Instance;
    --  Return Prod production in Grammar.
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in Generators.LR1.Item_Lookahead_Ptr;
+      Lookaheads : in Generators.LR1_Items.Item_Lookahead_Ptr;
       Dot        : in Integer;
-      Next       : in Generators.LR1.Item_Ptr := null;
+      Next       : in Generators.LR1_Items.Item_Ptr := null;
       State      : in LR.Unknown_State_Index  := LR.Unknown_State)
-     return Generators.LR1.Item_Ptr;
-   --  Construct an LR1 item with Prod from Grammar, Dot before token
+     return Generators.LR1_Items.Item_Ptr;
+   --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
+
+   function "+" (Item : in Generators.LR1_Items.Item_Ptr) return Generators.LR1_Items.Item_Set_Ptr;
 
    function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
-      Next : in Generators.LR1.Item_Set_Ptr)
-     return Generators.LR1.Item_Set;
-   --  Construct an LR1 item_set with Prod from Grammar, Dot before
+      Next : in Generators.LR1_Items.Item_Set_Ptr)
+     return Generators.LR1_Items.Item_Set;
+   --  Construct an LR1_Items item_set with Prod from Grammar, Dot before
    --  token Dot (1 indexed; use last + 1 for after last), null lookaheads
    --  and goto_list.
 
    type Token_Array is array (Positive range <>) of Token_ID;
 
-   function "+" (Item : in Token_Array) return Generators.LR1.Item_Lookahead_Ptr;
+   function "+" (Item : in Token_ID) return Generators.LR1_Items.Item_Lookahead_Ptr;
+   function "+" (Item : in Token_Array) return Generators.LR1_Items.Item_Lookahead_Ptr;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Parse_Action_Verbs);
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Unknown_State_Index);
@@ -114,5 +145,10 @@ package Gen_FastToken_AUnit is
      (Label    : in String;
       Computed : in LR.Parse_State;
       Expected : in LR.Parse_State);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LR.Parse_Table;
+      Expected : in LR.Parse_Table);
 
 end Gen_FastToken_AUnit;

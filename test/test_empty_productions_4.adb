@@ -51,8 +51,9 @@ package body Test_Empty_Productions_4 is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index => 1, Nonterminal => Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -77,11 +78,11 @@ package body Test_Empty_Productions_4 is
      Nonterminal.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR_Generator.LR1.Nonterminal_ID_Set :=
-     LALR_Generator.LR1.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
+     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1.Derivation_Matrix :=
-     LALR_Generator.LR1.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
+     LALR_Generator.LR1_Items.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
