@@ -61,9 +61,9 @@
 	 ;; from ada-identifier-at-point; no identifier
 	 nil))))
 
-(defun xref-backend-identifer-completion-table ((_backend (eql xref-ada)))
-  "For `xref-identifier-completion-table-function'."
+(cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
   ;; IMPROVEME: implement gpr or asis backend
+  ;; returning nil allows entering identifier without completion.
    nil)
 
 (define-minor-mode xref-ada-mode ()
