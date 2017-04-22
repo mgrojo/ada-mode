@@ -92,17 +92,6 @@ point at which that max was spawned.")
      'error-message
      "wisi parse error")
 
-(defvar-local wisi--cache-max
-  (list
-   (cons 'face nil)
-   (cons 'navigate nil)
-   (cons 'indent nil))
-  "Alist of maximimum position in buffer where parser text properties are valid.")
-
-(defun wisi-cache-max (&optional parse-action)
-  ;; (move-marker (wisi-cache-max) foo) works
-  (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max)))
-
 (cl-defstruct wisi-tok
   token  ;; symbol from a token table
   region ;; cons giving buffer region containing token text
@@ -398,13 +387,9 @@ nil, `shift', or `accept'."
   active-parser-count)
 
 (defun wisi-parse-exec-action (func nonterm tokens)
-  "Execute action if all tokens past wisi-cache-max."
-  ;; We don't execute actions if all tokens are before wisi-cache-max,
-  ;; because later actions can update existing caches, and if the
-  ;; parse fails that won't happen. It also saves time.
-  ;;
-  ;; Also skip if no tokens; nothing to do. This can happen when all
-  ;; tokens in a grammar statement are optional.
+  "Execute action if TOKENS not null."
+  ;; `tokens' is null when all tokens in a grammar statement are
+  ;; optional and not present.
   (if (< 0 (length tokens))
       (when wisi--parse-action
 	(funcall func nonterm tokens))

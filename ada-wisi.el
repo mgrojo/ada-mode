@@ -538,7 +538,10 @@ Also return cache at start."
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
 	  ((motion statement-end)
-	   (setq cache (wisi-prev-statement-cache cache)))
+	   (goto-char
+	    (1- (or (wisi-cache-prev cache)
+		    (wisi-cache-containing cache))))
+	   (setq cache (wisi-get-cache (point))))
 
 	  (statement-start
 	   (if first
@@ -575,6 +578,11 @@ Also return cache at start."
 	   (setq cache (wisi-goto-containing cache t)))
 	  ))
       (setq first nil))
+
+    ;; point is at start of first code statement after
+    ;; declaration-start keyword and comment; move back to end of
+    ;; keyword.
+    (while (forward-comment -1))
     ))
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)

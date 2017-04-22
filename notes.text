@@ -99,7 +99,14 @@ test/debug.ads
 
  current issues:
 
-move wisi-max-cache out of wisi-parse.el
+apply gpr-query changes to main
+    propagate
+
+indent cache
+    set "indent to" cache on each line
+        indent-region always applies the caches in each line
+            time that; if too slow, add 'applied' to cache?
+
 
 bad indent:
                         Append
@@ -110,30 +117,22 @@ bad indent:
 
     last line should be indented
 
-indent max-cache doesn't work
-    if only indent one line, cache marks whole buffer as indented
-
-    set "indented" cache on each line?
-    set wisi-parse-try if interactive?
-
-    set align-indent-before false?
-
 indent is slow
     inhibit change hooks while indenting/aligning?
-
-    skip computing indent in nonterms not in indent region.
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
         don't loop thru lines more than once?
 
-    on 5 var decl in smm-server.adb
-    calls parser to navigate, then indent
-        could do both at once
-        or do navigate in font-lock parse
+    align 5 variable declarations in smm-server.adb
+        calls parser to navigate, then indent
+            could do both at once
+            or do navigate in font-lock parse
+
+        align calls indent on different regions once for each rule; need per-line cache
 
     indent compute only lines needed
-        skip nonterms that don't overlap
+        skip nonterms that don't overlap indent region
 
     delete 'end' processing, use next-statement-keyword to look for 'end'?
 

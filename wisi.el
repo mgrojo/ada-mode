@@ -31,6 +31,8 @@
 
 ;;;; History: see NEWS-wisi.text
 ;;
+;;;; Design:
+;;
 ;; 'wisi' was originally short for "wisent indentation engine", but
 ;; now is just a name. wisi was developed to support Emacs ada-mode
 ;; 5.0 indentation, font-lock, and navigation, which are parser based.
@@ -39,39 +41,36 @@
 ;; computing a delta indent at each parse action.
 ;;
 ;; The parser actions also cache face and navigation information
-;; as text properties of tokens in statements.
+;; as text properties on tokens in statements.
 ;;
 ;; The three reasons to run the parser (indent, face, navigate) occur
 ;; at different times (user indent, font-lock, user navigate), so only
 ;; the relevant parser actions are run.
 ;;
 ;; Since we have a cache (the text properties), we need to consider
-;; when to invalidate it.  Ideally, we invalidate only when a change to
-;; the buffer would change the result of a parse that crosses that
+;; when to invalidate it.  Ideally, we invalidate only when a change
+;; to the buffer would change the result of a parse that crosses that
 ;; change, or starts after that change.  Changes in whitespace
 ;; (indentation and newlines) do not affect an Ada parse.  Other
 ;; languages are sensitive to newlines (Bash for example) or
 ;; indentation (Python).  Adding comments does not change a parse,
-;; unless code is commented out.  For now we invalidate the cache after
-;; the edit point if the change involves anything other than
-;; whitespace.
+;; unless code is commented out.
 ;;
-;;; Handling parse errors:
+;; For font-lock and navigate, keeping track of the point after which
+;; caches have been deleted is sufficent (see `wisi-cache-max').
 ;;
-;; When a parse fails, the cache information before the failure point
-;; is only partly correct, and there is no cache information after the
-;; failure point.
+;; For indenting, we cache the indent for each line in a text property
+;; on the newline char preceding the line. `wisi-indent-region' sets
+;; the cache on all the lines computed (normally the whole buffer),
+;; but performs the indent only on the lines in the indent
+;; region. Subsequent calls to `wisi-indent-region' apply the cached
+;; indents. Non-whitespace edits to the buffer invalidate the indent
+;; caches in the edited region and after.
 ;;
-;; However, in the case where a parse previously succeeded, and the
-;; current parse fails due to editing, we keep the preceding cache
-;; information by setting wisi-cache-max to the edit point in
-;; wisi-before change; the parser does not apply actions before that
-;; point.
+;; See `wisi--post-change' for the details of what we check for
+;; invalidating.
 ;;
-;; This allows navigation in the text preceding the edit point, and
-;; saves some time.
-;;
-;;;; grammar compiler and parser
+;;;; Choice of grammar compiler and parser
 ;;
 ;; There are two other parsing engines available in Emacs:
 ;;
@@ -91,19 +90,19 @@
 ;; We use OpenToken wisi-generate to compile BNF to Elisp source, and
 ;; wisi-compile-grammar to compile that to the parser table. See
 ;; ada-mode info for more information on the developer tools used for
-;; ada-mode.
+;; ada-mode and wisi.
 ;;
 ;;;; syntax-propertize
 ;;
 ;; `wisi-forward-token' relies on syntax properties, so
-;; syntax-propertize must be called on the text to be lexed before
+;; `syntax-propertize' must be called on the text to be lexed before
 ;; wisi-forward-token is called.
 ;;
 ;; Emacs >= 25 calls syntax-propertize transparently in the low-level
 ;; lexer functions.
 ;;
-;; In Emacs < 25, We call syntax-propertize in wisi-setup, and in
-;; wisi--post-change.
+;; In Emacs < 25, we call syntax-propertize in wisi-setup, and in
+;; `wisi--post-change'.
 ;;
 ;;;;;
 
@@ -189,10 +188,6 @@ invalid temporarily, or when making lots of changes.")
 
   line-begin ;; vector of beginning-of-line positions in buffer
   last-line ;; index into line-begin of line containing last lexed token
-
-  ;; Possible optimization; limit `indent' to lines in indent region,
-  ;; dynamically expanded to include 'anchored; don't compute indent
-  ;; for lines not being indented.
   )
 
 (defvar wisi--indent
@@ -470,6 +465,17 @@ wisi-forward-token, but does not look up symbol."
 (defun wisi-set-parse-try (value &optional parse-action)
   (setcdr (assoc (or parse-action wisi--parse-action) wisi--parse-try) value))
 
+(defvar-local wisi--cache-max
+  (list
+   (cons 'face nil)
+   (cons 'navigate nil)
+   (cons 'indent nil))
+  "Alist of maximimum position in buffer where parser text properties are valid.")
+
+(defun wisi-cache-max (&optional parse-action)
+  ;; Don't need 'wisi-set-cache-max; (move-marker (wisi-cache-max) foo) works
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max)))
+
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
@@ -490,7 +496,7 @@ wisi-forward-token, but does not look up symbol."
 	  (goto-char after)
 	  (line-beginning-position)))
   (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%s:%d" action (current-buffer) after))
-  (move-marker (wisi-cache-max action) after)
+  (move-marker (wisi-cache-max action) (min after (wisi-cache-max action)))
   (wisi-set-parse-try t action)
   (cond
    ((eq 'face action)
@@ -988,15 +994,7 @@ vector [number token_id token_id ...]:
 		(setq mark (copy-marker (1+ (car region))))
 
 		(if prev-keyword-mark
-		    (when
-			;; Don't include this token if prev/next
-			;; already set by a lower level statement. We
-			;; do override if terminal, to recover after
-			;; edit.
-			(or (null (wisi-tok-nonterminal token))
-			    (and
-			     (null (wisi-cache-prev cache))
-			     (null (wisi-cache-next prev-cache))))
+		    (progn
 		      (setf (wisi-cache-prev cache) prev-keyword-mark)
 		      (setf (wisi-cache-next prev-cache) mark)
 		      (setq prev-keyword-mark mark)
