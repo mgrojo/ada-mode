@@ -2551,6 +2551,7 @@ is currently in.  Called with no parameters.")
 
 (defun ada-goto-declarative-region-start ()
   "Call `ada-goto-declarative-region-start'."
+  (interactive)
   (when ada-goto-declarative-region-start
     (funcall ada-goto-declarative-region-start)))
 

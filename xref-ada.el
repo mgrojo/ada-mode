@@ -17,6 +17,14 @@
 	 (column (plist-get t-prop ':column))
 	 )
 
+    ;; t-prop is nil when identifier is from prompt
+
+    (unless file
+      ;; WORKARUND: gpr-query-other requires a non-nil file arg.
+      ;; Should prompt for file with identifier, or improve gpr-query to handle nil file.
+      ;; For now, use current buffer file; will search spec and body (a common use case).
+      (setq file (buffer-file-name)))
+
     (ada-check-current-project file)
 
     (when (null ada-xref-other-function)
@@ -53,10 +61,10 @@
 	 ;; from ada-identifier-at-point; no identifier
 	 nil))))
 
-;; (defun xref-ada-identifer-completion-table (identifer)
-;;   "For `xref-identifier-completion-table-function'."
-;;   ;; IMPROVEME: implement gpr or asis backend
-;;    nil)
+(defun xref-backend-identifer-completion-table ((_backend (eql xref-ada)))
+  "For `xref-identifier-completion-table-function'."
+  ;; IMPROVEME: implement gpr or asis backend
+   nil)
 
 (define-minor-mode xref-ada-mode ()
   "Use xref-ada functions."
