@@ -6,6 +6,9 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 
 * Ada mode 5.2.2
 
+** xref-ada allows entering an identifier to search for without
+   completion. The search is only in the current file.
+
 ** ada-show-references, ada-show-local-references now take an 'append'
    argument, set by interactive prefix; if non-nil, preserve previous
    output in references buffer.

@@ -93,7 +93,7 @@ For `compilation-filter-hook'."
 	     (list
 	      (match-string-no-properties 2); file
 	      (string-to-number (match-string-no-properties 3)); line
-	      1)); column
+	      0)); Emacs column; zero indexed
 	    ))
 
 	(when (search-forward-regexp "\\(at line \\)\\([0-9]+\\)" (line-end-position) t)
