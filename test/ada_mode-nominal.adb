@@ -407,10 +407,16 @@ is -- target 0
    with
      Storage_Size => 512 + 256,
      Priority => 5;
+   --EMACSCMD:(progn (ada-which-function))
+   --EMACSRESULT:"Executive"
+
    task body Executive is -- target 5
    begin
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
       --EMACSRESULT:t
+
+      --EMACSCMD:(progn (ada-which-function))
+      --EMACSRESULT:"Executive"
 
       null;
    end Executive;

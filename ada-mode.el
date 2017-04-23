@@ -1967,10 +1967,10 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
   ;; been set by ff-treat-special; don't reset it.
   "Function called with no parameters; it should return the name
 of the package, protected type, subprogram, or task type whose
-definition/declaration point is in or just after, or nil.  In
-addition, if ff-function-name is non-nil, store in
-ff-function-name a regexp that will find the function in the
-other file.")
+definition/declaration point is in, or for declarations that
+don't have declarative regions, just after; or nil.  In addition,
+if `ff-function-name' is non-nil, store in `ff-function-name' a
+regexp that will find the function in the other file.")
 
 (defun ada-which-function ()
   "See `ada-which-function' variable."
@@ -2764,6 +2764,8 @@ The paragraph is indented on the first line."
   (setq local-abbrev-table ada-mode-abbrev-table)
 
   (set (make-local-variable 'syntax-propertize-function) 'ada-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; reparse with new function
+
   (when (boundp 'syntax-begin-function)
     ;; obsolete in emacs-25.1
     (set (make-local-variable 'syntax-begin-function) nil))
@@ -2836,10 +2838,6 @@ The paragraph is indented on the first line."
 
   (run-mode-hooks 'ada-mode-hook)
 
-  ;; If global-font-lock is not enabled, ada-syntax-propertize is
-  ;; not run when the text is first loaded into the buffer. Recover
-  ;; from that.
-  (syntax-ppss-flush-cache (point-min))
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
