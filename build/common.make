@@ -137,6 +137,9 @@ gpr-skel.gpr.tmp :
 %.diff : % %.tmp
 	-diff -u $< $*.tmp > $*.diff
 
+%.diff-run : % %.tmp
+	-diff -u $< $*.tmp
+
 .PRECIOUS : %.tmp
 
 autoloads : force

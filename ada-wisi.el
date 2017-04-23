@@ -1325,7 +1325,7 @@ Also return cache at start."
 		      null_procedure_declaration)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
-		    (task_type_declaration
+		    ((single_task_declaration task_body task_type_declaration)
 		     (eq (wisi-cache-token cache) 'TASK))
 
 		    ))
@@ -1596,9 +1596,12 @@ Also return cache at start."
 			   (wisi-cache-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
 			   nil)))
 
-	    (task_type_declaration
+	    ((single_task_declaration task_type_declaration)
 	     (setq result (ada-wisi-which-function-1 "task" t)))
 
+
+	    (task_body
+	     (setq result (ada-wisi-which-function-1 "task" nil)))
 	    ))
 	result))
     ))

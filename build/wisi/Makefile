@@ -50,10 +50,13 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-one : RUNTEST := run-indent-test-gps.el
-one-clean:
-	rm -f ada_gps_bug_005.adb*
-one : one-clean ada_gps_bug_005.adb.diff
+ONE_TEST_FILES += ada_mode-nominal.adb
+#ONE_TEST_FILES += ada_mode-nominal.ads
+one : RUNTEST := run-indent-test-wisi-gpr_query.el
+one : update
+one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+one-clean: force
+	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
