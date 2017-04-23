@@ -789,11 +789,9 @@ Also return cache at start."
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
   (interactive)
-  (define-key ada-mode-map "\M-e" 'wisi-show-parse-error)
   (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key ada-mode-map "\M-i" 'wisi-goto-statement-end)
+  (define-key ada-mode-map "\M-i" 'wisi-show-indent)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
-  (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
 (defun ada-wisi-number-p (token-text)

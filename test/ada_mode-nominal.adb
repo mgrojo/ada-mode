@@ -54,13 +54,13 @@ is -- target 0
      return access
        Standard.Float
    is -- target 1
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "-- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
       use type Standard.Float;
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "-- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
    begin
-      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "-- target 1"))
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 1"))
       --EMACSRESULT:t
       if A_Param > 0.0 then
          -- EMACSCMD:(test-face "new" font-lock-keyword-face)
@@ -409,8 +409,8 @@ is -- target 0
      Priority => 5;
    task body Executive is -- target 5
    begin
-         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
-         --EMACSRESULT:t
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 5"))
+      --EMACSRESULT:t
 
       null;
    end Executive;
@@ -505,8 +505,8 @@ is -- target 0
    procedure Procedure_1f (Item : in out Parent_Type_1)
    is -- target 6
    begin
-         --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 6"))
-         --EMACSRESULT:t
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 6"))
+      --EMACSRESULT:t
       null;
    end Procedure_1f;
 
@@ -517,8 +517,10 @@ is -- target 0
       --  complex attribute argument
       raise Constraint_Error with Ada.Text_IO.Count'Image (Line (File)) &
         "foo";
+      --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 7"))
+      --EMACSRESULT:t
    end;
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 7"))
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
    --EMACSRESULT:t
 
    function Function_1a return Float

@@ -94,19 +94,23 @@ wisi-indent-region:
    new-indent
    ))
 
-test/debug.adb
-test/debug.ads
-
+(setq ada-gps-size-threshold most-positive-fixnum)
+(setq wisi-disable-face t)
+(setq wisi-indent-region-fallback nil)
  current issues:
 
-apply gpr-query changes to main
-    propagate
+ada-which-function wrong
+    ada_mode-nominal.adb Executive
+        got 'body'
+
+    ada_mode-nominal.adb after procedure_2a
+        got 'procedure_2a'
 
 indent cache
-    set "indent to" cache on each line
-        indent-region always applies the caches in each line
-            time that; if too slow, add 'applied' to cache?
+    time indent without parse; if too slow, add 'applied' to cache?
 
+disable or use electric-indent-post-self-insert-function
+    called during ada-indent-newline-indent
 
 bad indent:
                         Append
@@ -118,7 +122,6 @@ bad indent:
     last line should be indented
 
 indent is slow
-    inhibit change hooks while indenting/aligning?
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
@@ -133,6 +136,7 @@ indent is slow
 
     indent compute only lines needed
         skip nonterms that don't overlap indent region
+        significantly complicates cache valid, wisi-cache-try algorithm
 
     delete 'end' processing, use next-statement-keyword to look for 'end'?
 
