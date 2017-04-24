@@ -101,32 +101,22 @@ can abandon parse when reach desired point (not just for errors)
 
  indent issues
 
-indent max-cache doesn't work
-    if only indent one line, cache marks whole buffer as indented
-
-    set "indented" cache on each line?
-    set wisi-parse-try if interactive?
-
-    set align-indent-before false?
-
 indent is slow
-    add 'byte-compile' to wisi-compile-grammar
-
-    inhibit change hooks while indenting/aligning?
-
-    skip computing indent in nonterms not in indent region.
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
         don't loop thru lines more than once?
 
-    on 5 var decl in smm-server.adb
-    calls parser to navigate, then indent
-        could do both at once
-        or do navigate in font-lock parse
+    align 5 variable declarations in smm-server.adb
+        calls parser to navigate, then indent
+            could do both at once
+            or do navigate in font-lock parse
+
+        align calls indent on different regions once for each rule; need per-line cache
 
     indent compute only lines needed
-        skip nonterms that don't overlap
+        skip nonterms that don't overlap indent region
+        significantly complicates cache valid, wisi-cache-try algorithm
 
     delete 'end' processing, use next-statement-keyword to look for 'end'?
 
@@ -175,6 +165,18 @@ time indent
             wisi first line: per iteration 2.594025, 2.562731, 2.578430
             wisi middle line: per iteration 2.562810, 2.791537, 2.750257
             wisi last line: per iteration 2.750262, 2.750256
+
+        apr 17 add byte-compile in wisi-semantic-action
+            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
+
+        apr 23 add indent cache
+            indent second line cold cache: (wisi-time-indent-line-cold-cache 2)
+            indent second line warm cache: (wisi-time-indent-line-warm-cache 2 100)
+            middle line: 3500
+            last line:   7251
+
+            second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
 
 time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)

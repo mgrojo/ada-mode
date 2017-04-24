@@ -455,7 +455,8 @@ Enable mode if ARG is positive."
     (gpr-query--start-process session)))
 
 (defun gpr-query-other (identifier file line col)
-  "For `ada-xref-other-function', using gpr_query."
+  "For `ada-xref-other-function', using gpr_query.
+FILE must be non-nil; line, col can be nil."
   (when (eq ?\" (aref identifier 0))
     ;; gpr_query wants the quotes stripped
     (setq col (+ 1 col))
@@ -464,11 +465,15 @@ Enable mode if ARG is positive."
 
   (setq file (gpr-query--normalize-filename file))
 
-  (let ((cmd (format "refs %s:%s:%d:%d" identifier (file-name-nondirectory file) line (1+ col)))
+  (let ((cmd (format "refs %s:%s:%s:%s"
+		     identifier
+		     (file-name-nondirectory file)
+		     (or line "")
+		     (if col (1+ col) "")))
 	(decl-loc nil)
 	(body-loc nil)
 	(search-type nil)
-	(min-distance (1- (expt 2 29)))
+	(min-distance most-positive-fixnum)
 	(result nil))
 
     (with-current-buffer (gpr-query-session-send cmd t)
@@ -506,7 +511,9 @@ Enable mode if ARG is positive."
 		 (found-line (string-to-number (match-string 2)))
 		 (found-col  (string-to-number (match-string 3)))
 		 (found-type (match-string 4))
-		 (dist       (gpr-query-dist found-line line found-col col))
+		 (dist       (if (and line col)
+				 (gpr-query-dist found-line line found-col col)
+			       most-positive-fixnum))
 		 )
 
             (setq found-file (gpr-query--normalize-filename found-file))
@@ -522,7 +529,10 @@ Enable mode if ARG is positive."
 	     )
 
 	    (when (and (equal found-file file)
-		       (< dist min-distance))
+		       (or
+			(string-equal found-type "body")
+			(string-equal found-type "declaration"))
+		       (<= dist min-distance))
 	      ;; The source may have changed since the xref database
 	      ;; was computed, so allow for fuzzy matches.
 	      (setq min-distance dist)
@@ -547,12 +557,26 @@ Enable mode if ARG is positive."
 	)
 
       (cond
-       ((null search-type)
-	nil)
-
        ((and
+	 line
 	 (string-equal search-type "declaration")
 	 body-loc)
+	;; We started the search on the declaration; find the body
+	(setq result body-loc))
+
+       ((and
+	 (not line)
+	 (string-equal search-type "declaration"))
+	;; We started in the spec file; find the declaration
+	;;
+	;; If the file has both declaration and body, this will go to
+	;; declaration. Then a search with line, col can go to body.
+	(setq result decl-loc))
+
+       ((and
+	 (not line)
+	 (string-equal search-type "body"))
+	;; We started in the body file; find the body
 	(setq result body-loc))
 
        (decl-loc

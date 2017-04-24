@@ -74,7 +74,7 @@ is -- target 0
    --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "pragma Elaborate_Body"))
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
 
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
@@ -745,7 +745,7 @@ private -- Ada_Mode.Nominal
          Component_3 : Integer;
       end record; -- Ada mode 4.01 aligned this with "type"; this is better
 
-   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at "type Private_Type_1"))
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- Ada_Mode.Nominal"))
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with
       record

@@ -490,7 +490,7 @@ Also return cache at start."
 		      null_procedure_declaration)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
-		    (task_type_declaration
+		    ((single_task_declaration task_body task_type_declaration)
 		     (eq (wisi-cache-token cache) 'TASK))
 
 		    ))
@@ -538,10 +538,10 @@ Also return cache at start."
 	    (setq done t))
 	(cl-case (wisi-cache-class cache)
 	  ((motion statement-end)
-	   (setq cache
-		 (wisi-get-cache
-		  (1- (or (wisi-cache-prev cache)
-			  (wisi-cache-containing cache))))))
+	   (goto-char
+	    (1- (or (wisi-cache-prev cache)
+		    (wisi-cache-containing cache))))
+	   (setq cache (wisi-get-cache (point))))
 
 	  (statement-start
 	   (if first
@@ -578,6 +578,11 @@ Also return cache at start."
 	   (setq cache (wisi-goto-containing cache t)))
 	  ))
       (setq first nil))
+
+    ;; point is at start of first code statement after
+    ;; declaration-start keyword and comment; move back to end of
+    ;; keyword.
+    (while (forward-comment -1))
     ))
 
 (defun ada-wisi-in-paramlist-p (&optional parse-result)
@@ -773,9 +778,12 @@ Also return cache at start."
 			   (wisi-token-text (wisi-forward-find-token '(FUNCTION PROCEDURE) (point-max)))
 			   nil)))
 
-	    (task_type_declaration
+	    ((single_task_declaration task_type_declaration)
 	     (setq result (ada-wisi-which-function-1 "task" t)))
 
+
+	    (task_body
+	     (setq result (ada-wisi-which-function-1 "task" nil)))
 	    ))
 	result))
     ))
@@ -784,11 +792,9 @@ Also return cache at start."
 (defun ada-wisi-debug-keys ()
   "Add debug key definitions to `ada-mode-map'."
   (interactive)
-  (define-key ada-mode-map "\M-e" 'wisi-show-parse-error)
   (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key ada-mode-map "\M-i" 'wisi-goto-statement-end)
+  (define-key ada-mode-map "\M-i" 'wisi-show-indent)
   (define-key ada-mode-map "\M-j" 'wisi-show-cache)
-  (define-key ada-mode-map "\M-k" 'wisi-show-token)
   )
 
 (defun ada-wisi-number-p (token-text)
