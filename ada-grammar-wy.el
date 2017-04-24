@@ -1555,7 +1555,7 @@
       (task_body
        ((TASK BODY IDENTIFIER aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 5 motion 7 motion 11 statement-end])
+        (wisi-statement-action [1 statement-start 3 name 5 motion 7 motion 11 statement-end])
         (wisi-containing-action 1 6)
         (wisi-containing-action 1 8)
         (wisi-motion-action [1 5 7 11])

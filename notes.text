@@ -98,20 +98,6 @@ wisi-indent-region:
 (setq wisi-disable-face t)
 (setq wisi-indent-region-fallback nil)
  current issues:
-
-ada-which-function wrong
-    ada_mode-nominal.adb Executive
-        got 'body'
-
-    ada_mode-nominal.adb after procedure_2a
-        got 'procedure_2a'
-
-indent cache
-    time indent without parse; if too slow, add 'applied' to cache?
-
-disable or use electric-indent-post-self-insert-function
-    called during ada-indent-newline-indent
-
 bad indent:
                         Append
                           (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
@@ -188,6 +174,15 @@ time indent
 
         apr 17 add byte-compile in wisi-semantic-action
             wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
+
+        apr 23 add indent cache
+            indent second line cold cache: (wisi-time-indent-line-cold-cache 2)
+            indent second line warm cache: (wisi-time-indent-line-warm-cache 2 100)
+            middle line: 3500
+            last line:   7251
+
+            second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
 
 time wisi-forward-token use structs
     (setq ada-gps-size-threshold most-positive-fixnum)
