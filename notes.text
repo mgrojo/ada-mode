@@ -7,8 +7,7 @@ build/release_process.text
 
  current work
 
-write test for example 4.45 LALR
-    written, failing
+test example 4.45 LALR done
 
 add LR1 table generator
     write test for example 4.43

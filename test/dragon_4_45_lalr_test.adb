@@ -171,43 +171,49 @@ package body Dragon_4_45_LALR_Test is
 
       Computed : constant LR.Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
       Expected : LR.Parse_Table (0 .. 6);
-      S36 : constant := 3;
-      S47 : constant := 4;
+
+      --  See comment in Test_LR1_Items about state numbering
+      S0  : constant := 0;
+      S1  : constant := 3;
+      S2  : constant := 4;
+      S36 : constant := 1;
+      S47 : constant := 2;
+      S5  : constant := 5;
       S89 : constant := 6;
 
    begin
       --  figure 4.41 pg 239
 
-      Add_Action (Expected (0), Lower_C_ID, S36);
-      Add_Action (Expected (0), Lower_D_ID, S47);
-      Add_Action (Expected (0), Tokens_Pkg.Terminal_ID'Last); -- default = error
-      Add_Goto (Expected (0), Upper_S_ID, 1);
-      Add_Goto (Expected (0), Upper_C_ID, 2);
+      Add_Action (Expected (S0), Lower_D_ID, S47);
+      Add_Action (Expected (S0), Lower_C_ID, S36);
+      Add_Action (Expected (S0), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Goto (Expected (S0), Upper_C_ID, S2);
+      Add_Goto (Expected (S0), Upper_S_ID, S1);
 
-      Add_Action (Expected (1), EOF_ID, LR.Accept_It, Accept_ID, 2, Self);
-      Add_Action (Expected (1), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
+      Add_Action (Expected (S1), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (2), Lower_C_ID, S36);
-      Add_Action (Expected (2), Lower_D_ID, S47);
-      Add_Action (Expected (2), Tokens_Pkg.Terminal_ID'Last); -- default = error
-      Add_Goto (Expected (2), Upper_C_ID, 5);
+      Add_Action (Expected (S2), Lower_D_ID, S47);
+      Add_Action (Expected (S2), Lower_C_ID, S36);
+      Add_Action (Expected (S2), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Goto (Expected (S2), Upper_C_ID, S5);
 
-      Add_Action (Expected (S36), Lower_C_ID, S36);
       Add_Action (Expected (S36), Lower_D_ID, S47);
+      Add_Action (Expected (S36), Lower_C_ID, S36);
       Add_Action (Expected (S36), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S36), Upper_C_ID, S89);
 
-      Add_Action (Expected (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S47), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);
+      Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
+      Add_Action (Expected (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
+      Add_Action (Expected (S47), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (5), EOF_ID, LR.Reduce, Accept_ID, 1, Self);
-      Add_Action (Expected (5), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
+      Add_Action (Expected (S5), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S89), Lower_C_ID, LR.Reduce, Upper_S_ID, 2, Self);
-      Add_Action (Expected (S89), Lower_D_ID, LR.Reduce, Upper_S_ID, 2, Self);
-      Add_Action (Expected (S89), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
+      Add_Action (Expected (S89), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
+      Add_Action (Expected (S89), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
+      Add_Action (Expected (S89), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S89), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
       if Test.Debug then
@@ -217,7 +223,7 @@ package body Dragon_4_45_LALR_Test is
          LR.Put (Expected);
       end if;
 
-      FastToken_AUnit.Check ("1", Computed.all, Expected);
+      FastToken_AUnit.Check ("", Computed.all, Expected);
    end Parser_Table;
 
    ----------
@@ -235,7 +241,7 @@ package body Dragon_4_45_LALR_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_LR1_Items'Access, "debug");
+         Register_Routine (T, Parser_Table'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
