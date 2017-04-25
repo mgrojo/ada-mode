@@ -81,13 +81,13 @@ package body Test_Empty_Productions_1 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, BEGIN_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LR, Generators, Grammar);
+     (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, 1, LR, Generators.LR1_Items, Grammar);
 
    Has_Empty_Production : constant Generators.LR1_Items.Nonterminal_ID_Set :=
      Generators.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First_Derivations
+   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
@@ -243,7 +243,7 @@ package body Test_Empty_Productions_1 is
       Kernels  : constant Item_Set_List := Generators.LR1_Items.Kernels
         (Grammar, First, EOF_ID, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
-      Expected : Set_Reference_Ptr;
+      Expected : Goto_Item_Ptr;
 
    begin
       --  Kernel 2:
@@ -258,22 +258,22 @@ package body Test_Empty_Productions_1 is
       --  IS_ID => BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ; Set 2
 
       --  Only Index is checked in Expected.Set
-      Expected := new Set_Reference'
+      Expected := new Goto_Item'
         (Symbol => IS_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, State => 2, Next => null),
          Next   => Expected);
 
-      Expected := new Set_Reference'
+      Expected := new Goto_Item'
         (Symbol => declarations_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, State => 3, Next => null),
          Next   => Expected);
 
-      Expected := new Set_Reference'
+      Expected := new Goto_Item'
         (Symbol => declarative_part_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, State => 7, Next => null),
          Next   => Expected);
 
-      Expected := new Set_Reference'
+      Expected := new Goto_Item'
         (Symbol => body_ID,
          Set    => new Item_Set'(Set => null, Goto_List => null, State => 5, Next => null),
          Next   => Expected);

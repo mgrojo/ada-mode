@@ -1,9 +1,13 @@
 --  Abstract :
 --
---  Generalized LALR parse table generator.
+--  LR1 (Left-to-right scanning 1 look-ahead) parser table generator.
 --
---  Copyright (C) 2002 - 2003, 2009 - 2010, 2013 - 2015, 2017 Stephe Leake
---  Copyright (C) 1999 Ted Dennison
+--  References:
+--
+--  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
+--  Sethi, and Ullman (aka: "The [Red] Dragon Book").
+--
+--  Copyright (C) 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -19,17 +23,18 @@
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
 with FastToken.Production;
-with FastToken.Parser.LR1_Items;
+with FastToken.Parser.LRk_Item;
 generic
    EOF_Token : in Token_Pkg.Token_ID;
+   pragma Unreferenced (EOF_Token);
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
-package FastToken.Parser.LR.LALR_Generator is
-
-   package LR1_Items is new Parser.LR1_Items
-     (Unknown_State_Index, Unknown_State, Nonterminal, Production);
+   with package LR1_Items is new FastToken.Parser.LRk_Item
+     (LR.Unknown_State_Index, LR.Unknown_State, 1, Nonterminal, Production);
+   pragma Unreferenced (LR1_Items);
+package FastToken.Parser.LR.LR1_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
@@ -39,7 +44,7 @@ package FastToken.Parser.LR.LALR_Generator is
       Ignore_Unused_Tokens     : in Boolean             := False;
       Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr;
-   --  Generate a generalized LALR parse table for Grammar. The
+   --  Generate a generalized LR1 parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
    --  Grammar.
    --
@@ -56,25 +61,4 @@ package FastToken.Parser.LR.LALR_Generator is
    --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
    --  are unknown conflicts.
 
-   ----------
-   --  Visible for unit tests
-
-   procedure Fill_In_Lookaheads
-     (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      First                : in     LR1_Items.Derivation_Matrix;
-      Kernels              : in out LR1_Items.Item_Set_List;
-      Accept_State         : in     State_Index;
-      Used_Tokens          : in out Token.Token_Array_Boolean;
-      Trace                : in     Boolean);
-
-   procedure Add_Actions
-     (Kernel               : in     LR1_Items.Item_Set_Ptr;
-      Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      First                : in     LR1_Items.Derivation_Matrix;
-      Conflicts            : in out Conflict_Lists.List;
-      Table                : in out Parse_Table;
-      Trace                : in     Boolean);
-
-end FastToken.Parser.LR.LALR_Generator;
+end FastToken.Parser.LR.LR1_Generator;

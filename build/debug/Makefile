@@ -4,8 +4,9 @@ all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 # ../../Test/test_all_harness.adb
-#t_one : RUN_ARGS := -v
+# t_one : RUN_ARGS := -v
 t_one : test_one_harness.run
+t_all : ./wisi-generate.exe
 t_all : test_all_harness.run
 
 # from ../common.make

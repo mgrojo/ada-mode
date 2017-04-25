@@ -83,14 +83,14 @@ package body Test_Empty_Productions_5 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, ACCEPT_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
+     (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, 1, LR, LALR_Generator.LR1_Items, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
      LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
    First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
-     LALR_Generator.LR1_Items.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+     LALR_Generator.LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

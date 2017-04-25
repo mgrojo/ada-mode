@@ -90,13 +90,13 @@ package body Test_Empty_Productions_7 is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, ALIASED_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator, Grammar);
+     (Token_ID, ALIASED_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator.LR1_Items, Grammar);
 
    Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
      LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1_Items.Derivation_Matrix := LALR_Generator.LR1_Items.First_Derivations
+   First : constant LALR_Generator.LR1_Items.Derivation_Matrix := LALR_Generator.LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions

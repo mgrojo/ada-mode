@@ -7,17 +7,29 @@ build/release_process.text
 
  current work
 
-test example 4.45 LALR done
+change lrk_item to lr1_items; confusing enough.
+    run all tests
+    association_grammar_test failing
+        compare to opentoken association_token_test
+        (ediff
+         "c:/Projects/org.opentoken/build/debug/association_token_test-run.out"
+         "c:/Projects/org.fasttoken/build/debug/association_grammar_test.out")
 
 add LR1 table generator
     write test for example 4.43
 
     LR algorithm in red dragon 4.10; LALR in 4.11
-        LALR extracts LR1 item cores; skip that step in Kernels
+        implement algorithm 4.10 pg 234
+
+        Test_First passes
+
+        test_lr1_items should _not_ call lrk_item.Kernels
 
     factor out common code to parser-lr-generator_utils
 
     copy lalr tests?
+
+    delete body-only stuff from lrk_item spec
 
 add syntax error handling
 

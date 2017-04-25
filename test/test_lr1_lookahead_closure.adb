@@ -97,8 +97,8 @@ package body Test_LR1_Lookahead_Closure is
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, RANGE_ID, EOF_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LR, LALR_Generator, Grammar);
+     (Token_ID, RANGE_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+      Lexer_Root, Parser_Root, 1, LR, LALR_Generator.LR1_Items, Grammar);
 
    ----------
    --  Test procedures
@@ -112,7 +112,7 @@ package body Test_LR1_Lookahead_Closure is
 
       Has_Empty_Production : constant Nonterminal_ID_Set := LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
-      First : constant Derivation_Matrix := First_Derivations
+      First : constant Derivation_Matrix := LALR_Generator.LR1_Items.First
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
 
       Kernels : Item_Set_List := LALR_Generator.LR1_Items.Kernels

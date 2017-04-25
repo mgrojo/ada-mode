@@ -82,7 +82,7 @@ package body Test_Empty_Productions_4 is
      LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
 
    First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
-     LALR_Generator.LR1_Items.First_Derivations (Grammar, Has_Empty_Production, Trace => False);
+     LALR_Generator.LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

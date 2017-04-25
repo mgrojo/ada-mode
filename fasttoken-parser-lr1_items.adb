@@ -31,7 +31,7 @@ pragma License (Modified_GPL);
 with Ada.Tags;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-package body FastToken.Parser.LRk_Item is
+package body FastToken.Parser.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
    function Compute_Non_Terminals return Token_ID_Set
@@ -63,7 +63,7 @@ package body FastToken.Parser.LRk_Item is
       return To_String (Result);
    end Image;
 
-   function First_Derivations
+   function First
      (Grammar              : in Production.List.Instance;
       Has_Empty_Production : in Nonterminal_ID_Set;
       Non_Terminal         : in Token.Token_ID;
@@ -132,9 +132,9 @@ package body FastToken.Parser.LRk_Item is
       end loop;
 
       return Derivations;
-   end First_Derivations;
+   end First;
 
-   function First_Derivations
+   function First
      (Grammar              : in Production.List.Instance;
       Has_Empty_Production : in Nonterminal_ID_Set;
       Trace                : in Boolean)
@@ -147,7 +147,7 @@ package body FastToken.Parser.LRk_Item is
       end if;
 
       for NT_Index in Matrix'Range loop
-         Matrix (NT_Index) := First_Derivations (Grammar, Has_Empty_Production, NT_Index, Trace);
+         Matrix (NT_Index) := First (Grammar, Has_Empty_Production, NT_Index, Trace);
       end loop;
 
       if Trace then
@@ -155,7 +155,7 @@ package body FastToken.Parser.LRk_Item is
       end if;
 
       return Matrix;
-   end First_Derivations;
+   end First;
 
    function Has_Empty_Production (Grammar : in Production.List.Instance) return Nonterminal_ID_Set
    is
@@ -179,17 +179,23 @@ package body FastToken.Parser.LRk_Item is
       return Result;
    end Has_Empty_Production;
 
-   function Deep_Copy (Item : in Item_Lookahead_Ptr) return Item_Lookahead_Ptr
+   function Deep_Copy (Item : in Lookahead_Ptr) return Lookahead_Ptr
    is
-      I      : Item_Lookahead_Ptr := Item;
-      Result : Item_Lookahead_Ptr;
+      I      : Lookahead_Ptr := Item;
+      Result : Lookahead_Ptr;
    begin
       while I /= null loop
-         Result := new Item_Lookahead'
-           (Last       => I.Last,
-            Lookaheads => I.Lookaheads,
-            Next       => Result);
-         I := I.Next;
+         if I.Propagate then
+            Result := new Lookahead'
+              (Propagate => True,
+               Next      => Result);
+         else
+            Result := new Lookahead'
+              (Propagate => False,
+               Lookahead => I.Lookahead,
+               Next      => Result);
+         end if;
+         I      := I.Next;
       end loop;
       return Result;
    end Deep_Copy;
@@ -197,7 +203,7 @@ package body FastToken.Parser.LRk_Item is
    function Item_Node_Of
      (Prod       : in Production.List.List_Iterator;
       State      : in Unknown_State_Index;
-      Lookaheads : in Item_Lookahead_Ptr := null)
+      Lookaheads : in Lookahead_Ptr := null)
      return Item_Node
    is begin
       return
@@ -221,21 +227,43 @@ package body FastToken.Parser.LRk_Item is
          Next       => null);
    end Item_Node_Of;
 
+   function Compare (Left : in Lookahead; Right : in Token.Token_ID) return Boolean
+   is
+      use type Token.Token_ID;
+   begin
+      return (not Left.Propagate) and then Left.Lookahead = Right;
+   end Compare;
+
+   function Compare (Left, Right : in Lookahead) return Boolean
+   is
+      use type Token.Token_ID;
+   begin
+      if Left.Propagate or Right.Propagate then
+         if Left.Propagate = Right.Propagate then
+            return True;
+         end if;
+      else
+         return Left.Lookahead = Right.Lookahead;
+      end if;
+      return False;
+   end Compare;
+
+   function Compare (Left, Right : in Lookahead_Ptr) return Boolean
+   is begin
+      return Compare (Left.all, Right.all);
+   end Compare;
+
    procedure Include
-     (Set   : in out Item_Lookahead_Ptr;
-      Value : in     Item_Lookahead;
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Token.Terminal_ID;
       Added :    out Boolean)
    is
-      Found_Match : Boolean := False;
-      Match_Set   : Item_Lookahead_Ptr := Set;
+      use type Token_Pkg.Token_ID;
+      Found_Match : Boolean       := False;
+      Match_Set   : Lookahead_Ptr := Set;
    begin
-
-      --  Look for a lookahead that matches
       while Match_Set /= null loop
-         if
-           Match_Set.Lookaheads (1 .. Match_Set.Last) =
-           Value.Lookaheads (1 .. Value.Last)
-         then
+         if Compare (Match_Set.all, Value) then
             Found_Match := True;
             exit;
          end if;
@@ -243,24 +271,45 @@ package body FastToken.Parser.LRk_Item is
          Match_Set := Match_Set.Next;
       end loop;
 
-      --  If we didn't find one, add one
       if not Found_Match then
-         Set := new Item_Lookahead'(Last       => Value.Last,
-                                    Lookaheads => Value.Lookaheads,
-                                    Next       => Set
-                                   );
+         Set := new Lookahead'(False, Next => Set, Lookahead => Value);
       end if;
 
       Added := not Found_Match;
    end Include;
 
    procedure Include
-     (Set   : in out Item_Lookahead_Ptr;
-      Value : in     Item_Lookahead)
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Token.Terminal_ID)
    is
       Added : Boolean;
    begin
-      Include (Set => Set, Value => Value, Added => Added);
+      Include (Set, Value, Added);
+   end Include;
+
+   procedure Include
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Lookahead_Ptr)
+   is
+      Found_Match : Boolean       := False;
+      Match_Set   : Lookahead_Ptr := Set;
+   begin
+      while Match_Set /= null loop
+         if Compare (Match_Set, Value) then
+            Found_Match := True;
+            exit;
+         end if;
+
+         Match_Set := Match_Set.Next;
+      end loop;
+
+      if not Found_Match then
+         if Value.Propagate then
+            Set := new Lookahead'(True, Next => Set);
+         else
+            Set := new Lookahead'(False, Next => Set, Lookahead => Value.Lookahead);
+         end if;
+      end if;
    end Include;
 
    procedure Add
@@ -296,7 +345,7 @@ package body FastToken.Parser.LRk_Item is
    function Find
      (Left  : in Item_Set;
       Right : in Item_Set_List)
-   return Item_Set_Ptr
+     return Item_Set_Ptr
    is
       Right_Set  : Item_Set_Ptr := Right.Head;
       Right_Item : Item_Ptr;
@@ -311,7 +360,6 @@ package body FastToken.Parser.LRk_Item is
          Right_Item := Right_Item.Next;
       end loop;
 
-      --  Go through the sets in the set list...
       while Right_Set /= null loop
 
          Right_Item := Right_Set.Set;
@@ -363,16 +411,16 @@ package body FastToken.Parser.LRk_Item is
    end Is_In;
 
    function Is_In
-     (Set_Ptr   : in Item_Set_Ptr;
-      Symbol    : in Token.Token_ID;
-      Goto_List : in Set_Reference_Ptr)
+     (Symbol    : in Token.Token_ID;
+      Set       : in Item_Set_Ptr;
+      Goto_List : in Goto_Item_Ptr)
      return Boolean
    is
-      Goto_Ptr : Set_Reference_Ptr := Goto_List;
+      Goto_Ptr : Goto_Item_Ptr := Goto_List;
       use type Token.Token_ID;
    begin
       while Goto_Ptr /= null loop
-         if Goto_Ptr.Set = Set_Ptr and Goto_Ptr.Symbol = Symbol then
+         if Goto_Ptr.Set = Set and Goto_Ptr.Symbol = Symbol then
             return True;
          end if;
 
@@ -387,7 +435,7 @@ package body FastToken.Parser.LRk_Item is
       Symbol : in Token.Token_ID)
      return Item_Set_Ptr
    is
-      Goto_Ptr : Set_Reference_Ptr := From.Goto_List;
+      Goto_Ptr : Goto_Item_Ptr := From.Goto_List;
       use type Token.Token_ID;
    begin
       while Goto_Ptr /= null loop
@@ -409,14 +457,17 @@ package body FastToken.Parser.LRk_Item is
       --  Merge lookaheads of New_Item into Existing_Set. Return True
       --  if Existing_Set is modified.
       --
-      --  New_Item.Lookaheads are moved or deallocated, as appropriate. Rest of New_Item is copied or deallocated.
+      --  New_Item.Lookaheads are moved or deallocated, as
+      --  appropriate. Rest of New_Item is copied or deallocated.
+
+      use type Token_Pkg.Token_ID;
 
       Found : constant Item_Ptr := Find (New_Item, Existing_Set);
 
-      New_Lookahead      : Item_Lookahead_Ptr; --  From New_Item
-      Existing_Lookahead : Item_Lookahead_Ptr; --  in Existing_Set
-      Temp               : Item_Lookahead_Ptr; --  for moves
-      Result_Lookahead   : Item_Lookahead_Ptr; --  add new not in existing
+      New_Lookahead      : Lookahead_Ptr; --  From New_Item
+      Existing_Lookahead : Lookahead_Ptr; --  in Existing_Set
+      Temp               : Lookahead_Ptr; --  for moves
+      Result_Lookahead   : Lookahead_Ptr; --  add new not in existing
       Found_Match        : Boolean;
       Modified           : Boolean := False;
    begin
@@ -441,10 +492,7 @@ package body FastToken.Parser.LRk_Item is
             Found_Match := False;
             while Existing_Lookahead /= null loop
 
-               if
-                 Existing_Lookahead.Lookaheads (1 .. Existing_Lookahead.Last) =
-                 New_Lookahead.Lookaheads (1 .. New_Lookahead.Last)
-               then
+               if Compare (Existing_Lookahead, New_Lookahead) then
                   Found_Match := True;
                   exit;
                end if;
@@ -540,11 +588,11 @@ package body FastToken.Parser.LRk_Item is
                      elsif Token.List.ID (Next_Symbol) in Token.Terminal_ID then
                         Merge_From := Item_Node_Of
                           (Production_Iterator,
-                           State         => Unknown_State,
-                           Lookaheads    => new Item_Lookahead'
-                             (Last       => 1,
-                              Lookaheads => (1 => Token.List.ID (Next_Symbol)),
-                              Next       => null));
+                           State        => Unknown_State,
+                           Lookaheads   => new Lookahead'
+                             (Propagate => False,
+                              Lookahead => Token.List.ID (Next_Symbol),
+                              Next      => null));
 
                         Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
                         exit Empty_Nonterm;
@@ -555,11 +603,11 @@ package body FastToken.Parser.LRk_Item is
                            if First (Token.List.ID (Next_Symbol)) (Terminal) then
                               Merge_From := Item_Node_Of
                                 (Production_Iterator,
-                                 State         => Unknown_State,
-                                 Lookaheads    => new Item_Lookahead'
-                                   (Last       => 1,
-                                    Lookaheads => (1 => Terminal),
-                                    Next       => null));
+                                 State        => Unknown_State,
+                                 Lookaheads   => new Lookahead'
+                                   (Propagate => False,
+                                    Lookahead => Terminal,
+                                    Next      => null));
 
                               Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
                            end if;
@@ -680,49 +728,48 @@ package body FastToken.Parser.LRk_Item is
       return Goto_Set;
    end Goto_Transitions;
 
-   procedure Free (Subject : in out Item_Node)
+   procedure Free (Item : in out Item_Node)
    is
-      Lookahead : Item_Lookahead_Ptr := Subject.Lookaheads;
+      Lookahead : Lookahead_Ptr := Item.Lookaheads;
    begin
       while Lookahead /= null loop
-         Subject.Lookaheads := Lookahead.Next;
+         Item.Lookaheads := Lookahead.Next;
          Free (Lookahead);
-         Lookahead := Subject.Lookaheads;
+         Lookahead := Item.Lookaheads;
       end loop;
-
    end Free;
 
-   procedure Free (Subject : in out Item_Set)
+   procedure Free (Item : in out Item_Set)
    is
-      Item     : Item_Ptr          := Subject.Set;
-      Goto_Set : Set_Reference_Ptr := Subject.Goto_List;
+      I        : Item_Ptr      := Item.Set;
+      Goto_Set : Goto_Item_Ptr := Item.Goto_List;
    begin
-      while Item /= null loop
-         Subject.Set := Item.Next;
-         Free (Item.all);
-         Free (Item);
-         Item := Subject.Set;
+      while I /= null loop
+         Item.Set := I.Next;
+         Free (I.all);
+         Free (I);
+         I := Item.Set;
       end loop;
 
       while Goto_Set /= null loop
-         Subject.Goto_List := Goto_Set.Next;
+         Item.Goto_List := Goto_Set.Next;
          Free (Goto_Set);
-         Goto_Set := Subject.Goto_List;
+         Goto_Set := Item.Goto_List;
       end loop;
 
    end Free;
 
-   procedure Free (Subject : in out Item_Set_List)
+   procedure Free (Item : in out Item_Set_List)
    is
-      Set : Item_Set_Ptr := Subject.Head;
+      Set : Item_Set_Ptr := Item.Head;
    begin
       while Set /= null loop
-         Subject.Head := Set.Next;
+         Item.Head := Set.Next;
 
          Free (Set.all);
          Free (Set);
 
-         Set := Subject.Head;
+         Set := Item.Head;
       end loop;
    end Free;
 
@@ -787,6 +834,7 @@ package body FastToken.Parser.LRk_Item is
                if New_Items.Set /= null then
 
                   New_Items_Set := Find (New_Items, Kernel_List);
+
                   if New_Items_Set = null then
                      New_Items_To_Check := True;
 
@@ -811,7 +859,7 @@ package body FastToken.Parser.LRk_Item is
                        (Head => new Item_Set'(New_Items),
                         Size => Kernel_List.Size + 1);
 
-                     Checking_Set.Goto_List := new Set_Reference'
+                     Checking_Set.Goto_List := new Goto_Item'
                        (Set    => Kernel_List.Head,
                         Symbol => Symbol,
                         Next   => Checking_Set.Goto_List);
@@ -820,8 +868,8 @@ package body FastToken.Parser.LRk_Item is
 
                      --  If there's not already a goto entry between these two sets, create one.
                      if not Is_In
-                       (Set_Ptr   => New_Items_Set,
-                        Symbol    => Symbol,
+                       (Symbol    => Symbol,
+                        Set       => New_Items_Set,
                         Goto_List => Checking_Set.Goto_List)
                      then
                         if Trace then
@@ -829,7 +877,7 @@ package body FastToken.Parser.LRk_Item is
                            Put (New_Items_Set.all);
                         end if;
 
-                        Checking_Set.Goto_List := new Set_Reference'
+                        Checking_Set.Goto_List := new Goto_Item'
                           (Set    => New_Items_Set,
                            Symbol => Symbol,
                            Next   => Checking_Set.Goto_List);
@@ -853,38 +901,28 @@ package body FastToken.Parser.LRk_Item is
       return Kernel_List;
    end Kernels;
 
-   function Token_Name (Subject : in Token.Handle) return String is
+   function Token_Name (Item : in Token.Handle) return String is
    begin
-      return Token.Token_Image (Token.ID (Subject.all));
+      return Token.Token_Image (Token.ID (Item.all));
    end Token_Name;
-   function Token_Name (Subject : in Nonterminal.Handle) return String is
+   function Token_Name (Item : in Nonterminal.Handle) return String is
    begin
-      return Token.Token_Image (Token.ID (Subject.all));
+      return Token.Token_Image (Token.ID (Item.all));
    end Token_Name;
 
-   function Print (Item : in Item_Lookahead) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := Null_Unbounded_String;
-   begin
-      if Item.Last = 0 then
+   function Print (Item : in Lookahead) return String
+   is begin
+      if Item.Propagate then
          return "#";
       else
-         for Index in 1 .. Item.Last loop
-            if Index > 1 then
-               Result := Result & " ";
-            end if;
-            Result := Result & Token.Token_Image (Item.Lookaheads (Index));
-         end loop;
+         return Token.Token_Image (Item.Lookahead);
       end if;
-
-      return To_String (Result);
    end Print;
 
-   function Print (Item : in Item_Lookahead_Ptr) return String
+   function Print (Item : in Lookahead_Ptr) return String
    is
       use Ada.Strings.Unbounded;
-      Lookahead : Item_Lookahead_Ptr := Item;
+      Lookahead : Lookahead_Ptr    := Item;
       Result    : Unbounded_String := Null_Unbounded_String;
    begin
       if Lookahead = null then
@@ -919,9 +957,9 @@ package body FastToken.Parser.LRk_Item is
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
         Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
-        (if Show_Tag then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
-         else "") &
-        " <=";
+          (if Show_Tag then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
+           else "") &
+          " <=";
 
    begin
       Token_Index := First (Item.Prod.RHS.Tokens);
@@ -956,10 +994,10 @@ package body FastToken.Parser.LRk_Item is
       Ada.Text_IO.Put (Image_Item (Item, Show_State => True, Show_Lookaheads => Show_Lookaheads));
    end Put;
 
-   procedure Put (Item : in Set_Reference_Ptr)
+   procedure Put (Item : in Goto_Item_Ptr)
    is
       use Ada.Text_IO;
-      Reference : Set_Reference_Ptr := Item;
+      Reference : Goto_Item_Ptr := Item;
    begin
       while Reference /= null loop
          Put_Line
@@ -970,7 +1008,7 @@ package body FastToken.Parser.LRk_Item is
       end loop;
    end Put;
 
-   procedure Put (Item : in Item_Set)
+   procedure Put (Item : in Item_Set; Show_Lookaheads : in Boolean := False)
    is
       use Ada.Text_IO;
       Set : Item_Ptr := Item.Set;
@@ -978,7 +1016,7 @@ package body FastToken.Parser.LRk_Item is
       Put_Line ("State" & Unknown_State_Index'Image (Item.State) & ":");
 
       while Set /= null loop
-         Put_Line ("  " & Image_Item (Set.all, Show_State => False, Show_Lookaheads => True));
+         Put_Line ("  " & Image_Item (Set.all, Show_State => False, Show_Lookaheads => Show_Lookaheads));
 
          Set := Set.Next;
       end loop;
@@ -1000,4 +1038,4 @@ package body FastToken.Parser.LRk_Item is
       end loop;
    end Put;
 
-end FastToken.Parser.LRk_Item;
+end FastToken.Parser.LR1_Items;

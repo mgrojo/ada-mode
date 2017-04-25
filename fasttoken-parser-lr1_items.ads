@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Types and operatorion for LR(k) items.
+--  Types and operatorion for LR(1) items.
 --
 --  Copyright (C) 2003, 2008, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
@@ -35,78 +35,78 @@ generic
    type Unknown_State_Index is range <>;
    Unknown_State : in Unknown_State_Index;
 
-   --  The number of elements of lookahead to keep in an item
-   --  We only instantiate this with K = 1, but it's not worth
-   --  optimizing the code; there is only one loop on 1 .. K.
-   K : in Natural;
-
    with package Nonterminal is new Token.Nonterminal;
    with package Production is new FastToken.Production (Token, Nonterminal);
-package FastToken.Parser.LRk_Item is
+package FastToken.Parser.LR1_Items is
 
-   --  Lookahead Sets
-   type Full_Lookahead_Set is array (1 .. K) of Token.Terminal_ID;
-   type Item_Lookahead;
-   type Item_Lookahead_Ptr is access Item_Lookahead;
-   type Item_Lookahead is record
-      Last       : Natural;
-      Lookaheads : Full_Lookahead_Set;
-      Next       : Item_Lookahead_Ptr;
+   --  A lookahead list is a linked list of tokens. We also define a
+   --  Token_ID_Set below, but that is typically much larger than a
+   --  lookahead list, and would be mostly False.
+   --
+   --  We need a special value of Lookahead to indicate '#' in
+   --  [dragon] algorithm 4.12. That is implemented by setting
+   --  Propagate = True; all other lookaheads have Propagate = False.
+   type Lookahead;
+   type Lookahead_Ptr is access Lookahead;
+   type Lookahead (Propagate : Boolean) is record
+
+      Next : Lookahead_Ptr;
+      case Propagate is
+      when False =>
+         Lookahead : Token.Terminal_ID;
+      when True =>
+         null;
+      end case;
    end record;
 
-   --  Add Value to Set if it is not already present
    procedure Include
-     (Set   : in out Item_Lookahead_Ptr;
-      Value : in     Item_Lookahead);
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Token.Terminal_ID);
+   procedure Include
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Lookahead_Ptr);
+   --  Add Value to Set if it is not already present
 
+   procedure Include
+     (Set   : in out Lookahead_Ptr;
+      Value : in     Token.Terminal_ID;
+      Added :    out Boolean);
    --  Add Value to Set if it is not already present. Added will be
    --  true if the item had to be added.
-   procedure Include
-     (Set   : in out Item_Lookahead_Ptr;
-      Value : in     Item_Lookahead;
-      Added :    out Boolean);
 
-   --  The structure for actual items
    type Item_Node;
    type Item_Ptr is access Item_Node;
    type Item_Node is record
       Prod       : Production.Instance;
       Dot        : Token.List.List_Iterator; -- token after item Dot
       State      : Unknown_State_Index;
-      Lookaheads : Item_Lookahead_Ptr;
+      Lookaheads : Lookahead_Ptr;
       Next       : Item_Ptr;
    end record;
 
-   --  Return an item node made from the given production, with Dot at
-   --  the start of the right hand side. Lookaheads are copied.
    function Item_Node_Of
      (Prod       : in Production.List.List_Iterator;
       State      : in Unknown_State_Index;
-      Lookaheads : in Item_Lookahead_Ptr := null)
+      Lookaheads : in Lookahead_Ptr := null)
      return Item_Node;
+   --  Return an item node made from Prod, Dot at the start of the
+   --  right hand side, State, deep copy of Lookaheads.
 
-   --  Return an item node made from the given production, with Dot at
-   --  the start of the right hand side.
-   function Item_Node_Of
-     (Prod  : in Production.Instance;
-      State : in Unknown_State_Index)
-     return Item_Node;
-
-   type Set_Reference;
-   type Set_Reference_Ptr is access Set_Reference;
+   type Goto_Item;
+   type Goto_Item_Ptr is access Goto_Item;
 
    type Item_Set;
    type Item_Set_Ptr is access Item_Set;
 
-   type Set_Reference is record
-      Set    : Item_Set_Ptr;
+   type Goto_Item is record
       Symbol : Token.Token_ID;
-      Next   : Set_Reference_Ptr;
+      Set    : Item_Set_Ptr;
+      Next   : Goto_Item_Ptr;
    end record;
 
    type Item_Set is record
       Set       : Item_Ptr;
-      Goto_List : Set_Reference_Ptr;
+      Goto_List : Goto_Item_Ptr;
       State     : Unknown_State_Index;
       Next      : Item_Set_Ptr;
    end record;
@@ -119,14 +119,14 @@ package FastToken.Parser.LRk_Item is
    procedure Add
      (New_Item : in     Item_Node;
       Target   : in out Item_Set);
-   --  Add an item to the set without checking to see if it is in there already.
+   --  Add New_Item to Target without checking to see if it is in there already.
 
    function Find
      (Left  : in Item_Node;
       Right : in Item_Set)
      return Item_Ptr;
    --  Return a pointer to an item in Right that matches Left.Prod,
-   --  Left.Dot, null if not found.
+   --  Left.Dot; null if not found.
 
    function Find
      (Left  : in Item_Set;
@@ -146,18 +146,17 @@ package FastToken.Parser.LRk_Item is
      return Boolean;
 
    function Is_In
-     (Set_Ptr   : in Item_Set_Ptr;
-      Symbol    : in Token.Token_ID;
-      Goto_List : in Set_Reference_Ptr)
+     (Symbol    : in Token.Token_ID;
+      Set       : in Item_Set_Ptr;
+      Goto_List : in Goto_Item_Ptr)
      return Boolean;
 
    function Goto_Set
      (From   : in Item_Set;
       Symbol : in Token.Token_ID)
      return Item_Set_Ptr;
-
-   ------------------------------------------------
-   --  Types and operations for computing Item sets
+   --  Return Item_Set from From.Goto_List where the goto symbol is
+   --  Symbol; null if not found.
 
    type Token_ID_Set is array (Token.Token_ID) of Boolean;
 
@@ -169,14 +168,14 @@ package FastToken.Parser.LRk_Item is
 
    function Has_Empty_Production (Grammar : in Production.List.Instance) return Nonterminal_ID_Set;
 
-   function First_Derivations
+   function First
      (Grammar              : in Production.List.Instance;
       Has_Empty_Production : in Nonterminal_ID_Set;
       Trace                : in Boolean)
      return Derivation_Matrix;
    --  For each nonterminal in the given grammar, find the set of
    --  tokens (terminal or nonterminal) that its first term could
-   --  start with.
+   --  start with. Implements algorithm FIRST from [dragon].
 
    function Lookahead_Closure
      (Set                  : in Item_Set;
@@ -186,16 +185,7 @@ package FastToken.Parser.LRk_Item is
       Trace                : in Boolean)
      return Item_Set;
    --  Return the lookahead closure of Set over Grammar. First must be
-   --  the result of First_Derivations.
-
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Lookahead, Item_Lookahead_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Set_Reference, Set_Reference_Ptr);
-
-   procedure Free (Subject : in out Item_Node);
-   procedure Free (Subject : in out Item_Set);
-   procedure Free (Subject : in out Item_Set_List);
+   --  the result of First above. FIXME: 'closure' from [dragon] algorithm 4.9?
 
    function Kernels
      (Grammar           : in Production.List.Instance;
@@ -205,14 +195,23 @@ package FastToken.Parser.LRk_Item is
       First_State_Index : in Unknown_State_Index)
      return Item_Set_List;
 
-   function Print (Item : in Item_Lookahead) return String;
-   function Print (Item : in Item_Lookahead_Ptr) return String;
+   function Print (Item : in Lookahead) return String;
+   function Print (Item : in Lookahead_Ptr) return String;
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
-   procedure Put (Item : in Item_Set);
-   procedure Put (Item : in Set_Reference_Ptr);
+   procedure Put (Item : in Item_Set; Show_Lookaheads : in Boolean := False);
+   procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_List);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
+
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Lookahead, Lookahead_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
+   procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
+
+   procedure Free (Item : in out Item_Node);
+   procedure Free (Item : in out Item_Set);
+   procedure Free (Item : in out Item_Set_List);
 
    ----------
    --  visible for unit test
@@ -223,5 +222,6 @@ package FastToken.Parser.LRk_Item is
       First   : in Derivation_Matrix;
       Grammar : in Production.List.Instance)
      return Item_Set;
+   --  FIXME: 'goto' from [dragon] algorithm 4.9?
 
-end FastToken.Parser.LRk_Item;
+end FastToken.Parser.LR1_Items;

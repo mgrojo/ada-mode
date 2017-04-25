@@ -1,8 +1,9 @@
 --  Abstract :
 --
---  Support for AUnit tests involving parent.
+--  Test Red Dragon Book example 4.43; example grammar with LR1
+--  parser tables.
 --
---  Copyright (C) 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,19 +19,15 @@
 
 pragma License (GPL);
 
-with AUnit.Check;
-generic
-package OpenToken.Token.AUnit is
+with AUnit.Test_Cases;
+package Dragon_4_43_LR1_Test is
 
-   procedure Check is new Standard.AUnit.Check.Gen_Check_Discrete (Token_ID);
+   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
-   type Token_Array is array (Natural range <>) of Token_ID;
+   type Test_Case_Access is access all Test_Case;
 
-   Null_Tokens : constant Token_Array := (1 .. 0 => Token_ID'First);
+   overriding procedure Register_Tests (T : in out Test_Case);
 
-   procedure Check
-     (Label    : in String;
-      Computed : in OpenToken.Token.List.Instance;
-      Expected : in Token_Array);
+   overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end OpenToken.Token.AUnit;
+end Dragon_4_43_LR1_Test;
