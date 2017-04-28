@@ -535,7 +535,7 @@ wisi-forward-token, but does not look up symbol."
   "Worst syntax class of characters deleted in changes.
 One of:
 nil - no deletions since reset
-0   - only whitespace deleted
+0   - only whitespace or comment deleted
 2   - some other syntax deleted
 
 Set by `wisi-before-change', used and reset by `wisi--post-change'.")
@@ -561,19 +561,19 @@ Used to ignore whitespace changes in before/after change hooks.")
       (move-marker wisi--change-end end))
 
     (unless (= begin end)
-      (save-excursion
-	(goto-char begin)
-	(cond
-	 ((or (null wisi--deleted-syntax)
-	      (= 0 wisi--deleted-syntax))
-	  (if (= end (skip-syntax-forward " " end))
+      (cond
+       ((or (null wisi--deleted-syntax)
+	    (= 0 wisi--deleted-syntax))
+	(save-excursion
+	  (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
+		  (= end (skip-syntax-forward " " end)));; whitespace
 	      (setq wisi--deleted-syntax 0)
-	    (setq wisi--deleted-syntax 2)))
+	    (setq wisi--deleted-syntax 2))))
 
-	 (t
-	  ;; wisi--deleted-syntax is 2; no change.
-	  )
-	 )))))
+       (t
+	;; wisi--deleted-syntax is 2; no change.
+	)
+       ))))
 
 (defun wisi-after-change (begin end _length)
   "For `after-change-functions'"
@@ -645,6 +645,8 @@ Used to ignore whitespace changes in before/after change hooks.")
 	;; parse actions
 	(setq done t)
 	))
+
+      (setq wisi--deleted-syntax nil)
 
       (unless done
 	;; consider insertion
@@ -898,17 +900,14 @@ grammar action as:
 		      ;; statement : label_opt simple_statement
 		      ;;
 		      ;; override nonterm, class, containing
-		      ;; set end only if not set yet (due to failed parse)
 		      (progn
 			(setf (wisi-cache-class cache) (or override-start class))
 			(setf (wisi-cache-nonterm cache) wisi-nterm)
 			(setf (wisi-cache-containing cache) first-keyword-mark)
-			(unless (wisi-cache-end cache)
-			  (if wisi-end-caches
-			      (push (car region) wisi-end-caches)
-			    (setq wisi-end-caches (list (car region)))
-			    ))
-			)
+			(if wisi-end-caches
+			    (push (car region) wisi-end-caches)
+			  (setq wisi-end-caches (list (car region)))
+			  ))
 
 		    ;; else create new cache
 		    (with-silent-modifications
@@ -2260,10 +2259,9 @@ Called with BEGIN END.")
       (message "previous %s" (wisi-backward-cache)))
     ))
 
-(defun wisi-show-cache-max ()
-  (interactive)
+(defun wisi-show-cache-max (action)
   (push-mark)
-  (goto-char (wisi-cache-max)))
+  (goto-char (wisi-cache-max action)))
 
 ;;;;; setup
 

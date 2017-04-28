@@ -99,20 +99,8 @@ wisi-indent-region:
 (setq wisi-indent-region-fallback nil)
  current issues:
 
-ada-which-function is nil in aspect_specification?
-    test/aspects.ads:27
-
-build/wisi/ada_mode-nominal-child.adb.diff
-    ada-wisi-make-subprogram-body cuts of 't' in 'Float'
-        navigate cache is wrong somehow
-        ok when test interactively
-        later
-
 parse face is slow
     noticeable delay when typing code
-
-    even in comments!
-        fix wisi--post-change
 
     fasttoken-parser-lr-lalr_generator.adb
     per iteration 0.278141, 0.281266
