@@ -244,17 +244,21 @@
        ((name COLON_EQUAL expression_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
-        (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken) 0]))))
+        (wisi-indent-action [0 ada-indent-broken (wisi-anchored%- 2 ada-indent-broken) 0]))))
       (association_opt
        (())
        ((CHARACTER_LITERAL EQUAL_GREATER expression_opt )
         (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken)]))
        ((CHARACTER_LITERAL EQUAL_GREATER BOX ))
        ((discrete_choice_list EQUAL_GREATER expression_opt )
-        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken (wisi-anchored% 2 ada-indent-broken)]))
+        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)
+        ada-indent-broken
+        (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
+        (wisi-anchored% 2 (* 2 ada-indent-broken)))]))
        ((discrete_choice_list EQUAL_GREATER BOX )
         (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken 0]))
-       ((expression_opt )))
+       ((expression_opt )
+        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])))
       (association_list
        ((association_opt ))
        ((association_list COMMA association_opt )))
@@ -307,7 +311,9 @@
         (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when])))
       (case_expression_alternative
        ((WHEN discrete_choice_list EQUAL_GREATER expression_opt )
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (wisi-anchored% 1 ada-indent)])))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken
+        (wisi-hanging (wisi-anchored% 1 ada-indent)
+        (wisi-anchored% 1 (+ ada-indent ada-indent-broken)))])))
       (case_expression_alternative_list
        ((case_expression_alternative ))
        ((case_expression_alternative_list COMMA case_expression_alternative )
@@ -620,8 +626,7 @@
        ((relation_xor_list )))
       (expression_opt
        (())
-       ((expression )
-        (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])))
+       ((expression )))
       (expression_function_declaration
        ((overriding_indicator_opt function_specification IS paren_expression aspect_specification_opt SEMICOLON )
         (progn
@@ -865,7 +870,7 @@
         (wisi-containing-action 1 5)
         (wisi-containing-action 1 7)
         (wisi-motion-action [1 3 [5 ELSIF THEN] 6 10])
-        (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0
+        (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0 0
         [ada-indent ada-indent] 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON )
         (progn
@@ -873,18 +878,23 @@
         (wisi-containing-action 1 4)
         (wisi-containing-action 1 5)
         (wisi-motion-action [1 3 [5 ELSIF THEN] 8])
-        (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0 0 0])))
+        (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+        [ada-indent ada-indent] 0 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 motion 5 motion 9 statement-end])
+        (wisi-containing-action 1 4)
+        (wisi-containing-action 1 6)
         (wisi-motion-action [1 3 5 9])
-        (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0
+        (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0
         [ada-indent ada-indent] 0 0 0])))
        ((IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 motion 7 statement-end])
+        (wisi-containing-action 1 4)
         (wisi-motion-action [1 3 7])
-        (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0 0]))))
+        (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+        [ada-indent ada-indent] 0 0 0]))))
       (incomplete_type_declaration
        ((TYPE IDENTIFIER discriminant_part_opt IS TAGGED SEMICOLON )
         (progn
@@ -994,10 +1004,17 @@
         (wisi-face-mark-action [1]))
        ((CHARACTER_LITERAL ))
        ((name LEFT_PAREN range_list RIGHT_PAREN )
-        (wisi-indent-action [0 0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0
+        (wisi-anchored% 1 ada-indent-broken)
+        (wisi-hanging (wisi-anchored 2 1)
+        (wisi-anchored 2 (1+ ada-indent-broken)))
+        (wisi-anchored 2 0)]))
        ((selected_component ))
        ((attribute_reference ))
-       ((name actual_parameter_part ))
+       ((name actual_parameter_part )
+        (wisi-indent-action [0 (if ada-indent-hanging-rel-exp
+        (wisi-anchored 1 ada-indent-broken)
+        (wisi-anchored% 1 ada-indent-broken))]))
        ((qualified_expression ))
        ((STRING_LITERAL )))
       (name_opt
@@ -1025,7 +1042,7 @@
         (progn
         (wisi-statement-action [1 statement-start 9 statement-end])
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-        (wisi-anchored% 6 ada-indent-broken) ada-indent-broken 0])))
+        (wisi-anchored%- 6 ada-indent-broken) ada-indent-broken 0])))
        ((identifier_list COLON aliased_opt constant_opt subtype_indication aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
@@ -1078,7 +1095,7 @@
       (package_body
        ((PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 name 5 motion 7 motion 11 statement-end])
+        (wisi-statement-action [1 statement-start 3 name 5 motion 7 motion 11 statement-end])
         (wisi-containing-action 1 6)
         (wisi-containing-action 1 8)
         (wisi-motion-action [1 5 7 [8 EXCEPTION WHEN] 11])
@@ -1087,7 +1104,7 @@
         0 [ada-indent ada-indent] 0 ada-indent-broken 0])))
        ((PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 5 motion 9 statement-end])
+        (wisi-statement-action [1 statement-start 3 name 5 motion 9 statement-end])
         (wisi-containing-action 1 6)
         (wisi-motion-action [1 5 9])
         (wisi-face-apply-action [3 font-lock-function-name-face 8 font-lock-function-name-face])
@@ -1154,7 +1171,10 @@
        ((parameter_specification_list SEMICOLON parameter_specification )))
       (paren_expression
        ((LEFT_PAREN expression_opt RIGHT_PAREN )
-        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0
+        (wisi-hanging (wisi-anchored 1 1)
+        (wisi-anchored 1 (1+ ada-indent-broken)))
+        (wisi-anchored 1 0)]))
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
        ((LEFT_PAREN conditional_quantified_expression RIGHT_PAREN )
@@ -1272,7 +1292,11 @@
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [0 ada-indent] 0 0]))))
       (qualified_expression
        ((name TICK aggregate )
-        (wisi-face-apply-action [1 font-lock-type-face])))
+        (progn
+        (wisi-face-apply-action [1 font-lock-type-face])
+        (wisi-indent-action [0 0 (if ada-indent-hanging-rel-exp
+        (wisi-anchored 1 ada-indent-broken)
+        (wisi-anchored% 1 ada-indent-broken))]))))
       (quantified_expression
        ((FOR quantifier iterator_specification EQUAL_GREATER expression_opt )
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored% 4 ada-indent-broken)])))

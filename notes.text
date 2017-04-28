@@ -98,14 +98,28 @@ wisi-indent-region:
 (setq wisi-disable-face t)
 (setq wisi-indent-region-fallback nil)
  current issues:
-bad indent:
-                        Append
-                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name
-                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
 
-    last line should be indented
+ada-which-function is nil in aspect_specification?
+    test/aspects.ads:27
+
+build/wisi/ada_mode-nominal-child.adb.diff
+    ada-wisi-make-subprogram-body cuts of 't' in 'Float'
+        navigate cache is wrong somehow
+        ok when test interactively
+        later
+
+parse face is slow
+    noticeable delay when typing code
+
+    even in comments!
+        fix wisi--post-change
+
+    fasttoken-parser-lr-lalr_generator.adb
+    per iteration 0.278141, 0.281266
+
+    parse-action nil: 0.256851
+        set jit-lock-defer-time for now
+        lr1 parser will be faster?
 
 indent is slow
 

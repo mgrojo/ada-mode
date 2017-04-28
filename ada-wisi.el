@@ -102,46 +102,51 @@
        0))
     ))
 
-(defun ada-indent-hanging (tok _tok-syntax delta1 delta2)
+(defun ada-indent-hanging (tok delta1 delta2 option)
   "For `wisi-indent-hanging-function'. Determine indent style from context."
   ;; ada-mode 5.2 used a special case for aspect specification
   ;; expressions; we implement that here. Otherwise, implement
   ;; ada-indent-hanging-rel-exp.
   (cond
-   ((and (eq wisi-nterm 'expression_opt)
-	 (let ((prev-3 (wisi-parse-prev-token 3))
-	       (prev-5 (wisi-parse-prev-token 5)))
+   ((and (eq (wisi-tok-token tok) 'expression_opt)
+	 (let ((prev-1 (wisi-parse-prev-token 1))
+	       (prev-3 (wisi-parse-prev-token 3)))
 	   (or
-	    (and prev-3
-		 (eq 'WITH (wisi-tok-token prev-3))
-		 (or (null prev-5)
-		     (not (eq 'LEFT_PAREN (wisi-tok-token prev-5))))) ;; not in extension aggregate
-	    (and prev-5
-		 (eq 'WITH (wisi-tok-token prev-5)))))) ; in aspect_specification_opt
+	    ;; test/aspects.ads
+	    ;; with Pre => X > 10 and
+	    ;;             X < 50 and
+	    ;;             F (X),
+	    (and prev-1
+		 (eq 'WITH (wisi-tok-token prev-1))
+		 (or (null prev-3)
+		     ;; FIXME: doc test case
+		     (not (eq 'LEFT_PAREN (wisi-tok-token prev-3))))) ;; not in extension aggregate
 
+	    ;; test/aspects.ads
+	    ;;   Post =>
+	    ;;     Y >= X and
+	    ;;     Some_Very_Verbose_Predicate (X, Y);
+	    (and prev-3
+		 (eq 'WITH (wisi-tok-token prev-3))))))
+    ;; in aspect_specification_opt
     (list
      delta1
      (wisi-anchored-1 tok 0)))
 
    (ada-indent-hanging-rel-exp
-    (list
-     delta1
-     (wisi-anchored-1 tok ada-indent-broken)))
+    (if (or (not option)
+	    (= (wisi-tok-line tok) (wisi-tok-first tok)))
+	(list
+	 delta1
+	 (wisi-anchored-1 tok ada-indent-broken))
+      (list (wisi-anchored-1 tok ada-indent-broken))))
+
+   ((or (not option)
+	(= (wisi-tok-line tok) (wisi-tok-first tok)))
+    (list delta1 delta2))
 
    (t
-    (if (/= (wisi-tok-line tok) (wisi-tok-first tok))
-	;; First token in tok is not first in line; anchor to ignore
-	;; higher level indents.
-	(list
-	 0
-	 (wisi-anchored-2
-	  (wisi-tok-line tok);; anchor-line
-	  (cdr (wisi-tok-region tok));; end
-	  (wisi--paren-in-anchor-line tok delta2)
-	  nil);; no-accumulate
-	 )
-
-      (list delta1 delta2)))
+    (list delta1))
    ))
 
 (defun ada-indent-record (anchor-token record-token offset)
@@ -435,6 +440,7 @@ For `wisi-indent-calculate-functions'.
   (save-excursion
     ;; Used by ada-align; we know we are in a paren.
     (ada-goto-open-paren 1)
+    (while (forward-comment 1))
     (eq (wisi-tok-token (wisi-forward-token)) 'CASE)))
 
 (defun ada-wisi-goto-subunit-name ()
@@ -599,10 +605,12 @@ Also return cache at start."
 
 (defun ada-wisi-make-subprogram-body ()
   "For `ada-make-subprogram-body'."
-  (wisi-validate-cache (point) t 'navigate)
+  ;; point is at start of subprogram specification; we need to find
+  ;; the end, so ensure parse to end of buffer.
+  (wisi-validate-cache (point-max) t 'navigate)
 
   (let* ((begin (point))
-	 (end (save-excursion (wisi-forward-find-class 'statement-end (point-max)) (point)))
+	 (end (1- (wisi-cache-end (wisi-get-cache (point)))))
 	 (cache (wisi-forward-find-class 'name end))
 	 (name (buffer-substring-no-properties
 		(point)

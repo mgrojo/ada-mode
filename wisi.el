@@ -132,12 +132,13 @@ Normally set from a language-specific option.")
 (make-variable-buffer-local 'wisi-indent-comment-col-0)
 
 (defvar wisi-indent-hanging-function nil
-  "Language-specific implementation of `wisi-hanging'.
-A function taking four args TOK TOK-SYNTAX DELTA1 DELTA2, and returning a list (DELTA1 DELTA2).
+  "Language-specific implementation of `wisi-hanging', `wisi-hanging%'.
+A function taking four args TOK DELTA1 DELTA2 OPTION,
+and returning a list either (DELTA1 DELTA2) or (DELTA).
 TOK is a `wisi-tok' struct for the token being indented.
-TOK-SYNTAX is the result of `syntax-ppss' at the start of TOK.
 DELTA1, DELTA2 are the indents of the first and following lines
-within the nonterminal.  point is at start of TOK, and may be moved.")
+within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
+point is at start of TOK, and may be moved.")
 (make-variable-buffer-local 'wisi-indent-comment-col-0)
 
 (defvar wisi-inhibit-parse nil
@@ -947,7 +948,8 @@ grammar action as:
 	))))
 
 (defun wisi-containing-action (containing-token contained-token)
-  "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
+  "Set containing marks in all tokens in CONTAINED-TOKEN
+with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
   (when (eq wisi--parse-action 'navigate)
     (let* ((containing-region (wisi-tok-region (aref wisi-tokens (1- containing-token))))
@@ -1227,6 +1229,15 @@ Let-bound in `wisi-indent-action', for grammar actions.")
   "Non-nil if computing indent for comment.
 Let-bound in `wisi-indent-action', for grammar actions.")
 
+(defun wisi-indent-zero-p (indent)
+  (cond
+   ((integerp indent)
+    (= indent 0))
+
+   (t ;; 'anchor
+    (integerp (nth 2 indent)))
+   ))
+
 (defun wisi--apply-int (i delta)
   "Add DELTA (an integer) to the indent at index I."
   (let ((indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
@@ -1299,28 +1310,37 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 	    (wisi--apply-anchored delta i))
 
 	   ((eq 'hanging (car delta))
-	    ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2)
-	    ;; delta2 may be anchored
-	    (if (= i (1- (nth 1 delta)))
-		;; first line of token
-		(wisi--apply-int i (nth 3 delta))
+	    ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2 no-accumulate)
+	    ;; delta1, delta2 may be anchored
+	    (when (or (not (nth 5 delta))
+		      (wisi-indent-zero-p (aref (wisi-ind-indent wisi--indent) i)))
+	      (if (= i (1- (nth 1 delta)))
+		  ;; apply delta1
+		  (let ((delta1 (nth 3 delta)))
+		    (cond
+		     ((integerp delta1)
+		      (wisi--apply-int i delta1))
 
-	      ;; don't apply hanging indent in nested parens.
-	      ;; test/ada_mode-parens.adb
-	      ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
-	      ;;   Ada.Strings.Maps."or"
-	      ;;     (Ada.Strings.Maps.To_Set (' '),
-	      (when (= paren-first
-		       (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
-		(let ((delta2 (nth 4 delta)))
-		  (cond
-		   ((integerp delta2)
-		    (wisi--apply-int i delta2))
+		     (t ;; anchored
+		      (wisi--apply-anchored delta1 i))
+		     ))
 
-		   (t ;; anchored
-		    (wisi--apply-anchored delta2 i))
-		   )))
-	      ))
+		;; don't apply hanging indent in nested parens.
+		;; test/ada_mode-parens.adb
+		;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+		;;   Ada.Strings.Maps."or"
+		;;     (Ada.Strings.Maps.To_Set (' '),
+		(when (= paren-first
+			 (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
+		  (let ((delta2 (nth 4 delta)))
+		    (cond
+		     ((integerp delta2)
+		      (wisi--apply-int i delta2))
+
+		     (t ;; anchored
+		      (wisi--apply-anchored delta2 i))
+		     )))
+		)))
 
 	   (t
 	    (error "wisi--indent-token-1: invalid delta: %s" delta))
@@ -1504,32 +1524,59 @@ containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line."
 from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'."
   (wisi-anchored% token-number offset t))
 
-(defun wisi-hanging (delta1 delta2)
-  "Return indent with DETLA1 for first line, DELTA2 for following lines.
-For use in grammar indent actions."
+(defun wisi-hanging-1 (delta1 delta2 option no-accumulate)
+  "If OPTION is nil, implement `wisi-hanging'; otherwis `wisi-hanging%'."
   (if wisi-indent-comment
       delta1
 
     (let* ((tok (aref wisi-tokens wisi-token-index))
-	   ;; tok is a nonterminal; this function makes no sense for terminals
 	   (tok-syntax (syntax-ppss (car (wisi-tok-region tok)))))
+      ;; tok is a nonterminal; this function makes no sense for terminals
       ;; syntax-ppss moves point to start of tok
 
-      (if (functionp wisi-indent-hanging-function)
-	  (let ((indent-hanging (funcall wisi-indent-hanging-function tok tok-syntax delta1 delta2)))
-	    (list 'hanging
-		  (wisi-tok-line tok) ;; first line of token
-		  (nth 0 tok-syntax) ;; paren nest level at tok
-		  (nth 0 indent-hanging)
-		  (nth 1 indent-hanging)))
+      (cond
+       ((functionp wisi-indent-hanging-function)
+	(let ((indent-hanging (funcall wisi-indent-hanging-function tok delta1 delta2 option)))
+	  (list 'hanging
+		(wisi-tok-line tok) ;; first line of token
+		(nth 0 tok-syntax) ;; paren nest level at tok
+		(nth 0 indent-hanging)
+		(if (or (not option)
+			(= 2 (length indent-hanging)))
+		    (nth 1 indent-hanging)
+		  (nth 0 indent-hanging)) ;; simplest way to implement no-accumulate
+		no-accumulate)))
 
-	(list 'hanging
-	      (wisi-tok-line tok) ;; first line of token
-	      (nth 0 tok-syntax) ;; paren nest level at tok
-	      delta1
-	      (wisi-anchored-2 (wisi-tok-line tok) (cdr (wisi-tok-region tok)) delta2 nil))
-	))
+      (t
+       (list 'hanging
+	     (wisi-tok-line tok) ;; first line of token
+	     (nth 0 tok-syntax) ;; paren nest level at tok
+	     delta1
+	     (if (or (not option)
+		     (= (wisi-tok-line tok) (wisi-tok-first tok))) ;; first token in tok is first on line
+		 delta2
+	       delta1)
+	     no-accumulate))
+       ))
     ))
+
+(defun wisi-hanging (delta1 delta2)
+  "Use DETLA1 for first line, DELTA2 for following lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 nil nil))
+
+(defun wisi-hanging% (delta1 delta2)
+  "If first token is first in line, use DETLA1 for first line, DELTA2 for following lines.
+Otherwise use DELTA1 for all lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 t nil))
+
+(defun wisi-hanging%- (delta1 delta2)
+  "If existing indent is non-zero, do nothing.
+Else if first token is first in line, use DETLA1 for first line,
+DELTA2 for following lines.  Otherwise use DELTA1 for all lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 t t))
 
 (defun wisi--indent-compute-delta (delta tok)
   "Return evaluation of DELTA."
@@ -1915,10 +1962,10 @@ the comment on the previous line."
 	;; can be nil if in header comment
 	(let ((start (progn (wisi-goto-start cache) (point)))
 	      (end (progn
-		     (when (wisi-cache-end cache)
-		       ;; nil when cache is statement-end
-		       (goto-char (1- (wisi-cache-end cache))))
-		     (point))))
+		     (if (wisi-cache-end cache)
+			 ;; nil when cache is statement-end
+			 (1- (wisi-cache-end cache))
+		       (point)))))
 	  (indent-region start end)
 	  ))
       )))
@@ -1973,6 +2020,9 @@ Called with BEGIN END.")
 	(parse-required nil))
 
     (wisi--check-change)
+
+    ;; Always indent the line containing begin.
+    (setq begin (save-excursion (goto-char begin) (line-beginning-position)))
 
     (let* ((end-mark (copy-marker end))
 	   (begin-line (count-lines (point-min) begin))
@@ -2060,13 +2110,7 @@ Called with BEGIN END.")
 
 	  (move-marker (wisi-cache-max 'indent) (point-max))
 
-	  (save-excursion
-	    (when wisi-indent-failed
-	      ;; previous parse failed
-	      (setq wisi-indent-failed nil)
-	      (goto-char end)
-	      (run-hooks 'wisi-post-indent-fail-hook))
-	    ))) ;; parse-required
+	  )) ;; parse-required
 
       (when (or (not parse-required)
 		(not wisi-parse-failed))
@@ -2093,6 +2137,12 @@ Called with BEGIN END.")
 		  (indent-line-to indent)))
 
 	      (forward-line 1)))
+
+	  (when wisi-indent-failed
+	    ;; previous parse failed
+	    (setq wisi-indent-failed nil)
+	    (goto-char end)
+	    (run-hooks 'wisi-post-indent-fail-hook))
 	  )) ;; apply parse
       )))
 
@@ -2152,14 +2202,16 @@ Called with BEGIN END.")
   (wisi-set-parse-try t 'indent)
   (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
   (wisi-invalidate-cache 'indent (point-min))
-  (goto-line line)
+  (goto-char (point-min))
+  (forward-line (1- line))
   (wisi-time #'wisi-indent-line 1))
 
 (defun wisi-time-indent-line-warm-cache (line count)
   (wisi-set-parse-try t 'indent)
   (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
   (wisi-invalidate-cache 'indent (point-min))
-  (goto-line line)
+  (goto-char (point-min))
+  (forward-line (1- line))
   (wisi-indent-line)
   (wisi-time #'wisi-indent-line count))
 

@@ -407,7 +407,7 @@ assignment_statement
   : name COLON_EQUAL expression_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
-      (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken) 0]))
+      (wisi-indent-action [0 ada-indent-broken (wisi-anchored%- 2 ada-indent-broken) 0]))
   ;
 
 association_opt
@@ -416,10 +416,34 @@ association_opt
     (wisi-indent-action [0 ada-indent-broken (wisi-anchored% 2 ada-indent-broken)])
   | CHARACTER_LITERAL EQUAL_GREATER BOX ;; from formal_package_association_list
   | discrete_choice_list EQUAL_GREATER expression_opt
-    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken (wisi-anchored% 2 ada-indent-broken)])
+ ;; We need wisi-hanging on expression_opt to recognize aspect_specification for a special case.
+ ;; test/aspects.ads
+ ;; with Pre => X > 10 and
+ ;;             X < 50 and
+ ;;             F (X),
+ ;;   Post =>
+ ;;     Y >= X and
+ ;;     Some_Very_Verbose_Predicate (X, Y);
+ ;;
+ ;; test/indent.ads
+ ;;   1 => --  Used to be aligned on "CSCL_Type'"
+ ;;        --  aligned with previous comment.
+ ;;     IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
+ ;;       (Unused2  => 10,  -- Used to be aligned on "1 =>"
+ ;;   requires '-' on wisi-hanging%-
+
+    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)
+                         ada-indent-broken
+                         (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
+                                         (wisi-anchored% 2 (* 2 ada-indent-broken)))])
   | discrete_choice_list EQUAL_GREATER BOX
     (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken 0])
   | expression_opt
+ ;; test/adacore_9907_010.adb
+ ;; Put_Line ("hello " &
+ ;;             "world" &
+ ;;             " in ada");
+    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])
   ;
 
 association_list
@@ -486,7 +510,13 @@ case_expression
 
 case_expression_alternative
   : WHEN discrete_choice_list EQUAL_GREATER expression_opt
-    (wisi-indent-action [0 ada-indent-broken ada-indent-broken (wisi-anchored% 1 ada-indent)])
+ ;; test/ada_mode-conditional_expressions.adb
+ ;; when A =>
+ ;;    J = 4
+ ;;      or else M, --  test case from Piotr Trojanek
+    (wisi-indent-action [0 ada-indent-broken ada-indent-broken
+                           (wisi-hanging (wisi-anchored% 1 ada-indent)
+                                         (wisi-anchored% 1 (+ ada-indent ada-indent-broken)))])
   ;
 
 case_expression_alternative_list
@@ -950,7 +980,6 @@ expression
 expression_opt
   : ;; empty for user friendly
   | expression
-    (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)])
   ;
 
 expression_function_declaration
@@ -1295,7 +1324,7 @@ if_statement
       (wisi-containing-action 1 5)
       (wisi-containing-action 1 7)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 6 10])
-      (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0 0
                              [ada-indent ada-indent] 0 0 0]))
   | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
     (progn
@@ -1303,18 +1332,23 @@ if_statement
       (wisi-containing-action 1 4)
       (wisi-containing-action 1 5)
       (wisi-motion-action [1 3 [5 ELSIF THEN] 8])
-      (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0 0 0]))
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+                             [ada-indent ada-indent] 0 0 0 0]))
   | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 motion 5 motion 9 statement-end])
+      (wisi-containing-action 1 4)
+      (wisi-containing-action 1 6)
       (wisi-motion-action [1 3 5 9])
-      (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0 [ada-indent ada-indent] 0
                              [ada-indent ada-indent] 0 0 0]))
   | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 motion 7 statement-end])
+      (wisi-containing-action 1 4)
       (wisi-motion-action [1 3 7])
-      (wisi-indent-action [0 ada-indent-broken 0 [ada-indent ada-indent] 0 0 0]))
+      (wisi-indent-action [0 (wisi-hanging% ada-indent-broken (* 2 ada-indent-broken)) 0
+                             [ada-indent ada-indent] 0 0 0]))
   ;
 
 incomplete_type_declaration
@@ -1480,13 +1514,21 @@ name
  ;; partly redundant with name actual_parameter_part; this is the
  ;; part that is not redundant.
   | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
- ;; parens indented by higher level
  ;; test/ada_mode-parens.adb
  ;; Slice_1
  ;;   (1,
  ;;    C
  ;;      (1 .. 2));
-    (wisi-indent-action [0 0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+ ;;
+ ;; tests/g-comlin.adb
+ ;; return CL.Argument (The_Switch.Arg_Num)
+ ;;   (The_Switch.First ..
+ ;;      The_Switch.Last);
+    (wisi-indent-action [0
+                         (wisi-anchored% 1 ada-indent-broken)
+                         (wisi-hanging (wisi-anchored 2 1)
+                                       (wisi-anchored 2 (1+ ada-indent-broken)))
+                         (wisi-anchored 2 0)])
   | selected_component
   | attribute_reference ;; starts with name
 
@@ -1494,20 +1536,24 @@ name
  ;; type_conversion, function_call, procedure call, generic
  ;; instantiation.
  ;;
- ;; No indent here; this is always indented by a higher level.
- ;;
  ;; test/ada_mode-parens.adb
  ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
  ;;   Ada.Strings.Maps."or"
  ;;     (Ada.Strings.Maps.To_Set (' '),
- ;; indented by expression hanging.
  ;;
  ;; Local_11 : Local_11_Type := Local_11_Type'
  ;;   (A => Integer
  ;;      (1.0),
  ;; indented by association
  ;;
- ;; (wisi-indent-action [0 ada-indent-broken])
+ ;;test/hanging.adb; sets ada-indent-hanging-rel-exp: t
+ ;; X_Long_Name
+ ;;   := F_Long_Name
+ ;;        (A => True,
+ ;;         B => True);
+    (wisi-indent-action [0 (if ada-indent-hanging-rel-exp
+                               (wisi-anchored 1 ada-indent-broken)
+                             (wisi-anchored% 1 ada-indent-broken))])
 
   | qualified_expression ;; starts with name
   ;; | generalized_reference
@@ -1550,7 +1596,7 @@ object_declaration
     (progn
       (wisi-statement-action [1 statement-start 9 statement-end])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
-                             (wisi-anchored% 6 ada-indent-broken) ada-indent-broken 0]))
+                             (wisi-anchored%- 6 ada-indent-broken) ada-indent-broken 0]))
   | identifier_list COLON aliased_opt constant_opt subtype_indication aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
@@ -1614,7 +1660,7 @@ package_body
   : PACKAGE BODY name aspect_specification_opt IS declarative_part_opt
     BEGIN handled_sequence_of_statements END name_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 name 5 motion 7 motion 11 statement-end])
+      (wisi-statement-action [1 statement-start 3 name 5 motion 7 motion 11 statement-end])
       (wisi-containing-action 1 6)
       (wisi-containing-action 1 8)
       (wisi-motion-action [1 5 7 [8 EXCEPTION WHEN] 11])
@@ -1623,7 +1669,7 @@ package_body
                              0 [ada-indent ada-indent] 0 ada-indent-broken 0]))
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 5 motion 9 statement-end])
+      (wisi-statement-action [1 statement-start 3 name 5 motion 9 statement-end])
       (wisi-containing-action 1 6)
       (wisi-motion-action [1 5 9])
       (wisi-face-apply-action [3 font-lock-function-name-face 8 font-lock-function-name-face])
@@ -1711,7 +1757,14 @@ parameter_specification_list
 
 paren_expression
   : LEFT_PAREN expression_opt RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
+ ;;test/ada_mode-parens.ads
+ ;; function Expression_Function_1 (V : Integer) return Boolean
+ ;;   is ((V = V and then True)
+ ;;         or else True);
+    (wisi-indent-action [0
+                         (wisi-hanging (wisi-anchored 1 1)
+                                       (wisi-anchored 1 (1+ ada-indent-broken)))
+                         (wisi-anchored 1 0)])
 
   | LEFT_PAREN association_list RIGHT_PAREN
     (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
@@ -1876,7 +1929,11 @@ protected_type_declaration
 
 qualified_expression
   : name TICK aggregate
-    (wisi-face-apply-action [1 font-lock-type-face])
+    (progn
+      (wisi-face-apply-action [1 font-lock-type-face])
+      (wisi-indent-action [0 0 (if ada-indent-hanging-rel-exp
+                                   (wisi-anchored 1 ada-indent-broken)
+                                 (wisi-anchored% 1 ada-indent-broken))]))
     ;
 
 quantified_expression
@@ -1900,7 +1957,8 @@ raise_statement
       (wisi-statement-action [1 statement-start 5 statement-end])
       ;; test/ada_mode-nominal.adb
       ;; raise Constraint_Error with
-      ;;   "help!";
+      ;;   "help " &
+      ;;   "me!";
       ;;
       ;; raise Constraint_Error
       ;;   with Integer'Image (1) &
@@ -2134,6 +2192,10 @@ simple_return_statement
   : RETURN SEMICOLON
     (wisi-statement-action [1 statement-start 2 statement-end])
   | RETURN expression_opt SEMICOLON
+ ;; test/ada_mode-parens.adb Function_3
+ ;; return
+ ;;   1.0 +
+ ;;   2.0;
     (progn
       (wisi-statement-action [1 statement-start 3 statement-end])
       (wisi-indent-action [0 ada-indent-broken 0]))

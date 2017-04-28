@@ -20,9 +20,11 @@ package Aspects is
    not overriding procedure Foo (X : Integer;
                                  Y : out Integer)
    with Pre => X > 10 and
+               --  a comment
                X < 50 and
                F (X),
      Post =>
+       --  a comment
        Y >= X and
        Some_Very_Verbose_Predicate (X, Y);
 
