@@ -229,12 +229,22 @@ package FastToken.Parser.LR1_Items is
    ----------
    --  visible for unit test
 
-   function Goto_Transitions
+   function LALR_Goto_Transitions
      (Kernel  : in Item_Set;
       Symbol  : in Token.Token_ID;
       First   : in Derivation_Matrix;
       Grammar : in Production.List.Instance)
      return Item_Set;
-   --  FIXME: 'goto' from [dragon] algorithm 4.9?
+   --  FIXME: _not_ 'goto' from [dragon] algorithm 4.9
+
+   function LR1_Goto_Transitions
+     (Set                  : in Item_Set;
+      Symbol               : in Token.Token_ID;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      Trace                : in Boolean)
+     return Item_Set;
+   --  'goto' from [dragon] algorithm 4.9
 
 end FastToken.Parser.LR1_Items;

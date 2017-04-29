@@ -656,7 +656,7 @@ package body FastToken.Parser.LR1_Items is
       return I;
    end Closure;
 
-   function Goto_Transitions
+   function LALR_Goto_Transitions
      (Kernel  : in Item_Set;
       Symbol  : in Token.Token_ID;
       First   : in Derivation_Matrix;
@@ -692,7 +692,9 @@ package body FastToken.Parser.LR1_Items is
 
             if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
                --  Find the production(s) that create Dot_ID
-               --  with first token Symbol and put them in
+               --  with first token Symbol and put them in.
+               --
+               --  FIXME: this is _not_ [dragon] fix 4.38 closure; where did it come from?
                declare
                   Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
                   Prod   : Production.Instance;
@@ -730,7 +732,52 @@ package body FastToken.Parser.LR1_Items is
       end loop;
 
       return Goto_Set;
-   end Goto_Transitions;
+   end LALR_Goto_Transitions;
+
+   function LR1_Goto_Transitions
+     (Set                  : in Item_Set;
+      Symbol               : in Token.Token_ID;
+      Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      Trace                : in Boolean)
+     return Item_Set
+   is
+      use Token.List;
+      use type Token.Handle;
+      use type Token.Token_ID;
+
+      Goto_Set : Item_Set;
+      Item     : Item_Ptr := Set.Set;
+   begin
+      Goto_Set.State := Unknown_State;
+
+      while Item /= null loop
+         if Item.Dot /= Null_Iterator then
+            if ID (Item.Dot) = Symbol then
+               Goto_Set.Set := new Item_Node'
+                 (Prod       => Item.Prod,
+                  Dot        => Next_Token (Item.Dot),
+                  State      => Unknown_State,
+                  Lookaheads => Item.Lookaheads,
+                  Next       => Goto_Set.Set);
+            end if;
+         end if;
+
+         Item := Item.Next;
+      end loop;
+
+      if Trace then
+         Ada.Text_IO.Put_Line ("LR1_Goto_Transitions:");
+         Put (Goto_Set, Show_Lookaheads => True);
+      end if;
+
+      if Goto_Set.Set /= null then
+         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Trace => False);
+      else
+         return Goto_Set;
+      end if;
+   end LR1_Goto_Transitions;
 
    procedure Free (Item : in out Item_Node)
    is
@@ -831,7 +878,7 @@ package body FastToken.Parser.LR1_Items is
                   --  don't need a kernel with dot after EOF.
                   New_Items.Set := null;
                else
-                  New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
+                  New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
                end if;
 
                --  See if any of the item sets need to be added to our list

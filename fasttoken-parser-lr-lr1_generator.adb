@@ -24,11 +24,12 @@ with Ada.Text_IO;
 package body FastToken.Parser.LR.LR1_Generator is
 
    function LR1_Item_Sets
-     (Grammar           : in Production.List.Instance;
-      First             : in LR1_Items.Derivation_Matrix;
-      EOF_Token         : in Token.Token_ID;
-      First_State_Index : in Unknown_State_Index;
-      Trace             : in Boolean)
+     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+      First                : in LR1_Items.Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      EOF_Token            : in Token.Token_ID;
+      First_State_Index    : in Unknown_State_Index;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set_List
    is
       use type Token.List.List_Iterator;
@@ -79,7 +80,8 @@ package body FastToken.Parser.LR.LR1_Generator is
                   --  don't need a kernel with dot after EOF.
                   New_Items.Set := null;
                else
-                  New_Items := Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
+                  New_Items := LR1_Goto_Transitions
+                    (Checking_Set.all, Symbol, Has_Empty_Production, First, Grammar, Trace);
                end if;
 
                --  See if any of the item sets need to be added to our list

@@ -123,6 +123,12 @@ package Gen_FastToken_AUnit is
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr;
 
    function Get_Item_Set
+     (Prod      : in Integer;
+      Lookahead : in LR1_Items.Lookahead_Ptr;
+      Dot       : in Integer)
+     return LR1_Items.Item_Set;
+
+   function Get_Item_Set
      (Prod : in Integer;
       Dot  : in Integer;
       Next : in LR1_Items.Item_Set_Ptr)

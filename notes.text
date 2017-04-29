@@ -16,7 +16,12 @@ add LR1 table generator
 
         Test_Closure passes
 
+        Test_Goto passes
+
+    compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
+
     factor out common code to parser-lr-generator_utils
+
 
     copy lalr tests?
 

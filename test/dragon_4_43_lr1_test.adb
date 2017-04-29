@@ -111,7 +111,7 @@ package body Dragon_4_43_LR1_Test is
          Item     : in Item_Ptr;
          Expected : in Item_Set)
       is
-         Computed : constant Item_Set := LR1_Items.Closure
+         Computed : constant Item_Set := Closure
            (Item_Set'
               (Set       => Item,
                Goto_List => null,
@@ -155,6 +155,60 @@ package body Dragon_4_43_LR1_Test is
       One ("2", Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 2), Expected);
    end Test_Closure;
 
+   procedure Test_Goto (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      use LR1_Items;
+
+      Test : Test_Case renames Test_Case (T);
+
+      procedure One
+        (Label    : in String;
+         Set      : in Item_Set;
+         Symbol   : in Token_ID;
+         Expected : in Item_Set)
+      is
+         Computed : constant Item_Set := LR1_Items.LR1_Goto_Transitions
+           (Set, Symbol, Has_Empty_Production, First, Grammar, Test.Debug);
+      begin
+         if Test.Debug then
+            Ada.Text_IO.Put_Line (Label & ".computed:");
+            LR1_Items.Put (Computed, Show_Lookaheads => True);
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line (Label & ".expected:");
+            LR1_Items.Put (Expected, Show_Lookaheads => True);
+         end if;
+         Check (Label, Computed, Expected);
+      end One;
+
+      I0 : constant Item_Set := Closure
+        (Get_Item_Set (1, +EOF_ID, 1),
+         Has_Empty_Production, First, Grammar, Trace => False);
+
+      Expected : Item_Set;
+
+   begin
+      Expected.State := LR.Unknown_State;
+
+      if Test.Debug then
+         Ada.Text_IO.Put_Line ("I0:");
+         Put (I0, Show_Lookaheads => True);
+      end if;
+
+      --  [dragon] pg 233 - 234 gives the gotos as part of the discussion
+
+      --  goto I0, $
+      Add (Get_Item_Node (1, +EOF_ID, 2).all, Expected);
+      One ("1", I0, Upper_S_ID, Expected);
+
+      --  goto I0, c
+      Expected := (null, null, LR.Unknown_State, null);
+      Add (Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 2).all, Expected);
+      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+      Add (Get_Item_Node (4, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+
+      One ("2", I0, Lower_C_ID, Expected);
+   end Test_Goto;
+
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       use LR1_Items;
@@ -162,7 +216,7 @@ package body Dragon_4_43_LR1_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Item_Set_List := Generators.LR1_Item_Sets
-        (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => First_State_Index);
+        (Has_Empty_Production, First, Grammar, EOF_ID, First_State_Index, Trace => Test.Debug);
 
       Expected : Item_Set_Ptr;
 
@@ -316,10 +370,11 @@ package body Dragon_4_43_LR1_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_Closure'Access, "debug");
+         Register_Routine (T, Test_Goto'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_Closure'Access, "Test_Closure");
+         Register_Routine (T, Test_Goto'Access, "Test_Goto");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
          Register_Routine (T, Parser_Table'Access, "Parser_Table");
       end if;

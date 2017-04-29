@@ -65,11 +65,12 @@ package FastToken.Parser.LR.LR1_Generator is
    --  Visible for unit test
 
    function LR1_Item_Sets
-     (Grammar           : in Production.List.Instance;
-      First             : in LR1_Items.Derivation_Matrix;
-      EOF_Token         : in Token.Token_ID;
-      First_State_Index : in Unknown_State_Index;
-      Trace             : in Boolean)
+     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+      First                : in LR1_Items.Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      EOF_Token            : in Token.Token_ID;
+      First_State_Index    : in Unknown_State_Index;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set_List;
 
 end FastToken.Parser.LR.LR1_Generator;
