@@ -20,161 +20,27 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 package body FastToken.Parser.LR.LR1_Generator is
 
-   function Closure
-     (Set                  : in Item_Set;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      G                    : in Production.List.Instance;
-      Trace                : in Boolean)
-     return Item_Set
-   is
-      use type Token.Token_ID;
-      use type Token.List.List_Iterator;
-
-      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
-      --
-      --  Taken literally, the algorithm modifies its input; we make a
-      --  copy instead. We don't copy Goto_List, since we are only
-      --  concerned with lookaheads here.
-
-      I : Item_Set; --  The result.
-
-      Item       : Item_Ptr := Set.Set;           -- iterator 'for each item in I'
-      B          : Production.List.List_Iterator; -- iterator 'for each production in G'
-      Added_Item : Boolean;                       -- 'until no more items can be added'
-
-      -- Current             : Item_Ptr;
-      Next_Symbol         : Token.List.List_Iterator;
-      Merge_From          : Item_Node;
-   begin
-      --  Copy Set into I; Goto_List not copied
-      I.State := Set.State;
-
-      while Item /= null loop
-         I.Set := new Item_Node'
-           (Prod       => Item.Prod,
-            Dot        => Item.Dot,
-            State      => Unknown_State,
-            Lookaheads => Deep_Copy (Item.Lookaheads),
-            Next       => I.Set);
-
-         Item := Item.Next;
-      end loop;
-
-      Current        := I.Set;
-      Added_Item := False;
-      loop
-         --  If the token after Dot is a nonterminal, find its
-         --  productions and place them in the set with lookaheads
-         --  from the current production.
-         if Current.Dot /= Token.List.Null_Iterator and then
-           Token.List.ID (Current.Dot) in Nonterminal_ID
-         then
-            Next_Symbol := Token.List.Next_Token (Current.Dot); -- token after nonterminal, possibly null
-
-            B := Production.List.First (G);
-            while not Production.List.Is_Done (B) loop
-               if Nonterminal.ID (Production.List.Current (B).LHS) = Token.List.ID (Current.Dot) then
-                  --  loop until find a terminal, or a nonterminal that cannot be empty, or end of production
-                  Empty_Nonterm :
-                  loop
-                     if Next_Symbol = Token.List.Null_Iterator then
-                        --  Need a variable, because the lookaheads might be freed.
-                        Merge_From := Item_Node_Of
-                          (B,
-                           State      => Unknown_State,
-                           Lookaheads => Current.Lookaheads);
-
-                        Added_Item := Added_Item or Merge (Merge_From, I);
-                        exit Empty_Nonterm;
-
-                     elsif Token.List.ID (Next_Symbol) in Token.Terminal_ID then
-                        Merge_From := Item_Node_Of
-                          (B,
-                           State         => Unknown_State,
-                           Lookaheads    => new Item_Lookahead'
-                             (Last       => 1,
-                              Lookaheads => (1 => Token.List.ID (Next_Symbol)),
-                              Next       => null));
-
-                        Added_Item := Added_Item or Merge (Merge_From, I);
-                        exit Empty_Nonterm;
-
-                     else
-                        --  Next_Symbol is a nonterminal
-                        for Terminal in Token.Terminal_ID loop
-                           if First (Token.List.ID (Next_Symbol)) (Terminal) then
-                              Merge_From := Item_Node_Of
-                                (B,
-                                 State         => Unknown_State,
-                                 Lookaheads    => new Item_Lookahead'
-                                   (Last       => 1,
-                                    Lookaheads => (1 => Terminal),
-                                    Next       => null));
-
-                              Added_Item := Added_Item or Merge (Merge_From, I);
-                           end if;
-                        end loop;
-
-                        if Has_Empty_Production (Token.List.ID (Next_Symbol)) then
-                           Next_Symbol := Token.List.Next_Token (Next_Symbol);
-                        else
-                           exit Empty_Nonterm;
-                        end if;
-                     end if;
-                  end loop Empty_Nonterm;
-
-                  Next_Symbol := Token.List.Next_Token (Current.Dot);
-               end if;
-
-               Production.List.Next (B);
-            end loop;
-         end if; -- Dot is is at non-terminal
-
-         if Current.Next = null then
-            exit when not Added_Item;
-
-            --  This used to have logic to "only review new items",
-            --  but that missed items that were modified by adding new
-            --  lookaheads. We'll come back and find a better
-            --  optimization if this proves too slow.
-            Current        := I.Set;
-            Added_Item := False;
-
-            if Trace then
-               Ada.Text_IO.Put_Line ("I:");
-               Put (I);
-               Ada.Text_IO.New_Line;
-            end if;
-         else
-            Current := Current.Next;
-         end if;
-
-      end loop;
-
-      return I;
-   end Lookahead_Closure;
-
-   function LR1_Items
+   function LR1_Item_Sets
      (Grammar           : in Production.List.Instance;
-      First             : in Derivation_Matrix;
+      First             : in LR1_Items.Derivation_Matrix;
       EOF_Token         : in Token.Token_ID;
       First_State_Index : in Unknown_State_Index;
       Trace             : in Boolean)
-     return Item_Set_List
+     return LR1_Items.Item_Set_List
    is
       use type Token.List.List_Iterator;
       use type Token.Token_ID;
+      use LR1_Items;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
       C : Item_Set_List :=
         (Head         => new Item_Set'
            (Set       => new Item_Node'
-              (Item_Node_Of
-                 (Production.List.Current (Production.List.First (Grammar)), First_State_Index)),
+              (Item_Node_Of (Production.List.First (Grammar), First_State_Index)),
             Goto_List => null,
             State     => First_State_Index,
             Next      => null),
@@ -245,17 +111,17 @@ package body FastToken.Parser.LR.LR1_Generator is
                        (Head => new Item_Set'(New_Items),
                         Size => C.Size + 1);
 
-                     Checking_Set.Goto_List := new Set_Reference'
-                       (Set    => C.Head,
-                        Symbol => Symbol,
+                     Checking_Set.Goto_List := new Goto_Item'
+                       (Symbol => Symbol,
+                        Set    => C.Head,
                         Next   => Checking_Set.Goto_List);
 
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
                      if not Is_In
-                       (Set_Ptr   => New_Items_Set,
-                        Symbol    => Symbol,
+                       (Symbol    => Symbol,
+                        Set       => New_Items_Set,
                         Goto_List => Checking_Set.Goto_List)
                      then
                         if Trace then
@@ -263,9 +129,9 @@ package body FastToken.Parser.LR.LR1_Generator is
                            Put (New_Items_Set.all);
                         end if;
 
-                        Checking_Set.Goto_List := new Set_Reference'
-                          (Set    => New_Items_Set,
-                           Symbol => Symbol,
+                        Checking_Set.Goto_List := new Goto_Item'
+                          (Symbol => Symbol,
+                           Set    => New_Items_Set,
                            Next   => Checking_Set.Goto_List);
                      end if;
 
@@ -285,7 +151,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       end if;
 
       return C;
-   end LR1_Items;
+   end LR1_Item_Sets;
 
    function Generate
      (Grammar                  : in Production.List.Instance;

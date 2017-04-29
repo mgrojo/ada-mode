@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test FastToken.Production.Parser.LRK_Item.Lookahead_Closure
+--  Test FastToken.Production.Parser.LR1_Items.Closure
 --
---  Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 --  MA 02111-1307, USA.
 
 with AUnit.Test_Cases;
-package Test_LR1_Lookahead_Closure is
+package Test_LR1_Closure is
 
    type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -27,4 +27,4 @@ package Test_LR1_Lookahead_Closure is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_LR1_Lookahead_Closure;
+end Test_LR1_Closure;

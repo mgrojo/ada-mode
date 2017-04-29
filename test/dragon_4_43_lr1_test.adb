@@ -21,7 +21,7 @@ pragma License (GPL);
 with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LRk_Item;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -48,8 +48,8 @@ package body Dragon_4_43_LR1_Test is
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
    package Parser_Root is new FastToken.Parser (Tokens_Pkg, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LR1_Items is new Parser_Root.LRk_Item
-     (LR.Unknown_State_Index, LR.Unknown_State, 1, Nonterminal, Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, Nonterminal, Production);
    package Generators is new LR.LR1_Generator (EOF_ID, Production, LR1_Items);
 
    --  Allow infix operators for building productions
@@ -80,8 +80,10 @@ package body Dragon_4_43_LR1_Test is
    ----------
    --  Test procedures
 
-   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First_Derivations
-     (Grammar, Has_Empty_Production => (others => False), Trace => False);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
+
+   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
+     (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -94,8 +96,64 @@ package body Dragon_4_43_LR1_Test is
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
    begin
+      Check ("0", Has_Empty_Production, LR1_Items.Nonterminal_ID_Set'(others => False));
       Check ("1", First, Expected);
    end Test_First;
+
+   procedure Test_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      use LR1_Items;
+
+      Test : Test_Case renames Test_Case (T);
+
+      procedure One
+        (Label    : in String;
+         Item     : in Item_Ptr;
+         Expected : in Item_Set)
+      is
+         Computed : constant Item_Set := LR1_Items.Closure
+           (Item_Set'
+              (Set       => Item,
+               Goto_List => null,
+               State     => LR.Unknown_State,
+               Next      => null),
+            Has_Empty_Production, First, Grammar, Trace => Test.Debug);
+
+      begin
+         if Test.Debug then
+            Ada.Text_IO.Put_Line (Label & ".computed:");
+            LR1_Items.Put (Computed, Show_Lookaheads => True);
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line (Label & ".expected:");
+            LR1_Items.Put (Expected, Show_Lookaheads => True);
+         end if;
+         Check (Label, Computed, Expected);
+      end One;
+
+      Expected : Item_Set;
+
+   begin
+      Expected.State := LR.Unknown_State;
+
+      --  [dragon] pg 233 - 234 gives the closures as part of the discussion
+
+      --  close [S' -> . S, $]
+      --  Add in Computed order.
+      Add (Get_Item_Node (1, +EOF_ID,                   1).all, Expected);
+      Add (Get_Item_Node (2, +EOF_ID,                   1).all, Expected);
+      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+      Add (Get_Item_Node (4, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+
+      One ("1", Get_Item_Node (1, +EOF_ID, 1), Expected);
+
+      --  close [C -> c . C, c/d]
+      Expected := (null, null, LR.Unknown_State, null);
+      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 2).all, Expected);
+      Add (Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 1).all, Expected);
+      Add (Get_Item_Node (4, +(Lower_C_ID, Lower_D_ID), 1).all, Expected);
+
+      One ("2", Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 2), Expected);
+   end Test_Closure;
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -103,7 +161,7 @@ package body Dragon_4_43_LR1_Test is
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := Generators.LR1_Items
+      Computed : constant Item_Set_List := Generators.LR1_Item_Sets
         (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => First_State_Index);
 
       Expected : Item_Set_Ptr;
@@ -130,26 +188,26 @@ package body Dragon_4_43_LR1_Test is
       I8 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 3, Lookaheads => null, Dot => 3, State => 6);
       I9 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
 
-      Goto_0 : constant Set_Reference_Ptr :=
-        (I2, Upper_C_ID, null) &
-          (I1, Upper_S_ID, null) &
-          (I4, Lower_D_ID, null) &
-          (I3, Lower_C_ID, null);
+      Goto_0 : constant Goto_Item_Ptr :=
+        (Upper_C_ID, I2, null) &
+        (Upper_S_ID, I1, null) &
+        (Lower_D_ID, I4, null) &
+        (Lower_C_ID, I3, null);
 
-      Goto_2 : constant Set_Reference_Ptr :=
-        (I5, Upper_C_ID, null) &
-          (I7, Lower_D_ID, null) &
-          (I6, Lower_C_ID, null);
+      Goto_2 : constant Goto_Item_Ptr :=
+        (Upper_C_ID, I5, null) &
+        (Lower_D_ID, I7, null) &
+        (Lower_C_ID, I6, null);
 
-      Goto_3 : constant Set_Reference_Ptr :=
-        (I8, Upper_C_ID, null) &
-          (I4, Lower_D_ID, null) &
-          (I3, Lower_C_ID, null);
+      Goto_3 : constant Goto_Item_Ptr :=
+        (Upper_C_ID, I8, null) &
+        (Lower_D_ID, I4, null) &
+        (Lower_C_ID, I3, null);
 
-      Goto_6 : constant Set_Reference_Ptr :=
-        (I9, Upper_C_ID, null) &
-          (I7, Lower_D_ID, null) &
-          (I6, Lower_C_ID, null);
+      Goto_6 : constant Goto_Item_Ptr :=
+        (Upper_C_ID, I9, null) &
+        (Lower_D_ID, I7, null) &
+        (Lower_C_ID, I6, null);
    begin
 
       --  Goto_0:
@@ -250,7 +308,7 @@ package body Dragon_4_43_LR1_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/dragon_4_45_lalr_test.adb");
+      return new String'("../../Test/dragon_4_43_lr1_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -258,9 +316,10 @@ package body Dragon_4_43_LR1_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_First'Access, "debug");
+         Register_Routine (T, Test_Closure'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
+         Register_Routine (T, Test_Closure'Access, "Test_Closure");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
          Register_Routine (T, Parser_Table'Access, "Parser_Table");
       end if;

@@ -181,6 +181,7 @@ package body FastToken.Parser.LR1_Items is
 
    function Deep_Copy (Item : in Lookahead_Ptr) return Lookahead_Ptr
    is
+      --  Copy is in reverse order
       I      : Lookahead_Ptr := Item;
       Result : Lookahead_Ptr;
    begin
@@ -195,7 +196,7 @@ package body FastToken.Parser.LR1_Items is
                Lookahead => I.Lookahead,
                Next      => Result);
          end if;
-         I      := I.Next;
+         I := I.Next;
       end loop;
       return Result;
    end Deep_Copy;
@@ -454,12 +455,6 @@ package body FastToken.Parser.LR1_Items is
       Existing_Set : in out Item_Set)
      return Boolean
    is
-      --  Merge lookaheads of New_Item into Existing_Set. Return True
-      --  if Existing_Set is modified.
-      --
-      --  New_Item.Lookaheads are moved or deallocated, as
-      --  appropriate. Rest of New_Item is copied or deallocated.
-
       use type Token_Pkg.Token_ID;
 
       Found : constant Item_Ptr := Find (New_Item, Existing_Set);
@@ -523,7 +518,7 @@ package body FastToken.Parser.LR1_Items is
       return Modified;
    end Merge;
 
-   function Lookahead_Closure
+   function Closure
      (Set                  : in Item_Set;
       Has_Empty_Production : in Nonterminal_ID_Set;
       First                : in Derivation_Matrix;
@@ -533,124 +528,133 @@ package body FastToken.Parser.LR1_Items is
    is
       use type Token.Token_ID;
       use type Token.List.List_Iterator;
+      --  Can't 'use' Production.List or Token.List; they hide each other.
 
-      Item                : Item_Ptr := Set.Set;
-      Current             : Item_Ptr;
-      Next_Symbol         : Token.List.List_Iterator;
-      Production_Iterator : Production.List.List_Iterator;
-      Result              : Item_Set;
-      Merge_From          : Item_Node;
-      Added_New_Item      : Boolean;
+      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
+      --
+      --  Taken literally, the algorithm modifies its input; we make a
+      --  copy instead. We don't copy Goto_List, since we are only
+      --  concerned with lookaheads here.
+
+      I : Item_Set; --  The result.
+
+      Item       : Item_Ptr := Set.Set;           -- iterator 'for each item in I'
+      B          : Production.List.List_Iterator; -- iterator 'for each production in G'
+      Added_Item : Boolean  := False;             -- 'until no more items can be added'
+
+      Beta : Token.List.List_Iterator;
+      Merge_From  : Item_Node;
    begin
-      --  Put copies of everything in Set into the closure. We don't
-      --  copy Goto_List, since we are only concerned with lookaheads
-      --  here.
+      --  Copy Set into I; Goto_List not copied
+      I.State := Set.State;
 
-      Result.State := Unknown_State; -- Result does _not_ match any kernel set
       while Item /= null loop
-         Result.Set := new Item_Node'
+         I.Set := new Item_Node'
            (Prod       => Item.Prod,
             Dot        => Item.Dot,
             State      => Unknown_State,
             Lookaheads => Deep_Copy (Item.Lookaheads),
-            Next       => Result.Set);
+            Next       => I.Set);
 
          Item := Item.Next;
       end loop;
 
-      Current        := Result.Set;
-      Added_New_Item := False;
+      Item := I.Set;
+      For_Each_Item :
       loop
-         --  If the token after Dot is a nonterminal, find its
-         --  productions and place them in the set with lookaheads
-         --  from the current production.
-         if Current.Dot /= Token.List.Null_Iterator and then
-           Token.List.ID (Current.Dot) in Nonterminal_ID
+         --  An item has the structure [A -> alpha Dot B Beta, a].
+         --
+         --  If B is a nonterminal, find its productions and place
+         --  them in the set with lookaheads from FIRST(Beta a).
+         if Item.Dot /= Token.List.Null_Iterator and then
+           Token.List.ID (Item.Dot) in Nonterminal_ID
          then
-            Next_Symbol := Token.List.Next_Token (Current.Dot); -- token after nonterminal, possibly null
+            Beta := Token.List.Next_Token (Item.Dot); -- token after nonterminal, possibly null
 
-            Production_Iterator := Production.List.First (Grammar);
-            while not Production.List.Is_Done (Production_Iterator) loop
-               if Nonterminal.ID (Production.List.Current (Production_Iterator).LHS) = Token.List.ID (Current.Dot) then
+            B := Production.List.First (Grammar);
+            For_Each_Production :
+            while not Production.List.Is_Done (B) loop
+               if Nonterminal.ID (Production.List.Current (B).LHS) = Token.List.ID (Item.Dot) then
                   --  loop until find a terminal, or a nonterminal that cannot be empty, or end of production
                   Empty_Nonterm :
                   loop
-                     if Next_Symbol = Token.List.Null_Iterator then
+                     if Beta = Token.List.Null_Iterator then
+                        --  Use FIRST (a); a = Item.Lookaheads.
+                        --  Lookaheads are all terminals, so
+                        --  FIRST (a) = a.
+
                         --  Need a variable, because the lookaheads might be freed.
                         Merge_From := Item_Node_Of
-                          (Production_Iterator,
+                          (B,
                            State      => Unknown_State,
-                           Lookaheads => Current.Lookaheads);
+                           Lookaheads => Item.Lookaheads);
 
-                        Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
+                        Added_Item := Added_Item or Merge (Merge_From, I);
                         exit Empty_Nonterm;
 
-                     elsif Token.List.ID (Next_Symbol) in Token.Terminal_ID then
+                     elsif Token.List.ID (Beta) in Token.Terminal_ID then
+                        --  FIRST (Beta) = Beta
                         Merge_From := Item_Node_Of
-                          (Production_Iterator,
+                          (B,
                            State        => Unknown_State,
                            Lookaheads   => new Lookahead'
                              (Propagate => False,
-                              Lookahead => Token.List.ID (Next_Symbol),
+                              Lookahead => Token.List.ID (Beta),
                               Next      => null));
 
-                        Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
+                        Added_Item := Added_Item or Merge (Merge_From, I);
                         exit Empty_Nonterm;
 
                      else
-                        --  Next_Symbol is a nonterminal
+                        --  Beta is a nonterminal; use FIRST (Beta)
                         for Terminal in Token.Terminal_ID loop
-                           if First (Token.List.ID (Next_Symbol)) (Terminal) then
+                           if First (Token.List.ID (Beta)) (Terminal) then
                               Merge_From := Item_Node_Of
-                                (Production_Iterator,
+                                (B,
                                  State        => Unknown_State,
                                  Lookaheads   => new Lookahead'
                                    (Propagate => False,
                                     Lookahead => Terminal,
                                     Next      => null));
 
-                              Added_New_Item := Added_New_Item or Merge (Merge_From, Result);
+                              Added_Item := Added_Item or Merge (Merge_From, I);
                            end if;
                         end loop;
 
-                        if Has_Empty_Production (Token.List.ID (Next_Symbol)) then
-                           Next_Symbol := Token.List.Next_Token (Next_Symbol);
+                        if Has_Empty_Production (Token.List.ID (Beta)) then
+                           --  Process the item [A -> alpha Dot Next(Beta), a]
+                           Beta := Token.List.Next_Token (Beta);
                         else
                            exit Empty_Nonterm;
                         end if;
                      end if;
                   end loop Empty_Nonterm;
 
-                  Next_Symbol := Token.List.Next_Token (Current.Dot);
+                  Beta := Token.List.Next_Token (Item.Dot);
                end if;
 
-               Production.List.Next (Production_Iterator);
-            end loop;
-         end if; -- Dot is is at non-terminal
+               Production.List.Next (B);
+            end loop For_Each_Production;
+         end if; -- Dot is at non-terminal
 
-         if Current.Next = null then
-            exit when not Added_New_Item;
+         if Item.Next = null then
+            exit For_Each_Item when not Added_Item;
 
-            --  This used to have logic to "only review new items",
-            --  but that missed items that were modified by adding new
-            --  lookaheads. We'll come back and find a better
-            --  optimization if this proves too slow.
-            Current        := Result.Set;
-            Added_New_Item := False;
+            Item       := I.Set;
+            Added_Item := False;
 
             if Trace then
-               Ada.Text_IO.Put_Line ("Result:");
-               Put (Result);
+               Ada.Text_IO.Put_Line ("I:");
+               Put (I, Show_Lookaheads => True);
                Ada.Text_IO.New_Line;
             end if;
          else
-            Current := Current.Next;
+            Item := Item.Next;
          end if;
+      end loop For_Each_Item;
 
-      end loop;
-
-      return Result;
-   end Lookahead_Closure;
+      return I;
+   end Closure;
 
    function Goto_Transitions
      (Kernel  : in Item_Set;

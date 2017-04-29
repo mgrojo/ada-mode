@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -23,7 +23,7 @@ with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
-package body Test_LR1_Lookahead_Closure is
+package body Test_LR1_Closure is
 
    --  A grammar for a greatly simplified form of the Ada 2012 case
    --  expression; this exposed a bug in Lookahead_Closure. Captured
@@ -121,7 +121,7 @@ package body Test_LR1_Lookahead_Closure is
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is
          Closure : Item_Set_Ptr := new Item_Set'
-           (Lookahead_Closure (Input, Has_Empty_Production, First, Grammar, Trace => Test.Debug));
+           (LALR_Generator.LR1_Items.Closure (Input, Has_Empty_Production, First, Grammar, Trace => Test.Debug));
       begin
          Check (Label, Closure.all, Expected);
          Free (Closure.all);
@@ -131,7 +131,7 @@ package body Test_LR1_Lookahead_Closure is
       Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
-         State         => LR.Unknown_State,
+         State         => First_State_Index,
          Next          => null);
 
       Expected : Item_Set;
@@ -153,6 +153,7 @@ package body Test_LR1_Lookahead_Closure is
 
       --  Set 2: CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID
       Expected := Null_Item_Set;
+      Expected.State := 2;
       Expected.Set := Get_Item_Node (2, null, 2, Expected.Set);
       Expected.Set := Get_Item_Node (5, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
       Expected.Set := Get_Item_Node (6, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
@@ -175,7 +176,7 @@ package body Test_LR1_Lookahead_Closure is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_lr1_lookahead_closure.adb");
+      return new String'("../../Test/test_lr1_closure.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -185,4 +186,4 @@ package body Test_LR1_Lookahead_Closure is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
-end Test_LR1_Lookahead_Closure;
+end Test_LR1_Closure;

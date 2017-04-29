@@ -162,7 +162,7 @@ package body Test_Empty_Productions_7 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generator.LR1_Items.Lookahead_Closure
+      Closure : constant Item_Set := LALR_Generator.LR1_Items.Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;

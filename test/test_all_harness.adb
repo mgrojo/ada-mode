@@ -36,7 +36,7 @@ with Test_Empty_Productions_5;
 with Test_Empty_Productions_6;
 with Test_Empty_Productions_7;
 with Test_Empty_Productions_8;
-with Test_LR1_Lookahead_Closure;
+with Test_LR1_Closure;
 with Test_LR_Expecting;
 with Test_Statement_Actions;
 with Test_Wisi_Suite;
@@ -62,7 +62,7 @@ begin
    Add_Test (Suite, new Test_Empty_Productions_6.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_7.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_8.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_LR1_Lookahead_Closure.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_LR1_Closure.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));

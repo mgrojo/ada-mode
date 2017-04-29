@@ -426,7 +426,7 @@ package body FastToken.Parser.LR.LALR_Generator is
             Kernel_Item_Set.Set.Prod := Kernel_Item.Prod;
             Kernel_Item_Set.Set.Dot  := Kernel_Item.Dot;
 
-            Closure := LR1_Items.Lookahead_Closure
+            Closure := LR1_Items.Closure
               (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Trace => False);
 
             Closure_Item := Closure.Set;
@@ -683,7 +683,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    is
       State : constant State_Index := Kernel.State;
 
-      Closure : LR1_Items.Item_Set := LR1_Items.Lookahead_Closure
+      Closure : LR1_Items.Item_Set := LR1_Items.Closure
         (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
 
       Item : LR1_Items.Item_Ptr := Closure.Set;

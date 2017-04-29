@@ -36,7 +36,7 @@ generic
    Unknown_State : in Unknown_State_Index;
 
    with package Nonterminal is new Token.Nonterminal;
-   with package Production is new FastToken.Production (Token, Nonterminal);
+   with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LR1_Items is
 
    --  A lookahead list is a linked list of tokens. We also define a
@@ -58,6 +58,8 @@ package FastToken.Parser.LR1_Items is
          null;
       end case;
    end record;
+
+   function Deep_Copy (Item : in Lookahead_Ptr) return Lookahead_Ptr;
 
    procedure Include
      (Set   : in out Lookahead_Ptr;
@@ -121,6 +123,16 @@ package FastToken.Parser.LR1_Items is
       Target   : in out Item_Set);
    --  Add New_Item to Target without checking to see if it is in there already.
 
+   function Merge
+     (New_Item     : in out Item_Node;
+      Existing_Set : in out Item_Set)
+     return Boolean;
+   --  Merge New_Item into Existing_Set. Return True if Existing_Set
+   --  is modified.
+   --
+   --  New_Item.Lookaheads are moved or deallocated, as appropriate.
+   --  Rest of New_Item is copied or deallocated.
+
    function Find
      (Left  : in Item_Node;
       Right : in Item_Set)
@@ -177,15 +189,16 @@ package FastToken.Parser.LR1_Items is
    --  tokens (terminal or nonterminal) that its first term could
    --  start with. Implements algorithm FIRST from [dragon].
 
-   function Lookahead_Closure
+   function Closure
      (Set                  : in Item_Set;
       Has_Empty_Production : in Nonterminal_ID_Set;
       First                : in Derivation_Matrix;
       Grammar              : in Production.List.Instance;
       Trace                : in Boolean)
      return Item_Set;
-   --  Return the lookahead closure of Set over Grammar. First must be
-   --  the result of First above. FIXME: 'closure' from [dragon] algorithm 4.9?
+   --  Return the closure of Set over Grammar. First must be the
+   --  result of First above. Implements 'closure' from [dragon]
+   --  algorithm 4.9 pg 232.
 
    function Kernels
      (Grammar           : in Production.List.Instance;
