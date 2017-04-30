@@ -228,8 +228,8 @@ package body Gen_FastToken_AUnit is
 
    function Get_Item_Node
      (Prod       : in Integer;
-      Lookaheads : in LR1_Items.Lookahead_Ptr;
       Dot        : in Integer;
+      Lookaheads : in LR1_Items.Lookahead_Ptr;
       Next       : in LR1_Items.Item_Ptr         := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr
@@ -262,15 +262,15 @@ package body Gen_FastToken_AUnit is
 
    function Get_Item_Set
      (Prod      : in Integer;
-      Lookahead : in LR1_Items.Lookahead_Ptr;
-      Dot       : in Integer)
+      Dot       : in Integer;
+      Lookahead : in LR1_Items.Lookahead_Ptr)
      return LR1_Items.Item_Set
    is begin
       return
         (Set => Get_Item_Node
            (Prod       => Prod,
-            Lookaheads => Lookahead,
             Dot        => Dot,
+            Lookaheads => Lookahead,
             Next       => null),
          Goto_List       => null,
          State           => LR.Unknown_State,
@@ -286,8 +286,8 @@ package body Gen_FastToken_AUnit is
       return
         (Set => Get_Item_Node
            (Prod       => Prod,
-            Lookaheads => null,
             Dot        => Dot,
+            Lookaheads => null,
             Next       => null),
          Goto_List       => null,
          State           => LR.Unknown_State,

@@ -124,8 +124,9 @@ package FastToken.Parser.LR1_Items is
    --  Add New_Item to Target without checking to see if it is in there already.
 
    function Merge
-     (New_Item     : in out Item_Node;
-      Existing_Set : in out Item_Set)
+     (New_Item         : in out Item_Node;
+      Existing_Set     : in out Item_Set;
+      Match_Lookaheads : in     Boolean)
      return Boolean;
    --  Merge New_Item into Existing_Set. Return True if Existing_Set
    --  is modified.
@@ -134,15 +135,18 @@ package FastToken.Parser.LR1_Items is
    --  Rest of New_Item is copied or deallocated.
 
    function Find
-     (Left  : in Item_Node;
-      Right : in Item_Set)
+     (Left             : in Item_Node;
+      Right            : in Item_Set;
+      Match_Lookaheads : in Boolean)
      return Item_Ptr;
    --  Return a pointer to an item in Right that matches Left.Prod,
-   --  Left.Dot; null if not found.
+   --  Left.Dot, and Left.Lookaheads if Match_Lookaheads; null if not
+   --  found.
 
    function Find
-     (Left  : in Item_Set;
-      Right : in Item_Set_List)
+     (Left             : in Item_Set;
+      Right            : in Item_Set_List;
+      Match_Lookaheads : in Boolean)
      return Item_Set_Ptr;
    --  Return a pointer to Left in Right, null if not found.
 
@@ -153,8 +157,9 @@ package FastToken.Parser.LR1_Items is
    --  Return a pointer to the set in Sets containing State, null if not found.
 
    function Is_In
-     (Left  : in Item_Set;
-      Right : in Item_Set_List)
+     (Left             : in Item_Set;
+      Right            : in Item_Set_List;
+      Match_Lookaheads : in Boolean)
      return Boolean;
 
    function Is_In
@@ -194,18 +199,28 @@ package FastToken.Parser.LR1_Items is
       Has_Empty_Production : in Nonterminal_ID_Set;
       First                : in Derivation_Matrix;
       Grammar              : in Production.List.Instance;
+      Match_Lookaheads     : in Boolean;
       Trace                : in Boolean)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
    --  result of First above. Implements 'closure' from [dragon]
    --  algorithm 4.9 pg 232.
 
-   function Kernels
+   function LALR_Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Derivation_Matrix;
       EOF_Token         : in Token.Token_ID;
       Trace             : in Boolean;
       First_State_Index : in Unknown_State_Index)
+     return Item_Set_List;
+
+   function LR1_Item_Sets
+     (Has_Empty_Production : in Nonterminal_ID_Set;
+      First                : in Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      EOF_Token            : in Token.Token_ID;
+      First_State_Index    : in Unknown_State_Index;
+      Trace                : in Boolean)
      return Item_Set_List;
 
    function Print (Item : in Lookahead) return String;
@@ -214,7 +229,7 @@ package FastToken.Parser.LR1_Items is
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
    procedure Put (Item : in Item_Set; Show_Lookaheads : in Boolean := False);
    procedure Put (Item : in Goto_Item_Ptr);
-   procedure Put (Item : in Item_Set_List);
+   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);

@@ -26,14 +26,10 @@
 pragma License (GPL);
 
 with FastToken.Production;
-with FastToken.Parser.LR1_Items;
 generic
    EOF_Token : in Token_Pkg.Token_ID;
    pragma Unreferenced (EOF_Token);
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
-   with package LR1_Items is new FastToken.Parser.LR1_Items
-     (Unknown_State_Index, Unknown_State, Nonterminal, Production);
-   --  FIXME: either move this LR1_Items into package, or move LALR_Generators.LR1_Items out
 package FastToken.Parser.LR.LR1_Generator is
 
    function Generate
@@ -60,17 +56,5 @@ package FastToken.Parser.LR.LR1_Generator is
    --
    --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
    --  are unknown conflicts.
-
-   ----------
-   --  Visible for unit test
-
-   function LR1_Item_Sets
-     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
-      First                : in LR1_Items.Derivation_Matrix;
-      Grammar              : in Production.List.Instance;
-      EOF_Token            : in Token.Token_ID;
-      First_State_Index    : in Unknown_State_Index;
-      Trace                : in Boolean)
-     return LR1_Items.Item_Set_List;
 
 end FastToken.Parser.LR.LR1_Generator;

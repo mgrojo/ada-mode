@@ -170,7 +170,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       Goto_Set  : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (From_Set, For_Token);
       To_Kernel : constant LR1_Items.Item_Ptr     :=
         (if Goto_Set = null then null
-         else LR1_Items.Find (To, Goto_Set.all));
+         else LR1_Items.Find (To, Goto_Set.all, Match_Lookaheads => False));
 
       Prop_Match    : Item_Item_List_Mapping_Ptr := Propagations;
       Prop_To_Match : Item_List_Ptr;
@@ -289,7 +289,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
          Next_Kernel : constant LR1_Items.Item_Ptr :=
            (if Goto_Set = null then null
-            else LR1_Items.Find (Next_Item, Goto_Set.all));
+            else LR1_Items.Find (Next_Item, Goto_Set.all, Match_Lookaheads => False));
 
          Lookahead : LR1_Items.Lookahead_Ptr := Closure_Item.Lookaheads;
       begin
@@ -427,7 +427,7 @@ package body FastToken.Parser.LR.LALR_Generator is
             Kernel_Item_Set.Set.Dot  := Kernel_Item.Dot;
 
             Closure := LR1_Items.Closure
-              (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Trace => False);
+              (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
 
             Closure_Item := Closure.Set;
             while Closure_Item /= null loop
@@ -684,7 +684,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       State : constant State_Index := Kernel.State;
 
       Closure : LR1_Items.Item_Set := LR1_Items.Closure
-        (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
+        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
 
       Item : LR1_Items.Item_Ptr := Closure.Set;
 
@@ -909,7 +909,7 @@ package body FastToken.Parser.LR.LALR_Generator is
         (Grammar, Has_Empty_Production, Trace);
       Used_Tokens          : Token.Token_Array_Boolean             := (others => False);
 
-      Kernels : LR1_Items.Item_Set_List := LR1_Items.Kernels
+      Kernels : LR1_Items.Item_Set_List := LR1_Items.LALR_Kernels
         (Grammar, First, EOF_Token, Trace, Unknown_State_Index (First_State_Index));
 
       I             : LR1_Items.Item_Set_Ptr := Kernels.Head;

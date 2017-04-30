@@ -134,7 +134,7 @@ package body Test_Empty_Productions_6 is
       use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
 
-      Kernels : constant Item_Set_List := LALR_Generator.LR1_Items.Kernels
+      Kernels : constant Item_Set_List := LALR_Generator.LR1_Items.LALR_Kernels
         (Grammar, First, EOF_ID,
          Trace             => False,
          First_State_Index => LR.State_Index (First_State_Index));

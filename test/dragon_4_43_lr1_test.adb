@@ -50,7 +50,7 @@ package body Dragon_4_43_LR1_Test is
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Nonterminal, Production);
-   package Generators is new LR.LR1_Generator (EOF_ID, Production, LR1_Items);
+   package Generators is new LR.LR1_Generator (EOF_ID, Production);
 
    --  Allow infix operators for building productions
    use type Tokens_Pkg.List.Instance;
@@ -117,7 +117,7 @@ package body Dragon_4_43_LR1_Test is
                Goto_List => null,
                State     => LR.Unknown_State,
                Next      => null),
-            Has_Empty_Production, First, Grammar, Trace => Test.Debug);
+            Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug);
 
       begin
          if Test.Debug then
@@ -139,20 +139,20 @@ package body Dragon_4_43_LR1_Test is
 
       --  close [S' -> . S, $]
       --  Add in Computed order.
-      Add (Get_Item_Node (1, +EOF_ID,                   1).all, Expected);
-      Add (Get_Item_Node (2, +EOF_ID,                   1).all, Expected);
-      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
-      Add (Get_Item_Node (4, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+      Add (Get_Item_Node (1, 1, +EOF_ID).all, Expected);
+      Add (Get_Item_Node (2, 1, +EOF_ID).all, Expected);
+      Add (Get_Item_Node (3, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
+      Add (Get_Item_Node (4, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
 
-      One ("1", Get_Item_Node (1, +EOF_ID, 1), Expected);
+      One ("1", Get_Item_Node (1, 1, +EOF_ID), Expected);
 
       --  close [C -> c . C, c/d]
       Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 2).all, Expected);
-      Add (Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 1).all, Expected);
-      Add (Get_Item_Node (4, +(Lower_C_ID, Lower_D_ID), 1).all, Expected);
+      Add (Get_Item_Node (3, 2, +(Lower_D_ID, Lower_C_ID)).all, Expected);
+      Add (Get_Item_Node (3, 1, +(Lower_C_ID, Lower_D_ID)).all, Expected);
+      Add (Get_Item_Node (4, 1, +(Lower_C_ID, Lower_D_ID)).all, Expected);
 
-      One ("2", Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 2), Expected);
+      One ("2", Get_Item_Node (3, 2, +(Lower_C_ID, Lower_D_ID)), Expected);
    end Test_Closure;
 
    procedure Test_Goto (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -181,8 +181,8 @@ package body Dragon_4_43_LR1_Test is
       end One;
 
       I0 : constant Item_Set := Closure
-        (Get_Item_Set (1, +EOF_ID, 1),
-         Has_Empty_Production, First, Grammar, Trace => False);
+        (Get_Item_Set (1, 1, +EOF_ID),
+         Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
 
       Expected : Item_Set;
 
@@ -196,17 +196,33 @@ package body Dragon_4_43_LR1_Test is
 
       --  [dragon] pg 233 - 234 gives the gotos as part of the discussion
 
-      --  goto I0, $
-      Add (Get_Item_Node (1, +EOF_ID, 2).all, Expected);
+      --  goto I0, S
+      Add (Get_Item_Node (1, 2, +EOF_ID).all, Expected);
       One ("1", I0, Upper_S_ID, Expected);
+
+      --  goto I0, C
+      Expected := (null, null, LR.Unknown_State, null);
+      Add (Get_Item_Node (2, 2, +EOF_ID).all, Expected);
+      Add (Get_Item_Node (3, 1, +EOF_ID).all, Expected);
+      Add (Get_Item_Node (4, 1, +EOF_ID).all, Expected);
+      One ("2", I0, Upper_C_ID, Expected);
+
+      --  goto I0, $ = null
+      Expected := (null, null, LR.Unknown_State, null);
+      One ("3", I0, EOF_ID, Expected);
 
       --  goto I0, c
       Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (3, +(Lower_C_ID, Lower_D_ID), 2).all, Expected);
-      Add (Get_Item_Node (3, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
-      Add (Get_Item_Node (4, +(Lower_D_ID, Lower_C_ID), 1).all, Expected);
+      Add (Get_Item_Node (3, 2, +(Lower_C_ID, Lower_D_ID)).all, Expected);
+      Add (Get_Item_Node (3, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
+      Add (Get_Item_Node (4, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
 
-      One ("2", I0, Lower_C_ID, Expected);
+      One ("4", I0, Lower_C_ID, Expected);
+
+      --  goto I0, d
+      Expected := (null, null, LR.Unknown_State, null);
+      Add (Get_Item_Node (4, 2, +(Lower_C_ID, Lower_D_ID)).all, Expected);
+      One ("5", I0, Lower_D_ID, Expected);
    end Test_Goto;
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -215,32 +231,40 @@ package body Dragon_4_43_LR1_Test is
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := Generators.LR1_Item_Sets
+      Computed : constant Item_Set_List := LR1_Items.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, EOF_ID, First_State_Index, Trace => Test.Debug);
 
       Expected : Item_Set_Ptr;
 
-      --  [dragon] figure 4.37 pg 229 shows the item sets.
-      --  LR1_Items.Kernels computes the kernels of these (see page
-      --  240). The states and gotos are shown in fig 4.40 page 236.
+      --  [dragon] pg 232, 233 shows the item sets in the discussion.
+      --  The states and gotos are shown in fig 4.40 page 236.
 
-      --  In addition, the example does a depth-first search for
-      --  new sets; we do a breadth first search; so the numbering of
-      --  states is different. In this test, we accomodate that by
-      --  using symbolic names matching the example state labels, and
-      --  pushing kernels on the list in the order they appear in the
-      --  example.
+      --  In addition, the example iterates over tokens in a different
+      --  order, so the numbering of states is different. In this
+      --  test, we accomodate that by using symbolic names matching
+      --  the example state labels, and pushing kernels on the list in
+      --  the order they appear in the example.
 
-      I0 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 1, Lookaheads => null, Dot => 1, State => 0);
-      I1 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 1, Lookaheads => null, Dot => 2, State => 3);
-      I2 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 2, State => 4);
-      I3 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 3, Lookaheads => null, Dot => 2, State => 1);
-      I4 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 4, Lookaheads => null, Dot => 2, State => 2);
-      I5 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
-      I6 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
-      I7 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
-      I8 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 3, Lookaheads => null, Dot => 3, State => 6);
-      I9 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
+      function Close (Item : in Item_Ptr; State : in LR.State_Index) return Item_Set_Ptr
+      is begin
+         Item.State := State;
+         return new Item_Set'
+           (Closure
+              ((Item, null, State, null), Has_Empty_Production, First, Grammar,
+               Match_Lookaheads => False,
+               Trace => False));
+      end Close;
+
+      I0 : constant Item_Set_Ptr := Close (Get_Item_Node (1, 1, +EOF_ID), 0);
+      I1 : constant Item_Set_Ptr := Close (Get_Item_Node (1, 2, +EOF_ID), 3);
+      I2 : constant Item_Set_Ptr := Close (Get_Item_Node (2, 2, +EOF_ID), 4);
+      I3 : constant Item_Set_Ptr := Close (Get_Item_Node (3, 2, +(Lower_D_ID, Lower_C_ID)), 1);
+      I4 : constant Item_Set_Ptr := Close (Get_Item_Node (4, 2, +(Lower_D_ID, Lower_C_ID)), 2);
+      I5 : constant Item_Set_Ptr := Close (Get_Item_Node (2, 3, +EOF_ID), 7);
+      I6 : constant Item_Set_Ptr := Close (Get_Item_Node (3, 2, +EOF_ID), 5);
+      I7 : constant Item_Set_Ptr := Close (Get_Item_Node (4, 2, +EOF_ID), 6);
+      I8 : constant Item_Set_Ptr := Close (Get_Item_Node (3, 3, +(Lower_C_ID, Lower_D_ID)), 8);
+      I9 : constant Item_Set_Ptr := Close (Get_Item_Node (3, 3, +EOF_ID), 9);
 
       Goto_0 : constant Goto_Item_Ptr :=
         (Upper_C_ID, I2, null) &
@@ -263,25 +287,24 @@ package body Dragon_4_43_LR1_Test is
         (Lower_D_ID, I7, null) &
         (Lower_C_ID, I6, null);
    begin
-
-      --  Goto_0:
-
-      --  Computed has I0 last in list; push in Computed (= Set.State) order.
-      Expected := new Item_Set'(I0.Set, Goto_0, I0.Set.State, Expected);
-      Expected := new Item_Set'(I3.Set, Goto_List => Goto_3, State => 1, Next => Expected);
-      Expected := new Item_Set'(I4.Set, Goto_List => null, State => 2, Next => Expected);
-      Expected := new Item_Set'(I1.Set, Goto_List => null, State => 3, Next => Expected);
-      Expected := new Item_Set'(I2.Set, Goto_List => Goto_2, State => 4, Next => Expected);
-      Expected := new Item_Set'(I5.Set, Goto_List => null, State => 5, Next => Expected);
-      Expected := new Item_Set'(I6.Set, Goto_List => Goto_6, State => 5, Next => Expected);
-      Expected := new Item_Set'(I8.Set, Goto_List => null, State => 6, Next => Expected);
+      --  Computed has I0 last in list; push in Computed (= State) order.
+      Expected := new Item_Set'(I0.Set, Goto_0, 0, Expected);
+      Expected := new Item_Set'(I3.Set, Goto_3, 1, Expected);
+      Expected := new Item_Set'(I4.Set, null,   2, Expected);
+      Expected := new Item_Set'(I1.Set, null,   3, Expected);
+      Expected := new Item_Set'(I2.Set, Goto_2, 4, Expected);
+      Expected := new Item_Set'(I6.Set, Goto_6, 5, Expected);
+      Expected := new Item_Set'(I7.Set, null,   6, Expected);
+      Expected := new Item_Set'(I5.Set, null,   7, Expected);
+      Expected := new Item_Set'(I8.Set, null,   8, Expected);
+      Expected := new Item_Set'(I9.Set, null,   9, Expected);
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("computed:");
-         LR1_Items.Put (Computed);
+         LR1_Items.Put (Computed, Show_Lookaheads => True);
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("expected:");
-         LR1_Items.Put (Item_Set_List'(Expected, 7));
+         LR1_Items.Put (Item_Set_List'(Expected, 10), Show_Lookaheads => True);
       end if;
       Check ("", Computed.Head, Expected);
    end Test_LR1_Items;

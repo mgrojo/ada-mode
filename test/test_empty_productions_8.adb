@@ -112,7 +112,7 @@ package body Test_Empty_Productions_8 is
       Test : Test_Case renames Test_Case (T);
       use LALR_Generator.LR1_Items;
 
-      Kernels : constant Item_Set_List := LALR_Generator.LR1_Items.Kernels
+      Kernels : constant Item_Set_List := LALR_Generator.LR1_Items.LALR_Kernels
         (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
 
       procedure Check_Kernel

@@ -100,7 +100,7 @@ package body Dragon_4_45_LALR_Test is
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := Generators.LR1_Items.Kernels
+      Computed : constant Item_Set_List := Generators.LR1_Items.LALR_Kernels
         (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => First_State_Index);
 
       Expected : Item_Set_Ptr;

@@ -115,13 +115,14 @@ package body Test_LR1_Closure is
       First : constant Derivation_Matrix := LALR_Generator.LR1_Items.First
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
 
-      Kernels : Item_Set_List := LALR_Generator.LR1_Items.Kernels
+      Kernels : Item_Set_List := LALR_Generator.LR1_Items.LALR_Kernels
         (Grammar, First, EOF_ID, Test.Debug, First_State_Index);
 
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is
          Closure : Item_Set_Ptr := new Item_Set'
-           (LALR_Generator.LR1_Items.Closure (Input, Has_Empty_Production, First, Grammar, Trace => Test.Debug));
+           (LALR_Generator.LR1_Items.Closure
+              (Input, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug));
       begin
          Check (Label, Closure.all, Expected);
          Free (Closure.all);
@@ -131,7 +132,7 @@ package body Test_LR1_Closure is
       Null_Item_Set : constant Item_Set :=
         (Set           => null,
          Goto_List     => null,
-         State         => First_State_Index,
+         State         => 1,
          Next          => null);
 
       Expected : Item_Set;
@@ -145,24 +146,25 @@ package body Test_LR1_Closure is
         (Prod       => 1,
          Lookaheads => null,
          Dot        => 1,
-         Next       => Expected.Set);
+         Next       => Expected.Set,
+         State      => 1);
 
-      Expected.Set := Get_Item_Node (2, +((1 => EOF_ID)), 1, Expected.Set);
+      Expected.Set := Get_Item_Node (2, 1, +EOF_ID, Expected.Set, 1);
 
       Test_One ("1", Find (1, Kernels).all, Expected);
 
       --  Set 2: CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID
       Expected := Null_Item_Set;
       Expected.State := 2;
-      Expected.Set := Get_Item_Node (2, null, 2, Expected.Set);
-      Expected.Set := Get_Item_Node (5, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (6, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (9, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (10, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (3, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (4, +((1 => EQUAL_GREATER_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (8, +((EQUAL_GREATER_ID, DOT_DOT_ID)), 1, Expected.Set);
-      Expected.Set := Get_Item_Node (7, +((EQUAL_GREATER_ID, DOT_DOT_ID)), 1, Expected.Set);
+      Expected.Set := Get_Item_Node (2, 2, null, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (5, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (6, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (9, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (10, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (3, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (4, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (8, 1, +(EQUAL_GREATER_ID, DOT_DOT_ID), Expected.Set, 2);
+      Expected.Set := Get_Item_Node (7, 1, +(EQUAL_GREATER_ID, DOT_DOT_ID), Expected.Set, 2);
 
       Test_One ("2", Find (2, Kernels).all, Expected);
 
