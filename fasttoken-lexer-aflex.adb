@@ -2,7 +2,7 @@
 --
 --  see spec.
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -43,6 +43,7 @@ package body FastToken.Lexer.Aflex is
 
       Set_Buffer_Size (Buffer_Size);
 
+      New_Lexer.Feeder := Feeder;
       FastToken.Lexer.Aflex.Feeder := Feeder;
 
       for ID in Token.Token_ID loop

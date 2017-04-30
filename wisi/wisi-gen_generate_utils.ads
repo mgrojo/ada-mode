@@ -21,6 +21,7 @@ pragma License (Modified_GPL);
 
 with FastToken.Lexer;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Production.Put_Trace;
 with FastToken.Token.Nonterminal;
 generic
@@ -80,9 +81,10 @@ package Wisi.Gen_Generate_Utils is
    package Nonterminal_Pkg is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOI_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg);
-   package LALR_Generator is new LR.LALR_Generator (EOI_ID, Production);
+   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Generator is new LR.LR1_Generator (Production);
 
    procedure Put_Trace_Action (Item : in Nonterminal_Pkg.Synthesize) is null;
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -29,12 +29,12 @@ with GNAT.Traceback.Symbolic;
 with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib
 is
-
    procedure Put_Usage
    is begin
       Put_Line ("usage: *_run [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
+      --  Always run both LALR and LR1 parses.
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String; -- for error message
@@ -43,7 +43,9 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   The_Parser : LR_Parser.Instance := Create_Parser;
+   File_Length : Integer;
+   LALR_Parser : LR_Parser.Instance;
+   LR1_Parser  : LR_Parser.Instance;
 
    procedure Use_File (File_Name : in String)
    is
@@ -62,8 +64,10 @@ is
            FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
 
       begin
-         Counted_Feeder.Reset (Integer (File_Length (File)) + 1); -- +1 for EOF
-         The_Parser := Create_Parser (Text_Feeder => Feeder);
+         File_Length := Integer (GNAT.OS_Lib.File_Length (File));
+         Counted_Feeder.Reset (File_Length + 1); -- +1 for EOF
+         LALR_Parser := Create_Parser (FastToken.LALR, Text_Feeder => Feeder);
+         LR1_Parser  := Create_Parser (FastToken.LR1, Text_Feeder => Feeder);
       end;
    exception
    when Name_Error =>
@@ -103,7 +107,21 @@ begin
       return;
    end;
 
-   The_Parser.Parse;
+   Put_Line ("LALR_Parser parse:");
+   LALR_Parser.Parse;
+
+   declare
+      use GNAT.OS_Lib;
+
+      Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+        FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (LR1_Parser.Lexer.Feeder.all);
+   begin
+      Counted_Feeder.Reset (File_Length + 1); -- +1 for EOF
+   end;
+   LR1_Parser.Lexer.Reset (1024);
+   New_Line;
+   Put_Line ("LR1_Parser parse:");
+   LR1_Parser.Parse;
 
 exception
 when E : FastToken.Parse_Error | FastToken.Syntax_Error =>

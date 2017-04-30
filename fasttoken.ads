@@ -2,7 +2,7 @@
 --
 --  Root of FastToken lexer/parser generator and exector.
 --
---  Copyright (C) 2009, 2010, 2013 - 2015 Stephe Leake
+--  Copyright (C) 2009, 2010, 2013 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -55,5 +55,7 @@ package FastToken is
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space
+
+   type Parser_Algorithm_Type is (LALR, LR1);
 
 end FastToken;

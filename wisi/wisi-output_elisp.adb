@@ -32,6 +32,7 @@ procedure Wisi.Output_Elisp
    Rules             : in Rule_Lists.List;
    Rule_Count        : in Integer;
    Action_Count      : in Integer;
+   Parser_Algorithm  : in Parser_Algorithm_Type;
    First_State_Index : in Integer)
 is
    EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
@@ -128,6 +129,10 @@ is
 
    use Standard.Ada.Text_IO;
 begin
+   if Parser_Algorithm /= LALR then
+      raise Programmer_Error with "parser algorithm LR1 not implemented";
+   end if;
+
    if Verbosity > 0 then
       Put_Line ("Grammar:");
       Generate_Utils.Put_Trace_Production.Put_Trace (Grammar);

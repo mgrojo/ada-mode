@@ -2,7 +2,7 @@
 --
 --  Main program to run a parser, using a Counted_GNAT_OS_Lib text feeder.
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -28,14 +28,14 @@ with FastToken.Token.Nonterminal;
 generic
    type Token_ID is (<>);
    First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
+   Last_Terminal  : in Token_ID; -- always EOF_ID
    with function Token_Image (Item : in Token_ID) return String;
    with procedure Put_Trace (Item : in String);
    with procedure Put_Trace_Line (Item : in String);
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
    with package Nonterminal is new Token_Pkg.Nonterminal;
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   with package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   with package Parser_Root is new FastToken.Parser (Token_Pkg, Last_Terminal, Lexer_Root);
    First_State_Index : in Integer;
    with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : in Integer;
@@ -43,8 +43,9 @@ generic
    with package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);
 
    with function Create_Parser
-     (Max_Parallel         : in Integer := 15;
-      Terminate_Same_State : in Boolean := False;
+     (Algorithm            : in FastToken.Parser_Algorithm_Type;
+      Max_Parallel         : in Integer                               := 15;
+      Terminate_Same_State : in Boolean                               := False;
       Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size          : in Integer                               := 1024)
      return LR_Parser.Instance;

@@ -11,9 +11,13 @@ t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
-#one : body_instantiation_conflict-wy.el
-one:
-	./wisi-generate ../../wisi/test/body_instantiation_conflict.wy Elisp
+one-clean :
+	rm -rf empty_production_1*
+one : one-clean
+one : empty_production_1_process_yylex.adb
+one : empty_production_1-parse.diff
+# one:
+# 	./wisi-generate ../../wisi/test/body_instantiation_conflict.wy Elisp
 
 aflex.exe : force
 	make -C /Projects/aflex/build install
@@ -28,8 +32,6 @@ trace :
 include ../common.make
 
 # Local Variables:
-# eval: (load-file "../fasttoken.el")
-# eval: (ada-parse-prj-file "fasttoken.prj")
-# eval: (ada-select-prj-file "fasttoken.prj")
+# eval: (load-file "prj.el")
 # end:
 # end of file

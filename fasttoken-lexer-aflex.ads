@@ -6,7 +6,7 @@
 --
 --    -E -Owisi/fasttoken_aflex_io_template.adb
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -35,6 +35,7 @@ with FastToken.Text_Feeder;
 generic
    Feeder : in out FastToken.Text_Feeder.Text_Feeder_Ptr;
    --  Must represent line end as ASCII.LF (that's what aflex uses).
+   --  Initialize sets this to a copy of Lexer.Feeder
 
    with function YYLex return FastToken.Lexer.Token.Token_ID;
    --  Read tokens from Feeder

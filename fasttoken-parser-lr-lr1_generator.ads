@@ -28,7 +28,6 @@ pragma License (Modified_GPL);
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 generic
-   EOF_Token : in Token_Pkg.Token_ID;
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LR.LR1_Generator is
 

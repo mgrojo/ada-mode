@@ -40,12 +40,14 @@ is
    begin
       --  verbosity meaning is actually determined by output choice;
       --  they should be consistent with this description.
-      Put_Line ("wisi-generate [options] {wisi grammar file} {output language} [{lexer} {interface}]");
+      Put_Line ("wisi-generate [options] {wisi grammar file} {parser algorithm} {output language}" &
+                  " [{lexer} {interface}]");
       Put_Line ("version 0.00 - experimental");
       Put_Line ("generate output language source implementing a parser for 'wisi grammar file'");
       Put_Line ("'lexer' is one of Aflex_Lexer, Elisp_Lexer");
       Put_Line ("'output language' is one of Ada_Emacs, Elisp, Test");
       Put_Line ("'interface' is one of Process, Module");
+      Put_Line ("'parser algorithm' is one of LALR, LR1, LALR_LR1");
       Put_Line ("only Ada_Emacs takes lexer and interface arguments");
       Put_Line ("options are:");
       Put_Line ("  -v level: sets verbosity (default 0):");
@@ -60,8 +62,8 @@ is
 
    type Output_Language_Type is (Ada_Emacs, Elisp, Test);
 
-   Output_Language : Output_Language_Type;
-
+   Output_Language    : Output_Language_Type;
+   Parser_Algorithm   : Parser_Algorithm_Type;
    Input_File_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File         : Standard.Ada.Text_IO.File_Type;
    Output_File_Root   : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -130,12 +132,13 @@ begin
          end if;
       end loop;
 
-      --  FIXME: allow ada-mode output functions to read additional options?
-
       Use_Input_File (Argument (Arg_Next));
       Arg_Next := Arg_Next + 1;
 
       begin
+         Parser_Algorithm := Parser_Algorithm_Type'Value (Argument (Arg_Next));
+         Arg_Next := Arg_Next + 1;
+
          Output_Language := Output_Language_Type'Value (Argument (Arg_Next));
          Arg_Next := Arg_Next + 1;
 
@@ -172,15 +175,17 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count, Lexer, Interface_Kind, First_State_Index, First_Parser_Label, Profile);
+         Rule_Count, Action_Count, Parser_Algorithm, Lexer, Interface_Kind, First_State_Index, First_Parser_Label,
+         Profile);
 
    when Elisp =>
       Wisi.Output_Elisp
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         Rule_Count, Action_Count, First_State_Index);
+         Rule_Count, Action_Count, Parser_Algorithm, First_State_Index);
 
    when Test =>
-      Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules, First_State_Index);
+      Wisi.Test_Generate
+        (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules, Parser_Algorithm, First_State_Index);
    end case;
 
 exception

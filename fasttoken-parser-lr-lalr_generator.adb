@@ -104,7 +104,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Parse Table:");
+      Put_Line ("LALR Parse Table:");
       for State in Table'Range loop
          LR1_Items.Put (LR1_Items.Find (State, Kernels).all, Show_Lookaheads => True);
          New_Line;
@@ -207,7 +207,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  Spontaneous lookaheads are put in Source_Item.Lookahead,
    --  propagated lookaheads in Propagations.
    --
-   --  The start symbol (with Source_Set.Index = Accept_Index) is treated specially.
+   --  The start symbol (with Source_Set.State = Accept_State) is treated specially.
    --
    --  Set Used_Tokens = True for all tokens in lookaheads.
    procedure Generate_Lookahead_Info

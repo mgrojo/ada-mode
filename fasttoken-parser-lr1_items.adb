@@ -838,6 +838,17 @@ package body FastToken.Parser.LR1_Items is
       end loop;
    end Free;
 
+   function In_Kernel (Item : in Item_Node) return Boolean
+   is
+      use Token.List;
+      use type Token.Token_ID;
+   begin
+      return
+        Item.Dot = Null_Iterator or else
+        (Token.List.ID (Item.Dot) = EOF_Token or -- start symbol production with dot before EOF.
+           Item.Dot /= Token.List.First (Item.Prod.RHS.Tokens));
+   end In_Kernel;
+
    function LALR_Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Derivation_Matrix;
@@ -1193,7 +1204,10 @@ package body FastToken.Parser.LR1_Items is
       end loop;
    end Put;
 
-   procedure Put (Item : in Item_Set; Show_Lookaheads : in Boolean := False)
+   procedure Put
+     (Item            : in Item_Set;
+      Show_Lookaheads : in Boolean := False;
+      Kernel_Only     : in Boolean := False)
    is
       use Ada.Text_IO;
       Set : Item_Ptr := Item.Set;
@@ -1202,7 +1216,11 @@ package body FastToken.Parser.LR1_Items is
          Put_Line ("State" & Unknown_State_Index'Image (Item.State) & ":");
       end if;
       while Set /= null loop
-         Put_Line ("  " & Image_Item (Set.all, Show_State => False, Show_Lookaheads => Show_Lookaheads));
+         if not Kernel_Only or else
+           In_Kernel (Set.all)
+         then
+            Put_Line ("  " & Image_Item (Set.all, Show_State => False, Show_Lookaheads => Show_Lookaheads));
+         end if;
 
          Set := Set.Next;
       end loop;

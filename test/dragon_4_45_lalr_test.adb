@@ -18,10 +18,15 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
+with Ada.Exceptions;
 with Ada.Text_IO;
-with FastToken.Lexer;
+with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Production;
+with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
 package body Dragon_4_45_LALR_Test is
@@ -68,6 +73,20 @@ package body Dragon_4_45_LALR_Test is
      and
      Nonterminal.Get (Upper_C_ID) <= (+Lower_D_ID) + Self -- 4
      ;
+
+   package Lexer is new Lexer_Root.Regexp;
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+
+   Syntax : constant Lexer.Syntax :=
+     (
+      Lower_C_ID => Lexer.Get ("c", +Lower_C_ID),
+      Lower_D_ID => Lexer.Get ("d", +Lower_D_ID),
+      EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
+     );
+
+   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, Lower_C_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
@@ -225,6 +244,32 @@ package body Dragon_4_45_LALR_Test is
       FastToken_AUnit.Check ("", Computed.all, Expected);
    end Parser_Table;
 
+   procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+
+      Parser : LR_Parser.Instance := LR_Parser.Initialize
+        (Lexer.Initialize (Syntax, String_Feeder'Access),
+         Generators.Generate (Grammar, Trace => Test.Debug));
+
+      procedure Execute_Command (Command : in String)
+      is begin
+         String_Feeder.Set (Command);
+
+         Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+
+         Parser.Parse;
+      exception
+      when E : others =>
+         AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
+      end Execute_Command;
+
+   begin
+      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+
+      Execute_Command ("cdcd");
+   end Test_Parse;
+
    ----------
    --  Public subprograms
 
@@ -240,11 +285,12 @@ package body Dragon_4_45_LALR_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Parser_Table'Access, "debug");
+         Register_Routine (T, Test_Parse'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
          Register_Routine (T, Parser_Table'Access, "Parser_Table");
+         Register_Routine (T, Test_Parse'Access, "Test_Parse");
       end if;
    end Register_Tests;
 

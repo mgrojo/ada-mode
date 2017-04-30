@@ -227,7 +227,10 @@ package FastToken.Parser.LR1_Items is
    function Print (Item : in Lookahead_Ptr) return String;
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
-   procedure Put (Item : in Item_Set; Show_Lookaheads : in Boolean := False);
+   procedure Put
+     (Item            : in Item_Set;
+      Show_Lookaheads : in Boolean := False;
+      Kernel_Only     : in Boolean := False);
    procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.

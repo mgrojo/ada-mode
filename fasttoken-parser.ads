@@ -32,6 +32,8 @@ with FastToken.Lexer;
 with FastToken.Token;
 generic
    with package Token is new FastToken.Token (<>);
+   EOF_Token : in Token.Token_ID;
+   pragma Unreferenced (EOF_Token); -- used in children
    with package Lexer is new FastToken.Lexer (Token);
 package FastToken.Parser is
 

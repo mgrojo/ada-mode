@@ -402,14 +402,14 @@ package body FastToken.Parser.LR.LR1_Generator is
    end Add_Actions;
 
    procedure Put_Parse_Table
-     (Table   : in Parse_Table_Ptr;
+     (Table     : in Parse_Table_Ptr;
       Item_Sets : in LR1_Items.Item_Set_List)
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Parse Table:");
+      Put_Line ("LR1 Parse Table:");
       for State in Table'Range loop
-         LR1_Items.Put (LR1_Items.Find (State, Item_Sets).all);
+         LR1_Items.Put (LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
          New_Line;
          Put (Table (State));
 

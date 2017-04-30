@@ -28,6 +28,7 @@ procedure Wisi.Test_Generate
    Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
    Conflicts         : in Conflict_Lists.List;
    Rules             : in Rule_Lists.List;
+   Parser_Algorithm  : in Parser_Algorithm_Type;
    First_State_Index : in Integer)
 is
    EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"$EOI";
@@ -62,6 +63,10 @@ is
    pragma Unreferenced (Parser);
 
 begin
+   if Parser_Algorithm /= LALR then
+      raise Programmer_Error with "parser algorithm LR1 not implemented";
+   end if;
+
    if Verbosity > 0 then
       declare
          use Standard.Ada.Text_IO;

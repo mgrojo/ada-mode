@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014, 2015  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,11 +26,15 @@ package body FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
       return new Instance'(File, 0, 0, 0);
    end Create;
 
-   procedure Reset (Feeder : in out Instance; Max_Bytes : in Integer) is
+   procedure Reset (Feeder : in out Instance; Max_Bytes : in Integer)
+   is
+      use GNAT.OS_Lib;
    begin
       Feeder.Max_Bytes  := Max_Bytes;
       Feeder.Read_Bytes := 0;
       Feeder.Get_Count  := 0;
+
+      Lseek (Feeder.File, 0, Seek_Set);
    end Reset;
 
    overriding procedure Get

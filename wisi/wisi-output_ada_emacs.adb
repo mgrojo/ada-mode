@@ -42,6 +42,7 @@ procedure Wisi.Output_Ada_Emacs
    Rules              : in Rule_Lists.List;
    Rule_Count         : in Integer;
    Action_Count       : in Integer;
+   Parser_Algorithm   : in Parser_Algorithm_Type;
    Lexer              : in Lexer_Type;
    Interface_Kind     : in Interface_Type;
    First_State_Index  : in Integer;
@@ -82,21 +83,23 @@ is
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, First_State_Index, To_Token_Ada_Name);
 
-   Accept_Reduce_Conflict_Count : Integer;
-   Shift_Reduce_Conflict_Count  : Integer;
-   Reduce_Reduce_Conflict_Count : Integer;
+   --  These are set by *_Generator.Generate
+   Accept_Reduce_Conflict_Count : Integer := -1;
+   Shift_Reduce_Conflict_Count  : Integer := -1;
+   Reduce_Reduce_Conflict_Count : Integer := -1;
+   Table_Entry_Count            : Integer := -1;
+   Parser_State_Count           : Generate_Utils.LR.Unknown_State_Index := 0;
 
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
-     (Grammar,
-      Generate_Utils.To_Conflicts
-        (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-      Trace                    => Verbosity > 1,
-      Put_Parse_Table          => Verbosity > 0,
-      Ignore_Unused_Tokens     => Verbosity > 1,
-      Ignore_Unknown_Conflicts => Verbosity > 1);
+   type Action_Name_List is array (Integer range <>) of access constant String;
+   type Action_Name_List_Access is access Action_Name_List;
+   Action_Names : array (Generate_Utils.Token_ID) of Action_Name_List_Access;
+   --  Names of subprograms for each grammar action
+
+   LALR_Parser : Generate_Utils.LR.Parse_Table_Ptr;
+   LR1_Parser  : Generate_Utils.LR.Parse_Table_Ptr;
 
    function File_Name_To_Ada (File_Name : in String) return String
    is
@@ -351,7 +354,6 @@ is
       end case;
       Put_Line ("with FastToken.Lexer;");
       Put_Line ("with FastToken.Production;");
-      Put_Line ("with FastToken.Parser.LR.LALR_Generator;");
       Put_Line ("with FastToken.Parser.LR.Parser;");
       Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
       Put_Line ("with FastToken.Token.Nonterminal;");
@@ -426,11 +428,10 @@ is
       Indent_Line ("package Nonterminal is new Token_Pkg.Nonterminal;");
       Indent_Line ("package Production is new FastToken.Production (Token_Pkg, Nonterminal);");
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
-      Indent_Line ("package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);");
+      Indent_Line ("package Parser_Root is new FastToken.Parser (Token_Pkg, " & (-EOI_Name) & "_ID, " & "Lexer_Root);");
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);");
-      Indent_Line ("package LALR_Generator is new LR.LALR_Generator (" & (-EOI_Name) & "_ID, Production);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
@@ -446,7 +447,8 @@ is
       case Interface_Kind is
       when Process =>
          Indent_Line ("function Create_Parser");
-         Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
+         Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
          Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
          Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
          Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
@@ -468,17 +470,10 @@ is
 
    end Create_Ada_Spec;
 
-   procedure Create_Ada_Body
+   procedure Create_Parser_Core (Parser : in Generate_Utils.LR.Parse_Table_Ptr)
    is
       use Generate_Utils;
       use Wisi.Utils;
-
-      type Action_Name_List is array (Integer range <>) of access constant String;
-      type Action_Name_List_Access is access Action_Name_List;
-
-      Empty_Action : constant access constant String := new String'("Self");
-      Action_Names : array (Generate_Utils.Token_ID) of Action_Name_List_Access;
-      --  Names of subprograms for each grammar action
 
       function Action_Name (Item : in Generate_Utils.Token_ID; Index : in Integer) return String
       is begin
@@ -491,6 +486,178 @@ is
             "Name for '" & Generate_Utils.Token_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
          raise Programmer_Error;
       end Action_Name;
+
+   begin
+      for State_Index in Parser'Range loop
+         Actions :
+         declare
+            use Ada.Strings.Unbounded;
+            use Generate_Utils.LR;
+            Base_Indent : constant Ada.Text_IO.Count  := Indent;
+            Node        : Action_Node_Ptr := Parser (State_Index).Action_List;
+            Line        : Unbounded_String;
+
+            procedure Append (Item : in String)
+            is
+               --  FIXME: get max line length from command line option
+               Max_Line_Length : constant := 120;
+            begin
+               --  -2 for trailing ); or ,
+               if Indent + Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 2 then
+                  Put_Line (-Trim (Line, Ada.Strings.Right));
+                  Indent := Indent + 2;
+                  Set_Col (Indent);
+                  Line := +Item;
+               else
+                  Line := Line & Item;
+               end if;
+            end Append;
+
+         begin
+            loop
+               exit when Node = null;
+               Table_Entry_Count := Table_Entry_Count + 1;
+               Set_Col (Indent);
+               Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
+               declare
+                  Action_Node : Parse_Action_Node_Ptr := Node.Action;
+               begin
+                  case Action_Node.Item.Verb is
+                  when Shift =>
+                     Append (", ");
+                     Append (State_Image (Action_Node.Item.State));
+                  when Reduce | Accept_It =>
+                     if Action_Node.Item.Verb = Reduce then
+                        Append (", Reduce");
+                     else
+                        Append (", Accept_It");
+                     end if;
+                     Append (", ");
+                     Append (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
+                     Append
+                       (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                  when Error =>
+                     null;
+                  end case;
+
+                  Action_Node := Action_Node.Next;
+                  if Action_Node /= null then
+                     case Action_Node.Item.Verb is
+                     when Shift =>
+                        Append (", ");
+                        Append (State_Image (Action_Node.Item.State));
+                     when Reduce | Accept_It =>
+                        Append (", ");
+                        Append
+                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
+                             Action_Name
+                               (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                     when others =>
+                        raise Programmer_Error with "conflict second action verb: " &
+                          LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                     end case;
+                  end if;
+               end;
+               Put_Line (-Line & ");");
+               Indent := Base_Indent;
+               Node := Node.Next;
+            end loop;
+         end Actions;
+
+         Gotos :
+         declare
+            use Generate_Utils.LR;
+            Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
+         begin
+            loop
+               exit when Node = null;
+               Set_Col (Indent);
+               Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
+               Put_Line (Token_Image (Node.Symbol) & ", " & State_Image (Node.State) & ");");
+               Node := Node.Next;
+            end loop;
+         end Gotos;
+      end loop;
+   end Create_Parser_Core;
+
+   procedure Create_Create_Parser
+   is
+      use Generate_Utils;
+      use Wisi.Utils;
+   begin
+      Indent_Line ("function Create_Parser");
+      case Interface_Kind is
+      when Process =>
+         Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
+         Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
+         Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
+         Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+      when Module =>
+         Indent_Line ("  (Env                 : in Emacs_Env_Access;");
+         Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value;");
+         Indent_Line ("   Max_Parallel        : in Integer := 15)");
+      end case;
+
+      Indent_Line ("  return LR_Parser.Instance");
+      Indent_Line ("is");
+      Indent := Indent + 3;
+      Indent_Line ("use LR;");
+      Indent_Line ("use Production;");
+      Indent_Line ("use all type FastToken.Parser_Algorithm_Type;");
+      Indent_Line
+        ("Table : constant Parse_Table_Ptr := new Parse_Table (" & FastToken.Int_Image (First_State_Index) & " ..");
+      Indent_Line
+        ("   (case Algorithm is when LALR => " & LR.State_Image (LALR_Parser'Last) &
+           ", when LR1 => " & LR.State_Image (LR1_Parser'Last) & "));");
+      Indent := Indent - 3;
+      Indent_Line ("begin");
+      Indent := Indent + 3;
+
+      case Parser_Algorithm is
+      when LALR =>
+         Create_Parser_Core (LALR_Parser);
+      when LR1 =>
+         Create_Parser_Core (LR1_Parser);
+      when LALR_LR1 =>
+         Indent_Line ("case Algorithm is");
+         Indent_Line ("when LALR =>");
+         Indent := Indent + 3;
+         Create_Parser_Core (LALR_Parser);
+         Indent := Indent - 3;
+         Indent_Line ("when LR1 =>");
+         Indent := Indent + 3;
+         Create_Parser_Core (LR1_Parser);
+         Indent := Indent - 3;
+         Indent_Line ("end case;");
+      end case;
+      New_Line;
+
+      --  FIXME: get Max_Parallel from some command line
+      Indent_Line ("return");
+      case Lexer is
+      when Aflex_Lexer =>
+         Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
+         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
+
+      when Elisp_Lexer =>
+         Indent_Line ("  (Lexers.Initialize (Env, Lexer_Elisp_Symbols),");
+         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
+
+      end case;
+      Indent := Indent - 3;
+      Indent_Line ("end Create_Parser;");
+      New_Line;
+   end Create_Create_Parser;
+
+   procedure Create_Ada_Body
+   is
+      use Generate_Utils;
+      use Wisi.Utils;
+
+      Empty_Action : constant access constant String := new String'("Self");
 
       File_Name : constant String := Output_File_Root &
         (case Interface_Kind is
@@ -505,11 +672,37 @@ is
 
       Body_File : File_Type;
 
-      Table_Entry_Count : Integer := 0;
    begin
+      if Parser_Algorithm in LALR | LALR_LR1 then
+         LALR_Parser := Generate_Utils.LALR_Generator.Generate
+           (Grammar,
+            Generate_Utils.To_Conflicts
+              (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+
+         Parser_State_Count := LALR_Parser'Last;
+      end if;
+
+      if Parser_Algorithm in LR1 | LALR_LR1 then
+         LR1_Parser := Generate_Utils.LR1_Generator.Generate
+           (Grammar,
+            Generate_Utils.To_Conflicts
+              (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+
+         Parser_State_Count := Generate_Utils.LR.Unknown_State_Index'Max (Parser_State_Count, LR1_Parser'Last);
+      end if;
+
       Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
       Indent := 1;
+      Table_Entry_Count := 0;
       Put_Line ("--  generated by FastToken Wisi from " & Input_File_Name);
       Put_Command_Line  ("--  ");
       Put_Line ("--");
@@ -1019,139 +1212,7 @@ is
       Indent_Line ("end Add_Goto;");
       New_Line;
 
-      Indent_Line ("function Create_Parser");
-      case Interface_Kind is
-      when Process =>
-         Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
-         Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-         Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
-         Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
-      when Module =>
-         Indent_Line ("  (Env                 : in Emacs_Env_Access;");
-         Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value;");
-         Indent_Line ("   Max_Parallel        : in Integer := 15)");
-      end case;
-
-      Indent_Line ("  return LR_Parser.Instance");
-      Indent_Line ("is");
-      Indent := Indent + 3;
-      Indent_Line ("use LR;");
-      Indent_Line ("use Production;");
-      Indent_Line
-        ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
-           LR.State_Image (Parser'First) & " .. " & LR.State_Image (Parser'Last) & ");");
-      Indent := Indent - 3;
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-
-      for State_Index in Parser'Range loop
-         Actions :
-         declare
-            use Ada.Strings.Unbounded;
-            use Generate_Utils.LR;
-            Base_Indent : constant Ada.Text_IO.Count  := Indent;
-            Node        : Action_Node_Ptr := Parser (State_Index).Action_List;
-            Line        : Unbounded_String;
-
-            procedure Append (Item : in String)
-            is
-               --  FIXME: get max line length from command line option
-               Max_Line_Length : constant := 120;
-            begin
-               --  -2 for trailing ); or ,
-               if Indent + Ada.Text_IO.Count (Length (Line)) + Item'Length > Max_Line_Length - 2 then
-                  Put_Line (-Trim (Line, Ada.Strings.Right));
-                  Indent := Indent + 2;
-                  Set_Col (Indent);
-                  Line := +Item;
-               else
-                  Line := Line & Item;
-               end if;
-            end Append;
-
-         begin
-            loop
-               exit when Node = null;
-               Table_Entry_Count := Table_Entry_Count + 1;
-               Set_Col (Indent);
-               Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
-               declare
-                  Action_Node : Parse_Action_Node_Ptr := Node.Action;
-               begin
-                  case Action_Node.Item.Verb is
-                  when Shift =>
-                     Append (", ");
-                     Append (State_Image (Action_Node.Item.State));
-                  when Reduce | Accept_It =>
-                     if Action_Node.Item.Verb = Reduce then
-                        Append (", Reduce");
-                     else
-                        Append (", Accept_It");
-                     end if;
-                     Append (", ");
-                     Append (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
-                     Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
-                     Append
-                       (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
-                  when Error =>
-                     null;
-                  end case;
-
-                  Action_Node := Action_Node.Next;
-                  if Action_Node /= null then
-                     case Action_Node.Item.Verb is
-                     when Shift =>
-                        Append (", ");
-                        Append (State_Image (Action_Node.Item.State));
-                     when Reduce | Accept_It =>
-                        Append (", ");
-                        Append
-                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name
-                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
-                     when others =>
-                        raise Programmer_Error with "conflict second action verb: " &
-                          LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
-                     end case;
-                  end if;
-               end;
-               Put_Line (-Line & ");");
-               Indent := Base_Indent;
-               Node := Node.Next;
-            end loop;
-         end Actions;
-
-         Gotos :
-         declare
-            use Generate_Utils.LR;
-            Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
-         begin
-            loop
-               exit when Node = null;
-               Set_Col (Indent);
-               Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
-               Put_Line (Token_Image (Node.Symbol) & ", " & State_Image (Node.State) & ");");
-               Node := Node.Next;
-            end loop;
-         end Gotos;
-      end loop;
-      New_Line;
-      --  FIXME: get Max_Parallel from some command line
-      Indent_Line ("return");
-      case Lexer is
-      when Aflex_Lexer =>
-         Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
-
-      when Elisp_Lexer =>
-         Indent_Line ("  (Lexers.Initialize (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
-
-      end case;
-      Indent := Indent - 3;
-      Indent_Line ("end Create_Parser;");
-      New_Line;
+      Create_Create_Parser;
 
       case Interface_Kind is
       when Process =>
@@ -1219,7 +1280,7 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           LR.State_Index'Image (Parser'Last) & " states," &
+           LR.State_Index'Image (Parser_State_Count) & " states," &
            Integer'Image (Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
