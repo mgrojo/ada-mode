@@ -6,30 +6,21 @@ build/release_process.text
 
  current work
 
-add LR1 table generator
-    write test for example 4.43
+run all tests
+    empty_production_2.parse_table fails
+        CONSTRAINT_ERROR: fasttoken-parser-lr-lalr_generator.adb:575 range check failed
+        shift/accept conflict?
 
-    LR algorithm in red dragon 4.10; LALR in 4.11
-        implement algorithm 4.10 pg 234
+add lr1 to all lalr tests?
 
-        Test_First passes
+compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
 
-        Test_Closure passes
+delete Match_Lookaheads arg to closure?
 
-        Test_Goto passes
-
-        Test_LR1_Items passes
-
-    compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
-
-    delete Match_Lookaheads arg to closure?
-
-    factor out common code to parser-lr-generator_utils?
+factor out common code to parser-lr-generator_utils?
 
 
-    copy lalr tests?
-
-    delete body-only stuff from lrk_item spec
+delete body-only stuff from lrk_item spec
 
 add syntax error handling
 

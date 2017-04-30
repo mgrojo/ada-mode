@@ -230,6 +230,11 @@ package body FastToken.Token is
          return List_Iterator (Iterator.Next);
       end Next_Token;
 
+      function Is_Done (Iterator : in List_Iterator) return Boolean
+      is begin
+         return Iterator = null;
+      end Is_Done;
+
       function Token_Handle (Iterator : in List_Iterator) return Handle is
       begin
          return Iterator.Token;

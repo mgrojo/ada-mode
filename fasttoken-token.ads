@@ -2,7 +2,7 @@
 --
 --  An abstract enumerated token type.
 --
---  Copyright (C) 2009, 2014 - 2015 Stephe Leake
+--  Copyright (C) 2009, 2014 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999, 2000 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -147,6 +147,8 @@ package FastToken.Token is
       function Next_Token (Iterator : in List_Iterator) return List_Iterator;
       function Next (Iterator : in List_Iterator) return List_Iterator renames Next_Token;
       --  Null_Iterator if there is no next token.
+
+      function Is_Done (Iterator : in List_Iterator) return Boolean;
 
       function Token_Handle (Iterator : in List_Iterator) return Handle;
       function ID (Iterator : in List_Iterator) return Token_ID;

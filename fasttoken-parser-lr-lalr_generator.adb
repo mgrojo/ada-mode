@@ -98,24 +98,6 @@ package body FastToken.Parser.LR.LALR_Generator is
 
    end Print_Propagations;
 
-   function Image (Item : in Conflict) return String
-   is begin
-      return
-        (Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
-           Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
-           Token.Token_Image (Item.LHS_A) & ", " &
-           Token.Token_Image (Item.LHS_B) &
-           " (" & State_Index'Image (Item.State_Index) & ") on token " &
-           Token.Token_Image (Item.On));
-   end Image;
-
-   procedure Put (Item : in Conflict_Lists.List)
-   is begin
-      for Conflict of Item loop
-         Ada.Text_IO.Put_Line (Image (Conflict));
-      end loop;
-   end Put;
-
    procedure Put_Parse_Table
      (Table   : in Parse_Table_Ptr;
       Kernels : in LR1_Items.Item_Set_List)
@@ -124,7 +106,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    begin
       Put_Line ("Parse Table:");
       for State in Table'Range loop
-         LR1_Items.Put (LR1_Items.Find (State, Kernels).all);
+         LR1_Items.Put (LR1_Items.Find (State, Kernels).all, Show_Lookaheads => True);
          New_Line;
          Put (Table (State));
 
@@ -702,8 +684,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       while Item /= null loop
          if Item.Dot = Token.List.Null_Iterator then
-            --  Pointer is at the end of the production; add a reduce
-            --  or accept action.
+            --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
               (Item, Kernel, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
@@ -901,6 +882,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    is
       use type Ada.Containers.Count_Type;
       use type Production.Instance;
+      use type LR1_Items.Item_Set_Ptr;
 
       Table : Parse_Table_Ptr;
 
@@ -921,12 +903,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
-      use type LR1_Items.Item_Set_Ptr;
    begin
-      Used_Tokens (Nonterminal.ID (First_Production.LHS)) := True;
-
-      I := Kernels.Head;
-
       --  Accept_State identifies the kernel that is the start symbol
       --  production with dot before EOF. The start symbol production
       --  must be the first production in Grammar, but that does not
@@ -947,6 +924,8 @@ package body FastToken.Parser.LR.LALR_Generator is
       if Trace then
          Ada.Text_IO.Put_Line ("Accept_State:" & State_Index'Image (Accept_State));
       end if;
+
+      Used_Tokens (Nonterminal.ID (First_Production.LHS)) := True;
 
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Accept_State, Used_Tokens, Trace);
 

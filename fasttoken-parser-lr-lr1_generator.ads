@@ -23,14 +23,17 @@
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 generic
    EOF_Token : in Token_Pkg.Token_ID;
-   pragma Unreferenced (EOF_Token);
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LR.LR1_Generator is
+
+   package LR1_Items is new Parser.LR1_Items
+     (Unknown_State_Index, Unknown_State, Nonterminal, Production);
 
    function Generate
      (Grammar                  : in Production.List.Instance;

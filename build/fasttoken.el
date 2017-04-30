@@ -1,8 +1,8 @@
-;; Emacs settings and extentions for OpenToken
+;; Emacs ada-mode extentions for FastToken
 
 ;; extensions to ada-fix-error
 
-(defun opentoken-gnat-fix-error (msg source-buffer source-window)
+(defun fasttoken-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
 
   (let ((start-pos (point))
@@ -16,7 +16,7 @@
      result
      (unwind-protect
 	 (cond
-	  ;; OpenToken access type naming convention
+	  ;; Fasttoken access type naming convention
 	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
 	   (let ((type (match-string 2)))
 	     (next-line 1)
@@ -42,6 +42,6 @@
       nil)
     ))
 
-(add-hook 'ada-gnat-fix-error-hook 'opentoken-gnat-fix-error)
+(add-hook 'ada-gnat-fix-error-hook 'fasttoken-gnat-fix-error)
 
 ;; end of file

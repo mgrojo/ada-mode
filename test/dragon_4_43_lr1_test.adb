@@ -77,13 +77,25 @@ package body Dragon_4_43_LR1_Test is
       Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
-   ----------
-   --  Test procedures
-
    Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
 
    First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
+
+   function Close (Item : in LR1_Items.Item_Ptr; State : in LR.State_Index) return LR1_Items.Item_Set_Ptr
+   is
+      use LR1_Items;
+   begin
+      Item.State := State;
+      return new Item_Set'
+        (Closure
+           ((Item, null, State, null), Has_Empty_Production, First, Grammar,
+            Match_Lookaheads => False,
+            Trace => False));
+   end Close;
+
+   ----------
+   --  Test procedures
 
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -245,16 +257,6 @@ package body Dragon_4_43_LR1_Test is
       --  the example state labels, and pushing kernels on the list in
       --  the order they appear in the example.
 
-      function Close (Item : in Item_Ptr; State : in LR.State_Index) return Item_Set_Ptr
-      is begin
-         Item.State := State;
-         return new Item_Set'
-           (Closure
-              ((Item, null, State, null), Has_Empty_Production, First, Grammar,
-               Match_Lookaheads => False,
-               Trace => False));
-      end Close;
-
       I0 : constant Item_Set_Ptr := Close (Get_Item_Node (1, 1, +EOF_ID), 0);
       I1 : constant Item_Set_Ptr := Close (Get_Item_Node (1, 2, +EOF_ID), 3);
       I2 : constant Item_Set_Ptr := Close (Get_Item_Node (2, 2, +EOF_ID), 4);
@@ -315,8 +317,8 @@ package body Dragon_4_43_LR1_Test is
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant LR.Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
-      Expected : LR.Parse_Table (0 .. 6);
+      Computed : constant Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
+      Expected : Parse_Table (0 .. 9);
 
       --  See comment in Test_LR1_Items about state numbering
 
@@ -325,14 +327,16 @@ package body Dragon_4_43_LR1_Test is
       S2 : constant := 4;
       S3 : constant := 1;
       S4 : constant := 2;
-      S5 : constant := 5;
-      S6 : constant := 6;
+      S5 : constant := 7;
+      S6 : constant := 5;
       S7 : constant := 6;
-      S8 : constant := 6;
-      S9 : constant := 6;
+      S8 : constant := 8;
+      S9 : constant := 9;
 
    begin
       --  figure 4.41 pg 239
+      --  'r1' means reduce by production 1, 0 indexed; our production 2
+      --  'acc' = reduce by our production 1
 
       Add_Action (Expected (S0), Lower_D_ID, S4);
       Add_Action (Expected (S0), Lower_C_ID, S3);
@@ -343,28 +347,35 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
       Add_Action (Expected (S1), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S2), Lower_D_ID, S4);
-      Add_Action (Expected (S2), Lower_C_ID, S3);
+      Add_Action (Expected (S2), Lower_D_ID, S7);
+      Add_Action (Expected (S2), Lower_C_ID, S6);
       Add_Action (Expected (S2), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S2), Upper_C_ID, S5);
+
+      Add_Action (Expected (S3), Lower_D_ID, S4);
+      Add_Action (Expected (S3), Lower_C_ID, S3);
+      Add_Action (Expected (S3), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Goto (Expected (S3), Upper_C_ID, S8);
+
+      Add_Action (Expected (S4), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
+      Add_Action (Expected (S4), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
+      Add_Action (Expected (S4), Tokens_Pkg.Terminal_ID'Last); -- default = error
+
+      Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
+      Add_Action (Expected (S5), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
       Add_Action (Expected (S6), Lower_D_ID, S7);
       Add_Action (Expected (S6), Lower_C_ID, S6);
       Add_Action (Expected (S6), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S6), Upper_C_ID, S9);
 
-      Add_Action (Expected (S7), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
-      Add_Action (Expected (S7), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S7), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S7), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
-      Add_Action (Expected (S5), Tokens_Pkg.Terminal_ID'Last); -- default = error
-
+      Add_Action (Expected (S8), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S8), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
+      Add_Action (Expected (S8), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S9), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S9), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S9), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S9), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
@@ -393,7 +404,7 @@ package body Dragon_4_43_LR1_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_Goto'Access, "debug");
+         Register_Routine (T, Parser_Table'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_Closure'Access, "Test_Closure");

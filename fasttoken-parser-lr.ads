@@ -110,11 +110,12 @@ package FastToken.Parser.LR is
       Goto_List   : Goto_Node_Ptr;
    end record;
 
+   --  Run-time parse table construction subprograms:
    procedure Add_Action
      (State       : in out LR.Parse_State;
       Symbol      : in     Token_Pkg.Token_ID;
       State_Index : in     LR.State_Index);
-   --  Add a Shift action to State. For building the parse table.
+   --  Add a Shift action to State.
 
    procedure Add_Action
      (State           : in out LR.Parse_State;
@@ -123,20 +124,20 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_Pkg.Token_ID;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize);
-     --  Add a Reduce or Accept_It action to State. For building
+     --  Add a Reduce or Accept_It action to State.
      --  the parse table.
 
    procedure Add_Action
      (State  : in out LR.Parse_State;
       Symbol : in     Token_Pkg.Token_ID);
    --  Add an Error action to State.
+   --  FIXME: change to Add_Error
 
    procedure Add_Goto
      (State    : in out LR.Parse_State;
       Symbol   : in     Token_Pkg.Token_ID;
       To_State : in     LR.State_Index);
-   --  Add a Goto to State. For building
-   --  the parse table.
+   --  Add a Goto to State.
 
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
@@ -173,5 +174,6 @@ package FastToken.Parser.LR is
    procedure Put (Action : in Parse_Action_Node_Ptr);
    procedure Put (State : in Parse_State);
    procedure Put (Table : in Parse_Table);
+   procedure Put (Item : in Conflict_Lists.List);
 
 end FastToken.Parser.LR;

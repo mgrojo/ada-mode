@@ -50,7 +50,7 @@ procedure Wisi.Output_Ada_Emacs
 is
    use type Ada.Containers.Count_Type;
 
-   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
+   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"WISI_EOI";
    --  EOI_Name must match wisi-output_elisp.adb EOI_Name, which must
    --  match Emacs ada-mode wisi.el wisi-eoi-term. It must
    --  be a valid Ada identifier when "_ID" is appended.
@@ -381,13 +381,13 @@ is
       case Lexer is
       when Aflex_Lexer =>
          Indent_Line ("subtype Token is Token_ID;");
-         Indent_Line ("End_Of_Input : Token_ID renames EOF_ID;");
+         Indent_Line ("End_Of_Input : Token_ID renames " & (-EOI_Name) & "_ID;");
       when Elisp_Lexer =>
          null;
       end case;
 
       Indent_Line ("First_Terminal : constant Token_ID := " & To_Token_Ada_Name (Keywords.First_Element.Name) & ";");
-      Indent_Line ("Last_Terminal  : constant Token_ID := EOF_ID;");
+      Indent_Line ("Last_Terminal  : constant Token_ID := " & (-EOI_Name) & "_ID;");
 
       declare
          use Ada.Strings.Unbounded;
@@ -427,8 +427,8 @@ is
       Indent_Line ("package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);");
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
-      Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Nonterminal);");
-      Indent_Line ("package LALR_Generator is new LR.LALR_Generator (Token_ID'Width, Production);");
+      Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);");
+      Indent_Line ("package LALR_Generator is new LR.LALR_Generator (" & (-EOI_Name) & "_ID, Production);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");

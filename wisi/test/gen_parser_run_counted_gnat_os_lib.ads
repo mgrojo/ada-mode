@@ -37,7 +37,7 @@ generic
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    with package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Nonterminal);
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : in Integer;
    with package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
    with package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);

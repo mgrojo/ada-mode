@@ -170,4 +170,22 @@ package body FastToken.Parser.LR is
       end loop;
    end Put;
 
+   function Image (Item : in Conflict) return String
+   is begin
+      return
+        (Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
+           Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
+           Token.Token_Image (Item.LHS_A) & ", " &
+           Token.Token_Image (Item.LHS_B) &
+           " (" & State_Index'Image (Item.State_Index) & ") on token " &
+           Token.Token_Image (Item.On));
+   end Image;
+
+   procedure Put (Item : in Conflict_Lists.List)
+   is begin
+      for Conflict of Item loop
+         Ada.Text_IO.Put_Line (Image (Conflict));
+      end loop;
+   end Put;
+
 end FastToken.Parser.LR;
