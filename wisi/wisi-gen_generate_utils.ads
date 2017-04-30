@@ -88,7 +88,8 @@ package Wisi.Gen_Generate_Utils is
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);
 
    function To_Conflicts
-     (Shift_Reduce_Conflict_Count  : out Integer;
+     (Accept_Reduce_Conflict_Count : out Integer;
+      Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
      return LR.Conflict_Lists.List;
 

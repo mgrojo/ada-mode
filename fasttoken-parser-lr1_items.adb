@@ -664,10 +664,11 @@ package body FastToken.Parser.LR1_Items is
    end Closure;
 
    function LALR_Goto_Transitions
-     (Kernel  : in Item_Set;
-      Symbol  : in Token.Token_ID;
-      First   : in Derivation_Matrix;
-      Grammar : in Production.List.Instance)
+     (Kernel    : in Item_Set;
+      Symbol    : in Token.Token_ID;
+      EOF_Token : in Token.Token_ID;
+      First     : in Derivation_Matrix;
+      Grammar   : in Production.List.Instance)
      return Item_Set
    is
       use Token.List;
@@ -689,12 +690,18 @@ package body FastToken.Parser.LR1_Items is
             --  ID of token after Dot
 
             if Dot_ID = Symbol then
-               Goto_Set.Set := new Item_Node'
-                 (Prod       => Item.Prod,
-                  Dot        => Next_Token (Item.Dot),
-                  State      => Unknown_State, -- replaced in Kernels
-                  Lookaheads => Item.Lookaheads,
-                  Next       => Goto_Set.Set);
+               if Symbol = EOF_Token then
+                  --  This is the start symbol accept production;
+                  --  don't need a kernel with dot after EOF.
+                  null;
+               else
+                  Goto_Set.Set := new Item_Node'
+                    (Prod       => Item.Prod,
+                     Dot        => Next_Token (Item.Dot),
+                     State      => Unknown_State, -- replaced in Kernels
+                     Lookaheads => Item.Lookaheads,
+                     Next       => Goto_Set.Set);
+               end if;
             end if;
 
             if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
@@ -873,16 +880,7 @@ package body FastToken.Parser.LR1_Items is
 
             for Symbol in Token.Token_ID loop
 
-               if Checking_Set.Set.Dot /= Token.List.Null_Iterator and then
-                (Symbol = EOF_Token and
-                   Token.List.ID (Checking_Set.Set.Dot) = EOF_Token)
-               then
-                  --  This is the start symbol accept production;
-                  --  don't need a kernel with dot after EOF.
-                  New_Items.Set := null;
-               else
-                  New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar);
-               end if;
+               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, EOF_Token, First, Grammar);
 
                --  See if any of the item sets need to be added to our list
                if New_Items.Set /= null then

@@ -109,7 +109,7 @@ package body Test_Empty_Productions_7 is
       use Ada.Text_IO;
       use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
-      Computed : constant Item_Set := LALR_Goto_Transitions (Kernel, Symbol, First, Grammar);
+      Computed : constant Item_Set := LALR_Goto_Transitions (Kernel, Symbol, EOF_ID, First, Grammar);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_ID'Image (Symbol));
@@ -346,11 +346,11 @@ package body Test_Empty_Productions_7 is
       --  Expected actions:
       --  CONSTANT_ID => reduce 0 tokens to ALIASED_OPT_ID
       --  SEMICOLON_ID => reduce 0 tokens to ALIASED_OPT_ID
-      --  ALIASED_ID => shift and goto ALIASED_OPT_ID <= ALIASED_ID ^ ; 7
+      --  ALIASED_ID => shift and goto ALIASED_OPT_ID <= ALIASED_ID ^ ; 6
       --  default  => ERROR
 
       --  Expected reduction gotos:
-      --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 8
+      --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 7
 
       Expected.Action_List := new Action_Node'
         (Symbol  => Token_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
@@ -364,7 +364,7 @@ package body Test_Empty_Productions_7 is
          Action      => new Parse_Action_Node'
            (Item     =>
               (Verb  => Shift,
-               State => 7),
+               State => 6),
             Next     => null),
          Next        => Expected.Action_List);
 
@@ -394,7 +394,7 @@ package body Test_Empty_Productions_7 is
 
       Expected.Goto_List := new Goto_Node'
         (Symbol => aliased_opt_ID,
-         State  => 8,
+         State  => 7,
          Next   => null);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);

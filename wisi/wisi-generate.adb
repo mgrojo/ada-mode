@@ -177,7 +177,7 @@ begin
    when Elisp =>
       Wisi.Output_Elisp
         (-Input_File_Name, -Output_File_Root, Prologue, Keywords, Tokens, Start_Token, Conflicts, Rules,
-         First_State_Index);
+         Rule_Count, Action_Count, First_State_Index);
 
    when Test =>
       Wisi.Test_Generate (-Input_File_Name, Keywords, Tokens, Start_Token, Conflicts, Rules, First_State_Index);

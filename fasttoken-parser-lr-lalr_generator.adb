@@ -478,6 +478,13 @@ package body FastToken.Parser.LR.LALR_Generator is
                then
                   return Nonterminal.ID (Action.LHS);
                end if;
+            when Accept_It =>
+               if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
+                 (Item.Dot /= Null_Iterator and then
+                    ID (Item.Dot) = EOF_Token)
+               then
+                  return Nonterminal.ID (Action.LHS);
+               end if;
             when others =>
                raise Programmer_Error;
             end case;
@@ -491,7 +498,7 @@ package body FastToken.Parser.LR.LALR_Generator is
         ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
            (case Action.Verb is
             when Shift => State_Index'Image (Action.State),
-            when Reduce => " " & Token.Token_Image (Nonterminal.ID (Action.LHS)),
+            when Reduce | Accept_It => " " & Token.Token_Image (Nonterminal.ID (Action.LHS)),
             when others => "") & ", " &
            Token.Token_Image (Lookahead) & " not found in");
       LR1_Items.Put (Closure);
@@ -559,13 +566,13 @@ package body FastToken.Parser.LR.LALR_Generator is
             --  There is a conflict. Report it, but add it anyway, so
             --  an enhanced parser can follow both paths
             declare
-               --  Enforce canonical Reduce/Reduce or Shift/Reduce
+               --  Enforce canonical Shift/Reduce or Accept/Reduce
                --  order, to simplify searching and code generation.
                Action_A : constant Parse_Action_Rec :=
-                 (if Action.Verb = Shift then Action else Matching_Action.Action.Item);
+                 (if Action.Verb in Shift | Accept_It then Action else Matching_Action.Action.Item);
 
                Action_B : constant Parse_Action_Rec :=
-                 (if Action.Verb = Shift then Matching_Action.Action.Item else Action);
+                 (if Action.Verb in Shift | Accept_It then Matching_Action.Action.Item else Action);
 
                Action_A_Ptr : Parse_Action_Node_Ptr;
                Action_B_Ptr : Parse_Action_Node_Ptr;

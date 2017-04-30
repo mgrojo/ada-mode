@@ -12,13 +12,13 @@ begin;
  1 stack:  2 : (IS 43 . 45),  1 : , 
  1: 2: (BEGIN 46 . 51) : reduce 0 tokens to declarative_part
 declarative_part_id_0: (declarative_part) 
- ... goto state 8
- 1 stack:  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
- 1: 8: (BEGIN 46 . 51) : shift and goto state 9
- 1 stack:  9 : (BEGIN 46 . 51),  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
- 1: 9: (SEMICOLON 51 . 52) : shift and goto state 10
- 1 stack:  10 : (SEMICOLON 51 . 52),  9 : (BEGIN 46 . 51),  8 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
- 1: 10: (IS 105 . 107) : reduce 4 tokens to body
+ ... goto state 7
+ 1 stack:  7 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 7: (BEGIN 46 . 51) : shift and goto state 8
+ 1 stack:  8 : (BEGIN 46 . 51),  7 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 8: (SEMICOLON 51 . 52) : shift and goto state 9
+ 1 stack:  9 : (SEMICOLON 51 . 52),  8 : (BEGIN 46 . 51),  7 : (declarative_part),  2 : (IS 43 . 45),  1 : , 
+ 1: 9: (IS 105 . 107) : reduce 4 tokens to body
 [-9 [(3 43 . 45)(8)(2 46 . 51)(4 51 . 52)]
 (-10 [1 -11 3 -11 4 -12])
 ]
@@ -35,13 +35,13 @@ declarations_id_0: (declarations 43 . 52) (body 43 . 52)
  1 stack:  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
  1: 2: (BEGIN 115 . 120) : reduce 0 tokens to declarative_part
 declarative_part_id_0: (declarative_part) 
- ... goto state 8
- 1 stack:  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 8: (BEGIN 115 . 120) : shift and goto state 9
- 1 stack:  9 : (BEGIN 115 . 120),  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 9: (SEMICOLON 120 . 121) : shift and goto state 10
- 1 stack:  10 : (SEMICOLON 120 . 121),  9 : (BEGIN 115 . 120),  8 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 10: (BEGIN 122 . 127) : reduce 4 tokens to body
+ ... goto state 7
+ 1 stack:  7 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 7: (BEGIN 115 . 120) : shift and goto state 8
+ 1 stack:  8 : (BEGIN 115 . 120),  7 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 8: (SEMICOLON 120 . 121) : shift and goto state 9
+ 1 stack:  9 : (SEMICOLON 120 . 121),  8 : (BEGIN 115 . 120),  7 : (declarative_part),  2 : (IS 112 . 114),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 9: (BEGIN 122 . 127) : reduce 4 tokens to body
 [-9 [(3 112 . 114)(8)(2 115 . 120)(4 120 . 121)]
 (-10 [1 -11 3 -11 4 -12])
 ]
@@ -54,28 +54,26 @@ declarations_id_0: (declarations 112 . 121) (body 112 . 121)
  1 stack:  3 : (declarations 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
  1: 3: (BEGIN 122 . 127) : reduce 1 tokens to declarative_part
 declarative_part_id_0: (declarative_part 112 . 121) (declarations 112 . 121)
- ... goto state 8
- 1 stack:  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 8: (BEGIN 122 . 127) : shift and goto state 9
- 1 stack:  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 9: (SEMICOLON 127 . 128) : shift and goto state 10
- 1 stack:  10 : (SEMICOLON 127 . 128),  9 : (BEGIN 122 . 127),  8 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
- 1: 10: (EOF 1 . 2) : reduce 4 tokens to body
+ ... goto state 7
+ 1 stack:  7 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 7: (BEGIN 122 . 127) : shift and goto state 8
+ 1 stack:  8 : (BEGIN 122 . 127),  7 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 8: (SEMICOLON 127 . 128) : shift and goto state 9
+ 1 stack:  9 : (SEMICOLON 127 . 128),  8 : (BEGIN 122 . 127),  7 : (declarative_part 112 . 121),  2 : (IS 105 . 107),  3 : (declarations 43 . 52),  1 : , 
+ 1: 9: (WISI_EOI 1 . 2) : reduce 4 tokens to body
 [-9 [(3 105 . 107)(8 112 . 121)(2 122 . 127)(4 127 . 128)]
 (-10 [1 -11 3 -11 4 -12])
 ]
 body_id_0: (body 105 . 128) (IS 105 . 107), (declarative_part 112 . 121), (BEGIN 122 . 127), (SEMICOLON 127 . 128)
- ... goto state 7
- 1 stack:  7 : (body 105 . 128),  3 : (declarations 43 . 52),  1 : , 
- 1: 7: (EOF 1 . 2) : reduce 2 tokens to declarations
+ ... goto state 6
+ 1 stack:  6 : (body 105 . 128),  3 : (declarations 43 . 52),  1 : , 
+ 1: 6: (WISI_EOI 1 . 2) : reduce 2 tokens to declarations
 declarations_id_0: (declarations 43 . 128) (declarations 43 . 52), (body 105 . 128)
  ... goto state 3
  1 stack:  3 : (declarations 43 . 128),  1 : , 
- 1: 3: (EOF 1 . 2) : reduce 1 tokens to declarative_part
+ 1: 3: (WISI_EOI 1 . 2) : reduce 1 tokens to declarative_part
 declarative_part_id_0: (declarative_part 43 . 128) (declarations 43 . 128)
  ... goto state 4
  1 stack:  4 : (declarative_part 43 . 128),  1 : , 
- 1: 4: (EOF 1 . 2) : shift and goto state 6
- 1 stack:  6 : (EOF 1 . 2),  4 : (declarative_part 43 . 128),  1 : , 
- 1: 6: (EOF 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 128) (declarative_part 43 . 128), (EOF 1 . 2)
+ 1: 4: (WISI_EOI 1 . 2) : accept it
+fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 43 . 128) (declarative_part 43 . 128)

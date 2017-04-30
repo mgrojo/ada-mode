@@ -82,6 +82,7 @@ is
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, First_State_Index, To_Token_Ada_Name);
 
+   Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
@@ -90,7 +91,8 @@ is
 
    Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
-      Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+      Generate_Utils.To_Conflicts
+        (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
       Put_Parse_Table          => Verbosity > 0,
       Ignore_Unused_Tokens     => Verbosity > 1,
@@ -936,11 +938,12 @@ is
          New_Line;
       end if;
 
-      if Reduce_Reduce_Conflict_Count > 0 then
-         --  This procedure is called for Reduce/Reduce conflicts
+      if Accept_Reduce_Conflict_Count + Reduce_Reduce_Conflict_Count > 0 then
+         --  This procedure is called for Reduce/Reduce or Accept/Reduce conflicts
          Indent_Line ("procedure Add_Action");
          Indent_Line ("  (State             : in out LR.Parse_State;");
          Indent_Line ("   Symbol            : in     Token_ID;");
+         Indent_Line ("   Verb              : in     LR.Parse_Action_Verbs;");
          Indent_Line ("   LHS_ID_1          : in     Token_ID;");
          Indent_Line ("   RHS_Token_Count_1 : in     Natural;");
          Indent_Line ("   Synthesize_1      : in     Nonterminal.Synthesize;");
@@ -954,7 +957,17 @@ is
          Indent_Line
            ("LHS_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens_Pkg.Get (LHS_ID_1));");
          Indent_Line
-           ("Action_1 : constant Parse_Action_Rec := (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1);");
+           ("Action_1 : constant Parse_Action_Rec :=");
+         Indent := Indent + 2;
+         Indent_Line
+           ("(case Verb is");
+         Indent_Line
+           ("when Reduce => (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),");
+         Indent_Line
+           ("when Accept_It => (Accept_It, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),");
+         Indent_Line
+           ("when others => raise FastToken.Programmer_Error);");
+         Indent := Indent - 2;
          Indent_Line
            ("LHS_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens_Pkg.Get (LHS_ID_2));");
          Indent_Line
@@ -1070,15 +1083,10 @@ is
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
-                     if Action_Node.Next = null then
-                        if Action_Node.Item.Verb = Reduce then
-                           Append (", Reduce");
-                        else
-                           Append (", Accept_It");
-                        end if;
+                     if Action_Node.Item.Verb = Reduce then
+                        Append (", Reduce");
                      else
-                        --  conflict; Verb must be reduce
-                        null;
+                        Append (", Accept_It");
                      end if;
                      Append (", ");
                      Append (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
@@ -1091,12 +1099,11 @@ is
 
                   Action_Node := Action_Node.Next;
                   if Action_Node /= null then
-                     --  Conflict; second action is Shift or Reduce
                      case Action_Node.Item.Verb is
                      when Shift =>
                         Append (", ");
                         Append (State_Image (Action_Node.Item.State));
-                     when Reduce =>
+                     when Reduce | Accept_It =>
                         Append (", ");
                         Append
                           (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
@@ -1104,7 +1111,7 @@ is
                              Action_Name
                              (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                      when others =>
-                        raise Programmer_Error with "second action verb: " &
+                        raise Programmer_Error with "conflict second action verb: " &
                           LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                      end case;
                   end if;
@@ -1212,10 +1219,12 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
            LR.State_Index'Image (Parser'Last) & " states," &
            Integer'Image (Table_Entry_Count) & " table entries");
+      Put_Line
+        (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
    end Create_Ada_Body;
 
    procedure Create_Aflex

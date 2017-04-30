@@ -100,7 +100,7 @@ package body Test_Empty_Productions_1 is
       use Ada.Text_IO;
       use Generators.LR1_Items;
       use FastToken_AUnit;
-      Computed : constant Item_Set := LALR_Goto_Transitions (Kernel, Symbol, First, Grammar);
+      Computed : constant Item_Set := LALR_Goto_Transitions (Kernel, Symbol, EOF_ID, First, Grammar);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_ID'Image (Symbol));

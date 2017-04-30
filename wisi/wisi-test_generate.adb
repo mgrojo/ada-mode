@@ -43,6 +43,7 @@ is
       First_State_Index,
       To_Token_Image => To_Token_Image);
 
+   Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
@@ -51,7 +52,8 @@ is
 
    Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
-      Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+      Generate_Utils.To_Conflicts
+        (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
       Put_Parse_Table          => Verbosity > 0,
       Ignore_Unused_Tokens     => Verbosity > 1,

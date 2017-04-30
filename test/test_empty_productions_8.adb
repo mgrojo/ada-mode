@@ -152,11 +152,11 @@ package body Test_Empty_Productions_8 is
          Put (Kernels);
       end if;
 
-      --  In a previous version, kernel 9 had dot both before and
+      --  In a previous version, kernel 8 had dot both before and
       --  after CONSTANT_ID; now that is split into two kernels.
 
-      Check_Kernel (8, 4, 3);
-      Check_Kernel (9, 5, 3);
+      Check_Kernel (7, 4, 3);
+      Check_Kernel (8, 5, 3);
    end Kernels_1;
 
    ----------

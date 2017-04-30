@@ -143,7 +143,7 @@ package FastToken.Parser.LR is
 
    type Parse_Table_Ptr is access Parse_Table;
 
-   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Reduce;
+   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
       --  A typical conflict is:
       --

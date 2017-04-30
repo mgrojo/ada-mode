@@ -6,16 +6,13 @@ build/release_process.text
 
  current work
 
-run all tests
-    empty_production_2.parse_table fails
-        CONSTRAINT_ERROR: fasttoken-parser-lr-lalr_generator.adb:575 range check failed
-        shift/accept conflict?
-
-add lr1 to all lalr tests?
+add lr1 to some/all lalr tests?
 
 compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
 
 delete Match_Lookaheads arg to closure?
+
+delete Accept_State in lalr_generator?
 
 factor out common code to parser-lr-generator_utils?
 

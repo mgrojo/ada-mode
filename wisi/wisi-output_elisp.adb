@@ -30,6 +30,8 @@ procedure Wisi.Output_Elisp
    Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
    Conflicts         : in Conflict_Lists.List;
    Rules             : in Rule_Lists.List;
+   Rule_Count        : in Integer;
+   Action_Count      : in Integer;
    First_State_Index : in Integer)
 is
    EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
@@ -50,6 +52,7 @@ is
 
    package Parser_Elisp is new Generate_Utils.LR.Elisp (Generate_Utils.Token_Image);
 
+   Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
@@ -58,7 +61,8 @@ is
 
    Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
      (Grammar,
-      Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+      Generate_Utils.To_Conflicts
+        (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
       Trace                    => Verbosity > 1,
       Put_Parse_Table          => Verbosity > 0,
       Ignore_Unused_Tokens     => Verbosity > 1,
@@ -148,4 +152,16 @@ begin
    New_Line;
    Put_Line (";; end of file");
    Close (File);
+
+   Set_Output (Standard_Output);
+
+   if Verbosity > 0 then
+      Put_Line
+        (Integer'Image (Rule_Count) & " rules," &
+           Integer'Image (Action_Count) & " actions," &
+           Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
+           Generate_Utils.LR.State_Index'Image (Parser'Last) & " states");
+   end if;
 end Wisi.Output_Elisp;

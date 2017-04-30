@@ -6,7 +6,7 @@ Tokens:
  5 => COLON_EQUAL_ID
  6 => SEMICOLON_ID
  7 => IDENTIFIER_ID
- 8 => EOF_ID
+ 8 => WISI_EOI_ID
  9 => COMPILATION_UNIT_ID
  10 => STATEMENT_ID
  11 => SEQUENCE_OF_STATEMENTS_ID
@@ -15,7 +15,7 @@ Tokens:
 
 Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID EOF_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID
 
    BEGIN_ID                  => shift and goto state 2
    default                   => ERROR
@@ -23,44 +23,31 @@ State 1:
    COMPILATION_UNIT_ID       goto state 3
 
 State 2:
-  COMPILATION_UNIT_ID <= BEGIN_ID ^ SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID, EOF_ID
+  COMPILATION_UNIT_ID <= BEGIN_ID ^ SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID, WISI_EOI_ID
 
-   IDENTIFIER_ID             => shift and goto state 5,
+   IDENTIFIER_ID             => shift and goto state 4,
                                 reduce 0 tokens to LABEL_OPT_ID
    default                   => ERROR
 
-   STATEMENT_ID              goto state 6
-   SEQUENCE_OF_STATEMENTS_ID goto state 7
-   LABEL_OPT_ID              goto state 8
+   STATEMENT_ID              goto state 5
+   SEQUENCE_OF_STATEMENTS_ID goto state 6
+   LABEL_OPT_ID              goto state 7
 
 State 3:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ EOF_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, WISI_EOI_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/COLON_ID/END_ID/BEGIN_ID
 
-   EOF_ID                    => shift and goto state 4
+   WISI_EOI_ID               => accept it
    default                   => ERROR
 
 
 State 4:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/COLON_ID/END_ID/BEGIN_ID
+  LABEL_OPT_ID <= IDENTIFIER_ID ^ COLON_ID, IDENTIFIER_ID
 
-   EOF_ID                    => accept it
-   IDENTIFIER_ID             => accept it
-   SEMICOLON_ID              => accept it
-   COLON_EQUAL_ID            => accept it
-   COLON_ID                  => accept it
-   END_ID                    => accept it
-   BEGIN_ID                  => accept it
+   COLON_ID                  => shift and goto state 11
    default                   => ERROR
 
 
 State 5:
-  LABEL_OPT_ID <= IDENTIFIER_ID ^ COLON_ID, IDENTIFIER_ID
-
-   COLON_ID                  => shift and goto state 12
-   default                   => ERROR
-
-
-State 6:
   SEQUENCE_OF_STATEMENTS_ID <= STATEMENT_ID ^, END_ID/IDENTIFIER_ID
 
    END_ID                    => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
@@ -68,40 +55,40 @@ State 6:
    default                   => ERROR
 
 
-State 7:
+State 6:
   SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID ^ STATEMENT_ID, END_ID/IDENTIFIER_ID
-  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID ^ END_ID SEMICOLON_ID, EOF_ID
+  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID ^ END_ID SEMICOLON_ID, WISI_EOI_ID
 
-   END_ID                    => shift and goto state 10
-   IDENTIFIER_ID             => shift and goto state 5,
+   END_ID                    => shift and goto state 9
+   IDENTIFIER_ID             => shift and goto state 4,
                                 reduce 0 tokens to LABEL_OPT_ID
    default                   => ERROR
 
-   STATEMENT_ID              goto state 11
-   LABEL_OPT_ID              goto state 8
+   STATEMENT_ID              goto state 10
+   LABEL_OPT_ID              goto state 7
 
-State 8:
+State 7:
   STATEMENT_ID <= LABEL_OPT_ID ^ IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID, IDENTIFIER_ID/END_ID
 
-   IDENTIFIER_ID             => shift and goto state 9
+   IDENTIFIER_ID             => shift and goto state 8
+   default                   => ERROR
+
+
+State 8:
+  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID ^ COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID, END_ID/IDENTIFIER_ID
+
+   COLON_EQUAL_ID            => shift and goto state 13
    default                   => ERROR
 
 
 State 9:
-  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID ^ COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID, END_ID/IDENTIFIER_ID
+  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID END_ID ^ SEMICOLON_ID, WISI_EOI_ID
 
-   COLON_EQUAL_ID            => shift and goto state 14
+   SEMICOLON_ID              => shift and goto state 12
    default                   => ERROR
 
 
 State 10:
-  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID END_ID ^ SEMICOLON_ID, EOF_ID
-
-   SEMICOLON_ID              => shift and goto state 13
-   default                   => ERROR
-
-
-State 11:
   SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID STATEMENT_ID ^, IDENTIFIER_ID/END_ID
 
    IDENTIFIER_ID             => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
@@ -109,35 +96,35 @@ State 11:
    default                   => ERROR
 
 
-State 12:
+State 11:
   LABEL_OPT_ID <= IDENTIFIER_ID COLON_ID ^, IDENTIFIER_ID
 
    IDENTIFIER_ID             => reduce 2 tokens to LABEL_OPT_ID
    default                   => ERROR
 
 
-State 13:
-  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID ^, EOF_ID
+State 12:
+  COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID ^, WISI_EOI_ID
 
-   EOF_ID                    => reduce 4 tokens to COMPILATION_UNIT_ID
+   WISI_EOI_ID               => reduce 4 tokens to COMPILATION_UNIT_ID
+   default                   => ERROR
+
+
+State 13:
+  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID ^ IDENTIFIER_ID SEMICOLON_ID, IDENTIFIER_ID/END_ID
+
+   IDENTIFIER_ID             => shift and goto state 14
    default                   => ERROR
 
 
 State 14:
-  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID ^ IDENTIFIER_ID SEMICOLON_ID, IDENTIFIER_ID/END_ID
+  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID ^ SEMICOLON_ID, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => shift and goto state 15
+   SEMICOLON_ID              => shift and goto state 15
    default                   => ERROR
 
 
 State 15:
-  STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID ^ SEMICOLON_ID, END_ID/IDENTIFIER_ID
-
-   SEMICOLON_ID              => shift and goto state 16
-   default                   => ERROR
-
-
-State 16:
   STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID ^, IDENTIFIER_ID/END_ID
 
    IDENTIFIER_ID             => reduce 5 tokens to STATEMENT_ID
@@ -145,4 +132,5 @@ State 16:
    default                   => ERROR
 
 
- 4 rules, 2 actions, 1 shift/reduce conflicts, 0 reduce/reduce conflicts, 16 states, 42 table entries
+ 4 rules, 2 actions, 15 states, 34 table entries
+ 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

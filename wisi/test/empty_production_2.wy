@@ -29,8 +29,8 @@
 
 %start declarations
 
+%conflict ACCEPT_IT/REDUCE in state fasttoken_accept, declaration on token WISI_EOI
 %conflict SHIFT/REDUCE in state body, declaration on token BEGIN
-%conflict SHIFT/REDUCE in state fasttoken_accept, declaration on token EOI
 %conflict SHIFT/REDUCE in state body, declaration on token IS
 
 %%
