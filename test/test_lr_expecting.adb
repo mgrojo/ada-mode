@@ -66,13 +66,13 @@ package body Test_LR_Expecting is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
+   package LALR_Generator is new LR.LALR_Generator (Production);
 
    --  Terminals
    EOF        : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);

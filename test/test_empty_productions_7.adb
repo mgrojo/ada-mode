@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013, 2014, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2014, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -55,9 +55,9 @@ package body Test_Empty_Productions_7 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
+   package LALR_Generator is new LR.LALR_Generator (Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -176,7 +176,7 @@ package body Test_Empty_Productions_7 is
 
       Expected_Set := Get_Item_Node
         (Prod       => 4,
-         Lookaheads => null,
+         Lookaheads => Null_Lookaheads,
          Dot        => 2,
          Next       => null);
 
@@ -369,7 +369,7 @@ package body Test_Empty_Productions_7 is
          Next        => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol            => SEMICOLON_ID,
+        (Symbol            => CONSTANT_ID,
          Action            => new Parse_Action_Node'
            (Item           =>
               (Verb        => Reduce,
@@ -381,7 +381,7 @@ package body Test_Empty_Productions_7 is
          Next              => Expected.Action_List);
 
       Expected.Action_List := new Action_Node'
-        (Symbol            => CONSTANT_ID,
+        (Symbol            => SEMICOLON_ID,
          Action            => new Parse_Action_Node'
            (Item           =>
               (Verb        => Reduce,

@@ -50,9 +50,9 @@ package body Dragon_4_45_LALR_Test is
    package Nonterminal is new Tokens_Pkg.Nonterminal;
    package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
-   package Parser_Root is new FastToken.Parser (Tokens_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package Generators is new LR.LALR_Generator (EOF_ID, Production);
+   package Generators is new LR.LALR_Generator (Production);
 
    --  Allow infix operators for building productions
    use type Tokens_Pkg.List.Instance;
@@ -135,13 +135,13 @@ package body Dragon_4_45_LALR_Test is
       --  pushing kernels on the list in the order they appear in the
       --  example.
 
-      I0  : constant Item_Set_Ptr := +Get_Item_Node (Prod => 1, Lookaheads => null, Dot => 1, State => 0);
-      I1  : constant Item_Set_Ptr := +Get_Item_Node (Prod => 1, Lookaheads => null, Dot => 2, State => 3);
-      I2  : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 2, State => 4);
-      I36 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 3, Lookaheads => null, Dot => 2, State => 1);
-      I47 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 4, Lookaheads => null, Dot => 2, State => 2);
-      I5  : constant Item_Set_Ptr := +Get_Item_Node (Prod => 2, Lookaheads => null, Dot => 3, State => 5);
-      I89 : constant Item_Set_Ptr := +Get_Item_Node (Prod => 3, Lookaheads => null, Dot => 3, State => 6);
+      I0  : constant Item_Set_Ptr := +Get_Item_Node (1, 1, Null_Lookaheads, State => 0);
+      I1  : constant Item_Set_Ptr := +Get_Item_Node (1, 2, Null_Lookaheads, State => 3);
+      I2  : constant Item_Set_Ptr := +Get_Item_Node (2, 2, Null_Lookaheads, State => 4);
+      I36 : constant Item_Set_Ptr := +Get_Item_Node (3, 2, Null_Lookaheads, State => 1);
+      I47 : constant Item_Set_Ptr := +Get_Item_Node (4, 2, Null_Lookaheads, State => 2);
+      I5  : constant Item_Set_Ptr := +Get_Item_Node (2, 3, Null_Lookaheads, State => 5);
+      I89 : constant Item_Set_Ptr := +Get_Item_Node (3, 3, Null_Lookaheads, State => 6);
 
       Goto_0 : constant Goto_Item_Ptr :=
         (Upper_C_ID, I2, null) &
@@ -221,8 +221,8 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected (S36), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S36), Upper_C_ID, S89);
 
-      Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
+      Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), Tokens_Pkg.Terminal_ID'Last); -- default = error
 

@@ -51,11 +51,11 @@ package body Dragon_4_43_LR1_Test is
    package Nonterminal is new Tokens_Pkg.Nonterminal;
    package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
-   package Parser_Root is new FastToken.Parser (Tokens_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Nonterminal, Production);
-   package Generators is new LR.LR1_Generator (EOF_ID, Production);
+   package Generators is new LR.LR1_Generator (Production);
 
    --  Allow infix operators for building productions
    use type Tokens_Pkg.List.Instance;
@@ -391,8 +391,8 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected (S7), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S7), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S8), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S8), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
+      Add_Action (Expected (S8), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S8), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
       Add_Action (Expected (S9), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);

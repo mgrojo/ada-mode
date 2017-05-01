@@ -39,42 +39,34 @@ generic
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
 package FastToken.Parser.LR1_Items is
 
-   --  A lookahead list is a linked list of tokens. We also define a
-   --  Token_ID_Set below, but that is typically much larger than a
-   --  lookahead list, and would be mostly False.
-   --
    --  We need a special value of Lookahead to indicate '#' in
-   --  [dragon] algorithm 4.12. That is implemented by setting
-   --  Propagate = True; all other lookaheads have Propagate = False.
-   type Lookahead;
-   type Lookahead_Ptr is access Lookahead;
-   type Lookahead (Propagate : Boolean) is record
-
-      Next : Lookahead_Ptr;
-      case Propagate is
-      when False =>
-         Lookahead : Token.Terminal_ID;
-      when True =>
-         null;
-      end case;
+   --  [dragon] LALR algorithm 4.12. That is implemented by setting
+   --  Propagate = True.
+   type Terminal_ID_Set is array (Token.Terminal_ID) of Boolean;
+   type Lookahead is record
+      Propagate : Boolean;
+      Tokens    : Terminal_ID_Set;
    end record;
+   Null_Lookaheads : constant Lookahead := (False, (others => False));
 
-   function Deep_Copy (Item : in Lookahead_Ptr) return Lookahead_Ptr;
+   function "+" (Item : in Token.Token_ID) return Lookahead;
 
    procedure Include
-     (Set   : in out Lookahead_Ptr;
+     (Set   : in out Lookahead;
       Value : in     Token.Terminal_ID);
    procedure Include
-     (Set   : in out Lookahead_Ptr;
-      Value : in     Lookahead_Ptr);
-   --  Add Value to Set if it is not already present
+     (Set               : in out Lookahead;
+      Value             : in     Lookahead;
+      Exclude_Propagate : in     Boolean);
+   --  Add Value to Set
 
    procedure Include
-     (Set   : in out Lookahead_Ptr;
-      Value : in     Token.Terminal_ID;
-      Added :    out Boolean);
-   --  Add Value to Set if it is not already present. Added will be
-   --  true if the item had to be added.
+     (Set               : in out Lookahead;
+      Value             : in     Lookahead;
+      Added             :    out Boolean;
+      Exclude_Propagate : in     Boolean);
+   --  Add Value to Set, except Propagate if Exclude Propagate. Added
+   --  will be true if Value was not already present.
 
    type Item_Node;
    type Item_Ptr is access Item_Node;
@@ -82,17 +74,17 @@ package FastToken.Parser.LR1_Items is
       Prod       : Production.Instance;
       Dot        : Token.List.List_Iterator; -- token after item Dot
       State      : Unknown_State_Index;
-      Lookaheads : Lookahead_Ptr;
+      Lookaheads : Lookahead;
       Next       : Item_Ptr;
    end record;
 
    function Item_Node_Of
      (Prod       : in Production.List.List_Iterator;
       State      : in Unknown_State_Index;
-      Lookaheads : in Lookahead_Ptr := null)
+      Lookaheads : in Lookahead := Null_Lookaheads)
      return Item_Node;
    --  Return an item node made from Prod, Dot at the start of the
-   --  right hand side, State, deep copy of Lookaheads.
+   --  right hand side, State, Lookaheads.
 
    type Goto_Item;
    type Goto_Item_Ptr is access Goto_Item;
@@ -130,9 +122,6 @@ package FastToken.Parser.LR1_Items is
      return Boolean;
    --  Merge New_Item into Existing_Set. Return True if Existing_Set
    --  is modified.
-   --
-   --  New_Item.Lookaheads are moved or deallocated, as appropriate.
-   --  Rest of New_Item is copied or deallocated.
 
    function Find
      (Left             : in Item_Node;
@@ -223,8 +212,7 @@ package FastToken.Parser.LR1_Items is
       Trace                : in Boolean)
      return Item_Set_List;
 
-   function Print (Item : in Lookahead) return String;
-   function Print (Item : in Lookahead_Ptr) return String;
+   function Image (Item : in Lookahead) return String;
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
    procedure Put
@@ -236,11 +224,9 @@ package FastToken.Parser.LR1_Items is
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Lookahead, Lookahead_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
 
-   procedure Free (Item : in out Item_Node);
    procedure Free (Item : in out Item_Set);
    procedure Free (Item : in out Item_Set_List);
 

@@ -30,7 +30,7 @@ with Dragon_4_45_LALR_Test;
 with GNAT.Traceback.Symbolic;
 with Name_Grammar_Test;
 with Parser_Lists_Test;
-with Test_Accept_Index;
+with Test_Accept_State;
 with Test_Empty_Productions_1;
 with Test_Empty_Productions_4;
 with Test_Empty_Productions_5;
@@ -57,7 +57,7 @@ begin
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Name_Grammar_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Parser_Lists_Test.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_Accept_Index.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_1.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_4.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Empty_Productions_5.Test_Case (Debug => False));

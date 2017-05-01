@@ -11,12 +11,9 @@ add lr1 to some/all lalr tests?
 
     empty_production_1
         state 1 lookaheads should include is_id
-        state 15, 16 same except order of lookaheads
-            set canonical order in merge
+        lookaheads make no sense
 
-        empty_production_1.input:7:1: Syntax error; expecting one of WISI_EOI, IS; found (BEGIN 122 . 127) 'begin'
-            in state 15
-                should have lookahead BEGIN, reduce on it
+        parse succeeds; parse stack, actions identical except for state numbers.
 
 add syntax error handling
 

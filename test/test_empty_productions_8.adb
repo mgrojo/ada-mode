@@ -57,9 +57,9 @@ package body Test_Empty_Productions_8 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
+   package LALR_Generator is new LR.LALR_Generator (Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -126,7 +126,7 @@ package body Test_Empty_Productions_8 is
          Expected : constant Item_Set_Ptr := new Item_Set'
            (Set             => Get_Item_Node
               (Prod         => Prod,
-               Lookaheads   => null,
+               Lookaheads   => Null_Lookaheads,
                Dot          => Dot,
                State        => State),
             Goto_List       => null,

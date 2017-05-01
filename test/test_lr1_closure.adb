@@ -58,10 +58,10 @@ package body Test_LR1_Closure is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (EOF_ID, Production);
+   package LALR_Generator is new LR.LALR_Generator (Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -144,7 +144,7 @@ package body Test_LR1_Closure is
       Expected     := Null_Item_Set;
       Expected.Set := Get_Item_Node
         (Prod       => 1,
-         Lookaheads => null,
+         Lookaheads => Null_Lookaheads,
          Dot        => 1,
          Next       => Expected.Set,
          State      => 1);
@@ -156,7 +156,7 @@ package body Test_LR1_Closure is
       --  Set 2: CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID
       Expected := Null_Item_Set;
       Expected.State := 2;
-      Expected.Set := Get_Item_Node (2, 2, null, Expected.Set, 2);
+      Expected.Set := Get_Item_Node (2, 2, Null_Lookaheads, Expected.Set, 2);
       Expected.Set := Get_Item_Node (5, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
       Expected.Set := Get_Item_Node (6, 1, +EQUAL_GREATER_ID, Expected.Set, 2);
       Expected.Set := Get_Item_Node (9, 1, +EQUAL_GREATER_ID, Expected.Set, 2);

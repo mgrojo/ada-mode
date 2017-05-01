@@ -216,29 +216,27 @@ package body FastToken.Parser.LR.LR1_Generator is
       --  Add actions for Item.Lookaheads to Action_List
       --  Item must be from Item_Set.
       --  Has_Empty_Production used for conflict reporting.
-      use type LR1_Items.Lookahead_Ptr;
 
       Action : constant Parse_Action_Rec :=
         (Reduce, Item.Prod.LHS, Item.Prod.RHS.Action, Item.Prod.RHS.Index, Item.Prod.RHS.Tokens.Length);
-
-      Lookahead : LR1_Items.Lookahead_Ptr := Item.Lookaheads;
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
-      while Lookahead /= null loop
-         --  Lookahead.Propagate should never be True here.
-         Add_Action
-           (Symbol               => Lookahead.Lookahead,
-            Action               => Action,
-            Action_List          => Action_List,
-            Closure              => Item_Set.all,
-            State_Index          => Item_Set.State,
-            Has_Empty_Production => Has_Empty_Production,
-            Conflicts            => Conflicts,
-            Trace                => Trace);
-         Lookahead := Lookahead.Next;
+      --  We ignore propagate lookaheads here.
+      for Lookahead in Item.Lookaheads.Tokens'Range loop
+         if Item.Lookaheads.Tokens (Lookahead) then
+            Add_Action
+              (Symbol               => Lookahead,
+               Action               => Action,
+               Action_List          => Action_List,
+               Closure              => Item_Set.all,
+               State_Index          => Item_Set.State,
+               Has_Empty_Production => Has_Empty_Production,
+               Conflicts            => Conflicts,
+               Trace                => Trace);
+         end if;
       end loop;
    end Add_Lookahead_Actions;
 

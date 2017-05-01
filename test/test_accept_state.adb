@@ -27,7 +27,7 @@ with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder.String;
 with FastToken.Lexer.Regexp;
 with FastToken.Token.Nonterminal;
-package body Test_Accept_Index is
+package body Test_Accept_State is
 
    --  A simple grammar that OpenToken used to get wrong.
    --
@@ -38,7 +38,7 @@ package body Test_Accept_Index is
       Equals_ID,
       Int_ID,
       Set_ID,
-      EOF_ID,
+      EOF_ID, -- _not_ last_terminal; should be ok
       Identifier_ID,
 
       --  non-terminals
@@ -51,15 +51,14 @@ package body Test_Accept_Index is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_Parser_Label : constant := 1;
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Generators is new LR.LALR_Generator (EOF_ID, Production);
+   package Generators is new LR.LALR_Generator (Production);
 
-   --  Define all our tokens
    Equals : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);
    Int    : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
    EOF    : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
@@ -132,7 +131,7 @@ package body Test_Accept_Index is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_accept_index.adb");
+      return new String'("../../Test/test_accept_state.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -142,4 +141,4 @@ package body Test_Accept_Index is
       Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
-end Test_Accept_Index;
+end Test_Accept_State;

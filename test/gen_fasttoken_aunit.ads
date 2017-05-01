@@ -27,12 +27,12 @@ with FastToken.Token.Nonterminal;
 generic
    type Token_ID is (<>);
    First_Terminal    : in Token_ID;
-   Last_Terminal     : in Token_ID;
+   Last_Terminal     : in Token_ID; -- always EOF_ID
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
    with package Nonterminal is new Token_Pkg.Nonterminal;
    with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   with package Parser_Root is new FastToken.Parser (Token_Pkg, Lexer_Root);
+   with package Parser_Root is new FastToken.Parser (Token_Pkg, Last_Terminal, Lexer_Root);
    First_State_Index : in Integer;
    with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal => Nonterminal);
    with package LR1_Items is new Parser_Root.LR1_Items
@@ -77,9 +77,17 @@ package Gen_FastToken_AUnit is
       Check_Item  => Check);
 
    procedure Check
+     is new AUnit.Checks.Gen_Check_Array
+     (Item_Type   => Boolean,
+      Index_Type  => Token_Pkg.Terminal_ID,
+      Array_Type  => LR1_Items.Terminal_ID_Set,
+      Check_Index => Check,
+      Check_Item  => AUnit.Checks.Check);
+
+   procedure Check
      (Label    : in String;
-      Computed : in LR1_Items.Lookahead_Ptr;
-      Expected : in LR1_Items.Lookahead_Ptr);
+      Computed : in LR1_Items.Lookahead;
+      Expected : in LR1_Items.Lookahead);
 
    procedure Check
      (Label    : in String;
@@ -113,9 +121,9 @@ package Gen_FastToken_AUnit is
    function Get_Item_Node
      (Prod       : in Integer;
       Dot        : in Integer;
-      Lookaheads : in LR1_Items.Lookahead_Ptr;
-      Next       : in LR1_Items.Item_Ptr := null;
-      State      : in LR.Unknown_State_Index  := LR.Unknown_State)
+      Lookaheads : in LR1_Items.Lookahead;
+      Next       : in LR1_Items.Item_Ptr     := null;
+      State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
@@ -125,7 +133,7 @@ package Gen_FastToken_AUnit is
    function Get_Item_Set
      (Prod      : in Integer;
       Dot       : in Integer;
-      Lookahead : in LR1_Items.Lookahead_Ptr)
+      Lookahead : in LR1_Items.Lookahead)
      return LR1_Items.Item_Set;
 
    function Get_Item_Set
@@ -139,8 +147,7 @@ package Gen_FastToken_AUnit is
 
    type Token_Array is array (Positive range <>) of Token_ID;
 
-   function "+" (Item : in Token_ID) return LR1_Items.Lookahead_Ptr;
-   function "+" (Item : in Token_Array) return LR1_Items.Lookahead_Ptr;
+   function "+" (Item : in Token_Array) return LR1_Items.Lookahead;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Parse_Action_Verbs);
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Unknown_State_Index);

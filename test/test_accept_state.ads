@@ -1,9 +1,9 @@
 --  Abstract :
 --
---  Test computing Accept_Index on grammars that OpenToken used to get
+--  Test computing Accept_State on grammars that OpenToken used to get
 --  wrong.
 --
---  Copyright (C) 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2010, 2012, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 --  MA 02111-1307, USA.
 
 with AUnit.Test_Cases;
-package Test_Accept_Index is
+package Test_Accept_State is
 
    type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Accept_Index is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Accept_Index;
+end Test_Accept_State;

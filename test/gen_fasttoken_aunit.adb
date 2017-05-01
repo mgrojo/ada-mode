@@ -61,27 +61,14 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LR1_Items.Lookahead_Ptr;
-      Expected : in LR1_Items.Lookahead_Ptr)
+      Computed : in LR1_Items.Lookahead;
+      Expected : in LR1_Items.Lookahead)
    is
       use AUnit.Checks;
       use LR1_Items;
-      Computed_I : Lookahead_Ptr := Computed;
-      Expected_I : Lookahead_Ptr := Expected;
-      Index : Integer := 1;
    begin
-      loop
-         if Computed_I = null then
-            Check (Label & " = null", Expected_I = null, True);
-            exit;
-         end if;
-         Check (Label & Integer'Image (Index), Computed_I.Lookahead, Expected_I.Lookahead);
-         Check
-           (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
-         Index      := Index + 1;
-      end loop;
+      Check (Label & ".Propagate", Computed.Propagate, Expected.Propagate);
+      Check (Label & ".Tokens", Computed.Tokens, Expected.Tokens);
    end Check;
 
    procedure Check
@@ -229,7 +216,7 @@ package body Gen_FastToken_AUnit is
    function Get_Item_Node
      (Prod       : in Integer;
       Dot        : in Integer;
-      Lookaheads : in LR1_Items.Lookahead_Ptr;
+      Lookaheads : in LR1_Items.Lookahead;
       Next       : in LR1_Items.Item_Ptr         := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr
@@ -263,7 +250,7 @@ package body Gen_FastToken_AUnit is
    function Get_Item_Set
      (Prod      : in Integer;
       Dot       : in Integer;
-      Lookahead : in LR1_Items.Lookahead_Ptr)
+      Lookahead : in LR1_Items.Lookahead)
      return LR1_Items.Item_Set
    is begin
       return
@@ -287,28 +274,20 @@ package body Gen_FastToken_AUnit is
         (Set => Get_Item_Node
            (Prod       => Prod,
             Dot        => Dot,
-            Lookaheads => null,
+            Lookaheads => LR1_Items.Null_Lookaheads,
             Next       => null),
          Goto_List       => null,
          State           => LR.Unknown_State,
          Next            => Next);
    end Get_Item_Set;
 
-   function "+" (Item : in Token_ID) return LR1_Items.Lookahead_Ptr
-   is begin
-      return +(1 => Item);
-   end "+";
-
-   function "+" (Item : in Token_Array) return LR1_Items.Lookahead_Ptr
+   function "+" (Item : in Token_Array) return LR1_Items.Lookahead
    is
       use LR1_Items;
-      Result : Lookahead_Ptr;
+      Result : Lookahead := (False, (others => False));
    begin
-      for I in reverse Item'Range loop
-         Result := new Lookahead'
-           (Propagate => False,
-            Lookahead => Item (I),
-            Next      => Result);
+      for I in Item'Range loop
+         Result.Tokens (Item (I)) := True;
       end loop;
       return Result;
    end "+";

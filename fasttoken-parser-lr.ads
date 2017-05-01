@@ -115,7 +115,7 @@ package FastToken.Parser.LR is
      (State       : in out LR.Parse_State;
       Symbol      : in     Token_Pkg.Token_ID;
       State_Index : in     LR.State_Index);
-   --  Add a Shift action to State.
+   --  Add a Shift action to State, at head of action list.
 
    procedure Add_Action
      (State           : in out LR.Parse_State;
@@ -124,13 +124,12 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_Pkg.Token_ID;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize);
-     --  Add a Reduce or Accept_It action to State.
-     --  the parse table.
+   --  Add a Reduce or Accept_It action to State, at head of action list.
 
    procedure Add_Action
      (State  : in out LR.Parse_State;
       Symbol : in     Token_Pkg.Token_ID);
-   --  Add an Error action to State.
+   --  Add an Error action to State, at end of action list.
    --  FIXME: change to Add_Error
 
    procedure Add_Goto
