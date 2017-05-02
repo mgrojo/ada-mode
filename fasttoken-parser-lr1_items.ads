@@ -126,8 +126,7 @@ package FastToken.Parser.LR1_Items is
 
    function Merge
      (New_Item         : in out Item_Node;
-      Existing_Set     : in out Item_Set;
-      Match_Lookaheads : in     Boolean)
+      Existing_Set     : in out Item_Set)
      return Boolean;
    --  Merge New_Item into Existing_Set. Return True if Existing_Set
    --  is modified.
@@ -197,12 +196,12 @@ package FastToken.Parser.LR1_Items is
       Has_Empty_Production : in Nonterminal_ID_Set;
       First                : in Derivation_Matrix;
       Grammar              : in Production.List.Instance;
-      Match_Lookaheads     : in Boolean;
       Trace                : in Boolean)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
    --  result of First above. Makes a deep copy of Goto_List.
-   --  Implements 'closure' from [dragon] algorithm 4.9 pg 232.
+   --  Implements 'closure' from [dragon] algorithm 4.9 pg 232, but
+   --  allows merging lookaheads into one item..
 
    function Image (Item : in Lookahead) return String;
 

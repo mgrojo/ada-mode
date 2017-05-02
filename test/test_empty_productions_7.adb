@@ -135,7 +135,7 @@ package body Test_Empty_Productions_7 is
       use FastToken_AUnit;
       Kernel    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Find (State, Kernels);
       Closure   : LR1_Items.Item_Set              := LR1_Items.Closure
-        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+        (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
       Conflicts : Generator_Utils.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin
@@ -172,7 +172,7 @@ package body Test_Empty_Productions_7 is
          Next => null);
 
       Closure : constant Item_Set := LR1_Items.Closure
-        (Kernel, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug);
+        (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
       Expected     : Item_Set;

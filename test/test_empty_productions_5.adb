@@ -109,7 +109,7 @@ package body Test_Empty_Productions_5 is
          Next => null);
 
       Closure : constant Item_Set := LR1_Items.Closure
-        (Kernel, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug);
+        (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
       Expected     : Item_Set;

@@ -115,7 +115,6 @@ package body Dragon_4_43_LR1_Test is
       return new Item_Set'
         (Closure
            ((Item, null, State, null), Has_Empty_Production, First, Grammar,
-            Match_Lookaheads => False,
             Trace => False));
    end Close;
 
@@ -154,7 +153,7 @@ package body Dragon_4_43_LR1_Test is
                Goto_List => null,
                State     => LR.Unknown_State,
                Next      => null),
-            Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug);
+            Has_Empty_Production, First, Grammar, Trace => Test.Debug);
 
       begin
          if Test.Debug then
@@ -219,7 +218,7 @@ package body Dragon_4_43_LR1_Test is
 
       I0 : constant Item_Set := Closure
         (Get_Item_Set (1, 1, +EOF_ID),
-         Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+         Has_Empty_Production, First, Grammar, Trace => False);
 
       Expected : Item_Set;
 

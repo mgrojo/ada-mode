@@ -66,7 +66,7 @@ package body FastToken.Parser.LR.LR1_Generator is
             Put (Goto_Set, Show_Lookaheads => True);
          end if;
 
-         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Trace => False);
       else
          return Goto_Set;
       end if;
@@ -98,7 +98,6 @@ package body FastToken.Parser.LR.LR1_Generator is
                 State           => First_State_Index,
                 Next            => null),
                Has_Empty_Production, First, Grammar,
-               Match_Lookaheads => False, -- allow merging lookaheads within one state
                Trace            => False)),
          Size                   => 1);
 

@@ -115,7 +115,7 @@ package body Test_Empty_Productions_6 is
       use FastToken_AUnit;
       Kernel    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Find (State, Kernels);
       Closure   : LR1_Items.Item_Set              := LR1_Items.Closure
-        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+        (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
       Conflicts : Generator_Utils.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin

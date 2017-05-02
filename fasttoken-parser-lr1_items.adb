@@ -419,12 +419,11 @@ package body FastToken.Parser.LR1_Items is
    end Goto_Set;
 
    function Merge
-     (New_Item         : in out Item_Node;
-      Existing_Set     : in out Item_Set;
-      Match_Lookaheads : in     Boolean)
+     (New_Item     : in out Item_Node;
+      Existing_Set : in out Item_Set)
      return Boolean
    is
-      Found : constant Item_Ptr := Find (New_Item, Existing_Set, Match_Lookaheads);
+      Found : constant Item_Ptr := Find (New_Item, Existing_Set, Match_Lookaheads => False);
 
       Modified : Boolean := False;
    begin
@@ -449,7 +448,6 @@ package body FastToken.Parser.LR1_Items is
       Has_Empty_Production : in Nonterminal_ID_Set;
       First                : in Derivation_Matrix;
       Grammar              : in Production.List.Instance;
-      Match_Lookaheads     : in Boolean;
       Trace                : in Boolean)
      return Item_Set
    is
@@ -516,7 +514,7 @@ package body FastToken.Parser.LR1_Items is
                            State      => Set.State,
                            Lookaheads => Item.Lookaheads);
 
-                        Added_Item := Added_Item or Merge (Merge_From, I, Match_Lookaheads);
+                        Added_Item := Added_Item or Merge (Merge_From, I);
                         exit Empty_Nonterm;
 
                      elsif Token.List.ID (Beta) in Token.Terminal_ID then
@@ -526,7 +524,7 @@ package body FastToken.Parser.LR1_Items is
                            State        => Set.State,
                            Lookaheads   => +Token.List.ID (Beta));
 
-                        Added_Item := Added_Item or Merge (Merge_From, I, Match_Lookaheads);
+                        Added_Item := Added_Item or Merge (Merge_From, I);
                         exit Empty_Nonterm;
 
                      else
@@ -538,7 +536,7 @@ package body FastToken.Parser.LR1_Items is
                                  State        => Set.State,
                                  Lookaheads   => +Terminal);
 
-                              Added_Item := Added_Item or Merge (Merge_From, I, Match_Lookaheads);
+                              Added_Item := Added_Item or Merge (Merge_From, I);
                            end if;
                         end loop;
 

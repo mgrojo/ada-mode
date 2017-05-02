@@ -6,8 +6,6 @@ build/release_process.text
 
  current work
 
-delete Match_Lookaheads arg to closure?
-
 compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
 
 delete body-only stuff from lr1_items spec
