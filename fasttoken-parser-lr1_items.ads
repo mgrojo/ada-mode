@@ -79,6 +79,10 @@ package FastToken.Parser.LR1_Items is
    end record;
 
    function Item_Node_Of
+     (Prod  : in Production.Instance;
+      State : in Unknown_State_Index)
+     return Item_Node;
+   function Item_Node_Of
      (Prod       : in Production.List.List_Iterator;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead := Null_Lookaheads)
@@ -94,9 +98,14 @@ package FastToken.Parser.LR1_Items is
 
    type Goto_Item is record
       Symbol : Token.Token_ID;
+      --  If Symbol is a terminal, this is a shift and goto state action.
+      --  If Symbol is a non-terminal, this is a post-reduce goto state action.
       Set    : Item_Set_Ptr;
       Next   : Goto_Item_Ptr;
    end record;
+
+   function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
+   --  Duplicates Goto_Items, but not Set list. Preserves order.
 
    type Item_Set is record
       Set       : Item_Ptr;
@@ -192,33 +201,19 @@ package FastToken.Parser.LR1_Items is
       Trace                : in Boolean)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
-   --  result of First above. Implements 'closure' from [dragon]
-   --  algorithm 4.9 pg 232.
-
-   function LALR_Kernels
-     (Grammar           : in Production.List.Instance;
-      First             : in Derivation_Matrix;
-      EOF_Token         : in Token.Token_ID;
-      Trace             : in Boolean;
-      First_State_Index : in Unknown_State_Index)
-     return Item_Set_List;
-
-   function LR1_Item_Sets
-     (Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      Grammar              : in Production.List.Instance;
-      EOF_Token            : in Token.Token_ID;
-      First_State_Index    : in Unknown_State_Index;
-      Trace                : in Boolean)
-     return Item_Set_List;
+   --  result of First above. Makes a deep copy of Goto_List.
+   --  Implements 'closure' from [dragon] algorithm 4.9 pg 232.
 
    function Image (Item : in Lookahead) return String;
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
    procedure Put
-     (Item            : in Item_Set;
-      Show_Lookaheads : in Boolean := False;
-      Kernel_Only     : in Boolean := False);
+     (Item              : in Item_Set;
+      Show_Lookaheads   : in Boolean := False;
+      Kernel_Only       : in Boolean := False;
+      Include_Goto_List : in Boolean := False);
+   --  Ignores Item.Next.
+
    procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
@@ -229,27 +224,5 @@ package FastToken.Parser.LR1_Items is
 
    procedure Free (Item : in out Item_Set);
    procedure Free (Item : in out Item_Set_List);
-
-   ----------
-   --  visible for unit test
-
-   function LALR_Goto_Transitions
-     (Kernel    : in Item_Set;
-      Symbol    : in Token.Token_ID;
-      EOF_Token : in Token.Token_ID;
-      First     : in Derivation_Matrix;
-      Grammar   : in Production.List.Instance)
-     return Item_Set;
-   --  FIXME: _not_ 'goto' from [dragon] algorithm 4.9
-
-   function LR1_Goto_Transitions
-     (Set                  : in Item_Set;
-      Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      Grammar              : in Production.List.Instance;
-      Trace                : in Boolean)
-     return Item_Set;
-   --  'goto' from [dragon] algorithm 4.9
 
 end FastToken.Parser.LR1_Items;

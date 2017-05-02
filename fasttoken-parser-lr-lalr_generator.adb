@@ -21,10 +21,13 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
+with FastToken.Parser.LR.Generator_Utils;
 package body FastToken.Parser.LR.LALR_Generator is
+
+   package Utils is new FastToken.Parser.LR.Generator_Utils (Production, LR1_Items);
+   use Utils;
 
    --  The following types are used for computing lookahead
    --  propagations.
@@ -117,23 +120,215 @@ package body FastToken.Parser.LR.LALR_Generator is
    ----------
    --  Generator utils
 
-   function Find
-     (Symbol      : in Token.Terminal_ID;
-      Action_List : in Action_Node_Ptr)
-     return Action_Node_Ptr
+   function LALR_Goto_Transitions
+     (Kernel  : in LR1_Items.Item_Set;
+      Symbol  : in Token.Token_ID;
+      First   : in LR1_Items.Derivation_Matrix;
+      Grammar : in Production.List.Instance;
+      Trace   : in Boolean)
+     return LR1_Items.Item_Set
    is
-      use type Token.Terminal_ID;
-      Action_Node : Action_Node_Ptr := Action_List;
+      use Token.List;
+      use LR1_Items;
+      use type Token.Handle;
+      use type Token.Token_ID;
+
+      Goto_Set : Item_Set;
+
+      Item   : Item_Ptr := Kernel.Set;
+      Dot_ID : Token.Token_ID;
    begin
-      while Action_Node /= null loop
-         if Action_Node.Symbol = Symbol then
-            return Action_Node;
-         end if;
-         Action_Node := Action_Node.Next;
+      Goto_Set.State := Unknown_State;
+
+      while Item /= null loop
+
+         if Item.Dot /= Null_Iterator then
+
+            Dot_ID := ID (Item.Dot);
+            --  ID of token after Dot
+
+            --  If Symbol = EOF_Token, this is the start symbol accept
+            --  production; don't need a kernel with dot after EOF.
+            if Dot_ID = Symbol and
+              Symbol /= EOF_Token
+            then
+               Goto_Set.Set := new Item_Node'
+                 (Prod       => Item.Prod,
+                  Dot        => Next_Token (Item.Dot),
+                  State      => Unknown_State, -- replaced in Kernels
+                  Lookaheads => Item.Lookaheads,
+                  Next       => Goto_Set.Set);
+
+               if Trace then
+                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
+                  Put (Goto_Set, Show_Lookaheads => True, Include_Goto_List => True);
+               end if;
+            end if;
+
+            if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
+               --  Find the production(s) that create Dot_ID
+               --  with first token Symbol and put them in.
+               --
+               --  FIXME: this is _not_ [dragon] fix 4.38 closure; where did it come from?
+               declare
+                  Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
+                  Prod   : Production.Instance;
+                  RHS_I  : Token.List.List_Iterator;
+               begin
+                  while not Production.List.Is_Done (Prod_I) loop
+                     Prod  := Production.List.Current (Prod_I);
+                     RHS_I := Prod.RHS.Tokens.First;
+
+                     if (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
+                       (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
+                     then
+                        declare
+                           New_Item : constant Item_Node :=
+                             (Prod       => Prod,
+                              Dot        => Next_Token (RHS_I),
+                              State      => Unknown_State, -- replaced in Kernels
+                              Lookaheads => Null_Lookaheads,
+                              Next       => Goto_Set.Set);
+                        begin
+                           if null = Find (New_Item, Goto_Set, Match_Lookaheads => False) then
+                              Goto_Set.Set := new Item_Node'(New_Item);
+                              --  else already in goto set
+
+                              if Trace then
+                                 Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
+                                 Put (Goto_Set, Show_Lookaheads => True, Include_Goto_List => True);
+                              end if;
+                           end if;
+                        end;
+                     end if;
+
+                     Production.List.Next (Prod_I);
+                  end loop;
+               end;
+            end if;
+         end if; -- item.dot /= null
+
+         Item := Item.Next;
       end loop;
 
-      return null;
-   end Find;
+      return Goto_Set;
+   end LALR_Goto_Transitions;
+
+   function LALR_Kernels
+     (Grammar           : in Production.List.Instance;
+      First             : in LR1_Items.Derivation_Matrix;
+      Trace             : in Boolean;
+      First_State_Index : in Unknown_State_Index)
+     return LR1_Items.Item_Set_List
+   is
+      use LR1_Items;
+      use type Token.List.List_Iterator;
+      use type Token.Token_ID;
+
+      Kernel_List : Item_Set_List :=
+        (Head         => new Item_Set'
+           (Set       => new Item_Node'
+              (Item_Node_Of
+                 (Production.List.Current (Production.List.First (Grammar)), First_State_Index)),
+            Goto_List => null,
+            State     => First_State_Index,
+            Next      => null),
+         Size         => 1);
+
+      New_Items_To_Check   : Boolean      := True;
+      Checking_Set         : Item_Set_Ptr;
+      New_Items            : Item_Set;
+      New_Items_Set        : Item_Set_Ptr;
+
+   begin
+
+      while New_Items_To_Check loop
+
+         New_Items_To_Check   := False;
+
+         --  For all items in the kernel list that haven't been checked yet...
+         Checking_Set := Kernel_List.Head;
+         while Checking_Set /= null loop
+            if Trace then
+               Ada.Text_IO.Put ("Checking ");
+               Put (Checking_Set.all);
+            end if;
+
+            for Symbol in Token.Token_ID loop
+
+               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Trace);
+
+               if New_Items.Set /= null then
+
+                  New_Items_Set := Find (New_Items, Kernel_List, Match_Lookaheads => False);
+
+                  if New_Items_Set = null then
+                     New_Items_To_Check := True;
+
+                     New_Items.Next  := Kernel_List.Head;
+                     New_Items.State := Kernel_List.Size + First_State_Index;
+
+                     declare
+                        I : Item_Ptr := New_Items.Set;
+                     begin
+                        while I /= null loop
+                           I.State := New_Items.State;
+                           I       := I.Next;
+                        end loop;
+                     end;
+
+                     if Trace then
+                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Items.State));
+                     end if;
+
+                     Kernel_List :=
+                       (Head => new Item_Set'(New_Items),
+                        Size => Kernel_List.Size + 1);
+
+                     Checking_Set.Goto_List := new Goto_Item'
+                       (Set    => Kernel_List.Head,
+                        Symbol => Symbol,
+                        Next   => Checking_Set.Goto_List);
+
+                  else
+
+                     --  If there's not already a goto entry between these two sets, create one.
+                     if not Is_In
+                       (Symbol    => Symbol,
+                        Set       => New_Items_Set,
+                        Goto_List => Checking_Set.Goto_List)
+                     then
+                        if Trace then
+                           Ada.Text_IO.Put_Line
+                             ("  adding goto on " & Token.Token_Image (Symbol) & " to state" &
+                                Unknown_State_Index'Image (New_Items_Set.State));
+
+                        end if;
+
+                        Checking_Set.Goto_List := new Goto_Item'
+                          (Set    => New_Items_Set,
+                           Symbol => Symbol,
+                           Next   => Checking_Set.Goto_List);
+                     end if;
+
+                     --  The set is already there, so we don't need this copy.
+                     Free (New_Items);
+                  end if;
+               end if;
+            end loop;
+
+            Checking_Set := Checking_Set.Next;
+         end loop;
+
+      end loop;
+
+      if Trace then
+         Ada.Text_IO.New_Line;
+      end if;
+
+      return Kernel_List;
+   end LALR_Kernels;
+
 
    --  Add propagation entries (if they don't already exist) from From
    --  to all kernel items that match To.
@@ -424,380 +619,6 @@ package body FastToken.Parser.LR.LALR_Generator is
 
    end Fill_In_Lookaheads;
 
-   function Find
-     (Closure              : in LR1_Items.Item_Set;
-      Action               : in Parse_Action_Rec;
-      Lookahead            : in Token.Token_ID;
-      Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set)
-     return Token.Token_ID
-   is
-      --  Return LHS of production that matches Action, Lookahead
-      use Token.List;
-      use type LR1_Items.Item_Set;
-      use type Token.Token_ID;
-      use type LR1_Items.Item_Ptr;
-      use type LR1_Items.Item_Set_Ptr;
-
-      Current : LR1_Items.Item_Set := Closure;
-      Item    : LR1_Items.Item_Ptr;
-   begin
-      loop
-         Item := Current.Set;
-         loop
-            exit when Item = null;
-            case Action.Verb is
-            when Shift =>
-               if Item.Dot /= Null_Iterator and then
-                 ID (Item.Dot) = Lookahead
-               then
-                  return Nonterminal.ID (Item.Prod.LHS);
-               end if;
-            when Reduce =>
-               if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
-                 (Item.Dot = Null_Iterator or else
-                    (Next_Token (Item.Dot) = Null_Iterator and
-                       (ID (Item.Dot) in Nonterminal_ID and then
-                          Has_Empty_Production (ID (Item.Dot)))))
-               then
-                  return Nonterminal.ID (Action.LHS);
-               end if;
-            when Accept_It =>
-               if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
-                 (Item.Dot /= Null_Iterator and then
-                    ID (Item.Dot) = EOF_Token)
-               then
-                  return Nonterminal.ID (Action.LHS);
-               end if;
-            when others =>
-               raise Programmer_Error;
-            end case;
-            Item := Item.Next;
-         end loop;
-         exit when Current.Next = null;
-         Current := Current.Next.all;
-      end loop;
-
-      Ada.Text_IO.Put_Line
-        ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
-           (case Action.Verb is
-            when Shift => State_Index'Image (Action.State),
-            when Reduce | Accept_It => " " & Token.Token_Image (Nonterminal.ID (Action.LHS)),
-            when others => "") & ", " &
-           Token.Token_Image (Lookahead) & " not found in");
-      LR1_Items.Put (Closure);
-      raise Programmer_Error;
-   end Find;
-
-   function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean
-   is
-      use type Token.Token_ID;
-   begin
-      --  ignore State_Index
-      return
-        Known.Action_A = Item.Action_A and
-        Known.LHS_A = Item.LHS_A and
-        Known.Action_B = Item.Action_B and
-        Known.LHS_B = Item.LHS_B and
-        Known.On = Item.On;
-   end Match;
-
-   function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean
-   is
-      use Conflict_Lists;
-      I : Cursor := Conflicts.First;
-   begin
-      loop
-         exit when I = No_Element;
-         if Match (Item, Conflicts.Constant_Reference (I)) then
-            return True;
-         end if;
-         I := Next (I);
-      end loop;
-      return False;
-   end Is_Present;
-
-   --  Add (Symbol, Action) to Action_List
-   --  Closure .. Conflicts are for conflict reporting
-   procedure Add_Action
-     (Symbol               : in     Token.Terminal_ID;
-      Action               : in     Parse_Action_Rec;
-      Action_List          : in out Action_Node_Ptr;
-      Closure              : in     LR1_Items.Item_Set;
-      State_Index          : in     Unknown_State_Index;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean)
-   is
-      use type Ada.Strings.Unbounded.Unbounded_String;
-      Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
-   begin
-      if Trace then
-         Ada.Text_IO.Put (Token.Token_Image (Symbol) & " => ");
-         Put (Action);
-         Ada.Text_IO.New_Line;
-      end if;
-
-      if Matching_Action /= null then
-         if Matching_Action.Action.Item = Action then
-            --  Matching_Action is identical to Action, so there is no
-            --  conflict; just don't add it again.
-            if Trace then
-               Ada.Text_IO.Put_Line (" - already present");
-            end if;
-            return;
-         else
-            --  There is a conflict. Report it, but add it anyway, so
-            --  an enhanced parser can follow both paths
-            declare
-               --  Enforce canonical Shift/Reduce or Accept/Reduce
-               --  order, to simplify searching and code generation.
-               Action_A : constant Parse_Action_Rec :=
-                 (if Action.Verb in Shift | Accept_It then Action else Matching_Action.Action.Item);
-
-               Action_B : constant Parse_Action_Rec :=
-                 (if Action.Verb in Shift | Accept_It then Matching_Action.Action.Item else Action);
-
-               Action_A_Ptr : Parse_Action_Node_Ptr;
-               Action_B_Ptr : Parse_Action_Node_Ptr;
-
-               New_Conflict : constant Conflict :=
-                 (Action_A    => Action_A.Verb,
-                  Action_B    => Action_B.Verb,
-                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production),
-                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production),
-                  State_Index => State_Index,
-                  On          => Symbol);
-            begin
-               if not Is_Present (New_Conflict, Conflicts) then
-                  --  The same conflict may occur in a different
-                  --  kernel. Only add it to conflicts once, but still
-                  --  need second action on current kernel.
-                  Conflicts.Append (New_Conflict);
-
-                  if Trace then
-                     Ada.Text_IO.Put_Line (" - conflict added");
-                  end if;
-               else
-                  if Trace then
-                     Ada.Text_IO.Put_Line (" - conflict duplicate");
-                  end if;
-               end if;
-
-               if Action.Verb = Shift then
-                  Action_A_Ptr := new Parse_Action_Node'(Action, Matching_Action.Action);
-
-               else
-                  Action_B_Ptr      := new Parse_Action_Node'(Action, null);
-                  Action_A_Ptr      := Matching_Action.Action;
-                  Action_A_Ptr.Next := Action_B_Ptr;
-               end if;
-
-               Matching_Action.Action := Action_A_Ptr;
-
-            end;
-         end if;
-      else
-         Action_List := new Action_Node'
-           (Symbol => Symbol,
-            Action => new Parse_Action_Node'(Action, null),
-            Next   => Action_List);
-      end if;
-   end Add_Action;
-
-   procedure Add_Lookahead_Actions
-     (Item                 : in     LR1_Items.Item_Ptr;
-      Kernel               : in     LR1_Items.Item_Set_Ptr;
-      Action_List          : in out Action_Node_Ptr;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      Conflicts            : in out Conflict_Lists.List;
-      Closure              : in     LR1_Items.Item_Set;
-      Trace                : in     Boolean)
-   is
-      --  Add actions for Item.Lookaheads to Action_List
-      --  Item must be from Kernel.
-      --  Closure must be from Lookahead_Closure (Kernel).
-      --  Has_Empty_Production .. Closure used for conflict reporting.
-
-      Action : constant Parse_Action_Rec :=
-        (Reduce, Item.Prod.LHS, Item.Prod.RHS.Action, Item.Prod.RHS.Index, Item.Prod.RHS.Tokens.Length);
-   begin
-      if Trace then
-         Ada.Text_IO.Put_Line ("processing lookaheads");
-      end if;
-
-      --  We ignore propagate lookaheads here.
-      for Lookahead in Item.Lookaheads.Tokens'Range loop
-         if Item.Lookaheads.Tokens (Lookahead) then
-            Add_Action
-              (Symbol               => Lookahead,
-               Action               => Action,
-               Action_List          => Action_List,
-               State_Index          => Kernel.State,
-               Closure              => Closure,
-               Has_Empty_Production => Has_Empty_Production,
-               Conflicts            => Conflicts,
-               Trace                => Trace);
-         end if;
-      end loop;
-   end Add_Lookahead_Actions;
-
-   --  Add actions for Kernel to Table
-   procedure Add_Actions
-     (Kernel               : in     LR1_Items.Item_Set_Ptr;
-      Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      First                : in     LR1_Items.Derivation_Matrix;
-      Conflicts            : in out Conflict_Lists.List;
-      Table                : in out Parse_Table;
-      Trace                : in     Boolean)
-   is
-      State : constant State_Index := Kernel.State;
-
-      Closure : LR1_Items.Item_Set := LR1_Items.Closure
-        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
-
-      Item : LR1_Items.Item_Ptr := Closure.Set;
-
-      use type LR1_Items.Item_Ptr;
-      use type LR1_Items.Goto_Item_Ptr;
-      use type Token.List.List_Iterator;
-      use type Token.Handle;
-   begin
-      if Trace then
-         Ada.Text_IO.Put_Line ("adding actions for kernel" & State_Index'Image (Kernel.State));
-         Ada.Text_IO.Put ("closure: ");
-         LR1_Items.Put (Closure);
-         LR1_Items.Put (Kernel.Goto_List);
-      end if;
-
-      while Item /= null loop
-         if Item.Dot = Token.List.Null_Iterator then
-            --  Pointer is at the end of the production; add a reduce action.
-
-            Add_Lookahead_Actions
-              (Item, Kernel, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
-
-         elsif Token.List.ID (Item.Dot) in Token.Terminal_ID then
-            --  Dot is before a terminal token.
-            declare
-               use type Token.Token_ID;
-               use type LR1_Items.Item_Set_Ptr;
-
-               Dot_ID : constant Token.Terminal_ID := Token.List.ID (Item.Dot);
-               --  ID of token after Item.Dot
-
-               Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Kernel.all, Dot_ID);
-            begin
-               if Dot_ID = EOF_Token then
-                  --  This is the start symbol production with dot before EOF.
-                  Add_Action
-                    (Symbol               => Dot_ID,
-                     Action               =>
-                       (Accept_It, Item.Prod.LHS, Item.Prod.RHS.Action, Item.Prod.RHS.Index,
-                        Item.Prod.RHS.Tokens.Length - 1), -- EOF is not pushed on stack
-                     Action_List          => Table (State).Action_List,
-                     State_Index          => Kernel.State,
-                     Closure              => Closure,
-                     Has_Empty_Production => Has_Empty_Production,
-                     Conflicts            => Conflicts,
-                     Trace                => Trace);
-               else
-                  if Goto_Set /= null then
-                     Add_Action
-                       (Symbol               => Dot_ID,
-                        Action               =>
-                          (Verb              => Shift,
-                           State             => Goto_Set.State),
-                        Action_List          => Table (State).Action_List,
-                        State_Index          => Kernel.State,
-                        Closure              => Closure,
-                        Has_Empty_Production => Has_Empty_Production,
-                        Conflicts            => Conflicts,
-                        Trace                => Trace);
-                  end if;
-               end if;
-            end;
-         else
-            --  Dot is before a non-terminal token; no action. An
-            --  empty production for the non-terminal will appear in
-            --  the closure, and be handled above.
-            if Trace then
-               Ada.Text_IO.Put_Line (Token.Token_Image (Token.List.ID (Item.Dot)) & " => no action");
-            end if;
-         end if;
-
-         Item := Item.Next;
-      end loop;
-
-      --  Place a default error action at the end of every state.
-      --  (it should always have at least one action already).
-      --
-      --  IMPROVEME: instead, optimize use of default action; compress
-      --  accept, at least.
-      declare
-         --  The default action, when nothing else matches an input
-         Default_Action : constant Action_Node :=
-           --  The symbol here is actually irrelevant; it is the
-           --  position as the last on a state's action list that makes
-           --  it the default. It's too bad we can't extend an
-           --  enumeration type to make this 'default', for viewing this
-           --  list in a debugger. The various Put routines do replace
-           --  this with 'default'.
-           (Symbol => Token.Terminal_ID'Last,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
-            Next   => null);
-
-         Last_Action : Action_Node_Ptr := Table (State).Action_List;
-      begin
-         if Last_Action = null then
-            --  This happens if the first production in the grammar is
-            --  not the start symbol production; that violates the
-            --  assumptions Generate_Lookahead_Info makes when
-            --  computing lookaheads, and Add_Actions makes
-            --  when assigning accept/reduce actions.
-            --
-            --  It also happens when the start symbol production does
-            --  not have an explicit EOF, or when there is more than
-            --  one production that has the start symbol on the left
-            --  hand side.
-            --
-            --  It also happens when the grammar is bad, for example:
-            --
-            --  declarations <= declarations & declaration
-            --
-            --  without 'declarations <= declaration'.
-            --
-            raise Programmer_Error with
-              "Generating parser: state" & State_Index'Image (Kernel.State) &
-              " has no actions; bad grammar, or " &
-              "first production in grammar must be the only start symbol production, " &
-              "and it must must have an explicit EOF.";
-         else
-            while Last_Action.Next /= null loop
-               Last_Action := Last_Action.Next;
-            end loop;
-            Last_Action.Next := new Action_Node'(Default_Action);
-         end if;
-      end;
-
-      LR1_Items.Free (Closure);
-
-      --  Fill in this state's Goto transitions
-      declare
-         Goto_Ptr : LR1_Items.Goto_Item_Ptr := Kernel.Goto_List;
-      begin
-         while Goto_Ptr /= null loop
-            if Goto_Ptr.Symbol in Nonterminal_ID then
-               Table (State).Goto_List := new Goto_Node'
-                 (Symbol => Goto_Ptr.Symbol,
-                  State  => Goto_Ptr.Set.State,
-                  Next   => Table (State).Goto_List);
-            end if;
-            Goto_Ptr := Goto_Ptr.Next;
-         end loop;
-      end;
-   end Add_Actions;
-
    --  Add actions for all Kernels to Table.
    procedure Add_Actions
      (Kernels              : in     LR1_Items.Item_Set_List;
@@ -808,12 +629,19 @@ package body FastToken.Parser.LR.LALR_Generator is
       Table                : in out Parse_Table;
       Trace                : in     Boolean)
    is
-      Kernel : LR1_Items.Item_Set_Ptr := Kernels.Head;
       use type LR1_Items.Item_Set_Ptr;
+
+      Kernel : LR1_Items.Item_Set_Ptr := Kernels.Head;
+      Closure : LR1_Items.Item_Set;
    begin
       while Kernel /= null loop
-         Add_Actions (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace);
+         Closure := LR1_Items.Closure
+           (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+
+         Add_Actions (Closure, Table, Has_Empty_Production, Conflicts, Trace);
          Kernel := Kernel.Next;
+
+         LR1_Items.Free (Closure);
       end loop;
 
       if Trace then
@@ -879,8 +707,8 @@ package body FastToken.Parser.LR.LALR_Generator is
         (Grammar, Has_Empty_Production, Trace);
       Used_Tokens          : Token.Token_Array_Boolean             := (others => False);
 
-      Kernels : LR1_Items.Item_Set_List := LR1_Items.LALR_Kernels
-        (Grammar, First, EOF_Token, Trace, Unknown_State_Index (First_State_Index));
+      Kernels : LR1_Items.Item_Set_List := LALR_Kernels
+        (Grammar, First, Trace, Unknown_State_Index (First_State_Index));
 
       I             : LR1_Items.Item_Set_Ptr := Kernels.Head;
       Accept_State  : Unknown_State_Index    := Unknown_State;

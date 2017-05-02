@@ -59,4 +59,26 @@ package FastToken.Parser.LR.LR1_Generator is
    --  Unless Ignore_Unknown_Conflicts is True, raise Grammar_Error if there
    --  are unknown conflicts.
 
+   ----------
+   --  visible for unit test
+
+   function LR1_Goto_Transitions
+     (Set                  : in LR1_Items.Item_Set;
+      Symbol               : in Token.Token_ID;
+      Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+      First                : in LR1_Items.Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      Trace                : in Boolean)
+     return LR1_Items.Item_Set;
+   --  'goto' from [dragon] algorithm 4.9
+
+   function LR1_Item_Sets
+     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+      First                : in LR1_Items.Derivation_Matrix;
+      Grammar              : in Production.List.Instance;
+      First_State_Index    : in Unknown_State_Index;
+      Trace                : in Boolean)
+     return LR1_Items.Item_Set_List;
+   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
+
 end FastToken.Parser.LR.LR1_Generator;

@@ -12,9 +12,9 @@ Tokens:
  11 => PARAMETER_PROFILE_ID
  12 => FASTTOKEN_ACCEPT_ID
 
-Parse Table:
+LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, 
 
    ACCEPT_ID            => shift and goto state 2
    default              => ERROR
@@ -23,7 +23,7 @@ State 1:
    ACCEPT_STATEMENT_ID  goto state 4
 
 State 2:
-  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, WISI_EOI_ID/ACCEPT_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, ACCEPT_ID/WISI_EOI_ID
 
    IDENTIFIER_ID        => shift and goto state 6
    default              => ERROR
@@ -31,7 +31,7 @@ State 2:
    NAME_ID              goto state 7
 
 State 3:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, WISI_EOI_ID/IDENTIFIER_ID/SEMICOLON_ID/RIGHT_PAREN_ID/LEFT_PAREN_ID/ACCEPT_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, ACCEPT_ID/LEFT_PAREN_ID/RIGHT_PAREN_ID/SEMICOLON_ID/IDENTIFIER_ID/WISI_EOI_ID
 
    WISI_EOI_ID          => accept it
    default              => ERROR
@@ -55,13 +55,13 @@ State 5:
 State 6:
   NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/SEMICOLON_ID
 
-   LEFT_PAREN_ID        => reduce 1 tokens to NAME_ID
    SEMICOLON_ID         => reduce 1 tokens to NAME_ID
+   LEFT_PAREN_ID        => reduce 1 tokens to NAME_ID
    default              => ERROR
 
 
 State 7:
-  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID ^ PARAMETER_PROFILE_ID SEMICOLON_ID, WISI_EOI_ID/ACCEPT_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID ^ PARAMETER_PROFILE_ID SEMICOLON_ID, ACCEPT_ID/WISI_EOI_ID
 
    SEMICOLON_ID         => reduce 0 tokens to PARAMETER_PROFILE_ID
    LEFT_PAREN_ID        => shift and goto state 8
@@ -77,14 +77,14 @@ State 8:
 
 
 State 9:
-  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID ^ SEMICOLON_ID, WISI_EOI_ID/ACCEPT_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID ^ SEMICOLON_ID, ACCEPT_ID/WISI_EOI_ID
 
    SEMICOLON_ID         => shift and goto state 10
    default              => ERROR
 
 
 State 10:
-  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID ^, WISI_EOI_ID/ACCEPT_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID ^, ACCEPT_ID/WISI_EOI_ID
 
    WISI_EOI_ID          => reduce 4 tokens to ACCEPT_STATEMENT_ID
    ACCEPT_ID            => reduce 4 tokens to ACCEPT_STATEMENT_ID
@@ -105,5 +105,129 @@ State 12:
    default              => ERROR
 
 
- 4 rules, 1 actions, 12 states, 27 table entries
+LR1 Parse Table:
+State 1:
+
+   ACCEPT_ID            => shift and goto state 2
+   default              => ERROR
+
+   COMPILATION_UNIT_ID  goto state 3
+   ACCEPT_STATEMENT_ID  goto state 4
+
+State 2:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, ACCEPT_ID
+
+   IDENTIFIER_ID        => shift and goto state 7
+   default              => ERROR
+
+   NAME_ID              goto state 8
+
+State 3:
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, WISI_EOI_ID
+
+   WISI_EOI_ID          => accept it
+   default              => ERROR
+
+
+State 4:
+  COMPILATION_UNIT_ID <= ACCEPT_STATEMENT_ID ^ ACCEPT_STATEMENT_ID, WISI_EOI_ID
+
+   ACCEPT_ID            => shift and goto state 5
+   default              => ERROR
+
+   ACCEPT_STATEMENT_ID  goto state 6
+
+State 5:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, WISI_EOI_ID
+
+   IDENTIFIER_ID        => shift and goto state 7
+   default              => ERROR
+
+   NAME_ID              goto state 11
+
+State 6:
+  COMPILATION_UNIT_ID <= ACCEPT_STATEMENT_ID ACCEPT_STATEMENT_ID ^, WISI_EOI_ID
+
+   WISI_EOI_ID          => reduce 2 tokens to COMPILATION_UNIT_ID
+   default              => ERROR
+
+
+State 7:
+  NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/SEMICOLON_ID
+
+   SEMICOLON_ID         => reduce 1 tokens to NAME_ID
+   LEFT_PAREN_ID        => reduce 1 tokens to NAME_ID
+   default              => ERROR
+
+
+State 8:
+  PARAMETER_PROFILE_ID <= ^, SEMICOLON_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID ^ PARAMETER_PROFILE_ID SEMICOLON_ID, ACCEPT_ID
+
+   SEMICOLON_ID         => reduce 0 tokens to PARAMETER_PROFILE_ID
+   LEFT_PAREN_ID        => shift and goto state 9
+   default              => ERROR
+
+   PARAMETER_PROFILE_ID goto state 10
+
+State 9:
+  PARAMETER_PROFILE_ID <= LEFT_PAREN_ID ^ IDENTIFIER_ID RIGHT_PAREN_ID, SEMICOLON_ID
+
+   IDENTIFIER_ID        => shift and goto state 14
+   default              => ERROR
+
+
+State 10:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID ^ SEMICOLON_ID, ACCEPT_ID
+
+   SEMICOLON_ID         => shift and goto state 13
+   default              => ERROR
+
+
+State 11:
+  PARAMETER_PROFILE_ID <= ^, SEMICOLON_ID
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID ^ PARAMETER_PROFILE_ID SEMICOLON_ID, WISI_EOI_ID
+
+   SEMICOLON_ID         => reduce 0 tokens to PARAMETER_PROFILE_ID
+   LEFT_PAREN_ID        => shift and goto state 9
+   default              => ERROR
+
+   PARAMETER_PROFILE_ID goto state 12
+
+State 12:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID ^ SEMICOLON_ID, WISI_EOI_ID
+
+   SEMICOLON_ID         => shift and goto state 16
+   default              => ERROR
+
+
+State 13:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID ^, ACCEPT_ID
+
+   ACCEPT_ID            => reduce 4 tokens to ACCEPT_STATEMENT_ID
+   default              => ERROR
+
+
+State 14:
+  PARAMETER_PROFILE_ID <= LEFT_PAREN_ID IDENTIFIER_ID ^ RIGHT_PAREN_ID, SEMICOLON_ID
+
+   RIGHT_PAREN_ID       => shift and goto state 15
+   default              => ERROR
+
+
+State 15:
+  PARAMETER_PROFILE_ID <= LEFT_PAREN_ID IDENTIFIER_ID RIGHT_PAREN_ID ^, SEMICOLON_ID
+
+   SEMICOLON_ID         => reduce 3 tokens to PARAMETER_PROFILE_ID
+   default              => ERROR
+
+
+State 16:
+  ACCEPT_STATEMENT_ID <= ACCEPT_ID NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID ^, WISI_EOI_ID
+
+   WISI_EOI_ID          => reduce 4 tokens to ACCEPT_STATEMENT_ID
+   default              => ERROR
+
+
+ 4 rules, 1 actions, 16 states, 62 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

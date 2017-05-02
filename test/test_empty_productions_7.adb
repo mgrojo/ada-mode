@@ -109,7 +109,7 @@ package body Test_Empty_Productions_7 is
       use Ada.Text_IO;
       use LALR_Generator.LR1_Items;
       use FastToken_AUnit;
-      Computed : constant Item_Set := LALR_Goto_Transitions (Kernel, Symbol, EOF_ID, First, Grammar);
+      Computed : constant Item_Set := LALR_Generator.LALR_Goto_Transitions (Kernel, Symbol, First, Grammar, Debug);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_ID'Image (Symbol));
@@ -328,8 +328,8 @@ package body Test_Empty_Productions_7 is
 
       Accept_Index : constant := 5;
 
-      Kernels : Item_Set_List := LALR_Generator.LR1_Items.LALR_Kernels
-        (Grammar, First, EOF_ID, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
+      Kernels : Item_Set_List := LALR_Generator.LALR_Kernels
+        (Grammar, First, Trace => Test.Debug, First_State_Index => LR.Unknown_State_Index (First_State_Index));
 
       Expected : Parse_State;
    begin

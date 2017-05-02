@@ -45,6 +45,32 @@ package body FastToken.Parser.LR1_Items is
 
    Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
 
+   function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr
+   is
+      I      : Goto_Item_Ptr := List;
+      Result : Goto_Item_Ptr;
+      Next_1 : Goto_Item_Ptr;
+      Next_2 : Goto_Item_Ptr;
+   begin
+      while I /= null loop
+         Result := new Goto_Item'(I.Symbol, I.Set, Result);
+         I := I.Next;
+      end loop;
+
+      --  Reverse order in Result so original order is preserved
+      I      := Result;
+      Result := null;
+
+      while I /= null loop
+         Next_1      := Result;
+         Next_2      := I.Next;
+         Result      := I;
+         Result.Next := Next_1;
+         I           := Next_2;
+      end loop;
+      return Result;
+   end Deep_Copy;
+
    function Image (Item : in Token_ID_Set) return String
    is
       use Ada.Strings.Unbounded;
@@ -434,8 +460,7 @@ package body FastToken.Parser.LR1_Items is
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
       --
       --  Taken literally, the algorithm modifies its input; we make a
-      --  copy instead. We don't copy Goto_List, since we are only
-      --  concerned with lookaheads here.
+      --  copy instead.
 
       I : Item_Set; --  The result.
 
@@ -446,8 +471,9 @@ package body FastToken.Parser.LR1_Items is
       Beta : Token.List.List_Iterator;
       Merge_From  : Item_Node;
    begin
-      --  Copy Set into I; Goto_List not copied
-      I.State := Set.State;
+      --  Copy Set into I
+      I.State     := Set.State;
+      I.Goto_List := Deep_Copy (Set.Goto_List);
 
       while Item /= null loop
          I.Set := new Item_Node'
@@ -551,136 +577,6 @@ package body FastToken.Parser.LR1_Items is
       return I;
    end Closure;
 
-   function LALR_Goto_Transitions
-     (Kernel    : in Item_Set;
-      Symbol    : in Token.Token_ID;
-      EOF_Token : in Token.Token_ID;
-      First     : in Derivation_Matrix;
-      Grammar   : in Production.List.Instance)
-     return Item_Set
-   is
-      use Token.List;
-      use type Token.Handle;
-      use type Token.Token_ID;
-
-      Goto_Set : Item_Set;
-
-      Item   : Item_Ptr := Kernel.Set;
-      Dot_ID : Token.Token_ID;
-   begin
-      Goto_Set.State := Unknown_State;
-
-      while Item /= null loop
-
-         if Item.Dot /= Null_Iterator then
-
-            Dot_ID := ID (Item.Dot);
-            --  ID of token after Dot
-
-            if Dot_ID = Symbol then
-               if Symbol = EOF_Token then
-                  --  This is the start symbol accept production;
-                  --  don't need a kernel with dot after EOF.
-                  null;
-               else
-                  Goto_Set.Set := new Item_Node'
-                    (Prod       => Item.Prod,
-                     Dot        => Next_Token (Item.Dot),
-                     State      => Unknown_State, -- replaced in Kernels
-                     Lookaheads => Item.Lookaheads,
-                     Next       => Goto_Set.Set);
-               end if;
-            end if;
-
-            if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
-               --  Find the production(s) that create Dot_ID
-               --  with first token Symbol and put them in.
-               --
-               --  FIXME: this is _not_ [dragon] fix 4.38 closure; where did it come from?
-               declare
-                  Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
-                  Prod   : Production.Instance;
-                  RHS_I  : Token.List.List_Iterator;
-               begin
-                  while not Production.List.Is_Done (Prod_I) loop
-                     Prod  := Production.List.Current (Prod_I);
-                     RHS_I := Prod.RHS.Tokens.First;
-
-                     if (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
-                       (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
-                     then
-                        declare
-                           New_Item : constant Item_Node :=
-                             (Prod       => Prod,
-                              Dot        => Next_Token (RHS_I),
-                              State      => Unknown_State, -- replaced in Kernels
-                              Lookaheads => Null_Lookaheads,
-                              Next       => Goto_Set.Set);
-                        begin
-                           if null = Find (New_Item, Goto_Set, Match_Lookaheads => False) then
-                              Goto_Set.Set := new Item_Node'(New_Item);
-                              --  else already in goto set
-                           end if;
-                        end;
-                     end if;
-
-                     Production.List.Next (Prod_I);
-                  end loop;
-               end;
-            end if;
-         end if; -- item.dot /= null
-
-         Item := Item.Next;
-      end loop;
-
-      return Goto_Set;
-   end LALR_Goto_Transitions;
-
-   function LR1_Goto_Transitions
-     (Set                  : in Item_Set;
-      Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
-      Grammar              : in Production.List.Instance;
-      Trace                : in Boolean)
-     return Item_Set
-   is
-      use Token.List;
-      use type Token.Handle;
-      use type Token.Token_ID;
-
-      Goto_Set : Item_Set;
-      Item     : Item_Ptr := Set.Set;
-   begin
-      Goto_Set.State := Unknown_State;
-
-      while Item /= null loop
-         if Item.Dot /= Null_Iterator then
-            if ID (Item.Dot) = Symbol then
-               Goto_Set.Set := new Item_Node'
-                 (Prod       => Item.Prod,
-                  Dot        => Next_Token (Item.Dot),
-                  State      => Unknown_State,
-                  Lookaheads => Item.Lookaheads,
-                  Next       => Goto_Set.Set);
-            end if;
-         end if;
-
-         Item := Item.Next;
-      end loop;
-
-      if Trace then
-         Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Token.Token_ID'Image (Symbol));
-         Put (Goto_Set, Show_Lookaheads => True);
-      end if;
-
-      if Goto_Set.Set /= null then
-         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
-      else
-         return Goto_Set;
-      end if;
-   end LR1_Goto_Transitions;
-
    procedure Free (Item : in out Item_Set)
    is
       I        : Item_Ptr      := Item.Set;
@@ -724,254 +620,6 @@ package body FastToken.Parser.LR1_Items is
         (Token.List.ID (Item.Dot) = EOF_Token or -- start symbol production with dot before EOF.
            Item.Dot /= Token.List.First (Item.Prod.RHS.Tokens));
    end In_Kernel;
-
-   function LALR_Kernels
-     (Grammar           : in Production.List.Instance;
-      First             : in Derivation_Matrix;
-      EOF_Token         : in Token.Token_ID;
-      Trace             : in Boolean;
-      First_State_Index : in Unknown_State_Index)
-     return Item_Set_List
-   is
-      use type Token.List.List_Iterator;
-      use type Token.Token_ID;
-
-      Kernel_List : Item_Set_List :=
-        (Head         => new Item_Set'
-           (Set       => new Item_Node'
-              (Item_Node_Of
-                 (Production.List.Current (Production.List.First (Grammar)), First_State_Index)),
-            Goto_List => null,
-            State     => First_State_Index,
-            Next      => null),
-         Size         => 1);
-
-      New_Items_To_Check   : Boolean      := True;
-      Checking_Set         : Item_Set_Ptr;
-      New_Items            : Item_Set;
-      New_Items_Set        : Item_Set_Ptr;
-
-   begin
-
-      while New_Items_To_Check loop
-
-         New_Items_To_Check   := False;
-
-         --  For all items in the kernel list that haven't been checked yet...
-         Checking_Set := Kernel_List.Head;
-         while Checking_Set /= null loop
-            if Trace then
-               Ada.Text_IO.Put ("Checking ");
-               Put (Checking_Set.all);
-            end if;
-
-            for Symbol in Token.Token_ID loop
-
-               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, EOF_Token, First, Grammar);
-
-               --  See if any of the item sets need to be added to our list
-               if New_Items.Set /= null then
-
-                  New_Items_Set := Find (New_Items, Kernel_List, Match_Lookaheads => False);
-
-                  if New_Items_Set = null then
-                     New_Items_To_Check := True;
-
-                     New_Items.Next  := Kernel_List.Head;
-                     New_Items.State := Kernel_List.Size + First_State_Index;
-
-                     declare
-                        I : Item_Ptr := New_Items.Set;
-                     begin
-                        while I /= null loop
-                           I.State := New_Items.State;
-                           I       := I.Next;
-                        end loop;
-                     end;
-
-                     if Trace then
-                        Ada.Text_IO.Put ("  adding new kernel on " & Token.Token_Image (Symbol) & ": ");
-                        Put (New_Items);
-                     end if;
-
-                     Kernel_List :=
-                       (Head => new Item_Set'(New_Items),
-                        Size => Kernel_List.Size + 1);
-
-                     Checking_Set.Goto_List := new Goto_Item'
-                       (Set    => Kernel_List.Head,
-                        Symbol => Symbol,
-                        Next   => Checking_Set.Goto_List);
-
-                  else
-
-                     --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In
-                       (Symbol    => Symbol,
-                        Set       => New_Items_Set,
-                        Goto_List => Checking_Set.Goto_List)
-                     then
-                        if Trace then
-                           Ada.Text_IO.Put ("  adding goto on " & Token.Token_Image (Symbol) & ": ");
-                           Put (New_Items_Set.all);
-                        end if;
-
-                        Checking_Set.Goto_List := new Goto_Item'
-                          (Set    => New_Items_Set,
-                           Symbol => Symbol,
-                           Next   => Checking_Set.Goto_List);
-                     end if;
-
-                     --  The set is already there, so we don't need this copy.
-                     Free (New_Items);
-                  end if;
-               end if;
-            end loop;
-
-            Checking_Set := Checking_Set.Next;
-         end loop;
-
-      end loop;
-
-      if Trace then
-         Ada.Text_IO.New_Line;
-      end if;
-
-      return Kernel_List;
-   end LALR_Kernels;
-
-   function LR1_Item_Sets
-     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
-      First                : in LR1_Items.Derivation_Matrix;
-      Grammar              : in Production.List.Instance;
-      EOF_Token            : in Token.Token_ID;
-      First_State_Index    : in Unknown_State_Index;
-      Trace                : in Boolean)
-     return LR1_Items.Item_Set_List
-   is
-      use type Token.List.List_Iterator;
-      use type Token.Token_ID;
-
-      --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
-
-      C : Item_Set_List :=                -- result
-        (Head                   => new Item_Set'
-           (Closure
-              ((Set             => new Item_Node'
-                  (Item_Node_Of
-                     (Production.List.First (Grammar),
-                      First_State_Index,
-                      +EOF_Token)),
-                Goto_List       => null,
-                State           => First_State_Index,
-                Next            => null),
-               Has_Empty_Production, First, Grammar,
-               Match_Lookaheads => False, -- allow combining lookaheads within one state.
-               Trace            => False)),
-         Size                   => 1);
-
-      I         : Item_Set_Ptr; -- iterator 'for each set of items I in C'
-      Added_Item           : Boolean      := True; -- 'until no more items can be added'
-
-      New_Items            : Item_Set;
-      New_Items_Set        : Item_Set_Ptr;
-
-   begin
-      loop
-         Added_Item   := False;
-         I := C.Head;
-
-         while I /= null loop
-            if Trace then
-               Ada.Text_IO.Put ("Checking ");
-               Put (I.all, Show_Lookaheads => True);
-            end if;
-
-            for Symbol in Token.Token_ID loop -- 'for each grammar symbol X'
-
-               if I.Set.Dot /= Token.List.Null_Iterator and then
-                (Symbol = EOF_Token and
-                   Token.List.ID (I.Set.Dot) = EOF_Token)
-               then
-                  --  This is the start symbol accept production;
-                  --  don't need a set with dot after EOF.
-                  New_Items.Set := null;
-               else
-                  New_Items := LR1_Goto_Transitions
-                    (I.all, Symbol, Has_Empty_Production, First, Grammar, Trace);
-               end if;
-
-               if New_Items.Set /= null then -- 'goto (I, X) not empty'
-
-                  New_Items_Set := Find (New_Items, C, Match_Lookaheads => True); -- 'not in C'
-
-                  if New_Items_Set = null then
-                     Added_Item := True;
-
-                     New_Items.Next  := C.Head;
-                     New_Items.State := C.Size + First_State_Index;
-
-                     declare
-                        I : Item_Ptr := New_Items.Set;
-                     begin
-                        while I /= null loop
-                           I.State := New_Items.State;
-                           I       := I.Next;
-                        end loop;
-                     end;
-
-                     if Trace then
-                        Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Items.State));
-                     end if;
-
-                     C :=
-                       (Head => new Item_Set'(New_Items),
-                        Size => C.Size + 1);
-
-                     I.Goto_List := new Goto_Item'
-                       (Symbol => Symbol,
-                        Set    => C.Head,
-                        Next   => I.Goto_List);
-
-                  else
-
-                     --  If there's not already a goto entry between these two sets, create one.
-                     if not Is_In
-                       (Symbol    => Symbol,
-                        Set       => New_Items_Set,
-                        Goto_List => I.Goto_List)
-                     then
-                        if Trace then
-                           Ada.Text_IO.Put_Line
-                             ("  adding goto on " & Token.Token_Image (Symbol) & " to state" &
-                                Unknown_State_Index'Image (New_Items_Set.State));
-
-                        end if;
-
-                        I.Goto_List := new Goto_Item'
-                          (Symbol => Symbol,
-                           Set    => New_Items_Set,
-                           Next   => I.Goto_List);
-                     end if;
-
-                     --  The set is already there, so we don't need this copy.
-                     Free (New_Items);
-                  end if;
-               end if;
-            end loop;
-
-            I := I.Next;
-         end loop;
-         exit when not Added_Item;
-
-      end loop;
-
-      if Trace then
-         Ada.Text_IO.New_Line;
-      end if;
-
-      return C;
-   end LR1_Item_Sets;
 
    function Token_Name (Item : in Token.Handle) return String is
    begin
@@ -1065,9 +713,10 @@ package body FastToken.Parser.LR1_Items is
    end Put;
 
    procedure Put
-     (Item            : in Item_Set;
-      Show_Lookaheads : in Boolean := False;
-      Kernel_Only     : in Boolean := False)
+     (Item              : in Item_Set;
+      Show_Lookaheads   : in Boolean := False;
+      Kernel_Only       : in Boolean := False;
+      Include_Goto_List : in Boolean := False)
    is
       use Ada.Text_IO;
       Set : Item_Ptr := Item.Set;
@@ -1084,6 +733,10 @@ package body FastToken.Parser.LR1_Items is
 
          Set := Set.Next;
       end loop;
+
+      if Include_Goto_List then
+         Put (Item.Goto_List);
+      end if;
    end Put;
 
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False)

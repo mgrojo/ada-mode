@@ -6,16 +6,19 @@ build/release_process.text
 
  current work
 
+factor out common parts of lr1, lalr _generator
+    reduce duplicate mainentance
+    partly done; running all tests
+
+
+move Conflicts to generator_utils; not used in parser
+
 add lr1 to some/all lalr tests?
-    choice in wisi-generate
-
-    empty_production_1
-        state 1 lookaheads should include is_id
-        lookaheads make no sense
-
-        parse succeeds; parse stack, actions identical except for state numbers.
 
 add syntax error handling
+    Parsing Techniques: A Practical Guide, By Dick Grune, Ceriel J.H. Jacobs
+    Google Play, https://dickgrune.com/Books/PTAPG_2nd_Edition/
+    https://www.journals.elsevier.com/theoretical-computer-science/
 
 move output_ada_emacs, output_elisp to ada-mode source tree
 
@@ -25,9 +28,10 @@ delete Match_Lookaheads arg to closure?
 
 delete Accept_State in lalr_generator?
 
-factor out common code to parser-lr-generator_utils?
-
 delete body-only stuff from lrk_item spec
+
+need to_token_wy_name
+    for reporting conflicts
 
 Ada lexer
     number:

@@ -1,5 +1,5 @@
 ;;; Wisi grammar generating multiple conflicts in one state; show that
-;;; Parser.LALR.Generate recognizes that there are actually only two.
+;;; Generate recognizes that there is actually only one.
 ;;
 %{
 ;; Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.

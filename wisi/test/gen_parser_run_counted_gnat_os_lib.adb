@@ -107,8 +107,13 @@ begin
       return;
    end;
 
-   Put_Line ("LALR_Parser parse:");
-   LALR_Parser.Parse;
+   begin
+      Put_Line ("LALR_Parser parse:");
+      LALR_Parser.Parse;
+   exception
+   when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
+      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
+   end;
 
    declare
       use GNAT.OS_Lib;
@@ -120,13 +125,16 @@ begin
    end;
    LR1_Parser.Lexer.Reset (1024);
    New_Line;
-   Put_Line ("LR1_Parser parse:");
-   LR1_Parser.Parse;
+
+   begin
+      Put_Line ("LR1_Parser parse:");
+      LR1_Parser.Parse;
+   exception
+   when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
+      Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
+   end;
 
 exception
-when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
-   Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
-
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));

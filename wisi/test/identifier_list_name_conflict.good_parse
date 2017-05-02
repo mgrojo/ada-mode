@@ -1,3 +1,4 @@
+LALR_Parser parse:
 read 179
 -- grammar requires three statements
 
@@ -27,19 +28,19 @@ pending name_list_id_0: (name_list) (name) action count: 2
  2 stack:  9 : (name_list),  1 : , 
  2: 9: (COMMA 46 . 47) : shift and goto state 10
  2 stack:  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
- 2: 10: (IDENTIFIER 48 . 55) : shift and goto state 24
+ 2: 10: (IDENTIFIER 48 . 55) : shift and goto state 23
  1 stack:  11 : (COMMA 46 . 47),  7 : (identifier_list),  1 : , 
- 1: 11: (IDENTIFIER 48 . 55) : shift and goto state 23
- 2 stack:  24 : (IDENTIFIER 48 . 55),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
- 2: 24: (COMMA 55 . 56) : reduce 1 tokens to name
+ 1: 11: (IDENTIFIER 48 . 55) : shift and goto state 22
+ 2 stack:  23 : (IDENTIFIER 48 . 55),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
+ 2: 23: (COMMA 55 . 56) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 48 . 55) action count: 3
- ... goto state 25
- 1 stack:  23 : (IDENTIFIER 48 . 55),  11 : (COMMA 46 . 47),  7 : (identifier_list),  1 : , 
- 1: 23: (COMMA 55 . 56) : reduce 3 tokens to identifier_list
+ ... goto state 24
+ 1 stack:  22 : (IDENTIFIER 48 . 55),  11 : (COMMA 46 . 47),  7 : (identifier_list),  1 : , 
+ 1: 22: (COMMA 55 . 56) : reduce 3 tokens to identifier_list
 pending identifier_list_id_0: (identifier_list) (identifier_list), (COMMA 46 . 47), (IDENTIFIER 48 . 55) action count: 2
  ... goto state 7
- 2 stack:  25 : (name),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
- 2: 25: (COMMA 55 . 56) : reduce 3 tokens to name_list
+ 2 stack:  24 : (name),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
+ 2: 24: (COMMA 55 . 56) : reduce 3 tokens to name_list
 pending name_list_id_0: (name_list) (name_list), (COMMA 46 . 47), (name) action count: 4
  ... goto state 9
  1 stack:  7 : (identifier_list),  1 : , 
@@ -47,19 +48,19 @@ pending name_list_id_0: (name_list) (name_list), (COMMA 46 . 47), (name) action 
  2 stack:  9 : (name_list),  1 : , 
  2: 9: (COMMA 55 . 56) : shift and goto state 10
  2 stack:  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
- 2: 10: (IDENTIFIER 57 . 64) : shift and goto state 24
+ 2: 10: (IDENTIFIER 57 . 64) : shift and goto state 23
  1 stack:  11 : (COMMA 55 . 56),  7 : (identifier_list),  1 : , 
- 1: 11: (IDENTIFIER 57 . 64) : shift and goto state 23
- 2 stack:  24 : (IDENTIFIER 57 . 64),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
- 2: 24: (STRING_LITERAL 99 . 102) : reduce 1 tokens to name
+ 1: 11: (IDENTIFIER 57 . 64) : shift and goto state 22
+ 2 stack:  23 : (IDENTIFIER 57 . 64),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
+ 2: 23: (STRING_LITERAL 99 . 102) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 57 . 64) action count: 5
- ... goto state 25
- 1 stack:  23 : (IDENTIFIER 57 . 64),  11 : (COMMA 55 . 56),  7 : (identifier_list),  1 : , 
- 1: 23: (STRING_LITERAL 99 . 102) : reduce 3 tokens to identifier_list
+ ... goto state 24
+ 1 stack:  22 : (IDENTIFIER 57 . 64),  11 : (COMMA 55 . 56),  7 : (identifier_list),  1 : , 
+ 1: 22: (STRING_LITERAL 99 . 102) : reduce 3 tokens to identifier_list
 pending identifier_list_id_0: (identifier_list) (identifier_list), (COMMA 55 . 56), (IDENTIFIER 57 . 64) action count: 3
  ... goto state 7
- 2 stack:  25 : (name),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
- 2: 25: (STRING_LITERAL 99 . 102) : reduce 3 tokens to name_list
+ 2 stack:  24 : (name),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
+ 2: 24: (STRING_LITERAL 99 . 102) : reduce 3 tokens to name_list
 pending name_list_id_0: (name_list) (name_list), (COMMA 55 . 56), (name) action count: 6
  ... goto state 9
  1 stack:  7 : (identifier_list),  1 : , 
@@ -95,23 +96,23 @@ pending name_list_id_0: (name_list) (name) action count: 6
  1 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
  1: 9: (COMMA 102 . 103) : shift and goto state 10
  2 stack:  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 2: 10: (IDENTIFIER 104 . 110) : shift and goto state 24
+ 2: 10: (IDENTIFIER 104 . 110) : shift and goto state 23
  1 stack:  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 1: 10: (IDENTIFIER 104 . 110) : shift and goto state 24
- 2 stack:  24 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 2: 24: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
+ 1: 10: (IDENTIFIER 104 . 110) : shift and goto state 23
+ 2 stack:  23 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 23: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 104 . 110) action count: 10
- ... goto state 25
- 1 stack:  24 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 1: 24: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
+ ... goto state 24
+ 1 stack:  23 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 23: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 104 . 110) action count: 7
- ... goto state 25
- 2 stack:  25 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 2: 25: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
+ ... goto state 24
+ 2 stack:  24 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 24: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
 pending name_list_id_0: (name_list) (name_list), (COMMA 102 . 103), (name) action count: 11
  ... goto state 9
- 1 stack:  25 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
- 1: 25: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
+ 1 stack:  24 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 24: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
 pending name_list_id_0: (name_list) (name_list), (COMMA 102 . 103), (name) action count: 8
  ... goto state 9
  2 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
@@ -127,125 +128,370 @@ pending compilation_unit_id_0: (compilation_unit) (name_list) action count: 9
  1 stack:  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
  1: 12: (LEFT_PAREN 125 . 126) : shift and goto state 2
  2 stack:  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 2: (IDENTIFIER 126 . 136) : shift and goto state 15
+ 2: 2: (IDENTIFIER 126 . 136) : shift and goto state 14
  1 stack:  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 2: (IDENTIFIER 126 . 136) : shift and goto state 15
- 2 stack:  15 : (IDENTIFIER 126 . 136),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 15: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
+ 1: 2: (IDENTIFIER 126 . 136) : shift and goto state 14
+ 2 stack:  14 : (IDENTIFIER 126 . 136),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 14: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
 pending selector_name_id_0: (selector_name) (IDENTIFIER 126 . 136) action count: 13
- ... goto state 18
- 1 stack:  15 : (IDENTIFIER 126 . 136),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 15: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
+ ... goto state 17
+ 1 stack:  14 : (IDENTIFIER 126 . 136),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 14: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
 pending selector_name_id_0: (selector_name) (IDENTIFIER 126 . 136) action count: 10
- ... goto state 18
- 2 stack:  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 18: (EQUAL_GREATER 137 . 139) : shift and goto state 19
- 1 stack:  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 18: (EQUAL_GREATER 137 . 139) : shift and goto state 19
- 2 stack:  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 19: (IDENTIFIER 140 . 146) : shift and goto state 24
- 1 stack:  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 19: (IDENTIFIER 140 . 146) : shift and goto state 24
- 2 stack:  24 : (IDENTIFIER 140 . 146),  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 24: (COMMA 146 . 147) : reduce 1 tokens to name
+ ... goto state 17
+ 2 stack:  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 17: (EQUAL_GREATER 137 . 139) : shift and goto state 18
+ 1 stack:  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 17: (EQUAL_GREATER 137 . 139) : shift and goto state 18
+ 2 stack:  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 18: (IDENTIFIER 140 . 146) : shift and goto state 23
+ 1 stack:  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 18: (IDENTIFIER 140 . 146) : shift and goto state 23
+ 2 stack:  23 : (IDENTIFIER 140 . 146),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 23: (COMMA 146 . 147) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 140 . 146) action count: 14
- ... goto state 27
- 1 stack:  24 : (IDENTIFIER 140 . 146),  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 24: (COMMA 146 . 147) : reduce 1 tokens to name
+ ... goto state 26
+ 1 stack:  23 : (IDENTIFIER 140 . 146),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 23: (COMMA 146 . 147) : reduce 1 tokens to name
 pending name_id_0: (name) (IDENTIFIER 140 . 146) action count: 11
- ... goto state 27
- 2 stack:  27 : (name),  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 27: (COMMA 146 . 147) : reduce 3 tokens to association
+ ... goto state 26
+ 2 stack:  26 : (name),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 26: (COMMA 146 . 147) : reduce 3 tokens to association
 pending association_id_0: (association) (selector_name), (EQUAL_GREATER 137 . 139), (name) action count: 15
- ... goto state 16
- 1 stack:  27 : (name),  19 : (EQUAL_GREATER 137 . 139),  18 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 27: (COMMA 146 . 147) : reduce 3 tokens to association
+ ... goto state 15
+ 1 stack:  26 : (name),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 26: (COMMA 146 . 147) : reduce 3 tokens to association
 pending association_id_0: (association) (selector_name), (EQUAL_GREATER 137 . 139), (name) action count: 12
- ... goto state 16
- 2 stack:  16 : (association),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 16: (COMMA 146 . 147) : reduce 1 tokens to association_list
+ ... goto state 15
+ 2 stack:  15 : (association),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 15: (COMMA 146 . 147) : reduce 1 tokens to association_list
 pending association_list_id_0: (association_list) (association) action count: 16
- ... goto state 17
- 1 stack:  16 : (association),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 16: (COMMA 146 . 147) : reduce 1 tokens to association_list
+ ... goto state 16
+ 1 stack:  15 : (association),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 15: (COMMA 146 . 147) : reduce 1 tokens to association_list
 pending association_list_id_0: (association_list) (association) action count: 13
- ... goto state 17
- 2 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 17: (COMMA 146 . 147) : shift and goto state 21
- 1 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 17: (COMMA 146 . 147) : shift and goto state 21
- 2 stack:  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 21: (STRING_LITERAL 148 . 151) : shift and goto state 14
- 1 stack:  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 21: (STRING_LITERAL 148 . 151) : shift and goto state 14
- 2 stack:  14 : (STRING_LITERAL 148 . 151),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 14: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
+ ... goto state 16
+ 2 stack:  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 16: (COMMA 146 . 147) : shift and goto state 20
+ 1 stack:  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 16: (COMMA 146 . 147) : shift and goto state 20
+ 2 stack:  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 20: (STRING_LITERAL 148 . 151) : shift and goto state 13
+ 1 stack:  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 20: (STRING_LITERAL 148 . 151) : shift and goto state 13
+ 2 stack:  13 : (STRING_LITERAL 148 . 151),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 13: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
 pending selector_name_id_0: (selector_name) (STRING_LITERAL 148 . 151) action count: 17
- ... goto state 18
- 1 stack:  14 : (STRING_LITERAL 148 . 151),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 14: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
+ ... goto state 17
+ 1 stack:  13 : (STRING_LITERAL 148 . 151),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 13: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
 pending selector_name_id_0: (selector_name) (STRING_LITERAL 148 . 151) action count: 14
- ... goto state 18
- 2 stack:  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 18: (EQUAL_GREATER 152 . 154) : shift and goto state 19
- 1 stack:  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 18: (EQUAL_GREATER 152 . 154) : shift and goto state 19
- 2 stack:  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 19: (STRING_LITERAL 155 . 158) : shift and goto state 3
- 1 stack:  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 19: (STRING_LITERAL 155 . 158) : shift and goto state 3
- 2 stack:  3 : (STRING_LITERAL 155 . 158),  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ ... goto state 17
+ 2 stack:  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 17: (EQUAL_GREATER 152 . 154) : shift and goto state 18
+ 1 stack:  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 17: (EQUAL_GREATER 152 . 154) : shift and goto state 18
+ 2 stack:  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 18: (STRING_LITERAL 155 . 158) : shift and goto state 3
+ 1 stack:  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 18: (STRING_LITERAL 155 . 158) : shift and goto state 3
+ 2 stack:  3 : (STRING_LITERAL 155 . 158),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
  2: 3: (RIGHT_PAREN 158 . 159) : reduce 1 tokens to name
 pending name_id_0: (name) (STRING_LITERAL 155 . 158) action count: 18
- ... goto state 27
- 1 stack:  3 : (STRING_LITERAL 155 . 158),  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ ... goto state 26
+ 1 stack:  3 : (STRING_LITERAL 155 . 158),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
  1: 3: (RIGHT_PAREN 158 . 159) : reduce 1 tokens to name
 pending name_id_0: (name) (STRING_LITERAL 155 . 158) action count: 15
- ... goto state 27
- 2 stack:  27 : (name),  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 27: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
+ ... goto state 26
+ 2 stack:  26 : (name),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 26: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
 pending association_id_0: (association) (selector_name), (EQUAL_GREATER 152 . 154), (name) action count: 19
- ... goto state 26
- 1 stack:  27 : (name),  19 : (EQUAL_GREATER 152 . 154),  18 : (selector_name),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 27: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
+ ... goto state 25
+ 1 stack:  26 : (name),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 26: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
 pending association_id_0: (association) (selector_name), (EQUAL_GREATER 152 . 154), (name) action count: 16
- ... goto state 26
- 2 stack:  26 : (association),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 26: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
+ ... goto state 25
+ 2 stack:  25 : (association),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 25: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
 pending association_list_id_0: (association_list) (association_list), (COMMA 146 . 147), (association) action count: 20
- ... goto state 17
- 1 stack:  26 : (association),  21 : (COMMA 146 . 147),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 26: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
+ ... goto state 16
+ 1 stack:  25 : (association),  20 : (COMMA 146 . 147),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 25: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
 pending association_list_id_0: (association_list) (association_list), (COMMA 146 . 147), (association) action count: 17
- ... goto state 17
- 2 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 17: (RIGHT_PAREN 158 . 159) : shift and goto state 20
- 1 stack:  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 17: (RIGHT_PAREN 158 . 159) : shift and goto state 20
- 2 stack:  20 : (RIGHT_PAREN 158 . 159),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 20: (EOF 1 . 2) : reduce 3 tokens to compilation_unit
+ ... goto state 16
+ 2 stack:  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 16: (RIGHT_PAREN 158 . 159) : shift and goto state 19
+ 1 stack:  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 16: (RIGHT_PAREN 158 . 159) : shift and goto state 19
+ 2 stack:  19 : (RIGHT_PAREN 158 . 159),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 19: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation_unit
 pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 21
- ... goto state 22
- 1 stack:  20 : (RIGHT_PAREN 158 . 159),  17 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 20: (EOF 1 . 2) : reduce 3 tokens to compilation_unit
+ ... goto state 21
+ 1 stack:  19 : (RIGHT_PAREN 158 . 159),  16 : (association_list),  2 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 19: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation_unit
 pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 18
- ... goto state 22
- 2 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 2: 22: (EOF 1 . 2) : reduce 3 tokens to compilation
+ ... goto state 21
+ 2 stack:  21 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 21: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation
 pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 22
  ... goto state 5
- 1 stack:  22 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
- 1: 22: (EOF 1 . 2) : reduce 3 tokens to compilation
+ 1 stack:  21 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 21: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation
 pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 19
  ... goto state 5
  2 stack:  5 : (compilation),  1 : , 
- 2: 5: (EOF 1 . 2) : shift and goto state 13
+ 2: 5: (WISI_EOI 1 . 2) : accept it
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation) action count: 23
  1 stack:  5 : (compilation),  1 : , 
- 1: 5: (EOF 1 . 2) : shift and goto state 13
- 2 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
- 2: 13: (EOF 1 . 2) : accept it
-pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 23
- 1 stack:  13 : (EOF 1 . 2),  5 : (compilation),  1 : , 
- 1: 13: (EOF 1 . 2) : accept it
-pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation), (EOF 1 . 2) action count: 20
+ 1: 5: (WISI_EOI 1 . 2) : accept it
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation) action count: 20
+identifier_list_name_conflict.input:7:56: Ambiguous parse: 2 parsers active.
+
+LR1_Parser parse:
+read 179
+-- grammar requires three statements
+
+Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
+
+"+", Name_2 -- name_list
+
+(selector_1 => name_1, "=" => "=") -- association_list
+
+ 1 stack:  1 : , 
+ 1: 1: (IDENTIFIER 39 . 46) : shift and goto state 4
+spawn parser from 1 (2 active)
+ 2 stack:  4 : (IDENTIFIER 39 . 46),  1 : , 
+ 2: 4: (COMMA 46 . 47) : reduce 1 tokens to identifier_list
+pending identifier_list_id_0: (identifier_list) (IDENTIFIER 39 . 46) action count: 1
+ ... goto state 7
+ 1 stack:  4 : (IDENTIFIER 39 . 46),  1 : , 
+ 1: 4: (COMMA 46 . 47) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 39 . 46) action count: 1
+ ... goto state 8
+ 2 stack:  7 : (identifier_list),  1 : , 
+ 2: 7: (COMMA 46 . 47) : shift and goto state 11
+ 1 stack:  8 : (name),  1 : , 
+ 1: 8: (COMMA 46 . 47) : reduce 1 tokens to name_list
+pending name_list_id_0: (name_list) (name) action count: 2
+ ... goto state 9
+ 1 stack:  9 : (name_list),  1 : , 
+ 1: 9: (COMMA 46 . 47) : shift and goto state 10
+ 2 stack:  11 : (COMMA 46 . 47),  7 : (identifier_list),  1 : , 
+ 2: 11: (IDENTIFIER 48 . 55) : shift and goto state 28
+ 1 stack:  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
+ 1: 10: (IDENTIFIER 48 . 55) : shift and goto state 29
+ 2 stack:  28 : (IDENTIFIER 48 . 55),  11 : (COMMA 46 . 47),  7 : (identifier_list),  1 : , 
+ 2: 28: (COMMA 55 . 56) : reduce 3 tokens to identifier_list
+pending identifier_list_id_0: (identifier_list) (identifier_list), (COMMA 46 . 47), (IDENTIFIER 48 . 55) action count: 2
+ ... goto state 7
+ 1 stack:  29 : (IDENTIFIER 48 . 55),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
+ 1: 29: (COMMA 55 . 56) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 48 . 55) action count: 3
+ ... goto state 30
+ 2 stack:  7 : (identifier_list),  1 : , 
+ 2: 7: (COMMA 55 . 56) : shift and goto state 11
+ 1 stack:  30 : (name),  10 : (COMMA 46 . 47),  9 : (name_list),  1 : , 
+ 1: 30: (COMMA 55 . 56) : reduce 3 tokens to name_list
+pending name_list_id_0: (name_list) (name_list), (COMMA 46 . 47), (name) action count: 4
+ ... goto state 9
+ 1 stack:  9 : (name_list),  1 : , 
+ 1: 9: (COMMA 55 . 56) : shift and goto state 10
+ 2 stack:  11 : (COMMA 55 . 56),  7 : (identifier_list),  1 : , 
+ 2: 11: (IDENTIFIER 57 . 64) : shift and goto state 28
+ 1 stack:  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
+ 1: 10: (IDENTIFIER 57 . 64) : shift and goto state 29
+ 2 stack:  28 : (IDENTIFIER 57 . 64),  11 : (COMMA 55 . 56),  7 : (identifier_list),  1 : , 
+ 2: 28: (STRING_LITERAL 99 . 102) : reduce 3 tokens to identifier_list
+pending identifier_list_id_0: (identifier_list) (identifier_list), (COMMA 55 . 56), (IDENTIFIER 57 . 64) action count: 3
+ ... goto state 7
+ 1 stack:  29 : (IDENTIFIER 57 . 64),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
+ 1: 29: (STRING_LITERAL 99 . 102) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 57 . 64) action count: 5
+ ... goto state 30
+ 2 stack:  7 : (identifier_list),  1 : , 
+ 2: 7: (STRING_LITERAL 99 . 102) : reduce 1 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (identifier_list) action count: 4
+ ... goto state 6
+ 1 stack:  30 : (name),  10 : (COMMA 55 . 56),  9 : (name_list),  1 : , 
+ 1: 30: (STRING_LITERAL 99 . 102) : reduce 3 tokens to name_list
+pending name_list_id_0: (name_list) (name_list), (COMMA 55 . 56), (name) action count: 6
+ ... goto state 9
+ 2 stack:  6 : (compilation_unit),  1 : , 
+ 2: 6: (STRING_LITERAL 99 . 102) : shift and goto state 3
+ 1 stack:  9 : (name_list),  1 : , 
+ 1: 9: (STRING_LITERAL 99 . 102) : reduce 1 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (name_list) action count: 7
+ ... goto state 6
+ 1 stack:  6 : (compilation_unit),  1 : , 
+ 1: 6: (STRING_LITERAL 99 . 102) : shift and goto state 3
+ 2 stack:  3 : (STRING_LITERAL 99 . 102),  6 : (compilation_unit),  1 : , 
+ 2: 3: (COMMA 102 . 103) : reduce 1 tokens to name
+pending name_id_0: (name) (STRING_LITERAL 99 . 102) action count: 5
+ ... goto state 8
+ 1 stack:  3 : (STRING_LITERAL 99 . 102),  6 : (compilation_unit),  1 : , 
+ 1: 3: (COMMA 102 . 103) : reduce 1 tokens to name
+pending name_id_0: (name) (STRING_LITERAL 99 . 102) action count: 8
+ ... goto state 8
+ 2 stack:  8 : (name),  6 : (compilation_unit),  1 : , 
+ 2: 8: (COMMA 102 . 103) : reduce 1 tokens to name_list
+pending name_list_id_0: (name_list) (name) action count: 6
+ ... goto state 9
+ 1 stack:  8 : (name),  6 : (compilation_unit),  1 : , 
+ 1: 8: (COMMA 102 . 103) : reduce 1 tokens to name_list
+pending name_list_id_0: (name_list) (name) action count: 9
+ ... goto state 9
+ 2 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 9: (COMMA 102 . 103) : shift and goto state 10
+ 1 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 9: (COMMA 102 . 103) : shift and goto state 10
+ 2 stack:  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 10: (IDENTIFIER 104 . 110) : shift and goto state 29
+ 1 stack:  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 10: (IDENTIFIER 104 . 110) : shift and goto state 29
+ 2 stack:  29 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 29: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 104 . 110) action count: 7
+ ... goto state 30
+ 1 stack:  29 : (IDENTIFIER 104 . 110),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 29: (LEFT_PAREN 125 . 126) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 104 . 110) action count: 10
+ ... goto state 30
+ 2 stack:  30 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 30: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
+pending name_list_id_0: (name_list) (name_list), (COMMA 102 . 103), (name) action count: 8
+ ... goto state 9
+ 1 stack:  30 : (name),  10 : (COMMA 102 . 103),  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 30: (LEFT_PAREN 125 . 126) : reduce 3 tokens to name_list
+pending name_list_id_0: (name_list) (name_list), (COMMA 102 . 103), (name) action count: 11
+ ... goto state 9
+ 2 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 2: 9: (LEFT_PAREN 125 . 126) : reduce 1 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (name_list) action count: 9
+ ... goto state 12
+ 1 stack:  9 : (name_list),  6 : (compilation_unit),  1 : , 
+ 1: 9: (LEFT_PAREN 125 . 126) : reduce 1 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (name_list) action count: 12
+ ... goto state 12
+ 2 stack:  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 12: (LEFT_PAREN 125 . 126) : shift and goto state 21
+ 1 stack:  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 12: (LEFT_PAREN 125 . 126) : shift and goto state 21
+ 2 stack:  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 21: (IDENTIFIER 126 . 136) : shift and goto state 14
+ 1 stack:  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 21: (IDENTIFIER 126 . 136) : shift and goto state 14
+ 2 stack:  14 : (IDENTIFIER 126 . 136),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 14: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
+pending selector_name_id_0: (selector_name) (IDENTIFIER 126 . 136) action count: 10
+ ... goto state 17
+ 1 stack:  14 : (IDENTIFIER 126 . 136),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 14: (EQUAL_GREATER 137 . 139) : reduce 1 tokens to selector_name
+pending selector_name_id_0: (selector_name) (IDENTIFIER 126 . 136) action count: 13
+ ... goto state 17
+ 2 stack:  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 17: (EQUAL_GREATER 137 . 139) : shift and goto state 18
+ 1 stack:  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 17: (EQUAL_GREATER 137 . 139) : shift and goto state 18
+ 2 stack:  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 18: (IDENTIFIER 140 . 146) : shift and goto state 36
+ 1 stack:  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 18: (IDENTIFIER 140 . 146) : shift and goto state 36
+ 2 stack:  36 : (IDENTIFIER 140 . 146),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 36: (COMMA 146 . 147) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 140 . 146) action count: 11
+ ... goto state 37
+ 1 stack:  36 : (IDENTIFIER 140 . 146),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 36: (COMMA 146 . 147) : reduce 1 tokens to name
+pending name_id_0: (name) (IDENTIFIER 140 . 146) action count: 14
+ ... goto state 37
+ 2 stack:  37 : (name),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 37: (COMMA 146 . 147) : reduce 3 tokens to association
+pending association_id_0: (association) (selector_name), (EQUAL_GREATER 137 . 139), (name) action count: 12
+ ... goto state 15
+ 1 stack:  37 : (name),  18 : (EQUAL_GREATER 137 . 139),  17 : (selector_name),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 37: (COMMA 146 . 147) : reduce 3 tokens to association
+pending association_id_0: (association) (selector_name), (EQUAL_GREATER 137 . 139), (name) action count: 15
+ ... goto state 15
+ 2 stack:  15 : (association),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 15: (COMMA 146 . 147) : reduce 1 tokens to association_list
+pending association_list_id_0: (association_list) (association) action count: 13
+ ... goto state 33
+ 1 stack:  15 : (association),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 15: (COMMA 146 . 147) : reduce 1 tokens to association_list
+pending association_list_id_0: (association_list) (association) action count: 16
+ ... goto state 33
+ 2 stack:  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 33: (COMMA 146 . 147) : shift and goto state 20
+ 1 stack:  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 33: (COMMA 146 . 147) : shift and goto state 20
+ 2 stack:  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 20: (STRING_LITERAL 148 . 151) : shift and goto state 13
+ 1 stack:  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 20: (STRING_LITERAL 148 . 151) : shift and goto state 13
+ 2 stack:  13 : (STRING_LITERAL 148 . 151),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 13: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
+pending selector_name_id_0: (selector_name) (STRING_LITERAL 148 . 151) action count: 14
+ ... goto state 17
+ 1 stack:  13 : (STRING_LITERAL 148 . 151),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 13: (EQUAL_GREATER 152 . 154) : reduce 1 tokens to selector_name
+pending selector_name_id_0: (selector_name) (STRING_LITERAL 148 . 151) action count: 17
+ ... goto state 17
+ 2 stack:  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 17: (EQUAL_GREATER 152 . 154) : shift and goto state 18
+ 1 stack:  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 17: (EQUAL_GREATER 152 . 154) : shift and goto state 18
+ 2 stack:  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 18: (STRING_LITERAL 155 . 158) : shift and goto state 35
+ 1 stack:  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 18: (STRING_LITERAL 155 . 158) : shift and goto state 35
+ 2 stack:  35 : (STRING_LITERAL 155 . 158),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 35: (RIGHT_PAREN 158 . 159) : reduce 1 tokens to name
+pending name_id_0: (name) (STRING_LITERAL 155 . 158) action count: 15
+ ... goto state 37
+ 1 stack:  35 : (STRING_LITERAL 155 . 158),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 35: (RIGHT_PAREN 158 . 159) : reduce 1 tokens to name
+pending name_id_0: (name) (STRING_LITERAL 155 . 158) action count: 18
+ ... goto state 37
+ 2 stack:  37 : (name),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 37: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
+pending association_id_0: (association) (selector_name), (EQUAL_GREATER 152 . 154), (name) action count: 16
+ ... goto state 34
+ 1 stack:  37 : (name),  18 : (EQUAL_GREATER 152 . 154),  17 : (selector_name),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 37: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association
+pending association_id_0: (association) (selector_name), (EQUAL_GREATER 152 . 154), (name) action count: 19
+ ... goto state 34
+ 2 stack:  34 : (association),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 34: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
+pending association_list_id_0: (association_list) (association_list), (COMMA 146 . 147), (association) action count: 17
+ ... goto state 33
+ 1 stack:  34 : (association),  20 : (COMMA 146 . 147),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 34: (RIGHT_PAREN 158 . 159) : reduce 3 tokens to association_list
+pending association_list_id_0: (association_list) (association_list), (COMMA 146 . 147), (association) action count: 20
+ ... goto state 33
+ 2 stack:  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 33: (RIGHT_PAREN 158 . 159) : shift and goto state 38
+ 1 stack:  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 33: (RIGHT_PAREN 158 . 159) : shift and goto state 38
+ 2 stack:  38 : (RIGHT_PAREN 158 . 159),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 38: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 18
+ ... goto state 24
+ 1 stack:  38 : (RIGHT_PAREN 158 . 159),  33 : (association_list),  21 : (LEFT_PAREN 125 . 126),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 38: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation_unit
+pending compilation_unit_id_0: (compilation_unit) (LEFT_PAREN 125 . 126), (association_list), (RIGHT_PAREN 158 . 159) action count: 21
+ ... goto state 24
+ 2 stack:  24 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 2: 24: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation
+pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 19
+ ... goto state 5
+ 1 stack:  24 : (compilation_unit),  12 : (compilation_unit),  6 : (compilation_unit),  1 : , 
+ 1: 24: (WISI_EOI 1 . 2) : reduce 3 tokens to compilation
+pending compilation_id_0: (compilation) (compilation_unit), (compilation_unit), (compilation_unit) action count: 22
+ ... goto state 5
+ 2 stack:  5 : (compilation),  1 : , 
+ 2: 5: (WISI_EOI 1 . 2) : accept it
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation) action count: 20
+ 1 stack:  5 : (compilation),  1 : , 
+ 1: 5: (WISI_EOI 1 . 2) : accept it
+pending fasttoken_accept_id_0: (FASTTOKEN_ACCEPT) (compilation) action count: 23
 identifier_list_name_conflict.input:7:56: Ambiguous parse: 2 parsers active.

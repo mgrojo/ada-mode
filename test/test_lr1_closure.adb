@@ -115,8 +115,8 @@ package body Test_LR1_Closure is
       First : constant Derivation_Matrix := LALR_Generator.LR1_Items.First
         (Grammar, Has_Empty_Production, Trace => Test.Debug);
 
-      Kernels : Item_Set_List := LALR_Generator.LR1_Items.LALR_Kernels
-        (Grammar, First, EOF_ID, Test.Debug, First_State_Index);
+      Kernels : Item_Set_List := LALR_Generator.LALR_Kernels
+        (Grammar, First, Test.Debug, First_State_Index);
 
       procedure Test_One (Label : in String; Input : in Item_Set; Expected : in Item_Set)
       is

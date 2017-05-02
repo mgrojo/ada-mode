@@ -92,5 +92,144 @@ State 9:
    default             => ERROR
 
 
- 3 rules, 1 actions, 9 states, 28 table entries
+LR1 Parse Table:
+State 1:
+  DECLARATIVE_PART_ID <= ^, WISI_EOI_ID
+
+   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 2
+   default             => ERROR
+
+   DECLARATIONS_ID     goto state 3
+   DECLARATIVE_PART_ID goto state 4
+   BODY_ID             goto state 5
+
+State 2:
+  DECLARATIVE_PART_ID <= ^, BEGIN_ID
+  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
+
+   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 7
+   default             => ERROR
+
+   DECLARATIONS_ID     goto state 8
+   DECLARATIVE_PART_ID goto state 9
+   BODY_ID             goto state 10
+
+State 3:
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, IS_ID/WISI_EOI_ID
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
+
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 2
+   default             => ERROR
+
+   BODY_ID             goto state 6
+
+State 4:
+  FASTTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ WISI_EOI_ID, WISI_EOI_ID
+
+   WISI_EOI_ID         => accept it
+   default             => ERROR
+
+
+State 5:
+  DECLARATIONS_ID <= BODY_ID ^, IS_ID/WISI_EOI_ID
+
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 6:
+  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/WISI_EOI_ID
+
+   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 7:
+  DECLARATIVE_PART_ID <= ^, BEGIN_ID
+  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
+
+   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 7
+   default             => ERROR
+
+   DECLARATIONS_ID     goto state 8
+   DECLARATIVE_PART_ID goto state 13
+   BODY_ID             goto state 10
+
+State 8:
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID
+
+   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
+   IS_ID               => shift and goto state 7
+   default             => ERROR
+
+   BODY_ID             goto state 12
+
+State 9:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
+
+   BEGIN_ID            => shift and goto state 11
+   default             => ERROR
+
+
+State 10:
+  DECLARATIONS_ID <= BODY_ID ^, BEGIN_ID/IS_ID
+
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 11:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, IS_ID/WISI_EOI_ID
+
+   SEMICOLON_ID        => shift and goto state 15
+   default             => ERROR
+
+
+State 12:
+  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, BEGIN_ID/IS_ID
+
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   default             => ERROR
+
+
+State 13:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
+
+   BEGIN_ID            => shift and goto state 14
+   default             => ERROR
+
+
+State 14:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, BEGIN_ID/IS_ID
+
+   SEMICOLON_ID        => shift and goto state 16
+   default             => ERROR
+
+
+State 15:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, IS_ID/WISI_EOI_ID
+
+   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
+   IS_ID               => reduce 4 tokens to BODY_ID
+   default             => ERROR
+
+
+State 16:
+  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID
+
+   IS_ID               => reduce 4 tokens to BODY_ID
+   BEGIN_ID            => reduce 4 tokens to BODY_ID
+   default             => ERROR
+
+
+ 3 rules, 1 actions, 16 states, 71 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts
