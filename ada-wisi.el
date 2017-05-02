@@ -1232,11 +1232,11 @@ comment:      comment"
 	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
-	     (setq begin (point-at-bol)))
+	     (setq begin (line-beginning-position)))
 	   (wisi-goto-end-1 cache))
 	  (t
 	   ;; start of compilation unit
-	   (setq end (point-at-bol))
+	   (setq end (line-beginning-position))
 	   (unless begin
 	     (setq begin end)))
 	  ))

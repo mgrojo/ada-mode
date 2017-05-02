@@ -1807,8 +1807,10 @@ Called by `syntax-propertize', which is called by font-lock in
 race conditions with the grammar parser.")
 
 (defun ada-syntax-propertize (start end)
-  "Assign `syntax-table' properties in accessible part of buffer.
-In particular, character constants are set to have string syntax."
+  "For `syntax-propertize-function'.
+Assign `syntax-table' properties in region START .. END.
+In particular, character constants are set to have string syntax.
+Runs `ada-syntax-propertize-hook'."
   ;; (info "(elisp)Syntax Properties")
   ;;
   ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
@@ -2845,7 +2847,7 @@ The paragraph is indented on the first line."
 
   (run-mode-hooks 'ada-mode-hook)
 
-  (syntax-propertize (point-max))
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
   (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
   )
@@ -2922,7 +2924,6 @@ The paragraph is indented on the first line."
      (require 'ada-gnat-xref)
      (setq ada-xref-tool 'gnat)))
   )
-;; FIXME: warn if gnat version >= gpl 2016, fsf 6 and no gpr_query installed
 
 (unless (featurep 'ada-compiler)
   (require 'ada-gnat-compile))

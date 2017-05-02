@@ -53,8 +53,10 @@ private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
+--EMACSRESULT:t
+--EMACSCMD:(progn (forward-line -2)(forward-word 2)(forward-char 1)(ada-goto-declaration nil)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;

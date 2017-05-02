@@ -116,6 +116,11 @@ test/debug.adb
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
 
+disable or use electric-indent-post-self-insert-function
+    called during ada-indent-newline-indent
+    on post-self-insert-hook
+        use that for ada-mode capitalization
+
 AdaCore suggests using the libadalang indentation engine
     see Q406-078
     doesn't tolerate syntax errors yet
