@@ -9,7 +9,7 @@
 --  [1] http://aa.usno.navy.mil/faq/docs/TT.html
 --  [2] http://hpiers.obspm.fr/eoppc/bul/bulc/UTC-TAI.history
 --
---  Copyright (C) 2001, 2004 - 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2004 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -243,6 +243,7 @@ package SAL.Time_Conversions is
    subtype ASIST_Time_String_Type is String (1 .. 19);
    subtype Extended_ASIST_Time_String_Type is String (1 .. 21);
 
+   TAI_Epoch_String : constant Extended_ASIST_Time_String_Type := "1958-001-00:00:00.000";
    J2000_TAI_String : constant Extended_ASIST_Time_String_Type := "2000-001-11:59:27.816";
 
    function To_TAI_Time
