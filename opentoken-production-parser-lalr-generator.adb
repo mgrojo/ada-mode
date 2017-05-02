@@ -980,8 +980,7 @@ package body OpenToken.Production.Parser.LALR.Generator is
    begin
       Used_Tokens (LHS_ID (First_Production)) := True;
 
-      Kernels := LRk.LR0_Kernels (Grammar, First, Trace, State_Index (First_State_Index));
-      I       := Kernels.Head;
+      I := Kernels.Head;
 
       --  Accept_State identifies the kernel that is the start symbol
       --  production, which must be the first production in Grammar.

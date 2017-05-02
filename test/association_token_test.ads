@@ -4,7 +4,7 @@
 --  earlier version of OpenToken, this grammar reported spurious
 --  conflicts.
 --
---  Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2002, 2003, 2009, 2010, 2013, 2014, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -42,7 +42,7 @@ package Association_Token_Test is
 
       --  terminals
       Comma_ID,
-      Equals_Greater_ID,
+      Equal_Greater_ID,
       Identifier_ID,
       Int_ID,
       Paren_Left_ID,
@@ -80,7 +80,7 @@ package Association_Token_Test is
       --  For use in right hand sides, syntax.
       Comma          : constant Master_Token.Class := Master_Token.Get (Comma_ID);
       EOF            : constant Master_Token.Class := Master_Token.Get (EOF_ID);
-      Equals_Greater : constant Master_Token.Class := Master_Token.Get (Equals_Greater_ID);
+      Equals_Greater : constant Master_Token.Class := Master_Token.Get (Equal_Greater_ID);
       Identifier     : constant Master_Token.Class := Identifier_Token.Get (Identifier_ID);
       Integer        : constant Master_Token.Class := Integer_Literal.Get (Int_ID);
       Paren_Left     : constant Master_Token.Class := Master_Token.Get (Paren_Left_ID);
@@ -93,7 +93,7 @@ package Association_Token_Test is
       Whitespace_ID     => Tokenizer.Get
         (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
       Comma_ID          => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (",")),
-      Equals_Greater_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=>")),
+      Equal_Greater_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("=>")),
       Int_ID            => Tokenizer.Get
         (OpenToken.Recognizer.Integer.Get,
          New_Token      => Integer_Literal.Get (Int_ID)),
