@@ -19,6 +19,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 generic
@@ -27,7 +28,29 @@ generic
      (LR.Unknown_State_Index, LR.Unknown_State, Nonterminal, Production);
 package FastToken.Parser.LR.Generator_Utils is
 
-   --  Alphabetical order
+   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
+   type Conflict is record
+      --  A typical conflict is:
+      --
+      --  SHIFT/REDUCE in state: 11 on token IS
+      --
+      --  State numbers change with minor changes in the grammar, so
+      --  we identify the state by the LHS of the two productions
+      --  involved. We also store the state number for generated
+      --  conflicts (not for known conflicts from the grammar
+      --  definition file), for Text_IO output.
+      Action_A    : Conflict_Parse_Actions;
+      LHS_A       : Token.Token_ID;
+      Action_B    : Conflict_Parse_Actions;
+      LHS_B       : Token.Token_ID;
+      State_Index : Unknown_State_Index;
+      On          : Token.Token_ID;
+   end record;
+
+   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+
+   ----------
+   --  Subpgrograms, alphabetical order
 
    procedure Add_Action
      (Symbol               : in     Token.Terminal_ID;
@@ -61,6 +84,11 @@ package FastToken.Parser.LR.Generator_Utils is
    --  Closure must be from the item set containing Item.
    --  Has_Empty_Production .. Closure used for conflict reporting.
 
+   procedure Delete_Known
+     (Conflicts       : in out Conflict_Lists.List;
+      Known_Conflicts : in out Conflict_Lists.List);
+   --  Delete Known_Conflicts from Conflicts.
+
    function Find
      (Symbol      : in Token.Terminal_ID;
       Action_List : in Action_Node_Ptr)
@@ -73,8 +101,12 @@ package FastToken.Parser.LR.Generator_Utils is
       Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set)
      return Token.Token_ID;
 
+   function Image (Item : in Conflict) return String;
+
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean;
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
+
+   procedure Put (Item : in Conflict_Lists.List);
 
 end FastToken.Parser.LR.Generator_Utils;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,7 +20,9 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with FastToken.Lexer;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -60,7 +62,10 @@ package body Test_Empty_Productions_6 is
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -92,28 +97,32 @@ package body Test_Empty_Productions_6 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, COLON_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, LALR_Generator.LR1_Items, Grammar);
+      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
-     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+     LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1_Items.Derivation_Matrix := LALR_Generator.LR1_Items.First
+   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in LALR_Generator.LR1_Items.Item_Set_List;
+      Kernels  : in LR1_Items.Item_Set_List;
       State    : in LR.Unknown_State_Index;
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Kernel    : constant LALR_Generator.LR1_Items.Item_Set_Ptr := LALR_Generator.LR1_Items.Find (State, Kernels);
-      Conflicts : LR.Conflict_Lists.List;
+      Kernel    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Find (State, Kernels);
+      Closure   : LR1_Items.Item_Set              := LR1_Items.Closure
+        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+      Conflicts : Generator_Utils.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. LR.State_Index (Kernels.Size));
    begin
-      LALR_Generator.Add_Actions
-        (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+      Generator_Utils.Add_Actions
+        (Closure, Table, Has_Empty_Production, Conflicts, Trace => Debug);
+
+      LR1_Items.Free (Closure);
 
       if Debug then
          LR.Put (Table (Kernel.State));
@@ -131,10 +140,10 @@ package body Test_Empty_Productions_6 is
    is
       Test : Test_Case renames Test_Case (T);
       use LR;
-      use LALR_Generator.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
-      Kernels : constant Item_Set_List := LALR_Generator.LALR_Kernels
+      Kernels : constant Item_Set_List := Generators.LALR_Kernels
         (Grammar, First,
          Trace             => False,
          First_State_Index => LR.State_Index (First_State_Index));
@@ -142,11 +151,11 @@ package body Test_Empty_Productions_6 is
       Expected : Parse_State;
       Conflict : Parse_Action_Node_Ptr;
 
-      Conflicts : LR.Conflict_Lists.List;
+      Conflicts : Generator_Utils.Conflict_Lists.List;
       Parser    : LR.Parse_Table_Ptr;
    begin
       if Test.Debug then
-         LALR_Generator.LR1_Items.Put (Kernels);
+         Put (Kernels);
       end if;
 
       --  State 1:
@@ -217,7 +226,7 @@ package body Test_Empty_Productions_6 is
           State_Index => -1,
           On          => IDENTIFIER_ID));
 
-      Parser := LALR_Generator.Generate
+      Parser := Generators.Generate
         (Grammar,
          Conflicts,
          Trace                    => Test.Debug,

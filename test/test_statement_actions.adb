@@ -21,9 +21,11 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
@@ -55,7 +57,10 @@ package body Test_Statement_Actions is
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    use type Production.Instance;        --  "<="
    use type Production.List.Instance;   --  "and"
@@ -159,7 +164,7 @@ package body Test_Statement_Actions is
    begin
       Parser := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, String_Feeder'Access),
-         LALR_Generator.Generate (Grammar, Trace => Test.Debug));
+         Generators.Generate (Grammar, Trace => Test.Debug));
 
       FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 

@@ -24,9 +24,11 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
@@ -63,7 +65,10 @@ package body Association_Grammar_Test is
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Generators is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    package Tokens is
       --  For use in right hand sides, syntax.

@@ -20,8 +20,10 @@
 pragma License (Modified_GPL);
 
 with FastToken.Lexer;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.LR1_Generator;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production.Put_Trace;
 with FastToken.Token.Nonterminal;
 generic
@@ -83,8 +85,11 @@ package Wisi.Gen_Generate_Utils is
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser (Token_Pkg, EOI_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg);
-   package LALR_Generator is new LR.LALR_Generator (Production);
-   package LR1_Generator is new LR.LR1_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+   package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
    procedure Put_Trace_Action (Item : in Nonterminal_Pkg.Synthesize) is null;
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);
@@ -93,7 +98,7 @@ package Wisi.Gen_Generate_Utils is
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LR.Conflict_Lists.List;
+     return Generator_Utils.Conflict_Lists.List;
 
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance;
    --  Source_File_Name used in errors

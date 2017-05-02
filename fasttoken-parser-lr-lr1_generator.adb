@@ -20,12 +20,9 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with Ada.Text_IO;
-with FastToken.Parser.LR.Generator_Utils;
 package body FastToken.Parser.LR.LR1_Generator is
-
-   package Utils is new FastToken.Parser.LR.Generator_Utils (Production, LR1_Items);
-   use Utils;
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
@@ -279,43 +276,6 @@ package body FastToken.Parser.LR.LR1_Generator is
 
       return Unused_Tokens;
    end Check_Unused_Tokens;
-
-   procedure Delete_Known
-     (Conflicts       : in out Conflict_Lists.List;
-      Known_Conflicts : in out Conflict_Lists.List)
-   is
-      --  Delete all elements in Conflicts that match an element in
-      --  Known_Conflicts. There can be more than one Conflict that
-      --  match one Known_Conflict.
-      use Conflict_Lists;
-      Known      : Cursor  := Known_Conflicts.First;
-      Next_Known : Cursor;
-   begin
-      loop
-         exit when Known = No_Element;
-         Next_Known := Next (Known);
-         declare
-            I      : Cursor  := Conflicts.First;
-            Next_I : Cursor;
-            Used   : Boolean := False;
-         begin
-            loop
-               exit when I = No_Element;
-               Next_I := Next (I);
-               if Match (Element (Known), Conflicts.Constant_Reference (I)) then
-                  Delete (Conflicts, I);
-                  Used := True;
-               end if;
-               I := Next_I;
-            end loop;
-
-            if Used then
-               Delete (Known_Conflicts, Known);
-            end if;
-         end;
-         Known := Next_Known;
-      end loop;
-   end Delete_Known;
 
    function Generate
      (Grammar                  : in Production.List.Instance;

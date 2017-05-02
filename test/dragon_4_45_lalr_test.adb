@@ -22,9 +22,11 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
@@ -52,7 +54,10 @@ package body Dragon_4_45_LALR_Test is
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
    package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package Generators is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
    use type Tokens_Pkg.List.Instance;
@@ -90,13 +95,13 @@ package body Dragon_4_45_LALR_Test is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, Lower_C_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, Generators.LR1_Items, Grammar);
+      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
    ----------
    --  Test procedures
 
-   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First
+   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production => (others => False), Trace => False);
 
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -105,7 +110,7 @@ package body Dragon_4_45_LALR_Test is
 
       --  FIRST defined in dragon pg 45
 
-      Expected : constant Generators.LR1_Items.Derivation_Matrix :=
+      Expected : constant LR1_Items.Derivation_Matrix :=
         (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
@@ -115,7 +120,7 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use Generators.LR1_Items;
+      use LR1_Items;
 
       Test : Test_Case renames Test_Case (T);
 
@@ -173,10 +178,10 @@ package body Dragon_4_45_LALR_Test is
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("computed:");
-         Generators.LR1_Items.Put (Computed);
+         Put (Computed);
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("expected:");
-         Generators.LR1_Items.Put (Item_Set_List'(Expected, 7));
+         Put (Item_Set_List'(Expected, 7));
       end if;
       Check ("", Computed.Head, Expected);
    end Test_LR1_Items;

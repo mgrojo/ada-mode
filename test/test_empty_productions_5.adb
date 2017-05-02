@@ -20,7 +20,8 @@ pragma License (GPL);
 
 with Ada.Text_IO;
 with FastToken.Lexer;
-with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -55,7 +56,8 @@ package body Test_Empty_Productions_5 is
    package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -84,13 +86,13 @@ package body Test_Empty_Productions_5 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, ACCEPT_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LR, LALR_Generator.LR1_Items, Grammar);
+      Lexer_Root, Parser_Root, 1, LR, LR1_Items, Grammar);
 
-   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
-     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+     LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
-     LALR_Generator.LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LR1_Items.Derivation_Matrix :=
+     LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures
@@ -98,7 +100,7 @@ package body Test_Empty_Productions_5 is
    procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use LALR_Generator.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
       Kernel : constant Item_Set := Get_Item_Set
@@ -106,7 +108,7 @@ package body Test_Empty_Productions_5 is
          Dot  => 2,
          Next => null);
 
-      Closure : constant Item_Set := LALR_Generator.LR1_Items.Closure
+      Closure : constant Item_Set := LR1_Items.Closure
         (Kernel, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => Test.Debug);
 
       Expected_Set : Item_Ptr;
@@ -142,7 +144,7 @@ package body Test_Empty_Productions_5 is
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("Expected:");
-         LALR_Generator.LR1_Items.Put (Expected);
+         Put (Expected);
          Ada.Text_IO.New_Line;
       end if;
 

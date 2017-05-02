@@ -6,14 +6,11 @@ build/release_process.text
 
  current work
 
-factor out common parts of lr1, lalr _generator
-    reduce duplicate mainentance
-    partly done; running all tests
+delete Match_Lookaheads arg to closure?
 
+compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
 
-move Conflicts to generator_utils; not used in parser
-
-add lr1 to some/all lalr tests?
+delete body-only stuff from lr1_items spec
 
 add syntax error handling
     Parsing Techniques: A Practical Guide, By Dick Grune, Ceriel J.H. Jacobs
@@ -22,13 +19,7 @@ add syntax error handling
 
 move output_ada_emacs, output_elisp to ada-mode source tree
 
-compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
-
-delete Match_Lookaheads arg to closure?
-
 delete Accept_State in lalr_generator?
-
-delete body-only stuff from lrk_item spec
 
 need to_token_wy_name
     for reporting conflicts

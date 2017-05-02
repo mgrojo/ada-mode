@@ -21,9 +21,11 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with FastToken.Production;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Text_Feeder.String;
 with FastToken.Lexer.Regexp;
 with FastToken.Token.Nonterminal;
@@ -57,7 +59,10 @@ package body Test_Accept_State is
    package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Generators is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    Equals : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);
    Int    : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);

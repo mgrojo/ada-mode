@@ -23,9 +23,11 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with FastToken.Lexer.Regexp;
 with FastToken.Production;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
 package body Test_LR_Expecting is
@@ -72,7 +74,10 @@ package body Test_LR_Expecting is
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Terminals
    EOF        : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
@@ -158,7 +163,7 @@ package body Test_LR_Expecting is
    begin
       Parser := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, String_Feeder'Access),
-         LALR_Generator.Generate
+         Generators.Generate
            (Grammar,
             Trace           => Test.Debug,
             Put_Parse_Table => Test.Debug));

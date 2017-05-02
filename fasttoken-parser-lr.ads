@@ -36,13 +36,14 @@
 
 pragma License (GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
 with FastToken.Token.Nonterminal;
 generic
    First_State_Index : in Natural;
    Token_Image_Width : Integer;
    with package Nonterminal is new Token.Nonterminal;
 package FastToken.Parser.LR is
+
+   package Nonterminal_Pkg renames Nonterminal;
 
    --  No private types; that would make it too hard to write the unit tests
 
@@ -142,27 +143,6 @@ package FastToken.Parser.LR is
 
    type Parse_Table_Ptr is access Parse_Table;
 
-   subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
-   type Conflict is record
-      --  A typical conflict is:
-      --
-      --  SHIFT/REDUCE in state: 11 on token IS
-      --
-      --  State numbers change with minor changes in the grammar, so
-      --  we identify the state by the LHS of the two productions
-      --  involved. We also store the state number for generated
-      --  conflicts (not for known conflicts from the grammar
-      --  definition file), for Text_IO output.
-      Action_A    : Conflict_Parse_Actions;
-      LHS_A       : Token.Token_ID;
-      Action_B    : Conflict_Parse_Actions;
-      LHS_B       : Token.Token_ID;
-      State_Index : Unknown_State_Index;
-      On          : Token.Token_ID;
-   end record;
-
-   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
-
    ----------
    --  Useful text output
 
@@ -173,6 +153,5 @@ package FastToken.Parser.LR is
    procedure Put (Action : in Parse_Action_Node_Ptr);
    procedure Put (State : in Parse_State);
    procedure Put (Table : in Parse_Table);
-   procedure Put (Item : in Conflict_Lists.List);
 
 end FastToken.Parser.LR;

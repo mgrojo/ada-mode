@@ -21,13 +21,10 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-with FastToken.Parser.LR.Generator_Utils;
 package body FastToken.Parser.LR.LALR_Generator is
-
-   package Utils is new FastToken.Parser.LR.Generator_Utils (Production, LR1_Items);
-   use Utils;
 
    --  The following types are used for computing lookahead
    --  propagations.
@@ -649,44 +646,6 @@ package body FastToken.Parser.LR.LALR_Generator is
       end if;
    end Add_Actions;
 
-   procedure Delete_Known
-     (Conflicts       : in out Conflict_Lists.List;
-      Known_Conflicts : in out Conflict_Lists.List)
-   is
-      --  Delete all elements in Conflicts that match an element in
-      --  Known_Conflicts. There can be more than one Conflict that
-      --  match one Known_Conflict.
-      use Conflict_Lists;
-      Known      : Cursor  := Known_Conflicts.First;
-      Next_Known : Cursor;
-   begin
-      --  WORKAROUND: GNAT GPL 2012 doesn't like an explicit exit in an 'of' loop
-      loop
-         exit when Known = No_Element;
-         Next_Known := Next (Known);
-         declare
-            I      : Cursor  := Conflicts.First;
-            Next_I : Cursor;
-            Used   : Boolean := False;
-         begin
-            loop
-               exit when I = No_Element;
-               Next_I := Next (I);
-               if Match (Element (Known), Conflicts.Constant_Reference (I)) then
-                  Delete (Conflicts, I);
-                  Used := True;
-               end if;
-               I := Next_I;
-            end loop;
-
-            if Used then
-               Delete (Known_Conflicts, Known);
-            end if;
-         end;
-         Known := Next_Known;
-      end loop;
-   end Delete_Known;
-
    function Generate
      (Grammar                  : in Production.List.Instance;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
@@ -796,6 +755,3 @@ package body FastToken.Parser.LR.LALR_Generator is
    end Generate;
 
 end FastToken.Parser.LR.LALR_Generator;
---  Local Variables:
---  jit-lock-defer-time: 0.25
---  End:

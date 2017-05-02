@@ -259,6 +259,43 @@ package body FastToken.Parser.LR.Generator_Utils is
       end loop;
    end Add_Lookahead_Actions;
 
+   procedure Delete_Known
+     (Conflicts       : in out Conflict_Lists.List;
+      Known_Conflicts : in out Conflict_Lists.List)
+   is
+      --  Delete all elements in Conflicts that match an element in
+      --  Known_Conflicts. There can be more than one Conflict that
+      --  match one Known_Conflict.
+      use Conflict_Lists;
+      Known      : Cursor  := Known_Conflicts.First;
+      Next_Known : Cursor;
+   begin
+      loop
+         exit when Known = No_Element;
+         Next_Known := Next (Known);
+         declare
+            I      : Cursor  := Conflicts.First;
+            Next_I : Cursor;
+            Used   : Boolean := False;
+         begin
+            loop
+               exit when I = No_Element;
+               Next_I := Next (I);
+               if Match (Element (Known), Conflicts.Constant_Reference (I)) then
+                  Delete (Conflicts, I);
+                  Used := True;
+               end if;
+               I := Next_I;
+            end loop;
+
+            if Used then
+               Delete (Known_Conflicts, Known);
+            end if;
+         end;
+         Known := Next_Known;
+      end loop;
+   end Delete_Known;
+
    function Find
      (Symbol      : in Token.Terminal_ID;
       Action_List : in Action_Node_Ptr)
@@ -341,6 +378,17 @@ package body FastToken.Parser.LR.Generator_Utils is
       raise Programmer_Error;
    end Find;
 
+   function Image (Item : in Conflict) return String
+   is begin
+      return
+        (Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
+           Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
+           Token.Token_Image (Item.LHS_A) & ", " &
+           Token.Token_Image (Item.LHS_B) &
+           " (" & State_Index'Image (Item.State_Index) & ") on token " &
+           Token.Token_Image (Item.On));
+   end Image;
+
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean
    is
       use Conflict_Lists;
@@ -371,5 +419,11 @@ package body FastToken.Parser.LR.Generator_Utils is
         Known.On = Item.On;
    end Match;
 
+   procedure Put (Item : in Conflict_Lists.List)
+   is begin
+      for Conflict of Item loop
+         Ada.Text_IO.Put_Line (Image (Conflict));
+      end loop;
+   end Put;
 
 end FastToken.Parser.LR.Generator_Utils;

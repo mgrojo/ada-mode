@@ -20,7 +20,8 @@ pragma License (GPL);
 
 with AUnit.Checks;
 with FastToken.Lexer;
-with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 package body Test_Empty_Productions_4 is
@@ -53,7 +54,8 @@ package body Test_Empty_Productions_4 is
    package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package LALR_Generator is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -78,11 +80,11 @@ package body Test_Empty_Productions_4 is
      Nonterminal.Get (overriding_indicator_ID) <= +Self -- 5; empty
      ;
 
-   Has_Empty_Production : constant LALR_Generator.LR1_Items.Nonterminal_ID_Set :=
-     LALR_Generator.LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+     LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LALR_Generator.LR1_Items.Derivation_Matrix :=
-     LALR_Generator.LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
+   First : constant LR1_Items.Derivation_Matrix :=
+     LR1_Items.First (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
    --  Test procedures

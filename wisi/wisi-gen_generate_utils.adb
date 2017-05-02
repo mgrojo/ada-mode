@@ -400,12 +400,13 @@ package body Wisi.Gen_Generate_Utils is
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LR.Conflict_Lists.List
+     return Generator_Utils.Conflict_Lists.List
    is
+      use Generator_Utils;
       use type LR.Unknown_State_Index;
       use type LR.Parse_Action_Verbs;
-      Result   : LR.Conflict_Lists.List;
-      Conflict : LR.Conflict;
+      Result   : Generator_Utils.Conflict_Lists.List;
+      Conflict : Generator_Utils.Conflict;
    begin
       Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
@@ -413,9 +414,9 @@ package body Wisi.Gen_Generate_Utils is
 
       for Item of Conflicts loop
          Conflict :=
-           (LR.Conflict_Parse_Actions'Value (-Item.Action_A),
+           (Conflict_Parse_Actions'Value (-Item.Action_A),
             Find_Token_ID (-Item.LHS_A),
-            LR.Conflict_Parse_Actions'Value (-Item.Action_B),
+            Conflict_Parse_Actions'Value (-Item.Action_B),
             Find_Token_ID (-Item.LHS_B),
             -1,
             Find_Token_ID (-Item.On));

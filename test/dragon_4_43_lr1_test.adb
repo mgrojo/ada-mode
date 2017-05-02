@@ -22,9 +22,11 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token.Nonterminal;
@@ -52,7 +54,10 @@ package body Dragon_4_43_LR1_Test is
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
    package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package Generators is new LR.LR1_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
    use type Tokens_Pkg.List.Instance;
@@ -90,21 +95,21 @@ package body Dragon_4_43_LR1_Test is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, Lower_C_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, Generators.LR1_Items, Grammar);
+      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
-   Has_Empty_Production : constant Generators.LR1_Items.Nonterminal_ID_Set :=
-     Generators.LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+     LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First
+   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    function Close
-     (Item  : in Generators.LR1_Items.Item_Ptr;
+     (Item  : in LR1_Items.Item_Ptr;
       State : in LR.State_Index)
-     return Generators.LR1_Items.Item_Set_Ptr
+     return LR1_Items.Item_Set_Ptr
    is
-      use Generators.LR1_Items;
+      use LR1_Items;
    begin
       Item.State := State;
       return new Item_Set'
@@ -123,18 +128,18 @@ package body Dragon_4_43_LR1_Test is
 
       --  FIRST defined in dragon pg 45
 
-      Expected : constant Generators.LR1_Items.Derivation_Matrix :=
+      Expected : constant LR1_Items.Derivation_Matrix :=
         (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
    begin
-      Check ("0", Has_Empty_Production, Generators.LR1_Items.Nonterminal_ID_Set'(others => False));
+      Check ("0", Has_Empty_Production, LR1_Items.Nonterminal_ID_Set'(others => False));
       Check ("1", First, Expected);
    end Test_First;
 
    procedure Test_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use Generators.LR1_Items;
+      use LR1_Items;
 
       Test : Test_Case renames Test_Case (T);
 
@@ -189,7 +194,7 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_Goto (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use Generators.LR1_Items;
+      use LR1_Items;
 
       Test : Test_Case renames Test_Case (T);
 
@@ -259,7 +264,7 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use Generators.LR1_Items;
+      use LR1_Items;
 
       Test : Test_Case renames Test_Case (T);
 

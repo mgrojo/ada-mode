@@ -21,7 +21,9 @@ pragma License (GPL);
 with AUnit.Checks;
 with Ada.Text_IO;
 with FastToken.Lexer;
+with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
 with Gen_FastToken_AUnit;
@@ -54,7 +56,10 @@ package body Test_Empty_Productions_1 is
    package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
-   package Generators is new LR.LALR_Generator (Production);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
    use type Token_Pkg.List.Instance;
@@ -82,23 +87,23 @@ package body Test_Empty_Productions_1 is
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
-      Lexer_Root, Parser_Root, 1, LR, Generators.LR1_Items, Grammar);
+      Lexer_Root, Parser_Root, 1, LR, LR1_Items, Grammar);
 
-   Has_Empty_Production : constant Generators.LR1_Items.Nonterminal_ID_Set :=
-     Generators.LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+     LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant Generators.LR1_Items.Derivation_Matrix := Generators.LR1_Items.First
+   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    procedure Test_Goto_Transitions
      (Label    : in String;
-      Kernel   : in Generators.LR1_Items.Item_Set;
+      Kernel   : in LR1_Items.Item_Set;
       Symbol   : in Token_ID;
-      Expected : in Generators.LR1_Items.Item_Set;
+      Expected : in LR1_Items.Item_Set;
       Debug    : in Boolean)
    is
       use Ada.Text_IO;
-      use Generators.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
       Computed : constant Item_Set := Generators.LALR_Goto_Transitions (Kernel, Symbol, First, Grammar, Debug);
    begin
@@ -113,22 +118,26 @@ package body Test_Empty_Productions_1 is
 
    procedure Test_Actions
      (Label    : in String;
-      Kernels  : in Generators.LR1_Items.Item_Set_List;
+      Kernels  : in LR1_Items.Item_Set_List;
       State    : in LR.Unknown_State_Index;
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
       use FastToken_AUnit;
-      Kernel    : constant Generators.LR1_Items.Item_Set_Ptr := Generators.LR1_Items.Find (State, Kernels);
-      Conflicts : LR.Conflict_Lists.List;
+      Kernel    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Find (State, Kernels);
+      Closure   : LR1_Items.Item_Set              := LR1_Items.Closure
+        (Kernel.all, Has_Empty_Production, First, Grammar, Match_Lookaheads => False, Trace => False);
+      Conflicts : Generator_Utils.Conflict_Lists.List;
       Table     : LR.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
-         Generators.LR1_Items.Put (Kernel.all);
+         LR1_Items.Put (Kernel.all);
       end if;
 
-      Generators.Add_Actions
-        (Kernel, Grammar, Has_Empty_Production, First, Conflicts, Table, Trace => Debug);
+      Generator_Utils.Add_Actions
+        (Closure, Table, Has_Empty_Production, Conflicts, Trace => Debug);
+
+      LR1_Items.Free (Closure);
 
       Check (Label, Table (Kernel.State), Expected);
    end Test_Actions;
@@ -147,7 +156,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -194,7 +203,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
       --  kernel:
@@ -237,7 +246,7 @@ package body Test_Empty_Productions_1 is
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
-      use Generators.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
       Kernels  : constant Item_Set_List := Generators.LALR_Kernels
@@ -291,7 +300,7 @@ package body Test_Empty_Productions_1 is
    is
       Test : Test_Case renames Test_Case (T);
       use LR;
-      use Generators.LR1_Items;
+      use LR1_Items;
       use FastToken_AUnit;
 
       Kernels : constant Item_Set_List := Generators.LALR_Kernels
