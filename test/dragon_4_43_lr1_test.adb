@@ -52,7 +52,7 @@ package body Dragon_4_43_LR1_Test is
    package Nonterminal is new Tokens_Pkg.Nonterminal;
    package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
-   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Accept_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
@@ -166,29 +166,25 @@ package body Dragon_4_43_LR1_Test is
          Check (Label, Computed, Expected);
       end One;
 
-      Expected : Item_Set;
-
    begin
-      Expected.State := LR.Unknown_State;
-
       --  [dragon] pg 233 - 234 gives the closures as part of the discussion
 
       --  close [S' -> . S, $]
-      --  Add in Computed order.
-      Add (Get_Item_Node (1, 1, +EOF_ID).all, Expected);
-      Add (Get_Item_Node (2, 1, +EOF_ID).all, Expected);
-      Add (Get_Item_Node (3, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
-      Add (Get_Item_Node (4, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
-
-      One ("1", Get_Item_Node (1, 1, +EOF_ID), Expected);
+      One
+        ("1", Get_Item_Node (1, 1, +EOF_ID),
+         +(Get_Item (1, 1, +EOF_ID) &
+             Get_Item (2, 1, +EOF_ID) &
+             Get_Item (3, 1, +(Lower_D_ID, Lower_C_ID)) &
+             Get_Item (4, 1, +(Lower_D_ID, Lower_C_ID))
+          ));
 
       --  close [C -> c . C, c/d]
-      Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (3, 2, +(Lower_D_ID, Lower_C_ID)).all, Expected);
-      Add (Get_Item_Node (3, 1, +(Lower_C_ID, Lower_D_ID)).all, Expected);
-      Add (Get_Item_Node (4, 1, +(Lower_C_ID, Lower_D_ID)).all, Expected);
-
-      One ("2", Get_Item_Node (3, 2, +(Lower_C_ID, Lower_D_ID)), Expected);
+      One
+        ("2", Get_Item_Node (3, 2, +(Lower_C_ID, Lower_D_ID)),
+         +(Get_Item (3, 2, +(Lower_D_ID, Lower_C_ID)) &
+             Get_Item (3, 1, +(Lower_C_ID, Lower_D_ID)) &
+             Get_Item (4, 1, +(Lower_C_ID, Lower_D_ID))
+          ));
    end Test_Closure;
 
    procedure Test_Goto (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -219,12 +215,7 @@ package body Dragon_4_43_LR1_Test is
       I0 : constant Item_Set := Closure
         (Get_Item_Set (1, 1, +EOF_ID),
          Has_Empty_Production, First, Grammar, Trace => False);
-
-      Expected : Item_Set;
-
    begin
-      Expected.State := LR.Unknown_State;
-
       if Test.Debug then
          Ada.Text_IO.Put_Line ("I0:");
          Put (I0, Show_Lookaheads => True);
@@ -233,32 +224,31 @@ package body Dragon_4_43_LR1_Test is
       --  [dragon] pg 233 - 234 gives the gotos as part of the discussion
 
       --  goto I0, S
-      Add (Get_Item_Node (1, 2, +EOF_ID).all, Expected);
-      One ("1", I0, Upper_S_ID, Expected);
+      One
+        ("1", I0, Upper_S_ID,
+         +Get_Item (1, 2, +EOF_ID));
 
       --  goto I0, C
-      Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (2, 2, +EOF_ID).all, Expected);
-      Add (Get_Item_Node (3, 1, +EOF_ID).all, Expected);
-      Add (Get_Item_Node (4, 1, +EOF_ID).all, Expected);
-      One ("2", I0, Upper_C_ID, Expected);
+      One
+        ("2", I0, Upper_C_ID,
+         +(Get_Item (2, 2, +EOF_ID) &
+             Get_Item (3, 1, +EOF_ID) &
+             Get_Item (4, 1, +EOF_ID)));
+
 
       --  goto I0, $ = null
-      Expected := (null, null, LR.Unknown_State, null);
-      One ("3", I0, EOF_ID, Expected);
+      One ("3", I0, EOF_ID, Null_Item_Set);
 
       --  goto I0, c
-      Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (3, 2, +(Lower_C_ID, Lower_D_ID)).all, Expected);
-      Add (Get_Item_Node (3, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
-      Add (Get_Item_Node (4, 1, +(Lower_D_ID, Lower_C_ID)).all, Expected);
-
-      One ("4", I0, Lower_C_ID, Expected);
+      One
+        ("4", I0, Lower_C_ID,
+         +(Get_Item (3, 2, +(Lower_C_ID, Lower_D_ID)) &
+             Get_Item (3, 1, +(Lower_D_ID, Lower_C_ID)) &
+             Get_Item (4, 1, +(Lower_D_ID, Lower_C_ID))
+          ));
 
       --  goto I0, d
-      Expected := (null, null, LR.Unknown_State, null);
-      Add (Get_Item_Node (4, 2, +(Lower_C_ID, Lower_D_ID)).all, Expected);
-      One ("5", I0, Lower_D_ID, Expected);
+      One ("5", I0, Lower_D_ID, +Get_Item (4, 2, +(Lower_C_ID, Lower_D_ID)));
    end Test_Goto;
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -362,8 +352,8 @@ package body Dragon_4_43_LR1_Test is
       --  'r1' means reduce by production 1, 0 indexed; our production 2
       --  'acc' = reduce by our production 1
 
-      Add_Action (Expected (S0), Lower_D_ID, S4);
       Add_Action (Expected (S0), Lower_C_ID, S3);
+      Add_Action (Expected (S0), Lower_D_ID, S4);
       Add_Action (Expected (S0), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S0), Upper_C_ID, S2);
       Add_Goto (Expected (S0), Upper_S_ID, S1);
@@ -371,13 +361,13 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
       Add_Action (Expected (S1), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S2), Lower_D_ID, S7);
       Add_Action (Expected (S2), Lower_C_ID, S6);
+      Add_Action (Expected (S2), Lower_D_ID, S7);
       Add_Action (Expected (S2), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S2), Upper_C_ID, S5);
 
-      Add_Action (Expected (S3), Lower_D_ID, S4);
       Add_Action (Expected (S3), Lower_C_ID, S3);
+      Add_Action (Expected (S3), Lower_D_ID, S4);
       Add_Action (Expected (S3), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S3), Upper_C_ID, S8);
 
@@ -388,8 +378,8 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
       Add_Action (Expected (S5), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S6), Lower_D_ID, S7);
       Add_Action (Expected (S6), Lower_C_ID, S6);
+      Add_Action (Expected (S6), Lower_D_ID, S7);
       Add_Action (Expected (S6), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S6), Upper_C_ID, S9);
 

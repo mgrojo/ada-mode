@@ -28,14 +28,20 @@ with FastToken.Token.Nonterminal;
 generic
    type Token_ID is (<>);
    First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID; -- always EOF_ID
+   Last_Terminal  : in Token_ID;
+   --  We assume this package is instantiated for a grammar generated
+   --  by wisi-generate, which allows the following assumptions:
+   --
+   --  Last_Terminal is EOF_ID
+   --  Token_ID'Succ(Last_Terminal) is Accept_ID
    with function Token_Image (Item : in Token_ID) return String;
    with procedure Put_Trace (Item : in String);
    with procedure Put_Trace_Line (Item : in String);
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
    with package Nonterminal is new Token_Pkg.Nonterminal;
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   with package Parser_Root is new FastToken.Parser (Token_Pkg, Last_Terminal, Lexer_Root);
+   with package Parser_Root is new FastToken.Parser
+     (Token_Pkg, Last_Terminal, Token_ID'Succ (Last_Terminal), Lexer_Root);
    First_State_Index : in Integer;
    with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : in Integer;

@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2013, 2014, 2015 Stephe Leake
+--  Copyright (C) 2013, 2014, 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -40,6 +40,11 @@ package body FastToken.Production is
       return (Token.List.Only (Tokens), Action, 0);
    end "+";
 
+   function "+" (Tokens : in Token.Token_ID; Action : in Nonterminal.Synthesize) return Right_Hand_Side
+   is begin
+      return (Token.List.Only (Token.Get (Tokens)), Action, 0);
+   end "+";
+
    function "+" (Action : in Nonterminal.Synthesize) return Right_Hand_Side
    is begin
       return (Token.List.Null_List, Action, 0);
@@ -63,6 +68,11 @@ package body FastToken.Production is
    function "<=" (LHS : in Nonterminal.Handle; RHS : in Right_Hand_Side) return Instance
    is begin
       return (LHS, RHS);
+   end "<=";
+
+   function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance
+   is begin
+      return (new Nonterminal.Class'(Nonterminal.Get (LHS)), RHS);
    end "<=";
 
    function "<=" (LHS : in Nonterminal.Class; RHS : in Right_Hand_Side) return Instance

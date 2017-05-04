@@ -45,11 +45,11 @@ package body Test_Empty_Productions_7 is
       EOF_ID,
 
       --  non-terminals
+      fasttoken_accept_ID,
       object_declaration_list_ID,
       object_declaration_ID,
       aliased_opt_ID,
-      constant_opt_ID,
-      opentoken_accept_ID);
+      constant_opt_ID);
 
    First_State_Index : constant Integer := 1;
 
@@ -57,7 +57,7 @@ package body Test_Empty_Productions_7 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, fasttoken_accept_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
@@ -70,28 +70,26 @@ package body Test_Empty_Productions_7 is
    use type Production.Instance;
    use type Production.List.Instance;
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
-
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    Grammar : constant Production.List.Instance :=
-     Nonterminal.Get (opentoken_accept_ID) <= (+object_declaration_list_ID) & (+EOF_ID) + Self -- 1
+     fasttoken_accept_ID <= object_declaration_list_ID & EOF_ID + Self -- 1
      and
-     Nonterminal.Get (object_declaration_list_ID) <= (+object_declaration_ID) + Self -- 2
+     object_declaration_list_ID <= object_declaration_ID + Self -- 2
      and
-     Nonterminal.Get (object_declaration_list_ID) <= (+object_declaration_list_ID) & (+object_declaration_ID) +
+     object_declaration_list_ID <= object_declaration_list_ID & object_declaration_ID +
      Self -- 3
      and
-     Nonterminal.Get (object_declaration_ID) <= (+IDENTIFIER_ID) & (+aliased_opt_ID) & (+constant_opt_ID) &
-     (+SEMICOLON_ID) + Self -- 4
+     object_declaration_ID <= IDENTIFIER_ID & aliased_opt_ID & constant_opt_ID &
+     SEMICOLON_ID + Self -- 4
      and
-     Nonterminal.Get (aliased_opt_ID) <= +Self -- 5
+     aliased_opt_ID <= +Self -- 5
      and
-     Nonterminal.Get (aliased_opt_ID) <= (+ALIASED_ID) + Self -- 6
+     aliased_opt_ID <= ALIASED_ID + Self -- 6
      and
-     Nonterminal.Get (constant_opt_ID) <= +Self -- 7
+     constant_opt_ID <= +Self -- 7
      and
-     Nonterminal.Get (constant_opt_ID) <= (+CONSTANT_ID) + Self -- 8
+     constant_opt_ID <= CONSTANT_ID + Self -- 8
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
@@ -157,7 +155,7 @@ package body Test_Empty_Productions_7 is
    ----------
    --  Test procedures
 
-   procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
       use LR1_Items;
@@ -173,49 +171,19 @@ package body Test_Empty_Productions_7 is
 
       Closure : constant Item_Set := LR1_Items.Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
-
-      Expected_Set : Item_Ptr;
-      Expected     : Item_Set;
    begin
       --  Expected lookahead closure:
       --
       --  ALIASED_OPT_ID <= ^ ALIASED_ID, CONSTANT_ID/SEMICOLON_ID
       --  ALIASED_OPT_ID <= ^, CONSTANT_ID/SEMICOLON_ID
       --  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, <empty>
-
-      Expected_Set := Get_Item_Node
-        (Prod       => 4,
-         Lookaheads => Null_Lookaheads,
-         Dot        => 2,
-         Next       => null);
-
-      Expected_Set := Get_Item_Node
-        (Prod       => 5,
-         Lookaheads => +(SEMICOLON_ID, CONSTANT_ID),
-         Dot        => 1,
-         Next       => Expected_Set);
-
-      Expected_Set := Get_Item_Node
-        (Prod       => 6,
-         Lookaheads => +(SEMICOLON_ID, CONSTANT_ID),
-         Dot        => 1,
-         Next       => Expected_Set);
-
-      Expected :=
-        (Set       => Expected_Set,
-         Goto_List => null,
-         State     => LR.Unknown_State,
-         Next      => null);
-
-      if Test.Debug then
-         --  computed output by Lookahead_Closure
-         Ada.Text_IO.Put_Line ("Expected:");
-         LR1_Items.Put (Expected);
-         Ada.Text_IO.New_Line;
-      end if;
-
-      Check ("1", Closure, Expected);
-   end Test_Lookahead_Closure;
+      Check
+        ("1", Closure,
+         +(Get_Item (4, 2, Null_Lookaheads) &
+             Get_Item (5, 1, +(SEMICOLON_ID, CONSTANT_ID)) &
+             Get_Item (6, 1, +(SEMICOLON_ID, CONSTANT_ID))
+          ));
+   end Test_Closure;
 
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -361,50 +329,11 @@ package body Test_Empty_Productions_7 is
       --  Expected reduction gotos:
       --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 7
 
-      Expected.Action_List := new Action_Node'
-        (Symbol  => Token_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
-         Action  => new Parse_Action_Node'
-           (Item => (Verb => Error),
-            Next => null),
-         Next  => null);
-
-      Expected.Action_List := new Action_Node'
-        (Symbol      => ALIASED_ID,
-         Action      => new Parse_Action_Node'
-           (Item     =>
-              (Verb  => Shift,
-               State => 6),
-            Next     => null),
-         Next        => Expected.Action_List);
-
-      Expected.Action_List := new Action_Node'
-        (Symbol            => CONSTANT_ID,
-         Action            => new Parse_Action_Node'
-           (Item           =>
-              (Verb        => Reduce,
-               LHS         => Get_Production (5).LHS,
-               Action      => null,
-               Index       => 0,
-               Token_Count => 0),
-            Next           => null),
-         Next              => Expected.Action_List);
-
-      Expected.Action_List := new Action_Node'
-        (Symbol            => SEMICOLON_ID,
-         Action            => new Parse_Action_Node'
-           (Item           =>
-              (Verb        => Reduce,
-               LHS         => Get_Production (5).LHS,
-               Action      => null,
-               Index       => 0,
-               Token_Count => 0),
-            Next           => null),
-         Next              => Expected.Action_List);
-
-      Expected.Goto_List := new Goto_Node'
-        (Symbol => aliased_opt_ID,
-         State  => 7,
-         Next   => null);
+      Add_Action (Expected, ALIASED_ID, 6);
+      Add_Action (Expected, CONSTANT_ID, Reduce, aliased_opt_ID, 0, Self);
+      Add_Action (Expected, SEMICOLON_ID, Reduce, aliased_opt_ID, 0, Self);
+      Add_Action (Expected, Token_Pkg.Terminal_ID'Last); -- default = error
+      Add_Goto (Expected, aliased_opt_ID, 7);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);
 
@@ -427,7 +356,7 @@ package body Test_Empty_Productions_7 is
       if T.Debug then
          Register_Routine (T, Goto_Transitions_2'Access, "debug");
       else
-         Register_Routine (T, Test_Lookahead_Closure'Access, "Test_Lookahead_Closure");
+         Register_Routine (T, Test_Closure'Access, "Test_Closure");
          Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
          Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
          Register_Routine (T, Actions_1'Access, "Actions_1");

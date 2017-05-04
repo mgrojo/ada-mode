@@ -101,7 +101,7 @@ package FastToken.Parser.LR is
    type Goto_Node_Ptr is access Goto_Node;
 
    type Goto_Node is record
-      Symbol : Nonterminal_ID;
+      Symbol : Token.Nonterminal_ID;
       State  : State_Index;
       Next   : Goto_Node_Ptr;
    end record;

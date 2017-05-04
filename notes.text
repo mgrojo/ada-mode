@@ -6,7 +6,48 @@ build/release_process.text
 
  current work
 
-compare lr1_goto_transitions to lalr_goto_transitions on subprograms.wy, gpr.wy
+ada-which-function fails for "+" get_fasttoken_aunit.adb:250
+    wisi-validate-cache: Wrong type argument: number-or-marker-p, nil
+
+add LR1 to test_empty_productions_1.adb
+    test all closures explicitly
+        dot 0 done
+        run all tests, commit
+
+    test all goto_transitions explicitly
+    test final parse table; review each item!
+
+
+compare lr1_goto_transitions to lalr_goto_transitions on:
+    subprograms.wy; not quite the same
+        duplicate entries in lalr; bug
+
+    test/test_goto_transitions.adb
+        closure (4, right_paren_id) /= null!?
+        closure (5, procedure_id) /= null!?
+            bug in closure handling of empty productions?
+
+    gpr.wy
+        lr1 missing some
+        1 EOI_ID PROJECT_ID
+        missing because of null CONTEXT_CLAUSE_OPT_ID
+            leading token on rhs;
+                same feature in one of empty_productions_*?
+                    add lr1 to that
+                    in empty_productions_1.ads, summarize what empty production features are tested where
+
+            add subset of gpr grammar to test/test_goto_transitions.adb
+
+
+    actions come from:
+        goto:
+            terminal -> shift
+            nonterminal -> reduce
+        lookahead:
+            shift
+
+        why doesn't goto include the lookaheads?
+
 
 delete body-only stuff from lr1_items spec
 
@@ -15,12 +56,19 @@ add syntax error handling
     Google Play, https://dickgrune.com/Books/PTAPG_2nd_Edition/
     https://www.journals.elsevier.com/theoretical-computer-science/
 
+    In closure, record derivation path - history of productions used?
+
+    d:/Books/eBooks/Tomas J Pennello/A forward move algorithm for LR error recovery.pdf
+
 move output_ada_emacs, output_elisp to ada-mode source tree
 
 delete Accept_State in lalr_generator?
 
 need to_token_wy_name
     for reporting conflicts
+
+output_elisp
+    don't output grammar in elisp; not worth it
 
 Ada lexer
     number:

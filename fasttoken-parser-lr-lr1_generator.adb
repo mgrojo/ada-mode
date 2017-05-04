@@ -115,7 +115,7 @@ package body FastToken.Parser.LR.LR1_Generator is
          while I /= null loop
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Put (I.all, Show_Lookaheads => True, Include_Goto_List => True);
+               Put (I.all, Show_Lookaheads => True, Show_Goto_List => True);
             end if;
 
             for Symbol in Token.Token_ID loop -- 'for each grammar symbol X'

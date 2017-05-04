@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,7 +18,6 @@
 
 pragma License (GPL);
 
-with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR;
 with FastToken.Parser.LR1_Items;
@@ -43,7 +42,7 @@ package body Test_Empty_Productions_5 is
       EOF_ID,
 
       --  non-terminals
-      opentoken_accept_ID,
+      fasttoken_accept_ID,
       compilation_unit_ID,
       accept_statement_ID,
       name_ID,
@@ -53,7 +52,7 @@ package body Test_Empty_Productions_5 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, fasttoken_accept_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
@@ -70,7 +69,7 @@ package body Test_Empty_Productions_5 is
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    Grammar : constant Production.List.Instance :=
-     Nonterminal.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
+     Nonterminal.Get (fasttoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
      and
      Nonterminal.Get (compilation_unit_ID) <= (+accept_statement_ID) & (+accept_statement_ID) + Self -- 2
      and
@@ -97,7 +96,7 @@ package body Test_Empty_Productions_5 is
    ----------
    --  Test procedures
 
-   procedure Test_Lookahead_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
       use LR1_Items;
@@ -110,10 +109,6 @@ package body Test_Empty_Productions_5 is
 
       Closure : constant Item_Set := LR1_Items.Closure
         (Kernel, Has_Empty_Production, First, Grammar, Trace => Test.Debug);
-
-      Expected_Set : Item_Ptr;
-      Expected     : Item_Set;
-
    begin
       --  Kernel 2:
       --
@@ -124,32 +119,11 @@ package body Test_Empty_Productions_5 is
       --  NAME_ID <= ^ IDENTIFIER_ID, SEMICOLON_ID/LEFT_PAREN_ID
       --  ACCEPT_STATEMENT_ID <= ACCEPT_ID ^ NAME_ID PARAMETER_PROFILE_ID SEMICOLON_ID, <no lookaheads>
 
-      Expected_Set := Get_Item_Node
-        (Prod       => 3, -- in grammar
-         Lookaheads => Null_Lookaheads,
-         Dot        => 2,
-         Next       => null);
-
-      Expected_Set := Get_Item_Node
-        (Prod       => 4, -- in grammar
-         Lookaheads => +(SEMICOLON_ID, LEFT_PAREN_ID),
-         Dot        => 1,
-         Next       => Expected_Set);
-
-      Expected :=
-        (Set       => Expected_Set,
-         Goto_List => null,
-         State     => LR.Unknown_State,
-         Next      => null);
-
-      if Test.Debug then
-         Ada.Text_IO.Put_Line ("Expected:");
-         Put (Expected);
-         Ada.Text_IO.New_Line;
-      end if;
-
-      Check ("1", Closure, Expected);
-   end Test_Lookahead_Closure;
+      Check
+        ("1", Closure,
+         +(Get_Item (3, 2, Null_Lookaheads) &
+             Get_Item (4, 1, +(SEMICOLON_ID, LEFT_PAREN_ID))));
+   end Test_Closure;
 
    ----------
    --  Public subprograms
@@ -165,7 +139,7 @@ package body Test_Empty_Productions_5 is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Test_Lookahead_Closure'Access, "Test_Lookahead_Closure");
+      Register_Routine (T, Test_Closure'Access, "Test_Closure");
    end Register_Tests;
 
 end Test_Empty_Productions_5;

@@ -1,9 +1,16 @@
 --  Abstract :
 --
---  Partial test of FastToken.Parser.LRK_Item and LALR
---  handling of empty productions.
+--  Partial test of FastToken.Parser.LRK_Item and LALR handling of
+--  empty productions. Similarly named files test similar features:
 --
---  Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+--  1 - empty production in a list
+--  4 - empty production in the first two nonterms in a production
+--  5 - empty production following a nonterm
+--  6 - empty production in a list; same conflict in two states
+--  7 - two consecutive empty productions not first
+--  8 - two consecutive empty productions, confused with a similar production
+--
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

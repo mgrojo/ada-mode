@@ -428,7 +428,10 @@ is
       Indent_Line ("package Nonterminal is new Token_Pkg.Nonterminal;");
       Indent_Line ("package Production is new FastToken.Production (Token_Pkg, Nonterminal);");
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
-      Indent_Line ("package Parser_Root is new FastToken.Parser (Token_Pkg, " & (-EOI_Name) & "_ID, " & "Lexer_Root);");
+      Indent_Line
+        ("package Parser_Root is new FastToken.Parser (Token_Pkg, " &
+           (-EOI_Name) & "_ID, " &
+           (-FastToken_Accept_Name) & "_ID, Lexer_Root);");
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);");

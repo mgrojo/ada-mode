@@ -202,7 +202,7 @@ package body Gen_FastToken_AUnit is
       AUnit.Assertions.Assert (Expected_1 = null, Label & "expected more items, got" & Integer'Image (I));
    end Check;
 
-   function Get_Production (Prod : in Integer) return Production.Instance
+   function Get_Production (Prod : in Integer) return Production.List.List_Iterator
    is
       Grammar_I : Production.List.List_Iterator := Grammar.First;
    begin
@@ -210,7 +210,12 @@ package body Gen_FastToken_AUnit is
          Production.List.Next (Grammar_I);
       end loop;
 
-      return Production.List.Current (Grammar_I);
+      return Grammar_I;
+   end Get_Production;
+
+   function Get_Production (Prod : in Integer) return Production.Instance
+   is begin
+      return Production.List.Current (Get_Production (Prod));
    end Get_Production;
 
    function Get_Item_Node
@@ -242,10 +247,32 @@ package body Gen_FastToken_AUnit is
          Next       => Next);
    end Get_Item_Node;
 
+   function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set
+   is begin
+      return LR1_Items.Item_Set'(Item, null, Item.State, null);
+   end "+";
+
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr
    is begin
       return new LR1_Items.Item_Set'(Item, null, Item.State, null);
    end "+";
+
+   function "&" (Left, Right : in LR1_Items.Item_Ptr) return LR1_Items.Item_Ptr
+   is
+      use LR1_Items;
+      I : Item_Ptr;
+   begin
+      if Left.Next = null then
+         Left.Next := Right;
+      else
+         I := Left.Next;
+         while I.Next /= null loop
+            I := I.Next;
+         end loop;
+         I.Next := Right;
+      end if;
+      return Left;
+   end "&";
 
    function Get_Item_Set
      (Prod      : in Integer;

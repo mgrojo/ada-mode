@@ -158,15 +158,15 @@ package body FastToken.Parser.LR.LALR_Generator is
 
                if Trace then
                   Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
-                  Put (Goto_Set, Show_Lookaheads => True, Include_Goto_List => True);
+                  Put (Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                end if;
             end if;
 
-            if Dot_ID in Nonterminal_ID and then First (Dot_ID)(Symbol) then
+            if Dot_ID in Token.Nonterminal_ID and then First (Dot_ID)(Symbol) then
                --  Find the production(s) that create Dot_ID
                --  with first token Symbol and put them in.
                --
-               --  FIXME: this is _not_ [dragon] fix 4.38 closure; where did it come from?
+               --  FIXME: this is _not_ [dragon] fig 4.38 closure; where did it come from?
                declare
                   Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
                   Prod   : Production.Instance;
@@ -193,7 +193,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
                               if Trace then
                                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
-                                 Put (Goto_Set, Show_Lookaheads => True, Include_Goto_List => True);
+                                 Put (Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                               end if;
                            end if;
                         end;

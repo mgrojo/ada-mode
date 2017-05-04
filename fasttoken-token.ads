@@ -38,7 +38,7 @@ generic
    Last_Terminal  : in Token_ID;
    --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
    --  non-reporting (comments, whitespace), and thus are not used in
-   --  generating LALR parse tables.
+   --  generating parse tables.
    --
    --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
    --  the nonterminals of a grammar.
@@ -53,11 +53,8 @@ generic
 package FastToken.Token is
 
    subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
-   --  We can't define Nonterminal_ID here, because if Last_Terminal =
-   --  Token_ID'last, there are no nonterminals.
-   --
-   --  FIXME: no meaningful grammar has no nonterminals, so can move
-   --  nonterminal here.
+   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
+   --  We assume Last_Terminal < Token_ID'last; ie there are some nonterminals.
 
    type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
 
@@ -82,15 +79,12 @@ package FastToken.Token is
    function Image (Token : in Instance) return String;
    --  Return a string for debug messages
 
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
+   function Get (ID : in Token_ID) return Instance'Class;
    --  Get a token with ID. Result is class-wide so derived
    --  types don't have to override Get.
-   --
-   --  FIXME: why a default ID?
 
    function "+" (Item : in Token_ID) return Instance'Class
      renames Get;
-   --  For use in Grammar statements.
 
    procedure Create
      (Lexeme    : in     String;
@@ -126,13 +120,15 @@ package FastToken.Token is
       function Only (Subject : in Class) return Instance;
       function Only (Subject : in Handle) return Instance;
 
-      function "&" (Left  : in Class; Right : in Class) return Instance;
-      function "&" (Left  : in Class; Right : in Instance) return Instance;
-      function "&" (Left  : in Instance; Right : in Class) return Instance;
-      function "&" (Left  : in Instance; Right : in Instance) return Instance;
-      function "&" (Left  : in Handle; Right : in Handle) return Instance;
-      function "&" (Left  : in Instance; Right : in Handle) return Instance;
-      function "&" (Left  : in Handle; Right : in Instance) return Instance;
+      function "&" (Left : in Token_ID; Right : in Token_ID) return Instance;
+      function "&" (Left : in Instance; Right : in Token_ID) return Instance;
+      function "&" (Left : in Class; Right : in Class) return Instance;
+      function "&" (Left : in Class; Right : in Instance) return Instance;
+      function "&" (Left : in Instance; Right : in Class) return Instance;
+      function "&" (Left : in Instance; Right : in Instance) return Instance;
+      function "&" (Left : in Handle; Right : in Handle) return Instance;
+      function "&" (Left : in Instance; Right : in Handle) return Instance;
+      function "&" (Left : in Handle; Right : in Instance) return Instance;
 
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List

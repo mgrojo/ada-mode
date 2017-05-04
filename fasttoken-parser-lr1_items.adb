@@ -45,6 +45,36 @@ package body FastToken.Parser.LR1_Items is
 
    Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
 
+   function Reverse_List (List : in Item_Ptr) return Item_Ptr
+   is
+      I      : Item_Ptr := List;
+      Result : Item_Ptr := null;
+      Next_1 : Item_Ptr;
+      Next_2 : Item_Ptr;
+   begin
+      while I /= null loop
+         Next_1      := Result;
+         Next_2      := I.Next;
+         Result      := I;
+         Result.Next := Next_1;
+         I           := Next_2;
+      end loop;
+      return Result;
+   end Reverse_List;
+
+   function Deep_Copy (List : in Item_Ptr) return Item_Ptr
+   is
+      I      : Item_Ptr := List;
+      Result : Item_Ptr;
+   begin
+      while I /= null loop
+         Result := new Item_Node'(I.Prod, I.Dot, I.State, I.Lookaheads, Result);
+         I := I.Next;
+      end loop;
+
+      return Reverse_List (Result);
+   end Deep_Copy;
+
    function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr
    is
       I      : Goto_Item_Ptr := List;
@@ -115,31 +145,27 @@ package body FastToken.Parser.LR1_Items is
 
          Added_Tokens := (others => False);
 
-         --  search all productions for rightmost derivations for
-         --  tokens we found last time.
          Prod_Iterator := Production.List.First (Grammar);
          while not Production.List.Is_Done (Prod_Iterator) loop
             if Search_Tokens (Token.ID (Production.List.Current (Prod_Iterator).LHS.all)) then
-               Token_Iterator := First
-                 (Production.List.Current (Prod_Iterator).RHS.Tokens);
-
+               Token_Iterator := First (Production.List.Current (Prod_Iterator).RHS.Tokens);
                loop
-                  if Token_Iterator /= Null_Iterator then
+                  if Token_Iterator = Null_Iterator then
+                     exit;
+                  else
                      Derived_Token := ID (Token_Iterator);
 
                      if not Derivations (Derived_Token) then
                         Added_Tokens (Derived_Token) := True;
                      end if;
 
-                     if (Derived_Token in Nonterminal_ID and then Has_Empty_Production (Derived_Token)) and
+                     if (Derived_Token in Token.Nonterminal_ID and then Has_Empty_Production (Derived_Token)) and
                        Next (Token_Iterator) /= Null_Iterator
                      then
                         Token_Iterator := Next (Token_Iterator);
                      else
                         exit;
                      end if;
-                  else
-                     exit;
                   end if;
                end loop;
             end if;
@@ -419,7 +445,7 @@ package body FastToken.Parser.LR1_Items is
    end Goto_Set;
 
    function Merge
-     (New_Item     : in out Item_Node;
+     (New_Item     : in     Item_Node;
       Existing_Set : in out Item_Set)
      return Boolean
    is
@@ -467,22 +493,11 @@ package body FastToken.Parser.LR1_Items is
       Added_Item : Boolean  := False;             -- 'until no more items can be added'
 
       Beta : Token.List.List_Iterator;
-      Merge_From  : Item_Node;
    begin
       --  Copy Set into I
       I.State     := Set.State;
       I.Goto_List := Deep_Copy (Set.Goto_List);
-
-      while Item /= null loop
-         I.Set := new Item_Node'
-           (Prod       => Item.Prod,
-            Dot        => Item.Dot,
-            State      => Set.State,
-            Lookaheads => Item.Lookaheads,
-            Next       => I.Set);
-
-         Item := Item.Next;
-      end loop;
+      I.Set       := Deep_Copy (Set.Set);
 
       Item := I.Set;
       For_Each_Item :
@@ -492,7 +507,7 @@ package body FastToken.Parser.LR1_Items is
          --  If B is a nonterminal, find its productions and place
          --  them in the set with lookaheads from FIRST(Beta a).
          if Item.Dot /= Token.List.Null_Iterator and then
-           Token.List.ID (Item.Dot) in Nonterminal_ID
+           Token.List.ID (Item.Dot) in Token.Nonterminal_ID
          then
             Beta := Token.List.Next_Token (Item.Dot); -- token after nonterminal, possibly null
 
@@ -507,36 +522,38 @@ package body FastToken.Parser.LR1_Items is
                         --  Use FIRST (a); a = Item.Lookaheads.
                         --  Lookaheads are all terminals, so
                         --  FIRST (a) = a.
+                        Added_Item := Added_Item or
+                          Merge
+                            (Item_Node_Of
+                               (B,
+                                State      => Set.State,
+                                Lookaheads => Item.Lookaheads),
+                             I);
 
-                        --  Need a variable, because the lookaheads might be freed.
-                        Merge_From := Item_Node_Of
-                          (B,
-                           State      => Set.State,
-                           Lookaheads => Item.Lookaheads);
-
-                        Added_Item := Added_Item or Merge (Merge_From, I);
                         exit Empty_Nonterm;
 
                      elsif Token.List.ID (Beta) in Token.Terminal_ID then
                         --  FIRST (Beta) = Beta
-                        Merge_From := Item_Node_Of
-                          (B,
-                           State        => Set.State,
-                           Lookaheads   => +Token.List.ID (Beta));
-
-                        Added_Item := Added_Item or Merge (Merge_From, I);
+                        Added_Item := Added_Item or
+                          Merge
+                            (Item_Node_Of
+                               (B,
+                                State        => Set.State,
+                                Lookaheads   => +Token.List.ID (Beta)),
+                             I);
                         exit Empty_Nonterm;
 
                      else
                         --  Beta is a nonterminal; use FIRST (Beta)
                         for Terminal in Token.Terminal_ID loop
                            if First (Token.List.ID (Beta)) (Terminal) then
-                              Merge_From := Item_Node_Of
-                                (B,
-                                 State        => Set.State,
-                                 Lookaheads   => +Terminal);
-
-                              Added_Item := Added_Item or Merge (Merge_From, I);
+                              Added_Item := Added_Item or
+                                Merge
+                                  (Item_Node_Of
+                                     (B,
+                                      State        => Set.State,
+                                      Lookaheads   => +Terminal),
+                                   I);
                            end if;
                         end loop;
 
@@ -564,7 +581,7 @@ package body FastToken.Parser.LR1_Items is
 
             if Trace then
                Ada.Text_IO.Put_Line ("I:");
-               Put (I, Show_Lookaheads => True);
+               Put (I);
                Ada.Text_IO.New_Line;
             end if;
          else
@@ -572,6 +589,8 @@ package body FastToken.Parser.LR1_Items is
          end if;
       end loop For_Each_Item;
 
+      --  Reverse so list is in Nonterminal_ID order
+      I.Set := Reverse_List (I.Set);
       return I;
    end Closure;
 
@@ -611,13 +630,45 @@ package body FastToken.Parser.LR1_Items is
    function In_Kernel (Item : in Item_Node) return Boolean
    is
       use Token.List;
-      use type Token.Token_ID;
+      use all type Token.Token_ID;
+      use all type Nonterminal.Handle;
    begin
       return
-        Item.Dot = Null_Iterator or else
-        (Token.List.ID (Item.Dot) = EOF_Token or -- start symbol production with dot before EOF.
-           Item.Dot /= Token.List.First (Item.Prod.RHS.Tokens));
+        Null_Iterator /= First (Item.Prod.RHS.Tokens) and
+        (Item.Dot = Null_Iterator or else
+           ((ID (Item.Prod.LHS) = Accept_Token and
+               Item.Dot = First (Item.Prod.RHS.Tokens))
+              -- start symbol production with dot first.
+              or
+              Item.Dot /= First (Item.Prod.RHS.Tokens)));
    end In_Kernel;
+
+   procedure Kernel_Only (Set : in out Item_Set)
+   is
+      I    : Item_Ptr;
+      Temp : Item_Ptr;
+   begin
+      while Set.Set /= null and then
+        (not In_Kernel (Set.Set.all))
+      loop
+         Temp := Set.Set;
+         Set.Set := Set.Set.Next;
+         Free (Temp);
+      end loop;
+
+      if Set.Set /= null then
+         I := Set.Set;
+         while I.Next /= null loop
+            if In_Kernel (I.Next.all) then
+               I := I.Next;
+            else
+               Temp := I.Next;
+               Free (I);
+               I := Temp;
+            end if;
+         end loop;
+      end if;
+   end Kernel_Only;
 
    function Token_Name (Item : in Token.Handle) return String is
    begin
@@ -711,10 +762,10 @@ package body FastToken.Parser.LR1_Items is
    end Put;
 
    procedure Put
-     (Item              : in Item_Set;
-      Show_Lookaheads   : in Boolean := False;
-      Kernel_Only       : in Boolean := False;
-      Include_Goto_List : in Boolean := False)
+     (Item            : in Item_Set;
+      Show_Lookaheads : in Boolean := True;
+      Kernel_Only     : in Boolean := False;
+      Show_Goto_List  : in Boolean := False)
    is
       use Ada.Text_IO;
       Set : Item_Ptr := Item.Set;
@@ -732,12 +783,12 @@ package body FastToken.Parser.LR1_Items is
          Set := Set.Next;
       end loop;
 
-      if Include_Goto_List then
+      if Show_Goto_List then
          Put (Item.Goto_List);
       end if;
    end Put;
 
-   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False)
+   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True)
    is
       use Ada.Text_IO;
       Set : Item_Set_Ptr := Item.Head;

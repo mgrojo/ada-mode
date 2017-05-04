@@ -32,8 +32,12 @@ with FastToken.Lexer;
 with FastToken.Token;
 generic
    with package Token is new FastToken.Token (<>);
-   EOF_Token : in Token.Token_ID;
-   pragma Unreferenced (EOF_Token); -- used in children
+   EOF_Token    : in Token.Token_ID;
+   Accept_Token : in Token.Token_ID;
+   --  Accept_Token is the grammar start symbol; the LHS of the
+   --  production whose action is accept - we assume there is only
+   --  one.
+   pragma Unreferenced (EOF_Token, Accept_Token); -- used in children
    with package Lexer is new FastToken.Lexer (Token);
 package FastToken.Parser is
 
@@ -42,8 +46,6 @@ package FastToken.Parser is
    --  not work. Private does not work either.
    package Token_Pkg renames Token;
    package Lexer_Pkg renames Lexer;
-
-   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
 
    type Instance is abstract tagged record
       Lexer : Lexer_Pkg.Handle;

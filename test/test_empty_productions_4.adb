@@ -42,7 +42,7 @@ package body Test_Empty_Productions_4 is
       EOF_ID,
 
       --  non-terminals
-      opentoken_accept_ID,
+      fasttoken_accept_ID,
       compilation_unit_ID,
       subprogram_declaration_ID,
       overriding_indicator_ID);
@@ -51,7 +51,7 @@ package body Test_Empty_Productions_4 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, fasttoken_accept_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
@@ -68,7 +68,7 @@ package body Test_Empty_Productions_4 is
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    Grammar : constant Production.List.Instance :=
-     Nonterminal.Get (opentoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
+     Nonterminal.Get (fasttoken_accept_ID) <= (+compilation_unit_ID) & (+EOF_ID) + Self -- 1
      and
      Nonterminal.Get (compilation_unit_ID) <= (+subprogram_declaration_ID) & (+subprogram_declaration_ID) + Self -- 2
      and

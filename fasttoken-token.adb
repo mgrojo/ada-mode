@@ -40,7 +40,7 @@ package body FastToken.Token is
       return Token_Image (Token.ID);
    end Image;
 
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class
+   function Get (ID : in Token_ID) return Instance'Class
    is begin
       return Instance'Class (Instance'(ID => ID));
    end Get;
@@ -110,6 +110,24 @@ package body FastToken.Token is
               (Token => new Class'(Left),
                Next  => Right_Node),
             Tail     => Right_Node);
+      end "&";
+
+      function "&" (Left : in Token_ID; Right : in Token_ID) return Instance
+      is
+         Right_Node : constant List_Node_Ptr := new List_Node'
+           (Token => new Class'(Get (Right)),
+            Next  => null);
+      begin
+         return
+           (Head     => new List_Node'
+              (Token => new Class'(Get (Left)),
+               Next  => Right_Node),
+            Tail     => Right_Node);
+      end "&";
+
+      function "&" (Left : in Instance; Right : in Token_ID) return Instance
+      is begin
+         return Left & Get (Right);
       end "&";
 
       function "&" (Left  : in Class; Right : in Instance) return Instance

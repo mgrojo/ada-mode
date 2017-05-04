@@ -2,7 +2,7 @@
 --
 --  Type and operations for nonterminal tokens
 --
---  Copyright (C) 2009, 2012, 2014, 2015 Stephe Leake
+--  Copyright (C) 2009, 2012, 2014, 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -37,10 +37,13 @@ package FastToken.Token.Nonterminal is
 
    type Handle is access all Class;
 
-   function Get (ID : in Token_ID := Token_ID'First) return Instance'Class;
+   function Get (ID : in Token_ID) return Class;
    --  Get a nonterminal token with the given ID.
    --
    --  Return type is class-wide to avoid forcing derived types to override this
+
+   function "+" (ID : in Token_ID) return Instance'Class
+     renames Get;
 
    function ID (Token : in Handle) return Token_ID;
 

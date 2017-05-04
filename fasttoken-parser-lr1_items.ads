@@ -114,6 +114,11 @@ package FastToken.Parser.LR1_Items is
       Next      : Item_Set_Ptr;
    end record;
 
+   Null_Item_Set : constant Item_Set := (null, null, Unknown_State, null);
+
+   procedure Kernel_Only (Set : in out Item_Set);
+   --  Keep only kernel items of Set; free the rest. [dragon] sec 4.7 pg 240
+
    type Item_Set_List is record
       Head : Item_Set_Ptr;
       Size : Unknown_State_Index := 0;
@@ -125,8 +130,8 @@ package FastToken.Parser.LR1_Items is
    --  Add New_Item to Target without checking to see if it is in there already.
 
    function Merge
-     (New_Item         : in out Item_Node;
-      Existing_Set     : in out Item_Set)
+     (New_Item     : in     Item_Node;
+      Existing_Set : in out Item_Set)
      return Boolean;
    --  Merge New_Item into Existing_Set. Return True if Existing_Set
    --  is modified.
@@ -176,9 +181,9 @@ package FastToken.Parser.LR1_Items is
 
    function Image (Item : in Token_ID_Set) return String;
 
-   type Derivation_Matrix is array (Nonterminal_ID) of Token_ID_Set;
+   type Derivation_Matrix is array (Token.Nonterminal_ID) of Token_ID_Set;
 
-   type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
+   type Nonterminal_ID_Set is array (Token.Nonterminal_ID) of Boolean;
 
    function Has_Empty_Production (Grammar : in Production.List.Instance) return Nonterminal_ID_Set;
 
@@ -207,14 +212,14 @@ package FastToken.Parser.LR1_Items is
 
    procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
    procedure Put
-     (Item              : in Item_Set;
-      Show_Lookaheads   : in Boolean := False;
-      Kernel_Only       : in Boolean := False;
-      Include_Goto_List : in Boolean := False);
+     (Item            : in Item_Set;
+      Show_Lookaheads : in Boolean := True;
+      Kernel_Only     : in Boolean := False;
+      Show_Goto_List  : in Boolean := False);
    --  Ignores Item.Next.
 
    procedure Put (Item : in Goto_Item_Ptr);
-   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := False);
+   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);

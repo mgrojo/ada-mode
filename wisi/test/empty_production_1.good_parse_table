@@ -94,7 +94,7 @@ State 9:
 
 LR1 Parse Table:
 State 1:
-  DECLARATIVE_PART_ID <= ^, WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, WISI_EOI_ID
 
    WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
@@ -105,7 +105,6 @@ State 1:
    BODY_ID             goto state 5
 
 State 2:
-  DECLARATIVE_PART_ID <= ^, BEGIN_ID
   BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
 
    BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
@@ -150,7 +149,6 @@ State 6:
 
 
 State 7:
-  DECLARATIVE_PART_ID <= ^, BEGIN_ID
   BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
 
    BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID

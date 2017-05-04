@@ -78,6 +78,9 @@ package body FastToken.Parser.LR is
       Action : constant Parse_Action_Rec := (Verb => Error);
       Node   : Action_Node_Ptr           := State.Action_List;
    begin
+      if Node = null then
+         raise Programmer_Error with "adding an error action to a parse table state before other actions.";
+      end if;
       loop
          exit when Node.Next = null;
          Node := Node.Next;

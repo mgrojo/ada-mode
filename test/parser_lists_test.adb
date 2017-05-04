@@ -35,7 +35,7 @@ package body Parser_Lists_Test is
    package Token_Pkg is new FastToken.Token (Token_ID, If_ID, EOF_ID, Token_ID'Image);
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Statement_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);

@@ -3,7 +3,7 @@
 --  Type and operations for building grammar
 --  productions.
 --
---  Copyright (C) 2003, 2013 - 2015 Stephe Leake
+--  Copyright (C) 2003, 2013 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -51,6 +51,7 @@ package FastToken.Production is
 
    function "+" (Tokens : in Token.List.Instance; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
    function "+" (Tokens : in Token.Class; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
+   function "+" (Tokens : in Token.Token_ID; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
    function "+" (Action : in Nonterminal.Synthesize) return Right_Hand_Side;
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
@@ -71,6 +72,7 @@ package FastToken.Production is
    --
    --    Subtraction <= Number & Minus_Sign & Number + Nonterminal.Synthesize_Self
 
+   function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance;
    function "<=" (LHS : in Nonterminal.Handle; RHS : in Right_Hand_Side) return Instance;
    function "<=" (LHS : in Nonterminal.Class; RHS : in Right_Hand_Side) return Instance;
 
@@ -84,10 +86,10 @@ package FastToken.Production is
       function "+" (Subject : in Production.Instance) return Instance
         renames Only;
 
-      function "and" (Left  : in Production.Instance; Right : in Production.Instance) return Instance;
-      function "and" (Left  : in Production.Instance; Right : in Instance) return Instance;
-      function "and" (Left  : in Instance;                      Right : in Production.Instance) return Instance;
-      function "and" (Left  : in Instance;                      Right : in Instance) return Instance;
+      function "and" (Left : in Production.Instance; Right : in Production.Instance) return Instance;
+      function "and" (Left : in Production.Instance; Right : in Instance) return Instance;
+      function "and" (Left : in Instance; Right : in Production.Instance) return Instance;
+      function "and" (Left : in Instance; Right : in Instance) return Instance;
 
       procedure Clean (List : in out Instance);
       --  Delete all elements from list, freeing them.

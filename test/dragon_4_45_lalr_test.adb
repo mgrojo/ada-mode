@@ -52,7 +52,7 @@ package body Dragon_4_45_LALR_Test is
    package Nonterminal is new Tokens_Pkg.Nonterminal;
    package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
-   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Accept_ID, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
@@ -207,8 +207,8 @@ package body Dragon_4_45_LALR_Test is
    begin
       --  figure 4.41 pg 239
 
-      Add_Action (Expected (S0), Lower_D_ID, S47);
       Add_Action (Expected (S0), Lower_C_ID, S36);
+      Add_Action (Expected (S0), Lower_D_ID, S47);
       Add_Action (Expected (S0), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S0), Upper_C_ID, S2);
       Add_Goto (Expected (S0), Upper_S_ID, S1);
@@ -216,13 +216,13 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
       Add_Action (Expected (S1), Tokens_Pkg.Terminal_ID'Last); -- default = error
 
-      Add_Action (Expected (S2), Lower_D_ID, S47);
       Add_Action (Expected (S2), Lower_C_ID, S36);
+      Add_Action (Expected (S2), Lower_D_ID, S47);
       Add_Action (Expected (S2), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S2), Upper_C_ID, S5);
 
-      Add_Action (Expected (S36), Lower_D_ID, S47);
       Add_Action (Expected (S36), Lower_C_ID, S36);
+      Add_Action (Expected (S36), Lower_D_ID, S47);
       Add_Action (Expected (S36), Tokens_Pkg.Terminal_ID'Last); -- default = error
       Add_Goto (Expected (S36), Upper_C_ID, S89);
 

@@ -81,7 +81,7 @@
       ((default . error) (Wisi_EOI . (library_item . 1)) (STRING_LITERAL . (library_item . 1)) (PROCEDURE . (library_item . 1)))
       ((default . error) (BEGIN .  14))
       ((default . error) (Wisi_EOI . (compilation_unit . 0)))
-      ((default . error) (IS . ( 11 (parameter_list . 0))) (LEFT_PAREN .  12))
+      ((default . error) (LEFT_PAREN .  12) (IS . ( 11 (parameter_list . 0))))
       ((default . error) (NEW .  17))
       ((default . error) (IDENTIFIER .  16))
       ((default . error) (IS . (subprogram_specification . 0)))

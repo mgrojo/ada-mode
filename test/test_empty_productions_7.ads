@@ -3,7 +3,9 @@
 --  Partial test of FastToken.Production.Parser.LRK_Item and LALR
 --  handling of empty productions.
 --
---  Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+--  See test_empty_productions_1.ads for summary of similar tests
+--
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

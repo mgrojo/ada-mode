@@ -218,7 +218,7 @@ package body FastToken.Parser.LR.Generator_Utils is
          Goto_Ptr : LR1_Items.Goto_Item_Ptr := Closure.Goto_List;
       begin
          while Goto_Ptr /= null loop
-            if Goto_Ptr.Symbol in Nonterminal_ID then
+            if Goto_Ptr.Symbol in Token.Nonterminal_ID then
                Table (State).Goto_List := new Goto_Node'
                  (Symbol => Goto_Ptr.Symbol,
                   State  => Goto_Ptr.Set.State,
@@ -346,7 +346,7 @@ package body FastToken.Parser.LR.Generator_Utils is
                if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
                  (Item.Dot = Null_Iterator or else
                     (Next_Token (Item.Dot) = Null_Iterator and
-                       (ID (Item.Dot) in Nonterminal_ID and then
+                       (ID (Item.Dot) in Token.Nonterminal_ID and then
                           Has_Empty_Production (ID (Item.Dot)))))
                then
                   return Nonterminal.ID (Action.LHS);

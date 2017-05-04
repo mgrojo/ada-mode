@@ -23,6 +23,7 @@ with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token.Nonterminal;
@@ -44,7 +45,7 @@ package body Test_Empty_Productions_1 is
       EOF_ID,
 
       --  non-terminals
-      opentoken_accept_ID,
+      fasttoken_accept_ID,
       declarations_ID,
       declarative_part_ID,
       body_ID);
@@ -53,36 +54,35 @@ package body Test_Empty_Productions_1 is
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, fasttoken_accept_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+   package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+   package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
-   use type Token_Pkg.List.Instance;
-   use type Production.Right_Hand_Side;
-   use type Production.Instance;
-   use type Production.List.Instance;
-
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
+   use all type Production.Instance;
+   use all type Production.List.Instance;
+   use all type Production.Right_Hand_Side;
+   use all type Token_Pkg.List.Instance;
 
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    Grammar : constant Production.List.Instance :=
-     Nonterminal.Get (opentoken_accept_ID) <= Nonterminal.Get (declarative_part_ID) & (+EOF_ID) + Self -- 1
+     fasttoken_accept_ID <= declarative_part_ID & EOF_ID + Self -- 1
      and
-     Nonterminal.Get (declarations_ID) <= (+body_ID) + Self -- 2
+     declarative_part_ID <= +Self -- 2
      and
-     Nonterminal.Get (declarations_ID) <= (+declarations_ID) & (+body_ID) + Self -- 3
+     declarative_part_ID <= declarations_ID + Self -- 3
      and
-     Nonterminal.Get (declarative_part_ID) <= +Self -- 4
+     declarations_ID <= body_ID + Self -- 4
      and
-     Nonterminal.Get (declarative_part_ID) <= (+declarations_ID) + Self -- 5
+     declarations_ID <= declarations_ID & body_ID + Self -- 5
      and
-     Nonterminal.Get (body_ID) <= (+IS_ID) & (+declarative_part_ID) & (+BEGIN_ID) & (+SEMICOLON_ID) + Self -- 6
+     body_ID <= IS_ID & declarative_part_ID & BEGIN_ID & SEMICOLON_ID + Self -- 6
      ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
@@ -95,6 +95,41 @@ package body Test_Empty_Productions_1 is
    First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
+   procedure Test_Closure
+     (Prod     : in Integer;
+      Symbol   : in Token_Pkg.Terminal_ID;
+      Expected : in LR1_Items.Item_Set;
+      Debug    : in Boolean)
+   is
+      use Ada.Text_IO;
+      use LR1_Items;
+      use FastToken_AUnit;
+
+      Label : constant String := Integer'Image (Prod) & "." & Token_ID'Image (Symbol);
+
+      Computed : constant LR1_Items.Item_Set := LR1_Items.Closure
+        ((Set             => new LR1_Items.Item_Node'
+            (LR1_Items.Item_Node_Of
+               (FastToken_AUnit.Get_Production (Prod),
+                LR.Unknown_State,
+                +Symbol)),
+          Goto_List       => null,
+          State           => LR.Unknown_State,
+          Next            => null),
+         Has_Empty_Production, First, Grammar,
+         Trace            => Debug);
+
+   begin
+      if Debug then
+         Put_Line ("label:   " & Label);
+         Put_Line ("expected: "); Put (Expected);
+         Put_Line ("computed: "); Put (Computed);
+      end if;
+
+      Check (Label, Computed, Expected);
+
+   end Test_Closure;
+
    procedure Test_Goto_Transitions
      (Label    : in String;
       Kernel   : in LR1_Items.Item_Set;
@@ -105,15 +140,23 @@ package body Test_Empty_Productions_1 is
       use Ada.Text_IO;
       use LR1_Items;
       use FastToken_AUnit;
-      Computed : constant Item_Set := Generators.LALR_Goto_Transitions (Kernel, Symbol, First, Grammar, Debug);
+      Computed : Item_Set := LALR_Generator.LALR_Goto_Transitions (Kernel, Symbol, First, Grammar, Debug);
    begin
       if Debug then
          Put_Line ("symbol:   " & Token_ID'Image (Symbol));
          Put ("expected: "); Put (Expected);
-         Put ("computed: "); Put (Computed);
+         Put ("LALR computed: "); Put (Computed);
       end if;
 
-      Check (Label, Computed, Expected);
+      Check (Label & ",LALR", Computed, Expected);
+
+      Computed := LR1_Generator.LR1_Goto_Transitions (Kernel, Symbol, Has_Empty_Production, First, Grammar, Debug);
+      if Debug then
+         Put ("LR1 computed: "); Put (Computed);
+      end if;
+
+      Check (Label & ",LR1", Computed, Expected);
+
    end Test_Goto_Transitions;
 
    procedure Test_Actions
@@ -152,6 +195,89 @@ package body Test_Empty_Productions_1 is
    begin
       Check ("1", First (declarations_ID)(IS_ID), True);
    end Test_First;
+
+   procedure Test_Closure (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+
+      use FastToken_AUnit;
+      use LR1_Items;
+
+   begin
+      --  Match each test to [A -> alpha Dot B Beta, a]
+      --  All have Dot at beginning, so alpha = empty,
+      --  'a' is only relevent when Beta is empty
+
+      Test_Closure
+        --  A = fasttoken_accept_ID, B = declarative_part_ID, Beta = EOF_ID, a = irrelevant
+        (1, BEGIN_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (1, 0, +BEGIN_ID) &
+               Get_Item (2, 0, +EOF_ID) &
+               Get_Item (3, 0, +EOF_ID) &
+               Get_Item (4, 0, +(IS_ID, EOF_ID)) &
+               Get_Item (5, 0, +(IS_ID, EOF_ID)) &
+               Get_Item (6, 0, +(IS_ID, EOF_ID))));
+
+      --  Closure on 1, 0 * gives the same result, with * in the first item lookahead.
+
+      Test_Closure
+        --  A = declarative_part_ID, B = empty, Beta = empty, a = BEGIN_ID
+        (2, BEGIN_ID, Debug =>  Test.Debug,
+         Expected => +(Get_Item (2, 0, +BEGIN_ID)));
+
+      --  Closure on 2, 0 * gives the same result, with * in the lookahead.
+
+      Test_Closure
+        --  A = declarative_part_ID, B = declarations_ID, Beta = empty, a = BEGIN_ID
+        --  Same as tail of 1, 0, BEGIN_ID, starting at prod 3.
+        (3, BEGIN_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (3, 0, +BEGIN_ID) &
+               Get_Item (4, 0, +(BEGIN_ID, IS_ID)) &
+               Get_Item (5, 0, +(BEGIN_ID, IS_ID)) &
+               Get_Item (6, 0, +(BEGIN_ID, IS_ID))
+               ));
+
+      Test_Closure
+        --  A = declarative_part_ID, B = declarations_ID, Beta = empty, a = IS_ID
+        (3, IS_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (3, 0, +IS_ID) &
+               Get_Item (4, 0, +IS_ID) &
+               Get_Item (5, 0, +IS_ID) &
+               Get_Item (6, 0, +IS_ID)
+               ));
+
+      --  Closure on 3, 0 SEMICOLON_ID/EOF_ID gives the same result as 1, 0 BEGIN_ID, with the given lookahead.
+
+      Test_Closure
+        --  A = declarative_part_ID, B = body_ID, Beta = empty, a = BEGIN_ID
+        (4, BEGIN_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (4, 0, +BEGIN_ID) &
+               Get_Item (6, 0, +BEGIN_ID)
+               ));
+
+      --  Closure on 4, 0 * gives the same result as 4, 0 BEGIN_ID, with the given lookahead.
+
+      Test_Closure
+        --  A = declarations_ID, B = declarations_ID, Beta = body_ID, a = irrelevant
+        (5, IS_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (5, 0, +IS_ID) &
+               Get_Item (4, 0, +IS_ID) &
+               Get_Item (6, 0, +IS_ID)
+               ));
+
+      Test_Closure
+        --  A = body_ID, B = IS_ID, Beta = irrelevant, a = irrelevant
+        (6, IS_ID, Debug =>  Test.Debug,
+         Expected =>
+           +(Get_Item (6, 0, +IS_ID)
+               ));
+
+   end Test_Closure;
 
    procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -249,7 +375,7 @@ package body Test_Empty_Productions_1 is
       use LR1_Items;
       use FastToken_AUnit;
 
-      Kernels  : constant Item_Set_List := Generators.LALR_Kernels
+      Kernels  : constant Item_Set_List := LALR_Generator.LALR_Kernels
         (Grammar, First, Trace => False, First_State_Index => 1);
       Kernel   : constant Item_Set_Ptr  := Find (2, Kernels);
       Expected : Goto_Item_Ptr;
@@ -303,7 +429,7 @@ package body Test_Empty_Productions_1 is
       use LR1_Items;
       use FastToken_AUnit;
 
-      Kernels : constant Item_Set_List := Generators.LALR_Kernels
+      Kernels : constant Item_Set_List := LALR_Generator.LALR_Kernels
         (Grammar, First, Trace => False, First_State_Index => 1);
 
       Expected : Parse_State;
@@ -329,15 +455,6 @@ package body Test_Empty_Productions_1 is
          Next  => null);
 
       Expected.Action_List := new Action_Node'
-        (Symbol      => IS_ID,
-         Action      => new Parse_Action_Node'
-           (Item     =>
-              (Verb  => Shift,
-               State => 2),
-            Next     => null),
-         Next        => Expected.Action_List);
-
-      Expected.Action_List := new Action_Node'
         (Symbol            => BEGIN_ID,
          Action            => new Parse_Action_Node'
            (Item           =>
@@ -348,6 +465,15 @@ package body Test_Empty_Productions_1 is
                Token_Count => 0),
             Next           => null),
          Next              => Expected.Action_List);
+
+      Expected.Action_List := new Action_Node'
+        (Symbol      => IS_ID,
+         Action      => new Parse_Action_Node'
+           (Item     =>
+              (Verb  => Shift,
+               State => 2),
+            Next     => null),
+         Next        => Expected.Action_List);
 
       Expected.Goto_List := new Goto_Node'
         (Symbol => body_ID,
@@ -383,9 +509,10 @@ package body Test_Empty_Productions_1 is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Actions_1'Access, "Actions_1");
+         Register_Routine (T, Test_Closure'Access, "Debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
+         Register_Routine (T, Test_Closure'Access, "Test_Closure");
          Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
          Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
          Register_Routine (T, Goto_Set_1'Access, "Goto_Set_1");

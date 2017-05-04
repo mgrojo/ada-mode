@@ -59,7 +59,7 @@ package body Association_Grammar_Test is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Statement_ID, Lexer_Root);
    First_State_Index : constant := 1;
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
    First_Parser_Label : constant := 1;
@@ -216,6 +216,3 @@ package body Association_Grammar_Test is
    end Register_Tests;
 
 end Association_Grammar_Test;
---  Local Variables:
---  eval: (ada-indent-opentoken-mode)
---  End:

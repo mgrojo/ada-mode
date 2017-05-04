@@ -30,7 +30,7 @@ pragma License (GPL);
 
 package body FastToken.Token.Nonterminal is
 
-   function Get (ID   : in Token_ID := Token_ID'First) return Instance'Class
+   function Get (ID : in Token_ID) return Instance'Class
    is begin
       return Instance'Class (Instance'(ID => ID));
    end Get;
