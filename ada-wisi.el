@@ -1158,7 +1158,7 @@ comment:      comment"
 
 	(save-excursion
 	  (forward-comment -1)
-	  (if (eolp)
+	  (if (looking-at "\\s *$")
 	      ;; no comment on previous line
 	      (setq after 'code)
 

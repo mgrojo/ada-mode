@@ -216,7 +216,8 @@ package body Ada_Mode.Parens is
       if A.all
         or else (B.all
                    --EMACSCMD:(test-face "then" 'font-lock-keyword-face)
-                   and then C
+                   and then
+                   (C)
                    and then D)
       then
          null;

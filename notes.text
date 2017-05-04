@@ -7,7 +7,7 @@ o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
-o.e.a.stephe-5 (from o.e.a): gpr_query completion table
+o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)

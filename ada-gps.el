@@ -224,19 +224,7 @@ are indented correctly.")
     (when (>= (point) savep)
       (setq to-indent t))
 
-    (if (eolp)
-	;; Indenting a blank line. Insert some text so the GPS engine
-	;; won't return 0.
-	;;
-	;; test/ada-gps/ada_gps_bug_005.adb
-	(progn
-	  (insert "bogus")
-	  (ada-gps-indent-region (line-beginning-position) (line-end-position))
-	  (backward-delete-char 5))
-
-      ;; indenting a non-blank line
-      (ada-gps-indent-region (line-beginning-position) (line-end-position))
-      )
+    (ada-gps-indent-region (line-beginning-position) (line-end-position))
 
     (goto-char savep)
     (when to-indent (back-to-indentation))
@@ -256,11 +244,26 @@ are indented correctly.")
     (let ((source-buffer (current-buffer))
 	  (begin-line (line-number-at-pos begin))
 	  (end-line (line-number-at-pos end))
+	  (delete-bogus nil)
 	  (failed nil))
+
+      (goto-char begin)
+      (when (and (= begin-line end-line)
+		 (eolp))
+	;; Indenting a single blank line. Insert some text so the GPS
+	;; engine won't return 0.
+	;;
+	;; test/ada-gps/ada_gps_bug_005.adb
+	(insert "bogus")
+	(setq end (point))
+	(setq delete-bogus t))
 
       (ada-gps-session-send
        (format "compute_region_indent %d %d %d" begin-line end-line (1- (position-bytes end))) nil t)
       (ada-gps-session-send (buffer-substring-no-properties (point-min) end) t nil)
+
+      (when delete-bogus
+	(backward-delete-char 5))
 
       (with-current-buffer (ada-gps--session-buffer ada-gps-session)
 	;; buffer contains two numbers per line; Emacs line number,
