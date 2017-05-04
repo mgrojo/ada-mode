@@ -19,8 +19,7 @@ is
 
    --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(execute-kbd-macro "A")(char-before))
    --EMACSRESULT:?A
-   -- clean up to keep syntax legal, allow diff compare
-   --EMACSCMD:(progn (forward-line -3)(kill-line 1))
+   --EMACSCMD:(progn (forward-line -2)(kill-line 1))
 
    --EMACSCMD:(progn (end-of-line 1)(newline-and-indent)(execute-kbd-macro "a")(char-before))
    --EMACSRESULT:?a
@@ -99,8 +98,6 @@ begin
       E := 'z';
    end;
 
-   -- Properly set end marker after edit
-   -- FIXME: need ada-goto-statement-start/-end
    --EMACSCMD:(progn (end-of-line 2)(kill-line 2)(newline-and-indent)(insert "end loop;")(newline-and-indent)(wisi-goto-statement-start)(looking-at "for File_Name"))
    for File_Name in File_Names loop
    end loop;
@@ -123,7 +120,9 @@ begin
    --EMACSCMD:(progn (forward-line 2)(comment-dwim nil)(back-to-indentation)(current-column))
    E := (1,
          --  a comment
-         2);
+         2,
+         -- another comment
+         3);
    --EMACSRESULT:9
 
 end Ada_Mode.Interactive_Common;

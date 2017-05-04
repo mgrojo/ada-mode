@@ -316,9 +316,11 @@ are indented correctly.")
   ;; test/ada-gps/ada_gps_bug_007.adb
   (let (cache)
     (end-of-line)
-    (wisi-validate-cache (point))
+    (wisi-validate-cache (point) nil 'navigate)
     (wisi-backward-token)
-    (when (eq 'statement-end (wisi-cache-class (setq cache (wisi-get-cache (point)))))
+    (setq cache (wisi-get-cache (point)))
+    (when (and cache ;; parse might have failed
+	       (eq 'statement-end (wisi-cache-class cache)))
       (wisi-goto-start cache))))
 
 (defun ada-gps-comment ()
@@ -447,8 +449,7 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
 	(ada-gps-setup))
 
     (ada-wisi-setup)
-    (set (make-local-variable 'indent-region-function) nil)
-    (setq wisi-indent-fallback 'ada-gps-indent-compute)
+    (setq wisi-indent-region-fallback 'ada-gps-indent-region)
     ))
 
 (provide 'ada-gps)

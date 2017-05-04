@@ -76,6 +76,8 @@ is -- target 0
    --EMACSCMD:(progn (beginning-of-line -0) (forward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 0"))
+
    --EMACSCMD:(test-face "pragma" font-lock-keyword-face)
    --EMACSCMD:(test-face "Elaborate_Body" font-lock-function-name-face)
    --EMACSCMD:(test-face "Ada_Mode" '(nil default))
@@ -114,7 +116,7 @@ is -- target 0
    type Object_Access_Type_0e is access constant Integer;
    type Object_Access_Type_0f is not null access constant Integer;
    type Object_Access_Type_1 is not null access all Integer
-     ; -- we don't really care
+   ; -- we don't really care
    type Object_Access_Type_2a is not null access all
      Integer;
    --EMACSCMD:(progn (forward-line 1)(forward-word 1)(forward-char 3)(ada-identifier-at-point))
@@ -365,15 +367,15 @@ is -- target 0
       Discriminant_2 : Standard.Integer;
       --EMACSCMD:(test-face "Ada_Mode.Nominal.Object_Access_Type_0a" font-lock-type-face)
       Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
-     is tagged record
-        --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
-        --EMACSRESULT:t
-        Component_1 : Integer; -- end 2
-        Component_2 :
-          Integer;
-        Component_3
-          : Integer;
-     end record;
+      is tagged record
+         --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
+         --EMACSRESULT:t
+         Component_1 : Integer; -- end 2
+         Component_2 :
+           Integer;
+         Component_3
+           : Integer;
+      end record;
 
    type Discrete_Type_1 is (A, B, C);
    type Discrete_Type_2 is
@@ -440,9 +442,10 @@ is -- target 0
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
    protected type Protected_1 is -- Protected_1
-      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
+
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -470,9 +473,10 @@ is -- target 0
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
    private -- Protected_1
-      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
+
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
       --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling
@@ -676,7 +680,7 @@ is -- target 0
    function Function_2g
      (Param : in Private_Type_1)
      return Float
-       is abstract;
+     is abstract;
    --  comment after 'is abstract', aligned with 'function'
 
    function Function_2h (Param : in Parent_Type_1) return Float is (1.0); -- expression function
@@ -728,7 +732,7 @@ is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "end Ada_Mode.Nominal"))
+   --EMACSCMD:(progn (forward-line 2) (forward-sexp)(looking-at "; -- Ada_Mode.Nominal"))
    --EMACSRESULT:t
 private -- Ada_Mode.Nominal
 
@@ -742,6 +746,8 @@ private -- Ada_Mode.Nominal
          Component_2 : Integer;
          Component_3 : Integer;
       end record; -- Ada mode 4.01 aligned this with "type"; this is better
+
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- Ada_Mode.Nominal"))
 
    type Limited_Derived_Type_1 is abstract limited new Private_Type_1 with
       record
@@ -803,7 +809,7 @@ private -- Ada_Mode.Nominal
       end record;
 
    type Limited_Derived_Type_3 is abstract limited new Private_Type_1
-      with null record;
+     with null record;
 
    overriding function Function_2g (Param : in Limited_Derived_Type_3) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_3) is abstract;
@@ -852,8 +858,9 @@ private -- Ada_Mode.Nominal
    type Incomplete_Type_4
      (<>) is tagged;
 
-end Ada_Mode.Nominal;
---EMACSCMD:(progn (forward-line -1) (backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
+end Ada_Mode.Nominal; -- Ada_Mode.Nominal
+
+--EMACSCMD:(progn (forward-line -2) (forward-sexp)(backward-sexp)(looking-at "private -- Ada_Mode.Nominal"))
 --EMACSRESULT:t
 -- Local Variables:
 -- fill-column: 70

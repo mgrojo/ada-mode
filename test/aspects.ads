@@ -1,4 +1,4 @@
---  FIXME: Does not compile; add required subprograms
+--  Does not compile; add required subprograms
 --
 --  Some aspects also tested in ada-nominal.ads
 
@@ -20,9 +20,11 @@ package Aspects is
    not overriding procedure Foo (X : Integer;
                                  Y : out Integer)
    with Pre => X > 10 and
+               --  a comment
                X < 50 and
                F (X),
      Post =>
+       --  a comment
        Y >= X and
        Some_Very_Verbose_Predicate (X, Y);
 
@@ -53,17 +55,17 @@ package Aspects is
    end record;
 
    function Wuff return Boolean with Pre =>
-       (for all X in U =>
-          (if X in D then
-             (for some Y in U =>
-                Y in T and (X, Y) in B)));
+     (for all X in U =>
+        (if X in D then
+           (for some Y in U =>
+              Y in T and (X, Y) in B)));
 
    subtype Integer_String is String
    with Dynamic_Predicate => Integer'Value (Integer_String) in Integer
-     or else raise Constraint_Error with "not an integer string";
+                             or else raise Constraint_Error with "not an integer string";
 
    type Integer_String is new String
    with Dynamic_Predicate => Integer'Value (Integer_String) in Integer or else
-     raise Constraint_Error with "not an integer string";
+                             raise Constraint_Error with "not an integer string";
 
 end Aspects;

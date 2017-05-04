@@ -78,40 +78,40 @@
    '((AMPERSAND COLON COLON_EQUALS COMMA DOT EQUAL_GREATER QUOTE SEMICOLON VERTICAL_BAR IDENTIFIER STRING_LITERAL ABSTRACT AGGREGATE CASE CONFIGURATION END EXTENDS EXTERNAL EXTERNAL_AS_LIST FOR IS LEFT_PAREN LIBRARY NULL OTHERS PACKAGE PROJECT RENAMES RIGHT_PAREN STANDARD TYPE USE WHEN WITH )
      ((aggregate
        ((LEFT_PAREN string_list RIGHT_PAREN )
-        (progn
-        (wisi-statement-action [1 open-paren 3 close-paren])
-        (wisi-containing-action 1 2))))
+        (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
       (attribute_declaration
        ((FOR IDENTIFIER USE expression SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-        (wisi-containing-action 3 4)))
+        (wisi-statement-action [1 statement-start 5 statement-end])
+        (wisi-face-apply-action [2 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0])))
        ((FOR IDENTIFIER LEFT_PAREN discrete_choice RIGHT_PAREN USE expression SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
-        (wisi-containing-action 6 7)))
+        (wisi-statement-action [1 statement-start 8 statement-end])
+        (wisi-face-apply-action [2 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+        gpr-indent-broken 0])))
        ((FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 open-paren 5 close-paren 6 statement-other 8 statement-end])
-        (wisi-containing-action 6 7))))
+        (wisi-statement-action [1 statement-start 8 statement-end])
+        (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+        gpr-indent-broken 0]))))
       (attribute_prefix
        ((PROJECT ))
        ((name )))
       (attribute_reference
        ((attribute_prefix QUOTE IDENTIFIER ))
-       ((attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN )
-        (wisi-statement-action [4 open-paren 6 close-paren])))
+       ((attribute_prefix QUOTE IDENTIFIER LEFT_PAREN STRING_LITERAL RIGHT_PAREN )))
       (case_statement
        ((CASE name IS case_items END CASE SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent-when gpr-indent-when] 0 0 0]))))
       (case_item
        ((WHEN discrete_choice_list EQUAL_GREATER declarative_items_opt )
         (progn
-        (wisi-statement-action [1 block-middle 3 block-start])
-        (wisi-containing-action 1 3)
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 motion])
+        (wisi-indent-action [0 gpr-indent-broken gpr-indent gpr-indent]))))
       (case_items
        (())
        ((case_item ))
@@ -153,10 +153,6 @@
       (name
        ((identifier_opt ))
        ((name DOT IDENTIFIER )))
-      (project_declaration_opt
-       (())
-       ((simple_project_declaration ))
-       ((project_extension )))
       (package_declaration
        ((package_spec ))
        ((package_extension ))
@@ -164,23 +160,33 @@
       (package_spec
        ((PACKAGE identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-containing-action 1 4)
+        (wisi-face-apply-action [2 font-lock-function-name-face 6 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (package_extension
        ((PACKAGE identifier_opt EXTENDS name IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
-        (wisi-containing-action 5 6))))
+        (wisi-statement-action [1 statement-start 9 statement-end])
+        (wisi-containing-action 1 6)
+        (wisi-face-apply-action [2 font-lock-function-name-face 8 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (package_renaming
        ((PACKAGE identifier_opt RENAMES name SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 statement-other 5 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 statement-start 5 statement-end])
+        (wisi-face-apply-action [2 font-lock-function-name-face 4 font-lock-function-name-face]))))
+      (project_declaration_opt
+       (())
+       ((simple_project_declaration ))
+       ((project_extension )))
       (project_extension
        ((PROJECT identifier_opt EXTENDS STRING_LITERAL IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 5 block-start 7 block-end 9 statement-end])
-        (wisi-containing-action 5 6))))
+        (wisi-statement-action [1 statement-start 9 statement-end])
+        (wisi-containing-action 1 6)
+        (wisi-face-apply-action [2 font-lock-function-name-face 8 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken 0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (project_qualifier_opt
        (())
        ((ABSTRACT ))
@@ -193,11 +199,11 @@
        ((IDENTIFIER COLON_EQUALS expression SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
-        (wisi-containing-action 1 3)))
+        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken 0])))
        ((IDENTIFIER COLON IDENTIFIER COLON_EQUALS expression SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 6 statement-end])
-        (wisi-containing-action 1 5)))
+        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken gpr-indent-broken 0])))
        ((attribute_declaration ))
        ((case_statement ))
        ((NULL SEMICOLON )
@@ -205,8 +211,10 @@
       (simple_project_declaration
        ((PROJECT identifier_opt IS declarative_items_opt END identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 block-start 5 block-end 7 statement-end])
-        (wisi-containing-action 3 4))))
+        (wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-containing-action 1 4)
+        (wisi-face-apply-action [2 font-lock-function-name-face 6 font-lock-function-name-face])
+        (wisi-indent-action [0 gpr-indent-broken 0 [gpr-indent gpr-indent] 0 0 0]))))
       (string_primary
        ((STRING_LITERAL ))
        ((name ))
@@ -214,10 +222,7 @@
        ((attribute_reference )))
       (string_list
        ((expression ))
-       ((string_list COMMA expression )
-        (progn
-        (wisi-statement-action [2 list-break])
-        (wisi-containing-action 2 3))))
+       ((string_list COMMA expression )))
       (term
        ((string_primary ))
        ((LEFT_PAREN RIGHT_PAREN ))
@@ -226,7 +231,7 @@
        ((TYPE IDENTIFIER IS aggregate SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
-        (wisi-containing-action 1 4))))
+        (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken 0]))))
       (with_clause
        ((WITH string_list SEMICOLON ))))
      [((default . error) (ABSTRACT . (context_clause_opt . 0)) (AGGREGATE . (context_clause_opt . 0)) (CONFIGURATION . (context_clause_opt . 0)) (LIBRARY . (context_clause_opt . 0)) (STANDARD . (context_clause_opt . 0)) (PROJECT . (context_clause_opt . 0)) ($EOI . (context_clause_opt . 0)) (WITH .  7))

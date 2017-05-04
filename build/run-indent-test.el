@@ -2,6 +2,7 @@
 
 ;; Default includes mtn, among others, which is broken in Emacs 22.2
 (setq vc-handled-backends '(CVS))
+(setq eval-expression-debug-on-error nil)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
@@ -12,6 +13,7 @@
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
+    (wisi-validate-cache (line-end-position 3) nil 'face)
     (when (ada-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
@@ -62,6 +64,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (setq jit-lock-context-time 0.0);; for test-face
 
   (let ((error-count 0)
+	cmd-line
 	last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
     ;;
@@ -84,32 +87,26 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
        ((string= (match-string 1) "CMD")
 	(looking-at ".*$")
 	(save-excursion
-	  (setq last-cmd (match-string 0)
+	  (setq cmd-line (line-number-at-pos)
+		last-cmd (match-string 0)
 		last-result
-		(if debug-on-error
-		    ;; let debug-on-error work
+		(condition-case-unless-debug err
 		    (eval (car (read-from-string last-cmd)))
-
-		  ;; not debug
-		  (condition-case err
-		      (eval (car (read-from-string last-cmd)))
-		    (error
+		  (error
 		     (setq error-count (1+ error-count))
-		     (message
-		      (concat
-		       (buffer-file-name) ":" (format "%d" (line-number-at-pos))
-		       ": command: %s") last-cmd)
-		     (message
-		      (concat
-		       (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
-		       ": %s: %s") (car err) (cdr err)))))
+		     (message "%s:%d: command: %s"
+			      (buffer-file-name) cmd-line last-cmd)
+		     (message "%s:%d: %s: %s"
+			      (buffer-file-name)
+			      (line-number-at-pos)
+			      (car err)
+			      (cdr err))))
 		)))
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
-	  ;; we don't abort here, so we can see all errors at once
 	  (setq error-count (1+ error-count))
 	  (message
 	   (concat
@@ -203,8 +200,4 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   )
 
 (provide 'run-indent-test)
-
-;; Local Variables:
-;; eval: (add-to-list 'load-path (expand-file-name "../"))
-;; End:
 ;; end of file

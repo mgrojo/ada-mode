@@ -118,6 +118,10 @@ include ../common.make
 
 .PHONY : force
 
+# suitable for copying to ../../notes.text
+diffs : force
+	cd ../../; find build/wisi -name "*.diff" -not -size 0
+
 test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
 test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
@@ -133,6 +137,15 @@ test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 test-ada-gpr_query.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gpr_query
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+test-gpr: RUNTEST := run-indent-test-wisi.el
+test-gpr: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+
+test-gpr.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-gpr
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
