@@ -225,10 +225,10 @@
        ((AND interface_list )))
       (array_type_definition
        ((ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition )
-        (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0) ada-indent-broken
+        (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
         (wisi-anchored% 5 ada-indent-broken)]))
        ((ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition )
-        (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0) ada-indent-broken
+        (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
         (wisi-anchored% 5 ada-indent-broken)])))
       (aspect_clause
        ((FOR attribute_reference USE expression_opt SEMICOLON )
@@ -562,7 +562,7 @@
         (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
         (wisi-containing-action 2 7)
         (wisi-face-apply-action [3 font-lock-function-name-face])
-        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0)
+        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)
         ada-indent-broken 0 0])))
        ((overriding_indicator_opt ENTRY IDENTIFIER parameter_profile_opt aspect_specification_opt SEMICOLON )
         (progn
@@ -1320,7 +1320,7 @@
         (wisi-indent-action [0 ada-indent-broken 0]))))
       (range
        ((name TICK RANGE LEFT_PAREN expression_opt RIGHT_PAREN )
-        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0)]))
+        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)]))
        ((name TICK RANGE ))
        ((simple_expression DOT_DOT simple_expression )))
       (range_list
@@ -1575,7 +1575,7 @@
        ((SEPARATE LEFT_PAREN name RIGHT_PAREN proper_body )
         (progn
         (wisi-statement-action [1 statement-start 5 motion])
-        (wisi-indent-action [0 ada-indent-broken (wisi-anchored 1 1) (wisi-anchored 1 0) 0]))))
+        (wisi-indent-action [0 ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) 0]))))
       (task_body
        ((TASK BODY IDENTIFIER aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON )
         (progn

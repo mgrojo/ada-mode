@@ -558,7 +558,9 @@ Used to ignore whitespace changes in before/after change hooks.")
     ;; don't have to do it again in wisi-after-change.
     (setq wisi--change-beg (min wisi--change-beg begin))
     (when (> end wisi--change-end)
-      (move-marker wisi--change-end end))
+      ;; `buffer-base-buffer' deals with edits in indirect buffers
+      ;; created by ediff-regions-*
+      (move-marker wisi--change-end end (buffer-base-buffer)))
 
     (unless (= begin end)
       (cond
@@ -619,7 +621,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (begin-state (syntax-ppss begin))
 	  (end-state (syntax-ppss end)))
 	  ;; (info "(elisp)Parser State")
-	  ;; syntax-ppss has moved point to "end".
+	  ;; syntax-ppss has moved point to "end"; might be eob.
 
       ;; consider deletion
       (cond
@@ -632,7 +634,9 @@ Used to ignore whitespace changes in before/after change hooks.")
 	(when
 	    (and (= begin end) ;; no insertions
 		 (or
+		  (= (point-min) begin)
 		  (= 0 (syntax-class (syntax-after (1- begin))))
+		  (= (point-max) end)
 		  (= 0 (syntax-class (syntax-after end)))))
 	  ;; More whitespace on at least one side of deletion; did not
 	  ;; join two words.
@@ -669,11 +673,13 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 	 ((and
 	   (or
+	    (= (point-min) begin)
 	    (= 0 (syntax-class (syntax-after (1- begin)))); whitespace
+	    (= (point-max) end)
 	    (= 0 (syntax-class (syntax-after end))))
 	   (progn
 	     (goto-char begin)
-	     (= end (skip-syntax-forward " " end))
+	     (= (- end begin) (skip-syntax-forward " " end))
 	     ))
 	  ;; Inserted only whitespace, there is more whitespace on at
 	  ;; least one side, and we are not in a comment or string

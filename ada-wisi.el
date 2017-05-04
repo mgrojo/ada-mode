@@ -95,8 +95,19 @@
 	  0)
 	 ))
 
-      (THEN ;; in elsif_expression_item or if_expression
-       (- ada-indent-broken ada-indent))
+      (THEN
+       (cl-case (wisi-tok-token (wisi-parse-prev-token 2))
+	 (AND
+	  ;; boolean shortcut
+	  ;;
+	  ;; test/ada_mode-parens.adb
+	  ;;             and then
+	  ;;             (C)
+	  0)
+
+	 (t
+	  ;; in elsif_expression_item or if_expression
+	  (- ada-indent-broken ada-indent))))
 
       (t
        0))
