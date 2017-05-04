@@ -7,7 +7,7 @@ o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
-o.e.a.stephe-5 (from o.e.a): gpr_query completion table
+o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)
@@ -254,6 +254,11 @@ test/debug.adb
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
+
+disable or use electric-indent-post-self-insert-function
+    called during ada-indent-newline-indent
+    on post-self-insert-hook
+        use that for ada-mode capitalization
 
 AdaCore suggests using the libadalang indentation engine
     see Q406-078

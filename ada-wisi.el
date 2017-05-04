@@ -354,7 +354,7 @@ For `wisi-indent-calculate-functions'.
 
 	(save-excursion
 	  (forward-comment -1)
-	  (if (eolp)
+	  (if (looking-at "\\s *$")
 	      ;; no comment on previous line
 	      (setq after 'code)
 
@@ -425,11 +425,11 @@ For `wisi-indent-calculate-functions'.
 	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
-	     (setq begin (point-at-bol)))
+	     (setq begin (line-beginning-position)))
 	   (wisi-goto-end-1 cache))
 	  (t
 	   ;; start of compilation unit
-	   (setq end (point-at-bol))
+	   (setq end (line-beginning-position))
 	   (unless begin
 	     (setq begin end)))
 	  ))

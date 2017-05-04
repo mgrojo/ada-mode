@@ -3,6 +3,10 @@ function Ada_Mode.Library_Function return Integer is
    --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
    --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
    --EMACSCMD:(progn (goto-char (point-min))(ada-find-other-file t)(looking-at "Ada_Mode is"))
+
+   --EMACSCMD:(progn (forward-line -6)(forward-word 2)(forward-char 1)(ada-goto-declaration nil)(looking-at "Library_Function return Integer; -- spec"))
+   --EMACSRESULT:t
+
 begin
    begin  -- should be indented.
       null;

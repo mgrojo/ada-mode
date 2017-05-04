@@ -420,7 +420,11 @@ Prompt user if more than one."
 	     (pop-to-buffer source-buffer)
 	     (ada-goto-declarative-region-start)
 	     (newline-and-indent)
-	     (insert "use type " type ";"))
+	     (cl-ecase ada-language-version
+	       (ada2012
+		(insert "use all type " type ";"))
+	       ((ada83 ada95 ada2005)
+		(insert "use type " type ";")))
 	   t)
 
 	  ((looking-at "parentheses required for unary minus")
