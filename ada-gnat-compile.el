@@ -418,14 +418,8 @@ Prompt user if more than one."
 	  ((looking-at (concat "operator for \\(private \\)?type " ada-gnat-quoted-name-regexp))
 	   (let ((type (match-string 2)))
 	     (pop-to-buffer source-buffer)
-	     (ada-goto-declarative-region-start)
-	     (newline-and-indent)
-	     (cl-ecase ada-language-version
-	       (ada2012
-		(insert "use all type " type ";"))
-	       ((ada83 ada95 ada2005)
-		(insert "use type " type ";")))
-	   t)
+	     (ada-fix-add-use-type type)
+	   t))
 
 	  ((looking-at "parentheses required for unary minus")
 	   (set-buffer source-buffer)
