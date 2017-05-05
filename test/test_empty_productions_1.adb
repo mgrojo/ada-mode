@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Text_IO;
 with FastToken.Lexer;
@@ -126,37 +127,75 @@ package body Test_Empty_Productions_1 is
          Put_Line ("computed: "); Put (Computed);
       end if;
 
-      Check (Label, Computed, Expected);
+      Check (Label, Computed, Expected, Match_Lookaheads => True);
 
    end Test_Closure;
 
+   type Item_Set_Array is array (Token_ID) of LR1_Items.Item_Set;
+
    procedure Test_Goto_Transitions
-     (Label    : in String;
-      Kernel   : in LR1_Items.Item_Set;
-      Symbol   : in Token_ID;
-      Expected : in LR1_Items.Item_Set;
-      Debug    : in Boolean)
+     (Prod       : in Integer;
+      Dot        : in Integer;
+      Lookaheads : in LR1_Items.Lookahead;
+      Expected   : in Item_Set_Array;
+      Debug      : in Boolean)
    is
       use Ada.Text_IO;
       use LR1_Items;
       use FastToken_AUnit;
-      Computed : Item_Set := LALR_Generator.LALR_Goto_Transitions (Kernel, Symbol, First, Grammar, Debug);
+      Label           : constant String := Integer'Image (Prod) & Integer'Image (Dot);
+      Set             : Item_Set        := Closure
+        (+Get_Item (Prod, Dot, Lookaheads),
+         Has_Empty_Production, First, Grammar, Trace => False);
+      Kernel          : Item_Set        := Kernel_Only (Set);
+      Computed        : Item_Set;
+      Kernel_Expected : Item_Set;
    begin
       if Debug then
-         Put_Line ("symbol:   " & Token_ID'Image (Symbol));
-         Put ("expected: "); Put (Expected);
-         Put ("LALR computed: "); Put (Computed);
+         Put_Line ("Label: " & Label);
+         Put_Line ("Closure:"); Put (Set);
+         Put_Line ("Kernel:"); Put (Kernel);
       end if;
+      for I in Token_ID loop
+         Computed            := LALR_Generator.LALR_Goto_Transitions (Kernel, I, First, Grammar, Debug);
+         Kernel_Expected     := Kernel_Only (Expected (I));
+         Kernel_Expected.Set := Reverse_List (Kernel_Expected.Set);
 
-      Check (Label & ",LALR", Computed, Expected);
+         begin
+            Check (Label & ",LALR", Computed, Kernel_Expected, Match_Lookaheads => False);
+         exception
+         when AUnit.Assertions.Assertion_Error =>
+            if Debug then
+               Put_Line ("symbol: " & Token_ID'Image (I));
+               Put_Line ("expected: "); Put (Expected (I));
+               Put_Line ("kernel expected: "); Put (Kernel_Expected);
+               Put_Line ("LALR computed: "); Put (Computed);
+               New_Line;
+            else
+               raise;
+            end if;
+         end;
+         Free (Computed);
+         Free (Kernel_Expected);
 
-      Computed := LR1_Generator.LR1_Goto_Transitions (Kernel, Symbol, Has_Empty_Production, First, Grammar, Debug);
-      if Debug then
-         Put ("LR1 computed: "); Put (Computed);
-      end if;
-
-      Check (Label & ",LR1", Computed, Expected);
-
+         Computed := LR1_Generator.LR1_Goto_Transitions (Set, I, Has_Empty_Production, First, Grammar, Debug);
+         begin
+            Check (Label & ",LR1", Computed, Expected (I), Match_Lookaheads => True);
+         exception
+         when AUnit.Assertions.Assertion_Error =>
+            if Debug then
+               Put_Line ("symbol: " & Token_ID'Image (I));
+               Put_Line ("expected: "); Put (Expected (I));
+               Put_Line ("LR1 computed: "); Put (Computed);
+               New_Line;
+            else
+               raise;
+            end if;
+         end;
+         Free (Computed);
+      end loop;
+      Free (Set);
+      Free (Kernel);
    end Test_Goto_Transitions;
 
    procedure Test_Actions
@@ -202,7 +241,6 @@ package body Test_Empty_Productions_1 is
 
       use FastToken_AUnit;
       use LR1_Items;
-
    begin
       --  Match each test to [A -> alpha Dot B Beta, a]
       --  All have Dot at beginning, so alpha = empty,
@@ -212,162 +250,100 @@ package body Test_Empty_Productions_1 is
         --  A = fasttoken_accept_ID, B = declarative_part_ID, Beta = EOF_ID, a = irrelevant
         (1, BEGIN_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (1, 0, +BEGIN_ID) &
-               Get_Item (2, 0, +EOF_ID) &
-               Get_Item (3, 0, +EOF_ID) &
-               Get_Item (4, 0, +(IS_ID, EOF_ID)) &
-               Get_Item (5, 0, +(IS_ID, EOF_ID)) &
-               Get_Item (6, 0, +(IS_ID, EOF_ID))));
+           +(Get_Item (1, 1, +BEGIN_ID) &
+               Get_Item (2, 1, +EOF_ID) &
+               Get_Item (3, 1, +EOF_ID) &
+               Get_Item (4, 1, +(IS_ID, EOF_ID)) &
+               Get_Item (5, 1, +(IS_ID, EOF_ID)) &
+               Get_Item (6, 1, +(IS_ID, EOF_ID))));
 
-      --  Closure on 1, 0 * gives the same result, with * in the first item lookahead.
+      --  Closure on 1, 1 * gives the same result, with * in the first item lookahead.
 
       Test_Closure
         --  A = declarative_part_ID, B = empty, Beta = empty, a = BEGIN_ID
         (2, BEGIN_ID, Debug =>  Test.Debug,
-         Expected => +(Get_Item (2, 0, +BEGIN_ID)));
+         Expected => +(Get_Item (2, 1, +BEGIN_ID)));
 
-      --  Closure on 2, 0 * gives the same result, with * in the lookahead.
+      --  Closure on 2, 1 * gives the same result, with * in the lookahead.
 
       Test_Closure
         --  A = declarative_part_ID, B = declarations_ID, Beta = empty, a = BEGIN_ID
-        --  Same as tail of 1, 0, BEGIN_ID, starting at prod 3.
+        --  Same as tail of 1, 1, BEGIN_ID, starting at prod 3.
         (3, BEGIN_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (3, 0, +BEGIN_ID) &
-               Get_Item (4, 0, +(BEGIN_ID, IS_ID)) &
-               Get_Item (5, 0, +(BEGIN_ID, IS_ID)) &
-               Get_Item (6, 0, +(BEGIN_ID, IS_ID))
+           +(Get_Item (3, 1, +BEGIN_ID) &
+               Get_Item (4, 1, +(BEGIN_ID, IS_ID)) &
+               Get_Item (5, 1, +(BEGIN_ID, IS_ID)) &
+               Get_Item (6, 1, +(BEGIN_ID, IS_ID))
                ));
 
       Test_Closure
         --  A = declarative_part_ID, B = declarations_ID, Beta = empty, a = IS_ID
         (3, IS_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (3, 0, +IS_ID) &
-               Get_Item (4, 0, +IS_ID) &
-               Get_Item (5, 0, +IS_ID) &
-               Get_Item (6, 0, +IS_ID)
+           +(Get_Item (3, 1, +IS_ID) &
+               Get_Item (4, 1, +IS_ID) &
+               Get_Item (5, 1, +IS_ID) &
+               Get_Item (6, 1, +IS_ID)
                ));
 
-      --  Closure on 3, 0 SEMICOLON_ID/EOF_ID gives the same result as 1, 0 BEGIN_ID, with the given lookahead.
+      --  Closure on 3, 1 SEMICOLON_ID/EOF_ID gives the same result as 1, 1 BEGIN_ID, with the given lookahead.
 
       Test_Closure
         --  A = declarative_part_ID, B = body_ID, Beta = empty, a = BEGIN_ID
         (4, BEGIN_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (4, 0, +BEGIN_ID) &
-               Get_Item (6, 0, +BEGIN_ID)
+           +(Get_Item (4, 1, +BEGIN_ID) &
+               Get_Item (6, 1, +BEGIN_ID)
                ));
 
-      --  Closure on 4, 0 * gives the same result as 4, 0 BEGIN_ID, with the given lookahead.
+      --  Closure on 4, 1 * gives the same result as 4, 1 BEGIN_ID, with the given lookahead.
 
       Test_Closure
         --  A = declarations_ID, B = declarations_ID, Beta = body_ID, a = irrelevant
         (5, IS_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (5, 0, +IS_ID) &
-               Get_Item (4, 0, +IS_ID) &
-               Get_Item (6, 0, +IS_ID)
+           +(Get_Item (5, 1, +IS_ID) &
+               Get_Item (4, 1, +IS_ID) &
+               Get_Item (6, 1, +IS_ID)
                ));
 
       Test_Closure
         --  A = body_ID, B = IS_ID, Beta = irrelevant, a = irrelevant
         (6, IS_ID, Debug =>  Test.Debug,
          Expected =>
-           +(Get_Item (6, 0, +IS_ID)
+           +(Get_Item (6, 1, +IS_ID)
                ));
 
    end Test_Closure;
 
-   procedure Goto_Transitions_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_Goto_Transitions (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
       use LR1_Items;
       use FastToken_AUnit;
 
-      --  kernel:
-      --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
-
-      Kernel : constant Item_Set := Get_Item_Set
-        (Prod => 6, -- in grammar
-         Dot  => 2,
-         Next => null);
-
-      Expected : Item_Set;
+      function Closure (Set : in Item_Set) return Item_Set
+      is begin
+         return Closure (Set, Has_Empty_Production, First, Grammar, Trace => False);
+      end Closure;
 
    begin
-      if Test.Debug then
-         Ada.Text_IO.Put ("kernel 1: "); Put (Kernel);
-      end if;
+      Test_Goto_Transitions
+        (1, 1, +EOF_ID,
+         (IS_ID               => Closure (+Get_Item (6, 2, +(IS_ID, EOF_ID))),
+          declarations_ID     => Closure (+(Get_Item (5, 2, +(IS_ID, EOF_ID)) &
+                                     Get_Item (3, 2, +EOF_ID))),
+          body_ID             => Closure (+Get_Item (4, 2, +(IS_ID, EOF_ID))),
+          declarative_part_ID => Closure (+Get_Item (1, 2, +EOF_ID)),
+          others              => Null_Item_Set),
+         Test.Debug);
 
-      --  Expected goto_transitions on IS_ID (nested declaration):
-      --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
+      --  Test_Goto_Transitions (6, 2, IS_ID, +Get_Item (6, 2, Null_Lookaheads), Test.Debug);
+      --  Test_Goto_Transitions (6, 2, BEGIN_ID, Null_Item_Set, Test.Debug);
+      --  Test_Goto_Transitions (6, 2, SEMICOLON_ID, Null_Item_Set, Test.Debug);
 
-      Expected := Get_Item_Set
-        (Prod => 6, -- in Grammar
-         Dot  => 2,
-         Next => null);
-
-      Test_Goto_Transitions ("1", Kernel, IS_ID, Expected, Test.Debug);
-
-      --  Expected goto_transitions on BEGIN_ID: none
-
-      Expected :=
-        (Set       => null,
-         Goto_List => null,
-         State     => LR.Unknown_State,
-         Next      => null);
-
-      Test_Goto_Transitions ("2", Kernel, BEGIN_ID, Expected, Test.Debug);
-
-      --  Expected goto_transitions on SEMICOLON_ID: none
-
-      Test_Goto_Transitions ("3", Kernel, SEMICOLON_ID, Expected, Test.Debug);
-
-   end Goto_Transitions_1;
-
-   procedure Goto_Transitions_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      Test : Test_Case renames Test_Case (T);
-      use LR1_Items;
-      use FastToken_AUnit;
-
-      --  kernel:
-      --  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID
-
-      Kernel : constant Item_Set := Get_Item_Set
-        (Prod => 6, -- in grammar
-         Dot  => 3,
-         Next => null);
-
-      Expected : Item_Set;
-
-   begin
-      if Test.Debug then
-         Ada.Text_IO.Put ("kernel 2: "); Put (Kernel);
-      end if;
-
-      --  Expected goto_transitions on BEGIN_ID:
-      --  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID
-
-      Expected := Get_Item_Set
-        (Prod => 6, -- in Grammar
-         Dot  => 4,
-         Next => null);
-
-      Test_Goto_Transitions ("1", Kernel, BEGIN_ID, Expected, Test.Debug);
-
-      --  Expected goto_transitions on SEMICOLON_ID: none
-
-      Expected :=
-        (Set       => null,
-         Goto_List => null,
-         State     => LR.Unknown_State,
-         Next      => null);
-
-      Test_Goto_Transitions ("2", Kernel, SEMICOLON_ID, Expected, Test.Debug);
-
-   end Goto_Transitions_2;
+   end Test_Goto_Transitions;
 
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -509,12 +485,11 @@ package body Test_Empty_Productions_1 is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_Closure'Access, "Debug");
+         Register_Routine (T, Test_Goto_Transitions'Access, "Debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_Closure'Access, "Test_Closure");
-         Register_Routine (T, Goto_Transitions_1'Access, "Goto_Transitions_1");
-         Register_Routine (T, Goto_Transitions_2'Access, "Goto_Transitions_2");
+         Register_Routine (T, Test_Goto_Transitions'Access, "Test_Goto_Transitions");
          Register_Routine (T, Goto_Set_1'Access, "Goto_Set_1");
          Register_Routine (T, Actions_1'Access, "Actions_1");
       end if;

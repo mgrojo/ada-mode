@@ -72,9 +72,10 @@ package body Gen_FastToken_AUnit is
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Ptr;
-      Expected : in LR1_Items.Item_Ptr)
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Ptr;
+      Expected         : in LR1_Items.Item_Ptr;
+      Match_Lookaheads : in Boolean)
    is
       use AUnit.Checks;
       use LR1_Items;
@@ -94,7 +95,9 @@ package body Gen_FastToken_AUnit is
          Check (Label & Integer'Image (Index) & ".State", Computed_I.State, Expected_I.State);
          Check (Label & Integer'Image (Index) & ".Prod", Computed_I.Prod, Expected_I.Prod);
          Check (Label & Integer'Image (Index) & ".Dot", Computed_I.Dot, Expected_I.Dot);
-         Check (Label & Integer'Image (Index) & ".Lookaheads", Computed_I.Lookaheads, Expected_I.Lookaheads);
+         if Match_Lookaheads then
+            Check (Label & Integer'Image (Index) & ".Lookaheads", Computed_I.Lookaheads, Expected_I.Lookaheads);
+         end if;
          Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
          Computed_I := Computed_I.Next;
          Expected_I := Expected_I.Next;
@@ -104,16 +107,17 @@ package body Gen_FastToken_AUnit is
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Set;
-      Expected : in LR1_Items.Item_Set)
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Set;
+      Expected         : in LR1_Items.Item_Set;
+      Match_Lookaheads : in Boolean)
    is
       use AUnit.Checks;
       use type LR1_Items.Goto_Item_Ptr;
       use type LR1_Items.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
-      Check (Label & ".Set", Computed.Set, Expected.Set);
+      Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
       Check (Label & ".Goto = null", Computed.Goto_List = null, True);
       Check (Label & ".Next = null", Computed.Next = null, Expected.Next = null);
    end Check;
@@ -176,9 +180,10 @@ package body Gen_FastToken_AUnit is
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Set_Ptr;
-      Expected : in LR1_Items.Item_Set_Ptr)
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Set_Ptr;
+      Expected         : in LR1_Items.Item_Set_Ptr;
+      Match_Lookaheads : in Boolean)
    is
       use type LR1_Items.Item_Set_Ptr;
       Computed_1 : LR1_Items.Item_Set_Ptr := Computed;
@@ -191,7 +196,7 @@ package body Gen_FastToken_AUnit is
 
       loop
          exit when Computed_1 = null;
-         Check (Label & Integer'Image (I) & ".Set", Computed_1.Set, Expected_1.Set);
+         Check (Label & Integer'Image (I) & ".Set", Computed_1.Set, Expected_1.Set, Match_Lookaheads);
          Check (Label & Integer'Image (I) & ".Goto_List", Computed_1.Goto_List, Expected_1.Goto_List);
          Check (Label & Integer'Image (I) & ".State", Computed_1.State, Expected_1.State);
          Computed_1 := Computed_1.Next;
@@ -202,7 +207,7 @@ package body Gen_FastToken_AUnit is
       AUnit.Assertions.Assert (Expected_1 = null, Label & "expected more items, got" & Integer'Image (I));
    end Check;
 
-   function Get_Production (Prod : in Integer) return Production.List.List_Iterator
+   function Get_Production (Prod : in Positive) return Production.List.List_Iterator
    is
       Grammar_I : Production.List.List_Iterator := Grammar.First;
    begin
@@ -213,14 +218,14 @@ package body Gen_FastToken_AUnit is
       return Grammar_I;
    end Get_Production;
 
-   function Get_Production (Prod : in Integer) return Production.Instance
+   function Get_Production (Prod : in Positive) return Production.Instance
    is begin
       return Production.List.Current (Get_Production (Prod));
    end Get_Production;
 
    function Get_Item_Node
-     (Prod       : in Integer;
-      Dot        : in Integer;
+     (Prod       : in Positive;
+      Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
       Next       : in LR1_Items.Item_Ptr         := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
@@ -275,8 +280,8 @@ package body Gen_FastToken_AUnit is
    end "&";
 
    function Get_Item_Set
-     (Prod      : in Integer;
-      Dot       : in Integer;
+     (Prod      : in Positive;
+      Dot       : in Positive;
       Lookahead : in LR1_Items.Lookahead)
      return LR1_Items.Item_Set
    is begin
@@ -292,8 +297,8 @@ package body Gen_FastToken_AUnit is
    end Get_Item_Set;
 
    function Get_Item_Set
-     (Prod : in Integer;
-      Dot  : in Integer;
+     (Prod : in Positive;
+      Dot  : in Positive;
       Next : in LR1_Items.Item_Set_Ptr)
      return LR1_Items.Item_Set
    is begin

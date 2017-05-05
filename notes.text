@@ -6,15 +6,21 @@ build/release_process.text
 
  current work
 
-ada-which-function fails for "+" get_fasttoken_aunit.adb:250
+ada-which-function fails for "+" gen_fasttoken_aunit.adb:250
     wisi-validate-cache: Wrong type argument: number-or-marker-p, nil
+    wisi--change-end is nil!
+    also wisi--cache-max; all three
+    nil in every buffer!
+    set properly on open file;
+        probably ediff clobbered it somehow
 
 add LR1 to test_empty_productions_1.adb
     test all closures explicitly
         dot 0 done
-        run all tests, commit
 
     test all goto_transitions explicitly
+        1, 1, EOF_ID done
+
     test final parse table; review each item!
 
 

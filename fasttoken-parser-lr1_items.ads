@@ -116,8 +116,12 @@ package FastToken.Parser.LR1_Items is
 
    Null_Item_Set : constant Item_Set := (null, null, Unknown_State, null);
 
-   procedure Kernel_Only (Set : in out Item_Set);
-   --  Keep only kernel items of Set; free the rest. [dragon] sec 4.7 pg 240
+   function Kernel_Only (Set : in Item_Set) return Item_Set;
+   --  Return a copy of the head of Set, keeping only kernel items of
+   --  Set.Set. [dragon] sec 4.7 pg 240
+
+   function Reverse_List (List : in Item_Ptr) return Item_Ptr;
+   --  Return a shallow copy of List that is in reversed order.
 
    type Item_Set_List is record
       Head : Item_Set_Ptr;

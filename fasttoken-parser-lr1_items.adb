@@ -638,36 +638,44 @@ package body FastToken.Parser.LR1_Items is
         (Item.Dot = Null_Iterator or else
            ((ID (Item.Prod.LHS) = Accept_Token and
                Item.Dot = First (Item.Prod.RHS.Tokens))
-              -- start symbol production with dot first.
+              -- Start symbol production with dot before first token.
               or
               Item.Dot /= First (Item.Prod.RHS.Tokens)));
    end In_Kernel;
 
-   procedure Kernel_Only (Set : in out Item_Set)
+   function Kernel_Only (Set : in Item_Set) return Item_Set
    is
-      I    : Item_Ptr;
-      Temp : Item_Ptr;
+      Result      : Item_Set;
+      Result_Tail : Item_Ptr;
+      I           : Item_Ptr := Set.Set;
    begin
-      while Set.Set /= null and then
-        (not In_Kernel (Set.Set.all))
+      Result :=
+        (Set       => null,
+         Goto_List => Deep_Copy (Set.Goto_List),
+         State     => Set.State,
+         Next      => null);
+
+      --  Walk I thru Set.Set, copying Kernel items to Result_Tail.
+      while I /= null and then
+        (not In_Kernel (I.all))
       loop
-         Temp := Set.Set;
-         Set.Set := Set.Set.Next;
-         Free (Temp);
+         I := I.Next;
       end loop;
 
-      if Set.Set /= null then
-         I := Set.Set;
+      if I /= null then
+         Result.Set       := new Item_Node'(I.all);
+         Result_Tail      := Result.Set;
+         Result_Tail.Next := null;
+
          while I.Next /= null loop
             if In_Kernel (I.Next.all) then
-               I := I.Next;
-            else
-               Temp := I.Next;
-               Free (I);
-               I := Temp;
+               Result_Tail.Next      := new Item_Node'(I.Next.all);
+               Result_Tail.Next.Next := null;
             end if;
+            I := I.Next;
          end loop;
       end if;
+      return Result;
    end Kernel_Only;
 
    function Token_Name (Item : in Token.Handle) return String is

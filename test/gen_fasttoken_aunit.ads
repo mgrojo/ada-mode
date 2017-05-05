@@ -92,14 +92,16 @@ package Gen_FastToken_AUnit is
       Expected : in LR1_Items.Lookahead);
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Ptr;
-      Expected : in LR1_Items.Item_Ptr);
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Ptr;
+      Expected         : in LR1_Items.Item_Ptr;
+      Match_Lookaheads : in Boolean);
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Set;
-      Expected : in LR1_Items.Item_Set);
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Set;
+      Expected         : in LR1_Items.Item_Set;
+      Match_Lookaheads : in Boolean);
 
    function "&" (Left, Right : in LR1_Items.Goto_Item) return LR1_Items.Goto_Item_Ptr;
    function "&"
@@ -113,17 +115,18 @@ package Gen_FastToken_AUnit is
       Expected : in LR1_Items.Goto_Item_Ptr);
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Item_Set_Ptr;
-      Expected : in LR1_Items.Item_Set_Ptr);
+     (Label            : in String;
+      Computed         : in LR1_Items.Item_Set_Ptr;
+      Expected         : in LR1_Items.Item_Set_Ptr;
+      Match_Lookaheads : in Boolean);
 
-   function Get_Production (Prod : in Integer) return Production.List.List_Iterator;
-   function Get_Production (Prod : in Integer) return Production.Instance;
-   --  Return Prod production in Grammar.
+   function Get_Production (Prod : in Positive) return Production.List.List_Iterator;
+   function Get_Production (Prod : in Positive) return Production.Instance;
+   --  Return Prod production in Grammar; 1 indexed.
 
    function Get_Item_Node
-     (Prod       : in Integer;
-      Dot        : in Integer;
+     (Prod       : in Positive;
+      Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
       Next       : in LR1_Items.Item_Ptr     := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
@@ -132,8 +135,8 @@ package Gen_FastToken_AUnit is
    --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item
-     (Prod       : in Integer;
-      Dot        : in Integer;
+     (Prod       : in Positive;
+      Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
       Next       : in LR1_Items.Item_Ptr     := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
@@ -146,14 +149,14 @@ package Gen_FastToken_AUnit is
    function "&" (Left, Right : in LR1_Items.Item_Ptr) return LR1_Items.Item_Ptr;
 
    function Get_Item_Set
-     (Prod      : in Integer;
-      Dot       : in Integer;
+     (Prod      : in Positive;
+      Dot       : in Positive;
       Lookahead : in LR1_Items.Lookahead)
      return LR1_Items.Item_Set;
 
    function Get_Item_Set
-     (Prod : in Integer;
-      Dot  : in Integer;
+     (Prod : in Positive;
+      Dot  : in Positive;
       Next : in LR1_Items.Item_Set_Ptr)
      return LR1_Items.Item_Set;
    --  Construct an LR1_Items item_set with Prod from Grammar, Dot before
