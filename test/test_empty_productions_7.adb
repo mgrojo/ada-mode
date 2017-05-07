@@ -329,10 +329,10 @@ package body Test_Empty_Productions_7 is
       --  Expected reduction gotos:
       --  aliased_opt_id => OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID ; 7
 
-      Add_Action (Expected, ALIASED_ID, 6);
       Add_Action (Expected, CONSTANT_ID, Reduce, aliased_opt_ID, 0, Self);
       Add_Action (Expected, SEMICOLON_ID, Reduce, aliased_opt_ID, 0, Self);
-      Add_Action (Expected, Token_Pkg.Terminal_ID'Last); -- default = error
+      Add_Action (Expected, ALIASED_ID, 6);
+      Add_Error (Expected);
       Add_Goto (Expected, aliased_opt_ID, 7);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);

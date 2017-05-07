@@ -209,35 +209,35 @@ package body Dragon_4_45_LALR_Test is
 
       Add_Action (Expected (S0), Lower_C_ID, S36);
       Add_Action (Expected (S0), Lower_D_ID, S47);
-      Add_Action (Expected (S0), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S0));
       Add_Goto (Expected (S0), Upper_C_ID, S2);
       Add_Goto (Expected (S0), Upper_S_ID, S1);
 
       Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
-      Add_Action (Expected (S1), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S1));
 
       Add_Action (Expected (S2), Lower_C_ID, S36);
       Add_Action (Expected (S2), Lower_D_ID, S47);
-      Add_Action (Expected (S2), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S2));
       Add_Goto (Expected (S2), Upper_C_ID, S5);
 
       Add_Action (Expected (S36), Lower_C_ID, S36);
       Add_Action (Expected (S36), Lower_D_ID, S47);
-      Add_Action (Expected (S36), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S36));
       Add_Goto (Expected (S36), Upper_C_ID, S89);
 
       Add_Action (Expected (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
       Add_Action (Expected (S47), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
-      Add_Action (Expected (S47), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S47));
 
       Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
-      Add_Action (Expected (S5), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S5));
 
       Add_Action (Expected (S89), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S89), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
       Add_Action (Expected (S89), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S89), Tokens_Pkg.Terminal_ID'Last); -- default = error
+      Add_Error (Expected (S89));
 
       if Test.Debug then
          --  computed output above

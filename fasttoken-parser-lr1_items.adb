@@ -62,6 +62,23 @@ package body FastToken.Parser.LR1_Items is
       return Result;
    end Reverse_List;
 
+   function Reverse_List (List : in Item_Set_List) return Item_Set_List
+   is
+      I      : Item_Set_Ptr := List.Head;
+      Result : Item_Set_Ptr := null;
+      Next_1 : Item_Set_Ptr;
+      Next_2 : Item_Set_Ptr;
+   begin
+      while I /= null loop
+         Next_1      := Result;
+         Next_2      := I.Next;
+         Result      := I;
+         Result.Next := Next_1;
+         I           := Next_2;
+      end loop;
+      return (Result, List.Size);
+   end Reverse_List;
+
    function Deep_Copy (List : in Item_Ptr) return Item_Ptr
    is
       I      : Item_Ptr := List;
@@ -509,14 +526,17 @@ package body FastToken.Parser.LR1_Items is
          if Item.Dot /= Token.List.Null_Iterator and then
            Token.List.ID (Item.Dot) in Token.Nonterminal_ID
          then
-            Beta := Token.List.Next_Token (Item.Dot); -- token after nonterminal, possibly null
+            Beta := Token.List.Next_Token (Item.Dot); -- tokens after nonterminal, possibly null
 
             B := Production.List.First (Grammar);
             For_Each_Production :
             while not Production.List.Is_Done (B) loop
                if Nonterminal.ID (Production.List.Current (B).LHS) = Token.List.ID (Item.Dot) then
-                  --  loop until find a terminal, or a nonterminal that cannot be empty, or end of production
-                  Empty_Nonterm :
+                  --  Compute FIRST (<tail of right hand side> a); loop
+                  --  until find a terminal, a nonterminal that
+                  --  cannot be empty, or end of production, adding
+                  --  items on the way.
+                  First_Tail :
                   loop
                      if Beta = Token.List.Null_Iterator then
                         --  Use FIRST (a); a = Item.Lookaheads.
@@ -530,7 +550,7 @@ package body FastToken.Parser.LR1_Items is
                                 Lookaheads => Item.Lookaheads),
                              I);
 
-                        exit Empty_Nonterm;
+                        exit First_Tail;
 
                      elsif Token.List.ID (Beta) in Token.Terminal_ID then
                         --  FIRST (Beta) = Beta
@@ -541,7 +561,7 @@ package body FastToken.Parser.LR1_Items is
                                 State        => Set.State,
                                 Lookaheads   => +Token.List.ID (Beta)),
                              I);
-                        exit Empty_Nonterm;
+                        exit First_Tail;
 
                      else
                         --  Beta is a nonterminal; use FIRST (Beta)
@@ -558,13 +578,13 @@ package body FastToken.Parser.LR1_Items is
                         end loop;
 
                         if Has_Empty_Production (Token.List.ID (Beta)) then
-                           --  Process the item [A -> alpha Dot Next(Beta), a]
+                           --  Process the next token in the tail
                            Beta := Token.List.Next_Token (Beta);
                         else
-                           exit Empty_Nonterm;
+                           exit First_Tail;
                         end if;
                      end if;
-                  end loop Empty_Nonterm;
+                  end loop First_Tail;
 
                   Beta := Token.List.Next_Token (Item.Dot);
                end if;

@@ -28,6 +28,7 @@ with Counted_GNAT_OS_Lib_Test;
 with Dragon_4_43_LR1_Test;
 with Dragon_4_45_LALR_Test;
 with GNAT.Traceback.Symbolic;
+with Grune_9_30;
 with Name_Grammar_Test;
 with Parser_Lists_Test;
 with Test_Accept_State;
@@ -54,6 +55,7 @@ begin
    Add_Test (Suite, new Counted_GNAT_OS_Lib_Test.Test_Case);
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Grune_9_30.Test_Case (Debug => False));
    Add_Test (Suite, new Name_Grammar_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Parser_Lists_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => False));

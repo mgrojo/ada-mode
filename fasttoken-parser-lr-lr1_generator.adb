@@ -35,8 +35,9 @@ package body FastToken.Parser.LR.LR1_Generator is
    is
       use Token.List;
       use LR1_Items;
-      use type Token.Handle;
-      use type Token.Token_ID;
+      use all type Nonterminal.Handle;
+      use all type Token.Handle;
+      use all type Token.Token_ID;
 
       Goto_Set : Item_Set;
       Item     : Item_Ptr := Set.Set;
@@ -46,7 +47,10 @@ package body FastToken.Parser.LR.LR1_Generator is
       while Item /= null loop
          if Item.Dot /= Null_Iterator then
             if ID (Item.Dot) = Symbol and
-              Symbol /= EOF_Token
+              --  We don't need a state with dot after EOF in the
+              --  accept production. EOF should only appear in the
+              --  accept production.
+              Symbol = EOF_Token
             then
                Goto_Set.Set := new Item_Node'
                  (Prod       => Item.Prod,
@@ -192,7 +196,7 @@ package body FastToken.Parser.LR.LR1_Generator is
          Ada.Text_IO.New_Line;
       end if;
 
-      return C;
+      return Reverse_List (C);
    end LR1_Item_Sets;
 
    procedure Add_Actions

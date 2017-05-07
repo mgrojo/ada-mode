@@ -14,7 +14,29 @@ ada-which-function fails for "+" gen_fasttoken_aunit.adb:250
     set properly on open file;
         probably ediff clobbered it somehow
 
+do bubble sort on action list symbol
+
+delete test_empty_prod_*.adb
+    only useful while debugging problem
+    keep wisi/test; no need for both
+    move list of tests into wisi/test/*_1.wy
+
+test_empty_productions_9.adb
+    delete? move to wisi/test?
+
+don't put EOF_ID in accept statement?
+    only needed in lookahead
+    use it as propagate token?
+    delete check in *_goto_transitions
+
+where is accept_token used?
+
+run bison on the grammar, get it to output a parse table
+    mingw64?
+
 add LR1 to test_empty_productions_1.adb
+    done in wisi/test?
+
     test all closures explicitly
         dot 0 done
 
@@ -24,25 +46,19 @@ add LR1 to test_empty_productions_1.adb
     test final parse table; review each item!
 
 
-compare lr1_goto_transitions to lalr_goto_transitions on:
+compare lr1_goto_transitions to lalr_goto_transitions
+    wisi/test/debug.adb
+    test_goto_transitions.adb
+
     subprograms.wy; not quite the same
-        duplicate entries in lalr; bug
 
-    test/test_goto_transitions.adb
-        closure (4, right_paren_id) /= null!?
-        closure (5, procedure_id) /= null!?
-            bug in closure handling of empty productions?
-
-    gpr.wy
+    gpr-grammar.wy
         lr1 missing some
         1 EOI_ID PROJECT_ID
         missing because of null CONTEXT_CLAUSE_OPT_ID
-            leading token on rhs;
-                same feature in one of empty_productions_*?
-                    add lr1 to that
-                    in empty_productions_1.ads, summarize what empty production features are tested where
-
-            add subset of gpr grammar to test/test_goto_transitions.adb
+            leading token on rhs
+            new test empty_productions_9 copy from _1
+            subset of gpr grammar
 
 
     actions come from:
@@ -52,19 +68,28 @@ compare lr1_goto_transitions to lalr_goto_transitions on:
         lookahead:
             shift
 
-        why doesn't goto include the lookaheads?
+        why doesn't goto include the lookahead actions?
+            historical?
 
 
 delete body-only stuff from lr1_items spec
 
 add syntax error handling
     Parsing Techniques: A Practical Guide, By Dick Grune, Ceriel J.H. Jacobs
-    Google Play, https://dickgrune.com/Books/PTAPG_2nd_Edition/
+    Google Play: https://play.google.com/books/reader?printsec=frontcover&output=reader&id=05xA_d5dSwAC&pg=GBS.PP1
+    extended bibliography: https://dickgrune.com/Books/PTAPG_2nd_Edition/
     https://www.journals.elsevier.com/theoretical-computer-science/
 
     In closure, record derivation path - history of productions used?
 
     d:/Books/eBooks/Tomas J Pennello/A forward move algorithm for LR error recovery.pdf
+
+    Grune biblio 88. Charles, Phillippe. A Practical Method for Constructing Efficient LALR(k) Parsers with Automatic Error Recovery. PhD thesis, NYU, Feb. 1991.
+        http://cs.nyu.edu/dynamic/reports/?type=PhD&year=1991 PDF not available
+        advisor Schonberg, Edmond
+        http://library.nyu.edu/
+        Tech report CIMS CS TR-552 apparently only available in paper
+        5 May: sent email via library website "ask a librarian"; question id 12486490.
 
 move output_ada_emacs, output_elisp to ada-mode source tree
 

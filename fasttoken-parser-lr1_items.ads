@@ -90,6 +90,9 @@ package FastToken.Parser.LR1_Items is
    --  Return an item node made from Prod, Dot at the start of the
    --  right hand side, State, Lookaheads.
 
+   function Reverse_List (List : in Item_Ptr) return Item_Ptr;
+   --  Return a modified List that is in reversed order.
+
    type Goto_Item;
    type Goto_Item_Ptr is access Goto_Item;
 
@@ -120,13 +123,13 @@ package FastToken.Parser.LR1_Items is
    --  Return a copy of the head of Set, keeping only kernel items of
    --  Set.Set. [dragon] sec 4.7 pg 240
 
-   function Reverse_List (List : in Item_Ptr) return Item_Ptr;
-   --  Return a shallow copy of List that is in reversed order.
-
    type Item_Set_List is record
       Head : Item_Set_Ptr;
       Size : Unknown_State_Index := 0;
    end record;
+
+   function Reverse_List (List : in Item_Set_List) return Item_Set_List;
+   --  Return a modified List that is in reversed order.
 
    procedure Add
      (New_Item : in     Item_Node;

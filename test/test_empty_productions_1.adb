@@ -35,10 +35,6 @@ package body Test_Empty_Productions_1 is
 
    type Token_ID is
      (
-      --  non-reporting
-      Whitespace_ID,
-      COMMENT_ID,
-
       --  terminals
       BEGIN_ID,
       IS_ID,
@@ -73,18 +69,18 @@ package body Test_Empty_Productions_1 is
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
    Grammar : constant Production.List.Instance :=
-     fasttoken_accept_ID <= declarative_part_ID & EOF_ID + Self -- 1
+     fasttoken_accept_ID <= declarative_part_ID & EOF_ID + Self              -- 1
      and
-     declarative_part_ID <= +Self -- 2
+     declarative_part_ID <= +Self                                            -- 2
      and
-     declarative_part_ID <= declarations_ID + Self -- 3
+     declarative_part_ID <= declarations_ID + Self                           -- 3
      and
-     declarations_ID <= body_ID + Self -- 4
+     declarations_ID <= body_ID + Self                                       -- 4
      and
-     declarations_ID <= declarations_ID & body_ID + Self -- 5
+     declarations_ID <= declarations_ID & body_ID + Self                     -- 5
      and
      body_ID <= IS_ID & declarative_part_ID & BEGIN_ID & SEMICOLON_ID + Self -- 6
-     ;
+   ;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
      (Token_ID, BEGIN_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
@@ -205,6 +201,7 @@ package body Test_Empty_Productions_1 is
       Expected : in LR.Parse_State;
       Debug    : in Boolean)
    is
+      use Ada.Text_IO;
       use FastToken_AUnit;
       Kernel    : constant LR1_Items.Item_Set_Ptr := LR1_Items.Find (State, Kernels);
       Closure   : LR1_Items.Item_Set              := LR1_Items.Closure
@@ -213,6 +210,7 @@ package body Test_Empty_Productions_1 is
       Table     : LR.Parse_Table (1 .. Kernels.Size);
    begin
       if Debug then
+         Put_Line (Label);
          LR1_Items.Put (Kernel.all);
       end if;
 
@@ -221,7 +219,14 @@ package body Test_Empty_Productions_1 is
 
       LR1_Items.Free (Closure);
 
-      Check (Label, Table (Kernel.State), Expected);
+      if Debug then
+         Put_Line ("Computed:");
+         LR.Put (Table (State));
+         Put_Line ("Expected:");
+         LR.Put (Expected);
+      end if;
+
+      Check (Label, Table (State), Expected);
    end Test_Actions;
 
    ----------
@@ -268,7 +273,6 @@ package body Test_Empty_Productions_1 is
 
       Test_Closure
         --  A = declarative_part_ID, B = declarations_ID, Beta = empty, a = BEGIN_ID
-        --  Same as tail of 1, 1, BEGIN_ID, starting at prod 3.
         (3, BEGIN_ID, Debug =>  Test.Debug,
          Expected =>
            +(Get_Item (3, 1, +BEGIN_ID) &
@@ -339,10 +343,6 @@ package body Test_Empty_Productions_1 is
           others              => Null_Item_Set),
          Test.Debug);
 
-      --  Test_Goto_Transitions (6, 2, IS_ID, +Get_Item (6, 2, Null_Lookaheads), Test.Debug);
-      --  Test_Goto_Transitions (6, 2, BEGIN_ID, Null_Item_Set, Test.Debug);
-      --  Test_Goto_Transitions (6, 2, SEMICOLON_ID, Null_Item_Set, Test.Debug);
-
    end Test_Goto_Transitions;
 
    procedure Goto_Set_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -410,61 +410,13 @@ package body Test_Empty_Productions_1 is
 
       Expected : Parse_State;
    begin
-      --  Kernel 2:
-      --
-      --  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID
-      --
-      --  Expected actions:
-      --  BEGIN_ID => reduce 0 tokens to declarative_part_id
-      --  IS_ID    => shift and goto 2
-      --  default  => ERROR
+      Add_Action (Expected, BEGIN_ID, Reduce, declarative_part_ID, 0, Self);
+      Add_Action (Expected, IS_ID, 2);
+      Add_Error (Expected);
 
-      --  Expected reduction gotos:
-      --  DECLARATIONS_ID => Set 3
-      --  DECLARATIVE_PART_ID => Set 7
-      --  BODY_ID => Set 5
-      Expected.Action_List := new Action_Node'
-        (Symbol  => Token_Pkg.Terminal_ID'Last, -- ignored, since this is the last action
-         Action  => new Parse_Action_Node'
-           (Item => (Verb => Error),
-            Next => null),
-         Next  => null);
-
-      Expected.Action_List := new Action_Node'
-        (Symbol            => BEGIN_ID,
-         Action            => new Parse_Action_Node'
-           (Item           =>
-              (Verb        => Reduce,
-               LHS         => Get_Production (4).LHS,
-               Action      => null,
-               Index       => 0,
-               Token_Count => 0),
-            Next           => null),
-         Next              => Expected.Action_List);
-
-      Expected.Action_List := new Action_Node'
-        (Symbol      => IS_ID,
-         Action      => new Parse_Action_Node'
-           (Item     =>
-              (Verb  => Shift,
-               State => 2),
-            Next     => null),
-         Next        => Expected.Action_List);
-
-      Expected.Goto_List := new Goto_Node'
-        (Symbol => body_ID,
-         State  => 5,
-         Next   => Expected.Goto_List);
-
-      Expected.Goto_List := new Goto_Node'
-        (Symbol => declarative_part_ID,
-         State  => 7,
-         Next   => Expected.Goto_List);
-
-      Expected.Goto_List := new Goto_Node'
-        (Symbol => declarations_ID,
-         State  => 3,
-         Next   => Expected.Goto_List);
+      Add_Goto (Expected, body_ID, 5);
+      Add_Goto (Expected, declarative_part_ID, 7);
+      Add_Goto (Expected, declarations_ID, 3);
 
       Test_Actions ("1", Kernels, 2, Expected, Test.Debug);
 
@@ -485,7 +437,7 @@ package body Test_Empty_Productions_1 is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_Goto_Transitions'Access, "Debug");
+         Register_Routine (T, Actions_1'Access, "Debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_Closure'Access, "Test_Closure");

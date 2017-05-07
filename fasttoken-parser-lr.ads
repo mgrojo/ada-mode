@@ -92,7 +92,7 @@ package FastToken.Parser.LR is
    type Action_Node_Ptr is access Action_Node;
 
    type Action_Node is record
-      Symbol : Token.Terminal_ID;
+      Symbol : Token.Terminal_ID; -- ignored if Action is Error
       Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;
@@ -127,11 +127,8 @@ package FastToken.Parser.LR is
       Synthesize      : in     Nonterminal.Synthesize);
    --  Add a Reduce or Accept_It action to State, at head of action list.
 
-   procedure Add_Action
-     (State  : in out LR.Parse_State;
-      Symbol : in     Token_Pkg.Token_ID);
+   procedure Add_Error (State  : in out LR.Parse_State);
    --  Add an Error action to State, at end of action list.
-   --  FIXME: change to Add_Error
 
    procedure Add_Goto
      (State    : in out LR.Parse_State;

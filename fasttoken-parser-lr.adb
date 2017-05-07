@@ -71,9 +71,7 @@ package body FastToken.Parser.LR is
       State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);
    end Add_Action;
 
-   procedure Add_Action
-     (State  : in out LR.Parse_State;
-      Symbol : in     Token_Pkg.Token_ID)
+   procedure Add_Error (State  : in out LR.Parse_State)
    is
       Action : constant Parse_Action_Rec := (Verb => Error);
       Node   : Action_Node_Ptr           := State.Action_List;
@@ -85,8 +83,8 @@ package body FastToken.Parser.LR is
          exit when Node.Next = null;
          Node := Node.Next;
       end loop;
-      Node.Next := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
-   end Add_Action;
+      Node.Next := new Action_Node'(Token.Terminal_ID'Last, new Parse_Action_Node'(Action, null), null);
+   end Add_Error;
 
    procedure Add_Goto
      (State    : in out LR.Parse_State;

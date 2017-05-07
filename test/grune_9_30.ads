@@ -1,18 +1,15 @@
 --  Abstract :
 --
---  Partial test of FastToken.Parser.LRK_Item and LALR handling of
---  empty productions. Similarly named files test similar features:
+--  Partial test of FastToken.Parser.LR1_Items.Closure and
+--  LR1_Generator.LR1_Goto_Transistions handling of empty productions,
+--  using the grammar in fig 9.30 of [Grune]. See
+--  empty_productions_1.ads for list of similar tests..
 --
---  1 - empty production in a list
---  2 - empty production causes ambiguity (wisi only)
---  3 - terminal followed by empty nonterm (wisi only)
---  4 - empty production in the first two nonterms in a production
---  5 - empty production following a nonterm
---  6 - empty production in a list; same conflict in two states
---  7 - two consecutive empty productions not first
---  8 - two consecutive empty productions, confused with a similar production
+--  References:
 --
---  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--  [Grune] Parsing Techniques, A Practical Guide. Dick Grune, Ceriel J.H. Jacobs, second edition.
+--
+--  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,7 +26,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Empty_Productions_1 is
+package Grune_9_30 is
 
    type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -39,4 +36,4 @@ package Test_Empty_Productions_1 is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Empty_Productions_1;
+end Grune_9_30;

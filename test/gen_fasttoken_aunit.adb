@@ -110,7 +110,7 @@ package body Gen_FastToken_AUnit is
      (Label            : in String;
       Computed         : in LR1_Items.Item_Set;
       Expected         : in LR1_Items.Item_Set;
-      Match_Lookaheads : in Boolean)
+      Match_Lookaheads : in Boolean := True)
    is
       use AUnit.Checks;
       use type LR1_Items.Goto_Item_Ptr;
@@ -168,9 +168,9 @@ package body Gen_FastToken_AUnit is
       end if;
 
       loop
-         --  We only check set.index, not set, because the full check would be recursive
-         Check (Label & Integer'Image (Index) & ".Set.State", Computed_I.Set.State, Expected_I.Set.State);
+         --  We only check set.state, not set.*, because the full check would be recursive
          Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
+         Check (Label & Integer'Image (Index) & ".Set.State", Computed_I.Set.State, Expected_I.Set.State);
          Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
          Computed_I := Computed_I.Next;
          Expected_I := Expected_I.Next;
@@ -183,7 +183,7 @@ package body Gen_FastToken_AUnit is
      (Label            : in String;
       Computed         : in LR1_Items.Item_Set_Ptr;
       Expected         : in LR1_Items.Item_Set_Ptr;
-      Match_Lookaheads : in Boolean)
+      Match_Lookaheads : in Boolean := True)
    is
       use type LR1_Items.Item_Set_Ptr;
       Computed_1 : LR1_Items.Item_Set_Ptr := Computed;
@@ -205,6 +205,15 @@ package body Gen_FastToken_AUnit is
       end loop;
 
       AUnit.Assertions.Assert (Expected_1 = null, Label & "expected more items, got" & Integer'Image (I));
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in LR1_Items.Item_Set_List;
+      Expected : in LR1_Items.Item_Set_List)
+   is begin
+      Check (Label & ".Size", Computed.Size, Expected.Size);
+      Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
    end Check;
 
    function Get_Production (Prod : in Positive) return Production.List.List_Iterator
@@ -267,6 +276,7 @@ package body Gen_FastToken_AUnit is
       use LR1_Items;
       I : Item_Ptr;
    begin
+      Right.State := Left.State;
       if Left.Next = null then
          Left.Next := Right;
       else
@@ -278,6 +288,97 @@ package body Gen_FastToken_AUnit is
       end if;
       return Left;
    end "&";
+
+   procedure Apply_State (State : in LR.Unknown_State_Index; List : in LR1_Items.Item_Ptr)
+   is
+      use LR1_Items;
+      I : Item_Ptr := List;
+   begin
+      loop
+         exit when I = null;
+         I.State := State;
+         I := I.Next;
+      end loop;
+   end Apply_State;
+
+   function "+" (State : in LR.Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List
+   is begin
+      Apply_State (State, Item);
+      return
+        (Head => new LR1_Items.Item_Set'(Item, null, State, null),
+         Size => 1);
+   end "+";
+
+   function "&" (Left, Right : in LR1_Items.Item_Set_List) return LR1_Items.Item_Set_List
+   is
+      use LR1_Items;
+      use all type LR.Unknown_State_Index;
+
+      I : Item_Set_Ptr;
+   begin
+      if Left.Head.Next = null then
+         Left.Head.Next := Right.Head;
+      else
+         I := Left.Head.Next;
+         while I.Next /= null loop
+            I := I.Next;
+         end loop;
+         I.Next := Right.Head;
+      end if;
+      return (Head => Left.Head, Size => Left.Size + Right.Size);
+   end "&";
+
+   function Get_Goto
+     (Symbol   : in Token_ID;
+      To_State : in LR.State_Index;
+      Set_List : in LR1_Items.Item_Set_List)
+     return LR1_Items.Goto_Item_Ptr
+   is
+      use LR1_Items;
+      use all type LR.Unknown_State_Index;
+
+      I : Item_Set_Ptr := Set_List.Head;
+   begin
+      loop
+         exit when I.State = To_State;
+         I := I.Next;
+      end loop;
+      return new Goto_Item'(Symbol, I, null);
+   end Get_Goto;
+
+   function "&" (Left, Right : in LR1_Items.Goto_Item_Ptr) return LR1_Items.Goto_Item_Ptr
+   is
+      use LR1_Items;
+      I : Goto_Item_Ptr;
+   begin
+      if Left.Next = null then
+         Left.Next := Right;
+      else
+         I := Left.Next;
+         loop
+            exit when I.Next = null;
+            I := I.Next;
+         end loop;
+         I.Next := Right;
+      end if;
+      return Left;
+   end "&";
+
+   procedure Add_Gotos
+     (List  : in LR1_Items.Item_Set_List;
+      State : in LR.State_Index;
+      Gotos : in LR1_Items.Goto_Item_Ptr)
+   is
+      use LR1_Items;
+      use all type LR.Unknown_State_Index;
+      I : Item_Set_Ptr := List.Head;
+   begin
+      loop
+         exit when I.State = State;
+         I := I.Next;
+      end loop;
+      I.Goto_List := Gotos;
+   end Add_Gotos;
 
    function Get_Item_Set
      (Prod      : in Positive;
