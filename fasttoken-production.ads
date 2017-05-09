@@ -101,6 +101,7 @@ package FastToken.Production is
       procedure Next (Iterator : in out List_Iterator);
 
       function Current (Iterator : in List_Iterator) return Production.Instance;
+      function RHS (Iterator : in List_Iterator) return Right_Hand_Side;
 
       function Last_Production (Iterator : in List_Iterator) return Boolean;
       --  Return true if the iterator is at the last production.

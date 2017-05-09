@@ -34,8 +34,8 @@ State 2:
    BODY_ID             goto state 5
 
 State 3:
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID/WISI_EOI_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID/WISI_EOI_ID
 
    BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
@@ -116,8 +116,8 @@ State 2:
    BODY_ID             goto state 10
 
 State 3:
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, IS_ID/WISI_EOI_ID
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
 
    IS_ID               => shift and goto state 2
    WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
@@ -160,8 +160,8 @@ State 7:
    BODY_ID             goto state 10
 
 State 8:
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID
+  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID
 
    BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 7

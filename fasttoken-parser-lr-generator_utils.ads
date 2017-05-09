@@ -100,6 +100,7 @@ package FastToken.Parser.LR.Generator_Utils is
       Lookahead            : in Token.Token_ID;
       Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set)
      return Token.Token_ID;
+   --  Return the LHS of a production involved in Action, for a Conflict object.
 
    function Image (Item : in Conflict) return String;
 

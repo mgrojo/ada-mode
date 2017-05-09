@@ -615,19 +615,29 @@ is
       Indent_Line ("use all type FastToken.Parser_Algorithm_Type;");
       Indent_Line
         ("Table : constant Parse_Table_Ptr := new Parse_Table (" & FastToken.Int_Image (First_State_Index) & " ..");
-      Indent_Line
-        ("   (case Algorithm is when LALR => " & LR.State_Image (LALR_Parser'Last) &
-           ", when LR1 => " & LR.State_Image (LR1_Parser'Last) & "));");
-      Indent := Indent - 3;
-      Indent_Line ("begin");
-      Indent := Indent + 3;
 
       case Parser_Algorithm is
       when LALR =>
+         Indent_Line (LR.State_Image (LALR_Parser'Last));
+         Indent := Indent - 3;
+         Indent_Line ("begin");
+         Indent := Indent + 3;
          Create_Parser_Core (LALR_Parser);
+
       when LR1 =>
+         Indent_Line (LR.State_Image (LR1_Parser'Last));
+         Indent := Indent - 3;
+         Indent_Line ("begin");
+         Indent := Indent + 3;
          Create_Parser_Core (LR1_Parser);
+
       when LALR_LR1 =>
+         Indent_Line
+           ("   (case Algorithm is when LALR => " & LR.State_Image (LALR_Parser'Last) &
+              ", when LR1 => " & LR.State_Image (LR1_Parser'Last) & "));");
+         Indent := Indent - 3;
+         Indent_Line ("begin");
+         Indent := Indent + 3;
          Indent_Line ("case Algorithm is");
          Indent_Line ("when LALR =>");
          Indent := Indent + 3;

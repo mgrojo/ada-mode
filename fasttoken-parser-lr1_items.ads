@@ -68,15 +68,24 @@ package FastToken.Parser.LR1_Items is
    --  Add Value to Set, except Propagate if Exclude Propagate. Added
    --  will be true if Value was not already present.
 
-   type Item_Node;
+   type Item_Node is private;
    type Item_Ptr is access Item_Node;
-   type Item_Node is record
-      Prod       : Production.Instance;
-      Dot        : Token.List.List_Iterator; -- token after item Dot
-      State      : Unknown_State_Index;
-      Lookaheads : Lookahead;
-      Next       : Item_Ptr;
-   end record;
+
+   function Prod (Item : in Item_Ptr) return Production.Instance;
+   function LHS (Item : in Item_Ptr) return Nonterminal.Handle;
+   function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
+   function Dot (Item : in Item_Ptr) return Token.List.List_Iterator;
+   --  Token after Dot.
+   function State (Item : in Item_Ptr) return Unknown_State_Index;
+   function Lookaheads (Item : in Item_Ptr) return Lookahead;
+   function Next (Item : in Item_Ptr) return Item_Ptr;
+
+   function New_Item_Node
+     (Prod       : in Production.Instance;
+      Dot        : in Token.List.List_Iterator;
+      State      : in Unknown_State_Index;
+      Lookaheads : in Lookahead)
+     return Item_Ptr;
 
    function Item_Node_Of
      (Prod  : in Production.Instance;
@@ -90,8 +99,35 @@ package FastToken.Parser.LR1_Items is
    --  Return an item node made from Prod, Dot at the start of the
    --  right hand side, State, Lookaheads.
 
-   function Reverse_List (List : in Item_Ptr) return Item_Ptr;
-   --  Return a modified List that is in reversed order.
+   procedure Set
+     (Item       : in out Item_Node;
+      Prod       : in     Production.Instance;
+      Dot        : in     Token.List.List_Iterator;
+      State      : in     Unknown_State_Index;
+      Lookaheads : in     Lookahead);
+   --  Replace all values in Item.
+
+   procedure Add
+     (List : in out Item_Ptr;
+      Item : in     Item_Ptr);
+   --  Add Item to List, in ascending order of Prod.LHS.
+
+   procedure Set_State (List : in Item_Ptr; State : in Unknown_State_Index);
+   --  Set State in all items in List.
+
+   procedure Include
+     (Item  : in Item_Ptr;
+      Value : in Token.Terminal_ID);
+   procedure Include
+     (Item              : in Item_Ptr;
+      Value             : in Lookahead;
+      Exclude_Propagate : in Boolean);
+   procedure Include
+     (Item              : in     Item_Ptr;
+      Value             : in     Lookahead;
+      Added             :    out Boolean;
+      Exclude_Propagate : in     Boolean);
+   --  Add Value to Item.Lookahead
 
    type Goto_Item is private;
    type Goto_Item_Ptr is access Goto_Item;
@@ -143,21 +179,15 @@ package FastToken.Parser.LR1_Items is
       Target   : in out Item_Set);
    --  Add New_Item to Target without checking to see if it is in there already.
 
-   function Merge
-     (New_Item     : in     Item_Node;
-      Existing_Set : in out Item_Set)
-     return Boolean;
-   --  Merge New_Item into Existing_Set. Return True if Existing_Set
-   --  is modified.
-
    function Find
-     (Left             : in Item_Node;
+     (Prod             : in Production.Instance;
+      Dot              : in Token.List.List_Iterator;
       Right            : in Item_Set;
+      Lookaheads       : in Lookahead := Null_Lookaheads;
       Match_Lookaheads : in Boolean)
      return Item_Ptr;
-   --  Return a pointer to an item in Right that matches Left.Prod,
-   --  Left.Dot, and Left.Lookaheads if Match_Lookaheads; null if not
-   --  found.
+   --  Return a pointer to an item in Right that matches Prod, Dot,
+   --  and Lookaheads if Match_Lookaheads; null if not found.
 
    function Find
      (Left             : in Item_Set;
@@ -224,7 +254,9 @@ package FastToken.Parser.LR1_Items is
 
    function Image (Item : in Lookahead) return String;
 
-   procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean);
+   procedure Put (Item : in Item_Ptr; Show_Lookaheads : in Boolean);
+   --  Ignores Item.Next.
+
    procedure Put
      (Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
@@ -237,15 +269,29 @@ package FastToken.Parser.LR1_Items is
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
-   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
 
    procedure Free (Item : in out Item_Set);
    procedure Free (Item : in out Item_Set_List);
 
+   ----------
+   --  For use in unit tests
+
+   function "&" (Left, Right : in Item_Ptr) return Item_Ptr;
+   --  Append Right to Left; does not enforce sort order.
+
 private
 
    --  Private to force use of Add
+
+   type Item_Node is record
+      Prod       : Production.Instance;
+      Dot        : Token.List.List_Iterator; -- token after item Dot
+      State      : Unknown_State_Index;
+      Lookaheads : Lookahead;
+      Next       : Item_Ptr;
+   end record;
+
    type Goto_Item is record
       Symbol : Token.Token_ID;
       --  If Symbol is a terminal, this is a shift and goto state action.
@@ -254,5 +300,6 @@ private
       Next   : Goto_Item_Ptr;
    end record;
 
+   procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
 end FastToken.Parser.LR1_Items;

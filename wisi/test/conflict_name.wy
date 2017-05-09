@@ -1,8 +1,8 @@
-;;; Wisi grammar generating multiple conflicts in one state; show that
-;;; Generate recognizes that there is actually only one.
+;;; Wisi grammar demonstrating the need for canonical order in item
+;;; sets, so conflicts have the same name in LALR and LR1 parsers.
 ;;
 %{
-;; Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as

@@ -92,15 +92,15 @@ package body Gen_FastToken_AUnit is
       end if;
 
       loop
-         Check (Label & Integer'Image (Index) & ".State", Computed_I.State, Expected_I.State);
-         Check (Label & Integer'Image (Index) & ".Prod", Computed_I.Prod, Expected_I.Prod);
-         Check (Label & Integer'Image (Index) & ".Dot", Computed_I.Dot, Expected_I.Dot);
+         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Prod", Prod (Computed_I), Prod (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Dot", Dot (Computed_I), Dot (Expected_I));
          if Match_Lookaheads then
-            Check (Label & Integer'Image (Index) & ".Lookaheads", Computed_I.Lookaheads, Expected_I.Lookaheads);
+            Check (Label & Integer'Image (Index) & ".Lookaheads", Lookaheads (Computed_I), Lookaheads (Expected_I));
          end if;
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
+         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Computed_I := Next (Computed_I);
+         Expected_I := Next (Expected_I);
          Index      := Index + 1;
          exit when Computed_I = null;
       end loop;
@@ -210,7 +210,6 @@ package body Gen_FastToken_AUnit is
      (Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
-      Next       : in LR1_Items.Item_Ptr         := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr
    is
@@ -227,57 +226,22 @@ package body Gen_FastToken_AUnit is
          Token_Pkg.List.Next_Token (Dot_I);
       end loop;
 
-      return new LR1_Items.Item_Node'
-        (Prod       => Production.List.Current (Grammar_I),
-         Dot        => Dot_I,
-         State      => State,
-         Lookaheads => Lookaheads,
-         Next       => Next);
+      return LR1_Items.New_Item_Node (Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set
    is begin
-      return LR1_Items.Item_Set'(Item, null, Item.State, null);
+      return LR1_Items.Item_Set'(Item, null, LR1_Items.State (Item), null);
    end "+";
 
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr
    is begin
-      return new LR1_Items.Item_Set'(Item, null, Item.State, null);
+      return new LR1_Items.Item_Set'(Item, null, LR1_Items.State (Item), null);
    end "+";
-
-   function "&" (Left, Right : in LR1_Items.Item_Ptr) return LR1_Items.Item_Ptr
-   is
-      use LR1_Items;
-      I : Item_Ptr;
-   begin
-      Right.State := Left.State;
-      if Left.Next = null then
-         Left.Next := Right;
-      else
-         I := Left.Next;
-         while I.Next /= null loop
-            I := I.Next;
-         end loop;
-         I.Next := Right;
-      end if;
-      return Left;
-   end "&";
-
-   procedure Apply_State (State : in LR.Unknown_State_Index; List : in LR1_Items.Item_Ptr)
-   is
-      use LR1_Items;
-      I : Item_Ptr := List;
-   begin
-      loop
-         exit when I = null;
-         I.State := State;
-         I := I.Next;
-      end loop;
-   end Apply_State;
 
    function "+" (State : in LR.Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List
    is begin
-      Apply_State (State, Item);
+      LR1_Items.Set_State (Item, State);
       return
         (Head => new LR1_Items.Item_Set'(Item, null, State, null),
          Size => 1);
@@ -358,8 +322,7 @@ package body Gen_FastToken_AUnit is
         (Set => Get_Item_Node
            (Prod       => Prod,
             Dot        => Dot,
-            Lookaheads => Lookahead,
-            Next       => null),
+            Lookaheads => Lookahead),
          Goto_List       => null,
          State           => LR.Unknown_State,
          Next            => null);
@@ -375,8 +338,7 @@ package body Gen_FastToken_AUnit is
         (Set => Get_Item_Node
            (Prod       => Prod,
             Dot        => Dot,
-            Lookaheads => LR1_Items.Null_Lookaheads,
-            Next       => null),
+            Lookaheads => LR1_Items.Null_Lookaheads),
          Goto_List       => null,
          State           => LR.Unknown_State,
          Next            => Next);

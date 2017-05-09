@@ -248,6 +248,51 @@ package body FastToken.Parser.LR1_Items is
       return Result;
    end Has_Empty_Production;
 
+   function Prod (Item : in Item_Ptr) return Production.Instance
+   is begin
+      return Item.Prod;
+   end Prod;
+
+   function LHS (Item : in Item_Ptr) return Nonterminal.Handle
+   is begin
+      return Item.Prod.LHS;
+   end LHS;
+
+   function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side
+   is begin
+      return Item.Prod.RHS;
+   end RHS;
+
+   function Dot (Item : in Item_Ptr) return Token.List.List_Iterator
+   is begin
+      return Item.Dot;
+   end Dot;
+
+   function State (Item : in Item_Ptr) return Unknown_State_Index
+   is begin
+      return Item.State;
+   end State;
+
+   function Lookaheads (Item : in Item_Ptr) return Lookahead
+   is begin
+      return Item.Lookaheads;
+   end Lookaheads;
+
+   function Next (Item : in Item_Ptr) return Item_Ptr
+   is begin
+      return Item.Next;
+   end Next;
+
+   function New_Item_Node
+     (Prod       : in Production.Instance;
+      Dot        : in Token.List.List_Iterator;
+      State      : in Unknown_State_Index;
+      Lookaheads : in Lookahead)
+     return Item_Ptr
+   is begin
+      return new Item_Node'(Prod, Dot, State, Lookaheads, null);
+   end New_Item_Node;
+
    function Item_Node_Of
      (Prod       : in Production.List.List_Iterator;
       State      : in Unknown_State_Index;
@@ -274,6 +319,98 @@ package body FastToken.Parser.LR1_Items is
          Lookaheads => Null_Lookaheads,
          Next       => null);
    end Item_Node_Of;
+
+   procedure Set
+     (Item       : in out Item_Node;
+      Prod       : in     Production.Instance;
+      Dot        : in     Token.List.List_Iterator;
+      State      : in     Unknown_State_Index;
+      Lookaheads : in     Lookahead)
+   is begin
+      Item := (Prod, Dot, State, Lookaheads, Item.Next);
+   end Set;
+
+   procedure Add
+     (List : in out Item_Ptr;
+      Item : in     Item_Ptr)
+   is
+      use all type Nonterminal.Handle;
+      use all type Token.Token_ID;
+      New_Item : Item_Ptr renames Item;
+      I        : Item_Ptr;
+   begin
+      if List = null then
+         List := New_Item;
+      else
+         if ID (List.Prod.LHS) > ID (Item.Prod.LHS) then
+            New_Item.Next := List;
+            List          := New_Item;
+         else
+            if List.Next = null then
+               List.Next := New_Item;
+            else
+               I := List;
+               loop
+                  exit when I.Next = null or else ID (I.Next.Prod.LHS) > ID (Item.Prod.LHS);
+                  I := I.Next;
+               end loop;
+               New_Item.Next := I.Next;
+               I.Next        := New_Item;
+            end if;
+         end if;
+      end if;
+   end Add;
+
+   procedure Set_State (List : in Item_Ptr; State : in Unknown_State_Index)
+   is
+      I : Item_Ptr := List;
+   begin
+      while I /= null loop
+         I.State := State;
+         I       := I.Next;
+      end loop;
+   end Set_State;
+
+   function "&" (Left, Right : in Item_Ptr) return Item_Ptr
+   is
+      I : Item_Ptr;
+   begin
+      Right.State := Left.State;
+      if Left.Next = null then
+         Left.Next := Right;
+      else
+         I := Left.Next;
+         while I.Next /= null loop
+            I := I.Next;
+         end loop;
+         I.Next := Right;
+      end if;
+      return Left;
+   end "&";
+
+   procedure Include
+     (Item  : in Item_Ptr;
+      Value : in Token.Terminal_ID)
+   is begin
+      Include (Item.Lookaheads, Value);
+   end Include;
+
+   procedure Include
+     (Item              : in Item_Ptr;
+      Value             : in Lookahead;
+      Exclude_Propagate : in Boolean)
+   is begin
+      Include (Item.Lookaheads, Value, Exclude_Propagate);
+   end Include;
+
+   procedure Include
+     (Item              : in     Item_Ptr;
+      Value             : in     Lookahead;
+      Added             :    out Boolean;
+      Exclude_Propagate : in     Boolean)
+   is begin
+      Include (Item.Lookaheads, Value, Added, Exclude_Propagate);
+   end Include;
 
    function "+" (Item : in Token.Token_ID) return Lookahead
    is
@@ -386,8 +523,10 @@ package body FastToken.Parser.LR1_Items is
    end Add;
 
    function Find
-     (Left             : in Item_Node;
+     (Prod             : in Production.Instance;
+      Dot              : in Token.List.List_Iterator;
       Right            : in Item_Set;
+      Lookaheads       : in Lookahead := Null_Lookaheads;
       Match_Lookaheads : in Boolean)
      return Item_Ptr
    is
@@ -396,10 +535,10 @@ package body FastToken.Parser.LR1_Items is
       Current : Item_Ptr := Right.Set;
    begin
       while Current /= null loop
-         if Left.Prod = Current.Prod and
-           Left.Dot = Current.Dot and
+         if Prod = Current.Prod and
+           Dot = Current.Dot and
            (not Match_Lookaheads or else
-              Left.Lookaheads = Current.Lookaheads)
+              Lookaheads = Current.Lookaheads)
          then
             return Current;
          end if;
@@ -431,7 +570,7 @@ package body FastToken.Parser.LR1_Items is
          Right_Size := 0;
          while Right_Item /= null loop
 
-            if Find (Right_Item.all, Left, Match_Lookaheads) = null then
+            if Find (Right_Item.Prod, Right_Item.Dot, Left, Right_Item.Lookaheads, Match_Lookaheads) = null then
                exit;
             end if;
 
@@ -516,25 +655,27 @@ package body FastToken.Parser.LR1_Items is
    end Goto_Set;
 
    function Merge
-     (New_Item     : in     Item_Node;
+     (Prod         : in     Production.Instance;
+      Dot          : in     Token.List.List_Iterator;
+      State        : in     Unknown_State_Index;
+      Lookaheads   : in     Lookahead;
       Existing_Set : in out Item_Set)
      return Boolean
    is
-      Found : constant Item_Ptr := Find (New_Item, Existing_Set, Match_Lookaheads => False);
+      --  Merge item into Existing_Set. Return True if Existing_Set
+      --  is modified.
 
-      Modified : Boolean := False;
+      Found    : constant Item_Ptr := Find (Prod, Dot, Existing_Set, Match_Lookaheads => False);
+      Modified : Boolean           := False;
    begin
       if Found = null then
-         Existing_Set.Set := new Item_Node'
-           (Prod       => New_Item.Prod,
-            Dot        => New_Item.Dot,
-            State      => New_Item.State,
-            Lookaheads => New_Item.Lookaheads,
-            Next       => Existing_Set.Set);
+         Add
+           (Existing_Set.Set,
+            New_Item_Node (Prod, Dot, State, Lookaheads));
 
          Modified := True;
       else
-         Include (Found.Lookaheads, New_Item.Lookaheads, Modified, Exclude_Propagate => False);
+         Include (Found.Lookaheads, Lookaheads, Modified, Exclude_Propagate => False);
       end if;
 
       return Modified;
@@ -548,8 +689,9 @@ package body FastToken.Parser.LR1_Items is
       Trace                : in Boolean)
      return Item_Set
    is
-      use type Token.Token_ID;
-      use type Token.List.List_Iterator;
+      use all type Token.Token_ID;
+      use all type Token.List.List_Iterator;
+      use all type Production.List.List_Iterator;
       --  Can't 'use' Production.List or Token.List; they hide each other.
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "closure"
@@ -597,24 +739,14 @@ package body FastToken.Parser.LR1_Items is
                         --  Lookaheads are all terminals, so
                         --  FIRST (a) = a.
                         Added_Item := Added_Item or
-                          Merge
-                            (Item_Node_Of
-                               (B,
-                                State      => Set.State,
-                                Lookaheads => Item.Lookaheads),
-                             I);
+                          Merge (Current (B), RHS (B).Tokens.First, Set.State, Item.Lookaheads, I);
 
                         exit First_Tail;
 
                      elsif Token.List.ID (Beta) in Token.Terminal_ID then
                         --  FIRST (Beta) = Beta
                         Added_Item := Added_Item or
-                          Merge
-                            (Item_Node_Of
-                               (B,
-                                State        => Set.State,
-                                Lookaheads   => +Token.List.ID (Beta)),
-                             I);
+                          Merge (Current (B), RHS (B).Tokens.First, Set.State, +Token.List.ID (Beta), I);
                         exit First_Tail;
 
                      else
@@ -622,17 +754,12 @@ package body FastToken.Parser.LR1_Items is
                         for Terminal in Token.Terminal_ID loop
                            if First (Token.List.ID (Beta)) (Terminal) then
                               Added_Item := Added_Item or
-                                Merge
-                                  (Item_Node_Of
-                                     (B,
-                                      State        => Set.State,
-                                      Lookaheads   => +Terminal),
-                                   I);
+                                Merge (Current (B), RHS (B).Tokens.First, Set.State, +Terminal, I);
                            end if;
                         end loop;
 
                         if Has_Empty_Production (Token.List.ID (Beta)) then
-                           --  Process the next token in the tail
+                           --  Process the next token in the tail, or a
                            Beta := Token.List.Next_Token (Beta);
                         else
                            exit First_Tail;
@@ -663,8 +790,6 @@ package body FastToken.Parser.LR1_Items is
          end if;
       end loop For_Each_Item;
 
-      --  Reverse so list is in Nonterminal_ID order
-      I.Set := Reverse_List (I.Set);
       return I;
    end Closure;
 
@@ -824,9 +949,9 @@ package body FastToken.Parser.LR1_Items is
       return Ada.Strings.Unbounded.To_String (Result);
    end Image;
 
-   procedure Put (Item : in Item_Node; Show_Lookaheads : in Boolean) is
+   procedure Put (Item : in Item_Ptr; Show_Lookaheads : in Boolean) is
    begin
-      Ada.Text_IO.Put (Image (Item, Show_State => True, Show_Lookaheads => Show_Lookaheads));
+      Ada.Text_IO.Put (Image (Item.all, Show_State => True, Show_Lookaheads => Show_Lookaheads));
    end Put;
 
    procedure Put (Item : in Goto_Item_Ptr)

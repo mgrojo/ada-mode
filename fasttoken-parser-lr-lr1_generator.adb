@@ -45,23 +45,20 @@ package body FastToken.Parser.LR.LR1_Generator is
       Goto_Set.State := Unknown_State;
 
       while Item /= null loop
-         if Item.Dot /= Null_Iterator then
-            if ID (Item.Dot) = Symbol and
+         if Dot (Item) /= Null_Iterator then
+            if ID (Dot (Item)) = Symbol and
               --  We don't need a state with dot after EOF in the
               --  accept production. EOF should only appear in the
               --  accept production.
               Symbol /= EOF_Token
             then
-               Goto_Set.Set := new Item_Node'
-                 (Prod       => Item.Prod,
-                  Dot        => Next_Token (Item.Dot),
-                  State      => Unknown_State,
-                  Lookaheads => Item.Lookaheads,
-                  Next       => Goto_Set.Set);
+               Add
+                 (Goto_Set.Set,
+                  New_Item_Node (Prod (Item), Next_Token (Dot (Item)), Unknown_State, Lookaheads (Item)));
             end if;
          end if;
 
-         Item := Item.Next;
+         Item := Next (Item);
       end loop;
 
       if Goto_Set.Set /= null then
@@ -137,14 +134,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                      New_Items.Next  := C.Head;
                      New_Items.State := C.Size + First_State_Index;
 
-                     declare
-                        I : Item_Ptr := New_Items.Set;
-                     begin
-                        while I /= null loop
-                           I.State := New_Items.State;
-                           I       := I.Next;
-                        end loop;
-                     end;
+                     Set_State (New_Items.Set, New_Items.State);
 
                      if Trace then
                         Ada.Text_IO.Put_Line ("  adding state" & Unknown_State_Index'Image (New_Items.State));

@@ -50,8 +50,8 @@ State 4:
 
    IS_ID               => shift and goto state 2,
                           reduce 0 tokens to DECLARATION_ID
-   WISI_EOI_ID         => accept it,
-                          reduce 0 tokens to DECLARATION_ID
+   WISI_EOI_ID         => reduce 0 tokens to DECLARATION_ID,
+                          accept it
    default             => ERROR
 
    DECLARATION_ID      goto state 6
@@ -138,13 +138,13 @@ State 3:
 
 
 State 4:
-  FASTTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ WISI_EOI_ID, WISI_EOI_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, IS_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ WISI_EOI_ID, WISI_EOI_ID
 
    IS_ID               => shift and goto state 2,
                           reduce 0 tokens to DECLARATION_ID
-   WISI_EOI_ID         => accept it,
-                          reduce 0 tokens to DECLARATION_ID
+   WISI_EOI_ID         => reduce 0 tokens to DECLARATION_ID,
+                          accept it
    default             => ERROR
 
    DECLARATION_ID      goto state 6
@@ -187,8 +187,8 @@ State 8:
 
 
 State 9:
-  BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID/IS_ID
+  BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
 
    BEGIN_ID            => shift and goto state 11,
                           reduce 0 tokens to DECLARATION_ID
@@ -223,8 +223,8 @@ State 12:
 
 
 State 13:
-  BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, BEGIN_ID/IS_ID
+  BODY_ID <= IS_ID DECLARATIONS_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
 
    BEGIN_ID            => shift and goto state 14,
                           reduce 0 tokens to DECLARATION_ID

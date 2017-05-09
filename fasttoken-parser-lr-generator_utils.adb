@@ -98,8 +98,8 @@ package body FastToken.Parser.LR.Generator_Utils is
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
    is
-      use type LR1_Items.Item_Ptr;
-      use type Token.List.List_Iterator;
+      use all type LR1_Items.Item_Ptr;
+      use all type Token.List.List_Iterator;
 
       State : constant State_Index := Closure.State;
       Item  : LR1_Items.Item_Ptr   := Closure.Set;
@@ -110,19 +110,19 @@ package body FastToken.Parser.LR.Generator_Utils is
       end if;
 
       while Item /= null loop
-         if Item.Dot = Token.List.Null_Iterator then
+         if Dot (Item) = Token.List.Null_Iterator then
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
               (Item, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
-         elsif Token.List.ID (Item.Dot) in Token.Terminal_ID then
+         elsif Token.List.ID (Dot (Item)) in Token.Terminal_ID then
             --  Dot is before a terminal token.
             declare
                use type Token.Token_ID;
                use type LR1_Items.Item_Set_Ptr;
 
-               Dot_ID : constant Token.Terminal_ID := Token.List.ID (Item.Dot);
+               Dot_ID : constant Token.Terminal_ID := Token.List.ID (Dot (Item));
                --  ID of token after Item.Dot
 
                Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Closure, Dot_ID);
@@ -132,8 +132,8 @@ package body FastToken.Parser.LR.Generator_Utils is
                   Add_Action
                     (Symbol               => Dot_ID,
                      Action               =>
-                       (Accept_It, Item.Prod.LHS, Item.Prod.RHS.Action, Item.Prod.RHS.Index,
-                        Item.Prod.RHS.Tokens.Length - 1), -- EOF is not pushed on stack
+                       (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
+                        RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
                      Action_List          => Table (State).Action_List,
                      Closure              => Closure,
                      Has_Empty_Production => Has_Empty_Production,
@@ -157,11 +157,11 @@ package body FastToken.Parser.LR.Generator_Utils is
          else
             --  Dot is before a non-terminal token; no action.
             if Trace then
-               Ada.Text_IO.Put_Line (Token.Token_Image (Token.List.ID (Item.Dot)) & " => no action");
+               Ada.Text_IO.Put_Line (Token.Token_Image (Token.List.ID (Dot (Item))) & " => no action");
             end if;
          end if;
 
-         Item := Item.Next;
+         Item := Next (Item);
       end loop;
 
       --  Place a default error action at the end of every state.
@@ -232,16 +232,18 @@ package body FastToken.Parser.LR.Generator_Utils is
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean)
    is
+      use all type LR1_Items.Item_Ptr;
+
       Action : constant Parse_Action_Rec :=
-        (Reduce, Item.Prod.LHS, Item.Prod.RHS.Action, Item.Prod.RHS.Index, Item.Prod.RHS.Tokens.Length);
+        (Reduce, LHS (Item), RHS (Item).Action, RHS (Item).Index, RHS (Item).Tokens.Length);
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
       --  We ignore propagate lookaheads here.
-      for Lookahead in Item.Lookaheads.Tokens'Range loop
-         if Item.Lookaheads.Tokens (Lookahead) then
+      for Lookahead in Lookaheads (Item).Tokens'Range loop
+         if Lookaheads (Item).Tokens (Lookahead) then
             Add_Action
               (Symbol               => Lookahead,
                Action               => Action,
@@ -316,12 +318,11 @@ package body FastToken.Parser.LR.Generator_Utils is
       Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set)
      return Token.Token_ID
    is
-      --  Return LHS of production that matches Action, Lookahead
       use Token.List;
-      use type LR1_Items.Item_Set;
-      use type Token.Token_ID;
-      use type LR1_Items.Item_Ptr;
-      use type LR1_Items.Item_Set_Ptr;
+      use all type LR1_Items.Item_Set;
+      use all type Token.Token_ID;
+      use all type LR1_Items.Item_Ptr;
+      use all type LR1_Items.Item_Set_Ptr;
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
@@ -332,31 +333,31 @@ package body FastToken.Parser.LR.Generator_Utils is
             exit when Item = null;
             case Action.Verb is
             when Shift =>
-               if Item.Dot /= Null_Iterator and then
-                 ID (Item.Dot) = Lookahead
+               if Dot (Item) /= Null_Iterator and then
+                 ID (Dot (Item)) = Lookahead
                then
-                  return Nonterminal.ID (Item.Prod.LHS);
+                  return Nonterminal.ID (LHS (Item));
                end if;
             when Reduce =>
-               if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
-                 (Item.Dot = Null_Iterator or else
-                    (Next_Token (Item.Dot) = Null_Iterator and
-                       (ID (Item.Dot) in Token.Nonterminal_ID and then
-                          Has_Empty_Production (ID (Item.Dot)))))
+               if Nonterminal.ID (LHS (Item)) = Nonterminal.ID (Action.LHS) and
+                 (Dot (Item) = Null_Iterator or else
+                    (Next_Token (Dot (Item)) = Null_Iterator and
+                       (ID (Dot (Item)) in Token.Nonterminal_ID and then
+                          Has_Empty_Production (ID (Dot (Item))))))
                then
                   return Nonterminal.ID (Action.LHS);
                end if;
             when Accept_It =>
-               if Nonterminal.ID (Item.Prod.LHS) = Nonterminal.ID (Action.LHS) and
-                 (Item.Dot /= Null_Iterator and then
-                    ID (Item.Dot) = EOF_Token)
+               if Nonterminal.ID (LHS (Item)) = Nonterminal.ID (Action.LHS) and
+                 (Dot (Item) /= Null_Iterator and then
+                    ID (Dot (Item)) = EOF_Token)
                then
                   return Nonterminal.ID (Action.LHS);
                end if;
             when others =>
                raise Programmer_Error;
             end case;
-            Item := Item.Next;
+            Item := Next (Item);
          end loop;
          exit when Current.Next = null;
          Current := Current.Next.all;

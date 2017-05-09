@@ -129,7 +129,6 @@ package Gen_FastToken_AUnit is
      (Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
-      Next       : in LR1_Items.Item_Ptr     := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
@@ -139,15 +138,12 @@ package Gen_FastToken_AUnit is
      (Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
-      Next       : in LR1_Items.Item_Ptr     := null;
       State      : in LR.Unknown_State_Index := LR.Unknown_State)
      return LR1_Items.Item_Ptr
      renames Get_Item_Node;
 
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set;
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr;
-
-   function "&" (Left, Right : in LR1_Items.Item_Ptr) return LR1_Items.Item_Ptr;
 
    function "+" (State : in LR.Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List;
    function "&"

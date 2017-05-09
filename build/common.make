@@ -43,6 +43,8 @@ tests : test_all_harness.diff
 # actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
+tests : conflict_name_process_yylex.adb
+tests : conflict_name-parse.diff
 tests : empty_production_1_process_yylex.adb
 tests : empty_production_1-parse.diff
 tests : empty_production_2_process_yylex.adb
@@ -61,8 +63,6 @@ tests : empty_production_8_process_yylex.adb
 tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_process_yylex.adb
 tests : identifier_list_name_conflict-parse.diff
-tests : multi_conflict_process_yylex.adb
-tests : multi_conflict-parse.diff
 tests : subprograms_process_yylex.adb
 tests : subprograms-parse.diff
 

@@ -6,11 +6,6 @@ build/release_process.text
 
  current work
 
-multi_conflict; conflict name is _not_ canonical
-    three productions in state; name comes from two of them
-    order productions (sigh)
-    and there is not more than one conflict in one state (sigh).
-
 get add_action (conflict) from generated, move to lr.ads
     or to lr.parser.ads?
 

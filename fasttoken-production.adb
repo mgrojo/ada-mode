@@ -162,6 +162,11 @@ package body FastToken.Production is
          return Iterator.Production;
       end Current;
 
+      function RHS (Iterator : in List_Iterator) return Right_Hand_Side
+      is begin
+         return Iterator.Production.RHS;
+      end RHS;
+
       function Last_Production (Iterator : in List_Iterator) return Boolean
       is begin
          return Iterator = null or else Iterator.Next = null;
