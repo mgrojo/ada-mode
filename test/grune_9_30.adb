@@ -47,13 +47,14 @@ package body Grune_9_30 is
       Upper_B_ID
      );
 
-   package Token_Pkg is new FastToken.Token (Token_ID, Lower_A_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Upper_S_ID, Lexer_Root);
+   package Tokens_Pkg is new FastToken.Token (Token_ID, Lower_A_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Tokens_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Upper_S_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
@@ -62,7 +63,7 @@ package body Grune_9_30 is
    use all type Production.Instance;
    use all type Production.List.Instance;
    use all type Production.Right_Hand_Side;
-   use all type Token_Pkg.List.Instance;
+   use all type Tokens_Pkg.List.Instance;
 
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 
@@ -81,7 +82,7 @@ package body Grune_9_30 is
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
+   function "+" (Item : in Token_ID) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -94,7 +95,7 @@ package body Grune_9_30 is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_A_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
+     (Token_ID, Lower_A_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, 1, LR, LR1_Items, Grammar);
 
    Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=

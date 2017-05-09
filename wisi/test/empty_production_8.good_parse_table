@@ -26,11 +26,11 @@ State 2:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
    ALIASED_ID                 => shift and goto state 6
-   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
    CONSTANT_ID                => shift and goto state 7,
                                  reduce 0 tokens to ALIASED_OPT_ID
+   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
+   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
    default                    => ERROR
 
    ALIASED_OPT_ID             goto state 8
@@ -40,8 +40,8 @@ State 3:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, IDENTIFIER_ID/WISI_EOI_ID
   FASTTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ WISI_EOI_ID, ALIASED_ID/CONSTANT_ID/COLON_EQUAL_ID/SEMICOLON_ID/IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => accept it
    IDENTIFIER_ID              => shift and goto state 2
+   WISI_EOI_ID                => accept it
    default                    => ERROR
 
    OBJECT_DECLARATION_ID      goto state 5
@@ -49,40 +49,40 @@ State 3:
 State 4:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
    IDENTIFIER_ID              => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   WISI_EOI_ID                => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
    default                    => ERROR
 
 
 State 5:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
    IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   WISI_EOI_ID                => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
    default                    => ERROR
 
 
 State 6:
   ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
 
-   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
    CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
    default                    => ERROR
 
 
 State 7:
   CONSTANT_OPT_ID <= CONSTANT_ID ^, COLON_EQUAL_ID/SEMICOLON_ID
 
-   SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
    COLON_EQUAL_ID             => reduce 1 tokens to CONSTANT_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
    default                    => ERROR
 
 
 State 8:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
    CONSTANT_ID                => shift and goto state 7
+   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
    default                    => ERROR
 
    CONSTANT_OPT_ID            goto state 11
@@ -111,21 +111,22 @@ State 11:
 State 12:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    default                    => ERROR
 
 
 State 13:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    default                    => ERROR
 
 
 LR1 Parse Table:
 State 1:
+  FASTTOKEN_ACCEPT_ID <= ^ OBJECT_DECLARATION_LIST_ID WISI_EOI_ID, WISI_EOI_ID
 
    IDENTIFIER_ID              => shift and goto state 2
    default                    => ERROR
@@ -134,27 +135,25 @@ State 1:
    OBJECT_DECLARATION_ID      goto state 4
 
 State 2:
-  ALIASED_OPT_ID <= ^, CONSTANT_ID/SEMICOLON_ID
-  CONSTANT_OPT_ID <= ^, COLON_EQUAL_ID
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
+  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
-   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
+   ALIASED_ID                 => shift and goto state 6
    CONSTANT_ID                => shift and goto state 7,
                                  reduce 0 tokens to ALIASED_OPT_ID
-   ALIASED_ID                 => shift and goto state 6
+   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
+   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
    default                    => ERROR
 
    ALIASED_OPT_ID             goto state 8
    CONSTANT_OPT_ID            goto state 9
 
 State 3:
-  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, IDENTIFIER_ID/WISI_EOI_ID
   FASTTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ WISI_EOI_ID, WISI_EOI_ID
+  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => accept it
    IDENTIFIER_ID              => shift and goto state 2
+   WISI_EOI_ID                => accept it
    default                    => ERROR
 
    OBJECT_DECLARATION_ID      goto state 5
@@ -162,24 +161,24 @@ State 3:
 State 4:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
    IDENTIFIER_ID              => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
+   WISI_EOI_ID                => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
    default                    => ERROR
 
 
 State 5:
   OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
    IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
+   WISI_EOI_ID                => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
    default                    => ERROR
 
 
 State 6:
   ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
 
-   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
    CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
+   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
    default                    => ERROR
 
 
@@ -191,11 +190,10 @@ State 7:
 
 
 State 8:
-  CONSTANT_OPT_ID <= ^, SEMICOLON_ID
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
    CONSTANT_ID                => shift and goto state 11
+   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
    default                    => ERROR
 
    CONSTANT_OPT_ID            goto state 12
@@ -231,16 +229,16 @@ State 12:
 State 13:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    default                    => ERROR
 
 
 State 14:
   OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
+   WISI_EOI_ID                => reduce 4 tokens to OBJECT_DECLARATION_ID
    default                    => ERROR
 
 

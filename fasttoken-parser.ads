@@ -28,16 +28,24 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Token;
 generic
-   with package Token is new FastToken.Token (<>);
-   EOF_Token    : in Token.Token_ID;
-   Accept_Token : in Token.Token_ID;
+   type Token_ID is (<>);
+
+   First_Terminal : in Token_ID;
+   Last_Terminal  : in Token_ID;
+   EOF_Token      : in Token_ID;
+   Accept_Token   : in Token_ID;
    --  Accept_Token is the grammar start symbol; the LHS of the
    --  production whose action is accept - we assume there is only
    --  one.
    pragma Unreferenced (EOF_Token, Accept_Token); -- used in children
+
+   with function Token_Image (Item : in Token_ID) return String;
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   with package Token is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
    with package Lexer is new FastToken.Lexer (Token);
 package FastToken.Parser is
 

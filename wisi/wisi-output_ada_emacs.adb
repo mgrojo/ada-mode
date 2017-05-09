@@ -426,25 +426,27 @@ is
       Indent_Line ("package Token_Pkg is new FastToken.Token");
       Indent_Line ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
       Indent_Line ("package Nonterminal is new Token_Pkg.Nonterminal;");
+      Indent_Line ("package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens");
+      Indent_Line
+        ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg, Nonterminal);");
       Indent_Line ("package Production is new FastToken.Production (Token_Pkg, Nonterminal);");
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
+      Indent_Line ("package Parser_Root is new FastToken.Parser");
       Indent_Line
-        ("package Parser_Root is new FastToken.Parser (Token_Pkg, " &
+        ("  (Token_ID, First_Terminal, Last_Terminal, " &
            (-EOI_Name) & "_ID, " &
-           (-FastToken_Accept_Name) & "_ID, Lexer_Root);");
+           (-FastToken_Accept_Name) & "_ID, " &
+           "Token_Image, Put_Trace,");
+      Indent_Line ("   Token_Pkg, Lexer_Root);");
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
-      Indent_Line ("package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);");
+      Indent_Line ("package LR is new Parser_Root.LR");
+      Indent_Line ("  (First_State_Index, Token_ID'Width, Nonterminal, Wisi_Tokens_Pkg.Get);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
       Indent_Line
         ("package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
-      New_Line;
-
-      Indent_Line ("package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens");
-      Indent_Line
-        ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg, Nonterminal);");
       New_Line;
 
       case Interface_Kind is

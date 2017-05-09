@@ -51,14 +51,15 @@ package body Name_Grammar_Test is
       Statement_ID,
       Symbol_Name_ID);
 
-   package Token_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Tokens_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Tokens_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Statement_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Dot_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
@@ -69,11 +70,11 @@ package body Name_Grammar_Test is
 
    package Tokens is
       --  For use in right hand sides, syntax.
-      Dot         : constant Token_Pkg.Class := Token_Pkg.Get (Dot_ID);
-      Paren_Left  : constant Token_Pkg.Class := Token_Pkg.Get (Paren_Left_ID);
-      Paren_Right : constant Token_Pkg.Class := Token_Pkg.Get (Paren_Right_ID);
-      Identifier  : constant Token_Pkg.Class := Token_Pkg.Get (Identifier_ID);
-      EOF         : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
+      Dot         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Dot_ID);
+      Paren_Left  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Paren_Left_ID);
+      Paren_Right : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Paren_Right_ID);
+      Identifier  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Identifier_ID);
+      EOF         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
 
       Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
       Name           : constant Nonterminal.Class := Nonterminal.Get (Name_ID);
@@ -84,7 +85,7 @@ package body Name_Grammar_Test is
 
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID  => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
+      Whitespace_ID  => Lexer.Get (" ", Tokens_Pkg.Get (Whitespace_ID), Report => False),
       Dot_ID         => Lexer.Get ("\.", Tokens.Dot),
       Paren_Left_ID  => Lexer.Get ("\(", Tokens.Paren_Left),
       Paren_Right_ID => Lexer.Get ("\)", Tokens.Paren_Right),
@@ -97,7 +98,7 @@ package body Name_Grammar_Test is
    use type Production.Instance;        --  "<="
    use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_Pkg.List.Instance;    --  "&"
+   use type Tokens_Pkg.List.Instance;    --  "&"
 
    Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
 

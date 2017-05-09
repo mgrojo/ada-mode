@@ -17,7 +17,7 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, FUNCTION_ID/LEFT_PAREN_ID/PROCEDURE_ID/RIGHT_PAREN_ID/SYMBOL_ID/TICK_ID/STRING_LITERAL_ID/WISI_EOI_ID
 
    FUNCTION_ID         => shift and goto state 2
    PROCEDURE_ID        => shift and goto state 3
@@ -31,8 +31,8 @@ State 1:
 State 2:
   SUBPROGRAM_ID <= FUNCTION_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    LEFT_PAREN_ID       => shift and goto state 9
+   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    TICK_ID             => shift and goto state 10
    default             => ERROR
 
@@ -41,8 +41,8 @@ State 2:
 State 3:
   SUBPROGRAM_ID <= PROCEDURE_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    LEFT_PAREN_ID       => shift and goto state 9
+   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    TICK_ID             => shift and goto state 10
    default             => ERROR
 
@@ -59,9 +59,9 @@ State 5:
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
   COMPILATION_UNIT_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
    FUNCTION_ID         => shift and goto state 2
    PROCEDURE_ID        => shift and goto state 3
+   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
    default             => ERROR
 
    DECLARATION_ID      goto state 8
@@ -70,27 +70,27 @@ State 5:
 State 6:
   DECLARATIONS_ID <= DECLARATION_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
-   PROCEDURE_ID        => reduce 1 tokens to DECLARATIONS_ID
    FUNCTION_ID         => reduce 1 tokens to DECLARATIONS_ID
+   PROCEDURE_ID        => reduce 1 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 State 7:
   DECLARATION_ID <= SUBPROGRAM_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATION_ID
-   PROCEDURE_ID        => reduce 1 tokens to DECLARATION_ID
    FUNCTION_ID         => reduce 1 tokens to DECLARATION_ID
+   PROCEDURE_ID        => reduce 1 tokens to DECLARATION_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATION_ID
    default             => ERROR
 
 
 State 8:
   DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
-   PROCEDURE_ID        => reduce 2 tokens to DECLARATIONS_ID
    FUNCTION_ID         => reduce 2 tokens to DECLARATIONS_ID
+   PROCEDURE_ID        => reduce 2 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
@@ -98,8 +98,8 @@ State 9:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ SYMBOL_ID RIGHT_PAREN_ID, SYMBOL_ID
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
 
-   SYMBOL_ID           => shift and goto state 17
    RIGHT_PAREN_ID      => shift and goto state 16
+   SYMBOL_ID           => shift and goto state 17
    default             => ERROR
 
 
@@ -127,18 +127,18 @@ State 12:
 State 13:
   SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
-   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
+   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
+   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
    default             => ERROR
 
 
 State 14:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
-   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
+   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
+   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
    default             => ERROR
 
 
@@ -172,6 +172,7 @@ State 18:
 
 LR1 Parse Table:
 State 1:
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, WISI_EOI_ID
 
    FUNCTION_ID         => shift and goto state 2
    PROCEDURE_ID        => shift and goto state 3
@@ -183,22 +184,20 @@ State 1:
    SUBPROGRAM_ID       goto state 7
 
 State 2:
-  PARAMETER_LIST_ID <= ^, SYMBOL_ID
   SUBPROGRAM_ID <= FUNCTION_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    LEFT_PAREN_ID       => shift and goto state 9
+   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    TICK_ID             => shift and goto state 10
    default             => ERROR
 
    PARAMETER_LIST_ID   goto state 12
 
 State 3:
-  PARAMETER_LIST_ID <= ^, SYMBOL_ID
   SUBPROGRAM_ID <= PROCEDURE_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    LEFT_PAREN_ID       => shift and goto state 9
+   SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
    TICK_ID             => shift and goto state 10
    default             => ERROR
 
@@ -212,12 +211,12 @@ State 4:
 
 
 State 5:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
   COMPILATION_UNIT_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
    FUNCTION_ID         => shift and goto state 2
    PROCEDURE_ID        => shift and goto state 3
+   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
    default             => ERROR
 
    DECLARATION_ID      goto state 8
@@ -226,33 +225,33 @@ State 5:
 State 6:
   DECLARATIONS_ID <= DECLARATION_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
-   PROCEDURE_ID        => reduce 1 tokens to DECLARATIONS_ID
    FUNCTION_ID         => reduce 1 tokens to DECLARATIONS_ID
+   PROCEDURE_ID        => reduce 1 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 State 7:
   DECLARATION_ID <= SUBPROGRAM_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATION_ID
-   PROCEDURE_ID        => reduce 1 tokens to DECLARATION_ID
    FUNCTION_ID         => reduce 1 tokens to DECLARATION_ID
+   PROCEDURE_ID        => reduce 1 tokens to DECLARATION_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATION_ID
    default             => ERROR
 
 
 State 8:
   DECLARATIONS_ID <= DECLARATIONS_ID DECLARATION_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
-   PROCEDURE_ID        => reduce 2 tokens to DECLARATIONS_ID
    FUNCTION_ID         => reduce 2 tokens to DECLARATIONS_ID
+   PROCEDURE_ID        => reduce 2 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 State 9:
-  PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ SYMBOL_ID RIGHT_PAREN_ID, SYMBOL_ID
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
+  PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ SYMBOL_ID RIGHT_PAREN_ID, SYMBOL_ID
 
    RIGHT_PAREN_ID      => shift and goto state 16
    SYMBOL_ID           => shift and goto state 17
@@ -283,18 +282,18 @@ State 12:
 State 13:
   SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
-   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
+   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
+   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
    default             => ERROR
 
 
 State 14:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
-   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
+   PROCEDURE_ID        => reduce 3 tokens to SUBPROGRAM_ID
+   WISI_EOI_ID         => reduce 3 tokens to SUBPROGRAM_ID
    default             => ERROR
 
 

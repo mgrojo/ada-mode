@@ -9,6 +9,7 @@ procedure Subprograms_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
    Subprograms_Process.Put_Trace_Line,
    Subprograms_Process.Token_Pkg,
    Subprograms_Process.Nonterminal,
+   Subprograms_Process.Wisi_Tokens_Pkg,
    Subprograms_Process.Lexer_Root,
    Subprograms_Process.Parser_Root,
    Subprograms_Process.First_State_Index,

@@ -41,6 +41,7 @@ generic
    First_State_Index : in Natural;
    Token_Image_Width : Integer;
    with package Nonterminal is new Token.Nonterminal;
+   with function Get_Nonterminal_Token (ID : in Token_ID) return Nonterminal.Instance'Class;
 package FastToken.Parser.LR is
 
    package Nonterminal_Pkg renames Nonterminal;

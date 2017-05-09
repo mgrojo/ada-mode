@@ -20,14 +20,15 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
-with FastToken.Production;
+with Ada.Text_IO;
+with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
+with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Lexer.Regexp;
 with FastToken.Token.Nonterminal;
 package body Test_Accept_State is
 
@@ -53,10 +54,12 @@ package body Test_Accept_State is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Parse_Sequence_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Equals_ID, Identifier_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
+      Token_Pkg, Lexer_Root);
    First_Parser_Label : constant := 1;
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal, Nonterminal.Get);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR1_Items is new Parser_Root.LR1_Items

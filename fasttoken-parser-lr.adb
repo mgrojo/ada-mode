@@ -115,7 +115,7 @@ package body FastToken.Parser.LR is
       Synthesize      : in     Nonterminal.Synthesize)
    is
       Action   : Parse_Action_Rec;
-      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));
+      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID));
       New_Node : Action_Node_Ptr;
       Node     : Action_Node_Ptr;
    begin

@@ -25,6 +25,7 @@ with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder;
 with FastToken.Token.Nonterminal;
+with FastToken.Wisi_Tokens;
 generic
    type Token_ID is (<>);
    First_Terminal : in Token_ID;
@@ -39,11 +40,14 @@ generic
    with procedure Put_Trace_Line (Item : in String);
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
    with package Nonterminal is new Token_Pkg.Nonterminal;
+   with package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens
+     (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg, Nonterminal);
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    with package Parser_Root is new FastToken.Parser
-     (Token_Pkg, Last_Terminal, Token_ID'Succ (Last_Terminal), Lexer_Root);
+     (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_Image, Put_Trace,
+      Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Wisi_Tokens_Pkg.Get);
    First_Parser_Label : in Integer;
    with package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
    with package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);

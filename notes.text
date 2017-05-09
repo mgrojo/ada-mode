@@ -6,20 +6,13 @@ build/release_process.text
 
  current work
 
-use Add routine to always sort goto_list and action list
-    t_all failing due to order changes
-
-    empty_production_1 crashing during parse; tag check failed
-    but the tags are ok!?
-    some pointer is freed then used?
-    see if empt_prod_2 does it
-        lost parens around token in parse trace?
+multi_conflict; conflict name is _not_ canonical
+    three productions in state; name comes from two of them
+    order productions (sigh)
+    and there is not more than one conflict in one state (sigh).
 
 get add_action (conflict) from generated, move to lr.ads
-
-delete test_empty_prod_*.adb
-    only useful while debugging problem
-    keep wisi/test; no need for both
+    or to lr.parser.ads?
 
 copy wisi/test/*-elisp.el to ada-mode.s-4, use in tests
 
@@ -27,7 +20,7 @@ test_empty_productions_9.adb
     delete? move to wisi/test?
 
 lalr calls closure on each kernel more than once!
-    save the closure the first time
+    save the closure the first time?
 
 don't put EOF_ID in accept statement?
     only needed in lookahead
@@ -38,18 +31,6 @@ where is accept_token used?
 
 run bison on the grammar, get it to output a parse table
     mingw64?
-
-add LR1 to test_empty_productions_1.adb
-    done in wisi/test?
-
-    test all closures explicitly
-        dot 0 done
-
-    test all goto_transitions explicitly
-        1, 1, EOF_ID done
-
-    test final parse table; review each item!
-
 
 compare lr1_goto_transitions to lalr_goto_transitions
     wisi/test/debug.adb

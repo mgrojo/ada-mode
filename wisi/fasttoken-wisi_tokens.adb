@@ -98,8 +98,6 @@ package body FastToken.Wisi_Tokens is
       use Token_Pkg;
       Name : constant String := Token_Image (Token.ID);
    begin
-      --  FIXME: for tests and debugging, want buffer_range in image.
-      --  For syntax error message, only want token_id.
       if Token.Buffer_Range = Null_Buffer_Range then
          return "(" & Name & ")";
       else

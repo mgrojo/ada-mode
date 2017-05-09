@@ -20,6 +20,7 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
+with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
@@ -51,9 +52,11 @@ package body Test_Statement_Actions is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Parse_Sequence_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Plus_Minus_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
+      Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);

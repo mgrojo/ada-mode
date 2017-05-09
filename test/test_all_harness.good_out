@@ -30,14 +30,12 @@ OK ../../Test/parser_lists_test.adb : Stack_Equal
 OK ../../Test/parser_lists_test.adb : Pending
 OK ../../Test/parser_lists_test.adb : Copy
 OK ../../Test/test_accept_state.adb : Nominal
-OK ../../Test/test_empty_productions_4.adb : Test_First
-OK ../../Test/test_empty_productions_5.adb : Test_Closure
 OK ../../Test/test_lr_expecting.adb : Nominal
 OK ../../Test/test_statement_actions.adb : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   36
-Successful Tests:  36
+Total Tests Run:   34
+Successful Tests:  34
 Failed Assertions: 0
 Unexpected Errors: 0

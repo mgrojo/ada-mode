@@ -52,8 +52,9 @@ package body Dragon_4_45_LALR_Test is
    package Nonterminal is new Tokens_Pkg.Nonterminal;
    package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
    package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
-   package Parser_Root is new FastToken.Parser (Tokens_Pkg, EOF_ID, Accept_ID, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);

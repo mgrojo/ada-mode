@@ -23,6 +23,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
+with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Token.Nonterminal;
@@ -32,12 +33,13 @@ package body Parser_Lists_Test is
 
    type Token_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
-   package Token_Pkg is new FastToken.Token (Token_ID, If_ID, EOF_ID, Token_ID'Image);
+   package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
    package Nonterminal is new Token_Pkg.Nonterminal;
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOF_ID, Statement_ID, Lexer_Root);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);
 
    --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.

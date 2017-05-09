@@ -11,7 +11,7 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, IN_ID/IDENTIFIER_ID/WISI_EOI_ID
 
    IDENTIFIER_ID              => shift and goto state 2
    default                    => ERROR
@@ -22,8 +22,8 @@ State 1:
 State 2:
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID ^ MODE_ID NAME_ID, IDENTIFIER_ID/WISI_EOI_ID
 
-   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    IN_ID                      => shift and goto state 6
+   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    default                    => ERROR
 
    MODE_ID                    goto state 7
@@ -68,21 +68,22 @@ State 7:
 State 8:
   NAME_ID <= IDENTIFIER_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 1 tokens to NAME_ID
    IDENTIFIER_ID              => reduce 1 tokens to NAME_ID
+   WISI_EOI_ID                => reduce 1 tokens to NAME_ID
    default                    => ERROR
 
 
 State 9:
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID MODE_ID NAME_ID ^, IDENTIFIER_ID/WISI_EOI_ID
 
-   WISI_EOI_ID                => reduce 3 tokens to PARAMETER_SPECIFICATION_ID
    IDENTIFIER_ID              => reduce 3 tokens to PARAMETER_SPECIFICATION_ID
+   WISI_EOI_ID                => reduce 3 tokens to PARAMETER_SPECIFICATION_ID
    default                    => ERROR
 
 
 LR1 Parse Table:
 State 1:
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, WISI_EOI_ID
 
    IDENTIFIER_ID              => shift and goto state 2
    default                    => ERROR
@@ -91,11 +92,10 @@ State 1:
    PARAMETER_SPECIFICATION_ID goto state 4
 
 State 2:
-  MODE_ID <= ^, IDENTIFIER_ID
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID ^ MODE_ID NAME_ID, IDENTIFIER_ID
 
-   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    IN_ID                      => shift and goto state 7
+   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    default                    => ERROR
 
    MODE_ID                    goto state 8
@@ -116,11 +116,10 @@ State 4:
    PARAMETER_SPECIFICATION_ID goto state 6
 
 State 5:
-  MODE_ID <= ^, IDENTIFIER_ID
   PARAMETER_SPECIFICATION_ID <= IDENTIFIER_ID ^ MODE_ID NAME_ID, WISI_EOI_ID
 
-   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    IN_ID                      => shift and goto state 7
+   IDENTIFIER_ID              => reduce 0 tokens to MODE_ID
    default                    => ERROR
 
    MODE_ID                    goto state 11

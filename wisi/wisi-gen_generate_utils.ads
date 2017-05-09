@@ -83,8 +83,9 @@ package Wisi.Gen_Generate_Utils is
    package Nonterminal_Pkg is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Parser_Root is new FastToken.Parser (Token_Pkg, EOI_ID, Accept_ID, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg);
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg, Nonterminal_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);

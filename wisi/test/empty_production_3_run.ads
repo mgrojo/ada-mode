@@ -9,6 +9,7 @@ procedure Empty_Production_3_Run is new Gen_Parser_Run_Counted_GNAT_OS_Lib
    Empty_Production_3_Process.Put_Trace_Line,
    Empty_Production_3_Process.Token_Pkg,
    Empty_Production_3_Process.Nonterminal,
+   Empty_Production_3_Process.Wisi_Tokens_Pkg,
    Empty_Production_3_Process.Lexer_Root,
    Empty_Production_3_Process.Parser_Root,
    Empty_Production_3_Process.First_State_Index,

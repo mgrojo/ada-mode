@@ -15,7 +15,7 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, BEGIN_ID/END_ID/COLON_ID/COLON_EQUAL_ID/SEMICOLON_ID/IDENTIFIER_ID/WISI_EOI_ID
 
    BEGIN_ID                  => shift and goto state 2
    default                   => ERROR
@@ -50,8 +50,8 @@ State 4:
 State 5:
   SEQUENCE_OF_STATEMENTS_ID <= STATEMENT_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
    END_ID                    => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
+   IDENTIFIER_ID             => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
    default                   => ERROR
 
 
@@ -91,8 +91,8 @@ State 9:
 State 10:
   SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID STATEMENT_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
    END_ID                    => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
+   IDENTIFIER_ID             => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
    default                   => ERROR
 
 
@@ -127,13 +127,14 @@ State 14:
 State 15:
   STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 5 tokens to STATEMENT_ID
    END_ID                    => reduce 5 tokens to STATEMENT_ID
+   IDENTIFIER_ID             => reduce 5 tokens to STATEMENT_ID
    default                   => ERROR
 
 
 LR1 Parse Table:
 State 1:
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, WISI_EOI_ID
 
    BEGIN_ID                  => shift and goto state 2
    default                   => ERROR
@@ -141,7 +142,6 @@ State 1:
    COMPILATION_UNIT_ID       goto state 3
 
 State 2:
-  LABEL_OPT_ID <= ^, IDENTIFIER_ID
   COMPILATION_UNIT_ID <= BEGIN_ID ^ SEQUENCE_OF_STATEMENTS_ID END_ID SEMICOLON_ID, WISI_EOI_ID
 
    IDENTIFIER_ID             => shift and goto state 4,
@@ -169,15 +169,14 @@ State 4:
 State 5:
   SEQUENCE_OF_STATEMENTS_ID <= STATEMENT_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
    END_ID                    => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
+   IDENTIFIER_ID             => reduce 1 tokens to SEQUENCE_OF_STATEMENTS_ID
    default                   => ERROR
 
 
 State 6:
-  LABEL_OPT_ID <= ^, IDENTIFIER_ID
-  SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID ^ STATEMENT_ID, END_ID/IDENTIFIER_ID
   COMPILATION_UNIT_ID <= BEGIN_ID SEQUENCE_OF_STATEMENTS_ID ^ END_ID SEMICOLON_ID, WISI_EOI_ID
+  SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID ^ STATEMENT_ID, END_ID/IDENTIFIER_ID
 
    END_ID                    => shift and goto state 9
    IDENTIFIER_ID             => shift and goto state 4,
@@ -211,8 +210,8 @@ State 9:
 State 10:
   SEQUENCE_OF_STATEMENTS_ID <= SEQUENCE_OF_STATEMENTS_ID STATEMENT_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
    END_ID                    => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
+   IDENTIFIER_ID             => reduce 2 tokens to SEQUENCE_OF_STATEMENTS_ID
    default                   => ERROR
 
 
@@ -247,8 +246,8 @@ State 14:
 State 15:
   STATEMENT_ID <= LABEL_OPT_ID IDENTIFIER_ID COLON_EQUAL_ID IDENTIFIER_ID SEMICOLON_ID ^, END_ID/IDENTIFIER_ID
 
-   IDENTIFIER_ID             => reduce 5 tokens to STATEMENT_ID
    END_ID                    => reduce 5 tokens to STATEMENT_ID
+   IDENTIFIER_ID             => reduce 5 tokens to STATEMENT_ID
    default                   => ERROR
 
 
