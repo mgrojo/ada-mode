@@ -103,12 +103,6 @@ package Gen_FastToken_AUnit is
       Expected         : in LR1_Items.Item_Set;
       Match_Lookaheads : in Boolean := True);
 
-   function "&" (Left, Right : in LR1_Items.Goto_Item) return LR1_Items.Goto_Item_Ptr;
-   function "&"
-     (Left  : in LR1_Items.Goto_Item_Ptr;
-      Right : in LR1_Items.Goto_Item)
-     return LR1_Items.Goto_Item_Ptr;
-
    procedure Check
      (Label    : in String;
       Computed : in LR1_Items.Goto_Item_Ptr;
@@ -159,13 +153,18 @@ package Gen_FastToken_AUnit is
       Right : in LR1_Items.Item_Set_List)
      return LR1_Items.Item_Set_List;
 
-   function Get_Goto
-     (Symbol   : in Token_ID;
-      To_State : in LR.State_Index;
+   function Get_Set
+     (To_State : in LR.State_Index;
       Set_List : in LR1_Items.Item_Set_List)
-     return LR1_Items.Goto_Item_Ptr;
+     return LR1_Items.Item_Set_Ptr;
 
-   function "&" (Left, Right : in LR1_Items.Goto_Item_Ptr) return LR1_Items.Goto_Item_Ptr;
+   type AUnit_Goto_Item is record
+      Symbol : Token_ID;
+      Set    : LR1_Items.Item_Set_Ptr;
+   end record;
+
+   function "+" (Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr;
+   function "&" (Left : in LR1_Items.Goto_Item_Ptr; Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr;
 
    procedure Add_Gotos
      (List  : in LR1_Items.Item_Set_List;

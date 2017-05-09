@@ -521,15 +521,16 @@ is
                exit when Node = null;
                Table_Entry_Count := Table_Entry_Count + 1;
                Set_Col (Indent);
-               Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
                declare
                   Action_Node : Parse_Action_Node_Ptr := Node.Action;
                begin
                   case Action_Node.Item.Verb is
                   when Shift =>
+                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
+                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
                      else
@@ -541,7 +542,7 @@ is
                      Append
                        (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                   when Error =>
-                     null;
+                     Line := +"Add_Error (Table (" & State_Image (State_Index) & ")";
                   end case;
 
                   Action_Node := Action_Node.Next;
@@ -578,8 +579,8 @@ is
                exit when Node = null;
                Set_Col (Indent);
                Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
-               Put_Line (Token_Image (Node.Symbol) & ", " & State_Image (Node.State) & ");");
-               Node := Node.Next;
+               Put_Line (Token_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
+               Node := Next (Node);
             end loop;
          end Gotos;
       end loop;
@@ -1060,52 +1061,6 @@ is
          end loop;
       end if;
 
-      --  This procedure is called for Shift actions
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State       : in out LR.Parse_State;");
-      Indent_Line ("   Symbol      : in     Token_ID;");
-      Indent_Line ("   State_Index : in     LR.State_Index)");
-      Indent_Line ("is");
-      Indent_Line ("   use LR;");
-      Indent_Line ("   Action : constant Parse_Action_Rec := (Shift, State_Index);");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line
-        ("State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
-
-      --  This procedure is called for Reduce or Accept_It actions
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State           : in out LR.Parse_State;");
-      Indent_Line ("   Symbol          : in     Token_ID;");
-      Indent_Line ("   Verb            : in     LR.Parse_Action_Verbs;");
-      Indent_Line ("   LHS_ID          : in     Token_ID;");
-      Indent_Line ("   RHS_Token_Count : in     Natural;");
-      Indent_Line ("   Synthesize      : in     Nonterminal.Synthesize)");
-      Indent_Line ("is");
-      Indent_Line ("   use LR;");
-      Indent_Line ("   use Production;");
-      Indent_Line ("   Action : Parse_Action_Rec;");
-      Indent_Line
-        ("   LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Wisi_Tokens_Pkg.Get (LHS_ID));");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("case Verb is");
-      Indent_Line ("when Reduce =>");
-      Indent_Line ("   Action := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
-      Indent_Line ("when Accept_It =>");
-      Indent_Line ("   Action := (Accept_It, LHS, Synthesize, 0, RHS_Token_Count);");
-      Indent_Line ("when others =>");
-      Indent_Line ("   null;");
-      Indent_Line ("end case;");
-      Indent_Line
-        ("State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
-
       if Shift_Reduce_Conflict_Count > 0 then
          --  This procedure is called for Shift/Reduce conflicts
          Indent_Line ("procedure Add_Action");
@@ -1178,42 +1133,6 @@ is
          Indent_Line ("end Add_Action;");
          New_Line;
       end if;
-
-      --  This procedure is called for Error actions
-      --  Error action must be last in list
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State  : in out LR.Parse_State;");
-      Indent_Line ("   Symbol : in     Token_ID)");
-      Indent_Line ("is");
-      Indent_Line ("   use LR;");
-      Indent_Line ("   Action : constant Parse_Action_Rec := (Verb => Error);");
-      Indent_Line ("   Node   : Action_Node_Ptr           := State.Action_List;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("loop");
-      Indent_Line ("   exit when Node.Next = null;");
-      Indent_Line ("   Node := Node.Next;");
-      Indent_Line ("end loop;");
-      Indent_Line ("Node.Next := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
-
-      Indent_Line ("procedure Add_Goto");
-      Indent := Indent + 2;
-      Indent_Line ("(State    : in out LR.Parse_State;");
-      Indent := Indent + 1;
-      Indent_Line ("Symbol   : in     Token_ID;");
-      Indent_Line ("To_State : in     LR.State_Index)");
-      Indent := Indent - 3;
-      Indent_Line ("is");
-      Indent_Line ("   use LR;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Goto;");
-      New_Line;
 
       Create_Create_Parser;
 

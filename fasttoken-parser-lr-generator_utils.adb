@@ -87,10 +87,7 @@ package body FastToken.Parser.LR.Generator_Utils is
             end;
          end if;
       else
-         Action_List := new Action_Node'
-           (Symbol => Symbol,
-            Action => new Parse_Action_Node'(Action, null),
-            Next   => Action_List);
+         Add (Action_List, Symbol, Action);
       end if;
    end Add_Action;
 
@@ -214,17 +211,15 @@ package body FastToken.Parser.LR.Generator_Utils is
 
       --  Fill in this state's Goto transitions
       declare
-         use type LR1_Items.Goto_Item_Ptr;
+         use all type LR1_Items.Goto_Item_Ptr;
+         use all type LR.Goto_Node_Ptr;
          Goto_Ptr : LR1_Items.Goto_Item_Ptr := Closure.Goto_List;
       begin
          while Goto_Ptr /= null loop
-            if Goto_Ptr.Symbol in Token.Nonterminal_ID then
-               Table (State).Goto_List := new Goto_Node'
-                 (Symbol => Goto_Ptr.Symbol,
-                  State  => Goto_Ptr.Set.State,
-                  Next   => Table (State).Goto_List);
+            if Symbol (Goto_Ptr) in Token.Nonterminal_ID then
+               Add_Goto (Table (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
             end if;
-            Goto_Ptr := Goto_Ptr.Next;
+            Goto_Ptr := Next (Goto_Ptr);
          end loop;
       end;
    end Add_Actions;

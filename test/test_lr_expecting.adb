@@ -178,7 +178,7 @@ package body Test_LR_Expecting is
 
       Execute ("set", "1:4: Syntax error; expecting one of IDENTIFIER_ID; found EOF_ID '" & ASCII.EOT & "'");
 
-      Execute ("2", "1:1: Syntax error; expecting one of VERIFY_ID, SET_ID; found INT_ID '2'");
+      Execute ("2", "1:1: Syntax error; expecting one of SET_ID, VERIFY_ID; found INT_ID '2'");
    end Nominal;
 
    ----------

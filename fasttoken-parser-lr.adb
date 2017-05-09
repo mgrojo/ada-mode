@@ -39,14 +39,71 @@ package body FastToken.Parser.LR is
       return Trim (State_Index'Image (Item), Both);
    end State_Image;
 
+   function Symbol (List : in Goto_Node_Ptr) return Token.Token_ID
+   is begin
+      return List.Symbol;
+   end Symbol;
+
+   function State (List : in Goto_Node_Ptr) return State_Index
+   is begin
+      return List.State;
+   end State;
+
+   function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr
+   is begin
+      return List.Next;
+   end Next;
+
+   procedure Add
+     (List   : in out Action_Node_Ptr;
+      Symbol : in     Token.Token_ID;
+      Action : in     Parse_Action_Rec)
+   is
+      use all type Token.Token_ID;
+      New_Item : constant Action_Node_Ptr := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
+      I        : Action_Node_Ptr          := List;
+   begin
+      if I = null then
+         List := New_Item;
+      else
+         if List.Symbol > Symbol then
+            New_Item.Next := List;
+            List          := New_Item;
+         else
+            if List.Next = null then
+               List.Next := New_Item;
+            else
+               I := List;
+               loop
+                  exit when I.Next = null or else I.Next.Symbol > Symbol;
+                  I := I.Next;
+               end loop;
+               New_Item.Next := I.Next;
+               I.Next        := New_Item;
+            end if;
+         end if;
+      end if;
+   end Add;
+
    procedure Add_Action
      (State       : in out LR.Parse_State;
       Symbol      : in     Token_Pkg.Token_ID;
       State_Index : in     LR.State_Index)
    is
-      Action : constant Parse_Action_Rec := (Shift, State_Index);
+      Action   : constant Parse_Action_Rec := (Shift, State_Index);
+      New_Node : constant Action_Node_Ptr  := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
+      Node     : Action_Node_Ptr;
    begin
-      State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);
+      if State.Action_List = null then
+         State.Action_List := New_Node;
+      else
+         Node := State.Action_List;
+         loop
+            exit when Node.Next = null;
+            Node := Node.Next;
+         end loop;
+         Node.Next := New_Node;
+      end if;
    end Add_Action;
 
    procedure Add_Action
@@ -57,8 +114,10 @@ package body FastToken.Parser.LR is
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize)
    is
-      Action : Parse_Action_Rec;
-      LHS    : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));
+      Action   : Parse_Action_Rec;
+      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (LHS_ID));
+      New_Node : Action_Node_Ptr;
+      Node     : Action_Node_Ptr;
    begin
       case Verb is
       when Reduce =>
@@ -68,7 +127,17 @@ package body FastToken.Parser.LR is
       when others =>
          null;
       end case;
-      State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);
+      New_Node := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);
+      if State.Action_List = null then
+         State.Action_List := New_Node;
+      else
+         Node := State.Action_List;
+         loop
+            exit when Node.Next = null;
+            Node := Node.Next;
+         end loop;
+         Node.Next := New_Node;
+      end if;
    end Add_Action;
 
    procedure Add_Error (State  : in out LR.Parse_State)
@@ -90,8 +159,32 @@ package body FastToken.Parser.LR is
      (State    : in out LR.Parse_State;
       Symbol   : in     Token_Pkg.Token_ID;
       To_State : in     LR.State_Index)
-   is begin
-      State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);
+   is
+      use all type Token.Token_ID;
+      List     : Goto_Node_Ptr renames State.Goto_List;
+      New_Item : constant Goto_Node_Ptr := new Goto_Node'(Symbol, To_State, null);
+      I        : Goto_Node_Ptr := List;
+   begin
+      if I = null then
+         List := New_Item;
+      else
+         if List.Symbol > Symbol then
+            New_Item.Next := List;
+            List          := New_Item;
+         else
+            if List.Next = null then
+               List.Next := New_Item;
+            else
+               I := List;
+               loop
+                  exit when I.Next = null or List.Symbol > Symbol;
+                  I := I.Next;
+               end loop;
+               New_Item.Next := I.Next;
+               I.Next        := New_Item;
+            end if;
+         end if;
+      end if;
    end Add_Goto;
 
    procedure Put (Item : in Parse_Action_Rec)

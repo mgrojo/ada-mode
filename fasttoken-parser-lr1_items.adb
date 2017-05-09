@@ -319,6 +319,60 @@ package body FastToken.Parser.LR1_Items is
       Include (Set, Value, Added, Exclude_Propagate);
    end Include;
 
+   function Symbol (List : in Goto_Item_Ptr) return Token.Token_ID
+   is begin
+      return List.Symbol;
+   end Symbol;
+
+   function State (List : in Goto_Item_Ptr) return Unknown_State_Index
+   is begin
+      return List.Set.State;
+   end State;
+
+   function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr
+   is begin
+      return List.Next;
+   end Next;
+
+   function New_Goto_Item
+     (Symbol : in     Token.Token_ID;
+      Set    : in     Item_Set_Ptr)
+     return Goto_Item_Ptr
+   is begin
+      return new Goto_Item'(Symbol, Set, null);
+   end New_Goto_Item;
+
+   procedure Add
+     (List   : in out Goto_Item_Ptr;
+      Symbol : in     Token.Token_ID;
+      Set    : in     Item_Set_Ptr)
+   is
+      use all type Token.Token_ID;
+      New_Item : constant Goto_Item_Ptr := new Goto_Item'(Symbol, Set, null);
+      I        : Goto_Item_Ptr;
+   begin
+      if List = null then
+         List := New_Item;
+      else
+         if List.Symbol > Symbol then
+            New_Item.Next := List;
+            List          := New_Item;
+         else
+            if List.Next = null then
+               List.Next := New_Item;
+            else
+               I := List;
+               loop
+                  exit when I.Next = null or else I.Next.Symbol > Symbol;
+                  I := I.Next;
+               end loop;
+               New_Item.Next := I.Next;
+               I.Next        := New_Item;
+            end if;
+         end if;
+      end if;
+   end Add;
+
    procedure Add
      (New_Item : in     Item_Node;
       Target   : in out Item_Set)
@@ -816,13 +870,11 @@ package body FastToken.Parser.LR1_Items is
       end if;
    end Put;
 
-   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True)
+   procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True)
    is
       use Ada.Text_IO;
-      Set : Item_Set_Ptr := Item.Head;
+      Set : Item_Set_Ptr := Item;
    begin
-      Put_Line ("Size :" & Unknown_State_Index'Image (Item.Size));
-
       while Set /= null loop
          Put (Set.all, Show_Lookaheads);
          Put_Line ("   Goto:");
@@ -830,6 +882,14 @@ package body FastToken.Parser.LR1_Items is
 
          Set := Set.Next;
       end loop;
+   end Put;
+
+   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True)
+   is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("Size :" & Unknown_State_Index'Image (Item.Size));
+      Put (Item.Head, Show_Lookaheads);
    end Put;
 
 end FastToken.Parser.LR1_Items;

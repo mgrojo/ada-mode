@@ -97,26 +97,26 @@ package FastToken.Parser.LR is
       Next   : Action_Node_Ptr;
    end record;
 
-   type Goto_Node;
+   type Goto_Node is private;
    type Goto_Node_Ptr is access Goto_Node;
 
-   type Goto_Node is record
-      Symbol : Token.Nonterminal_ID;
-      State  : State_Index;
-      Next   : Goto_Node_Ptr;
-   end record;
+   function Symbol (List : in Goto_Node_Ptr) return Token.Token_ID;
+   function State (List : in Goto_Node_Ptr) return State_Index;
+   function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
    type Parse_State is record
       Action_List : Action_Node_Ptr;
       Goto_List   : Goto_Node_Ptr;
    end record;
 
+   ----------
    --  Run-time parse table construction subprograms:
+
    procedure Add_Action
      (State       : in out LR.Parse_State;
       Symbol      : in     Token_Pkg.Token_ID;
       State_Index : in     LR.State_Index);
-   --  Add a Shift action to State, at head of action list.
+   --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
      (State           : in out LR.Parse_State;
@@ -125,16 +125,16 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_Pkg.Token_ID;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize);
-   --  Add a Reduce or Accept_It action to State, at head of action list.
+   --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Error (State  : in out LR.Parse_State);
-   --  Add an Error action to State, at end of action list.
+   --  Add an Error action to State, at tail of action list.
 
    procedure Add_Goto
      (State    : in out LR.Parse_State;
       Symbol   : in     Token_Pkg.Token_ID;
       To_State : in     LR.State_Index);
-   --  Add a Goto to State.
+   --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
@@ -150,5 +150,21 @@ package FastToken.Parser.LR is
    procedure Put (Action : in Parse_Action_Node_Ptr);
    procedure Put (State : in Parse_State);
    procedure Put (Table : in Parse_Table);
+
+private
+
+   --  Private to enforce use of Add; doesn't succeed, since only
+   --  children use it.
+   type Goto_Node is record
+      Symbol : Token.Nonterminal_ID;
+      State  : State_Index;
+      Next   : Goto_Node_Ptr;
+   end record;
+
+   procedure Add
+     (List   : in out Action_Node_Ptr;
+      Symbol : in     Token.Token_ID;
+      Action : in     Parse_Action_Rec);
+   --  Add action to List, sorted on ascending Symbol.
 
 end FastToken.Parser.LR;

@@ -182,28 +182,28 @@ package body Dragon_4_43_LR1_Test is
    begin
       Add_Gotos
         (Expected, Map (0),
-         Get_Goto (Upper_C_ID, Map (2), Expected) &
-           Get_Goto (Upper_S_ID, Map (1), Expected) &
-           Get_Goto (Lower_D_ID, Map (4), Expected) &
-           Get_Goto (Lower_C_ID, Map (3), Expected));
+         +(Lower_C_ID, Get_Set (Map (3), Expected)) &
+           (Lower_D_ID, Get_Set (Map (4), Expected)) &
+           (Upper_S_ID, Get_Set (Map (1), Expected)) &
+           (Upper_C_ID, Get_Set (Map (2), Expected)));
 
       Add_Gotos
         (Expected, Map (2),
-         Get_Goto (Upper_C_ID, Map (5), Expected) &
-           Get_Goto (Lower_D_ID, Map (7), Expected) &
-           Get_Goto (Lower_C_ID, Map (6), Expected));
+         +(Lower_C_ID, Get_Set (Map (6), Expected)) &
+           (Lower_D_ID, Get_Set (Map (7), Expected)) &
+           (Upper_C_ID, Get_Set (Map (5), Expected)));
 
       Add_Gotos
         (Expected, Map (3),
-         Get_Goto (Upper_C_ID, Map (8), Expected) &
-           Get_Goto (Lower_D_ID, Map (4), Expected) &
-           Get_Goto (Lower_C_ID, Map (3), Expected));
+         +(Lower_C_ID, Get_Set (Map (3), Expected)) &
+           (Lower_D_ID, Get_Set (Map (4), Expected)) &
+           (Upper_C_ID, Get_Set (Map (8), Expected)));
 
       Add_Gotos
         (Expected, Map (6),
-         Get_Goto (Upper_C_ID, Map (9), Expected) &
-           Get_Goto (Lower_D_ID, Map (7), Expected) &
-           Get_Goto (Lower_C_ID, Map (6), Expected));
+         +(Lower_C_ID, Get_Set (Map (6), Expected)) &
+           (Lower_D_ID, Get_Set (Map (7), Expected)) &
+           (Upper_C_ID, Get_Set (Map (9), Expected)));
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("computed:");
@@ -321,7 +321,7 @@ package body Dragon_4_43_LR1_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Parser_Table'Access, "debug");
+         Register_Routine (T, Test_LR1_Items'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");

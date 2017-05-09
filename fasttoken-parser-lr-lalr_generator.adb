@@ -282,11 +282,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                        (Head => new Item_Set'(New_Items),
                         Size => Kernel_List.Size + 1);
 
-                     Checking_Set.Goto_List := new Goto_Item'
-                       (Set    => Kernel_List.Head,
-                        Symbol => Symbol,
-                        Next   => Checking_Set.Goto_List);
-
+                     Add (Checking_Set.Goto_List, Symbol, Kernel_List.Head);
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
@@ -297,15 +293,13 @@ package body FastToken.Parser.LR.LALR_Generator is
                      then
                         if Trace then
                            Ada.Text_IO.Put_Line
-                             ("  adding goto on " & Token.Token_Image (Symbol) & " to state" &
+                             ("  state" & Unknown_State_Index'Image (Checking_Set.State) &
+                                " adding goto on " & Token.Token_Image (Symbol) & " to state" &
                                 Unknown_State_Index'Image (New_Items_Set.State));
 
                         end if;
 
-                        Checking_Set.Goto_List := new Goto_Item'
-                          (Set    => New_Items_Set,
-                           Symbol => Symbol,
-                           Next   => Checking_Set.Goto_List);
+                        Add (Checking_Set.Goto_List, Symbol, New_Items_Set);
                      end if;
 
                      --  The set is already there, so we don't need this copy.
@@ -323,7 +317,7 @@ package body FastToken.Parser.LR.LALR_Generator is
          Ada.Text_IO.New_Line;
       end if;
 
-      return Kernel_List;
+      return Reverse_List (Kernel_List);
    end LALR_Kernels;
 
    --  Add propagation entries (if they don't already exist) from From
@@ -518,7 +512,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
                if Trace and Added_One then
                   Added_Some := True;
-                  Ada.Text_IO.Put ("  to:");
+                  Ada.Text_IO.Put ("  to: ");
                   LR1_Items.Put (To.Item.all, Show_Lookaheads => True);
                   Ada.Text_IO.New_Line;
                end if;
@@ -568,9 +562,6 @@ package body FastToken.Parser.LR.LALR_Generator is
       use type LR1_Items.Item_Set_Ptr;
       use type LR1_Items.Item_Ptr;
    begin
-
-      Kernel_Item_Set.Set.Lookaheads := (Propagate => True, Tokens => (others => False));
-
       while Kernel /= null loop
          if Trace then
             Ada.Text_IO.Put ("Adding lookaheads for ");
@@ -578,9 +569,14 @@ package body FastToken.Parser.LR.LALR_Generator is
          end if;
 
          Kernel_Item := Kernel.Set;
+
          while Kernel_Item /= null loop
-            Kernel_Item_Set.Set.Prod := Kernel_Item.Prod;
-            Kernel_Item_Set.Set.Dot  := Kernel_Item.Dot;
+            Kernel_Item_Set.Set.all :=
+              (Prod       => Kernel_Item.Prod,
+               Dot        => Kernel_Item.Dot,
+               State      => Kernel_Item.State,
+               Lookaheads => (Propagate => True, Tokens => (others => False)),
+               Next       => null);
 
             Closure := LR1_Items.Closure
               (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Trace => False);

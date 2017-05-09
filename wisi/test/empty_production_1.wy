@@ -8,6 +8,16 @@
 ;;
 ;;; see empty_production_2.wy for an incorrect attempt to represent
 ;;; this grammar
+;;
+;; other similar tests:
+;;  1 - empty production in a list
+;;  2 - empty production causes ambiguity
+;;  3 - terminal followed by empty nonterm
+;;  4 - empty production in the first two nonterms in a production
+;;  5 - empty production following a nonterm
+;;  6 - empty production in a list; same conflict in two states
+;;  7 - two consecutive empty productions not first
+;;  8 - two consecutive empty productions, confused with a similar production
 
 %{
 %}

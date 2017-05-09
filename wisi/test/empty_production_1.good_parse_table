@@ -12,10 +12,10 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, BEGIN_ID/IS_ID/SEMICOLON_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
+   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
    default             => ERROR
 
    DECLARATIONS_ID     goto state 3
@@ -37,9 +37,9 @@ State 3:
   DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID/WISI_EOI_ID
   DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
    BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
    default             => ERROR
 
    BODY_ID             goto state 6
@@ -54,18 +54,18 @@ State 4:
 State 5:
   DECLARATIONS_ID <= BODY_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
    BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 State 6:
   DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
    BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
@@ -86,9 +86,9 @@ State 8:
 State 9:
   BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
-   IS_ID               => reduce 4 tokens to BODY_ID
    BEGIN_ID            => reduce 4 tokens to BODY_ID
+   IS_ID               => reduce 4 tokens to BODY_ID
+   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
    default             => ERROR
 
 
@@ -96,8 +96,8 @@ LR1 Parse Table:
 State 1:
   FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
+   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
    default             => ERROR
 
    DECLARATIONS_ID     goto state 3
@@ -116,11 +116,11 @@ State 2:
    BODY_ID             goto state 10
 
 State 3:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, IS_ID/WISI_EOI_ID
   DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 2
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
    default             => ERROR
 
    BODY_ID             goto state 6
@@ -135,16 +135,16 @@ State 4:
 State 5:
   DECLARATIONS_ID <= BODY_ID ^, IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
    IS_ID               => reduce 1 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
 State 6:
   DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
    IS_ID               => reduce 2 tokens to DECLARATIONS_ID
+   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
@@ -160,8 +160,8 @@ State 7:
    BODY_ID             goto state 10
 
 State 8:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID
   DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID
+  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID
 
    BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
    IS_ID               => shift and goto state 7
@@ -179,8 +179,8 @@ State 9:
 State 10:
   DECLARATIONS_ID <= BODY_ID ^, BEGIN_ID/IS_ID
 
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
    BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
@@ -194,8 +194,8 @@ State 11:
 State 12:
   DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, BEGIN_ID/IS_ID
 
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
    BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
+   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
    default             => ERROR
 
 
@@ -216,16 +216,16 @@ State 14:
 State 15:
   BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, IS_ID/WISI_EOI_ID
 
-   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
    IS_ID               => reduce 4 tokens to BODY_ID
+   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
    default             => ERROR
 
 
 State 16:
   BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID
 
-   IS_ID               => reduce 4 tokens to BODY_ID
    BEGIN_ID            => reduce 4 tokens to BODY_ID
+   IS_ID               => reduce 4 tokens to BODY_ID
    default             => ERROR
 
 

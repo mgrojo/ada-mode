@@ -93,19 +93,26 @@ package FastToken.Parser.LR1_Items is
    function Reverse_List (List : in Item_Ptr) return Item_Ptr;
    --  Return a modified List that is in reversed order.
 
-   type Goto_Item;
+   type Goto_Item is private;
    type Goto_Item_Ptr is access Goto_Item;
+
+   function Symbol (List : in Goto_Item_Ptr) return Token.Token_ID;
+   function State (List : in Goto_Item_Ptr) return Unknown_State_Index;
+   function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
 
    type Item_Set;
    type Item_Set_Ptr is access Item_Set;
 
-   type Goto_Item is record
-      Symbol : Token.Token_ID;
-      --  If Symbol is a terminal, this is a shift and goto state action.
-      --  If Symbol is a non-terminal, this is a post-reduce goto state action.
-      Set    : Item_Set_Ptr;
-      Next   : Goto_Item_Ptr;
-   end record;
+   function New_Goto_Item
+     (Symbol : in     Token.Token_ID;
+      Set    : in     Item_Set_Ptr)
+     return Goto_Item_Ptr;
+
+   procedure Add
+     (List   : in out Goto_Item_Ptr;
+      Symbol : in     Token.Token_ID;
+      Set    : in     Item_Set_Ptr);
+   --  Add an item to List; keep List sorted in ascending order on Symbol.
 
    function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
    --  Duplicates Goto_Items, but not Set list. Preserves order.
@@ -226,14 +233,26 @@ package FastToken.Parser.LR1_Items is
    --  Ignores Item.Next.
 
    procedure Put (Item : in Goto_Item_Ptr);
+   procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
-   procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
 
    procedure Free (Item : in out Item_Set);
    procedure Free (Item : in out Item_Set_List);
 
+private
+
+   --  Private to force use of Add
+   type Goto_Item is record
+      Symbol : Token.Token_ID;
+      --  If Symbol is a terminal, this is a shift and goto state action.
+      --  If Symbol is a non-terminal, this is a post-reduce goto state action.
+      Set    : Item_Set_Ptr;
+      Next   : Goto_Item_Ptr;
+   end record;
+
+   procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
 end FastToken.Parser.LR1_Items;

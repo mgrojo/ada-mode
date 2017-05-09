@@ -6,23 +6,28 @@ build/release_process.text
 
  current work
 
-ada-which-function fails for "+" gen_fasttoken_aunit.adb:250
-    wisi-validate-cache: Wrong type argument: number-or-marker-p, nil
-    wisi--change-end is nil!
-    also wisi--cache-max; all three
-    nil in every buffer!
-    set properly on open file;
-        probably ediff clobbered it somehow
+use Add routine to always sort goto_list and action list
+    t_all failing due to order changes
 
-do bubble sort on action list symbol
+    empty_production_1 crashing during parse; tag check failed
+    but the tags are ok!?
+    some pointer is freed then used?
+    see if empt_prod_2 does it
+        lost parens around token in parse trace?
+
+get add_action (conflict) from generated, move to lr.ads
 
 delete test_empty_prod_*.adb
     only useful while debugging problem
     keep wisi/test; no need for both
-    move list of tests into wisi/test/*_1.wy
+
+copy wisi/test/*-elisp.el to ada-mode.s-4, use in tests
 
 test_empty_productions_9.adb
     delete? move to wisi/test?
+
+lalr calls closure on each kernel more than once!
+    save the closure the first time
 
 don't put EOF_ID in accept statement?
     only needed in lookahead

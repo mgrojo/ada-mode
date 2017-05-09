@@ -50,7 +50,7 @@ package body FastToken.Parser.LR.LR1_Generator is
               --  We don't need a state with dot after EOF in the
               --  accept production. EOF should only appear in the
               --  accept production.
-              Symbol = EOF_Token
+              Symbol /= EOF_Token
             then
                Goto_Set.Set := new Item_Node'
                  (Prod       => Item.Prod,
@@ -154,11 +154,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                        (Head => new Item_Set'(New_Items),
                         Size => C.Size + 1);
 
-                     I.Goto_List := new Goto_Item'
-                       (Symbol => Symbol,
-                        Set    => C.Head,
-                        Next   => I.Goto_List);
-
+                     Add (I.Goto_List, Symbol, C.Head);
                   else
 
                      --  If there's not already a goto entry between these two sets, create one.
@@ -174,10 +170,7 @@ package body FastToken.Parser.LR.LR1_Generator is
 
                         end if;
 
-                        I.Goto_List := new Goto_Item'
-                          (Symbol => Symbol,
-                           Set    => New_Items_Set,
-                           Next   => I.Goto_List);
+                        Add (I.Goto_List, Symbol, New_Items_Set);
                      end if;
 
                      --  The set is already there, so we don't need this copy.

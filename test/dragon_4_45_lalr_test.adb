@@ -79,6 +79,15 @@ package body Dragon_4_45_LALR_Test is
      Nonterminal.Get (Upper_C_ID) <= (+Lower_D_ID) + Self -- 4
      ;
 
+   --  See comment in Test_LALR_Kernels about state numbering
+   S0  : constant := 0;
+   S1  : constant := 3;
+   S2  : constant := 4;
+   S36 : constant := 1;
+   S47 : constant := 2;
+   S5  : constant := 5;
+   S89 : constant := 6;
+
    package Lexer is new Lexer_Root.Regexp;
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
@@ -118,7 +127,7 @@ package body Dragon_4_45_LALR_Test is
       Check ("1", First, Expected);
    end Test_First;
 
-   procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_LALR_Kernels (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       use LR1_Items;
 
@@ -127,64 +136,53 @@ package body Dragon_4_45_LALR_Test is
       Computed : constant Item_Set_List := Generators.LALR_Kernels
         (Grammar, First, Trace => Test.Debug, First_State_Index => First_State_Index);
 
-      Expected : Item_Set_Ptr;
-
+      Expected : constant Item_Set_List :=
       --  [dragon] example 4.42 pg 233 shows the item sets.
-      --  LR1_Items.Kernels computes the combined kernels of these (see page
+      --  LALR_Kernels computes the combined kernels of these (see page
       --  240). The LALR states and gotos are shown in fig 4.41 page 239.
-
+      --
       --  In addition, the example does a depth-first search for
       --  new sets; we do a breadth first search; so the numbering of
       --  states is different. In this test, we accomodate that by
       --  using symbolic names matching the example state labels, and
-      --  pushing kernels on the list in the order they appear in the
-      --  example.
+      --  adding kernels to the list in the order we compute them.
+        (S0 + Get_Item (1, 1, Null_Lookaheads)) &
+        (S36 + Get_Item (3, 2, Null_Lookaheads)) &
+        (S47 + Get_Item (4, 2, Null_Lookaheads)) &
+        (S1 + Get_Item (1, 2, Null_Lookaheads)) &
+        (S2 + Get_Item (2, 2, Null_Lookaheads)) &
+        (S5 + Get_Item (2, 3, Null_Lookaheads)) &
+        (S89 + Get_Item (3, 3, Null_Lookaheads));
 
-      I0  : constant Item_Set_Ptr := +Get_Item_Node (1, 1, Null_Lookaheads, State => 0);
-      I1  : constant Item_Set_Ptr := +Get_Item_Node (1, 2, Null_Lookaheads, State => 3);
-      I2  : constant Item_Set_Ptr := +Get_Item_Node (2, 2, Null_Lookaheads, State => 4);
-      I36 : constant Item_Set_Ptr := +Get_Item_Node (3, 2, Null_Lookaheads, State => 1);
-      I47 : constant Item_Set_Ptr := +Get_Item_Node (4, 2, Null_Lookaheads, State => 2);
-      I5  : constant Item_Set_Ptr := +Get_Item_Node (2, 3, Null_Lookaheads, State => 5);
-      I89 : constant Item_Set_Ptr := +Get_Item_Node (3, 3, Null_Lookaheads, State => 6);
-
-      Goto_0 : constant Goto_Item_Ptr :=
-        (Upper_C_ID, I2, null) &
-          (Upper_S_ID, I1, null) &
-          (Lower_D_ID, I47, null) &
-          (Lower_C_ID, I36, null);
-
-      Goto_2 : constant Goto_Item_Ptr :=
-        (Upper_C_ID, I5, null) &
-          (Lower_D_ID, I47, null) &
-          (Lower_C_ID, I36, null);
-
-      Goto_36 : constant Goto_Item_Ptr :=
-        (Upper_C_ID, I89, null) &
-          (Lower_D_ID, I47, null) &
-          (Lower_C_ID, I36, null);
    begin
+      Add_Gotos
+        (Expected, S0,
+         +(Lower_C_ID, Get_Set (S36, Expected)) &
+           (Lower_D_ID, Get_Set (S47, Expected)) &
+           (Upper_S_ID, Get_Set (S1, Expected)) &
+           (Upper_C_ID, Get_Set (S2, Expected)));
 
-      --  Goto_0:
+      Add_Gotos
+        (Expected, S2,
+         +(Lower_C_ID, Get_Set (S36, Expected)) &
+           (Lower_D_ID, Get_Set (S47, Expected)) &
+           (Upper_C_ID, Get_Set (S5, Expected)));
 
-      --  Computed has I0 last in list; push in Computed (= Set.State) order.
-      Expected := new Item_Set'(I0.Set, Goto_0, I0.Set.State, Expected);
-      Expected := new Item_Set'(I36.Set, Goto_List => Goto_36, State => 1, Next => Expected);
-      Expected := new Item_Set'(I47.Set, Goto_List => null, State => 2, Next => Expected);
-      Expected := new Item_Set'(I1.Set, Goto_List => null, State => 3, Next => Expected);
-      Expected := new Item_Set'(I2.Set, Goto_List => Goto_2, State => 4, Next => Expected);
-      Expected := new Item_Set'(I5.Set, Goto_List => null, State => 5, Next => Expected);
-      Expected := new Item_Set'(I89.Set, Goto_List => null, State => 6, Next => Expected);
+      Add_Gotos
+        (Expected, S36,
+         +(Lower_C_ID, Get_Set (S36, Expected)) &
+           (Lower_D_ID, Get_Set (S47, Expected)) &
+           (Upper_C_ID, Get_Set (S89, Expected)));
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("computed:");
          Put (Computed);
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("expected:");
-         Put (Item_Set_List'(Expected, 7));
+         Put (Expected);
       end if;
-      Check ("", Computed.Head, Expected);
-   end Test_LR1_Items;
+      Check ("", Computed, Expected);
+   end Test_LALR_Kernels;
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -194,15 +192,6 @@ package body Dragon_4_45_LALR_Test is
 
       Computed : constant LR.Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
       Expected : LR.Parse_Table (0 .. 6);
-
-      --  See comment in Test_LR1_Items about state numbering
-      S0  : constant := 0;
-      S1  : constant := 3;
-      S2  : constant := 4;
-      S36 : constant := 1;
-      S47 : constant := 2;
-      S5  : constant := 5;
-      S89 : constant := 6;
 
    begin
       --  figure 4.41 pg 239
@@ -293,7 +282,7 @@ package body Dragon_4_45_LALR_Test is
          Register_Routine (T, Test_Parse'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
-         Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
+         Register_Routine (T, Test_LALR_Kernels'Access, "Test_LALR_Kernels");
          Register_Routine (T, Parser_Table'Access, "Parser_Table");
          Register_Routine (T, Test_Parse'Access, "Test_Parse");
       end if;

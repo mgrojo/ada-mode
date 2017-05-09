@@ -132,11 +132,11 @@ package body Grune_9_30 is
         (6 + Get_Item (1, 4, +EOF_ID));
 
    begin
-      Add_Gotos (Expected, 1, Get_Goto (Upper_A_ID, 3, Expected) & Get_Goto (Lower_A_ID, 2, Expected));
+      Add_Gotos (Expected, 1, +(Lower_A_ID, Get_Set (2, Expected)) & (Upper_A_ID, Get_Set (3, Expected)));
       --  no gotos from state 2
-      Add_Gotos (Expected, 3, Get_Goto (Upper_B_ID, 5, Expected) & Get_Goto (Lower_B_ID, 4, Expected));
+      Add_Gotos (Expected, 3, +(Lower_B_ID, Get_Set (4, Expected)) & (Upper_B_ID, Get_Set (5, Expected)));
       --  no gotos from state 4
-      Add_Gotos (Expected, 5, Get_Goto (Lower_C_ID, 6, Expected));
+      Add_Gotos (Expected, 5, +(Lower_C_ID, Get_Set (6, Expected)));
 
       if Test.Debug then
          Put_Line ("computed:");

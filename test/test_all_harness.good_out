@@ -17,7 +17,7 @@ OK ../../Test/dragon_4_43_lr1_test.adb : Test_LR1_Items
 OK ../../Test/dragon_4_43_lr1_test.adb : Parser_Table
 OK ../../Test/dragon_4_43_lr1_test.adb : Test_Parse
 OK ../../Test/dragon_4_45_lalr_test.adb : Test_First
-OK ../../Test/dragon_4_45_lalr_test.adb : Test_LR1_Items
+OK ../../Test/dragon_4_45_lalr_test.adb : Test_LALR_Kernels
 OK ../../Test/dragon_4_45_lalr_test.adb : Parser_Table
 OK ../../Test/dragon_4_45_lalr_test.adb : Test_Parse
 OK ../../Test/grune_9_30.adb : Test_Item_Sets
@@ -30,25 +30,14 @@ OK ../../Test/parser_lists_test.adb : Stack_Equal
 OK ../../Test/parser_lists_test.adb : Pending
 OK ../../Test/parser_lists_test.adb : Copy
 OK ../../Test/test_accept_state.adb : Nominal
-OK ../../Test/test_empty_productions_1.adb : Test_First
-OK ../../Test/test_empty_productions_1.adb : Test_Closure
-OK ../../Test/test_empty_productions_1.adb : Test_Goto_Transitions
-OK ../../Test/test_empty_productions_1.adb : Goto_Set_1
-OK ../../Test/test_empty_productions_1.adb : Actions_1
 OK ../../Test/test_empty_productions_4.adb : Test_First
 OK ../../Test/test_empty_productions_5.adb : Test_Closure
-OK ../../Test/test_empty_productions_6.adb : Actions_1
-OK ../../Test/test_empty_productions_7.adb : Test_Closure
-OK ../../Test/test_empty_productions_7.adb : Goto_Transitions_1
-OK ../../Test/test_empty_productions_7.adb : Goto_Transitions_2
-OK ../../Test/test_empty_productions_7.adb : Actions_1
-OK ../../Test/test_empty_productions_8.adb : Kernels_1
 OK ../../Test/test_lr_expecting.adb : Nominal
 OK ../../Test/test_statement_actions.adb : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   47
-Successful Tests:  47
+Total Tests Run:   36
+Successful Tests:  36
 Failed Assertions: 0
 Unexpected Errors: 0

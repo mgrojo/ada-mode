@@ -122,32 +122,6 @@ package body Gen_FastToken_AUnit is
       Check (Label & ".Next = null", Computed.Next = null, Expected.Next = null);
    end Check;
 
-   function "&" (Left, Right : in LR1_Items.Goto_Item) return LR1_Items.Goto_Item_Ptr
-   is
-      use LR1_Items;
-      Result : constant Goto_Item_Ptr := new Goto_Item'(Left);
-   begin
-      Result.Next := new Goto_Item'(Right);
-      return Result;
-   end "&";
-
-   function "&"
-     (Left  : in LR1_Items.Goto_Item_Ptr;
-      Right : in LR1_Items.Goto_Item)
-     return LR1_Items.Goto_Item_Ptr
-   is
-      use LR1_Items;
-      Result : constant Goto_Item_Ptr := Left;
-      Tail   : Goto_Item_Ptr := Left.Next;
-   begin
-      loop
-         exit when Tail.Next = null;
-         Tail := Tail.Next;
-      end loop;
-      Tail.Next := new Goto_Item'(Right);
-      return Result;
-   end "&";
-
    procedure Check
      (Label    : in String;
       Computed : in LR1_Items.Goto_Item_Ptr;
@@ -169,11 +143,11 @@ package body Gen_FastToken_AUnit is
 
       loop
          --  We only check set.state, not set.*, because the full check would be recursive
-         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
-         Check (Label & Integer'Image (Index) & ".Set.State", Computed_I.Set.State, Expected_I.Set.State);
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
+         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Set.State", State (Computed_I), State (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Computed_I := Next (Computed_I);
+         Expected_I := Next (Expected_I);
          Index      := Index + 1;
          exit when Computed_I = null;
       end loop;
@@ -328,11 +302,10 @@ package body Gen_FastToken_AUnit is
       return (Head => Left.Head, Size => Left.Size + Right.Size);
    end "&";
 
-   function Get_Goto
-     (Symbol   : in Token_ID;
-      To_State : in LR.State_Index;
+   function Get_Set
+     (To_State : in LR.State_Index;
       Set_List : in LR1_Items.Item_Set_List)
-     return LR1_Items.Goto_Item_Ptr
+     return LR1_Items.Item_Set_Ptr
    is
       use LR1_Items;
       use all type LR.Unknown_State_Index;
@@ -343,24 +316,19 @@ package body Gen_FastToken_AUnit is
          exit when I.State = To_State;
          I := I.Next;
       end loop;
-      return new Goto_Item'(Symbol, I, null);
-   end Get_Goto;
+      return I;
+   end Get_Set;
 
-   function "&" (Left, Right : in LR1_Items.Goto_Item_Ptr) return LR1_Items.Goto_Item_Ptr
+   function "+" (Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr
+   is begin
+      return LR1_Items.New_Goto_Item (Right.Symbol, Right.Set);
+   end "+";
+
+   function "&" (Left : in LR1_Items.Goto_Item_Ptr; Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr
    is
-      use LR1_Items;
-      I : Goto_Item_Ptr;
+      Result : LR1_Items.Goto_Item_Ptr := Left;
    begin
-      if Left.Next = null then
-         Left.Next := Right;
-      else
-         I := Left.Next;
-         loop
-            exit when I.Next = null;
-            I := I.Next;
-         end loop;
-         I.Next := Right;
-      end if;
+      LR1_Items.Add (Result, Right.Symbol, Right.Set);
       return Left;
    end "&";
 
@@ -506,7 +474,7 @@ package body Gen_FastToken_AUnit is
    procedure Check (Label : in String; Computed : in LR.Goto_Node_Ptr; Expected : in LR.Goto_Node_Ptr)
    is
       use AUnit.Checks;
-      use type LR.Goto_Node_Ptr;
+      use all type LR.Goto_Node_Ptr;
       Computed_I : LR.Goto_Node_Ptr := Computed;
       Expected_I : LR.Goto_Node_Ptr := Expected;
       Index      : Integer  := 1;
@@ -520,11 +488,11 @@ package body Gen_FastToken_AUnit is
       end if;
 
       loop
-         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
-         Check (Label & Integer'Image (Index) & ".State", Computed_I.State, Expected_I.State);
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
+         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
+         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Computed_I := Next (Computed_I);
+         Expected_I := Next (Expected_I);
          Index      := Index + 1;
          exit when Computed_I = null;
       end loop;
