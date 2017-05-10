@@ -554,7 +554,7 @@ Used to ignore whitespace changes in before/after change hooks.")
   "For `before-change-functions'."
   ;; begin . (1- end) is range of text being deleted
   (unless wisi-indenting
-    ;; we set wisi--change-beg, -end even if only inserting, so we
+    ;; We set wisi--change-beg, -end even if only inserting, so we
     ;; don't have to do it again in wisi-after-change.
     (setq wisi--change-beg (min wisi--change-beg begin))
     (when (> end wisi--change-end)
@@ -2060,14 +2060,10 @@ Called with BEGIN END.")
 	(wisi--indent-leading-comments)
 	(wisi--run-parse)
 
-	(if wisi-parse-failed
-	    (progn
-	      (setq wisi-indent-failed t)
-	      (when (functionp wisi-indent-region-fallback)
-		(funcall wisi-indent-region-fallback begin end)))
+	(when (not wisi-parse-failed)
+	  (setq parse-required nil)
+	  (move-marker (wisi-cache-max 'indent) (point-max))
 
-	  ;; parse succeeded
-	  ;;
 	  ;; cache indent action results
 	  (dotimes (i (length (wisi-ind-indent wisi--indent)))
 	    (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
@@ -2113,16 +2109,19 @@ Called with BEGIN END.")
 		  (put-text-property (1- pos) pos 'wisi-indent indent)))
 	      )) ;; dotimes lines
 
-	  (move-marker (wisi-cache-max 'indent) (point-max))
+	  )) ;; parse succeeded
 
-	  )) ;; parse-required
+      (if parse-required
+	  (progn
+	    ;; primary indent failed
+	    (setq wisi-indent-failed t)
+	    (when (functionp wisi-indent-region-fallback)
+	      (funcall wisi-indent-region-fallback begin end)))
 
-      (when (or (not parse-required)
-		(not wisi-parse-failed))
+	;; Apply cached indents. Inserting or deleting spaces causes
+	;; wisi-ind-line-begin to be wrong, so we can't use it in
+	;; the loop.
 	(save-excursion
-	  ;; Apply cached indents. Inserting or deleting spaces causes
-	  ;; wisi-ind-line-begin to be wrong, so we can't use it in
-	  ;; the loop.
 	  (goto-char (aref (wisi-ind-line-begin wisi--indent) begin-line))
 	  (let ((wisi-indenting t))
 	    (while (and (not (eobp))
@@ -2148,7 +2147,7 @@ Called with BEGIN END.")
 	    (setq wisi-indent-failed nil)
 	    (goto-char end)
 	    (run-hooks 'wisi-post-indent-fail-hook))
-	  )) ;; apply parse
+	  ))
       )))
 
 (defun wisi-indent-line ()
