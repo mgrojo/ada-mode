@@ -1,6 +1,7 @@
-;;; subprograms-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; subprograms-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe ../../wisi/test/subprograms.wy LALR_LR1 Elisp
 
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +20,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst subprograms-elisp-keyword-table
+(defconst subprograms-lalr-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("function" . FUNCTION)
@@ -30,27 +31,22 @@
    nil)
   "Table of language keywords.")
 
-(defconst subprograms-elisp-token-table
+(defconst subprograms-lalr-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("symbol"
       (SYMBOL)
      )
-     ("punctuation"
-      (TICK . "'")
-     )
-     ("string-double"
-      (STRING_LITERAL)
-     )
     )
    nil)
   "Table of language tokens.")
 
-(defconst subprograms-elisp-parse-table
+(defconst subprograms-lalr-elisp-parse-table
    (wisi-compile-grammar
-   '((SYMBOL TICK STRING_LITERAL FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN )
+   '((SYMBOL FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN )
      ((compilation_unit
-       ((declarations )))
+       ((declarations )
+        (setq wisi-test-success t)))
       (declarations
        ((declaration ))
        ((declarations declaration )))
@@ -58,41 +54,36 @@
        ((subprogram )))
       (subprogram
        ((FUNCTION parameter_list SYMBOL )
-        (wisi-statement-action [1 function 3 name]))
+        (wisi-statement-action [1 function 2 other]))
        ((PROCEDURE parameter_list SYMBOL )
-        (wisi-statement-action [1 procedure 3 name])))
+        (wisi-statement-action [1 procedure 2 other])))
       (parameter_list
        ((LEFT_PAREN RIGHT_PAREN )
         (wisi-statement-action [1 open-paren 2 close-paren]))
        (())
        ((LEFT_PAREN SYMBOL RIGHT_PAREN )
-        (wisi-statement-action [1 open-paren 3 close-paren]))
-       ((TICK STRING_LITERAL ))))
+        (wisi-statement-action [1 open-paren 3 close-paren]))))
      [((default . error) (FUNCTION .  1) (PROCEDURE .  2))
-      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)) (TICK .  9))
-      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)) (TICK .  9))
+      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)))
+      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)))
       ((default . error) (Wisi_EOI . accept))
       ((default . error) (FUNCTION .  1) (PROCEDURE .  2) (Wisi_EOI . (compilation_unit . 0)))
       ((default . error) (FUNCTION . (declarations . 0)) (PROCEDURE . (declarations . 0)) (Wisi_EOI . (declarations . 0)))
       ((default . error) (FUNCTION . (declaration . 0)) (PROCEDURE . (declaration . 0)) (Wisi_EOI . (declaration . 0)))
       ((default . error) (FUNCTION . (declarations . 1)) (PROCEDURE . (declarations . 1)) (Wisi_EOI . (declarations . 1)))
-      ((default . error) (RIGHT_PAREN .  15) (SYMBOL .  16))
-      ((default . error) (STRING_LITERAL .  14))
-      ((default . error) (SYMBOL .  13))
+      ((default . error) (RIGHT_PAREN .  13) (SYMBOL .  14))
       ((default . error) (SYMBOL .  12))
+      ((default . error) (SYMBOL .  11))
       ((default . error) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)) (Wisi_EOI . (subprogram . 0)))
       ((default . error) (FUNCTION . (subprogram . 1)) (PROCEDURE . (subprogram . 1)) (Wisi_EOI . (subprogram . 1)))
-      ((default . error) (SYMBOL . (parameter_list . 3)))
       ((default . error) (SYMBOL . (parameter_list . 0)))
-      ((default . error) (RIGHT_PAREN .  17))
+      ((default . error) (RIGHT_PAREN .  15))
       ((default . error) (SYMBOL . (parameter_list . 2)))]
      [((compilation_unit . 3)(declarations . 4)(declaration . 5)(subprogram . 6))
-      ((parameter_list . 11))
       ((parameter_list . 10))
+      ((parameter_list . 9))
       nil
       ((declaration . 7)(subprogram . 6))
-      nil
-      nil
       nil
       nil
       nil
@@ -106,6 +97,6 @@
       nil]))
   "Parser table.")
 
-(provide 'subprograms-elisp)
+(provide 'subprograms-lalr-elisp)
 
 ;; end of file

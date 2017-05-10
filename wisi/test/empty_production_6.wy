@@ -15,8 +15,6 @@
 
 %token <symbol> IDENTIFIER
 
-%token <whitespace> WHITESPACE "[ \t\n]"
-
 %start compilation_unit
 
 %conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER

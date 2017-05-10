@@ -43,7 +43,9 @@ tests : test_all_harness.diff
 # actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
+# We only diff %-process.el on one test, because it's trivial
 tests : conflict_name_process_yylex.adb
+tests : conflict_name-process.el.diff
 tests : conflict_name-parse.diff
 tests : empty_production_1_process_yylex.adb
 tests : empty_production_1-parse.diff
@@ -125,12 +127,8 @@ clean :: test-clean
 	rm -rf obj *.exe
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
-distclean :: clean
-	rm -rf obj obj_tree
-
-test-clean :
-	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.parse_table *.out *.parse *.txt *-wy.el
-	rm -f *.ads *.adb *.l
+test-clean : wisi-clean aflex-clean
+	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *-wy.el
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
@@ -158,6 +156,10 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
+# %-process.el is produced by wisi-generate; %_process.l runs that
+%-process.el.diff : %-process.good_el %_process.l
+	diff $(DIFF_OPT) $< $*-process.el > $@
+
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
 # %-wy.el : RUN_ARGS := -v 1
@@ -179,8 +181,6 @@ DIFF_OPT := -u -w
 	dos2unix $*.parse_table
 	dos2unix -q $*-process.el
 
-clean :: wisi-clean
-
 # delete files created by wisi-generate
 wisi-clean :
 	rm -f *.parse_table *.ads *.adb *.el *.l
@@ -196,8 +196,6 @@ wisi-clean :
 
 %_process_yylex.adb : %_process_yylex.ada
 	gnatchop -w $*_process_yylex.ada $*_process_dfa.ada $*_process_io.ada
-
-clean :: aflex-clean
 
 # delete files created by aflex
 aflex-clean :

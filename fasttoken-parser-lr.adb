@@ -140,6 +140,46 @@ package body FastToken.Parser.LR is
       end if;
    end Add_Action;
 
+   procedure Add_Action
+     (State       : in out LR.Parse_State;
+      Symbol      : in     Token_ID;
+      State_Index : in     LR.State_Index;
+      LHS_ID      : in     Token_ID;
+      RHS_Token_Count : in     Natural;
+      Synthesize  : in     Nonterminal.Synthesize)
+   is
+      Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
+      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID));
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);
+   begin
+      State.Action_List := new Action_Node'
+        (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
+   end Add_Action;
+
+   procedure Add_Action
+     (State             : in out LR.Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     LR.Parse_Action_Verbs;
+      LHS_ID_1          : in     Token_ID;
+      RHS_Token_Count_1 : in     Natural;
+      Synthesize_1      : in     Nonterminal.Synthesize;
+      LHS_ID_2          : in     Token_ID;
+      RHS_Token_Count_2 : in     Natural;
+      Synthesize_2      : in     Nonterminal.Synthesize)
+   is
+      LHS_1    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_1));
+      Action_1 : constant Parse_Action_Rec   :=
+        (case Verb is
+         when Reduce    => (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),
+         when others => raise FastToken.Programmer_Error);
+      LHS_2    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_2));
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Synthesize_2, 0, RHS_Token_Count_2);
+   begin
+      State.Action_List := new Action_Node'
+        (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
+   end Add_Action;
+
    procedure Add_Error (State  : in out LR.Parse_State)
    is
       Action : constant Parse_Action_Rec := (Verb => Error);

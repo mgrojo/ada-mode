@@ -14,6 +14,7 @@
 %token <punctuation> SEMICOLON ";"
 %token <symbol> IDENTIFIER
 
+;; need whitespace for Aflex lexer
 %token <whitespace> WHITESPACE "[ \t\n]"
 
 %start object_declaration_list

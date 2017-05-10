@@ -5,19 +5,17 @@ Tokens:
  4 => PROCEDURE_ID
  5 => RIGHT_PAREN_ID
  6 => SYMBOL_ID
- 7 => TICK_ID
- 8 => STRING_LITERAL_ID
- 9 => WISI_EOI_ID
- 10 => COMPILATION_UNIT_ID
- 11 => DECLARATIONS_ID
- 12 => DECLARATION_ID
- 13 => SUBPROGRAM_ID
- 14 => PARAMETER_LIST_ID
- 15 => FASTTOKEN_ACCEPT_ID
+ 7 => WISI_EOI_ID
+ 8 => COMPILATION_UNIT_ID
+ 9 => DECLARATIONS_ID
+ 10 => DECLARATION_ID
+ 11 => SUBPROGRAM_ID
+ 12 => PARAMETER_LIST_ID
+ 13 => FASTTOKEN_ACCEPT_ID
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, FUNCTION_ID/LEFT_PAREN_ID/PROCEDURE_ID/RIGHT_PAREN_ID/SYMBOL_ID/TICK_ID/STRING_LITERAL_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, FUNCTION_ID/LEFT_PAREN_ID/PROCEDURE_ID/RIGHT_PAREN_ID/SYMBOL_ID/WISI_EOI_ID
 
    FUNCTION_ID         => shift and goto state 2
    PROCEDURE_ID        => shift and goto state 3
@@ -33,23 +31,21 @@ State 2:
 
    LEFT_PAREN_ID       => shift and goto state 9
    SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
-   TICK_ID             => shift and goto state 10
    default             => ERROR
 
-   PARAMETER_LIST_ID   goto state 12
+   PARAMETER_LIST_ID   goto state 11
 
 State 3:
   SUBPROGRAM_ID <= PROCEDURE_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    LEFT_PAREN_ID       => shift and goto state 9
    SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
-   TICK_ID             => shift and goto state 10
    default             => ERROR
 
-   PARAMETER_LIST_ID   goto state 11
+   PARAMETER_LIST_ID   goto state 10
 
 State 4:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, FUNCTION_ID/LEFT_PAREN_ID/PROCEDURE_ID/RIGHT_PAREN_ID/SYMBOL_ID/TICK_ID/STRING_LITERAL_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, FUNCTION_ID/LEFT_PAREN_ID/PROCEDURE_ID/RIGHT_PAREN_ID/SYMBOL_ID/WISI_EOI_ID
 
    WISI_EOI_ID         => accept it
    default             => ERROR
@@ -98,33 +94,26 @@ State 9:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ SYMBOL_ID RIGHT_PAREN_ID, SYMBOL_ID
 
-   RIGHT_PAREN_ID      => shift and goto state 16
-   SYMBOL_ID           => shift and goto state 17
+   RIGHT_PAREN_ID      => shift and goto state 14
+   SYMBOL_ID           => shift and goto state 15
    default             => ERROR
 
 
 State 10:
-  PARAMETER_LIST_ID <= TICK_ID ^ STRING_LITERAL_ID, SYMBOL_ID
-
-   STRING_LITERAL_ID   => shift and goto state 15
-   default             => ERROR
-
-
-State 11:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
-
-   SYMBOL_ID           => shift and goto state 14
-   default             => ERROR
-
-
-State 12:
-  SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    SYMBOL_ID           => shift and goto state 13
    default             => ERROR
 
 
-State 13:
+State 11:
+  SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
+
+   SYMBOL_ID           => shift and goto state 12
+   default             => ERROR
+
+
+State 12:
   SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
@@ -133,7 +122,7 @@ State 13:
    default             => ERROR
 
 
-State 14:
+State 13:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
@@ -142,28 +131,21 @@ State 14:
    default             => ERROR
 
 
-State 15:
-  PARAMETER_LIST_ID <= TICK_ID STRING_LITERAL_ID ^, SYMBOL_ID
-
-   SYMBOL_ID           => reduce 2 tokens to PARAMETER_LIST_ID
-   default             => ERROR
-
-
-State 16:
+State 14:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID RIGHT_PAREN_ID ^, SYMBOL_ID
 
    SYMBOL_ID           => reduce 2 tokens to PARAMETER_LIST_ID
    default             => ERROR
 
 
-State 17:
+State 15:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID SYMBOL_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
 
-   RIGHT_PAREN_ID      => shift and goto state 18
+   RIGHT_PAREN_ID      => shift and goto state 16
    default             => ERROR
 
 
-State 18:
+State 16:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID SYMBOL_ID RIGHT_PAREN_ID ^, SYMBOL_ID
 
    SYMBOL_ID           => reduce 3 tokens to PARAMETER_LIST_ID
@@ -188,20 +170,18 @@ State 2:
 
    LEFT_PAREN_ID       => shift and goto state 9
    SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
-   TICK_ID             => shift and goto state 10
    default             => ERROR
 
-   PARAMETER_LIST_ID   goto state 12
+   PARAMETER_LIST_ID   goto state 11
 
 State 3:
   SUBPROGRAM_ID <= PROCEDURE_ID ^ PARAMETER_LIST_ID SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    LEFT_PAREN_ID       => shift and goto state 9
    SYMBOL_ID           => reduce 0 tokens to PARAMETER_LIST_ID
-   TICK_ID             => shift and goto state 10
    default             => ERROR
 
-   PARAMETER_LIST_ID   goto state 11
+   PARAMETER_LIST_ID   goto state 10
 
 State 4:
   FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, WISI_EOI_ID
@@ -253,33 +233,26 @@ State 9:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
   PARAMETER_LIST_ID <= LEFT_PAREN_ID ^ SYMBOL_ID RIGHT_PAREN_ID, SYMBOL_ID
 
-   RIGHT_PAREN_ID      => shift and goto state 16
-   SYMBOL_ID           => shift and goto state 17
+   RIGHT_PAREN_ID      => shift and goto state 14
+   SYMBOL_ID           => shift and goto state 15
    default             => ERROR
 
 
 State 10:
-  PARAMETER_LIST_ID <= TICK_ID ^ STRING_LITERAL_ID, SYMBOL_ID
-
-   STRING_LITERAL_ID   => shift and goto state 15
-   default             => ERROR
-
-
-State 11:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
-
-   SYMBOL_ID           => shift and goto state 14
-   default             => ERROR
-
-
-State 12:
-  SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    SYMBOL_ID           => shift and goto state 13
    default             => ERROR
 
 
-State 13:
+State 11:
+  SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID ^ SYMBOL_ID, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
+
+   SYMBOL_ID           => shift and goto state 12
+   default             => ERROR
+
+
+State 12:
   SUBPROGRAM_ID <= FUNCTION_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
@@ -288,7 +261,7 @@ State 13:
    default             => ERROR
 
 
-State 14:
+State 13:
   SUBPROGRAM_ID <= PROCEDURE_ID PARAMETER_LIST_ID SYMBOL_ID ^, FUNCTION_ID/PROCEDURE_ID/WISI_EOI_ID
 
    FUNCTION_ID         => reduce 3 tokens to SUBPROGRAM_ID
@@ -297,33 +270,26 @@ State 14:
    default             => ERROR
 
 
-State 15:
-  PARAMETER_LIST_ID <= TICK_ID STRING_LITERAL_ID ^, SYMBOL_ID
-
-   SYMBOL_ID           => reduce 2 tokens to PARAMETER_LIST_ID
-   default             => ERROR
-
-
-State 16:
+State 14:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID RIGHT_PAREN_ID ^, SYMBOL_ID
 
    SYMBOL_ID           => reduce 2 tokens to PARAMETER_LIST_ID
    default             => ERROR
 
 
-State 17:
+State 15:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID SYMBOL_ID ^ RIGHT_PAREN_ID, SYMBOL_ID
 
-   RIGHT_PAREN_ID      => shift and goto state 18
+   RIGHT_PAREN_ID      => shift and goto state 16
    default             => ERROR
 
 
-State 18:
+State 16:
   PARAMETER_LIST_ID <= LEFT_PAREN_ID SYMBOL_ID RIGHT_PAREN_ID ^, SYMBOL_ID
 
    SYMBOL_ID           => reduce 3 tokens to PARAMETER_LIST_ID
    default             => ERROR
 
 
- 5 rules, 4 actions, 18 states, 108 table entries
+ 5 rules, 5 actions, 16 states, 96 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

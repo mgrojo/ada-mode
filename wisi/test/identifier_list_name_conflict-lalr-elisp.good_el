@@ -1,6 +1,7 @@
-;;; identifier_list_name_conflict-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; identifier_list_name_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe ../../wisi/test/identifier_list_name_conflict.wy LALR_LR1 Elisp
 
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +20,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst identifier_list_name_conflict-elisp-keyword-table
+(defconst identifier_list_name_conflict-lalr-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("(" . LEFT_PAREN)
@@ -28,7 +29,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst identifier_list_name_conflict-elisp-token-table
+(defconst identifier_list_name_conflict-lalr-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("punctuation"
@@ -45,7 +46,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst identifier_list_name_conflict-elisp-parse-table
+(defconst identifier_list_name_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
    '((COMMA EQUAL_GREATER STRING_LITERAL IDENTIFIER LEFT_PAREN RIGHT_PAREN )
      ((association
@@ -126,6 +127,6 @@
       nil]))
   "Parser table.")
 
-(provide 'identifier_list_name_conflict-elisp)
+(provide 'identifier_list_name_conflict-lalr-elisp)
 
 ;; end of file

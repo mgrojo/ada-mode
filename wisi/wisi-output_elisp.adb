@@ -18,7 +18,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 with FastToken.Parser.LR.Elisp;
 with Wisi.Gen_Generate_Utils;
 procedure Wisi.Output_Elisp
@@ -60,22 +60,12 @@ is
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
      (Input_File_Name, -Start_Token);
 
-   Parser : constant Generate_Utils.LR.Parse_Table_Ptr := Generate_Utils.LALR_Generator.Generate
-     (Grammar,
-      Generate_Utils.To_Conflicts
-        (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-      Trace                    => Verbosity > 1,
-      Put_Parse_Table          => Verbosity > 0,
-      Ignore_Unused_Tokens     => Verbosity > 1,
-      Ignore_Unknown_Conflicts => Verbosity > 1);
-
-   File : Standard.Ada.Text_IO.File_Type;
+   Parser : Generate_Utils.LR.Parse_Table_Ptr;
 
    procedure Header (Elisp_Package : in String; Prologue : in String_Lists.List)
-   is
-      use Standard.Ada.Text_IO;
-   begin
+   is begin
       Put_Line (";;; " & Elisp_Package & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
+      Put_Command_Line (";;; ");
       New_Line;
       for Line of Prologue loop
          Put_Line (Line);
@@ -85,9 +75,7 @@ is
    procedure Keyword_Table
      (Elisp_Package : in String;
       Keywords      : in Wisi.String_Pair_Lists.List)
-   is
-      use Standard.Ada.Text_IO;
-   begin
+   is begin
       Put_Line ("(defconst " & Elisp_Package & "-elisp-keyword-table");
       Put_Line ("  (semantic-lex-make-keyword-table");
       Put_Line ("   '(");
@@ -103,8 +91,7 @@ is
      (Elisp_Package : in String;
       Tokens        : in Wisi.Token_Lists.List)
    is
-      use Standard.Ada.Strings.Unbounded; -- length
-      use Standard.Ada.Text_IO;
+      use Ada.Strings.Unbounded; -- length
    begin
       Put_Line ("(defconst " & Elisp_Package & "-elisp-token-table");
       Put_Line ("  (semantic-lex-make-type-table");
@@ -127,38 +114,84 @@ is
       Put_Line ("  ""Table of language tokens."")");
    end Token_Table;
 
-   use Standard.Ada.Text_IO;
-begin
-   if Parser_Algorithm /= LALR then
-      raise Programmer_Error with "parser algorithm LR1 not implemented";
-   end if;
+   procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
+   is
+      use Ada.Strings.Unbounded;
+      File            : File_Type;
+      Elisp_Package_1 : Unbounded_String;
+   begin
+      case Parser_Algorithm is
+      when LALR | LR1 =>
+            Elisp_Package_1 := +Elisp_Package;
+      when LALR_LR1 =>
+         case Algorithm is
+         when LALR =>
+            Elisp_Package_1 := +Elisp_Package & "-lalr";
+         when LR1 =>
+            Elisp_Package_1 := +Elisp_Package & "-lr1";
+         end case;
+      end case;
 
+      Generate_Utils.LR.Free (Parser);
+
+      case Algorithm is
+      when LALR =>
+         Parser := Generate_Utils.LALR_Generator.Generate
+           (Grammar,
+            Generate_Utils.To_Conflicts
+              (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+
+      when LR1 =>
+         Parser := Generate_Utils.LR1_Generator.Generate
+           (Grammar,
+            Generate_Utils.To_Conflicts
+              (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+      end case;
+
+      Create (File, Out_File, -Elisp_Package_1 & "-elisp.el");
+      Set_Output (File);
+      Header (-Elisp_Package_1, Prologue);
+      New_Line;
+      Put_Line ("(require 'wisi)");
+      Put_Line ("(require 'semantic/lex)");
+      Put_Line ("(require 'wisi-compile)");
+      New_Line;
+      Keyword_Table (-Elisp_Package_1, Keywords);
+      New_Line;
+      Token_Table (-Elisp_Package_1, Tokens);
+      New_Line;
+      Parser_Elisp.Output (-Elisp_Package_1, Tokens, Keywords, Rules, Parser);
+      New_Line;
+      Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
+      New_Line;
+      Put_Line (";; end of file");
+      Close (File);
+
+      Set_Output (Standard_Output);
+   end Create_Elisp;
+
+begin
    if Verbosity > 0 then
       Put_Line ("Grammar:");
       Generate_Utils.Put_Trace_Production.Put_Trace (Grammar);
       New_Line;
    end if;
 
-   Create (File, Out_File, Elisp_Package & "-elisp.el");
-   Set_Output (File);
-   Header (Elisp_Package, Prologue);
-   New_Line;
-   Put_Line ("(require 'wisi)");
-   Put_Line ("(require 'semantic/lex)");
-   Put_Line ("(require 'wisi-compile)");
-   New_Line;
-   Keyword_Table (Elisp_Package, Keywords);
-   New_Line;
-   Token_Table (Elisp_Package, Tokens);
-   New_Line;
-   Parser_Elisp.Output (Elisp_Package, Tokens, Keywords, Rules, Parser);
-   New_Line;
-   Put_Line ("(provide '" & Elisp_Package & "-elisp)");
-   New_Line;
-   Put_Line (";; end of file");
-   Close (File);
-
-   Set_Output (Standard_Output);
+   case Parser_Algorithm is
+   when LALR | LR1 =>
+      Create_Elisp (Parser_Algorithm);
+   when LALR_LR1 =>
+      Create_Elisp (LALR);
+      Create_Elisp (LR1);
+   end case;
 
    if Verbosity > 0 then
       Put_Line

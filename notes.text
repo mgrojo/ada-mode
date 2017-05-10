@@ -6,10 +6,16 @@ build/release_process.text
 
  current work
 
-get add_action (conflict) from generated, move to lr.ads
-    or to lr.parser.ads?
+finish lr1 elisp tests
 
-copy wisi/test/*-elisp.el to ada-mode.s-4, use in tests
+run /Projects/org.emacs.ada-mode-stephe-4/build/wisi/Makefile test-wisi
+    implement wisi-generate version
+    implement elisp lr1, try that
+        wisi-generate way too slow for Ada
+            need more warm-fuzzy
+            command line option
+            dots for "adding state n", n every 100
+            dots for "lookaheads state n", n every 100?
 
 test_empty_productions_9.adb
     delete? move to wisi/test?

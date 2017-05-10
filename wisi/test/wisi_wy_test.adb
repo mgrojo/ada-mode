@@ -31,20 +31,27 @@ package body Wisi_Wy_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use Ada.Directories;
       use GNAT.OS_Lib;
       Test : Test_Case renames Test_Case (T);
 
       Success : Boolean;
 
-      Wy_File          : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_El_File : constant String        := Ada.Directories.Simple_Name (Test.Root_Name.all) & "-elisp.el";
-      Expected_El_File : constant String        := Test.Root_Name.all & "-elisp.good_el";
+      Exe : constant String_Access := Locate_Exec_On_Path ("./wisi-generate.exe");
+
+      Wy_File     : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+
+      Computed_LALR_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr-elisp.el";
+      Expected_LALR_El_File : constant String := Test.Root_Name.all & "-lalr-elisp.good_el";
+
+      Computed_LR1_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1-elisp.el";
+      Expected_LR1_El_File : constant String := Test.Root_Name.all & "-lr1-elisp.good_el";
    begin
       Spawn
-        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
+        (Program_Name => Exe.all,
          Args         =>
            (1         => Wy_File,
-            2         => new String'("LALR"),
+            2         => new String'("LALR_LR1"),
             3         => new String'("Elisp")),
          Success      => Success);
 
@@ -52,7 +59,8 @@ package body Wisi_Wy_Test is
         (Success,
          "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
 
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_El_File, Expected_El_File);
+      AUnit.Checks.Text_IO.Check_Files ("LALR", Computed_LALR_El_File, Expected_LALR_El_File);
+      AUnit.Checks.Text_IO.Check_Files ("LR1", Computed_LR1_El_File, Expected_LR1_El_File);
    end Run_Test;
 
    ----------

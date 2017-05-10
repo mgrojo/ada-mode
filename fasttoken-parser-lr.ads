@@ -36,6 +36,7 @@
 
 pragma License (GPL);
 
+with Ada.Unchecked_Deallocation;
 with FastToken.Token.Nonterminal;
 generic
    First_State_Index : in Natural;
@@ -128,6 +129,27 @@ package FastToken.Parser.LR is
       Synthesize      : in     Nonterminal.Synthesize);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
+   procedure Add_Action
+     (State           : in out LR.Parse_State;
+      Symbol          : in     Token_ID;
+      State_Index     : in     LR.State_Index;
+      LHS_ID          : in     Token_ID;
+      RHS_Token_Count : in     Natural;
+      Synthesize      : in     Nonterminal.Synthesize);
+   --  Add a Shift/Reduce conflict to State.
+
+   procedure Add_Action
+     (State             : in out LR.Parse_State;
+      Symbol            : in     Token_ID;
+      Verb              : in     LR.Parse_Action_Verbs;
+      LHS_ID_1          : in     Token_ID;
+      RHS_Token_Count_1 : in     Natural;
+      Synthesize_1      : in     Nonterminal.Synthesize;
+      LHS_ID_2          : in     Token_ID;
+      RHS_Token_Count_2 : in     Natural;
+      Synthesize_2      : in     Nonterminal.Synthesize);
+   --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
+
    procedure Add_Error (State  : in out LR.Parse_State);
    --  Add an Error action to State, at tail of action list.
 
@@ -140,6 +162,7 @@ package FastToken.Parser.LR is
    type Parse_Table is array (State_Index range <>) of Parse_State;
 
    type Parse_Table_Ptr is access Parse_Table;
+   procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
 
    ----------
    --  Useful text output

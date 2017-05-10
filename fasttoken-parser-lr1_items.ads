@@ -51,23 +51,6 @@ package FastToken.Parser.LR1_Items is
 
    function "+" (Item : in Token.Token_ID) return Lookahead;
 
-   procedure Include
-     (Set   : in out Lookahead;
-      Value : in     Token.Terminal_ID);
-   procedure Include
-     (Set               : in out Lookahead;
-      Value             : in     Lookahead;
-      Exclude_Propagate : in     Boolean);
-   --  Add Value to Set
-
-   procedure Include
-     (Set               : in out Lookahead;
-      Value             : in     Lookahead;
-      Added             :    out Boolean;
-      Exclude_Propagate : in     Boolean);
-   --  Add Value to Set, except Propagate if Exclude Propagate. Added
-   --  will be true if Value was not already present.
-
    type Item_Node is private;
    type Item_Ptr is access Item_Node;
 
@@ -86,18 +69,6 @@ package FastToken.Parser.LR1_Items is
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
      return Item_Ptr;
-
-   function Item_Node_Of
-     (Prod  : in Production.Instance;
-      State : in Unknown_State_Index)
-     return Item_Node;
-   function Item_Node_Of
-     (Prod       : in Production.List.List_Iterator;
-      State      : in Unknown_State_Index;
-      Lookaheads : in Lookahead := Null_Lookaheads)
-     return Item_Node;
-   --  Return an item node made from Prod, Dot at the start of the
-   --  right hand side, State, Lookaheads.
 
    procedure Set
      (Item       : in out Item_Node;
@@ -150,9 +121,6 @@ package FastToken.Parser.LR1_Items is
       Set    : in     Item_Set_Ptr);
    --  Add an item to List; keep List sorted in ascending order on Symbol.
 
-   function Deep_Copy (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
-   --  Duplicates Goto_Items, but not Set list. Preserves order.
-
    type Item_Set is record
       Set       : Item_Ptr;
       Goto_List : Goto_Item_Ptr;
@@ -201,12 +169,6 @@ package FastToken.Parser.LR1_Items is
       Sets  : in Item_Set_List)
      return Item_Set_Ptr;
    --  Return a pointer to the set in Sets containing State, null if not found.
-
-   function Is_In
-     (Left             : in Item_Set;
-      Right            : in Item_Set_List;
-      Match_Lookaheads : in Boolean)
-     return Boolean;
 
    function Is_In
      (Symbol    : in Token.Token_ID;

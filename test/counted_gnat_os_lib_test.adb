@@ -39,7 +39,7 @@ package body Counted_GNAT_OS_Lib_Test is
 
       File_Text    : constant String := "a23456 b90123";
       Command_Text : constant String := "04quit";
-      File_Name    : constant String := "counted_gnat_os_lib_test.text";
+      File_Name    : constant String := "counted_gnat_os_lib_test.in";
       OS_Lib_File  : File_Descriptor;
       Junk         : Integer;
       pragma Unreferenced (Junk);

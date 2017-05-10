@@ -88,19 +88,19 @@ package body FastToken.Parser.LR.LR1_Generator is
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
       C : Item_Set_List := -- result
-        (Head                   => new Item_Set'
+        (Head             => new Item_Set'
            (Closure
-              ((Set             => new Item_Node'
-                  (Item_Node_Of
-                     (Production.List.First (Grammar),
-                      First_State_Index,
-                      +EOF_Token)),
-                Goto_List       => null,
-                State           => First_State_Index,
-                Next            => null),
+              ((Set       => New_Item_Node
+                  (Production.List.Current (Production.List.First (Grammar)),
+                   Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
+                   First_State_Index,
+                   +EOF_Token),
+                Goto_List => null,
+                State     => First_State_Index,
+                Next      => null),
                Has_Empty_Production, First, Grammar,
-               Trace            => False)),
-         Size                   => 1);
+               Trace      => False)),
+         Size             => 1);
 
       I          : Item_Set_Ptr;    -- iterator 'for each set of items I in C'
       Added_Item : Boolean := True; -- 'until no more items can be added'

@@ -1,6 +1,7 @@
-;;; range_conflict-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; range_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe ../../wisi/test/range_conflict.wy LALR_LR1 Elisp
 
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -19,7 +20,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst range_conflict-elisp-keyword-table
+(defconst range_conflict-lalr-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
     ("in" . IN)
@@ -30,7 +31,7 @@
    nil)
   "Table of language keywords.")
 
-(defconst range_conflict-elisp-token-table
+(defconst range_conflict-lalr-elisp-token-table
   (semantic-lex-make-type-table
    '(
      ("punctuation"
@@ -47,7 +48,7 @@
    nil)
   "Table of language tokens.")
 
-(defconst range_conflict-elisp-parse-table
+(defconst range_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
    '((DOT_DOT TICK IDENTIFIER STRING_LITERAL IN LEFT_PAREN RANGE RIGHT_PAREN )
      ((compilation_unit
@@ -114,6 +115,6 @@
       nil]))
   "Parser table.")
 
-(provide 'range_conflict-elisp)
+(provide 'range_conflict-lalr-elisp)
 
 ;; end of file

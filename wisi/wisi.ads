@@ -50,6 +50,7 @@ package Wisi is
    Programmer_Error : exception; -- Error in Wisi Ada code
 
    type Parser_Algorithm_Type is (LALR, LR1, LALR_LR1);
+   subtype Single_Parser_Algorithm is Parser_Algorithm_Type range LALR .. LR1;
 
    type String_Pair_Type is record
       Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;

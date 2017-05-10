@@ -293,33 +293,6 @@ package body FastToken.Parser.LR1_Items is
       return new Item_Node'(Prod, Dot, State, Lookaheads, null);
    end New_Item_Node;
 
-   function Item_Node_Of
-     (Prod       : in Production.List.List_Iterator;
-      State      : in Unknown_State_Index;
-      Lookaheads : in Lookahead := Null_Lookaheads)
-     return Item_Node
-   is begin
-      return
-        (Prod       => Production.List.Current (Prod),
-         Dot        => Token.List.First (Production.List.Current (Prod).RHS.Tokens),
-         State      => State,
-         Lookaheads => Lookaheads,
-         Next       => null);
-   end Item_Node_Of;
-
-   function Item_Node_Of
-     (Prod  : in Production.Instance;
-      State : in Unknown_State_Index)
-     return Item_Node
-   is begin
-      return
-        (Prod       => Prod,
-         Dot        => Prod.RHS.Tokens.First,
-         State      => State,
-         Lookaheads => Null_Lookaheads,
-         Next       => null);
-   end Item_Node_Of;
-
    procedure Set
      (Item       : in out Item_Node;
       Prod       : in     Production.Instance;
@@ -388,30 +361,6 @@ package body FastToken.Parser.LR1_Items is
       return Left;
    end "&";
 
-   procedure Include
-     (Item  : in Item_Ptr;
-      Value : in Token.Terminal_ID)
-   is begin
-      Include (Item.Lookaheads, Value);
-   end Include;
-
-   procedure Include
-     (Item              : in Item_Ptr;
-      Value             : in Lookahead;
-      Exclude_Propagate : in Boolean)
-   is begin
-      Include (Item.Lookaheads, Value, Exclude_Propagate);
-   end Include;
-
-   procedure Include
-     (Item              : in     Item_Ptr;
-      Value             : in     Lookahead;
-      Added             :    out Boolean;
-      Exclude_Propagate : in     Boolean)
-   is begin
-      Include (Item.Lookaheads, Value, Added, Exclude_Propagate);
-   end Include;
-
    function "+" (Item : in Token.Token_ID) return Lookahead
    is
       Result : Lookahead := (False, (others => False));
@@ -454,6 +403,30 @@ package body FastToken.Parser.LR1_Items is
       Added : Boolean;
    begin
       Include (Set, Value, Added, Exclude_Propagate);
+   end Include;
+
+   procedure Include
+     (Item  : in Item_Ptr;
+      Value : in Token.Terminal_ID)
+   is begin
+      Include (Item.Lookaheads, Value);
+   end Include;
+
+   procedure Include
+     (Item              : in Item_Ptr;
+      Value             : in Lookahead;
+      Exclude_Propagate : in Boolean)
+   is begin
+      Include (Item.Lookaheads, Value, Exclude_Propagate);
+   end Include;
+
+   procedure Include
+     (Item              : in     Item_Ptr;
+      Value             : in     Lookahead;
+      Added             :    out Boolean;
+      Exclude_Propagate : in     Boolean)
+   is begin
+      Include (Item.Lookaheads, Value, Added, Exclude_Propagate);
    end Include;
 
    function Symbol (List : in Goto_Item_Ptr) return Token.Token_ID
@@ -605,15 +578,6 @@ package body FastToken.Parser.LR1_Items is
 
       return null;
    end Find;
-
-   function Is_In
-     (Left             : in Item_Set;
-      Right            : in Item_Set_List;
-      Match_Lookaheads : in Boolean)
-     return Boolean
-   is begin
-      return Find (Left, Right, Match_Lookaheads) /= null;
-   end Is_In;
 
    function Is_In
      (Symbol    : in Token.Token_ID;

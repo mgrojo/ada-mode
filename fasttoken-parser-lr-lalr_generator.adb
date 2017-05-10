@@ -225,9 +225,11 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       Kernel_List : Item_Set_List :=
         (Head         => new Item_Set'
-           (Set       => new Item_Node'
-              (Item_Node_Of
-                 (Production.List.Current (Production.List.First (Grammar)), First_State_Index)),
+           (Set       => New_Item_Node
+              (Production.List.Current (Production.List.First (Grammar)),
+               Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
+               First_State_Index,
+               Null_Lookaheads),
             Goto_List => null,
             State     => First_State_Index,
             Next      => null),
