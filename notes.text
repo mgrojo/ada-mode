@@ -43,12 +43,13 @@ run test from emacs -Q using source:
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
-  (require 'ada-mode)
+  (load "run-wisi-test.el")
   (setq wisi-debug 2)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/access_in_record.ads")
-  (wisi-parse-buffer 'navigate)
+  (setq wisi-disable-face t)
+  (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/ada-number-literal.input")
   )
 
 install packages in -Q:
@@ -62,12 +63,11 @@ install packages in -Q:
 /Projects/org.fasttoken/notes.text
 /Projects/org.fasttoken/build/release/Makefile
 
+running test-wisi with fast-token LALR -elisp.el
+    all pass
+
 add FastToken LR1 table generator
-    running test-wisi with fast-token LALR -elisp.el
-    when load *-elisp.el:
-        Warning: assignment to free variable ‘wisi-test-success’
-    even with '(devar wisi-test-success)' in file
-    what context is wisi-compile-grammar using?
+    test that
 
 add error handling
 

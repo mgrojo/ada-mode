@@ -1,5 +1,0 @@
-(require 'ada-smie-opentoken)
-(setq ada-indent-comment-col-0 t)
-(setq ada-indent-label 0)
-(setq ada-indent-record-rel-type 0)
-(setq ada-indent-when 0)

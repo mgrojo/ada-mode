@@ -50,13 +50,18 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-ONE_TEST_FILES += ada_mode-nominal.adb
+ONE_TEST_FILES += ada-number-literal.wisi-test
 #ONE_TEST_FILES += ada_mode-nominal.ads
-one : RUNTEST := run-indent-test-wisi-gpr_query.el
-one : update
-one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+# one : RUNTEST := run-wisi-test.el
+one : one-clean $(ONE_TEST_FILES)
 one-clean: force
-	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+	rm -f $(ONE_TEST_FILES)
+	cd ../../test/wisi/; rm -f *-elisp.el *.output
+
+# one : update
+# one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+# one-clean: force
+# 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
@@ -91,7 +96,7 @@ endif
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-elisp.el : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) LALR Elisp > $(*F).output
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else

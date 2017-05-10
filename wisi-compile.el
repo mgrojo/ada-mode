@@ -201,6 +201,7 @@ names have the format nonterm:index."
 
   (let ((defs (nth 1 grammar))
 	(symbol-obarray (make-vector 13 0));; for parse actions
+        (byte-compile-warnings '(not free-vars)) ;; for "wisi-test-success" in test/wisi/*
 	def nonterm rhs-list rule
 	semantic-action index)
 

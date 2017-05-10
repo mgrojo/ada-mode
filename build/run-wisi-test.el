@@ -10,6 +10,7 @@
 ;; M-x : (run-test "<filename>" t)
 
 (require 'wisi-parse)
+(require 'wisi)
 
 ;; Default includes mtn, among others, which is broken in Emacs 24.3
 (setq vc-handled-backends '(CVS))
@@ -76,7 +77,7 @@
 
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
-  (interactive "Mgrammar filename: ")
+  (interactive "Mgrammar filename root: ")
   (let ((parse-table (symbol-value (intern-soft (concat filename "-elisp-parse-table"))))
 	(wisi-test-success nil)
 	(expected-result t)
@@ -90,7 +91,7 @@
     ;; use Ada style comments in source
     (set-syntax-table test-syntax-table)
     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
-    (font-lock-fontify-buffer)
+    (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
     (wisi-setup
      nil ;; indent-calculate
@@ -100,6 +101,9 @@
      (symbol-value (intern-soft (concat filename "-elisp-token-table")))
      parse-table)
 
+    ;; Not clear why this is not being done automatically
+    (syntax-propertize (point-max))
+    
     ;; Check for expected error result
     (goto-char (point-min))
     (when (re-search-forward "--PARSE_RESULT:" nil t)
@@ -111,9 +115,9 @@
       ;; parse action must set wisi-test-success t
       (error
        (setq wisi-test-success
-	     (equal (cadr err) expected-result))
+	     (equal (cdr err) expected-result))
        (unless wisi-test-success
-	 (message (cadr err)))))
+	 (message (cdr err)))))
     (unless wisi-test-success
       (error "parse test failed")))
 
@@ -144,6 +148,7 @@
     ))
 
 (defun run-test (filename)
+  (interactive "Mgrammar filename root: ")
   (add-to-list 'load-path "../../test/wisi/")
   (require (intern (concat filename "-elisp")))
   ;; top level parse action must set `wisi-test-success' t.
