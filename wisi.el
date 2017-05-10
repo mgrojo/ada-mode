@@ -87,7 +87,7 @@
 ;;   semantic lexer is more complex, and gives different information
 ;;   than we need.
 ;;
-;; We use OpenToken wisi-generate to compile BNF to Elisp source, and
+;; We use FastToken wisi-generate to compile BNF to Elisp source, and
 ;; wisi-compile-grammar to compile that to the parser table. See
 ;; ada-mode info for more information on the developer tools used for
 ;; ada-mode and wisi.

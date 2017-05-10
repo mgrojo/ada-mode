@@ -63,6 +63,11 @@ install packages in -Q:
 /Projects/org.fasttoken/build/release/Makefile
 
 add FastToken LR1 table generator
+    running test-wisi with fast-token LALR -elisp.el
+    when load *-elisp.el:
+        Warning: assignment to free variable ‘wisi-test-success’
+    even with '(devar wisi-test-success)' in file
+    what context is wisi-compile-grammar using?
 
 add error handling
 

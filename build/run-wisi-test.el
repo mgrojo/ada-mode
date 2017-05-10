@@ -38,12 +38,14 @@
 
 (defconst test-class-list
   '(
+    block-start
     close-paren
     function
     open-paren
     other
     procedure
     statement-end
+    statement-other
     statement-start
     )
   )
@@ -75,7 +77,7 @@
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
   (interactive "Mgrammar filename: ")
-  (let ((parse-table (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
+  (let ((parse-table (symbol-value (intern-soft (concat filename "-elisp-parse-table"))))
 	(wisi-test-success nil)
 	(expected-result t)
 	(wisi--cache-max
@@ -94,8 +96,8 @@
      nil ;; indent-calculate
      nil ;; post-indent-fail
      test-class-list
-     (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
-     (symbol-value (intern-soft (concat filename "-wy--token-table")))
+     (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+     (symbol-value (intern-soft (concat filename "-elisp-token-table")))
      parse-table)
 
     ;; Check for expected error result
@@ -143,7 +145,7 @@
 
 (defun run-test (filename)
   (add-to-list 'load-path "../../test/wisi/")
-  (require (intern (concat filename "-wy")))
+  (require (intern (concat filename "-elisp")))
   ;; top level parse action must set `wisi-test-success' t.
 
   ;; fail for any parse errors.

@@ -1,4 +1,5 @@
 begin
+   label :
    D := B;
 end;
 

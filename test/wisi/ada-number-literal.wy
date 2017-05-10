@@ -1,10 +1,7 @@
 ;; test ada-wisi number-literal lexer
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
-(require 'ada-wisi) ;; for ada-wisi-number-p
+  (require 'ada-wisi) ;; for ada-wisi-number-p
 %}
 
 %keyword NUMBER "number"
