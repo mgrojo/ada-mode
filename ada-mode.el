@@ -2493,21 +2493,26 @@ buffer in another window."
   (let ((start-buffer (current-buffer))
 	(start-window (selected-window))
 	pos item file)
-    (set-buffer compilation-last-buffer)
-    (setq pos (next-single-property-change (point) 'ada-secondary-error))
-    (when pos
-      (setq item (get-text-property pos 'ada-secondary-error))
-      ;; file-relative-name handles absolute Windows paths from
-      ;; g++. Do this in compilation buffer to get correct
-      ;; default-directory.
-      (setq file (file-relative-name (nth 0 item)))
+    ;; We use `pop-to-buffer', not `set-buffer', so `forward-line'
+    ;; works. But that might eat an `other-frame-window-mode' prefix;
+    ;; disable that temporarily.
+    (let ((display-buffer-overriding-action nil))
+      (pop-to-buffer compilation-last-buffer nil t)
+      (setq pos (next-single-property-change (point) 'ada-secondary-error))
+      (when pos
+	(setq item (get-text-property pos 'ada-secondary-error))
+	;; file-relative-name handles absolute Windows paths from
+	;; g++. Do this in compilation buffer to get correct
+	;; default-directory.
+	(setq file (file-relative-name (nth 0 item)))
 
-      ;; Set point in compilation buffer past this secondary error, so
-      ;; user can easily go to the next one. For some reason, this
-      ;; doesn't change the visible point!?
-      (forward-line 1))
+	;; Set point in compilation buffer past this secondary error, so
+	;; user can easily go to the next one.
+	(goto-char pos)
+	(forward-line 1))
 
-    (set-buffer start-buffer);; for windowing history
+      (pop-to-buffer start-buffer nil t);; for windowing history
+      )
     (when item
       (ada-goto-source
        file
