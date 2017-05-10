@@ -90,8 +90,9 @@ package body Ada_Mode.Parens is
       Local_11 : Local_11_Type := Local_11_Type'
         (A => Integer
            (1.0),
-         B => Integer
-           (2.0));
+         B => 1 +
+           Integer
+             (2.0));
 
       Local_12 : Local_11_Type
         := Local_11_Type'(A => Integer
@@ -218,7 +219,9 @@ package body Ada_Mode.Parens is
    function Function_3 (Param_1 : in     Ada.Text_IO.Count;
                         Param_2 : in out Integer) return Float
    is begin
-      return 1.0;
+      return
+        1.0 +
+        2.0;
    end Function_3;
 
    --EMACSCMD:(jit-lock-fontify-now)
@@ -246,7 +249,8 @@ package body Ada_Mode.Parens is
       if A.all
         or else (B.all
                    --EMACSCMD:(test-face "then" 'font-lock-keyword-face)
-                   and then C
+                   and then
+                   (C)
                    and then D)
       then
          null;

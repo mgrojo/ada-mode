@@ -6,8 +6,8 @@ build/wisi/Makefile
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2):
-o.e.a.stephe-5 (from o.e.a): gpr_query completion table
+o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
+o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
 (setq ada-xref-tool 'gnat_inspect)
@@ -103,9 +103,28 @@ can abandon parse when reach desired point (not just for errors)
     in goto-end, check if end reached is virtual; if so, reparse
 
 
+(setq ada-gps-size-threshold most-positive-fixnum)
+(setq wisi-disable-face t)
+(setq wisi-indent-region-fallback nil)
+ current issues:
+bad indent:
+                        Append
+                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
+                             Action_Name
+                             (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+
+parse face is slow
+    noticeable delay when typing code
+
+    fasttoken-parser-lr-lalr_generator.adb
+    per iteration 0.278141, 0.281266
+
+    parse-action nil: 0.256851
+        set jit-lock-defer-time for now
+        lr1 parser will be faster?
 
  indent issues
-
 indent is slow
 
     wisi-anchored-2, wisi--indent-token-1
@@ -251,6 +270,11 @@ test/debug.adb
 
 (setq ada-gps-size-threshold 100000)
 test/debug_wisi.adb
+
+disable or use electric-indent-post-self-insert-function
+    called during ada-indent-newline-indent
+    on post-self-insert-hook
+        use that for ada-mode capitalization
 
 AdaCore suggests using the libadalang indentation engine
     see Q406-078

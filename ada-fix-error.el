@@ -157,20 +157,18 @@ extend a with_clause to include CHILD-NAME  .	"
 (defun ada-fix-add-use-type (type)
   "Insert `use type' clause for TYPE at start of declarative part for current construct."
   (ada-goto-declarative-region-start); leaves point after 'is'
-  (newline)
-  (insert "use type " type ";")
   (newline-and-indent)
-  (forward-line -1)
-  (indent-according-to-mode))
+  (cl-ecase ada-language-version
+    (ada2012
+     (insert "use all type " type ";"))
+    ((ada83 ada95 ada2005)
+     (insert "use type " type ";"))))
 
 (defun ada-fix-add-use (package)
   "Insert `use' clause for PACKAGE at start of declarative part for current construct."
   (ada-goto-declarative-region-start); leaves point after 'is'
-  (newline)
-  (insert "use " package ";")
   (newline-and-indent)
-  (forward-line -1)
-  (indent-according-to-mode))
+  (insert "use " package ";"))
 
 (defvar ada-fix-error-hook nil
   ;; determined by ada_compiler, set by *-select-prj-compiler

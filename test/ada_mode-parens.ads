@@ -1,4 +1,4 @@
---  Explores all issues around indenting within parens
+--  Explores many issues around indenting within parens
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")

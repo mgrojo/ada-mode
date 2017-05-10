@@ -34,7 +34,8 @@ is -- target 0
           2 +
           3,
       Component_356 =>
-        1.0);
+        1.0 +
+          2.0);
 
    Record_1_Object_2 : constant Record_Type_1 :=
      (Component_1 |
@@ -153,7 +154,8 @@ is -- target 0
                      --EMACSCMD:(test-face "Constraint_Error" '(nil default))
                      --EMACSCMD:(test-face "with" font-lock-keyword-face)
                      raise Constraint_Error with
-                       "help!";
+                       "help " &
+                       "me!";
 
                      --EMASCMD:(progn (forward-line 1)(back-to-indentation)(backward-sexp)(looking-at "when E :"))
                   when -- 2
@@ -575,8 +577,8 @@ is -- target 0
       begin
          return
            Local_1 +
-             Local_2 +
-             Local_3;
+           Local_2 +
+           Local_3;
       end;
    end;
 
