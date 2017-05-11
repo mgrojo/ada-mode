@@ -392,14 +392,11 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  Spontaneous lookaheads are put in Source_Item.Lookahead,
    --  propagated lookaheads in Propagations.
    --
-   --  The start symbol (with Source_Set.State = Accept_State) is treated specially.
-   --
    --  Set Used_Tokens = True for all tokens in lookaheads.
    procedure Generate_Lookahead_Info
      (Source_Item  : in     LR1_Items.Item_Ptr;
       Source_Set   : in     LR1_Items.Item_Set;
       Closure_Item : in     LR1_Items.Item_Ptr;
-      Accept_State : in     State_Index;
       Propagations : in out Item_Item_List_Mapping_Ptr;
       Used_Tokens  : in out Token.Token_Array_Boolean;
       Trace        : in     Boolean)
@@ -414,26 +411,6 @@ package body FastToken.Parser.LR.LALR_Generator is
          Ada.Text_IO.Put_Line ("  closure_item: ");
          LR1_Items.Put (Closure_Item, Show_Lookaheads => True);
          Ada.Text_IO.New_Line;
-      end if;
-
-      --  If this is the start symbol production, it gets a lookahead
-      --  for each terminal, so it will reduce on anything. FIXME: doesn't work, not needed?
-      if Source_Set.State = Accept_State then
-         for Token_ID in Token.Terminal_ID loop
-            --  These tokens are not actually used in the grammar, so
-            --  we don't set Used_Tokens here.
-            declare
-               Lookahead : constant Token_Pkg.Token_ID := Token_ID;
-            begin
-               if Trace then
-                  Ada.Text_IO.Put ("  default:");
-                  LR1_Items.Put (Source_Item, Show_Lookaheads => False);
-                  Ada.Text_IO.Put_Line ("; " & Token.Token_Image (Lookahead));
-               end if;
-
-               LR1_Items.Include (Source_Item, Lookahead);
-            end;
-         end loop;
       end if;
 
       if Dot (Closure_Item) = Token.List.Null_Iterator then
@@ -535,7 +512,6 @@ package body FastToken.Parser.LR.LALR_Generator is
       Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
       First                : in     LR1_Items.Derivation_Matrix;
       Kernels              : in out LR1_Items.Item_Set_List;
-      Accept_State         : in     State_Index;
       Used_Tokens          : in out Token.Token_Array_Boolean;
       Trace                : in     Boolean)
    is
@@ -580,7 +556,7 @@ package body FastToken.Parser.LR.LALR_Generator is
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel.all, Closure_Item, Accept_State, Propagation_List, Used_Tokens, Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item, Propagation_List, Used_Tokens, Trace);
 
                Closure_Item := Next (Closure_Item);
             end loop;
@@ -660,40 +636,16 @@ package body FastToken.Parser.LR.LALR_Generator is
       Kernels : LR1_Items.Item_Set_List := LALR_Kernels
         (Grammar, First, Trace, Unknown_State_Index (First_State_Index));
 
-      I             : LR1_Items.Item_Set_Ptr := Kernels.Head;
-      Accept_State  : Unknown_State_Index    := Unknown_State;
-      Unused_Tokens : Boolean                := False;
-
       First_Production : Production.Instance renames Production.List.Current (Grammar.First);
 
+      Unused_Tokens        : Boolean             := False;
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
-      --  Accept_State identifies the kernel that is the start symbol
-      --  production with dot before EOF. The start symbol production
-      --  must be the first production in Grammar, but that does not
-      --  guarrantee its position in Kernels, so we search for it.
-      loop
-         exit when I = null;
-         if Prod (I.Set) = First_Production then
-            Accept_State := I.State;
-            exit;
-         end if;
-         I := I.Next;
-      end loop;
-
-      if Accept_State = Unknown_State then
-         raise Programmer_Error with "Accept_State = 0; something wrong with Grammar?";
-      end if;
-
-      if Trace then
-         Ada.Text_IO.Put_Line ("Accept_State:" & State_Index'Image (Accept_State));
-      end if;
-
       Used_Tokens (Nonterminal.ID (First_Production.LHS)) := True;
 
-      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Accept_State, Used_Tokens, Trace);
+      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace);
 
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then

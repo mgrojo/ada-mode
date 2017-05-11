@@ -11,7 +11,7 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, IN_ID/IDENTIFIER_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_UNIT_ID WISI_EOI_ID, 
 
    IDENTIFIER_ID              => shift and goto state 2
    default                    => ERROR
@@ -29,7 +29,7 @@ State 2:
    MODE_ID                    goto state 7
 
 State 3:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, IN_ID/IDENTIFIER_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= COMPILATION_UNIT_ID ^ WISI_EOI_ID, 
 
    WISI_EOI_ID                => accept it
    default                    => ERROR

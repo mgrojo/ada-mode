@@ -12,7 +12,7 @@ Tokens:
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIONS_ID WISI_EOI_ID, BEGIN_ID/IS_ID/SEMICOLON_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIONS_ID WISI_EOI_ID, 
 
    IS_ID               => shift and goto state 2,
                           reduce 0 tokens to DECLARATION_ID
@@ -46,7 +46,7 @@ State 3:
 
 State 4:
   DECLARATIONS_ID <= DECLARATIONS_ID ^ DECLARATION_ID, IS_ID/WISI_EOI_ID
-  FASTTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ WISI_EOI_ID, BEGIN_ID/IS_ID/SEMICOLON_ID/WISI_EOI_ID
+  FASTTOKEN_ACCEPT_ID <= DECLARATIONS_ID ^ WISI_EOI_ID, 
 
    IS_ID               => shift and goto state 2,
                           reduce 0 tokens to DECLARATION_ID

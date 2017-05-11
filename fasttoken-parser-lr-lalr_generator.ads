@@ -83,13 +83,4 @@ package FastToken.Parser.LR.LALR_Generator is
       First_State_Index : in Unknown_State_Index)
      return LR1_Items.Item_Set_List;
 
-   procedure Fill_In_Lookaheads
-     (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
-      First                : in     LR1_Items.Derivation_Matrix;
-      Kernels              : in out LR1_Items.Item_Set_List;
-      Accept_State         : in     State_Index;
-      Used_Tokens          : in out Token.Token_Array_Boolean;
-      Trace                : in     Boolean);
-
 end FastToken.Parser.LR.LALR_Generator;

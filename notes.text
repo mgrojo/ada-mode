@@ -6,42 +6,61 @@ build/release_process.text
 
  current work
 
-rename to opentoken7
-    _not_ "fast" :(
+Do "panic mode"
+    skip to semicolon or paren - see dragon.
 
-add syntax error handling
-    see notes in google docs
-        lots of acm
-            membership $198/year, papers free
-            non-member per-paper $15
-            (/ 198.0 15) = 13.2 papers
-            do membership, so I feel compelled to read more papers :)
+    add to FastToken Ada parser
+        write tests using Ada-like grammar with example syntax errors
+            partial 'if' statement
+            missing ;
+            missing )
 
-        start with grune 321, 326
+    then to elisp parser?
 
-    grune 300    d:/Books/eBooks/Tomas J Pennello/A forward move algorithm for LR error recovery.pdf
+    or Emacs sub-process parser
+        that was too slow with ada-mode 5.2, should be better with 6.x
 
-    Grune biblio 88. Charles, Phillippe. A Practical Method for Constructing Efficient LALR(k) Parsers with Automatic Error Recovery. PhD thesis, NYU, Feb. 1991.
-        http://cs.nyu.edu/dynamic/reports/?type=PhD&year=1991 PDF not available
-        advisor Schonberg, Edmond
-        http://library.nyu.edu/
-        Tech report CIMS CS TR-552 apparently only available in paper
-        5 May: sent email via library website "ask a librarian"; question id 12486490.
-            electronic available to NYU network only (sigh)
+    or Emacs module
+            use elisp lexer
 
-    In closure, record derivation path - history of productions used?
+    Leaves some sections uncached - OK if not user line (not typical editing case).
+    If indent cache nil, use previous line.
 
-move output_ada_emacs, output_elisp to ada-mode source tree
+better syntax error handling
+    d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
 
-delete Accept_State in lalr_generator?
+    write tests using Ada-like grammar with example syntax errors
+        partial 'if' statement
+        missing ;
+        missing )
+
+    if needed, speed up
+
+move output_ada_emacs, output_elisp to ada-mode source tree?
+    extendable dispatch?
 
 wisi-generate lr1 way too slow for Ada
+    don't iterate on non-reporting
+
+    Store states in red/black tree sorted on concat LHS.
+        c:/org.stephe-leake.misc/source/rb_tree_V0_1
+        bounded, not generic, but proved by Spark
+        at least use key_trees-test.adb Tree_Invariant for test
+
+    Use array of list of states for "lhs or first"
+
     need more warm-fuzzy
     command line option
     dots for "adding state n", n every 100
     dots for "lookaheads state n", n every 100?
     dynamically monitor how long things take, keep dot time period constant
         everything slows down as more states added
+
+    rename to opentoken7
+        _not_ "fast" :(
+        or speed it up
+
+Test case gathering - wisi fallback email first use each day.
 
 lalr calls closure on each kernel more than once!
     save the closure the first time?
