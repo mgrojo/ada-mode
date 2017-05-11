@@ -221,6 +221,10 @@ package body Gen_FastToken_AUnit is
          Production.List.Next (Grammar_I);
       end loop;
 
+      if Production.List.Is_Done (Grammar_I) then
+         raise FastToken.Programmer_Error with Integer'Image (Prod) & " > length (grammar)";
+      end if;
+
       Dot_I := Production.First_Token (Production.List.Current (Grammar_I));
       for I in 2 .. Dot loop
          Token_Pkg.List.Next_Token (Dot_I);

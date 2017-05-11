@@ -147,7 +147,8 @@ package body FastToken.Parser.LR.LALR_Generator is
             --  If Symbol = EOF_Token, this is the start symbol accept
             --  production; don't need a kernel with dot after EOF.
             if Dot_ID = Symbol and
-              Symbol /= EOF_Token
+              Symbol /= EOF_Token and
+              null = Find (Prod (Item), Next_Token (Dot (Item)), Goto_Set, Match_Lookaheads => False)
             then
                Add
                  (Goto_Set.Set,
@@ -167,7 +168,9 @@ package body FastToken.Parser.LR.LALR_Generator is
                --  Find the production(s) that create Dot_ID
                --  with first token Symbol and put them in.
                --
-               --  FIXME: this is _not_ [dragon] fig 4.38 closure; where did it come from?
+               --  This is equivalent to Filter (LR1_Items.Closure,
+               --  In_Kernel), but more efficient, because it does not
+               --  generate non-kernel items. See Test/compare_goto_transitions.adb.
                declare
                   Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
                   Prod   : Production.Instance;

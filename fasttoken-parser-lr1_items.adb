@@ -790,7 +790,7 @@ package body FastToken.Parser.LR1_Items is
       end loop;
    end Free;
 
-   function In_Kernel (Item : in Item_Node) return Boolean
+   function In_Kernel (Item : in Item_Ptr) return Boolean
    is
       use Token.List;
       use all type Token.Token_ID;
@@ -806,7 +806,10 @@ package body FastToken.Parser.LR1_Items is
               Item.Dot /= First (Item.Prod.RHS.Tokens)));
    end In_Kernel;
 
-   function Kernel_Only (Set : in Item_Set) return Item_Set
+   function Filter
+     (Set : in Item_Set;
+     Include : access function (Item : in Item_Ptr) return Boolean)
+     return Item_Set
    is
       Result      : Item_Set;
       Result_Tail : Item_Ptr;
@@ -818,9 +821,9 @@ package body FastToken.Parser.LR1_Items is
          State     => Set.State,
          Next      => null);
 
-      --  Walk I thru Set.Set, copying Kernel items to Result_Tail.
+      --  Walk I thru Set.Set, copying Include items to Result_Tail.
       while I /= null and then
-        (not In_Kernel (I.all))
+        (not Include (I))
       loop
          I := I.Next;
       end loop;
@@ -831,7 +834,7 @@ package body FastToken.Parser.LR1_Items is
          Result_Tail.Next := null;
 
          while I.Next /= null loop
-            if In_Kernel (I.Next.all) then
+            if Include (I.Next) then
                Result_Tail.Next      := new Item_Node'(I.Next.all);
                Result_Tail.Next.Next := null;
             end if;
@@ -839,7 +842,7 @@ package body FastToken.Parser.LR1_Items is
          end loop;
       end if;
       return Result;
-   end Kernel_Only;
+   end Filter;
 
    function Token_Name (Item : in Token.Handle) return String is
    begin
@@ -946,7 +949,7 @@ package body FastToken.Parser.LR1_Items is
       end if;
       while Set /= null loop
          if not Kernel_Only or else
-           In_Kernel (Set.all)
+           In_Kernel (Set)
          then
             Put_Line ("  " & Image (Set.all, Show_State => False, Show_Lookaheads => Show_Lookaheads));
          end if;

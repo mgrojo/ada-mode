@@ -130,9 +130,14 @@ package FastToken.Parser.LR1_Items is
 
    Null_Item_Set : constant Item_Set := (null, null, Unknown_State, null);
 
-   function Kernel_Only (Set : in Item_Set) return Item_Set;
-   --  Return a copy of the head of Set, keeping only kernel items of
-   --  Set.Set. [dragon] sec 4.7 pg 240
+   function Filter
+     (Set     : in     Item_Set;
+      Include : access function (Item : in Item_Ptr) return Boolean)
+     return Item_Set;
+   --  Return a deep copy of Set, including only items for which Include returns True.
+
+   function In_Kernel (Item : in Item_Ptr) return Boolean;
+   --  For use with Filter; [dragon] sec 4.7 pg 240
 
    type Item_Set_List is record
       Head : Item_Set_Ptr;

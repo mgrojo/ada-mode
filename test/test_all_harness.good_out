@@ -11,6 +11,7 @@ OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/identifier_list_name_conflic
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/range_conflict : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/subprograms : Run_Test
 OK ../../Test/association_grammar_test.adb : Nominal
+OK ../../Test/compare_goto_transitions.adb : Subprograms
 OK ../../Test/counted_gnat_os_lib_test.adb : Discard
 OK ../../Test/dragon_4_43_lr1_test.adb : Test_First
 OK ../../Test/dragon_4_43_lr1_test.adb : Test_LR1_Items
@@ -35,7 +36,7 @@ OK ../../Test/test_statement_actions.adb : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   34
-Successful Tests:  34
+Total Tests Run:   35
+Successful Tests:  35
 Failed Assertions: 0
 Unexpected Errors: 0

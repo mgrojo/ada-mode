@@ -41,6 +41,10 @@ generic
    --  Accept_Token is the grammar start symbol; the LHS of the
    --  production whose action is accept - we assume there is only
    --  one.
+   --
+   --  FIXME: EOF_token used in parser-lr-generator_utils, parser-lr-lalr_generator, parser-lr-lr1_generator
+   --  Accept_Token used in parser-lr1_items
+   --  Move them down.
    pragma Unreferenced (EOF_Token, Accept_Token); -- used in children
 
    with function Token_Image (Item : in Token_ID) return String;
