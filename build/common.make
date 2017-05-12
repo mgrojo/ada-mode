@@ -28,6 +28,7 @@ else
 endif
 
 tests : wisi-generate.exe
+tests : ada_lite_process_yylex.adb
 tests : test_all_harness.diff
 
 # from ../wisi/test
@@ -166,18 +167,9 @@ DIFF_OPT := -u -w
 %-wy.el : %.wy wisi-generate.exe
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
-# wisi-generate LALR_LR1 runs lalr_generate and lr1_generate, and we
-# always want the parse_table for tests.
-# match historical first_state_index, first_parser_label
-%.ads : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
-%.ads : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< LALR_LR1 Ada_Emacs FastToken_Lexer > $*.parse_table
-	dos2unix $*.parse_table
-	dos2unix -q $*.el
-
-%_process.l : RUN_ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%_process.l : ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
 %_process.l : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< LALR_LR1 Ada_Emacs Aflex_Lexer process > $*.parse_table
+	./wisi-generate.exe $(ARGS) $< LALR_LR1 Ada_Emacs Aflex_Lexer process > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*-process.el
 

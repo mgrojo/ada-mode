@@ -238,6 +238,8 @@ package body FastToken.Parser.LR.LR1_Generator is
             Prod : constant Production.Instance := Current (I);
             J    : Token.List.List_Iterator     := First (Prod.RHS.Tokens);
          begin
+            --  FIXME: find productions that are not referenced; only
+            --  do this for the start symbol.
             Used_Tokens (Nonterminal.ID (Prod.LHS)) := True;
 
             loop

@@ -6,14 +6,57 @@ build/release_process.text
 
  current work
 
+limited text_feeder breaks stuff
+    committed anyway
+
+rebuilt aflex to try to fix comment, now it's broken
+    aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template  conflict_name_process.l
+aflex: fatal parse error at line  26
+
+    turn off crashplan, test compiling aflex with gnat 2016
+
+    restored ~/bin/aflex.exe from crashplan for now
+        didn't help!?
+        changed output_ada_emacs.adb (sigh)
+            need identifier regexp
+            no help
+            delete quotes around regexp
+                doesn't matter in some, does matter in others!?
+                need strip_quotes in output_ada_emacs?
+
+        empty_production_1 doesn't have identifier; it works
+        restore old identifier regexp in empty_production-3; works (sigh)
+        add leading [a-zA-Z]: works
+        ada_lite: works. phew!
+
+    try ../org.fasttoken-temp/build/debug/Makefile
+        empty_production_3 has identifier; works
+
+    Convert to lexer libadalang uses?
+
+aflex hangs on comment on last line of file
+    comment action can't just be null; must actively discard text! how??
+    find a real flex manual, and/or flex code
+
+    include \n in comment syntax?
+
 Do "panic mode"
-    skip to semicolon or paren - see dragon.
+    skip to semicolon or paren
+        dragon pg 255
+
+    write tests using Ada-like grammar with example syntax errors
+        t_one
+            FastToken.Text_Feeder.Text_IO
+
+
+        partial 'if' statement
+        missing ;
+        missing )
 
     add to FastToken Ada parser
-        write tests using Ada-like grammar with example syntax errors
-            partial 'if' statement
-            missing ;
-            missing )
+
+    test semantic actions
+        just confirm an action procedure is called
 
     then to elisp parser?
 
@@ -25,6 +68,10 @@ Do "panic mode"
 
     Leaves some sections uncached - OK if not user line (not typical editing case).
     If indent cache nil, use previous line.
+
+fix lr1 check_unused
+    see fixme
+    write tests
 
 better syntax error handling
     d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
@@ -40,14 +87,57 @@ move output_ada_emacs, output_elisp to ada-mode source tree?
     extendable dispatch?
 
 wisi-generate lr1 way too slow for Ada
+    time lalr generating Ada
+    time lr1 generating ada_lite (1634 states, tens of seconds)
+    time lr1 generating Ada to first 1000 states; increase as it gets better
+
+    implement profile, get data
+
     don't iterate on non-reporting
 
-    Store states in red/black tree sorted on concat LHS.
-        c:/org.stephe-leake.misc/source/rb_tree_V0_1
-        bounded, not generic, but proved by Spark
-        at least use key_trees-test.adb Tree_Invariant for test
+    closure needs:
+        fast access to all productions that have dot_id as the LHS
+            => array (nonterminal) of list of prod
 
-    Use array of list of states for "lhs or first"
+        fast access to First (beta) => array (nonterminal) of list of terminal
+
+    lr1_goto_transitions needs:
+        fast closure
+        cache?
+
+        use optimizations from lalr_goto_transitions?
+
+    LR1_Item_Sets needs:
+        fast goto_transitions (state, token)
+            => use cache; invalidate when ?
+
+        fast find (set, states)
+            => Store states in red/black tree sorted on concat LHS.
+                each node has a list of states that differ only in lookahead
+                => one for LALR
+
+            c:/org.stephe-leake.misc/source/rb_tree_V0_1
+                bounded, not generic, but proved by Spark
+                at least use key_trees-test.adb Tree_Invariant for test
+                use to generate test cases?
+
+            c:/org.stephe-leake.sal/source/sal-gen_red_black.ads
+                write tests
+
+        no 'free'; don't allocate item on heap until we know we need it
+
+    lalr_goto_transitions needs:
+        fast find prod, dot in goto_set
+            null result is common
+            small set; linear search of list sorted on lhs
+
+        fast access to all productions where:
+            (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
+                       (RHS.first /= Null_Iterator and then ID (RHS.first) = Symbol)
+            => array (nonterminal) of list of productions, sorted on rhs.first
+
+    lalr_kernels needs:
+        same as lr1_item_sets
 
     need more warm-fuzzy
     command line option

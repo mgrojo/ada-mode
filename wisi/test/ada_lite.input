@@ -1,0 +1,48 @@
+--  An example Ada-lite program, to verify that the parser works
+
+procedure Proc_1;
+
+procedure Proc_1 is
+   A : Integer := 42 / 2;
+begin
+   A := A * 2;
+end;
+
+function Func_1 (Left : integer; Right : integer) return Integer;
+function Func_1 (Left : integer; Right : integer) return Integer
+is begin
+   return Left + (Right - 3);
+end Func_1;
+
+procedure Proc_2
+is
+   A : integer;
+   B : integer;
+begin
+   loop
+   exit when A = 0;
+      if A > 2 then
+      elsif A < 4 then
+      else
+         B := 2;
+      end if;
+   end loop;
+end;
+
+procedure Proc_3
+is
+   A : integer;
+   B : integer;
+begin
+   case A is
+   when 1 => 
+      case B is
+      when 2 =>
+         do_1_2;
+      when 3 =>
+         do_1_3 (A, B);
+      end case;
+   when 2 =>
+      give_up;
+   end case;
+end;

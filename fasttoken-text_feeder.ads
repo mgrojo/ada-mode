@@ -2,7 +2,7 @@
 --
 --  An abstract text feeder interface.
 --
---  Copyright (C) 2012, 2015 Stephe Leake
+--  Copyright (C) 2012, 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 
 package FastToken.Text_Feeder is
 
-   type Instance is abstract tagged null record;
+   type Instance is abstract tagged limited null record;
    type Text_Feeder_Ptr is access all Instance'Class;
 
    procedure Get
@@ -45,8 +45,11 @@ package FastToken.Text_Feeder is
    --
    --  New_Text'length must be > 0, but may be as small as 1.
    --
-   --  If the end of the input is reached, a Token.EOF_Character
-   --  should be retured in New_Text.
+   --  If the end of a line is reached, a FastToken.EOL_Character
+   --  must be retured in New_Text.
+   --
+   --  If the end of the input is reached, a FastToken.EOF_Character
+   --  must be retured in New_Text.
 
    function End_Of_Text (Feeder : Instance) return Boolean is abstract;
 

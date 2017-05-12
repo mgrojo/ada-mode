@@ -9,7 +9,7 @@
 %keyword OTHER "other"
 %keyword PROCEDURE "procedure"
 
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
 %token <whitespace> WHITESPACE "[ \t\n]"
 

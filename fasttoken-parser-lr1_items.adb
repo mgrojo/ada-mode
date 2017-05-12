@@ -34,17 +34,6 @@ with Ada.Strings.Unbounded;
 package body FastToken.Parser.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
-   function Compute_Non_Terminals return Token_ID_Set
-   is
-      Result : Token_ID_Set;
-   begin
-      Result (Token.Token_ID'First .. Token.Terminal_ID'Last)                      := (others => False);
-      Result (Token.Token_ID'Succ (Token.Terminal_ID'Last) .. Token.Token_ID'Last) := (others => True);
-      return Result;
-   end Compute_Non_Terminals;
-
-   Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
-
    function Reverse_List (List : in Item_Ptr) return Item_Ptr
    is
       I      : Item_Ptr := List;
@@ -153,6 +142,18 @@ package body FastToken.Parser.LR1_Items is
       Derivations   : Token_ID_Set := (others => False);
       Added_Tokens  : Token_ID_Set;
       Search_Tokens : Token_ID_Set := (others => False);
+
+      function Compute_Non_Terminals return Token_ID_Set
+      is
+         Result : Token_ID_Set;
+      begin
+         --  Can't use a simple aggregate for this; bounds are non-static.
+         Result (Token_ID'First .. Token.Terminal_ID'Last)                := (others => False);
+         Result (Token_ID'Succ (Token.Terminal_ID'Last) .. Token_ID'Last) := (others => True);
+         return Result;
+      end Compute_Non_Terminals;
+
+      Non_Terminals : constant Token_ID_Set := Compute_Non_Terminals;
 
    begin
 

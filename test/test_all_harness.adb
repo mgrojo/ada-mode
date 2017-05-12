@@ -34,6 +34,7 @@ with Name_Grammar_Test;
 with Parser_Lists_Test;
 with Test_Accept_State;
 with Test_LR_Expecting;
+with Test_Panic_Mode;
 with Test_Statement_Actions;
 with Test_Wisi_Suite;
 with Trivial_Productions_Test;
@@ -56,6 +57,7 @@ begin
    Add_Test (Suite, new Parser_Lists_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => False));
    Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Panic_Mode.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
    Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));
 

@@ -1,0 +1,375 @@
+;;; Wisi grammar for Ada-Lite; a subset of Ada used for testing syntax
+;;; error recovery.
+;;
+;; This file was produced by copying the full Ada grammar from Emacs
+;; Ada mode (https://savannah.nongnu.org/projects/ada-mode/), and
+;; deleting stuff. That was the simplest way to get all the
+;; productions required.
+;;
+;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;;
+;; This file is part of FastToken.
+;;
+;; FastToken is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; FastToken is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with FastToken.  If not, see <http://www.gnu.org/licenses/>.
+;;
+%{
+%}
+
+%keyword AND "and"
+%keyword BEGIN "begin"
+%keyword CASE "case"
+%keyword DECLARE "declare"
+%keyword ELSE "else"
+%keyword ELSIF "elsif"
+%keyword END "end"
+%keyword EXIT "exit"
+%keyword FUNCTION "function"
+%keyword IF "if"
+%keyword IS "is"
+%keyword LEFT_PAREN "("
+%keyword LOOP "loop"
+%keyword NOT "not"
+%keyword OR "or"
+%keyword PROCEDURE "procedure"
+%keyword RETURN "return"
+%keyword RIGHT_PAREN ")"
+%keyword THEN "then"
+%keyword WHEN "when"
+%keyword XOR "xor"
+
+;; all tokens that consist of characters with punctuation syntax
+%token <punctuation> COLON ":"
+%token <punctuation> COLON_EQUAL ":="
+%token <punctuation> COMMA ","
+%token <punctuation> EQUAL "="
+%token <punctuation> EQUAL_GREATER "=>"
+%token <punctuation> GREATER ">"
+%token <punctuation> GREATER_EQUAL ">="
+%token <punctuation> LESS "<"
+%token <punctuation> LESS_EQUAL "<="
+%token <punctuation> MINUS "-"
+%token <punctuation> PLUS "+"
+%token <punctuation> SEMICOLON ";"
+%token <punctuation> SLASH "/"
+%token <punctuation> SLASH_EQUAL "/="
+%token <punctuation> STAR "*"
+
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "--"
+%token <number> NUMERIC_LITERAL [0-9]+
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+
+%start compilation_unit_list
+
+%conflict REDUCE/REDUCE in state association_opt, expression_opt ( 16) on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state association_opt, expression_opt ( 16) on token COMMA
+%conflict REDUCE/REDUCE in state association_opt, parameter_specification ( 16) on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state simple_return_statement, expression_opt ( 97) on token SEMICOLON
+
+%%
+;;;; grammar rules
+
+actual_parameter_part
+  : LEFT_PAREN association_list RIGHT_PAREN
+  ;
+
+assignment_statement
+  : name COLON_EQUAL expression_opt SEMICOLON
+  ;
+
+;; Allowing empty items makes many partially written programs legal;
+;; make sure they don't confuse the error recovery.
+association_opt
+  : ;; empty
+  | IDENTIFIER EQUAL_GREATER expression_opt
+  | expression_opt
+  ;
+
+association_list
+  : association_opt
+  | association_list COMMA association_opt
+  ;
+
+binary_adding_operator : PLUS | MINUS ; ;; + | -
+
+block_statement
+  : DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+  | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+  ;
+
+;; In the full grammar, there are more choices here. We keep this
+;; trivial production in case we want to add those choices back to
+;; test something.
+body : proper_body ;
+
+case_statement
+  : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
+  ;
+
+case_statement_alternative
+  : WHEN NUMERIC_LITERAL EQUAL_GREATER handled_sequence_of_statements
+  ;
+
+;; We don't allow an empty list here; that leads to parallel parser
+;; explosion in nested case statements.
+case_statement_alternative_list
+  : case_statement_alternative
+  | case_statement_alternative_list case_statement_alternative
+  ;
+
+compilation_unit
+  : library_item
+  ;
+
+compilation_unit_list
+  : compilation_unit
+  | compilation_unit_list compilation_unit
+  ;
+
+compound_statement
+  : if_statement
+  | case_statement
+  | loop_statement
+  | block_statement
+  ;
+
+declaration
+  : body
+  | object_declaration
+  | subprogram_declaration
+  ;
+
+declarations
+  : declaration
+  | declarations declaration
+  ;
+
+declarative_part_opt
+  : ;; empty
+  | declarations
+  ;
+
+elsif_statement_item
+  : ELSIF expression_opt THEN handled_sequence_of_statements
+  ;
+
+elsif_statement_list
+  : elsif_statement_item
+  | elsif_statement_list elsif_statement_item
+  ;
+
+exit_statement
+  : EXIT identifier_opt WHEN expression_opt SEMICOLON
+  | EXIT identifier_opt SEMICOLON
+  ;
+
+expression
+  : relation
+  | relation_and_list
+  | relation_or_list
+  | relation_xor_list
+  ;
+
+expression_opt
+  : ;; empty for user friendly
+  | expression
+  ;
+
+factor
+  : primary
+  | NOT primary
+  ;
+
+
+formal_part
+  : LEFT_PAREN parameter_specification_list RIGHT_PAREN
+  ;
+
+function_specification
+  : FUNCTION name parameter_and_result_profile
+  ;
+
+handled_sequence_of_statements
+  : sequence_of_statements_opt
+  ;
+
+identifier_opt
+  : ;; empty
+  | IDENTIFIER
+  ;
+
+if_statement
+  : IF expression_opt THEN sequence_of_statements_opt elsif_statement_list ELSE sequence_of_statements_opt END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt elsif_statement_list END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt ELSE sequence_of_statements_opt END IF SEMICOLON
+  | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
+  ;
+
+
+library_item
+  : subprogram_declaration
+  | subprogram_body
+  ;
+
+loop_statement
+  : LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
+  ;
+
+multiplying_operator : STAR | SLASH ;
+
+name
+  : IDENTIFIER
+  | name actual_parameter_part ;; function_call, procedure call.
+  ;
+
+name_opt
+  : ;; empty
+  | name
+  ;
+
+object_declaration
+  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt SEMICOLON
+  | IDENTIFIER COLON IDENTIFIER SEMICOLON
+  ;
+
+
+parameter_and_result_profile
+  : formal_part RETURN IDENTIFIER
+  | RETURN IDENTIFIER
+  ;
+
+parameter_profile_opt
+  : ;; empty
+  | formal_part
+  ;
+
+parameter_specification
+  : ;; empty
+  | IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt
+  | IDENTIFIER COLON IDENTIFIER
+  ;
+
+parameter_specification_list
+  : parameter_specification
+  | parameter_specification_list SEMICOLON parameter_specification
+  ;
+
+paren_expression
+  : LEFT_PAREN expression_opt RIGHT_PAREN
+  ;
+
+primary
+  : NUMERIC_LITERAL
+  | name
+  | paren_expression
+  ;
+
+procedure_call_statement
+  : name SEMICOLON
+  ;
+
+procedure_specification
+  : PROCEDURE name parameter_profile_opt
+  ;
+
+proper_body
+  : subprogram_body
+  ;
+
+relation_and_list
+  : relation AND relation
+  | relation_and_list AND relation
+  ;
+
+relation_or_list
+  : relation OR relation
+  | relation_or_list OR relation
+  ;
+
+relation_xor_list
+  : relation XOR relation
+  | relation_xor_list XOR relation
+  ;
+
+relation
+  : simple_expression
+  | simple_expression relational_operator simple_expression
+  ;
+
+relational_operator
+  : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
+  ;;  =   | /=          | <    |  <=        | >       | >=
+
+sequence_of_statements
+  : statement
+  | sequence_of_statements statement
+  ;
+
+sequence_of_statements_opt
+  : ;; empty
+  | sequence_of_statements
+  ;
+
+simple_expression
+  : unary_adding_operator term_list
+  | term_list
+  ;
+
+simple_return_statement
+  : RETURN SEMICOLON
+  | RETURN expression_opt SEMICOLON
+  ;
+
+simple_statement
+  : assignment_statement
+  | exit_statement
+  | procedure_call_statement
+  | simple_return_statement
+  ;
+
+statement
+  : simple_statement
+  | compound_statement
+  ;
+
+subprogram_body
+  : subprogram_specification IS declarative_part_opt BEGIN
+    handled_sequence_of_statements END name_opt SEMICOLON
+  ;
+
+subprogram_declaration
+  : subprogram_specification SEMICOLON
+  ;
+
+subprogram_specification
+  : procedure_specification
+  | function_specification
+  ;
+
+term
+  : factor
+  | term multiplying_operator factor
+  ;
+
+term_list
+  : term
+  | term_list binary_adding_operator term
+  ;
+
+unary_adding_operator : PLUS | MINUS ; ;; + | -
+
+%%
+;;; end of file

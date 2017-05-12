@@ -1191,8 +1191,16 @@ is
                declare
                   Value : constant String := -Item.Value;
                begin
-                  --  drop whitespace
-                  Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {         null;}");
+                  if Value'Length = 0 or else
+                    Value = (1 .. Value'Length => ' ') or else
+                    Value = """"""
+                  then
+                     --  Copied from elisp lexer
+                     raise Programmer_Error with "whitespace needs a regexp; try ""[ \t\n]""";
+                  else
+                     --  drop whitespace
+                     Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {         null;}");
+                  end if;
                end;
             end loop;
 
@@ -1206,7 +1214,7 @@ is
                   Put_Line
                     ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                else
-                  raise Programmer_Error;
+                  Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                end if;
             end loop;
 
@@ -1216,12 +1224,11 @@ is
             end loop;
 
          elsif -Kind.Kind = """symbol""" then
-            --  FIXME: need value to determine regexp; assuming Ada
             if Kind.Tokens.Length > 1 then
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line ("[0-9a-zA-Z_]+ {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-double""" then

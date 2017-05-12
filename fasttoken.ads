@@ -43,7 +43,7 @@ package FastToken is
 
    --  We use this regardless of OS, since we need a standard way of
    --  representing an end of line in a string buffer. We use
-   --  LF to match FastToken.Token.Aflex; Aflex hard-codes LF.
+   --  LF to match FastToken.Lexer.Aflex; Aflex hard-codes LF.
    EOL_Character : constant Character := Ada.Characters.Latin_1.LF;
 
    --  Similarly, this is independent of OS

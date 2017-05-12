@@ -30,7 +30,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 
 %token <string-double> STRING_LITERAL
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
 ;; need whitespace for Aflex lexer
 %token <whitespace> WHITESPACE "[ \t\n]"
