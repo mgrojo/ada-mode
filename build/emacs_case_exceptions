@@ -1,5 +1,4 @@
 GNAT
-IO
 YYLex
 *AUnit
 *CR
@@ -23,4 +22,5 @@ YYLex
 *LRk
 *OS
 *RHS
+*WY
 *YY

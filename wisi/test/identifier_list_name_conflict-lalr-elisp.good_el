@@ -37,10 +37,10 @@
       (EQUAL_GREATER . "=>")
      )
      ("string-double"
-      (STRING_LITERAL)
+      (STRING_LITERAL . "\"[^\"]*\"")
      )
      ("symbol"
-      (IDENTIFIER)
+      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
      )
     )
    nil)

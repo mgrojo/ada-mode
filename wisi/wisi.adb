@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -83,6 +83,17 @@ package body Wisi is
       end loop;
       return False;
    end Is_In;
+
+   function Strip_Quotes (Item : in String) return String
+   is begin
+      if Item'Length < 2 then
+         return Item;
+      else
+         return Item
+           ((if Item (Item'First) = '"' then Item'First + 1 else Item'First) ..
+              (if Item (Item'Last) = '"' then Item'Last - 1 else Item'Last));
+      end if;
+   end Strip_Quotes;
 
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is

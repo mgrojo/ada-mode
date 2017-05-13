@@ -1,7 +1,7 @@
 ;; Test regular expressions vs Ada tick and character literal
 
 %{
-;; Copyright (C) 2013, 2015 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -20,7 +20,7 @@
 ;; wisi-generate requires some keywords
 %keyword FOO "foo"
 
-%token <line_comment> COMMENT "--"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> TICK "'"
 %token <punctuation> LEFT_PAREN "("

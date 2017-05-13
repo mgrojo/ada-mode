@@ -80,7 +80,7 @@ package body Counted_GNAT_OS_Lib_Test is
 
       OS_Lib_File := Open_Read (File_Name, Binary);
 
-      Feeder := Instance (Create (OS_Lib_File).all);
+      Initialize (Feeder, OS_Lib_File);
 
       Feeder.Reset (File_Text'Length);
 

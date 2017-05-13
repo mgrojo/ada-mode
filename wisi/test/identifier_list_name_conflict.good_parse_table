@@ -1,664 +1,285 @@
 Tokens:
- 1 => WHITESPACE_ID
- 2 => COMMENT_ID
- 3 => LEFT_PAREN_ID
- 4 => RIGHT_PAREN_ID
- 5 => COMMA_ID
- 6 => EQUAL_GREATER_ID
- 7 => STRING_LITERAL_ID
- 8 => IDENTIFIER_ID
- 9 => WISI_EOI_ID
- 10 => ASSOCIATION_ID
- 11 => ASSOCIATION_LIST_ID
- 12 => COMPILATION_ID
- 13 => COMPILATION_UNIT_ID
- 14 => IDENTIFIER_LIST_ID
- 15 => NAME_ID
- 16 => NAME_LIST_ID
- 17 => SELECTOR_NAME_ID
- 18 => FASTTOKEN_ACCEPT_ID
+ 1 => WHITESPACE
+ 2 => COMMENT
+ 3 => LEFT_PAREN
+ 4 => RIGHT_PAREN
+ 5 => COMMA
+ 6 => EQUAL_GREATER
+ 7 => STRING_LITERAL
+ 8 => IDENTIFIER
+ 9 => WISI_EOI
+ 10 => association
+ 11 => association_list
+ 12 => compilation
+ 13 => compilation_unit
+ 14 => identifier_list
+ 15 => name
+ 16 => name_list
+ 17 => selector_name
+ 18 => FASTTOKEN_ACCEPT
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT <= ^ compilation WISI_EOI, 
 
-   LEFT_PAREN_ID       => shift and goto state 2
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 4
-   default             => ERROR
+   LEFT_PAREN       => shift and goto state 2
+   STRING_LITERAL   => shift and goto state 3
+   IDENTIFIER       => shift and goto state 4
+   default          => ERROR
 
-   COMPILATION_ID      goto state 5
-   COMPILATION_UNIT_ID goto state 6
-   IDENTIFIER_LIST_ID  goto state 7
-   NAME_ID             goto state 8
-   NAME_LIST_ID        goto state 9
+   compilation      goto state 5
+   compilation_unit goto state 6
+   identifier_list  goto state 7
+   name             goto state 8
+   name_list        goto state 9
 
 State 2:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ^ ASSOCIATION_LIST_ID RIGHT_PAREN_ID, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  compilation_unit <= LEFT_PAREN ^ association_list RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   STRING_LITERAL_ID   => shift and goto state 13
-   IDENTIFIER_ID       => shift and goto state 14
-   default             => ERROR
+   STRING_LITERAL   => shift and goto state 13
+   IDENTIFIER       => shift and goto state 14
+   default          => ERROR
 
-   ASSOCIATION_ID      goto state 15
-   ASSOCIATION_LIST_ID goto state 16
-   SELECTOR_NAME_ID    goto state 17
+   association      goto state 15
+   association_list goto state 16
+   selector_name    goto state 17
 
 State 3:
-  NAME_ID <= STRING_LITERAL_ID ^, LEFT_PAREN_ID/RIGHT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  name <= STRING_LITERAL ^, LEFT_PAREN/RIGHT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_ID
-   RIGHT_PAREN_ID      => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to name
+   RIGHT_PAREN      => reduce 1 tokens to name
+   COMMA            => reduce 1 tokens to name
+   STRING_LITERAL   => reduce 1 tokens to name
+   IDENTIFIER       => reduce 1 tokens to name
+   WISI_EOI         => reduce 1 tokens to name
+   default          => ERROR
 
 
 State 4:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
-  NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  identifier_list <= IDENTIFIER ^, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
+  name <= IDENTIFIER ^, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to identifier_list,
+                       reduce 1 tokens to name
+   COMMA            => reduce 1 tokens to identifier_list,
+                       reduce 1 tokens to name
+   STRING_LITERAL   => reduce 1 tokens to identifier_list,
+                       reduce 1 tokens to name
+   IDENTIFIER       => reduce 1 tokens to identifier_list,
+                       reduce 1 tokens to name
+   WISI_EOI         => reduce 1 tokens to identifier_list,
+                       reduce 1 tokens to name
+   default          => ERROR
 
 
 State 5:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_ID ^ WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT <= compilation ^ WISI_EOI, 
 
-   WISI_EOI_ID         => accept it
-   default             => ERROR
+   WISI_EOI         => accept it
+   default          => ERROR
 
 
 State 6:
-  COMPILATION_ID <= COMPILATION_UNIT_ID ^ COMPILATION_UNIT_ID COMPILATION_UNIT_ID, WISI_EOI_ID
+  compilation <= compilation_unit ^ compilation_unit compilation_unit, WISI_EOI
 
-   LEFT_PAREN_ID       => shift and goto state 2
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 4
-   default             => ERROR
+   LEFT_PAREN       => shift and goto state 2
+   STRING_LITERAL   => shift and goto state 3
+   IDENTIFIER       => shift and goto state 4
+   default          => ERROR
 
-   COMPILATION_UNIT_ID goto state 12
-   IDENTIFIER_LIST_ID  goto state 7
-   NAME_ID             goto state 8
-   NAME_LIST_ID        goto state 9
+   compilation_unit goto state 12
+   identifier_list  goto state 7
+   name             goto state 8
+   name_list        goto state 9
 
 State 7:
-  COMPILATION_UNIT_ID <= IDENTIFIER_LIST_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID ^ COMMA_ID IDENTIFIER_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  compilation_unit <= identifier_list ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/WISI_EOI
+  identifier_list <= identifier_list ^ COMMA IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   COMMA_ID            => shift and goto state 11
-   STRING_LITERAL_ID   => reduce 1 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to compilation_unit
+   COMMA            => shift and goto state 11
+   STRING_LITERAL   => reduce 1 tokens to compilation_unit
+   IDENTIFIER       => reduce 1 tokens to compilation_unit
+   WISI_EOI         => reduce 1 tokens to compilation_unit
+   default          => ERROR
 
 
 State 8:
-  NAME_LIST_ID <= NAME_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  name_list <= name ^, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_LIST_ID
-   COMMA_ID            => reduce 1 tokens to NAME_LIST_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_LIST_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_LIST_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_LIST_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to name_list
+   COMMA            => reduce 1 tokens to name_list
+   STRING_LITERAL   => reduce 1 tokens to name_list
+   IDENTIFIER       => reduce 1 tokens to name_list
+   WISI_EOI         => reduce 1 tokens to name_list
+   default          => ERROR
 
 
 State 9:
-  COMPILATION_UNIT_ID <= NAME_LIST_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
-  NAME_LIST_ID <= NAME_LIST_ID ^ COMMA_ID NAME_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  compilation_unit <= name_list ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/WISI_EOI
+  name_list <= name_list ^ COMMA name, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   COMMA_ID            => shift and goto state 10
-   STRING_LITERAL_ID   => reduce 1 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to compilation_unit
+   COMMA            => shift and goto state 10
+   STRING_LITERAL   => reduce 1 tokens to compilation_unit
+   IDENTIFIER       => reduce 1 tokens to compilation_unit
+   WISI_EOI         => reduce 1 tokens to compilation_unit
+   default          => ERROR
 
 
 State 10:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID ^ NAME_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  name_list <= name_list COMMA ^ name, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 23
-   default             => ERROR
+   STRING_LITERAL   => shift and goto state 3
+   IDENTIFIER       => shift and goto state 23
+   default          => ERROR
 
-   NAME_ID             goto state 24
+   name             goto state 24
 
 State 11:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID ^ IDENTIFIER_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  identifier_list <= identifier_list COMMA ^ IDENTIFIER, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   IDENTIFIER_ID       => shift and goto state 22
-   default             => ERROR
+   IDENTIFIER       => shift and goto state 22
+   default          => ERROR
 
 
 State 12:
-  COMPILATION_ID <= COMPILATION_UNIT_ID COMPILATION_UNIT_ID ^ COMPILATION_UNIT_ID, WISI_EOI_ID
+  compilation <= compilation_unit compilation_unit ^ compilation_unit, WISI_EOI
 
-   LEFT_PAREN_ID       => shift and goto state 2
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 4
-   default             => ERROR
+   LEFT_PAREN       => shift and goto state 2
+   STRING_LITERAL   => shift and goto state 3
+   IDENTIFIER       => shift and goto state 4
+   default          => ERROR
 
-   COMPILATION_UNIT_ID goto state 21
-   IDENTIFIER_LIST_ID  goto state 7
-   NAME_ID             goto state 8
-   NAME_LIST_ID        goto state 9
+   compilation_unit goto state 21
+   identifier_list  goto state 7
+   name             goto state 8
+   name_list        goto state 9
 
 State 13:
-  SELECTOR_NAME_ID <= STRING_LITERAL_ID ^, EQUAL_GREATER_ID
+  selector_name <= STRING_LITERAL ^, EQUAL_GREATER
 
-   EQUAL_GREATER_ID    => reduce 1 tokens to SELECTOR_NAME_ID
-   default             => ERROR
+   EQUAL_GREATER    => reduce 1 tokens to selector_name
+   default          => ERROR
 
 
 State 14:
-  SELECTOR_NAME_ID <= IDENTIFIER_ID ^, EQUAL_GREATER_ID
+  selector_name <= IDENTIFIER ^, EQUAL_GREATER
 
-   EQUAL_GREATER_ID    => reduce 1 tokens to SELECTOR_NAME_ID
-   default             => ERROR
+   EQUAL_GREATER    => reduce 1 tokens to selector_name
+   default          => ERROR
 
 
 State 15:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_ID ^, RIGHT_PAREN_ID/COMMA_ID
+  association_list <= association ^, RIGHT_PAREN/COMMA
 
-   RIGHT_PAREN_ID      => reduce 1 tokens to ASSOCIATION_LIST_ID
-   COMMA_ID            => reduce 1 tokens to ASSOCIATION_LIST_ID
-   default             => ERROR
+   RIGHT_PAREN      => reduce 1 tokens to association_list
+   COMMA            => reduce 1 tokens to association_list
+   default          => ERROR
 
 
 State 16:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID ^ COMMA_ID ASSOCIATION_ID, RIGHT_PAREN_ID/COMMA_ID
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID ^ RIGHT_PAREN_ID, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  association_list <= association_list ^ COMMA association, RIGHT_PAREN/COMMA
+  compilation_unit <= LEFT_PAREN association_list ^ RIGHT_PAREN, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   RIGHT_PAREN_ID      => shift and goto state 19
-   COMMA_ID            => shift and goto state 20
-   default             => ERROR
+   RIGHT_PAREN      => shift and goto state 19
+   COMMA            => shift and goto state 20
+   default          => ERROR
 
 
 State 17:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID ^ EQUAL_GREATER_ID NAME_ID, RIGHT_PAREN_ID/COMMA_ID
+  association <= selector_name ^ EQUAL_GREATER name, RIGHT_PAREN/COMMA
 
-   EQUAL_GREATER_ID    => shift and goto state 18
-   default             => ERROR
+   EQUAL_GREATER    => shift and goto state 18
+   default          => ERROR
 
 
 State 18:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID EQUAL_GREATER_ID ^ NAME_ID, RIGHT_PAREN_ID/COMMA_ID
+  association <= selector_name EQUAL_GREATER ^ name, RIGHT_PAREN/COMMA
 
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 23
-   default             => ERROR
+   STRING_LITERAL   => shift and goto state 3
+   IDENTIFIER       => shift and goto state 23
+   default          => ERROR
 
-   NAME_ID             goto state 26
+   name             goto state 26
 
 State 19:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID RIGHT_PAREN_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  compilation_unit <= LEFT_PAREN association_list RIGHT_PAREN ^, LEFT_PAREN/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 3 tokens to COMPILATION_UNIT_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 3 tokens to COMPILATION_UNIT_ID
-   WISI_EOI_ID         => reduce 3 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 3 tokens to compilation_unit
+   STRING_LITERAL   => reduce 3 tokens to compilation_unit
+   IDENTIFIER       => reduce 3 tokens to compilation_unit
+   WISI_EOI         => reduce 3 tokens to compilation_unit
+   default          => ERROR
 
 
 State 20:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID COMMA_ID ^ ASSOCIATION_ID, RIGHT_PAREN_ID/COMMA_ID
+  association_list <= association_list COMMA ^ association, RIGHT_PAREN/COMMA
 
-   STRING_LITERAL_ID   => shift and goto state 13
-   IDENTIFIER_ID       => shift and goto state 14
-   default             => ERROR
+   STRING_LITERAL   => shift and goto state 13
+   IDENTIFIER       => shift and goto state 14
+   default          => ERROR
 
-   ASSOCIATION_ID      goto state 25
-   SELECTOR_NAME_ID    goto state 17
+   association      goto state 25
+   selector_name    goto state 17
 
 State 21:
-  COMPILATION_ID <= COMPILATION_UNIT_ID COMPILATION_UNIT_ID COMPILATION_UNIT_ID ^, WISI_EOI_ID
+  compilation <= compilation_unit compilation_unit compilation_unit ^, WISI_EOI
 
-   WISI_EOI_ID         => reduce 3 tokens to COMPILATION_ID
-   default             => ERROR
+   WISI_EOI         => reduce 3 tokens to compilation
+   default          => ERROR
 
 
 State 22:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  identifier_list <= identifier_list COMMA IDENTIFIER ^, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 3 tokens to IDENTIFIER_LIST_ID
-   COMMA_ID            => reduce 3 tokens to IDENTIFIER_LIST_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to IDENTIFIER_LIST_ID
-   IDENTIFIER_ID       => reduce 3 tokens to IDENTIFIER_LIST_ID
-   WISI_EOI_ID         => reduce 3 tokens to IDENTIFIER_LIST_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 3 tokens to identifier_list
+   COMMA            => reduce 3 tokens to identifier_list
+   STRING_LITERAL   => reduce 3 tokens to identifier_list
+   IDENTIFIER       => reduce 3 tokens to identifier_list
+   WISI_EOI         => reduce 3 tokens to identifier_list
+   default          => ERROR
 
 
 State 23:
-  NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/RIGHT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  name <= IDENTIFIER ^, LEFT_PAREN/RIGHT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_ID
-   RIGHT_PAREN_ID      => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 1 tokens to name
+   RIGHT_PAREN      => reduce 1 tokens to name
+   COMMA            => reduce 1 tokens to name
+   STRING_LITERAL   => reduce 1 tokens to name
+   IDENTIFIER       => reduce 1 tokens to name
+   WISI_EOI         => reduce 1 tokens to name
+   default          => ERROR
 
 
 State 24:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID NAME_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID/WISI_EOI_ID
+  name_list <= name_list COMMA name ^, LEFT_PAREN/COMMA/STRING_LITERAL/IDENTIFIER/WISI_EOI
 
-   LEFT_PAREN_ID       => reduce 3 tokens to NAME_LIST_ID
-   COMMA_ID            => reduce 3 tokens to NAME_LIST_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to NAME_LIST_ID
-   IDENTIFIER_ID       => reduce 3 tokens to NAME_LIST_ID
-   WISI_EOI_ID         => reduce 3 tokens to NAME_LIST_ID
-   default             => ERROR
+   LEFT_PAREN       => reduce 3 tokens to name_list
+   COMMA            => reduce 3 tokens to name_list
+   STRING_LITERAL   => reduce 3 tokens to name_list
+   IDENTIFIER       => reduce 3 tokens to name_list
+   WISI_EOI         => reduce 3 tokens to name_list
+   default          => ERROR
 
 
 State 25:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID COMMA_ID ASSOCIATION_ID ^, RIGHT_PAREN_ID/COMMA_ID
+  association_list <= association_list COMMA association ^, RIGHT_PAREN/COMMA
 
-   RIGHT_PAREN_ID      => reduce 3 tokens to ASSOCIATION_LIST_ID
-   COMMA_ID            => reduce 3 tokens to ASSOCIATION_LIST_ID
-   default             => ERROR
+   RIGHT_PAREN      => reduce 3 tokens to association_list
+   COMMA            => reduce 3 tokens to association_list
+   default          => ERROR
 
 
 State 26:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID EQUAL_GREATER_ID NAME_ID ^, RIGHT_PAREN_ID/COMMA_ID
+  association <= selector_name EQUAL_GREATER name ^, RIGHT_PAREN/COMMA
 
-   RIGHT_PAREN_ID      => reduce 3 tokens to ASSOCIATION_ID
-   COMMA_ID            => reduce 3 tokens to ASSOCIATION_ID
-   default             => ERROR
+   RIGHT_PAREN      => reduce 3 tokens to association
+   COMMA            => reduce 3 tokens to association
+   default          => ERROR
 
 
-LR1 Parse Table:
-State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ COMPILATION_ID WISI_EOI_ID, WISI_EOI_ID
-
-   LEFT_PAREN_ID       => shift and goto state 2
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 4
-   default             => ERROR
-
-   COMPILATION_ID      goto state 5
-   COMPILATION_UNIT_ID goto state 6
-   IDENTIFIER_LIST_ID  goto state 7
-   NAME_ID             goto state 8
-   NAME_LIST_ID        goto state 9
-
-State 2:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ^ ASSOCIATION_LIST_ID RIGHT_PAREN_ID, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   STRING_LITERAL_ID   => shift and goto state 13
-   IDENTIFIER_ID       => shift and goto state 14
-   default             => ERROR
-
-   ASSOCIATION_ID      goto state 15
-   ASSOCIATION_LIST_ID goto state 16
-   SELECTOR_NAME_ID    goto state 17
-
-State 3:
-  NAME_ID <= STRING_LITERAL_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 4:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-  NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 5:
-  FASTTOKEN_ACCEPT_ID <= COMPILATION_ID ^ WISI_EOI_ID, WISI_EOI_ID
-
-   WISI_EOI_ID         => accept it
-   default             => ERROR
-
-
-State 6:
-  COMPILATION_ID <= COMPILATION_UNIT_ID ^ COMPILATION_UNIT_ID COMPILATION_UNIT_ID, WISI_EOI_ID
-
-   LEFT_PAREN_ID       => shift and goto state 2
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 4
-   default             => ERROR
-
-   COMPILATION_UNIT_ID goto state 12
-   IDENTIFIER_LIST_ID  goto state 7
-   NAME_ID             goto state 8
-   NAME_LIST_ID        goto state 9
-
-State 7:
-  COMPILATION_UNIT_ID <= IDENTIFIER_LIST_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID ^ COMMA_ID IDENTIFIER_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   COMMA_ID            => shift and goto state 11
-   STRING_LITERAL_ID   => reduce 1 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 8:
-  NAME_LIST_ID <= NAME_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_LIST_ID
-   COMMA_ID            => reduce 1 tokens to NAME_LIST_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_LIST_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_LIST_ID
-   default             => ERROR
-
-
-State 9:
-  COMPILATION_UNIT_ID <= NAME_LIST_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-  NAME_LIST_ID <= NAME_LIST_ID ^ COMMA_ID NAME_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   COMMA_ID            => shift and goto state 10
-   STRING_LITERAL_ID   => reduce 1 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 10:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID ^ NAME_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   STRING_LITERAL_ID   => shift and goto state 3
-   IDENTIFIER_ID       => shift and goto state 29
-   default             => ERROR
-
-   NAME_ID             goto state 30
-
-State 11:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID ^ IDENTIFIER_ID, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   IDENTIFIER_ID       => shift and goto state 28
-   default             => ERROR
-
-
-State 12:
-  COMPILATION_ID <= COMPILATION_UNIT_ID COMPILATION_UNIT_ID ^ COMPILATION_UNIT_ID, WISI_EOI_ID
-
-   LEFT_PAREN_ID       => shift and goto state 21
-   STRING_LITERAL_ID   => shift and goto state 22
-   IDENTIFIER_ID       => shift and goto state 23
-   default             => ERROR
-
-   COMPILATION_UNIT_ID goto state 24
-   IDENTIFIER_LIST_ID  goto state 25
-   NAME_ID             goto state 26
-   NAME_LIST_ID        goto state 27
-
-State 13:
-  SELECTOR_NAME_ID <= STRING_LITERAL_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID    => reduce 1 tokens to SELECTOR_NAME_ID
-   default             => ERROR
-
-
-State 14:
-  SELECTOR_NAME_ID <= IDENTIFIER_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID    => reduce 1 tokens to SELECTOR_NAME_ID
-   default             => ERROR
-
-
-State 15:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_ID ^, RIGHT_PAREN_ID/COMMA_ID
-
-   RIGHT_PAREN_ID      => reduce 1 tokens to ASSOCIATION_LIST_ID
-   COMMA_ID            => reduce 1 tokens to ASSOCIATION_LIST_ID
-   default             => ERROR
-
-
-State 16:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID ^ COMMA_ID ASSOCIATION_ID, RIGHT_PAREN_ID/COMMA_ID
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID ^ RIGHT_PAREN_ID, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   RIGHT_PAREN_ID      => shift and goto state 19
-   COMMA_ID            => shift and goto state 20
-   default             => ERROR
-
-
-State 17:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID ^ EQUAL_GREATER_ID NAME_ID, RIGHT_PAREN_ID/COMMA_ID
-
-   EQUAL_GREATER_ID    => shift and goto state 18
-   default             => ERROR
-
-
-State 18:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID EQUAL_GREATER_ID ^ NAME_ID, RIGHT_PAREN_ID/COMMA_ID
-
-   STRING_LITERAL_ID   => shift and goto state 35
-   IDENTIFIER_ID       => shift and goto state 36
-   default             => ERROR
-
-   NAME_ID             goto state 37
-
-State 19:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID RIGHT_PAREN_ID ^, LEFT_PAREN_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 3 tokens to COMPILATION_UNIT_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to COMPILATION_UNIT_ID
-   IDENTIFIER_ID       => reduce 3 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 20:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID COMMA_ID ^ ASSOCIATION_ID, RIGHT_PAREN_ID/COMMA_ID
-
-   STRING_LITERAL_ID   => shift and goto state 13
-   IDENTIFIER_ID       => shift and goto state 14
-   default             => ERROR
-
-   ASSOCIATION_ID      goto state 34
-   SELECTOR_NAME_ID    goto state 17
-
-State 21:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ^ ASSOCIATION_LIST_ID RIGHT_PAREN_ID, WISI_EOI_ID
-
-   STRING_LITERAL_ID   => shift and goto state 13
-   IDENTIFIER_ID       => shift and goto state 14
-   default             => ERROR
-
-   ASSOCIATION_ID      goto state 15
-   ASSOCIATION_LIST_ID goto state 33
-   SELECTOR_NAME_ID    goto state 17
-
-State 22:
-  NAME_ID <= STRING_LITERAL_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 23:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_ID ^, COMMA_ID/WISI_EOI_ID
-  NAME_ID <= IDENTIFIER_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to IDENTIFIER_LIST_ID,
-                          reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 24:
-  COMPILATION_ID <= COMPILATION_UNIT_ID COMPILATION_UNIT_ID COMPILATION_UNIT_ID ^, WISI_EOI_ID
-
-   WISI_EOI_ID         => reduce 3 tokens to COMPILATION_ID
-   default             => ERROR
-
-
-State 25:
-  COMPILATION_UNIT_ID <= IDENTIFIER_LIST_ID ^, WISI_EOI_ID
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID ^ COMMA_ID IDENTIFIER_ID, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => shift and goto state 32
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 26:
-  NAME_LIST_ID <= NAME_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 1 tokens to NAME_LIST_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_LIST_ID
-   default             => ERROR
-
-
-State 27:
-  COMPILATION_UNIT_ID <= NAME_LIST_ID ^, WISI_EOI_ID
-  NAME_LIST_ID <= NAME_LIST_ID ^ COMMA_ID NAME_ID, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => shift and goto state 31
-   WISI_EOI_ID         => reduce 1 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 28:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 3 tokens to IDENTIFIER_LIST_ID
-   COMMA_ID            => reduce 3 tokens to IDENTIFIER_LIST_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to IDENTIFIER_LIST_ID
-   IDENTIFIER_ID       => reduce 3 tokens to IDENTIFIER_LIST_ID
-   default             => ERROR
-
-
-State 29:
-  NAME_ID <= IDENTIFIER_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   STRING_LITERAL_ID   => reduce 1 tokens to NAME_ID
-   IDENTIFIER_ID       => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 30:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID NAME_ID ^, LEFT_PAREN_ID/COMMA_ID/STRING_LITERAL_ID/IDENTIFIER_ID
-
-   LEFT_PAREN_ID       => reduce 3 tokens to NAME_LIST_ID
-   COMMA_ID            => reduce 3 tokens to NAME_LIST_ID
-   STRING_LITERAL_ID   => reduce 3 tokens to NAME_LIST_ID
-   IDENTIFIER_ID       => reduce 3 tokens to NAME_LIST_ID
-   default             => ERROR
-
-
-State 31:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID ^ NAME_ID, COMMA_ID/WISI_EOI_ID
-
-   STRING_LITERAL_ID   => shift and goto state 22
-   IDENTIFIER_ID       => shift and goto state 40
-   default             => ERROR
-
-   NAME_ID             goto state 41
-
-State 32:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID ^ IDENTIFIER_ID, COMMA_ID/WISI_EOI_ID
-
-   IDENTIFIER_ID       => shift and goto state 39
-   default             => ERROR
-
-
-State 33:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID ^ COMMA_ID ASSOCIATION_ID, RIGHT_PAREN_ID/COMMA_ID
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID ^ RIGHT_PAREN_ID, WISI_EOI_ID
-
-   RIGHT_PAREN_ID      => shift and goto state 38
-   COMMA_ID            => shift and goto state 20
-   default             => ERROR
-
-
-State 34:
-  ASSOCIATION_LIST_ID <= ASSOCIATION_LIST_ID COMMA_ID ASSOCIATION_ID ^, RIGHT_PAREN_ID/COMMA_ID
-
-   RIGHT_PAREN_ID      => reduce 3 tokens to ASSOCIATION_LIST_ID
-   COMMA_ID            => reduce 3 tokens to ASSOCIATION_LIST_ID
-   default             => ERROR
-
-
-State 35:
-  NAME_ID <= STRING_LITERAL_ID ^, RIGHT_PAREN_ID/COMMA_ID
-
-   RIGHT_PAREN_ID      => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 36:
-  NAME_ID <= IDENTIFIER_ID ^, RIGHT_PAREN_ID/COMMA_ID
-
-   RIGHT_PAREN_ID      => reduce 1 tokens to NAME_ID
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 37:
-  ASSOCIATION_ID <= SELECTOR_NAME_ID EQUAL_GREATER_ID NAME_ID ^, RIGHT_PAREN_ID/COMMA_ID
-
-   RIGHT_PAREN_ID      => reduce 3 tokens to ASSOCIATION_ID
-   COMMA_ID            => reduce 3 tokens to ASSOCIATION_ID
-   default             => ERROR
-
-
-State 38:
-  COMPILATION_UNIT_ID <= LEFT_PAREN_ID ASSOCIATION_LIST_ID RIGHT_PAREN_ID ^, WISI_EOI_ID
-
-   WISI_EOI_ID         => reduce 3 tokens to COMPILATION_UNIT_ID
-   default             => ERROR
-
-
-State 39:
-  IDENTIFIER_LIST_ID <= IDENTIFIER_LIST_ID COMMA_ID IDENTIFIER_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 3 tokens to IDENTIFIER_LIST_ID
-   WISI_EOI_ID         => reduce 3 tokens to IDENTIFIER_LIST_ID
-   default             => ERROR
-
-
-State 40:
-  NAME_ID <= IDENTIFIER_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID         => reduce 1 tokens to NAME_ID
-   default             => ERROR
-
-
-State 41:
-  NAME_LIST_ID <= NAME_LIST_ID COMMA_ID NAME_ID ^, COMMA_ID/WISI_EOI_ID
-
-   COMMA_ID            => reduce 3 tokens to NAME_LIST_ID
-   WISI_EOI_ID         => reduce 3 tokens to NAME_LIST_ID
-   default             => ERROR
-
-
- 8 rules, 1 actions, 41 states, 238 table entries
+ 8 rules, 1 actions, 26 states, 103 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 5 reduce/reduce conflicts

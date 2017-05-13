@@ -22,9 +22,12 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite_Process;
-with ada_lite_process_dfa;
+with FastToken.Text_Feeder.String;
 with FastToken.Text_Feeder.Text_IO;
+with ada_lite_process_dfa;
 package body Test_Panic_Mode is
+
+   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    ----------
    --  Test procedures
@@ -41,7 +44,9 @@ package body Test_Panic_Mode is
          Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
       --  The test is that there is no exception.
-      ada_lite_process_dfa.aflex_debug := Test.Debug;
+
+      ada_lite_process_dfa.aflex_debug := False; -- keep for future debugging
+      FastToken.Trace_Parse := Test.Debug;
 
       Parser.Parse;
    exception
@@ -52,6 +57,44 @@ package body Test_Panic_Mode is
    when E : others =>
       AUnit.Assertions.Assert (False, "parser raised exception: " & Exception_Name (E) & ": " & Exception_Message (E));
    end No_Error;
+
+   procedure Errors (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada.Exceptions;
+      use Ada_Lite_Process;
+
+      Parser : LR_Parser.Instance := Create_Parser
+        (FastToken.LALR,
+         Text_Feeder => String_Feeder'Access);
+
+      procedure Parse_Text (Label : in String; Text : in String)
+      is begin
+         String_Feeder.Set (Text);
+
+         Parser.Reset (Buffer_Size => Text'Length + 1); -- +1 for EOF
+
+         Parser.Parse;
+      exception
+      when E : FastToken.Syntax_Error =>
+         Ada.Text_IO.Put_Line (Label & ":" & Exception_Message (E));
+         AUnit.Assertions.Assert (False, "syntax error");
+      when E : others =>
+         AUnit.Assertions.Assert (False, Label & ": " & Exception_Message (E));
+      end Parse_Text;
+   begin
+      ada_lite_process_dfa.aflex_debug := False; -- keep this here for future debugging
+      FastToken.Trace_Parse := Test.Debug;
+
+      Parse_Text
+        ("1", "procedure Proc_1 is begin if A = 2 then end;");
+      --  Enters recovery at final semicolon, expecting "if; end;". It
+      --  pops the parse stack to "begin", where a "statement" can
+      --  follow, and "end" can follow that.
+
+      --   FIXME: check that subprogram_body:0, if_statement:* got
+      --  executed for Proc_1, nothing else; => array of list of regions?
+   end Errors;
 
    ----------
    --  Public subprograms
@@ -67,10 +110,11 @@ package body Test_Panic_Mode is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug then
-         Register_Routine (T, No_Error'Access, "debug");
+      if T.Debug > 0 then
+         Register_Routine (T, Errors'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
+         Register_Routine (T, Errors'Access, "Errors");
       end if;
    end Register_Tests;
 

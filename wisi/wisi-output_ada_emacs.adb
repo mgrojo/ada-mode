@@ -488,7 +488,7 @@ is
          Wisi.Utils.Put_Error
            (Input_File_Name,
             1,
-            "Name for '" & Generate_Utils.Token_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
+            "Name for '" & Generate_Utils.Token_WY_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
          raise Programmer_Error;
       end Action_Name;
 
@@ -528,18 +528,18 @@ is
                begin
                   case Action_Node.Item.Verb is
                   when Shift =>
-                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
+                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Out_Image (Node.Symbol);
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
-                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol);
+                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Out_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
                      else
                         Append (", Accept_It");
                      end if;
                      Append (", ");
-                     Append (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
                      Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
                      Append
                        (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
@@ -556,7 +556,7 @@ is
                      when Reduce | Accept_It =>
                         Append (", ");
                         Append
-                          (Token_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                          (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
                              Integer'Image (Action_Node.Item.Token_Count) & ", " &
                              Action_Name
                                (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
@@ -581,7 +581,7 @@ is
                exit when Node = null;
                Set_Col (Indent);
                Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
-               Put_Line (Token_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
+               Put_Line (Token_Out_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;
          end Gotos;
@@ -618,14 +618,16 @@ is
 
       case Parser_Algorithm is
       when LALR =>
-         Indent_Line (LR.State_Image (LALR_Parser'Last));
+         Indent_Line ("   " & LR.State_Image (LALR_Parser'Last) & ");");
+         Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
          Create_Parser_Core (LALR_Parser);
 
       when LR1 =>
-         Indent_Line (LR.State_Image (LR1_Parser'Last));
+         Indent_Line ("   " & LR.State_Image (LR1_Parser'Last) & ");");
+         Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
@@ -1172,18 +1174,7 @@ is
       for Kind of Tokens loop
          if -Kind.Kind = """line_comment""" then
             for Item of Kind.Tokens loop
-               declare
-                  Value : constant String := -Item.Value;
-               begin
-                  --  drop comment
-                  if Value = """--""" then
-                     --  matches Aflex comment; need escape
-                     Put_Line ("\-\-[^\n]*$ {         null;}");
-                  else
-                     --  FIXME: strip quotes
-                     Put_Line (Value (1 .. Value'Last - 1) & ".*$"" {         null;}");
-                  end if;
-               end;
+               Put_Line (Strip_Quotes (-Item.Value) & " {         null;}");
             end loop;
 
          elsif -Kind.Kind = """whitespace""" then
@@ -1214,7 +1205,7 @@ is
                   Put_Line
                     ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                else
-                  Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                  Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                end if;
             end loop;
 
@@ -1228,26 +1219,23 @@ is
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-double""" then
-            --  FIXME: need value to determine regexp; assuming Ada
             if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
+               raise Programmer_Error with "only one string-double value supported";
             end if;
             for Item of Kind.Tokens loop
-               --  FIXME: this doesn't recognize "" in string
-               Put_Line ("\""[^\""]*\"" {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-single""" then
-            --  FIXME: need value to determine regexp; assuming Ada
             if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
+               raise Programmer_Error with "only one string-single value supported";
             end if;
             for Item of Kind.Tokens loop
-               Put_Line ("'[^']'|'''' {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
             end loop;
 
          else
@@ -1534,3 +1522,6 @@ when others =>
    Set_Output (Standard_Output);
    raise;
 end Wisi.Output_Ada_Emacs;
+--  Local Variables:
+--  jit-lock-defer-time: 0.25
+--  End:

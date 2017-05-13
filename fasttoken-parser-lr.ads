@@ -72,7 +72,7 @@ package FastToken.Parser.LR is
       when Reduce | Accept_It =>
          LHS         : Nonterminal.Handle;
          Action      : Nonterminal.Synthesize;
-         Index       : Integer; -- into rule, for generating action names, debugging.
+         Index       : Integer; -- of production in state, for generating action names, debugging.
          Token_Count : Natural;
       when Error =>
          null;

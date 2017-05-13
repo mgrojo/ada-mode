@@ -123,6 +123,9 @@ package Wisi is
    function To_Upper (Item : in Character) return Character
      renames Ada.Characters.Handling.To_Upper;
 
+   function Strip_Quotes (Item : in String) return String;
+   --  Remove leading and trailing '"', if any.
+
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List;
 
    function String_To_String_List (Item : in String) return String_Lists.List;

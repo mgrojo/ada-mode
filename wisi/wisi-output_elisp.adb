@@ -49,9 +49,9 @@ is
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name,
       First_State_Index,
-      To_Token_Image => To_Token_Image);
+      To_Token_Out_Image => To_Token_Image);
 
-   package Parser_Elisp is new Generate_Utils.LR.Elisp (Generate_Utils.Token_Image);
+   package Parser_Elisp is new Generate_Utils.LR.Elisp;
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;

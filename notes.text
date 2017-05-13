@@ -6,48 +6,55 @@ build/release_process.text
 
  current work
 
-limited text_feeder breaks stuff
-    committed anyway
+finish commit
 
-rebuilt aflex to try to fix comment, now it's broken
-    aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template  conflict_name_process.l
-aflex: fatal parse error at line  26
+wisi--lexer etc gets clobbered
+    if loaded by ediff, both buffers have major-mode = ada-mode, but wisi--lexer nil
+        fails somewhere in ada-mode-hook:
+            (sal-ada-mode-setup xref-ada-mode ada-skel-setup ada-gps-or-wisi-setup gnatprep-setup)
 
-    turn off crashplan, test compiling aflex with gnat 2016
+        hack-local-vars not called?
 
-    restored ~/bin/aflex.exe from crashplan for now
-        didn't help!?
-        changed output_ada_emacs.adb (sigh)
-            need identifier regexp
-            no help
-            delete quotes around regexp
-                doesn't matter in some, does matter in others!?
-                need strip_quotes in output_ada_emacs?
+        ada-mode called from (dvc-file-ediff ... work-base)
+            workspace file visited via find-file-noselect
+            previous rev buffer visted via dvc-revision-get-file-in-buffer
+                dvc-revision-get-buffer
+                xmtn-* writes a temp file
+                ... after-find-file
+                which calls ada-mode but not hack-local-variables, because enable-local-variables is nil
+                    who is binding that? dvc-file-ediff (sigh)
+                if found mode via auto-mode-alist, only calls set-auto-mode-0, not hack-local-variables
+                    uses hack-local-variables only to find mode;
 
-        empty_production_1 doesn't have identifier; it works
-        restore old identifier regexp in empty_production-3; works (sigh)
-        add leading [a-zA-Z]: works
-        ada_lite: works. phew!
+                dvc-revision-get-buffer should call (normal-mode t), not (set-auto-mode t)
 
-    try ../org.fasttoken-temp/build/debug/Makefile
-        empty_production_3 has identifier; works
-
-    Convert to lexer libadalang uses?
+better doc of syntax-begin-function
 
 aflex hangs on comment on last line of file
     comment action can't just be null; must actively discard text! how??
     find a real flex manual, and/or flex code
 
-    include \n in comment syntax?
+    include \n in comment syntax; no help
 
-Do "panic mode"
-    skip to semicolon or paren
-        dragon pg 255
+aflex regexp for Ada string
+    Embedded quote is multiple string literals with no intervening whitespace
+
+Do "panic mode" dragon pg 255
+    pop stack to state with a goto on a "good" nonterminal, skip input to Follow (nonterm)
+        _don't_ call reduce action, since don't have all tokens
+
+    dragon says to mark only some nonterms as "good", such as "statement" (followed by "end")
+
+        need wisi grammar file syntax for marking nonterms
+
+    try check all stacked states for current input symbol in goto/Follow;
+        works for typical "missing trailing tokens"
+
+
+    option to enable various error strategies for testing
 
     write tests using Ada-like grammar with example syntax errors
         t_one
-            FastToken.Text_Feeder.Text_IO
-
 
         partial 'if' statement
         missing ;
@@ -64,7 +71,8 @@ Do "panic mode"
         that was too slow with ada-mode 5.2, should be better with 6.x
 
     or Emacs module
-            use elisp lexer
+        use elisp lexer; time aflex vs wisi 5, 6 lexers
+        elisp lexer supports utf-8, other encodings
 
     Leaves some sections uncached - OK if not user line (not typical editing case).
     If indent cache nil, use previous line.
@@ -75,6 +83,9 @@ fix lr1 check_unused
 
 better syntax error handling
     d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
+        does this do:
+            if expecting has exactly one token, insert that
+                "if then end;"
 
     write tests using Ada-like grammar with example syntax errors
         partial 'if' statement
@@ -94,6 +105,10 @@ wisi-generate lr1 way too slow for Ada
     implement profile, get data
 
     don't iterate on non-reporting
+
+    lookahead list vs boolean array:
+        time opentoken vs fasttoken
+        or old fasttoken
 
     closure needs:
         fast access to all productions that have dot_id as the LHS

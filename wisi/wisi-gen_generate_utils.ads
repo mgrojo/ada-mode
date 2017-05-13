@@ -35,7 +35,8 @@ generic
    FastToken_Accept_Name : in Ada.Strings.Unbounded.Unbounded_String;
    First_State_Index     : in Integer;
 
-   with function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String;
+   with function To_Token_Out_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String;
+   --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
 
    subtype Token_ID is Integer range
@@ -54,18 +55,20 @@ package Wisi.Gen_Generate_Utils is
 
    function Find_Token_ID (Token : in String) return Token_ID;
 
-   type ID_Array_Access_String_Type is array (Token_ID) of access constant String;
+   type File_Kind is (WY, Output);
+   type ID_Array_Access_String_Pair_Type is array (Token_ID, File_Kind) of access constant String;
 
-   Token_Image_Width : Integer := 0;
+   Token_WY_Image_Width : Integer := 0; -- set by Set_Token_Images
 
-   function Set_Token_Images return ID_Array_Access_String_Type;
+   function Set_Token_Images return ID_Array_Access_String_Pair_Type;
 
-   Token_Images : constant ID_Array_Access_String_Type := Set_Token_Images;
+   Token_Images : constant ID_Array_Access_String_Pair_Type := Set_Token_Images;
 
-   function Token_Image (ID : in Token_ID) return String is (Token_Images (ID).all);
+   function Token_WY_Image (ID : in Token_ID) return String is (Token_Images (ID, WY).all);
+   function Token_Out_Image (ID : in Token_ID) return String is (Token_Images (ID, Output).all);
 
    type Token_Cursor is tagged private;
-   --  Iterate thru tokens in a canonical order.
+   --  Iterate thru Tokens in a canonical order.
 
    function First return Token_Cursor;
    procedure Next (Cursor : in out Token_Cursor);
@@ -79,13 +82,13 @@ package Wisi.Gen_Generate_Utils is
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
 
-   package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, EOI_ID, Token_Image);
+   package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, EOI_ID, Token_WY_Image);
    package Nonterminal_Pkg is new Token_Pkg.Nonterminal;
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
-     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal_Pkg, Nonterminal_Pkg.Get);
+     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
+   package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width, Nonterminal_Pkg, Nonterminal_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);

@@ -1,344 +1,137 @@
 Tokens:
- 1 => WHITESPACE_ID
- 2 => LEFT_PAREN_ID
- 3 => RIGHT_PAREN_ID
- 4 => TICK_ID
- 5 => IDENTIFIER_ID
- 6 => WISI_EOI_ID
- 7 => AGGREGATE_ID
- 8 => ATTRIBUTE_REFERENCE_ID
- 9 => ATTRIBUTE_DESIGNATOR_ID
- 10 => NAME_ID
- 11 => QUALIFIED_EXPRESSION_ID
- 12 => FASTTOKEN_ACCEPT_ID
+ 1 => WHITESPACE
+ 2 => LEFT_PAREN
+ 3 => RIGHT_PAREN
+ 4 => TICK
+ 5 => IDENTIFIER
+ 6 => WISI_EOI
+ 7 => aggregate
+ 8 => attribute_reference
+ 9 => attribute_designator
+ 10 => name
+ 11 => qualified_expression
+ 12 => FASTTOKEN_ACCEPT
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ NAME_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT <= ^ name WISI_EOI, 
 
-   IDENTIFIER_ID           => shift and goto state 2
-   default                 => ERROR
+   IDENTIFIER           => shift and goto state 2
+   default              => ERROR
 
-   ATTRIBUTE_REFERENCE_ID  goto state 3
-   NAME_ID                 goto state 4
-   QUALIFIED_EXPRESSION_ID goto state 5
+   attribute_reference  goto state 3
+   name                 goto state 4
+   qualified_expression goto state 5
 
 State 2:
-  NAME_ID <= IDENTIFIER_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
+  name <= IDENTIFIER ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   WISI_EOI             => reduce 1 tokens to name
+   default              => ERROR
 
 
 State 3:
-  NAME_ID <= ATTRIBUTE_REFERENCE_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
+  name <= attribute_reference ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
-
-
-State 4:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, TICK_ID/WISI_EOI_ID
-  FASTTOKEN_ACCEPT_ID <= NAME_ID ^ WISI_EOI_ID, 
-
-   TICK_ID                 => shift and goto state 6
-   WISI_EOI_ID             => accept it
-   default                 => ERROR
-
-
-State 5:
-  NAME_ID <= QUALIFIED_EXPRESSION_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
-
-
-State 6:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ^ ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID ^ AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   LEFT_PAREN_ID           => shift and goto state 7
-   IDENTIFIER_ID           => shift and goto state 2
-   default                 => ERROR
-
-   AGGREGATE_ID            goto state 8
-   ATTRIBUTE_REFERENCE_ID  goto state 3
-   ATTRIBUTE_DESIGNATOR_ID goto state 9
-   NAME_ID                 goto state 10
-   QUALIFIED_EXPRESSION_ID goto state 5
-
-State 7:
-  AGGREGATE_ID <= LEFT_PAREN_ID ^ NAME_ID RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   IDENTIFIER_ID           => shift and goto state 2
-   default                 => ERROR
-
-   ATTRIBUTE_REFERENCE_ID  goto state 3
-   NAME_ID                 goto state 11
-   QUALIFIED_EXPRESSION_ID goto state 5
-
-State 8:
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID AGGREGATE_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   TICK_ID                 => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   WISI_EOI_ID             => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   default                 => ERROR
-
-
-State 9:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ATTRIBUTE_DESIGNATOR_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   TICK_ID                 => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   WISI_EOI_ID             => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   default                 => ERROR
-
-
-State 10:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-  ATTRIBUTE_DESIGNATOR_ID <= NAME_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   RIGHT_PAREN_ID          => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   TICK_ID                 => shift and goto state 6,
-                              reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   WISI_EOI_ID             => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   default                 => ERROR
-
-
-State 11:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID ^ RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => shift and goto state 12
-   TICK_ID                 => shift and goto state 6
-   default                 => ERROR
-
-
-State 12:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID RIGHT_PAREN_ID ^, RIGHT_PAREN_ID/TICK_ID/WISI_EOI_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to AGGREGATE_ID
-   TICK_ID                 => reduce 3 tokens to AGGREGATE_ID
-   WISI_EOI_ID             => reduce 3 tokens to AGGREGATE_ID
-   default                 => ERROR
-
-
-LR1 Parse Table:
-State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ NAME_ID WISI_EOI_ID, WISI_EOI_ID
-
-   IDENTIFIER_ID           => shift and goto state 2
-   default                 => ERROR
-
-   ATTRIBUTE_REFERENCE_ID  goto state 3
-   NAME_ID                 goto state 4
-   QUALIFIED_EXPRESSION_ID goto state 5
-
-State 2:
-  NAME_ID <= IDENTIFIER_ID ^, TICK_ID/WISI_EOI_ID
-
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
-
-
-State 3:
-  NAME_ID <= ATTRIBUTE_REFERENCE_ID ^, TICK_ID/WISI_EOI_ID
-
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   WISI_EOI             => reduce 1 tokens to name
+   default              => ERROR
 
 
 State 4:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, TICK_ID/WISI_EOI_ID
-  FASTTOKEN_ACCEPT_ID <= NAME_ID ^ WISI_EOI_ID, WISI_EOI_ID
+  attribute_reference <= name ^ TICK attribute_designator, TICK/WISI_EOI
+  qualified_expression <= name ^ TICK aggregate, TICK/WISI_EOI
+  FASTTOKEN_ACCEPT <= name ^ WISI_EOI, 
 
-   TICK_ID                 => shift and goto state 6
-   WISI_EOI_ID             => accept it
-   default                 => ERROR
+   TICK                 => shift and goto state 6
+   WISI_EOI             => accept it
+   default              => ERROR
 
 
 State 5:
-  NAME_ID <= QUALIFIED_EXPRESSION_ID ^, TICK_ID/WISI_EOI_ID
+  name <= qualified_expression ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   WISI_EOI_ID             => reduce 1 tokens to NAME_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 1 tokens to name
+   TICK                 => reduce 1 tokens to name
+   WISI_EOI             => reduce 1 tokens to name
+   default              => ERROR
 
 
 State 6:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ^ ATTRIBUTE_DESIGNATOR_ID, TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID ^ AGGREGATE_ID, TICK_ID/WISI_EOI_ID
+  attribute_reference <= name TICK ^ attribute_designator, RIGHT_PAREN/TICK/WISI_EOI
+  qualified_expression <= name TICK ^ aggregate, RIGHT_PAREN/TICK/WISI_EOI
 
-   LEFT_PAREN_ID           => shift and goto state 7
-   IDENTIFIER_ID           => shift and goto state 2
-   default                 => ERROR
+   LEFT_PAREN           => shift and goto state 7
+   IDENTIFIER           => shift and goto state 2
+   default              => ERROR
 
-   AGGREGATE_ID            goto state 8
-   ATTRIBUTE_REFERENCE_ID  goto state 3
-   ATTRIBUTE_DESIGNATOR_ID goto state 9
-   NAME_ID                 goto state 10
-   QUALIFIED_EXPRESSION_ID goto state 5
+   aggregate            goto state 8
+   attribute_reference  goto state 3
+   attribute_designator goto state 9
+   name                 goto state 10
+   qualified_expression goto state 5
 
 State 7:
-  AGGREGATE_ID <= LEFT_PAREN_ID ^ NAME_ID RIGHT_PAREN_ID, TICK_ID/WISI_EOI_ID
+  aggregate <= LEFT_PAREN ^ name RIGHT_PAREN, RIGHT_PAREN/TICK/WISI_EOI
 
-   IDENTIFIER_ID           => shift and goto state 11
-   default                 => ERROR
+   IDENTIFIER           => shift and goto state 2
+   default              => ERROR
 
-   ATTRIBUTE_REFERENCE_ID  goto state 12
-   NAME_ID                 goto state 13
-   QUALIFIED_EXPRESSION_ID goto state 14
+   attribute_reference  goto state 3
+   name                 goto state 11
+   qualified_expression goto state 5
 
 State 8:
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID AGGREGATE_ID ^, TICK_ID/WISI_EOI_ID
+  qualified_expression <= name TICK aggregate ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   TICK_ID                 => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   WISI_EOI_ID             => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 3 tokens to qualified_expression
+   TICK                 => reduce 3 tokens to qualified_expression
+   WISI_EOI             => reduce 3 tokens to qualified_expression
+   default              => ERROR
 
 
 State 9:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ATTRIBUTE_DESIGNATOR_ID ^, TICK_ID/WISI_EOI_ID
+  attribute_reference <= name TICK attribute_designator ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   TICK_ID                 => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   WISI_EOI_ID             => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 3 tokens to attribute_reference
+   TICK                 => reduce 3 tokens to attribute_reference
+   WISI_EOI             => reduce 3 tokens to attribute_reference
+   default              => ERROR
 
 
 State 10:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, TICK_ID/WISI_EOI_ID
-  ATTRIBUTE_DESIGNATOR_ID <= NAME_ID ^, TICK_ID/WISI_EOI_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, TICK_ID/WISI_EOI_ID
+  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK/WISI_EOI
+  attribute_designator <= name ^, RIGHT_PAREN/TICK/WISI_EOI
+  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK/WISI_EOI
 
-   TICK_ID                 => shift and goto state 6,
-                              reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   WISI_EOI_ID             => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 1 tokens to attribute_designator
+   TICK                 => shift and goto state 6,
+                           reduce 1 tokens to attribute_designator
+   WISI_EOI             => reduce 1 tokens to attribute_designator
+   default              => ERROR
 
 
 State 11:
-  NAME_ID <= IDENTIFIER_ID ^, RIGHT_PAREN_ID/TICK_ID
+  aggregate <= LEFT_PAREN name ^ RIGHT_PAREN, RIGHT_PAREN/TICK/WISI_EOI
+  attribute_reference <= name ^ TICK attribute_designator, RIGHT_PAREN/TICK
+  qualified_expression <= name ^ TICK aggregate, RIGHT_PAREN/TICK
 
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   default                 => ERROR
+   RIGHT_PAREN          => shift and goto state 12
+   TICK                 => shift and goto state 6
+   default              => ERROR
 
 
 State 12:
-  NAME_ID <= ATTRIBUTE_REFERENCE_ID ^, RIGHT_PAREN_ID/TICK_ID
+  aggregate <= LEFT_PAREN name RIGHT_PAREN ^, RIGHT_PAREN/TICK/WISI_EOI
 
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   default                 => ERROR
-
-
-State 13:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID ^ RIGHT_PAREN_ID, TICK_ID/WISI_EOI_ID
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => shift and goto state 15
-   TICK_ID                 => shift and goto state 16
-   default                 => ERROR
+   RIGHT_PAREN          => reduce 3 tokens to aggregate
+   TICK                 => reduce 3 tokens to aggregate
+   WISI_EOI             => reduce 3 tokens to aggregate
+   default              => ERROR
 
 
-State 14:
-  NAME_ID <= QUALIFIED_EXPRESSION_ID ^, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => reduce 1 tokens to NAME_ID
-   TICK_ID                 => reduce 1 tokens to NAME_ID
-   default                 => ERROR
-
-
-State 15:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID RIGHT_PAREN_ID ^, TICK_ID/WISI_EOI_ID
-
-   TICK_ID                 => reduce 3 tokens to AGGREGATE_ID
-   WISI_EOI_ID             => reduce 3 tokens to AGGREGATE_ID
-   default                 => ERROR
-
-
-State 16:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ^ ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID ^ AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
-
-   LEFT_PAREN_ID           => shift and goto state 17
-   IDENTIFIER_ID           => shift and goto state 11
-   default                 => ERROR
-
-   AGGREGATE_ID            goto state 18
-   ATTRIBUTE_REFERENCE_ID  goto state 12
-   ATTRIBUTE_DESIGNATOR_ID goto state 19
-   NAME_ID                 goto state 20
-   QUALIFIED_EXPRESSION_ID goto state 14
-
-State 17:
-  AGGREGATE_ID <= LEFT_PAREN_ID ^ NAME_ID RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID
-
-   IDENTIFIER_ID           => shift and goto state 11
-   default                 => ERROR
-
-   ATTRIBUTE_REFERENCE_ID  goto state 12
-   NAME_ID                 goto state 21
-   QUALIFIED_EXPRESSION_ID goto state 14
-
-State 18:
-  QUALIFIED_EXPRESSION_ID <= NAME_ID TICK_ID AGGREGATE_ID ^, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   TICK_ID                 => reduce 3 tokens to QUALIFIED_EXPRESSION_ID
-   default                 => ERROR
-
-
-State 19:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID TICK_ID ATTRIBUTE_DESIGNATOR_ID ^, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   TICK_ID                 => reduce 3 tokens to ATTRIBUTE_REFERENCE_ID
-   default                 => ERROR
-
-
-State 20:
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
-  ATTRIBUTE_DESIGNATOR_ID <= NAME_ID ^, RIGHT_PAREN_ID/TICK_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   TICK_ID                 => shift and goto state 16,
-                              reduce 1 tokens to ATTRIBUTE_DESIGNATOR_ID
-   default                 => ERROR
-
-
-State 21:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID ^ RIGHT_PAREN_ID, RIGHT_PAREN_ID/TICK_ID
-  ATTRIBUTE_REFERENCE_ID <= NAME_ID ^ TICK_ID ATTRIBUTE_DESIGNATOR_ID, RIGHT_PAREN_ID/TICK_ID
-  QUALIFIED_EXPRESSION_ID <= NAME_ID ^ TICK_ID AGGREGATE_ID, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => shift and goto state 22
-   TICK_ID                 => shift and goto state 16
-   default                 => ERROR
-
-
-State 22:
-  AGGREGATE_ID <= LEFT_PAREN_ID NAME_ID RIGHT_PAREN_ID ^, RIGHT_PAREN_ID/TICK_ID
-
-   RIGHT_PAREN_ID          => reduce 3 tokens to AGGREGATE_ID
-   TICK_ID                 => reduce 3 tokens to AGGREGATE_ID
-   default                 => ERROR
-
-
- 5 rules, 0 actions, 22 states, 104 table entries
+ 5 rules, 0 actions, 12 states, 41 table entries
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

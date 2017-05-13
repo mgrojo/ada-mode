@@ -377,12 +377,13 @@ package body FastToken.Parser.LR.Generator_Utils is
    function Image (Item : in Conflict) return String
    is begin
       return
-        (Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
+        ("%conflict " &
+           Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
            Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
            Token.Token_Image (Item.LHS_A) & ", " &
            Token.Token_Image (Item.LHS_B) &
-           " (" & State_Index'Image (Item.State_Index) & ") on token " &
-           Token.Token_Image (Item.On));
+           "  on token " & Token.Token_Image (Item.On) &
+           " (" & State_Index'Image (Item.State_Index) & ")"); -- state number last for easier delete
    end Image;
 
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean

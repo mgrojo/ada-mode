@@ -1,233 +1,96 @@
 Tokens:
- 1 => WHITESPACE_ID
- 2 => COMMENT_ID
- 3 => BEGIN_ID
- 4 => IS_ID
- 5 => SEMICOLON_ID
- 6 => WISI_EOI_ID
- 7 => DECLARATIONS_ID
- 8 => DECLARATIVE_PART_ID
- 9 => BODY_ID
- 10 => FASTTOKEN_ACCEPT_ID
+ 1 => WHITESPACE
+ 2 => COMMENT
+ 3 => BEGIN
+ 4 => IS
+ 5 => SEMICOLON
+ 6 => WISI_EOI
+ 7 => declarations
+ 8 => declarative_part
+ 9 => body
+ 10 => FASTTOKEN_ACCEPT
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT <= ^ declarative_part WISI_EOI, 
 
-   IS_ID               => shift and goto state 2
-   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
-   default             => ERROR
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 0 tokens to declarative_part
+   default          => ERROR
 
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 4
-   BODY_ID             goto state 5
+   declarations     goto state 3
+   declarative_part goto state 4
+   body             goto state 5
 
 State 2:
-  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
+  body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
+   BEGIN            => reduce 0 tokens to declarative_part
+   IS               => shift and goto state 2
+   default          => ERROR
 
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 7
-   BODY_ID             goto state 5
+   declarations     goto state 3
+   declarative_part goto state 7
+   body             goto state 5
 
 State 3:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID/WISI_EOI_ID
+  declarations <= declarations ^ body, BEGIN/IS/WISI_EOI
+  declarative_part <= declarations ^, BEGIN/WISI_EOI
 
-   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
-   default             => ERROR
+   BEGIN            => reduce 1 tokens to declarative_part
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 1 tokens to declarative_part
+   default          => ERROR
 
-   BODY_ID             goto state 6
+   body             goto state 6
 
 State 4:
-  FASTTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ WISI_EOI_ID, 
+  FASTTOKEN_ACCEPT <= declarative_part ^ WISI_EOI, 
 
-   WISI_EOI_ID         => accept it
-   default             => ERROR
+   WISI_EOI         => accept it
+   default          => ERROR
 
 
 State 5:
-  DECLARATIONS_ID <= BODY_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
+  declarations <= body ^, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
-   default             => ERROR
-
-
-State 6:
-  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
-
-   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
-   default             => ERROR
-
-
-State 7:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
-
-   BEGIN_ID            => shift and goto state 8
-   default             => ERROR
-
-
-State 8:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, BEGIN_ID/IS_ID/WISI_EOI_ID
-
-   SEMICOLON_ID        => shift and goto state 9
-   default             => ERROR
-
-
-State 9:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID/WISI_EOI_ID
-
-   BEGIN_ID            => reduce 4 tokens to BODY_ID
-   IS_ID               => reduce 4 tokens to BODY_ID
-   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
-   default             => ERROR
-
-
-LR1 Parse Table:
-State 1:
-  FASTTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID WISI_EOI_ID, WISI_EOI_ID
-
-   IS_ID               => shift and goto state 2
-   WISI_EOI_ID         => reduce 0 tokens to DECLARATIVE_PART_ID
-   default             => ERROR
-
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 4
-   BODY_ID             goto state 5
-
-State 2:
-  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
-
-   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 7
-   default             => ERROR
-
-   DECLARATIONS_ID     goto state 8
-   DECLARATIVE_PART_ID goto state 9
-   BODY_ID             goto state 10
-
-State 3:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, IS_ID/WISI_EOI_ID
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, WISI_EOI_ID
-
-   IS_ID               => shift and goto state 2
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIVE_PART_ID
-   default             => ERROR
-
-   BODY_ID             goto state 6
-
-State 4:
-  FASTTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ WISI_EOI_ID, WISI_EOI_ID
-
-   WISI_EOI_ID         => accept it
-   default             => ERROR
-
-
-State 5:
-  DECLARATIONS_ID <= BODY_ID ^, IS_ID/WISI_EOI_ID
-
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
-   WISI_EOI_ID         => reduce 1 tokens to DECLARATIONS_ID
-   default             => ERROR
+   BEGIN            => reduce 1 tokens to declarations
+   IS               => reduce 1 tokens to declarations
+   WISI_EOI         => reduce 1 tokens to declarations
+   default          => ERROR
 
 
 State 6:
-  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/WISI_EOI_ID
+  declarations <= declarations body ^, BEGIN/IS/WISI_EOI
 
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
-   WISI_EOI_ID         => reduce 2 tokens to DECLARATIONS_ID
-   default             => ERROR
+   BEGIN            => reduce 2 tokens to declarations
+   IS               => reduce 2 tokens to declarations
+   WISI_EOI         => reduce 2 tokens to declarations
+   default          => ERROR
 
 
 State 7:
-  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
+  body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 7
-   default             => ERROR
+   BEGIN            => shift and goto state 8
+   default          => ERROR
 
-   DECLARATIONS_ID     goto state 8
-   DECLARATIVE_PART_ID goto state 13
-   BODY_ID             goto state 10
 
 State 8:
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, BEGIN_ID/IS_ID
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, BEGIN_ID
+  body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 7
-   default             => ERROR
+   SEMICOLON        => shift and goto state 9
+   default          => ERROR
 
-   BODY_ID             goto state 12
 
 State 9:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, IS_ID/WISI_EOI_ID
+  body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => shift and goto state 11
-   default             => ERROR
-
-
-State 10:
-  DECLARATIONS_ID <= BODY_ID ^, BEGIN_ID/IS_ID
-
-   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
-   default             => ERROR
+   BEGIN            => reduce 4 tokens to body
+   IS               => reduce 4 tokens to body
+   WISI_EOI         => reduce 4 tokens to body
+   default          => ERROR
 
 
-State 11:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, IS_ID/WISI_EOI_ID
-
-   SEMICOLON_ID        => shift and goto state 15
-   default             => ERROR
-
-
-State 12:
-  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, BEGIN_ID/IS_ID
-
-   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
-   default             => ERROR
-
-
-State 13:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID
-
-   BEGIN_ID            => shift and goto state 14
-   default             => ERROR
-
-
-State 14:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, BEGIN_ID/IS_ID
-
-   SEMICOLON_ID        => shift and goto state 16
-   default             => ERROR
-
-
-State 15:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, IS_ID/WISI_EOI_ID
-
-   IS_ID               => reduce 4 tokens to BODY_ID
-   WISI_EOI_ID         => reduce 4 tokens to BODY_ID
-   default             => ERROR
-
-
-State 16:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID
-
-   BEGIN_ID            => reduce 4 tokens to BODY_ID
-   IS_ID               => reduce 4 tokens to BODY_ID
-   default             => ERROR
-
-
- 3 rules, 1 actions, 16 states, 71 table entries
+ 3 rules, 1 actions, 9 states, 28 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

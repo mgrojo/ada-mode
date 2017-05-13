@@ -20,7 +20,6 @@ pragma License (Modified_GPL);
 
 with Wisi;
 generic
-   with function Token_Image (ID : in Token.Token_ID) return String;
 package FastToken.Parser.LR.Elisp is
 
    procedure Output

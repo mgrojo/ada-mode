@@ -21,6 +21,14 @@ pragma License (GPL);
 with Ada.Text_IO;
 package body FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
+   procedure Initialize (Feeder : in out Instance; File : in GNAT.OS_Lib.File_Descriptor)
+   is begin
+      Feeder.File := File;
+      Feeder.Max_Bytes  := 0;
+      Feeder.Read_Bytes := 0;
+      Feeder.Get_Count  := 0;
+   end Initialize;
+
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr
    is begin
       return new Instance'(File, 0, 0, 0);

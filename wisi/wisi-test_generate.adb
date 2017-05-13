@@ -42,7 +42,7 @@ is
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, OpenToken_Accept_Name,
       First_State_Index,
-      To_Token_Image => To_Token_Image);
+      To_Token_Out_Image => To_Token_Image);
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
@@ -74,7 +74,7 @@ begin
       begin
          Put_Line ("Tokens:");
          for I in Token_ID'Range loop
-            Put_Line (Token_ID'Image (I) & " => " & Token_Image (I));
+            Put_Line (Token_ID'Image (I) & " => " & Token_Out_Image (I));
          end loop;
          New_Line;
 

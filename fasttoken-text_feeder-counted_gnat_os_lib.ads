@@ -30,6 +30,8 @@ package FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
    type Instance is new FastToken.Text_Feeder.Instance with private;
    type Handle is access all Instance'Class;
 
+   procedure Initialize (Feeder : in out Instance; File : in GNAT.OS_Lib.File_Descriptor);
+
    function Create (File : in GNAT.OS_Lib.File_Descriptor) return Text_Feeder_Ptr;
    --  File must be open.
 
@@ -55,8 +57,7 @@ private
       File       : GNAT.OS_Lib.File_Descriptor;
       Max_Bytes  : Integer;
       Read_Bytes : Integer;
-
-      Get_Count : Integer;
+      Get_Count  : Integer;
    end record;
 
 end FastToken.Text_Feeder.Counted_GNAT_OS_Lib;

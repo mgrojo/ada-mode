@@ -39,10 +39,10 @@
       (TICK . "'")
      )
      ("symbol"
-      (IDENTIFIER)
+      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
      )
      ("string"
-      (STRING_LITERAL)
+      (STRING_LITERAL . "\"[^\"]*")
      )
     )
    nil)

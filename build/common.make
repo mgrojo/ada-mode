@@ -45,6 +45,8 @@ tests : test_all_harness.diff
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
 # We only diff %-process.el on one test, because it's trivial
+tests : character_literal_process_yylex.adb
+tests : character_literal-parse.diff
 tests : conflict_name_process_yylex.adb
 tests : conflict_name-process.el.diff
 tests : conflict_name-parse.diff
@@ -168,8 +170,9 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
 
 %_process.l : ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
+%_process.l : PARSER_ALG ?= LALR_LR1
 %_process.l : %.wy wisi-generate.exe
-	./wisi-generate.exe $(ARGS) $< LALR_LR1 Ada_Emacs Aflex_Lexer process > $*.parse_table
+	./wisi-generate.exe $(ARGS) $< $(PARSER_ALG) Ada_Emacs Aflex_Lexer process > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*-process.el
 

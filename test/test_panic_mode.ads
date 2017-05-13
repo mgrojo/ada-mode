@@ -21,7 +21,11 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Test_Panic_Mode is
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
+   --  Debug:
+   --  0 = none
+   --  1 = show parse info
+   --  2 = show lexer info
 
    type Test_Case_Access is access all Test_Case;
 

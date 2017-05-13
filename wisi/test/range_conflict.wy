@@ -26,8 +26,8 @@
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
-%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <string> STRING_LITERAL "\"[^\"]*"
 
 %start compilation_unit
 

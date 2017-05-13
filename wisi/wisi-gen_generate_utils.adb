@@ -99,10 +99,10 @@ package body Wisi.Gen_Generate_Utils is
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   function Set_Token_Images return ID_Array_Access_String_Type
+   function Set_Token_Images return ID_Array_Access_String_Pair_Type
    is
       ID           : Token_ID := Token_ID'First;
-      Token_Images : ID_Array_Access_String_Type;
+      Token_Images : ID_Array_Access_String_Pair_Type;
    begin
       --  same order as output_ada
 
@@ -110,21 +110,27 @@ package body Wisi.Gen_Generate_Utils is
       for Kind of Tokens loop
          if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               Token_Images (ID, WY)     := new String'(-Pair.Name);
+               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
                ID := ID + 1;
             end loop;
          end if;
       end loop;
 
       for Pair of Keywords loop
-         Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+         Token_Images (ID, WY)     := new String'(-Pair.Name);
+         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
          ID := ID + 1;
       end loop;
 
       for Kind of Tokens loop
          if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               Token_Images (ID, WY)     := new String'(-Pair.Name);
+               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
                ID := ID + 1;
             end loop;
          end if;
@@ -132,21 +138,26 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= EOI_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(To_Token_Image (EOI_Name));
-      ID                := ID + 1;
+      Token_Images (ID, WY)     := new String'(-EOI_Name);
+      Token_Images (ID, Output) := new String'(To_Token_Out_Image (EOI_Name));
+
+      ID := ID + 1;
 
       for Rule of Rules loop
-         Token_Images (ID) := new String'(To_Token_Image (Rule.Left_Hand_Side));
+         Token_Images (ID, WY)     := new String'(-Rule.Left_Hand_Side);
+         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
+
          ID := ID + 1;
       end loop;
 
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(To_Token_Image (FastToken_Accept_Name));
+      Token_Images (ID, WY)     := new String'(-FastToken_Accept_Name);
+      Token_Images (ID, Output) := new String'(To_Token_Out_Image (FastToken_Accept_Name));
 
-      for Token of Token_Images loop
-         if Token.all'Length > Token_Image_Width then
-            Token_Image_Width := Token.all'Length;
+      for ID in Token_Images'Range loop
+         if Token_Images (ID, WY).all'Length > Token_WY_Image_Width then
+            Token_WY_Image_Width := Token_Images (ID, WY).all'Length;
          end if;
       end loop;
 
@@ -391,7 +402,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       Put_Line ("Tokens:");
       for I in Token_ID'Range loop
-         Put_Line (Token_ID'Image (I) & " => " & Token_Image (I));
+         Put_Line (Token_ID'Image (I) & " => " & Token_WY_Image (I));
       end loop;
       New_Line;
    end Put_Tokens;
