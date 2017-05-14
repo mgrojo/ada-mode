@@ -1753,6 +1753,7 @@ parameter_specification
 parameter_specification_list
   : parameter_specification
   | parameter_specification_list SEMICOLON parameter_specification
+    (wisi-statement-action [2 motion]) ;; not integrated with higher level motion; just a local stopping point
   ;
 
 paren_expression

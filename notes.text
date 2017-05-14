@@ -99,6 +99,29 @@ wisi-indent-region:
 (setq wisi-indent-region-fallback nil)
  current issues:
 
+cache invalidate bugs:
+    loop
+        declare
+        begin
+           foo;
+        end;
+    end loop;
+
+    delete block, leaving 'foo;'
+    cache on some previous line still there; foo double indented until delete preceding newline
+
+
+    delete elsif clause
+        navigate from ’then’ skips all elsif clauses
+
+bad indent:
+   type Right_Hand_Side is record
+      Tokens : Token.List.Instance;
+      Action : Nonterminal.Synthesize;
+      Index  : Integer;
+   -- In grammar rule
+   end record;
+
 parse face is slow
     noticeable delay when typing code
 
