@@ -230,8 +230,7 @@ package body Wisi.Gen_Output_Ada_Common is
                      --  Copied from elisp lexer
                      raise Programmer_Error with "whitespace needs a regexp; try ""[ \t\n]""";
                   else
-                     --  drop whitespace
-                     Put_Line (Value (Value'First + 1 .. Value'Last - 1) & " {         null;}");
+                     Put_Line (Strip_Quotes (Value) & " {         null;}");
                   end if;
                end;
             end loop;
@@ -252,7 +251,16 @@ package body Wisi.Gen_Output_Ada_Common is
 
          elsif -Kind.Kind = """punctuation""" then
             for Item of Kind.Tokens loop
-               Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               declare
+                  Value : constant String := -Item.Value;
+               begin
+                  --  Sometimes Aflex wants quotes around the regexp, sometimes it doesn’t
+                  Put_Line
+                    ((if Value (1) = '"' and Value'Length <= 4
+                      then Value
+                      else Strip_Quotes (Value)) &
+                       " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               end;
             end loop;
 
          elsif -Kind.Kind = """symbol""" then

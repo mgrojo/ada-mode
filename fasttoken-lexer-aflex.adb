@@ -76,7 +76,7 @@ package body FastToken.Lexer.Aflex is
    exception
    when E : others =>
       raise Syntax_Error with
-        Int_Image (Lexer.Line) &
+        Int_Image (Lexer.Line + 1) &
         ":" &
         Int_Image (Lexer.Column) &
         ": " & Ada.Exceptions.Exception_Name (E) &

@@ -16,6 +16,7 @@
 ^build/debug/.*\.output$
 ^build/debug/.*\.parse$
 ^build/debug/.*\.parse_table$
+^build/debug/.*\.wy$
 ^build/debug/gpr_query\.db$
 ^build/debug/gpr_query\.db-shm$
 ^build/debug/gpr_query\.db-wal$

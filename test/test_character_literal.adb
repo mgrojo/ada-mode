@@ -49,8 +49,11 @@ package body Test_Character_Literal is
 
       Parser.Parse;
 
-      Check ("character_literal_count", Character_Literal_Count, 3);
-      Check ("bad_character_literal_count", Bad_Character_Literal_Count, 0);
+      --  Pure greedy regular expression lexers cannot handle this mix
+      --  of Ada tick and character literal, so we accept the non-zero
+      --  bad_character_literal_count.
+      Check ("character_literal_count", Character_Literal_Count, 2);
+      Check ("bad_character_literal_count", Bad_Character_Literal_Count, 2);
       Check ("string_literal_count", String_Literal_Count, 2);
    exception
    when AUnit.Assertions.Assertion_Error =>

@@ -95,8 +95,8 @@ is
    end Update_Paren_Count;
 
 begin
-   --  We assume actions start on a new line starting with either ` or
-   --  (, and are terminated by ; on a new line.
+   --  Actions start on a new line starting with (, and are terminated
+   --  by ).
 
    Rule_Count   := 0;
    Action_Count := 0;
@@ -147,7 +147,7 @@ begin
             when Production =>
 
                case Line (Cursor) is
-               when '`' | '(' =>
+               when '(' =>
                   State         := Action;
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
@@ -189,13 +189,26 @@ begin
                end case;
 
             when Action =>
-               case Line (Cursor) is
-               when ';' =>
-                  if Paren_Count = 0 then
+               if Paren_Count = 0 then
+                  case Line (Cursor) is
+                  when ';' =>
                      Rule.Right_Hand_Sides.Append (RHS);
                      Rule_List.Append (Rule);
                      State         := Left_Hand_Side;
                      Need_New_Line := True;
+
+                     if Bracket_Count /= 0 then
+                        raise Syntax_Error with "unbalanced brackets in action";
+                     end if;
+
+                  when '|' =>
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     State := Production;
+                     RHS.Production.Clear;
+                     RHS.Action.Clear;
+
+                     Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                     Need_New_Line := Cursor = 0;
 
                      if Paren_Count /= 0 then
                         raise Syntax_Error with "unbalanced parens in action";
@@ -204,32 +217,18 @@ begin
                      if Bracket_Count /= 0 then
                         raise Syntax_Error with "unbalanced brackets in action";
                      end if;
-                  end if;
 
-               when '|' =>
-                  Rule.Right_Hand_Sides.Append (RHS);
-                  State := Production;
-                  RHS.Production.Clear;
-                  RHS.Action.Clear;
+                  when others =>
+                     raise Syntax_Error with "expecting ';' or '|'";
+                  end case;
 
-                  Cursor := Index_Non_Blank (Line, From => Cursor + 1);
-                  Need_New_Line := Cursor = 0;
-
-                  if Paren_Count /= 0 then
-                     raise Syntax_Error with "unbalanced parens in action";
-                  end if;
-
-                  if Bracket_Count /= 0 then
-                     raise Syntax_Error with "unbalanced brackets in action";
-                  end if;
-
-               when others =>
+               else
                   RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
 
                   Check_Numbers (Line);
                   Update_Paren_Count (Line);
-               end case;
+               end if;
             end case;
 
          end Parse_State;

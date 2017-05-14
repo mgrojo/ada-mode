@@ -7,7 +7,7 @@ Character'( 'C' );
 Character '('C');
 Character ' ( 'C' );
 
-"a string"
+"a string";
 
 -- This is one string with two embedded quotes, not three strings with no whitespace
-" an ""other"" string"
+" an ""other"" string";

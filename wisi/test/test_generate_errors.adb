@@ -39,10 +39,16 @@ package body Test_Generate_Errors is
       Success     : Boolean;
       Return_Code : Integer;
 
-      WY_File             : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_LALR_File  : constant String        := Simple_Name (Test.Root_Name.all) & "-lalr.out";
-      Computed_LR1_File   : constant String        := Simple_Name (Test.Root_Name.all) & "-lr1.out";
-      Expected_Error_File : constant String        := Test.Root_Name.all & ".good_out";
+      WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+
+      Computed_LALR_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr.out";
+      Expected_LALR_File : constant String := Test.Root_Name.all & "-lalr.good_out";
+
+      --  LALR reports terminals that are only used in unused
+      --  productions as unused; lr1 is not that smart.
+      Computed_LR1_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1.out";
+      Expected_LR1_File : constant String := Test.Root_Name.all & "-lr1.good_out";
+
    begin
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
@@ -58,7 +64,7 @@ package body Test_Generate_Errors is
         (Success,
          "spawn or execution of 'wisi-generate.exe' LALR " & WY_File.all & "' failed");
 
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_Error_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_LALR_File);
 
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
@@ -74,7 +80,7 @@ package body Test_Generate_Errors is
         (Success,
          "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
 
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_Error_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_LR1_File);
 
    end Run_Test;
 

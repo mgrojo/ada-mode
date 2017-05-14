@@ -164,10 +164,14 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.l %_process.l : %.wy wisi-generate.exe
+%_process.l : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Aflex --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*-process.el
+
+%.l : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 1 $< > $*.parse_table
+	dos2unix $*.parse_table
 
 # delete files created by wisi-generate
 wisi-clean :

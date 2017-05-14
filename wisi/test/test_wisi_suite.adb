@@ -31,7 +31,7 @@ begin
 
    Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../../wisi/test/unused_tokens")));
    Add_Test (Suite, new Wisi_Module_Action_Test.Test_Case);
-   Add_Test (Suite, new Wisi_Rules_Test.Test_Case);
+   Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order
    Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/body_instantiation_conflict")));
