@@ -83,7 +83,7 @@ This could end in a token recognized by `ada-skel-expand'."
 (define-skeleton ada-skel-user-restricted
   "Example copyright/license skeleton, with automatic year and owner."
   ()
-  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name "All Rights Reserved.\n"
   "\n"
   "pragma License (Restricted);\n"
 )
@@ -91,7 +91,7 @@ This could end in a token recognized by `ada-skel-expand'."
 (define-skeleton ada-skel-gpl
   "Example copyright/license skeleton, with automatic year and owner, GPLv3."
   ()
-  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name "All Rights Reserved.\n"
   "--\n"
   "--  This program is free software; you can redistribute it and/or\n"
   "--  modify it under terms of the GNU General Public License as\n"
@@ -112,7 +112,7 @@ This could end in a token recognized by `ada-skel-expand'."
 (define-skeleton ada-skel-modified-gpl
   "Modified GPLv3 copyright/license skeleton, with automatic year and owner."
   ()
-  "--  Copyright (C) " (format-time-string "%Y ") user-full-name " All Rights Reserved.\n"
+  "--  Copyright (C) " (format-time-string "%Y ") user-full-name "All Rights Reserved.\n"
   "--\n"
   "--  This library is free software;  you can redistribute it and/or modify it\n"
   "--  under terms of the  GNU General Public License  as published by the Free\n"

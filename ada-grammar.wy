@@ -536,7 +536,7 @@ case_statement_alternative
       (wisi-containing-action 3 4))
   ;
 
-;; We dont allow an empty list here; that leads to parallel parser
+;; We don't allow an empty list here; that leads to parallel parser
 ;; explosion in nested case statements. Note that ada-skel-case
 ;; inserts an empty when =>
 case_statement_alternative_list
@@ -583,8 +583,8 @@ choice_relation
   | simple_expression
   ;
 
-;; since we allow multiple compilation units in one parse, and dont
-;; require a library_item in order to be user friendly, we dont need
+;; since we allow multiple compilation units in one parse, and don't
+;; require a library_item in order to be user friendly, we don't need
 ;; a context_clause, since a list of context_items is just a
 ;; compilation_unit_list. Since context_item includes pragma, this
 ;; also allows a pragma following a compilation_unit.
@@ -2528,8 +2528,4 @@ with_clause
   ;
 
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

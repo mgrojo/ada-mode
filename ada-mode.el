@@ -2781,7 +2781,8 @@ The paragraph is indented on the first line."
   (syntax-ppss-flush-cache (point-min));; reparse with new function
 
   (when (boundp 'syntax-begin-function)
-    ;; obsolete in emacs-25.1
+    ;; default ‘beginning-of-defun’ in emacs-24.2; we need it nil
+    ;; obsolete in 25.1
     (set (make-local-variable 'syntax-begin-function) nil))
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
