@@ -191,16 +191,10 @@ names have the format nonterm:index."
   ;;
   ;; FIXME: eliminate use of semantic-lex-* in *-wy.el. Similarly
   ;; requires decoupling from OpenToken
-  ;;
-  ;; FIXME: can eliminate obarray? We don't need the obarray to
-  ;; avoid garbage collection of the symbols; they are all referenced in the compiled grammar.
-  ;; But each semantic action function has to be defined (and byte-compiled?) somewhere?
-  ;;     currently actions are _not_ byte-compiled; wisi-compile-grammar is run at load time
-  ;;     need 'eval-when-compile' to byte-compile them?
-  ;;     can't byte-compile obarray?
 
   (let ((defs (nth 1 grammar))
 	(symbol-obarray (make-vector 13 0));; for parse actions
+        (byte-compile-warnings '(not free-vars)) ;; for "wisi-test-success" in test/wisi/*
 	def nonterm rhs-list rule
 	semantic-action index)
 

@@ -327,6 +327,13 @@ if wisi is too slow on large buffers:
             ... current code))
 
  wisi work
+Try antlr error recovery on Ada. Add elisp target.
+
+Compare libadalang grammar to mine/lrm
+
+Report byte-compiler warning bug.
+    wisi-compile.el binds byte-compiler-warnings
+    Why is ada-indent ok (in stephe-2)?
 
 indent bugs:
    if not Update_Flight_Status

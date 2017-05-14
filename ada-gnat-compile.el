@@ -306,6 +306,12 @@ Prompt user if more than one."
 	   t)
 
 ;;;; strings
+	  ((looking-at "package \"Ada\" is hidden")
+	   (pop-to-buffer source-buffer)
+	   (forward-word -1)
+	   (insert "Standard.")
+	   t)
+
 	  ((looking-at (concat "\\(possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)

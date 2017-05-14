@@ -1840,7 +1840,15 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
     (let ((forward-sexp-function nil))
       (forward-sexp arg)))
 
-   ((and (< arg 0) (= (syntax-class (syntax-after (1- (point)))) 5)) ;; after close paren
+   ((and (< arg 0) (= 5 (syntax-class (syntax-after (1- (point)))))) ;; after close paren
+    (let ((forward-sexp-function nil))
+      (forward-sexp arg)))
+
+   ((and (> arg 0) (= 7 (syntax-class (syntax-after (point)))))  ;; on (open) string quote
+    (let ((forward-sexp-function nil))
+      (forward-sexp arg)))
+
+   ((and (< arg 0) (= 7 (syntax-class (syntax-after (1- (point)))))) ;; after (close) string quote
     (let ((forward-sexp-function nil))
       (forward-sexp arg)))
 
