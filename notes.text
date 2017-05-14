@@ -6,38 +6,15 @@ build/release_process.text
 
  current work
 
-finish commit
-
-wisi--lexer etc gets clobbered
-    if loaded by ediff, both buffers have major-mode = ada-mode, but wisi--lexer nil
-        fails somewhere in ada-mode-hook:
-            (sal-ada-mode-setup xref-ada-mode ada-skel-setup ada-gps-or-wisi-setup gnatprep-setup)
-
-        hack-local-vars not called?
-
-        ada-mode called from (dvc-file-ediff ... work-base)
-            workspace file visited via find-file-noselect
-            previous rev buffer visted via dvc-revision-get-file-in-buffer
-                dvc-revision-get-buffer
-                xmtn-* writes a temp file
-                ... after-find-file
-                which calls ada-mode but not hack-local-variables, because enable-local-variables is nil
-                    who is binding that? dvc-file-ediff (sigh)
-                if found mode via auto-mode-alist, only calls set-auto-mode-0, not hack-local-variables
-                    uses hack-local-variables only to find mode;
-
-                dvc-revision-get-buffer should call (normal-mode t), not (set-auto-mode t)
-
-better doc of syntax-begin-function
-
-aflex hangs on comment on last line of file
-    comment action can't just be null; must actively discard text! how??
-    find a real flex manual, and/or flex code
-
-    include \n in comment syntax; no help
-
-aflex regexp for Ada string
+aflex regexp for Ada string, character_literal
     Embedded quote is multiple string literals with no intervening whitespace
+
+    test_character_literal.adb
+        failing
+
+    test aflex and regexp lexers
+
+    parse trace shows statement_id_0: for both actions
 
 Do "panic mode" dragon pg 255
     pop stack to state with a goto on a "good" nonterminal, skip input to Follow (nonterm)

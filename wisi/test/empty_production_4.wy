@@ -14,6 +14,12 @@
 %token <whitespace> WHITESPACE "[ \t\n]"
 
 %start compilation_unit
+%first_state_index 1
+%first_parser_label 1
+%parser_algorithm LALR_LR1
+%output_language Emacs_Ada
+%lexer Aflex
+%interface process
 
 %%
 

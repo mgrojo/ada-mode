@@ -42,13 +42,22 @@ package body FastToken.Text_Feeder.Text_IO is
    begin
       if End_Of_File (Feeder.File) then
          Text_End := Text'First + 1;
+         Text (Text_End) := EOL_Character;
+         Text_End := Text_End + 1;
          Text (Text_End) := EOF_Character;
       else
          Get_Line (Feeder.File, Text, Text_End);
          if End_Of_File (Feeder.File) then
-            if Text_End < Text'Last then
+            if Text_End + 1 < Text'Last then
+               Text_End := Text_End + 1;
+               Text (Text_End) := EOL_Character;
                Text_End := Text_End + 1;
                Text (Text_End) := EOF_Character;
+
+            elsif Text_End < Text'Last then
+               Text_End := Text_End + 1;
+               Text (Text_End) := EOL_Character;
+
             end if;
          elsif Text_End < Text'Last then
             Text_End := Text_End + 1;

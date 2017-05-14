@@ -29,6 +29,8 @@
 
 ;; 'fasttoken_accept', Wisi_EOI added in wisi-generate
 %start compilation_unit
+%parser_algorithm LALR_LR1
+%output_language Elisp
 
 %%
 

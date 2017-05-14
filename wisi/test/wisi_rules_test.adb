@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013-2015 Stephen Leake
+--  Copyright (C) 2013-2015, 2017 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -169,7 +169,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -228,7 +228,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -285,11 +285,11 @@ package body Wisi_Rules_Test is
 
       Open (File, In_File, File_Name);
       begin
-         Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+         Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
          AUnit.Assertions.Assert (False, "1 did not get exception");
       exception
       when Syntax_Error =>
-         --  Error message "wisi_rules_test.wy:8:0: token number 4  out of range 1 .. 3"
+         --  Error message "wisi_rules_test.wy:7:0: token number 4  out of range 1 .. 3"
          --  in standard_output; checked in diff
          null;
       end;

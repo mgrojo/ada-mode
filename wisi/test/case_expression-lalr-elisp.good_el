@@ -1,5 +1,5 @@
 ;;; case_expression-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe ../../wisi/test/case_expression.wy LALR_LR1 Elisp
+;;; with command line: wisi-generate.exe ../../wisi/test/case_expression.wy
 
 ;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 

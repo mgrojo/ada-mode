@@ -22,33 +22,31 @@ with Ada.Text_IO; use Ada.Text_IO;
 with FastToken.Parser.LR.Elisp;
 with Wisi.Gen_Generate_Utils;
 procedure Wisi.Output_Elisp
-  (Input_File_Name   : in String;
-   Elisp_Package     : in String;
-   Prologue          : in String_Lists.List;
-   Keywords          : in String_Pair_Lists.List;
-   Tokens            : in Token_Lists.List;
-   Start_Token       : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts         : in Conflict_Lists.List;
-   Rules             : in Rule_Lists.List;
-   Rule_Count        : in Integer;
-   Action_Count      : in Integer;
-   Parser_Algorithm  : in Parser_Algorithm_Type;
-   First_State_Index : in Integer)
+  (Input_File_Name : in String;
+   Elisp_Package   : in String;
+   Generate_Params : in Generate_Param_Type;
+   Prologue        : in String_Lists.List;
+   Keywords        : in String_Pair_Lists.List;
+   Tokens          : in Token_Lists.List;
+   Conflicts       : in Conflict_Lists.List;
+   Rules           : in Rule_Lists.List;
+   Rule_Count      : in Integer;
+   Action_Count    : in Integer)
 is
-   EOI_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
+   EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
    --  See comments in wisi-output_ada_emacs.adb EOI_Name for what
    --  this must match.
 
-   FastToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
+   FastToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
-   function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+   function To_Token_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
       return -Item;
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name,
-      First_State_Index,
+      Generate_Params.First_State_Index,
       To_Token_Out_Image => To_Token_Image);
 
    package Parser_Elisp is new Generate_Utils.LR.Elisp;
@@ -58,7 +56,7 @@ is
    Reduce_Reduce_Conflict_Count : Integer;
 
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
-     (Input_File_Name, -Start_Token);
+     (Input_File_Name, -Generate_Params.Start_Token);
 
    Parser : Generate_Utils.LR.Parse_Table_Ptr;
 
@@ -91,7 +89,7 @@ is
      (Elisp_Package : in String;
       Tokens        : in Wisi.Token_Lists.List)
    is
-      use Ada.Strings.Unbounded; -- length
+      use Standard.Ada.Strings.Unbounded; -- length
    begin
       Put_Line ("(defconst " & Elisp_Package & "-elisp-token-table");
       Put_Line ("  (semantic-lex-make-type-table");
@@ -116,11 +114,11 @@ is
 
    procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
    is
-      use Ada.Strings.Unbounded;
+      use Standard.Ada.Strings.Unbounded;
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
    begin
-      case Parser_Algorithm is
+      case Valid_Parser_Algorithm (Generate_Params.Parser_Algorithm) is
       when LALR | LR1 =>
             Elisp_Package_1 := +Elisp_Package;
       when LALR_LR1 =>
@@ -185,9 +183,9 @@ begin
       New_Line;
    end if;
 
-   case Parser_Algorithm is
+   case Valid_Parser_Algorithm (Generate_Params.Parser_Algorithm) is
    when LALR | LR1 =>
-      Create_Elisp (Parser_Algorithm);
+      Create_Elisp (Generate_Params.Parser_Algorithm);
    when LALR_LR1 =>
       Create_Elisp (LALR);
       Create_Elisp (LR1);

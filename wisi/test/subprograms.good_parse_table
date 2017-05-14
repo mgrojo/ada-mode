@@ -11,59 +11,59 @@ Tokens:
  10 => declaration
  11 => subprogram
  12 => parameter_list
- 13 => FASTTOKEN_ACCEPT
+ 13 => fasttoken_accept
 
 LALR Parse Table:
-State 1:
-  FASTTOKEN_ACCEPT <= ^ compilation_unit WISI_EOI, 
+State 0:
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
-   FUNCTION         => shift and goto state 2
-   PROCEDURE        => shift and goto state 3
+   FUNCTION         => shift and goto state 1
+   PROCEDURE        => shift and goto state 2
    default          => ERROR
 
-   compilation_unit goto state 4
-   declarations     goto state 5
-   declaration      goto state 6
-   subprogram       goto state 7
+   compilation_unit goto state 3
+   declarations     goto state 4
+   declaration      goto state 5
+   subprogram       goto state 6
 
-State 2:
+State 1:
   subprogram <= FUNCTION ^ parameter_list SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
 
-   LEFT_PAREN       => shift and goto state 9
-   SYMBOL           => reduce 0 tokens to parameter_list
-   default          => ERROR
-
-   parameter_list   goto state 11
-
-State 3:
-  subprogram <= PROCEDURE ^ parameter_list SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
-
-   LEFT_PAREN       => shift and goto state 9
+   LEFT_PAREN       => shift and goto state 8
    SYMBOL           => reduce 0 tokens to parameter_list
    default          => ERROR
 
    parameter_list   goto state 10
 
-State 4:
-  FASTTOKEN_ACCEPT <= compilation_unit ^ WISI_EOI, 
+State 2:
+  subprogram <= PROCEDURE ^ parameter_list SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   LEFT_PAREN       => shift and goto state 8
+   SYMBOL           => reduce 0 tokens to parameter_list
+   default          => ERROR
+
+   parameter_list   goto state 9
+
+State 3:
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
 
    WISI_EOI         => accept it
    default          => ERROR
 
 
-State 5:
+State 4:
   compilation_unit <= declarations ^, WISI_EOI
   declarations <= declarations ^ declaration, FUNCTION/PROCEDURE/WISI_EOI
 
-   FUNCTION         => shift and goto state 2
-   PROCEDURE        => shift and goto state 3
+   FUNCTION         => shift and goto state 1
+   PROCEDURE        => shift and goto state 2
    WISI_EOI         => reduce 1 tokens to compilation_unit
    default          => ERROR
 
-   declaration      goto state 8
-   subprogram       goto state 7
+   declaration      goto state 7
+   subprogram       goto state 6
 
-State 6:
+State 5:
   declarations <= declaration ^, FUNCTION/PROCEDURE/WISI_EOI
 
    FUNCTION         => reduce 1 tokens to declarations
@@ -72,7 +72,7 @@ State 6:
    default          => ERROR
 
 
-State 7:
+State 6:
   declaration <= subprogram ^, FUNCTION/PROCEDURE/WISI_EOI
 
    FUNCTION         => reduce 1 tokens to declaration
@@ -81,7 +81,7 @@ State 7:
    default          => ERROR
 
 
-State 8:
+State 7:
   declarations <= declarations declaration ^, FUNCTION/PROCEDURE/WISI_EOI
 
    FUNCTION         => reduce 2 tokens to declarations
@@ -90,30 +90,30 @@ State 8:
    default          => ERROR
 
 
-State 9:
+State 8:
   parameter_list <= LEFT_PAREN ^ RIGHT_PAREN, SYMBOL
   parameter_list <= LEFT_PAREN ^ SYMBOL RIGHT_PAREN, SYMBOL
 
-   RIGHT_PAREN      => shift and goto state 14
-   SYMBOL           => shift and goto state 15
+   RIGHT_PAREN      => shift and goto state 13
+   SYMBOL           => shift and goto state 14
    default          => ERROR
 
 
-State 10:
+State 9:
   subprogram <= PROCEDURE parameter_list ^ SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
-
-   SYMBOL           => shift and goto state 13
-   default          => ERROR
-
-
-State 11:
-  subprogram <= FUNCTION parameter_list ^ SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
 
    SYMBOL           => shift and goto state 12
    default          => ERROR
 
 
-State 12:
+State 10:
+  subprogram <= FUNCTION parameter_list ^ SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   SYMBOL           => shift and goto state 11
+   default          => ERROR
+
+
+State 11:
   subprogram <= FUNCTION parameter_list SYMBOL ^, FUNCTION/PROCEDURE/WISI_EOI
 
    FUNCTION         => reduce 3 tokens to subprogram
@@ -122,7 +122,7 @@ State 12:
    default          => ERROR
 
 
-State 13:
+State 12:
   subprogram <= PROCEDURE parameter_list SYMBOL ^, FUNCTION/PROCEDURE/WISI_EOI
 
    FUNCTION         => reduce 3 tokens to subprogram
@@ -131,26 +131,165 @@ State 13:
    default          => ERROR
 
 
-State 14:
+State 13:
   parameter_list <= LEFT_PAREN RIGHT_PAREN ^, SYMBOL
 
    SYMBOL           => reduce 2 tokens to parameter_list
    default          => ERROR
 
 
-State 15:
+State 14:
   parameter_list <= LEFT_PAREN SYMBOL ^ RIGHT_PAREN, SYMBOL
 
-   RIGHT_PAREN      => shift and goto state 16
+   RIGHT_PAREN      => shift and goto state 15
    default          => ERROR
 
 
-State 16:
+State 15:
   parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN ^, SYMBOL
 
    SYMBOL           => reduce 3 tokens to parameter_list
    default          => ERROR
 
 
- 5 rules, 5 actions, 16 states, 48 table entries
+LR1 Parse Table:
+State 0:
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+
+   FUNCTION         => shift and goto state 1
+   PROCEDURE        => shift and goto state 2
+   default          => ERROR
+
+   compilation_unit goto state 3
+   declarations     goto state 4
+   declaration      goto state 5
+   subprogram       goto state 6
+
+State 1:
+  subprogram <= FUNCTION ^ parameter_list SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   LEFT_PAREN       => shift and goto state 8
+   SYMBOL           => reduce 0 tokens to parameter_list
+   default          => ERROR
+
+   parameter_list   goto state 10
+
+State 2:
+  subprogram <= PROCEDURE ^ parameter_list SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   LEFT_PAREN       => shift and goto state 8
+   SYMBOL           => reduce 0 tokens to parameter_list
+   default          => ERROR
+
+   parameter_list   goto state 9
+
+State 3:
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+
+   WISI_EOI         => accept it
+   default          => ERROR
+
+
+State 4:
+  compilation_unit <= declarations ^, WISI_EOI
+  declarations <= declarations ^ declaration, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => shift and goto state 1
+   PROCEDURE        => shift and goto state 2
+   WISI_EOI         => reduce 1 tokens to compilation_unit
+   default          => ERROR
+
+   declaration      goto state 7
+   subprogram       goto state 6
+
+State 5:
+  declarations <= declaration ^, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => reduce 1 tokens to declarations
+   PROCEDURE        => reduce 1 tokens to declarations
+   WISI_EOI         => reduce 1 tokens to declarations
+   default          => ERROR
+
+
+State 6:
+  declaration <= subprogram ^, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => reduce 1 tokens to declaration
+   PROCEDURE        => reduce 1 tokens to declaration
+   WISI_EOI         => reduce 1 tokens to declaration
+   default          => ERROR
+
+
+State 7:
+  declarations <= declarations declaration ^, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => reduce 2 tokens to declarations
+   PROCEDURE        => reduce 2 tokens to declarations
+   WISI_EOI         => reduce 2 tokens to declarations
+   default          => ERROR
+
+
+State 8:
+  parameter_list <= LEFT_PAREN ^ RIGHT_PAREN, SYMBOL
+  parameter_list <= LEFT_PAREN ^ SYMBOL RIGHT_PAREN, SYMBOL
+
+   RIGHT_PAREN      => shift and goto state 13
+   SYMBOL           => shift and goto state 14
+   default          => ERROR
+
+
+State 9:
+  subprogram <= PROCEDURE parameter_list ^ SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   SYMBOL           => shift and goto state 12
+   default          => ERROR
+
+
+State 10:
+  subprogram <= FUNCTION parameter_list ^ SYMBOL, FUNCTION/PROCEDURE/WISI_EOI
+
+   SYMBOL           => shift and goto state 11
+   default          => ERROR
+
+
+State 11:
+  subprogram <= FUNCTION parameter_list SYMBOL ^, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => reduce 3 tokens to subprogram
+   PROCEDURE        => reduce 3 tokens to subprogram
+   WISI_EOI         => reduce 3 tokens to subprogram
+   default          => ERROR
+
+
+State 12:
+  subprogram <= PROCEDURE parameter_list SYMBOL ^, FUNCTION/PROCEDURE/WISI_EOI
+
+   FUNCTION         => reduce 3 tokens to subprogram
+   PROCEDURE        => reduce 3 tokens to subprogram
+   WISI_EOI         => reduce 3 tokens to subprogram
+   default          => ERROR
+
+
+State 13:
+  parameter_list <= LEFT_PAREN RIGHT_PAREN ^, SYMBOL
+
+   SYMBOL           => reduce 2 tokens to parameter_list
+   default          => ERROR
+
+
+State 14:
+  parameter_list <= LEFT_PAREN SYMBOL ^ RIGHT_PAREN, SYMBOL
+
+   RIGHT_PAREN      => shift and goto state 15
+   default          => ERROR
+
+
+State 15:
+  parameter_list <= LEFT_PAREN SYMBOL RIGHT_PAREN ^, SYMBOL
+
+   SYMBOL           => reduce 3 tokens to parameter_list
+   default          => ERROR
+
+
+ 5 rules, 5 actions, 15 states, 96 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

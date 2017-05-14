@@ -32,32 +32,50 @@ package body Test_Generate_Errors is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use Ada.Directories;
       use GNAT.OS_Lib;
       Test : Test_Case renames Test_Case (T);
 
       Success     : Boolean;
       Return_Code : Integer;
 
-      Wy_File             : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_Error_File : constant String        :=
-        Ada.Directories.Simple_Name (Test.Root_Name.all) & ".out";
+      WY_File             : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+      Computed_LALR_File  : constant String        := Simple_Name (Test.Root_Name.all) & "-lalr.out";
+      Computed_LR1_File   : constant String        := Simple_Name (Test.Root_Name.all) & "-lr1.out";
       Expected_Error_File : constant String        := Test.Root_Name.all & ".good_out";
    begin
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
-           (1         => Wy_File,
-            2         => new String'("LALR"), -- FIXME: also run LR1 to test unused_tokens there.
-            3         => new String'("Test")),
-         Output_File  => Computed_Error_File,
+           (1         => new String'("--parser_algorithm"),
+            2         => new String'("LALR"),
+            3         => WY_File),
+         Output_File  => Computed_LALR_File,
          Return_Code  => Return_Code,
          Success      => Success);
 
       AUnit.Assertions.Assert
         (Success,
-         "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
+         "spawn or execution of 'wisi-generate.exe' LALR " & WY_File.all & "' failed");
 
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_Error_File, Expected_Error_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_Error_File);
+
+      Spawn
+        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
+         Args         =>
+           (1         => new String'("--parser_algorithm"),
+            2         => new String'("LR1"),
+            3         => WY_File),
+         Output_File  => Computed_LR1_File,
+         Return_Code  => Return_Code,
+         Success      => Success);
+
+      AUnit.Assertions.Assert
+        (Success,
+         "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
+
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_Error_File);
+
    end Run_Test;
 
    ----------

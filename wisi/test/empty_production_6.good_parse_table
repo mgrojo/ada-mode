@@ -11,11 +11,11 @@ Tokens:
  10 => statement
  11 => sequence_of_statements
  12 => label_opt
- 13 => FASTTOKEN_ACCEPT
+ 13 => fasttoken_accept
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT <= ^ compilation_unit WISI_EOI, 
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
    BEGIN                  => shift and goto state 2
    default                => ERROR
@@ -34,7 +34,7 @@ State 2:
    label_opt              goto state 7
 
 State 3:
-  FASTTOKEN_ACCEPT <= compilation_unit ^ WISI_EOI, 
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
 
    WISI_EOI               => accept it
    default                => ERROR
@@ -132,5 +132,124 @@ State 15:
    default                => ERROR
 
 
- 4 rules, 2 actions, 15 states, 34 table entries
+LR1 Parse Table:
+State 1:
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+
+   BEGIN                  => shift and goto state 2
+   default                => ERROR
+
+   compilation_unit       goto state 3
+
+State 2:
+  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, WISI_EOI
+
+   IDENTIFIER             => shift and goto state 4,
+                             reduce 0 tokens to label_opt
+   default                => ERROR
+
+   statement              goto state 5
+   sequence_of_statements goto state 6
+   label_opt              goto state 7
+
+State 3:
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+
+   WISI_EOI               => accept it
+   default                => ERROR
+
+
+State 4:
+  label_opt <= IDENTIFIER ^ COLON, IDENTIFIER
+
+   COLON                  => shift and goto state 11
+   default                => ERROR
+
+
+State 5:
+  sequence_of_statements <= statement ^, END/IDENTIFIER
+
+   END                    => reduce 1 tokens to sequence_of_statements
+   IDENTIFIER             => reduce 1 tokens to sequence_of_statements
+   default                => ERROR
+
+
+State 6:
+  compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, WISI_EOI
+  sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
+
+   END                    => shift and goto state 9
+   IDENTIFIER             => shift and goto state 4,
+                             reduce 0 tokens to label_opt
+   default                => ERROR
+
+   statement              goto state 10
+   label_opt              goto state 7
+
+State 7:
+  statement <= label_opt ^ IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
+
+   IDENTIFIER             => shift and goto state 8
+   default                => ERROR
+
+
+State 8:
+  statement <= label_opt IDENTIFIER ^ COLON_EQUAL IDENTIFIER SEMICOLON, END/IDENTIFIER
+
+   COLON_EQUAL            => shift and goto state 13
+   default                => ERROR
+
+
+State 9:
+  compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, WISI_EOI
+
+   SEMICOLON              => shift and goto state 12
+   default                => ERROR
+
+
+State 10:
+  sequence_of_statements <= sequence_of_statements statement ^, END/IDENTIFIER
+
+   END                    => reduce 2 tokens to sequence_of_statements
+   IDENTIFIER             => reduce 2 tokens to sequence_of_statements
+   default                => ERROR
+
+
+State 11:
+  label_opt <= IDENTIFIER COLON ^, IDENTIFIER
+
+   IDENTIFIER             => reduce 2 tokens to label_opt
+   default                => ERROR
+
+
+State 12:
+  compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, WISI_EOI
+
+   WISI_EOI               => reduce 4 tokens to compilation_unit
+   default                => ERROR
+
+
+State 13:
+  statement <= label_opt IDENTIFIER COLON_EQUAL ^ IDENTIFIER SEMICOLON, END/IDENTIFIER
+
+   IDENTIFIER             => shift and goto state 14
+   default                => ERROR
+
+
+State 14:
+  statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER ^ SEMICOLON, END/IDENTIFIER
+
+   SEMICOLON              => shift and goto state 15
+   default                => ERROR
+
+
+State 15:
+  statement <= label_opt IDENTIFIER COLON_EQUAL IDENTIFIER SEMICOLON ^, END/IDENTIFIER
+
+   END                    => reduce 5 tokens to statement
+   IDENTIFIER             => reduce 5 tokens to statement
+   default                => ERROR
+
+
+ 4 rules, 2 actions, 15 states, 68 table entries
  0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

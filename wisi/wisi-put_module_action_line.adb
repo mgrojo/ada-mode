@@ -3,6 +3,8 @@
 --  Translate Line into an Ada fragment for an Ada Emacs Module call
 --  to a wisi action, output to Standard_Output.
 --
+--  Separate subprogram to allow unit test.
+--
 --  Line must contain a complete elisp form that is a single call to a
 --  wisi action, with two exceptions:
 --
@@ -14,7 +16,7 @@
 --
 --  - There must be no extra spaces in the line.
 --
---  Copyright (C) 2015  All Rights Reserved.
+--  Copyright (C) 2015, 2017  All Rights Reserved.
 --
 --  The FastToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
@@ -33,18 +35,19 @@ pragma License (Modified_GPL);
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils; use Wisi.Utils;
+with Wisi.Output_Elisp_Common;
 procedure Wisi.Put_Module_Action_Line (Line : in String)
 is
    --  See test/wisi_module_action_test for typical lines.
 
    function Item_Image (Item : in String) return String
    is
-      use Ada.Characters.Handling;
+      use Standard.Ada.Characters.Handling;
    begin
       if Is_Digit (Item (Item'First)) then
          return "Elisp_Numbers (" & Item & ")";
       else
-         return "Elisp_Symbols (" & Elisp_Name_To_Ada (Item) & ")";
+         return "Elisp_Symbols (" & Wisi.Output_Elisp_Common.Elisp_Name_To_Ada (Item) & ")";
       end if;
    end Item_Image;
 
@@ -207,7 +210,7 @@ when Programmer_Error =>
    raise;
 when E : others =>
    declare
-      use Ada.Exceptions;
+      use Standard.Ada.Exceptions;
    begin
       raise Programmer_Error with
         "Put_Module_Action_Line: " & Line & "': " & Exception_Name (E) & " " & Exception_Message (E);

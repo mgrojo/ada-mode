@@ -7,11 +7,11 @@ Tokens:
  6 => mode
  7 => name
  8 => parameter_specification
- 9 => FASTTOKEN_ACCEPT
+ 9 => fasttoken_accept
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT <= ^ compilation_unit WISI_EOI, 
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
    IDENTIFIER              => shift and goto state 2
    default                 => ERROR
@@ -29,7 +29,7 @@ State 2:
    mode                    goto state 7
 
 State 3:
-  FASTTOKEN_ACCEPT <= compilation_unit ^ WISI_EOI, 
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
 
    WISI_EOI                => accept it
    default                 => ERROR
@@ -81,5 +81,106 @@ State 9:
    default                 => ERROR
 
 
- 4 rules, 1 actions, 9 states, 21 table entries
+LR1 Parse Table:
+State 1:
+  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+
+   IDENTIFIER              => shift and goto state 2
+   default                 => ERROR
+
+   compilation_unit        goto state 3
+   parameter_specification goto state 4
+
+State 2:
+  parameter_specification <= IDENTIFIER ^ mode name, IDENTIFIER
+
+   IN                      => shift and goto state 7
+   IDENTIFIER              => reduce 0 tokens to mode
+   default                 => ERROR
+
+   mode                    goto state 8
+
+State 3:
+  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+
+   WISI_EOI                => accept it
+   default                 => ERROR
+
+
+State 4:
+  compilation_unit <= parameter_specification ^ parameter_specification, WISI_EOI
+
+   IDENTIFIER              => shift and goto state 5
+   default                 => ERROR
+
+   parameter_specification goto state 6
+
+State 5:
+  parameter_specification <= IDENTIFIER ^ mode name, WISI_EOI
+
+   IN                      => shift and goto state 7
+   IDENTIFIER              => reduce 0 tokens to mode
+   default                 => ERROR
+
+   mode                    goto state 11
+
+State 6:
+  compilation_unit <= parameter_specification parameter_specification ^, WISI_EOI
+
+   WISI_EOI                => reduce 2 tokens to compilation_unit
+   default                 => ERROR
+
+
+State 7:
+  mode <= IN ^, IDENTIFIER
+
+   IDENTIFIER              => reduce 1 tokens to mode
+   default                 => ERROR
+
+
+State 8:
+  parameter_specification <= IDENTIFIER mode ^ name, IDENTIFIER
+
+   IDENTIFIER              => shift and goto state 9
+   default                 => ERROR
+
+   name                    goto state 10
+
+State 9:
+  name <= IDENTIFIER ^, IDENTIFIER
+
+   IDENTIFIER              => reduce 1 tokens to name
+   default                 => ERROR
+
+
+State 10:
+  parameter_specification <= IDENTIFIER mode name ^, IDENTIFIER
+
+   IDENTIFIER              => reduce 3 tokens to parameter_specification
+   default                 => ERROR
+
+
+State 11:
+  parameter_specification <= IDENTIFIER mode ^ name, WISI_EOI
+
+   IDENTIFIER              => shift and goto state 12
+   default                 => ERROR
+
+   name                    goto state 13
+
+State 12:
+  name <= IDENTIFIER ^, WISI_EOI
+
+   WISI_EOI                => reduce 1 tokens to name
+   default                 => ERROR
+
+
+State 13:
+  parameter_specification <= IDENTIFIER mode name ^, WISI_EOI
+
+   WISI_EOI                => reduce 3 tokens to parameter_specification
+   default                 => ERROR
+
+
+ 4 rules, 1 actions, 13 states, 49 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

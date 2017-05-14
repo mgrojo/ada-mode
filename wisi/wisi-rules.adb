@@ -18,17 +18,17 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
-  (Input_File   : in     Standard.Ada.Text_IO.File_Type;
-   Rule_List    : in out Rule_Lists.List;
-   Rule_Count   :    out Integer;
-   Action_Count :    out Integer)
+  (Input_File      : in     Standard.Ada.Text_IO.File_Type;
+   Output_Language : in     Valid_Output_Language;
+   Rule_List       : in out Rule_Lists.List;
+   Rule_Count      :    out Integer;
+   Action_Count    :    out Integer)
 is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
@@ -52,6 +52,10 @@ is
       First     : Integer   := 0;
       Last_Char : Character := Line (Line'First);
    begin
+      if Output_Language not in Elisp | Ada_Emacs then
+         return;
+      end if;
+
       --  Verify that integers in Line are valid token numbers
       for I in Line'Range loop
          case Line (I) is
@@ -187,17 +191,19 @@ begin
             when Action =>
                case Line (Cursor) is
                when ';' =>
-                  Rule.Right_Hand_Sides.Append (RHS);
-                  Rule_List.Append (Rule);
-                  State         := Left_Hand_Side;
-                  Need_New_Line := True;
+                  if Paren_Count = 0 then
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     Rule_List.Append (Rule);
+                     State         := Left_Hand_Side;
+                     Need_New_Line := True;
 
-                  if Paren_Count /= 0 then
-                     raise Syntax_Error with "unbalanced parens in action";
-                  end if;
+                     if Paren_Count /= 0 then
+                        raise Syntax_Error with "unbalanced parens in action";
+                     end if;
 
-                  if Bracket_Count /= 0 then
-                     raise Syntax_Error with "unbalanced brackets in action";
+                     if Bracket_Count /= 0 then
+                        raise Syntax_Error with "unbalanced brackets in action";
+                     end if;
                   end if;
 
                when '|' =>
@@ -240,22 +246,14 @@ begin
          Error := True;
          declare
             use Standard.Ada.Exceptions;
-            use Standard.Ada.Directories;
          begin
-            Standard.Ada.Text_IO.Put_Line
-              (Simple_Name (Name (Input_File)) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0: " &
-                 Exception_Message (E));
+            Put_Error (Input_File, Exception_Message (E));
          end;
       when E : others =>
          declare
             use Standard.Ada.Exceptions;
-            use Standard.Ada.Directories;
          begin
-            Standard.Ada.Text_IO.Put_Line
-              (Simple_Name (Name (Input_File)) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) &
-                 ":0: unhandled exception " & Exception_Name (E));
+            Put_Error (Input_File, "unhandled exception " & Exception_Name (E));
          end;
          raise Syntax_Error;
       end;

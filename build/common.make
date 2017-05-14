@@ -28,27 +28,26 @@ else
 endif
 
 tests : wisi-generate.exe
-tests : ada_lite_process_yylex.adb
+tests : ada_lite_yylex.adb
+tests : character_literal_yylex.adb
 tests : test_all_harness.diff
 
 # from ../wisi/test
 #
-# to parse .wy, build %yylex.adb, run parser, we'd like to do:
+# to parse .wy, build %_yylex.adb, and run the parser, we'd like to do:
 #
-# %_run.exe : %_run.adb %_process_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# %_run.exe : %_run.adb %_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
 #
 # but that gets overridden by the simpler .exe rule for other things.
-# So we must list %_process_yylex.adb explicitly in tests.
+# So we must list %_yylex.adb explicitly in tests.
 #
 # Testing with an Emacs module calling the elisp wisi lexer and wisi
 # actions is done from the ada-mode development tree, not here.
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
 # We only diff %-process.el on one test, because it's trivial
-tests : character_literal_process_yylex.adb
-tests : character_literal-parse.diff
-tests : conflict_name_process_yylex.adb
 tests : conflict_name-process.el.diff
+tests : conflict_name_process_yylex.adb
 tests : conflict_name-parse.diff
 tests : empty_production_1_process_yylex.adb
 tests : empty_production_1-parse.diff
@@ -165,14 +164,8 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# %-wy.el : RUN_ARGS := -v 1
-%-wy.el : %.wy wisi-generate.exe
-	./wisi-generate.exe $(RUN_ARGS) $< Elisp > $*.output
-
-%_process.l : ARGS ?= -v 1 --first_state_index 1 --first_parser_label 1
-%_process.l : PARSER_ALG ?= LALR_LR1
-%_process.l : %.wy wisi-generate.exe
-	./wisi-generate.exe $(ARGS) $< $(PARSER_ALG) Ada_Emacs Aflex_Lexer process > $*.parse_table
+%.l %_process.l : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Aflex --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix -q $*-process.el
 
@@ -186,17 +179,17 @@ wisi-clean :
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test_agg.gpr $(GPRBUILD_ARGS) $*
 
-%_process_yylex.ada : %_process.l
+%_yylex.ada : %.l
 	aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
-%_process_yylex.adb : %_process_yylex.ada
-	gnatchop -w $*_process_yylex.ada $*_process_dfa.ada $*_process_io.ada
+%_yylex.adb : %_yylex.ada
+	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
 
 # delete files created by aflex
 aflex-clean :
 	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
 
-.PRECIOUS : %_process.ada %.ads %_run.exe %_process.l %.parse %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-wy.el
 
 vpath %.wy ../../wisi/test ../../time
 vpath %-wy.good_el  ../../wisi/test

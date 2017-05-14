@@ -39,7 +39,8 @@ package FastToken.Production is
    type Right_Hand_Side is record
       Tokens : Token.List.Instance;
       Action : Nonterminal.Synthesize;
-      Index  : Integer; -- In grammar rule
+      Index  : Integer;
+      --  Index of production among productions for a single nonterminal (the LHS)
    end record;
    --  The Right Hand Side of a production is a token list "+"ed with a
    --  synthesization routine. For example:

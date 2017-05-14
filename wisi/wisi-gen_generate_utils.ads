@@ -31,11 +31,11 @@ generic
    Tokens                : in Wisi.Token_Lists.List;
    Conflicts             : in Wisi.Conflict_Lists.List;
    Rules                 : in Wisi.Rule_Lists.List;
-   EOI_Name              : in Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
-   FastToken_Accept_Name : in Ada.Strings.Unbounded.Unbounded_String;
+   EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
+   FastToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
    First_State_Index     : in Integer;
 
-   with function To_Token_Out_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String;
+   with function To_Token_Out_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
    --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
 
@@ -87,7 +87,8 @@ package Wisi.Gen_Generate_Utils is
    package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
-     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
+     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Standard.Ada.Text_IO.Put,
+      Token_Pkg, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width, Nonterminal_Pkg, Nonterminal_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);

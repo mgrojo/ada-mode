@@ -57,7 +57,7 @@ compilation_unit_id_0: (compilation_unit 1 . 36) (accept_statement 1 . 21), (acc
  ... goto state 3
  1 stack:  3 : (compilation_unit 1 . 36),  1 : , 
  1: 3: (WISI_EOI 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 36) (compilation_unit 1 . 36)
+fasttoken_accept_id_0: (fasttoken_accept 1 . 36) (compilation_unit 1 . 36)
 
 LR1_Parser parse:
 read 36
@@ -67,55 +67,55 @@ accept Finish;
  1 stack:  1 : , 
  1: 1: (ACCEPT 1 . 7) : shift and goto state 2
  1 stack:  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 2: (IDENTIFIER 8 . 14) : shift and goto state 6
- 1 stack:  6 : (IDENTIFIER 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 6: (LEFT_PAREN 15 . 16) : reduce 1 tokens to name
+ 1: 2: (IDENTIFIER 8 . 14) : shift and goto state 7
+ 1 stack:  7 : (IDENTIFIER 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 7: (LEFT_PAREN 15 . 16) : reduce 1 tokens to name
 name_id_0: (name 8 . 14) (IDENTIFIER 8 . 14)
- ... goto state 7
- 1 stack:  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 7: (LEFT_PAREN 15 . 16) : shift and goto state 8
- 1 stack:  8 : (LEFT_PAREN 15 . 16),  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 8: (IDENTIFIER 16 . 19) : shift and goto state 11
- 1 stack:  11 : (IDENTIFIER 16 . 19),  8 : (LEFT_PAREN 15 . 16),  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 11: (RIGHT_PAREN 19 . 20) : shift and goto state 12
- 1 stack:  12 : (RIGHT_PAREN 19 . 20),  11 : (IDENTIFIER 16 . 19),  8 : (LEFT_PAREN 15 . 16),  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 12: (SEMICOLON 20 . 21) : reduce 3 tokens to parameter_profile
+ ... goto state 8
+ 1 stack:  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 8: (LEFT_PAREN 15 . 16) : shift and goto state 9
+ 1 stack:  9 : (LEFT_PAREN 15 . 16),  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 9: (IDENTIFIER 16 . 19) : shift and goto state 14
+ 1 stack:  14 : (IDENTIFIER 16 . 19),  9 : (LEFT_PAREN 15 . 16),  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 14: (RIGHT_PAREN 19 . 20) : shift and goto state 15
+ 1 stack:  15 : (RIGHT_PAREN 19 . 20),  14 : (IDENTIFIER 16 . 19),  9 : (LEFT_PAREN 15 . 16),  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 15: (SEMICOLON 20 . 21) : reduce 3 tokens to parameter_profile
 parameter_profile_id_0: (parameter_profile 15 . 20) (LEFT_PAREN 15 . 16), (IDENTIFIER 16 . 19), (RIGHT_PAREN 19 . 20)
- ... goto state 9
- 1 stack:  9 : (parameter_profile 15 . 20),  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 9: (SEMICOLON 20 . 21) : shift and goto state 10
- 1 stack:  10 : (SEMICOLON 20 . 21),  9 : (parameter_profile 15 . 20),  7 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
- 1: 10: (ACCEPT 22 . 28) : reduce 4 tokens to accept_statement
+ ... goto state 10
+ 1 stack:  10 : (parameter_profile 15 . 20),  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 10: (SEMICOLON 20 . 21) : shift and goto state 13
+ 1 stack:  13 : (SEMICOLON 20 . 21),  10 : (parameter_profile 15 . 20),  8 : (name 8 . 14),  2 : (ACCEPT 1 . 7),  1 : , 
+ 1: 13: (ACCEPT 22 . 28) : reduce 4 tokens to accept_statement
 [-9 [(1 1 . 7)(10 8 . 14)(11 15 . 20)(4 20 . 21)]
 (-12 [1 -13 4 -14])
 ]
 accept_statement_id_0: (accept_statement 1 . 21) (ACCEPT 1 . 7), (name 8 . 14), (parameter_profile 15 . 20), (SEMICOLON 20 . 21)
  ... goto state 4
  1 stack:  4 : (accept_statement 1 . 21),  1 : , 
- 1: 4: (ACCEPT 22 . 28) : shift and goto state 2
- 1 stack:  2 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 2: (IDENTIFIER 29 . 35) : shift and goto state 6
- 1 stack:  6 : (IDENTIFIER 29 . 35),  2 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 6: (SEMICOLON 35 . 36) : reduce 1 tokens to name
+ 1: 4: (ACCEPT 22 . 28) : shift and goto state 5
+ 1 stack:  5 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 5: (IDENTIFIER 29 . 35) : shift and goto state 7
+ 1 stack:  7 : (IDENTIFIER 29 . 35),  5 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 7: (SEMICOLON 35 . 36) : reduce 1 tokens to name
 name_id_0: (name 29 . 35) (IDENTIFIER 29 . 35)
- ... goto state 7
- 1 stack:  7 : (name 29 . 35),  2 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 7: (SEMICOLON 35 . 36) : reduce 0 tokens to parameter_profile
+ ... goto state 11
+ 1 stack:  11 : (name 29 . 35),  5 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 11: (SEMICOLON 35 . 36) : reduce 0 tokens to parameter_profile
 parameter_profile_id_0: (parameter_profile) 
- ... goto state 9
- 1 stack:  9 : (parameter_profile),  7 : (name 29 . 35),  2 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 9: (SEMICOLON 35 . 36) : shift and goto state 10
- 1 stack:  10 : (SEMICOLON 35 . 36),  9 : (parameter_profile),  7 : (name 29 . 35),  2 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 10: (WISI_EOI 1 . 2) : reduce 4 tokens to accept_statement
+ ... goto state 12
+ 1 stack:  12 : (parameter_profile),  11 : (name 29 . 35),  5 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 12: (SEMICOLON 35 . 36) : shift and goto state 16
+ 1 stack:  16 : (SEMICOLON 35 . 36),  12 : (parameter_profile),  11 : (name 29 . 35),  5 : (ACCEPT 22 . 28),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 16: (WISI_EOI 1 . 2) : reduce 4 tokens to accept_statement
 [-9 [(1 22 . 28)(10 29 . 35)(11)(4 35 . 36)]
 (-12 [1 -13 4 -14])
 ]
 accept_statement_id_0: (accept_statement 22 . 36) (ACCEPT 22 . 28), (name 29 . 35), (parameter_profile), (SEMICOLON 35 . 36)
- ... goto state 5
- 1 stack:  5 : (accept_statement 22 . 36),  4 : (accept_statement 1 . 21),  1 : , 
- 1: 5: (WISI_EOI 1 . 2) : reduce 2 tokens to compilation_unit
+ ... goto state 6
+ 1 stack:  6 : (accept_statement 22 . 36),  4 : (accept_statement 1 . 21),  1 : , 
+ 1: 6: (WISI_EOI 1 . 2) : reduce 2 tokens to compilation_unit
 compilation_unit_id_0: (compilation_unit 1 . 36) (accept_statement 1 . 21), (accept_statement 22 . 36)
  ... goto state 3
  1 stack:  3 : (compilation_unit 1 . 36),  1 : , 
  1: 3: (WISI_EOI 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 36) (compilation_unit 1 . 36)
+fasttoken_accept_id_0: (fasttoken_accept 1 . 36) (compilation_unit 1 . 36)

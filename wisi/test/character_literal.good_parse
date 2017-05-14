@@ -1,102 +1,55 @@
-read 230
+LALR_Parser parse:
+read 483
 -- These should all yield the same token sequence
+-- FIXME: they don't; need feedback from parser to lexer
 -- FIXME: parse trace reports statement_id:0 !?
 -- FIXME: parse trace stack is printed top on right
+
+-- FIXME: also try with no CHARACTER_LITERAL token; modify Ada grammar
+-- to cope? implement action that rewrites TICK IDENTIFIER TICK as
+-- CHARACTER_LITERAL?
+
 foo
 Character'('C');
 Character'( 'C' );
 Character '('C');
 Character ' ( 'C' );
 
+"a string"
+" an ""other"" string"
 
  1 stack:  1 : , 
- 1: 1: (FOO 151 . 154) : shift and goto state 2
- 1 stack:  2 : (FOO 151 . 154),  1 : , 
- 1: 2: (IDENTIFIER 155 . 164) : shift and goto state 5
- 1 stack:  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 5: (CHARACTER_LITERAL 164 . 167) : shift and goto state 10
- 1 stack:  10 : (CHARACTER_LITERAL 164 . 167),  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 10: (IDENTIFIER 167 . 168) : shift and goto state 11
- 1 stack:  11 : (IDENTIFIER 167 . 168),  10 : (CHARACTER_LITERAL 164 . 167),  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 11: (TICK 168 . 169) : shift and goto state 14
- 1 stack:  14 : (TICK 168 . 169),  11 : (IDENTIFIER 167 . 168),  10 : (CHARACTER_LITERAL 164 . 167),  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 14: (RIGHT_PAREN 169 . 170) : shift and goto state 15
- 1 stack:  15 : (RIGHT_PAREN 169 . 170),  14 : (TICK 168 . 169),  11 : (IDENTIFIER 167 . 168),  10 : (CHARACTER_LITERAL 164 . 167),  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 15: (SEMICOLON 170 . 171) : shift and goto state 18
- 1 stack:  18 : (SEMICOLON 170 . 171),  15 : (RIGHT_PAREN 169 . 170),  14 : (TICK 168 . 169),  11 : (IDENTIFIER 167 . 168),  10 : (CHARACTER_LITERAL 164 . 167),  5 : (IDENTIFIER 155 . 164),  2 : (FOO 151 . 154),  1 : , 
- 1: 18: (IDENTIFIER 172 . 181) : reduce 6 tokens to statement
-statement_id_0: (statement 155 . 171) (IDENTIFIER 155 . 164), (CHARACTER_LITERAL 164 . 167), (IDENTIFIER 167 . 168), (TICK 168 . 169), (RIGHT_PAREN 169 . 170), (SEMICOLON 170 . 171)
- ... goto state 7
- 1 stack:  7 : (statement 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 7: (IDENTIFIER 172 . 181) : reduce 1 tokens to statement_list
-statement_list_id_0: (statement_list 155 . 171) (statement 155 . 171)
- ... goto state 6
- 1 stack:  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 6: (IDENTIFIER 172 . 181) : shift and goto state 5
- 1 stack:  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 5: (TICK 181 . 182) : shift and goto state 9
- 1 stack:  9 : (TICK 181 . 182),  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 9: (LEFT_PAREN 182 . 183) : shift and goto state 12
- 1 stack:  12 : (LEFT_PAREN 182 . 183),  9 : (TICK 181 . 182),  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 12: (CHARACTER_LITERAL 184 . 187) : shift and goto state 13
- 1 stack:  13 : (CHARACTER_LITERAL 184 . 187),  12 : (LEFT_PAREN 182 . 183),  9 : (TICK 181 . 182),  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 13: (RIGHT_PAREN 188 . 189) : shift and goto state 16
- 1 stack:  16 : (RIGHT_PAREN 188 . 189),  13 : (CHARACTER_LITERAL 184 . 187),  12 : (LEFT_PAREN 182 . 183),  9 : (TICK 181 . 182),  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 16: (SEMICOLON 189 . 190) : shift and goto state 17
- 1 stack:  17 : (SEMICOLON 189 . 190),  16 : (RIGHT_PAREN 188 . 189),  13 : (CHARACTER_LITERAL 184 . 187),  12 : (LEFT_PAREN 182 . 183),  9 : (TICK 181 . 182),  5 : (IDENTIFIER 172 . 181),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 17: (IDENTIFIER 191 . 200) : reduce 6 tokens to statement
-statement_id_0: (statement 172 . 190) (IDENTIFIER 172 . 181), (TICK 181 . 182), (LEFT_PAREN 182 . 183), (CHARACTER_LITERAL 184 . 187), (RIGHT_PAREN 188 . 189), (SEMICOLON 189 . 190)
- ... goto state 8
- 1 stack:  8 : (statement 172 . 190),  6 : (statement_list 155 . 171),  2 : (FOO 151 . 154),  1 : , 
- 1: 8: (IDENTIFIER 191 . 200) : reduce 2 tokens to statement_list
-statement_list_id_0: (statement_list 155 . 190) (statement_list 155 . 171), (statement 172 . 190)
- ... goto state 6
- 1 stack:  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 6: (IDENTIFIER 191 . 200) : shift and goto state 5
- 1 stack:  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 5: (CHARACTER_LITERAL 201 . 204) : shift and goto state 10
- 1 stack:  10 : (CHARACTER_LITERAL 201 . 204),  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 10: (IDENTIFIER 204 . 205) : shift and goto state 11
- 1 stack:  11 : (IDENTIFIER 204 . 205),  10 : (CHARACTER_LITERAL 201 . 204),  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 11: (TICK 205 . 206) : shift and goto state 14
- 1 stack:  14 : (TICK 205 . 206),  11 : (IDENTIFIER 204 . 205),  10 : (CHARACTER_LITERAL 201 . 204),  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 14: (RIGHT_PAREN 206 . 207) : shift and goto state 15
- 1 stack:  15 : (RIGHT_PAREN 206 . 207),  14 : (TICK 205 . 206),  11 : (IDENTIFIER 204 . 205),  10 : (CHARACTER_LITERAL 201 . 204),  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 15: (SEMICOLON 207 . 208) : shift and goto state 18
- 1 stack:  18 : (SEMICOLON 207 . 208),  15 : (RIGHT_PAREN 206 . 207),  14 : (TICK 205 . 206),  11 : (IDENTIFIER 204 . 205),  10 : (CHARACTER_LITERAL 201 . 204),  5 : (IDENTIFIER 191 . 200),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 18: (IDENTIFIER 209 . 218) : reduce 6 tokens to statement
-statement_id_0: (statement 191 . 208) (IDENTIFIER 191 . 200), (CHARACTER_LITERAL 201 . 204), (IDENTIFIER 204 . 205), (TICK 205 . 206), (RIGHT_PAREN 206 . 207), (SEMICOLON 207 . 208)
- ... goto state 8
- 1 stack:  8 : (statement 191 . 208),  6 : (statement_list 155 . 190),  2 : (FOO 151 . 154),  1 : , 
- 1: 8: (IDENTIFIER 209 . 218) : reduce 2 tokens to statement_list
-statement_list_id_0: (statement_list 155 . 208) (statement_list 155 . 190), (statement 191 . 208)
- ... goto state 6
- 1 stack:  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 6: (IDENTIFIER 209 . 218) : shift and goto state 5
- 1 stack:  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 5: (TICK 219 . 220) : shift and goto state 9
- 1 stack:  9 : (TICK 219 . 220),  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 9: (LEFT_PAREN 221 . 222) : shift and goto state 12
- 1 stack:  12 : (LEFT_PAREN 221 . 222),  9 : (TICK 219 . 220),  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 12: (CHARACTER_LITERAL 223 . 226) : shift and goto state 13
- 1 stack:  13 : (CHARACTER_LITERAL 223 . 226),  12 : (LEFT_PAREN 221 . 222),  9 : (TICK 219 . 220),  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 13: (RIGHT_PAREN 227 . 228) : shift and goto state 16
- 1 stack:  16 : (RIGHT_PAREN 227 . 228),  13 : (CHARACTER_LITERAL 223 . 226),  12 : (LEFT_PAREN 221 . 222),  9 : (TICK 219 . 220),  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 16: (SEMICOLON 228 . 229) : shift and goto state 17
- 1 stack:  17 : (SEMICOLON 228 . 229),  16 : (RIGHT_PAREN 227 . 228),  13 : (CHARACTER_LITERAL 223 . 226),  12 : (LEFT_PAREN 221 . 222),  9 : (TICK 219 . 220),  5 : (IDENTIFIER 209 . 218),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 17: (EOF 1 . 2) : reduce 6 tokens to statement
-statement_id_0: (statement 209 . 229) (IDENTIFIER 209 . 218), (TICK 219 . 220), (LEFT_PAREN 221 . 222), (CHARACTER_LITERAL 223 . 226), (RIGHT_PAREN 227 . 228), (SEMICOLON 228 . 229)
- ... goto state 8
- 1 stack:  8 : (statement 209 . 229),  6 : (statement_list 155 . 208),  2 : (FOO 151 . 154),  1 : , 
- 1: 8: (EOF 1 . 2) : reduce 2 tokens to statement_list
-statement_list_id_0: (statement_list 155 . 229) (statement_list 155 . 208), (statement 209 . 229)
- ... goto state 6
- 1 stack:  6 : (statement_list 155 . 229),  2 : (FOO 151 . 154),  1 : , 
- 1: 6: (EOF 1 . 2) : reduce 2 tokens to compilation_unit
-compilation_unit_id_0: (compilation_unit 151 . 229) (FOO 151 . 154), (statement_list 155 . 229)
- ... goto state 3
- 1 stack:  3 : (compilation_unit 151 . 229),  1 : , 
- 1: 3: (EOF 1 . 2) : shift and goto state 4
- 1 stack:  4 : (EOF 1 . 2),  3 : (compilation_unit 151 . 229),  1 : , 
- 1: 4: (EOF 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 229) (compilation_unit 151 . 229), (EOF 1 . 2)
+ 1: 1: (FOO 370 . 373) : shift and goto state 2
+ 1 stack:  2 : (FOO 370 . 373),  1 : , 
+ 1: 2: (IDENTIFIER 374 . 383) : shift and goto state 4
+ 1 stack:  4 : (IDENTIFIER 374 . 383),  2 : (FOO 370 . 373),  1 : , 
+ 1: 4: (CHARACTER_LITERAL 383 . 386) : ERROR
+character_literal.input:4:10: Syntax error; expecting one of TICK; found (CHARACTER_LITERAL 383 . 386) ''(''
+
+LR1_Parser parse:
+read 483
+-- These should all yield the same token sequence
+-- FIXME: they don't; need feedback from parser to lexer
+-- FIXME: parse trace reports statement_id:0 !?
+-- FIXME: parse trace stack is printed top on right
+
+-- FIXME: also try with no CHARACTER_LITERAL token; modify Ada grammar
+-- to cope? implement action that rewrites TICK IDENTIFIER TICK as
+-- CHARACTER_LITERAL?
+
+foo
+Character'('C');
+Character'( 'C' );
+Character '('C');
+Character ' ( 'C' );
+
+"a string"
+" an ""other"" string"
+
+ 1 stack:  1 : , 
+ 1: 1: (FOO 370 . 373) : shift and goto state 2
+ 1 stack:  2 : (FOO 370 . 373),  1 : , 
+ 1: 2: (IDENTIFIER 374 . 383) : shift and goto state 4
+ 1 stack:  4 : (IDENTIFIER 374 . 383),  2 : (FOO 370 . 373),  1 : , 
+ 1: 4: (CHARACTER_LITERAL 383 . 386) : ERROR
+character_literal.input:4:10: Syntax error; expecting one of TICK; found (CHARACTER_LITERAL 383 . 386) ''(''

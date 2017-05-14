@@ -8,7 +8,7 @@
 --  'wisi-generate' (written in Ada) and compiled by 'wisi-compile'
 --  (written in elisp)..
 --
---  The input file syntax is the based on Gnu bison syntax [1] with
+--  The input file syntax is based on Gnu bison syntax [1] with
 --  some additions. See [2] for the syntax accepted by wisi-generate
 --  (the Ada code) and wisi-compile (elisp code).
 --
@@ -49,8 +49,39 @@ package Wisi is
 
    Programmer_Error : exception; -- Error in Wisi Ada code
 
-   type Parser_Algorithm_Type is (LALR, LR1, LALR_LR1);
+   type Parser_Algorithm_Type is (None, LALR, LR1, LALR_LR1);
+   subtype Valid_Parser_Algorithm is Parser_Algorithm_Type range LALR .. LALR_LR1;
    subtype Single_Parser_Algorithm is Parser_Algorithm_Type range LALR .. LR1;
+
+   type Output_Language_Type is (None, Ada, Ada_Emacs, Elisp);
+   subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
+
+   type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer);
+   subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Regexp_Lexer;
+   --  We append "_Lexer" to these names to avoid colliding with the
+   --  similarly-named FastToken packages. In the grammar file, they
+   --  are named by:
+   Lexer_Names : constant array (Valid_Lexer) of access constant String :=
+     (Aflex_Lexer  => new String'("aflex"),
+      Elisp_Lexer  => new String'("elisp"),
+      Regexp_Lexer => new String'("regexp"));
+
+   function To_Lexer (Item : in String) return Lexer_Type;
+   --  Raises User_Error for invalid Item
+
+   type Interface_Type is (None, Process, Module);
+   subtype Valid_Interface is Interface_Type range Process .. Module;
+
+   type Generate_Param_Type is record
+      --  Set by grammar file declarations
+      Output_Language    : Output_Language_Type  := None;
+      Parser_Algorithm   : Parser_Algorithm_Type := None;
+      Lexer              : Lexer_Type            := None;
+      Interface_Kind     : Interface_Type        := None;
+      First_State_Index  : Integer               := 0;
+      First_Parser_Label : Integer               := 0;
+      Start_Token        : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
 
    type String_Pair_Type is record
       Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -90,7 +121,7 @@ package Wisi is
       On          : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
-   package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
+   package Conflict_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Conflict);
 
    package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
 
@@ -115,16 +146,13 @@ package Wisi is
      renames Standard.Ada.Strings.Unbounded.To_String;
 
    function To_Lower (Item : in String) return String
-     renames Ada.Characters.Handling.To_Lower;
+     renames Standard.Ada.Characters.Handling.To_Lower;
 
    function To_Upper (Item : in String) return String
-     renames Ada.Characters.Handling.To_Upper;
+     renames Standard.Ada.Characters.Handling.To_Upper;
 
    function To_Upper (Item : in Character) return Character
-     renames Ada.Characters.Handling.To_Upper;
-
-   function Strip_Quotes (Item : in String) return String;
-   --  Remove leading and trailing '"', if any.
+     renames Standard.Ada.Characters.Handling.To_Upper;
 
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List;
 
@@ -137,10 +165,6 @@ package Wisi is
    function "+" (List : in RHS_Lists.List; Item : in RHS_Type) return RHS_Lists.List;
 
    Verbosity : Integer := 0;
-
-   type Lexer_Type is (Aflex_Lexer, Elisp_Lexer);
-
-   type Interface_Type is (Process, Module);
 
    procedure Put_Command_Line (Comment_Prefix : in String);
    --  Put command line to current output

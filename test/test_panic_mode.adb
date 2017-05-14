@@ -21,10 +21,10 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with Ada_Lite_Process;
+with Ada_Lite;
 with FastToken.Text_Feeder.String;
 with FastToken.Text_Feeder.Text_IO;
-with ada_lite_process_dfa;
+with ada_lite_dfa;
 package body Test_Panic_Mode is
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -36,7 +36,7 @@ package body Test_Panic_Mode is
    is
       Test : Test_Case renames Test_Case (T);
       use Ada.Exceptions;
-      use Ada_Lite_Process;
+      use Ada_Lite;
 
       File_Name : constant String := "../../wisi/test/ada_lite.input";
       Parser : LR_Parser.Instance := Create_Parser
@@ -45,7 +45,7 @@ package body Test_Panic_Mode is
    begin
       --  The test is that there is no exception.
 
-      ada_lite_process_dfa.aflex_debug := False; -- keep for future debugging
+      ada_lite_dfa.aflex_debug := False; -- keep for future debugging
       FastToken.Trace_Parse := Test.Debug;
 
       Parser.Parse;
@@ -62,7 +62,7 @@ package body Test_Panic_Mode is
    is
       Test : Test_Case renames Test_Case (T);
       use Ada.Exceptions;
-      use Ada_Lite_Process;
+      use Ada_Lite;
 
       Parser : LR_Parser.Instance := Create_Parser
         (FastToken.LALR,
@@ -83,7 +83,7 @@ package body Test_Panic_Mode is
          AUnit.Assertions.Assert (False, Label & ": " & Exception_Message (E));
       end Parse_Text;
    begin
-      ada_lite_process_dfa.aflex_debug := False; -- keep this here for future debugging
+      ada_lite_dfa.aflex_debug := False; -- keep this here for future debugging
       FastToken.Trace_Parse := Test.Debug;
 
       Parse_Text

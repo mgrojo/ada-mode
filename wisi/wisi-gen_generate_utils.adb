@@ -166,7 +166,7 @@ package body Wisi.Gen_Generate_Utils is
 
    function Non_Reporting (Cursor : in Token_Cursor) return Boolean
    is
-      use Ada.Strings.Unbounded;
+      use Standard.Ada.Strings.Unbounded;
       --  WORKAROUND: in GNAT GPL_2014, using single statement here gives constraint error
       Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type := Wisi.Token_Lists.Constant_Reference
         (Tokens, Cursor.Token_Kind);
@@ -446,7 +446,7 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    exception
    when E : Not_Found =>
-      raise FastToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
+      raise FastToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
    function "&" (Tokens : in Token_Pkg.List.Instance; Token : in String) return Token_Pkg.List.Instance

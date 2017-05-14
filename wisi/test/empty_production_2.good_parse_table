@@ -8,11 +8,11 @@ Tokens:
  7 => declaration
  8 => declarations
  9 => body
- 10 => FASTTOKEN_ACCEPT
+ 10 => fasttoken_accept
 
 LALR Parse Table:
 State 1:
-  FASTTOKEN_ACCEPT <= ^ declarations WISI_EOI, 
+  fasttoken_accept <= ^ declarations WISI_EOI, 
 
    IS               => shift and goto state 2,
                        reduce 0 tokens to declaration
@@ -46,7 +46,7 @@ State 3:
 
 State 4:
   declarations <= declarations ^ declaration, IS/WISI_EOI
-  FASTTOKEN_ACCEPT <= declarations ^ WISI_EOI, 
+  fasttoken_accept <= declarations ^ WISI_EOI, 
 
    IS               => shift and goto state 2,
                        reduce 0 tokens to declaration
@@ -104,5 +104,159 @@ State 9:
    default          => ERROR
 
 
- 3 rules, 1 actions, 9 states, 30 table entries
+LR1 Parse Table:
+State 1:
+  fasttoken_accept <= ^ declarations WISI_EOI, WISI_EOI
+
+   IS               => shift and goto state 2,
+                       reduce 0 tokens to declaration
+   WISI_EOI         => reduce 0 tokens to declaration
+   default          => ERROR
+
+   declaration      goto state 3
+   declarations     goto state 4
+   body             goto state 5
+
+State 2:
+  body <= IS ^ declarations BEGIN SEMICOLON, IS/WISI_EOI
+
+   BEGIN            => reduce 0 tokens to declaration
+   IS               => shift and goto state 7,
+                       reduce 0 tokens to declaration
+   default          => ERROR
+
+   declaration      goto state 8
+   declarations     goto state 9
+   body             goto state 10
+
+State 3:
+  declarations <= declaration ^, IS/WISI_EOI
+
+   IS               => reduce 1 tokens to declarations
+   WISI_EOI         => reduce 1 tokens to declarations
+   default          => ERROR
+
+
+State 4:
+  declarations <= declarations ^ declaration, IS/WISI_EOI
+  fasttoken_accept <= declarations ^ WISI_EOI, WISI_EOI
+
+   IS               => shift and goto state 2,
+                       reduce 0 tokens to declaration
+   WISI_EOI         => reduce 0 tokens to declaration,
+                       accept it
+   default          => ERROR
+
+   declaration      goto state 6
+   body             goto state 5
+
+State 5:
+  declaration <= body ^, IS/WISI_EOI
+
+   IS               => reduce 1 tokens to declaration
+   WISI_EOI         => reduce 1 tokens to declaration
+   default          => ERROR
+
+
+State 6:
+  declarations <= declarations declaration ^, IS/WISI_EOI
+
+   IS               => reduce 2 tokens to declarations
+   WISI_EOI         => reduce 2 tokens to declarations
+   default          => ERROR
+
+
+State 7:
+  body <= IS ^ declarations BEGIN SEMICOLON, BEGIN/IS
+
+   BEGIN            => reduce 0 tokens to declaration
+   IS               => shift and goto state 7,
+                       reduce 0 tokens to declaration
+   default          => ERROR
+
+   declaration      goto state 8
+   declarations     goto state 13
+   body             goto state 10
+
+State 8:
+  declarations <= declaration ^, BEGIN/IS
+
+   BEGIN            => reduce 1 tokens to declarations
+   IS               => reduce 1 tokens to declarations
+   default          => ERROR
+
+
+State 9:
+  declarations <= declarations ^ declaration, BEGIN/IS
+  body <= IS declarations ^ BEGIN SEMICOLON, IS/WISI_EOI
+
+   BEGIN            => shift and goto state 11,
+                       reduce 0 tokens to declaration
+   IS               => shift and goto state 7,
+                       reduce 0 tokens to declaration
+   default          => ERROR
+
+   declaration      goto state 12
+   body             goto state 10
+
+State 10:
+  declaration <= body ^, BEGIN/IS
+
+   BEGIN            => reduce 1 tokens to declaration
+   IS               => reduce 1 tokens to declaration
+   default          => ERROR
+
+
+State 11:
+  body <= IS declarations BEGIN ^ SEMICOLON, IS/WISI_EOI
+
+   SEMICOLON        => shift and goto state 15
+   default          => ERROR
+
+
+State 12:
+  declarations <= declarations declaration ^, BEGIN/IS
+
+   BEGIN            => reduce 2 tokens to declarations
+   IS               => reduce 2 tokens to declarations
+   default          => ERROR
+
+
+State 13:
+  declarations <= declarations ^ declaration, BEGIN/IS
+  body <= IS declarations ^ BEGIN SEMICOLON, BEGIN/IS
+
+   BEGIN            => shift and goto state 14,
+                       reduce 0 tokens to declaration
+   IS               => shift and goto state 7,
+                       reduce 0 tokens to declaration
+   default          => ERROR
+
+   declaration      goto state 12
+   body             goto state 10
+
+State 14:
+  body <= IS declarations BEGIN ^ SEMICOLON, BEGIN/IS
+
+   SEMICOLON        => shift and goto state 16
+   default          => ERROR
+
+
+State 15:
+  body <= IS declarations BEGIN SEMICOLON ^, IS/WISI_EOI
+
+   IS               => reduce 4 tokens to body
+   WISI_EOI         => reduce 4 tokens to body
+   default          => ERROR
+
+
+State 16:
+  body <= IS declarations BEGIN SEMICOLON ^, BEGIN/IS
+
+   BEGIN            => reduce 4 tokens to body
+   IS               => reduce 4 tokens to body
+   default          => ERROR
+
+
+ 3 rules, 1 actions, 16 states, 76 table entries
  1 accept/reduce conflicts, 2 shift/reduce conflicts, 0 reduce/reduce conflicts

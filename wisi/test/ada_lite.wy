@@ -75,6 +75,9 @@
 %token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %start compilation_unit_list
+%parser_algorithm LALR
+%output_language Ada
+%lexer Aflex
 
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN

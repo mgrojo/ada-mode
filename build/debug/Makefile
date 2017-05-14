@@ -4,51 +4,69 @@ all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 # ../../Test/test_all_harness.adb
-t_one : RUN_ARGS := -v
+#t_one : aflex.exe
+t_one : one-clean
+t_one : character_literal_yylex.adb
+#t_one : RUN_ARGS := 3
+# %_process.l : PARSER_ALG := LALR
 t_one : test_one_harness.run
+
+t_all : ada_lite_yylex.adb
 t_all : ./wisi-generate.exe
 t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
 one-clean :
-	rm -rf identifier_list_name_conflict*
+	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-#one : one-clean
-#one : identifier_list_name_conflict_process.l
-# one : empty_production_1-parse.diff
-one: wisi-generate.exe
-	./wisi-generate ../../wisi/test/empty_production_8.wy LALR Elisp
+one : one-clean
+one : wisi-generate.exe
+# one : debug_process_yylex.adb
+# one : debug.exe
+# 	./debug.exe ../../wisi/test/debug.input
 
 some-clean :
-	rm -rf subprograms*
+	rm -rf $(SOME_CLEAN_FILE)*
 some : some-clean
 some : wisi-generate.exe
+# # some : SOME_CLEAN_FILE := conflict_name
+# some : conflict_name-process.el.diff
 # some : conflict_name_process_yylex.adb
 # some : conflict_name-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_1
 # some : empty_production_1_process_yylex.adb
 # some : empty_production_1-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_2
 # some : empty_production_2_process_yylex.adb
 # some : empty_production_2-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_3
 # some : empty_production_3_process_yylex.adb
 # some : empty_production_3-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_4
 # some : empty_production_4_process_yylex.adb
 # some : empty_production_4-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_5
 # some : empty_production_5_process_yylex.adb
 # some : empty_production_5-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_6
 # some : empty_production_6_process_yylex.adb
 # some : empty_production_6-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_7
 # some : empty_production_7_process_yylex.adb
 # some : empty_production_7-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_8
 # some : empty_production_8_process_yylex.adb
 # some : empty_production_8-parse.diff
+# # some : SOME_CLEAN_FILE := identifier_list_name_conflict
 # some : identifier_list_name_conflict_process_yylex.adb
 # some : identifier_list_name_conflict-parse.diff
-some : subprograms_process_yylex.adb
-some : subprograms-parse.diff
+# # some : SOME_CLEAN_FILE := subprograms
+# some : subprograms_process_yylex.adb
+# some : subprograms-parse.diff
 
 aflex.exe : force
-	make -C /Projects/aflex/build install
+	make -C /Projects/edu.uci.aflex/build install
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy
@@ -60,6 +78,6 @@ trace :
 include ../common.make
 
 # Local Variables:
-# eval: (load-file "prj.el")
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
 # end:
 # end of file

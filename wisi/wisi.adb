@@ -22,6 +22,16 @@ with Ada.Command_Line;
 with Ada.Directories;
 package body Wisi is
 
+   function To_Lexer (Item : in String) return Lexer_Type
+   is begin
+      for I in Valid_Lexer loop
+         if Lexer_Names (I).all = To_Lower (Item) then
+            return I;
+         end if;
+      end loop;
+      raise User_Error with "invalid lexer name: '" & Item & "'";
+   end To_Lexer;
+
    function Count (Tokens : in Token_Lists.List) return Integer
    is
       Result : Integer := 0;
@@ -84,17 +94,6 @@ package body Wisi is
       return False;
    end Is_In;
 
-   function Strip_Quotes (Item : in String) return String
-   is begin
-      if Item'Length < 2 then
-         return Item;
-      else
-         return Item
-           ((if Item (Item'First) = '"' then Item'First + 1 else Item'First) ..
-              (if Item (Item'Last) = '"' then Item'Last - 1 else Item'Last));
-      end if;
-   end Strip_Quotes;
-
    function "+" (List : in String_Lists.List; Item : in String) return String_Lists.List
    is
       Result : String_Lists.List := List;
@@ -129,33 +128,35 @@ package body Wisi is
 
    procedure Put_Command_Line (Comment_Prefix : in String)
    is
-      use Ada.Command_Line;
+      use Standard.Ada.Command_Line;
+      use Standard.Ada.Text_IO;
+
       Max_Line_Length : constant := 120;
       Col : Integer := 0;
 
       procedure Put (Item : in String; Leading_Space : in Boolean)
       is begin
          if Col > 0 and Col + Item'Length + 1 > Max_Line_Length then
-            Ada.Text_IO.New_Line;
+            New_Line;
             Col := Comment_Prefix'Length;
-            Ada.Text_IO.Put (Comment_Prefix);
+            Put (Comment_Prefix);
          else
             if Leading_Space then
-               Ada.Text_IO.Put (" ");
+               Put (" ");
                Col := Col + 1;
             end if;
          end if;
 
          Col := Col + Item'Length;
-         Ada.Text_IO.Put (Item);
+         Put (Item);
       end Put;
    begin
       Put (Comment_Prefix & "with command line:", False);
-      Put (Ada.Directories.Simple_Name (Command_Name), True);
+      Put (Standard.Ada.Directories.Simple_Name (Command_Name), True);
       for I in 1 .. Argument_Count loop
          Put (Argument (I), True);
       end loop;
-      Ada.Text_IO.New_Line;
+      New_Line;
    end Put_Command_Line;
 
 end Wisi;

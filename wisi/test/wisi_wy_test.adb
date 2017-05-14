@@ -39,7 +39,7 @@ package body Wisi_Wy_Test is
 
       Exe : constant String_Access := Locate_Exec_On_Path ("./wisi-generate.exe");
 
-      Wy_File     : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+      WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
 
       Computed_LALR_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr-elisp.el";
       Expected_LALR_El_File : constant String := Test.Root_Name.all & "-lalr-elisp.good_el";
@@ -50,14 +50,12 @@ package body Wisi_Wy_Test is
       Spawn
         (Program_Name => Exe.all,
          Args         =>
-           (1         => Wy_File,
-            2         => new String'("LALR_LR1"),
-            3         => new String'("Elisp")),
+           (1         => WY_File),
          Success      => Success);
 
       AUnit.Assertions.Assert
         (Success,
-         "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
+         "spawn or execution of 'wisi-generate.exe' " & WY_File.all & "' failed");
 
       AUnit.Checks.Text_IO.Check_Files ("LALR", Computed_LALR_El_File, Expected_LALR_El_File);
       AUnit.Checks.Text_IO.Check_Files ("LR1", Computed_LR1_El_File, Expected_LR1_El_File);
