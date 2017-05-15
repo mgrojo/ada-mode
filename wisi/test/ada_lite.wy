@@ -79,6 +79,14 @@
 %output_language Ada
 %lexer Aflex
 
+;; Good candidates for panic_recover are nonterms followed reliably by
+;; a small set of terminals. These are all followed by END (some are
+;; also followed by a few others).
+%panic_recover case_statement_alternative_list
+%panic_recover elsif_statement_list
+%panic_recover handled_sequence_of_statements
+%panic_recover sequence_of_statements_opt
+
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN

@@ -29,6 +29,7 @@ procedure Wisi.Output_Elisp
    Keywords        : in String_Pair_Lists.List;
    Tokens          : in Token_Lists.List;
    Conflicts       : in Conflict_Lists.List;
+   Panic_Recover   : in String_Lists.List;
    Rules           : in Rule_Lists.List;
    Rule_Count      : in Integer;
    Action_Count    : in Integer)
@@ -138,6 +139,7 @@ is
            (Grammar,
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
@@ -148,6 +150,7 @@ is
            (Grammar,
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
@@ -198,6 +201,6 @@ begin
            Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
            Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-           Generate_Utils.LR.State_Index'Image (Parser'Last) & " states");
+           Generate_Utils.LR.State_Index'Image (Generate_Utils.To_State_Count (Parser.State_Last)) & " states");
    end if;
 end Wisi.Output_Elisp;

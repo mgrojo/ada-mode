@@ -26,6 +26,7 @@ with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
@@ -94,7 +95,8 @@ package body Dragon_4_43_LR1_Test is
    package Lexer is new Lexer_Root.Regexp;
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
    function "+" (Item : in Token_ID) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
 
@@ -112,7 +114,7 @@ package body Dragon_4_43_LR1_Test is
       Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
-   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+   Has_Empty_Production : constant Parser_Root.Nonterminal_ID_Set :=
      LR1_Items.Has_Empty_Production (Grammar);
 
    First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
@@ -121,20 +123,35 @@ package body Dragon_4_43_LR1_Test is
    ----------
    --  Test procedures
 
-   procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Test_First_Follow (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      pragma Unreferenced (T);
+      Test : Test_Case renames Test_Case (T);
 
-      --  FIRST defined in dragon pg 45
+      --  FIRST defined in [dragon] pg 189; we add nonterminals
 
-      Expected : constant LR1_Items.Derivation_Matrix :=
+      Expected_First : constant LR1_Items.Derivation_Matrix :=
         (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
+
+      --  FOLLOW defined in [dragon] pg 189
+      Expected_Follow : constant LR1_Items.Nonterminal_Array_Terminal_Set :=
+        (Accept_ID  => (others => False),
+         Upper_S_ID => (EOF_ID => True, others => False),
+         Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
+
+      Computed_Follow : constant LR1_Items.Nonterminal_Array_Terminal_Set := LR1_Items.Follow (Grammar, First);
    begin
-      Check ("0", Has_Empty_Production, LR1_Items.Nonterminal_ID_Set'(others => False));
-      Check ("1", First, Expected);
-   end Test_First;
+      Check ("0", Has_Empty_Production, Parser_Root.Nonterminal_ID_Set'(others => False));
+      Check ("1", First, Expected_First);
+
+      if Test.Debug then
+         Ada.Text_IO.Put_Line ("Follow:");
+         LR1_Items.Put (Computed_Follow);
+      end if;
+
+      Check ("2", Computed_Follow, Expected_Follow);
+   end Test_First_Follow;
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -223,53 +240,53 @@ package body Dragon_4_43_LR1_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
-      Expected : Parse_Table (0 .. 9);
+      Expected : Parse_Table (9);
 
    begin
       --  figure 4.41 pg 239
       --  'r1' means reduce by production 1, 0 indexed; our production 2
       --  'acc' = reduce by our production 1
 
-      Add_Action (Expected (Map (0)), Lower_C_ID, Map (3));
-      Add_Action (Expected (Map (0)), Lower_D_ID, Map (4));
-      Add_Error (Expected (Map (0)));
-      Add_Goto (Expected (Map (0)), Upper_C_ID, Map (2));
-      Add_Goto (Expected (Map (0)), Upper_S_ID, Map (1));
+      Add_Action (Expected.States (Map (0)), Lower_C_ID, Map (3));
+      Add_Action (Expected.States (Map (0)), Lower_D_ID, Map (4));
+      Add_Error (Expected.States (Map (0)));
+      Add_Goto (Expected.States (Map (0)), Upper_C_ID, Map (2));
+      Add_Goto (Expected.States (Map (0)), Upper_S_ID, Map (1));
 
-      Add_Action (Expected (Map (1)), EOF_ID, Accept_It, Accept_ID, 1, Self);
-      Add_Error (Expected (Map (1)));
+      Add_Action (Expected.States (Map (1)), EOF_ID, Accept_It, Accept_ID, 1, 0, Self);
+      Add_Error (Expected.States (Map (1)));
 
-      Add_Action (Expected (Map (2)), Lower_C_ID, Map (6));
-      Add_Action (Expected (Map (2)), Lower_D_ID, Map (7));
-      Add_Error (Expected (Map (2)));
-      Add_Goto (Expected (Map (2)), Upper_C_ID, Map (5));
+      Add_Action (Expected.States (Map (2)), Lower_C_ID, Map (6));
+      Add_Action (Expected.States (Map (2)), Lower_D_ID, Map (7));
+      Add_Error (Expected.States (Map (2)));
+      Add_Goto (Expected.States (Map (2)), Upper_C_ID, Map (5));
 
-      Add_Action (Expected (Map (3)), Lower_C_ID, Map (3));
-      Add_Action (Expected (Map (3)), Lower_D_ID, Map (4));
-      Add_Error (Expected (Map (3)));
-      Add_Goto (Expected (Map (3)), Upper_C_ID, Map (8));
+      Add_Action (Expected.States (Map (3)), Lower_C_ID, Map (3));
+      Add_Action (Expected.States (Map (3)), Lower_D_ID, Map (4));
+      Add_Error (Expected.States (Map (3)));
+      Add_Goto (Expected.States (Map (3)), Upper_C_ID, Map (8));
 
-      Add_Action (Expected (Map (4)), Lower_C_ID, Reduce, Upper_C_ID, 1, Self);
-      Add_Action (Expected (Map (4)), Lower_D_ID, Reduce, Upper_C_ID, 1, Self);
-      Add_Error (Expected (Map (4))); -- default = error
+      Add_Action (Expected.States (Map (4)), Lower_C_ID, Reduce, Upper_C_ID, 1, 0, Self);
+      Add_Action (Expected.States (Map (4)), Lower_D_ID, Reduce, Upper_C_ID, 1, 0, Self);
+      Add_Error (Expected.States (Map (4))); -- default = error
 
-      Add_Action (Expected (Map (5)), EOF_ID, Reduce, Upper_S_ID, 2, Self);
-      Add_Error (Expected (Map (5)));
+      Add_Action (Expected.States (Map (5)), EOF_ID, Reduce, Upper_S_ID, 2, 0, Self);
+      Add_Error (Expected.States (Map (5)));
 
-      Add_Action (Expected (Map (6)), Lower_C_ID, Map (6));
-      Add_Action (Expected (Map (6)), Lower_D_ID, Map (7));
-      Add_Error (Expected (Map (6)));
-      Add_Goto (Expected (Map (6)), Upper_C_ID, Map (9));
+      Add_Action (Expected.States (Map (6)), Lower_C_ID, Map (6));
+      Add_Action (Expected.States (Map (6)), Lower_D_ID, Map (7));
+      Add_Error (Expected.States (Map (6)));
+      Add_Goto (Expected.States (Map (6)), Upper_C_ID, Map (9));
 
-      Add_Action (Expected (Map (7)), EOF_ID, Reduce, Upper_C_ID, 1, Self);
-      Add_Error (Expected (Map (7)));
+      Add_Action (Expected.States (Map (7)), EOF_ID, Reduce, Upper_C_ID, 1, 0, Self);
+      Add_Error (Expected.States (Map (7)));
 
-      Add_Action (Expected (Map (8)), Lower_C_ID, Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (Map (8)), Lower_D_ID, Reduce, Upper_C_ID, 2, Self);
-      Add_Error (Expected (Map (8)));
+      Add_Action (Expected.States (Map (8)), Lower_C_ID, Reduce, Upper_C_ID, 2, 0, Self);
+      Add_Action (Expected.States (Map (8)), Lower_D_ID, Reduce, Upper_C_ID, 2, 0, Self);
+      Add_Error (Expected.States (Map (8)));
 
-      Add_Action (Expected (Map (9)), EOF_ID, Reduce, Upper_C_ID, 2, Self);
-      Add_Error (Expected (Map (9)));
+      Add_Action (Expected.States (Map (9)), EOF_ID, Reduce, Upper_C_ID, 2, 0, Self);
+      Add_Error (Expected.States (Map (9)));
 
       if Test.Debug then
          --  computed output above during generate
@@ -322,9 +339,9 @@ package body Dragon_4_43_LR1_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_LR1_Items'Access, "debug");
+         Register_Routine (T, Test_First_Follow'Access, "debug");
       else
-         Register_Routine (T, Test_First'Access, "Test_First");
+         Register_Routine (T, Test_First_Follow'Access, "Test_First_Follow");
          Register_Routine (T, Test_LR1_Items'Access, "Test_LR1_Items");
          Register_Routine (T, Parser_Table'Access, "Parser_Table");
          Register_Routine (T, Test_Parse'Access, "Test_Parse");

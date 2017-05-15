@@ -24,9 +24,10 @@ package body FastToken.Parser.LR.Elisp is
 
    procedure Action_Table (Table : in Parse_Table)
    is begin
+      --  FIXME: add panic_recover to elisp parser
       Put ("     [");
-      for State in Table'Range loop
-         if State = Table'First then
+      for State in Table.States'Range loop
+         if State = Table.States'First then
             Put ("(");
          else
             Put ("      (");
@@ -35,7 +36,7 @@ package body FastToken.Parser.LR.Elisp is
          Put ("(default . error)");
 
          declare
-            Action : Action_Node_Ptr := Table (State).Action_List;
+            Action : Action_Node_Ptr := Table.States (State).Action_List;
          begin
             loop
                declare
@@ -94,7 +95,7 @@ package body FastToken.Parser.LR.Elisp is
                end if;
 
                if Action = null then
-                  if State = Table'Last then
+                  if State = Table.States'Last then
                      Put (")");
                   else
                      Put_Line (")");
@@ -134,22 +135,22 @@ package body FastToken.Parser.LR.Elisp is
 
    begin
       Put ("     [");
-      for State in Table'Range loop
+      for State in Table.States'Range loop
          declare
-            Gotos : Goto_Node_Ptr := Filter_Terminals (Table (State).Goto_List);
+            Gotos : Goto_Node_Ptr := Filter_Terminals (Table.States (State).Goto_List);
          begin
             if Gotos = null then
-               if State = Table'First then
+               if State = Table.States'First then
                   Put_Line ("nil");
                else
-                  if State = Table'Last then
+                  if State = Table.States'Last then
                      Put ("      nil");
                   else
                      Put_Line ("      nil");
                   end if;
                end if;
             else
-               if State = Table'First then
+               if State = Table.States'First then
                   Put ("(");
                else
                   Put ("      (");
@@ -159,7 +160,7 @@ package body FastToken.Parser.LR.Elisp is
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
-               if State = Table'Last then
+               if State = Table.States'Last then
                   Put (")");
                else
                   Put_Line (")");

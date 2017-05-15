@@ -108,6 +108,7 @@ package FastToken.Production is
       --  Return true if the iterator is at the last production.
 
       function Is_Done (Iterator : in List_Iterator) return Boolean;
+      function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
       --  Return true if the iterator is past the last production.
 
    private

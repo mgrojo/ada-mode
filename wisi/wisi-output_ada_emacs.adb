@@ -41,6 +41,7 @@ procedure Wisi.Output_Ada_Emacs
    Keywords                : in String_Pair_Lists.List;
    Tokens                  : in Token_Lists.List;
    Conflicts               : in Conflict_Lists.List;
+   Panic_Recover           : in String_Lists.List;
    Rules                   : in Rule_Lists.List;
    Rule_Count              : in Integer;
    Action_Count            : in Integer;
@@ -287,12 +288,13 @@ is
            (Data.Grammar,
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := Parsers (LALR)'Last;
+         Data.Parser_State_Count := Generate_Utils.To_State_Count (Parsers (LALR).State_Last);
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
@@ -300,13 +302,14 @@ is
            (Data.Grammar,
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
          Data.Parser_State_Count := Generate_Utils.LR.Unknown_State_Index'Max
-           (Data.Parser_State_Count, Parsers (LR1)'Last);
+           (Data.Parser_State_Count, Generate_Utils.To_State_Count (Parsers (LR1).State_Last));
       end if;
 
       Create (Body_File, Out_File, File_Name);
@@ -658,8 +661,7 @@ is
          end loop;
       end if;
 
-      Create_Create_Parser
-        (Input_File_Name, Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind, Generate_Params .First_State_Index);
+      Create_Create_Parser (Input_File_Name, Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind);
 
       case Data.Interface_Kind is
       when Process =>

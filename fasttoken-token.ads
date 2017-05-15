@@ -56,6 +56,9 @@ package FastToken.Token is
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
    --  We assume Last_Terminal < Token_ID'last; ie there are some nonterminals.
 
+   subtype Reporting_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
+   --  Leaves out whitespace, comments; tokens the lexer will never return.
+
    type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
 
    type Buffer_Range is record
@@ -106,6 +109,8 @@ package FastToken.Token is
    function ID (Token : in Instance'Class) return Token_ID;
    --  Class-wide so it is consistent with accessing the ID directly.
 
+   function ID (Token : in Handle) return Token_ID;
+
    ----------
    --  Token lists
 
@@ -145,6 +150,7 @@ package FastToken.Token is
       --  Null_Iterator if there is no next token.
 
       function Is_Done (Iterator : in List_Iterator) return Boolean;
+      function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
 
       function Token_Handle (Iterator : in List_Iterator) return Handle;
       function ID (Iterator : in List_Iterator) return Token_ID;

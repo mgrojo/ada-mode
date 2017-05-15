@@ -41,7 +41,7 @@ package body FastToken.Parser.LR.Parser is
      return Parse_Action_Node_Ptr
    is
       use type Token.Terminal_ID;
-      Action_Node : Action_Node_Ptr := Table (State).Action_List;
+      Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
    begin
       while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
          Action_Node := Action_Node.Next;
@@ -50,27 +50,11 @@ package body FastToken.Parser.LR.Parser is
       return Action_Node.Action;
    end Action_For;
 
-   function Goto_For
-     (Table : in Parse_Table;
-      State : in State_Index;
-      ID    : in Token.Token_ID)
-     return State_Index
-   is
-      use type Token.Terminal_ID;
-      Goto_Node : Goto_Node_Ptr := Table (State).Goto_List;
-   begin
-      while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
-         Goto_Node := Goto_Node.Next;
-      end loop;
-
-      return Goto_Node.State;
-   end Goto_For;
-
    type Token_ID_Array is array (Integer range <>) of Token.Token_ID;
 
    function Expecting (Table : in Parse_Table_Ptr; State : in State_Index) return Token_ID_Array
    is
-      Action : Action_Node_Ptr := Table (State).Action_List;
+      Action : Action_Node_Ptr := Table.States (State).Action_List;
       Count  : Integer         := 0;
    begin
       loop
@@ -84,7 +68,7 @@ package body FastToken.Parser.LR.Parser is
       declare
          Result : Token_ID_Array (1 .. Count - 1);
       begin
-         Action := Table (State).Action_List;
+         Action := Table.States (State).Action_List;
          for I in Result'Range loop
             Result (I) := Action.Symbol;
             Action     := Action.Next;
@@ -140,7 +124,7 @@ package body FastToken.Parser.LR.Parser is
             if Trace_Parse > 1 then
                Put_Trace ("pending ");
                Parser_Lists.Put_Trace (Action_Token);
-               Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Action_Token_Count));
+               Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
             Action.Action (New_Token.all, Tokens, Token.ID (New_Token.all));
@@ -302,7 +286,7 @@ package body FastToken.Parser.LR.Parser is
          Put_Trace_Line ("execute pending");
       end if;
       loop
-         exit when Current_Parser.Action_Tokens_Empty;
+         exit when Current_Parser.Pending_Actions_Empty;
          Action_Token := Current_Parser.Dequeue;
          Action_Token.Action.Action
            (Action_Token.New_Token.all, Action_Token.Tokens, Token.ID (Action_Token.New_Token.all));
@@ -323,8 +307,8 @@ package body FastToken.Parser.LR.Parser is
       Current_Token  : Token.Handle;
       Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
+      Try_Again      : Boolean;
    begin
-
       loop
          --  exit on Accept_It action or syntax error.
 
@@ -337,33 +321,51 @@ package body FastToken.Parser.LR.Parser is
             Current_Token := new Token.Class'(Parser.Lexer.Get);
 
          when Accept_It =>
-            --  Done.
-            if Parsers.Count > 1 then
-               raise Parse_Error with
-                 Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                 ": Ambiguous parse:" & Integer'Image (Parsers.Count) & " parsers active.";
-            end if;
-            --  FIXME: free everything
+            declare
+               Count : constant Integer := Parsers.Count;
+            begin
+               --  FIXME: Free (Parsers);
+               Token.Free (Current_Token);
+               --  Action points into the parser table; it does not get free'd.
+
+               if Count > 1 then
+                  --  Panic mode error resolution does not help with this.
+                  raise Parse_Error with
+                    Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
+                    ": Ambiguous parse:" & Integer'Image (Count) & " parsers active.";
+               end if;
+            end;
             return;
 
          when Reduce =>
             null;
 
          when Error =>
-            --  All parsers errored; report errors
-            declare
-               ID     : constant String := Current_Token.Image;
-               Lexeme : constant String := Parser.Lexer.Lexeme;
+            --  All parsers errored; attempt recovery,
+            if Any (Parser.Table.Panic_Recover) then
+               Try_Again := Panic_Mode.Panic_Mode (Parser.Table.all, Parsers, Token.ID (Current_Token));
+            else
+               Try_Again := False;
+            end if;
 
-               --  FIXME: merge expecting from all active parsers
-               Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
-            begin
-               --  FIXME: free everything
-               raise Syntax_Error with
-                 Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                 ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
-                 "; found " & ID & " '" & Lexeme & "'";
-            end;
+            if Try_Again then
+               --  report errors
+               declare
+                  ID     : constant String := Current_Token.Image;
+                  Lexeme : constant String := Parser.Lexer.Lexeme;
+
+                  --  FIXME: merge expecting from all active parsers
+                  Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
+               begin
+                  --  FIXME: Free (Parsers);
+                  Token.Free (Current_Token);
+
+                  raise Syntax_Error with
+                    Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
+                    ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
+                    "; found " & ID & " '" & Lexeme & "'";
+               end;
+            end if;
 
          end case;
 

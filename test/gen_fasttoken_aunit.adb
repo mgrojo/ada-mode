@@ -478,11 +478,12 @@ package body Gen_FastToken_AUnit is
       Computed : in LR.Parse_Table;
       Expected : in LR.Parse_Table)
    is begin
-      Check (Label & ".first", Computed'First, Expected'First);
-      Check (Label & ".last", Computed'Last, Expected'Last);
-      for I in Computed'Range loop
-         Check (Label & "." & LR.State_Index'Image (I), Computed (I), Expected (I));
+      Check (Label & ".States'first", Computed.States'First, Expected.States'First);
+      Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
+      for I in Computed.States'Range loop
+         Check (Label & ".States." & LR.State_Index'Image (I), Computed.States (I), Expected.States (I));
       end loop;
+      Check (Label & ".Panic_Recover", Computed.Panic_Recover, Expected.Panic_Recover);
    end Check;
 
 end Gen_FastToken_AUnit;

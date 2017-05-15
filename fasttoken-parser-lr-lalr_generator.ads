@@ -43,6 +43,7 @@ package FastToken.Parser.LR.LALR_Generator is
    function Generate
      (Grammar                  : in Production.List.Instance;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Nonterminal_ID_Set  := (others => False);
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;

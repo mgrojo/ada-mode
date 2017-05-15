@@ -89,11 +89,10 @@ package Wisi.Gen_Output_Ada_Common is
       First_Parser_Label : in Integer);
 
    procedure Create_Create_Parser
-     (Input_File_Name   : in String;
-      Parser_Algorithm  : in Valid_Parser_Algorithm;
-      Lexer             : in Valid_Lexer;
-      Interface_Kind    : in Valid_Interface;
-      First_State_Index : in Integer);
+     (Input_File_Name  : in String;
+      Parser_Algorithm : in Valid_Parser_Algorithm;
+      Lexer            : in Valid_Lexer;
+      Interface_Kind   : in Valid_Interface);
 
    procedure Create_Parser_Core
      (Input_File_Name : in String;

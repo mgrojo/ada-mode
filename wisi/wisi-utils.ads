@@ -46,6 +46,10 @@ package Wisi.Utils is
    procedure Indent_Line (Text : in String);
    --  Put Text indented to Indent to Current_Output, with newline.
 
+   procedure Indent_Start (Text : in String);
+   --  Put Text indented to Indent to Current_Output, without newline.
+   --  Should be followed by Put_Line, not Indent_Line.
+
    function Strip_Quotes (Item : in String) return String;
    --  Remove leading and trailing '"', if any.
 

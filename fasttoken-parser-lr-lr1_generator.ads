@@ -47,6 +47,7 @@ package FastToken.Parser.LR.LR1_Generator is
    function Generate
      (Grammar                  : in Production.List.Instance;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Nonterminal_ID_Set  := (others => False);
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
@@ -75,7 +76,7 @@ package FastToken.Parser.LR.LR1_Generator is
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
       Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in Parser.Nonterminal_ID_Set;
       First                : in LR1_Items.Derivation_Matrix;
       Grammar              : in Production.List.Instance;
       Trace                : in Boolean)
@@ -83,7 +84,7 @@ package FastToken.Parser.LR.LR1_Generator is
    --  'goto' from [dragon] algorithm 4.9
 
    function LR1_Item_Sets
-     (Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set;
+     (Has_Empty_Production : in Parser.Nonterminal_ID_Set;
       First                : in LR1_Items.Derivation_Matrix;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in Unknown_State_Index;

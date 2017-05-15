@@ -108,6 +108,9 @@ package Wisi.Gen_Generate_Utils is
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance;
    --  Source_File_Name used in errors
 
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Parser_Root.Nonterminal_ID_Set;
+
+   function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index;
 private
 
    type Token_Cursor_State is

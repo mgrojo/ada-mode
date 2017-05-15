@@ -59,6 +59,13 @@ package FastToken.Parser is
    package Token_Pkg renames Token;
    package Lexer_Pkg renames Lexer;
 
+   type Nonterminal_ID_Set is array (Token.Nonterminal_ID) of Boolean;
+   --  Used in children.
+
+   function Image (Item : in Nonterminal_ID_Set) return String;
+
+   function Any (Item : in Nonterminal_ID_Set) return Boolean;
+
    type Instance is abstract tagged record
       Lexer : Lexer_Pkg.Handle;
    end record;

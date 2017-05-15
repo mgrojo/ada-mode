@@ -231,13 +231,11 @@ package body FastToken.Parser.LR1_Items is
    is
       use type Token.List.List_Iterator;
       Result : Nonterminal_ID_Set := (others => False);
-      Prod_I : Production.List.List_Iterator;
+      Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
       Prod   : Production.Instance;
       RHS_I  : Token.List.List_Iterator;
    begin
-      Prod_I := Production.List.First (Grammar);
       while not Production.List.Is_Done (Prod_I) loop
-
          Prod  := Production.List.Current (Prod_I);
          RHS_I := Prod.RHS.Tokens.First;
 
@@ -248,6 +246,57 @@ package body FastToken.Parser.LR1_Items is
       end loop;
       return Result;
    end Has_Empty_Production;
+
+   function To_Terminal_ID_Set (Item : in Token_ID_Set) return Terminal_ID_Set
+   is
+      use Token;
+      Result : Terminal_ID_Set;
+   begin
+      for I in Result'Range loop
+         Result (I) := Item (I);
+      end loop;
+      return Result;
+   end To_Terminal_ID_Set;
+
+   function Follow
+     (Grammar : in Production.List.Instance;
+      First   : in Derivation_Matrix)
+     return Nonterminal_Array_Terminal_Set
+   is
+      use Token;
+      use all type Production.List.List_Iterator;
+      use all type Token.List.List_Iterator;
+      use all type Nonterminal.Handle;
+
+      Result : Nonterminal_Array_Terminal_Set := (others => (others => False));
+      Prod_I : Production.List.List_Iterator;
+      RHS_I  : Token.List.List_Iterator;
+      Token  : Token_ID;
+   begin
+      for Nonterm in Nonterminal_ID loop
+         Prod_I := Production.List.First (Grammar);
+         while not Is_Null (Prod_I) loop
+            RHS_I := Current (Prod_I).RHS.Tokens.First;
+
+            while not Is_Null (RHS_I) loop
+               if ID (RHS_I) = Nonterm then
+                  if not Is_Null (Next (RHS_I)) then
+                     Token := ID (Next (RHS_I));
+                     if Token in Terminal_ID then
+                        Result (Nonterm) (Token) := True;
+                     else
+                        Result (Nonterm) := Result (Nonterm) or
+                          To_Terminal_ID_Set (First (Token));
+                     end if;
+                  end if;
+               end if;
+               Next (RHS_I);
+            end loop;
+            Production.List.Next (Prod_I);
+         end loop;
+      end loop;
+      return Result;
+   end Follow;
 
    function Prod (Item : in Item_Ptr) return Production.Instance
    is begin
@@ -983,6 +1032,31 @@ package body FastToken.Parser.LR1_Items is
    begin
       Put_Line ("Size :" & Unknown_State_Index'Image (Item.Size));
       Put (Item.Head, Show_Lookaheads);
+   end Put;
+
+   procedure Put (Item : in Nonterminal_Array_Terminal_Set)
+   is
+      use Ada.Strings.Unbounded;
+      use Ada.Text_IO;
+      Line : Unbounded_String;
+      Some_True : Boolean;
+   begin
+      for I in Item'Range loop
+         Line := To_Unbounded_String (Token.Token_Image (I) & " => (");
+         Some_True := False;
+         for J in Item (I)'Range loop
+            if Item (I)(J) then
+
+               Line := Line & (if Some_True then " | " else "") & Token.Token_Image (J);
+               Some_True := True;
+            end if;
+         end loop;
+         if Some_True then
+            Put_Line (To_String (Line) & " => True, others => False)");
+         else
+            Put_Line (To_String (Line) & "others => False)");
+         end if;
+      end loop;
    end Put;
 
 end FastToken.Parser.LR1_Items;

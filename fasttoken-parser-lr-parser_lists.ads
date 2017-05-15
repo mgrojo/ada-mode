@@ -68,6 +68,7 @@ package FastToken.Parser.LR.Parser_Lists is
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Peek (Cursor : in Parser_Lists.Cursor) return Stack_Item;
    function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item;
+   procedure Pop (Cursor : in Parser_Lists.Cursor);
    procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item);
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
@@ -84,8 +85,8 @@ package FastToken.Parser.LR.Parser_Lists is
 
    Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, null, Token.List.Null_List);
 
-   function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
-   function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer;
+   function Pending_Actions_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
+   function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer;
    procedure Enqueue
      (Cursor       : in Parser_Lists.Cursor;
       Action_Token : in Parser_Lists.Action_Token);
@@ -103,7 +104,7 @@ package FastToken.Parser.LR.Parser_Lists is
    ----------
    --  Stuff for iterators, to allow
    --  'for Parser of Parsers loop'
-   --  'for Cursor in Parsers.First loop'
+   --  'for Cursor in Parsers.Iterate loop'
    --
    --  requires Parser_State to be not an incomplete type.
 
@@ -140,18 +141,18 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
-   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
+   function Pending_Actions_Free_Count (List : in Parser_Lists.List) return Integer;
 
    procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token);
-   procedure Put_Trace_Action_Tokens (Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor);
 
    procedure Check_Action_Stack
      (Label  : in String;
       Cursor : in Parser_Lists.Cursor);
-   --  Verify that all Action_Token.New_Token point to tokens on
-   --  Stack or later Action_Token.Tokens, and that all
-   --  nonterminals in Stack and Action_Token.Tokens are pointed to
-   --  by previous Action_Token.New_Token.
+   --  Verify that all Pending_Actions.New_Token point to tokens on
+   --  Stack or later Pending_Actions.Tokens, and that all
+   --  nonterminals in Stack and Pending_Actions.Tokens are pointed to
+   --  by previous Pending_Actions.New_Token.
 
 private
 
@@ -179,10 +180,10 @@ private
    function Count (Action_Token : in Action_Token_List) return Integer;
 
    type Parser_State is record
-      Label        : Integer;            -- for debugging
-      Verb         : Parse_Action_Verbs; -- last action performed
-      Stack        : Stack_Node_Access;
-      Action_Token : Action_Token_List;
+      Label           : Integer;            -- for debugging
+      Verb            : Parse_Action_Verbs; -- last action performed
+      Stack           : Stack_Node_Access;
+      Pending_Actions : Action_Token_List;
    end record;
 
    type Parser_Node;

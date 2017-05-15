@@ -22,6 +22,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser_Lists;
 generic
    First_Parser_Label : in Integer;
@@ -35,6 +36,8 @@ generic
 
    with package Parser_Lists is new FastToken.Parser.LR.Parser_Lists
      (First_Parser_Label, Put_Trace, Put_Trace_Line);
+
+   with package Panic_Mode is new FastToken.Parser.LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
 package FastToken.Parser.LR.Parser is
 
    type Instance is new FastToken.Parser.Instance with record

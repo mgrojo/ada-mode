@@ -78,6 +78,7 @@ is
    Keywords                : String_Pair_Lists.List;
    Tokens                  : Token_Lists.List;
    Conflicts               : Conflict_Lists.List;
+   Panic_Recover           : String_Lists.List;
    Rules                   : Rule_Lists.List;
    Rule_Count              : Integer;
    Action_Count            : Integer;
@@ -181,7 +182,7 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologue_Context_Clause, Prologue_Declarations);
-   Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts);
+   Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, Panic_Recover);
    Wisi.Rules (Input_File, Generate_Params.Output_Language, Rules, Rule_Count, Action_Count);
 
    --  FIXME: use run-time factory, dispatching instead of this case
@@ -194,17 +195,17 @@ begin
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, Rules, Rule_Count, Action_Count, Profile);
+         Keywords, Tokens, Conflicts, Panic_Recover, Rules, Rule_Count, Action_Count, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, Rules, Rule_Count, Action_Count, Profile);
+         Keywords, Tokens, Conflicts, Panic_Recover, Rules, Rule_Count, Action_Count, Profile);
 
    when Elisp =>
       Wisi.Output_Elisp
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Keywords, Tokens, Conflicts,
-         Rules, Rule_Count, Action_Count);
+         Panic_Recover, Rules, Rule_Count, Action_Count);
 
    end case;
 

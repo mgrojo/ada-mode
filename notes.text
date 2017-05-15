@@ -6,41 +6,27 @@ build/release_process.text
 
  current work
 
-aflex regexp for Ada string, character_literal
-    Embedded quote is multiple string literals with no intervening whitespace
-
-    test_character_literal.adb
-        failing
-
-    test aflex and regexp lexers
-
-    parse trace shows statement_id_0: for both actions
-
 Do "panic mode" dragon pg 255
-    pop stack to state with a goto on a "good" nonterminal, skip input to Follow (nonterm)
-        _don't_ call reduce action, since don't have all tokens
 
     dragon says to mark only some nonterms as "good", such as "statement" (followed by "end")
 
-        need wisi grammar file syntax for marking nonterms
+    fasttoken-parser-lr-panic_mode.adb
 
-    try check all stacked states for current input symbol in goto/Follow;
-        works for typical "missing trailing tokens"
+        need Follow (table, nonterm) return token_id_set;
+            add test in dragon-*-test
 
-
-    option to enable various error strategies for testing
-
-    write tests using Ada-like grammar with example syntax errors
-        t_one
+    test_panic_mode.adb
 
         partial 'if' statement
         missing ;
         missing )
 
-    add to FastToken Ada parser
+        test semantic actions
+            just confirm an action procedure is called/not called
 
-    test semantic actions
-        just confirm an action procedure is called
+
+    try check all stacked states for current input symbol in goto/Follow;
+        works for typical "missing trailing tokens"
 
     then to elisp parser?
 
@@ -49,7 +35,7 @@ Do "panic mode" dragon pg 255
 
     or Emacs module
         use elisp lexer; time aflex vs wisi 5, 6 lexers
-        elisp lexer supports utf-8, other encodings
+        elisp lexer supports utf-8, other encodings; tick/char_literal
 
     Leaves some sections uncached - OK if not user line (not typical editing case).
     If indent cache nil, use previous line.

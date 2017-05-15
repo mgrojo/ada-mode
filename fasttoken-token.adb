@@ -59,6 +59,11 @@ package body FastToken.Token is
       return Token.ID;
    end ID;
 
+   function ID (Token : in Handle) return Token_ID
+   is begin
+      return Token.ID;
+   end ID;
+
    package body List is
 
       procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);

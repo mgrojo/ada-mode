@@ -88,6 +88,14 @@ package body Wisi.Utils is
       Put_Line (Text);
    end Indent_Line;
 
+   procedure Indent_Start (Text : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Set_Col (Indent);
+      Put (Text);
+   end Indent_Start;
+
    function Strip_Quotes (Item : in String) return String
    is begin
       if Item'Length < 2 then

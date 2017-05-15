@@ -188,13 +188,11 @@ package FastToken.Parser.LR1_Items is
    --  Return Item_Set from From.Goto_List where the goto symbol is
    --  Symbol; null if not found.
 
-   type Token_ID_Set is array (Token.Token_ID) of Boolean;
+   type Token_ID_Set is array (Token.Reporting_ID) of Boolean;
 
    function Image (Item : in Token_ID_Set) return String;
 
    type Derivation_Matrix is array (Token.Nonterminal_ID) of Token_ID_Set;
-
-   type Nonterminal_ID_Set is array (Token.Nonterminal_ID) of Boolean;
 
    function Has_Empty_Production (Grammar : in Production.List.Instance) return Nonterminal_ID_Set;
 
@@ -203,9 +201,20 @@ package FastToken.Parser.LR1_Items is
       Has_Empty_Production : in Nonterminal_ID_Set;
       Trace                : in Boolean)
      return Derivation_Matrix;
-   --  For each nonterminal in the given grammar, find the set of
-   --  tokens (terminal or nonterminal) that its first term could
-   --  start with. Implements algorithm FIRST from [dragon].
+   --  For each nonterminal in Grammar, find the set of tokens
+   --  (terminal or nonterminal) that any string derived from it can
+   --  start with. Together with Has_Empty_Production, implements
+   --  algorithm FIRST from [dragon], augmented with nonterminals.
+
+   type Nonterminal_Array_Terminal_Set is array (Token.Nonterminal_ID) of Terminal_ID_Set;
+
+   function Follow
+     (Grammar : in Production.List.Instance;
+      First   : in Derivation_Matrix)
+     return Nonterminal_Array_Terminal_Set;
+   --  For each nonterminal in Grammar, find the set of terminal
+   --  tokens that can follow it. Implements algorithm FOLLOW from
+   --  [dragon] pg 198.
 
    function Closure
      (Set                  : in Item_Set;
@@ -234,6 +243,7 @@ package FastToken.Parser.LR1_Items is
    procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
+   procedure Put (Item : in Nonterminal_Array_Terminal_Set);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);

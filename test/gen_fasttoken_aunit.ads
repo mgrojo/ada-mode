@@ -59,7 +59,7 @@ package Gen_FastToken_AUnit is
    procedure Check
      is new AUnit.Checks.Gen_Check_Array
      (Item_Type   => Boolean,
-      Index_Type  => Token_ID,
+      Index_Type  => Token_Pkg.Reporting_ID,
       Array_Type  => LR1_Items.Token_ID_Set,
       Check_Index => Check,
       Check_Item  => AUnit.Checks.Check);
@@ -68,7 +68,7 @@ package Gen_FastToken_AUnit is
      is new AUnit.Checks.Gen_Check_Array
      (Item_Type   => Boolean,
       Index_Type  => Token_Pkg.Nonterminal_ID,
-      Array_Type  => LR1_Items.Nonterminal_ID_Set,
+      Array_Type  => Parser_Root.Nonterminal_ID_Set,
       Check_Index => Check,
       Check_Item  => AUnit.Checks.Check);
 
@@ -87,6 +87,14 @@ package Gen_FastToken_AUnit is
       Array_Type  => LR1_Items.Terminal_ID_Set,
       Check_Index => Check,
       Check_Item  => AUnit.Checks.Check);
+
+   procedure Check
+     is new AUnit.Checks.Gen_Check_Array
+     (Item_Type   => LR1_Items.Terminal_ID_Set,
+      Index_Type  => Token_Pkg.Nonterminal_ID,
+      Array_Type  => LR1_Items.Nonterminal_Array_Terminal_Set,
+      Check_Index => Check,
+      Check_Item  => Check);
 
    procedure Check
      (Label    : in String;

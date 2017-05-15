@@ -105,10 +105,12 @@ package body FastToken.Parser.LR.LALR_Generator is
       use Ada.Text_IO;
    begin
       Put_Line ("LALR Parse Table:");
-      for State in Table'Range loop
+      Put_Line ("Panic_Recover: " & Image (Table.Panic_Recover));
+
+      for State in Table.States'Range loop
          LR1_Items.Put (LR1_Items.Find (State, Kernels).all, Show_Lookaheads => True);
          New_Line;
-         Put (Table (State));
+         Put (Table.States (State));
 
          New_Line;
       end loop;
@@ -509,7 +511,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  become the set of LALR(1) kernels on output.
    procedure Fill_In_Lookaheads
      (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
       First                : in     LR1_Items.Derivation_Matrix;
       Kernels              : in out LR1_Items.Item_Set_List;
       Used_Tokens          : in out Token.Token_Array_Boolean;
@@ -586,7 +588,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    procedure Add_Actions
      (Kernels              : in     LR1_Items.Item_Set_List;
       Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
       First                : in     LR1_Items.Derivation_Matrix;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
@@ -615,6 +617,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    function Generate
      (Grammar                  : in Production.List.Instance;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Nonterminal_ID_Set  := (others => False);
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
@@ -628,10 +631,10 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant LR1_Items.Derivation_Matrix  := LR1_Items.First
+      Has_Empty_Production : constant Parser.Nonterminal_ID_Set   := LR1_Items.Has_Empty_Production (Grammar);
+      First                : constant LR1_Items.Derivation_Matrix := LR1_Items.First
         (Grammar, Has_Empty_Production, Trace);
-      Used_Tokens          : Token.Token_Array_Boolean             := (others => False);
+      Used_Tokens          : Token.Token_Array_Boolean            := (others => False);
 
       Kernels : LR1_Items.Item_Set_List := LALR_Kernels
         (Grammar, First, Trace, Unknown_State_Index (First_State_Index));
@@ -663,7 +666,9 @@ package body FastToken.Parser.LR.LALR_Generator is
          LR1_Items.Put (Kernels, Show_Lookaheads => True);
       end if;
 
-      Table := new Parse_Table (State_Index'First .. Kernels.Size - 1 + State_Index'First);
+      Table := new Parse_Table (Kernels.Size - 1 + State_Index'First);
+
+      Table.Panic_Recover := Panic_Recover;
 
       Add_Actions
         (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace);

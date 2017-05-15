@@ -127,6 +127,7 @@ package FastToken.Parser.LR is
       Symbol          : in     Token_Pkg.Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
       LHS_ID          : in     Token_Pkg.Token_ID;
+      Index           : in     Integer;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize);
    --  Add a Reduce or Accept_It action to tail of State action list.
@@ -136,6 +137,7 @@ package FastToken.Parser.LR is
       Symbol          : in     Token_ID;
       State_Index     : in     LR.State_Index;
       LHS_ID          : in     Token_ID;
+      Index           : in     Integer;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize);
    --  Add a Shift/Reduce conflict to State.
@@ -145,9 +147,11 @@ package FastToken.Parser.LR is
       Symbol            : in     Token_ID;
       Verb              : in     LR.Parse_Action_Verbs;
       LHS_ID_1          : in     Token_ID;
+      Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Natural;
       Synthesize_1      : in     Nonterminal.Synthesize;
       LHS_ID_2          : in     Token_ID;
+      Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Natural;
       Synthesize_2      : in     Nonterminal.Synthesize);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
@@ -161,10 +165,24 @@ package FastToken.Parser.LR is
       To_State : in     LR.State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
-   type Parse_Table is array (State_Index range <>) of Parse_State;
+   type Parse_State_Array is array (State_Index range <>) of Parse_State;
+
+   type Parse_Table (State_Last : State_Index) is record
+
+      States        : Parse_State_Array (State_Index'First .. State_Last);
+      Panic_Recover : Nonterminal_ID_Set;
+   end record;
 
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
+
+   function Goto_For
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token.Nonterminal_ID)
+     return Unknown_State_Index;
+   --  Return next state after reducing stack by ID; Unknown_State if
+   --  none (only possible during error recovery).
 
    ----------
    --  Useful text output

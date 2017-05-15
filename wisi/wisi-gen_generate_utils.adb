@@ -503,6 +503,23 @@ package body Wisi.Gen_Generate_Utils is
       return Grammar;
    end To_Grammar;
 
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Parser_Root.Nonterminal_ID_Set
+   is
+      Result : Parser_Root.Nonterminal_ID_Set := (others => False);
+   begin
+      for Token of Item loop
+         Result (Find_Token_ID (Token)) := True;
+      end loop;
+      return Result;
+   end To_Nonterminal_ID_Set;
+
+   function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index
+   is
+      use all type LR.Unknown_State_Index;
+   begin
+      return State_Last - LR.State_Index'First + 1;
+   end To_State_Count;
+
 begin
    if Verbosity > 0 then
       Put_Tokens;

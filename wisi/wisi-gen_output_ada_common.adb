@@ -303,11 +303,10 @@ package body Wisi.Gen_Output_Ada_Common is
    end Create_Aflex;
 
    procedure Create_Create_Parser
-     (Input_File_Name   : in String;
-      Parser_Algorithm  : in Valid_Parser_Algorithm;
-      Lexer             : in Valid_Lexer;
-      Interface_Kind    : in Valid_Interface;
-      First_State_Index : in Integer)
+     (Input_File_Name  : in String;
+      Parser_Algorithm : in Valid_Parser_Algorithm;
+      Lexer            : in Valid_Lexer;
+      Interface_Kind   : in Valid_Interface)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -332,12 +331,11 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("use LR;");
       Indent_Line ("use Production;");
       Indent_Line ("use all type FastToken.Parser_Algorithm_Type;");
-      Indent_Line
-        ("Table : constant Parse_Table_Ptr := new Parse_Table (" & FastToken.Int_Image (First_State_Index) & " ..");
+      Indent_Start ("Table : constant Parse_Table_Ptr := new Parse_Table (");
 
       case Parser_Algorithm is
       when LALR =>
-         Indent_Line ("   " & LR.State_Image (Parsers (LALR)'Last) & ");");
+         Put_Line (LR.State_Image (Parsers (LALR).State_Last) & ");");
          Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
@@ -345,7 +343,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Create_Parser_Core (Input_File_Name, Parsers (LALR));
 
       when LR1 =>
-         Indent_Line ("   " & LR.State_Image (Parsers (LR1)'Last) & ");");
+         Put_Line (LR.State_Image (Parsers (LR1).State_Last) & ");");
          Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
@@ -353,9 +351,9 @@ package body Wisi.Gen_Output_Ada_Common is
          Create_Parser_Core (Input_File_Name, Parsers (LR1));
 
       when LALR_LR1 =>
-         Indent_Line
-           ("   (case Algorithm is when LALR => " & LR.State_Image (Parsers (LALR)'Last) &
-              ", when LR1 => " & LR.State_Image (Parsers (LR1)'Last) & "));");
+         Put_Line
+           ("(case Algorithm is when LALR => " & LR.State_Image (Parsers (LALR).State_Last) &
+              ", when LR1 => " & LR.State_Image (Parsers (LR1).State_Last) & "));");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
@@ -412,14 +410,25 @@ package body Wisi.Gen_Output_Ada_Common is
       end Action_Name;
 
    begin
-      for State_Index in Parser'Range loop
+      Indent_Line ("Table.Panic_Recover :=");
+      Indent_Line ("  (");
+      Indent := Indent + 3;
+      for I in Parser.Panic_Recover'Range loop
+         if Parser.Panic_Recover (I) then
+            Indent_Line (Token_Out_Image (I) & " => True,");
+         end if;
+      end loop;
+      Indent_Line ("others => False);");
+      Indent := Indent - 3;
+
+      for State_Index in Parser.States'Range loop
          Actions :
          declare
             use Standard.Ada.Strings;
             use Standard.Ada.Strings.Unbounded;
             use Generate_Utils.LR;
             Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
-            Node        : Action_Node_Ptr := Parser (State_Index).Action_List;
+            Node        : Action_Node_Ptr := Parser.States (State_Index).Action_List;
             Line        : Unbounded_String;
 
             procedure Append (Item : in String)
@@ -447,11 +456,13 @@ package body Wisi.Gen_Output_Ada_Common is
                begin
                   case Action_Node.Item.Verb is
                   when Shift =>
-                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Out_Image (Node.Symbol);
+                     Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
+                       Token_Out_Image (Node.Symbol);
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
-                     Line := +"Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Out_Image (Node.Symbol);
+                     Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
+                       Token_Out_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
                      else
@@ -459,11 +470,12 @@ package body Wisi.Gen_Output_Ada_Common is
                      end if;
                      Append (", ");
                      Append (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Integer'Image (Action_Node.Item.Index) & ", ");
                      Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
                      Append
                        (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
                   when Error =>
-                     Line := +"Add_Error (Table (" & State_Image (State_Index) & ")";
+                     Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
                   end case;
 
                   Action_Node := Action_Node.Next;
@@ -474,8 +486,9 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (State_Image (Action_Node.Item.State));
                      when Reduce | Accept_It =>
                         Append (", ");
+                        Append (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
                         Append
-                          (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
+                          (Integer'Image (Action_Node.Item.Index) & ", " &
                              Integer'Image (Action_Node.Item.Token_Count) & ", " &
                              Action_Name
                                (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
@@ -494,12 +507,12 @@ package body Wisi.Gen_Output_Ada_Common is
          Gotos :
          declare
             use Generate_Utils.LR;
-            Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
+            Node : Goto_Node_Ptr := Parser.States (State_Index).Goto_List;
          begin
             loop
                exit when Node = null;
                Set_Col (Indent);
-               Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
+               Put ("Add_Goto (Table.States (" & State_Image (State_Index) & "), ");
                Put_Line (Token_Out_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;

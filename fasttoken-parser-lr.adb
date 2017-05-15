@@ -111,6 +111,7 @@ package body FastToken.Parser.LR is
       Symbol          : in     Token_Pkg.Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
       LHS_ID          : in     Token_Pkg.Token_ID;
+      Index           : in     Integer;
       RHS_Token_Count : in     Natural;
       Synthesize      : in     Nonterminal.Synthesize)
    is
@@ -121,9 +122,9 @@ package body FastToken.Parser.LR is
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);
+         Action := (Reduce, LHS, Synthesize, Index, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, LHS, Synthesize, 0, RHS_Token_Count);
+         Action := (Accept_It, LHS, Synthesize, Index, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -141,16 +142,17 @@ package body FastToken.Parser.LR is
    end Add_Action;
 
    procedure Add_Action
-     (State       : in out LR.Parse_State;
-      Symbol      : in     Token_ID;
-      State_Index : in     LR.State_Index;
-      LHS_ID      : in     Token_ID;
+     (State           : in out LR.Parse_State;
+      Symbol          : in     Token_ID;
+      State_Index     : in     LR.State_Index;
+      LHS_ID          : in     Token_ID;
+      Index           : in     Integer;
       RHS_Token_Count : in     Natural;
-      Synthesize  : in     Nonterminal.Synthesize)
+      Synthesize      : in     Nonterminal.Synthesize)
    is
       Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
       LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Synthesize, Index, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -161,20 +163,22 @@ package body FastToken.Parser.LR is
       Symbol            : in     Token_ID;
       Verb              : in     LR.Parse_Action_Verbs;
       LHS_ID_1          : in     Token_ID;
+      Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Natural;
       Synthesize_1      : in     Nonterminal.Synthesize;
       LHS_ID_2          : in     Token_ID;
+      Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Natural;
       Synthesize_2      : in     Nonterminal.Synthesize)
    is
       LHS_1    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_1));
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_1, Synthesize_1, 0, RHS_Token_Count_1),
+         when Reduce    => (Reduce, LHS_1, Synthesize_1, Index_1, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_1, Synthesize_1, Index_1, RHS_Token_Count_1),
          when others => raise FastToken.Programmer_Error);
       LHS_2    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_2));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Synthesize_2, 0, RHS_Token_Count_2);
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Synthesize_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -226,6 +230,27 @@ package body FastToken.Parser.LR is
          end if;
       end if;
    end Add_Goto;
+
+   function Goto_For
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token.Nonterminal_ID)
+     return Unknown_State_Index
+   is
+      use type Token.Terminal_ID;
+      Goto_Node : Goto_Node_Ptr := Table.States (State).Goto_List;
+   begin
+      while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
+         Goto_Node := Goto_Node.Next;
+      end loop;
+
+      if Goto_Node = null then
+         --  We can only get here during error recovery.
+         return Unknown_State;
+      else
+         return Goto_Node.State;
+      end if;
+   end Goto_For;
 
    procedure Put (Item : in Parse_Action_Rec)
    is
@@ -297,9 +322,11 @@ package body FastToken.Parser.LR is
    is
       use Ada.Text_IO;
    begin
-      for State in Table'Range loop
+      Put_Line ("Panic_Recover: " & Image (Table.Panic_Recover));
+
+      for State in Table.States'Range loop
          Put_Line ("State" & State_Index'Image (State) & ":");
-         Put (Table (State));
+         Put (Table.States (State));
          New_Line;
       end loop;
    end Put;

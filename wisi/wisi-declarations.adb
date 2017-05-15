@@ -27,7 +27,8 @@ procedure Wisi.Declarations
    Generate_Params : in out Generate_Param_Type;
    Keywords        :    out String_Pair_Lists.List;
    Tokens          :    out Token_Lists.List;
-   Conflicts       :    out Conflict_Lists.List)
+   Conflicts       :    out Conflict_Lists.List;
+   Panic_Recover   :    out String_Lists.List)
 is
    use Standard.Ada.Strings.Fixed;
 
@@ -39,6 +40,7 @@ is
    Lexer_Str              : constant String := "%lexer";
    Output_Language_Str    : constant String := "%output_language";
    Parser_Algorithm_Str   : constant String := "%parser_algorithm";
+   Panic_Recover_Str      : constant String := "%panic_recover";
    Start_Str              : constant String := "%start";
    Token_Str              : constant String := "%token";
 begin
@@ -145,6 +147,13 @@ begin
                   Generate_Params.Parser_Algorithm := Valid_Parser_Algorithm'Value (Line (Value_First .. Line'Last));
                end;
             end if;
+
+         elsif Match (Panic_Recover_Str) then
+            declare
+               Value_First : constant Integer := Index_Non_Blank (Source => Line, From => Key_Last + 1);
+            begin
+               Panic_Recover.Append (Line (Value_First .. Line'Last));
+            end;
 
          elsif Match (Start_Str) then
             declare

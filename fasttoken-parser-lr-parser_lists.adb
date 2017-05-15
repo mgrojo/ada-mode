@@ -24,23 +24,23 @@ package body FastToken.Parser.LR.Parser_Lists is
    function Initialize return List
    is begin
       return
-        (Parser_Label       => First_Parser_Label,
-         Head               => new Parser_Node'
-           (Item            =>
-              (Label        => First_Parser_Label,
-               Verb         => Parse_Action_Verbs'First,
-               Stack        => new Stack_Node'
-                 (Item      =>
-                    (State  => State_Index'First,
-                     Token  => null),
-                  Next      => null),
-               Action_Token => (null, null)),
-            Next            => null,
-            Prev            => null),
-         Parser_Free        => null,
-         Stack_Free         => null,
-         Action_Token_Free  => null,
-         Count              => 1);
+        (Parser_Label          => First_Parser_Label,
+         Head                  => new Parser_Node'
+           (Item               =>
+              (Label           => First_Parser_Label,
+               Verb            => Parse_Action_Verbs'First,
+               Stack           => new Stack_Node'
+                 (Item         =>
+                    (State     => State_Index'First,
+                     Token     => null),
+                  Next         => null),
+               Pending_Actions => (null, null)),
+            Next               => null,
+            Prev               => null),
+         Parser_Free           => null,
+         Stack_Free            => null,
+         Action_Token_Free     => null,
+         Count                 => 1);
 
    end Initialize;
 
@@ -124,6 +124,11 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Result;
    end Pop;
 
+   procedure Pop (Cursor : in Parser_Lists.Cursor)
+   is begin
+      Free (Cursor.List.all, Cursor.Ptr.Item.Stack);
+   end Pop;
+
    procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item)
    is
       Temp : constant Stack_Node_Access := Cursor.List.Stack_Free;
@@ -178,18 +183,18 @@ package body FastToken.Parser.LR.Parser_Lists is
       Put_Trace_Line ("");
    end Put_Trace_Top_10;
 
-   function Action_Token_Count (Cursor : in Parser_Lists.Cursor) return Integer
+   function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer
    is
-      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+      Pending_Actions : Action_Token_Node_Access := Cursor.Ptr.Item.Pending_Actions.Head;
       Result       : Integer                  := 0;
    begin
       loop
-         exit when Action_Token = null;
+         exit when Pending_Actions = null;
          Result := Result + 1;
-         Action_Token := Action_Token.Next;
+         Pending_Actions := Pending_Actions.Next;
       end loop;
       return Result;
-   end Action_Token_Count;
+   end Pending_Actions_Count;
 
    procedure Enqueue
      (List              : in out Action_Token_List;
@@ -227,7 +232,7 @@ package body FastToken.Parser.LR.Parser_Lists is
      (Cursor       : in Parser_Lists.Cursor;
       Action_Token : in Parser_Lists.Action_Token)
    is begin
-      Enqueue (Cursor.Ptr.Item.Action_Token, Cursor.List.Action_Token_Free, Action_Token);
+      Enqueue (Cursor.Ptr.Item.Pending_Actions, Cursor.List.Action_Token_Free, Action_Token);
    end Enqueue;
 
    procedure Free (List : in out Parser_Lists.List; Action_Token : in out Action_Token_Node_Access)
@@ -245,21 +250,21 @@ package body FastToken.Parser.LR.Parser_Lists is
 
    function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token
    is
-      Result : constant Action_Token := Cursor.Ptr.Item.Action_Token.Head.Item;
+      Result : constant Action_Token := Cursor.Ptr.Item.Pending_Actions.Head.Item;
    begin
-      Free (Cursor.List.all, Cursor.Ptr.Item.Action_Token.Head);
+      Free (Cursor.List.all, Cursor.Ptr.Item.Pending_Actions.Head);
 
-      if Cursor.Ptr.Item.Action_Token.Head = null then
-         Cursor.Ptr.Item.Action_Token.Tail := null;
+      if Cursor.Ptr.Item.Pending_Actions.Head = null then
+         Cursor.Ptr.Item.Pending_Actions.Tail := null;
       end if;
 
       return Result;
    end Dequeue;
 
-   function Action_Tokens_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
+   function Pending_Actions_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
-      return Cursor.Ptr.Item.Action_Token.Head = null;
-   end Action_Tokens_Empty;
+      return Cursor.Ptr.Item.Pending_Actions.Head = null;
+   end Pending_Actions_Empty;
 
    procedure Deep_Copy
      (Stack             : in     Stack_Node_Access;
@@ -399,7 +404,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       New_Parser : Parser_Node;
    begin
       Deep_Copy
-        (Cursor.Ptr.Item.Stack, List.Stack_Free, Cursor.Ptr.Item.Action_Token, List.Action_Token_Free,
+        (Cursor.Ptr.Item.Stack, List.Stack_Free, Cursor.Ptr.Item.Pending_Actions, List.Action_Token_Free,
          New_Stack, New_Action_Token);
 
       New_Parser :=
@@ -430,7 +435,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    is
       Temp_Free    : constant Parser_Node_Access := Cursor.List.Parser_Free;
       Stack        : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
-      Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Action_Token.Head;
+      Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
       Cursor.List.Count := Cursor.List.Count - 1;
 
@@ -575,7 +580,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Result;
    end Stack_Free_Count;
 
-   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer
+   function Pending_Actions_Free_Count (List : in Parser_Lists.List) return Integer
    is
       Result : Integer := 0;
       Node   : Action_Token_Node_Access := List.Action_Token_Free;
@@ -586,7 +591,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          Node   := Node.Next;
       end loop;
       return Result;
-   end Action_Token_Free_Count;
+   end Pending_Actions_Free_Count;
 
    function Is_In (Item : in Nonterminal.Handle; Stack : in Stack_Node_Access) return Boolean
    is
@@ -681,7 +686,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    is
       use type Token.Handle;
       Stack        : Stack_Node_Access        := Cursor.Ptr.Item.Stack;
-      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
       loop
          exit when Action_Token = null;
@@ -695,7 +700,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          Action_Token := Action_Token.Next;
       end loop;
 
-      Action_Token := Cursor.Ptr.Item.Action_Token.Tail;
+      Action_Token := Cursor.Ptr.Item.Pending_Actions.Tail;
       loop
          exit when Stack = null;
          --  last item on stack has no token
@@ -730,9 +735,9 @@ package body FastToken.Parser.LR.Parser_Lists is
       Token.List.Put_Trace (Action_Token.Tokens);
    end Put_Trace;
 
-   procedure Put_Trace_Action_Tokens (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor)
    is
-      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Action_Token.Head;
+      Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
       loop
          exit when Action_Token = null;
@@ -740,6 +745,6 @@ package body FastToken.Parser.LR.Parser_Lists is
          Put_Trace_Line ("");
          Action_Token := Action_Token.Next;
       end loop;
-   end Put_Trace_Action_Tokens;
+   end Put_Trace_Pending_Actions;
 
 end FastToken.Parser.LR.Parser_Lists;

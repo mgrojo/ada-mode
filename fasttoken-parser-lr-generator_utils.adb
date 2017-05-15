@@ -25,7 +25,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
    is
@@ -94,7 +94,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
    is
@@ -114,7 +114,7 @@ package body FastToken.Parser.LR.Generator_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
+              (Item, Table.States (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
 
          elsif Token.List.ID (Dot (Item)) in Token.Terminal_ID then
             --  Dot is before a terminal token.
@@ -134,7 +134,7 @@ package body FastToken.Parser.LR.Generator_Utils is
                      Action               =>
                        (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
                         RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
-                     Action_List          => Table (State).Action_List,
+                     Action_List          => Table.States (State).Action_List,
                      Closure              => Closure,
                      Has_Empty_Production => Has_Empty_Production,
                      Conflicts            => Conflicts,
@@ -146,7 +146,7 @@ package body FastToken.Parser.LR.Generator_Utils is
                         Action               =>
                           (Verb              => Shift,
                            State             => Goto_Set.State),
-                        Action_List          => Table (State).Action_List,
+                        Action_List          => Table.States (State).Action_List,
                         Closure              => Closure,
                         Has_Empty_Production => Has_Empty_Production,
                         Conflicts            => Conflicts,
@@ -179,7 +179,7 @@ package body FastToken.Parser.LR.Generator_Utils is
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
             Next   => null);
 
-         Last_Action : Action_Node_Ptr := Table (State).Action_List;
+         Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
       begin
          if Last_Action = null then
             --  This happens if the first production in the grammar is
@@ -217,7 +217,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       begin
          while Goto_Ptr /= null loop
             if Symbol (Goto_Ptr) in Token.Nonterminal_ID then
-               Add_Goto (Table (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
+               Add_Goto (Table.States (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
             end if;
             Goto_Ptr := Next (Goto_Ptr);
          end loop;
@@ -227,7 +227,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Has_Empty_Production : in     LR1_Items.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean)
@@ -315,7 +315,7 @@ package body FastToken.Parser.LR.Generator_Utils is
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token.Token_ID;
-      Has_Empty_Production : in LR1_Items.Nonterminal_ID_Set)
+      Has_Empty_Production : in Parser.Nonterminal_ID_Set)
      return Token.Token_ID
    is
       use Token.List;

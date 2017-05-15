@@ -1,0 +1,67 @@
+--  Abstract :
+--
+--  Implement [dragon] panic mode error recovery, extended to parallel parsers.
+--
+--  Algorithm:
+--
+--  loop
+--      for all active parsers:
+--          pop stack until top state s has a reduce action on a "good" nonterminal
+--      end loop;
+--
+--      if all parsers at stack bottom, give up
+--
+--      loop
+--          for all active parsers:
+--              if next_input in Follow (good nonterm);
+--                  become active parser
+--                  push goto_for (s, nonterm)
+--                      _don't_ call reduce action, since don't have all tokens
+--          end loop
+--
+--          if any parsers active, exit all loops
+--
+--          discard next_input
+--              save for next try
+--
+--          if reach disard limit, exit loop
+--      end loop
+--  end loop
+--
+--  continue with shift input
+--
+--  Copyright (C) 2017 Stephen Leake All Rights Reserved.
+--
+--  This library is free software;  you can redistribute it and/or modify it
+--  under terms of the  GNU General Public License  as published by the Free
+--  Software  Foundation;  either version 3,  or (at your  option) any later
+--  version. This library is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
+--  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
+
+pragma License (Modified_GPL);
+
+with FastToken.Parser.LR.Parser_Lists;
+generic
+   First_Parser_Label : in Integer;
+   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
+   with package Parser_Lists is new FastToken.Parser.LR.Parser_Lists
+     (First_Parser_Label, Put_Trace, Put_Trace_Line);
+package FastToken.Parser.LR.Panic_Mode is
+
+   function Panic_Mode
+     (Table         : in     Parse_Table;
+      Parsers       : in out Parser_Lists.List;
+      Current_Token : in     Token.Token_ID)
+     return Boolean;
+   --  Attempt to modify Parsers stacks, and Parser.Lexer current
+   --  input, to allow recovering from an error state.
+   --  Return True if successful.
+
+private
+end FastToken.Parser.LR.Panic_Mode;
