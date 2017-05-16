@@ -27,31 +27,7 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
 package body FastToken.Parser is
-
-   function Image (Item : in Nonterminal_ID_Set) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String := To_Unbounded_String ("(");
-   begin
-      for I in Item'Range loop
-         if Item (I) then
-            Result := Result & Token_Image (I) & " => True, ";
-         end if;
-      end loop;
-      return To_String (Result) & "others => False)";
-   end Image;
-
-   function Any (Item : in Nonterminal_ID_Set) return Boolean
-   is begin
-      for I in Item'Range loop
-         if Item (I) then
-            return True;
-         end if;
-      end loop;
-      return False;
-   end Any;
 
    procedure Reset (Parser : in out Instance; Buffer_Size : in Integer := 0)
    is begin

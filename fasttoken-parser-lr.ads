@@ -170,7 +170,8 @@ package FastToken.Parser.LR is
    type Parse_Table (State_Last : State_Index) is record
 
       States        : Parse_State_Array (State_Index'First .. State_Last);
-      Panic_Recover : Nonterminal_ID_Set;
+      Panic_Recover : Token.Nonterminal_ID_Set;
+      Follow        : Token.Nonterminal_Array_Terminal_Set;
    end record;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -183,6 +184,14 @@ package FastToken.Parser.LR is
      return Unknown_State_Index;
    --  Return next state after reducing stack by ID; Unknown_State if
    --  none (only possible during error recovery).
+
+   type Panic_Data is record
+      --  Stored with parser state during panic mode recovery
+      Nonterm    : Token.Nonterminal_ID;
+      Goto_State : Unknown_State_Index;
+   end record;
+
+   Default_Panic : constant Panic_Data := (Token.Nonterminal_ID'First, Unknown_State);
 
    ----------
    --  Useful text output

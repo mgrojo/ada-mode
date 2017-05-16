@@ -62,6 +62,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Put_Line ("with FastToken.Production;");
       Put_Line ("with FastToken.Parser.LR.Parser;");
       Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
+      Put_Line ("with FastToken.Parser.LR.Panic_Mode;");
       Put_Line ("with FastToken.Token.Nonterminal;");
       Put_Line ("with FastToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
@@ -154,7 +155,10 @@ package body Wisi.Gen_Output_Ada_Common is
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
       Indent_Line
-        ("package LR_Parser is new LR.Parser (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
+         ("package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
+      Indent_Line
+        ("package LR_Parser is new LR.Parser " &
+         "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode);");
       New_Line;
 
       case Interface_Kind is
@@ -409,17 +413,67 @@ package body Wisi.Gen_Output_Ada_Common is
          raise Programmer_Error;
       end Action_Name;
 
+      Paren_Done : Boolean := False;
    begin
       Indent_Line ("Table.Panic_Recover :=");
-      Indent_Line ("  (");
+      Indent_Start ("  (");
       Indent := Indent + 3;
       for I in Parser.Panic_Recover'Range loop
          if Parser.Panic_Recover (I) then
-            Indent_Line (Token_Out_Image (I) & " => True,");
+            if Paren_Done then
+               Put_Line (" |");
+               Indent_Start (Token_Out_Image (I));
+            else
+               Paren_Done := True;
+               Put (Token_Out_Image (I));
+            end if;
          end if;
       end loop;
-      Indent_Line ("others => False);");
+      if Paren_Done then
+         Put_Line (" => True,");
+         Indent_Line ("others => False);");
+      else
+         Put_Line ("others => False);");
+      end if;
       Indent := Indent - 3;
+      New_Line;
+
+      if not Token_Pkg.Any (Parser.Follow) then
+         Indent_Line ("Table.Follow := (others => (others => False));");
+      else
+         Indent_Line ("Table.Follow :=");
+         Indent_Start ("  (");
+         Indent := Indent + 3;
+         for I in Parser.Follow'Range loop
+            if Token_Pkg.Any (Parser.Follow (I)) then
+               Indent_Line (Token_Out_Image (I) & " =>");
+               Indent_Start ("  (");
+               Indent := Indent + 3;
+               Paren_Done := False;
+               for J in Parser.Follow (I)'Range loop
+                  if Parser.Follow (I)(J) then
+                     if Paren_Done then
+                        Put_Line (" |");
+                        Indent_Start (" " & Token_Out_Image (J));
+                     else
+                        Paren_Done := True;
+                        Put (Token_Out_Image (J));
+                     end if;
+                  end if;
+               end loop;
+               if Paren_Done then
+                  Put_Line (" => True,");
+                  Indent_Line (" others => False),");
+               else
+                  Put_Line ("others => False),");
+               end if;
+               Indent := Indent - 3;
+            end if;
+         end loop;
+         Indent_Line ("others => (others => False));");
+         Indent := Indent - 3;
+      end if;
+      New_Line;
 
       for State_Index in Parser.States'Range loop
          Actions :

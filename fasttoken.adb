@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
---  Copyright (C) 2009, 2014-2015 Stephe Leake
+--  Copyright (C) 2009, 2014-2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -25,6 +25,7 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
+with Ada.Text_IO;
 package body FastToken is
 
    function Int_Image (Item : in Integer) return String
@@ -34,4 +35,87 @@ package body FastToken is
    begin
       return Trim (Integer'Image (Item), Both);
    end Int_Image;
+
+   function Gen_Any_1D (Item : in Array_Type) return Boolean
+   is begin
+      for I in Item'Range loop
+         if Item (I) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Gen_Any_1D;
+
+   function Gen_Any_2D (Item : in Array_2_Type) return Boolean
+   is begin
+      for I in Item'Range loop
+         if Any (Item (I)) then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Gen_Any_2D;
+
+   procedure Gen_Put_1D (Item : in Array_Type)
+   is
+      use Ada.Text_IO;
+      Paren_Done : Boolean := False;
+   begin
+      if not Any (Item) then
+         Put_Line ("(others => False));");
+      else
+         Put ("(");
+         for I in Item'Range loop
+            if Item (I) then
+               if Paren_Done then
+                  Put_Line (" |");
+                  Put (" " & Image (I));
+               else
+                  Paren_Done := True;
+                  Put (Image (I));
+               end if;
+            end if;
+         end loop;
+         Put_Line (" => True,");
+         Put_Line (" others => False)");
+      end if;
+   end Gen_Put_1D;
+
+   procedure Gen_Put_2D (Item : in Array_2_Type)
+   is
+      use Ada.Text_IO;
+      Paren_Done : Boolean := False;
+   begin
+      if not Any (Item) then
+         Put_Line ("(others => (others => False))");
+      else
+         Put ("(");
+         for I in Item'Range loop
+            if Any (Item (I)) then
+               Put_Line (" " & Image_2 (I) & " =>");
+               Put ("  (");
+               Paren_Done := False;
+               for J in Item (I)'Range loop
+                  if Item (I)(J) then
+                     if Paren_Done then
+                        Put_Line (" |");
+                        Put ("   " & Image_1 (J));
+                     else
+                        Paren_Done := True;
+                        Put (Image_1 (J));
+                     end if;
+                  end if;
+               end loop;
+               if Paren_Done then
+                  Put_Line (" => True,");
+                  Put_Line ("   others => False)");
+               else
+                  Put_Line (" others => False),");
+               end if;
+            end if;
+         end loop;
+         Put_Line ((if Paren_Done then " " else "") & "others => (others => False))");
+      end if;
+   end Gen_Put_2D;
+
 end FastToken;

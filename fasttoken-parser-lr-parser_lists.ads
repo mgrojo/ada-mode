@@ -59,6 +59,11 @@ package FastToken.Parser.LR.Parser_Lists is
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
+   type Panic_Reference (Element : not null access Panic_Data) is null record
+   with Implicit_Dereference => Element;
+
+   function Panic_Ref (Position : in Cursor) return Panic_Reference;
+
    --  Parser stack
    type Stack_Item is record
       State : Unknown_State_Index;
@@ -184,6 +189,7 @@ private
       Verb            : Parse_Action_Verbs; -- last action performed
       Stack           : Stack_Node_Access;
       Pending_Actions : Action_Token_List;
+      Panic           : aliased Panic_Data;
    end record;
 
    type Parser_Node;

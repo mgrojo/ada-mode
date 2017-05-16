@@ -49,19 +49,19 @@ package body Dragon_4_43_LR1_Test is
       Upper_C_ID);
 
    First_State_Index : constant := 0;
-   package Tokens_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Tokens_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
+   package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
+   package Nonterminal is new Token_Pkg.Nonterminal;
+   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
-     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
-   use all type Tokens_Pkg.List.Instance;
+   use all type Token_Pkg.List.Instance;
    use all type Production.Right_Hand_Side;
    use all type Production.Instance;
    use all type Production.List.Instance;
@@ -98,7 +98,7 @@ package body Dragon_4_43_LR1_Test is
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
-   function "+" (Item : in Token_ID) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -110,14 +110,14 @@ package body Dragon_4_43_LR1_Test is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
+     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Nonterminal, Production,
       Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
-   Has_Empty_Production : constant Parser_Root.Nonterminal_ID_Set :=
+   Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set :=
      LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
+   First : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    ----------
@@ -129,20 +129,20 @@ package body Dragon_4_43_LR1_Test is
 
       --  FIRST defined in [dragon] pg 189; we add nonterminals
 
-      Expected_First : constant LR1_Items.Derivation_Matrix :=
+      Expected_First : constant Token_Pkg.Nonterminal_Array_Token_Set :=
         (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
 
       --  FOLLOW defined in [dragon] pg 189
-      Expected_Follow : constant LR1_Items.Nonterminal_Array_Terminal_Set :=
+      Expected_Follow : constant Token_Pkg.Nonterminal_Array_Terminal_Set :=
         (Accept_ID  => (others => False),
          Upper_S_ID => (EOF_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
 
-      Computed_Follow : constant LR1_Items.Nonterminal_Array_Terminal_Set := LR1_Items.Follow (Grammar, First);
+      Computed_Follow : constant Token_Pkg.Nonterminal_Array_Terminal_Set := LR1_Items.Follow (Grammar, First);
    begin
-      Check ("0", Has_Empty_Production, Parser_Root.Nonterminal_ID_Set'(others => False));
+      Check ("0", Has_Empty_Production, Token_Pkg.Nonterminal_ID_Set'(others => False));
       Check ("1", First, Expected_First);
 
       if Test.Debug then
@@ -241,8 +241,9 @@ package body Dragon_4_43_LR1_Test is
 
       Computed : constant Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
       Expected : Parse_Table (9);
-
    begin
+      Expected.Panic_Recover := (others => False);
+
       --  figure 4.41 pg 239
       --  'r1' means reduce by production 1, 0 indexed; our production 2
       --  'acc' = reduce by our production 1
@@ -253,7 +254,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Goto (Expected.States (Map (0)), Upper_C_ID, Map (2));
       Add_Goto (Expected.States (Map (0)), Upper_S_ID, Map (1));
 
-      Add_Action (Expected.States (Map (1)), EOF_ID, Accept_It, Accept_ID, 1, 0, Self);
+      Add_Action (Expected.States (Map (1)), EOF_ID, Accept_It, Accept_ID, 0, 1, Self);
       Add_Error (Expected.States (Map (1)));
 
       Add_Action (Expected.States (Map (2)), Lower_C_ID, Map (6));
@@ -266,11 +267,11 @@ package body Dragon_4_43_LR1_Test is
       Add_Error (Expected.States (Map (3)));
       Add_Goto (Expected.States (Map (3)), Upper_C_ID, Map (8));
 
-      Add_Action (Expected.States (Map (4)), Lower_C_ID, Reduce, Upper_C_ID, 1, 0, Self);
-      Add_Action (Expected.States (Map (4)), Lower_D_ID, Reduce, Upper_C_ID, 1, 0, Self);
+      Add_Action (Expected.States (Map (4)), Lower_C_ID, Reduce, Upper_C_ID, 0, 1, Self);
+      Add_Action (Expected.States (Map (4)), Lower_D_ID, Reduce, Upper_C_ID, 0, 1, Self);
       Add_Error (Expected.States (Map (4))); -- default = error
 
-      Add_Action (Expected.States (Map (5)), EOF_ID, Reduce, Upper_S_ID, 2, 0, Self);
+      Add_Action (Expected.States (Map (5)), EOF_ID, Reduce, Upper_S_ID, 0, 2, Self);
       Add_Error (Expected.States (Map (5)));
 
       Add_Action (Expected.States (Map (6)), Lower_C_ID, Map (6));
@@ -278,14 +279,14 @@ package body Dragon_4_43_LR1_Test is
       Add_Error (Expected.States (Map (6)));
       Add_Goto (Expected.States (Map (6)), Upper_C_ID, Map (9));
 
-      Add_Action (Expected.States (Map (7)), EOF_ID, Reduce, Upper_C_ID, 1, 0, Self);
+      Add_Action (Expected.States (Map (7)), EOF_ID, Reduce, Upper_C_ID, 0, 1, Self);
       Add_Error (Expected.States (Map (7)));
 
-      Add_Action (Expected.States (Map (8)), Lower_C_ID, Reduce, Upper_C_ID, 2, 0, Self);
-      Add_Action (Expected.States (Map (8)), Lower_D_ID, Reduce, Upper_C_ID, 2, 0, Self);
+      Add_Action (Expected.States (Map (8)), Lower_C_ID, Reduce, Upper_C_ID, 0, 2, Self);
+      Add_Action (Expected.States (Map (8)), Lower_D_ID, Reduce, Upper_C_ID, 0, 2, Self);
       Add_Error (Expected.States (Map (8)));
 
-      Add_Action (Expected.States (Map (9)), EOF_ID, Reduce, Upper_C_ID, 2, 0, Self);
+      Add_Action (Expected.States (Map (9)), EOF_ID, Reduce, Upper_C_ID, 0, 2, Self);
       Add_Error (Expected.States (Map (9)));
 
       if Test.Debug then

@@ -34,7 +34,8 @@ package body FastToken.Parser.LR.Parser_Lists is
                     (State     => State_Index'First,
                      Token     => null),
                   Next         => null),
-               Pending_Actions => (null, null)),
+               Pending_Actions => (null, null),
+               Panic           => Default_Panic),
             Next               => null,
             Prev               => null),
          Parser_Free           => null,
@@ -90,6 +91,11 @@ package body FastToken.Parser.LR.Parser_Lists is
    is begin
       return Cursor.Ptr.Item.Verb;
    end Verb;
+
+   function Panic_Ref (Position : in Cursor) return Panic_Reference
+   is begin
+      return (Element => Position.Ptr.all.Item.Panic'Access);
+   end Panic_Ref;
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
@@ -412,7 +418,8 @@ package body FastToken.Parser.LR.Parser_Lists is
            (List.Parser_Label + 1,
             Cursor.Ptr.Item.Verb,
             New_Stack,
-            New_Action_Token),
+            New_Action_Token,
+            Default_Panic),
          Next => List.Head,
          Prev => null);
 

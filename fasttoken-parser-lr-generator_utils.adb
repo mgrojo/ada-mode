@@ -25,7 +25,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
    is
@@ -94,7 +94,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean)
    is
@@ -227,7 +227,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean)
@@ -315,7 +315,7 @@ package body FastToken.Parser.LR.Generator_Utils is
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token.Token_ID;
-      Has_Empty_Production : in Parser.Nonterminal_ID_Set)
+      Has_Empty_Production : in Token.Nonterminal_ID_Set)
      return Token.Token_ID
    is
       use Token.List;

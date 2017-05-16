@@ -42,12 +42,12 @@ package FastToken.Parser.LR.LALR_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Nonterminal_ID_Set  := (others => False);
-      Trace                    : in Boolean             := False;
-      Put_Parse_Table          : in Boolean             := False;
-      Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False)
+      Known_Conflicts          : in Conflict_Lists.List      := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Token.Nonterminal_ID_Set := (others => False);
+      Trace                    : in Boolean                  := False;
+      Put_Parse_Table          : in Boolean                  := False;
+      Ignore_Unused_Tokens     : in Boolean                  := False;
+      Ignore_Unknown_Conflicts : in Boolean                  := False)
      return Parse_Table_Ptr;
    --  Generate a generalized LALR parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
@@ -72,14 +72,14 @@ package FastToken.Parser.LR.LALR_Generator is
    function LALR_Goto_Transitions
      (Kernel  : in LR1_Items.Item_Set;
       Symbol  : in Token.Token_ID;
-      First   : in LR1_Items.Derivation_Matrix;
+      First   : in Token.Nonterminal_Array_Token_Set;
       Grammar : in Production.List.Instance;
       Trace   : in Boolean)
      return LR1_Items.Item_Set;
 
    function LALR_Kernels
      (Grammar           : in Production.List.Instance;
-      First             : in LR1_Items.Derivation_Matrix;
+      First             : in Token.Nonterminal_Array_Token_Set;
       Trace             : in Boolean;
       First_State_Index : in Unknown_State_Index)
      return LR1_Items.Item_Set_List;

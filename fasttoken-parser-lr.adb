@@ -240,7 +240,7 @@ package body FastToken.Parser.LR is
       use type Token.Terminal_ID;
       Goto_Node : Goto_Node_Ptr := Table.States (State).Goto_List;
    begin
-      while Goto_Node.Next /= null and Goto_Node.Symbol /= ID loop
+      while Goto_Node /= null and then Goto_Node.Symbol /= ID loop
          Goto_Node := Goto_Node.Next;
       end loop;
 
@@ -322,7 +322,11 @@ package body FastToken.Parser.LR is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Panic_Recover: " & Image (Table.Panic_Recover));
+      Put_Line ("Panic_Recover:");
+      Token.Put (Table.Panic_Recover);
+
+      Put_Line ("Follow:");
+      Token.Put (Table.Follow);
 
       for State in Table.States'Range loop
          Put_Line ("State" & State_Index'Image (State) & ":");

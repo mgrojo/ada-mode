@@ -55,6 +55,9 @@ package FastToken.Token.Nonterminal is
    --
    --  Routines of this type are called by the parser
    --  when it reduces a production to To_ID.
+   --
+   --  Items in Source may be the result of error recovery, in which
+   --  case they may not be of the expected derived type.
 
    Synthesize_Self  : constant Synthesize;
    --  Returns a new Nonterminal token with To_ID; ignores Source.

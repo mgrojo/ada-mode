@@ -19,35 +19,58 @@ pragma License (GPL);
 
 package body FastToken.Parser.LR.Panic_Mode is
 
-   procedure Pop_To_Good (Table : in Parse_Table; Cursor : in Parser_Lists.Cursor)
+   function Pop_To_Good (Table : in Parse_Table; Cursor : in Parser_Lists.Cursor) return Boolean
    is
-      use Parser_Lists;
       use Token;
-      Nonterm    : Nonterminal_ID      := Nonterminal_ID'First;
-      Top        : Stack_Item          := Cursor.Peek;
-      Goto_State : Unknown_State_Index := Unknown_State;
+      Panic    : Parser_Lists.Panic_Reference renames Cursor.Panic_Ref;
+      Top      : Parser_Lists.Stack_Item := Cursor.Peek;
+      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, null);
    begin
+      Panic.Element.all :=
+        (Nonterm    => Nonterminal_ID'First,
+         Goto_State => Unknown_State);
+
       Pop_Stack :
       loop
          Nonterms :
          loop
-            if Table.Panic_Recover (Nonterm) then
-               Goto_State := Goto_For (Table, Top.State, Nonterm);
-               exit Pop_Stack when Goto_State /= Unknown_State;
+            if Table.Panic_Recover (Panic.Nonterm) then
+               Panic.Goto_State := Goto_For (Table, Top.State, Panic.Nonterm);
+               if Panic.Goto_State = Prev_Top.State and
+                 (Prev_Top.Token /= null and then ID (Prev_Top.Token) = Panic.Nonterm)
+               then
+                  --  parser already tried this; keep going back.
+                  Panic.Goto_State := Unknown_State;
+               end if;
+               exit Pop_Stack when Panic.Goto_State /= Unknown_State;
             end if;
-            if Nonterm = Nonterminal_ID'Last then
+
+            if Panic.Nonterm = Nonterminal_ID'Last then
                exit Nonterms;
             else
-               Nonterm := Nonterminal_ID'Succ (Nonterm);
+               Panic.Nonterm := Nonterminal_ID'Succ (Panic.Nonterm);
             end if;
          end loop Nonterms;
 
-         Cursor.Pop;
-         exit Pop_Stack when Cursor.Stack_Empty;
-         Top := Cursor.Peek;
+         Prev_Top := Cursor.Pop;
+         Top      := Cursor.Peek;
+         exit Pop_Stack when Top.State = State_Index'First;
+
+         Panic.Nonterm := Nonterminal_ID'First;
       end loop Pop_Stack;
 
-      --  Cursor.Set_Panic_Nonterm (Nonterm);
+      if Trace_Parse > 0 then
+         Put_Trace (Integer'Image (Cursor.Label) & ": recover");
+         if Top.State = State_Index'First then
+            Put_Trace_Line (" failed");
+         else
+            Put_Trace_Line
+              (" state" & Unknown_State_Index'Image (Top.State) &
+                 " " & Token_Image (Panic.Nonterm) & " goto" & Unknown_State_Index'Image (Panic.Goto_State));
+         end if;
+      end if;
+
+      return not Cursor.Stack_Empty;
    end Pop_To_Good;
 
    function Panic_Mode
@@ -56,13 +79,29 @@ package body FastToken.Parser.LR.Panic_Mode is
       Current_Token : in     Token.Token_ID)
      return Boolean
    is
-      pragma Unreferenced (Current_Token);
-      Try_Again : constant Boolean := False;
+      Try_Again : Boolean := False;
    begin
       for I in Parsers.Iterate loop
-         Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
+         Try_Again := Try_Again or Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
       end loop;
 
+      if Try_Again then
+
+         for I in Parsers.Iterate loop
+            declare
+               use Parser_Lists;
+               Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
+               Panic  : Panic_Reference renames Cursor.Panic_Ref;
+            begin
+               if Table.Follow (Panic.Nonterm)(Current_Token) then
+                  Try_Again := True;
+                  Cursor.Push ((Panic.Goto_State, new Nonterminal.Class'(Nonterminal.Get (Panic.Nonterm))));
+               end if;
+            end;
+         end loop;
+      end if;
+
+      --  FIXME: loop on skip input
 
       return Try_Again;
    end Panic_Mode;

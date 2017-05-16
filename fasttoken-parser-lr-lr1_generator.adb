@@ -27,8 +27,8 @@ package body FastToken.Parser.LR.LR1_Generator is
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
       Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in Parser.Nonterminal_ID_Set;
-      First                : in LR1_Items.Derivation_Matrix;
+      Has_Empty_Production : in Token.Nonterminal_ID_Set;
+      First                : in Token.Nonterminal_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       Trace                : in Boolean)
      return LR1_Items.Item_Set
@@ -74,8 +74,8 @@ package body FastToken.Parser.LR.LR1_Generator is
    end LR1_Goto_Transitions;
 
    function LR1_Item_Sets
-     (Has_Empty_Production : in Parser.Nonterminal_ID_Set;
-      First                : in LR1_Items.Derivation_Matrix;
+     (Has_Empty_Production : in Token.Nonterminal_ID_Set;
+      First                : in Token.Nonterminal_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in Unknown_State_Index;
       Trace                : in Boolean)
@@ -184,7 +184,7 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    procedure Add_Actions
      (Item_Sets            : in     LR1_Items.Item_Set_List;
-      Has_Empty_Production : in     Parser.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean)
@@ -211,7 +211,10 @@ package body FastToken.Parser.LR.LR1_Generator is
       use Ada.Text_IO;
    begin
       Put_Line ("LR1 Parse Table:");
-      Put_Line ("Panic_Recover: " & Image (Table.Panic_Recover));
+      Put_Line ("Panic_Recover:");
+      Token.Put (Table.Panic_Recover);
+      Put_Line ("Follow:");
+      Token.Put (Table.Follow);
 
       for State in Table.States'Range loop
          LR1_Items.Put (LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
@@ -226,7 +229,7 @@ package body FastToken.Parser.LR.LR1_Generator is
    is
       use Production.List;
 
-      Used_Tokens : Token.Token_Array_Boolean := (others => False);
+      Used_Tokens : Token.Token_ID_Set := (others => False);
 
       Unused_Tokens : Boolean := False;
 
@@ -267,12 +270,12 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Nonterminal_ID_Set  := (others => False);
-      Trace                    : in Boolean             := False;
-      Put_Parse_Table          : in Boolean             := False;
-      Ignore_Unused_Tokens     : in Boolean             := False;
-      Ignore_Unknown_Conflicts : in Boolean             := False)
+      Known_Conflicts          : in Conflict_Lists.List      := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Token.Nonterminal_ID_Set := (others => False);
+      Trace                    : in Boolean                  := False;
+      Put_Parse_Table          : in Boolean                  := False;
+      Ignore_Unused_Tokens     : in Boolean                  := False;
+      Ignore_Unknown_Conflicts : in Boolean                  := False)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
@@ -281,8 +284,8 @@ package body FastToken.Parser.LR.LR1_Generator is
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Parser.Nonterminal_ID_Set   := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant LR1_Items.Derivation_Matrix := LR1_Items.First
+      Has_Empty_Production : constant Token.Nonterminal_ID_Set          := LR1_Items.Has_Empty_Production (Grammar);
+      First                : constant Token.Nonterminal_Array_Token_Set := LR1_Items.First
         (Grammar, Has_Empty_Production, Trace);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
@@ -300,6 +303,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       Table := new Parse_Table (Item_Sets.Size - 1 + State_Index'First);
 
       Table.Panic_Recover := Panic_Recover;
+      Table.Follow        := LR1_Items.Follow (Grammar, First);
 
       Add_Actions (Item_Sets, Has_Empty_Production, Unknown_Conflicts, Table.all, Trace);
 

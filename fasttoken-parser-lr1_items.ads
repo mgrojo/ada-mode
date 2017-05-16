@@ -42,10 +42,9 @@ package FastToken.Parser.LR1_Items is
    --  We need a special value of Lookahead to indicate '#' in
    --  [dragon] LALR algorithm 4.12. That is implemented by setting
    --  Propagate = True.
-   type Terminal_ID_Set is array (Token.Terminal_ID) of Boolean;
    type Lookahead is record
       Propagate : Boolean;
-      Tokens    : Terminal_ID_Set;
+      Tokens    : Token.Terminal_ID_Set;
    end record;
    Null_Lookaheads : constant Lookahead := (False, (others => False));
 
@@ -188,38 +187,30 @@ package FastToken.Parser.LR1_Items is
    --  Return Item_Set from From.Goto_List where the goto symbol is
    --  Symbol; null if not found.
 
-   type Token_ID_Set is array (Token.Reporting_ID) of Boolean;
-
-   function Image (Item : in Token_ID_Set) return String;
-
-   type Derivation_Matrix is array (Token.Nonterminal_ID) of Token_ID_Set;
-
-   function Has_Empty_Production (Grammar : in Production.List.Instance) return Nonterminal_ID_Set;
+   function Has_Empty_Production (Grammar : in Production.List.Instance) return Token.Nonterminal_ID_Set;
 
    function First
      (Grammar              : in Production.List.Instance;
-      Has_Empty_Production : in Nonterminal_ID_Set;
+      Has_Empty_Production : in Token.Nonterminal_ID_Set;
       Trace                : in Boolean)
-     return Derivation_Matrix;
+     return Token.Nonterminal_Array_Token_Set;
    --  For each nonterminal in Grammar, find the set of tokens
    --  (terminal or nonterminal) that any string derived from it can
    --  start with. Together with Has_Empty_Production, implements
    --  algorithm FIRST from [dragon], augmented with nonterminals.
 
-   type Nonterminal_Array_Terminal_Set is array (Token.Nonterminal_ID) of Terminal_ID_Set;
-
    function Follow
      (Grammar : in Production.List.Instance;
-      First   : in Derivation_Matrix)
-     return Nonterminal_Array_Terminal_Set;
+      First   : in Token.Nonterminal_Array_Token_Set)
+     return Token.Nonterminal_Array_Terminal_Set;
    --  For each nonterminal in Grammar, find the set of terminal
    --  tokens that can follow it. Implements algorithm FOLLOW from
    --  [dragon] pg 198.
 
    function Closure
      (Set                  : in Item_Set;
-      Has_Empty_Production : in Nonterminal_ID_Set;
-      First                : in Derivation_Matrix;
+      Has_Empty_Production : in Token.Nonterminal_ID_Set;
+      First                : in Token.Nonterminal_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       Trace                : in Boolean)
      return Item_Set;
@@ -243,7 +234,7 @@ package FastToken.Parser.LR1_Items is
    procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
-   procedure Put (Item : in Nonterminal_Array_Terminal_Set);
+   procedure Put (Item : in Token.Nonterminal_Array_Terminal_Set);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);

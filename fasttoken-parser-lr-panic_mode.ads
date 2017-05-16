@@ -14,7 +14,6 @@
 --      loop
 --          for all active parsers:
 --              if next_input in Follow (good nonterm);
---                  become active parser
 --                  push goto_for (s, nonterm)
 --                      _don't_ call reduce action, since don't have all tokens
 --          end loop
@@ -28,7 +27,8 @@
 --      end loop
 --  end loop
 --
---  continue with shift input
+--  continue with shift input; parsers that did not get adjusted above
+--  will error and terminate.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --

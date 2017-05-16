@@ -28,7 +28,26 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Unbounded;
 package body FastToken.Token is
+
+   function Image (Item : in Token_ID_Set) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result     : Unbounded_String;
+      Need_Comma : Boolean := False;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            if Need_Comma then
+               Result := Result & ", ";
+            end if;
+            Result     := Result & Token.Token_Image (I);
+            Need_Comma := True;
+         end if;
+      end loop;
+      return To_String (Result);
+   end Image;
 
    procedure Free (Item : in out Handle)
    is begin

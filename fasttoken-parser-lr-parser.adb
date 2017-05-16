@@ -302,6 +302,8 @@ package body FastToken.Parser.LR.Parser is
 
    overriding procedure Parse (Parser : in out Instance)
    is
+      use all type Token.Nonterminal_ID_Set;
+
       Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
       Current_Verb   : Parse_Action_Verbs;
       Current_Token  : Token.Handle;

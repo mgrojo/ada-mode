@@ -59,7 +59,29 @@ package FastToken.Token is
    subtype Reporting_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
    --  Leaves out whitespace, comments; tokens the lexer will never return.
 
-   type Token_Array_Boolean is array (Token_ID range First_Terminal .. Token_ID'Last) of Boolean;
+   type Token_ID_Set is array (Reporting_ID) of Boolean;
+   type Terminal_ID_Set is array (Terminal_ID) of Boolean;
+   type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
+   type Nonterminal_Array_Terminal_Set is array (Token.Nonterminal_ID) of Terminal_ID_Set;
+   type Nonterminal_Array_Token_Set is array (Token.Nonterminal_ID) of Token_ID_Set;
+
+   function Image (Item : in Token_ID_Set) return String;
+   function Any is new Gen_Any_1D (Reporting_ID, Token_ID_Set);
+   function Any is new Gen_Any_1D (Terminal_ID, Terminal_ID_Set);
+   function Any is new Gen_Any_1D (Nonterminal_ID, Nonterminal_ID_Set);
+   function Any is new Gen_Any_2D
+     (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Any);
+   function Any is new Gen_Any_2D
+     (Reporting_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Any);
+
+   procedure Put is new Gen_Put_1D (Reporting_ID, Token_ID_Set, Token_Image, Any);
+   procedure Put is new Gen_Put_1D (Terminal_ID, Terminal_ID_Set, Token_Image, Any);
+   procedure Put is new Gen_Put_1D (Nonterminal_ID, Nonterminal_ID_Set, Token_Image, Any);
+   procedure Put is new Gen_Put_2D
+     (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Token_Image, Token_Image, Any, Any);
+   procedure Put is new Gen_Put_2D
+     (Reporting_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Token_Image, Token_Image, Any, Any);
+   --  Put Item to Ada.Text_IO.Current_Output.
 
    type Buffer_Range is record
       Begin_Pos : Integer;

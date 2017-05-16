@@ -503,9 +503,9 @@ package body Wisi.Gen_Generate_Utils is
       return Grammar;
    end To_Grammar;
 
-   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Parser_Root.Nonterminal_ID_Set
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_Pkg.Nonterminal_ID_Set
    is
-      Result : Parser_Root.Nonterminal_ID_Set := (others => False);
+      Result : Token_Pkg.Nonterminal_ID_Set := (others => False);
    begin
       for Token of Item loop
          Result (Find_Token_ID (Token)) := True;

@@ -58,4 +58,36 @@ package FastToken is
 
    type Parser_Algorithm_Type is (LALR, LR1);
 
+   generic
+      type Index_Type is (<>);
+      type Array_Type is array (Index_Type) of Boolean;
+   function Gen_Any_1D (Item : in Array_Type) return Boolean;
+
+   generic
+      type Index_1_Type is (<>);
+      type Array_1_Type is array (Index_1_Type) of Boolean;
+      type Index_2_Type is (<>);
+      type Array_2_Type is array (Index_2_Type) of Array_1_Type;
+      with function Any (Item : in Array_1_Type) return Boolean;
+   function Gen_Any_2D (Item : in Array_2_Type) return Boolean;
+
+   generic
+      type Index_Type is (<>);
+      type Array_Type is array (Index_Type) of Boolean;
+      with function Image (Item : in Index_Type) return String;
+      with function Any (Item : in Array_Type) return Boolean;
+   procedure Gen_Put_1D (Item : in Array_Type);
+
+   generic
+      type Index_1_Type is (<>);
+      type Array_1_Type is array (Index_1_Type) of Boolean;
+      type Index_2_Type is (<>);
+      type Array_2_Type is array (Index_2_Type) of Array_1_Type;
+      with function Image_1 (Item : in Index_1_Type) return String;
+      with function Image_2 (Item : in Index_2_Type) return String;
+      with function Any (Item : in Array_1_Type) return Boolean;
+      with function Any (Item : in Array_2_Type) return Boolean;
+   procedure Gen_Put_2D (Item : in Array_2_Type);
+   --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
+
 end FastToken;
