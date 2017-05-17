@@ -36,7 +36,7 @@ package body FastToken.Production.Put_Trace is
    is
       use type Token.Semantic_Action;
    begin
-      Token.List.Put_Trace (Item.Tokens);
+      Token.List.Put_Trace (Item.Tokens, ID_Only => True);
       Put_Trace (", Action => ");
       Put_Trace_Action (Item.Action);
    end Put_Trace;

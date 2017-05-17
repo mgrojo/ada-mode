@@ -65,7 +65,6 @@ package body Test_Follow is
       use all type Production.Right_Hand_Side;
       use all type Production.Instance;
       use all type Production.List.Instance;
-      function "+" (ID : in Token_ID) return Token.Class renames Token.Get;
 
       Null_Action : Token.Semantic_Action renames Token.Null_Action;
 
@@ -73,9 +72,9 @@ package body Test_Follow is
       --  empty production for Parameter_List_ID
       Grammar : constant Production.List.Instance :=
         FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
-        Declarations_ID     <= +Declaration_ID + Null_Action and                         -- 2
+        Declarations_ID     <= Declaration_ID + Null_Action and                          -- 2
         Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3
-        Declaration_ID      <= +Subprogram_ID + Null_Action and                          -- 4
+        Declaration_ID      <= Subprogram_ID + Null_Action and                           -- 4
         Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and        -- 5
         Parameter_List_ID   <= +Null_Action and                                          -- 6
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7

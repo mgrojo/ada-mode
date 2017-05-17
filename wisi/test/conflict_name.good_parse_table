@@ -13,6 +13,37 @@ Tokens:
  12 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( aggregate =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ attribute_reference =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ attribute_designator =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ qualified_expression =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
+
 State 1:
   fasttoken_accept <= ^ name WISI_EOI, 
 
@@ -134,6 +165,35 @@ State 12:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( aggregate =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ attribute_reference =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ attribute_designator =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ qualified_expression =>
+  (RIGHT_PAREN |
+   TICK |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
 State 1:
   fasttoken_accept <= ^ name WISI_EOI, WISI_EOI
 

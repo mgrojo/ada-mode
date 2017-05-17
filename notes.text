@@ -15,8 +15,12 @@ report interrupt-process bug
 merge wisi_tokens to token
     get rid of allocation
 
-    baby steps; first get rid of FastToken.Token.Nonterminal
-        run all tests
+    baby steps;
+        get rid of FastToken.Token.Nonterminal
+        move bounds to fasttoken.token, use Token.Instance instead of Wisi_Tokens.Instance, grammar is id only
+            run all tests
+
+    see FIXMEs
 
 Do "panic mode" dragon pg 255
 

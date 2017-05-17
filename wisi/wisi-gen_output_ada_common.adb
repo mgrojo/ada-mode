@@ -149,7 +149,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR");
-      Indent_Line ("  (First_State_Index, Token_ID'Width, Wisi_Tokens_Pkg.Get);");
+      Indent_Line ("  (First_State_Index, Token_ID'Width, Token_Pkg.Get);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");

@@ -177,7 +177,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Stack_1 = null and Stack_2 = null;
    end Stack_Equal;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor; ID_Only : in Boolean)
    is
       use type Token.Handle;
       Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
@@ -188,7 +188,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          Put_Trace
            (State_Index'Image (Stack_I.Item.State) & " : " &
               (if Stack_I.Item.Token = null then ""
-               else Stack_I.Item.Token.Image) &
+               else Stack_I.Item.Token.Image (ID_Only)) &
               ", ");
          Stack_I := Stack_I.Next;
       end loop;
@@ -687,7 +687,7 @@ package body FastToken.Parser.LR.Parser_Lists is
            (not Is_In_Prev_New_Token (Token_Handle (Iter), Action_Token.Prev))
          then
             raise Programmer_Error with Label &
-              " - action token " & Token_Handle (Iter).Image & " not in prev actions tokens";
+              " - action token " & Token_Handle (Iter).Image (ID_Only => True) & " not in prev actions tokens";
          end if;
          Next (Iter);
       end loop;
@@ -707,7 +707,7 @@ package body FastToken.Parser.LR.Parser_Lists is
                    Is_In (Action_Token.Item.New_Token, Stack))
          then
             raise Programmer_Error with Label &
-              " - action.new_token " & Action_Token.Item.New_Token.Image &
+              " - action.new_token " & Action_Token.Item.New_Token.Image (ID_Only => True) &
               " not in later action tokens or stack";
          end if;
          Action_Token := Action_Token.Next;
@@ -720,7 +720,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          if Stack.Item.Token /= null and then Stack.Item.Token.all in Token.Instance and then
            not Is_In_Prev_New_Token (Stack.Item.Token, Action_Token)
          then
-            raise Programmer_Error with Label & " - stack " & Stack.Item.Token.Image &
+            raise Programmer_Error with Label & " - stack " & Stack.Item.Token.Image (ID_Only => True) &
               " not in action.new_token";
          end if;
          Stack := Stack.Next;
@@ -744,8 +744,8 @@ package body FastToken.Parser.LR.Parser_Lists is
            ((if Action_Token.Action.LHS = null then Action_Token.New_Token.ID else Action_Token.Action.LHS.ID))) &
         "_" & FastToken.Int_Image (Action_Token.Action.Index);
    begin
-      Put_Trace (Action_Name & ": " & Action_Token.New_Token.Image & " ");
-      Token.List.Put_Trace (Action_Token.Tokens);
+      Put_Trace (Action_Name & ": " & Action_Token.New_Token.Image (ID_Only => True) & " ");
+      Token.List.Put_Trace (Action_Token.Tokens, ID_Only => True);
    end Put_Trace;
 
    procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor)

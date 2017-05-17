@@ -97,7 +97,7 @@ package body Dragon_4_43_LR1_Test is
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
 
    Syntax : constant Lexer.Syntax :=
      (

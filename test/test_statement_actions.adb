@@ -72,41 +72,29 @@ package body Test_Statement_Actions is
    use type Token_Pkg.List.Instance;    --  "&"
 
    package Tokens is
-      --  For use in right hand sides.
-      --  Terminals
+      --  For use in syntax
       EOF            : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
       Integer        : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
       Plus_Minus     : constant Token_Pkg.Class := Token_Pkg.Get (Plus_Minus_ID);
       Semicolon      : constant Token_Pkg.Class := Token_Pkg.Get (Semicolon_ID);
-
-      --  Nonterminals
-      Parse_Sequence     : constant Token_Pkg.Class := Token_Pkg.Get (Parse_Sequence_ID);
-      Statement          : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-      Statement_Semi     : constant Token_Pkg.Class := Token_Pkg.Get (Statement_Semi_ID);
-      Statement_Sequence : constant Token_Pkg.Class := Token_Pkg.Get (Statement_Sequence_ID);
    end Tokens;
 
    Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    package Set_Statement is
 
-      Set_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
       Grammar : constant Production.List.Instance :=
         Production.List.Only
-        (Set_Statement <= Token_Pkg.Get (Set_ID) & Tokens.Integer + Null_Action);
+        (Statement_ID <= Set_ID & Int_ID + Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      Verify_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
       Grammar : constant Production.List.Instance :=
-        Verify_Statement  <= Token_Pkg.Get (Verify_ID) & Tokens.Integer + Null_Action
+        Statement_ID <= Verify_ID & Int_ID + Null_Action
         and
-        Verify_Statement  <= Token_Pkg.Get (Verify_ID) & Tokens.Integer &
-        Tokens.Plus_Minus + Null_Action;
+        Statement_ID <= Verify_ID & Int_ID & Plus_Minus_ID + Null_Action;
    end Verify_Statement;
 
    Syntax : constant Lexer.Syntax :=
@@ -133,10 +121,10 @@ package body Test_Statement_Actions is
    end Statement_Semi_Action;
 
    Grammar : constant Production.List.Instance :=
-     Tokens.Parse_Sequence     <= Tokens.Statement_Sequence & Tokens.EOF + Null_Action and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi & Tokens.Statement_Sequence + Null_Action and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi + Null_Action and
-     Tokens.Statement_Semi     <= Tokens.Statement & Tokens.Semicolon + Statement_Semi_Action'Access and
+     Parse_Sequence_ID     <= Statement_Sequence_ID & EOF_ID + Null_Action and
+     Statement_Sequence_ID <= Statement_Semi_ID & Statement_Sequence_ID + Null_Action and
+     Statement_Sequence_ID <= Statement_Semi_ID + Null_Action and
+     Statement_Semi_ID     <= Statement_ID & Semicolon_ID + Statement_Semi_Action'Access and
 
      Set_Statement.Grammar and
      Verify_Statement.Grammar;

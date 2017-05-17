@@ -50,12 +50,11 @@ package FastToken.Production is
    --  reduced by the parser.
 
    function "+" (Tokens : in Token.List.Instance; Action : in Token.Semantic_Action) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Class; Action : in Token.Semantic_Action) return Right_Hand_Side;
    function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side;
    function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side;
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Class; Index  : in Integer) return Right_Hand_Side;
+   function "+" (Tokens : in Token.Token_ID; Index  : in Integer) return Right_Hand_Side;
    function "+" (Index  : in Integer) return Right_Hand_Side;
    --  Create the right hand side of a production.
    --
@@ -73,8 +72,6 @@ package FastToken.Production is
    --    Subtraction <= Number & Minus_Sign & Number + Token.Null_Action
 
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance;
-   function "<=" (LHS : in Token.Handle; RHS : in Right_Hand_Side) return Instance;
-   function "<=" (LHS : in Token.Class; RHS : in Right_Hand_Side) return Instance;
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator;
 

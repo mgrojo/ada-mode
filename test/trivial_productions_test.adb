@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2009-2010, 2012-2015 Stephen Leake
+--  Copyright (C) 2009-2010, 2012-2015, 2017 Stephen Leake
 --  Copyright (C) 2000 Ted Dennison
 --
 --  This file is part of the FastToken package.
@@ -64,9 +64,6 @@ package body Trivial_Productions_Test is
 
       EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
       Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
-      E      : constant Token_Pkg.Class := Token_Pkg.Get (E_ID);
-      F      : constant Token_Pkg.Class := Token_Pkg.Get (F_ID);
-      T      : constant Token_Pkg.Class := Token_Pkg.Get (T_ID);
 
       Syntax : constant Lexer.Syntax :=
         (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character, EOF),
@@ -78,9 +75,9 @@ package body Trivial_Productions_Test is
       use type Production.List.Instance;
 
       Grammar : constant Production.List.Instance :=
-        E <= T & EOF + Token_Pkg.Null_Action and
-        T <= F + Token_Pkg.Null_Action and
-        F <= Symbol + Token_Pkg.Null_Action;
+        E_ID <= T_ID & EOF_ID + Token_Pkg.Null_Action and
+        T_ID <= F_ID + Token_Pkg.Null_Action and
+        F_ID <= Symbol_ID + Token_Pkg.Null_Action;
 
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
@@ -154,12 +151,6 @@ package body Trivial_Productions_Test is
       Right_Paren   : constant Token_Pkg.Class := Token_Pkg.Get (Right_Paren_ID);
       Symbol        : constant Token_Pkg.Class := Token_Pkg.Get (Symbol_ID);
 
-      FastToken_Accept : constant Token_Pkg.Class := Token_Pkg.Get (FastToken_Accept_ID);
-      Declarations     : constant Token_Pkg.Class := Token_Pkg.Get (Declarations_ID);
-      Declaration      : constant Token_Pkg.Class := Token_Pkg.Get (Declaration_ID);
-      Parameter_List   : constant Token_Pkg.Class := Token_Pkg.Get (Parameter_List_ID);
-      Subprogram       : constant Token_Pkg.Class := Token_Pkg.Get (Subprogram_ID);
-
       Syntax : constant Lexer.Syntax :=
         (
          Whitespace_ID  => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
@@ -179,14 +170,14 @@ package body Trivial_Productions_Test is
       Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
       Grammar : constant Production.List.Instance :=
-        FastToken_Accept <= Declarations & EOF + Null_Action and
-        Declarations     <= Declaration + Null_Action and
-        Declarations     <= Declarations & Declaration + Null_Action and
-        Declaration      <= Subprogram + Null_Action and
-        Subprogram       <= Function_Tok & Parameter_List & Symbol + Null_Action and
-        Subprogram       <= Procedure_Tok & Parameter_List + Null_Action and
-        Parameter_List   <= +Null_Action and
-        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Null_Action;
+        FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
+        Declarations_ID     <= Declaration_ID + Null_Action and
+        Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and
+        Declaration_ID      <= Subprogram_ID + Null_Action and
+        Subprogram_ID       <= Function_ID & Parameter_List_ID & Symbol_ID + Null_Action and
+        Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and
+        Parameter_List_ID   <= +Null_Action and
+        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
       Parser : LR_Parser.Instance;
 

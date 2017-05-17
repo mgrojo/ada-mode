@@ -265,7 +265,7 @@ is
       use Generate_Utils;
       use Wisi.Utils;
 
-      Empty_Action : constant access constant String := new String'("Self");
+      Empty_Action : constant access constant String := new String'("Null_Action");
 
       File_Name : constant String := Output_File_Name_Root &
         (case Data.Interface_Kind is
@@ -369,7 +369,7 @@ is
          Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
          Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
          Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen,");
-         Indent_Line ("Wisi_Tokens_Pkg.Get);");
+         Indent_Line ("Token_Pkg.Get);");
          Indent := Indent - 3;
 
       when Elisp_Lexer =>
@@ -417,7 +417,7 @@ is
 
       end case;
 
-      Indent_Line ("Self : constant Nonterminal.Synthesize := Wisi_Tokens_Pkg.Self'Access;");
+      Indent_Line ("Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;");
 
       if Action_Count = 0 then
          --  Populate Action_Names with Empty_Action.

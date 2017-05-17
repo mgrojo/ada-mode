@@ -35,14 +35,9 @@ package body FastToken.Production is
       return (Tokens, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token.Class; Action : in Token.Semantic_Action) return Right_Hand_Side
-   is begin
-      return (Token.List.Only (Tokens), Action, 0);
-   end "+";
-
    function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Token.List.Only (Token.Get (Tokens)), Action, 0);
+      return (Token.List.Only (Tokens), Action, 0);
    end "+";
 
    function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side
@@ -55,7 +50,7 @@ package body FastToken.Production is
       return (Tokens, null, Index);
    end "+";
 
-   function "+" (Tokens : in Token.Class; Index  : in Integer) return Right_Hand_Side
+   function "+" (Tokens : in Token.Token_ID; Index  : in Integer) return Right_Hand_Side
    is begin
       return (Token.List.Only (Tokens), null, Index);
    end "+";
@@ -65,19 +60,9 @@ package body FastToken.Production is
       return (Token.List.Null_List, null, Index);
    end "+";
 
-   function "<=" (LHS : in Token.Handle; RHS : in Right_Hand_Side) return Instance
-   is begin
-      return (LHS, RHS);
-   end "<=";
-
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance
    is begin
       return (new Token.Class'(Token.Get (LHS)), RHS);
-   end "<=";
-
-   function "<=" (LHS : in Token.Class; RHS : in Right_Hand_Side) return Instance
-   is begin
-      return (new Token.Class'(LHS), RHS);
    end "<=";
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator

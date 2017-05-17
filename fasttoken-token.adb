@@ -54,15 +54,43 @@ package body FastToken.Token is
       Dispose (Item);
    end Free;
 
-   function Image (Token : in Instance) return String
-   is begin
-      return Token_Image (Token.ID);
+   function Image (Item : in Instance; ID_Only : in Boolean) return String
+   is
+      Name : constant String := Token_Image (Item.ID);
+   begin
+      if ID_Only then
+         return Name;
+
+      elsif Item.Buffer_Range = Null_Buffer_Range then
+         return "(" & Name & ")";
+
+      else
+         return "(" & Name & Integer'Image (Item.Buffer_Range.Begin_Pos) & " ." &
+           --  Elisp region end is one past the last character
+           --  FIXME: so add 1 in wisi-output_ada_emacs!
+           Integer'Image (Item.Buffer_Range.End_Pos + 1) & ")";
+      end if;
    end Image;
 
    function Get (ID : in Token_ID) return Instance'Class
    is begin
-      return Instance'Class (Instance'(ID => ID));
+      return Instance'Class (Instance'(ID, Null_Buffer_Range));
    end Get;
+
+   function Get (ID : in Token_ID) return Handle
+   is begin
+      return new Instance'Class'(Get (ID));
+   end Get;
+
+   procedure Create
+     (Lexeme     : in     String;
+      Bounds     : in     Token.Buffer_Range;
+      New_Token  : in out Instance)
+   is
+      pragma Unreferenced (Lexeme);
+   begin
+      New_Token.Buffer_Range := Bounds;
+   end Create;
 
    function Copy (Token : in Handle) return Handle
    is begin
@@ -101,10 +129,10 @@ package body FastToken.Token is
          return Result;
       end Length;
 
-      function Only (Subject : in Class) return Instance
+      function Only (Subject : in Token_ID) return Instance
       is
          New_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Class'(Subject),
+           (Token => new Token.Instance'(Subject, Null_Buffer_Range),
             Next  => null);
       begin
          return
@@ -123,19 +151,6 @@ package body FastToken.Token is
             Tail => New_Node);
       end Only;
 
-      function "&" (Left  : in Class; Right : in Class) return Instance
-      is
-         Right_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Class'(Right),
-            Next  => null);
-      begin
-         return
-           (Head     => new List_Node'
-              (Token => new Class'(Left),
-               Next  => Right_Node),
-            Tail     => Right_Node);
-      end "&";
-
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance
       is
          Right_Node : constant List_Node_Ptr := new List_Node'
@@ -151,68 +166,18 @@ package body FastToken.Token is
 
       function "&" (Left : in Instance; Right : in Token_ID) return Instance
       is begin
-         return Left & Get (Right);
-      end "&";
-
-      function "&" (Left  : in Class; Right : in Instance) return Instance
-      is
-         Left_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Class'(Left),
-            Next  => Right.Head);
-
-         Last_Node : List_Node_Ptr := Right.Tail;
-      begin
-         if Last_Node = null then
-            Last_Node := Left_Node;
-         end if;
-         return (Head => Left_Node,
-                 Tail => Last_Node);
-      end "&";
-
-      function "&" (Left  : in Instance; Right : in Class) return Instance
-      is
-         New_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Class'(Right),
-            Next  => null);
-
-         First_Node : List_Node_Ptr;
-      begin
-         if Left.Tail = null then
-            First_Node := New_Node;
+         if Left.Head = null then
+            return Only (Right);
          else
-            First_Node     := Left.Head;
-            Left.Tail.Next := New_Node;
+            Left.Tail.Next := new List_Node'(Get (Right), null);
+            return (Left.Head, Left.Tail.Next);
          end if;
-         return (Head => First_Node,
-                 Tail => New_Node);
-      end "&";
-
-      function "&" (Left  : in Instance; Right : in Instance) return Instance
-      is begin
-         Left.Tail.Next := Right.Head;
-         return
-           (Head => Left.Head,
-            Tail => Right.Tail);
-      end "&";
-
-      function "&" (Left  : in Handle; Right : in Handle) return Instance
-      is
-         Tail : constant List_Node_Ptr := new List_Node'(Right, null);
-         Head : constant List_Node_Ptr := new List_Node'(Left, Tail);
-      begin
-         return (Head, Tail);
       end "&";
 
       function "&" (Left  : in Instance; Right : in Handle) return Instance
       is begin
          Left.Tail.Next := new List_Node'(Right, null);
          return (Left.Head, Left.Tail.Next);
-      end "&";
-
-      function "&" (Left  : in Handle; Right : in Instance) return Instance
-      is begin
-         Right.Tail.Next := new List_Node'(Left, null);
-         return (Right.Head, Right.Tail.Next);
       end "&";
 
       procedure Enqueue (List  : in out Instance; Token : in     Handle)
@@ -287,7 +252,7 @@ package body FastToken.Token is
          return ID (Token_Handle (Iterator).all);
       end ID;
 
-      procedure Put_Trace (Item : in Instance)
+      procedure Put_Trace (Item : in Instance; ID_Only : in Boolean)
       is
          I : List_Iterator := Item.First;
       begin
@@ -299,7 +264,7 @@ package body FastToken.Token is
                --  from this output than an exception.
                Put_Trace ("error: null token");
             else
-               Put_Trace (Token_Handle (I).Image);
+               Put_Trace (Token_Handle (I).Image (ID_Only));
             end if;
             Next_Token (I);
             if I /= Null_Iterator then
@@ -309,5 +274,34 @@ package body FastToken.Token is
       end Put_Trace;
 
    end List;
+
+   function Total_Buffer_Range (Tokens : in List.Instance) return Buffer_Range
+   is
+      use List;
+      I      : List_Iterator := Tokens.First;
+      Result : Buffer_Range  := Null_Buffer_Range;
+   begin
+      if I = Null_Iterator then
+         return Null_Buffer_Range;
+      end if;
+
+      loop
+         exit when I = Null_Iterator;
+         declare
+            Buffer_Region : Buffer_Range renames Token_Handle (I).Buffer_Range;
+         begin
+            if Result.Begin_Pos > Buffer_Region.Begin_Pos then
+               Result.Begin_Pos := Buffer_Region.Begin_Pos;
+            end if;
+
+            if Result.End_Pos < Buffer_Region.End_Pos then
+               Result.End_Pos := Buffer_Region.End_Pos;
+            end if;
+         end;
+
+         Next_Token (I);
+      end loop;
+      return Result;
+   end Total_Buffer_Range;
 
 end FastToken.Token;

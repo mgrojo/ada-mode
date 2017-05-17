@@ -29,7 +29,6 @@ param_1
 --CACHE: nil
 Func_1
 
-subprograms.input:1:1: SUBPROGRAMS_PROCESS_IO.AFLEX_SCANNER_JAMMED : subprograms_process_yylex.adb:345
 
 LR1_Parser parse:
 read 292
@@ -62,4 +61,3 @@ param_1
 --CACHE: nil
 Func_1
 
-subprograms.input:1:1: SUBPROGRAMS_PROCESS_IO.AFLEX_SCANNER_JAMMED : subprograms_process_yylex.adb:345

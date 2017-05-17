@@ -278,11 +278,11 @@ package body Parser_Lists_Test is
       Action_A  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_A, Only (Ident_A));
       Action_B  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_B, Only (Ident_B));
       Action_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, Statement_2, If_2 & Then_2 & Statement_B & End_2);
+        (Null_Reduce_Action_Rec, Statement_2, Only (If_2) & Then_2 & Statement_B & End_2);
       Action_1  : constant Action_Token :=
         (Null_Reduce_Action_Rec,
          Statement_1,
-         If_1 & Then_1 & Statement_A & Else_1 & Statement_2 & End_1);
+         Only (If_1) & Then_1 & Statement_A & Else_1 & Statement_2 & End_1);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
 
@@ -325,10 +325,10 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Action_B);
       Cursor.Push ((10, End_2));
 
-      if Test.Debug then Cursor.Put_Trace_Top_10; end if;
+      if Test.Debug then Cursor.Put_Trace_Top_10 (ID_Only => True); end if;
       Check_Action_Stack ("1a", Cursor);
       Parsers.Prepend_Copy (Cursor);
-      if Test.Debug then Parsers.First.Put_Trace_Top_10; end if;
+      if Test.Debug then Parsers.First.Put_Trace_Top_10 (ID_Only => True); end if;
       Check_Action_Stack ("1b", Parsers.First);
 
       Check ("1", Stack_Equal (Cursor, Parsers.First), True);
@@ -340,10 +340,10 @@ package body Parser_Lists_Test is
       Cursor.Push ((11, Statement_2));
       Cursor.Enqueue (Action_2);
 
-      if Test.Debug then Cursor.Put_Trace_Top_10; end if;
+      if Test.Debug then Cursor.Put_Trace_Top_10 (ID_Only => True); end if;
       Check_Action_Stack ("2a", Cursor);
       Parsers.Prepend_Copy (Cursor);
-      if Test.Debug then Parsers.First.Put_Trace_Top_10; end if;
+      if Test.Debug then Parsers.First.Put_Trace_Top_10 (ID_Only => True); end if;
       Check_Action_Stack ("2b", Parsers.First);
       Check ("2c", Stack_Equal (Cursor, Parsers.First), True);
 
@@ -358,14 +358,14 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Action_1);
 
       if Test.Debug then
-         Cursor.Put_Trace_Top_10;
+         Cursor.Put_Trace_Top_10 (ID_Only => True);
          Cursor.Put_Trace_Pending_Actions;
       end if;
       Check_Action_Stack ("3a", Cursor);
 
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then
-         Parsers.First.Put_Trace_Top_10;
+         Parsers.First.Put_Trace_Top_10 (ID_Only => True);
          Parsers.First.Put_Trace_Pending_Actions;
       end if;
 

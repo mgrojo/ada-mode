@@ -78,7 +78,7 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor; ID_Only : in Boolean);
    --  Put image of top 10 stack items to Put_Trace.
 
    --  pending user actions

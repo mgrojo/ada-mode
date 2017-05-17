@@ -126,12 +126,12 @@ package body FastToken.Parser.LR.Parser is
    is begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
-            Parser_Lists.Put_Trace_Top_10 (Current_Parser);
+            Parser_Lists.Put_Trace_Top_10 (Current_Parser, ID_Only => Trace_Parse < 4);
          end if;
          Put_Trace
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
-              Current_Token.Image & " : ");
+              Current_Token.Image (ID_Only => Trace_Parse < 4) & " : ");
          Put_Trace (Action);
          Put_Trace_Line ("");
       end if;
@@ -317,7 +317,7 @@ package body FastToken.Parser.LR.Parser is
             if not Keep_Going then
                --  report errors
                declare
-                  ID     : constant String := Current_Token.Image;
+                  ID     : constant String := Current_Token.Image (ID_Only => True);
                   Lexeme : constant String := Parser.Lexer.Lexeme;
 
                   --  FIXME: merge expecting from all active parsers

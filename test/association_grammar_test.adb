@@ -98,12 +98,6 @@ package body Association_Grammar_Test is
    use type Production.Right_Hand_Side; --  "+"
    use type Token_Pkg.List.Instance;    --  "&"
 
-   --  For use in right or left hand sides
-   Aggregate        : constant Token_Pkg.Class := Token_Pkg.Get (Aggregate_ID);
-   Association      : constant Token_Pkg.Class := Token_Pkg.Get (Association_ID);
-   Association_List : constant Token_Pkg.Class := Token_Pkg.Get (Association_List_ID);
-   Statement        : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
    Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    --  valid syntax:
@@ -113,13 +107,13 @@ package body Association_Grammar_Test is
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
    Full_Grammar     : constant Production.List.Instance :=
-     Statement        <= Aggregate & Tokens.EOF + Null_Action and
-     Aggregate        <= Tokens.Paren_Left & Association_List & Tokens.Paren_Right + Null_Action and
-     Association_List <= Association & Tokens.Comma & Association_List + Null_Action and
-     Association_List <= Association + Null_Action and
-     Association      <= Tokens.Identifier & Tokens.Equal_Greater & Tokens.Identifier + Null_Action and
-     Association      <= Tokens.Integer & Tokens.Equal_Greater & Tokens.Identifier + Null_Action and
-     Association      <= Tokens.Identifier + Null_Action;
+     Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
+     Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
+     Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action and
+     Association_List_ID <= Association_ID + Null_Action and
+     Association_ID      <= Identifier_ID & Equal_Greater_ID & Identifier_ID + Null_Action and
+     Association_ID      <= Int_ID & Equal_Greater_ID & Identifier_ID + Null_Action and
+     Association_ID      <= Identifier_ID + Null_Action;
 
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);

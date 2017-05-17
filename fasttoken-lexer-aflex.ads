@@ -59,7 +59,7 @@ generic
    YY_Init              : in out Boolean;
    YY_EOF_Has_Been_Seen : in out Boolean;
 
-   with function Get_Token (ID : in FastToken.Lexer.Token.Token_ID) return Token.Handle;
+   with function Get_Token (ID : in Token.Token_ID) return Token.Handle;
    --  All token objects have the same type
 
 package FastToken.Lexer.Aflex is

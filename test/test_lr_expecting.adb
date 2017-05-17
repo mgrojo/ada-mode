@@ -86,10 +86,6 @@ package body Test_LR_Expecting is
    Semicolon  : constant Token_Pkg.Class := Token_Pkg.Get (Semicolon_ID);
    Identifier : constant Token_Pkg.Class := Token_Pkg.Get (Identifier_ID);
 
-   --  Nonterminals
-   Parse_Sequence : constant Token_Pkg.Class := Token_Pkg.Get (Parse_Sequence_ID);
-   Statement      : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
    use type Production.Instance;        --  "<="
    use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
@@ -97,24 +93,19 @@ package body Test_LR_Expecting is
 
    package Set_Statement is
 
-      Set_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
       Grammar : constant Production.List.Instance :=
         --  set symbol = value
         Production.List.Only
-        (Set_Statement <= Token_Pkg.Get (Set_ID) & Identifier & Equals & Int + Token_Pkg.Null_Action);
+        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Token_Pkg.Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      Verify_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
-
       Grammar : constant Production.List.Instance :=
         --  verify symbol = value +- tolerance
         Production.List.Only
-        (Verify_Statement  <= Token_Pkg.Get (Verify_ID) & Equals & Int & Plus_Minus & Int +
-           Token_Pkg.Null_Action);
+        (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID + Token_Pkg.Null_Action);
    end Verify_Statement;
 
    Syntax : constant Lexer.Syntax :=
@@ -131,7 +122,7 @@ package body Test_LR_Expecting is
      );
 
    Grammar : constant Production.List.Instance :=
-     Parse_Sequence <= Statement & Semicolon & EOF + Token_Pkg.Null_Action and
+     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + Token_Pkg.Null_Action and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 

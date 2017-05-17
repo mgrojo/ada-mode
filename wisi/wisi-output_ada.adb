@@ -151,7 +151,7 @@ is
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init,");
          Indent_Line (Lower_Package_Name_Root & "_io.yy_eof_has_been_seen,");
-         Indent_Line ("Wisi_Tokens_Pkg.Get);");
+         Indent_Line ("Token_Pkg.Get);");
          Indent := Indent - 3;
 
       when Elisp_Lexer | Regexp_Lexer =>

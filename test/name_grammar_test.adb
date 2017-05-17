@@ -65,7 +65,7 @@ package body Name_Grammar_Test is
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
 
    Syntax : constant Lexer.Syntax :=
      (

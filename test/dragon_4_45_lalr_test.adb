@@ -66,8 +66,6 @@ package body Dragon_4_45_LALR_Test is
    use all type Production.Instance;
    use all type Production.List.Instance;
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
-
    Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    Grammar : constant Production.List.Instance :=
@@ -94,6 +92,8 @@ package body Dragon_4_45_LALR_Test is
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
 
    Syntax : constant Lexer.Syntax :=
      (

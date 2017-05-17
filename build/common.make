@@ -178,7 +178,7 @@ wisi-clean :
 	rm -f *.parse_table *.ads *.adb *.el *.l
 
 %.parse : %.input %_run.exe
-	./$*_run.exe -v 3 $< > $*.parse
+	./$*_run.exe -v 4 $< > $*.parse
 	dos2unix $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test_agg.gpr $(GPRBUILD_ARGS) $*

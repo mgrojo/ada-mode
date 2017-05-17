@@ -453,7 +453,7 @@ package body Wisi.Gen_Generate_Utils is
    is
       use Token_Pkg.List;
    begin
-      return Tokens & Token_Pkg.Get (Find_Token_ID (Token));
+      return Tokens & Find_Token_ID (Token);
    end "&";
 
    function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance
@@ -465,8 +465,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       begin
          Grammar := Production.List.Only
-           (Token_Pkg.Get (Accept_ID) <= Token_Pkg.Get (Find_Token_ID (Start_Token)) &
-              Token_Pkg.Get (EOI_ID) + Token_Pkg.Null_Action);
+           (Accept_ID <= Find_Token_ID (Start_Token) & EOI_ID + Token_Pkg.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -487,7 +486,7 @@ package body Wisi.Gen_Generate_Utils is
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
                   end loop;
-                  Grammar := Grammar and Token_Pkg.Get (Find_Token_ID (-Rule.Left_Hand_Side)) <= Tokens + Index;
+                  Grammar := Grammar and Find_Token_ID (-Rule.Left_Hand_Side) <= Tokens + Index;
                exception
                when E : Not_Found =>
                   Wisi.Utils.Put_Error

@@ -69,7 +69,7 @@ package body FastToken.Parser.LR.Panic_Mode is
                  " " & Token_Image (Panic.Nonterm) & " goto" & Unknown_State_Index'Image (Panic.Goto_State));
 
             if Trace_Parse > 2 then
-               Parser_Lists.Put_Trace_Top_10 (Cursor);
+               Parser_Lists.Put_Trace_Top_10 (Cursor, ID_Only => False);
             end if;
          end if;
       end if;
@@ -117,13 +117,13 @@ package body FastToken.Parser.LR.Panic_Mode is
          exit Matching_Input when Keep_Going;
 
          if Trace_Parse > 1 then
-            Ada.Text_IO.Put_Line ("  discard " & Current_Token.Image);
+            Ada.Text_IO.Put_Line ("  discard " & Current_Token.Image (ID_Only => False));
          end if;
          Token.Free (Current_Token);
          Lexer.Find_Next;
          Current_Token := new Token.Class'(Lexer.Get);
          if Trace_Parse > 1 then
-            Ada.Text_IO.Put_Line ("  next " & Current_Token.Image);
+            Ada.Text_IO.Put_Line ("  next " & Current_Token.Image (ID_Only => False));
          end if;
 
          --  Allow EOF_Token to succeed

@@ -93,7 +93,10 @@ package FastToken.Token is
    ----------
    --  Token type
 
-   type Instance is tagged private;
+   type Instance is tagged record
+      ID           : Token_ID;
+      Buffer_Range : Token.Buffer_Range;
+   end record;
 
    subtype Class is Instance'Class;
 
@@ -101,21 +104,19 @@ package FastToken.Token is
 
    procedure Free (Item : in out Handle);
 
-   function Image (Token : in Instance) return String;
+   function Image (Item : in Instance; ID_Only : in Boolean) return String;
    --  Return a string for debug messages
 
    function Get (ID : in Token_ID) return Instance'Class;
    --  Get a token with ID. Result is class-wide so derived
    --  types don't have to override Get.
 
-   function "+" (Item : in Token_ID) return Instance'Class
-     renames Get;
+   function Get (ID : in Token_ID) return Handle;
 
    procedure Create
      (Lexeme    : in     String;
       Bounds    : in     Buffer_Range;
-      New_Token : in out Instance)
-     is null;
+      New_Token : in out Instance);
    --  Set New_Token components with data from lexer.
    --
    --  Called from Find_Next when a token is returned by the lexer.
@@ -144,18 +145,12 @@ package FastToken.Token is
 
       function Length (Item : in Instance) return Natural;
 
-      function Only (Subject : in Class) return Instance;
+      function Only (Subject : in Token_ID) return Instance;
       function Only (Subject : in Handle) return Instance;
 
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance;
       function "&" (Left : in Instance; Right : in Token_ID) return Instance;
-      function "&" (Left : in Class; Right : in Class) return Instance;
-      function "&" (Left : in Class; Right : in Instance) return Instance;
-      function "&" (Left : in Instance; Right : in Class) return Instance;
-      function "&" (Left : in Instance; Right : in Instance) return Instance;
-      function "&" (Left : in Handle; Right : in Handle) return Instance;
       function "&" (Left : in Instance; Right : in Handle) return Instance;
-      function "&" (Left : in Handle; Right : in Instance) return Instance;
 
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List
@@ -185,7 +180,7 @@ package FastToken.Token is
       procedure Append (List  : in out Instance; Token : in     Handle);
       --  Append to tail of List, without copying Token.all
 
-      procedure Put_Trace (Item : in Instance);
+      procedure Put_Trace (Item : in Instance; ID_Only : in Boolean);
       --  Put Item to Put_Trace.
 
    private
@@ -208,6 +203,8 @@ package FastToken.Token is
 
    end List;
 
+   function Total_Buffer_Range (Tokens : in List.Instance) return Buffer_Range;
+
    type Semantic_Action is access procedure
      (Nonterm : in Nonterminal_ID;
       Source  : in Token.List.Instance);
@@ -222,9 +219,6 @@ package FastToken.Token is
    Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
 
 private
-   type Instance is tagged record
-      ID : Token_ID;
-   end record;
 
    procedure Dispose is new Ada.Unchecked_Deallocation (Class, Handle);
    --  Not Free; used to implement visible Free above.
