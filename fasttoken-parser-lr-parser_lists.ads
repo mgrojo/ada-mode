@@ -84,7 +84,7 @@ package FastToken.Parser.LR.Parser_Lists is
    --  pending user actions
    type Action_Token is record
       Action    : Reduce_Action_Rec;
-      New_Token : Nonterminal.Handle;
+      New_Token : Token.Handle;
       Tokens    : Token.List.Instance;
    end record;
 
@@ -146,7 +146,7 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
-   function Pending_Actions_Free_Count (List : in Parser_Lists.List) return Integer;
+   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
    procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token);
    procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor);

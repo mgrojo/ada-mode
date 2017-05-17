@@ -85,7 +85,6 @@ package body FastToken.Parser.LR.Panic_Mode is
      return Boolean
    is
       use all type Token.Handle;
-      use all type Nonterminal.Handle;
 
       Keep_Going : Boolean := False;
       Last_ID    : Token.Token_ID := ID (Current_Token);
@@ -110,7 +109,7 @@ package body FastToken.Parser.LR.Panic_Mode is
             begin
                if Table.Follow (Panic.Nonterm)(ID (Current_Token)) then
                   Keep_Going := True;
-                  Cursor.Push ((Panic.Goto_State, new Nonterminal.Class'(Nonterminal.Get (Panic.Nonterm))));
+                  Cursor.Push ((Panic.Goto_State, new Token.Class'(Token.Get (Panic.Nonterm))));
                end if;
             end;
          end loop;

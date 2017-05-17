@@ -208,6 +208,19 @@ package FastToken.Token is
 
    end List;
 
+   type Semantic_Action is access procedure
+     (Nonterm : in Nonterminal_ID;
+      Source  : in Token.List.Instance);
+   --  Routines of this type are called by the parser when it reduces
+   --  a production to Nonterm.
+
+   procedure Null_Semantic_Action
+     (Nonterm : in Nonterminal_ID;
+      Source  : in Token.List.Instance)
+     is null;
+
+   Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
+
 private
    type Instance is tagged record
       ID : Token_ID;

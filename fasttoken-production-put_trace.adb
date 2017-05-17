@@ -34,7 +34,7 @@ package body FastToken.Production.Put_Trace is
 
    procedure Put_Trace (Item : in Right_Hand_Side)
    is
-      use type Nonterminal.Synthesize;
+      use type Token.Semantic_Action;
    begin
       Token.List.Put_Trace (Item.Tokens);
       Put_Trace (", Action => ");

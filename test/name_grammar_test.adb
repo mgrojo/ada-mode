@@ -26,12 +26,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Name_Grammar_Test is
 
    type Token_ID is
@@ -51,46 +52,29 @@ package body Name_Grammar_Test is
       Statement_ID,
       Symbol_Name_ID);
 
-   package Tokens_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Tokens_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
+   package Token_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser
-     (Token_ID, Dot_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
+     (Token_ID, Dot_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
-   First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   package Tokens is
-      --  For use in right hand sides, syntax.
-      Dot         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Dot_ID);
-      Paren_Left  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Paren_Left_ID);
-      Paren_Right : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Paren_Right_ID);
-      Identifier  : constant Tokens_Pkg.Class := Tokens_Pkg.Get (Identifier_ID);
-      EOF         : constant Tokens_Pkg.Class := Tokens_Pkg.Get (EOF_ID);
-
-      Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-      Name           : constant Nonterminal.Class := Nonterminal.Get (Name_ID);
-      Symbol_Name    : constant Nonterminal.Class := Nonterminal.Get (Symbol_Name_ID);
-      Component      : constant Nonterminal.Class := Nonterminal.Get (Component_ID);
-      Component_List : constant Nonterminal.Class := Nonterminal.Get (Component_List_ID);
-   end Tokens;
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID  => Lexer.Get (" ", Tokens_Pkg.Get (Whitespace_ID), Report => False),
-      Dot_ID         => Lexer.Get ("\.", Tokens.Dot),
-      Paren_Left_ID  => Lexer.Get ("\(", Tokens.Paren_Left),
-      Paren_Right_ID => Lexer.Get ("\)", Tokens.Paren_Right),
-      Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+", Tokens.Identifier),
-      EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character, Tokens.EOF)
+      Whitespace_ID  => Lexer.Get (" ", +Whitespace_ID, Report => False),
+      Dot_ID         => Lexer.Get ("\.", +Dot_ID),
+      Paren_Left_ID  => Lexer.Get ("\(", +Paren_Left_ID),
+      Paren_Right_ID => Lexer.Get ("\)", +Paren_Right_ID),
+      Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+", +Identifier_ID),
+      EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
      );
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -98,28 +82,28 @@ package body Name_Grammar_Test is
    use type Production.Instance;        --  "<="
    use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Tokens_Pkg.List.Instance;    --  "&"
+   use type Token_Pkg.List.Instance;    --  "&"
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    --  valid names:
    --  Module (Index)
    --  Module.Component
    Simple_Grammar : constant Production.List.Instance :=
-     Tokens.Statement  <= Tokens.Name & Tokens.EOF + Self and
-     Tokens.Name       <= Tokens.Identifier & Tokens.Component + Self and
-     Tokens.Component  <= Tokens.Dot & Tokens.Identifier + Self and
-     Tokens.Component  <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Self;
+     Statement_ID  <= Name_ID & EOF_ID + Null_Action and
+     Name_ID       <= Identifier_ID & Component_ID + Null_Action and
+     Component_ID  <= Dot_ID & Identifier_ID + Null_Action and
+     Component_ID  <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
    --  valid names:
    --  Module.Symbol (Index)
    --  Module.Symbol.Component
    Medium_Grammar : constant Production.List.Instance :=
-     Tokens.Statement   <= Tokens.Name & Tokens.EOF + Self and
-     Tokens.Name        <= Tokens.Symbol_Name & Tokens.Component + Self and
-     Tokens.Symbol_Name <= Tokens.Identifier & Tokens.Dot & Tokens.Identifier + Self and
-     Tokens.Component   <= Tokens.Dot & Tokens.Identifier + Self and
-     Tokens.Component   <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Self;
+     Statement_ID   <= Name_ID & EOF_ID + Null_Action and
+     Name_ID        <= Symbol_Name_ID & Component_ID + Null_Action and
+     Symbol_Name_ID <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
+     Component_ID   <= Dot_ID & Identifier_ID + Null_Action and
+     Component_ID   <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
    --  valid names:
    --  Module.Symbol
@@ -128,14 +112,19 @@ package body Name_Grammar_Test is
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
    Full_Grammar : constant Production.List.Instance :=
-     Tokens.Statement      <= Tokens.Name & Tokens.EOF + Self and
-     Tokens.Name           <= Tokens.Symbol_Name & Tokens.Component_List + Self and
-     Tokens.Name           <= Tokens.Symbol_Name + Self and
-     Tokens.Symbol_Name    <= Tokens.Identifier & Tokens.Dot & Tokens.Identifier + Self and
-     Tokens.Component_List <= Tokens.Component & Tokens.Component_List + Self and
-     Tokens.Component_List <= Tokens.Component + Self and
-     Tokens.Component      <= Tokens.Dot & Tokens.Identifier + Self and
-     Tokens.Component      <= Tokens.Paren_Left & Tokens.Identifier & Tokens.Paren_Right + Self;
+     Statement_ID      <= Name_ID & EOF_ID + Null_Action and
+     Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action and
+     Name_ID           <= Symbol_Name_ID + Null_Action and
+     Symbol_Name_ID    <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
+     Component_List_ID <= Component_ID & Component_List_ID + Null_Action and
+     Component_List_ID <= Component_ID + Null_Action and
+     Component_ID      <= Dot_ID & Identifier_ID + Null_Action and
+     Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
+
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
    procedure Parse_Command (Lable : in String; Parser : in out Parsers.Instance; Command : in String)
    is begin

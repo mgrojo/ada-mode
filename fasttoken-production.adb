@@ -30,22 +30,22 @@ pragma License (Modified_GPL);
 
 package body FastToken.Production is
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Nonterminal.Synthesize) return Right_Hand_Side
+   function "+" (Tokens : in Token.List.Instance; Action : in Token.Semantic_Action) return Right_Hand_Side
    is begin
       return (Tokens, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token.Class; Action : in Nonterminal.Synthesize) return Right_Hand_Side
+   function "+" (Tokens : in Token.Class; Action : in Token.Semantic_Action) return Right_Hand_Side
    is begin
       return (Token.List.Only (Tokens), Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token.Token_ID; Action : in Nonterminal.Synthesize) return Right_Hand_Side
+   function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side
    is begin
       return (Token.List.Only (Token.Get (Tokens)), Action, 0);
    end "+";
 
-   function "+" (Action : in Nonterminal.Synthesize) return Right_Hand_Side
+   function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side
    is begin
       return (Token.List.Null_List, Action, 0);
    end "+";
@@ -65,19 +65,19 @@ package body FastToken.Production is
       return (Token.List.Null_List, null, Index);
    end "+";
 
-   function "<=" (LHS : in Nonterminal.Handle; RHS : in Right_Hand_Side) return Instance
+   function "<=" (LHS : in Token.Handle; RHS : in Right_Hand_Side) return Instance
    is begin
       return (LHS, RHS);
    end "<=";
 
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance
    is begin
-      return (new Nonterminal.Class'(Nonterminal.Get (LHS)), RHS);
+      return (new Token.Class'(Token.Get (LHS)), RHS);
    end "<=";
 
-   function "<=" (LHS : in Nonterminal.Class; RHS : in Right_Hand_Side) return Instance
+   function "<=" (LHS : in Token.Class; RHS : in Right_Hand_Side) return Instance
    is begin
-      return (new Nonterminal.Class'(LHS), RHS);
+      return (new Token.Class'(LHS), RHS);
    end "<=";
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator

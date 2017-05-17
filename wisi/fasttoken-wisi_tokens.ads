@@ -18,8 +18,8 @@
 
 pragma License (GPL);
 
-with FastToken.Token.Nonterminal;
 with Ada.Text_IO;
+with FastToken.Token;
 generic
    type Token_ID is (<>);
    First_Terminal : in Token_ID;
@@ -28,14 +28,12 @@ generic
    with function Token_Image (Item : in Token_ID) return String;
    with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
 
-   with package Token_Pkg is new FastToken.Token
+   with package Token is new FastToken.Token
      (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
-
-   with package Nonterminal is new Token_Pkg.Nonterminal;
 package FastToken.Wisi_Tokens is
 
-   type Instance is new Nonterminal.Instance with record
-      Buffer_Range : Token_Pkg.Buffer_Range;
+   type Instance is new Token.Instance with record
+      Buffer_Range : Token.Buffer_Range;
    end record;
 
    subtype Class is Instance'Class;
@@ -43,26 +41,25 @@ package FastToken.Wisi_Tokens is
    type Handle is access all Class;
 
    overriding
-   function Image (Token : in Instance) return String;
+   function Image (Item : in Instance) return String;
 
-   function Get (ID : in Token_ID) return Nonterminal.Instance'Class;
-   function Get (ID : in Token_ID) return Token_Pkg.Handle;
+   function Get (ID : in Token_ID) return Token.Instance'Class;
+   function Get (ID : in Token_ID) return Token.Handle;
    --  For use in Syntax; sets null Buffer_Range
 
    overriding
    procedure Create
      (Lexeme    : in     String;
-      Bounds    : in     Token_Pkg.Buffer_Range;
+      Bounds    : in     Token.Buffer_Range;
       New_Token : in out Instance);
    --  Callback from Analyzer; stores Buffer_Range in New_Token
 
-   function Get (ID : in Token_ID; Buffer_Range : in Token_Pkg.Buffer_Range) return Nonterminal.Instance'Class;
+   function Get (ID : in Token_ID; Buffer_Range : in Token.Buffer_Range) return Token.Instance'Class;
    --  For use in Actions.
 
    procedure Self
-     (New_Token : out Nonterminal.Class;
-      Source    : in  Token_Pkg.List.Instance'Class;
-      To_ID     : in  Token_ID);
+     (Nonterm : in Token.Nonterminal_ID;
+      Source  : in Token.List.Instance);
    --  For use in Actions.
 
    ----------
@@ -70,10 +67,10 @@ package FastToken.Wisi_Tokens is
    --  Ada_Emacs target.
 
    function Total_Buffer_Range
-     (Tokens : in Wisi_Tokens.Token_Pkg.List.Instance'Class)
-     return Wisi_Tokens.Token_Pkg.Buffer_Range;
+     (Tokens : in Wisi_Tokens.Token.List.Instance'Class)
+     return Wisi_Tokens.Token.Buffer_Range;
 
-   function To_Codes (Tokens : in Wisi_Tokens.Token_Pkg.List.Instance'Class) return String;
+   function To_Codes (Tokens : in Wisi_Tokens.Token.List.Instance'Class) return String;
    --  Return format for Emacs ada-mode process interface
    --  FIXME: move to child package
 

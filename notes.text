@@ -12,6 +12,12 @@ report interrupt-process bug
 
     look for tests in emacs
 
+merge wisi_tokens to token
+    get rid of allocation
+
+    baby steps; first get rid of FastToken.Token.Nonterminal
+        run all tests
+
 Do "panic mode" dragon pg 255
 
     fasttoken-parser-lr-panic_mode.adb
@@ -20,9 +26,6 @@ Do "panic mode" dragon pg 255
         just implement it, find source where it at lease does something
 
     report region containing popped/skipped tokens
-        merge wisi_tokens to token
-        get rid of allocation
-
     test semantic actions
         just confirm an action procedure is called/not called
 

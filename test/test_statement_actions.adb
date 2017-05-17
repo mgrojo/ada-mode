@@ -24,12 +24,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Test_Statement_Actions is
 
    type Token_ID is
@@ -48,20 +49,20 @@ package body Test_Statement_Actions is
       Parse_Sequence_ID);
 
    package Token_Pkg is new FastToken.Token (Token_ID, Plus_Minus_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Production is new FastToken.Production (Token_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser
      (Token_ID, Plus_Minus_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -79,33 +80,33 @@ package body Test_Statement_Actions is
       Semicolon      : constant Token_Pkg.Class := Token_Pkg.Get (Semicolon_ID);
 
       --  Nonterminals
-      Parse_Sequence     : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
-      Statement          : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-      Statement_Semi     : constant Nonterminal.Class := Nonterminal.Get (Statement_Semi_ID);
-      Statement_Sequence : constant Nonterminal.Class := Nonterminal.Get (Statement_Sequence_ID);
+      Parse_Sequence     : constant Token_Pkg.Class := Token_Pkg.Get (Parse_Sequence_ID);
+      Statement          : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
+      Statement_Semi     : constant Token_Pkg.Class := Token_Pkg.Get (Statement_Semi_ID);
+      Statement_Sequence : constant Token_Pkg.Class := Token_Pkg.Get (Statement_Sequence_ID);
    end Tokens;
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    package Set_Statement is
 
-      Set_Statement : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+      Set_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
 
       Grammar : constant Production.List.Instance :=
         Production.List.Only
-        (Set_Statement <= Nonterminal.Get (Set_ID) & Tokens.Integer + Self);
+        (Set_Statement <= Token_Pkg.Get (Set_ID) & Tokens.Integer + Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      Verify_Statement : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+      Verify_Statement : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
 
       Grammar : constant Production.List.Instance :=
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Integer + Self
+        Verify_Statement  <= Token_Pkg.Get (Verify_ID) & Tokens.Integer + Null_Action
         and
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Tokens.Integer &
-        Tokens.Plus_Minus + Self;
+        Verify_Statement  <= Token_Pkg.Get (Verify_ID) & Tokens.Integer &
+        Tokens.Plus_Minus + Null_Action;
    end Verify_Statement;
 
    Syntax : constant Lexer.Syntax :=
@@ -122,21 +123,19 @@ package body Test_Statement_Actions is
    Action_Count : Integer := 0;
 
    procedure Statement_Semi_Action
-     (New_Token :    out Nonterminal.Class;
-      Source    : in     Token_Pkg.List.Instance'Class;
-      To_ID     : in     Token_ID)
+     (Nonterm : in Token_Pkg.Nonterminal_ID;
+      Source  : in Token_Pkg.List.Instance)
    is
-      pragma Unreferenced (To_ID);
+      pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
    begin
-      New_Token := Nonterminal.Get (Statement_Semi_ID);
       Action_Count := Action_Count + 1;
    end Statement_Semi_Action;
 
    Grammar : constant Production.List.Instance :=
-     Tokens.Parse_Sequence     <= Tokens.Statement_Sequence & Tokens.EOF + Self and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi & Tokens.Statement_Sequence + Self and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi + Self and
+     Tokens.Parse_Sequence     <= Tokens.Statement_Sequence & Tokens.EOF + Null_Action and
+     Tokens.Statement_Sequence <= Tokens.Statement_Semi & Tokens.Statement_Sequence + Null_Action and
+     Tokens.Statement_Sequence <= Tokens.Statement_Semi + Null_Action and
      Tokens.Statement_Semi     <= Tokens.Statement & Tokens.Semicolon + Statement_Semi_Action'Access and
 
      Set_Statement.Grammar and

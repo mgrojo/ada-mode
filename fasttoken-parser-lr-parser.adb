@@ -77,10 +77,10 @@ package body FastToken.Parser.LR.Parser is
 
    procedure Reduce_Stack
      (Current_Parser : in Parser_Lists.Cursor;
-      New_Token      : in Nonterminal.Handle;
+      New_Token      : in Token.Handle;
       Action         : in Reduce_Action_Rec)
    is
-      use type Nonterminal.Synthesize;
+      use type Token.Semantic_Action;
 
       Tokens : Token.List.Instance;
    begin
@@ -108,7 +108,7 @@ package body FastToken.Parser.LR.Parser is
                Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            Action.Action (New_Token.all, Tokens, Token.ID (New_Token.all));
+            Action.Action (Token.ID (New_Token.all), Tokens);
             if Trace_Parse > 1 then
                Parser_Lists.Put_Trace (Action_Token);
                Put_Trace_Line ("");
@@ -142,7 +142,7 @@ package body FastToken.Parser.LR.Parser is
 
       when Reduce =>
          declare
-            New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
+            New_Token : constant Token.Handle := new Token.Class'(Action.LHS.all);
          begin
             Reduce_Stack (Current_Parser, New_Token, Action);
 
@@ -151,7 +151,7 @@ package body FastToken.Parser.LR.Parser is
                   (Table => Table,
                    State => Current_Parser.Peek.State,
                    ID    => Token.ID (Action.LHS.all)),
-                Token    => Token_Pkg.Handle (New_Token)));
+                Token    => New_Token));
 
             if Trace_Parse > 1 then
                Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
@@ -160,7 +160,7 @@ package body FastToken.Parser.LR.Parser is
 
       when Accept_It =>
          declare
-            New_Token : constant Nonterminal.Handle := new Nonterminal.Class'(Action.LHS.all);
+            New_Token : constant Token.Handle := new Token.Class'(Action.LHS.all);
          begin
             Reduce_Stack
               (Current_Parser, New_Token, (Reduce, Action.LHS, Action.Action, Action.Index, Action.Token_Count));
@@ -253,8 +253,7 @@ package body FastToken.Parser.LR.Parser is
       loop
          exit when Current_Parser.Pending_Actions_Empty;
          Action_Token := Current_Parser.Dequeue;
-         Action_Token.Action.Action
-           (Action_Token.New_Token.all, Action_Token.Tokens, Token.ID (Action_Token.New_Token.all));
+         Action_Token.Action.Action (Token.ID (Action_Token.New_Token.all), Action_Token.Tokens);
          if Trace_Parse > 1 then
             --  Do Put after calling Action, so New_Token has result of Action
             Parser_Lists.Put_Trace (Action_Token);

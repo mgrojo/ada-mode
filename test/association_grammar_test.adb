@@ -26,12 +26,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Association_Grammar_Test is
 
    type Token_ID is
@@ -55,19 +56,15 @@ package body Association_Grammar_Test is
       Statement_ID);
 
    package Token_Pkg is new FastToken.Token (Token_ID, Comma_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Production is new FastToken.Production (Token_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser
      (Token_ID, Comma_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
-   First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -102,12 +99,12 @@ package body Association_Grammar_Test is
    use type Token_Pkg.List.Instance;    --  "&"
 
    --  For use in right or left hand sides
-   Aggregate        : constant Nonterminal.Class := Nonterminal.Get (Aggregate_ID);
-   Association      : constant Nonterminal.Class := Nonterminal.Get (Association_ID);
-   Association_List : constant Nonterminal.Class := Nonterminal.Get (Association_List_ID);
-   Statement        : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+   Aggregate        : constant Token_Pkg.Class := Token_Pkg.Get (Aggregate_ID);
+   Association      : constant Token_Pkg.Class := Token_Pkg.Get (Association_ID);
+   Association_List : constant Token_Pkg.Class := Token_Pkg.Get (Association_List_ID);
+   Statement        : constant Token_Pkg.Class := Token_Pkg.Get (Statement_ID);
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    --  valid syntax:
    --  (identifier)
@@ -116,13 +113,18 @@ package body Association_Grammar_Test is
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
    Full_Grammar     : constant Production.List.Instance :=
-     Statement        <= Aggregate & Tokens.EOF + Self and
-     Aggregate        <= Tokens.Paren_Left & Association_List & Tokens.Paren_Right + Self and
-     Association_List <= Association & Tokens.Comma & Association_List + Self and
-     Association_List <= Association + Self and
-     Association      <= Tokens.Identifier & Tokens.Equal_Greater & Tokens.Identifier + Self and
-     Association      <= Tokens.Integer & Tokens.Equal_Greater & Tokens.Identifier + Self and
-     Association      <= Tokens.Identifier + Self;
+     Statement        <= Aggregate & Tokens.EOF + Null_Action and
+     Aggregate        <= Tokens.Paren_Left & Association_List & Tokens.Paren_Right + Null_Action and
+     Association_List <= Association & Tokens.Comma & Association_List + Null_Action and
+     Association_List <= Association + Null_Action and
+     Association      <= Tokens.Identifier & Tokens.Equal_Greater & Tokens.Identifier + Null_Action and
+     Association      <= Tokens.Integer & Tokens.Equal_Greater & Tokens.Identifier + Null_Action and
+     Association      <= Tokens.Identifier + Null_Action;
+
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
    Parser : Parsers.Instance;
 

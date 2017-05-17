@@ -26,7 +26,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Parser_Lists_Test is
 
    --  we need an instantiation of FastToken.Parser.LALR.Parser to test
@@ -34,12 +34,11 @@ package body Parser_Lists_Test is
    type Token_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
    package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);
 
    --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.
@@ -78,7 +77,7 @@ package body Parser_Lists_Test is
       Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
       Check ("1: Peek.State", Cursor.Peek.State, State_Index'First);
       Check ("1: Peek.Token", Cursor.Peek.Token, null);
-      Check ("1: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
+      Check ("1: Action_Tokens_Empty", Cursor.Pending_Actions_Empty, True);
    end Init;
 
    procedure Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -212,39 +211,39 @@ package body Parser_Lists_Test is
 
       Parsers : List                  := Initialize;
       Item_1  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Statement_ID)), Token_Pkg.List.Null_List);
+        (Null_Reduce_Action_Rec, new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID)), Token_Pkg.List.Null_List);
       Item_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Nonterminal.Class'(Nonterminal.Get (Procedure_ID)), Token_Pkg.List.Null_List);
+        (Null_Reduce_Action_Rec, new Token_Pkg.Class'(Token_Pkg.Get (Procedure_ID)), Token_Pkg.List.Null_List);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
    begin
-      Check ("0: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
-      Check ("0: action_token_count", Cursor.Action_Token_Count, 0);
+      Check ("0: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
+      Check ("0: action_token_count", Cursor.Pending_Actions_Count, 0);
       Cursor.Enqueue (Item_1);
-      Check ("0a: action_token_count", Cursor.Action_Token_Count, 1);
-      Check ("0a: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("0a: action_token_count", Cursor.Pending_Actions_Count, 1);
+      Check ("0a: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Cursor.Enqueue (Item_2);
-      Check ("0b: action_token_count", Cursor.Action_Token_Count, 2);
-      Check ("0b: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("0b: action_token_count", Cursor.Pending_Actions_Count, 2);
+      Check ("0b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
 
       Check ("1 dequeue", Token_Pkg.ID (Dequeue (Cursor).New_Token.all), Statement_ID);
-      Check ("1: action_token_count", Cursor.Action_Token_Count, 1);
-      Check ("1: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("1: action_token_count", Cursor.Pending_Actions_Count, 1);
+      Check ("1: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Check ("1: free count", Parsers.Action_Token_Free_Count, 1);
 
       Check ("2 dequeue", Token_Pkg.ID (Dequeue (Cursor).New_Token.all), Procedure_ID);
-      Check ("2: action_token_count", Cursor.Action_Token_Count, 0);
-      Check ("2: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, True);
+      Check ("2: action_token_count", Cursor.Pending_Actions_Count, 0);
+      Check ("2: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
       Check ("2: free count", Parsers.Action_Token_Free_Count, 2);
 
       --  Enqueue using free list
       Cursor.Enqueue (Item_1);
-      Check ("3a: action_token_count", Cursor.Action_Token_Count, 1);
-      Check ("3a: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("3a: action_token_count", Cursor.Pending_Actions_Count, 1);
+      Check ("3a: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Cursor.Enqueue (Item_2);
-      Check ("3b: action_token_count", Cursor.Action_Token_Count, 2);
-      Check ("3b: Action_Tokens_Empty", Cursor.Action_Tokens_Empty, False);
+      Check ("3b: action_token_count", Cursor.Pending_Actions_Count, 2);
+      Check ("3b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
 
    end Pending;
@@ -271,19 +270,19 @@ package body Parser_Lists_Test is
       End_2   : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (End_ID));
       End_1   : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (End_ID));
 
-      Statement_A : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID));
-      Statement_B : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID));
-      Statement_1 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID));
-      Statement_2 : constant Nonterminal.Handle := new Nonterminal.Class'(Nonterminal.Get (Statement_ID));
+      Statement_A : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
+      Statement_B : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
+      Statement_1 : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
+      Statement_2 : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
 
       Action_A  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_A, Only (Ident_A));
       Action_B  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_B, Only (Ident_B));
       Action_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, Statement_2, If_2 & Then_2 & Token_Pkg.Handle (Statement_B) & End_2);
+        (Null_Reduce_Action_Rec, Statement_2, If_2 & Then_2 & Statement_B & End_2);
       Action_1  : constant Action_Token :=
         (Null_Reduce_Action_Rec,
          Statement_1,
-         If_1 & Then_1 & Token_Pkg.Handle (Statement_A) & Else_1 & Token_Pkg.Handle (Statement_2) & End_1);
+         If_1 & Then_1 & Statement_A & Else_1 & Statement_2 & End_1);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
 
@@ -314,7 +313,7 @@ package body Parser_Lists_Test is
       Cursor.Push ((2, Then_1));
       Cursor.Push ((3, Ident_A));
       Junk := Cursor.Pop; -- Ident_A
-      Cursor.Push ((4, Token_Pkg.Handle (Statement_A)));
+      Cursor.Push ((4, Statement_A));
       Cursor.Enqueue (Action_A);
       Cursor.Push ((5, Else_1));
 
@@ -322,7 +321,7 @@ package body Parser_Lists_Test is
       Cursor.Push ((7, Then_2));
       Cursor.Push ((8, Ident_B));
       Junk := Cursor.Pop; -- Ident_B
-      Cursor.Push ((9, Token_Pkg.Handle (Statement_B)));
+      Cursor.Push ((9, Statement_B));
       Cursor.Enqueue (Action_B);
       Cursor.Push ((10, End_2));
 
@@ -338,7 +337,7 @@ package body Parser_Lists_Test is
       Junk := Cursor.Pop; -- statement_B
       Junk := Cursor.Pop; -- then_2
       Junk := Cursor.Pop; -- if_2
-      Cursor.Push ((11, Token_Pkg.Handle (Statement_2)));
+      Cursor.Push ((11, Statement_2));
       Cursor.Enqueue (Action_2);
 
       if Test.Debug then Cursor.Put_Trace_Top_10; end if;
@@ -355,19 +354,19 @@ package body Parser_Lists_Test is
       Junk := Cursor.Pop; -- statement_A
       Junk := Cursor.Pop; -- then_1
       Junk := Cursor.Pop; -- if_1
-      Cursor.Push ((13, Token_Pkg.Handle (Statement_1)));
+      Cursor.Push ((13, Statement_1));
       Cursor.Enqueue (Action_1);
 
       if Test.Debug then
          Cursor.Put_Trace_Top_10;
-         Cursor.Put_Trace_Action_Tokens;
+         Cursor.Put_Trace_Pending_Actions;
       end if;
       Check_Action_Stack ("3a", Cursor);
 
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then
          Parsers.First.Put_Trace_Top_10;
-         Parsers.First.Put_Trace_Action_Tokens;
+         Parsers.First.Put_Trace_Pending_Actions;
       end if;
 
       Check ("3b", Stack_Equal (Cursor, Parsers.First), True);

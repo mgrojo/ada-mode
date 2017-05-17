@@ -63,7 +63,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Put_Line ("with FastToken.Parser.LR.Parser;");
       Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
       Put_Line ("with FastToken.Parser.LR.Panic_Mode;");
-      Put_Line ("with FastToken.Token.Nonterminal;");
+      Put_Line ("with FastToken.Token;");
       Put_Line ("with FastToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
@@ -91,7 +91,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Lexer is
       when Aflex_Lexer =>
-         Indent_Line ("subtype Token is Token_ID;");
+         Indent_Line ("subtype Token is Token_ID;"); --  FIXME: move to body? make aflex generic?
          Indent_Line ("End_Of_Input : Token_ID renames " & (-EOI_Name) & "_ID;");
       when Elisp_Lexer =>
          null;
@@ -134,11 +134,10 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
       Indent_Line ("package Token_Pkg is new FastToken.Token");
       Indent_Line ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
-      Indent_Line ("package Nonterminal is new Token_Pkg.Nonterminal;");
       Indent_Line ("package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens");
       Indent_Line
-        ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg, Nonterminal);");
-      Indent_Line ("package Production is new FastToken.Production (Token_Pkg, Nonterminal);");
+        ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg);");
+      Indent_Line ("package Production is new FastToken.Production (Token_Pkg);");
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
       Indent_Line ("package Parser_Root is new FastToken.Parser");
       Indent_Line
@@ -150,7 +149,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR");
-      Indent_Line ("  (First_State_Index, Token_ID'Width, Nonterminal, Wisi_Tokens_Pkg.Get);");
+      Indent_Line ("  (First_State_Index, Token_ID'Width, Wisi_Tokens_Pkg.Get);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");

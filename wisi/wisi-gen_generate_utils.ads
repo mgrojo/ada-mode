@@ -25,7 +25,7 @@ with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production.Put_Trace;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
    Tokens                : in Wisi.Token_Lists.List;
@@ -83,20 +83,19 @@ package Wisi.Gen_Generate_Utils is
    --  Put user readable token list to Standard_Output
 
    package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, EOI_ID, Token_WY_Image);
-   package Nonterminal_Pkg is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal_Pkg);
+   package Production is new FastToken.Production (Token_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Standard.Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width, Nonterminal_Pkg, Nonterminal_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
    package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
-   procedure Put_Trace_Action (Item : in Nonterminal_Pkg.Synthesize) is null;
+   procedure Put_Trace_Action (Item : in Token_Pkg.Semantic_Action) is null;
    package Put_Trace_Production is new Production.Put_Trace (Put_Trace_Action);
 
    function To_Conflicts

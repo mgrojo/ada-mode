@@ -24,12 +24,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LR1_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 with Gen_FastToken_AUnit;
 package body Grune_9_30 is
 
@@ -47,42 +48,42 @@ package body Grune_9_30 is
       Upper_B_ID
      );
 
-   package Tokens_Pkg is new FastToken.Token (Token_ID, Lower_A_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Tokens_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
+   package Token_Pkg is new FastToken.Token (Token_ID, Lower_A_ID, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
-     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Upper_S_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Upper_S_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
    use all type Production.Instance;
    use all type Production.List.Instance;
    use all type Production.Right_Hand_Side;
-   use all type Tokens_Pkg.List.Instance;
+   use all type Token_Pkg.List.Instance;
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    Grammar : constant Production.List.Instance :=
-     Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Self -- 1
+     Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
-     Upper_A_ID <= Lower_A_ID + Self                           -- 2
+     Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
      and
-     Upper_B_ID <= Lower_B_ID + Self                           -- 3
+     Upper_B_ID <= Lower_B_ID + Null_Action                           -- 3
      and
-     Upper_B_ID <= +Self                                       -- 4
+     Upper_B_ID <= +Null_Action                                       -- 4
    ;
 
    package Lexer is new Lexer_Root.Regexp;
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
-   function "+" (Item : in Token_ID) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -95,13 +96,13 @@ package body Grune_9_30 is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_A_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
+     (Token_ID, Lower_A_ID, EOF_ID, Token_Pkg, Production,
       Lexer_Root, Parser_Root, 1, LR, LR1_Items, Grammar);
 
-   Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set :=
+   Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set :=
      LR1_Items.Has_Empty_Production (Grammar);
 
-   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
+   First : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
      (Grammar, Has_Empty_Production, Trace => False);
 
    ----------

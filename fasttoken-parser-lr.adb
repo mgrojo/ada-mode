@@ -129,18 +129,18 @@ package body FastToken.Parser.LR is
       LHS_ID          : in     Token_Pkg.Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Natural;
-      Synthesize      : in     Nonterminal.Synthesize)
+      Semantic_Action : in     Token.Semantic_Action)
    is
       Action   : Parse_Action_Rec;
-      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID));
+      LHS      : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID));
       New_Node : Action_Node_Ptr;
       Node     : Action_Node_Ptr;
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS, Synthesize, Index, RHS_Token_Count);
+         Action := (Reduce, LHS, Semantic_Action, Index, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, LHS, Synthesize, Index, RHS_Token_Count);
+         Action := (Accept_It, LHS, Semantic_Action, Index, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -164,11 +164,11 @@ package body FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Natural;
-      Synthesize      : in     Nonterminal.Synthesize)
+      Semantic_Action : in     Token.Semantic_Action)
    is
       Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
-      LHS      : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Synthesize, Index, RHS_Token_Count);
+      LHS      : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID));
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Semantic_Action, Index, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -181,20 +181,20 @@ package body FastToken.Parser.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Natural;
-      Synthesize_1      : in     Nonterminal.Synthesize;
+      Semantic_Action_1 : in     Token.Semantic_Action;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Natural;
-      Synthesize_2      : in     Nonterminal.Synthesize)
+      Semantic_Action_2 : in     Token.Semantic_Action)
    is
-      LHS_1    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_1));
+      LHS_1    : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID_1));
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_1, Synthesize_1, Index_1, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_1, Synthesize_1, Index_1, RHS_Token_Count_1),
+         when Reduce    => (Reduce, LHS_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
          when others => raise FastToken.Programmer_Error);
-      LHS_2    : constant Nonterminal.Handle := new Nonterminal.Class'(Get_Nonterminal_Token (LHS_ID_2));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Synthesize_2, Index_2, RHS_Token_Count_2);
+      LHS_2    : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID_2));
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);

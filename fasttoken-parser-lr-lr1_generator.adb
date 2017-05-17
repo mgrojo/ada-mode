@@ -35,7 +35,6 @@ package body FastToken.Parser.LR.LR1_Generator is
    is
       use Token.List;
       use LR1_Items;
-      use all type Nonterminal.Handle;
       use all type Token.Handle;
       use all type Token.Token_ID;
 

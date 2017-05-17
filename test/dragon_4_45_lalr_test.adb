@@ -24,12 +24,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 with Gen_FastToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
@@ -48,36 +49,35 @@ package body Dragon_4_45_LALR_Test is
       Upper_C_ID);
 
    First_State_Index : constant := 0;
-   package Tokens_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
-   package Nonterminal is new Tokens_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Tokens_Pkg, Nonterminal);
-   package Lexer_Root is new FastToken.Lexer (Tokens_Pkg);
+   package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
-     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Tokens_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    --  Allow infix operators for building productions
-   use type Tokens_Pkg.List.Instance;
-   use type Production.Right_Hand_Side;
-   use type Production.Instance;
-   use type Production.List.Instance;
+   use all type Token_Pkg.List.Instance;
+   use all type Production.Right_Hand_Side;
+   use all type Production.Instance;
+   use all type Production.List.Instance;
 
-   function "+" (Item : in Token_ID) return Tokens_Pkg.Instance'Class renames Tokens_Pkg."+";
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    Grammar : constant Production.List.Instance :=
-     Nonterminal.Get (Accept_ID) <= (+Upper_S_ID) & (+EOF_ID) + Self -- 1
+     Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
-     Nonterminal.Get (Upper_S_ID) <= (+Upper_C_ID) & (+Upper_C_ID) + Self -- 2
+     Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
      and
-     Nonterminal.Get (Upper_C_ID) <= (+Lower_C_ID) & (+Upper_C_ID) + Self -- 3
+     Upper_C_ID <= Lower_C_ID & Upper_C_ID + Null_Action -- 3
      and
-     Nonterminal.Get (Upper_C_ID) <= (+Lower_D_ID) + Self -- 4
+     Upper_C_ID <= Lower_D_ID + Null_Action -- 4
      ;
 
    --  See comment in Test_LALR_Kernels about state numbering
@@ -92,7 +92,8 @@ package body Dragon_4_45_LALR_Test is
    package Lexer is new Lexer_Root.Regexp;
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -104,14 +105,14 @@ package body Dragon_4_45_LALR_Test is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Tokens_Pkg, Nonterminal, Production,
+     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Production,
       Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
    ----------
    --  Test procedures
 
-   First : constant LR1_Items.Derivation_Matrix := LR1_Items.First
+   First : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
      (Grammar, Has_Empty_Production => (others => False), Trace => False);
 
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -120,7 +121,7 @@ package body Dragon_4_45_LALR_Test is
 
       --  FIRST defined in dragon pg 45
 
-      Expected : constant LR1_Items.Derivation_Matrix :=
+      Expected : constant Token_Pkg.Nonterminal_Array_Token_Set :=
         (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
@@ -192,42 +193,44 @@ package body Dragon_4_45_LALR_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant LR.Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
-      Expected : LR.Parse_Table (0 .. 6);
+      Expected : LR.Parse_Table (6);
 
    begin
+      Expected.Panic_Recover := (others => False);
+
       --  figure 4.41 pg 239
 
-      Add_Action (Expected (S0), Lower_C_ID, S36);
-      Add_Action (Expected (S0), Lower_D_ID, S47);
-      Add_Error (Expected (S0));
-      Add_Goto (Expected (S0), Upper_C_ID, S2);
-      Add_Goto (Expected (S0), Upper_S_ID, S1);
+      Add_Action (Expected.States (S0), Lower_C_ID, S36);
+      Add_Action (Expected.States (S0), Lower_D_ID, S47);
+      Add_Error (Expected.States (S0));
+      Add_Goto (Expected.States (S0), Upper_C_ID, S2);
+      Add_Goto (Expected.States (S0), Upper_S_ID, S1);
 
-      Add_Action (Expected (S1), EOF_ID, LR.Accept_It, Accept_ID, 1, Self);
-      Add_Error (Expected (S1));
+      Add_Action (Expected.States (S1), EOF_ID, LR.Accept_It, Accept_ID, 0, 1, Null_Action);
+      Add_Error (Expected.States (S1));
 
-      Add_Action (Expected (S2), Lower_C_ID, S36);
-      Add_Action (Expected (S2), Lower_D_ID, S47);
-      Add_Error (Expected (S2));
-      Add_Goto (Expected (S2), Upper_C_ID, S5);
+      Add_Action (Expected.States (S2), Lower_C_ID, S36);
+      Add_Action (Expected.States (S2), Lower_D_ID, S47);
+      Add_Error (Expected.States (S2));
+      Add_Goto (Expected.States (S2), Upper_C_ID, S5);
 
-      Add_Action (Expected (S36), Lower_C_ID, S36);
-      Add_Action (Expected (S36), Lower_D_ID, S47);
-      Add_Error (Expected (S36));
-      Add_Goto (Expected (S36), Upper_C_ID, S89);
+      Add_Action (Expected.States (S36), Lower_C_ID, S36);
+      Add_Action (Expected.States (S36), Lower_D_ID, S47);
+      Add_Error (Expected.States (S36));
+      Add_Goto (Expected.States (S36), Upper_C_ID, S89);
 
-      Add_Action (Expected (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 1, Self);
-      Add_Action (Expected (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 1, Self);
-      Add_Action (Expected (S47), EOF_ID, LR.Reduce, Upper_C_ID, 1, Self);
-      Add_Error (Expected (S47));
+      Add_Action (Expected.States (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), EOF_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
+      Add_Error (Expected.States (S47));
 
-      Add_Action (Expected (S5), EOF_ID, LR.Reduce, Upper_S_ID, 2, Self);
-      Add_Error (Expected (S5));
+      Add_Action (Expected.States (S5), EOF_ID, LR.Reduce, Upper_S_ID, 0, 2, Null_Action);
+      Add_Error (Expected.States (S5));
 
-      Add_Action (Expected (S89), Lower_C_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S89), Lower_D_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Action (Expected (S89), EOF_ID, LR.Reduce, Upper_C_ID, 2, Self);
-      Add_Error (Expected (S89));
+      Add_Action (Expected.States (S89), Lower_C_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), Lower_D_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), EOF_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
+      Add_Error (Expected.States (S89));
 
       if Test.Debug then
          --  computed output above

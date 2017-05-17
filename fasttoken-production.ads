@@ -30,15 +30,14 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 generic
    with package Token is new FastToken.Token (<>);
-   with package Nonterminal is new Token.Nonterminal;
 package FastToken.Production is
 
    type Right_Hand_Side is record
       Tokens : Token.List.Instance;
-      Action : Nonterminal.Synthesize;
+      Action : Token.Semantic_Action;
       Index  : Integer;
       --  Index of production among productions for a single nonterminal (the LHS)
    end record;
@@ -50,10 +49,10 @@ package FastToken.Production is
    --  The synthesization routine is called whenever the production is
    --  reduced by the parser.
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Class; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Token_ID; Action : in Nonterminal.Synthesize) return Right_Hand_Side;
-   function "+" (Action : in Nonterminal.Synthesize) return Right_Hand_Side;
+   function "+" (Tokens : in Token.List.Instance; Action : in Token.Semantic_Action) return Right_Hand_Side;
+   function "+" (Tokens : in Token.Class; Action : in Token.Semantic_Action) return Right_Hand_Side;
+   function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side;
+   function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side;
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
    function "+" (Tokens : in Token.Class; Index  : in Integer) return Right_Hand_Side;
@@ -64,18 +63,18 @@ package FastToken.Production is
    --  and generated grammar table source code.
 
    type Instance is record
-      LHS : Nonterminal.Handle;
+      LHS : Token.Handle;
       RHS : Right_Hand_Side;
    end record;
    type Handle is access all Instance;
    --  A production consists of a nonterminal token instance "<=" ed to
    --  a Right Hand Side . For example:
    --
-   --    Subtraction <= Number & Minus_Sign & Number + Nonterminal.Synthesize_Self
+   --    Subtraction <= Number & Minus_Sign & Number + Token.Null_Action
 
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance;
-   function "<=" (LHS : in Nonterminal.Handle; RHS : in Right_Hand_Side) return Instance;
-   function "<=" (LHS : in Nonterminal.Class; RHS : in Right_Hand_Side) return Instance;
+   function "<=" (LHS : in Token.Handle; RHS : in Right_Hand_Side) return Instance;
+   function "<=" (LHS : in Token.Class; RHS : in Right_Hand_Side) return Instance;
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator;
 

@@ -24,23 +24,22 @@ with FastToken.Lexer;
 with FastToken.Parser.LR;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 generic
    type Token_ID is (<>);
    First_Terminal    : in Token_ID;
    Last_Terminal     : in Token_ID;
    --  We assume: Last_Terminal = EOF_ID, Token_ID'Succ (Last_Terminal) = Accept_ID
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
-   with package Nonterminal is new Token_Pkg.Nonterminal;
-   with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   with package Production is new FastToken.Production (Token_Pkg);
    with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    with package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_ID'Image,
       Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
    with package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Nonterminal, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    Grammar           : in Production.List.Instance;
 package Gen_FastToken_AUnit is
 

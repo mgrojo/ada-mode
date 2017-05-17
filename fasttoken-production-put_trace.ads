@@ -25,7 +25,7 @@
 
 with Ada.Text_IO;
 generic
-   with procedure Put_Trace_Action (Item : in Nonterminal.Synthesize);
+   with procedure Put_Trace_Action (Item : in Token.Semantic_Action);
 
    with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
    --  Accumulate Item in the trace buffer.

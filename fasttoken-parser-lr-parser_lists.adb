@@ -319,7 +319,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    begin
 
       for K in New_Token_Items'Range loop
-         New_Token_Items (K).Old_Pointer := Token.Handle (J.Item.New_Token);
+         New_Token_Items (K).Old_Pointer := J.Item.New_Token;
          New_Token_Items (K).New_Pointer := Token.Copy (New_Token_Items (K).Old_Pointer);
 
          J := J.Next;
@@ -399,7 +399,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          Enqueue
            (New_Action_Tokens,
             Action_Token_Free,
-            (J.Item.Action, Nonterminal.Handle (New_Token_Items (Action_Pos).New_Pointer), New_Tokens));
+            (J.Item.Action, New_Token_Items (Action_Pos).New_Pointer, New_Tokens));
 
          J          := J.Next;
          Action_Pos := Action_Pos + 1;
@@ -593,7 +593,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Result;
    end Stack_Free_Count;
 
-   function Pending_Actions_Free_Count (List : in Parser_Lists.List) return Integer
+   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer
    is
       Result : Integer := 0;
       Node   : Action_Token_Node_Access := List.Action_Token_Free;
@@ -604,16 +604,16 @@ package body FastToken.Parser.LR.Parser_Lists is
          Node   := Node.Next;
       end loop;
       return Result;
-   end Pending_Actions_Free_Count;
+   end Action_Token_Free_Count;
 
-   function Is_In (Item : in Nonterminal.Handle; Stack : in Stack_Node_Access) return Boolean
+   function Is_In (Item : in Token.Handle; Stack : in Stack_Node_Access) return Boolean
    is
       use type Token.Handle;
       Stack_Node : Stack_Node_Access := Stack;
    begin
       loop
          exit when Stack_Node = null;
-         if Stack_Node.Item.Token = Token.Handle (Item) then
+         if Stack_Node.Item.Token = Item then
             return True;
          end if;
          Stack_Node := Stack_Node.Next;
@@ -621,7 +621,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return False;
    end Is_In;
 
-   function Is_In (Item : in Nonterminal.Handle; Tokens : Token.List.Instance) return Boolean
+   function Is_In (Item : in Token.Handle; Tokens : Token.List.Instance) return Boolean
    is
       use type Token.Handle;
       use Token.List;
@@ -630,7 +630,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       loop
          exit when Iter = Null_Iterator;
 
-         if Token.Handle (Item) = Token_Handle (Iter) then
+         if Item = Token_Handle (Iter) then
             return True;
          end if;
          Next (Iter);
@@ -639,7 +639,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    end Is_In;
 
    function Is_In_Later_Tokens
-     (Token        : in Nonterminal.Handle;
+     (Token        : in Token_Pkg.Handle;
       Action_Token : in Action_Token_Node_Access)
      return Boolean
    is
@@ -665,7 +665,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    begin
       loop
          exit when Iter = null;
-         if Item = Token.Handle (Iter.Item.New_Token) then
+         if Item = Iter.Item.New_Token then
             return True;
          end if;
          Iter := Iter.Prev;
@@ -683,7 +683,7 @@ package body FastToken.Parser.LR.Parser_Lists is
    begin
       loop
          exit when Iter = Null_Iterator;
-         if Token_Handle (Iter).all in Nonterminal.Instance and then
+         if Token_Handle (Iter).all in Token.Instance and then
            (not Is_In_Prev_New_Token (Token_Handle (Iter), Action_Token.Prev))
          then
             raise Programmer_Error with Label &
@@ -707,7 +707,7 @@ package body FastToken.Parser.LR.Parser_Lists is
                    Is_In (Action_Token.Item.New_Token, Stack))
          then
             raise Programmer_Error with Label &
-              " - action.new_token " & Token.Handle (Action_Token.Item.New_Token).Image &
+              " - action.new_token " & Action_Token.Item.New_Token.Image &
               " not in later action tokens or stack";
          end if;
          Action_Token := Action_Token.Next;
@@ -717,7 +717,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       loop
          exit when Stack = null;
          --  last item on stack has no token
-         if Stack.Item.Token /= null and then Stack.Item.Token.all in Nonterminal.Instance and then
+         if Stack.Item.Token /= null and then Stack.Item.Token.all in Token.Instance and then
            not Is_In_Prev_New_Token (Stack.Item.Token, Action_Token)
          then
             raise Programmer_Error with Label & " - stack " & Stack.Item.Token.Image &
@@ -736,7 +736,7 @@ package body FastToken.Parser.LR.Parser_Lists is
 
    procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token)
    is
-      use type Nonterminal.Handle;
+      use type Token.Handle;
       use Ada.Characters.Handling;
       Action_Name : constant String := To_Lower
         (Token.Token_ID'Image

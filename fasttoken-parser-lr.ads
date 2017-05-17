@@ -37,15 +37,11 @@
 pragma License (GPL);
 
 with Ada.Unchecked_Deallocation;
-with FastToken.Token.Nonterminal;
 generic
    First_State_Index : in Natural;
    Token_Image_Width : Integer;
-   with package Nonterminal is new Token.Nonterminal;
-   with function Get_Nonterminal_Token (ID : in Token_ID) return Nonterminal.Instance'Class;
+   with function Get_Nonterminal_Token (ID : in Token_ID) return Token_Pkg.Instance'Class;
 package FastToken.Parser.LR is
-
-   package Nonterminal_Pkg renames Nonterminal;
 
    --  No private types; that would make it too hard to write the unit tests
 
@@ -70,11 +66,12 @@ package FastToken.Parser.LR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         LHS         : Nonterminal.Handle;
-         Action      : Nonterminal.Synthesize;
-         Index       : Integer;
+         LHS    : Token.Handle;
+         Action : Token.Semantic_Action;
+         Index  : Integer;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
+
          Token_Count : Natural;
       when Error =>
          null;
@@ -131,7 +128,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_Pkg.Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Natural;
-      Synthesize      : in     Nonterminal.Synthesize);
+      Semantic_Action : in     Token.Semantic_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
@@ -141,7 +138,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Natural;
-      Synthesize      : in     Nonterminal.Synthesize);
+      Semantic_Action : in     Token.Semantic_Action);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -151,11 +148,11 @@ package FastToken.Parser.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Natural;
-      Synthesize_1      : in     Nonterminal.Synthesize;
+      Semantic_Action_1 : in     Token.Semantic_Action;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Natural;
-      Synthesize_2      : in     Nonterminal.Synthesize);
+      Semantic_Action_2 : in     Token.Semantic_Action);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
 
    procedure Add_Error (State  : in out LR.Parse_State);

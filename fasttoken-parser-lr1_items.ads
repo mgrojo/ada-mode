@@ -29,14 +29,12 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-with FastToken.Token.Nonterminal;
 with FastToken.Production;
 generic
    type Unknown_State_Index is range <>;
    Unknown_State : in Unknown_State_Index;
 
-   with package Nonterminal is new Token.Nonterminal;
-   with package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   with package Production is new FastToken.Production (Token_Pkg);
 package FastToken.Parser.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
@@ -54,7 +52,7 @@ package FastToken.Parser.LR1_Items is
    type Item_Ptr is access Item_Node;
 
    function Prod (Item : in Item_Ptr) return Production.Instance;
-   function LHS (Item : in Item_Ptr) return Nonterminal.Handle;
+   function LHS (Item : in Item_Ptr) return Token.Handle;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
    function Dot (Item : in Item_Ptr) return Token.List.List_Iterator;
    --  Token after Dot.

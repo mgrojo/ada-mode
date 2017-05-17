@@ -28,7 +28,7 @@ with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 with Gen_FastToken_AUnit;
 package body Compare_Goto_Transitions is
 
@@ -57,16 +57,15 @@ package body Compare_Goto_Transitions is
          Parameter_List_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
-      package Nonterminal is new Token_Pkg.Nonterminal;
-      package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+      package Production is new FastToken.Production (Token_Pkg);
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Parser_Root is new FastToken.Parser
         (Token_ID, Token_ID'First, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
       package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
@@ -75,27 +74,28 @@ package body Compare_Goto_Transitions is
       use all type Production.Right_Hand_Side;
       use all type Production.Instance;
       use all type Production.List.Instance;
-      function "+" (ID : in Token_ID) return Nonterminal.Class renames Nonterminal.Get;
 
-      Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+      function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
+
+      Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.
       Grammar : constant Production.List.Instance :=
-        FastToken_Accept_ID <= Declarations_ID & EOF_ID + Self and                -- 1
-        Declarations_ID     <= +Declaration_ID + Self and                         -- 2
-        Declarations_ID     <= Declarations_ID & Declaration_ID + Self and        -- 3
-        Declaration_ID      <= +Subprogram_ID + Self and                          -- 4
-        Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Self and        -- 5
-        Parameter_List_ID   <= +Self and                                          -- 6
-        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Self; -- 7
+        FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and                -- 1
+        Declarations_ID     <= +Declaration_ID + Null_Action and                         -- 2
+        Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and        -- 3
+        Declaration_ID      <= +Subprogram_ID + Null_Action and                          -- 4
+        Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and        -- 5
+        Parameter_List_ID   <= +Null_Action and                                          -- 6
+        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
       package FastToken_AUnit is new Gen_FastToken_AUnit
-        (Token_ID, Token_ID'First, EOF_ID, Token_Pkg, Nonterminal, Production, Lexer_Root,
+        (Token_ID, Token_ID'First, EOF_ID, Token_Pkg, Production, Lexer_Root,
          Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
 
-      Has_Empty_Production : constant LR1_Items.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant LR1_Items.Derivation_Matrix  := LR1_Items.First
+      Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
+      First                : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
         (Grammar, Has_Empty_Production, Trace => False);
 
       procedure Compare (Prod : in Integer; Symbol : in Token_Pkg.Terminal_ID; Trace : in Boolean)

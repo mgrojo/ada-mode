@@ -26,11 +26,12 @@ with FastToken.Lexer.Regexp;
 with FastToken.Production;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Trivial_Productions_Test is
 
    Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -49,27 +50,23 @@ package body Trivial_Productions_Test is
          E_ID, F_ID, T_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Symbol_ID, EOF_ID, Token_ID'Image);
-      package Nonterminal is new Token_Pkg.Nonterminal;
-      package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+      package Production is new FastToken.Production (Token_Pkg);
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser
         (Token_ID, Symbol_ID, EOF_ID, EOF_ID, E_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
-      First_Parser_Label : constant := 1;
-      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
       EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
       Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
-      E      : constant Nonterminal.Class := Nonterminal.Get (E_ID);
-      F      : constant Nonterminal.Class := Nonterminal.Get (F_ID);
-      T      : constant Nonterminal.Class := Nonterminal.Get (T_ID);
+      E      : constant Token_Pkg.Class := Token_Pkg.Get (E_ID);
+      F      : constant Token_Pkg.Class := Token_Pkg.Get (F_ID);
+      T      : constant Token_Pkg.Class := Token_Pkg.Get (T_ID);
 
       Syntax : constant Lexer.Syntax :=
         (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character, EOF),
@@ -81,10 +78,15 @@ package body Trivial_Productions_Test is
       use type Production.List.Instance;
 
       Grammar : constant Production.List.Instance :=
-        E <= T & EOF + Nonterminal.Synthesize_Self and
-        T <= F + Nonterminal.Synthesize_Self and
-        F <= Symbol + Nonterminal.Synthesize_Self;
+        E <= T & EOF + Token_Pkg.Null_Action and
+        T <= F + Token_Pkg.Null_Action and
+        F <= Symbol + Token_Pkg.Null_Action;
 
+      First_Parser_Label : constant := 1;
+      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+      package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LR_Parser is new LR.Parser
+        (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
       Parser : LR_Parser.Instance;
 
       Text : constant String := "symbol";
@@ -128,20 +130,20 @@ package body Trivial_Productions_Test is
          Parameter_List_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Function_ID, EOF_ID, Token_ID'Image);
-      package Nonterminal is new Token_Pkg.Nonterminal;
-      package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+      package Production is new FastToken.Production (Token_Pkg);
       package Lexer_Root is new FastToken.Lexer (Token_Pkg);
       package Lexer is new Lexer_Root.Regexp;
       package Parser_Root is new FastToken.Parser
         (Token_ID, Function_ID, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Nonterminal, Nonterminal.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -152,11 +154,11 @@ package body Trivial_Productions_Test is
       Right_Paren   : constant Token_Pkg.Class := Token_Pkg.Get (Right_Paren_ID);
       Symbol        : constant Token_Pkg.Class := Token_Pkg.Get (Symbol_ID);
 
-      FastToken_Accept : constant Nonterminal.Class := Nonterminal.Get (FastToken_Accept_ID);
-      Declarations     : constant Nonterminal.Class := Nonterminal.Get (Declarations_ID);
-      Declaration      : constant Nonterminal.Class := Nonterminal.Get (Declaration_ID);
-      Parameter_List   : constant Nonterminal.Class := Nonterminal.Get (Parameter_List_ID);
-      Subprogram       : constant Nonterminal.Class := Nonterminal.Get (Subprogram_ID);
+      FastToken_Accept : constant Token_Pkg.Class := Token_Pkg.Get (FastToken_Accept_ID);
+      Declarations     : constant Token_Pkg.Class := Token_Pkg.Get (Declarations_ID);
+      Declaration      : constant Token_Pkg.Class := Token_Pkg.Get (Declaration_ID);
+      Parameter_List   : constant Token_Pkg.Class := Token_Pkg.Get (Parameter_List_ID);
+      Subprogram       : constant Token_Pkg.Class := Token_Pkg.Get (Subprogram_ID);
 
       Syntax : constant Lexer.Syntax :=
         (
@@ -174,17 +176,17 @@ package body Trivial_Productions_Test is
       use type Production.Instance;
       use type Production.List.Instance;
 
-      Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+      Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
       Grammar : constant Production.List.Instance :=
-        FastToken_Accept <= Declarations & EOF + Self and
-        Declarations     <= Declaration + Self and
-        Declarations     <= Declarations & Declaration + Self and
-        Declaration      <= Subprogram + Self and
-        Subprogram       <= Function_Tok & Parameter_List & Symbol + Self and
-        Subprogram       <= Procedure_Tok & Parameter_List + Self and
-        Parameter_List   <= +Self and
-        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Self;
+        FastToken_Accept <= Declarations & EOF + Null_Action and
+        Declarations     <= Declaration + Null_Action and
+        Declarations     <= Declarations & Declaration + Null_Action and
+        Declaration      <= Subprogram + Null_Action and
+        Subprogram       <= Function_Tok & Parameter_List & Symbol + Null_Action and
+        Subprogram       <= Procedure_Tok & Parameter_List + Null_Action and
+        Parameter_List   <= +Null_Action and
+        Parameter_List   <= Left_Paren & Symbol & Right_Paren + Null_Action;
 
       Parser : LR_Parser.Instance;
 

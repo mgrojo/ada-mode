@@ -78,7 +78,7 @@ is
       Package_Name            : constant String := -Data.Package_Name_Root;
       Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
 
-      Empty_Action : constant access constant String := new String'("Self");
+      Empty_Action : constant access constant String := new String'("Null_Action");
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
@@ -173,7 +173,7 @@ is
       Indent_Line ("end Put_Trace_Line;");
       New_Line;
 
-      Indent_Line ("Self : constant Nonterminal.Synthesize := Wisi_Tokens_Pkg.Self'Access;");
+      Indent_Line ("Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;");
 
       if Action_Count = 0 then
          --  Populate Action_Names with Empty_Action.
@@ -217,20 +217,22 @@ is
                         Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
                         Indent_Line ("procedure " & Name);
-                        Indent_Line (" (New_Token : out Nonterminal.Class;");
-                        Indent_Line ("  Source    : in  Token_Pkg.List.Instance'Class;");
-                        Indent_Line ("  To_ID     : in  Token_ID)");
+                        Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+                        Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
                         Indent_Line ("is");
-                        Indent_Line ("   Bounds : constant Token_Pkg.Buffer_Range := Total_Buffer_Range (Source);");
+                        --  FIXME: check RHS.Action for mentions of Nonterm, Source
+                        Indent_Line ("   pragma Unreferenced (Nonterm, Source);");
                         Indent_Line ("begin");
                         Indent := Indent + 3;
-                        Indent_Line ("New_Token := Get (To_ID, Bounds);");
 
                         if Profile then
                            Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");
 
                         else
                            for Line of RHS.Action loop
+                              --  FIXME: only strip the first and last parens, not some from each line!
+                              --  do that in wisi-rules.adb
+                              --  test with multi-line action
                               Indent_Line (Strip_Parens (Line));
                            end loop;
                         end if;

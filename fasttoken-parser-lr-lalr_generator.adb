@@ -188,7 +188,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                      Prod  := Production.List.Current (Prod_I);
                      RHS_I := Prod.RHS.Tokens.First;
 
-                     if (Dot_ID = Nonterminal.ID (Prod.LHS) or First (Dot_ID)(Nonterminal.ID (Prod.LHS))) and
+                     if (Dot_ID = Token.ID (Prod.LHS) or First (Dot_ID)(Token.ID (Prod.LHS))) and
                        (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
                      then
                         if null = Find
@@ -652,7 +652,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
-      Used_Tokens (Nonterminal.ID (First_Production.LHS)) := True;
+      Used_Tokens (Token.ID (First_Production.LHS)) := True;
 
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace);
 

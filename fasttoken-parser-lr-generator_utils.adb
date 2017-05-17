@@ -336,23 +336,23 @@ package body FastToken.Parser.LR.Generator_Utils is
                if Dot (Item) /= Null_Iterator and then
                  ID (Dot (Item)) = Lookahead
                then
-                  return Nonterminal.ID (LHS (Item));
+                  return Token.ID (LHS (Item));
                end if;
             when Reduce =>
-               if Nonterminal.ID (LHS (Item)) = Nonterminal.ID (Action.LHS) and
+               if Token.ID (LHS (Item)) = Token.ID (Action.LHS) and
                  (Dot (Item) = Null_Iterator or else
                     (Next_Token (Dot (Item)) = Null_Iterator and
                        (ID (Dot (Item)) in Token.Nonterminal_ID and then
                           Has_Empty_Production (ID (Dot (Item))))))
                then
-                  return Nonterminal.ID (Action.LHS);
+                  return Token.ID (Action.LHS);
                end if;
             when Accept_It =>
-               if Nonterminal.ID (LHS (Item)) = Nonterminal.ID (Action.LHS) and
+               if Token.ID (LHS (Item)) = Token.ID (Action.LHS) and
                  (Dot (Item) /= Null_Iterator and then
                     ID (Dot (Item)) = EOF_Token)
                then
-                  return Nonterminal.ID (Action.LHS);
+                  return Token.ID (Action.LHS);
                end if;
             when others =>
                raise Programmer_Error;
@@ -367,7 +367,7 @@ package body FastToken.Parser.LR.Generator_Utils is
         ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
            (case Action.Verb is
             when Shift => State_Index'Image (Action.State),
-            when Reduce | Accept_It => " " & Token.Token_Image (Nonterminal.ID (Action.LHS)),
+            when Reduce | Accept_It => " " & Token.Token_Image (Token.ID (Action.LHS)),
             when others => "") & ", " &
            Token.Token_Image (Lookahead) & " not found in");
       LR1_Items.Put (Closure);

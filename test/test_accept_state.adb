@@ -24,12 +24,13 @@ with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token.Nonterminal;
+with FastToken.Token;
 package body Test_Accept_State is
 
    --  A simple grammar that OpenToken used to get wrong.
@@ -50,39 +51,29 @@ package body Test_Accept_State is
 
    Token_Image_Width : constant Integer := Token_ID'Width;
    package Token_Pkg is new FastToken.Token (Token_ID, Equals_ID, Identifier_ID, Token_ID'Image);
-   package Nonterminal is new Token_Pkg.Nonterminal;
-   package Production is new FastToken.Production (Token_Pkg, Nonterminal);
+   package Production is new FastToken.Production (Token_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Lexer is new Lexer_Root.Regexp;
    package Parser_Root is new FastToken.Parser
      (Token_ID, Equals_ID, Identifier_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
-   First_Parser_Label : constant := 1;
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Nonterminal, Nonterminal.Get);
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Token_Pkg.Get);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, LR.Nonterminal_Pkg, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   Equals : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);
-   Int    : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
-   EOF    : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
-
-   Identifier     : constant Token_Pkg.Class   := Token_Pkg.Get (Identifier_ID);
-   Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
-   Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg."+";
 
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
-      Equals_ID     => Lexer.Get ("=", Token_Pkg.Get (Equals_ID)),
-      Int_ID        => Lexer.Get ("[0-9]+", Int),
-      Set_ID        => Lexer.Get ("set", Token_Pkg.Get (Set_ID)),
-      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+", Token_Pkg.Get (Identifier_ID)),
-      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, Token_Pkg.Get (EOF_ID))
+      Whitespace_ID => Lexer.Get (" ", +Whitespace_ID, Report => False),
+      Equals_ID     => Lexer.Get ("=", +Equals_ID),
+      Int_ID        => Lexer.Get ("[0-9]+", +Int_ID),
+      Set_ID        => Lexer.Get ("set", +Set_ID),
+      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+", +Identifier_ID),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
      );
 
    use type Production.Instance;        --  "<="
@@ -90,13 +81,18 @@ package body Test_Accept_State is
    use type Production.Right_Hand_Side; --  "+"
    use type Token_Pkg.List.Instance; --  "&"
 
-   Self : Nonterminal.Synthesize renames Nonterminal.Synthesize_Self;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    Grammar : constant Production.List.Instance :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
-     Parse_Sequence <= Statement & EOF + Self and
-     Statement <= Token_Pkg.Get (Set_ID) & Identifier & Equals & Int + Self;
+     Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
+     Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
+
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
    Parser        : Parsers.Instance;

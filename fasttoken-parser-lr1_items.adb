@@ -223,7 +223,7 @@ package body FastToken.Parser.LR1_Items is
          RHS_I := Prod.RHS.Tokens.First;
 
          if RHS_I = Token.List.Null_Iterator then
-            Result (Nonterminal.ID (Prod.LHS)) := True;
+            Result (Token.ID (Prod.LHS)) := True;
          end if;
          Production.List.Next (Prod_I);
       end loop;
@@ -251,7 +251,6 @@ package body FastToken.Parser.LR1_Items is
       use all type Production.List.List_Iterator;
       use all type Production.Instance;
       use all type Token.List.List_Iterator;
-      use all type Nonterminal.Handle;
 
       Prev_Result : Nonterminal_Array_Terminal_Set;
       Result      : Nonterminal_Array_Terminal_Set := (others => (others => False));
@@ -329,7 +328,7 @@ package body FastToken.Parser.LR1_Items is
       return Item.Prod;
    end Prod;
 
-   function LHS (Item : in Item_Ptr) return Nonterminal.Handle
+   function LHS (Item : in Item_Ptr) return Token.Handle
    is begin
       return Item.Prod.LHS;
    end LHS;
@@ -383,7 +382,7 @@ package body FastToken.Parser.LR1_Items is
      (List : in out Item_Ptr;
       Item : in     Item_Ptr)
    is
-      use all type Nonterminal.Handle;
+      use all type Token.Handle;
       use all type Token.Token_ID;
       New_Item : Item_Ptr renames Item;
       I        : Item_Ptr;
@@ -767,7 +766,7 @@ package body FastToken.Parser.LR1_Items is
             B := Production.List.First (Grammar);
             For_Each_Production :
             while not Production.List.Is_Done (B) loop
-               if Nonterminal.ID (Production.List.Current (B).LHS) = Token.List.ID (Item.Dot) then
+               if Token.ID (Production.List.Current (B).LHS) = Token.List.ID (Item.Dot) then
                   --  Compute FIRST (<tail of right hand side> a); loop
                   --  until find a terminal, a nonterminal that
                   --  cannot be empty, or end of production, adding
@@ -870,7 +869,7 @@ package body FastToken.Parser.LR1_Items is
    is
       use Token.List;
       use all type Token.Token_ID;
-      use all type Nonterminal.Handle;
+      use all type Token.Handle;
    begin
       return
         Null_Iterator /= First (Item.Prod.RHS.Tokens) and
@@ -921,10 +920,6 @@ package body FastToken.Parser.LR1_Items is
    end Filter;
 
    function Token_Name (Item : in Token.Handle) return String is
-   begin
-      return Token.Token_Image (Token.ID (Item.all));
-   end Token_Name;
-   function Token_Name (Item : in Nonterminal.Handle) return String is
    begin
       return Token.Token_Image (Token.ID (Item.all));
    end Token_Name;

@@ -52,7 +52,7 @@ package body Gen_FastToken_AUnit is
       Expected : in Production.Instance)
    is
       use AUnit.Checks;
-      use Nonterminal;
+      use Token_Pkg;
    begin
       Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
       Check (Label & ".LHS", ID (Computed.LHS), ID (Expected.LHS));
