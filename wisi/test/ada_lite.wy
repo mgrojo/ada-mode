@@ -80,9 +80,10 @@
 %lexer Aflex
 
 ;; Good candidates for panic_recover are nonterms followed reliably by
-;; a small set of terminals. These are all followed by END (some are
-;; also followed by a few others).
+;; a small set of terminals. These are all followed by END or EOF
+;; (some are also followed by a few others).
 %panic_recover case_statement_alternative_list
+%panic_recover compilation_unit
 %panic_recover elsif_statement_list
 %panic_recover handled_sequence_of_statements
 %panic_recover sequence_of_statements_opt

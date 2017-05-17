@@ -102,9 +102,15 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Cursor.Ptr.Item.Stack = null;
    end Stack_Empty;
 
-   function Peek (Cursor : in Parser_Lists.Cursor) return Stack_Item
-   is begin
-      return Cursor.Ptr.Item.Stack.Item;
+   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item
+   is
+      Ptr : Stack_Node_Access := Cursor.Ptr.Item.Stack;
+   begin
+      --  We don't check if Depth is > stack size; that's a severe programming error.
+      for I in 2 .. Depth loop
+         Ptr := Ptr.Next;
+      end loop;
+      return Ptr.Item;
    end Peek;
 
    procedure Free (List : in out Parser_Lists.List; Stack : in out Stack_Node_Access)

@@ -200,12 +200,13 @@ package FastToken.Parser.LR1_Items is
    --  algorithm FIRST from [dragon], augmented with nonterminals.
 
    function Follow
-     (Grammar : in Production.List.Instance;
-      First   : in Token.Nonterminal_Array_Token_Set)
+     (Grammar              : in Production.List.Instance;
+      First                : in Token.Nonterminal_Array_Token_Set;
+      Has_Empty_Production : in Token.Nonterminal_ID_Set)
      return Token.Nonterminal_Array_Terminal_Set;
    --  For each nonterminal in Grammar, find the set of terminal
    --  tokens that can follow it. Implements algorithm FOLLOW from
-   --  [dragon] pg 198.
+   --  [dragon] pg 189.
 
    function Closure
      (Set                  : in Item_Set;
@@ -234,7 +235,6 @@ package FastToken.Parser.LR1_Items is
    procedure Put (Item : in Goto_Item_Ptr);
    procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True);
    procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
-   procedure Put (Item : in Token.Nonterminal_Array_Terminal_Set);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);

@@ -67,43 +67,79 @@ package body FastToken.Parser.LR.Panic_Mode is
             Put_Trace_Line
               (" state" & Unknown_State_Index'Image (Top.State) &
                  " " & Token_Image (Panic.Nonterm) & " goto" & Unknown_State_Index'Image (Panic.Goto_State));
+
+            if Trace_Parse > 2 then
+               Parser_Lists.Put_Trace_Top_10 (Cursor);
+            end if;
          end if;
       end if;
 
-      return not Cursor.Stack_Empty;
+      return Top.State /= State_Index'First;
    end Pop_To_Good;
 
    function Panic_Mode
      (Table         : in     Parse_Table;
       Parsers       : in out Parser_Lists.List;
-      Current_Token : in     Token.Token_ID)
+      Current_Token : in out Token.Handle;
+      Lexer         : in     Lexer_Pkg.Handle)
      return Boolean
    is
-      Try_Again : Boolean := False;
+      use all type Token.Handle;
+      use all type Nonterminal.Handle;
+
+      Keep_Going : Boolean := False;
+      Last_ID    : Token.Token_ID := ID (Current_Token);
    begin
       for I in Parsers.Iterate loop
-         Try_Again := Try_Again or Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
+         Keep_Going := Keep_Going or Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
       end loop;
 
-      if Try_Again then
+      if not Keep_Going then
+         return False;
+      end if;
 
+      Keep_Going := False;
+
+      Matching_Input :
+      loop
          for I in Parsers.Iterate loop
             declare
                use Parser_Lists;
                Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
                Panic  : Panic_Reference renames Cursor.Panic_Ref;
             begin
-               if Table.Follow (Panic.Nonterm)(Current_Token) then
-                  Try_Again := True;
+               if Table.Follow (Panic.Nonterm)(ID (Current_Token)) then
+                  Keep_Going := True;
                   Cursor.Push ((Panic.Goto_State, new Nonterminal.Class'(Nonterminal.Get (Panic.Nonterm))));
                end if;
             end;
          end loop;
+
+         exit Matching_Input when Keep_Going;
+
+         if Trace_Parse > 1 then
+            Ada.Text_IO.Put_Line ("  discard " & Current_Token.Image);
+         end if;
+         Token.Free (Current_Token);
+         Lexer.Find_Next;
+         Current_Token := new Token.Class'(Lexer.Get);
+         if Trace_Parse > 1 then
+            Ada.Text_IO.Put_Line ("  next " & Current_Token.Image);
+         end if;
+
+         --  Allow EOF_Token to succeed
+         exit Matching_Input when Last_ID = EOF_Token;
+         Last_ID := ID (Current_Token);
+      end loop Matching_Input;
+
+      if Trace_Parse > 0 then
+         if Keep_Going then
+            Put_Trace_Line ("recover: resume");
+         else
+            Put_Trace_Line ("recover: fail");
+         end if;
       end if;
-
-      --  FIXME: loop on skip input
-
-      return Try_Again;
+      return Keep_Going;
    end Panic_Mode;
 
 end FastToken.Parser.LR.Panic_Mode;

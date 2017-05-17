@@ -675,7 +675,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       Table := new Parse_Table (Kernels.Size - 1 + State_Index'First);
 
       Table.Panic_Recover := Panic_Recover;
-      Table.Follow        := LR1_Items.Follow (Grammar, First);
+      Table.Follow        := LR1_Items.Follow (Grammar, First, Has_Empty_Production);
 
       Add_Actions
         (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace);

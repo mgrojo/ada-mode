@@ -6,24 +6,39 @@ build/release_process.text
 
  current work
 
+report interrupt-process bug
+    not in debbugs
+    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject%3Ainterrupt-process
+
+    look for tests in emacs
+
 Do "panic mode" dragon pg 255
 
-    dragon says to mark only some nonterms as "good", such as "statement" (followed by "end")
-
     fasttoken-parser-lr-panic_mode.adb
+        doesn't seem suited to Ada; accepts "end ;" when it needs "end if ;"
+        because it only has one lookahead
+        just implement it, find source where it at lease does something
 
-        need Follow (table, nonterm) return token_id_set;
-            add test in dragon-*-test
+    report region containing popped/skipped tokens
+        merge wisi_tokens to token
+        get rid of allocation
 
-    test_panic_mode.adb
+    test semantic actions
+        just confirm an action procedure is called/not called
 
+
+better syntax error handling
+    d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
+        does this do:
+            if expecting has exactly one token, insert that
+                "if then end;"
+
+    write tests using Ada-like grammar with example syntax errors
         partial 'if' statement
         missing ;
         missing )
 
-        test semantic actions
-            just confirm an action procedure is called/not called
-
+    if needed, speed up
 
     try check all stacked states for current input symbol in goto/Follow;
         works for typical "missing trailing tokens"
@@ -39,23 +54,6 @@ Do "panic mode" dragon pg 255
 
     Leaves some sections uncached - OK if not user line (not typical editing case).
     If indent cache nil, use previous line.
-
-fix lr1 check_unused
-    see fixme
-    write tests
-
-better syntax error handling
-    d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
-        does this do:
-            if expecting has exactly one token, insert that
-                "if then end;"
-
-    write tests using Ada-like grammar with example syntax errors
-        partial 'if' statement
-        missing ;
-        missing )
-
-    if needed, speed up
 
 move output_ada_emacs, output_elisp to ada-mode source tree?
     extendable dispatch?

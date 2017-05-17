@@ -54,6 +54,22 @@ package body FastToken.Parser.LR is
       return List.Next;
    end Next;
 
+   procedure Put_Trace (Item : in Parse_Action_Rec)
+   is begin
+      case Item.Verb is
+      when Shift =>
+         Put_Trace ("shift and goto state" & State_Index'Image (Item.State));
+
+      when Reduce =>
+         Put_Trace
+           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
+      when Accept_It =>
+         Put_Trace ("accept it");
+      when Error =>
+         Put_Trace ("ERROR");
+      end case;
+   end Put_Trace;
+
    procedure Add
      (List   : in out Action_Node_Ptr;
       Symbol : in     Token.Token_ID;
@@ -230,6 +246,22 @@ package body FastToken.Parser.LR is
          end if;
       end if;
    end Add_Goto;
+
+   function Action_For
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token.Terminal_ID)
+     return Parse_Action_Node_Ptr
+   is
+      use type Token.Terminal_ID;
+      Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
+   begin
+      while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
+         Action_Node := Action_Node.Next;
+      end loop;
+
+      return Action_Node.Action;
+   end Action_For;
 
    function Goto_For
      (Table : in Parse_Table;

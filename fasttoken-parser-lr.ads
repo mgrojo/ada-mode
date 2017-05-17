@@ -84,6 +84,8 @@ package FastToken.Parser.LR is
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, null, null, 0, 0);
 
+   procedure Put_Trace (Item : in Parse_Action_Rec);
+
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
 
@@ -184,6 +186,13 @@ package FastToken.Parser.LR is
      return Unknown_State_Index;
    --  Return next state after reducing stack by ID; Unknown_State if
    --  none (only possible during error recovery).
+
+   function Action_For
+     (Table : in Parse_Table;
+      State : in State_Index;
+      ID    : in Token.Terminal_ID)
+     return Parse_Action_Node_Ptr;
+   --  Return the action for State, ID.
 
    type Panic_Data is record
       --  Stored with parser state during panic mode recovery

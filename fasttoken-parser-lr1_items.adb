@@ -242,41 +242,84 @@ package body FastToken.Parser.LR1_Items is
    end To_Terminal_ID_Set;
 
    function Follow
-     (Grammar : in Production.List.Instance;
-      First   : in Token.Nonterminal_Array_Token_Set)
+     (Grammar              : in Production.List.Instance;
+      First                : in Token.Nonterminal_Array_Token_Set;
+      Has_Empty_Production : in Token.Nonterminal_ID_Set)
      return Token.Nonterminal_Array_Terminal_Set
    is
       use Token;
       use all type Production.List.List_Iterator;
+      use all type Production.Instance;
       use all type Token.List.List_Iterator;
       use all type Nonterminal.Handle;
 
-      Result : Nonterminal_Array_Terminal_Set := (others => (others => False));
-      Prod_I : Production.List.List_Iterator;
-      RHS_I  : Token.List.List_Iterator;
-      Token  : Token_ID;
+      Prev_Result : Nonterminal_Array_Terminal_Set;
+      Result      : Nonterminal_Array_Terminal_Set := (others => (others => False));
+      A           : Production.List.List_Iterator;
+      RHS_I       : Token.List.List_Iterator;
+      Token       : Token_ID;
    begin
-      for Nonterm in Nonterminal_ID loop
-         Prod_I := Production.List.First (Grammar);
-         while not Is_Null (Prod_I) loop
-            RHS_I := Current (Prod_I).RHS.Tokens.First;
+      --  [dragon] pgp 189:
+      --
+      --  Rule 1 Follow (S, EOF) = True; EOF is explicit in the
+      --  start symbol production, so this is covered by Rule 2.
+      --
+      --  Rule 2: If A => alpha B Beta, add First (Beta) to Follow (B)
+      --
+      --  Rule 3; if A => alpha B, or A -> alpha B Beta and Beta
+      --  can be null, add Follow (A) to Follow (B)
+      --
+      --  We don't assume any order in the productions list, so we
+      --  have to keep applying rule 3 until nothing changes.
 
+      for B in Nonterminal_ID loop
+         A := Production.List.First (Grammar);
+         while not Is_Null (A) loop
+            RHS_I := Current (A).RHS.Tokens.First;
             while not Is_Null (RHS_I) loop
-               if ID (RHS_I) = Nonterm then
+               if ID (RHS_I) = B then
                   if not Is_Null (Next (RHS_I)) then
+                     --  Rule 1
                      Token := ID (Next (RHS_I));
                      if Token in Terminal_ID then
-                        Result (Nonterm) (Token) := True;
+                        Result (B) (Token) := True;
                      else
-                        Result (Nonterm) := Result (Nonterm) or
+                        Result (B) := Result (B) or
                           To_Terminal_ID_Set (First (Token));
                      end if;
                   end if;
                end if;
                Next (RHS_I);
             end loop;
-            Production.List.Next (Prod_I);
+            Production.List.Next (A);
          end loop;
+      end loop;
+
+      Prev_Result := Result;
+      loop
+         for B in Nonterminal_ID loop
+            A := Production.List.First (Grammar);
+            while not Is_Null (A) loop
+               RHS_I := Current (A).RHS.Tokens.First;
+
+               while not Is_Null (RHS_I) loop
+                  if ID (RHS_I) = B then
+                     if Is_Null (Next (RHS_I)) or else
+                       (ID (Next (RHS_I)) in Nonterminal_ID and then
+                          Has_Empty_Production (ID (Next (RHS_I))))
+                     then
+                        --  rule 3
+                        Result (B) := Result (B) or Result (ID (Current (A).LHS));
+                     end if;
+                  end if;
+                  Next (RHS_I);
+               end loop;
+               Production.List.Next (A);
+            end loop;
+         end loop;
+
+         exit when Prev_Result = Result;
+         Prev_Result := Result;
       end loop;
       return Result;
    end Follow;
@@ -1015,31 +1058,6 @@ package body FastToken.Parser.LR1_Items is
    begin
       Put_Line ("Size :" & Unknown_State_Index'Image (Item.Size));
       Put (Item.Head, Show_Lookaheads);
-   end Put;
-
-   procedure Put (Item : in Token.Nonterminal_Array_Terminal_Set)
-   is
-      use Ada.Strings.Unbounded;
-      use Ada.Text_IO;
-      Line : Unbounded_String;
-      Some_True : Boolean;
-   begin
-      for I in Item'Range loop
-         Line := To_Unbounded_String (Token.Token_Image (I) & " => (");
-         Some_True := False;
-         for J in Item (I)'Range loop
-            if Item (I)(J) then
-
-               Line := Line & (if Some_True then " | " else "") & Token.Token_Image (J);
-               Some_True := True;
-            end if;
-         end loop;
-         if Some_True then
-            Put_Line (To_String (Line) & " => True, others => False)");
-         else
-            Put_Line (To_String (Line) & "others => False)");
-         end if;
-      end loop;
    end Put;
 
 end FastToken.Parser.LR1_Items;

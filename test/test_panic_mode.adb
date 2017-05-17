@@ -63,36 +63,55 @@ package body Test_Panic_Mode is
       Test : Test_Case renames Test_Case (T);
       use Ada.Exceptions;
       use Ada_Lite;
+      use AUnit.Assertions;
 
       Parser : LR_Parser.Instance := Create_Parser
         (FastToken.LALR,
          Text_Feeder => String_Feeder'Access);
 
-      procedure Parse_Text (Label : in String; Text : in String)
+      procedure Parse_Text (Text : in String)
       is begin
+         if Test.Debug > 0 then
+            Ada.Text_IO.New_Line;
+            Ada.Text_IO.Put_Line ("input: '" & Text & "'");
+         end if;
+
          String_Feeder.Set (Text);
 
          Parser.Reset (Buffer_Size => Text'Length + 1); -- +1 for EOF
 
          Parser.Parse;
-      exception
-      when E : FastToken.Syntax_Error =>
-         Ada.Text_IO.Put_Line (Label & ":" & Exception_Message (E));
-         AUnit.Assertions.Assert (False, "syntax error");
-      when E : others =>
-         AUnit.Assertions.Assert (False, Label & ": " & Exception_Message (E));
       end Parse_Text;
    begin
       ada_lite_dfa.aflex_debug := False; -- keep this here for future debugging
       FastToken.Trace_Parse := Test.Debug;
 
-      Parse_Text
-        ("1", "procedure Proc_1 is begin if A = 2 then end;");
-      --  Enters recovery at final semicolon, expecting "if; end;". It
-      --  pops the parse stack to "begin", where a "statement" can
-      --  follow, and "end" can follow that.
+      begin
+         Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
+         --                1        |10       |20       |30       |40
+         --  Missing "if" in "end if;"
+         --
+         --  panic mode encounters EOF and gives up.
 
-      --   FIXME: check that subprogram_body:0, if_statement:* got
+         Assert (False, "1: did not get syntax error exception.");
+      exception
+      when FastToken.Syntax_Error =>
+         null;
+      end;
+
+      begin
+         Parse_Text
+           ("procedure Proc_1 is begin end Proc_1; procedure Proc_2 is if A = 2 then end;");
+         --  |1       |10       |20       |30       |40       |50       |60       |70
+         --  Missing "begin" in Proc_2
+         --
+         --  panic mode encounters EOF and gives up.
+      exception
+      when FastToken.Syntax_Error =>
+         Assert (False, "2: got Syntax_Error");
+      end;
+
+      --   FIXME: check that subprogram_body:0, if_statement:? got
       --  executed for Proc_1, nothing else; => array of list of regions?
    end Errors;
 

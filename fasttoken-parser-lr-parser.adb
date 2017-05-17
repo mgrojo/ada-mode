@@ -31,25 +31,6 @@ pragma License (Modified_GPL);
 with Ada.Strings.Unbounded;
 package body FastToken.Parser.LR.Parser is
 
-   --  Return the action for the given state index and terminal ID.
-   --  The final action in the action list for a state (the error
-   --  action) is returned if no other node matches ID.
-   function Action_For
-     (Table : in Parse_Table;
-      State : in State_Index;
-      ID    : in Token.Terminal_ID)
-     return Parse_Action_Node_Ptr
-   is
-      use type Token.Terminal_ID;
-      Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
-   begin
-      while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
-         Action_Node := Action_Node.Next;
-      end loop;
-
-      return Action_Node.Action;
-   end Action_For;
-
    type Token_ID_Array is array (Integer range <>) of Token.Token_ID;
 
    function Expecting (Table : in Parse_Table_Ptr; State : in State_Index) return Token_ID_Array
@@ -136,22 +117,6 @@ package body FastToken.Parser.LR.Parser is
          end if;
       end;
    end Reduce_Stack;
-
-   procedure Put_Trace (Item : in Parse_Action_Rec)
-   is begin
-      case Item.Verb is
-      when Shift =>
-         Put_Trace ("shift and goto state" & State_Index'Image (Item.State));
-
-      when Reduce =>
-         Put_Trace
-           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
-      when Accept_It =>
-         Put_Trace ("accept it");
-      when Error =>
-         Put_Trace ("ERROR");
-      end case;
-   end Put_Trace;
 
    procedure Do_Action
      (Action         : in Parse_Action_Rec;
@@ -309,7 +274,7 @@ package body FastToken.Parser.LR.Parser is
       Current_Token  : Token.Handle;
       Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
-      Try_Again      : Boolean;
+      Keep_Going     : Boolean;
    begin
       loop
          --  exit on Accept_It action or syntax error.
@@ -345,12 +310,12 @@ package body FastToken.Parser.LR.Parser is
          when Error =>
             --  All parsers errored; attempt recovery,
             if Any (Parser.Table.Panic_Recover) then
-               Try_Again := Panic_Mode.Panic_Mode (Parser.Table.all, Parsers, Token.ID (Current_Token));
+               Keep_Going := Panic_Mode.Panic_Mode (Parser.Table.all, Parsers, Current_Token, Parser.Lexer);
             else
-               Try_Again := False;
+               Keep_Going := False;
             end if;
 
-            if Try_Again then
+            if not Keep_Going then
                --  report errors
                declare
                   ID     : constant String := Current_Token.Image;
