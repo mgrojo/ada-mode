@@ -57,7 +57,7 @@ package body Test_Follow is
         (Token_ID, Token_ID'First, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
       package LR1_Items is new Parser_Root.LR1_Items
         (LR.Unknown_State_Index, LR.Unknown_State, Production);
 

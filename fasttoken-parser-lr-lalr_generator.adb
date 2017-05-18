@@ -135,7 +135,6 @@ package body FastToken.Parser.LR.LALR_Generator is
    is
       use Token.List;
       use LR1_Items;
-      use type Token.Handle;
       use type Token.Token_ID;
 
       Goto_Set : Item_Set;
@@ -156,13 +155,13 @@ package body FastToken.Parser.LR.LALR_Generator is
             --  production; don't need a kernel with dot after EOF.
             if Dot_ID = Symbol and
               Symbol /= EOF_Token and
-              null = Find (Prod (Item), Next_Token (Dot (Item)), Goto_Set, Match_Lookaheads => False)
+              null = Find (Prod (Item), Next (Dot (Item)), Goto_Set, Match_Lookaheads => False)
             then
                Add
                  (Goto_Set.Set,
                   New_Item_Node
                     (Prod       => Prod (Item),
-                     Dot        => Next_Token (Dot (Item)),
+                     Dot        => Next (Dot (Item)),
                      State      => Unknown_State, -- replaced in Kernels
                      Lookaheads => Lookaheads (Item)));
 
@@ -188,17 +187,17 @@ package body FastToken.Parser.LR.LALR_Generator is
                      Prod  := Production.List.Current (Prod_I);
                      RHS_I := Prod.RHS.Tokens.First;
 
-                     if (Dot_ID = Token.ID (Prod.LHS) or First (Dot_ID)(Token.ID (Prod.LHS))) and
+                     if (Dot_ID = Prod.LHS or First (Dot_ID)(Prod.LHS)) and
                        (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
                      then
                         if null = Find
-                          (Prod, Next_Token (RHS_I), Goto_Set, Match_Lookaheads => False)
+                          (Prod, Next (RHS_I), Goto_Set, Match_Lookaheads => False)
                         then
                            Add
                              (Goto_Set.Set,
                               New_Item_Node
                                 (Prod       => Prod,
-                                 Dot        => Next_Token (RHS_I),
+                                 Dot        => Next (RHS_I),
                                  State      => Unknown_State, -- replaced in Kernels
                                  Lookaheads => Null_Lookaheads));
 
@@ -427,7 +426,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       declare
          Token_ID    : constant Token.Token_ID           := Token.List.ID (Dot (Closure_Item));
-         Next_Dot    : constant Token.List.List_Iterator := Token.List.Next_Token (Dot (Closure_Item));
+         Next_Dot    : constant Token.List.List_Iterator := Token.List.Next (Dot (Closure_Item));
          Goto_Set    : constant LR1_Items.Item_Set_Ptr   := LR1_Items.Goto_Set (Source_Set, Token_ID);
          Next_Kernel : constant LR1_Items.Item_Ptr       :=
            (if Goto_Set = null then null
@@ -652,7 +651,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
-      Used_Tokens (Token.ID (First_Production.LHS)) := True;
+      Used_Tokens (First_Production.LHS) := True;
 
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace);
 

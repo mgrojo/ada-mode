@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -140,15 +140,13 @@ package body FastToken.Lexer.Regexp is
    --  Public subprograms
 
    function Get
-     (R              : in String;
-      Token          : in FastToken.Lexer.Token.Class;
+     (Regexp         : in String;
       Case_Sensitive : in Boolean := True;
       Report         : in Boolean := True)
       return Syntax_Item
    is begin
       return
-        (FastToken.Regexp.Compile (R, Case_Sensitive),
-         new FastToken.Lexer.Token.Class'(Token),
+        (FastToken.Regexp.Compile (Regexp, Case_Sensitive),
          Report);
    end Get;
 
@@ -195,7 +193,7 @@ package body FastToken.Lexer.Regexp is
       return Lexer.Feeder.End_Of_Text and Lexer.Buffer_Tail < Lexer.Buffer_Head;
    end End_Of_Text;
 
-   overriding procedure Find_Next (Lexer : in out Instance)
+   overriding function Find_Next (Lexer : in out Instance) return Token.Instance
    is
       use type Token.Token_ID;
    begin
@@ -211,6 +209,8 @@ package body FastToken.Lexer.Regexp is
          exit when Lexer.Syntax (Lexer.ID).Report;
 
       end loop;
+
+      return (Lexer.ID, Lexer.Bounds);
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Natural
@@ -241,18 +241,5 @@ package body FastToken.Lexer.Regexp is
       --  Not needed for unit tests
       return (0, 0);
    end Bounds;
-
-   overriding function Get (Lexer : in Instance) return Token.Class
-   is begin
-      --  We allow Create to changing the token stored in the syntax
-      --  list, to avoid another new/free pair.
-
-      Token.Create
-        (Lexeme    => Lexeme (Lexer),
-         Bounds    => Bounds (Lexer),
-         New_Token => Lexer.Syntax (Lexer.ID).Token.all);
-
-      return Lexer.Syntax (Lexer.ID).Token.all;
-   end Get;
 
 end FastToken.Lexer.Regexp;

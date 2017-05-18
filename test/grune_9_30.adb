@@ -54,7 +54,7 @@ package body Grune_9_30 is
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Upper_S_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
@@ -83,14 +83,12 @@ package body Grune_9_30 is
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
-
    Syntax : constant Lexer.Syntax :=
      (
-      Lower_A_ID => Lexer.Get ("a", +Lower_A_ID),
-      Lower_B_ID => Lexer.Get ("b", +Lower_B_ID),
-      Lower_C_ID => Lexer.Get ("c", +Lower_C_ID),
-      EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
+      Lower_A_ID => Lexer.Get ("a"),
+      Lower_B_ID => Lexer.Get ("b"),
+      Lower_C_ID => Lexer.Get ("c"),
+      EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;

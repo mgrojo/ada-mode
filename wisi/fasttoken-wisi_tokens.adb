@@ -43,7 +43,7 @@ package body FastToken.Wisi_Tokens is
          exit when I = Null_Iterator;
          declare
             use type Wisi_Tokens.Token.Buffer_Range;
-            Token : Wisi_Tokens.Token.Instance renames Wisi_Tokens.Token.Instance (Token_Handle (I).all);
+            Token : Wisi_Tokens.Token.Instance renames Current (I);
          begin
             Token_Line := Token_Line & '(' & Int_Image (Token_ID'Pos (ID (I)));
 
@@ -55,7 +55,7 @@ package body FastToken.Wisi_Tokens is
             Token_Line := Token_Line & ")";
          end;
 
-         Next_Token (I);
+         Next (I);
          if I = Null_Iterator then
             Token_Line := Token_Line & "]";
          end if;

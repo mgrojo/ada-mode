@@ -29,6 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
+with Ada.Unchecked_Deallocation;
 package body FastToken.Token is
 
    function Image (Item : in Token_ID_Set) return String
@@ -49,11 +50,6 @@ package body FastToken.Token is
       return To_String (Result);
    end Image;
 
-   procedure Free (Item : in out Handle)
-   is begin
-      Dispose (Item);
-   end Free;
-
    function Image (Item : in Instance; ID_Only : in Boolean) return String
    is
       Name : constant String := Token_Image (Item.ID);
@@ -72,44 +68,10 @@ package body FastToken.Token is
       end if;
    end Image;
 
-   function Get (ID : in Token_ID) return Instance'Class
+   function Get (ID : in Token_ID) return Instance
    is begin
-      return Instance'Class (Instance'(ID, Null_Buffer_Range));
+      return (ID, Null_Buffer_Range);
    end Get;
-
-   function Get (ID : in Token_ID) return Handle
-   is begin
-      return new Instance'Class'(Get (ID));
-   end Get;
-
-   procedure Create
-     (Lexeme     : in     String;
-      Bounds     : in     Token.Buffer_Range;
-      New_Token  : in out Instance)
-   is
-      pragma Unreferenced (Lexeme);
-   begin
-      New_Token.Buffer_Range := Bounds;
-   end Create;
-
-   function Copy (Token : in Handle) return Handle
-   is begin
-      if Token = null then
-         return null;
-      else
-         return new Class'(Token.all);
-      end if;
-   end Copy;
-
-   function ID (Token : in Instance'Class) return Token_ID is
-   begin
-      return Token.ID;
-   end ID;
-
-   function ID (Token : in Handle) return Token_ID
-   is begin
-      return Token.ID;
-   end ID;
 
    package body List is
 
@@ -132,7 +94,7 @@ package body FastToken.Token is
       function Only (Subject : in Token_ID) return Instance
       is
          New_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Token.Instance'(Subject, Null_Buffer_Range),
+           (Token => Get (Subject),
             Next  => null);
       begin
          return
@@ -140,7 +102,7 @@ package body FastToken.Token is
             Tail => New_Node);
       end Only;
 
-      function Only (Subject : in Handle) return Instance
+      function Only (Subject : in Token.Instance) return Instance
       is
          New_Node : constant List_Node_Ptr := new List_Node'
            (Token => Subject,
@@ -154,12 +116,12 @@ package body FastToken.Token is
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance
       is
          Right_Node : constant List_Node_Ptr := new List_Node'
-           (Token => new Class'(Get (Right)),
+           (Token => Get (Right),
             Next  => null);
       begin
          return
            (Head     => new List_Node'
-              (Token => new Class'(Get (Left)),
+              (Token => Get (Left),
                Next  => Right_Node),
             Tail     => Right_Node);
       end "&";
@@ -174,25 +136,25 @@ package body FastToken.Token is
          end if;
       end "&";
 
-      function "&" (Left  : in Instance; Right : in Handle) return Instance
+      function "&" (Left  : in Instance; Right : in Token.Instance) return Instance
       is begin
          Left.Tail.Next := new List_Node'(Right, null);
          return (Left.Head, Left.Tail.Next);
       end "&";
 
-      procedure Enqueue (List  : in out Instance; Token : in     Handle)
+      procedure Prepend (List : in out Instance; Item : in Token.Instance)
       is
-         New_Node : constant List_Node_Ptr := new List_Node'(Token => Token, Next  => List.Head);
+         New_Node : constant List_Node_Ptr := new List_Node'(Item, List.Head);
       begin
          if List.Tail = null then
             List.Tail := New_Node;
          end if;
          List.Head := New_Node;
-      end Enqueue;
+      end Prepend;
 
-      procedure Append (List  : in out Instance; Token : in     Handle)
+      procedure Append (List  : in out Instance; Item : in Token.Instance)
       is
-         New_Node : constant List_Node_Ptr := new List_Node'(Token, null);
+         New_Node : constant List_Node_Ptr := new List_Node'(Item, null);
       begin
          if List.Tail = null then
             List.Head := New_Node;
@@ -211,7 +173,6 @@ package body FastToken.Token is
          --  Deallocate all the nodes in the list, along with all their tokens
          while Node /= null loop
             Next := Node.Next;
-            Free (Node.Token);
             Free (Node);
             Node := Next;
          end loop;
@@ -225,31 +186,31 @@ package body FastToken.Token is
          return List_Iterator (List.Head);
       end First;
 
-      procedure Next_Token (Iterator : in out List_Iterator) is
+      procedure Next (Iterator : in out List_Iterator) is
       begin
          if Iterator /= null then
             Iterator := List_Iterator (Iterator.Next);
          end if;
-      end Next_Token;
+      end Next;
 
-      function Next_Token (Iterator : in List_Iterator) return List_Iterator
+      function Next (Iterator : in List_Iterator) return List_Iterator
       is begin
          return List_Iterator (Iterator.Next);
-      end Next_Token;
+      end Next;
 
       function Is_Done (Iterator : in List_Iterator) return Boolean
       is begin
          return Iterator = null;
       end Is_Done;
 
-      function Token_Handle (Iterator : in List_Iterator) return Handle is
+      function Current (Iterator : in List_Iterator) return Token.Instance is
       begin
          return Iterator.Token;
-      end Token_Handle;
+      end Current;
 
       function ID (Iterator : in List_Iterator) return Token_ID
       is begin
-         return ID (Token_Handle (Iterator).all);
+         return Iterator.Token.ID;
       end ID;
 
       procedure Put_Trace (Item : in Instance; ID_Only : in Boolean)
@@ -258,15 +219,8 @@ package body FastToken.Token is
       begin
          loop
             exit when I = Null_Iterator;
-            if Token_Handle (I) = null
-            then
-               --  This is certainly a bug, but it's easier to find
-               --  from this output than an exception.
-               Put_Trace ("error: null token");
-            else
-               Put_Trace (Token_Handle (I).Image (ID_Only));
-            end if;
-            Next_Token (I);
+            Put_Trace (Image (I.Token, ID_Only));
+            Next (I);
             if I /= Null_Iterator then
                Put_Trace (", ");
             end if;
@@ -288,7 +242,7 @@ package body FastToken.Token is
       loop
          exit when I = Null_Iterator;
          declare
-            Buffer_Region : Buffer_Range renames Token_Handle (I).Buffer_Range;
+            Buffer_Region : Buffer_Range renames Current (I).Buffer_Range;
          begin
             if Result.Begin_Pos > Buffer_Region.Begin_Pos then
                Result.Begin_Pos := Buffer_Region.Begin_Pos;
@@ -299,7 +253,7 @@ package body FastToken.Token is
             end if;
          end;
 
-         Next_Token (I);
+         Next (I);
       end loop;
       return Result;
    end Total_Buffer_Range;

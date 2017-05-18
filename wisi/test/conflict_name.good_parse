@@ -2,26 +2,26 @@ LALR_Parser parse:
 read 4
 foo
 
- 1 stack:  1 : , 
+ 1 stack:  1 : (WHITESPACE), 
  1: 1: (IDENTIFIER 1 . 4) : shift and goto state 2
- 1 stack:  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1 stack:  2 : (IDENTIFIER 1 . 4),  1 : (WHITESPACE), 
  1: 2: (WISI_EOI 1 . 2) : reduce 1 tokens to name
-name_id_0: (name 1 . 4) (IDENTIFIER 1 . 4)
- ... goto state 4
- 1 stack:  4 : (name 1 . 4),  1 : , 
+name_0: name IDENTIFIER
+ ... goto state 1
+ 1 stack:  4 : (name 1 . 4),  1 : (WHITESPACE), 
  1: 4: (WISI_EOI 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 4) (name 1 . 4)
+fasttoken_accept_0: fasttoken_accept name
 
 LR1_Parser parse:
 read 4
 foo
 
- 1 stack:  1 : , 
+ 1 stack:  1 : (WHITESPACE), 
  1: 1: (IDENTIFIER 1 . 4) : shift and goto state 2
- 1 stack:  2 : (IDENTIFIER 1 . 4),  1 : , 
+ 1 stack:  2 : (IDENTIFIER 1 . 4),  1 : (WHITESPACE), 
  1: 2: (WISI_EOI 1 . 2) : reduce 1 tokens to name
-name_id_0: (name 1 . 4) (IDENTIFIER 1 . 4)
- ... goto state 4
- 1 stack:  4 : (name 1 . 4),  1 : , 
+name_0: name IDENTIFIER
+ ... goto state 1
+ 1 stack:  4 : (name 1 . 4),  1 : (WHITESPACE), 
  1: 4: (WISI_EOI 1 . 2) : accept it
-fasttoken_accept_id_0: (FASTTOKEN_ACCEPT 1 . 4) (name 1 . 4)
+fasttoken_accept_0: fasttoken_accept name

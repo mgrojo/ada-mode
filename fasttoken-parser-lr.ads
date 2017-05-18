@@ -40,7 +40,6 @@ with Ada.Unchecked_Deallocation;
 generic
    First_State_Index : in Natural;
    Token_Image_Width : Integer;
-   with function Get_Nonterminal_Token (ID : in Token_ID) return Token_Pkg.Instance'Class;
 package FastToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
@@ -66,7 +65,7 @@ package FastToken.Parser.LR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         LHS    : Token.Handle;
+         LHS    : Token.Nonterminal_ID;
          Action : Token.Semantic_Action;
          Index  : Integer;
          --  Index of production among productions for a nonterminal,
@@ -79,7 +78,7 @@ package FastToken.Parser.LR is
    end record;
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
-   Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, null, null, 0, 0);
+   Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token.Nonterminal_ID'First, null, 0, 0);
 
    procedure Put_Trace (Item : in Parse_Action_Rec);
 

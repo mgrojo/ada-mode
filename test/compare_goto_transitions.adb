@@ -63,7 +63,7 @@ package body Compare_Goto_Transitions is
         (Token_ID, Token_ID'First, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
       package LR1_Items is new Parser_Root.LR1_Items
         (LR.Unknown_State_Index, LR.Unknown_State, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);

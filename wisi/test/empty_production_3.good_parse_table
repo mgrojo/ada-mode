@@ -10,6 +10,26 @@ Tokens:
  9 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ mode =>
+  (IDENTIFIER => True,
+   others => False)
+ name =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ parameter_specification =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
+
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
@@ -82,6 +102,24 @@ State 9:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ mode =>
+  (IDENTIFIER => True,
+   others => False)
+ name =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ parameter_specification =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
 

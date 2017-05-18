@@ -67,7 +67,7 @@ package FastToken.Parser.LR.Parser_Lists is
    --  Parser stack
    type Stack_Item is record
       State : Unknown_State_Index;
-      Token : FastToken.Parser.Token.Handle;
+      Token : FastToken.Parser.Token.Instance;
    end record;
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
@@ -83,12 +83,11 @@ package FastToken.Parser.LR.Parser_Lists is
 
    --  pending user actions
    type Action_Token is record
-      Action    : Reduce_Action_Rec;
-      New_Token : Token.Handle;
-      Tokens    : Token.List.Instance;
+      Action : Reduce_Action_Rec;
+      Tokens : Token.List.Instance;
    end record;
 
-   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, null, Token.List.Null_List);
+   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, Token.List.Null_List);
 
    function Pending_Actions_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer;
@@ -150,14 +149,6 @@ package FastToken.Parser.LR.Parser_Lists is
 
    procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token);
    procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor);
-
-   procedure Check_Action_Stack
-     (Label  : in String;
-      Cursor : in Parser_Lists.Cursor);
-   --  Verify that all Pending_Actions.New_Token point to tokens on
-   --  Stack or later Pending_Actions.Tokens, and that all
-   --  nonterminals in Stack and Pending_Actions.Tokens are pointed to
-   --  by previous Pending_Actions.New_Token.
 
 private
 

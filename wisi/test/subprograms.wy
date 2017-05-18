@@ -26,6 +26,7 @@
 
 ;; need whitespace for Aflex lexer
 %token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 
 ;; 'fasttoken_accept', Wisi_EOI added in wisi-generate
 %start compilation_unit

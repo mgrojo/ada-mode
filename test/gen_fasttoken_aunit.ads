@@ -37,13 +37,23 @@ generic
      (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_ID'Image,
       Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    with package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    Grammar           : in Production.List.Instance;
 package Gen_FastToken_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Token_ID);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Token_Pkg.Buffer_Range;
+      Expected : in Token_Pkg.Buffer_Range);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Token_Pkg.Instance;
+      Expected : in Token_Pkg.Instance);
 
    procedure Check
      (Label    : in String;

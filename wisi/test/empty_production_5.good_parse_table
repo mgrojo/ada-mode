@@ -13,6 +13,27 @@ Tokens:
  12 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ accept_statement =>
+  (ACCEPT |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (ACCEPT |
+   LEFT_PAREN |
+   WISI_EOI => True,
+   others => False)
+ parameter_profile =>
+  (SEMICOLON => True,
+   others => False)
+ others => (others => False))
+
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
@@ -106,6 +127,25 @@ State 12:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ accept_statement =>
+  (ACCEPT |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (ACCEPT |
+   LEFT_PAREN |
+   WISI_EOI => True,
+   others => False)
+ parameter_profile =>
+  (SEMICOLON => True,
+   others => False)
+ others => (others => False))
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
 

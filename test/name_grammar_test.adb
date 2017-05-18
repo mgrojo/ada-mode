@@ -59,22 +59,20 @@ package body Name_Grammar_Test is
    package Parser_Root is new FastToken.Parser
      (Token_ID, Dot_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
-
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID  => Lexer.Get (" ", +Whitespace_ID, Report => False),
-      Dot_ID         => Lexer.Get ("\.", +Dot_ID),
-      Paren_Left_ID  => Lexer.Get ("\(", +Paren_Left_ID),
-      Paren_Right_ID => Lexer.Get ("\)", +Paren_Right_ID),
-      Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+", +Identifier_ID),
-      EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
+      Whitespace_ID  => Lexer.Get (" ", Report => False),
+      Dot_ID         => Lexer.Get ("\."),
+      Paren_Left_ID  => Lexer.Get ("\("),
+      Paren_Right_ID => Lexer.Get ("\)"),
+      Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
+      EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;

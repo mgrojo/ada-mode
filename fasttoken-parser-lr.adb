@@ -61,8 +61,7 @@ package body FastToken.Parser.LR is
          Put_Trace ("shift and goto state" & State_Index'Image (Item.State));
 
       when Reduce =>
-         Put_Trace
-           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
+         Put_Trace ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Item.LHS));
       when Accept_It =>
          Put_Trace ("accept it");
       when Error =>
@@ -132,15 +131,14 @@ package body FastToken.Parser.LR is
       Semantic_Action : in     Token.Semantic_Action)
    is
       Action   : Parse_Action_Rec;
-      LHS      : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID));
       New_Node : Action_Node_Ptr;
       Node     : Action_Node_Ptr;
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, LHS, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Accept_It, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -167,8 +165,7 @@ package body FastToken.Parser.LR is
       Semantic_Action : in     Token.Semantic_Action)
    is
       Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
-      LHS      : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS, Semantic_Action, Index, RHS_Token_Count);
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -187,14 +184,12 @@ package body FastToken.Parser.LR is
       RHS_Token_Count_2 : in     Natural;
       Semantic_Action_2 : in     Token.Semantic_Action)
    is
-      LHS_1    : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID_1));
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
+         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
          when others => raise FastToken.Programmer_Error);
-      LHS_2    : constant Token.Handle := new Token.Class'(Get_Nonterminal_Token (LHS_ID_2));
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
+      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -291,10 +286,8 @@ package body FastToken.Parser.LR is
       case Item.Verb is
       when Shift =>
          Put ("shift and goto state" & State_Index'Image (Item.State));
-
       when Reduce =>
-         Put
-           ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Token.ID (Item.LHS.all)));
+         Put ("reduce" & Integer'Image (Item.Token_Count) & " tokens to " & Token.Token_Image (Item.LHS));
       when Accept_It =>
          Put ("accept it");
       when Error =>

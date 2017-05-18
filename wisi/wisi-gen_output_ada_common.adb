@@ -149,7 +149,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR");
-      Indent_Line ("  (First_State_Index, Token_ID'Width, Token_Pkg.Get);");
+      Indent_Line ("  (First_State_Index, Token_ID'Width);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
@@ -522,11 +522,10 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (", Accept_It");
                      end if;
                      Append (", ");
-                     Append (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                     Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
                      Append (Integer'Image (Action_Node.Item.Index) & ", ");
                      Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
-                     Append
-                       (Action_Name (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                     Append (Action_Name (Action_Node.Item.LHS, Action_Node.Item.Index));
                   when Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
                   end case;
@@ -539,12 +538,11 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (State_Image (Action_Node.Item.State));
                      when Reduce | Accept_It =>
                         Append (", ");
-                        Append (Token_Out_Image (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all)) & ",");
+                        Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
                         Append
                           (Integer'Image (Action_Node.Item.Index) & ", " &
                              Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name
-                               (Generate_Utils.Token_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
+                             Action_Name (Action_Node.Item.LHS, Action_Node.Item.Index));
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &
                           LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);

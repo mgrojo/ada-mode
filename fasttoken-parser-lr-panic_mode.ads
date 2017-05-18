@@ -57,7 +57,7 @@ package FastToken.Parser.LR.Panic_Mode is
    function Panic_Mode
      (Table         : in     Parse_Table;
       Parsers       : in out Parser_Lists.List;
-      Current_Token : in out Token.Handle;
+      Current_Token : in out Token.Instance;
       Lexer         : in     Lexer_Pkg.Handle)
      return Boolean;
    --  Attempt to modify Parsers stacks, and Parser.Lexer current

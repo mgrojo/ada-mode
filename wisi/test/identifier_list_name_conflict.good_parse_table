@@ -19,6 +19,54 @@ Tokens:
  18 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( association =>
+  (RIGHT_PAREN |
+   COMMA => True,
+   others => False)
+ association_list =>
+  (RIGHT_PAREN |
+   COMMA => True,
+   others => False)
+ compilation =>
+  (WISI_EOI => True,
+   others => False)
+ compilation_unit =>
+  (LEFT_PAREN |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ identifier_list =>
+  (LEFT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (LEFT_PAREN |
+   RIGHT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ name_list =>
+  (LEFT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ selector_name =>
+  (EQUAL_GREATER => True,
+   others => False)
+ others => (others => False))
+
 State 0:
   fasttoken_accept <= ^ compilation WISI_EOI, 
 
@@ -282,6 +330,52 @@ State 25:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( association =>
+  (RIGHT_PAREN |
+   COMMA => True,
+   others => False)
+ association_list =>
+  (RIGHT_PAREN |
+   COMMA => True,
+   others => False)
+ compilation =>
+  (WISI_EOI => True,
+   others => False)
+ compilation_unit =>
+  (LEFT_PAREN |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ identifier_list =>
+  (LEFT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ name =>
+  (LEFT_PAREN |
+   RIGHT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ name_list =>
+  (LEFT_PAREN |
+   COMMA |
+   STRING_LITERAL |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ selector_name =>
+  (EQUAL_GREATER => True,
+   others => False)
+ others => (others => False))
 State 0:
   fasttoken_accept <= ^ compilation WISI_EOI, WISI_EOI
 
@@ -660,5 +754,5 @@ State 40:
    default          => ERROR
 
 
- 8 rules, 1 actions, 40 states, 238 table entries
+ 8 rules, 1 actions, 41 states, 238 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 5 reduce/reduce conflicts

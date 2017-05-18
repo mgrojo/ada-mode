@@ -52,7 +52,7 @@ package FastToken.Parser.LR1_Items is
    type Item_Ptr is access Item_Node;
 
    function Prod (Item : in Item_Ptr) return Production.Instance;
-   function LHS (Item : in Item_Ptr) return Token.Handle;
+   function LHS (Item : in Item_Ptr) return Token.Nonterminal_ID;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
    function Dot (Item : in Item_Ptr) return Token.List.List_Iterator;
    --  Token after Dot.

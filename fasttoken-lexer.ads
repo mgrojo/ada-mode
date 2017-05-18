@@ -73,16 +73,10 @@ package FastToken.Lexer is
    --  when syntax errors are detected. First column number is given
    --  in Initialize.
 
-   procedure Find_Next (Lexer : in out Instance) is abstract;
-   --  Locate the next token.
-   --
-   --  If text feeder is reporting End_Of_Text, and there is a token
-   --  that matches EOF_Character, return that token, not error.
+   function Find_Next (Lexer : in out Instance) return Token.Instance is abstract;
+   --  Return the next token.
    --
    --  Raises Syntax_Error with an appropriate message if no token
-   --  is found and there is no default token.
-
-   function Get (Lexer : in Instance) return Token.Class is abstract;
-   --  Return a token object for the last token that was matched.
+   --  is found.
 
 end FastToken.Lexer;

@@ -58,22 +58,20 @@ package body Test_Accept_State is
      (Token_ID, Equals_ID, Identifier_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   function "+" (Item : in Token_ID) return Token_Pkg.Instance'Class renames Token_Pkg.Get;
-
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID => Lexer.Get (" ", +Whitespace_ID, Report => False),
-      Equals_ID     => Lexer.Get ("=", +Equals_ID),
-      Int_ID        => Lexer.Get ("[0-9]+", +Int_ID),
-      Set_ID        => Lexer.Get ("set", +Set_ID),
-      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+", +Identifier_ID),
-      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, +EOF_ID)
+      Whitespace_ID => Lexer.Get (" ", Report => False),
+      Equals_ID     => Lexer.Get ("="),
+      Int_ID        => Lexer.Get ("[0-9]+"),
+      Set_ID        => Lexer.Get ("set"),
+      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    use type Production.Instance;        --  "<="

@@ -12,6 +12,28 @@ Tokens:
  11 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( object_declaration_list =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ object_declaration =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ aliased_opt =>
+  (CONSTANT |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ constant_opt =>
+  (SEMICOLON => True,
+   others => False)
+ others => (others => False))
+
 State 1:
   fasttoken_accept <= ^ object_declaration_list WISI_EOI, 
 
@@ -97,6 +119,26 @@ State 10:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( object_declaration_list =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ object_declaration =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ aliased_opt =>
+  (CONSTANT |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ constant_opt =>
+  (SEMICOLON => True,
+   others => False)
+ others => (others => False))
 State 1:
   fasttoken_accept <= ^ object_declaration_list WISI_EOI, WISI_EOI
 

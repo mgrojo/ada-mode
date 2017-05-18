@@ -62,7 +62,7 @@ package body FastToken.Production is
 
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance
    is begin
-      return (new Token.Class'(Token.Get (LHS)), RHS);
+      return (LHS, RHS);
    end "<=";
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator
@@ -146,6 +146,11 @@ package body FastToken.Production is
       is begin
          return Iterator.Production;
       end Current;
+
+      function LHS (Iterator : in List_Iterator) return Token.Nonterminal_ID
+      is begin
+         return Iterator.Production.LHS;
+      end LHS;
 
       function RHS (Iterator : in List_Iterator) return Right_Hand_Side
       is begin

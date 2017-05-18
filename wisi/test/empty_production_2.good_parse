@@ -9,159 +9,159 @@ is
 begin;
 
 spawn parser from 1 (2 active)
- 2 stack:  1 : , 
+ 2 stack:  1 : (WHITESPACE), 
  2: 1: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 1
- ... goto state 3
- 1 stack:  1 : , 
+pending declaration_0: declaration <=  action count: 1
+ ... goto state 1
+ 1 stack:  1 : (WHITESPACE), 
  1: 1: (IS 49 . 51) : shift and goto state 2
- 2 stack:  3 : (declaration),  1 : , 
+ 2 stack:  3 : (declaration),  1 : (WHITESPACE), 
  2: 3: (IS 49 . 51) : reduce 1 tokens to declarations
-pending declarations_id_0: (declarations) (declaration) action count: 2
- ... goto state 4
+pending declarations_0: declarations <= (declaration) action count: 2
+ ... goto state 1
 spawn parser from 2 (3 active)
- 3 stack:  4 : (declarations),  1 : , 
+ 3 stack:  4 : (declarations),  1 : (WHITESPACE), 
  3: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 3
- ... goto state 6
- 2 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 3
+ ... goto state 4
+ 2 stack:  4 : (declarations),  1 : (WHITESPACE), 
  2: 4: (IS 49 . 51) : shift and goto state 2
- 3 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 3 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  3: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 4
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 4
+ ... goto state 1
 spawn parser from 3 (4 active)
- 4 stack:  4 : (declarations),  1 : , 
+ 4 stack:  4 : (declarations),  1 : (WHITESPACE), 
  4: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 5
- ... goto state 6
- 3 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 5
+ ... goto state 4
+ 3 stack:  4 : (declarations),  1 : (WHITESPACE), 
  3: 4: (IS 49 . 51) : shift and goto state 2
- 4 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 4 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  4: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 6
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 6
+ ... goto state 1
 spawn parser from 4 (5 active)
- 5 stack:  4 : (declarations),  1 : , 
+ 5 stack:  4 : (declarations),  1 : (WHITESPACE), 
  5: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 7
- ... goto state 6
- 4 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 7
+ ... goto state 4
+ 4 stack:  4 : (declarations),  1 : (WHITESPACE), 
  4: 4: (IS 49 . 51) : shift and goto state 2
- 5 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 5 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  5: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 8
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 8
+ ... goto state 1
 spawn parser from 5 (6 active)
- 6 stack:  4 : (declarations),  1 : , 
+ 6 stack:  4 : (declarations),  1 : (WHITESPACE), 
  6: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 9
- ... goto state 6
- 5 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 9
+ ... goto state 4
+ 5 stack:  4 : (declarations),  1 : (WHITESPACE), 
  5: 4: (IS 49 . 51) : shift and goto state 2
- 6 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 6 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  6: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 10
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 10
+ ... goto state 1
 spawn parser from 6 (7 active)
- 7 stack:  4 : (declarations),  1 : , 
+ 7 stack:  4 : (declarations),  1 : (WHITESPACE), 
  7: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 11
- ... goto state 6
- 6 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 11
+ ... goto state 4
+ 6 stack:  4 : (declarations),  1 : (WHITESPACE), 
  6: 4: (IS 49 . 51) : shift and goto state 2
- 7 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 7 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  7: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 12
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 12
+ ... goto state 1
 spawn parser from 7 (8 active)
- 8 stack:  4 : (declarations),  1 : , 
+ 8 stack:  4 : (declarations),  1 : (WHITESPACE), 
  8: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 13
- ... goto state 6
- 7 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 13
+ ... goto state 4
+ 7 stack:  4 : (declarations),  1 : (WHITESPACE), 
  7: 4: (IS 49 . 51) : shift and goto state 2
- 8 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 8 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  8: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 14
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 14
+ ... goto state 1
 spawn parser from 8 (9 active)
- 9 stack:  4 : (declarations),  1 : , 
+ 9 stack:  4 : (declarations),  1 : (WHITESPACE), 
  9: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 15
- ... goto state 6
- 8 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 15
+ ... goto state 4
+ 8 stack:  4 : (declarations),  1 : (WHITESPACE), 
  8: 4: (IS 49 . 51) : shift and goto state 2
- 9 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 9 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  9: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 16
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 16
+ ... goto state 1
 spawn parser from 9 (10 active)
- 10 stack:  4 : (declarations),  1 : , 
+ 10 stack:  4 : (declarations),  1 : (WHITESPACE), 
  10: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 17
- ... goto state 6
- 9 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 17
+ ... goto state 4
+ 9 stack:  4 : (declarations),  1 : (WHITESPACE), 
  9: 4: (IS 49 . 51) : shift and goto state 2
- 10 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 10 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  10: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 18
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 18
+ ... goto state 1
 spawn parser from 10 (11 active)
- 11 stack:  4 : (declarations),  1 : , 
+ 11 stack:  4 : (declarations),  1 : (WHITESPACE), 
  11: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 19
- ... goto state 6
- 10 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 19
+ ... goto state 4
+ 10 stack:  4 : (declarations),  1 : (WHITESPACE), 
  10: 4: (IS 49 . 51) : shift and goto state 2
- 11 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 11 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  11: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 20
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 20
+ ... goto state 1
 spawn parser from 11 (12 active)
- 12 stack:  4 : (declarations),  1 : , 
+ 12 stack:  4 : (declarations),  1 : (WHITESPACE), 
  12: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 21
- ... goto state 6
- 11 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 21
+ ... goto state 4
+ 11 stack:  4 : (declarations),  1 : (WHITESPACE), 
  11: 4: (IS 49 . 51) : shift and goto state 2
- 12 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 12 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  12: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 22
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 22
+ ... goto state 1
 spawn parser from 12 (13 active)
- 13 stack:  4 : (declarations),  1 : , 
+ 13 stack:  4 : (declarations),  1 : (WHITESPACE), 
  13: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 23
- ... goto state 6
- 12 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 23
+ ... goto state 4
+ 12 stack:  4 : (declarations),  1 : (WHITESPACE), 
  12: 4: (IS 49 . 51) : shift and goto state 2
- 13 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 13 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  13: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 24
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 24
+ ... goto state 1
 spawn parser from 13 (14 active)
- 14 stack:  4 : (declarations),  1 : , 
+ 14 stack:  4 : (declarations),  1 : (WHITESPACE), 
  14: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 25
- ... goto state 6
- 13 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 25
+ ... goto state 4
+ 13 stack:  4 : (declarations),  1 : (WHITESPACE), 
  13: 4: (IS 49 . 51) : shift and goto state 2
- 14 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 14 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  14: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 26
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 26
+ ... goto state 1
 spawn parser from 14 (15 active)
- 15 stack:  4 : (declarations),  1 : , 
+ 15 stack:  4 : (declarations),  1 : (WHITESPACE), 
  15: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 27
- ... goto state 6
- 14 stack:  4 : (declarations),  1 : , 
- 14: 4: (IS 49 . 51) : shift and goto state 2
- 15 stack:  6 : (declaration),  4 : (declarations),  1 : , 
- 15: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 28
+pending declaration_0: declaration <=  action count: 27
  ... goto state 4
+ 14 stack:  4 : (declarations),  1 : (WHITESPACE), 
+ 14: 4: (IS 49 . 51) : shift and goto state 2
+ 15 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
+ 15: 6: (IS 49 . 51) : reduce 2 tokens to declarations
+pending declarations_1: declarations <= (declarations), (declaration) action count: 28
+ ... goto state 1
 empty_production_2.input:1:49: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
 
 LR1_Parser parse:
@@ -175,157 +175,157 @@ is
 begin;
 
 spawn parser from 1 (2 active)
- 2 stack:  1 : , 
+ 2 stack:  1 : (WHITESPACE), 
  2: 1: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 1
- ... goto state 3
- 1 stack:  1 : , 
+pending declaration_0: declaration <=  action count: 1
+ ... goto state 1
+ 1 stack:  1 : (WHITESPACE), 
  1: 1: (IS 49 . 51) : shift and goto state 2
- 2 stack:  3 : (declaration),  1 : , 
+ 2 stack:  3 : (declaration),  1 : (WHITESPACE), 
  2: 3: (IS 49 . 51) : reduce 1 tokens to declarations
-pending declarations_id_0: (declarations) (declaration) action count: 2
- ... goto state 4
+pending declarations_0: declarations <= (declaration) action count: 2
+ ... goto state 1
 spawn parser from 2 (3 active)
- 3 stack:  4 : (declarations),  1 : , 
+ 3 stack:  4 : (declarations),  1 : (WHITESPACE), 
  3: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 3
- ... goto state 6
- 2 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 3
+ ... goto state 4
+ 2 stack:  4 : (declarations),  1 : (WHITESPACE), 
  2: 4: (IS 49 . 51) : shift and goto state 2
- 3 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 3 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  3: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 4
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 4
+ ... goto state 1
 spawn parser from 3 (4 active)
- 4 stack:  4 : (declarations),  1 : , 
+ 4 stack:  4 : (declarations),  1 : (WHITESPACE), 
  4: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 5
- ... goto state 6
- 3 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 5
+ ... goto state 4
+ 3 stack:  4 : (declarations),  1 : (WHITESPACE), 
  3: 4: (IS 49 . 51) : shift and goto state 2
- 4 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 4 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  4: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 6
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 6
+ ... goto state 1
 spawn parser from 4 (5 active)
- 5 stack:  4 : (declarations),  1 : , 
+ 5 stack:  4 : (declarations),  1 : (WHITESPACE), 
  5: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 7
- ... goto state 6
- 4 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 7
+ ... goto state 4
+ 4 stack:  4 : (declarations),  1 : (WHITESPACE), 
  4: 4: (IS 49 . 51) : shift and goto state 2
- 5 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 5 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  5: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 8
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 8
+ ... goto state 1
 spawn parser from 5 (6 active)
- 6 stack:  4 : (declarations),  1 : , 
+ 6 stack:  4 : (declarations),  1 : (WHITESPACE), 
  6: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 9
- ... goto state 6
- 5 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 9
+ ... goto state 4
+ 5 stack:  4 : (declarations),  1 : (WHITESPACE), 
  5: 4: (IS 49 . 51) : shift and goto state 2
- 6 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 6 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  6: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 10
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 10
+ ... goto state 1
 spawn parser from 6 (7 active)
- 7 stack:  4 : (declarations),  1 : , 
+ 7 stack:  4 : (declarations),  1 : (WHITESPACE), 
  7: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 11
- ... goto state 6
- 6 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 11
+ ... goto state 4
+ 6 stack:  4 : (declarations),  1 : (WHITESPACE), 
  6: 4: (IS 49 . 51) : shift and goto state 2
- 7 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 7 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  7: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 12
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 12
+ ... goto state 1
 spawn parser from 7 (8 active)
- 8 stack:  4 : (declarations),  1 : , 
+ 8 stack:  4 : (declarations),  1 : (WHITESPACE), 
  8: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 13
- ... goto state 6
- 7 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 13
+ ... goto state 4
+ 7 stack:  4 : (declarations),  1 : (WHITESPACE), 
  7: 4: (IS 49 . 51) : shift and goto state 2
- 8 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 8 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  8: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 14
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 14
+ ... goto state 1
 spawn parser from 8 (9 active)
- 9 stack:  4 : (declarations),  1 : , 
+ 9 stack:  4 : (declarations),  1 : (WHITESPACE), 
  9: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 15
- ... goto state 6
- 8 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 15
+ ... goto state 4
+ 8 stack:  4 : (declarations),  1 : (WHITESPACE), 
  8: 4: (IS 49 . 51) : shift and goto state 2
- 9 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 9 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  9: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 16
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 16
+ ... goto state 1
 spawn parser from 9 (10 active)
- 10 stack:  4 : (declarations),  1 : , 
+ 10 stack:  4 : (declarations),  1 : (WHITESPACE), 
  10: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 17
- ... goto state 6
- 9 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 17
+ ... goto state 4
+ 9 stack:  4 : (declarations),  1 : (WHITESPACE), 
  9: 4: (IS 49 . 51) : shift and goto state 2
- 10 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 10 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  10: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 18
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 18
+ ... goto state 1
 spawn parser from 10 (11 active)
- 11 stack:  4 : (declarations),  1 : , 
+ 11 stack:  4 : (declarations),  1 : (WHITESPACE), 
  11: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 19
- ... goto state 6
- 10 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 19
+ ... goto state 4
+ 10 stack:  4 : (declarations),  1 : (WHITESPACE), 
  10: 4: (IS 49 . 51) : shift and goto state 2
- 11 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 11 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  11: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 20
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 20
+ ... goto state 1
 spawn parser from 11 (12 active)
- 12 stack:  4 : (declarations),  1 : , 
+ 12 stack:  4 : (declarations),  1 : (WHITESPACE), 
  12: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 21
- ... goto state 6
- 11 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 21
+ ... goto state 4
+ 11 stack:  4 : (declarations),  1 : (WHITESPACE), 
  11: 4: (IS 49 . 51) : shift and goto state 2
- 12 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 12 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  12: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 22
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 22
+ ... goto state 1
 spawn parser from 12 (13 active)
- 13 stack:  4 : (declarations),  1 : , 
+ 13 stack:  4 : (declarations),  1 : (WHITESPACE), 
  13: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 23
- ... goto state 6
- 12 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 23
+ ... goto state 4
+ 12 stack:  4 : (declarations),  1 : (WHITESPACE), 
  12: 4: (IS 49 . 51) : shift and goto state 2
- 13 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 13 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  13: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 24
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 24
+ ... goto state 1
 spawn parser from 13 (14 active)
- 14 stack:  4 : (declarations),  1 : , 
+ 14 stack:  4 : (declarations),  1 : (WHITESPACE), 
  14: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 25
- ... goto state 6
- 13 stack:  4 : (declarations),  1 : , 
+pending declaration_0: declaration <=  action count: 25
+ ... goto state 4
+ 13 stack:  4 : (declarations),  1 : (WHITESPACE), 
  13: 4: (IS 49 . 51) : shift and goto state 2
- 14 stack:  6 : (declaration),  4 : (declarations),  1 : , 
+ 14 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
  14: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 26
- ... goto state 4
+pending declarations_1: declarations <= (declarations), (declaration) action count: 26
+ ... goto state 1
 spawn parser from 14 (15 active)
- 15 stack:  4 : (declarations),  1 : , 
+ 15 stack:  4 : (declarations),  1 : (WHITESPACE), 
  15: 4: (IS 49 . 51) : reduce 0 tokens to declaration
-pending declaration_id_0: (declaration)  action count: 27
- ... goto state 6
- 14 stack:  4 : (declarations),  1 : , 
- 14: 4: (IS 49 . 51) : shift and goto state 2
- 15 stack:  6 : (declaration),  4 : (declarations),  1 : , 
- 15: 6: (IS 49 . 51) : reduce 2 tokens to declarations
-pending declarations_id_0: (declarations) (declarations), (declaration) action count: 28
+pending declaration_0: declaration <=  action count: 27
  ... goto state 4
+ 14 stack:  4 : (declarations),  1 : (WHITESPACE), 
+ 14: 4: (IS 49 . 51) : shift and goto state 2
+ 15 stack:  6 : (declaration),  4 : (declarations),  1 : (WHITESPACE), 
+ 15: 6: (IS 49 . 51) : reduce 2 tokens to declarations
+pending declarations_1: declarations <= (declarations), (declaration) action count: 28
+ ... goto state 1
 empty_production_2.input:1:49: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)

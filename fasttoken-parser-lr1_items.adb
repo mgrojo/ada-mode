@@ -28,7 +28,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Tags;
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 package body FastToken.Parser.LR1_Items is
@@ -116,6 +115,7 @@ package body FastToken.Parser.LR1_Items is
    is
       use Token.List;
       use Token;
+      use all type Production.List.List_Iterator;
 
       Prod_Iterator  : Production.List.List_Iterator;
       Token_Iterator : List_Iterator;
@@ -146,10 +146,10 @@ package body FastToken.Parser.LR1_Items is
 
          Added_Tokens := (others => False);
 
-         Prod_Iterator := Production.List.First (Grammar);
-         while not Production.List.Is_Done (Prod_Iterator) loop
-            if Search_Tokens (ID (Production.List.Current (Prod_Iterator).LHS.all)) then
-               Token_Iterator := First (Production.List.Current (Prod_Iterator).RHS.Tokens);
+         Prod_Iterator := First (Grammar);
+         while not Is_Done (Prod_Iterator) loop
+            if Search_Tokens (Current (Prod_Iterator).LHS) then
+               Token_Iterator := First (Current (Prod_Iterator).RHS.Tokens);
                loop
                   if Token_Iterator = Null_Iterator then
                      exit;
@@ -171,7 +171,7 @@ package body FastToken.Parser.LR1_Items is
                end loop;
             end if;
 
-            Production.List.Next (Prod_Iterator);
+            Next (Prod_Iterator);
          end loop;
 
          if Trace then
@@ -223,7 +223,7 @@ package body FastToken.Parser.LR1_Items is
          RHS_I := Prod.RHS.Tokens.First;
 
          if RHS_I = Token.List.Null_Iterator then
-            Result (Token.ID (Prod.LHS)) := True;
+            Result (Prod.LHS) := True;
          end if;
          Production.List.Next (Prod_I);
       end loop;
@@ -308,7 +308,7 @@ package body FastToken.Parser.LR1_Items is
                           Has_Empty_Production (ID (Next (RHS_I))))
                      then
                         --  rule 3
-                        Result (B) := Result (B) or Result (ID (Current (A).LHS));
+                        Result (B) := Result (B) or Result (LHS (A));
                      end if;
                   end if;
                   Next (RHS_I);
@@ -328,7 +328,7 @@ package body FastToken.Parser.LR1_Items is
       return Item.Prod;
    end Prod;
 
-   function LHS (Item : in Item_Ptr) return Token.Handle
+   function LHS (Item : in Item_Ptr) return Token.Nonterminal_ID
    is begin
       return Item.Prod.LHS;
    end LHS;
@@ -382,7 +382,6 @@ package body FastToken.Parser.LR1_Items is
      (List : in out Item_Ptr;
       Item : in     Item_Ptr)
    is
-      use all type Token.Handle;
       use all type Token.Token_ID;
       New_Item : Item_Ptr renames Item;
       I        : Item_Ptr;
@@ -390,7 +389,7 @@ package body FastToken.Parser.LR1_Items is
       if List = null then
          List := New_Item;
       else
-         if ID (List.Prod.LHS) > ID (Item.Prod.LHS) then
+         if List.Prod.LHS > Item.Prod.LHS then
             New_Item.Next := List;
             List          := New_Item;
          else
@@ -399,7 +398,7 @@ package body FastToken.Parser.LR1_Items is
             else
                I := List;
                loop
-                  exit when I.Next = null or else ID (I.Next.Prod.LHS) > ID (Item.Prod.LHS);
+                  exit when I.Next = null or else I.Next.Prod.LHS > Item.Prod.LHS;
                   I := I.Next;
                end loop;
                New_Item.Next := I.Next;
@@ -761,12 +760,12 @@ package body FastToken.Parser.LR1_Items is
          if Item.Dot /= Token.List.Null_Iterator and then
            Token.List.ID (Item.Dot) in Token.Nonterminal_ID
          then
-            Beta := Token.List.Next_Token (Item.Dot); -- tokens after nonterminal, possibly null
+            Beta := Next (Item.Dot); -- tokens after nonterminal, possibly null
 
             B := Production.List.First (Grammar);
             For_Each_Production :
             while not Production.List.Is_Done (B) loop
-               if Token.ID (Production.List.Current (B).LHS) = Token.List.ID (Item.Dot) then
+               if LHS (B) = ID (Item.Dot) then
                   --  Compute FIRST (<tail of right hand side> a); loop
                   --  until find a terminal, a nonterminal that
                   --  cannot be empty, or end of production, adding
@@ -799,14 +798,14 @@ package body FastToken.Parser.LR1_Items is
 
                         if Has_Empty_Production (Token.List.ID (Beta)) then
                            --  Process the next token in the tail, or a
-                           Beta := Token.List.Next_Token (Beta);
+                           Beta := Next (Beta);
                         else
                            exit First_Tail;
                         end if;
                      end if;
                   end loop First_Tail;
 
-                  Beta := Token.List.Next_Token (Item.Dot);
+                  Beta := Next (Item.Dot);
                end if;
 
                Production.List.Next (B);
@@ -869,12 +868,11 @@ package body FastToken.Parser.LR1_Items is
    is
       use Token.List;
       use all type Token.Token_ID;
-      use all type Token.Handle;
    begin
       return
         Null_Iterator /= First (Item.Prod.RHS.Tokens) and
         (Item.Dot = Null_Iterator or else
-           ((ID (Item.Prod.LHS) = Accept_Token and
+           ((Item.Prod.LHS = Accept_Token and
                Item.Dot = First (Item.Prod.RHS.Tokens))
               -- Start symbol production with dot before first token.
               or
@@ -919,11 +917,6 @@ package body FastToken.Parser.LR1_Items is
       return Result;
    end Filter;
 
-   function Token_Name (Item : in Token.Handle) return String is
-   begin
-      return Token.Token_Image (Token.ID (Item.all));
-   end Token_Name;
-
    function Image (Item : in Lookahead) return String
    is
       use Ada.Strings.Unbounded;
@@ -946,30 +939,27 @@ package body FastToken.Parser.LR1_Items is
    function Image
      (Item            : in Item_Node;
       Show_State      : in Boolean;
-      Show_Lookaheads : in Boolean;
-      Show_Tag        : in Boolean := False)
+      Show_Lookaheads : in Boolean)
      return String
    is
       use Token.List;
 
-      Token_Index : List_Iterator;
+      I : List_Iterator;
 
       Result : Ada.Strings.Unbounded.Unbounded_String :=
-        Ada.Strings.Unbounded.To_Unbounded_String (Token_Name (Item.Prod.LHS)) &
-          (if Show_Tag then "(" & Ada.Tags.Expanded_Name (Item.Prod.LHS.all'Tag) & ")"
-           else "") &
+        Ada.Strings.Unbounded.To_Unbounded_String (Token_Image (Item.Prod.LHS)) &
           " <=";
    begin
-      Token_Index := First (Item.Prod.RHS.Tokens);
+      I := First (Item.Prod.RHS.Tokens);
 
-      while Token_Index /= Null_Iterator loop
-         if Token_Index = Item.Dot then
+      while I /= Null_Iterator loop
+         if I = Item.Dot then
             Result := Result & " ^ ";
          else
             Result := Result & " ";
          end if;
-         Result := Result & Token_Name (Token_Handle (Token_Index));
-         Next_Token (Token_Index);
+         Result := Result & Token_Image (ID (I));
+         Next (I);
       end loop;
 
       if Item.Dot = Null_Iterator then

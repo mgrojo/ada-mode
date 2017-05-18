@@ -368,8 +368,7 @@ is
          Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
          Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
          Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
-         Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen,");
-         Indent_Line ("Token_Pkg.Get);");
+         Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen);");
          Indent := Indent - 3;
 
       when Elisp_Lexer =>
@@ -614,14 +613,12 @@ is
                         Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
                         Indent_Line ("procedure " & Name);
-                        Indent_Line (" (New_Token : out Nonterminal.Class;");
-                        Indent_Line ("  Source    : in  Token_Pkg.List.Instance'Class;");
-                        Indent_Line ("  To_ID     : in  Token_ID)");
+                        Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+                        Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
                         Indent_Line ("is");
-                        Indent_Line ("   Bounds : constant Token_Pkg.Buffer_Range := Total_Buffer_Range (Source);");
+                        Indent_Line ("   pragma Unreferenced (Nonterm);");
                         Indent_Line ("begin");
                         Indent := Indent + 3;
-                        Indent_Line ("New_Token := Get (To_ID, Bounds);");
 
                         if Profile then
                            Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");

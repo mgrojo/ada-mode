@@ -62,7 +62,7 @@ package FastToken.Production is
    --  and generated grammar table source code.
 
    type Instance is record
-      LHS : Token.Handle;
+      LHS : Token.Nonterminal_ID;
       RHS : Right_Hand_Side;
    end record;
    type Handle is access all Instance;
@@ -98,6 +98,7 @@ package FastToken.Production is
       procedure Next (Iterator : in out List_Iterator);
 
       function Current (Iterator : in List_Iterator) return Production.Instance;
+      function LHS (Iterator : in List_Iterator) return Token.Nonterminal_ID;
       function RHS (Iterator : in List_Iterator) return Right_Hand_Side;
 
       function Last_Production (Iterator : in List_Iterator) return Boolean;

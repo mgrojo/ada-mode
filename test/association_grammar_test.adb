@@ -62,33 +62,22 @@ package body Association_Grammar_Test is
    package Parser_Root is new FastToken.Parser
      (Token_ID, Comma_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   package Tokens is
-      --  For use in right hand sides, syntax.
-      Comma         : constant Token_Pkg.Class := Token_Pkg.Get (Comma_ID);
-      EOF           : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
-      Equal_Greater : constant Token_Pkg.Class := Token_Pkg.Get (Equal_Greater_ID);
-      Integer       : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
-      Identifier    : constant Token_Pkg.Class := Token_Pkg.Get (Identifier_ID);
-      Paren_Left    : constant Token_Pkg.Class := Token_Pkg.Get (Paren_Left_ID);
-      Paren_Right   : constant Token_Pkg.Class := Token_Pkg.Get (Paren_Right_ID);
-   end Tokens;
-
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID    => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
-      Comma_ID         => Lexer.Get (",", Tokens.Comma),
-      Equal_Greater_ID => Lexer.Get ("=>", Tokens.Equal_Greater),
-      Int_ID           => Lexer.Get ("[0-9]+", Tokens.Integer),
-      Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+", Tokens.Identifier),
-      Paren_Left_ID    => Lexer.Get ("\(", Tokens.Paren_Left),
-      Paren_Right_ID   => Lexer.Get ("\)", Tokens.Paren_Right),
-      EOF_ID           => Lexer.Get ("" & FastToken.EOF_Character, Tokens.EOF)
+      Whitespace_ID    => Lexer.Get (" ", Report => False),
+      Comma_ID         => Lexer.Get (","),
+      Equal_Greater_ID => Lexer.Get ("=>"),
+      Int_ID           => Lexer.Get ("[0-9]+"),
+      Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+"),
+      Paren_Left_ID    => Lexer.Get ("\("),
+      Paren_Right_ID   => Lexer.Get ("\)"),
+      EOF_ID           => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;

@@ -88,7 +88,7 @@ package Wisi.Gen_Generate_Utils is
    package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Standard.Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_WY_Image_Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);

@@ -1,19 +1,47 @@
 Tokens:
  1 => WHITESPACE
- 2 => FUNCTION
- 3 => LEFT_PAREN
- 4 => PROCEDURE
- 5 => RIGHT_PAREN
- 6 => SYMBOL
- 7 => WISI_EOI
- 8 => compilation_unit
- 9 => declarations
- 10 => declaration
- 11 => subprogram
- 12 => parameter_list
- 13 => fasttoken_accept
+ 2 => COMMENT
+ 3 => FUNCTION
+ 4 => LEFT_PAREN
+ 5 => PROCEDURE
+ 6 => RIGHT_PAREN
+ 7 => SYMBOL
+ 8 => WISI_EOI
+ 9 => compilation_unit
+ 10 => declarations
+ 11 => declaration
+ 12 => subprogram
+ 13 => parameter_list
+ 14 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ declarations =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ declaration =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ subprogram =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ parameter_list =>
+  (SYMBOL => True,
+   others => False)
+ others => (others => False))
+
 State 0:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
@@ -153,6 +181,31 @@ State 15:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ declarations =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ declaration =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ subprogram =>
+  (FUNCTION |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ parameter_list =>
+  (SYMBOL => True,
+   others => False)
+ others => (others => False))
 State 0:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
 
@@ -291,5 +344,5 @@ State 15:
    default          => ERROR
 
 
- 5 rules, 5 actions, 15 states, 96 table entries
+ 5 rules, 5 actions, 16 states, 96 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

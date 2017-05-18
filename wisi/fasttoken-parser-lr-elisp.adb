@@ -62,7 +62,7 @@ package body FastToken.Parser.LR.Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Token_Image (Token.ID (Parse_Action.LHS.all)) & " ." &
+                             ("(" & Token_Image (Parse_Action.LHS) & " ." &
                                 Integer'Image (Parse_Action.Index) & ")");
 
                         when Shift =>

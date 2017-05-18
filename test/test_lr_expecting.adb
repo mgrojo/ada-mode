@@ -72,19 +72,11 @@ package body Test_LR_Expecting is
    package Parser_Root is new FastToken.Parser
      (Token_ID, Equals_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    package LR1_Items is new Parser_Root.LR1_Items
      (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
-
-   --  Terminals
-   EOF        : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
-   Equals     : constant Token_Pkg.Class := Token_Pkg.Get (Equals_ID);
-   Int        : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
-   Plus_Minus : constant Token_Pkg.Class := Token_Pkg.Get (Plus_Minus_ID);
-   Semicolon  : constant Token_Pkg.Class := Token_Pkg.Get (Semicolon_ID);
-   Identifier : constant Token_Pkg.Class := Token_Pkg.Get (Identifier_ID);
 
    use type Production.Instance;        --  "<="
    use type Production.List.Instance;   --  "and"
@@ -110,15 +102,15 @@ package body Test_LR_Expecting is
 
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
-      Equals_ID     => Lexer.Get ("=", Equals),
-      Int_ID        => Lexer.Get ("[0-9]+", Int),
-      Plus_Minus_ID => Lexer.Get ("\+-", Plus_Minus),
-      Semicolon_ID  => Lexer.Get (";", Semicolon),
-      Set_ID        => Lexer.Get ("set", Token_Pkg.Get (Set_ID)),
-      Verify_ID     => Lexer.Get ("verify", Token_Pkg.Get (Verify_ID)),
-      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+", Identifier),
-      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, EOF)
+      Whitespace_ID => Lexer.Get (" ", Report => False),
+      Equals_ID     => Lexer.Get ("="),
+      Int_ID        => Lexer.Get ("[0-9]+"),
+      Plus_Minus_ID => Lexer.Get ("\+-"),
+      Semicolon_ID  => Lexer.Get (";"),
+      Set_ID        => Lexer.Get ("set"),
+      Verify_ID     => Lexer.Get ("verify"),
+      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    Grammar : constant Production.List.Instance :=

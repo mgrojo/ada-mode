@@ -35,7 +35,6 @@ package body FastToken.Parser.LR.LR1_Generator is
    is
       use Token.List;
       use LR1_Items;
-      use all type Token.Handle;
       use all type Token.Token_ID;
 
       Goto_Set : Item_Set;
@@ -53,7 +52,7 @@ package body FastToken.Parser.LR.LR1_Generator is
             then
                Add
                  (Goto_Set.Set,
-                  New_Item_Node (Prod (Item), Next_Token (Dot (Item)), Unknown_State, Lookaheads (Item)));
+                  New_Item_Node (Prod (Item), Next (Dot (Item)), Unknown_State, Lookaheads (Item)));
             end if;
          end if;
 

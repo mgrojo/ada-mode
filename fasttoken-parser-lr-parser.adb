@@ -76,29 +76,29 @@ package body FastToken.Parser.LR.Parser is
    end Names;
 
    procedure Reduce_Stack
-     (Current_Parser : in Parser_Lists.Cursor;
-      New_Token      : in Token.Handle;
-      Action         : in Reduce_Action_Rec)
+     (Current_Parser       : in Parser_Lists.Cursor;
+      Action               : in Reduce_Action_Rec;
+      Nonterm_Buffer_Range : out Token.Buffer_Range)
    is
       use type Token.Semantic_Action;
 
       Tokens : Token.List.Instance;
    begin
       --  Pop the indicated number of token states from the stack, and
-      --  if not Pending call the production action routine to update
-      --  New_Token.
+      --  if not Pending call the production action routine.
       --
       --  If Pending, queue the action and tokens for later.
 
       if Action.Token_Count > 0 then
          for I in 1 .. Action.Token_Count loop
-            --  Enqueue does not deep copy Token, but clean frees it
-            Token.List.Enqueue (Tokens, Current_Parser.Pop.Token);
+            Token.List.Prepend (Tokens, Current_Parser.Pop.Token);
          end loop;
       end if;
 
+      Nonterm_Buffer_Range := Token.Total_Buffer_Range (Tokens);
+
       declare
-         Action_Token : constant Parser_Lists.Action_Token := (Action, New_Token, Tokens);
+         Action_Token : constant Parser_Lists.Action_Token := (Action, Tokens);
       begin
          if Current_Parser.Active_Parser_Count > 1 then
             Current_Parser.Enqueue (Action_Token);
@@ -108,11 +108,12 @@ package body FastToken.Parser.LR.Parser is
                Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            Action.Action (Token.ID (New_Token.all), Tokens);
+            Action.Action (Action.LHS, Tokens);
             if Trace_Parse > 1 then
                Parser_Lists.Put_Trace (Action_Token);
                Put_Trace_Line ("");
             end if;
+
             Token.List.Clean (Tokens);
          end if;
       end;
@@ -121,9 +122,11 @@ package body FastToken.Parser.LR.Parser is
    procedure Do_Action
      (Action         : in Parse_Action_Rec;
       Current_Parser : in Parser_Lists.Cursor;
-      Current_Token  : in Token.Handle;
+      Current_Token  : in Token.Instance;
       Table          : in Parse_Table)
-   is begin
+   is
+      Nonterm_Buffer_Range : Token.Buffer_Range;
+   begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
             Parser_Lists.Put_Trace_Top_10 (Current_Parser, ID_Only => Trace_Parse < 4);
@@ -131,40 +134,34 @@ package body FastToken.Parser.LR.Parser is
          Put_Trace
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
-              Current_Token.Image (ID_Only => Trace_Parse < 4) & " : ");
+              Token.Image (Current_Token, ID_Only => Trace_Parse < 4) & " : ");
          Put_Trace (Action);
          Put_Trace_Line ("");
       end if;
 
       case Action.Verb is
       when Shift =>
-         Current_Parser.Push ((Action.State, Token.Copy (Current_Token)));
+         Current_Parser.Push ((Action.State, Current_Token));
 
       when Reduce =>
-         declare
-            New_Token : constant Token.Handle := new Token.Class'(Action.LHS.all);
-         begin
-            Reduce_Stack (Current_Parser, New_Token, Action);
+         Reduce_Stack (Current_Parser, Action, Nonterm_Buffer_Range);
 
-            Current_Parser.Push
-              ((State    => Goto_For
-                  (Table => Table,
-                   State => Current_Parser.Peek.State,
-                   ID    => Token.ID (Action.LHS.all)),
-                Token    => New_Token));
+         if Trace_Parse > 1 then
+            Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
+         end if;
 
-            if Trace_Parse > 1 then
-               Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
-            end if;
-         end;
+         Current_Parser.Push
+           ((State    => Goto_For
+               (Table => Table,
+                State => Current_Parser.Peek.State,
+                ID    => Action.LHS),
+             Token    => (Action.LHS, Nonterm_Buffer_Range)));
 
       when Accept_It =>
-         declare
-            New_Token : constant Token.Handle := new Token.Class'(Action.LHS.all);
-         begin
-            Reduce_Stack
-              (Current_Parser, New_Token, (Reduce, Action.LHS, Action.Action, Action.Index, Action.Token_Count));
-         end;
+         Reduce_Stack
+           (Current_Parser,
+            (Reduce, Action.LHS, Action.Action, Action.Index, Action.Token_Count),
+            Nonterm_Buffer_Range);
 
       when Error =>
          null;
@@ -253,7 +250,7 @@ package body FastToken.Parser.LR.Parser is
       loop
          exit when Current_Parser.Pending_Actions_Empty;
          Action_Token := Current_Parser.Dequeue;
-         Action_Token.Action.Action (Token.ID (Action_Token.New_Token.all), Action_Token.Tokens);
+         Action_Token.Action.Action (Action_Token.Action.LHS, Action_Token.Tokens);
          if Trace_Parse > 1 then
             --  Do Put after calling Action, so New_Token has result of Action
             Parser_Lists.Put_Trace (Action_Token);
@@ -270,7 +267,7 @@ package body FastToken.Parser.LR.Parser is
 
       Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
       Current_Verb   : Parse_Action_Verbs;
-      Current_Token  : Token.Handle;
+      Current_Token  : Token.Instance;
       Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
       Keep_Going     : Boolean;
@@ -282,16 +279,13 @@ package body FastToken.Parser.LR.Parser is
 
          case Current_Verb is
          when Shift =>
-            Parser.Lexer.Find_Next;
-            Token.Free (Current_Token);
-            Current_Token := new Token.Class'(Parser.Lexer.Get);
+            Current_Token := Parser.Lexer.Find_Next;
 
          when Accept_It =>
             declare
                Count : constant Integer := Parsers.Count;
             begin
                --  FIXME: Free (Parsers);
-               Token.Free (Current_Token);
                --  Action points into the parser table; it does not get free'd.
 
                if Count > 1 then
@@ -317,15 +311,13 @@ package body FastToken.Parser.LR.Parser is
             if not Keep_Going then
                --  report errors
                declare
-                  ID     : constant String := Current_Token.Image (ID_Only => True);
+                  ID     : constant String := Token.Image (Current_Token, ID_Only => True);
                   Lexeme : constant String := Parser.Lexer.Lexeme;
 
                   --  FIXME: merge expecting from all active parsers
                   Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
                begin
                   --  FIXME: Free (Parsers);
-                  Token.Free (Current_Token);
-
                   raise Syntax_Error with
                     Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                     ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
@@ -374,7 +366,7 @@ package body FastToken.Parser.LR.Parser is
                Action := Action_For
                  (Table => Parser.Table.all,
                   State => Current_Parser.Peek.State,
-                  ID    => Token.ID (Current_Token.all));
+                  ID    => Current_Token.ID);
 
                if Action.Next /= null then
                   --  conflict; spawn a new parser
@@ -393,7 +385,6 @@ package body FastToken.Parser.LR.Parser is
                      Parsers.Prepend_Copy (Current_Parser);
                      if Trace_Parse > 0 then
                         Put_Trace_Line (" (" & Int_Image (Parsers.Count) & " active)");
-                        Parser_Lists.Check_Action_Stack ("", Current_Parser);
                      end if;
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser.Table.all);
                   end if;

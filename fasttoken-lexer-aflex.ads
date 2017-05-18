@@ -59,9 +59,6 @@ generic
    YY_Init              : in out Boolean;
    YY_EOF_Has_Been_Seen : in out Boolean;
 
-   with function Get_Token (ID : in Token.Token_ID) return Token.Handle;
-   --  All token objects have the same type
-
 package FastToken.Lexer.Aflex is
 
    type Instance is new FastToken.Lexer.Instance with private;
@@ -77,7 +74,7 @@ package FastToken.Lexer.Aflex is
    overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
 
-   overriding procedure Find_Next (Lexer : in out Instance);
+   overriding function Find_Next (Lexer : in out Instance) return Token.Instance;
 
    overriding
    function Line (Lexer : in Instance) return Natural;
@@ -85,20 +82,15 @@ package FastToken.Lexer.Aflex is
    overriding
    function Column (Lexer : in Instance) return Natural;
 
-   overriding function Get (Lexer : in Instance) return Token.Class;
-
    overriding function Lexeme (Lexer : in Instance) return String;
 
    overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range;
 
 private
 
-   type ID_Array_Tokens is array (Token.Token_ID) of Token.Handle;
-
    type Instance is new FastToken.Lexer.Instance with
    record
-      Token      : FastToken.Lexer.Token.Token_ID; --  last token read by find_next
-      Token_List : ID_Array_Tokens;
+      Token : FastToken.Lexer.Token.Token_ID; --  last token read by find_next
    end record;
 
 end FastToken.Lexer.Aflex;

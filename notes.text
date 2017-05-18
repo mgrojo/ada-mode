@@ -18,6 +18,7 @@ merge wisi_tokens to token
     baby steps;
         get rid of FastToken.Token.Nonterminal
         move bounds to fasttoken.token, use Token.Instance instead of Wisi_Tokens.Instance, grammar is id only
+        delete allocate tokens
             run all tests
 
     see FIXMEs

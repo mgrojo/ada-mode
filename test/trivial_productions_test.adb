@@ -56,18 +56,15 @@ package body Trivial_Productions_Test is
       package Parser_Root is new FastToken.Parser
         (Token_ID, Symbol_ID, EOF_ID, EOF_ID, E_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
       package LR1_Items is new Parser_Root.LR1_Items
         (LR.Unknown_State_Index, LR.Unknown_State, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-      EOF    : constant Token_Pkg.Class   := Token_Pkg.Get (EOF_ID);
-      Symbol : constant Token_Pkg.Class   := Token_Pkg.Get (Symbol_ID);
-
       Syntax : constant Lexer.Syntax :=
-        (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character, EOF),
-         Symbol_ID => Lexer.Get ("symbol", Symbol));
+        (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character),
+         Symbol_ID => Lexer.Get ("symbol"));
 
       use type Token_Pkg.List.Instance;
       use type Production.Right_Hand_Side;
@@ -134,7 +131,7 @@ package body Trivial_Productions_Test is
         (Token_ID, Function_ID, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
       package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
@@ -144,22 +141,15 @@ package body Trivial_Productions_Test is
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-      EOF           : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
-      Function_Tok  : constant Token_Pkg.Class := Token_Pkg.Get (Function_ID);
-      Left_Paren    : constant Token_Pkg.Class := Token_Pkg.Get (Left_Paren_ID);
-      Procedure_Tok : constant Token_Pkg.Class := Token_Pkg.Get (Procedure_ID);
-      Right_Paren   : constant Token_Pkg.Class := Token_Pkg.Get (Right_Paren_ID);
-      Symbol        : constant Token_Pkg.Class := Token_Pkg.Get (Symbol_ID);
-
       Syntax : constant Lexer.Syntax :=
         (
-         Whitespace_ID  => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
-         Function_ID    => Lexer.Get ("function", Function_Tok),
-         Left_Paren_ID  => Lexer.Get ("\(", Left_Paren),
-         Procedure_ID   => Lexer.Get ("procedure", Procedure_Tok),
-         Right_Paren_ID => Lexer.Get ("\)", Right_Paren),
-         Symbol_ID      => Lexer.Get ("symbol", Symbol),
-         EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character, EOF)
+         Whitespace_ID  => Lexer.Get (" ", Report => False),
+         Function_ID    => Lexer.Get ("function"),
+         Left_Paren_ID  => Lexer.Get ("\("),
+         Procedure_ID   => Lexer.Get ("procedure"),
+         Right_Paren_ID => Lexer.Get ("\)"),
+         Symbol_ID      => Lexer.Get ("symbol"),
+         EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
         );
 
       use type Token_Pkg.List.Instance;

@@ -26,7 +26,10 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
+with FastToken.Production;
 with FastToken.Token;
+with Gen_FastToken_AUnit;
 package body Parser_Lists_Test is
 
    --  we need an instantiation of FastToken.Parser.LALR.Parser to test
@@ -34,18 +37,23 @@ package body Parser_Lists_Test is
    type Token_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
    package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
    package Lexer_Root is new FastToken.Lexer (Token_Pkg);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label => 0);
 
-   --  These duplicate gen_opentoken_aunit.ads, but we don't need all of that.
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Token_ID);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Parse_Action_Verbs);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Unknown_State_Index);
-   procedure Check is new AUnit.Checks.Gen_Check_Access (Token_Pkg.Class, Token_Pkg.Handle);
+   Grammar : Production.List.Instance;
+
+   package FastToken_AUnit is new Gen_FastToken_AUnit
+     (Token_ID, Identifier_ID, EOF_ID, Token_Pkg, Production,
+      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
+   use FastToken_AUnit;
+
 
    procedure Check
      (Label    : in String;
@@ -75,25 +83,25 @@ package body Parser_Lists_Test is
       Check ("1: Label", Cursor.Label, 0);
       Check ("1: Verb", Cursor.Verb, Shift);
       Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("1: Peek.State", Cursor.Peek.State, State_Index'First);
-      Check ("1: Peek.Token", Cursor.Peek.Token, null);
+      Check ("1: Peek", Cursor.Peek, (State_Index'First, Token_Pkg.Default_Token));
       Check ("1: Action_Tokens_Empty", Cursor.Pending_Actions_Empty, True);
    end Init;
 
    procedure Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use AUnit.Checks;
       use LR;
       use Parser_Lists;
-      use AUnit.Checks;
+      use Token_Pkg;
 
-      Parsers : List := Initialize;
+      Parsers : Parser_Lists.List := Initialize;
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
 
-      Item_1 : constant Stack_Item := (2, new Token_Pkg.Class'(Token_Pkg.Get (If_ID)));
-      Item_2 : constant Stack_Item := (3, new Token_Pkg.Class'(Token_Pkg.Get (Then_ID)));
+      Item_1 : constant Stack_Item := (2, (If_ID, Null_Buffer_Range));
+      Item_2 : constant Stack_Item := (3, (Then_ID, Null_Buffer_Range));
    begin
-      Check ("1: Pop", Cursor.Pop, (State_Index'First, null));
+      Check ("1: Pop", Cursor.Pop, (State_Index'First, Default_Token));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
       Check ("1: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
 
@@ -174,10 +182,11 @@ package body Parser_Lists_Test is
       use LR;
       use Parser_Lists;
       use AUnit.Checks;
+      use Token_Pkg;
 
-      Parsers : List                := Initialize;
-      Item_1  : constant Stack_Item := (2, new Token_Pkg.Class'(Token_Pkg.Get (If_ID)));
-      Item_2  : constant Stack_Item := (3, new Token_Pkg.Class'(Token_Pkg.Get (Then_ID)));
+      Parsers : Parser_Lists.List   := Initialize;
+      Item_1  : constant Stack_Item := (2, (If_ID, Null_Buffer_Range));
+      Item_2  : constant Stack_Item := (3, (Then_ID, Null_Buffer_Range));
 
       Cursor_1 : constant Parser_Lists.Cursor := Parsers.First;
       Cursor_2 : Parser_Lists.Cursor;
@@ -208,12 +217,13 @@ package body Parser_Lists_Test is
       use LR;
       use Parser_Lists;
       use AUnit.Checks;
+      use Token_Pkg;
 
-      Parsers : List                  := Initialize;
+      Parsers : Parser_Lists.List     := Initialize;
       Item_1  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID)), Token_Pkg.List.Null_List);
+        ((Reduce, Statement_ID, null, 0, 0), Token_Pkg.List.Null_List);
       Item_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, new Token_Pkg.Class'(Token_Pkg.Get (Procedure_ID)), Token_Pkg.List.Null_List);
+        ((Reduce, Procedure_ID, null, 0, 0), Token_Pkg.List.Null_List);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
    begin
@@ -227,12 +237,12 @@ package body Parser_Lists_Test is
       Check ("0b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
 
-      Check ("1 dequeue", Token_Pkg.ID (Dequeue (Cursor).New_Token.all), Statement_ID);
+      Check ("1 dequeue", Dequeue (Cursor).Action.LHS, Statement_ID);
       Check ("1: action_token_count", Cursor.Pending_Actions_Count, 1);
       Check ("1: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
       Check ("1: free count", Parsers.Action_Token_Free_Count, 1);
 
-      Check ("2 dequeue", Token_Pkg.ID (Dequeue (Cursor).New_Token.all), Procedure_ID);
+      Check ("2 dequeue", Dequeue (Cursor).Action.LHS, Procedure_ID);
       Check ("2: action_token_count", Cursor.Pending_Actions_Count, 0);
       Check ("2: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
       Check ("2: free count", Parsers.Action_Token_Free_Count, 2);
@@ -260,28 +270,29 @@ package body Parser_Lists_Test is
 
       Parsers : List := Initialize;
 
-      If_1    : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (If_ID));
-      Then_1  : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Then_ID));
-      Else_1  : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Else_ID));
-      Ident_A : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Identifier_ID));
-      If_2    : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (If_ID));
-      Then_2  : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Then_ID));
-      Ident_B : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Identifier_ID));
-      End_2   : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (End_ID));
-      End_1   : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (End_ID));
+      If_1        : constant Token_Pkg.Instance := (If_ID, (1, 2));
+      Then_1      : constant Token_Pkg.Instance := (Then_ID, (4, 5));
+      Ident_A     : constant Token_Pkg.Instance := (Identifier_ID, (7, 8)); --  reduces to Statement_A
+      Statement_A : constant Token_Pkg.Instance := (Statement_ID, (0, 0));
+      Else_1      : constant Token_Pkg.Instance := (Else_ID, (10, 11));
 
-      Statement_A : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
-      Statement_B : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
-      Statement_1 : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
-      Statement_2 : constant Token_Pkg.Handle := new Token_Pkg.Class'(Token_Pkg.Get (Statement_ID));
+      If_2        : constant Token_Pkg.Instance := (If_ID, (2, 2));
+      Then_2      : constant Token_Pkg.Instance := (Then_ID, (2, 2));
+      Ident_B     : constant Token_Pkg.Instance := (Identifier_ID, (13, 14)); --  reduces to Statement_B
+      Statement_B : constant Token_Pkg.Instance := (Statement_ID, (0, 0));
+      End_2       : constant Token_Pkg.Instance := (End_ID, (16, 17));
 
-      Action_A  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_A, Only (Ident_A));
-      Action_B  : constant Action_Token := (Null_Reduce_Action_Rec, Statement_B, Only (Ident_B));
+      Statement_1 : constant Token_Pkg.Instance := (Statement_ID, (0, 0)); -- all of if_2 .. end_2
+      End_1       : constant Token_Pkg.Instance := (End_ID, (19, 20));
+
+      Statement_2 : constant Token_Pkg.Instance := (Statement_ID, (0, 0)); -- all of if_1 .. end_1
+
+      Action_A  : constant Action_Token := ((Reduce, Statement_ID, null, 1, 1), Only (Ident_A));
+      Action_B  : constant Action_Token := ((Reduce, Statement_ID, null, 2, 1), Only (Ident_B));
       Action_2  : constant Action_Token :=
-        (Null_Reduce_Action_Rec, Statement_2, Only (If_2) & Then_2 & Statement_B & End_2);
+        ((Reduce, Statement_ID, null, 3, 4), Only (If_2) & Then_2 & Statement_B & End_2);
       Action_1  : constant Action_Token :=
-        (Null_Reduce_Action_Rec,
-         Statement_1,
+        ((Reduce, Statement_ID, null, 4, 6),
          Only (If_1) & Then_1 & Statement_A & Else_1 & Statement_2 & End_1);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
@@ -326,10 +337,8 @@ package body Parser_Lists_Test is
       Cursor.Push ((10, End_2));
 
       if Test.Debug then Cursor.Put_Trace_Top_10 (ID_Only => True); end if;
-      Check_Action_Stack ("1a", Cursor);
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then Parsers.First.Put_Trace_Top_10 (ID_Only => True); end if;
-      Check_Action_Stack ("1b", Parsers.First);
 
       Check ("1", Stack_Equal (Cursor, Parsers.First), True);
 
@@ -341,10 +350,8 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Action_2);
 
       if Test.Debug then Cursor.Put_Trace_Top_10 (ID_Only => True); end if;
-      Check_Action_Stack ("2a", Cursor);
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then Parsers.First.Put_Trace_Top_10 (ID_Only => True); end if;
-      Check_Action_Stack ("2b", Parsers.First);
       Check ("2c", Stack_Equal (Cursor, Parsers.First), True);
 
       Cursor.Push ((12, End_1));
@@ -361,7 +368,6 @@ package body Parser_Lists_Test is
          Cursor.Put_Trace_Top_10 (ID_Only => True);
          Cursor.Put_Trace_Pending_Actions;
       end if;
-      Check_Action_Stack ("3a", Cursor);
 
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then
@@ -370,7 +376,6 @@ package body Parser_Lists_Test is
       end if;
 
       Check ("3b", Stack_Equal (Cursor, Parsers.First), True);
-      Check_Action_Stack ("3c", Parsers.First);
 
    exception
    when E : FastToken.Programmer_Error =>

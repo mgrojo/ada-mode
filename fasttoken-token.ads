@@ -29,7 +29,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
-with Ada.Unchecked_Deallocation;
 generic
 
    type Token_ID is (<>);
@@ -93,46 +92,18 @@ package FastToken.Token is
    ----------
    --  Token type
 
-   type Instance is tagged record
+   type Instance is record
       ID           : Token_ID;
       Buffer_Range : Token.Buffer_Range;
    end record;
 
-   subtype Class is Instance'Class;
-
-   type Handle is access all Class;
-
-   procedure Free (Item : in out Handle);
-
    function Image (Item : in Instance; ID_Only : in Boolean) return String;
    --  Return a string for debug messages
 
-   function Get (ID : in Token_ID) return Instance'Class;
-   --  Get a token with ID. Result is class-wide so derived
-   --  types don't have to override Get.
+   function Get (ID : in Token_ID) return Instance;
+   --  Get a token with ID, null buffer range.
 
-   function Get (ID : in Token_ID) return Handle;
-
-   procedure Create
-     (Lexeme    : in     String;
-      Bounds    : in     Buffer_Range;
-      New_Token : in out Instance);
-   --  Set New_Token components with data from lexer.
-   --
-   --  Called from Find_Next when a token is returned by the lexer.
-   --
-   --  Lexeme is the token text.
-   --
-   --  Bounds is the start and end position of the input text,
-   --  relative to the last lexer Reset.
-
-   function Copy (Token : in Handle) return Handle;
-   --  Return a newly allocated copy of Token, or null if Token is null.
-
-   function ID (Token : in Instance'Class) return Token_ID;
-   --  Class-wide so it is consistent with accessing the ID directly.
-
-   function ID (Token : in Handle) return Token_ID;
+   Default_Token : constant Instance := (Token_ID'First, Null_Buffer_Range);
 
    ----------
    --  Token lists
@@ -146,11 +117,11 @@ package FastToken.Token is
       function Length (Item : in Instance) return Natural;
 
       function Only (Subject : in Token_ID) return Instance;
-      function Only (Subject : in Handle) return Instance;
+      function Only (Subject : in Token.Instance) return Instance;
 
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance;
       function "&" (Left : in Instance; Right : in Token_ID) return Instance;
-      function "&" (Left : in Instance; Right : in Handle) return Instance;
+      function "&" (Left : in Instance; Right : in Token.Instance) return Instance;
 
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List
@@ -160,25 +131,21 @@ package FastToken.Token is
 
       function First (List : in Instance) return List_Iterator;
 
-      procedure Next_Token (Iterator : in out List_Iterator);
-      procedure Next (Iterator : in out List_Iterator) renames Next_Token;
-      function Next_Token (Iterator : in List_Iterator) return List_Iterator;
-      function Next (Iterator : in List_Iterator) return List_Iterator renames Next_Token;
+      procedure Next (Iterator : in out List_Iterator);
+      function Next (Iterator : in List_Iterator) return List_Iterator;
       --  Null_Iterator if there is no next token.
 
       function Is_Done (Iterator : in List_Iterator) return Boolean;
       function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
 
-      function Token_Handle (Iterator : in List_Iterator) return Handle;
+      function Current (Iterator : in List_Iterator) return Token.Instance;
       function ID (Iterator : in List_Iterator) return Token_ID;
 
-      procedure Enqueue (List  : in out Instance; Token : in     Handle);
-      procedure Add (List : in out Instance; Token : in FastToken.Token.Handle) renames Enqueue;
-      --  Add Token to List, at the head. Token.all is not copied; it
-      --  will be freed by Clean.
+      procedure Prepend (List : in out Instance; Item : in Token.Instance);
+      --  Add Token to the head of List. FIXME: ever used?
 
-      procedure Append (List  : in out Instance; Token : in     Handle);
-      --  Append to tail of List, without copying Token.all
+      procedure Append (List  : in out Instance; Item : in Token.Instance);
+      --  Append to tail of List. FIXME: ever used?
 
       procedure Put_Trace (Item : in Instance; ID_Only : in Boolean);
       --  Put Item to Put_Trace.
@@ -187,7 +154,7 @@ package FastToken.Token is
       type List_Node;
       type List_Node_Ptr is access List_Node;
       type List_Node is record
-         Token : Handle;
+         Token : FastToken.Token.Instance;
          Next  : List_Node_Ptr;
       end record;
 
@@ -217,10 +184,5 @@ package FastToken.Token is
      is null;
 
    Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
-
-private
-
-   procedure Dispose is new Ada.Unchecked_Deallocation (Class, Handle);
-   --  Not Free; used to implement visible Free above.
 
 end FastToken.Token;

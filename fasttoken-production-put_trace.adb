@@ -27,7 +27,7 @@ package body FastToken.Production.Put_Trace is
 
    procedure Put_Trace (Item : in Instance)
    is begin
-      Put_Trace ("(" & Token.Token_Image (Token.ID (Item.LHS.all)) & " <= ");
+      Put_Trace ("(" & Token.Token_Image (Item.LHS) & " <= ");
       Put_Trace (Item.RHS);
       Put_Trace (")");
    end Put_Trace;

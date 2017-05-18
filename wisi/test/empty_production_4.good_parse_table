@@ -13,6 +13,30 @@ Tokens:
  12 => fasttoken_accept
 
 LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ subprogram_declaration =>
+  (OVERRIDING |
+   OTHER |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ overriding_indicator =>
+  (OVERRIDING |
+   OTHER |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ other_indicator =>
+  (PROCEDURE => True,
+   others => False)
+ others => (others => False))
+
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, 
 
@@ -117,6 +141,28 @@ State 12:
 
 
 LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( compilation_unit =>
+  (WISI_EOI => True,
+   others => False)
+ subprogram_declaration =>
+  (OVERRIDING |
+   OTHER |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ overriding_indicator =>
+  (OVERRIDING |
+   OTHER |
+   PROCEDURE |
+   WISI_EOI => True,
+   others => False)
+ other_indicator =>
+  (PROCEDURE => True,
+   others => False)
+ others => (others => False))
 State 1:
   fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
 

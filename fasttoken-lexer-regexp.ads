@@ -41,18 +41,15 @@ package FastToken.Lexer.Regexp is
 
    type Syntax_Item is record
       Regexp : FastToken.Regexp.Regexp;
-      Token  : FastToken.Lexer.Token.Handle;
       Report : Boolean;
    end record;
 
    function Get
-     (R              : in String;
-      Token          : in FastToken.Lexer.Token.Class;
+     (Regexp         : in String;
       Case_Sensitive : in Boolean := True;
       Report         : in Boolean := True)
      return Syntax_Item;
-   --  Compiles Regexp with Case_Sensitive, allocates a new token
-   --  object initialized with Token.
+   --  Compiles Regexp with Case_Sensitive.
 
    type Syntax is array (Syntax_ID) of Syntax_Item;
 
@@ -69,7 +66,7 @@ package FastToken.Lexer.Regexp is
    overriding
    function End_Of_Text (Lexer : in Instance) return Boolean;
 
-   overriding procedure Find_Next (Lexer : in out Instance);
+   overriding function Find_Next (Lexer : in out Instance) return Token.Instance;
 
    overriding
    function Line (Lexer : in Instance) return Natural;
@@ -80,8 +77,6 @@ package FastToken.Lexer.Regexp is
    overriding function Lexeme (Lexer : in Instance) return String;
 
    overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range;
-
-   overriding function Get (Lexer : in Instance) return Token.Class;
 
 private
 

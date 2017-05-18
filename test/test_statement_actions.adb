@@ -56,7 +56,7 @@ package body Test_Statement_Actions is
      (Token_ID, Plus_Minus_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Token_Pkg.Get);
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
@@ -70,14 +70,6 @@ package body Test_Statement_Actions is
    use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
    use type Token_Pkg.List.Instance;    --  "&"
-
-   package Tokens is
-      --  For use in syntax
-      EOF            : constant Token_Pkg.Class := Token_Pkg.Get (EOF_ID);
-      Integer        : constant Token_Pkg.Class := Token_Pkg.Get (Int_ID);
-      Plus_Minus     : constant Token_Pkg.Class := Token_Pkg.Get (Plus_Minus_ID);
-      Semicolon      : constant Token_Pkg.Class := Token_Pkg.Get (Semicolon_ID);
-   end Tokens;
 
    Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
@@ -99,13 +91,13 @@ package body Test_Statement_Actions is
 
    Syntax : constant Lexer.Syntax :=
      (
-      Whitespace_ID => Lexer.Get (" ", Token_Pkg.Get (Whitespace_ID), Report => False),
-      Plus_Minus_ID => Lexer.Get ("\+-", Tokens.Plus_Minus),
-      Semicolon_ID  => Lexer.Get (";", Tokens.Semicolon),
-      Set_ID        => Lexer.Get ("set", Token_Pkg.Get (Set_ID)),
-      Verify_ID     => Lexer.Get ("verify", Token_Pkg.Get (Verify_ID)),
-      Int_ID        => Lexer.Get ("[0-9]+", Tokens.Integer),
-      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character, Tokens.EOF)
+      Whitespace_ID => Lexer.Get (" ", Report => False),
+      Plus_Minus_ID => Lexer.Get ("\+-"),
+      Semicolon_ID  => Lexer.Get (";"),
+      Set_ID        => Lexer.Get ("set"),
+      Verify_ID     => Lexer.Get ("verify"),
+      Int_ID        => Lexer.Get ("[0-9]+"),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
      );
 
    Action_Count : Integer := 0;

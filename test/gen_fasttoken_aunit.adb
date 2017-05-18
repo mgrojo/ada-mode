@@ -23,6 +23,26 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
+      Computed : in Token_Pkg.Buffer_Range;
+      Expected : in Token_Pkg.Buffer_Range)
+   is
+      use AUnit.Checks;
+   begin
+      Check (Label & ".Begin_Pos", Computed.Begin_Pos, Expected.Begin_Pos);
+      Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Token_Pkg.Instance;
+      Expected : in Token_Pkg.Instance)
+   is begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Buffer_Range", Computed.Buffer_Range, Expected.Buffer_Range);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
       Computed : in Token_Pkg.List.List_Iterator;
       Expected : in Token_Pkg.List.List_Iterator)
    is
@@ -40,8 +60,8 @@ package body Gen_FastToken_AUnit is
             exit;
          end if;
          Check (Label & Integer'Image (Index), ID (Computed_I), ID (Expected_I));
-         Next_Token (Computed_I);
-         Next_Token (Expected_I);
+         Next (Computed_I);
+         Next (Expected_I);
          Index := Index + 1;
       end loop;
    end Check;
@@ -55,7 +75,7 @@ package body Gen_FastToken_AUnit is
       use Token_Pkg;
    begin
       Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
-      Check (Label & ".LHS", ID (Computed.LHS), ID (Expected.LHS));
+      Check (Label & ".LHS", Computed.LHS, Expected.LHS);
       Check (Label & ".RHS", Computed.RHS.Tokens.First, Expected.RHS.Tokens.First);
    end Check;
 
@@ -227,7 +247,7 @@ package body Gen_FastToken_AUnit is
 
       Dot_I := Production.First_Token (Production.List.Current (Grammar_I));
       for I in 2 .. Dot loop
-         Token_Pkg.List.Next_Token (Dot_I);
+         Token_Pkg.List.Next (Dot_I);
       end loop;
 
       return LR1_Items.New_Item_Node (Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
@@ -372,7 +392,7 @@ package body Gen_FastToken_AUnit is
       when Shift =>
          Check (Label & ".State", Computed.State, Expected.State);
       when Reduce | Accept_It =>
-         Check (Label & ".LHS", Token_Pkg.ID (Computed.LHS.all), Token_Pkg.ID (Expected.LHS.all));
+         Check (Label & ".LHS", Computed.LHS, Expected.LHS);
          --  Ignoring Action
          Check (Label & ".Index", Computed.Index, Expected.Index);
          Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);

@@ -46,9 +46,6 @@ package body FastToken.Lexer.Aflex is
       New_Lexer.Feeder := Feeder;
       FastToken.Lexer.Aflex.Feeder := Feeder;
 
-      for ID in Token.Token_ID loop
-         New_Lexer.Token_List (ID) := Get_Token (ID);
-      end loop;
       return Handle (New_Lexer);
    end Initialize;
 
@@ -70,9 +67,10 @@ package body FastToken.Lexer.Aflex is
       return YY_EOF_Has_Been_Seen;
    end End_Of_Text;
 
-   overriding procedure Find_Next (Lexer : in out Instance)
+   overriding function Find_Next (Lexer : in out Instance) return Token.Instance
    is begin
       Lexer.Token := YYLex;
+      return (Lexer.Token, Lexer.Bounds);
    exception
    when E : others =>
       raise Syntax_Error with
@@ -96,18 +94,6 @@ package body FastToken.Lexer.Aflex is
    begin
       return YY_Begin_Column;
    end Column;
-
-   overriding function Get (Lexer : in Instance) return Token.Class
-   is
-      Temp : Token.Class := Lexer.Token_List (Lexer.Token).all;
-   begin
-      Token.Create
-        (Lexeme     => Lexer.Lexeme,
-         Bounds     => Lexer.Bounds,
-         New_Token  => Temp);
-
-      return Temp;
-   end Get;
 
    overriding function Lexeme (Lexer : in Instance) return String
    is
