@@ -142,10 +142,10 @@ package FastToken.Token is
       function ID (Iterator : in List_Iterator) return Token_ID;
 
       procedure Prepend (List : in out Instance; Item : in Token.Instance);
-      --  Add Token to the head of List. FIXME: ever used?
+      --  Add Token to the head of List.
 
       procedure Append (List  : in out Instance; Item : in Token.Instance);
-      --  Append to tail of List. FIXME: ever used?
+      --  Append to tail of List.
 
       procedure Put_Trace (Item : in Instance; ID_Only : in Boolean);
       --  Put Item to Put_Trace.

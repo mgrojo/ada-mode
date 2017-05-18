@@ -521,6 +521,7 @@ is
             Indent := Indent - 3;
             New_Line;
 
+            --  FIXME: move to wisi_tokens_module?
             Indent_Line ("type Elisp_Array_Emacs_Value is array (Elisp_Index) of emacs_module_h.emacs_value;");
             New_Line;
             Indent_Line ("Token_Symbols  : Token_Array_Emacs_Value;");

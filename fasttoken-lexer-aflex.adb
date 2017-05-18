@@ -106,7 +106,10 @@ package body FastToken.Lexer.Aflex is
    is
       pragma Unreferenced (Lexer);
    begin
-      return (YY_Text_Ptr, YY_Text_Ptr + YY_Length - 1);
+      --  aflex buffer has an extra char at the start, so it is 2
+      --  indexed; we want 1 indexed (mostly for backward
+      --  compatibility).
+      return (YY_Text_Ptr - 1, YY_Text_Ptr + YY_Length - 2);
    end Bounds;
 
 end FastToken.Lexer.Aflex;

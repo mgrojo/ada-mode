@@ -42,8 +42,6 @@ package body Test_Character_Literal is
         (FastToken.LALR,
          Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
-      --  The test is that there is no exception.
-
       character_literal_dfa.aflex_debug := Test.Debug > 0; -- keep for future debugging
       FastToken.Trace_Parse             := Test.Debug;
 

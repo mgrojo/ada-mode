@@ -12,18 +12,19 @@ report interrupt-process bug
 
     look for tests in emacs
 
-merge wisi_tokens to token
-    get rid of allocation
+see FIXMEs
 
-    baby steps;
-        get rid of FastToken.Token.Nonterminal
-        move bounds to fasttoken.token, use Token.Instance instead of Wisi_Tokens.Instance, grammar is id only
-        delete allocate tokens
-            run all tests
+../wisi/wisi-gen_output_ada_common.adb:94:         Indent_Line ("subtype Token is Token_ID;"); --  FIXME: move to body? make aflex generic?
 
-    see FIXMEs
+../wisi/wisi-output_ada.adb:222:                        --  FIXME: check RHS.Action for mentions of Nonterm, Source
+../wisi/wisi-output_ada.adb:232:                              --  FIXME: only strip the first and last parens, not some from each line!
+../wisi/wisi-output_ada_emacs.adb:400:         --  FIXME: this matches existing tests, but does not work
+../wisi/wisi-output_ada_emacs.adb:788:      --  FIXME: this partly duplicates wisi-output_elisp
+../wisi/wisi-output_ada_emacs.adb:878:      --  FIXME: compile wrapper.c here?
 
 Do "panic mode" dragon pg 255
+
+../Test/test_panic_mode.adb:114:      --   FIXME: check that subprogram_body:0, if_statement:? got
 
     fasttoken-parser-lr-panic_mode.adb
         doesn't seem suited to Ada; accepts "end ;" when it needs "end if ;"

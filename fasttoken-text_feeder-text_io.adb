@@ -59,14 +59,14 @@ package body FastToken.Text_Feeder.Text_IO is
                Text (Text_End) := EOL_Character;
 
             end if;
+         elsif Text_End < Text'First then
+            --  Blank line
+            Text_End := Text'First;
+            Text (Text_End) := EOL_Character;
          elsif Text_End < Text'Last then
             Text_End := Text_End + 1;
             Text (Text_End) := EOL_Character;
 
-         elsif Text_End < Text'First then
-            --  Blank line
-            Text_End := Text'First + 1;
-            Text (Text_End) := EOL_Character;
          end if;
       end if;
    end Get;

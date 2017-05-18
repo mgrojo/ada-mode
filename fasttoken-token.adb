@@ -62,9 +62,7 @@ package body FastToken.Token is
 
       else
          return "(" & Name & Integer'Image (Item.Buffer_Range.Begin_Pos) & " ." &
-           --  Elisp region end is one past the last character
-           --  FIXME: so add 1 in wisi-output_ada_emacs!
-           Integer'Image (Item.Buffer_Range.End_Pos + 1) & ")";
+           Integer'Image (Item.Buffer_Range.End_Pos) & ")";
       end if;
    end Image;
 
