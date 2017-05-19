@@ -2868,6 +2868,8 @@ The paragraph is indented on the first line."
   ;; This means to fully set ada-mode interactively, user must
   ;; do M-x ada-mode M-; (hack-local-variables)
 
+  (setq hack-local-variables-hook (delq 'ada-mode-post-local-vars hack-local-variables-hook))
+
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
   ;; ada-fill-comment-prefix. In post-local because user may want to

@@ -158,6 +158,12 @@ if wisi is too slow on large buffers:
             ... current code))
 
  wisi work
+rewrite README to be useful as list-packages long description
+    ie an advertisement for the package, not an install guide
+
+show list of projects in ada | Project | select
+    see prj_select for code
+
 Try antlr error recovery on Ada. Add elisp target.
 
 Compare libadalang grammar to mine/lrm

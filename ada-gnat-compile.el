@@ -312,7 +312,7 @@ Prompt user if more than one."
 	   (insert "Standard.")
 	   t)
 
-	  ((looking-at (concat "\\(possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
+	  ((looking-at (concat "\\(?:possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)
 	     (looking-at ada-name-regexp)
@@ -549,6 +549,13 @@ Prompt user if more than one."
 	   (funcall indent-line-function)
 	   t)
 
+	  ((looking-at "(style) \"exit \\(.*\\)\" required")
+	   (let ((name (match-string-no-properties 1)))
+	     (set-buffer source-buffer)
+	     (forward-word 1)
+	     (insert (concat " " name))
+	   t))
+
 	  ((looking-at "(style) misplaced \"then\"")
 	   (set-buffer source-buffer)
 	   (delete-indentation)
@@ -595,6 +602,7 @@ Prompt user if more than one."
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
   (add-hook 'ada-syntax-propertize-hook 'gnatprep-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; There is no common convention for a file extension for gnatprep files.
   ;;
@@ -621,6 +629,7 @@ Prompt user if more than one."
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq 'gnatprep-syntax-propertize ada-syntax-propertize-hook))
   (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; don't need to delete from compilation-search-path; completely rewritten in ada-select-prj-file
   (setq compilation-environment nil)

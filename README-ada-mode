@@ -13,9 +13,6 @@ add to ~./emacs:
 
 then invoke M-x list-packages, install Ada mode.
 
-Note that you must have the Emacs lisp sources installed; that's a
-separate package in some distributions.
-
 To install Ada mode, gpr mode, and associated utilities from this distribution:
 
 Unzip to a convenient place (we will use ~/ada-mode in the following).

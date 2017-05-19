@@ -440,6 +440,8 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
 
 (defun ada-gps-post-local-vars ()
   "See `ada-gsp-or-wisi-setup'"
+  (setq hack-local-variables-hook (delq 'ada-gps-post-local-vars hack-local-variables-hook))
+
   (if (> (point-max) ada-gps-size-threshold)
       (progn
 	;; use ada-gps for indent, ada-wisi for face, navigation
