@@ -89,7 +89,8 @@
      test-class-list
      (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
      (symbol-value (intern-soft (concat filename "-wy--token-table")))
-     parse-table)
+     parse-table
+     nil); elisp-names
 
     ;; Check for expected error result
     (goto-char (point-min))

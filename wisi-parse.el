@@ -28,12 +28,7 @@
 
 (require 'cl-lib)
 (require 'semantic/wisent)
-
-;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
-;; (when (and (= emacs-major-version 24)
-;; 	   (= emacs-minor-version 2))
-  (require 'wisi-compat-24.2)
-;;)
+(require 'wisi-parse-common)
 
 (defvar wisi-parse-max-parallel 15
   "Maximum number of parallel parsers for acceptable performance.
@@ -43,13 +38,6 @@ the grammar is excessively redundant.")
 (defvar wisi-parse-max-parallel-current (cons 0 0)
   "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
 point at which that max was spawned.")
-
-(defvar wisi-debug 0
-  "wisi debug mode:
-0 : normal - ignore parse errors, for indenting new code
-1 : report parse errors (for running tests)
-2 : show parse states, position point at parse errors, debug-on-error works in parser
-3 : also show top 10 items of parser stack.")
 
 (cl-defstruct (wisi-parser-state
 	    (:copier nil))
@@ -74,32 +62,6 @@ point at which that max was spawned.")
   pending
   ;; list of (action-symbol stack-fragment)
   )
-
-(defun wisi-error-msg (message &rest args)
-  (let ((line (line-number-at-pos))
-	(col (- (point) (line-beginning-position))))
-    (format
-     "%s:%d:%d: %s"
-       (file-name-nondirectory (buffer-name)) ;; buffer-file-name is sometimes nil here!?
-       line col
-       (apply 'format message args))))
-
-(defvar wisi-parse-error nil)
-(put 'wisi-parse-error
-     'error-conditions
-     '(error wisi-parse-error))
-(put 'wisi-parse-error
-     'error-message
-     "wisi parse error")
-
-(defvar-local wisi-cache-max 0
-  "Maximimum position in buffer where wisi-cache text properties are valid.")
-
-(defun wisi-token-text (token)
-  "Return buffer text from token range."
-  (let ((region (cdr token)))
-    (and region
-       (buffer-substring-no-properties (car region) (cdr region)))))
 
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.
@@ -372,17 +334,6 @@ nil, `shift', or `accept'."
 		))))
 	)))
   active-parser-count)
-
-(defun wisi-parse-max-pos (tokens)
-  "Return max position in tokens, or point if tokens nil."
-  (let ((result (if tokens 0 (point))))
-    (mapc
-     (lambda (token)
-       (when (cddr token)
-	 (setq result (max (cddr token) result))))
-     tokens)
-    result)
-  )
 
 (defun wisi-parse-exec-action (func nonterm tokens)
   "Execute action if all tokens past wisi-cache-max."
