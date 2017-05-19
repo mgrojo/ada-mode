@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Text_IO;
 generic
 
@@ -82,28 +83,35 @@ package FastToken.Token is
      (Reporting_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Token_Image, Token_Image, Any, Any);
    --  Put Item to Ada.Text_IO.Current_Output.
 
-   type Buffer_Range is record
+   type Buffer_Region is record
       Begin_Pos : Integer;
       End_Pos   : Integer;
    end record;
 
-   Null_Buffer_Range : constant Buffer_Range := (Integer'Last, Integer'First);
+   Null_Buffer_Region : constant Buffer_Region := (Integer'Last, Integer'First);
+
+   function Image (Item : in Buffer_Region) return String;
+
+   function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
+   --  Return region enclosing both Left and Right.
+
+   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
    ----------
    --  Token type
 
    type Instance is record
-      ID           : Token_ID;
-      Buffer_Range : Token.Buffer_Range;
+      ID     : Token_ID;
+      Region : Buffer_Region;
    end record;
 
    function Image (Item : in Instance; ID_Only : in Boolean) return String;
    --  Return a string for debug messages
 
    function Get (ID : in Token_ID) return Instance;
-   --  Get a token with ID, null buffer range.
+   --  Get a token with ID, null buffer region.
 
-   Default_Token : constant Instance := (Token_ID'First, Null_Buffer_Range);
+   Default_Token : constant Instance := (Token_ID'First, Null_Buffer_Region);
 
    ----------
    --  Token lists
@@ -170,7 +178,7 @@ package FastToken.Token is
 
    end List;
 
-   function Total_Buffer_Range (Tokens : in List.Instance) return Buffer_Range;
+   function Total_Buffer_Region (Tokens : in List.Instance) return Buffer_Region;
 
    type Semantic_Action is access procedure
      (Nonterm : in Nonterminal_ID;

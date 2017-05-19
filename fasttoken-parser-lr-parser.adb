@@ -76,9 +76,9 @@ package body FastToken.Parser.LR.Parser is
    end Names;
 
    procedure Reduce_Stack
-     (Current_Parser       : in Parser_Lists.Cursor;
-      Action               : in Reduce_Action_Rec;
-      Nonterm_Buffer_Range : out Token.Buffer_Range)
+     (Current_Parser        : in     Parser_Lists.Cursor;
+      Action                : in     Reduce_Action_Rec;
+      Nonterm_Buffer_Region :    out Token.Buffer_Region)
    is
       use type Token.Semantic_Action;
 
@@ -95,7 +95,7 @@ package body FastToken.Parser.LR.Parser is
          end loop;
       end if;
 
-      Nonterm_Buffer_Range := Token.Total_Buffer_Range (Tokens);
+      Nonterm_Buffer_Region := Token.Total_Buffer_Region (Tokens);
 
       declare
          Action_Token : constant Parser_Lists.Action_Token := (Action, Tokens);
@@ -125,7 +125,7 @@ package body FastToken.Parser.LR.Parser is
       Current_Token  : in Token.Instance;
       Table          : in Parse_Table)
    is
-      Nonterm_Buffer_Range : Token.Buffer_Range;
+      Nonterm_Buffer_Region : Token.Buffer_Region;
    begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
@@ -144,7 +144,7 @@ package body FastToken.Parser.LR.Parser is
          Current_Parser.Push ((Action.State, Current_Token));
 
       when Reduce =>
-         Reduce_Stack (Current_Parser, Action, Nonterm_Buffer_Range);
+         Reduce_Stack (Current_Parser, Action, Nonterm_Buffer_Region);
 
          if Trace_Parse > 1 then
             Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
@@ -155,13 +155,13 @@ package body FastToken.Parser.LR.Parser is
                (Table => Table,
                 State => Current_Parser.Peek.State,
                 ID    => Action.LHS),
-             Token    => (Action.LHS, Nonterm_Buffer_Range)));
+             Token    => (Action.LHS, Nonterm_Buffer_Region)));
 
       when Accept_It =>
          Reduce_Stack
            (Current_Parser,
             (Reduce, Action.LHS, Action.Action, Action.Index, Action.Token_Count),
-            Nonterm_Buffer_Range);
+            Nonterm_Buffer_Region);
 
       when Error =>
          null;
@@ -308,7 +308,11 @@ package body FastToken.Parser.LR.Parser is
                Keep_Going := False;
             end if;
 
-            if not Keep_Going then
+            if Keep_Going then
+               for I in Parsers.Iterate loop
+                  Parser.Invalid_Regions.Append (Parser_Lists.To_Cursor (Parsers, I).Panic_Ref.Invalid_Region);
+               end loop;
+            else
                --  report errors
                declare
                   ID     : constant String := Token.Image (Current_Token, ID_Only => True);
@@ -407,7 +411,7 @@ package body FastToken.Parser.LR.Parser is
       Terminate_Same_State : in Boolean := False)
      return Instance
    is begin
-      return (Lexer, Table, Max_Parallel, Terminate_Same_State);
+      return (Lexer, Token.Region_Lists.Empty_List, Table, Max_Parallel, Terminate_Same_State);
    end Initialize;
 
 

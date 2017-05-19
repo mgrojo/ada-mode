@@ -60,7 +60,7 @@ package Dummy is -- for indentation
 
    function YYText return String
    is begin
-      if 1 = yy_bp - yy_cp and
+      if 1 = yy_cp - yy_bp and
         yy_ch_buf (yy_bp) = ASCII.NUL
       then
          --  at end of buffer; no text

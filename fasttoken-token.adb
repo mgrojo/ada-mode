@@ -50,6 +50,16 @@ package body FastToken.Token is
       return To_String (Result);
    end Image;
 
+   function Image (Item : in Buffer_Region) return String
+   is begin
+      return "(" & Int_Image (Item.Begin_Pos) & " . " & Int_Image (Item.End_Pos) & ")";
+   end Image;
+
+   function "and" (Left, Right : in Buffer_Region) return Buffer_Region
+   is begin
+      return (Integer'Min (Left.Begin_Pos, Right.Begin_Pos), Integer'Max (Left.End_Pos, Right.End_Pos));
+   end "and";
+
    function Image (Item : in Instance; ID_Only : in Boolean) return String
    is
       Name : constant String := Token_Image (Item.ID);
@@ -57,18 +67,20 @@ package body FastToken.Token is
       if ID_Only then
          return Name;
 
-      elsif Item.Buffer_Range = Null_Buffer_Range then
+      elsif Item.Region = Null_Buffer_Region then
          return "(" & Name & ")";
 
       else
-         return "(" & Name & Integer'Image (Item.Buffer_Range.Begin_Pos) & " ." &
-           Integer'Image (Item.Buffer_Range.End_Pos) & ")";
+         --  We don't call Image (Item.Region) here, because we want
+         --  elisp syntax, for compatiblity with elisp output.
+         return "(" & Name & Integer'Image (Item.Region.Begin_Pos) & " ." &
+           Integer'Image (Item.Region.End_Pos) & ")";
       end if;
    end Image;
 
    function Get (ID : in Token_ID) return Instance
    is begin
-      return (ID, Null_Buffer_Range);
+      return (ID, Null_Buffer_Region);
    end Get;
 
    package body List is
@@ -227,33 +239,33 @@ package body FastToken.Token is
 
    end List;
 
-   function Total_Buffer_Range (Tokens : in List.Instance) return Buffer_Range
+   function Total_Buffer_Region (Tokens : in List.Instance) return Buffer_Region
    is
       use List;
       I      : List_Iterator := Tokens.First;
-      Result : Buffer_Range  := Null_Buffer_Range;
+      Result : Buffer_Region  := Null_Buffer_Region;
    begin
       if I = Null_Iterator then
-         return Null_Buffer_Range;
+         return Null_Buffer_Region;
       end if;
 
       loop
          exit when I = Null_Iterator;
          declare
-            Buffer_Region : Buffer_Range renames Current (I).Buffer_Range;
+            Region : Buffer_Region renames Current (I).Region;
          begin
-            if Result.Begin_Pos > Buffer_Region.Begin_Pos then
-               Result.Begin_Pos := Buffer_Region.Begin_Pos;
+            if Result.Begin_Pos > Region.Begin_Pos then
+               Result.Begin_Pos := Region.Begin_Pos;
             end if;
 
-            if Result.End_Pos < Buffer_Region.End_Pos then
-               Result.End_Pos := Buffer_Region.End_Pos;
+            if Result.End_Pos < Region.End_Pos then
+               Result.End_Pos := Region.End_Pos;
             end if;
          end;
 
          Next (I);
       end loop;
       return Result;
-   end Total_Buffer_Range;
+   end Total_Buffer_Region;
 
 end FastToken.Token;

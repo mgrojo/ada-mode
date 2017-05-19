@@ -12,29 +12,12 @@ report interrupt-process bug
 
     look for tests in emacs
 
-see FIXMEs
+integrate with emacs
+    via process
 
-../wisi/wisi-gen_output_ada_common.adb:94:         Indent_Line ("subtype Token is Token_ID;"); --  FIXME: move to body? make aflex generic?
+    get wisi to cope with invalid regions
 
-../wisi/wisi-output_ada.adb:222:                        --  FIXME: check RHS.Action for mentions of Nonterm, Source
-../wisi/wisi-output_ada.adb:232:                              --  FIXME: only strip the first and last parens, not some from each line!
-../wisi/wisi-output_ada_emacs.adb:400:         --  FIXME: this matches existing tests, but does not work
-../wisi/wisi-output_ada_emacs.adb:788:      --  FIXME: this partly duplicates wisi-output_elisp
-../wisi/wisi-output_ada_emacs.adb:878:      --  FIXME: compile wrapper.c here?
-
-Do "panic mode" dragon pg 255
-
-../Test/test_panic_mode.adb:114:      --   FIXME: check that subprogram_body:0, if_statement:? got
-
-    fasttoken-parser-lr-panic_mode.adb
-        doesn't seem suited to Ada; accepts "end ;" when it needs "end if ;"
-        because it only has one lookahead
-        just implement it, find source where it at lease does something
-
-    report region containing popped/skipped tokens
-    test semantic actions
-        just confirm an action procedure is called/not called
-
+    see how much panic mode helps
 
 better syntax error handling
     d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf

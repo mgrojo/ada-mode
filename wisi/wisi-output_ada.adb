@@ -20,6 +20,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with FastToken;
 with Wisi.Gen_Output_Ada_Common;
@@ -196,7 +197,7 @@ is
          New_Line;
 
          if Profile then
-            Indent_Line ("Action_Counts : array (Token_ID) of Integer := (others => 0);");
+            Indent_Line ("Action_Counts : array (fasttoken_accept_ID .. Token_ID'Last) of Integer := (others => 0);");
          end if;
 
          for Rule of Rules loop
@@ -211,7 +212,9 @@ is
                for RHS of Rule.Right_Hand_Sides loop
                   if RHS.Action.Length > 0 then
                      declare
-                        Name : constant String := -Rule.Left_Hand_Side & '_' & FastToken.Int_Image (Index);
+                        Name          : constant String := -Rule.Left_Hand_Side & '_' & FastToken.Int_Image (Index);
+                        Unref_Nonterm : Boolean         := True;
+                        Unref_Source  : Boolean         := True;
                      begin
                         Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
@@ -219,20 +222,32 @@ is
                         Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
                         Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
                         Indent_Line ("is");
-                        --  FIXME: check RHS.Action for mentions of Nonterm, Source
-                        Indent_Line ("   pragma Unreferenced (Nonterm, Source);");
+
+                        for Line of RHS.Action loop
+                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Nonterm") then
+                              Unref_Nonterm := False;
+                           end if;
+                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Source") then
+                              Unref_Source := False;
+                           end if;
+                        end loop;
+
+                        if Unref_Nonterm then
+                           Indent_Line ("   pragma Unreferenced (Nonterm);");
+                        end if;
+                        if Unref_Source then
+                           Indent_Line ("   pragma Unreferenced (Source);");
+                        end if;
+
                         Indent_Line ("begin");
                         Indent := Indent + 3;
 
                         if Profile then
-                           Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");
+                           Indent_Line ("Action_Counts (Nonterm) := Action_Counts (Nonterm) + 1;");
 
                         else
                            for Line of RHS.Action loop
-                              --  FIXME: only strip the first and last parens, not some from each line!
-                              --  do that in wisi-rules.adb
-                              --  test with multi-line action
-                              Indent_Line (Strip_Parens (Line));
+                              Indent_Line (Line);
                            end loop;
                         end if;
                         Indent := Indent - 3;

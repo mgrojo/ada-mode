@@ -19,6 +19,8 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
+with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite;
@@ -28,6 +30,19 @@ with ada_lite_dfa;
 package body Test_Panic_Mode is
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Ada_Lite.Token_Pkg.Buffer_Region;
+      Expected : in Ada_Lite.Token_Pkg.Buffer_Region)
+   is
+      use AUnit.Checks;
+   begin
+      Check (Label & ".Begin_Pos", Computed.Begin_Pos, Expected.Begin_Pos);
+      Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
+   end Check;
 
    ----------
    --  Test procedures
@@ -64,6 +79,7 @@ package body Test_Panic_Mode is
       use Ada.Exceptions;
       use Ada_Lite;
       use AUnit.Assertions;
+      use AUnit.Checks;
 
       Parser : LR_Parser.Instance := Create_Parser
         (FastToken.LALR,
@@ -76,43 +92,54 @@ package body Test_Panic_Mode is
             Ada.Text_IO.Put_Line ("input: '" & Text & "'");
          end if;
 
-         String_Feeder.Set (Text);
+         String_Feeder.Set (Text & "   ");
+         --  Trailing spaces so final token has proper region;
+         --  otherwise it is wrapped to 1.
 
-         Parser.Reset (Buffer_Size => Text'Length + 1); -- +1 for EOF
-
+         Parser.Reset (Buffer_Size => Text'Length);
          Parser.Parse;
       end Parse_Text;
    begin
-      ada_lite_dfa.aflex_debug := False; -- keep this here for future debugging
+      ada_lite_dfa.aflex_debug := Test.Debug > 3;
       FastToken.Trace_Parse := Test.Debug;
+
+      Action_Count (subprogram_body_ID) := 0; -- incremented in No_Error
 
       begin
          Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
          --                1        |10       |20       |30       |40
          --  Missing "if" in "end if;"
          --
-         --  panic mode encounters EOF and gives up.
+         --  panic mode encounters EOF and bottom of stack and gives up.
 
-         Assert (False, "1: did not get syntax error exception.");
+         Assert (False, "1.exception: did not get syntax error exception.");
       exception
       when FastToken.Syntax_Error =>
-         null;
+         Check ("1.action_count", Action_Count (subprogram_body_ID), 0);
       end;
 
+      declare
+         use all type Ada_Lite.Token_Pkg.Region_Lists.List;
+         use all type Ada_Lite.Token_Pkg.Region_Lists.Cursor;
       begin
+         Parser.Invalid_Regions := Ada_Lite.Token_Pkg.Region_Lists.Empty_List;
+
          Parse_Text
            ("procedure Proc_1 is begin end Proc_1; procedure Proc_2 is if A = 2 then end;");
          --  |1       |10       |20       |30       |40       |50       |60       |70
          --  Missing "begin" in Proc_2
          --
-         --  panic mode encounters EOF and gives up.
+         --  panic mode encounters EOF and accepts Proc_1.
+
+         Check ("2.action_count", Action_Count (subprogram_body_ID), 1);
+
+         Check ("2.error_status.length", Length (Parser.Invalid_Regions), 1);
+         Check ("2.error_status.region",  Element (Parser.Invalid_Regions.First), (39, 76));
       exception
       when FastToken.Syntax_Error =>
-         Assert (False, "2: got Syntax_Error");
+         Assert (False, "2.exception: got Syntax_Error");
       end;
 
-      --   FIXME: check that subprogram_body:0, if_statement:? got
-      --  executed for Proc_1, nothing else; => array of list of regions?
    end Errors;
 
    ----------

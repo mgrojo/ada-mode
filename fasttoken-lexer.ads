@@ -55,7 +55,7 @@ package FastToken.Lexer is
    function Lexeme (Lexer : in Instance) return String is abstract;
    --  Return the actual text of the last token that was matched.
 
-   function Bounds (Lexer : in Instance) return Token.Buffer_Range is abstract;
+   function Bounds (Lexer : in Instance) return Token.Buffer_Region is abstract;
    --  Returns the position of the start and end of the last token
    --  that was matched, in the internal buffer.
    --

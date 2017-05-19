@@ -209,7 +209,8 @@ package body Wisi_Rules_Test is
       Put_Line (File, ";; empty production, comments");
       Put_Line (File, "parameter_list");
       Put_Line (File, "  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters");
-      Put_Line (File, "   (c_null_params := c_null_params + 1;)");
+      Put_Line (File, "   (c_null_params := ");
+      Put_Line (File, "      c_null_params + 1;)");
       Put_Line (File, "  | ;; ada-like no parameters");
       Put_Line (File, "   (ada_null_params := c_null_params + 1;)");
       Put_Line (File, "  | LEFT_PAREN SYMBOL RIGHT_PAREN");
@@ -225,8 +226,8 @@ package body Wisi_Rules_Test is
         (Expected,
          (Left_Hand_Side   => +"parameter_list",
           Right_Hand_Sides =>
-            +(+"LEFT_PAREN" + "RIGHT_PAREN", +"(c_null_params := c_null_params + 1;)") +
-            (String_Lists.Empty_List, +"(ada_null_params := c_null_params + 1;)") +
+            +(+"LEFT_PAREN" + "RIGHT_PAREN", +"c_null_params :=" + "c_null_params + 1;") +
+            (String_Lists.Empty_List, +"ada_null_params := c_null_params + 1;") +
             (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List),
           Source_Line => 1));
 

@@ -98,8 +98,8 @@ package body Parser_Lists_Test is
       Parsers : Parser_Lists.List := Initialize;
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
 
-      Item_1 : constant Stack_Item := (2, (If_ID, Null_Buffer_Range));
-      Item_2 : constant Stack_Item := (3, (Then_ID, Null_Buffer_Range));
+      Item_1 : constant Stack_Item := (2, (If_ID, Null_Buffer_Region));
+      Item_2 : constant Stack_Item := (3, (Then_ID, Null_Buffer_Region));
    begin
       Check ("1: Pop", Cursor.Pop, (State_Index'First, Default_Token));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
@@ -185,8 +185,8 @@ package body Parser_Lists_Test is
       use Token_Pkg;
 
       Parsers : Parser_Lists.List   := Initialize;
-      Item_1  : constant Stack_Item := (2, (If_ID, Null_Buffer_Range));
-      Item_2  : constant Stack_Item := (3, (Then_ID, Null_Buffer_Range));
+      Item_1  : constant Stack_Item := (2, (If_ID, Null_Buffer_Region));
+      Item_2  : constant Stack_Item := (3, (Then_ID, Null_Buffer_Region));
 
       Cursor_1 : constant Parser_Lists.Cursor := Parsers.First;
       Cursor_2 : Parser_Lists.Cursor;

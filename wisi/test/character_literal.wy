@@ -61,9 +61,12 @@ statement_list
 ;; Character'('C');
 ;;
 ;; with whitespace in different places. That should match this rule
+;;
+;; Action spans two lines to test wisi-rules.adb
 statement
   : IDENTIFIER TICK LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
-   (Character_Literal_Count := Character_Literal_Count + 1;)
+   (Character_Literal_Count :=
+     Character_Literal_Count + 1;)
 
 ;; Some of them actually match this rule, because the regular
 ;; expression always matches the longest possible string.

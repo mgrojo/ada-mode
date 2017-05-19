@@ -232,9 +232,7 @@ package body FastToken.Lexer.Regexp is
       return Lexer.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
    end Lexeme;
 
-   overriding function Bounds
-     (Lexer : in Instance)
-     return Token.Buffer_Range
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region
    is
       pragma Unreferenced (Lexer);
    begin

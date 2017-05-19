@@ -23,8 +23,8 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Pkg.Buffer_Range;
-      Expected : in Token_Pkg.Buffer_Range)
+      Computed : in Token_Pkg.Buffer_Region;
+      Expected : in Token_Pkg.Buffer_Region)
    is
       use AUnit.Checks;
    begin
@@ -38,7 +38,7 @@ package body Gen_FastToken_AUnit is
       Expected : in Token_Pkg.Instance)
    is begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Buffer_Range", Computed.Buffer_Range, Expected.Buffer_Range);
+      Check (Label & ".Buffer_Region", Computed.Region, Expected.Region);
    end Check;
 
    procedure Check

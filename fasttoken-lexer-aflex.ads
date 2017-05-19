@@ -84,7 +84,7 @@ package FastToken.Lexer.Aflex is
 
    overriding function Lexeme (Lexer : in Instance) return String;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range;
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region;
 
 private
 

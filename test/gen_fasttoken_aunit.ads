@@ -47,8 +47,8 @@ package Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Pkg.Buffer_Range;
-      Expected : in Token_Pkg.Buffer_Range);
+      Computed : in Token_Pkg.Buffer_Region;
+      Expected : in Token_Pkg.Buffer_Region);
 
    procedure Check
      (Label    : in String;

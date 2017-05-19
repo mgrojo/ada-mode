@@ -33,8 +33,8 @@ package body FastToken.Wisi_Tokens is
       --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
       --  RHS of the production.
       --
-      --  We return a list of tokens as integer codes '[(code range)
-      --  (code range) ...]'; the elisp code will bind that to
+      --  We return a list of tokens as integer codes '[(code region)
+      --  (code region) ...]'; the elisp code will bind that to
       --  wisi-tokens.
 
       Token_Line : Bounded_String := To_Bounded_String ("[");
@@ -42,15 +42,15 @@ package body FastToken.Wisi_Tokens is
       loop
          exit when I = Null_Iterator;
          declare
-            use type Wisi_Tokens.Token.Buffer_Range;
+            use type Wisi_Tokens.Token.Buffer_Region;
             Token : Wisi_Tokens.Token.Instance renames Current (I);
          begin
             Token_Line := Token_Line & '(' & Int_Image (Token_ID'Pos (ID (I)));
 
-            if Token.Buffer_Range /= Wisi_Tokens.Token.Null_Buffer_Range then
-               Token_Line := Token_Line & Integer'Image (Token.Buffer_Range.Begin_Pos) & " ." &
+            if Token.Region /= Wisi_Tokens.Token.Null_Buffer_Region then
+               Token_Line := Token_Line & Int_Image (Token.Region.Begin_Pos) & " . " &
                  --  Elisp region end is one past the last character
-                 Integer'Image (Token.Buffer_Range.End_Pos + 1);
+                 Int_Image (Token.Region.End_Pos + 1);
             end if;
             Token_Line := Token_Line & ")";
          end;

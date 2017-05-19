@@ -26,9 +26,7 @@ package body FastToken.Parser.LR.Panic_Mode is
       Top      : Parser_Lists.Stack_Item := Cursor.Peek;
       Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Token.Default_Token);
    begin
-      Panic.Element.all :=
-        (Nonterm    => Nonterminal_ID'First,
-         Goto_State => Unknown_State);
+      Panic.Element.all := Default_Panic;
 
       Pop_Stack :
       loop
@@ -53,7 +51,9 @@ package body FastToken.Parser.LR.Panic_Mode is
          end loop Nonterms;
 
          Prev_Top := Cursor.Pop;
-         Top      := Cursor.Peek;
+         Panic.Invalid_Region := Panic.Invalid_Region and Prev_Top.Token.Region;
+
+         Top := Cursor.Peek;
          exit Pop_Stack when Top.State = State_Index'First;
 
          Panic.Nonterm := Nonterminal_ID'First;
@@ -84,8 +84,9 @@ package body FastToken.Parser.LR.Panic_Mode is
       Lexer         : in     Lexer_Pkg.Handle)
      return Boolean
    is
-      Keep_Going : Boolean := False;
-      Last_ID    : Token.Token_ID := Current_Token.ID;
+      Keep_Going     : Boolean             := False;
+      Last_ID        : Token.Token_ID      := Current_Token.ID;
+      Discard_Region : Token.Buffer_Region := Token.Null_Buffer_Region;
    begin
       for I in Parsers.Iterate loop
          Keep_Going := Keep_Going or Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
@@ -102,12 +103,22 @@ package body FastToken.Parser.LR.Panic_Mode is
          for I in Parsers.Iterate loop
             declare
                use Parser_Lists;
+               use all type Token.Buffer_Region;
+
                Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
                Panic  : Panic_Reference renames Cursor.Panic_Ref;
             begin
+               Panic.Invalid_Region := Panic.Invalid_Region and Discard_Region;
+
                if Table.Follow (Panic.Nonterm)(Current_Token.ID) then
                   Keep_Going := True;
                   Cursor.Push ((Panic.Goto_State, Token.Get (Panic.Nonterm)));
+
+                  if Trace_Parse > 0 then
+                     Put_Trace_Line
+                       (Integer'Image (Cursor.Label) & ": recover: resume; invalid region " &
+                          Token.Image (Panic.Invalid_Region));
+                  end if;
                end if;
             end;
          end loop;
@@ -117,6 +128,7 @@ package body FastToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Ada.Text_IO.Put_Line ("  discard " & Token.Image (Current_Token, ID_Only => False));
          end if;
+         Discard_Region := Current_Token.Region;
          Current_Token := Lexer.Find_Next;
          if Trace_Parse > 1 then
             Ada.Text_IO.Put_Line ("  next " & Token.Image (Current_Token, ID_Only => False));
@@ -128,9 +140,7 @@ package body FastToken.Parser.LR.Panic_Mode is
       end loop Matching_Input;
 
       if Trace_Parse > 0 then
-         if Keep_Going then
-            Put_Trace_Line ("recover: resume");
-         else
+         if not Keep_Going then
             Put_Trace_Line ("recover: fail");
          end if;
       end if;

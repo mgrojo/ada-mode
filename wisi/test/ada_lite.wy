@@ -26,6 +26,9 @@
 ;; along with FastToken.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 %{
+
+%%
+Action_Count : array (fasttoken_accept_ID .. Token_ID'Last) of Integer := (others => 0);
 %}
 
 %keyword AND "and"
@@ -364,6 +367,7 @@ statement
 subprogram_body
   : subprogram_specification IS declarative_part_opt BEGIN
     handled_sequence_of_statements END name_opt SEMICOLON
+    (Action_Count (subprogram_body_ID) := Action_Count (subprogram_body_ID) + 1;)
   ;
 
 subprogram_declaration

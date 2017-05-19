@@ -96,7 +96,7 @@ is
 
 begin
    --  Actions start on a new line starting with (, and are terminated
-   --  by ).
+   --  by ). Those delimiters are stripped here.
 
    Rule_Count   := 0;
    Action_Count := 0;
@@ -149,14 +149,25 @@ begin
                case Line (Cursor) is
                when '(' =>
                   State         := Action;
-                  RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
                   Paren_Count   := 0;
                   Bracket_Count := 0;
 
                   Check_Numbers (Line);
                   Update_Paren_Count (Line);
-                  Action_Count  := Action_Count + 1;
+
+                  if Output_Language in Elisp | Ada_Emacs then
+                     --  keep parens
+                     RHS.Action := RHS.Action + Line;
+
+                  elsif Paren_Count = 0 then
+                     --  Current line also has the terminating ')'; assume no trailing whitespace
+                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last - 1);
+                  else
+                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last);
+                  end if;
+
+                  Action_Count := Action_Count + 1;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
@@ -190,6 +201,7 @@ begin
 
             when Action =>
                if Paren_Count = 0 then
+                  --  Current line has the terminating ')'
                   case Line (Cursor) is
                   when ';' =>
                      Rule.Right_Hand_Sides.Append (RHS);
@@ -210,24 +222,27 @@ begin
                      Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                      Need_New_Line := Cursor = 0;
 
-                     if Paren_Count /= 0 then
-                        raise Syntax_Error with "unbalanced parens in action";
-                     end if;
-
-                     if Bracket_Count /= 0 then
-                        raise Syntax_Error with "unbalanced brackets in action";
-                     end if;
-
                   when others =>
                      raise Syntax_Error with "expecting ';' or '|'";
                   end case;
 
                else
-                  RHS.Action    := RHS.Action + Line;
+                  Update_Paren_Count (Line);
+
+                  if Output_Language in Elisp | Ada_Emacs then
+                     --  keep parens
+                     RHS.Action := RHS.Action + Line;
+
+                  elsif Paren_Count = 0 then
+                     --  Current line has the terminating ')'; assume no trailing whitespace
+                     RHS.Action := RHS.Action + Line (Line'First .. Line'Last - 1);
+                  else
+                     RHS.Action := RHS.Action + Line;
+                  end if;
+
                   Need_New_Line := True;
 
                   Check_Numbers (Line);
-                  Update_Paren_Count (Line);
                end if;
             end case;
 

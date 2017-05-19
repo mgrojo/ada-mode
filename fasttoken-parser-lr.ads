@@ -192,11 +192,15 @@ package FastToken.Parser.LR is
 
    type Panic_Data is record
       --  Stored with parser state during panic mode recovery
-      Nonterm    : Token.Nonterminal_ID;
-      Goto_State : Unknown_State_Index;
+      Nonterm        : Token.Nonterminal_ID;
+      Goto_State     : Unknown_State_Index;
+      Invalid_Region : Token.Buffer_Region;
+      --  Invalid_Region contains all ignored tokens (popped from
+      --  stack or skipped in input); semantic actions not performed
+      --  in this region.
    end record;
 
-   Default_Panic : constant Panic_Data := (Token.Nonterminal_ID'First, Unknown_State);
+   Default_Panic : constant Panic_Data := (Token.Nonterminal_ID'First, Unknown_State, Token.Null_Buffer_Region);
 
    ----------
    --  Useful text output

@@ -55,7 +55,7 @@ package body FastToken.Lexer.Aflex is
    begin
       --  yyrestart is not visible in yylex.adb; it does this
       YY_Init := True;
-      Set_Buffer_Size (Buffer_Size);
+      Set_Buffer_Size (Buffer_Size + 2); -- +2 for EOL EOF
 
       --  Feeder is not reset here; user resets it.
    end Reset;
@@ -102,7 +102,7 @@ package body FastToken.Lexer.Aflex is
       return YY_Text;
    end Lexeme;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Range
+   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region
    is
       pragma Unreferenced (Lexer);
    begin

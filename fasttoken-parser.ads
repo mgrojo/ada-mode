@@ -56,7 +56,8 @@ package FastToken.Parser is
    package Lexer_Pkg renames Lexer;
 
    type Instance is abstract tagged record
-      Lexer : Lexer_Pkg.Handle;
+      Lexer           : Lexer_Pkg.Handle;
+      Invalid_Regions : Token.Region_Lists.List;
    end record;
 
    procedure Parse (Parser : in out Instance) is abstract;
@@ -64,6 +65,10 @@ package FastToken.Parser is
    --
    --  Raises Syntax_Error for lexer errors, Parse_Error for
    --  parser errors.
+   --
+   --  If an error is encountered but a recover strategy succeeds, no
+   --  exception is raised. Parser.Invalid_Regions contains the
+   --  regions ignored.
 
    procedure Reset (Parser : in out Instance; Buffer_Size : in Integer := 0);
    --  Reset the internal lexer, reallocating the input buffer to

@@ -91,7 +91,11 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Lexer is
       when Aflex_Lexer =>
-         Indent_Line ("subtype Token is Token_ID;"); --  FIXME: move to body? make aflex generic?
+         --  Aflex yylex skeleton (which we are not (yet) overriding)
+         --  has type "Token" as the return type, and expects that to
+         --  be defined in this package. It also assumes
+         --  "End_Of_Buffer" is defined here.
+         Indent_Line ("subtype Token is Token_ID;");
          Indent_Line ("End_Of_Input : Token_ID renames " & (-EOI_Name) & "_ID;");
       when Elisp_Lexer =>
          null;
@@ -378,7 +382,7 @@ package body Wisi.Gen_Output_Ada_Common is
       case Lexer is
       when Aflex_Lexer =>
          Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
+         Indent_Line ("   Token_Pkg.Region_Lists.Empty_List, Table, Max_Parallel, Terminate_Same_State);");
 
       when Elisp_Lexer =>
          Indent_Line ("  (Lexers.Initialize (Env, Lexer_Elisp_Symbols),");
@@ -629,7 +633,7 @@ package body Wisi.Gen_Output_Ada_Common is
       --  Add "_ID" to avoid collision with Ada reserved words
       --
       --  Replace '-' with '_'
-      Image : String := To_Upper (Item);
+      Image : String := Item;
    begin
       for I in Image'Range loop
          if Image (I) = '-' then
