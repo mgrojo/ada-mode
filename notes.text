@@ -6,7 +6,7 @@ build/wisi/Makefile
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
+o.e.a.stephe-4 (from o.e.a.s-2, o.e.a.s-1): syntax error handling in fasttoken
 o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
@@ -114,14 +114,6 @@ cache invalidate bugs:
     delete elsif clause
         navigate from ’then’ skips all elsif clauses
 
-bad indent:
-   type Right_Hand_Side is record
-      Tokens : Token.List.Instance;
-      Action : Nonterminal.Synthesize;
-      Index  : Integer;
-   -- In grammar rule
-   end record;
-
 parse face is slow
     noticeable delay when typing code
 
@@ -130,20 +122,15 @@ parse face is slow
 
     parse-action nil: 0.256851
         set jit-lock-defer-time for now
-        lr1 parser will be faster?
+        lr1 parser will be faster? not likely
+        module will be faster
+        maybe process with elisp lexer
 
 indent is slow
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
         don't loop thru lines more than once?
-
-    align 5 variable declarations in smm-server.adb
-        calls parser to navigate, then indent
-            could do both at once
-            or do navigate in font-lock parse
-
-        align calls indent on different regions once for each rule; need per-line cache
 
     indent compute only lines needed
         skip nonterms that don't overlap indent region

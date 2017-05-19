@@ -1168,7 +1168,8 @@
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken])))
       (parameter_specification_list
        ((parameter_specification ))
-       ((parameter_specification_list SEMICOLON parameter_specification )))
+       ((parameter_specification_list SEMICOLON parameter_specification )
+        (wisi-statement-action [2 motion])))
       (paren_expression
        ((LEFT_PAREN expression_opt RIGHT_PAREN )
         (wisi-indent-action [0
@@ -1332,7 +1333,7 @@
       (record_definition
        ((RECORD component_list_opt END RECORD )
         (wisi-indent-action [(ada-indent-record 'TYPE 1 0)
-        (ada-indent-record 'TYPE 1 ada-indent)
+        [(ada-indent-record 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
         (ada-indent-record 'TYPE 1 0)
         0]))
        ((NULL RECORD )
@@ -1675,7 +1676,7 @@
        ((WHEN discrete_choice_list EQUAL_GREATER component_list_opt )
         (progn
         (wisi-statement-action [1 motion])
-        (wisi-indent-action [0 (wisi-hanging 0 ada-indent-broken) ada-indent ada-indent]))))
+        (wisi-indent-action [0 (wisi-hanging 0 ada-indent-broken) ada-indent [ada-indent ada-indent]]))))
       (unary_adding_operator
        ((PLUS ))
        ((MINUS )))

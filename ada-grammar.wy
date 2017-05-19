@@ -1991,7 +1991,7 @@ real_range_specification_opt
 record_definition
   : RECORD component_list_opt END RECORD
     (wisi-indent-action [(ada-indent-record 'TYPE 1 0)
-                         (ada-indent-record 'TYPE 1 ada-indent)
+                         [(ada-indent-record 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
                          (ada-indent-record 'TYPE 1 0)
                          0])
   | NULL RECORD
@@ -2474,7 +2474,7 @@ variant
     (progn
       (wisi-statement-action [1 motion])
       ;; ada-indent-when applied in variant_part
-      (wisi-indent-action [0 (wisi-hanging 0 ada-indent-broken) ada-indent ada-indent]))
+      (wisi-indent-action [0 (wisi-hanging 0 ada-indent-broken) ada-indent [ada-indent ada-indent]]))
   ;
 
 unary_adding_operator : PLUS | MINUS ; ;; + | -
