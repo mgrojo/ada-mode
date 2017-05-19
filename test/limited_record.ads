@@ -25,17 +25,17 @@ package Limited_Record is
 
    type T3 (A : Integer;
             B : Integer) is limited record
-               V : Character;
-               -- ada-mode 4.01 had this at ada-indent relative to
-               -- type. But this is a pathological case; user should
-               -- put 'is limited record' on next line!
-               C : Integer;
-            end record;
+         V : Character;
+         -- ada-mode 4.01 had this at ada-indent relative to
+         -- type. But this is a pathological case; user should
+         -- put 'is limited record' on next line!
+         C : Integer;
+      end record;
 
    type T6 (A : Integer;
             B : Integer) is record
-               V : Character;
-            end record;
+         V : Character;
+      end record;
 
    --------------
    --  Simple declarations are fine

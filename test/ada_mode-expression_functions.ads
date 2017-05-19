@@ -42,8 +42,15 @@ package Ada_Mode.Expression_Functions is
    Y : array (1 .. 42) of Integer := (others => 0);
 
    --  Indent after =>
-   function F return Boolean is
+   function F1 return Boolean is
      (for some X of Y =>
         X /= 0);
+
+   function F2 return Boolean is (for some X of Y =>
+                                    X /= 0);
+
+   function F3 return Boolean is (for some X of Y
+                                    =>
+                                      X /= 0);
 
 end Ada_Mode.Expression_Functions;

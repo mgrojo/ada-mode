@@ -1,6 +1,6 @@
 
 --  Tests the indentation of with and use statements, with regards to
---  the variable ada-with-use-indent
+--  the variables ada-indent-with, ada-indent--use
 
 --EMACSCMD:(setq skip-recase-test t)
 --EMACSCMD: ada-indent-with
