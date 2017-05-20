@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2017 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -49,6 +49,12 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
       else
          Feeder.Get_Count := Feeder.Get_Count + 1;
 
+         --  With GNAT < 2016, this waited for all requested bytes
+         --  when Feeder.File is standard_input. With GNAT GPL 2016,
+         --  it returns as soon as it has some bytes (one internal
+         --  buffer's worth). In that case, the lexer will call Get
+         --  again when it needs to. This allows parsing and receiving
+         --  to proceed in parallel.
          Read_Bytes        := Read (Feeder.File, Text'Address, Bytes_To_Read);
          Feeder.Read_Bytes := Feeder.Read_Bytes + Read_Bytes;
 
@@ -83,15 +89,6 @@ package body OpenToken.Text_Feeder.Counted_GNAT_OS_Lib is
                Text (I) := EOL_Character;
             end if;
          end loop;
-
-         if Read_Bytes < Bytes_To_Read then
-            --  premature end of file
-            Feeder.Read_Bytes := Feeder.Max_Bytes;
-
-            Text_End := Text_End + 1;
-            Text (Text_End) := EOF_Character;
-         end if;
-
       end if;
    end Get;
 
