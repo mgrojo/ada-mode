@@ -1,4 +1,5 @@
 ;;; ada-grammar-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe -v 1 ada-grammar.wy
 
 ;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
@@ -134,13 +135,13 @@
       (NUMERIC_LITERAL . ada-wisi-number-p)
      )
      ("symbol"
-      (IDENTIFIER)
+      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
      )
      ("string-double"
-      (STRING_LITERAL)
+      (STRING_LITERAL . "(\"[^\"]*\")+")
      )
      ("string-single"
-      (CHARACTER_LITERAL)
+      (CHARACTER_LITERAL . "'[^']'|''''")
      )
     )
    nil)

@@ -65,7 +65,7 @@ install packages in -Q:
 propagate
     o.e.a to o.e.a.s-2; done
     o.e.a to o.e.a.s-1; done
-    o.e.a.s-2 to o.e.a.s-4;
+    o.e.a.s-2 to o.e.a.s-4; done
     o.e.a.s-1 to o.e.a.s-4;
 
     org.opentoken.stephe: cherry-pick counted_os_lib fix to org.opentoken

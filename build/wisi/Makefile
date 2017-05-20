@@ -86,7 +86,7 @@ export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
 
-%.wisi-test : %-elisp.el
+%.wisi-test : %-lalr-elisp.el
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
 .PRECIOUS : %-elisp.el ../../%-grammar-elisp.el
@@ -95,8 +95,18 @@ endif
 
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
+%-lalr-elisp.el : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).output
+ifeq ($(shell uname),Linux)
+else ifeq ($(shell uname),Darwin)
+else
+# windows
+	cd ./$(<D); dos2unix $(@F)
+	cd ./$(<D); dos2unix $*-lr1-elisp.el
+endif
+
 %-elisp.el : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) LALR Elisp > $(*F).output
+	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).output
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else

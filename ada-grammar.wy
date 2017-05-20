@@ -177,6 +177,8 @@
 %token <string-single> CHARACTER_LITERAL "'[^']'|''''"
 
 %start compilation_unit_list
+%parser_algorithm LALR
+%output_language Elisp
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
