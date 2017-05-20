@@ -664,6 +664,7 @@ Also return cache at start."
 	paramlist
 	(done nil))
     (while (not done)
+      (forward-comment 1)
       (setq tok (wisi-forward-token))
       (setq token (wisi-tok-token tok))
       (setq text  (wisi-token-text tok))
