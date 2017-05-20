@@ -67,6 +67,7 @@ propagate
     o.e.a to o.e.a.s-1; done
     o.e.a.s-2 to o.e.a.s-4; done
     o.e.a.s-1 to o.e.a.s-4;
+        rename ada_grammar-wy.el back to ada-grammar-elisp.el
 
     org.opentoken.stephe: cherry-pick counted_os_lib fix to org.opentoken
     org.opentoken to org.fasttoken:
