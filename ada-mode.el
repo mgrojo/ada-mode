@@ -312,6 +312,12 @@ nil, only the file name."
   :type 'string
   :group 'ada-indentation)
 
+(defcustom wisi-ext-parse-exec "ada_mode_wisi_parse"
+  ;; declared here, not in wisi-ext-parse.el, for auto-detection of indent engine below
+  "Name of executable to use for external parser,"
+  :type 'string
+  :group 'ada-indentation)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -2911,6 +2917,10 @@ The paragraph is indented on the first line."
 (if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
     (require 'ada-gps)
   (require 'ada-wisi))
+
+(if (locate-file wisi-ext-parse-exec exec-path '("" ".exe"))
+    (setq wisi-parser 'ada)
+  (setq wisi-parser 'elisp))
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))

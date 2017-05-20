@@ -27,12 +27,7 @@
 ;;; Code:
 
 (require 'cl-lib)
-
-;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
-;; (when (and (= emacs-major-version 24)
-;; 	   (= emacs-minor-version 2))
-  (require 'wisi-compat-24.2)
-;;)
+(require 'wisi-parse-common)
 
 (defvar wisi-parse-max-parallel 15
   "Maximum number of parallel parsers for acceptable performance.
@@ -45,13 +40,6 @@ point at which that max was spawned.")
 
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size")
-
-(defvar wisi-debug 0
-  "wisi debug mode:
-0 : normal - ignore parse errors, for indenting new code
-1 : report parse errors (for running tests)
-2 : show parse states, position point at parse errors, debug-on-error works in parser
-3 : also show top 10 items of parser stack.")
 
 (cl-defstruct (wisi-parser-state
 	    (:copier nil))
@@ -75,23 +63,7 @@ point at which that max was spawned.")
   ;; list of (action-symbol stack-fragment)
   )
 
-(defun wisi-error-msg (message &rest args)
-  (let ((line (line-number-at-pos))
-	(col (- (point) (line-beginning-position))))
-    (format
-     "%s:%d:%d: %s"
-       (file-name-nondirectory (buffer-name)) ;; buffer-file-name is sometimes nil here!?
-       line col
-       (apply 'format message args))))
-
-(defvar wisi-parse-error nil)
-(put 'wisi-parse-error
-     'error-conditions
-     '(error wisi-parse-error))
-(put 'wisi-parse-error
-     'error-message
-     "wisi parse error")
-
+;; FIXME: move to wisi-parse-common
 (cl-defstruct wisi-tok
   token  ;; symbol from a token table
   region ;; cons giving buffer region containing token text
@@ -121,6 +93,7 @@ point at which that max was spawned.")
   (let ((region (wisi-tok-region token)))
     (and region
        (buffer-substring-no-properties (car region) (cdr region)))))
+;; end FIXME:
 
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.

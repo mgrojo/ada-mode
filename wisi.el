@@ -110,7 +110,9 @@
 
 (require 'cl-lib)
 (require 'seq)
+(require 'wisi-ext-parse)
 (require 'wisi-parse)
+(require 'wisi-parse-common)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
 ;; (when (and (= emacs-major-version 24)
@@ -455,6 +457,7 @@ wisi-forward-token, but does not look up symbol."
   )
 
 (defvar-local wisi-parse-table nil)
+(defvar-local wisi-elisp-names nil) ;; FIXME: move into some struct
 
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
@@ -734,7 +737,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
    ))
 
 (defvar-local wisi-class-list nil
+  ;; FIXME: move to some struct?
   "list of valid token classes; checked in wisi-statement-action.")
+
+(defvar wisi-parser 'elisp
+  ;; FIXME: move to some struct?
+  ;; FIXME: ’ext instead of ’ada; name of grammar is in wisi-ext-parse-exe
+  "Choice of wisi parser implementation; 'elisp or 'ada.
+'ada uses external program ada_mode_wisi_parse.")
 
 (defun wisi--run-parse ()
   "Run the parser."
@@ -750,7 +760,13 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
     (condition-case-unless-debug err
 	(save-excursion
-	  (wisi-parse wisi-parse-table #'wisi-forward-token)
+	  (cl-ecase wisi-parser
+	    (elisp
+	     (wisi-parse wisi-parse-table 'wisi-forward-token))
+	    (ada
+	     ;; FIXME: grammar is specifed by .exe name; that must be here.
+	     (wisi-ext-parse wisi-elisp-names))
+	    )
 	  (setq wisi-parse-failed nil)
 	  (when (memq wisi--parse-action '(face navigate))
 	    ;; indent parse does not set caches; they are set in `wisi-indent-region'
@@ -2280,7 +2296,7 @@ Called with BEGIN END.")
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table elisp-names)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
 
@@ -2318,6 +2334,7 @@ Called with BEGIN END.")
       (error "aborting due to punctuation errors")))
 
   (setq wisi-parse-table parse-table)
+  (setq wisi-elisp-names elisp-names)
 
   (setq wisi--cache-max
 	(list

@@ -269,6 +269,10 @@
 ;; The EBNF in LRM Annex P is not LALR(1), so we use a generalized
 ;; LALR(1) parser (see wisi-parse, wisi-compile).
 ;;
+;; Annex P overloads several keywords as grammar elements; 'body',
+;; 'pragma', some others. That matters in the generated Ada code. We
+;; resolve this by appending _g to the grammar element name.
+;;
 ;; To tolerate some invalid syntax during editing, we relax the
 ;; grammar, mainly by allowing many items to be empty.
 
@@ -503,7 +507,7 @@ block_statement
       (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0]))
   ;
 
-body : proper_body | body_stub ;
+body_g : proper_body | body_stub ;
 
 body_stub
   : subprogram_body_stub | package_body_stub | task_body_stub | protected_body_stub ;
@@ -693,7 +697,7 @@ constant_opt
   ;
 
 constraint
-  : RANGE range ;; range_constraint
+  : RANGE range_g ;; range_constraint
  ;; | digits_constraint
  ;; | delta_constraint
   | index_constraint
@@ -705,12 +709,12 @@ constraint_opt
   | constraint
   ;
 
-context_item : pragma | with_clause | use_clause;
+context_item : pragma_g | with_clause | use_clause;
 
 declaration
   : abstract_subprogram_declaration
   | aspect_clause
-  | body
+  | body_g
   | entry_declaration
   | exception_declaration
   | expression_function_declaration
@@ -725,7 +729,7 @@ declaration
                            (wisi-anchored% 4 ada-indent-broken) 0]))
   | object_declaration
   | package_declaration
-  | pragma ;; not a declaration in ARM, but it must be in the grammar
+  | pragma_g ;; not a 'declaration' in ARM, but it must be in the grammar
   | renaming_declaration
   | subprogram_declaration
   | subtype_declaration
@@ -783,9 +787,9 @@ direct_name_opt
   ;
 
 discrete_choice
-  : choice_expression ;; includes name
-  | NOT NULL name ;; from subytpe_indication, excluding constructs covered by name
-  | range
+  : choice_expression ;; includes 'name'
+  | NOT NULL name ;; from subytpe_indication, excluding constructs covered by 'name'
+  | range_g
   | OTHERS
   ;
 
@@ -799,7 +803,7 @@ discrete_choice_list
 
  ;; discrete_range_list is the same as discrete_subtype_definition_list
 
-discrete_subtype_definition : subtype_indication | range ;
+discrete_subtype_definition : subtype_indication | range_g ;
 
 discrete_subtype_definition_list
   : discrete_subtype_definition
@@ -1216,7 +1220,7 @@ generic_formal_parameter_declaration
   | formal_type_declaration
   | formal_subprogram_declaration
   | formal_package_declaration
-  | pragma
+  | pragma_g
   | use_clause
   ;
 
@@ -1481,10 +1485,10 @@ membership_choice
  ;; ARM has choice_expression here, but that leads to a shift/reduce conflict, because of the following productions:
  ;; membership_choice_list => membership_choice => choice_expression => choice_relation_and_list
  ;; relation => simple_expression IN choice_relation_and_list
- ;; thus choice_relation_and_list AND could be followed by relation (=> reduce) or choice_relation (=> shift)
- ;; This only occurs in legal Ada in expressions such as True in 1 and 3; not useful, so we leave it out.
-  | range
- ;;  | name ;; subtype_mark - covered by simple_expression
+ ;; thus 'choice_relation_and_list AND' could be followed by relation (=> reduce) or choice_relation (=> shift)
+ ;; This only occurs in legal Ada in expressions such as 'True in 1 and 3'; not useful, so we leave it out.
+  | range_g
+ ;;  | name ;; subtype_mark - also covered by simple_expression; avoid reduce/reduce conflict
   ;
 
 mod_clause_opt
@@ -1780,7 +1784,7 @@ paren_expression
     (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
   ;
 
-pragma
+pragma_g
   : PRAGMA IDENTIFIER LEFT_PAREN association_list RIGHT_PAREN SEMICOLON
  ;; ARM has 'pragma_argument_association'; this is a superset, and reduces redundancy
     (progn
@@ -1976,7 +1980,7 @@ raise_statement
       (wisi-indent-action [0 ada-indent-broken 0]))
   ;
 
-range
+range_g
   : name TICK RANGE LEFT_PAREN expression_opt RIGHT_PAREN ;; range_attribute_reference
     (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)])
   | name TICK RANGE ;; range_attribute_reference
@@ -1984,8 +1988,22 @@ range
   ;
 
 range_list
+<<<<<<< variant A
+  : range_g
+  | range_list COMMA range_g
+    (progn
+      (wisi-statement-action [2 list-break])
+      (wisi-containing-action 2 3))
+>>>>>>> variant B
   : range
   | range_list COMMA range
+####### Ancestor
+  : range
+  | range_list COMMA range
+    (progn
+      (wisi-statement-action [2 list-break])
+      (wisi-containing-action 2 3))
+======= end
   ;
 
 real_range_specification_opt
@@ -2225,7 +2243,7 @@ simple_statement
     (wisi-statement-action [1 statement-start 3 statement-end])
   | raise_statement
   ;; | code_statement
-  | pragma
+  | pragma_g
   ;
 
 single_protected_declaration

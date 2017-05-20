@@ -99,7 +99,8 @@
      test-class-list
      (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
      (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-     parse-table)
+     parse-table
+     nil); elisp-names
 
     ;; Not clear why this is not being done automatically
     (syntax-propertize (point-max))

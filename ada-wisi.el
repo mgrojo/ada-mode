@@ -28,7 +28,8 @@
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada-grammar-elisp)
+(require 'ada_grammar-elisp)
+(require 'ada_grammar)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -421,7 +422,7 @@ For `wisi-indent-calculate-functions'.
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
-	  (pragma (wisi-goto-end-1 cache))
+	  (pragma_g (wisi-goto-end-1 cache))
 	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
@@ -909,7 +910,8 @@ TOKEN-TEXT; move point to just past token."
 	      ada-wisi-class-list
 	      ada-grammar-elisp-keyword-table
 	      ada-grammar-elisp-token-table
-	      ada-grammar-elisp-parse-table)
+	      ada-grammar-elisp-parse-table
+	      ada_grammar-names)
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   (setq wisi-indent-hanging-function #'ada-indent-hanging)

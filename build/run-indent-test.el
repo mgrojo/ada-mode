@@ -8,6 +8,7 @@
 (defvar skip-cmds nil)
 (defvar skip-reindent-test nil)
 (defvar skip-recase-test nil)
+(defvar skip-write nil)
 
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
@@ -188,14 +189,15 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 
     (run-test-here)
 
-    ;; Write the result file; makefile will diff.
-    (when skip-reindent-test
-      ;; user sets skip-reindent-test when testing interactive editing
-      ;; commands, so the diff would fail. Revert to the original file,
-      ;; save a copy of that.
-      (revert-buffer t t))
+    (unless skip-write
+      ;; Write the result file; makefile will diff.
+      (when skip-reindent-test
+	;; user sets skip-reindent-test when testing interactive editing
+	;; commands, so the diff would fail. Revert to the original file,
+	;; save a copy of that.
+	(revert-buffer t t))
 
-    (write-file (concat dir (file-name-nondirectory file-name) ".tmp"))
+      (write-file (concat dir (file-name-nondirectory file-name) ".tmp")) )
     )
   )
 
