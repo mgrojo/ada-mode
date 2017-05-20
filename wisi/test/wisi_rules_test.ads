@@ -21,14 +21,12 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Wisi_Rules_Test is
 
-   type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 
    overriding procedure Register_Tests (T : in out Test_Case);
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
-
-   overriding procedure Tear_Down (T : in out Test_Case);
 
 end Wisi_Rules_Test;

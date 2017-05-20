@@ -1,0 +1,13 @@
+foo
+
+-- These should all yield the same token sequence
+
+Character'('C');
+Character'( 'C' );
+Character '('C');
+Character ' ( 'C' );
+
+"a string";
+
+-- This is one string with two embedded quotes, not three strings with no whitespace
+" an ""other"" string";

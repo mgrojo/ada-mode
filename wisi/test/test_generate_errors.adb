@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -22,7 +22,7 @@ pragma License (GPL);
 
 with Ada.Directories;
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks.Text_IO;
 with GNAT.OS_Lib;
 with GNAT.Source_Info;
 package body Test_Generate_Errors is
@@ -32,31 +32,56 @@ package body Test_Generate_Errors is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use Ada.Directories;
       use GNAT.OS_Lib;
       Test : Test_Case renames Test_Case (T);
 
       Success     : Boolean;
       Return_Code : Integer;
 
-      Wy_File             : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_Error_File : constant String        :=
-        Ada.Directories.Simple_Name (Test.Root_Name.all) & ".out";
-      Expected_Error_File : constant String        := Test.Root_Name.all & ".good_out";
+      WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+
+      Computed_LALR_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr.out";
+      Expected_LALR_File : constant String := Test.Root_Name.all & "-lalr.good_out";
+
+      --  LALR reports terminals that are only used in unused
+      --  productions as unused; lr1 is not that smart.
+      Computed_LR1_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1.out";
+      Expected_LR1_File : constant String := Test.Root_Name.all & "-lr1.good_out";
+
    begin
       Spawn
         (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
          Args         =>
-           (1         => Wy_File,
-            2         => new String'("test")),
-         Output_File  => Computed_Error_File,
+           (1         => new String'("--parser_algorithm"),
+            2         => new String'("LALR"),
+            3         => WY_File),
+         Output_File  => Computed_LALR_File,
          Return_Code  => Return_Code,
          Success      => Success);
 
       AUnit.Assertions.Assert
         (Success,
-         "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
+         "spawn or execution of 'wisi-generate.exe' LALR " & WY_File.all & "' failed");
 
-      AUnit.Check.Check_Files ("1", Computed_Error_File, Expected_Error_File);
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_LALR_File);
+
+      Spawn
+        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
+         Args         =>
+           (1         => new String'("--parser_algorithm"),
+            2         => new String'("LR1"),
+            3         => WY_File),
+         Output_File  => Computed_LR1_File,
+         Return_Code  => Return_Code,
+         Success      => Success);
+
+      AUnit.Assertions.Assert
+        (Success,
+         "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
+
+      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_LR1_File);
+
    end Run_Test;
 
    ----------
@@ -71,7 +96,7 @@ package body Test_Generate_Errors is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("../../wisi/test/" & GNAT.Source_Info.File & T.Root_Name.all);
+      return new String'("../../wisi/test/" & GNAT.Source_Info.File & " " & T.Root_Name.all);
    end Name;
 
 end Test_Generate_Errors;

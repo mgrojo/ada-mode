@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013 Stephen Leake
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -22,7 +22,7 @@ pragma License (GPL);
 
 with Ada.Directories;
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks.Text_IO;
 with GNAT.OS_Lib;
 package body Wisi_Wy_Test is
 
@@ -31,27 +31,34 @@ package body Wisi_Wy_Test is
 
    procedure Run_Test (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
+      use Ada.Directories;
       use GNAT.OS_Lib;
       Test : Test_Case renames Test_Case (T);
 
       Success : Boolean;
 
-      Wy_File          : constant String_Access := new String'(Test.Root_Name.all & ".wy");
-      Computed_El_File : constant String        := Ada.Directories.Simple_Name (Test.Root_Name.all) & "-wy.el";
-      Expected_El_File : constant String        := Test.Root_Name.all & "-wy.good_el";
+      Exe : constant String_Access := Locate_Exec_On_Path ("./wisi-generate.exe");
+
+      WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
+
+      Computed_LALR_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr-elisp.el";
+      Expected_LALR_El_File : constant String := Test.Root_Name.all & "-lalr-elisp.good_el";
+
+      Computed_LR1_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1-elisp.el";
+      Expected_LR1_El_File : constant String := Test.Root_Name.all & "-lr1-elisp.good_el";
    begin
       Spawn
-        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
+        (Program_Name => Exe.all,
          Args         =>
-           (1         => Wy_File,
-            2         => new String'("elisp")),
+           (1         => WY_File),
          Success      => Success);
 
       AUnit.Assertions.Assert
         (Success,
-         "spawn or execution of 'wisi-generate.exe' " & Wy_File.all & "' failed");
+         "spawn or execution of 'wisi-generate.exe' " & WY_File.all & "' failed");
 
-      AUnit.Check.Check_Files ("1", Computed_El_File, Expected_El_File);
+      AUnit.Checks.Text_IO.Check_Files ("LALR", Computed_LALR_El_File, Expected_LALR_El_File);
+      AUnit.Checks.Text_IO.Check_Files ("LR1", Computed_LR1_El_File, Expected_LR1_El_File);
    end Run_Test;
 
    ----------

@@ -1,10 +1,11 @@
-;; small Ada-like grammar illustrating the shift/reduce conflict
+;; Small Ada-like grammar illustrating the shift/reduce conflict
 ;; between a procedure body and a generic procedure instantiation.
+;; Conflict is handled by generalized parser
 ;;
 ;; Also tests wisi rules parser
 
 %{
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -30,12 +31,13 @@
 %keyword RIGHT_PAREN ")"
 
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER
-
-;; not needed in grammar, but <string> required by wisi-setup
-%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %start compilation_unit
+%first_state_index 0
+%first_parser_label 0
+%parser_algorithm LALR_LR1
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state generic_instantiation, parameter_list on token IS
 
@@ -52,7 +54,7 @@ library_item : subprogram_body|generic_instantiation;
 subprogram_body
  ;; comment before : line
   : subprogram_specification IS BEGIN NULL END SEMICOLON
-    `,(wisi-statement-action 1 'statement-start 6 'statement-end)
+    (wisi-statement-action [1 statement-start 6 statement-end])
   ;
 
 ;; some on one line
@@ -64,9 +66,7 @@ parameter_list : | LEFT_PAREN IDENTIFIER RIGHT_PAREN ;
 
 generic_instantiation
   : PROCEDURE IDENTIFIER IS NEW IDENTIFIER LEFT_PAREN IDENTIFIER RIGHT_PAREN SEMICOLON
-    `,(wisi-statement-action 1 'statement-start 9 'statement-end)
-
-  | STRING_LITERAL ;; mention unneeded token
+    (wisi-statement-action [1 statement-start 9 statement-end])
   ;
 
 %%

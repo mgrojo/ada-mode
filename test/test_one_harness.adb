@@ -2,7 +2,7 @@
 --
 --  Run one OpenToken AUnit test
 --
---  Copyright (C) 2009, 2010, 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012 - 2014, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -16,19 +16,26 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
+with Ada.Command_Line;
 with AUnit.Reporter.Text;
 with AUnit.Options;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Trivial_Productions_Test;
+with Association_Grammar_Test;
+--  with Dragon_4_43_LR1_Test;
+--  with Dragon_4_45_LALR_Test;
 procedure Test_One_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
+
+   Debug : constant Boolean := Ada.Command_Line.Argument_Count > 0;
 begin
-   Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));
+--   Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug));
+--   Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug));
+   Add_Test (Suite, new Association_Grammar_Test.Test_Case (Debug));
 
    Run (Suite, AUnit.Options.Default_Options, Result, Status);
 

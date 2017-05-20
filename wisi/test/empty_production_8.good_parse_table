@@ -1,139 +1,290 @@
 Tokens:
- 1 => WHITESPACE_ID
- 2 => ALIASED_ID
- 3 => CONSTANT_ID
- 4 => COLON_EQUAL_ID
- 5 => SEMICOLON_ID
- 6 => IDENTIFIER_ID
- 7 => EOF_ID
- 8 => OBJECT_DECLARATION_LIST_ID
- 9 => OBJECT_DECLARATION_ID
- 10 => ALIASED_OPT_ID
- 11 => CONSTANT_OPT_ID
- 12 => OPENTOKEN_ACCEPT_ID
+ 1 => WHITESPACE
+ 2 => ALIASED
+ 3 => CONSTANT
+ 4 => COLON_EQUAL
+ 5 => SEMICOLON
+ 6 => IDENTIFIER
+ 7 => WISI_EOI
+ 8 => object_declaration_list
+ 9 => object_declaration
+ 10 => aliased_opt
+ 11 => constant_opt
+ 12 => fasttoken_accept
 
-Parse Table:
+LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( object_declaration_list =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ object_declaration =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ aliased_opt =>
+  (CONSTANT |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ constant_opt =>
+  (COLON_EQUAL |
+   SEMICOLON => True,
+   others => False)
+ others => (others => False))
+
 State 1:
-  OPENTOKEN_ACCEPT_ID <= ^ OBJECT_DECLARATION_LIST_ID EOF_ID
+  fasttoken_accept <= ^ object_declaration_list WISI_EOI, 
 
-   IDENTIFIER_ID              => shift and goto state 2
-   default                    => ERROR
+   IDENTIFIER              => shift and goto state 2
+   default                 => ERROR
 
-   OBJECT_DECLARATION_LIST_ID goto state 3
-   OBJECT_DECLARATION_ID      goto state 4
+   object_declaration_list goto state 3
+   object_declaration      goto state 4
 
 State 2:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ^ ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+  object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/WISI_EOI
+  object_declaration <= IDENTIFIER ^ constant_opt COLON_EQUAL SEMICOLON, IDENTIFIER/WISI_EOI
 
-   SEMICOLON_ID               => reduce 0 tokens to ALIASED_OPT_ID
-   ALIASED_ID                 => shift and goto state 7
-   COLON_EQUAL_ID             => reduce 0 tokens to CONSTANT_OPT_ID
-   CONSTANT_ID                => shift and goto state 8,
-                                 reduce 0 tokens to ALIASED_OPT_ID
-   default                    => ERROR
+   ALIASED                 => shift and goto state 6
+   CONSTANT                => shift and goto state 7,
+                              reduce 0 tokens to aliased_opt
+   COLON_EQUAL             => reduce 0 tokens to constant_opt
+   SEMICOLON               => reduce 0 tokens to aliased_opt
+   default                 => ERROR
 
-   ALIASED_OPT_ID             goto state 9
-   CONSTANT_OPT_ID            goto state 10
+   aliased_opt             goto state 8
+   constant_opt            goto state 9
 
 State 3:
-  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID ^ OBJECT_DECLARATION_ID, EOF_ID/IDENTIFIER_ID
-  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID ^ EOF_ID
+  object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/WISI_EOI
+  fasttoken_accept <= object_declaration_list ^ WISI_EOI, 
 
-   EOF_ID                     => shift and goto state 5
-   IDENTIFIER_ID              => shift and goto state 2
-   default                    => ERROR
+   IDENTIFIER              => shift and goto state 2
+   WISI_EOI                => accept it
+   default                 => ERROR
 
-   OBJECT_DECLARATION_ID      goto state 6
+   object_declaration      goto state 5
 
 State 4:
-  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_ID ^, EOF_ID/IDENTIFIER_ID
+  object_declaration_list <= object_declaration ^, IDENTIFIER/WISI_EOI
 
-   EOF_ID                     => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
-   IDENTIFIER_ID              => reduce 1 tokens to OBJECT_DECLARATION_LIST_ID
-   default                    => ERROR
+   IDENTIFIER              => reduce 1 tokens to object_declaration_list
+   WISI_EOI                => reduce 1 tokens to object_declaration_list
+   default                 => ERROR
 
 
 State 5:
-  OPENTOKEN_ACCEPT_ID <= OBJECT_DECLARATION_LIST_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/SEMICOLON_ID/COLON_EQUAL_ID/CONSTANT_ID/ALIASED_ID
+  object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/WISI_EOI
 
-   EOF_ID                     => accept it
-   IDENTIFIER_ID              => accept it
-   SEMICOLON_ID               => accept it
-   COLON_EQUAL_ID             => accept it
-   CONSTANT_ID                => accept it
-   ALIASED_ID                 => accept it
-   default                    => ERROR
+   IDENTIFIER              => reduce 2 tokens to object_declaration_list
+   WISI_EOI                => reduce 2 tokens to object_declaration_list
+   default                 => ERROR
 
 
 State 6:
-  OBJECT_DECLARATION_LIST_ID <= OBJECT_DECLARATION_LIST_ID OBJECT_DECLARATION_ID ^, IDENTIFIER_ID/EOF_ID
+  aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
 
-   IDENTIFIER_ID              => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
-   EOF_ID                     => reduce 2 tokens to OBJECT_DECLARATION_LIST_ID
-   default                    => ERROR
+   CONSTANT                => reduce 1 tokens to aliased_opt
+   SEMICOLON               => reduce 1 tokens to aliased_opt
+   default                 => ERROR
 
 
 State 7:
-  ALIASED_OPT_ID <= ALIASED_ID ^, CONSTANT_ID/SEMICOLON_ID
+  constant_opt <= CONSTANT ^, COLON_EQUAL/SEMICOLON
 
-   CONSTANT_ID                => reduce 1 tokens to ALIASED_OPT_ID
-   SEMICOLON_ID               => reduce 1 tokens to ALIASED_OPT_ID
-   default                    => ERROR
+   COLON_EQUAL             => reduce 1 tokens to constant_opt
+   SEMICOLON               => reduce 1 tokens to constant_opt
+   default                 => ERROR
 
 
 State 8:
-  CONSTANT_OPT_ID <= CONSTANT_ID ^, COLON_EQUAL_ID/SEMICOLON_ID
+  object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/WISI_EOI
 
-   COLON_EQUAL_ID             => reduce 1 tokens to CONSTANT_OPT_ID
-   SEMICOLON_ID               => reduce 1 tokens to CONSTANT_OPT_ID
-   default                    => ERROR
+   CONSTANT                => shift and goto state 7
+   SEMICOLON               => reduce 0 tokens to constant_opt
+   default                 => ERROR
 
+   constant_opt            goto state 11
 
 State 9:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID ^ CONSTANT_OPT_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
+  object_declaration <= IDENTIFIER constant_opt ^ COLON_EQUAL SEMICOLON, IDENTIFIER/WISI_EOI
 
-   SEMICOLON_ID               => reduce 0 tokens to CONSTANT_OPT_ID
-   CONSTANT_ID                => shift and goto state 8
-   default                    => ERROR
+   COLON_EQUAL             => shift and goto state 10
+   default                 => ERROR
 
-   CONSTANT_OPT_ID            goto state 12
 
 State 10:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID ^ COLON_EQUAL_ID SEMICOLON_ID, EOF_ID/IDENTIFIER_ID
+  object_declaration <= IDENTIFIER constant_opt COLON_EQUAL ^ SEMICOLON, IDENTIFIER/WISI_EOI
 
-   COLON_EQUAL_ID             => shift and goto state 11
-   default                    => ERROR
+   SEMICOLON               => shift and goto state 13
+   default                 => ERROR
 
 
 State 11:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+  object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/WISI_EOI
 
-   SEMICOLON_ID               => shift and goto state 14
-   default                    => ERROR
+   SEMICOLON               => shift and goto state 12
+   default                 => ERROR
 
 
 State 12:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID ^ SEMICOLON_ID, IDENTIFIER_ID/EOF_ID
+  object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/WISI_EOI
 
-   SEMICOLON_ID               => shift and goto state 13
-   default                    => ERROR
+   IDENTIFIER              => reduce 4 tokens to object_declaration
+   WISI_EOI                => reduce 4 tokens to object_declaration
+   default                 => ERROR
 
 
 State 13:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID ALIASED_OPT_ID CONSTANT_OPT_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
+  object_declaration <= IDENTIFIER constant_opt COLON_EQUAL SEMICOLON ^, IDENTIFIER/WISI_EOI
 
-   EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID
-   IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
-   default                    => ERROR
+   IDENTIFIER              => reduce 4 tokens to object_declaration
+   WISI_EOI                => reduce 4 tokens to object_declaration
+   default                 => ERROR
+
+
+LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( object_declaration_list =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ object_declaration =>
+  (IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ aliased_opt =>
+  (CONSTANT |
+   IDENTIFIER |
+   WISI_EOI => True,
+   others => False)
+ constant_opt =>
+  (COLON_EQUAL |
+   SEMICOLON => True,
+   others => False)
+ others => (others => False))
+State 1:
+  fasttoken_accept <= ^ object_declaration_list WISI_EOI, WISI_EOI
+
+   IDENTIFIER              => shift and goto state 2
+   default                 => ERROR
+
+   object_declaration_list goto state 3
+   object_declaration      goto state 4
+
+State 2:
+  object_declaration <= IDENTIFIER ^ aliased_opt constant_opt SEMICOLON, IDENTIFIER/WISI_EOI
+  object_declaration <= IDENTIFIER ^ constant_opt COLON_EQUAL SEMICOLON, IDENTIFIER/WISI_EOI
+
+   ALIASED                 => shift and goto state 6
+   CONSTANT                => shift and goto state 7,
+                              reduce 0 tokens to aliased_opt
+   COLON_EQUAL             => reduce 0 tokens to constant_opt
+   SEMICOLON               => reduce 0 tokens to aliased_opt
+   default                 => ERROR
+
+   aliased_opt             goto state 8
+   constant_opt            goto state 9
+
+State 3:
+  object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/WISI_EOI
+  fasttoken_accept <= object_declaration_list ^ WISI_EOI, WISI_EOI
+
+   IDENTIFIER              => shift and goto state 2
+   WISI_EOI                => accept it
+   default                 => ERROR
+
+   object_declaration      goto state 5
+
+State 4:
+  object_declaration_list <= object_declaration ^, IDENTIFIER/WISI_EOI
+
+   IDENTIFIER              => reduce 1 tokens to object_declaration_list
+   WISI_EOI                => reduce 1 tokens to object_declaration_list
+   default                 => ERROR
+
+
+State 5:
+  object_declaration_list <= object_declaration_list object_declaration ^, IDENTIFIER/WISI_EOI
+
+   IDENTIFIER              => reduce 2 tokens to object_declaration_list
+   WISI_EOI                => reduce 2 tokens to object_declaration_list
+   default                 => ERROR
+
+
+State 6:
+  aliased_opt <= ALIASED ^, CONSTANT/SEMICOLON
+
+   CONSTANT                => reduce 1 tokens to aliased_opt
+   SEMICOLON               => reduce 1 tokens to aliased_opt
+   default                 => ERROR
+
+
+State 7:
+  constant_opt <= CONSTANT ^, COLON_EQUAL
+
+   COLON_EQUAL             => reduce 1 tokens to constant_opt
+   default                 => ERROR
+
+
+State 8:
+  object_declaration <= IDENTIFIER aliased_opt ^ constant_opt SEMICOLON, IDENTIFIER/WISI_EOI
+
+   CONSTANT                => shift and goto state 11
+   SEMICOLON               => reduce 0 tokens to constant_opt
+   default                 => ERROR
+
+   constant_opt            goto state 12
+
+State 9:
+  object_declaration <= IDENTIFIER constant_opt ^ COLON_EQUAL SEMICOLON, IDENTIFIER/WISI_EOI
+
+   COLON_EQUAL             => shift and goto state 10
+   default                 => ERROR
+
+
+State 10:
+  object_declaration <= IDENTIFIER constant_opt COLON_EQUAL ^ SEMICOLON, IDENTIFIER/WISI_EOI
+
+   SEMICOLON               => shift and goto state 14
+   default                 => ERROR
+
+
+State 11:
+  constant_opt <= CONSTANT ^, SEMICOLON
+
+   SEMICOLON               => reduce 1 tokens to constant_opt
+   default                 => ERROR
+
+
+State 12:
+  object_declaration <= IDENTIFIER aliased_opt constant_opt ^ SEMICOLON, IDENTIFIER/WISI_EOI
+
+   SEMICOLON               => shift and goto state 13
+   default                 => ERROR
+
+
+State 13:
+  object_declaration <= IDENTIFIER aliased_opt constant_opt SEMICOLON ^, IDENTIFIER/WISI_EOI
+
+   IDENTIFIER              => reduce 4 tokens to object_declaration
+   WISI_EOI                => reduce 4 tokens to object_declaration
+   default                 => ERROR
 
 
 State 14:
-  OBJECT_DECLARATION_ID <= IDENTIFIER_ID CONSTANT_OPT_ID COLON_EQUAL_ID SEMICOLON_ID ^, EOF_ID/IDENTIFIER_ID
+  object_declaration <= IDENTIFIER constant_opt COLON_EQUAL SEMICOLON ^, IDENTIFIER/WISI_EOI
 
-   EOF_ID                     => reduce 4 tokens to OBJECT_DECLARATION_ID
-   IDENTIFIER_ID              => reduce 4 tokens to OBJECT_DECLARATION_ID
-   default                    => ERROR
+   IDENTIFIER              => reduce 4 tokens to object_declaration
+   WISI_EOI                => reduce 4 tokens to object_declaration
+   default                 => ERROR
 
 
- 4 rules, 3 actions, 1 shift/reduce conflicts, 0 reduce/reduce conflicts, 14 states, 44 table entries
+ 4 rules, 3 actions, 14 states, 75 table entries
+ 0 accept/reduce conflicts, 1 shift/reduce conflicts, 0 reduce/reduce conflicts

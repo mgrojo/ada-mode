@@ -23,8 +23,14 @@ bump version
         current version
         opentoken-*.tar.gz
 
-    ../Build/Makefile
+    Makefile
         ZIP_VERSION
+
+    debug/opentoken_lib.gpr
+        Version
+
+    release/opentoken_lib.gpr
+        Version
 
     ~/Web/Makefile
         OPENTOKEN_ZIP_VERSION
@@ -70,8 +76,7 @@ loop until no changes:
             make -r distclean
             make -r all
 
-        ../../../webcheck.main/build/linux_release/Makefile
-            # FIXME: delete dependence on main_lynx_5/makerules
+        ../../webcheck.main/build/windows_release/Makefile
             maintainer-clean
             make -r all BUILD=User
 

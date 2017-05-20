@@ -1,0 +1,102 @@
+;;; subprograms-lr1-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe ../../wisi/test/subprograms.wy
+
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+(require 'wisi)
+(require 'semantic/lex)
+(require 'wisi-compile)
+
+(defconst subprograms-lr1-elisp-keyword-table
+  (semantic-lex-make-keyword-table
+   '(
+    ("function" . FUNCTION)
+    ("(" . LEFT_PAREN)
+    ("procedure" . PROCEDURE)
+    (")" . RIGHT_PAREN)
+    )
+   nil)
+  "Table of language keywords.")
+
+(defconst subprograms-lr1-elisp-token-table
+  (semantic-lex-make-type-table
+   '(
+     ("symbol"
+      (SYMBOL . "[a-zA-Z][0-9a-zA-Z_]*")
+     )
+    )
+   nil)
+  "Table of language tokens.")
+
+(defconst subprograms-lr1-elisp-parse-table
+   (wisi-compile-grammar
+   '((SYMBOL FUNCTION LEFT_PAREN PROCEDURE RIGHT_PAREN )
+     ((compilation_unit
+       ((declarations )
+        (setq wisi-test-success t)))
+      (declarations
+       ((declaration ))
+       ((declarations declaration )))
+      (declaration
+       ((subprogram )))
+      (subprogram
+       ((FUNCTION parameter_list SYMBOL )
+        (wisi-statement-action [1 function 2 other]))
+       ((PROCEDURE parameter_list SYMBOL )
+        (wisi-statement-action [1 procedure 2 other])))
+      (parameter_list
+       ((LEFT_PAREN RIGHT_PAREN )
+        (wisi-statement-action [1 open-paren 2 close-paren]))
+       (())
+       ((LEFT_PAREN SYMBOL RIGHT_PAREN )
+        (wisi-statement-action [1 open-paren 3 close-paren]))))
+     [((default . error) (FUNCTION .  1) (PROCEDURE .  2))
+      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)))
+      ((default . error) (LEFT_PAREN .  8) (SYMBOL . (parameter_list . 1)))
+      ((default . error) (Wisi_EOI . accept))
+      ((default . error) (FUNCTION .  1) (PROCEDURE .  2) (Wisi_EOI . (compilation_unit . 0)))
+      ((default . error) (FUNCTION . (declarations . 0)) (PROCEDURE . (declarations . 0)) (Wisi_EOI . (declarations . 0)))
+      ((default . error) (FUNCTION . (declaration . 0)) (PROCEDURE . (declaration . 0)) (Wisi_EOI . (declaration . 0)))
+      ((default . error) (FUNCTION . (declarations . 1)) (PROCEDURE . (declarations . 1)) (Wisi_EOI . (declarations . 1)))
+      ((default . error) (RIGHT_PAREN .  13) (SYMBOL .  14))
+      ((default . error) (SYMBOL .  12))
+      ((default . error) (SYMBOL .  11))
+      ((default . error) (FUNCTION . (subprogram . 0)) (PROCEDURE . (subprogram . 0)) (Wisi_EOI . (subprogram . 0)))
+      ((default . error) (FUNCTION . (subprogram . 1)) (PROCEDURE . (subprogram . 1)) (Wisi_EOI . (subprogram . 1)))
+      ((default . error) (SYMBOL . (parameter_list . 0)))
+      ((default . error) (RIGHT_PAREN .  15))
+      ((default . error) (SYMBOL . (parameter_list . 2)))]
+     [((compilation_unit . 3)(declarations . 4)(declaration . 5)(subprogram . 6))
+      ((parameter_list . 10))
+      ((parameter_list . 9))
+      nil
+      ((declaration . 7)(subprogram . 6))
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil
+      nil]))
+  "Parser table.")
+
+(provide 'subprograms-lr1-elisp)
+
+;; end of file

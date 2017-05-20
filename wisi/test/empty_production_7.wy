@@ -1,18 +1,23 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
 
 %{
-(require 'wisi)
 %}
 
 %keyword ALIASED "aliased"
 %keyword CONSTANT "constant"
 
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 %start object_declaration_list
+%first_state_index 1
+%first_parser_label 1
+%parser_algorithm LALR_LR1
+%output_language Emacs_Ada
+%lexer Aflex
+%interface process
 
 %%
 

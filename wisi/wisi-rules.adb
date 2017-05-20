@@ -4,31 +4,31 @@
 --
 --  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  This program is free software; you can redistribute it and/or
---  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version. This program is distributed in the
---  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
---  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
---  PURPOSE. See the GNU General Public License for more details. You
---  should have received a copy of the GNU General Public License
---  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
---  MA 02110-1335, USA.
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
-with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
-  (Input_File   : in     Standard.Ada.Text_IO.File_Type;
-   Rule_List    : in out Rule_Lists.List;
-   Rule_Count   :    out Integer;
-   Action_Count :    out Integer)
+  (Input_File      : in     Standard.Ada.Text_IO.File_Type;
+   Output_Language : in     Valid_Output_Language;
+   Rule_List       : in out Rule_Lists.List;
+   Rule_Count      :    out Integer;
+   Action_Count    :    out Integer)
 is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
@@ -52,6 +52,10 @@ is
       First     : Integer   := 0;
       Last_Char : Character := Line (Line'First);
    begin
+      if Output_Language not in Elisp | Ada_Emacs then
+         return;
+      end if;
+
       --  Verify that integers in Line are valid token numbers
       for I in Line'Range loop
          case Line (I) is
@@ -91,8 +95,8 @@ is
    end Update_Paren_Count;
 
 begin
-   --  We assume actions start on a new line starting with either ` or
-   --  (, and are terminated by ; on a new line.
+   --  Actions start on a new line starting with (, and are terminated
+   --  by ). Those delimiters are stripped here.
 
    Rule_Count   := 0;
    Action_Count := 0;
@@ -143,16 +147,27 @@ begin
             when Production =>
 
                case Line (Cursor) is
-               when '`' | '(' =>
+               when '(' =>
                   State         := Action;
-                  RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
                   Paren_Count   := 0;
                   Bracket_Count := 0;
 
                   Check_Numbers (Line);
                   Update_Paren_Count (Line);
-                  Action_Count  := Action_Count + 1;
+
+                  if Output_Language in Elisp | Ada_Emacs then
+                     --  keep parens
+                     RHS.Action := RHS.Action + Line;
+
+                  elsif Paren_Count = 0 then
+                     --  Current line also has the terminating ')'; assume no trailing whitespace
+                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last - 1);
+                  else
+                     RHS.Action := RHS.Action + Line (Line'First + 1 .. Line'Last);
+                  end if;
+
+                  Action_Count := Action_Count + 1;
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
@@ -185,45 +200,50 @@ begin
                end case;
 
             when Action =>
-               case Line (Cursor) is
-               when ';' =>
-                  Rule.Right_Hand_Sides.Append (RHS);
-                  Rule_List.Append (Rule);
-                  State         := Left_Hand_Side;
-                  Need_New_Line := True;
+               if Paren_Count = 0 then
+                  --  Current line has the terminating ')'
+                  case Line (Cursor) is
+                  when ';' =>
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     Rule_List.Append (Rule);
+                     State         := Left_Hand_Side;
+                     Need_New_Line := True;
 
-                  if Paren_Count /= 0 then
-                     raise Syntax_Error with "unbalanced parens in action";
+                     if Bracket_Count /= 0 then
+                        raise Syntax_Error with "unbalanced brackets in action";
+                     end if;
+
+                  when '|' =>
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     State := Production;
+                     RHS.Production.Clear;
+                     RHS.Action.Clear;
+
+                     Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                     Need_New_Line := Cursor = 0;
+
+                  when others =>
+                     raise Syntax_Error with "expecting ';' or '|'";
+                  end case;
+
+               else
+                  Update_Paren_Count (Line);
+
+                  if Output_Language in Elisp | Ada_Emacs then
+                     --  keep parens
+                     RHS.Action := RHS.Action + Line;
+
+                  elsif Paren_Count = 0 then
+                     --  Current line has the terminating ')'; assume no trailing whitespace
+                     RHS.Action := RHS.Action + Line (Line'First .. Line'Last - 1);
+                  else
+                     RHS.Action := RHS.Action + Line;
                   end if;
 
-                  if Bracket_Count /= 0 then
-                     raise Syntax_Error with "unbalanced brackets in action";
-                  end if;
-
-               when '|' =>
-                  Rule.Right_Hand_Sides.Append (RHS);
-                  State := Production;
-                  RHS.Production.Clear;
-                  RHS.Action.Clear;
-
-                  Cursor := Index_Non_Blank (Line, From => Cursor + 1);
-                  Need_New_Line := Cursor = 0;
-
-                  if Paren_Count /= 0 then
-                     raise Syntax_Error with "unbalanced parens in action";
-                  end if;
-
-                  if Bracket_Count /= 0 then
-                     raise Syntax_Error with "unbalanced brackets in action";
-                  end if;
-
-               when others =>
-                  RHS.Action    := RHS.Action + Line;
                   Need_New_Line := True;
 
                   Check_Numbers (Line);
-                  Update_Paren_Count (Line);
-               end case;
+               end if;
             end case;
 
          end Parse_State;
@@ -240,22 +260,14 @@ begin
          Error := True;
          declare
             use Standard.Ada.Exceptions;
-            use Standard.Ada.Directories;
          begin
-            Standard.Ada.Text_IO.Put_Line
-              (Simple_Name (Name (Input_File)) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) & ":0: " &
-                 Exception_Message (E));
+            Put_Error (Input_File, Exception_Message (E));
          end;
       when E : others =>
          declare
             use Standard.Ada.Exceptions;
-            use Standard.Ada.Directories;
          begin
-            Standard.Ada.Text_IO.Put_Line
-              (Simple_Name (Name (Input_File)) & ":" &
-                 Trim (Standard.Ada.Text_IO.Count'Image (Standard.Ada.Text_IO.Line (Input_File)), Left) &
-                 ":0: unhandled exception " & Exception_Name (E));
+            Put_Error (Input_File, "unhandled exception " & Exception_Name (E));
          end;
          raise Syntax_Error;
       end;

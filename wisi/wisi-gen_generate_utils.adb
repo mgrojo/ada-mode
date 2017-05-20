@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -21,26 +21,34 @@ with Ada.Exceptions;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
+   function Non_Reporting (Kind : in String) return Boolean
+   is begin
+      return
+        Kind = """line_comment""" or
+        Kind = """line_end""" or
+        Kind = """whitespace""";
+   end Non_Reporting;
+
    function Count_Non_Reporting return Integer
    is
       Result : Integer := 0;
    begin
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             Result := Result + Integer (Kind.Tokens.Length);
          end if;
       end loop;
       return Result;
    end Count_Non_Reporting;
 
-   function Find_Token_ID (Token : in String) return Token_IDs
+   function Find_Token_ID (Token : in String) return Token_ID
    is
       use type Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Result : Token_IDs := Token_IDs'First;
+      Result : Token_ID := Token_ID'First;
    begin
       --  Same order as set_token_images below.
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -58,7 +66,7 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
                if Pair.Name = Token then
                   return Result;
@@ -82,8 +90,8 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = OpenToken_Accept_Name or
-        Token = "opentoken_accept"
+      if Token = FastToken_Accept_Name or
+        Token = "fasttoken_accept"
       then
          return Result;
       end if;
@@ -91,32 +99,38 @@ package body Wisi.Gen_Generate_Utils is
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   function Set_Token_Images return ID_Array_Access_String_Type
+   function Set_Token_Images return ID_Array_Access_String_Pair_Type
    is
-      ID           : Token_IDs := Token_IDs'First;
-      Token_Images : ID_Array_Access_String_Type;
+      ID           : Token_ID := Token_ID'First;
+      Token_Images : ID_Array_Access_String_Pair_Type;
    begin
       --  same order as output_ada
 
       --  non-reporting
       for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""" then
+         if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               Token_Images (ID, WY)     := new String'(-Pair.Name);
+               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
                ID := ID + 1;
             end loop;
          end if;
       end loop;
 
       for Pair of Keywords loop
-         Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+         Token_Images (ID, WY)     := new String'(-Pair.Name);
+         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
          ID := ID + 1;
       end loop;
 
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID) := new String'(To_Token_Image (Pair.Name));
+               Token_Images (ID, WY)     := new String'(-Pair.Name);
+               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+
                ID := ID + 1;
             end loop;
          end if;
@@ -124,45 +138,42 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= EOI_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(To_Token_Image (EOI_Name));
-      ID                := ID + 1;
+      Token_Images (ID, WY)     := new String'(-EOI_Name);
+      Token_Images (ID, Output) := new String'(To_Token_Out_Image (EOI_Name));
+
+      ID := ID + 1;
 
       for Rule of Rules loop
-         Token_Images (ID) := new String'(To_Token_Image (Rule.Left_Hand_Side));
+         Token_Images (ID, WY)     := new String'(-Rule.Left_Hand_Side);
+         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
+
          ID := ID + 1;
       end loop;
 
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID) := new String'(To_Token_Image (OpenToken_Accept_Name));
+      Token_Images (ID, WY)     := new String'(-FastToken_Accept_Name);
+      Token_Images (ID, Output) := new String'(To_Token_Out_Image (FastToken_Accept_Name));
 
-      for Token of Token_Images loop
-         if Token.all'Length > Token_Image_Width then
-            Token_Image_Width := Token.all'Length;
+      for ID in Token_Images'Range loop
+         if Token_Images (ID, WY).all'Length > Token_WY_Image_Width then
+            Token_WY_Image_Width := Token_Images (ID, WY).all'Length;
          end if;
       end loop;
 
       return Token_Images;
    end Set_Token_Images;
 
-   procedure Indent_Line (Text : in String)
-   is
-      use Ada.Text_IO;
-   begin
-      Set_Col (Indent);
-      Put_Line (Text);
-   end Indent_Line;
-
    function Non_Reporting (Cursor : in Token_Cursor) return Boolean
    is
-      use Ada.Strings.Unbounded;
+      use Standard.Ada.Strings.Unbounded;
       --  WORKAROUND: in GNAT GPL_2014, using single statement here gives constraint error
       Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type := Wisi.Token_Lists.Constant_Reference
         (Tokens, Cursor.Token_Kind);
 
       Kind : constant String := To_String (Token_Ref.Element.Kind);
    begin
-      return Kind = """line_comment""" or Kind = """whitespace""";
+      return Non_Reporting (Kind);
    end Non_Reporting;
 
    function First_Token_Item (Cursor : in Token_Cursor) return String_Pair_Lists.Cursor
@@ -268,6 +279,8 @@ package body Wisi.Gen_Generate_Utils is
                Cursor.Token_Item := First_Token_Item (Cursor);
                return;
             end if;
+
+            Wisi.Token_Lists.Next (Cursor.Token_Kind);
          end loop;
 
          --  no Terminals_Others; on to EOI
@@ -307,14 +320,14 @@ package body Wisi.Gen_Generate_Utils is
             Cursor.State := Done;
          else
             Cursor :=
-              (State       => OpenToken_Accept,
+              (State       => FastToken_Accept,
                Token_Kind  => Wisi.Token_Lists.No_Element,
                Token_Item  => String_Pair_Lists.No_Element,
                Keyword     => String_Pair_Lists.No_Element,
                Nonterminal => Rule_Lists.No_Element);
          end if;
 
-      when OpenToken_Accept =>
+      when FastToken_Accept =>
          Cursor :=
            (State       => Nonterminal,
             Token_Kind  => Wisi.Token_Lists.No_Element,
@@ -367,8 +380,8 @@ package body Wisi.Gen_Generate_Utils is
       when EOI =>
          return EOI_Name;
 
-      when OpenToken_Accept =>
-         return OpenToken_Accept_Name;
+      when FastToken_Accept =>
+         return FastToken_Accept_Name;
 
       when Nonterminal =>
          declare
@@ -388,66 +401,71 @@ package body Wisi.Gen_Generate_Utils is
       use Standard.Ada.Text_IO;
    begin
       Put_Line ("Tokens:");
-      for I in Token_IDs'Range loop
-         Put_Line (Token_IDs'Image (I) & " => " & Token_Image (I));
+      for I in Token_ID'Range loop
+         Put_Line (Token_ID'Image (I) & " => " & Token_WY_Image (I));
       end loop;
       New_Line;
    end Put_Tokens;
 
    function To_Conflicts
-     (Shift_Reduce_Conflict_Count  : out Integer;
+     (Accept_Reduce_Conflict_Count : out Integer;
+      Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return LALRs.Conflict_Lists.List
+     return Generator_Utils.Conflict_Lists.List
    is
-      use type LALRs.Unknown_State_Index;
-      use type LALRs.Parse_Action_Verbs;
-      Result   : LALRs.Conflict_Lists.List;
-      Conflict : LALRs.Conflict;
+      use Generator_Utils;
+      use type LR.Unknown_State_Index;
+      use type LR.Parse_Action_Verbs;
+      Result   : Generator_Utils.Conflict_Lists.List;
+      Conflict : Generator_Utils.Conflict;
    begin
+      Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
       Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
          Conflict :=
-           (LALRs.Conflict_Parse_Actions'Value (-Item.Action_A),
+           (Conflict_Parse_Actions'Value (-Item.Action_A),
             Find_Token_ID (-Item.LHS_A),
-            LALRs.Conflict_Parse_Actions'Value (-Item.Action_B),
+            Conflict_Parse_Actions'Value (-Item.Action_B),
             Find_Token_ID (-Item.LHS_B),
             -1,
             Find_Token_ID (-Item.On));
 
-         if Conflict.Action_A = LALRs.Shift then
+         case Conflict.Action_A is
+         when LR.Shift =>
             Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
-         else
+         when LR.Reduce =>
             Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
-         end if;
+         when LR.Accept_It =>
+            Accept_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+         end case;
 
          Result.Append (Conflict);
       end loop;
       return Result;
    exception
    when E : Not_Found =>
-      raise OpenToken.Grammar_Error with "known conflicts: " & Ada.Exceptions.Exception_Message (E);
+      raise FastToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Token_Lists.Instance; Token : in String) return Token_Lists.Instance
+   function "&" (Tokens : in Token_Pkg.List.Instance; Token : in String) return Token_Pkg.List.Instance
    is
-      use Token_Lists;
+      use Token_Pkg.List;
    begin
-      return Tokens & Tokens_Pkg.Get (Find_Token_ID (Token));
+      return Tokens & Find_Token_ID (Token);
    end "&";
 
-   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production_Lists.Instance
+   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance
    is
-      use Productions;
-      use Token_Lists;
+      use Production;
+      use Token_Pkg.List;
 
-      Grammar : Production_Lists.Instance;
+      Grammar : Production.List.Instance;
    begin
       begin
-         Grammar := Production_Lists.Only
-           (Nonterminals.Get (Accept_ID) <= Nonterminals.Get (Find_Token_ID (Start_Token)) &
-              Tokens_Pkg.Get (EOI_ID));
+         Grammar := Production.List.Only
+           (Accept_ID <= Find_Token_ID (Start_Token) & EOI_ID + Token_Pkg.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -461,14 +479,14 @@ package body Wisi.Gen_Generate_Utils is
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare
-                  use Production_Lists;
+                  use Production.List;
 
-                  Tokens : Token_Lists.Instance;
+                  Tokens : Token_Pkg.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
                   end loop;
-                  Grammar := Grammar and Nonterminals.Get (Find_Token_ID (-Rule.Left_Hand_Side)) <= Tokens + Index;
+                  Grammar := Grammar and Find_Token_ID (-Rule.Left_Hand_Side) <= Tokens + Index;
                exception
                when E : Not_Found =>
                   Wisi.Utils.Put_Error
@@ -482,6 +500,23 @@ package body Wisi.Gen_Generate_Utils is
 
       return Grammar;
    end To_Grammar;
+
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_Pkg.Nonterminal_ID_Set
+   is
+      Result : Token_Pkg.Nonterminal_ID_Set := (others => False);
+   begin
+      for Token of Item loop
+         Result (Find_Token_ID (Token)) := True;
+      end loop;
+      return Result;
+   end To_Nonterminal_ID_Set;
+
+   function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index
+   is
+      use all type LR.Unknown_State_Index;
+   begin
+      return State_Last - LR.State_Index'First + 1;
+   end To_State_Count;
 
 begin
    if Verbosity > 0 then

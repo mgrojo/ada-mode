@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test OpenToken.Production.Parser.Expecting
+--  Test FastToken.Production.Parser.Expecting
 --
---  Copyright (C) 2009, 2010, 2012 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009, 2010, 2012, 2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

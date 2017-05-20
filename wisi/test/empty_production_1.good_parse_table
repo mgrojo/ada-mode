@@ -1,105 +1,271 @@
 Tokens:
- 1 => WHITESPACE_ID
- 2 => COMMENT_ID
- 3 => BEGIN_ID
- 4 => IS_ID
- 5 => SEMICOLON_ID
- 6 => EOF_ID
- 7 => DECLARATIONS_ID
- 8 => DECLARATIVE_PART_ID
- 9 => BODY_ID
- 10 => OPENTOKEN_ACCEPT_ID
+ 1 => WHITESPACE
+ 2 => COMMENT
+ 3 => BEGIN
+ 4 => IS
+ 5 => SEMICOLON
+ 6 => WISI_EOI
+ 7 => declarations
+ 8 => declarative_part
+ 9 => body
+ 10 => fasttoken_accept
 
-Parse Table:
+LALR Parse Table:
+Panic_Recover:
+(others => False));
+
+Follow:
+( declarations =>
+  (BEGIN |
+   IS |
+   WISI_EOI => True,
+   others => False)
+ declarative_part =>
+  (BEGIN |
+   WISI_EOI => True,
+   others => False)
+ body =>
+  (BEGIN |
+   IS |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
+
 State 1:
-  OPENTOKEN_ACCEPT_ID <= ^ DECLARATIVE_PART_ID EOF_ID
+  fasttoken_accept <= ^ declarative_part WISI_EOI, 
 
-   EOF_ID              => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 0 tokens to declarative_part
+   default          => ERROR
 
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 4
-   BODY_ID             goto state 5
+   declarations     goto state 3
+   declarative_part goto state 4
+   body             goto state 5
 
 State 2:
-  BODY_ID <= IS_ID ^ DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
+  body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => reduce 0 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
+   BEGIN            => reduce 0 tokens to declarative_part
+   IS               => shift and goto state 2
+   default          => ERROR
 
-   DECLARATIONS_ID     goto state 3
-   DECLARATIVE_PART_ID goto state 8
-   BODY_ID             goto state 5
+   declarations     goto state 3
+   declarative_part goto state 7
+   body             goto state 5
 
 State 3:
-  DECLARATIVE_PART_ID <= DECLARATIONS_ID ^, EOF_ID/BEGIN_ID
-  DECLARATIONS_ID <= DECLARATIONS_ID ^ BODY_ID, EOF_ID/BEGIN_ID/IS_ID
+  declarations <= declarations ^ body, BEGIN/IS/WISI_EOI
+  declarative_part <= declarations ^, BEGIN/WISI_EOI
 
-   EOF_ID              => reduce 1 tokens to DECLARATIVE_PART_ID
-   BEGIN_ID            => reduce 1 tokens to DECLARATIVE_PART_ID
-   IS_ID               => shift and goto state 2
-   default             => ERROR
+   BEGIN            => reduce 1 tokens to declarative_part
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 1 tokens to declarative_part
+   default          => ERROR
 
-   BODY_ID             goto state 7
+   body             goto state 6
 
 State 4:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID ^ EOF_ID
+  fasttoken_accept <= declarative_part ^ WISI_EOI, 
 
-   EOF_ID              => shift and goto state 6
-   default             => ERROR
+   WISI_EOI         => accept it
+   default          => ERROR
 
 
 State 5:
-  DECLARATIONS_ID <= BODY_ID ^, EOF_ID/BEGIN_ID/IS_ID
+  declarations <= body ^, BEGIN/IS/WISI_EOI
 
-   EOF_ID              => reduce 1 tokens to DECLARATIONS_ID
-   BEGIN_ID            => reduce 1 tokens to DECLARATIONS_ID
-   IS_ID               => reduce 1 tokens to DECLARATIONS_ID
-   default             => ERROR
+   BEGIN            => reduce 1 tokens to declarations
+   IS               => reduce 1 tokens to declarations
+   WISI_EOI         => reduce 1 tokens to declarations
+   default          => ERROR
 
 
 State 6:
-  OPENTOKEN_ACCEPT_ID <= DECLARATIVE_PART_ID EOF_ID ^, EOF_ID/SEMICOLON_ID/IS_ID/BEGIN_ID
+  declarations <= declarations body ^, BEGIN/IS/WISI_EOI
 
-   EOF_ID              => accept it
-   SEMICOLON_ID        => accept it
-   IS_ID               => accept it
-   BEGIN_ID            => accept it
-   default             => ERROR
+   BEGIN            => reduce 2 tokens to declarations
+   IS               => reduce 2 tokens to declarations
+   WISI_EOI         => reduce 2 tokens to declarations
+   default          => ERROR
 
 
 State 7:
-  DECLARATIONS_ID <= DECLARATIONS_ID BODY_ID ^, IS_ID/BEGIN_ID/EOF_ID
+  body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
 
-   IS_ID               => reduce 2 tokens to DECLARATIONS_ID
-   BEGIN_ID            => reduce 2 tokens to DECLARATIONS_ID
-   EOF_ID              => reduce 2 tokens to DECLARATIONS_ID
-   default             => ERROR
+   BEGIN            => shift and goto state 8
+   default          => ERROR
 
 
 State 8:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID ^ BEGIN_ID SEMICOLON_ID, BEGIN_ID/IS_ID/EOF_ID
+  body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/WISI_EOI
 
-   BEGIN_ID            => shift and goto state 9
-   default             => ERROR
+   SEMICOLON        => shift and goto state 9
+   default          => ERROR
 
 
 State 9:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID ^ SEMICOLON_ID, EOF_ID/IS_ID/BEGIN_ID
+  body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/WISI_EOI
 
-   SEMICOLON_ID        => shift and goto state 10
-   default             => ERROR
+   BEGIN            => reduce 4 tokens to body
+   IS               => reduce 4 tokens to body
+   WISI_EOI         => reduce 4 tokens to body
+   default          => ERROR
+
+
+LR1 Parse Table:
+Panic_Recover:
+(others => False));
+Follow:
+( declarations =>
+  (BEGIN |
+   IS |
+   WISI_EOI => True,
+   others => False)
+ declarative_part =>
+  (BEGIN |
+   WISI_EOI => True,
+   others => False)
+ body =>
+  (BEGIN |
+   IS |
+   WISI_EOI => True,
+   others => False)
+ others => (others => False))
+State 1:
+  fasttoken_accept <= ^ declarative_part WISI_EOI, WISI_EOI
+
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 0 tokens to declarative_part
+   default          => ERROR
+
+   declarations     goto state 3
+   declarative_part goto state 4
+   body             goto state 5
+
+State 2:
+  body <= IS ^ declarative_part BEGIN SEMICOLON, IS/WISI_EOI
+
+   BEGIN            => reduce 0 tokens to declarative_part
+   IS               => shift and goto state 7
+   default          => ERROR
+
+   declarations     goto state 8
+   declarative_part goto state 9
+   body             goto state 10
+
+State 3:
+  declarations <= declarations ^ body, IS/WISI_EOI
+  declarative_part <= declarations ^, WISI_EOI
+
+   IS               => shift and goto state 2
+   WISI_EOI         => reduce 1 tokens to declarative_part
+   default          => ERROR
+
+   body             goto state 6
+
+State 4:
+  fasttoken_accept <= declarative_part ^ WISI_EOI, WISI_EOI
+
+   WISI_EOI         => accept it
+   default          => ERROR
+
+
+State 5:
+  declarations <= body ^, IS/WISI_EOI
+
+   IS               => reduce 1 tokens to declarations
+   WISI_EOI         => reduce 1 tokens to declarations
+   default          => ERROR
+
+
+State 6:
+  declarations <= declarations body ^, IS/WISI_EOI
+
+   IS               => reduce 2 tokens to declarations
+   WISI_EOI         => reduce 2 tokens to declarations
+   default          => ERROR
+
+
+State 7:
+  body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS
+
+   BEGIN            => reduce 0 tokens to declarative_part
+   IS               => shift and goto state 7
+   default          => ERROR
+
+   declarations     goto state 8
+   declarative_part goto state 13
+   body             goto state 10
+
+State 8:
+  declarations <= declarations ^ body, BEGIN/IS
+  declarative_part <= declarations ^, BEGIN
+
+   BEGIN            => reduce 1 tokens to declarative_part
+   IS               => shift and goto state 7
+   default          => ERROR
+
+   body             goto state 12
+
+State 9:
+  body <= IS declarative_part ^ BEGIN SEMICOLON, IS/WISI_EOI
+
+   BEGIN            => shift and goto state 11
+   default          => ERROR
 
 
 State 10:
-  BODY_ID <= IS_ID DECLARATIVE_PART_ID BEGIN_ID SEMICOLON_ID ^, BEGIN_ID/IS_ID/EOF_ID
+  declarations <= body ^, BEGIN/IS
 
-   BEGIN_ID            => reduce 4 tokens to BODY_ID
-   IS_ID               => reduce 4 tokens to BODY_ID
-   EOF_ID              => reduce 4 tokens to BODY_ID
-   default             => ERROR
+   BEGIN            => reduce 1 tokens to declarations
+   IS               => reduce 1 tokens to declarations
+   default          => ERROR
 
 
- 3 rules, 1 actions, 0 shift/reduce conflicts, 0 reduce/reduce conflicts, 10 states, 33 table entries
+State 11:
+  body <= IS declarative_part BEGIN ^ SEMICOLON, IS/WISI_EOI
+
+   SEMICOLON        => shift and goto state 15
+   default          => ERROR
+
+
+State 12:
+  declarations <= declarations body ^, BEGIN/IS
+
+   BEGIN            => reduce 2 tokens to declarations
+   IS               => reduce 2 tokens to declarations
+   default          => ERROR
+
+
+State 13:
+  body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS
+
+   BEGIN            => shift and goto state 14
+   default          => ERROR
+
+
+State 14:
+  body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS
+
+   SEMICOLON        => shift and goto state 16
+   default          => ERROR
+
+
+State 15:
+  body <= IS declarative_part BEGIN SEMICOLON ^, IS/WISI_EOI
+
+   IS               => reduce 4 tokens to body
+   WISI_EOI         => reduce 4 tokens to body
+   default          => ERROR
+
+
+State 16:
+  body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS
+
+   BEGIN            => reduce 4 tokens to body
+   IS               => reduce 4 tokens to body
+   default          => ERROR
+
+
+ 3 rules, 1 actions, 16 states, 71 table entries
+ 0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

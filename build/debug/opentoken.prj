@@ -1,8 +1,0 @@
--- We do _not_ set ada_project_path, to simplify compiling without
--- this project file.
-
-gpr_file=opentoken_test.gpr
-
-gnat_stub_opts=-P opentoken_test.gpr
-
-casing=../emacs_case_exceptions

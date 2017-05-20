@@ -9,7 +9,7 @@
 ;; In parsing 3), the second 'is' causes a shift/reduce conflict;
 ;; shift to start the nested declaration (as in 2), reduce to the
 ;; empty declaration. Both are correct according to the grammar; this
-;; is reported as shift/reduce conflicts.
+;; is reported as shift/reduce conflicts when compiling the grammar.
 ;;
 ;; In the actual parse, an infinite number of parsers are spawned,
 ;; terminating when the parallel parse limit is reached. Because the
@@ -24,13 +24,19 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%token <whitespace> WHITESPACE ""
-%token <line_comment> COMMENT "--"
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 
 %start declarations
+%first_state_index 1
+%first_parser_label 1
+%parser_algorithm LALR_LR1
+%output_language Emacs_Ada
+%lexer Aflex
+%interface process
 
+%conflict ACCEPT_IT/REDUCE in state fasttoken_accept, declaration on token WISI_EOI
 %conflict SHIFT/REDUCE in state body, declaration on token BEGIN
-%conflict SHIFT/REDUCE in state opentoken_accept, declaration on token EOI
 %conflict SHIFT/REDUCE in state body, declaration on token IS
 
 %%

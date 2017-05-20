@@ -4,26 +4,80 @@ all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 # ../../Test/test_all_harness.adb
-#t_one : RUN_ARGS := -v
+#t_one : aflex.exe
+t_one : one-clean
+t_one : character_literal_yylex.adb
+#t_one : RUN_ARGS := 3
+# %_process.l : PARSER_ALG := LALR
 t_one : test_one_harness.run
+
+t_all : ada_lite_yylex.adb
+t_all : ./wisi-generate.exe
 t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
-one : body_instantiation_conflict-wy.el
+one-clean :
+	rm -rf character_literal*
+# %_process.l : RUN_ARGS := -v 2 --first_state_index 1
+one : one-clean
+one : wisi-generate.exe
+# one : debug_process_yylex.adb
+# one : debug.exe
+# 	./debug.exe ../../wisi/test/debug.input
+
+some-clean :
+	rm -rf $(SOME_CLEAN_FILE)*
+some : some-clean
+some : wisi-generate.exe
+# # some : SOME_CLEAN_FILE := conflict_name
+# some : conflict_name-process.el.diff
+# some : conflict_name_process_yylex.adb
+# some : conflict_name-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_1
+# some : empty_production_1_process_yylex.adb
+# some : empty_production_1-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_2
+# some : empty_production_2_process_yylex.adb
+# some : empty_production_2-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_3
+# some : empty_production_3_process_yylex.adb
+# some : empty_production_3-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_4
+# some : empty_production_4_process_yylex.adb
+# some : empty_production_4-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_5
+# some : empty_production_5_process_yylex.adb
+# some : empty_production_5-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_6
+# some : empty_production_6_process_yylex.adb
+# some : empty_production_6-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_7
+# some : empty_production_7_process_yylex.adb
+# some : empty_production_7-parse.diff
+# # some : SOME_CLEAN_FILE := empty_production_8
+# some : empty_production_8_process_yylex.adb
+# some : empty_production_8-parse.diff
+# # some : SOME_CLEAN_FILE := identifier_list_name_conflict
+# some : identifier_list_name_conflict_process_yylex.adb
+# some : identifier_list_name_conflict-parse.diff
+# # some : SOME_CLEAN_FILE := subprograms
+# some : subprograms_process_yylex.adb
+# some : subprograms-parse.diff
+
+aflex.exe : force
+	make -C /Projects/edu.uci.aflex/build install
 
 EMACS := /apps/emacs-24.2.91/bin/emacs.exe
 ../../wisi/test/%-wy.el : %.wy
 	cd ../../wisi/test; $(EMACS) -batch --no-site-file -l generate-known-good.el -f wisi-generate $(<F)
 
 trace :
-	addr2line -e wisi-generate.exe 0x40eb70 0x4214f8 0x401aba 0x402641 0x4013f8 0x74ea33a8 0x77689ef0 0x77689ec3
+	addr2line -e test_one_harness.exe 0x46b9e7 0x77e7fe6f 0x77e7fe41 0x77e805bd 0x77e81c68
 
 include ../common.make
 
 # Local Variables:
-# eval: (load-file "../opentoken.el")
-# eval: (ada-parse-prj-file "opentoken.prj")
-# eval: (ada-select-prj-file "opentoken.prj")
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
 # end:
 # end of file

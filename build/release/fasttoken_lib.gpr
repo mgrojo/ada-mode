@@ -1,0 +1,52 @@
+-- (ediff "../debug/fasttoken_lib.gpr" "fasttoken_lib.gpr")
+with "../common";
+project FastToken_Lib is
+
+   --  Version must change for each user-visible change; it does not
+   --  have to match the source package version.
+   Version := "5.0.0";
+
+   for Languages use ("Ada");
+   for Source_Dirs use
+     ("../..",
+      "../../wisi"
+     );
+   for Object_Dir use "libobj" & Common.Run_Time;
+   for Library_Name use "fasttoken";
+   for Library_Dir use "lib" & Common.Run_Time;
+   for Library_Kind use Common.Libtype;
+
+   --  Library_Version is not used when Library_Kind is "static"
+   for Library_Version use "libfasttoken." & Common.Dyn_Lib_Extension & "." & Version;
+
+   package Compiler is
+      case Common.Dyn_Lib_Extension is
+      when ".dll" =>
+         case Common.Run_Time is
+         when "zcx" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches;
+
+         when "sjlj" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("--RTS=sjlj");
+         end case;
+
+      when ".so" =>
+         case Common.Run_Time is
+         when "zcx" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("-FPIC");
+         when "sjlj" =>
+            for Default_Switches ("Ada") use Common.Compiler.Release_Switches & ("-FPIC", "--RTS=sjlj");
+         end case;
+      end case;
+   end Compiler;
+
+   package Builder is
+      case Common.Run_Time is
+      when "zcx" =>
+         null;
+      when "sjlj" =>
+         for Default_Switches ("Ada") use ("--RTS=sjlj");
+      end case;
+   end Builder;
+
+end FastToken_Lib;

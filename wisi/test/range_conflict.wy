@@ -1,7 +1,8 @@
 ;; grammar has a reduce-reduce conflict
+;; (ediff "range_conflict.wy" "../../../org.fasttoken/wisi/test/range_conflict.wy")
 
 %{
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -25,10 +26,14 @@
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER
-%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <string> STRING_LITERAL "\"[^\"]*"
 
 %start compilation_unit
+%first_state_index 0
+%first_parser_label 0
+%parser_algorithm LALR_LR1
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
 %%

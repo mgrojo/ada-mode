@@ -1,11 +1,7 @@
-;; Wisent grammar matching ../../Test/trivial_productions_test.adb
-;; Subprograms, to test that wisi-generate produces the same OpenToken
-;; grammar.
-;;
-;; Also tests wisi rules parser
+;; Grammar has no conflicts; test wisi cache actions
 
 %{
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -26,21 +22,22 @@
 %keyword PROCEDURE "procedure"
 %keyword RIGHT_PAREN ")"
 
-%token <symbol> SYMBOL
+%token <symbol> SYMBOL "[a-zA-Z][0-9a-zA-Z_]*"
 
-;; not actually needed in grammar, but <string>, <punctuation> required by wisi-setup
-%token <punctuation> TICK "'"
-%token <string-double> STRING_LITERAL
+;; need whitespace for Aflex lexer
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 
-%token <whitespace> WHITESPACE ""
-
-;; 'opentoken_accept', $EOI added in wisi-generate
+;; 'fasttoken_accept', Wisi_EOI added in wisi-generate
 %start compilation_unit
+%parser_algorithm LALR_LR1
+%output_language Elisp
 
 %%
 
 compilation_unit
   : declarations
+    (setq wisi-test-success t)
   ;
 
 declarations
@@ -54,9 +51,9 @@ declaration
 
 subprogram
   : FUNCTION parameter_list SYMBOL
-    (wisi-statement-action [1 function 3 name])
+    (wisi-statement-action [1 function 2 other]) ;; overwrites open-paren, but not close-paren
   | PROCEDURE parameter_list SYMBOL
-    (wisi-statement-action [1 procedure 3 name])
+    (wisi-statement-action [1 procedure 2 other]) ;; ignored if parameter_list is empty
   ;
 
 ;; not on one line, empty production with comment
@@ -66,8 +63,6 @@ parameter_list
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
     (wisi-statement-action [1 open-paren 3 close-paren])
-
-  | TICK STRING_LITERAL ;; just to mention required tokens, so they are not unused
   ;
 
 %%

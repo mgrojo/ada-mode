@@ -1,0 +1,56 @@
+--  Copyright (c) 2009, 2010 Stephen Leake <stephen_leake@stephe-leake.org>
+--
+--  This program is free software; you can redistribute it and/or modify
+--  it under the terms of the GNU General Public License as published by
+--  the Free Software Foundation; either version 3 of the License, or
+--  (at your option) any later version.
+--
+--  This program is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+--  GNU General Public License for more details.
+
+-- For running FastToken tests.
+--
+-- (ediff "../debug/fasttoken_test.gpr" "fasttoken_test.gpr")
+with "../common";
+with "aunit";
+with "aunit_sal_ext";
+with "fasttoken";
+project FastToken_Test is
+
+   for Source_Dirs use
+     (
+      ".",
+      "../../Examples/ASU_Example_3_6",
+      "../../Examples/ASU_Example_4_46",
+      "../../Examples/ASU_Example_5_10",
+      "../../Test",
+      "../../time",
+      "../../wisi/test"
+     );
+
+   for Object_Dir use "obj";
+   for Exec_Dir use ".";
+
+   package Compiler is
+      -- AUnit requires -fno-strict-aliasing
+      -- -gnatdc outputs compiler progress (for when it hangs)
+      -- -gnatc does semantic only
+      -- -gnatdO outputs error messages immediately
+      for Default_Switches ("Ada") use
+        FastToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
+   end Compiler;
+
+   package Builder is
+      for Default_Switches ("Ada") use Common.Builder'Default_Switches ("Ada");
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      for Executable_Suffix use ".exe";
+   end Builder;
+
+   package Binder is
+      for Default_Switches ("Ada") use Common.Binder'Default_Switches ("Ada");
+   end Binder;
+
+end FastToken_Test;

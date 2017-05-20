@@ -1,111 +1,91 @@
 --  Abstract :
 --
 --  Output Ada code implementing the grammar defined by input
---  parameters, and a parser for that grammar, which outputs encoded
---  elisp actions for the Emacs Ada mode indentation engine.
+--  parameters, and a parser for that grammar. The parser actions
+--  assume the Emacs wisi indentation engine
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  If run in a separate process communicating over pipes with the
+--  Emacs process, the parser actions output encoded elisp actions.
 --
---  This program is free software; you can redistribute it and/or
---  modify it under terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version. This program is distributed in the
---  hope that it will be useful, but WITHOUT ANY WARRANTY; without even
---  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
---  PURPOSE. See the GNU General Public License for more details. You
---  should have received a copy of the GNU General Public License
---  distributed with this program; see file COPYING. If not, write to
---  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
---  MA 02110-1335, USA.
+--  If run in an Emacs dynamically loaded module, the parser actions
+--  call the elisp wisi actions directly.
+--
+--  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
+--
+--  The FastToken package is free software; you can redistribute it
+--  and/or modify it under terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or
+--  (at your option) any later version. This library is distributed in
+--  the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+--  even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+--  PARTICULAR PURPOSE.
+--
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
-with Ada.Characters.Handling;
 with Ada.Text_IO; use Ada.Text_IO;
-with OpenToken;
-with Wisi.Gen_Generate_Utils;
+with FastToken;
+with Wisi.Gen_Output_Ada_Common;
+with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
+with Wisi.Put_Module_Action_Line;
 with Wisi.Utils;
 procedure Wisi.Output_Ada_Emacs
-  (Input_File_Name    : in String;
-   Output_File_Root   : in String;
-   Prologue           : in String_Lists.List;
-   Keywords           : in String_Pair_Lists.List;
-   Tokens             : in Token_Lists.List;
-   Start_Token        : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Conflicts          : in Conflict_Lists.List;
-   Rules              : in Rule_Lists.List;
-   Rule_Count         : in Integer;
-   Action_Count       : in Integer;
-   First_State_Index  : in Integer;
-   First_Parser_Label : in Integer;
-   Profile            : in Boolean)
+  (Input_File_Name         : in String;
+   Output_File_Name_Root   : in String;
+   Generate_Params         : in Generate_Param_Type;
+   Prologue_Context_Clause : in String_Lists.List;
+   Prologue_Declarations   : in String_Lists.List;
+   Keywords                : in String_Pair_Lists.List;
+   Tokens                  : in Token_Lists.List;
+   Conflicts               : in Conflict_Lists.List;
+   Panic_Recover           : in String_Lists.List;
+   Rules                   : in Rule_Lists.List;
+   Rule_Count              : in Integer;
+   Action_Count            : in Integer;
+   Profile                 : in Boolean)
 is
-   use type Ada.Containers.Count_Type;
+   use all type Standard.Ada.Containers.Count_Type;
 
-   EOI_Name              : constant Ada.Strings.Unbounded.Unbounded_String := +"EOF";
-   OpenToken_Accept_Name : constant Ada.Strings.Unbounded.Unbounded_String := +"OPENTOKEN_ACCEPT";
-
-   function To_Token_Image (Item : in String) return String
+   procedure Put_Prologue (Ada_Syntax : in Boolean; Prologue : in String_Lists.List)
    is
-      --  Convert Item to a valid Ada identifier:
-      --
-      --  Add "_ID" to avoid collision with Ada reserved words
-      --
-      --  Replace '-' with '_'
-      Image : String := Ada.Characters.Handling.To_Upper (Item);
    begin
-      for I in Image'Range loop
-         if Image (I) = '-' then
-            Image (I) := '_';
+      --  Prologue has elisp syntax. If Ada_Syntax, keep comments,
+      --  ignore everything else.
+
+      for Line of Prologue loop
+         if Ada_Syntax and (Line'Length = 2 and then Line = ";;") then
+            Put_Line ("--");
+         elsif Ada_Syntax and (Line'Length > 2 and then Line (Line'First .. Line'First + 2) = ";; ") then
+            Put_Line ("--  " & Line (Line'First + 2 .. Line'Last));
+         elsif Ada_Syntax and (Line'Length > 0 and then Line (Line'First) = '(') then
+            null;
+         else
+            Put_Line (Line);
          end if;
       end loop;
-      return Image & "_ID";
-   end To_Token_Image;
+   end Put_Prologue;
 
-   function To_Token_Image (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
+   procedure Put_Ada_Prologue_Context_Clause
    is begin
-      return To_Token_Image (-Item);
-   end To_Token_Image;
+      Put_Prologue (True, Prologue_Context_Clause);
+   end Put_Ada_Prologue_Context_Clause;
 
-   package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, OpenToken_Accept_Name, First_State_Index, To_Token_Image);
+   procedure Put_Ada_Prologue_Declarations
+   is begin
+      null;
+   end Put_Ada_Prologue_Declarations;
 
-   Shift_Reduce_Conflict_Count  : Integer;
-   Reduce_Reduce_Conflict_Count : Integer;
-
-   Grammar : constant Generate_Utils.Production_Lists.Instance := Generate_Utils.To_Grammar
-     (Input_File_Name, -Start_Token);
-
-   Parser : constant Generate_Utils.LALRs.Parse_Table_Ptr := Generate_Utils.LALR_Generators.Generate
-     (Grammar,
-      Generate_Utils.To_Conflicts (Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-      Trace                    => Verbosity > 1,
-      Put_Parse_Table          => Verbosity > 0,
-      Ignore_Unused_Tokens     => Verbosity > 1,
-      Ignore_Unknown_Conflicts => Verbosity > 1);
-
-   function To_Ada (File_Name : in String) return String
-   is
-      --  Convert File_Name to Ada name
-      use Standard.Ada.Characters.Handling;
-      Result : String := File_Name;
-   begin
-      Result (Result'First) := To_Upper (Result (Result'First));
-      for I in Result'Range loop
-         if Result (I) = '-' then
-            Result (I) := '.';
-            Result (I + 1) := To_Upper (Result (I + 1));
-         elsif Result (I) = '_' then
-            Result (I + 1) := To_Upper (Result (I + 1));
-         end if;
-      end loop;
-      return Result;
-   end To_Ada;
-
-   Package_Name : constant String := To_Ada (Output_File_Root);
+   package Common is new Wisi.Gen_Output_Ada_Common
+     (Keywords, Tokens, Conflicts, Rules, Generate_Params, Put_Ada_Prologue_Context_Clause,
+      Put_Ada_Prologue_Declarations, Put_Ada_Prologue_Context_Clause);
+   use Common;
 
    Elisp_Names : String_Lists.List;
-   --  Populated by Create_Body, used by Create_Spec, Create_Elisp.
+   --  Populated by Create_Ada_Body, used by Create_Process_Elisp, Create_Module_Elisp,
+   --  Create_Ada_Body for Module
 
    procedure Add_Elisp_Name (Item : in String)
    is
@@ -127,7 +107,11 @@ is
       --  (wisi-face-action [2 'font-lock-keyword-face 4 'font-lock-type-face])
       --  ...
       --
-      --  Enter all names in Elisp_Names
+      --  Enter all names in Elisp_Names.
+      --
+      --  IMPROVEME: for modules, don't need terminal token names in
+      --  Elisp_Names; they are already in the keyword and token
+      --  tables.
       I       : Integer := Line'First;
       First   : Integer := Line'First - 1;
       In_Name : Boolean := False;
@@ -186,7 +170,7 @@ is
 
    function To_Code (Name : in String) return String
    is begin
-      return OpenToken.Int_Image (Find_Elisp_Name (Name));
+      return FastToken.Int_Image (Find_Elisp_Name (Name));
    end To_Code;
 
    --  Preserve In_Action across lines
@@ -276,241 +260,170 @@ is
       return Result (1 .. J);
    end To_Codes;
 
-   procedure Put_Prologue (Ada_Syntax : in Boolean)
-   is
-   begin
-      --  Prologue has elisp comments
-      for Line of Prologue loop
-         if Ada_Syntax and (Line'Length = 2 and then Line = ";;") then
-            Put_Line ("--");
-         elsif Ada_Syntax and (Line'Length > 2 and then Line (Line'First .. Line'First + 2) = ";; ") then
-            Put_Line ("--  " & Line (Line'First + 2 .. Line'Last));
-         elsif Ada_Syntax and (Line'Length > 0 and then Line (Line'First) = '(') then
-            null;
-         else
-            Put_Line (Line);
-         end if;
-      end loop;
-   end Put_Prologue;
-
-   procedure Create_Spec
+   procedure Create_Ada_Body
    is
       use Generate_Utils;
+      use Wisi.Utils;
 
-      Spec_File : File_Type;
-      Cursor    : Token_Cursor;
-   begin
-      Create (Spec_File, Out_File, Output_File_Root & ".ads");
-      Set_Output (Spec_File);
-      Indent := 1;
+      Empty_Action : constant access constant String := new String'("Null_Action");
 
-      Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
-      Put_Line ("--");
-      Put_Prologue (Ada_Syntax => True);
+      File_Name : constant String := Output_File_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_process",
+         when Module  => "_module") &
+        ".adb";
 
-      Put_Line ("with OpenToken.Production.List;");
-      Put_Line ("with OpenToken.Production.Parser.LALR.Generator;");
-      Put_Line ("with OpenToken.Production.Parser.LALR.Parser;");
-      Put_Line ("with OpenToken.Production.Parser.LALR.Parser_Lists;");
-      Put_Line ("with OpenToken.Text_Feeder;");
+      Package_Name : constant String := -Data.Package_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_Process",
+         when Module  => "_Module");
 
-      Put_Line ("with OpenToken.Token.Enumerated.Analyzer;");
-      Put_Line ("with OpenToken.Token.Enumerated.List;");
-      Put_Line ("with OpenToken.Token.Enumerated.Nonterminal;");
-      Put_Line ("with OpenToken.Wisi_Tokens;");
-      Put_Line ("package " & Package_Name & " is");
-      Indent := Indent + 3;
-
-      New_Line;
-      Indent_Line ("type Token_IDs is");
-      Indent_Line ("  (");
-      Indent := Indent + 3;
-      Cursor := First;
-      loop
-         exit when Cursor.Is_Done;
-         Set_Col (Indent);
-         Put (To_Token_Image (Cursor.Token_Name));
-
-         Cursor.Next;
-
-         if Cursor.Is_Done then
-            Put_Line (");");
-         else
-            Put_Line (",");
-         end if;
-      end loop;
-      Indent := Indent - 3;
-      New_Line;
-
-      Indent_Line ("First_Terminal : constant Token_IDs := " & To_Token_Image (Keywords.First_Element.Name) & ";");
-      Indent_Line ("Last_Terminal : constant Token_IDs := EOF_ID;");
-
-      declare
-         use Ada.Strings.Unbounded;
-         Token_Image_Width : Integer := 0;
-      begin
-         Indent_Line ("Token_Images : constant array (Token_IDs) of access constant String :=");
-         Indent_Line ("  (");
-         Indent := Indent + 3;
-         Cursor := First;
-         loop
-            exit when Cursor.Is_Done;
-            Set_Col (Indent);
-            Put ("new String'(""" & (-Cursor.Token_Name));
-            Token_Image_Width := Integer'Max (Token_Image_Width, Length (Cursor.Token_Name));
-            Cursor.Next;
-            if Cursor.Is_Done then
-               Put_Line ("""));");
-            else
-               Put_Line ("""),");
-            end if;
-         end loop;
-
-         Indent := Indent - 3;
-         Indent_Line ("Token_Image_Width : constant Integer :=" & Integer'Image (Token_Image_Width) & ";");
-         New_Line;
-      end;
-
-      Indent_Line ("function Token_Image (ID : in Token_IDs) return String is (Token_Images (ID).all);");
-
-      Indent_Line
-        ("package Tokens is new OpenToken.Token.Enumerated (Token_IDs, First_Terminal, Last_Terminal, Token_Image);");
-      Indent_Line ("package Analyzers is new Tokens.Analyzer;");
-      Indent_Line ("package Token_Lists is new Tokens.List;");
-      Indent_Line ("package Nonterminals is new Tokens.Nonterminal (Token_Lists);");
-      Indent_Line ("package Productions is new OpenToken.Production (Tokens, Token_Lists, Nonterminals);");
-      Indent_Line ("package Parsers is new Productions.Parser (Analyzers);");
-      Indent_Line
-        ("First_State_Index : constant Integer := " & OpenToken.Int_Image (First_State_Index) & ";");
-      Indent_Line ("package LALRs is new Parsers.LALR (First_State_Index);");
-      Indent_Line ("package Production_Lists is new Productions.List;");
-      Indent_Line ("package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_Lists);");
-      Indent_Line
-        ("First_Parser_Label : constant Integer := " & OpenToken.Int_Image (First_Parser_Label) & ";");
-      Indent_Line ("package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);");
-      Indent_Line ("package LALR_Parsers is new LALRs.Parser (First_Parser_Label, Parser_Lists);");
-      New_Line;
-
-      Indent_Line ("package Wisi_Tokens is new OpenToken.Wisi_Tokens");
-      Indent_Line
-        ("  (Token_IDs, First_Terminal, Last_Terminal, Token_Image, Tokens, Token_Lists, Nonterminals);");
-      New_Line;
-
-      Indent_Line ("function Create_Syntax return Analyzers.Syntax;");
-      New_Line;
-      Indent_Line ("function Create_Parser");
-      Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
-      Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;");
-      Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
-      Indent_Line ("  return LALR_Parsers.Instance;");
-      New_Line;
-      Put_Line ("end " & Package_Name & ";");
-      Close (Spec_File);
-
-   end Create_Spec;
-
-   procedure Create_Body
-   is
-      use Generate_Utils;
-
-      type Action_Name_List is array (Integer range <>) of access constant String;
-      type Action_Name_List_Access is access Action_Name_List;
-
-      Empty_Action : constant access constant String := new String'("Self");
-      Action_Names : array (Generate_Utils.Token_IDs) of Action_Name_List_Access;
-
-      function Action_Name (Item : in Generate_Utils.Token_IDs; Index : in Integer) return String
-      is begin
-         return Action_Names (Item) (Index).all;
-      exception
-      when others =>
-         Wisi.Utils.Put_Error
-           (Input_File_Name,
-            1,
-            "Name for '" & Generate_Utils.Token_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
-         raise Programmer_Error;
-      end Action_Name;
+      Lower_Package_Name_Root : constant String := To_Lower (-Data.Package_Name_Root);
 
       Body_File : File_Type;
 
-      Table_Entry_Count : Integer := 0;
    begin
-      Create (Body_File, Out_File, Output_File_Root & ".adb");
+      if Data.Parser_Algorithm in LALR | LALR_LR1 then
+         Parsers (LALR) := Generate_Utils.LALR_Generator.Generate
+           (Data.Grammar,
+            Generate_Utils.To_Conflicts
+              (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+
+         Data.Parser_State_Count := Generate_Utils.To_State_Count (Parsers (LALR).State_Last);
+      end if;
+
+      if Data.Parser_Algorithm in LR1 | LALR_LR1 then
+         Parsers (LR1) := Generate_Utils.LR1_Generator.Generate
+           (Data.Grammar,
+            Generate_Utils.To_Conflicts
+              (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
+            Trace                    => Verbosity > 1,
+            Put_Parse_Table          => Verbosity > 0,
+            Ignore_Unused_Tokens     => Verbosity > 1,
+            Ignore_Unknown_Conflicts => Verbosity > 1);
+
+         Data.Parser_State_Count := Generate_Utils.LR.Unknown_State_Index'Max
+           (Data.Parser_State_Count, Generate_Utils.To_State_Count (Parsers (LR1).State_Last));
+      end if;
+
+      Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
       Indent := 1;
-      Put_Line ("--  generated by OpenToken Wisi from " & Input_File_Name);
+      Data.Table_Entry_Count := 0;
+      Put_Line ("--  generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line  ("--  ");
       Put_Line ("--");
-      Put_Prologue (Ada_Syntax => True);
+      Put_Ada_Prologue_Context_Clause;
 
-      if Is_In (Tokens, """symbol""") then
-         Put_Line ("with Ada.Strings.Maps.Constants;");
-      end if;
-
-      if Action_Count > 0 and not Profile then
+      case Data.Interface_Kind is
+      when Process =>
          Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
-      end if;
 
-      if Is_In (Tokens, """whitespace""") then
-         Put_Line ("with OpenToken.Recognizer.Character_Set;");
-      end if;
+      when Module =>
+         Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
+      end case;
 
-      Put_Line ("with OpenToken.Recognizer.End_Of_File;");
+      case Data.Lexer is
+      when Aflex_Lexer =>
+         Put_Line ("with FastToken.Lexer.Aflex;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_process_YYLex;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_process_dfa;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_process_io;");
 
-      if Is_In (Tokens, """symbol""") then
-         Put_Line ("with OpenToken.Recognizer.Identifier;");
-      end if;
+      when Elisp_Lexer =>
+         Put_Line ("with FastToken.Lexer.Wisi_Elisp;");
 
-      if Is_In (Tokens, """number""") then
-         Put_Line ("with OpenToken.Recognizer.Based_Integer_Real_Ada;");
-         --  FIXME: overkill for wisi-number-p; no based
-      end if;
+      when Regexp_Lexer =>
+         raise Programmer_Error;
+      end case;
 
-      Put_Line ("with OpenToken.Recognizer.Keyword;");
-
-      if Is_In (Tokens, """line_comment""") then
-         Put_Line ("with OpenToken.Recognizer.Line_Comment;");
-      end if;
-
-      if Is_In (Tokens, """punctuation""") then
-         Put_Line ("with OpenToken.Recognizer.Separator;");
-      end if;
-
-      if Is_In (Tokens, """string-double""") then
-         Put_Line ("with OpenToken.Recognizer.String;");
-      end if;
-
-      if Is_In (Tokens, """string-single""") then
-         Put_Line ("with OpenToken.Recognizer.Graphic_Character;");
-      end if;
+      case Data.Interface_Kind is
+      when Process =>
+         null;
+      when Module =>
+         Put_Line ("with Ada.Exceptions;");
+         Put_Line ("with Ada.Strings.Unbounded;");
+      end case;
 
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
 
-      Action_Names (Find_Token_ID (-OpenToken_Accept_Name))     := new Action_Name_List (0 .. 0);
-      Action_Names (Find_Token_ID (-OpenToken_Accept_Name)) (0) := Empty_Action;
+      case Data.Lexer is
+      when Aflex_Lexer =>
+         Indent_Line ("package Lexer is new Lexer_Root.Aflex");
+         Indent_Line ("  (" & Lower_Package_Name_Root & "_process_io.Feeder,");
+         Indent := Indent + 3;
+         Indent_Line (Lower_Package_Name_Root & "_process_YYLex,");
+         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText,");
+         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText_ptr,");
+         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYLength,");
+         Indent_Line (Lower_Package_Name_Root & "_process_dfa.Set_Buffer_Size,");
+         Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
+         Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
+         Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
+         Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen);");
+         Indent := Indent - 3;
 
-      --  Add tokens to Elisp_Names
-      declare
-         Cursor : Token_Cursor := First;
-      begin
-         loop
-            exit when Cursor.Is_Done;
-            Add_Elisp_Name (-Cursor.Token_Name);
+      when Elisp_Lexer =>
+         Indent_Line ("package Lexers is new Lexer_Root.Wisi_Elisp (Wisi_Tokens_Pkg.Get);");
 
-            Cursor.Next;
-         end loop;
-      end;
+      when Regexp_Lexer =>
+         raise Programmer_Error;
+      end case;
+
+      Action_Names (Find_Token_ID (-FastToken_Accept_Name))     := new Action_Name_List (0 .. 0);
+      Action_Names (Find_Token_ID (-FastToken_Accept_Name)) (0) := Empty_Action;
+
+      case Data.Interface_Kind is
+      when Process =>
+         --  Add tokens to Elisp_Names
+         declare
+            Cursor : Token_Cursor := First;
+         begin
+            loop
+               exit when Cursor.Is_Done;
+               Add_Elisp_Name (-Cursor.Token_Name);
+
+               Cursor.Next;
+            end loop;
+         end;
+
+         Indent_Line ("procedure Put_Trace (Item : in String)");
+         Indent_Line ("is begin");
+         --  FIXME: this matches existing tests, but does not work
+         --  with real Emacs; need message in protocol.
+         Indent_Line ("   Put (Item);");
+         Indent_Line ("end Put_Trace;");
+         New_Line;
+         Indent_Line ("procedure Put_Trace_Line (Item : in String)");
+         Indent_Line ("is begin");
+         Indent_Line ("   Put_Line (Item);");
+         Indent_Line ("end Put_Trace_Line;");
+         New_Line;
+
+      when Module =>
+         Add_Elisp_Name ("wisi-debug");
+         Add_Elisp_Name ("wisi-nonterm");
+         Add_Elisp_Name ("wisi-tokens");
+         Add_Elisp_Name ("wisi-cache-max");
+
+      end case;
+
+      Indent_Line ("Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;");
 
       if Action_Count = 0 then
          --  Populate Action_Names with Empty_Action.
 
-         Indent_Line ("Self : constant Nonterminals.Synthesize := Wisi_Tokens.Self'Access;");
-
          for Rule of Rules loop
             declare
-               LHS_ID : constant Token_IDs := Find_Token_ID (-Rule.Left_Hand_Side);
+               LHS_ID : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
             begin
                Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
 
@@ -523,18 +436,172 @@ is
       else
          --  generate Action subprograms, populate Action_Names, more Elisp_Names.
 
-         Indent_Line ("Self : constant Nonterminals.Synthesize := Wisi_Tokens.Self'Access;");
-
-         Indent_Line ("use Wisi_Tokens;");
+         Indent_Line ("use Wisi_Tokens_Pkg;");
          New_Line;
 
+         --  For Module, we need to declare Elisp_Names before the
+         --  action subprograms; accumulate them here. Elisp_Names has
+         --  all the non-token names used in actions; the elisp
+         --  functions and their arguments.
+         for Rule of Rules loop
+            for RHS of Rule.Right_Hand_Sides loop
+               if RHS.Action.Length > 0 then
+                  for Line of RHS.Action loop
+                     Get_Elisp_Names (Line);
+                  end loop;
+               end if;
+            end loop;
+         end loop;
+
+         case Data.Interface_Kind is
+         when Process =>
+            null;
+
+         when Module =>
+            --  All symbols used in wisi-tokens; terminals and
+            --  non-terminals. Must be indexed by Token_ID for
+            --  To_Emacs (token_list).
+            Indent_Line
+              ("type Token_Array_Emacs_Value is array (Token_ID range First_Terminal .. Token_ID'Last) of");
+            Indent_Line ("  emacs_module_h.emacs_value;");
+
+            Indent_Line
+              ("type Number_Array_Emacs_Value is array (1 .." &
+                 Standard.Ada.Containers.Count_Type'Image (Elisp_Names.Length) &
+                 ") of emacs_module_h.emacs_value;");
+            New_Line;
+
+            --  All other symbols used in actions.
+            Indent_Line ("type Elisp_Index is");
+            Indent_Line ("  (");
+            Indent := Indent + 3;
+            declare
+               use String_Lists;
+               Cursor : String_Lists.Cursor := Elisp_Names.First;
+            begin
+               loop
+                  exit when Cursor = No_Element;
+
+                  Set_Col (Indent);
+                  Put (Elisp_Name_To_Ada (Element (Cursor)));
+
+                  Next (Cursor);
+
+                  if Cursor = No_Element then
+                     Put_Line (");");
+                  else
+                     Put_Line (",");
+                  end if;
+               end loop;
+            end;
+            New_Line;
+
+            Indent := Indent - 3;
+
+            Indent_Line ("Elisp_Names : constant array (Elisp_Index) of access constant String :=");
+            Indent_Line ("  (");
+            Indent := Indent + 3;
+            declare
+               use String_Lists;
+               Cursor : String_Lists.Cursor := Elisp_Names.First;
+            begin
+               loop
+                  exit when Cursor = No_Element;
+                  Set_Col (Indent);
+                  Put ("new String'(""" & Element (Cursor));
+                  Next (Cursor);
+                  if Cursor = No_Element then
+                     Put_Line ("""));");
+                  else
+                     Put_Line ("""),");
+                  end if;
+               end loop;
+            end;
+
+            Indent := Indent - 3;
+            New_Line;
+
+            --  FIXME: move to wisi_tokens_module?
+            Indent_Line ("type Elisp_Array_Emacs_Value is array (Elisp_Index) of emacs_module_h.emacs_value;");
+            New_Line;
+            Indent_Line ("Token_Symbols  : Token_Array_Emacs_Value;");
+            Indent_Line ("Elisp_Numbers  : Number_Array_Emacs_Value;");
+            Indent_Line ("Elisp_Symbols  : Elisp_Array_Emacs_Value;");
+            Indent_Line ("Env            : Emacs_Env_Access;");
+            New_Line;
+
+            Indent_Line ("Trace_Buffer : Ada.Strings.Unbounded.Unbounded_String;");
+            New_Line;
+            Indent_Line ("procedure Put_Trace (Item : in String)");
+            Indent_Line ("is");
+            Indent_Line ("   use Ada.Strings.Unbounded;");
+            Indent_Line ("begin");
+            Indent_Line ("   Trace_Buffer := Trace_Buffer & Item;");
+            Indent_Line ("end Put_Trace;");
+            New_Line;
+            Indent_Line ("procedure Put_Trace_Line (Item : in String)");
+            Indent_Line ("is");
+            Indent_Line ("   use Ada.Strings.Unbounded;");
+            Indent_Line ("begin");
+            Indent_Line ("   Message (Env, To_String (Trace_Buffer & Item));");
+            Indent_Line ("   Set_Unbounded_String (Trace_Buffer, """");");
+            Indent_Line ("end Put_Trace_Line;");
+            New_Line;
+
+            Indent_Line ("function To_Token_List (Token : in Token_Pkg.Handle) return emacs_module_h.emacs_value");
+            Indent_Line ("is");
+            Indent_Line ("   use Token_Pkg;");
+            Indent_Line ("   Wisi_Token : Wisi_Tokens_Pkg.Instance renames Wisi_Tokens_Pkg.Instance (Token.all);");
+            Indent_Line ("   Bounds     : Buffer_Range renames Wisi_Token.Buffer_Range;");
+            Indent_Line ("begin");
+            Indent_Line ("   if Bounds = Null_Buffer_Range then");
+            Indent_Line ("      return Cons (Env, Token_Symbols (ID (Wisi_Token)), Env.Qnil);");
+            Indent_Line ("   else");
+            Indent_Line ("      return Cons");
+            Indent_Line ("        (Env, Token_Symbols (ID (Wisi_Token)),");
+            Indent_Line ("         Cons (Env, To_Emacs (Env, Bounds.Begin_Pos), To_Emacs (Env, Bounds.End_Pos)));");
+            Indent_Line ("   end if;");
+            Indent_Line ("end To_Token_List;");
+            New_Line;
+
+            Indent_Line ("procedure Set_Wisi_Tokens");
+            Indent_Line ("  (Nonterm : in Token_ID;");
+            Indent_Line ("   Args    : in Token_Pkg.List.Instance'Class)");
+            Indent_Line ("is");
+            Indent := Indent + 3;
+            Indent_Line ("use Token_Pkg;");
+            Indent_Line ("use Token_Pkg.List;");
+            Indent_Line ("Tokens_1 : Emacs_Value_Array (1 .. Args.Length);");
+            Indent_Line ("Tokens_I : Integer       := Tokens_1'First;");
+            Indent_Line ("Args_I   : List_Iterator := First (Args);");
+            Indent := Indent - 3;
+            Indent_Line ("begin");
+            Indent := Indent + 3;
+            Indent_Line ("Set (Env, Elisp_Symbols (Wisi_Nonterm_ID), Token_Symbols (Nonterm));");
+            Indent_Line ("loop");
+            Indent := Indent + 3;
+            Indent_Line ("exit when Args_I = Null_Iterator;");
+            Indent_Line ("Tokens_1 (Tokens_I) := To_Token_List (Token_Pkg.List.Token_Handle (Args_I));");
+            Indent_Line ("Tokens_I := Tokens_I + 1;");
+            Indent_Line ("Next_Token (Args_I);");
+            Indent := Indent - 3;
+            Indent_Line ("end loop;");
+            Indent_Line ("Set");
+            Indent_Line (" (Env,");
+            Indent_Line ("  Elisp_Symbols (Wisi_Tokens_ID),");
+            Indent_Line ("  Vector (Env, Tokens_1));");
+            Indent := Indent - 3;
+            Indent_Line ("end Set_Wisi_Tokens;");
+            New_Line;
+         end case;
+
          if Profile then
-            Indent_Line ("Action_Counts : array (Token_IDs) of Integer := (others => 0);");
+            Indent_Line ("Action_Counts : array (Token_ID) of Integer := (others => 0);");
          end if;
 
          for Rule of Rules loop
             declare
-               LHS_ID : constant Token_IDs := Find_Token_ID (-Rule.Left_Hand_Side);
+               LHS_ID : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
                Index  : Integer            := 0; -- Matches Generate_Utils.To_Grammar
             begin
                Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
@@ -542,36 +609,41 @@ is
                for RHS of Rule.Right_Hand_Sides loop
                   if RHS.Action.Length > 0 then
                      declare
-                        Name : constant String := -Rule.Left_Hand_Side & '_' & OpenToken.Int_Image (Index);
+                        Name : constant String := -Rule.Left_Hand_Side & '_' & FastToken.Int_Image (Index);
                      begin
                         Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
                         Indent_Line ("procedure " & Name);
-                        Indent := Indent + 2;
-                        Indent_Line ("(New_Token : out Nonterminals.Class;");
-                        Indent := Indent + 1;
-                        Indent_Line ("Source    : in  Token_Lists.Instance'Class;");
-                        Indent_Line ("To_ID     : in  Token_IDs)");
-                        Indent := Indent - 3;
-                        Indent_Line ("is begin");
+                        Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+                        Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
+                        Indent_Line ("is");
+                        Indent_Line ("   pragma Unreferenced (Nonterm);");
+                        Indent_Line ("begin");
                         Indent := Indent + 3;
-                        Indent_Line ("New_Token := Get (To_ID, Total_Buffer_Range (Source));");
 
                         if Profile then
                            Indent_Line ("Action_Counts (To_ID) := Action_Counts (To_ID) + 1;");
 
                         else
-                           --  Translate symbols into integer codes, for
-                           --  faster interpretation on the elisp side.
+                           case Data.Interface_Kind is
+                           when Process =>
+                              --  Translate symbols into integer codes, for
+                              --  faster interpretation on the elisp side.
 
-                           Indent_Line
-                             ("Put_Line (""[" & To_Code (-Rule.Left_Hand_Side) & " "" & To_Codes (Source));");
+                              Indent_Line
+                                ("Put_Line (""[" & To_Code (-Rule.Left_Hand_Side) & " "" & To_Codes (Source));");
 
-                           for Line of RHS.Action loop
-                              Get_Elisp_Names (Line);
-                              Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");
-                           end loop;
-                           Indent_Line ("Put_Line (""]"");");
+                              for Line of RHS.Action loop
+                                 Indent_Line ("Put_Line (""" & To_Codes (Line) & """);");
+                              end loop;
+                              Indent_Line ("Put_Line (""]"");");
+
+                           when Module =>
+                              Indent_Line ("Set_Wisi_Tokens (To_ID, Source);");
+                              for Line of RHS.Action loop
+                                 Put_Module_Action_Line (Line);
+                              end loop;
+                           end case;
                         end if;
                         Indent := Indent - 3;
                         Indent_Line ("end " & Name & ";");
@@ -587,319 +659,66 @@ is
          end loop;
       end if;
 
-      --  This procedure is called for Shift actions
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State       : in out LALRs.Parse_State;");
-      Indent_Line ("   Symbol      : in     Token_IDs;");
-      Indent_Line ("   State_Index : in     LALRs.State_Index)");
-      Indent_Line ("is");
-      Indent_Line ("   use LALRs;");
-      Indent_Line ("   Action : constant Parse_Action_Rec := (Shift, State_Index);");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line
-        ("State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
+      Create_Create_Parser (Input_File_Name, Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind);
 
-      --  This procedure is called for Reduce or Accept_It actions
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State           : in out LALRs.Parse_State;");
-      Indent_Line ("   Symbol          : in     Token_IDs;");
-      Indent_Line ("   Verb            : in     LALRs.Parse_Action_Verbs;");
-      Indent_Line ("   LHS_ID          : in     Token_IDs;");
-      Indent_Line ("   RHS_Token_Count : in     Natural;");
-      Indent_Line ("   Synthesize      : in     Nonterminals.Synthesize)");
-      Indent_Line ("is");
-      Indent_Line ("   use LALRs;");
-      Indent_Line ("   use Productions;");
-      Indent_Line ("   Action : Parse_Action_Rec;");
-      Indent_Line ("   LHS    : constant Nonterminals.Handle := new Nonterminals.Class'(Wisi_Tokens.Get (LHS_ID));");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("case Verb is");
-      Indent_Line ("when Reduce =>");
-      Indent_Line ("   Action := (Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
-      Indent_Line ("when Accept_It =>");
-      Indent_Line ("   Action := (Accept_It, LHS, Synthesize, 0, RHS_Token_Count);");
-      Indent_Line ("when others =>");
-      Indent_Line ("   null;");
-      Indent_Line ("end case;");
-      Indent_Line
-        ("State.Action_List := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), State.Action_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
-
-      if Shift_Reduce_Conflict_Count > 0 then
-         --  This procedure is called for Shift/Reduce conflicts
-         Indent_Line ("procedure Add_Action");
-         Indent_Line ("  (State       : in out LALRs.Parse_State;");
-         Indent_Line ("   Symbol      : in     Token_IDs;");
-         Indent_Line ("   State_Index : in     LALRs.State_Index;");
-         Indent_Line ("   LHS_ID      : in     Token_IDs;");
-         Indent_Line ("   RHS_Token_Count : in     Natural;");
-         Indent_Line ("   Synthesize  : in     Nonterminals.Synthesize)");
-         Indent_Line ("is");
-         Indent_Line ("   use LALRs;");
-         Indent_Line ("   use Productions;");
-         Indent_Line ("   Action_1 : constant Parse_Action_Rec := (Shift, State_Index);");
-         Indent_Line
-           ("   LHS      : constant Nonterminals.Handle := new Nonterminals.Class'(Wisi_Tokens.Get (LHS_ID));");
-         Indent_Line
-           ("   Action_2 : constant Parse_Action_Rec := " &
-              "(Reduce, LHS, Synthesize, 0, RHS_Token_Count);");
-         Indent_Line ("begin");
-         Indent := Indent + 3;
-         Indent_Line ("State.Action_List := new Action_Node'");
-         Indent_Line
-           ("  (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);");
-         Indent := Indent - 3;
-         Indent_Line ("end Add_Action;");
+      case Data.Interface_Kind is
+      when Process =>
+         null;
+      when Module =>
+         Indent_Line ("Parser : LR_Parser.Instance;");
          New_Line;
-      end if;
 
-      if Reduce_Reduce_Conflict_Count > 0 then
-         --  This procedure is called for Reduce/Reduce conflicts
-         Indent_Line ("procedure Add_Action");
-         Indent_Line ("  (State             : in out LALRs.Parse_State;");
-         Indent_Line ("   Symbol            : in     Token_IDs;");
-         Indent_Line ("   LHS_ID_1          : in     Token_IDs;");
-         Indent_Line ("   RHS_Token_Count_1 : in     Natural;");
-         Indent_Line ("   Synthesize_1      : in     Nonterminals.Synthesize;");
-         Indent_Line ("   LHS_ID_2          : in     Token_IDs;");
-         Indent_Line ("   RHS_Token_Count_2 : in     Natural;");
-         Indent_Line ("   Synthesize_2      : in     Nonterminals.Synthesize)");
-         Indent_Line ("is");
+         Indent_Line ("function Parse (Env : Emacs_Env_Access) return emacs_module_h.emacs_value");
+         Indent_Line ("is begin");
          Indent := Indent + 3;
-         Indent_Line ("use LALRs;");
-         Indent_Line ("use Productions;");
-         Indent_Line ("LHS_1 : constant Nonterminals.Handle := new Nonterminals.Class'(Wisi_Tokens.Get (LHS_ID_1));");
-         Indent_Line
-           ("Action_1 : constant Parse_Action_Rec := (Reduce, LHS_1, Synthesize_1, 0, RHS_Token_Count_1);");
-         Indent_Line ("LHS_2 : constant Nonterminals.Handle := new Nonterminals.Class'(Wisi_Tokens.Get (LHS_ID_2));");
-         Indent_Line
-           ("Action_2 : constant Parse_Action_Rec := (Reduce, LHS_2, Synthesize_2, 0, RHS_Token_Count_2);");
+         Indent_Line ("FastToken.Trace_Parse := To_Integer (Env, Symbol_Value (Env, Elisp_Symbols (Wisi_Debug_ID)));");
+         Indent_Line ("Wisi_Cache_Max := To_Integer (Env, Symbol_Value (Env, Elisp_Symbols (Wisi_Cache_Max_ID)));");
+         Indent_Line ("Parser.Reset;");
+         Indent_Line ("Parser.Parse;");
+         Indent_Line ("return Env.Qnil;");
          Indent := Indent - 3;
-         Indent_Line ("begin");
-         Indent := Indent + 3;
-         Indent_Line ("State.Action_List := new Action_Node'");
-         Indent_Line
-           ("  (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);");
-         Indent := Indent - 3;
-         Indent_Line ("end Add_Action;");
+         Indent_Line ("exception");
+         Indent_Line ("when E : FastToken.Parse_Error | FastToken.Syntax_Error =>");
+         Indent_Line ("   return To_Emacs (Env, Ada.Exceptions.Exception_Message (E));");
+         Indent_Line ("when E : others =>");
+         Indent_Line ("   declare");
+         Indent_Line ("      use Ada.Exceptions;");
+         Indent_Line ("   begin");
+         Indent_Line ("      return To_Emacs (Env, Exception_Name (E) & "": "" & Exception_Message (E));");
+         Indent_Line ("   end;");
+         Indent_Line ("end Parse;");
          New_Line;
-      end if;
 
-      --  This procedure is called for Error actions
-      --  Error action must be last in list
-      Indent_Line ("procedure Add_Action");
-      Indent_Line ("  (State  : in out LALRs.Parse_State;");
-      Indent_Line ("   Symbol : in     Token_IDs)");
-      Indent_Line ("is");
-      Indent_Line ("   use LALRs;");
-      Indent_Line ("   Action : constant Parse_Action_Rec := (Verb => Error);");
-      Indent_Line ("   Node   : Action_Node_Ptr           := State.Action_List;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("loop");
-      Indent_Line ("   exit when Node.Next = null;");
-      Indent_Line ("   Node := Node.Next;");
-      Indent_Line ("end loop;");
-      Indent_Line ("Node.Next := new Action_Node'(Symbol, new Parse_Action_Node'(Action, null), null);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Action;");
-      New_Line;
-
-      Indent_Line ("procedure Add_Goto");
-      Indent := Indent + 2;
-      Indent_Line ("(State    : in out LALRs.Parse_State;");
-      Indent := Indent + 1;
-      Indent_Line ("Symbol   : in     Token_IDs;");
-      Indent_Line ("To_State : in     LALRs.State_Index)");
-      Indent := Indent - 3;
-      Indent_Line ("is");
-      Indent_Line ("   use LALRs;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("State.Goto_List := new Goto_Node'(Symbol, To_State, State.Goto_List);");
-      Indent := Indent - 3;
-      Indent_Line ("end Add_Goto;");
-      New_Line;
-
-      Indent_Line ("function Create_Syntax return Analyzers.Syntax");
-      Indent_Line ("is");
-      Indent_Line ("   use OpenToken.Recognizer;");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-      Indent_Line ("return");
-      Indent_Line ("  (");
-      Indent := Indent + 3;
-      for Item of Keywords loop
+         Indent_Line ("function Init (Env : Emacs_Env_Access) return Interfaces.C.int");
+         Indent_Line ("is");
+         Indent_Line ("   Lexer_Elisp_Symbols : Lexers.Elisp_Array_Emacs_Value;");
+         Indent_Line ("begin");
+         Indent_Line ("   " & Package_Name & ".Env := Env;");
+         Indent_Line ("   Emacs_Module_Aux.Init (Env);");
+         Indent_Line ("   for I in Token_Symbols'Range loop");
+         Indent_Line ("      Token_Symbols (I) := Intern_Soft (Env, Token_Images (I).all);");
+         Indent_Line ("   end loop;");
+         Indent_Line ("   for I in Elisp_Symbols'Range loop");
+         Indent_Line ("      Elisp_Symbols (I) := Intern_Soft (Env, Elisp_Names (I).all);");
+         Indent_Line ("   end loop;");
+         Indent_Line ("   for I in Elisp_Numbers'Range loop");
+         Indent_Line ("      Elisp_Numbers (I) := Env.make_fixnum (Env, emacs_module_h.int64_t (I));");
+         Indent_Line ("   end loop;");
+         Indent_Line ("   for I in Lexer_Elisp_Symbols'Range loop");
+         Indent_Line ("      Lexer_Elisp_Symbols (I) := Intern_Soft (Env, Lexers.Elisp_Names (I).all);");
+         Indent_Line ("   end loop;");
+         Indent_Line ("   Parser := Create_Parser (Env, Lexer_Elisp_Symbols);");
+         Indent_Line ("   return 0;");
+         Indent_Line ("exception");
+         Indent_Line ("when E : others =>");
          Indent_Line
-           (To_Token_Image (Item.Name) & " => Analyzers.Get (Keyword.Get (" & (-Item.Value) &
-              "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-      end loop;
-      for Kind of Tokens loop
-         if -Kind.Kind = """line_comment""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Line_Comment.Get (" &
-                    (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """whitespace""" then
-            --  Only one whitespace token. Ignoring value.
-            if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
-            end if;
-            for Item of Kind.Tokens loop
-               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-               Indent_Line ("   (Character_Set.Get (Character_Set.Standard_Whitespace)),");
-            end loop;
-         elsif -Kind.Kind = """number""" then
-            --  Only one number token. Ignoring value.
-            if Kind.Tokens.Length > 1 then
-               raise Programmer_Error;
-            end if;
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Based_Integer_Real_Ada.Get, " &
-                    "Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """punctuation""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Separator.Get (" &
-                    (-Item.Value) & "), Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """symbol""" then
-            for Item of Kind.Tokens loop
-               Indent_Line (To_Token_Image (Item.Name) & " => Analyzers.Get");
-               Indent_Line ("  (Identifier.Get");
-               --  this is compatible with the Emacs Ada mode wisi elisp lexer
-               Indent_Line ("     (Start_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set,");
-               Indent_Line ("      Body_Chars => Ada.Strings.Maps.Constants.Alphanumeric_Set),");
-               Indent_Line ("   Wisi_Tokens.Get (" & To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """string-double""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (OpenToken.Recognizer.String.Get, Wisi_Tokens.Get (" &
-                    To_Token_Image (Item.Name) & ")),");
-            end loop;
-         elsif -Kind.Kind = """string-single""" then
-            for Item of Kind.Tokens loop
-               Indent_Line
-                 (To_Token_Image (Item.Name) & " => Analyzers.Get (Graphic_Character.Get, Wisi_Tokens.Get (" &
-                    To_Token_Image (Item.Name) & ")),");
-            end loop;
-         else
-            raise OpenToken.Grammar_Error with "unsupported token type '" & (-Kind.Kind) & "'";
-         end if;
-      end loop;
-      Indent_Line ("EOF_ID => Analyzers.Get (OpenToken.Recognizer.End_Of_File.Get, Wisi_Tokens.Get (EOF_ID)));");
-      New_Line;
-      Indent := Indent - 6;
-      Indent_Line ("end Create_Syntax;");
-      New_Line;
+           ("   Signal_Error (Env, " &
+              "Ada.Exceptions.Exception_Name (E) & "": "" & Ada.Exceptions.Exception_Message (E), Env.Qnil);");
+         Indent_Line ("   return 1;");
+         Indent_Line ("end Init;");
+         New_Line;
+      end case;
 
-      Indent_Line ("function Create_Parser");
-      Indent_Line ("  (Max_Parallel         : in Integer                               := 15;");
-      Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-      Indent_Line ("   Text_Feeder          : in OpenToken.Text_Feeder.Text_Feeder_Ptr := null;");
-      Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
-      Indent_Line ("  return LALR_Parsers.Instance");
-      Indent_Line ("is");
-      Indent := Indent + 3;
-      Indent_Line ("use LALRs;");
-      Indent_Line ("use Productions;");
-      Indent_Line
-        ("Table : constant Parse_Table_Ptr := new Parse_Table (" &
-           LALRs.State_Image (Parser'First) & " .. " & LALRs.State_Image (Parser'Last) & ");");
-      Indent := Indent - 3;
-      Indent_Line ("begin");
-      Indent := Indent + 3;
-
-      for State_Index in Parser'Range loop
-         Actions :
-         declare
-            use Generate_Utils.LALRs;
-            Node : Action_Node_Ptr := Parser (State_Index).Action_List;
-         begin
-            loop
-               exit when Node = null;
-               Table_Entry_Count := Table_Entry_Count + 1;
-               Set_Col (Indent);
-               Put ("Add_Action (Table (" & State_Image (State_Index) & "), " & Token_Image (Node.Symbol));
-               declare
-                  Action_Node : Parse_Action_Node_Ptr := Node.Action;
-               begin
-                  case Action_Node.Item.Verb is
-                  when Shift =>
-                     Put (", " & State_Image (Action_Node.Item.State));
-                  when Reduce | Accept_It =>
-                     if Action_Node.Next = null then
-                        if Action_Node.Item.Verb = Reduce then
-                           Put (", Reduce");
-                        else
-                           Put (", Accept_It");
-                        end if;
-                     else
-                        --  conflict; Verb must be reduce
-                        null;
-                     end if;
-                     Put
-                       (", " & Token_Image (Tokens_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                          Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                          Action_Name (Tokens_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
-                  when Error =>
-                     null;
-                  end case;
-
-                  Action_Node := Action_Node.Next;
-                  if Action_Node /= null then
-                     --  Conflict; second action is Shift or Reduce
-                     case Action_Node.Item.Verb is
-                     when Shift =>
-                        Put (", " & State_Image (Action_Node.Item.State));
-                     when Reduce =>
-                        Put
-                          (", " & Token_Image (Tokens_Pkg.ID (Action_Node.Item.LHS.all)) & "," &
-                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name (Tokens_Pkg.ID (Action_Node.Item.LHS.all), Action_Node.Item.Index));
-                     when others =>
-                        raise Programmer_Error with "second action verb: " &
-                          LALRs.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
-                     end case;
-                  end if;
-               end;
-               Put_Line (");");
-               Node := Node.Next;
-            end loop;
-         end Actions;
-
-         Gotos :
-         declare
-            use Generate_Utils.LALRs;
-            Node : Goto_Node_Ptr := Parser (State_Index).Goto_List;
-         begin
-            loop
-               exit when Node = null;
-               Set_Col (Indent);
-               Put ("Add_Goto (Table (" & State_Image (State_Index) & "), ");
-               Put_Line (Token_Image (Node.Symbol) & ", " & State_Image (Node.State) & ");");
-               Node := Node.Next;
-            end loop;
-         end Gotos;
-      end loop;
-      New_Line;
-      --  FIXME: get Max_Parallel from some command line
-      Indent_Line ("return");
-      Indent_Line ("  (Analyzers.Initialize (Create_Syntax, Text_Feeder, Buffer_Size, First_Column => 0),");
-      Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
-      Indent := Indent - 3;
-      Indent_Line ("end Create_Parser;");
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);
 
@@ -908,51 +727,313 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-           LALRs.State_Index'Image (Parser'Last) & " states," &
-           Integer'Image (Table_Entry_Count) & " table entries");
-   end Create_Body;
+           LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           Integer'Image (Data.Table_Entry_Count) & " table entries");
+      Put_Line
+        (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+   end Create_Ada_Body;
 
-   procedure Create_Elisp
+   procedure Create_Process_Elisp
    is
+      use Wisi.Utils;
       use Generate_Utils;
 
-      File : File_Type;
+      File_Name_Root : constant String := Output_File_Name_Root & "-process";
+      File      : File_Type;
    begin
-      Create (File, Out_File, Output_File_Root & ".el");
+      Create (File, Out_File, File_Name_Root & ".el");
       Set_Output (File);
       Indent := 1;
 
-      Put_Line (";;  generated by OpenToken Wisi from " & Input_File_Name);
+      Put_Line (";; generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line (";; ");
       Put_Line (";;");
-      Put_Prologue (Ada_Syntax => False);
-
-      New_Line;
-      Indent_Line ("(defconst " & Output_File_Root & "-names");
-      Indent_Line ("  [");
-      Indent := Indent + 3;
-      for Name of Elisp_Names loop
-         Indent_Line (Name);
-      end loop;
-      Indent_Line ("])");
-      Indent := Indent - 3;
+      Put_Prologue (False, Prologue_Context_Clause);
       New_Line;
 
-      Put_Line ("(provide '" & Output_File_Root & ")");
+      Indent_Names_Elisp (Output_File_Name_Root, "process", Elisp_Names);
+
+      Put_Line ("(provide '" & File_Name_Root & ")");
       Set_Output (Standard_Output);
       Close (File);
 
-   end Create_Elisp;
+   end Create_Process_Elisp;
+
+   procedure Create_Module_Elisp
+   is
+      use Generate_Utils;
+      use Wisi.Utils;
+
+      Lower_Package_Name_Root : constant String := -Data.Package_Name_Root;
+
+      function To_ID_Image (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
+      is begin
+         --  Ada 'Val is 0 origin; Generate_Utils Token_ID is 1 origin
+         return Integer'Image (-1 + Find_Token_ID (-Name));
+      end To_ID_Image;
+
+      File : File_Type;
+   begin
+      Create (File, Out_File, Output_File_Name_Root & "-module.el");
+      Set_Output (File);
+      Indent := 1;
+
+      Put_Line (";; generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line (";; ");
+      Put_Line (";;");
+
+      --  don't need the prologue here
+
+      --  FIXME: this partly duplicates wisi-output_elisp
+      --  Keyword_Table, Token_Table; factor out and share. or just
+      --  add all elisp here?
+      Put_Line ("(require 'semantic/lex)");
+      Put_Line ("(require 'wisi-parse-common)");
+      New_Line;
+
+      --  Lexer tables; also contain terminals for wisi-tokens
+      Indent_Keyword_Table_Elisp
+        (Output_File_Name_Root, "elisp", Keywords, EOI_Name, Standard.Ada.Strings.Unbounded.To_String'Access);
+      Indent_Keyword_Table_Elisp (Output_File_Name_Root, "module", Keywords, EOI_Name, To_ID_Image'Access);
+      Indent_Token_Table_Elisp
+        (Output_File_Name_Root, "elisp", Tokens, Standard.Ada.Strings.Unbounded.To_String'Access);
+      Indent_Token_Table_Elisp (Output_File_Name_Root, "module", Tokens, To_ID_Image'Access);
+
+      --  non-terminals. We only need the ones that actually have
+      --  actions, and thus will appear in a call to To_Emacs. But
+      --  Token_Symbols must be indexed by Token_ID, so we declare
+      --  all of them.
+      Indent_Line ("(defconst " & Output_File_Name_Root & "-module-nonterms");
+      Indent_Line (" '(");
+      Indent := Indent + 3;
+      Indent_Line (-FastToken_Accept_Name);
+      for Rule of Rules loop
+         Indent_Line (-Rule.Left_Hand_Side);
+      end loop;
+      Indent_Line ("))");
+      Indent := Indent - 3;
+      New_Line;
+
+      --  Remaining symbols used in actions
+      Indent_Names_Elisp (Output_File_Name_Root, "module", Elisp_Names);
+
+      Indent_Line
+        ("(cl-defstruct (" & Lower_Package_Name_Root &
+           "-wisi-module-parser (:include wisi-parser)))");
+      New_Line;
+      Indent_Line ("(defun " & Lower_Package_Name_Root & "-wisi-module-parser-make (dll-name)");
+      Indent_Line ("  (module-load dll-name)");
+      Indent_Line ("  (make-" & Lower_Package_Name_Root & "-wisi-module-parser))");
+      New_Line;
+
+      Indent_Line ("(defvar " & Lower_Package_Name_Root & "-module-lexer nil)");
+      Indent_Line
+        ("(declare-function " &
+           Lower_Package_Name_Root &
+           "-wisi-module-parse """ &
+           Lower_Package_Name_Root &
+           "-wisi-module-parse.c"")");
+      New_Line;
+
+      Indent_Line
+        ("(cl-defmethod wisi-parse-current ((parser " &
+           Lower_Package_Name_Root &
+           "-wisi-module-parser))");
+      Indent := Indent + 2;
+      Indent_Line ("(let* ((wisi-lexer " & Lower_Package_Name_Root & "-module-lexer)");
+      Indent_Line ("       (result (" & Lower_Package_Name_Root & "-wisi-module-parse)))");
+      --  Result is nil for no errors, a string for some error.
+      --  Ada code has already added line:column, but not file name
+      Indent_Line ("  (when result");
+      Indent_Line ("    (signal 'wisi-parse-error (format ""%s:%s"" (buffer-name) result)))))");
+      New_Line;
+      Indent := Indent - 2;
+
+      Indent_Line ("(provide '" & Output_File_Name_Root & "-module)");
+      Set_Output (Standard_Output);
+      Close (File);
+
+   end Create_Module_Elisp;
+
+   procedure Create_Module_Aux
+   is
+      use Generate_Utils;
+      use Wisi.Utils;
+
+      Package_Name_Root       : constant String := -Data.Package_Name_Root;
+      Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
+
+      File : File_Type;
+   begin
+      Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse.gpr");
+      Set_Output (File);
+      Indent := 1;
+      Put_Line ("-- generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line ("-- ");
+      Indent_Line ("with ""wisi_module_parse_common"";");
+      Indent_Line ("library project " & Package_Name_Root & "_Wisi_Module_Parse is");
+      New_Line;
+      Indent := Indent + 3;
+      --  FIXME: compile wrapper.c here?
+      Indent_Line ("for Languages use (""Ada"");");
+      Indent_Line ("for Source_Dirs use (""../.."", ""."");");
+      New_Line;
+      Indent_Line ("for Source_Files use");
+      Indent_Line ("  (");
+      Indent := Indent + 3;
+      Indent_Line ("""emacs_module_aux.ads"",");
+      Indent_Line ("""emacs_module_aux.adb"",");
+      Indent_Line ("""emacs_module_h.ads"",");
+      Indent_Line ("""fasttoken-lexer-wisi_elisp.adb"",");
+      Indent_Line ("""fasttoken-lexer-wisi_elisp.ads"",");
+      Indent_Line ("""" & Lower_Package_Name_Root & "_module.adb"",");
+      Indent_Line ("""" & Lower_Package_Name_Root & "_module.ads""");
+      Indent := Indent - 3;
+      Indent_Line ("  );");
+      New_Line;
+      Indent_Line ("for Object_Dir use ""libobjsjlj"";");
+      Indent_Line ("for Library_Name use """ & Lower_Package_Name_Root & "_wisi_module_parse"";");
+      Indent_Line ("for Library_Dir use ""libsjlj"";");
+      --  This library is linked with *_wisi_module_parse_wrapper.c to
+      --  make a dynamic library
+      Indent_Line ("for Library_Kind use ""static"";");
+      New_Line;
+      Indent_Line ("package Compiler is");
+      Indent := Indent + 3;
+      Indent_Line
+        ("for Default_Switches (""Ada"") use Wisi_Module_Parse_Common.Compiler'Default_Switches (""Ada"");");
+
+      --  Grammar files can get very large, so they need some special switches:
+      --
+      --  'Wisi_Module_Parse_Common.Compiler'Default_Switches' includes 'gnatn', but that hangs
+      Indent_Line ("case Wisi_Module_Parse_Common.Build is");
+      Indent_Line ("when ""Debug"" =>");
+      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("     (""-O0"");");
+      Indent_Line ("when ""Normal"" =>");
+      Indent_Line ("   for Switches (""" & Lower_Package_Name_Root & "_module.adb"") use");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Common_Switches &");
+      Indent_Line ("     Wisi_Module_Parse_Common.Compiler.Standard_Style &");
+      Indent_Line ("     (""-O2"");");
+      Indent_Line ("end case;");
+
+      Indent := Indent - 3;
+      Indent_Line ("end Compiler;");
+      New_Line;
+      Indent_Line ("package Builder is");
+      Indent_Line
+        ("   for Default_Switches (""Ada"") use Wisi_Module_Parse_Common.Builder'Default_Switches (""Ada"");");
+      Indent_Line ("end Builder;");
+      Indent := Indent - 3;
+      New_Line;
+      Indent_Line ("end " & Package_Name_Root & "_Wisi_Module_Parse;");
+      Set_Output (Standard_Output);
+      Close (File);
+
+      Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_agg.gpr");
+      Set_Output (File);
+      Indent := 1;
+      Put_Line ("-- generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line ("-- ");
+      Indent_Line ("aggregate project " & Package_Name_Root & "_Wisi_Module_Parse_Agg is");
+      Indent_Line ("   for Project_Path use (external (""WISI_FASTTOKEN""));");
+      Indent_Line ("   for Project_files use (""" & Lower_Package_Name_Root & "_wisi_module_parse.gpr"");");
+      Indent_Line ("end " & Package_Name_Root & "_Wisi_Module_Parse_Agg;");
+      Set_Output (Standard_Output);
+      Close (File);
+
+      Create (File, Out_File, Output_File_Name_Root & "_wisi_module_parse_wrapper.c");
+      Set_Output (File);
+      Indent := 1;
+      Put_Line ("// generated by FastToken Wisi from " & Input_File_Name);
+      Put_Command_Line ("// ");
+      Indent_Line ("//  This file is just a wrapper around the Ada code in");
+      Indent_Line ("//  *_wisi_module_parse.adb; it is needed to call adainit.");
+      Indent_Line ("#include <emacs_module.h>");
+      Indent_Line ("int plugin_is_GPL_compatible;");
+      Indent_Line ("extern void adainit(void);");
+      Indent_Line ("extern int " & Lower_Package_Name_Root & "_wisi_module_parse_init (emacs_env *env);");
+      Indent_Line ("/* Parse current buffer, using parser in current module. */");
+      Indent_Line ("extern emacs_value " & Lower_Package_Name_Root & "_wisi_module_parse (emacs_env *env);");
+      Indent_Line ("static emacs_value Fparse (emacs_env *env, int nargs, emacs_value args[])");
+      Indent_Line ("{");
+      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse (env);");
+      Indent_Line ("}");
+      New_Line;
+      Indent_Line ("int emacs_module_init (struct emacs_runtime *ert)");
+      Indent_Line ("{");
+      Indent_Line ("  emacs_env *env = ert->get_environment (ert);");
+      Indent_Line
+        ("  env->bind_function (env, """ & Lower_Package_Name_Root &
+           "-wisi-module-parse"", env->make_function (env, 1, 1, Fparse));");
+      Indent_Line ("  adainit();");
+      Indent_Line ("  return " & Lower_Package_Name_Root & "_wisi_module_parse_init (env);");
+      Indent_Line ("}");
+      Set_Output (Standard_Output);
+      Close (File);
+   end Create_Module_Aux;
 
 begin
-   Create_Body; -- populates Classes, used by Create_Spec
-   Create_Spec;
+   if Prologue_Declarations.Length > 0 then
+      raise User_Error with Wisi.Utils.Error_String
+        (Input_File_Name, 1, "Output language Ada_Emacs does not support prologue declarations");
+   end if;
+
+   Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => True);
+
+   Create_Ada_Spec
+     (Input_File_Name,
+      Output_File_Name => Output_File_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_process",
+         when Module => "_module") &
+        ".ads",
+      Package_Name => -Data.Package_Name_Root &
+        (case Data.Interface_Kind is
+         when Process => "_Process",
+         when Module     => "_Module"),
+      Interface_Kind     => Generate_Params.Interface_Kind,
+      Lexer              => Generate_Params.Lexer,
+      First_State_Index  => Generate_Params.First_State_Index,
+      First_Parser_Label => Generate_Params.First_Parser_Label);
+
+   Create_Ada_Body; -- populates, uses Elisp_Names
+
+   case Data.Lexer is
+   when Aflex_Lexer =>
+      if Data.Interface_Kind /= Process then
+         raise Programmer_Error with "Aflex_Lexer assumed Process interface";
+      end if;
+      Create_Aflex (Input_File_Name, Output_File_Name_Root & "_process");
+
+   when Elisp_Lexer =>
+      --  All of the lexers need an elisp file; the form of the elisp
+      --  file is determined by Interface_Kind (see below).
+      null;
+
+   when Regexp_Lexer =>
+      raise Programmer_Error;
+   end case;
+
    if not Profile then
-      Create_Elisp;
+      case Data.Interface_Kind is
+      when Process =>
+         Create_Process_Elisp;
+
+      when Module =>
+         Create_Module_Elisp;
+         Create_Module_Aux;
+      end case;
    end if;
 exception
 when others =>
    Set_Output (Standard_Output);
    raise;
 end Wisi.Output_Ada_Emacs;
+--  Local Variables:
+--  jit-lock-defer-time: 0.25
+--  End:

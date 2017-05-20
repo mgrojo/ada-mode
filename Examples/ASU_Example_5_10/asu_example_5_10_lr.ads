@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --
--- Copyright (C) 2010, 2013, 2014 Stephe Leake
+-- Copyright (C) 2010, 2013, 2014, 2015 Stephe Leake
 -- Copyright (C) 2000 Ted Dennison
 --
 -- This file is part of the OpenToken package.
@@ -39,10 +39,9 @@ with OpenToken.Recognizer.End_Of_File;
 with OpenToken.Recognizer.Integer;
 with OpenToken.Recognizer.Separator;
 with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with OpenToken.Token.Analyzer;
+with OpenToken.Token.Integer;
+with OpenToken.Token.Nonterminal;
 with Simple_Integer_Token;
 package ASU_Example_5_10_LR is
 
@@ -51,13 +50,12 @@ package ASU_Example_5_10_LR is
                       Multiply_ID, EOF_ID, L_ID, E_ID, T_ID, F_ID);
 
    --  Instantiate all the nessecary packages
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Integer_ID, EOF_ID, Token_IDs'Image);
+   package Master_Token is new OpenToken.Token (Token_IDs, Integer_ID, EOF_ID, Token_IDs'Image);
    package Tokenizer is new Master_Token.Analyzer;
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
+   package Nonterminal is new Master_Token.Nonterminal;
+   package Production is new OpenToken.Production (Master_Token, Nonterminal);
    package Production_List is new Production.List;
-   package Parser is new Production.Parser (Tokenizer);
+   package Parser is new Production.Parser;
    package LALRs is new Parser.LALR (First_State_Index => 1);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label);
@@ -67,10 +65,10 @@ package ASU_Example_5_10_LR is
 
    --  Instantiate our tokens
    package Integer_Literal is new Master_Token.Integer;
-   package Simple_Integer is new Simple_Integer_Token (Master_Token, Token_List, Nonterminal, Integer_Literal);
+   package Simple_Integer is new Simple_Integer_Token (Master_Token, Nonterminal, Integer_Literal);
 
    --  Allow infix operators for building productions
-   use type Token_List.Instance;
+   use type Master_Token.List.Instance;
    use type Production.Right_Hand_Side;
    use type Production.Instance;
    use type Production_List.Instance;

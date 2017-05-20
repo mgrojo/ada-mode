@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,25 +18,20 @@
 
 pragma License (GPL);
 
-with Ada.Strings.Maps.Constants;
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks;
 with Ada.Exceptions;
-with OpenToken.Production.List;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser.LALR.Parser_Lists;
-with OpenToken.Recognizer.Based_Integer;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Identifier;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Nonterminal;
+with Ada.Text_IO;
+with FastToken.Lexer.Regexp;
+with FastToken.Production;
+with FastToken.Parser.LR.Generator_Utils;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
+with FastToken.Text_Feeder.String;
+with FastToken.Token;
 package body Test_LR_Expecting is
 
    --  A simple grammar for testing the Expecting function for generating nice error messages.
@@ -52,7 +47,7 @@ package body Test_LR_Expecting is
    --  set foo bar; => "expecting '='
    --  etc
 
-   type Token_IDs is
+   type Token_ID is
      (Whitespace_ID,
       Equals_ID,
       Int_ID,
@@ -70,134 +65,80 @@ package body Test_LR_Expecting is
       Statement_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_IDs, Equals_ID, EOF_ID, Token_IDs'Image);
-   package Tokenizer is new Master_Token.Analyzer;
-   package Integer is new Master_Token.Integer;
-
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
-   package Production_List is new Production.List;
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
-   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator (Token_IDs'Width, Production_List);
-   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
-   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
-
-   --  Terminals
-   EOF        : constant Master_Token.Class := Master_Token.Get (EOF_ID, Name => "EOF");
-   Equals     : constant Master_Token.Class := Master_Token.Get (Equals_ID);
-   Int        : constant Master_Token.Class := Integer.Get (Int_ID, Name => "integer");
-   Plus_Minus : constant Master_Token.Class := Master_Token.Get (Plus_Minus_ID);
-   Semicolon  : constant Master_Token.Class := Master_Token.Get (Semicolon_ID);
-
-   Identifier : constant Master_Token.Class := Master_Token.Get (Identifier_ID);
-
-   --  Nonterminals
-   Parse_Sequence : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
-   Statement      : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
+   package Token_Pkg is new FastToken.Token (Token_ID, Equals_ID, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Lexer is new Lexer_Root.Regexp;
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Equals_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    use type Production.Instance;        --  "<="
-   use type Production_List.Instance;   --  "and"
+   use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Token_Pkg.List.Instance; --  "&"
 
    package Set_Statement is
 
-      type Instance is new Nonterminal.Instance with null record;
-
-      overriding function Name (Token : in Instance) return String;
-
-      Set_Statement : constant Instance := (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
+      Grammar : constant Production.List.Instance :=
         --  set symbol = value
-        Production_List.Only
-        (Set_Statement <= Nonterminal.Get (Set_ID) & Identifier & Equals & Int + Nonterminal.Synthesize_Self);
+        Production.List.Only
+        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Token_Pkg.Null_Action);
 
-   end Set_Statement;
-
-   package body Set_Statement is
-      overriding function Name (Token : in Instance) return String
-      is
-         pragma Unreferenced (Token);
-      begin
-         return "set";
-      end Name;
    end Set_Statement;
 
    package Verify_Statement is
 
-      type Instance is new Nonterminal.Instance with null record;
-
-      overriding function Name (Token : in Instance) return String;
-
-      Verify_Statement : constant Instance :=
-        (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
+      Grammar : constant Production.List.Instance :=
         --  verify symbol = value +- tolerance
-        Production_List.Only
-        (Verify_Statement  <= Nonterminal.Get (Verify_ID) & Equals & Int & Plus_Minus & Int +
-           Nonterminal.Synthesize_Self);
+        Production.List.Only
+        (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID + Token_Pkg.Null_Action);
    end Verify_Statement;
 
-   package body Verify_Statement is
-      overriding function Name (Token : in Instance) return String
-      is
-         pragma Unreferenced (Token);
-      begin
-         return "verify";
-      end Name;
-   end Verify_Statement;
+   Syntax : constant Lexer.Syntax :=
+     (
+      Whitespace_ID => Lexer.Get (" ", Report => False),
+      Equals_ID     => Lexer.Get ("="),
+      Int_ID        => Lexer.Get ("[0-9]+"),
+      Plus_Minus_ID => Lexer.Get ("\+-"),
+      Semicolon_ID  => Lexer.Get (";"),
+      Set_ID        => Lexer.Get ("set"),
+      Verify_ID     => Lexer.Get ("verify"),
+      Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
+     );
 
-   Syntax : constant Tokenizer.Syntax :=
-     (Equals_ID     => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("="),
-                                      Master_Token.Get (Name => "=")),
-      Int_ID        => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, Int),
-      Plus_Minus_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+-"),
-                                      Master_Token.Get (Name => "+-")),
-      Semicolon_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (";"),
-                                      Master_Token.Get (Name => ";")),
-      Set_ID        => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set"),
-                                      Master_Token.Get (Name => "set")),
-      Verify_ID     => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("verify"),
-                                      Master_Token.Get (Name => "verify")),
-
-      Identifier_ID => Tokenizer.Get
-        (OpenToken.Recognizer.Identifier.Get
-           (Start_Chars => Ada.Strings.Maps.Constants.Letter_Set,
-            Body_Chars  => Ada.Strings.Maps.Constants.Alphanumeric_Set),
-         Master_Token.Get (Name => "identifier")),
-
-      Whitespace_ID => Tokenizer.Get
-        (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace)),
-      EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, EOF));
-
-   Grammar : constant Production_List.Instance :=
-     Parse_Sequence <= Statement & Semicolon & EOF + Nonterminal.Synthesize_Self and
+   Grammar : constant Production.List.Instance :=
+     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + Token_Pkg.Null_Action and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   String_Feeder : aliased OpenToken.Text_Feeder.String.Instance;
-   Analyzer      : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
-   Parser        : LALR_Parsers.Instance;
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+
+   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   Parser        : LR_Parser.Instance;
 
    procedure Execute
      (Command          : in String;
       Expected_Message : in String)
-   is
-      use LALR_Parsers;
-   begin
-      OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
+   is begin
+      FastToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      Set_Text_Feeder (Parser, String_Feeder'Unchecked_Access);
+      Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
-      Parse (Parser);
+      Parser.Parse;
       AUnit.Assertions.Assert (False, Command & "; no exception");
    exception
-   when E : OpenToken.Syntax_Error =>
-      AUnit.Check.Check (Command, Ada.Exceptions.Exception_Message (E), Expected_Message);
+   when E : FastToken.Syntax_Error =>
+      AUnit.Checks.Check (Command, Ada.Exceptions.Exception_Message (E), Expected_Message);
    end Execute;
 
    ----------
@@ -207,31 +148,24 @@ package body Test_LR_Expecting is
    is
       Test : Test_Case renames Test_Case (T);
    begin
-      Parser := LALR_Parsers.Initialize
-        (Analyzer,
-         LALR_Generators.Generate
+      Parser := LR_Parser.Initialize
+        (Lexer.Initialize (Syntax, String_Feeder'Access),
+         Generators.Generate
            (Grammar,
             Trace           => Test.Debug,
             Put_Parse_Table => Test.Debug));
 
-      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
+      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
-      Execute ("set A = 2", "1:10: Syntax error; expecting ';'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A = 2", "1:10: Syntax error; expecting one of SEMICOLON_ID; found EOF_ID '" & ASCII.EOT & "'");
 
-      if Test.Debug then
-         Execute ("set A = ", "1:9: Syntax error; expecting 'integer  2'; found EOF '" & ASCII.EOT & "'");
-      else
-         Execute ("set A = ", "1:9: Syntax error; expecting 'integer'; found EOF '" & ASCII.EOT & "'");
-      end if;
+      Execute ("set A = ", "1:9: Syntax error; expecting one of INT_ID; found EOF_ID '" & ASCII.EOT & "'");
 
-      Execute ("set A", "1:6: Syntax error; expecting '='; found EOF '" & ASCII.EOT & "'");
-      Execute ("set", "1:4: Syntax error; expecting 'identifier'; found EOF '" & ASCII.EOT & "'");
+      Execute ("set A", "1:6: Syntax error; expecting one of EQUALS_ID; found EOF_ID '" & ASCII.EOT & "'");
 
-      if Test.Debug then
-         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer  2 '2'");
-      else
-         Execute ("2", "1:1: Syntax error; expecting 'set' or 'verify'; found integer '2'");
-      end if;
+      Execute ("set", "1:4: Syntax error; expecting one of IDENTIFIER_ID; found EOF_ID '" & ASCII.EOT & "'");
+
+      Execute ("2", "1:1: Syntax error; expecting one of SET_ID, VERIFY_ID; found INT_ID '2'");
    end Nominal;
 
    ----------

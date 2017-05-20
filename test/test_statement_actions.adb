@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009, 2010, 2012, 2013, 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -20,23 +20,20 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
-with OpenToken.Production.Parser.LALR.Generator;
-with OpenToken.Production.Parser.LALR.Parser;
-with OpenToken.Production.Parser.LALR.Parser_Lists;
-with OpenToken.Production.List;
-with OpenToken.Recognizer.Based_Integer;
-with OpenToken.Recognizer.Character_Set;
-with OpenToken.Recognizer.End_Of_File;
-with OpenToken.Recognizer.Keyword;
-with OpenToken.Recognizer.Separator;
-with OpenToken.Text_Feeder.String;
-with OpenToken.Token.Enumerated.List;
-with OpenToken.Token.Enumerated.Analyzer;
-with OpenToken.Token.Enumerated.Integer;
-with OpenToken.Token.Enumerated.Nonterminal;
+with Ada.Text_IO;
+with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.Generator_Utils;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.Panic_Mode;
+with FastToken.Parser.LR.Parser;
+with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR1_Items;
+with FastToken.Production;
+with FastToken.Text_Feeder.String;
+with FastToken.Token;
 package body Test_Statement_Actions is
 
-   type Token_ID_Type is
+   type Token_ID is
      (Whitespace_ID,
       Plus_Minus_ID,
       Semicolon_ID,
@@ -51,133 +48,89 @@ package body Test_Statement_Actions is
       Statement_Sequence_ID,
       Parse_Sequence_ID);
 
-   package Master_Token is new OpenToken.Token.Enumerated (Token_ID_Type, Plus_Minus_ID, EOF_ID, Token_ID_Type'Image);
-   package Token_List is new Master_Token.List;
-   package Nonterminal is new Master_Token.Nonterminal (Token_List);
-
-   package Integer_Literal is new Master_Token.Integer;
-
-   package Production is new OpenToken.Production (Master_Token, Token_List, Nonterminal);
-   package Production_List is new Production.List;
+   package Token_Pkg is new FastToken.Token (Token_ID, Plus_Minus_ID, EOF_ID, Token_ID'Image);
+   package Production is new FastToken.Production (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Lexer is new Lexer_Root.Regexp;
+   package Parser_Root is new FastToken.Parser
+     (Token_ID, Plus_Minus_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
+      Token_Pkg, Lexer_Root);
+   First_State_Index : constant := 1;
+   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   First_Parser_Label : constant := 1;
+   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
+   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
+   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+   package LR1_Items is new Parser_Root.LR1_Items
+     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
+   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
    use type Production.Instance;        --  "<="
-   use type Production_List.Instance;   --  "and"
+   use type Production.List.Instance;   --  "and"
    use type Production.Right_Hand_Side; --  "+"
-   use type Token_List.Instance;        --  "&"
+   use type Token_Pkg.List.Instance;    --  "&"
 
-   package Tokens is
-      --  For use in right hand sides.
-      --  Terminals
-      EOF            : constant Master_Token.Class := Master_Token.Get (EOF_ID);
-      Integer        : constant Master_Token.Class := Integer_Literal.Get (Int_ID);
-      Plus_Minus     : constant Master_Token.Class := Master_Token.Get (Plus_Minus_ID);
-      Semicolon      : constant Master_Token.Class := Master_Token.Get (Semicolon_ID);
-
-      --  Nonterminals
-      Parse_Sequence     : constant Nonterminal.Class := Nonterminal.Get (Parse_Sequence_ID);
-      Statement          : constant Nonterminal.Class := Nonterminal.Get (Statement_ID);
-      Statement_Semi     : constant Nonterminal.Class := Nonterminal.Get (Statement_Semi_ID);
-      Statement_Sequence : constant Nonterminal.Class := Nonterminal.Get (Statement_Sequence_ID);
-   end Tokens;
+   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
    package Set_Statement is
 
-      type Instance is new Nonterminal.Instance with null record;
-
-      Set_Statement : constant Instance := (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
-        Production_List.Only
-        (Set_Statement <= Nonterminal.Get (Set_ID) & Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self);
+      Grammar : constant Production.List.Instance :=
+        Production.List.Only
+        (Statement_ID <= Set_ID & Int_ID + Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      type Instance is new Nonterminal.Instance with null record;
-
-      Verify_Statement : constant Instance :=
-        (Master_Token.Instance (Master_Token.Get (Statement_ID)) with null record);
-
-      Grammar : constant Production_List.Instance :=
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Integer_Literal.Get (Int_ID) + Nonterminal.Synthesize_Self
+      Grammar : constant Production.List.Instance :=
+        Statement_ID <= Verify_ID & Int_ID + Null_Action
         and
-        Verify_Statement  <= Nonterminal.Get (Verify_ID) & Integer_Literal.Get (Int_ID) &
-        Tokens.Plus_Minus  + Nonterminal.Synthesize_Self;
+        Statement_ID <= Verify_ID & Int_ID & Plus_Minus_ID + Null_Action;
    end Verify_Statement;
 
-   package Tokenizer is new Master_Token.Analyzer;
-
-   Syntax : constant Tokenizer.Syntax :=
+   Syntax : constant Lexer.Syntax :=
      (
-      --  terminals: operators etc
-
-      Plus_Minus_ID => Tokenizer.Get (OpenToken.Recognizer.Separator.Get ("+-")),
-      Semicolon_ID  => Tokenizer.Get (OpenToken.Recognizer.Separator.Get (";")),
-
-      --  terminals: keywords
-      Set_ID    => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("set")),
-      Verify_ID => Tokenizer.Get (OpenToken.Recognizer.Keyword.Get ("verify")),
-
-      --  terminals: values
-      Int_ID  => Tokenizer.Get (OpenToken.Recognizer.Based_Integer.Get, New_Token => Tokens.Integer),
-
-      --  Syntax only
-      EOF_ID        => Tokenizer.Get (OpenToken.Recognizer.End_Of_File.Get, Tokens.EOF),
-      Whitespace_ID => Tokenizer.Get
-        (OpenToken.Recognizer.Character_Set.Get (OpenToken.Recognizer.Character_Set.Standard_Whitespace))
+      Whitespace_ID => Lexer.Get (" ", Report => False),
+      Plus_Minus_ID => Lexer.Get ("\+-"),
+      Semicolon_ID  => Lexer.Get (";"),
+      Set_ID        => Lexer.Get ("set"),
+      Verify_ID     => Lexer.Get ("verify"),
+      Int_ID        => Lexer.Get ("[0-9]+"),
+      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
      );
-
-   --  We can't set the grammar to parse only one statement, but then
-   --  pass in a string with two statements. The first parse doesn't
-   --  return until it consumes the first token of the second
-   --  statement; then the second parse doesn't see it. See
-   --  test_lr0_kernels.adb for an example of this.
-   --
-   --  To get a similar effect, specify an action on a statement
 
    Action_Count : Integer := 0;
 
-   procedure Statement_Action
-     (New_Token :    out Nonterminal.Class;
-      Source    : in     Token_List.Instance'Class;
-      To_ID     : in     Token_ID_Type)
+   procedure Statement_Semi_Action
+     (Nonterm : in Token_Pkg.Nonterminal_ID;
+      Source  : in Token_Pkg.List.Instance)
    is
-      pragma Unreferenced (To_ID);
+      pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
    begin
-      New_Token := Nonterminal.Get (Statement_Semi_ID);
       Action_Count := Action_Count + 1;
-   end Statement_Action;
+   end Statement_Semi_Action;
 
-   Grammar : constant Production_List.Instance :=
-     Tokens.Parse_Sequence     <= Tokens.Statement_Sequence & Tokens.EOF and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi & Tokens.Statement_Sequence and
-     Tokens.Statement_Sequence <= Tokens.Statement_Semi and
-     Tokens.Statement_Semi     <= Tokens.Statement & Tokens.Semicolon + Statement_Action'Access and
+   Grammar : constant Production.List.Instance :=
+     Parse_Sequence_ID     <= Statement_Sequence_ID & EOF_ID + Null_Action and
+     Statement_Sequence_ID <= Statement_Semi_ID & Statement_Sequence_ID + Null_Action and
+     Statement_Sequence_ID <= Statement_Semi_ID + Null_Action and
+     Statement_Semi_ID     <= Statement_ID & Semicolon_ID + Statement_Semi_Action'Access and
 
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
-   package OpenToken_Parser is new Production.Parser (Tokenizer);
-   package LALRs is new OpenToken_Parser.LALR (First_State_Index => 1);
-   package LALR_Generators is new LALRs.Generator (Token_ID_Type'Width, Production_List);
-   package Parser_Lists is new LALRs.Parser_Lists (First_Parser_Label => 1);
-   package LALR_Parsers is new LALRs.Parser (1, Parser_Lists);
 
-   String_Feeder  : aliased OpenToken.Text_Feeder.String.Instance;
-   An_Analyzer    : constant Tokenizer.Handle := Tokenizer.Initialize (Syntax);
-   Command_Parser : LALR_Parsers.Instance;
+   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   Parser        : LR_Parser.Instance;
 
    procedure Execute_Command (Command : in String)
-   is
-      use LALR_Parsers;
-   begin
-      OpenToken.Text_Feeder.String.Set (String_Feeder, Command);
+   is begin
+      FastToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      Set_Text_Feeder (Command_Parser, String_Feeder'Unchecked_Access);
+      Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
-      --  Read and parse statements from the string until end of string
-      Parse (Command_Parser);
+      Parser.Parse;
    exception
    when E : others =>
       AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
@@ -191,11 +144,11 @@ package body Test_Statement_Actions is
       Test : Test_Case renames Test_Case (T);
       use AUnit.Assertions;
    begin
-      Command_Parser := LALR_Parsers.Initialize
-        (An_Analyzer,
-         LALR_Generators.Generate (Grammar, Trace => Test.Debug));
+      Parser := LR_Parser.Initialize
+        (Lexer.Initialize (Syntax, String_Feeder'Access),
+         Generators.Generate (Grammar, Trace => Test.Debug));
 
-      OpenToken.Trace_Parse := (if Test.Debug then 1 else 0);
+      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       Execute_Command ("set 2;");
 
@@ -214,7 +167,7 @@ package body Test_Statement_Actions is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("Test_Statement_Actions");
+      return new String'("../../Test/test_statement_actions.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

@@ -1,12 +1,13 @@
 ;; small Ada-like grammar illustrating the reduce/reduce conflict
 ;; between an identifier_list and a name.
 ;;
-;; The grammar is ambiguous; the parse spawns two parsers, one finding
-;; name lists, the other identifier lists; both succeed, resulting in
-;; a parse error.
+;; The grammar is ambiguous between an identifier_list and a
+;; name_list, if none of the names are string literals. This shows up
+;; in the the compiled grammar as several reduce/reduce conflict, and
+;; in the parser as two parsers reaching accept.
 
 %{
-;; Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -28,14 +29,17 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
-%token <string-double> STRING_LITERAL
-%token <symbol> IDENTIFIER
+%token <string-double> STRING_LITERAL "\"[^\"]*\""
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
-%token <whitespace> WHITESPACE ""
-%token <line_comment> COMMENT "--"
+;; need whitespace for Aflex lexer
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 
 ;; not first nonterminal
 %start compilation
+%parser_algorithm LALR_LR1
+%output_language Elisp
 
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN

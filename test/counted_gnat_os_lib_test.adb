@@ -1,27 +1,29 @@
--------------------------------------------------------------------------------
+--  Abstract:
 --
---  Copyright (C) 2014 Stephen Leake
+--  See spec
 --
---  This file is part of the OpenToken package.
+--  Copyright (C) 2014, 2015, 2017 Stephen Leake
 --
---  The OpenToken package is free software; you can redistribute it
+--  This file is part of the FastToken package.
+--
+--  The FastToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The OpenToken package is
+--  (at your option) any later version. The FastToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the OpenToken package;
+--  GNU General Public License distributed with the FastToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 pragma License (GPL);
 
-with AUnit.Check;
+with AUnit.Checks;
 with Ada.Directories;
 with GNAT.OS_Lib;
-with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
 package body Counted_GNAT_OS_Lib_Test is
 
    ----------
@@ -31,13 +33,13 @@ package body Counted_GNAT_OS_Lib_Test is
    is
       pragma Unreferenced (T);
       use Ada.Directories;
-      use AUnit.Check;
+      use AUnit.Checks;
       use GNAT.OS_Lib;
-      use OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+      use FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
 
       File_Text    : constant String := "a23456 b90123";
       Command_Text : constant String := "04quit";
-      File_Name    : constant String := "counted_gnat_os_lib_test.text";
+      File_Name    : constant String := "counted_gnat_os_lib_test.in";
       OS_Lib_File  : File_Descriptor;
       Junk         : Integer;
       pragma Unreferenced (Junk);
@@ -78,7 +80,7 @@ package body Counted_GNAT_OS_Lib_Test is
 
       OS_Lib_File := Open_Read (File_Name, Binary);
 
-      Feeder := Instance (Create (OS_Lib_File).all);
+      Initialize (Feeder, OS_Lib_File);
 
       Feeder.Reset (File_Text'Length);
 

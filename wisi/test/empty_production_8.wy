@@ -5,9 +5,6 @@
 ;;; output until after conflict is resolved.
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 %keyword ALIASED "aliased"
@@ -15,11 +12,18 @@
 
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-%token <whitespace> WHITESPACE ""
+;; need whitespace for Aflex lexer
+%token <whitespace> WHITESPACE "[ \t\n]"
 
 %start object_declaration_list
+%first_state_index 1
+%first_parser_label 1
+%parser_algorithm LALR_LR1
+%output_language Emacs_Ada
+%lexer Aflex
+%interface process
 
 %conflict SHIFT/REDUCE in state constant_opt, aliased_opt on token CONSTANT
 

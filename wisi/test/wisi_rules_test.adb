@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2013, 2014 Stephen Leake
+--  Copyright (C) 2013-2015, 2017 Stephen Leake
 --
 --  This file is part of the OpenToken package.
 --
@@ -21,15 +21,14 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Check;
+with AUnit.Checks;
 with Ada.Containers;
 with Ada.Directories;
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Rules;
 package body Wisi_Rules_Test is
 
-   File_Name : constant String := "wisi_rules_test.wy";
-   File      : File_Type;
+   File : File_Type;
 
    procedure Delete (Name : in String)
    is
@@ -43,7 +42,7 @@ package body Wisi_Rules_Test is
       end if;
    end Delete;
 
-   procedure Check is new AUnit.Check.Gen_Check_Discrete (Ada.Containers.Count_Type);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
 
    procedure Check
      (Label    : in String;
@@ -51,7 +50,7 @@ package body Wisi_Rules_Test is
       Expected : in Wisi.String_Lists.List)
    is
       use Wisi.String_Lists;
-      use AUnit.Check;
+      use AUnit.Checks;
       Computed_I : Cursor := Computed.First;
       Expected_I : Cursor := Expected.First;
    begin
@@ -105,7 +104,7 @@ package body Wisi_Rules_Test is
       Computed : in Wisi.Rule_Lists.List;
       Expected : in Wisi.Rule_Lists.List)
    is
-      use AUnit.Check;
+      use AUnit.Checks;
       use Wisi;
       use Wisi.Rule_Lists;
       Computed_I : Cursor := Computed.First;
@@ -134,10 +133,13 @@ package body Wisi_Rules_Test is
    ----------
    --  Test procedures
 
-   procedure Nominal (Test : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Nominal_Elisp (Test : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Test);
       use Wisi;
+
+      File_Name : constant String := "wisi_rules_test-nominal_elisp.wy";
+
       Computed     : Wisi.Rule_Lists.List;
       Expected     : Wisi.Rule_Lists.List;
       Rule_Count   : Integer;
@@ -152,24 +154,17 @@ package body Wisi_Rules_Test is
       New_Line (File);
       Put_Line (File, "subprogram");
       Put_Line (File, "  : FUNCTION parameter_list SYMBOL");
-      Put_Line (File, "    `,(wisi-cache-action 1 'function 2 'other)");
+      Put_Line (File, "    (wisi-statement-action [1 function 2 other])");
       Put_Line (File, "  | PROCEDURE parameter_list SYMBOL");
-      Put_Line (File, "    `,(wisi-cache-action");
+      Put_Line (File, "    (wisi-cache-action");
       Put_Line (File, "       1 'procedure");
       Put_Line (File, "       2 'other)");
-      Put_Line (File, "  ;");
-      New_Line (File);
-      Put_Line (File, ";; empty production, comments");
-      Put_Line (File, "parameter_list");
-      Put_Line (File, "  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters");
-      Put_Line (File, "  | ;; ada-like no parameters");
-      Put_Line (File, "  | LEFT_PAREN SYMBOL RIGHT_PAREN");
       Put_Line (File, "  ;");
       Put_Line (File, "%%");
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -186,30 +181,67 @@ package body Wisi_Rules_Test is
         (Expected,
          (+"subprogram",
           +(+"FUNCTION" + "parameter_list" + "SYMBOL",
-            +"`,(wisi-cache-action 1 'function 2 'other)") +
+            +"(wisi-statement-action [1 function 2 other])") +
             (+"PROCEDURE" + "parameter_list" + "SYMBOL",
-             +"`,(wisi-cache-action" +
+             +"(wisi-cache-action" +
                "1 'procedure" +
                "2 'other)"),
           Source_Line => 1));
+
+      Check ("1", Computed, Expected);
+
+   end Nominal_Elisp;
+
+   procedure Nominal_Ada (Test : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (Test);
+      use Wisi;
+
+      File_Name : constant String := "wisi_rules_test-nominal_ada.wy";
+
+      Computed     : Wisi.Rule_Lists.List;
+      Expected     : Wisi.Rule_Lists.List;
+      Rule_Count   : Integer;
+      Action_Count : Integer;
+   begin
+      Delete (File_Name);
+      Create (File, Out_File, File_Name);
+      Put_Line (File, ";; empty production, comments");
+      Put_Line (File, "parameter_list");
+      Put_Line (File, "  : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters");
+      Put_Line (File, "   (c_null_params := ");
+      Put_Line (File, "      c_null_params + 1;)");
+      Put_Line (File, "  | ;; ada-like no parameters");
+      Put_Line (File, "   (ada_null_params := c_null_params + 1;)");
+      Put_Line (File, "  | LEFT_PAREN SYMBOL RIGHT_PAREN");
+      Put_Line (File, "  ;");
+      Put_Line (File, "%%");
+      Close (File);
+
+      Open (File, In_File, File_Name);
+      Wisi.Rules (File, Wisi.Ada, Computed, Rule_Count, Action_Count);
+      Close (File);
 
       Wisi.Rule_Lists.Append
         (Expected,
          (Left_Hand_Side   => +"parameter_list",
           Right_Hand_Sides =>
-            +(+"LEFT_PAREN" + "RIGHT_PAREN", String_Lists.Empty_List) +
-            (String_Lists.Empty_List, String_Lists.Empty_List) +
+            +(+"LEFT_PAREN" + "RIGHT_PAREN", +"c_null_params :=" + "c_null_params + 1;") +
+            (String_Lists.Empty_List, +"ada_null_params := c_null_params + 1;") +
             (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List),
           Source_Line => 1));
 
       Check ("1", Computed, Expected);
 
-   end Nominal;
+   end Nominal_Ada;
 
    procedure Single_Line (Test : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (Test);
       use Wisi;
+
+      File_Name : constant String := "wisi_rules_test-single_line.wy";
+
       Computed     : Wisi.Rule_Lists.List;
       Expected     : Wisi.Rule_Lists.List;
       Rule_Count   : Integer;
@@ -228,7 +260,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -263,7 +295,10 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (Test);
       use Wisi;
-      use AUnit.Check;
+      use AUnit.Checks;
+
+      File_Name : constant String := "wisi_rules_test-number_range.wy";
+
       Computed   : Wisi.Rule_Lists.List;
       Rule_Count : Integer;
       pragma Unreferenced (Rule_Count);
@@ -275,21 +310,24 @@ package body Wisi_Rules_Test is
       Create (File, Out_File, File_Name);
       Put_Line (File, "subprogram_specification");
       Put_Line (File, "  : PROCEDURE IDENTIFIER parameter_list");
-      Put_Line (File, "  (wisi-statement-action [1 start 2 name 3 other]);"); -- no error
+      Put_Line (File, "  (wisi-statement-action [1 start 2 name 3 other])"); -- no error
+      Put_Line (File, "  ;");
       New_Line (File);
       Put_Line (File, "parameter_list");
       Put_Line (File, ": LEFT_PAREN IDENTIFIER RIGHT_PAREN");
-      Put_Line (File, " (wisi-statement-action [ 1 paren-open 4 paren-close]);"); -- error
+      Put_Line (File, " (wisi-statement-action [ 1 paren-open 4 paren-close])"); -- error
+      Put_Line (File, "  ;");
       Put_Line (File, "%%");
       Close (File);
 
       Open (File, In_File, File_Name);
       begin
-         Wisi.Rules (File, Computed, Rule_Count, Action_Count);
+         Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
          AUnit.Assertions.Assert (False, "1 did not get exception");
       exception
       when Syntax_Error =>
-         --  Error message in standard_output; checked in diff
+         --  Error message "wisi_rules_test.wy:7:0: token number 4  out of range 1 .. 3"
+         --  in standard_output; checked in diff
          null;
       end;
       Close (File);
@@ -303,9 +341,14 @@ package body Wisi_Rules_Test is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Nominal'Access, "Nominal");
-      Register_Routine (T, Single_Line'Access, "Single_Line");
-      Register_Routine (T, Token_Number_Range'Access, "Token_Number_Range");
+      if T.Debug then
+         Register_Routine (T, Nominal_Ada'Access, "debug");
+      else
+         Register_Routine (T, Nominal_Elisp'Access, "Nominal_Elisp");
+         Register_Routine (T, Nominal_Ada'Access, "Nominal_Ada");
+         Register_Routine (T, Single_Line'Access, "Single_Line");
+         Register_Routine (T, Token_Number_Range'Access, "Token_Number_Range");
+      end if;
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
@@ -314,12 +357,5 @@ package body Wisi_Rules_Test is
    begin
       return new String'("../../wisi/test/wisi_rules_test.adb");
    end Name;
-
-   overriding procedure Tear_Down (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
-      Delete (File_Name);
-   end Tear_Down;
 
 end Wisi_Rules_Test;

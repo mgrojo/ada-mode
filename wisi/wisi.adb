@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2012 - 2014 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -18,7 +18,19 @@
 
 pragma License (GPL);
 
+with Ada.Command_Line;
+with Ada.Directories;
 package body Wisi is
+
+   function To_Lexer (Item : in String) return Lexer_Type
+   is begin
+      for I in Valid_Lexer loop
+         if Lexer_Names (I).all = To_Lower (Item) then
+            return I;
+         end if;
+      end loop;
+      raise User_Error with "invalid lexer name: '" & Item & "'";
+   end To_Lexer;
 
    function Count (Tokens : in Token_Lists.List) return Integer
    is
@@ -113,5 +125,38 @@ package body Wisi is
       Result.Append (Item);
       return Result;
    end "+";
+
+   procedure Put_Command_Line (Comment_Prefix : in String)
+   is
+      use Standard.Ada.Command_Line;
+      use Standard.Ada.Text_IO;
+
+      Max_Line_Length : constant := 120;
+      Col : Integer := 0;
+
+      procedure Put (Item : in String; Leading_Space : in Boolean)
+      is begin
+         if Col > 0 and Col + Item'Length + 1 > Max_Line_Length then
+            New_Line;
+            Col := Comment_Prefix'Length;
+            Put (Comment_Prefix);
+         else
+            if Leading_Space then
+               Put (" ");
+               Col := Col + 1;
+            end if;
+         end if;
+
+         Col := Col + Item'Length;
+         Put (Item);
+      end Put;
+   begin
+      Put (Comment_Prefix & "with command line:", False);
+      Put (Standard.Ada.Directories.Simple_Name (Command_Name), True);
+      for I in 1 .. Argument_Count loop
+         Put (Argument (I), True);
+      end loop;
+      New_Line;
+   end Put_Command_Line;
 
 end Wisi;

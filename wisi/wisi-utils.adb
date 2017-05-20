@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2012, 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2012, 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -48,19 +48,29 @@ package body Wisi.Utils is
       end loop;
    end Skip_Comments;
 
-   procedure Put_Error
+   function Error_String
      (File_Name : in String;
       File_Line : in Standard.Ada.Text_IO.Positive_Count;
       Message   : in String)
+     return String
    is
       use Standard.Ada.Directories;
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings;
       use Standard.Ada.Text_IO;
-      Prefix : constant String := Simple_Name (File_Name) & ":" &
-        Trim (Positive_Count'Image (File_Line), Left) & ":0: ";
    begin
-      Put_Line (Standard_Error, Prefix & Message);
+      return Simple_Name (File_Name) & ":" &
+        Trim (Positive_Count'Image (File_Line), Left) & ":0: " & Message;
+   end Error_String;
+
+   procedure Put_Error
+     (File_Name : in String;
+      File_Line : in Standard.Ada.Text_IO.Positive_Count;
+      Message   : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Put_Line (Standard_Error, Error_String (File_Name, File_Line, Message));
    end Put_Error;
 
    procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String)
@@ -69,5 +79,43 @@ package body Wisi.Utils is
    begin
       Put_Error (Name (File), Line (File) - 1, Message);
    end Put_Error;
+
+   procedure Indent_Line (Text : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Set_Col (Indent);
+      Put_Line (Text);
+   end Indent_Line;
+
+   procedure Indent_Start (Text : in String)
+   is
+      use Standard.Ada.Text_IO;
+   begin
+      Set_Col (Indent);
+      Put (Text);
+   end Indent_Start;
+
+   function Strip_Quotes (Item : in String) return String
+   is begin
+      if Item'Length < 2 then
+         return Item;
+      else
+         return Item
+           ((if Item (Item'First) = '"' then Item'First + 1 else Item'First) ..
+              (if Item (Item'Last) = '"' then Item'Last - 1 else Item'Last));
+      end if;
+   end Strip_Quotes;
+
+   function Strip_Parens (Item : in String) return String
+   is begin
+      if Item'Length < 2 then
+         return Item;
+      else
+         return Item
+           ((if Item (Item'First) = '(' then Item'First + 1 else Item'First) ..
+              (if Item (Item'Last) = ')' then Item'Last - 1 else Item'Last));
+      end if;
+   end Strip_Parens;
 
 end Wisi.Utils;

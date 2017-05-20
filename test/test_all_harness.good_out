@@ -1,7 +1,9 @@
-wisi_rules_test.wy:8:0: token number 4  out of range 1 .. 3
+wisi_rules_test-number_range.wy:8:0: token number 4 out of range 1 .. 3
 
-OK ../../wisi/test/test_generate_errors.adb../../wisi/test/unused_tokens : Run_Test
-OK ../../wisi/test/wisi_rules_test.adb : Nominal
+OK ../../wisi/test/test_generate_errors.adb ../../wisi/test/unused_tokens : Run_Test
+OK ../../wisi/test/wisi_module_action_test.adb : Nominal
+OK ../../wisi/test/wisi_rules_test.adb : Nominal_Elisp
+OK ../../wisi/test/wisi_rules_test.adb : Nominal_Ada
 OK ../../wisi/test/wisi_rules_test.adb : Single_Line
 OK ../../wisi/test/wisi_rules_test.adb : Token_Number_Range
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/body_instantiation_conflict : Run_Test
@@ -9,56 +11,37 @@ OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/case_expression : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/identifier_list_name_conflict : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/range_conflict : Run_Test
 OK ../../wisi/test/wisi_wy_test.adb ../../wisi/test/subprograms : Run_Test
-OK ../../Test/analyzer_buffer_test.adb : Nominal_String
-OK ../../Test/analyzer_buffer_test.adb : Nominal_Counted_Gnat
-OK ../../Test/analyzer_buffer_test.adb : Buffer_Full
-OK ../../Test/analyzer_lookahead_test.adb : Lookahead
-OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Push_Back
-OK ../../Test/analyzer_lookahead_test.adb : Lookahead_Lexemes
-OK ../../Test/analyzer_lookahead_test.adb : Mismatched_Tokens
+OK ../../Test/association_grammar_test.adb : Nominal
+OK ../../Test/compare_goto_transitions.adb : Subprograms
 OK ../../Test/counted_gnat_os_lib_test.adb : Discard
-OK ../Test/opentoken-recognizer-based_integer_real_ada-test.adb : Nominal
-OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Nominal
-OK ../Test/opentoken-recognizer-bracketed_comment-test.adb : Wisi
-OK OpenToken.Recognizer.CSV_Field.Test : Nominal
+OK ../../Test/dragon_4_43_lr1_test.adb : Test_First_Follow
+OK ../../Test/dragon_4_43_lr1_test.adb : Test_LR1_Items
+OK ../../Test/dragon_4_43_lr1_test.adb : Parser_Table
+OK ../../Test/dragon_4_43_lr1_test.adb : Test_Parse
+OK ../../Test/dragon_4_45_lalr_test.adb : Test_First
+OK ../../Test/dragon_4_45_lalr_test.adb : Test_LALR_Kernels
+OK ../../Test/dragon_4_45_lalr_test.adb : Parser_Table
+OK ../../Test/dragon_4_45_lalr_test.adb : Test_Parse
+OK ../../Test/grune_9_30.adb : Test_Item_Sets
+OK ../../Test/grune_9_30.adb : Test_Parse
+OK ../../Test/name_grammar_test.adb : Nominal
 OK ../../Test/parser_lists_test.adb : Init
 OK ../../Test/parser_lists_test.adb : Stack
 OK ../../Test/parser_lists_test.adb : Parser_List
 OK ../../Test/parser_lists_test.adb : Stack_Equal
 OK ../../Test/parser_lists_test.adb : Pending
 OK ../../Test/parser_lists_test.adb : Copy
-OK ../../Test/test_accept_index.adb : Nominal
-OK ../../Test/test_empty_productions_8.adb : Nominal
-OK Test_Backtrack : Enumerated_Lookahead
-OK Test_Backtrack : Sequence_Lookahead
-OK Test_Backtrack : Selection_Backtrack
-OK Test_Backtrack : Sequence_Backtrack
-OK ../../Test/test_empty_productions_1.adb : Test_First
-OK ../../Test/test_empty_productions_1.adb : Goto_Transitions_1
-OK ../../Test/test_empty_productions_1.adb : Goto_Transitions_2
-OK ../../Test/test_empty_productions_1.adb : Goto_Set_1
-OK ../../Test/test_empty_productions_1.adb : Actions_1
-OK ../../Test/test_empty_productions_4.adb : Test_First
-OK ../../Test/test_empty_productions_5.adb : Test_Lookahead_Closure
-OK ../../Test/test_empty_productions_6.adb : Actions_1
-OK ../../Test/test_empty_productions_7.adb : Test_Lookahead_Closure
-OK ../../Test/test_empty_productions_7.adb : Goto_Transitions_1
-OK ../../Test/test_empty_productions_7.adb : Goto_Transitions_2
-OK ../../Test/test_empty_productions_7.adb : Actions_1
-OK ../../Test/test_empty_productions_8.adb : Kernels_1
-OK Test_LR0_Kernels : Nominal
-OK ../../Test/test_lr1_lookahead_closure.adb : Nominal
+OK ../../Test/test_accept_state.adb : Nominal
+OK ../../Test/test_character_literal.adb : Nominal
+OK ../../Test/test_follow.adb : Subprograms.One
 OK ../../Test/test_lr_expecting.adb : Nominal
-OK Test_List_Actions : List_Action
-OK Test_List_Stack : List_Stack
-OK Test_Selection_Actions : Selection_Action
-OK Test_Sequence_Actions : Sequence_Action
-OK Test_Statement_Actions : Nominal
-OK Test_Token_Identifier_Real_String : Nominal
+OK ../../Test/test_panic_mode.adb : No_Error
+OK ../../Test/test_panic_mode.adb : Errors
+OK ../../Test/test_statement_actions.adb : Nominal
 OK ../../Test/trivial_productions_test.adb : Expression
 OK ../../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   57
-Successful Tests:  57
+Total Tests Run:   40
+Successful Tests:  40
 Failed Assertions: 0
 Unexpected Errors: 0
