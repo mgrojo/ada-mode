@@ -1990,8 +1990,8 @@ range_g
   ;
 
 range_list
-  : range
-  | range_list COMMA range
+  : range_g
+  | range_list COMMA range_g
     (progn
       (wisi-statement-action [2 list-break])
       (wisi-containing-action 2 3))

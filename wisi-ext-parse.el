@@ -1,6 +1,6 @@
 ;;; wisi-ext-parse.el --- interface to exteral ada_mode_wisi_parse program
 ;;
-;; Copyright (C) 2014  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -120,6 +120,7 @@ Does not wait for command to complete."
   (wisi-ext-parse-require-session)
 
   ;; ada_mode_wisi_parse can't handle non-ASCII, so we don't need string-bytes here.
+  ;; FIXME: process-send-* should send buffer; avoid this copy
   (let* ((buf-string (buffer-substring-no-properties (point-min) (point-max)))
 	 (cmd (format "parse \"%s\" %d" (buffer-name) (length buf-string)))
 	 (msg (format "%02d%s" (length cmd) cmd))
@@ -347,6 +348,55 @@ Does not wait for command to complete."
     (when (> wisi-ext-parse-debug 0)
       (message "total time: %f" (- (float-time) start-time))
       (message "action-count: %d" action-count))
+
+    (set-buffer source-buffer)))
+
+(defun wisi-ext-lex ()
+  "For timing; just execute lexer in external process."
+  (wisi-ext-parse-require-session)
+  (let ((source-buffer (current-buffer))
+	(process (wisi-ext-parse--session-process wisi-ext-parse-session))
+	(w32-pipe-read-delay 0) ;; fastest subprocess read
+	(done nil)
+	(need-more nil)
+	(start-time (float-time))
+	start-wait-time)
+
+    (let* ((buf-string (buffer-substring-no-properties (point-min) (point-max)))
+	   (cmd (format "lex %d" (length buf-string)))
+	   (msg (format "%02d%s" (length cmd) cmd)))
+
+      (with-current-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session)
+	(erase-buffer))
+
+      (process-send-string process msg)
+      (process-send-string process buf-string))
+
+    (set-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session))
+
+    ;; process responses until prompt received
+    (while (and (process-live-p process)
+		(not done))
+
+      (goto-char (point-min))
+      (unless (eobp)
+	(forward-line 1)) ;; skip echoed command.
+
+      (cond
+       ((eobp)
+	(setq need-more t))
+
+       ((looking-at wisi-ext-parse-prompt)
+	(setq done t))
+
+       )
+
+      (unless done
+	(accept-process-output process) ;; no time-out; that's a race condition
+	(setq need-more nil))
+      );; while not done
+
+    ;; got command prompt
 
     (set-buffer source-buffer)))
 

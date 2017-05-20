@@ -512,6 +512,12 @@ wisi-parse-buffer is slow:
     => gnatcoll-xref.adb needs to be < 0.2 second
 
 time wisi-parse-buffer and portions thereof
+    'ada-lex
+        (time-it 'wisi-ext-lex 1)
+
+    'wisi--lex
+        (time-it 'wisi-lex-buffer 1)
+
     'actions:
         (progn
          (setq wisi-ext-parse-debug 1)
@@ -525,15 +531,15 @@ time wisi-parse-buffer and portions thereof
          (wisi-ext-parse-exec-buffer " *ada_mode_wisi_parse*" ada_grammar-names))
 
     'ada:
-    (progn
-        (setq wisi-parser 'ada)
-        (setq wisi-ada-parse-debug 1))
-    or
-    (progn
-        (setq wisi-parser 'ada)
-        (setq wisi-ada-parse-debug 0)
-        (wisi-invalidate-cache)
-        (time-it 'wisi-parse-buffer 1))
+        (progn
+            (setq wisi-parser 'ada)
+            (setq wisi-ada-parse-debug 1))
+        or
+        (progn
+            (setq wisi-parser 'ada)
+            (setq wisi-ada-parse-debug 0)
+            (wisi-invalidate-cache)
+            (time-it 'wisi-parse-buffer 1))
 
     'cat:
         (require 'extract-text-props)
@@ -569,6 +575,9 @@ time wisi-parse-buffer and portions thereof
             'elisp: 1.480002, 1.705002, 1.715003
 
         windows:
+            'ada-lex: 0.637708 seconds, 0 gcs
+            'wisi-lex: 0.569551 seconds, 2 gcs
+
             'actions: 0.982802, 1.076402
 
             'actions-read: 0.312001, 0.234000

@@ -129,7 +129,7 @@ ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
 run_ada_parser.exe : ../../ada_grammar.ads force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
 
-install : INSTALL_BIN := $(dir $(shell bash -c "type -p emacs"))
+install : INSTALL_BIN := $(dir $(shell cygpath -w $(shell bash -c "type -p emacs")))
 install : ada_mode_wisi_parse.exe
 	strip -o $(INSTALL_BIN)$^ $^
 

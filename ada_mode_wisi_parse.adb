@@ -2,7 +2,7 @@
 --
 --  Emacs background process for Ada mode; parse buffer text, return wisi Actions.
 --
---  Copyright (C) 2014  All Rights Reserved.
+--  Copyright (C) 2014, 2017  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -24,6 +24,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Grammar;
 with GNAT.OS_Lib;
 with OpenToken.Text_Feeder.Counted_GNAT_OS_Lib;
+with System.Storage_Elements;
 procedure Ada_Mode_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
@@ -41,14 +42,18 @@ is
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
       Put_Line ("each command starts with a two-character decimal count of bytes in command");
-
+      New_Line;
       Put_Line ("Commands: ");
-
+      New_Line;
       Put_Line ("NNparse ""<buffer-name>"" <text_byte_count><text>");
       Put_Line ("  NN includes 'parse ""<buffer-name>"" <text_byte_count>'");
       Put_Line ("  <buffer-name> used in error messages");
       Put_Line ("  outputs: elisp forms for wisi parser actions or post-parser actions");
       Put_Line ("  wisi parser actions have names encoded as integers; others do not");
+      New_Line;
+      Put_Line ("NNlex <text_byte_count><text>");
+      Put_Line ("  NN includes 'parse <text_byte_count>'");
+      Put_Line ("  runs lexer on text, for timing.");
 
       Put_Line ("04quit");
    end Usage;
@@ -65,26 +70,38 @@ is
    --  needed to reallocate analyzer buffer
    --  FIXME: fix analyzer.reset to reallocate buffer
 
+   procedure Read_Input (A : System.Address; N : Integer)
+   is
+      use System.Storage_Elements;
+
+      B         : System.Address := A;
+      Remaining : Integer        := N;
+      Read      : Integer;
+   begin
+      --  WORKAROUND: with GNAT GPL 2016, GNAT.OS_Lib.Read does _not_
+      --  wait for all N bytes or EOF; it returns as soon as it gets
+      --  some bytes.
+      --
+      --  Note that with this loop we cannot detect EOF; that's ok for
+      --  this application.
+      loop
+         Read := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, B, Remaining);
+         Remaining := Remaining - Read;
+         exit when Remaining <= 0;
+         B := B + Storage_Offset (Read);
+      end loop;
+   end Read_Input;
+
    function Get_Command_Length return Integer
    is
-      Temp       : aliased String (1 .. 2) := "  ";
-      Read_Bytes : constant Integer        := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, Temp'Address, 2);
+      Temp : aliased String (1 .. 2) := "  ";
    begin
-      case Read_Bytes is
-      when 2 =>
-         return Integer'Value (Temp);
-      when 0 =>
-         --  Can only happen in a test case when standin is redirected
-         --  to a file; indicates end of file.
-         --
-         --  If standin is a pipe (normal case), the read will block
-         --  when there is no input.
-         raise Ada.Text_IO.End_Error;
-
-      when others =>
-         --  Probably a wrong byte count in the parse command; try again.
-         raise Constraint_Error with "'" & Temp (1 .. Read_Bytes) & "'";
-      end case;
+      Read_Input (Temp'Address, 2);
+      return Integer'Value (Temp);
+   exception
+   when Constraint_Error =>
+      --  From Integer'Value
+      raise Programmer_Error with "command byte count not provided; got '" & Temp & "'";
    end Get_Command_Length;
 
    function Get_String
@@ -162,75 +179,92 @@ begin
 
    Put_Line ("ada_mode_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
-   --  read commands from standard_input via GNAT.OS_Lib, send results to standard_output.
+   --  Read commands and text from standard_input via GNAT.OS_Lib,
+   --  send results to standard_output.
    loop
       Put (Prompt); Flush;
       declare
-         Command_Length : Integer;
+         use Ada.Strings.Fixed;
+         Command_Length : constant Integer := Get_Command_Length;
+         Command_Line   : aliased String (1 .. Command_Length);
+         Last           : Integer;
+
+         function Match (Target : in String) return Boolean
+         is begin
+            Last := Command_Line'First + Target'Length - 1;
+            return Last <= Command_Line'Last and then Command_Line (Command_Line'First .. Last) = Target;
+         end Match;
       begin
-         Command_Length := Get_Command_Length;
-         declare
-            use Ada.Strings.Fixed;
-            Command_Line   : aliased String (1 .. Command_Length);
+         Read_Input (Command_Line'Address, Command_Length);
 
-            Read_Bytes : constant Integer := GNAT.OS_Lib.Read
-              (GNAT.OS_Lib.Standin, Command_Line'Address, Command_Length);
+         Put_Line (";; " & Command_Line);
 
-            Last : Integer;
+         if Match ("parse") then
+            --  Args: <buffer_name> <byte_count>
+            --  Input: <text_line>...
+            --  Response:
+            --  [wisi action lisp forms]
+            --  [error form]
+            --  prompt
+            declare
+               Buffer_Name : constant String  := Get_String (Command_Line, Last);
+               Byte_Count  : constant Integer := Get_Integer (Command_Line, Last);
+               Feeder      : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+                 OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
+            begin
+               Feeder.Reset (Byte_Count);
 
-            function Match (Target : in String) return Boolean
-            is begin
-               Last := Command_Line'First + Target'Length - 1;
-               return Last <= Command_Line'Last and then Command_Line (Command_Line'First .. Last) = Target;
-            end Match;
-         begin
-            if Read_Bytes /= Command_Length then
-               raise Programmer_Error with
-                 "Read_Bytes" & Integer'Image (Read_Bytes) & " /= Command_Length" & Integer'Image (Command_Length);
-            end if;
+               --  Reallocate analyzer buffer to hold entire file;
+               --  avoids delays in Emacs send-process EWOULDBLOCK
+               --  handling.
+               Parser.Analyzer := Ada_Grammar.Analyzers.Initialize
+                 (Syntax, Parser.Analyzer.Feeder, Byte_Count, First_Column => 0);
 
-            Put_Line (";; " & Command_Line);
+               Parser.Parse;
+               --  Set point for wisi-cache-max
+               Put_Line ("(goto-char " & OpenToken.Int_Image (Parser.Analyzer.Bounds.End_Pos) & ")");
+            exception
+            when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+               Put_Line
+                 ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
+                    Ada.Exceptions.Exception_Message (E) & """)");
+               Feeder.Discard_Rest_Of_Input;
+            end;
 
-            if Match ("parse") then
-               --  Args: <byte_count>
-               --  Input: <text_line>...
-               --  Response:
-               --  [wisi action lisp forms]
-               --  [error form]
-               --  prompt
-               declare
-                  Buffer_Name : constant String  := Get_String (Command_Line, Last);
-                  Byte_Count  : constant Integer := Get_Integer (Command_Line, Last);
-                  Feeder      : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-                    OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
-               begin
-                  Feeder.Reset (Byte_Count);
+         elsif Match ("lex") then
+            --  Args: <byte_count>
+            --  Input: <text_line>...
+            --  Response:
+            --  prompt
+            declare
+               Byte_Count  : constant Integer := Get_Integer (Command_Line, Last);
+               Feeder      : OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+                 OpenToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Analyzer.Feeder.all);
+            begin
+               Feeder.Reset (Byte_Count);
 
-                  --  Reallocate analyzer buffer to hold entire file;
-                  --  avoids delays in Emacs send-process EWOULDBLOCK handling.
-                  Parser.Analyzer := Ada_Grammar.Analyzers.Initialize
-                    (Syntax, Parser.Analyzer.Feeder, Byte_Count, First_Column => 0);
+               Parser.Analyzer := Ada_Grammar.Analyzers.Initialize
+                 (Syntax, Parser.Analyzer.Feeder, Byte_Count, First_Column => 0);
 
-                  Parser.Parse;
-                  --  Set point for wisi-cache-max
-                  Put_Line ("(goto-char " & OpenToken.Int_Image (Parser.Analyzer.Bounds.End_Pos) & ")");
-               exception
-               when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
-                  Put_Line
-                    ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
-                       Ada.Exceptions.Exception_Message (E) & """)");
-                  Feeder.Discard_Rest_Of_Input;
-               end;
+               loop
+                  Parser.Analyzer.Find_Next;
+                  exit when Parser.Analyzer.End_Of_Text;
+               end loop;
 
-            elsif Match ("quit") then
-               --  Args:
-               exit;
-            else
-               --  Not elisp comments, so errors are generated and the problem is noticed.
-               Put_Line ("bad command: '" & Command_Line & "'");
-               Usage;
-            end if;
-         end;
+            exception
+            when E : OpenToken.Parse_Error | OpenToken.Syntax_Error =>
+               Put_Line ("(signal 'wisi-parse-error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               Feeder.Discard_Rest_Of_Input;
+            end;
+
+         elsif Match ("quit") then
+            --  Args:
+            exit;
+         else
+            --  Not elisp comments, so errors are generated and the problem is noticed.
+            Put_Line ("bad command: '" & Command_Line & "'");
+            Usage;
+         end if;
       exception
       when E : Constraint_Error =>
          --  from get_command_length
