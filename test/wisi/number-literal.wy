@@ -1,9 +1,6 @@
 ;; test number-literal lexer
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 %keyword NUMBER "number"
 

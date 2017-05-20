@@ -8,9 +8,9 @@ ADA_MODE_DIR ?= -L ../.. -l autoloads.el
 all : byte-compile-clean compile-ada-clean update compile-ada autoloads test-clean test
 
 # this updates everything after any source change, without running the tests.
-update : ../../ada-grammar-wy.el ../../gpr-grammar-wy.el byte-compile
+update : ../../ada-grammar-elisp.el ../../gpr-grammar-elisp.el byte-compile
 
-# *-wy.el are in monotone, so this is all we need after a monotone update
+# *-elisp.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
 # Emacs 24.2 requires cl-lib from Gnu ELPA, so we need package-initialize here
 byte-compile : byte-compile-clean
@@ -50,46 +50,53 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-ONE_TEST_FILES += ada_mode-nominal.adb
+ONE_TEST_FILES += ada-number-literal.wisi-test
 #ONE_TEST_FILES += ada_mode-nominal.ads
-one : RUNTEST := run-indent-test-wisi-gpr_query.el
-one : update
-one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+# one : RUNTEST := run-wisi-test.el
+one : one-clean $(ONE_TEST_FILES)
 one-clean: force
-	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+	rm -f $(ONE_TEST_FILES)
+	cd ../../test/wisi/; rm -f *-elisp.el *.output
+
+# one : update
+# one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+# one-clean: force
+# 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
 vpath %.wy ../../ ../../test/wisi
 vpath %.el ../../ .
 
 # These are correct paths for Stephe's development machines;
-# WISI_OPENTOKEN can be overridden on the 'make' command line or by an
+# WISI_FASTTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-WISI_OPENTOKEN ?= /Projects/org.opentoken/build/release
+WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else ifeq ($(shell uname),Darwin)
-WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
+WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-WISI_OPENTOKEN ?= $(CURDIR)/../../../org.opentoken/build/release
+# FIXME: change to wisi_generate_dir?
+#WISI_FASTTOKEN ?= $(CURDIR)/../../../org.fasttoken/build/release
+WISI_FASTTOKEN ?= $(CURDIR)/../../../org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
 
-%.wisi-test : %-wy.el
+%.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
-.PRECIOUS : %-wy.el ../../%-grammar-wy.el
+.PRECIOUS : %-elisp.el ../../%-grammar-elisp.el
 
 # FIXME: verify wisi-generate version
 
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
-%-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+%-elisp.el : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) LALR Elisp > $(*F).output
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else
@@ -97,9 +104,9 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
-# ../../../org.opentoken/wisi/wisi-generate.adb
-$(WISI_OPENTOKEN)/wisi-generate.exe : force
-	$(MAKE) -C $(WISI_OPENTOKEN) wisi-generate.exe
+# ../../../org.fasttoken/wisi/wisi-generate.adb
+$(WISI_FASTTOKEN)/wisi-generate.exe : force
+	$(MAKE) -C $(WISI_FASTTOKEN) wisi-generate.exe
 
 .PHONY : force
 
@@ -107,12 +114,12 @@ byte-compile-clean :
 	cd ../..; rm -f *.elc
 
 clean ::
-	cd ../..; rm -f *-wy.el *.elc
-	rm -f *-wy.el *.elc
+	cd ../..; rm -f *-elisp.el *.elc
+	rm -f *-elisp.el *.elc
 
 test-clean ::
 	rm -f *.log *.output *.wisi-test *.stamp
-	cd ../../test/wisi/; rm -f *-wy.el *.output
+	cd ../../test/wisi/; rm -f *-elisp.el *.output
 
 include ../common.make
 
@@ -173,9 +180,9 @@ compare-ada-gps.stamp : force
 	find . -name "*.diff" -not -size 0 >> test.log
 
 # we don't use 'expand-file-name' here because that adds c:/ on windows
-# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken/build/release")
-# eval: (ada-parse-prj-file "wisi_opentoken.prj")
-# eval: (ada-select-prj-file "wisi_opentoken.prj")
+# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/release")
+# eval: (ada-parse-prj-file "wisi_fasttoken.prj")
+# eval: (ada-select-prj-file "wisi_fasttoken.prj")
 
 # Local Variables:
 # eval: (ada-parse-prj-file "../ada-mode.prj")

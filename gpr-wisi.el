@@ -31,7 +31,7 @@
 ;;;;
 
 (require 'gpr-indent-user-options)
-(require 'gpr-grammar-wy)
+(require 'gpr-grammar-elisp)
 (require 'gpr-mode)
 (require 'wisi)
 
@@ -74,9 +74,9 @@
   (wisi-setup '()
 	      nil
 	      gpr-wisi-class-list
-	      gpr-grammar-wy--keyword-table
-	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+	      gpr-grammar-elisp-keyword-table
+	      gpr-grammar-elisp-token-table
+	      gpr-grammar-elisp-parse-table)
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
