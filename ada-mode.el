@@ -2861,7 +2861,7 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
   ;; ada-fill-comment-prefix. In post-local because user may want to
-  ;; set it per-file.
+  ;; set it per-file. FIXME: only in emacs < 25?
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
   (cl-case ada-language-version

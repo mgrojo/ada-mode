@@ -166,26 +166,29 @@
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
 %token <whitespace> WHITESPACE ""
 %token <line_comment> COMMENT "--"
-%token <symbol> IDENTIFIER
-%token <string-double> STRING_LITERAL
-%token <string-single> CHARACTER_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+
+%token <string-double> STRING_LITERAL "(\"[^\"]*\")+"
+
+;; This does not handle:
+;; Character'('C');
+;; but it can be worked around by adding a space:
+;; Character'( 'C');
+%token <string-single> CHARACTER_LITERAL "'[^']'|''''"
 
 %start compilation_unit_list
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
-%conflict REDUCE/REDUCE in state abstract_limited_synchronized_opt, abstract_limited_opt on token NEW
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state association_opt, expression_opt on token IS
+%conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
 %conflict REDUCE/REDUCE in state constraint_opt, and_interface_list_opt on token WITH
-%conflict REDUCE/REDUCE in state expression_opt, association_opt on token COMMA
-%conflict REDUCE/REDUCE in state expression_opt, association_opt on token IS
-%conflict REDUCE/REDUCE in state expression_opt, association_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state expression_opt, association_opt on token SEMICOLON
-%conflict REDUCE/REDUCE in state expression_opt, parameter_specification on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
@@ -214,6 +217,7 @@
 %conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token SELECT
 %conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token STRING_LITERAL
 %conflict REDUCE/REDUCE in state sequence_of_statements, label_opt on token WHILE
+%conflict SHIFT/REDUCE in state abstract_subprogram_declaration, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
@@ -242,7 +246,6 @@
 %conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
 %conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
-%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt on token IS
 %conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
 
 %%

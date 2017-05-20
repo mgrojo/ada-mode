@@ -61,13 +61,37 @@ install packages in -Q:
  syntax error handling
 
 /Projects/org.fasttoken/notes.text
-/Projects/org.fasttoken/build/release/Makefile
 
-running test-wisi with fast-token LALR -elisp.el
-    all pass
+propagate
+    o.e.a to o.e.a.s-2; done
+    o.e.a to o.e.a.s-1; done
+    o.e.a.s-2 to o.e.a.s-4;
+    o.e.a.s-1 to o.e.a.s-4;
 
-add FastToken LR1 table generator
-    test that
+    org.opentoken.stephe: cherry-pick counted_os_lib fix to org.opentoken
+    org.opentoken to org.fasttoken:
+
+change wisi-ext-parse to use fasttoken exec
+
+time lexers:
+    gnatcoll-xref.adb
+    'ada-lex
+        (time-it 'wisi-ext-lex 1)
+
+    'wisi--lex
+        (time-it 'wisi-lex-buffer 1)
+
+    opentoken (slow recognizer) ext: 0.637708 seconds, 0 gcs
+    fasttoken (aflex) ext:
+    o.e.a.s-1 wisi: 0.569551 seconds, 2 gcs
+    o.e.a.s-4 wisi:
+
+need better lexer for fasttoken
+    handle tick character literal
+    handle utf-8
+
+    wisi-lexer would be simplest
+    lexer used by libadalang?
 
 add error handling
 
@@ -106,6 +130,7 @@ can abandon parse when reach desired point (not just for errors)
 (setq ada-gps-size-threshold most-positive-fixnum)
 (setq wisi-disable-face t)
 (setq wisi-indent-region-fallback nil)
+
  current issues:
 bad indent:
                         Append
