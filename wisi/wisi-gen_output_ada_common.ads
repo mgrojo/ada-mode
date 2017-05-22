@@ -72,10 +72,12 @@ package Wisi.Gen_Output_Ada_Common is
 
    function File_Name_To_Ada (File_Name : in String) return String;
 
-   type Action_Name_List is array (Integer range <>) of access constant String;
+   type Action_Name_List is array (Integer range <>) of access String;
    type Action_Name_List_Access is access Action_Name_List;
-   Action_Names : array (Generate_Utils.Token_ID) of Action_Name_List_Access;
-   --  Names of subprograms for each grammar action
+   type Nonterminal_Array_Action_Names is array (Generate_Utils.Token_Pkg.Nonterminal_ID) of Action_Name_List_Access;
+   Ada_Action_Names : Nonterminal_Array_Action_Names;
+   --  Ada names of subprograms for each grammar semantic action;
+   --  non-null only if there is an action in the grammar.
 
    Parsers : array (Single_Parser_Algorithm) of Generate_Utils.LR.Parse_Table_Ptr;
 
@@ -89,14 +91,11 @@ package Wisi.Gen_Output_Ada_Common is
       First_Parser_Label : in Integer);
 
    procedure Create_Create_Parser
-     (Input_File_Name  : in String;
-      Parser_Algorithm : in Valid_Parser_Algorithm;
+     (Parser_Algorithm : in Valid_Parser_Algorithm;
       Lexer            : in Valid_Lexer;
-      Interface_Kind   : in Valid_Interface);
+      Interface_Kind   : in Interface_Type);
 
-   procedure Create_Parser_Core
-     (Input_File_Name : in String;
-      Parser          : in Generate_Utils.LR.Parse_Table_Ptr);
+   procedure Create_Parser_Core (Parser : in Generate_Utils.LR.Parse_Table_Ptr);
 
    procedure Create_Aflex
      (Input_File_Name       : in String;

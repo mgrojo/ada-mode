@@ -65,7 +65,7 @@ is
 
       begin
          File_Length := Integer (GNAT.OS_Lib.File_Length (File));
-         Counted_Feeder.Reset (File_Length + 1); -- +1 for EOF
+         Counted_Feeder.Reset (File_Length);
          LALR_Parser := Create_Parser (FastToken.LALR, Text_Feeder => Feeder);
          LR1_Parser  := Create_Parser (FastToken.LR1, Text_Feeder => Feeder);
       end;
@@ -121,7 +121,7 @@ begin
       Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
         FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (LR1_Parser.Lexer.Feeder.all);
    begin
-      Counted_Feeder.Reset (File_Length + 1); -- +1 for EOF
+      Counted_Feeder.Reset (File_Length);
    end;
    LR1_Parser.Lexer.Reset (1024);
    New_Line;

@@ -53,18 +53,19 @@ package body Wisi.Gen_Output_Ada_Common is
       case Interface_Kind is
       when Process =>
          Put_Line ("with FastToken.Text_Feeder;");
+         Put_Line ("with FastToken.Token.Wisi_Process_Runtime;");
+
       when Module =>
          Put_Line ("with Emacs_Module_Aux;");
          Put_Line ("with emacs_module_h;");
          Put_Line ("with Interfaces.C;");
+         Put_Line ("with FastToken.Token;");
       end case;
       Put_Line ("with FastToken.Lexer;");
       Put_Line ("with FastToken.Production;");
       Put_Line ("with FastToken.Parser.LR.Parser;");
       Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
       Put_Line ("with FastToken.Parser.LR.Panic_Mode;");
-      Put_Line ("with FastToken.Token;");
-      Put_Line ("with FastToken.Wisi_Tokens;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
 
@@ -138,9 +139,6 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
       Indent_Line ("package Token_Pkg is new FastToken.Token");
       Indent_Line ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
-      Indent_Line ("package Wisi_Tokens_Pkg is new FastToken.Wisi_Tokens");
-      Indent_Line
-        ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace, Token_Pkg);");
       Indent_Line ("package Production is new FastToken.Production (Token_Pkg);");
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
       Indent_Line ("package Parser_Root is new FastToken.Parser");
@@ -166,6 +164,8 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Interface_Kind is
       when Process =>
+         Indent_Line ("package Tokens_Wisi_Process_Runtime is new Token_Pkg.Wisi_Process_Runtime;");
+         New_Line;
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
          Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
@@ -310,17 +310,16 @@ package body Wisi.Gen_Output_Ada_Common is
    end Create_Aflex;
 
    procedure Create_Create_Parser
-     (Input_File_Name  : in String;
-      Parser_Algorithm : in Valid_Parser_Algorithm;
+     (Parser_Algorithm : in Valid_Parser_Algorithm;
       Lexer            : in Valid_Lexer;
-      Interface_Kind   : in Valid_Interface)
+      Interface_Kind   : in Interface_Type)
    is
       use Generate_Utils;
       use Wisi.Utils;
    begin
       Indent_Line ("function Create_Parser");
       case Interface_Kind is
-      when Process =>
+      when None | Process =>
          Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
          Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
          Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
@@ -347,7 +346,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_File_Name, Parsers (LALR));
+         Create_Parser_Core (Parsers (LALR));
 
       when LR1 =>
          Put_Line (LR.State_Image (Parsers (LR1).State_Last) & ");");
@@ -355,7 +354,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_File_Name, Parsers (LR1));
+         Create_Parser_Core (Parsers (LR1));
 
       when LALR_LR1 =>
          Put_Line
@@ -367,11 +366,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("case Algorithm is");
          Indent_Line ("when LALR =>");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_File_Name, Parsers (LALR));
+         Create_Parser_Core (Parsers (LALR));
          Indent := Indent - 3;
          Indent_Line ("when LR1 =>");
          Indent := Indent + 3;
-         Create_Parser_Core (Input_File_Name, Parsers (LR1));
+         Create_Parser_Core (Parsers (LR1));
          Indent := Indent - 3;
          Indent_Line ("end case;");
       end case;
@@ -397,24 +396,10 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
    end Create_Create_Parser;
 
-   procedure Create_Parser_Core
-     (Input_File_Name : in String;
-      Parser          : in Generate_Utils.LR.Parse_Table_Ptr)
+   procedure Create_Parser_Core (Parser : in Generate_Utils.LR.Parse_Table_Ptr)
    is
       use Generate_Utils;
       use Wisi.Utils;
-
-      function Action_Name (Item : in Generate_Utils.Token_ID; Index : in Integer) return String
-      is begin
-         return Action_Names (Item) (Index).all;
-      exception
-      when others =>
-         Wisi.Utils.Put_Error
-           (Input_File_Name,
-            1,
-            "Name for '" & Generate_Utils.Token_WY_Image (Item) & "'," & Integer'Image (Index) & " not defined.");
-         raise Programmer_Error;
-      end Action_Name;
 
       Paren_Done : Boolean := False;
    begin
@@ -529,7 +514,11 @@ package body Wisi.Gen_Output_Ada_Common is
                      Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
                      Append (Integer'Image (Action_Node.Item.Index) & ", ");
                      Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
-                     Append (Action_Name (Action_Node.Item.LHS, Action_Node.Item.Index));
+                     Append
+                       ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
+                         elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
+                         else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+
                   when Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
                   end case;
@@ -543,10 +532,13 @@ package body Wisi.Gen_Output_Ada_Common is
                      when Reduce | Accept_It =>
                         Append (", ");
                         Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
+                        Append (Integer'Image (Action_Node.Item.Index) & ", ");
+                        Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
-                          (Integer'Image (Action_Node.Item.Index) & ", " &
-                             Integer'Image (Action_Node.Item.Token_Count) & ", " &
-                             Action_Name (Action_Node.Item.LHS, Action_Node.Item.Index));
+                          ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
+                            elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
+                            else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &
                           LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);

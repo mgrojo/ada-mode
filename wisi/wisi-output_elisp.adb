@@ -19,7 +19,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with FastToken.Parser.LR.Elisp;
+with FastToken.Parser.LR.Wisi_Generate_Elisp;
 with Wisi.Gen_Generate_Utils;
 procedure Wisi.Output_Elisp
   (Input_File_Name : in String;
@@ -50,7 +50,7 @@ is
       Generate_Params.First_State_Index,
       To_Token_Out_Image => To_Token_Image);
 
-   package Parser_Elisp is new Generate_Utils.LR.Elisp;
+   package Parser_Elisp is new Generate_Utils.LR.Wisi_Generate_Elisp;
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;

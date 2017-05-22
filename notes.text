@@ -12,12 +12,34 @@ report interrupt-process bug
 
     look for tests in emacs
 
-integrate with emacs
-    via process
+need multi-mode for .wy files with Ada syntax
+    feature/mhtml branch
+
+integrate with emacs process
+    subprograms.wy test passes
+        run with Emacs
+
+    ada_grammar.adb very slow to compile
+        eliminating all but one action subprograms; may help
+
+        read state transitions from text file, leave semantic actions in .adb
+
+    do follow histogram
 
     get wisi to cope with invalid regions
 
     see how much panic mode helps
+
+need better lexer for fasttoken
+    handle tick character literal
+    handle utf-8
+
+    wisi-lexer would be simplest
+    lexer used by libadalang?
+
+need case insensitive flag in .wy
+    use for keywords
+    pass to lexers
 
 better syntax error handling
     d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
@@ -117,6 +139,9 @@ wisi-generate lr1 way too slow for Ada
     rename to opentoken7
         _not_ "fast" :(
         or speed it up
+
+integrate with emacs module
+    split out ada_grammar from ada_grammar_process, _module
 
 Test case gathering - wisi fallback email first use each day.
 

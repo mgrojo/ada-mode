@@ -61,6 +61,10 @@ package Dummy is -- for indentation
       else
          Feeder.Get (Buf, Buf_Last);
 
+         if Buf_Last < Buf'First then
+            raise FastToken.Programmer_Error with "text feeder must return EOF_Character at end of file.";
+         end if;
+
          if Buf (Buf_Last) = FastToken.EOF_Character then
             Buf_Last := Buf_Last - 1;
          end if;

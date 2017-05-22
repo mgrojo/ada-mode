@@ -20,7 +20,7 @@ pragma License (Modified_GPL);
 
 with Wisi;
 generic
-package FastToken.Parser.LR.Elisp is
+package FastToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Output
      (Elisp_Package : in String;
@@ -29,4 +29,4 @@ package FastToken.Parser.LR.Elisp is
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Parse_Table_Ptr);
 
-end FastToken.Parser.LR.Elisp;
+end FastToken.Parser.LR.Wisi_Generate_Elisp;

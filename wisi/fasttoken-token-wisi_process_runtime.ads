@@ -18,21 +18,12 @@
 
 pragma License (GPL);
 
-with Ada.Text_IO;
-with FastToken.Token;
 generic
-   type Token_ID is (<>);
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
+package FastToken.Token.Wisi_Process_Runtime is
 
-   with function Token_Image (Item : in Token_ID) return String;
-   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
+   function To_Code (Nonterm : in Nonterminal_ID) return String;
 
-   with package Token is new FastToken.Token
-     (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
-package FastToken.Wisi_Tokens is
+   function To_Codes (Tokens : in List.Instance) return String;
+   --  Return Tokens as `wisi-tokens' in Emacs ada-mode process interface format.
 
-   function To_Codes (Tokens : in Wisi_Tokens.Token.List.Instance'Class) return String;
-   --  Return format for Emacs ada-mode process interface
-
-end FastToken.Wisi_Tokens;
+end FastToken.Token.Wisi_Process_Runtime;

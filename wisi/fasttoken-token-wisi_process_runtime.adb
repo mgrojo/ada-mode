@@ -19,36 +19,34 @@
 pragma License (GPL);
 
 with Ada.Strings.Bounded;
-package body FastToken.Wisi_Tokens is
+package body FastToken.Token.Wisi_Process_Runtime is
 
-   function To_Codes (Tokens : in Wisi_Tokens.Token.List.Instance'Class) return String
+   function To_Code (Nonterm : in Nonterminal_ID) return String
+   is begin
+      return Int_Image (Token_ID'Pos (Nonterm));
+   end To_Code;
+
+   function To_Codes (Tokens : in Token.List.Instance) return String
    is
-      use Wisi_Tokens.Token.List;
+      use Token.List;
       Chars_Per_Token : constant Integer := 4 + 2 * Integer'Width;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 18 + Tokens.Length * Chars_Per_Token);
       use Bounded;
 
       I  : List_Iterator := Tokens.First;
 
-      --  In the elisp parser, 'wisi-tokens' is bound to the tokens in the
-      --  RHS of the production.
-      --
-      --  We return a list of tokens as integer codes '[(code region)
-      --  (code region) ...]'; the elisp code will bind that to
-      --  wisi-tokens.
-
       Token_Line : Bounded_String := To_Bounded_String ("[");
    begin
       loop
          exit when I = Null_Iterator;
          declare
-            use type Wisi_Tokens.Token.Buffer_Region;
-            Token : Wisi_Tokens.Token.Instance renames Current (I);
+            use type Buffer_Region;
+            Token : Instance renames Current (I);
          begin
             Token_Line := Token_Line & '(' & Int_Image (Token_ID'Pos (ID (I)));
 
-            if Token.Region /= Wisi_Tokens.Token.Null_Buffer_Region then
-               Token_Line := Token_Line & Int_Image (Token.Region.Begin_Pos) & " . " &
+            if Token.Region /= Null_Buffer_Region then
+               Token_Line := Token_Line & " " & Int_Image (Token.Region.Begin_Pos) & " . " &
                  --  Elisp region end is one past the last character
                  Int_Image (Token.Region.End_Pos + 1);
             end if;
@@ -63,4 +61,4 @@ package body FastToken.Wisi_Tokens is
       return To_String (Token_Line);
    end To_Codes;
 
-end FastToken.Wisi_Tokens;
+end FastToken.Token.Wisi_Process_Runtime;

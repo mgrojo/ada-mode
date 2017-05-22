@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
-package body FastToken.Parser.LR.Elisp is
+package body FastToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Action_Table (Table : in Parse_Table)
    is begin
@@ -261,4 +261,4 @@ package body FastToken.Parser.LR.Elisp is
       Put_Line ("  ""Parser table."")");
    end Output;
 
-end FastToken.Parser.LR.Elisp;
+end FastToken.Parser.LR.Wisi_Generate_Elisp;

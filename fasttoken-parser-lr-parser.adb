@@ -84,18 +84,18 @@ package body FastToken.Parser.LR.Parser is
 
       Tokens : Token.List.Instance;
    begin
-      --  Pop the indicated number of token states from the stack, and
-      --  if not Pending call the production action routine.
-      --
-      --  If Pending, queue the action and tokens for later.
-
-      if Action.Token_Count > 0 then
-         for I in 1 .. Action.Token_Count loop
-            Token.List.Prepend (Tokens, Current_Parser.Pop.Token);
-         end loop;
-      end if;
+      --  Pop the token states from the stack
+      for I in 1 .. Action.Token_Count loop
+         Token.List.Prepend (Tokens, Current_Parser.Pop.Token);
+      end loop;
 
       Nonterm_Buffer_Region := Token.Total_Buffer_Region (Tokens);
+
+      if Action.Action = null then
+         --  No need call action. Action may be meaningfull if
+         --  Tokens.length = 0.
+         return;
+      end if;
 
       declare
          Action_Token : constant Parser_Lists.Action_Token := (Action, Tokens);
@@ -108,7 +108,8 @@ package body FastToken.Parser.LR.Parser is
                Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            Action.Action (Action.LHS, Tokens);
+            Action.Action (Action.LHS, Action.Index, Tokens);
+
             if Trace_Parse > 1 then
                Parser_Lists.Put_Trace (Action_Token);
                Put_Trace_Line ("");
@@ -146,16 +147,16 @@ package body FastToken.Parser.LR.Parser is
       when Reduce =>
          Reduce_Stack (Current_Parser, Action, Nonterm_Buffer_Region);
 
-         if Trace_Parse > 1 then
-            Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
-         end if;
-
          Current_Parser.Push
            ((State    => Goto_For
                (Table => Table,
                 State => Current_Parser.Peek.State,
                 ID    => Action.LHS),
              Token    => (Action.LHS, Nonterm_Buffer_Region)));
+
+         if Trace_Parse > 1 then
+            Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
+         end if;
 
       when Accept_It =>
          Reduce_Stack
@@ -242,6 +243,7 @@ package body FastToken.Parser.LR.Parser is
 
    procedure Execute_Pending (Current_Parser : in Parser_Lists.Cursor)
    is
+      use all type Token.Semantic_Action;
       Action_Token : Parser_Lists.Action_Token;
    begin
       if Trace_Parse > 1 then
@@ -250,7 +252,10 @@ package body FastToken.Parser.LR.Parser is
       loop
          exit when Current_Parser.Pending_Actions_Empty;
          Action_Token := Current_Parser.Dequeue;
-         Action_Token.Action.Action (Action_Token.Action.LHS, Action_Token.Tokens);
+
+         --  Can't get here with Action.Action = null
+         Action_Token.Action.Action (Action_Token.Action.LHS, Action_Token.Action.Index, Action_Token.Tokens);
+
          if Trace_Parse > 1 then
             --  Do Put after calling Action, so New_Token has result of Action
             Parser_Lists.Put_Trace (Action_Token);

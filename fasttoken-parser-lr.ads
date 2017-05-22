@@ -67,7 +67,7 @@ package FastToken.Parser.LR is
       when Reduce | Accept_It =>
          LHS    : Token.Nonterminal_ID;
          Action : Token.Semantic_Action;
-         Index  : Integer;
+         Index  : Natural;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
 

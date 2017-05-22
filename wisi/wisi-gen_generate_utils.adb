@@ -475,7 +475,7 @@ package body Wisi.Gen_Generate_Utils is
 
       for Rule of Rules loop
          declare
-            Index : Integer := 0;
+            Index : Natural := 0; -- Semantic_Action defines Index as zero-origin
          begin
             for Right_Hand_Side of Rule.Right_Hand_Sides loop
                declare

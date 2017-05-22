@@ -79,7 +79,6 @@ is
       Package_Name            : constant String := -Data.Package_Name_Root;
       Lower_Package_Name_Root : constant String := -Data.Lower_Package_Name_Root;
 
-      Empty_Action : constant access constant String := new String'("Null_Action");
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
@@ -159,9 +158,6 @@ is
          raise Programmer_Error;
       end case;
 
-      Action_Names (Find_Token_ID (-FastToken_Accept_Name))     := new Action_Name_List (0 .. 0);
-      Action_Names (Find_Token_ID (-FastToken_Accept_Name)) (0) := Empty_Action;
-
       Indent_Line ("procedure Put_Trace (Item : in String)");
       Indent_Line ("is begin");
       Indent_Line ("   Put (Item);");
@@ -176,19 +172,7 @@ is
       Indent_Line ("Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;");
 
       if Action_Count = 0 then
-         --  Populate Action_Names with Empty_Action.
-
-         for Rule of Rules loop
-            declare
-               LHS_ID : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-            begin
-               Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-
-               for Index in Action_Names (LHS_ID)'Range loop
-                  Action_Names (LHS_ID) (Index) := Empty_Action;
-               end loop;
-            end;
-         end loop;
+         null;
 
       else
          --  generate Action subprograms, populate Action_Names.
@@ -207,7 +191,7 @@ is
                LHS_ID : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
                Index  : Integer           := 0; -- Matches Generate_Utils.To_Grammar
             begin
-               Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+               Ada_Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
 
                for RHS of Rule.Right_Hand_Sides loop
                   if RHS.Action.Length > 0 then
@@ -216,7 +200,7 @@ is
                         Unref_Nonterm : Boolean         := True;
                         Unref_Source  : Boolean         := True;
                      begin
-                        Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
+                        Ada_Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
 
                         Indent_Line ("procedure " & Name);
                         Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
@@ -254,8 +238,6 @@ is
                         Indent_Line ("end " & Name & ";");
                         New_Line;
                      end;
-                  else
-                     Action_Names (LHS_ID) (Index) := Empty_Action;
                   end if;
 
                   Index := Index + 1;
@@ -264,7 +246,7 @@ is
          end loop;
       end if;
 
-      Create_Create_Parser (Input_File_Name, Data.Parser_Algorithm, Data.Lexer, Process);
+      Create_Create_Parser (Data.Parser_Algorithm, Data.Lexer, None);
 
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);
