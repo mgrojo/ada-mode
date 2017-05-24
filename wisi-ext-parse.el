@@ -21,7 +21,7 @@
 
 (require 'wisi-parse-common)
 
-(require 'ada-mode)
+(defvar wisi-ext-parse-exec)
 ;; wisi-ext-parse-exec declared in ada-mode for auto-detection of indent engine
 
 (defvar wisi-ext-parse-debug 0)
@@ -45,7 +45,7 @@
 
 (defvar wisi-ext-parse-exec-opts nil
   "list of command-line options for `wisi-ext-parse-exec'.
--v echoes commands.")
+’-v n’ outputs debug info.")
 
 (defvar wisi-ext-parse-new-session nil
   "Non-nil indicates session is new; delay after first command.")
@@ -66,7 +66,7 @@
       (erase-buffer); delete any previous messages, prompt
       (setf (wisi-ext-parse--session-process wisi-ext-parse-session)
 	    (if wisi-ext-parse-exec-opts
-		(start-process wisi-ext-parse-buffer-name (current-buffer) exec-file wisi-ext-parse-exec-opts)
+		(apply #'start-process wisi-ext-parse-buffer-name (current-buffer) exec-file wisi-ext-parse-exec-opts)
 	      (start-process wisi-ext-parse-buffer-name (current-buffer) exec-file)))
       (set-process-query-on-exit-flag (wisi-ext-parse--session-process wisi-ext-parse-session) nil)
       ;; FIXME: check protocol and version numbers?
@@ -87,7 +87,7 @@
   "Wait for the current command to complete."
   (unless (process-live-p (wisi-ext-parse--session-process wisi-ext-parse-session))
     (wisi-ext-parse-show-buffer)
-    (error "wisi-ext-parse process died"))
+    (error "%s process died" wisi-ext-parse-exec))
 
   (with-current-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session)
     (let ((process (wisi-ext-parse--session-process wisi-ext-parse-session))
@@ -111,7 +111,7 @@
 	      (message "'%s'" (buffer-substring-no-properties (point-min) (point-max)))))
 
 	(wisi-ext-parse-show-buffer)
-	(error "ada_mode_wisi_parse process died"))
+	(error "%s process died" wisi-ext-parse-exec))
       )))
 
 (defun wisi-ext-parse-session-send-parse ()
@@ -147,113 +147,39 @@ Does not wait for command to complete."
       (switch-to-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session))
     (error "wisi-ext-parse session not active")))
 
-(defun wisi-ext-parse-xlate-codes (elisp-names args)
-  (let ((i 0) ;; arg index
-	)
-    (while (< i (length args))
-      (when (< (aref args i) 0)
-	    (aset args i (aref elisp-names (- (aref args i)))))
-      (setq i (1+ i))
-      )
-    ))
-
-(defun wisi-ext-parse-exec-action (elisp-names action)
-  (let ((func (aref elisp-names (- (car action))))
-	(i 0) ;; arg index
-	j ;; sequence arg index
-	)
-    ;; FIXME: time temp for (cadr action)
-
-    (if (vectorp (cadr action))
-	(progn
-	  (while (< i (length (cadr action)))
-	    (cond
-	     ((sequencep (aref (cadr action) i))
-	      (wisi-ext-parse-xlate-codes elisp-names (aref (cadr action) i))
-	      )
-
-	     (t
-	      (when (< (aref (cadr action) i) 0)
-		(aset (cadr action) i (aref elisp-names (- (aref (cadr action) i)))))
-	      ))
-	    (setq i (1+ i))
-	    )
-	  (funcall func (cadr action)))
-
-      ;; no symbol codes to translate
-      (apply func (cdr action))
-      )
-
-    (when (> wisi-debug 1)
-      (message "%s" wisi-tokens)
-      (message "(%s %s)" func (cdr action)))
-    ))
-
-(defun wisi-ext-parse-execute (elisp-names sexp)
+(defun wisi-ext-parse-execute (token-table action-table sexp)
   "Execute encoded SEXP sent from subprocess."
   ;; sexp is an encoded version of a wisi parser action, with the token list prepended:
   ;;
-  ;; A typical action is:
-  ;; [nonterm
-  ;;  [token token ...]
-  ;;  [
-  ;;   (action-name [arg arg ...])
-  ;;   (action-name [arg arg ...])
-  ;;   (action-name arg arg)
-  ;;   (action-name arg)
-  ;;   ...
-  ;;  ]
-  ;; ]
+  ;; A typical sexp is: [nonterm [token token ...] action]
+  ;; where:
+  ;; nonterm - token_id’pos; index into token-table
+  ;; token - (token_id’pos (region_begin . region_end))
+  ;; action - integer, index into action-table
   ;;
-  ;; or, if there is only one action:
-  ;; [nonterm
-  ;;  [token token ... ]
-  ;;  (action-name [arg arg ... ])
-  ;; ]
-  ;;
-  ;; arg can be:
-  ;; positive integer: token number
-  ;; negative integer: symbol
-  ;; list of integers
+  ;; We don’t get here if wisi-tokens is nil.
 
-  ;; Translate the codes back to elisp symbols, execute
-  (let ((i 0);; token or arg index
-	(j 0);; action index
-	($nterm (aref elisp-names (- (aref sexp 0))))
-	wisi-tokens
-	)
+  ;; Translate the codes to elisp symbols, build wisi-tok objects for wisi-tokens, execute
+  (let ((i 0);; token index
+	(nonterm (aref token-table (aref sexp 0)))
+	(tokens-1 (aref sexp 1))
+	(tokens-2 (make-vector (length (aref sexp 1)) nil)))
 
-    ;; wisi-tokens = (aref sexp 1)
-    ;; token       = (aref tokens i)
-    (while (< i (length (aref sexp 1)))
-      (setcar (aref (aref sexp 1) i) (aref elisp-names (car (aref (aref sexp 1) i))))
+    (while (< i (length tokens-1))
+      (aset tokens-2 i
+	    (make-wisi-tok
+	     :token (aref token-table (car (aref tokens-1 i)))
+	     :region (nth 1 (aref tokens-1 i))
+	     ;; FIXME: need other fields for indent; use wisi elisp parser!
+	     ))
       (setq i (1+ i)))
 
-    (setq wisi-tokens (aref sexp 1))
-
-    ;; Skip action if all tokens are before wisi-cache-max, or there
-    ;; are no tokens. See wisi-parse.el wisi-parse-exec-action for
-    ;; rationale.
-    (if wisi-tokens
-	(if (>= (wisi-parse-max-pos wisi-tokens) wisi-cache-max)
-	    (if (arrayp (aref sexp 2))
-		;; multiple actions
-		(while (< j (length (aref sexp 2)))
-		  (wisi-ext-parse-exec-action elisp-names (aref (aref sexp 2) j))
-		  (setq j (1+ j)))
-	      ;; single action
-	      (wisi-ext-parse-exec-action elisp-names (aref sexp 2)))
-
-	  (when (> wisi-debug 1)
-	    (message "... action skipped; before wisi-cache-max")))
-
-      (when (> wisi-debug 1)
-	(message "... action skipped; no tokens")))
+    (funcall (aref action-table (aref sexp 2)) nonterm tokens-2)
     ))
 
 ;;;;; main
 
-(defun wisi-ext-parse (elisp-names)
+(defun wisi-ext-parse (token-table action-table)
   (wisi-ext-parse-require-session)
   (let ((source-buffer (current-buffer))
 	(action-buffer (wisi-ext-parse--session-buffer wisi-ext-parse-session))
@@ -298,33 +224,36 @@ Does not wait for command to complete."
 	 ((looking-at wisi-ext-parse-prompt)
 	  (setq done t))
 
-	 ((looking-at "^;;")
-	  ;; debug output
-	  (forward-line 1)
-	  (setq sexp-start (point)))
-
-	 ((condition-case nil
+	 ((looking-at "\\[")
+	  (condition-case nil
 	      (setq action-end (scan-sexps (point) 1))
 	    (error
 	     ;; incomplete action
 	     (setq need-more t)
 	     nil))
 
-	  (setq action-count (1+ action-count))
-	  (setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
-	  (goto-char action-end)
+	  (unless need-more
+	    (setq action-count (1+ action-count))
+	    (setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
+	    (goto-char action-end)
+	    (forward-line 1)
+	    (setq sexp-start (point))
+
+	    (set-buffer source-buffer)
+	    (if (listp action)
+		;; post-parser action
+		(eval action)
+	      ;; encoded parser action
+	      (wisi-ext-parse-execute token-table action-table action))
+
+	    (set-buffer action-buffer)
+	    ))
+
+	 (t
+	  ;; debug output
 	  (forward-line 1)
-	  (setq sexp-start (point))
-
-	  (set-buffer source-buffer)
-	  (if (listp action)
-	      ;; post-parser action
-	      (eval action)
-	    ;; encoded parser action
-	    (wisi-ext-parse-execute elisp-names action))
-
-	  (set-buffer action-buffer)
-	  ))
+	  (setq sexp-start (point)))
+	 )
 	)
 
       (unless done
@@ -343,13 +272,14 @@ Does not wait for command to complete."
     ;; got command prompt
     (unless (process-live-p process)
       (wisi-ext-parse-show-buffer)
-      (error "wisi-ext-parse process died"))
+      (error "%s process died" wisi-ext-parse-exec))
 
     (when (> wisi-ext-parse-debug 0)
       (message "total time: %f" (- (float-time) start-time))
       (message "action-count: %d" action-count))
 
-    (set-buffer source-buffer)))
+    (set-buffer source-buffer)
+    ))
 
 (defun wisi-ext-lex ()
   "For timing; just execute lexer in external process."
@@ -400,53 +330,34 @@ Does not wait for command to complete."
 
     (set-buffer source-buffer)))
 
-(defun wisi-ext-parse-exec-buffer (action-buffer-name elisp-names)
-  "for debugging; execute encoded actions in ACTION-BUFFER, applying to current buffer."
-  (let ((action-buffer (get-buffer action-buffer-name))
-	(source-buffer (current-buffer))
-	action
-	action-end
-	(action-count 0)
-	(done nil)
-	(start-time (float-time)))
+(defun wisi-ext-compile-actions (actions)
+  "Compile grammar semantic action functions into an obarray.
+Return a list (ACTION_ARRAY OBARRAY), where:
 
-    (set-buffer action-buffer)
-    (goto-char (point-min))
+ACTION_ARRAY is a vector containing the action symbols in the
+same order as ACTIONS, to allow lookup by integer index.
 
-    (while (not done)
-      (cond
-       ((or (eobp)
-	    (looking-at wisi-ext-parse-prompt))
-	(setq done t))
+OBARRAY is the obarray containing the byte-compiled action
+functions."
+  (let ((symbol-obarray (make-vector 13 0))
+	(table (make-vector (length actions) nil))
+        (byte-compile-warnings '(not free-vars)) ;; for "wisi-test-success" in test/wisi/*
+	(index 0)
+	action name form symbol)
+    (while actions
+      (setq
+       action (pop actions)
+       name (car action)
+       form (cadr action)
+       symbol (intern name symbol-obarray))
 
-       ((looking-at "^;;")
-	;; debug output
-	(forward-line 1))
-
-       ((setq action-end (scan-sexps (point) 1))
-	(setq action-count (1+ action-count))
-	(setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
-	(goto-char action-end)
-	(forward-line 1)
-
-	(set-buffer source-buffer)
-	(if (listp action)
-	    ;; post-parser action
-	    (eval action)
-	  ;; encoded parser action
-	  (unless (> wisi-ext-parse-debug 1)
-	    (wisi-ext-parse-execute elisp-names action)))
-
-	(set-buffer action-buffer)
-	)
-
-       (t
-	(error "unrecognized action"))
-       ))
-
-    (when (> wisi-ext-parse-debug 0)
-      (message "total time: %f" (- (float-time) start-time))
-      (message "action-count: %d" action-count))
-    ))
+      (fset symbol
+	    `(lambda (wisi-nterm wisi-tokens)
+	     ,form
+	     nil))
+      (byte-compile symbol)
+      (aset table index symbol)
+      (setq index (1+ index)))
+    (list table symbol-obarray)))
 
 (provide 'wisi-ext-parse)

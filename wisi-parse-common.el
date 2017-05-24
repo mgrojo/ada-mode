@@ -1,6 +1,6 @@
 ;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
 ;;
-;; Copyright (C) 2014, 2015  Free Software Foundation, Inc.
+;; Copyright (C) 2014, 2015, 2017  Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -34,9 +34,6 @@
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : also show top 10 items of parser stack.")
 
-(defvar-local wisi-cache-max 0
-  "Maximimum position in buffer where wisi-cache text properties are valid.")
-
 (defun wisi-error-msg (message &rest args)
   (let ((line (line-number-at-pos))
 	(col (- (point) (line-beginning-position))))
@@ -54,9 +51,33 @@
      'error-message
      "wisi parse error")
 
+(cl-defstruct wisi-tok
+  token  ;; symbol from a token table
+  region ;; cons giving buffer region containing token text
+
+  nonterminal ;; t if a nonterminal
+
+  ;; The following are set if parsing for indent.
+
+  line ;; Line number at start of token. Nil for empty nonterminals
+
+  first
+  ;; For terminals, t if token is the first token on a line.
+  ;;
+  ;; For nonterminals, line number of first contained line that needs
+  ;; indenting; it is a comment, or begins with a contained token.
+  ;;
+  ;; Otherwise nil.
+
+  ;; The following are non-nil if token (terminal or non-terminal) is
+  ;; followed by blank or comment lines, or if not parsing for indent.
+  comment-line ;; first blank or comment line following token
+  comment-end ;; position at end of blank or comment lines
+  )
+
 (defun wisi-token-text (token)
   "Return buffer text from token range."
-  (let ((region (cdr token)))
+  (let ((region (wisi-tok-region token)))
     (and region
        (buffer-substring-no-properties (car region) (cdr region)))))
 

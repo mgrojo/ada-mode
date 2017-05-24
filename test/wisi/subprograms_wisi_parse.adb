@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Emacs background process for Ada mode; parse buffer text, return wisi Actions.
+--  Emacs background process for wisi test; parse buffer text, return wisi Actions.
 --
 --  Copyright (C) 2014, 2017  All Rights Reserved.
 --
@@ -21,22 +21,23 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada_Grammar_Process;
+with FastToken.Parser;
 with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
 with GNAT.OS_Lib;
+with Subprograms_Process;
+with subprograms_process_dfa;
 with System.Storage_Elements;
-procedure Ada_Mode_Wisi_Parse
+procedure Subprograms_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
    Version          : constant String := "5.1.5";
 
    Prompt : constant String := ";;> ";
-   --  so the echoed command is an elisp comment
 
    procedure Usage
    is
    begin
-      Put_Line ("usage: ada_mode_wisi_parse [-v level]");
+      Put_Line ("usage: *_wisi_parse [-v level]");
       Put_Line ("-v level : enable parse trace output (will screw up Emacs eval)");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
@@ -51,10 +52,6 @@ is
       Put_Line ("  outputs: elisp forms for wisi parser actions or post-parser actions");
       Put_Line ("  wisi parser actions have names encoded as integers; others do not");
       New_Line;
-      Put_Line ("NNlex <text_byte_count><text>");
-      Put_Line ("  NN includes 'parse <text_byte_count>'");
-      Put_Line ("  runs lexer on text, for timing.");
-
       Put_Line ("04quit");
    end Usage;
 
@@ -63,7 +60,7 @@ is
    --  we use GNAT.OS_Lib because it does not buffer input, so it runs
    --  under Emacs nicely; GNAT Text_IO does not return text until
    --  some fairly large buffer is filled.
-   Parser : Ada_Grammar_Process.LR_Parser.Instance := Ada_Grammar_Process.Create_Parser
+   Parser : Subprograms_Process.Lr_Parser.Instance := Subprograms_Process.Create_Parser
      (Algorithm   => FastToken.LALR,
       Text_Feeder => FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (GNAT.OS_Lib.Standin));
 
@@ -166,6 +163,7 @@ begin
       when 2 =>
          if Argument (1) = "-v" then
             FastToken.Trace_Parse := Integer'Value (Argument (2));
+            subprograms_process_dfa.aflex_debug := FastToken.Trace_Parse > 3;
          else
             raise Programmer_Error with "invalid option: " & Argument (1);
          end if;
@@ -175,7 +173,7 @@ begin
       end case;
    end;
 
-   Put_Line ("ada_mode_wisi_parse " & Version & ", protocol version " & Protocol_Version);
+   Put_Line ("*_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and text from standard_input via GNAT.OS_Lib,
    --  send results to standard_output.
@@ -229,32 +227,6 @@ begin
                Feeder.Discard_Rest_Of_Input;
             end;
 
-         elsif Match ("lex") then
-            --  Args: <byte_count>
-            --  Input: <text_line>...
-            --  Response:
-            --  prompt
-            declare
-               Byte_Count  : constant Integer := Get_Integer (Command_Line, Last);
-               Feeder      : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-                 FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Parser.Lexer.Feeder.all);
-               Token : Ada_Grammar_Process.Token_Pkg.Instance;
-               pragma Unreferenced (Token);
-            begin
-               Feeder.Reset (Byte_Count);
-               Parser.Lexer.Reset (Byte_Count);
-
-               loop
-                  Token := Parser.Lexer.Find_Next;
-                  exit when Parser.Lexer.End_Of_Text;
-               end loop;
-
-            exception
-            when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
-               Put_Line ("(signal 'wisi-parse-error """ & Ada.Exceptions.Exception_Message (E) & """)");
-               Feeder.Discard_Rest_Of_Input;
-            end;
-
          elsif Match ("quit") then
             --  Args:
             exit;
@@ -278,4 +250,4 @@ when E : others =>
    New_Line (2);
    Put_Line
      ("unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
-end Ada_Mode_Wisi_Parse;
+end Subprograms_Wisi_Parse;

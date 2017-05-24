@@ -297,7 +297,7 @@ If at end of buffer, return `wisi-eoi-term'."
 	   (signal 'wisi-parse-error (format "wisi-forward-token: forward-sexp failed %s" err))
 	   ))))
 
-     ((memq syntax '(2 3 6)) ;; word, symbolm expression prefix (includes numbers)
+     ((memq syntax '(2 3 6)) ;; word, symbol expression prefix (includes numbers)
       (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
@@ -457,7 +457,8 @@ wisi-forward-token, but does not look up symbol."
   )
 
 (defvar-local wisi-parse-table nil)
-(defvar-local wisi-elisp-names nil) ;; FIXME: move into some struct
+(defvar-local wisi-token-table nil) ;; FIXME: move into some struct
+(defvar-local wisi-action-table nil)
 
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
@@ -765,7 +766,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	     (wisi-parse wisi-parse-table 'wisi-forward-token))
 	    (ada
 	     ;; FIXME: grammar is specifed by .exe name; that must be here.
-	     (wisi-ext-parse wisi-elisp-names))
+	     (wisi-ext-parse wisi-token-table wisi-action-table))
 	    )
 	  (setq wisi-parse-failed nil)
 	  (when (memq wisi--parse-action '(face navigate))
@@ -2296,21 +2297,25 @@ Called with BEGIN END.")
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table elisp-names)
+(defun wisi-safe-intern (name obtable)
+  (let ((var (intern-soft name obtable)))
+    (and (boundp var) (symbol-value var))))
+
+(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table token-table action-table)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
 
-  (let ((numbers (cadr (symbol-value (intern-soft "number" token-table)))))
+  (let ((numbers (cadr (wisi-safe-intern "number" token-table))))
     (setq wisi--lexer
 	  (make-wisi-lex
 	   :keyword-table keyword-table
-	   :punctuation-table (symbol-value (intern-soft "punctuation" token-table))
+	   :punctuation-table (wisi-safe-intern "punctuation" token-table)
 	   :punctuation-table-max-length 0
-	   :string-double-term (car (symbol-value (intern-soft "string-double" token-table)))
+	   :string-double-term (car (cadr (wisi-safe-intern "string-double" token-table)))
 	   :string-quote-escape-doubled nil
 	   :string-quote-escape nil
-	   :string-single-term (car (symbol-value (intern-soft "string-single" token-table)))
-	   :symbol-term (car (symbol-value (intern-soft "symbol" token-table)))
+	   :string-single-term (car (cadr (wisi-safe-intern "string-single" token-table)))
+	   :symbol-term (car (cadr (wisi-safe-intern "symbol" token-table)))
 	   :number-term (car numbers)
 	   :number-p (cdr numbers)
 	   )))
@@ -2334,7 +2339,8 @@ Called with BEGIN END.")
       (error "aborting due to punctuation errors")))
 
   (setq wisi-parse-table parse-table)
-  (setq wisi-elisp-names elisp-names)
+  (setq wisi-token-table token-table)
+  (setq wisi-action-table action-table)
 
   (setq wisi--cache-max
 	(list
@@ -2353,7 +2359,6 @@ Called with BEGIN END.")
   (set (make-local-variable 'indent-line-function) #'wisi-indent-line)
   (set (make-local-variable 'indent-region-function) #'wisi-indent-region)
   (set (make-local-variable 'forward-sexp-function) #'wisi-forward-sexp)
-
 
   (setq wisi-post-indent-fail-hook post-indent-fail)
   (setq wisi-indent-failed nil)

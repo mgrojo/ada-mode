@@ -2,11 +2,11 @@
 ^.*\.exe$
 ^ada-mode\.html$
 ^ada-mode\.info$
-^ada_mode_gps_indent$
 ^ada_grammar.*output$
 ^ada_grammar\.adb$
 ^ada_grammar\.ads$
 ^ada_grammar\.el$
+^ada_mode_gps_indent$
 ^autoloads\.el$
 ^build/.*\.sig$
 ^build/.*\.tar\.gz$
@@ -26,6 +26,9 @@
 ^build/wisi/.*\.stamp$
 ^build/wisi/.*\.tmp$
 ^build/wisi/.*\.wisi-test$
+^build/wisi/gpr_query\.db$
+^build/wisi/gpr_query\.db-shm$
+^build/wisi/gpr_query\.db-wal$
 ^build/wisi/obj$
 ^dir-ada-mode$
 ^gpr-grammar.*output$

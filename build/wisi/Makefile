@@ -11,7 +11,7 @@ all : byte-compile-clean compile-ada-clean update compile-ada autoloads test-cle
 # this updates everything after any source change, without running the tests.
 update : ../../ada_grammar-elisp.el
 update : ../../gpr-grammar-elisp.el
-update : ../../ada_grammar.ads
+update : ../../ada_grammar_process.ads
 update : install
 update : byte-compile
 update : ada_mode_wisi_parse.exe
@@ -57,9 +57,9 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-ONE_TEST_FILES += ada-number-literal.wisi-test
-#ONE_TEST_FILES += ada_mode-nominal.ads
-# one : RUNTEST := run-wisi-test.el
+#ONE_TEST_FILES += subprograms.wisi-test
+ONE_TEST_FILES += subprograms.wisi-ext-test
+one : RUNTEST := run-wisi-test.el
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
 	rm -f $(ONE_TEST_FILES)
@@ -75,23 +75,24 @@ two : export WISI_OPENTOKEN := /Projects/org.opentoken.stephe/build/debug
 two : run_ada_parser.exe
 	./run_ada_parser.exe -v 1 ../../test/ada_mode-conditional_expressions.adb > debug.parse
 
+vpath %.adb ../../ ../../test/wisi
+vpath %.el ../../ ../../test/wisi
 vpath %.wy ../../ ../../test/wisi
-vpath %.el ../../ .
 
 # These are correct paths for Stephe's development machines;
 # WISI_FASTTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else ifeq ($(shell uname),Darwin)
-WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-WISI_FASTTOKEN ?= $(CURDIR)/../../../org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
@@ -99,7 +100,17 @@ endif
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
-.PRECIOUS : %-elisp.el ../../%-grammar-elisp.el  %.ads
+%.wisi-ext-test : %_wisi_parse.exe
+	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-ext-test.el --eval '(run-test "$*")'
+
+%_wisi_parse.exe : %_wisi_parse.adb %-process.el force
+	gprbuild -p wisi_parse_agg.gpr $<
+
+%-process.el : force
+	make -C $(WISI_FASTTOKEN) $*-process.el
+	cp $(WISI_FASTTOKEN)/$*-process.el $@
+
+.PRECIOUS : %-elisp.el %-process.el ../../%-grammar-elisp.el  %.ads
 
 # FIXME: verify wisi-generate version
 
@@ -112,27 +123,26 @@ else ifeq ($(shell uname),Darwin)
 else
 # windows
 	cd ./$(<D); dos2unix $(@F)
-	cd ./$(<D); dos2unix $*-lr1-elisp.el
 endif
 
-%.ads : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
+../../%_process.l : ../../%.wy $(WISI_FASTTOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Aflex --interface process $(<F) > $(*F).ada_output
-	cd ./$(<D); dos2unix $(@F) $(*F).el
+	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
-%.a : %.l
-	aflex -i $<
+../../%_process_yylex.ada : ../../%_process.l
+	cd ../../; aflex -i -s -E -D$(WISI_FASTTOKEN)/../../wisi/fasttoken_aflex_dfa.adb.template -O$(WISI_FASTTOKEN)/../../wisi/fasttoken_aflex_io.adb.template $(<F)
 
-%.ads : %.a
-	gnatchop -w $*.a $*_dfa.a $*_io.a
+../../%_process_yylex.adb : ../../%_process_yylex.ada
+	cd ../../; gnatchop -w $*_process_yylex.ada $*_process_dfa.ada $*_process_io.ada
 
 %.exe : ../../%.adb force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr $<
 
 #ada_mode_wisi_parse.exe : export Ada_Mode_Wisi_Parse_Build := Debug
-ada_mode_wisi_parse.exe : ../../ada_grammar.ads force
+ada_mode_wisi_parse.exe : ../../ada_grammar_process.adb ../../ada_grammar_process_yylex.adb force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr
 
-run_ada_parser.exe : ../../ada_grammar.ads force
+run_ada_parser.exe : ../../ada_grammar_process.ads force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
 
 install : INSTALL_BIN := $(dir $(shell cygpath -w $(shell bash -c "type -p emacs")))
@@ -235,7 +245,7 @@ test-ada-ext-gpr_query.stamp : force
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
 # Local Variables:
-# eval: (setenv "WISI_OPENTOKEN" "/Projects/org.opentoken.stephe/build/debug")
+# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/release")
 # eval: (ada-parse-prj-file "ada_mode_wisi_parse.prj")
 # eval: (ada-select-prj-file "ada_mode_wisi_parse.prj")
 # End:

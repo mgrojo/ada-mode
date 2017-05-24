@@ -29,7 +29,7 @@
 
 (require 'ada-fix-error)
 (require 'ada_grammar-elisp)
-(require 'ada_grammar)
+(require 'ada_grammar-process)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -908,10 +908,11 @@ TOKEN-TEXT; move point to just past token."
   (wisi-setup '(ada-wisi-comment)
 	      'ada-wisi-post-parse-fail
 	      ada-wisi-class-list
-	      ada-grammar-elisp-keyword-table
-	      ada-grammar-elisp-token-table
-	      ada-grammar-elisp-parse-table
-	      ada_grammar-names)
+	      ada_grammar-elisp-keyword-table
+	      ada_grammar-elisp-token-table
+	      ada_grammar-elisp-parse-table
+	      ada_grammar-process-token-table
+	      ada_grammar-process-action-table)
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   (setq wisi-indent-hanging-function #'ada-indent-hanging)

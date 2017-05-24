@@ -77,7 +77,7 @@
 	      gpr-grammar-elisp-keyword-table
 	      gpr-grammar-elisp-token-table
 	      gpr-grammar-elisp-parse-table
-	      nil)
+	      nil nil)
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)

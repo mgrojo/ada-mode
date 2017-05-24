@@ -23,10 +23,16 @@
 %keyword PROCEDURE "procedure"
 %keyword RIGHT_PAREN ")"
 
-%token <symbol> SYMBOL
+%token <symbol> SYMBOL "[a-zA-Z][0-9a-zA-Z_]*"
+
+;; need whitespace for Aflex lexer
+%token <whitespace> WHITESPACE "[ \t\n]"
+%token <line_comment> COMMENT "\-\-[^\n]*\n"
 
 ;; 'fasttoken_accept', Wisi_EOI added in wisi-generate
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %%
 

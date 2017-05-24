@@ -63,38 +63,6 @@ point at which that max was spawned.")
   ;; list of (action-symbol stack-fragment)
   )
 
-;; FIXME: move to wisi-parse-common
-(cl-defstruct wisi-tok
-  token  ;; symbol from a token table
-  region ;; cons giving buffer region containing token text
-
-  nonterminal ;; t if a nonterminal
-
-  ;; The following are set if parsing for indent.
-
-  line ;; Line number at start of token. Nil for empty nonterminals
-
-  first
-  ;; For terminals, t if token is the first token on a line.
-  ;;
-  ;; For nonterminals, line number of first contained line that needs
-  ;; indenting; it is a comment, or begins with a contained token.
-  ;;
-  ;; Otherwise nil.
-
-  ;; The following are non-nil if token (terminal or non-terminal) is
-  ;; followed by blank or comment lines, or if not parsing for indent.
-  comment-line ;; first blank or comment line following token
-  comment-end ;; position at end of blank or comment lines
-  )
-
-(defun wisi-token-text (token)
-  "Return buffer text from token range."
-  (let ((region (wisi-tok-region token)))
-    (and region
-       (buffer-substring-no-properties (car region) (cdr region)))))
-;; end FIXME:
-
 (defun wisi-parse (automaton lexer)
   "Parse current buffer from bob using the automaton specified in AUTOMATON.
 

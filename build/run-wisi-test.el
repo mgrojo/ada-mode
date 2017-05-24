@@ -9,6 +9,7 @@
 ;; from Makefile:
 ;; M-x : (run-test "<filename>" t)
 
+(require 'cl-lib)
 (require 'wisi-parse)
 (require 'wisi)
 
@@ -93,18 +94,34 @@
     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
     (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
-    (wisi-setup
-     nil ;; indent-calculate
-     nil ;; post-indent-fail
-     test-class-list
-     (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
-     (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-     parse-table
-     nil); elisp-names
+  (cl-ecase wisi-parser
+    (elisp
+     (wisi-setup
+      nil ;; indent-calculate
+      nil ;; post-indent-fail
+      test-class-list
+      (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+      (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+      parse-table
+      nil nil))
+
+    (ada
+     (setq wisi-ext-parse-exec (concat filename "_wisi_parse.exe"))
+     (add-to-list 'exec-path default-directory)
+     (wisi-setup
+      nil ;; indent-calculate
+      nil ;; post-indent-fail
+      test-class-list ;; class-list
+      nil ;; keyword-table
+      nil ;; token-table
+      nil ;; parse-table
+     (symbol-value (intern-soft (concat filename "-process-token-table")))
+     (car (symbol-value (intern-soft (concat filename "-process-action-table"))))))
+    )
 
     ;; Not clear why this is not being done automatically
     (syntax-propertize (point-max))
-    
+
     ;; Check for expected error result
     (goto-char (point-min))
     (when (re-search-forward "--PARSE_RESULT:" nil t)
@@ -112,13 +129,18 @@
 
     (goto-char (point-min))
     (condition-case-unless-debug err
-	(wisi-parse parse-table 'wisi-forward-token)
-      ;; parse action must set wisi-test-success t
+	(cl-ecase wisi-parser
+	  (elisp
+	   (wisi-parse parse-table 'wisi-forward-token))
+	  (ada
+	   (wisi-ext-parse wisi-token-names wisi-action-names))
+	  )
       (error
        (setq wisi-test-success
 	     (equal (cdr err) expected-result))
        (unless wisi-test-success
-	 (message (cdr err)))))
+	 (message err))))
+      ;; parse action must set wisi-test-success t
     (unless wisi-test-success
       (error "parse test failed")))
 
@@ -151,7 +173,15 @@
 (defun run-test (filename)
   (interactive "Mgrammar filename root: ")
   (add-to-list 'load-path "../../test/wisi/")
-  (require (intern (concat filename "-elisp")))
+
+  (cl-ecase wisi-parser
+    (elisp
+     (require (intern (concat filename "-elisp"))))
+    (ada
+     (require (intern (concat filename "-process"))))
+
+    )
+
   ;; top level parse action must set `wisi-test-success' t.
 
   ;; fail for any parse errors.
@@ -171,4 +201,5 @@
       (write-file (concat filename ".wisi-test")))
   ))
 
+(provide 'run-wisi-test)
 ;; end of file
