@@ -40,7 +40,7 @@
       (TICK . "'")
      )
      ("number"
-      (NUMBER_LITERAL . wisi-number-p)
+      (NUMBER_LITERAL . ada-wisi-number-p)
      )
      ("symbol"
       (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")

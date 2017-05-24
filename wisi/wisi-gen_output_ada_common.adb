@@ -250,7 +250,7 @@ package body Wisi.Gen_Output_Ada_Common is
             for Item of Kind.Tokens loop
                if -Item.Value = "ada-wisi-number-p" then
                   Put_Line
-                    ("\([0-9]+#\)?[-+0-9a-fA-F.]+\(#\)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                    ("([0-9]+#)?[-+0-9a-fA-F.]+(#)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                else
                   Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                end if;

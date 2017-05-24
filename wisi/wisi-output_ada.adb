@@ -169,15 +169,13 @@ is
       Indent_Line ("end Put_Trace_Line;");
       New_Line;
 
-      Indent_Line ("Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;");
-
       if Action_Count = 0 then
          null;
 
       else
          --  generate Action subprograms, populate Action_Names.
 
-         Indent_Line ("use Wisi_Tokens_Pkg;");
+         Indent_Line ("use Tokens_Wisi_Process_Runtime;");
          New_Line;
 
          if Profile then
@@ -188,22 +186,25 @@ is
             declare
                use all type Standard.Ada.Containers.Count_Type;
 
-               LHS_ID : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-               Index  : Integer           := 0; -- Matches Generate_Utils.To_Grammar
+               LHS_ID    : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+               Index     : Integer           := 0; -- Semantic_Action defines Index as zero-origin
+               Temp      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+               All_Empty : Boolean           := True;
             begin
-               Ada_Action_Names (LHS_ID) := new Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-
                for RHS of Rule.Right_Hand_Sides loop
                   if RHS.Action.Length > 0 then
                      declare
                         Name          : constant String := -Rule.Left_Hand_Side & '_' & FastToken.Int_Image (Index);
                         Unref_Nonterm : Boolean         := True;
+                        Unref_Index   : Boolean         := True;
                         Unref_Source  : Boolean         := True;
                      begin
-                        Ada_Action_Names (LHS_ID) (Index) := new String'(Name & "'Access");
+                        All_Empty := False;
+                        Temp (Index) := new String'(Name & "'Access");
 
                         Indent_Line ("procedure " & Name);
                         Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+                        Indent_Line ("  Index   : in Natural;");
                         Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
                         Indent_Line ("is");
 
@@ -211,15 +212,21 @@ is
                            if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Nonterm") then
                               Unref_Nonterm := False;
                            end if;
+                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Index") then
+                              Unref_Index := False;
+                           end if;
                            if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Source") then
                               Unref_Source := False;
                            end if;
                         end loop;
 
-                        if Unref_Nonterm then
+                        if Profile or Unref_Nonterm then
                            Indent_Line ("   pragma Unreferenced (Nonterm);");
                         end if;
-                        if Unref_Source then
+                        if Profile or Unref_Index then
+                           Indent_Line ("   pragma Unreferenced (Index);");
+                        end if;
+                        if Profile or Unref_Source then
                            Indent_Line ("   pragma Unreferenced (Source);");
                         end if;
 
@@ -242,6 +249,10 @@ is
 
                   Index := Index + 1;
                end loop;
+
+               if not All_Empty then
+                  Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp);
+               end if;
             end;
          end loop;
       end if;

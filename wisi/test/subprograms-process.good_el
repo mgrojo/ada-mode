@@ -18,30 +18,35 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (defconst subprograms-process-token-names
-  [
-   WHITESPACE
-   COMMENT
-   FUNCTION
-   LEFT_PAREN
-   PROCEDURE
-   RIGHT_PAREN
-   SYMBOL
-   WISI_EOI
-   fasttoken_accept
-   compilation_unit
-   declarations
-   declaration
-   subprogram
-   parameter_list
-   ])
+  (wisi-ext-parse-compile-tokens
+   '(WHITESPACE
+     COMMENT
+     FUNCTION
+     LEFT_PAREN
+     PROCEDURE
+     RIGHT_PAREN
+     SYMBOL
+     WISI_EOI
+     fasttoken_accept
+     compilation_unit
+     declarations
+     declaration
+     subprogram
+     parameter_list
+     ))
 
 (defconst subprograms-process-action-names
-  [
-   compilation_unit:0
-   subprogram:0
-   subprogram:1
-   parameter_list:0
-   parameter_list:2
-   ])
+  (wisi-ext-parse-compile-actions
+   '((compilation_unit:0
+      (setq wisi-test-success t))
+     (subprogram:0
+      (wisi-statement-action [1 function 2 other]))
+     (subprogram:1
+      (wisi-statement-action [1 procedure 2 other]))
+     (parameter_list:0
+      (wisi-statement-action [1 open-paren 2 close-paren]))
+     (parameter_list:2
+      (wisi-statement-action [1 open-paren 3 close-paren]))
+     ))
 
 (provide 'subprograms-process)

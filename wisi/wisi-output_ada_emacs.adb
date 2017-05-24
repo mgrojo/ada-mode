@@ -324,7 +324,9 @@ is
             Indent_Line ("begin");
             Indent := Indent + 3;
 
-            --  FIXME: don't call action if source.length = 0; not checked in -lr.parser.adb.
+            Indent_Line ("if Source.Length > 0 then");
+            Indent := Indent + 3;
+
             case Data.Interface_Kind is
             when Process =>
                Indent_Line ("Put_Line");
@@ -334,6 +336,9 @@ is
             when Module =>
                Indent_Line ("Set_Wisi_Tokens (Nonterm, Source);");
             end case;
+
+            Indent := Indent - 3;
+            Indent_Line ("end if;");
          end if;
          Indent := Indent - 3;
          Indent_Line ("end Elisp_Action;");
@@ -420,9 +425,14 @@ is
    is
       use Wisi.Utils;
       use Generate_Utils;
+      use all type Rule_Lists.Cursor;
+      use all type RHS_Lists.Cursor;
 
       File_Name_Root : constant String := Output_File_Name_Root & "-process";
-      File      : File_Type;
+      File           : File_Type;
+      Paren_Done     : Boolean         := False;
+      Rule_I         : Rule_Lists.Cursor;
+      RHS_I          : RHS_Lists.Cursor;
    begin
       Create (File, Out_File, File_Name_Root & ".el");
       Set_Output (File);
@@ -436,15 +446,21 @@ is
 
       --  FIXME: if elisp-lexer, output token, keyword tables
 
-      Indent_Line ("(defconst " & File_Name_Root & "-token-names");
-      Indent_Line ("  [");
+      Indent_Line  ("(defconst " & File_Name_Root & "-token-table");
+      Indent_Start ("  [");
       Indent := Indent + 3;
       declare
          Cursor : Token_Cursor := First;
       begin
          loop
             exit when Cursor.Is_Done;
-            Indent_Line (-Cursor.Token_Name);
+            if Paren_Done then
+               Indent_Line (-Cursor.Token_Name);
+            else
+               Paren_Done := True;
+               Put_Line (-Cursor.Token_Name);
+            end if;
+
             Cursor.Next;
          end loop;
       end;
@@ -452,20 +468,37 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      Indent_Line ("(defconst " & File_Name_Root & "-action-names");
-      Indent_Line ("  [");
-      Indent := Indent + 3;
+      Indent_Line ("(defconst " & File_Name_Root & "-action-table");
+      Indent_Line ("  (wisi-ext-compile-actions");
+      Indent_Start ("   '(");
+      Indent     := Indent + 5;
+      Paren_Done := False;
+      Rule_I     := Rules.First;
       for I in Elisp_Action_Names'Range loop
          if Elisp_Action_Names (I) /= null then
+            RHS_I := Constant_Reference (Rules, Rule_I).Right_Hand_Sides.First;
+
             for J in Elisp_Action_Names (I).all'Range loop
                if Elisp_Action_Names (I) (J) /= null then
-                  Indent_Line (Elisp_Action_Names (I) (J).all);
+                  if Paren_Done then
+                     Indent_Start ("(""" & Elisp_Action_Names (I) (J).all & """");
+                  else
+                     Paren_Done := True;
+                     Put ("(""" & Elisp_Action_Names (I) (J).all & """");
+                  end if;
+                  for Line of Element (RHS_I).Action loop
+                     New_Line;
+                     Indent_Start (Line);
+                  end loop;
+                  Put_Line (")");
                end if;
+               Next (RHS_I);
             end loop;
          end if;
+         Next (Rule_I);
       end loop;
-      Indent_Line ("])");
-      Indent := Indent - 3;
+      Indent_Line (")))");
+      Indent := Indent - 5;
       New_Line;
 
       Put_Line ("(provide '" & File_Name_Root & ")");

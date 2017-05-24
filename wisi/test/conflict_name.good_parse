@@ -6,11 +6,9 @@ foo
  1: 1: (IDENTIFIER 1 . 3) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 3),  1 : (WHITESPACE), 
  1: 2: (WISI_EOI 1 . 1) : reduce 1 tokens to name
-name_0: name <= (IDENTIFIER 1 . 3)
- ... goto state 1
+ ... goto state 4
  1 stack:  4 : (name 1 . 3),  1 : (WHITESPACE), 
  1: 4: (WISI_EOI 1 . 1) : accept it
-fasttoken_accept_0: fasttoken_accept <= (name 1 . 3)
 
 LR1_Parser parse:
 read 4
@@ -20,8 +18,6 @@ foo
  1: 1: (IDENTIFIER 1 . 3) : shift and goto state 2
  1 stack:  2 : (IDENTIFIER 1 . 3),  1 : (WHITESPACE), 
  1: 2: (WISI_EOI 1 . 1) : reduce 1 tokens to name
-name_0: name <= (IDENTIFIER 1 . 3)
- ... goto state 1
+ ... goto state 4
  1 stack:  4 : (name 1 . 3),  1 : (WHITESPACE), 
  1: 4: (WISI_EOI 1 . 1) : accept it
-fasttoken_accept_0: fasttoken_accept <= (name 1 . 3)

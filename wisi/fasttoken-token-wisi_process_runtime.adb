@@ -46,9 +46,9 @@ package body FastToken.Token.Wisi_Process_Runtime is
             Token_Line := Token_Line & '(' & Int_Image (Token_ID'Pos (ID (I)));
 
             if Token.Region /= Null_Buffer_Region then
-               Token_Line := Token_Line & " " & Int_Image (Token.Region.Begin_Pos) & " . " &
+               Token_Line := Token_Line & " (" & Int_Image (Token.Region.Begin_Pos) & " . " &
                  --  Elisp region end is one past the last character
-                 Int_Image (Token.Region.End_Pos + 1);
+                 Int_Image (Token.Region.End_Pos + 1) & ")";
             end if;
             Token_Line := Token_Line & ")";
          end;

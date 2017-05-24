@@ -46,6 +46,8 @@ tests : test_all_harness.diff
 #
 # some also or only run from ../wisi/test/test_wisi_suite.adb
 # We only diff %-process.el on a couple tests, because it's simple
+tests : case_expression_process_yylex.adb
+tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
 tests : conflict_name_process_yylex.adb
 tests : conflict_name-parse.diff

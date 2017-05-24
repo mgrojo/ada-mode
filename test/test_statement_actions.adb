@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2009-2010, 2012-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2009-2010, 2012-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -66,10 +66,10 @@ package body Test_Statement_Actions is
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   use type Production.Instance;        --  "<="
-   use type Production.List.Instance;   --  "and"
-   use type Production.Right_Hand_Side; --  "+"
-   use type Token_Pkg.List.Instance;    --  "&"
+   use all type Production.Instance;        --  "<="
+   use all type Production.List.Instance;   --  "and"
+   use all type Production.Right_Hand_Side; --  "+"
+   use all type Token_Pkg.List.Instance;    --  "&"
 
    Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
 
@@ -104,10 +104,12 @@ package body Test_Statement_Actions is
 
    procedure Statement_Semi_Action
      (Nonterm : in Token_Pkg.Nonterminal_ID;
+      Index   : in Natural;
       Source  : in Token_Pkg.List.Instance)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
+      pragma Unreferenced (Index);
    begin
       Action_Count := Action_Count + 1;
    end Statement_Semi_Action;

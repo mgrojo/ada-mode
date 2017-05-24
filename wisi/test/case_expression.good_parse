@@ -1,216 +1,79 @@
-Parse Table:
-Set 1:
-  OPENTOKEN_ACCEPT_ID <= ^ CASE_EXPRESSION_ID EOF_ID
-
-   WHEN_ID              => shift and goto state 2
-   default              => ERROR
-
-   CASE_EXPRESSION_ID   goto state 3
-
-Set 2:
-  CASE_EXPRESSION_ID <= WHEN_ID ^ DISCRETE_CHOICE_ID EQUAL_GREATER_ID FACTOR_ID, EOF_ID
-
-   IDENTIFIER_ID        => shift and goto state 6
-   NUMBER_LITERAL_ID    => shift and goto state 5
-   default              => ERROR
-
-   CHOICE_EXPRESSION_ID goto state 7
-   CHOICE_RELATION_ID   goto state 8
-   DISCRETE_CHOICE_ID   goto state 9
-   FACTOR_ID            goto state 10
-   FACTOR_LIST_ID       goto state 11
-   RANGE_NT_ID          goto state 12
-
-Set 3:
-  OPENTOKEN_ACCEPT_ID <= CASE_EXPRESSION_ID ^ EOF_ID
-
-   EOF_ID               => shift and goto state 4
-   default              => ERROR
+LALR_Parser parse:
+read 44
+-- Just parse successfully
+when A => 123.4
 
 
-Set 4:
-  OPENTOKEN_ACCEPT_ID <= CASE_EXPRESSION_ID EOF_ID ^, EOF_ID/IDENTIFIER_ID/NUMBER_LITERAL_ID/TICK_ID/EQUAL_GREATER_ID/DOT_DOT_ID/WHEN_ID/RANGE_ID
+ 0 stack:  0 : (WHITESPACE), 
+ 0: 0: (WHEN 28 . 31) : shift and goto state 1
+ 0 stack:  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 1: (NUMBER_LITERAL 33 . 33) : shift and goto state 3
+ 0 stack:  3 : (NUMBER_LITERAL 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 3: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor
+ ... goto state 8
+ 0 stack:  8 : (factor 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 8: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor_list
+ ... goto state 9
+ 0 stack:  9 : (factor_list 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 9: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_relation
+ ... goto state 6
+ 0 stack:  6 : (choice_relation 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 6: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_expression
+ ... goto state 5
+ 0 stack:  5 : (choice_expression 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 5: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to discrete_choice
+ ... goto state 7
+ 0 stack:  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 7: (EQUAL_GREATER 35 . 36) : shift and goto state 12
+ 0 stack:  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 12: (NUMBER_LITERAL 38 . 42) : shift and goto state 3
+ 0 stack:  3 : (NUMBER_LITERAL 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 3: (WISI_EOI 1 . 1) : reduce 1 tokens to factor
+ ... goto state 16
+ 0 stack:  16 : (factor 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 16: (WISI_EOI 1 . 1) : reduce 4 tokens to case_expression
+[11[(3 (28 . 32))(14 (33 . 34))(5 (35 . 37))(15 (38 . 43))] 0]
+case_expression_0: case_expression <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
+ ... goto state 2
+ 0 stack:  2 : (case_expression 28 . 42),  0 : (WHITESPACE), 
+ 0: 2: (WISI_EOI 1 . 1) : accept it
 
-   EOF_ID               => accept it
-   IDENTIFIER_ID        => accept it
-   NUMBER_LITERAL_ID    => accept it
-   TICK_ID              => accept it
-   EQUAL_GREATER_ID     => accept it
-   DOT_DOT_ID           => accept it
-   WHEN_ID              => accept it
-   RANGE_ID             => accept it
-   default              => ERROR
-
-
-Set 5:
-  FACTOR_ID <= NUMBER_LITERAL_ID ^, EOF_ID/DOT_DOT_ID/EQUAL_GREATER_ID
-
-   EOF_ID               => reduce 1 tokens to FACTOR_ID
-   DOT_DOT_ID           => reduce 1 tokens to FACTOR_ID
-   EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
-   default              => ERROR
-
-
-Set 6:
-  RANGE_NT_ID <= IDENTIFIER_ID ^ TICK_ID RANGE_ID, EQUAL_GREATER_ID
-  FACTOR_ID <= IDENTIFIER_ID ^, DOT_DOT_ID/EQUAL_GREATER_ID
-
-   TICK_ID              => shift and goto state 15
-   DOT_DOT_ID           => reduce 1 tokens to FACTOR_ID
-   EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
-   default              => ERROR
-
-
-Set 7:
-  DISCRETE_CHOICE_ID <= CHOICE_EXPRESSION_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID     => reduce 1 tokens to DISCRETE_CHOICE_ID
-   default              => ERROR
-
-
-Set 8:
-  CHOICE_EXPRESSION_ID <= CHOICE_RELATION_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID     => reduce 1 tokens to CHOICE_EXPRESSION_ID
-   default              => ERROR
+LR1_Parser parse:
+read 44
+-- Just parse successfully
+when A => 123.4
 
 
-Set 9:
-  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID ^ EQUAL_GREATER_ID FACTOR_ID, EOF_ID
-
-   EQUAL_GREATER_ID     => shift and goto state 14
-   default              => ERROR
-
-
-Set 10:
-  FACTOR_LIST_ID <= FACTOR_ID ^, DOT_DOT_ID/EQUAL_GREATER_ID
-
-   DOT_DOT_ID           => reduce 1 tokens to FACTOR_LIST_ID
-   EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_LIST_ID
-   default              => ERROR
-
-
-Set 11:
-  RANGE_NT_ID <= FACTOR_LIST_ID ^ DOT_DOT_ID FACTOR_LIST_ID, EQUAL_GREATER_ID
-  CHOICE_RELATION_ID <= FACTOR_LIST_ID ^, EQUAL_GREATER_ID
-
-   DOT_DOT_ID           => shift and goto state 13
-   EQUAL_GREATER_ID     => reduce 1 tokens to CHOICE_RELATION_ID
-   default              => ERROR
-
-
-Set 12:
-  DISCRETE_CHOICE_ID <= RANGE_NT_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID     => reduce 1 tokens to DISCRETE_CHOICE_ID
-   default              => ERROR
-
-
-Set 13:
-  RANGE_NT_ID <= FACTOR_LIST_ID DOT_DOT_ID ^ FACTOR_LIST_ID, EQUAL_GREATER_ID
-
-   IDENTIFIER_ID        => shift and goto state 17
-   NUMBER_LITERAL_ID    => shift and goto state 5
-   default              => ERROR
-
-   FACTOR_ID            goto state 10
-   FACTOR_LIST_ID       goto state 19
-
-Set 14:
-  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID ^ FACTOR_ID, EOF_ID
-
-   IDENTIFIER_ID        => shift and goto state 17
-   NUMBER_LITERAL_ID    => shift and goto state 5
-   default              => ERROR
-
-   FACTOR_ID            goto state 18
-
-Set 15:
-  RANGE_NT_ID <= IDENTIFIER_ID TICK_ID ^ RANGE_ID, EQUAL_GREATER_ID
-
-   RANGE_ID             => shift and goto state 16
-   default              => ERROR
-
-
-Set 16:
-  RANGE_NT_ID <= IDENTIFIER_ID TICK_ID RANGE_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID     => reduce 3 tokens to RANGE_NT_ID
-   default              => ERROR
-
-
-Set 17:
-  FACTOR_ID <= IDENTIFIER_ID ^, EOF_ID/EQUAL_GREATER_ID
-
-   EOF_ID               => reduce 1 tokens to FACTOR_ID
-   EQUAL_GREATER_ID     => reduce 1 tokens to FACTOR_ID
-   default              => ERROR
-
-
-Set 18:
-  CASE_EXPRESSION_ID <= WHEN_ID DISCRETE_CHOICE_ID EQUAL_GREATER_ID FACTOR_ID ^, EOF_ID
-
-   EOF_ID               => reduce 4 tokens to CASE_EXPRESSION_ID
-   default              => ERROR
-
-
-Set 19:
-  RANGE_NT_ID <= FACTOR_LIST_ID DOT_DOT_ID FACTOR_LIST_ID ^, EQUAL_GREATER_ID
-
-   EQUAL_GREATER_ID     => reduce 3 tokens to RANGE_NT_ID
-   default              => ERROR
-
-
- 1 : 
-WHEN_ID : SHIFT
- 2 : WHEN_ID
- 1 : 
-IDENTIFIER_ID : SHIFT
- 6 : IDENTIFIER_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : REDUCE to FACTOR_ID, goto state 10
- 10 : FACTOR_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : REDUCE to FACTOR_LIST_ID, goto state 11
- 11 : FACTOR_LIST_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : REDUCE to CHOICE_RELATION_ID, goto state 8
- 8 : CHOICE_RELATION_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : REDUCE to CHOICE_EXPRESSION_ID, goto state 7
- 7 : CHOICE_EXPRESSION_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : REDUCE to DISCRETE_CHOICE_ID, goto state 9
- 9 : DISCRETE_CHOICE_ID
- 2 : WHEN_ID
- 1 : 
-EQUAL_GREATER_ID : SHIFT
- 14 : EQUAL_GREATER_ID
- 9 : DISCRETE_CHOICE_ID
- 2 : WHEN_ID
- 1 : 
-NUMBER_LITERAL_ID : SHIFT
- 5 : NUMBER_LITERAL_ID
- 14 : EQUAL_GREATER_ID
- 9 : DISCRETE_CHOICE_ID
- 2 : WHEN_ID
- 1 : 
-EOF_ID : REDUCE to FACTOR_ID, goto state 18
- 18 : FACTOR_ID
- 14 : EQUAL_GREATER_ID
- 9 : DISCRETE_CHOICE_ID
- 2 : WHEN_ID
- 1 : 
-EOF_ID : REDUCE to CASE_EXPRESSION_ID, goto state 3
- 3 : CASE_EXPRESSION_ID
- 1 : 
-EOF_ID : SHIFT
- 4 : EOF_ID
- 3 : CASE_EXPRESSION_ID
- 1 : 
-EOF_ID : ACCEPT_IT
+ 0 stack:  0 : (WHITESPACE), 
+ 0: 0: (WHEN 28 . 31) : shift and goto state 1
+ 0 stack:  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 1: (NUMBER_LITERAL 33 . 33) : shift and goto state 3
+ 0 stack:  3 : (NUMBER_LITERAL 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 3: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor
+ ... goto state 8
+ 0 stack:  8 : (factor 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 8: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor_list
+ ... goto state 9
+ 0 stack:  9 : (factor_list 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 9: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_relation
+ ... goto state 6
+ 0 stack:  6 : (choice_relation 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 6: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_expression
+ ... goto state 5
+ 0 stack:  5 : (choice_expression 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 5: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to discrete_choice
+ ... goto state 7
+ 0 stack:  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 7: (EQUAL_GREATER 35 . 36) : shift and goto state 12
+ 0 stack:  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 12: (NUMBER_LITERAL 38 . 42) : shift and goto state 15
+ 0 stack:  15 : (NUMBER_LITERAL 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 15: (WISI_EOI 1 . 1) : reduce 1 tokens to factor
+ ... goto state 17
+ 0 stack:  17 : (factor 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
+ 0: 17: (WISI_EOI 1 . 1) : reduce 4 tokens to case_expression
+[11[(3 (28 . 32))(14 (33 . 34))(5 (35 . 37))(15 (38 . 43))] 0]
+case_expression_0: case_expression <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
+ ... goto state 2
+ 0 stack:  2 : (case_expression 28 . 42),  0 : (WHITESPACE), 
+ 0: 2: (WISI_EOI 1 . 1) : accept it

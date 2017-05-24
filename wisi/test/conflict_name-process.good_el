@@ -18,9 +18,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 
-(defconst conflict_name-process-names
-  [
-   WHITESPACE
+(defconst conflict_name-process-token-table
+  [WHITESPACE
    LEFT_PAREN
    RIGHT_PAREN
    TICK
@@ -33,5 +32,9 @@
    name
    qualified_expression
    ])
+
+(defconst conflict_name-process-action-table
+  (wisi-ext-compile-actions
+   '()))
 
 (provide 'conflict_name-process)

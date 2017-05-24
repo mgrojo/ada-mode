@@ -4,66 +4,71 @@ all: test-clean tests examples library
 
 # ../../Test/test_one_harness.adb
 # ../../Test/test_all_harness.adb
-#t_one : aflex.exe
-t_one : one-clean
-t_one : character_literal_yylex.adb
+# t_one : aflex.exe
+# t_one : one-clean
+# t_one : ada_lite_yylex.adb
 #t_one : RUN_ARGS := 3
 # %_process.l : PARSER_ALG := LALR
 t_one : test_one_harness.run
 
 t_all : ada_lite_yylex.adb
+t_all : character_literal_yylex.adb
 t_all : ./wisi-generate.exe
 t_all : test_all_harness.run
 
 # from ../common.make
 # ../../wisi/test/body_instantiation_conflict.wy
 one-clean :
-	rm -rf character_literal*
+	rm -rf ada_lite*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-one : one-clean
-one : wisi-generate.exe
-# one : debug_process_yylex.adb
-# one : debug.exe
-# 	./debug.exe ../../wisi/test/debug.input
+#one : one-clean
+one :
+	./case_expression_run.exe -v 4 ../../wisi/test/case_expression.input
 
 some-clean :
 	rm -rf $(SOME_CLEAN_FILE)*
 some : some-clean
-some : wisi-generate.exe
-# # some : SOME_CLEAN_FILE := conflict_name
+#some : RUN_ARGS := -v 4
+# some : aflex.exe
+# some : wisi-generate.exe
+# some : SOME_CLEAN_FILE := case_expression
+# some : case_expression_process_yylex.adb
+# some : case_expression-parse.diff
+# some : SOME_CLEAN_FILE := conflict_name
 # some : conflict_name-process.el.diff
 # some : conflict_name_process_yylex.adb
 # some : conflict_name-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_1
+# some : SOME_CLEAN_FILE := empty_production_1
 # some : empty_production_1_process_yylex.adb
 # some : empty_production_1-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_2
+# some : SOME_CLEAN_FILE := empty_production_2
 # some : empty_production_2_process_yylex.adb
 # some : empty_production_2-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_3
+# some : SOME_CLEAN_FILE := empty_production_3
 # some : empty_production_3_process_yylex.adb
 # some : empty_production_3-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_4
+# some : SOME_CLEAN_FILE := empty_production_4
 # some : empty_production_4_process_yylex.adb
 # some : empty_production_4-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_5
+# some : SOME_CLEAN_FILE := empty_production_5
 # some : empty_production_5_process_yylex.adb
 # some : empty_production_5-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_6
+# some : SOME_CLEAN_FILE := empty_production_6
 # some : empty_production_6_process_yylex.adb
 # some : empty_production_6-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_7
+# some : SOME_CLEAN_FILE := empty_production_7
 # some : empty_production_7_process_yylex.adb
 # some : empty_production_7-parse.diff
-# # some : SOME_CLEAN_FILE := empty_production_8
+# some : SOME_CLEAN_FILE := empty_production_8
 # some : empty_production_8_process_yylex.adb
 # some : empty_production_8-parse.diff
-# # some : SOME_CLEAN_FILE := identifier_list_name_conflict
+# some : SOME_CLEAN_FILE := identifier_list_name_conflict
 # some : identifier_list_name_conflict_process_yylex.adb
 # some : identifier_list_name_conflict-parse.diff
-# # some : SOME_CLEAN_FILE := subprograms
+# some : SOME_CLEAN_FILE := subprograms
 # some : subprograms_process_yylex.adb
 # some : subprograms-parse.diff
+# some : subprograms-process.el.diff
 
 aflex.exe : force
 	make -C /Projects/edu.uci.aflex/build install

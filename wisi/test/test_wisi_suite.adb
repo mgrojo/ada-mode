@@ -20,7 +20,6 @@ pragma License (GPL);
 
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
-with Wisi_Module_Action_Test;
 with Wisi_Rules_Test;
 with Wisi_Wy_Test;
 function Test_Wisi_Suite return Access_Test_Suite
@@ -30,7 +29,6 @@ begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
    Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../../wisi/test/unused_tokens")));
-   Add_Test (Suite, new Wisi_Module_Action_Test.Test_Case);
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order

@@ -25,7 +25,7 @@
 %}
 
 ;; non-reporting
-;; whitespace added by wisi-generate
+%token <whitespace> WHITESPACE "[ \t\n]"
 %token <line_comment> COMMENT "\-\-[^\n]*\n"
 
 ;; terminals
@@ -33,7 +33,7 @@
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%token <number> NUMBER_LITERAL wisi-number-p
+%token <number> NUMBER_LITERAL ada-wisi-number-p
 %token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %keyword RANGE "range"

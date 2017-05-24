@@ -6,25 +6,16 @@ build/release_process.text
 
  current work
 
-report interrupt-process bug
-    not in debbugs
-    https://debbugs.gnu.org/cgi/pkgreport.cgi?package=emacs;include=subject%3Ainterrupt-process
-
-    look for tests in emacs
-
 need multi-mode for .wy files with Ada syntax
     feature/mhtml branch
 
 integrate with emacs process
-    subprograms.wy test passes
-        run with Emacs
-
     ada_grammar.adb very slow to compile
-        eliminating all but one action subprograms; may help
+        eliminating all but one action subprograms; not much help
 
-        read state transitions from text file, leave semantic actions in .adb
+        read state transitions from text file?
 
-    do follow histogram
+    do follow histogram for Ada
 
     get wisi to cope with invalid regions
 
