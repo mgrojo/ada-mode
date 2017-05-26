@@ -6,7 +6,7 @@
 --  used in most of the FastToken unit tests. Since it uses regexp, it
 --  is easy to convert to an Aflex lexer.
 --
---  Copyright (C) 2015 Stephe Leake
+--  Copyright (C) 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -35,9 +35,10 @@ with Ada.Unchecked_Deallocation;
 with FastToken.Regexp;
 with FastToken.Text_Feeder;
 generic
+   Last_Terminal : in Token_ID;
 package FastToken.Lexer.Regexp is
 
-   subtype Syntax_ID is Token.Token_ID range Token.Token_ID'First .. Token.Last_Terminal;
+   subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
 
    type Syntax_Item is record
       Regexp : FastToken.Regexp.Regexp;
@@ -63,10 +64,7 @@ package FastToken.Lexer.Regexp is
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
-   overriding
-   function End_Of_Text (Lexer : in Instance) return Boolean;
-
-   overriding function Find_Next (Lexer : in out Instance) return Token.Instance;
+   overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
    overriding
    function Line (Lexer : in Instance) return Natural;
@@ -76,7 +74,7 @@ package FastToken.Lexer.Regexp is
 
    overriding function Lexeme (Lexer : in Instance) return String;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region;
+   overriding function Bounds (Lexer : in Instance) return Buffer_Region;
 
 private
 
@@ -85,7 +83,7 @@ private
 
    type Instance is new FastToken.Lexer.Instance with
    record
-      ID          : Token.Token_ID; --  last token read by find_next
+      ID          : Token_ID; --  last token read by find_next
       Syntax      : FastToken.Lexer.Regexp.Syntax;
       Buffer      : String_Access;
       Buffer_Head : Integer;

@@ -30,34 +30,34 @@ pragma License (Modified_GPL);
 
 package body FastToken.Production is
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Token.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side
    is begin
       return (Tokens, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token.Token_ID; Action : in Semantic_Action) return Right_Hand_Side
    is begin
       return (Token.List.Only (Tokens), Action, 0);
    end "+";
 
-   function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side
+   function "+" (Action : in Semantic_Action) return Right_Hand_Side
    is begin
       return (Token.List.Null_List, Action, 0);
    end "+";
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side
    is begin
-      return (Tokens, null, Index);
+      return (Tokens, Null_Semantic_Action, Index);
    end "+";
 
    function "+" (Tokens : in Token.Token_ID; Index  : in Integer) return Right_Hand_Side
    is begin
-      return (Token.List.Only (Tokens), null, Index);
+      return (Token.List.Only (Tokens), Null_Semantic_Action, Index);
    end "+";
 
    function "+" (Index  : in Integer) return Right_Hand_Side
    is begin
-      return (Token.List.Null_List, null, Index);
+      return (Token.List.Null_List, Null_Semantic_Action, Index);
    end "+";
 
    function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance

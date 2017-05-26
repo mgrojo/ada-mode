@@ -185,7 +185,6 @@ package body Wisi.Gen_Output_Ada_Common is
 
       Put_Ada_Prologue_Declarations;
 
-      New_Line;
       Put_Line ("end " & Package_Name & ";");
       Close (Spec_File);
       Set_Output (Standard_Output);
@@ -250,7 +249,7 @@ package body Wisi.Gen_Output_Ada_Common is
             for Item of Kind.Tokens loop
                if -Item.Value = "ada-wisi-number-p" then
                   Put_Line
-                    ("([0-9]+#)?[-+0-9a-fA-F.]+(#)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                    ("([0-9]+#)?[0-9a-fA-F._]+(#)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                else
                   Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
                end if;
@@ -378,18 +377,33 @@ package body Wisi.Gen_Output_Ada_Common is
 
       --  IMPROVEME: get Max_Parallel from some command line
       Indent_Line ("return");
-      case Lexer is
-      when Aflex_Lexer =>
-         Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
-         Indent_Line ("   Token_Pkg.Region_Lists.Empty_List, Table, Max_Parallel, Terminate_Same_State);");
+      case Interface_Kind is
+      when None | Process =>
+         case Lexer is
+         when Aflex_Lexer =>
+            Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
+            Indent_Line ("   Token_Pkg.Region_Lists.Empty_List, Table, Max_Parallel, Terminate_Same_State);");
 
-      when Elisp_Lexer =>
-         Indent_Line ("  (Lexers.Initialize (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
+         when Elisp_Lexer =>
+            Indent_Line ("  (Lexer.Initialize,");
+            Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
 
-      when Regexp_Lexer =>
-         raise Programmer_Error;
+         when Regexp_Lexer =>
+            raise Programmer_Error;
+         end case;
 
+      when Module =>
+         case Lexer is
+         when Aflex_Lexer =>
+            raise Programmer_Error;
+
+         when Elisp_Lexer =>
+            Indent_Line ("  (Lexer.Initialize (Env, Lexer_Elisp_Symbols),");
+            Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
+
+         when Regexp_Lexer =>
+            raise Programmer_Error;
+         end case;
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

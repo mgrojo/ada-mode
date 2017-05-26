@@ -31,6 +31,7 @@ with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token;
+with FastToken.Token_Region;
 with Gen_FastToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
@@ -50,13 +51,15 @@ package body Dragon_4_45_LALR_Test is
 
    First_State_Index : constant := 0;
    package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
-   package Production is new FastToken.Production (Token_Pkg);
-   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_ID);
+   package Token_Region is new FastToken.Token_Region (Token_Pkg, Lexer_Root);
+   package Production is new FastToken.Production (Token_Pkg, Token_Region.Semantic_Action, Token_Region.Null_Action);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   package LR is new Parser_Root.LR
+     (First_State_Index, Token_ID'Width, Token_Region.Semantic_Action, Token_Region.Null_Action);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Token_Region.Semantic_Action, Token_Region.Null_Action, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -66,7 +69,7 @@ package body Dragon_4_45_LALR_Test is
    use all type Production.Instance;
    use all type Production.List.Instance;
 
-   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
+   Null_Action : Token_Region.Semantic_Action renames Token_Region.Null_Action;
 
    Grammar : constant Production.List.Instance :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
@@ -87,11 +90,13 @@ package body Dragon_4_45_LALR_Test is
    S5  : constant := 5;
    S89 : constant := 6;
 
-   package Lexer is new Lexer_Root.Regexp;
+   package Lexer is new Lexer_Root.Regexp (EOF_ID);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+   package LR_Parser is new LR.Parser
+     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
+      Token_Region.State_Access, Token_Region.Push_Token, Token_Region.Merge_Tokens);
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -103,7 +108,7 @@ package body Dragon_4_45_LALR_Test is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Production,
+     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Token_Region.Semantic_Action, Token_Region.Null_Action, Production,
       Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
    use FastToken_AUnit;
 
@@ -244,12 +249,17 @@ package body Dragon_4_45_LALR_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
+      Semantic_State : aliased Token_Region.State;
+
       Parser : LR_Parser.Instance := LR_Parser.Initialize
         (Lexer.Initialize (Syntax, String_Feeder'Access),
-         Generators.Generate (Grammar, Trace => Test.Debug));
+         Generators.Generate (Grammar, Trace => Test.Debug),
+        Semantic_State'Unchecked_Access);
 
       procedure Execute_Command (Command : in String)
-      is begin
+      is
+         use Ada.Exceptions;
+      begin
          String_Feeder.Set (Command);
 
          Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
@@ -257,7 +267,7 @@ package body Dragon_4_45_LALR_Test is
          Parser.Parse;
       exception
       when E : others =>
-         AUnit.Assertions.Assert (False, "'" & Command & "': " & Ada.Exceptions.Exception_Message (E));
+         AUnit.Assertions.Assert (False, "'" & Command & "': " & Exception_Name (E) & ": " & Exception_Message (E));
       end Execute_Command;
 
    begin

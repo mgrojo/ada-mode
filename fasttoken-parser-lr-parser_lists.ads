@@ -67,7 +67,7 @@ package FastToken.Parser.LR.Parser_Lists is
    --  Parser stack
    type Stack_Item is record
       State : Unknown_State_Index;
-      Token : FastToken.Parser.Token.Instance;
+      Token : Token_ID;
    end record;
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
@@ -78,7 +78,7 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor; ID_Only : in Boolean);
+   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Put_Trace.
 
    --  pending user actions
@@ -152,6 +152,7 @@ package FastToken.Parser.LR.Parser_Lists is
 
 private
 
+   --  FIXME: change stack to bounded vector
    type Stack_Node;
    type Stack_Node_Access is access Stack_Node;
    type Stack_Node is record
@@ -181,6 +182,8 @@ private
       Stack           : Stack_Node_Access;
       Pending_Actions : Action_Token_List;
       Panic           : aliased Panic_Data;
+      --  FIXME: should be a list; may need more than one panic needed
+      --  to complete parse.
    end record;
 
    type Parser_Node;

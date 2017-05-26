@@ -34,7 +34,9 @@ generic
    type Unknown_State_Index is range <>;
    Unknown_State : in Unknown_State_Index;
 
-   with package Production is new FastToken.Production (Token_Pkg);
+   type Semantic_Action is private;
+   Null_Semantic_Action : in Semantic_Action;
+   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
 package FastToken.Parser.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in

@@ -23,9 +23,9 @@ with Ada.Containers.Doubly_Linked_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 generic
-   with package Production is new FastToken.Production (Token_Pkg);
+   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
    with package LR1_Items is new Parser.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
 package FastToken.Parser.LR.Generator_Utils is
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;

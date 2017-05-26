@@ -131,8 +131,8 @@ package body FastToken.Parser.LR1_Items is
          Result : Token_ID_Set;
       begin
          --  Can't use a simple aggregate for this; bounds are non-static.
-         Result (Reporting_ID'First .. Terminal_ID'Last)                := (others => False);
-         Result (Token_ID'Succ (Terminal_ID'Last) .. Reporting_ID'Last) := (others => True);
+         Result (Grammar_ID'First .. Terminal_ID'Last)                := (others => False);
+         Result (Token_ID'Succ (Terminal_ID'Last) .. Grammar_ID'Last) := (others => True);
          return Result;
       end Compute_Non_Terminals;
 

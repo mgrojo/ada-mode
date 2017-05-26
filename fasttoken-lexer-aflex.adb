@@ -39,8 +39,6 @@ package body FastToken.Lexer.Aflex is
       pragma Unreferenced (First_Column);
       New_Lexer : constant access Instance := new Instance;
    begin
-      --  We don't set New_Lexer.Feeder, because we don't actually use it
-
       Set_Buffer_Size (Buffer_Size);
 
       New_Lexer.Feeder := Feeder;

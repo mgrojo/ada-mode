@@ -54,12 +54,12 @@ package body FastToken.Lexer.Regexp is
       --  Return True if a token is matched, False if not.
 
       use FastToken.Regexp;
-      use type Token.Token_ID;
+      use type Token_ID;
 
       Current_Char         : Integer := Lexer.Buffer_Head;
       Current_State        : Match_State;
       Current_Match_Length : Integer := 0;
-      Best_Match_ID        : Token.Token_ID;
+      Best_Match_ID        : Token_ID;
       Best_Match_Length    : Natural := 0;
       Still_Matching       : Boolean := False;
    begin
@@ -156,7 +156,7 @@ package body FastToken.Lexer.Regexp is
       Buffer_Size  : in Integer                               := 1024)
      return FastToken.Lexer.Handle
    is
-      use type Token.Token_ID;
+      use type Token_ID;
       New_Lexer : constant access Instance := new Instance;
    begin
       New_Lexer.Syntax := Syntax;
@@ -180,22 +180,14 @@ package body FastToken.Lexer.Regexp is
 
       Lexer.Lexeme_Head := Lexer.Buffer'First;
       Lexer.Lexeme_Tail := Lexer.Buffer'First - 1;
-      Lexer.ID          := Token.Token_ID'First;
+      Lexer.ID          := Token_ID'First;
       Lexer.Buffer_Head := Lexer.Buffer'First;
       Lexer.Buffer_Tail := Lexer.Buffer'First - 1;
    end Reset;
 
-   overriding function End_Of_Text
-     (Lexer : in Instance)
-     return Boolean
+   overriding function Find_Next (Lexer : in out Instance) return Token_ID
    is
-   begin
-      return Lexer.Feeder.End_Of_Text and Lexer.Buffer_Tail < Lexer.Buffer_Head;
-   end End_Of_Text;
-
-   overriding function Find_Next (Lexer : in out Instance) return Token.Instance
-   is
-      use type Token.Token_ID;
+      use type Token_ID;
    begin
       loop
          if not Find_Best_Match (Lexer) then
@@ -210,7 +202,7 @@ package body FastToken.Lexer.Regexp is
 
       end loop;
 
-      return (Lexer.ID, Lexer.Bounds);
+      return Lexer.ID;
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Natural
@@ -232,12 +224,9 @@ package body FastToken.Lexer.Regexp is
       return Lexer.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
    end Lexeme;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      --  Not needed for unit tests
-      return (0, 0);
+   overriding function Bounds (Lexer : in Instance) return Buffer_Region
+   is begin
+      return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
    end Bounds;
 
 end FastToken.Lexer.Regexp;

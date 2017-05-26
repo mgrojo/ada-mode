@@ -44,8 +44,9 @@ tests : test_all_harness.diff
 # Testing with an Emacs module calling the elisp wisi lexer and wisi
 # actions is done from the ada-mode development tree, not here.
 #
-# some also or only run from ../wisi/test/test_wisi_suite.adb
-# We only diff %-process.el on a couple tests, because it's simple
+# some also or only run from ../wisi/test/test_wisi_suite.adb We only
+# diff %-process.el on a couple tests, because it doesn't depend on
+# the grammar much
 tests : case_expression_process_yylex.adb
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
@@ -161,8 +162,13 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
-# %-process.el is produced by wisi-generate; %_process.l runs that
-%-process.el.diff : %-process.good_el %_process.l
+# This runs wisi-generate with lexer Elisp; -process.l uses lexer Aflex
+%-process.el : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $< > $*.parse_table
+	dos2unix $*.parse_table
+	dos2unix $*-process.el
+
+%-process.el.diff : %-process.good_el %-process.el
 	diff $(DIFF_OPT) $< $*-process.el > $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)

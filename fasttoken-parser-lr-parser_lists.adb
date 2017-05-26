@@ -32,7 +32,7 @@ package body FastToken.Parser.LR.Parser_Lists is
                Stack           => new Stack_Node'
                  (Item         =>
                     (State     => State_Index'First,
-                     Token     => Token.Default_Token),
+                     Token     => Token_ID'First),
                   Next         => null),
                Pending_Actions => (null, null),
                Panic           => Default_Panic),
@@ -123,7 +123,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       List.Stack_Free.all :=
         (Item     =>
            (State => Unknown_State,
-            Token => Token.Default_Token),
+            Token => Token_ID'First),
          Next     => Temp_Free);
    end Free;
 
@@ -156,7 +156,7 @@ package body FastToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean
    is
-      use type Token.Token_ID;
+      use type Token_ID;
 
       Stack_1 : Stack_Node_Access := Cursor_1.Ptr.Item.Stack;
       Stack_2 : Stack_Node_Access := Cursor_2.Ptr.Item.Stack;
@@ -165,7 +165,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          exit when Stack_1 = null or Stack_2 = null;
          if not
            (Stack_1.Item.State = Stack_2.Item.State and
-              Stack_1.Item.Token.ID = Stack_2.Item.Token.ID)
+              Stack_1.Item.Token = Stack_2.Item.Token)
          then
             return False;
          end if;
@@ -175,7 +175,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Stack_1 = null and Stack_2 = null;
    end Stack_Equal;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor; ID_Only : in Boolean)
+   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor)
    is
       Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
    begin
@@ -184,7 +184,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          exit when Stack_I = null;
          Put_Trace
            (State_Index'Image (Stack_I.Item.State) & " : " &
-              Token.Image (Stack_I.Item.Token, ID_Only) &
+              Token_Image (Stack_I.Item.Token) &
               ", ");
          Stack_I := Stack_I.Next;
       end loop;
@@ -550,13 +550,13 @@ package body FastToken.Parser.LR.Parser_Lists is
    is
       use Ada.Characters.Handling;
       Action_Name : constant String := To_Lower
-        (Token.Token_Image (Action_Token.Action.LHS)) &
+        (Token_Image (Action_Token.Action.LHS)) &
         "_" & FastToken.Int_Image (Action_Token.Action.Index);
    begin
          Put_Trace
            (Action_Name & ": " &
-              Token.Token_Image (Action_Token.Action.LHS) & " <= ");
-      Token.List.Put_Trace (Action_Token.Tokens, ID_Only => Trace_Parse < 4);
+              Token_Image (Action_Token.Action.LHS) & " <= ");
+      Token.List.Put_Trace (Action_Token.Tokens);
    end Put_Trace;
 
    procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor)

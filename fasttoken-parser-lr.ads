@@ -40,6 +40,8 @@ with Ada.Unchecked_Deallocation;
 generic
    First_State_Index : in Natural;
    Token_Image_Width : Integer;
+   type Semantic_Action is private;
+   Null_Semantic_Action : in Semantic_Action;
 package FastToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
@@ -66,19 +68,20 @@ package FastToken.Parser.LR is
          State : State_Index;
       when Reduce | Accept_It =>
          LHS    : Token.Nonterminal_ID;
-         Action : Token.Semantic_Action;
+         Action : Semantic_Action;
          Index  : Natural;
          --  Index of production among productions for a nonterminal,
          --  for generating action names
 
-         Token_Count : Natural;
+         Token_Count : Ada.Containers.Count_Type;
       when Error =>
          null;
       end case;
    end record;
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
-   Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token.Nonterminal_ID'First, null, 0, 0);
+   Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
+     (Reduce, Token.Nonterminal_ID'First, Null_Semantic_Action, 0, 0);
 
    procedure Put_Trace (Item : in Parse_Action_Rec);
 
@@ -102,7 +105,7 @@ package FastToken.Parser.LR is
    type Goto_Node is private;
    type Goto_Node_Ptr is access Goto_Node;
 
-   function Symbol (List : in Goto_Node_Ptr) return Token.Token_ID;
+   function Symbol (List : in Goto_Node_Ptr) return Token_ID;
    function State (List : in Goto_Node_Ptr) return State_Index;
    function Next (List : in Goto_Node_Ptr) return Goto_Node_Ptr;
 
@@ -116,18 +119,18 @@ package FastToken.Parser.LR is
 
    procedure Add_Action
      (State       : in out LR.Parse_State;
-      Symbol      : in     Token_Pkg.Token_ID;
+      Symbol      : in     Token_ID;
       State_Index : in     LR.State_Index);
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
      (State           : in out LR.Parse_State;
-      Symbol          : in     Token_Pkg.Token_ID;
+      Symbol          : in     Token_ID;
       Verb            : in     LR.Parse_Action_Verbs;
-      LHS_ID          : in     Token_Pkg.Token_ID;
+      LHS_ID          : in     Token_ID;
       Index           : in     Integer;
-      RHS_Token_Count : in     Natural;
-      Semantic_Action : in     Token.Semantic_Action);
+      RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Semantic_Action : in     LR.Semantic_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
@@ -136,8 +139,8 @@ package FastToken.Parser.LR is
       State_Index     : in     LR.State_Index;
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
-      RHS_Token_Count : in     Natural;
-      Semantic_Action : in     Token.Semantic_Action);
+      RHS_Token_Count : in     Ada.Containers.Count_Type;
+      Semantic_Action : in     LR.Semantic_Action);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -146,12 +149,12 @@ package FastToken.Parser.LR is
       Verb              : in     LR.Parse_Action_Verbs;
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
-      RHS_Token_Count_1 : in     Natural;
-      Semantic_Action_1 : in     Token.Semantic_Action;
+      RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
+      Semantic_Action_1 : in     Semantic_Action;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
-      RHS_Token_Count_2 : in     Natural;
-      Semantic_Action_2 : in     Token.Semantic_Action);
+      RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
+      Semantic_Action_2 : in     Semantic_Action);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
 
    procedure Add_Error (State  : in out LR.Parse_State);
@@ -159,7 +162,7 @@ package FastToken.Parser.LR is
 
    procedure Add_Goto
      (State    : in out LR.Parse_State;
-      Symbol   : in     Token_Pkg.Token_ID;
+      Symbol   : in     Token_ID;
       To_State : in     LR.State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
 
@@ -194,13 +197,16 @@ package FastToken.Parser.LR is
       --  Stored with parser state during panic mode recovery
       Nonterm        : Token.Nonterminal_ID;
       Goto_State     : Unknown_State_Index;
-      Invalid_Region : Token.Buffer_Region;
-      --  Invalid_Region contains all ignored tokens (popped from
-      --  stack or skipped in input); semantic actions not performed
-      --  in this region.
+      Popped_Tokens  : Token.List.Instance;
+      Skipped_Tokens : Token.List.Instance;
+      Pushed_Token   : Token.Nonterminal_ID;
+      --  Semantic actions are not performed on the popped or skipped
+      --  tokens.
    end record;
 
-   Default_Panic : constant Panic_Data := (Token.Nonterminal_ID'First, Unknown_State, Token.Null_Buffer_Region);
+   Default_Panic : constant Panic_Data :=
+     (Token.Nonterminal_ID'First, Unknown_State, Token.List.Null_List, Token.List.Null_List,
+      Token.Nonterminal_ID'First);
 
    ----------
    --  Useful text output
@@ -225,7 +231,7 @@ private
 
    procedure Add
      (List   : in out Action_Node_Ptr;
-      Symbol : in     Token.Token_ID;
+      Symbol : in     Token_ID;
       Action : in     Parse_Action_Rec);
    --  Add action to List, sorted on ascending Symbol.
 

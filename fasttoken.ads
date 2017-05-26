@@ -29,6 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Latin_1;
+with Ada.Containers.Doubly_Linked_Lists;
 package FastToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -89,5 +90,19 @@ package FastToken is
       with function Any (Item : in Array_2_Type) return Boolean;
    procedure Gen_Put_2D (Item : in Array_2_Type);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
+
+   type Buffer_Region is record
+      Begin_Pos : Natural;
+      End_Pos   : Natural;
+   end record;
+
+   Null_Buffer_Region : constant Buffer_Region := (Natural'Last, Natural'First);
+
+   function Image (Item : in Buffer_Region) return String;
+
+   function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
+   --  Return region enclosing both Left and Right.
+
+   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
 end FastToken;

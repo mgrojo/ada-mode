@@ -1,6 +1,9 @@
 --  Abstract :
 --
---  An abstract enumerated token type.
+--  An enumerated token type.
+--
+--  To store additional information about a token, see
+--  fasttoken-token_regions.ads or fasttoken-token_wisi.ads.
 --
 --  Copyright (C) 2009, 2014 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999, 2000 Ted Dennison
@@ -28,10 +31,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers;
 with Ada.Text_IO;
 generic
-
    type Token_ID is (<>);
 
    First_Terminal : in Token_ID;
@@ -52,66 +54,39 @@ generic
 
 package FastToken.Token is
 
+   function Image (Item : in Token_ID) return String renames Token_Image;
+   --  Visible to clients.
+
    subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
    subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
    --  We assume Last_Terminal < Token_ID'last; ie there are some nonterminals.
 
-   subtype Reporting_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
-   --  Leaves out whitespace, comments; tokens the lexer will never return.
+   subtype Grammar_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
+   --  Tokens that can be used in a grammar.
 
-   type Token_ID_Set is array (Reporting_ID) of Boolean;
+   type Token_ID_Set is array (Grammar_ID) of Boolean;
    type Terminal_ID_Set is array (Terminal_ID) of Boolean;
    type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
    type Nonterminal_Array_Terminal_Set is array (Token.Nonterminal_ID) of Terminal_ID_Set;
    type Nonterminal_Array_Token_Set is array (Token.Nonterminal_ID) of Token_ID_Set;
 
    function Image (Item : in Token_ID_Set) return String;
-   function Any is new Gen_Any_1D (Reporting_ID, Token_ID_Set);
+   function Any is new Gen_Any_1D (Grammar_ID, Token_ID_Set);
    function Any is new Gen_Any_1D (Terminal_ID, Terminal_ID_Set);
    function Any is new Gen_Any_1D (Nonterminal_ID, Nonterminal_ID_Set);
    function Any is new Gen_Any_2D
      (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Any);
    function Any is new Gen_Any_2D
-     (Reporting_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Any);
+     (Grammar_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Any);
 
-   procedure Put is new Gen_Put_1D (Reporting_ID, Token_ID_Set, Token_Image, Any);
+   procedure Put is new Gen_Put_1D (Grammar_ID, Token_ID_Set, Token_Image, Any);
    procedure Put is new Gen_Put_1D (Terminal_ID, Terminal_ID_Set, Token_Image, Any);
    procedure Put is new Gen_Put_1D (Nonterminal_ID, Nonterminal_ID_Set, Token_Image, Any);
    procedure Put is new Gen_Put_2D
      (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Token_Image, Token_Image, Any, Any);
    procedure Put is new Gen_Put_2D
-     (Reporting_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Token_Image, Token_Image, Any, Any);
+     (Grammar_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Token_Image, Token_Image, Any, Any);
    --  Put Item to Ada.Text_IO.Current_Output.
-
-   type Buffer_Region is record
-      Begin_Pos : Integer;
-      End_Pos   : Integer;
-   end record;
-
-   Null_Buffer_Region : constant Buffer_Region := (Integer'Last, Integer'First);
-
-   function Image (Item : in Buffer_Region) return String;
-
-   function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
-   --  Return region enclosing both Left and Right.
-
-   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
-
-   ----------
-   --  Token type
-
-   type Instance is record
-      ID     : Token_ID;
-      Region : Buffer_Region;
-   end record;
-
-   function Image (Item : in Instance; ID_Only : in Boolean) return String;
-   --  Return a string for debug messages
-
-   function Get (ID : in Token_ID) return Instance;
-   --  Get a token with ID, null buffer region.
-
-   Default_Token : constant Instance := (Token_ID'First, Null_Buffer_Region);
 
    ----------
    --  Token lists
@@ -122,14 +97,14 @@ package FastToken.Token is
 
       Null_List : constant Instance;
 
-      function Length (Item : in Instance) return Natural;
+      function Is_Empty (Item : in Instance) return Boolean;
+
+      function Length (Item : in Instance) return Ada.Containers.Count_Type;
 
       function Only (Subject : in Token_ID) return Instance;
-      function Only (Subject : in Token.Instance) return Instance;
 
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance;
       function "&" (Left : in Instance; Right : in Token_ID) return Instance;
-      function "&" (Left : in Instance; Right : in Token.Instance) return Instance;
 
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List
@@ -139,6 +114,9 @@ package FastToken.Token is
 
       function First (List : in Instance) return List_Iterator;
 
+      function Pop (List : in out Instance) return Token_ID;
+      --  Delete head of List from List, return it.
+
       procedure Next (Iterator : in out List_Iterator);
       function Next (Iterator : in List_Iterator) return List_Iterator;
       --  Null_Iterator if there is no next token.
@@ -146,24 +124,24 @@ package FastToken.Token is
       function Is_Done (Iterator : in List_Iterator) return Boolean;
       function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
 
-      function Current (Iterator : in List_Iterator) return Token.Instance;
-      function ID (Iterator : in List_Iterator) return Token_ID;
+      function Current (Iterator : in List_Iterator) return Token_ID;
+      function ID (Iterator : in List_Iterator) return Token_ID renames Current;
 
-      procedure Prepend (List : in out Instance; Item : in Token.Instance);
+      procedure Prepend (List : in out Instance; Item : in Token_ID);
       --  Add Token to the head of List.
 
-      procedure Append (List  : in out Instance; Item : in Token.Instance);
+      procedure Append (List  : in out Instance; Item : in Token_ID);
       --  Append to tail of List.
 
-      procedure Put_Trace (Item : in Instance; ID_Only : in Boolean);
+      procedure Put_Trace (Item : in Instance);
       --  Put Item to Put_Trace.
 
    private
       type List_Node;
       type List_Node_Ptr is access List_Node;
       type List_Node is record
-         Token : FastToken.Token.Instance;
-         Next  : List_Node_Ptr;
+         ID   : Token_ID;
+         Next : List_Node_Ptr;
       end record;
 
       type Instance is tagged record
@@ -175,10 +153,7 @@ package FastToken.Token is
       Null_Iterator : constant List_Iterator := null;
 
       Null_List : constant Instance := (null, null);
-
    end List;
-
-   function Total_Buffer_Region (Tokens : in List.Instance) return Buffer_Region;
 
    type Semantic_Action is access procedure
      (Nonterm : in Nonterminal_ID;
@@ -195,5 +170,16 @@ package FastToken.Token is
      is null;
 
    Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
+
+   type State_Type is null record;
+
+   procedure Null_Merge_Tokens
+     (Nonterm : in     Nonterminal_ID;
+      Index   : in     Natural;
+      Tokens  : in     List.Instance;
+      Action  : in     Semantic_Action;
+      State   : in out State_Type)
+     is null;
+   --  For instantiating fasttoken-parser-lr-parser.ads with plain tokens.
 
 end FastToken.Token;

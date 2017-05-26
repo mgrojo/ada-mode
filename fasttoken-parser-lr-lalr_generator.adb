@@ -264,7 +264,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                Put (Checking_Set.all);
             end if;
 
-            for Symbol in Token.Reporting_ID loop
+            for Symbol in Token.Grammar_ID loop
 
                New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Trace);
 

@@ -34,11 +34,6 @@ package body FastToken.Parser is
       Parser.Lexer.Reset (Buffer_Size);
    end Reset;
 
-   function End_Of_Text (Parser : in Instance) return Boolean
-   is begin
-      return Parser.Lexer.End_Of_Text;
-   end End_Of_Text;
-
    function Line (Parser : in Instance) return Natural is
    begin
       return Parser.Lexer.Line;

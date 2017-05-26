@@ -118,4 +118,14 @@ package body FastToken is
       end if;
    end Gen_Put_2D;
 
+   function Image (Item : in Buffer_Region) return String
+   is begin
+      return "(" & Int_Image (Item.Begin_Pos) & " . " & Int_Image (Item.End_Pos) & ")";
+   end Image;
+
+   function "and" (Left, Right : in Buffer_Region) return Buffer_Region
+   is begin
+      return (Integer'Min (Left.Begin_Pos, Right.Begin_Pos), Integer'Max (Left.End_Pos, Right.End_Pos));
+   end "and";
+
 end FastToken;

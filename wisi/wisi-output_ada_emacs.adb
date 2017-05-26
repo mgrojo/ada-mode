@@ -158,22 +158,22 @@ is
       when Process =>
          Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
 
+         case Data.Lexer is
+         when Aflex_Lexer =>
+            Put_Line ("with FastToken.Lexer.Aflex;");
+            Put_Line ("with " & Lower_Package_Name_Root & "_process_YYLex;");
+            Put_Line ("with " & Lower_Package_Name_Root & "_process_dfa;");
+            Put_Line ("with " & Lower_Package_Name_Root & "_process_io;");
+
+         when Elisp_Lexer =>
+            Put_Line ("with FastToken.Lexer.Elisp_Process;");
+
+         when Regexp_Lexer =>
+            raise Programmer_Error;
+         end case;
+
       when Module =>
          Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
-      end case;
-
-      case Data.Lexer is
-      when Aflex_Lexer =>
-         Put_Line ("with FastToken.Lexer.Aflex;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_process_YYLex;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_process_dfa;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_process_io;");
-
-      when Elisp_Lexer =>
-         Put_Line ("with FastToken.Lexer.Wisi_Elisp;");
-
-      when Regexp_Lexer =>
-         raise Programmer_Error;
       end case;
 
       case Data.Interface_Kind is
@@ -188,34 +188,33 @@ is
       Indent := Indent + 3;
       New_Line;
 
-      case Data.Lexer is
-      when Aflex_Lexer =>
-         Indent_Line ("package Lexer is new Lexer_Root.Aflex");
-         Indent_Line ("  (" & Lower_Package_Name_Root & "_process_io.Feeder,");
-         Indent := Indent + 3;
-         Indent_Line (Lower_Package_Name_Root & "_process_YYLex,");
-         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText,");
-         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText_ptr,");
-         Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYLength,");
-         Indent_Line (Lower_Package_Name_Root & "_process_dfa.Set_Buffer_Size,");
-         Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
-         Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
-         Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
-         Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen);");
-         Indent := Indent - 3;
-
-      when Elisp_Lexer =>
-         Indent_Line ("package Lexers is new Lexer_Root.Wisi_Elisp;");
-
-      when Regexp_Lexer =>
-         raise Programmer_Error;
-      end case;
-
-      New_Line;
-
       case Data.Interface_Kind is
       when Process =>
-         --  Anything not starting with [ is ignored
+         case Data.Lexer is
+         when Aflex_Lexer =>
+            Indent_Line ("package Lexer is new Lexer_Root.Aflex");
+            Indent_Line ("  (" & Lower_Package_Name_Root & "_process_io.Feeder,");
+            Indent := Indent + 3;
+            Indent_Line (Lower_Package_Name_Root & "_process_YYLex,");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText,");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText_ptr,");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYLength,");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.Set_Buffer_Size,");
+            Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
+            Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
+            Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen);");
+            Indent := Indent - 3;
+
+         when Elisp_Lexer =>
+            Indent_Line ("package Lexer is new Lexer_Root.Elisp_Process;");
+
+         when Regexp_Lexer =>
+            raise Programmer_Error;
+         end case;
+         New_Line;
+
+         --  Anything not starting with [ or ( is ignored by the Elisp side
          Indent_Line ("procedure Put_Trace (Item : in String)");
          Indent_Line ("is begin");
          Indent_Line ("   Put (Item);");

@@ -119,8 +119,9 @@ package body FastToken.Parser.LR.Generator_Utils is
          elsif Token.List.ID (Dot (Item)) in Token.Terminal_ID then
             --  Dot is before a terminal token.
             declare
-               use type Token.Token_ID;
-               use type LR1_Items.Item_Set_Ptr;
+               use all type Ada.Containers.Count_Type;
+               use all type Token.Token_ID;
+               use all type LR1_Items.Item_Set_Ptr;
 
                Dot_ID : constant Token.Terminal_ID := Token.List.ID (Dot (Item));
                --  ID of token after Item.Dot

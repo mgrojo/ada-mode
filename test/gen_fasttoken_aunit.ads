@@ -18,11 +18,12 @@
 
 pragma License (GPL);
 
-with Ada.Text_IO;
 with AUnit.Checks;
+with Ada.Containers;
+with Ada.Text_IO;
 with FastToken.Lexer;
-with FastToken.Parser.LR;
 with FastToken.Parser.LR1_Items;
+with FastToken.Parser.LR;
 with FastToken.Production;
 with FastToken.Token;
 generic
@@ -31,29 +32,27 @@ generic
    Last_Terminal     : in Token_ID;
    --  We assume: Last_Terminal = EOF_ID, Token_ID'Succ (Last_Terminal) = Accept_ID
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_ID'Image);
-   with package Production is new FastToken.Production (Token_Pkg);
-   with package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   type Semantic_Action is private;
+   Null_Semantic_Action : in Semantic_Action;
+   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
+   with package Lexer_Root is new FastToken.Lexer (Token_ID);
    with package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_ID'Image,
       Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Semantic_Action, Null_Semantic_Action);
    with package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
    Grammar           : in Production.List.Instance;
 package Gen_FastToken_AUnit is
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Token_ID);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Pkg.Buffer_Region;
-      Expected : in Token_Pkg.Buffer_Region);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in Token_Pkg.Instance;
-      Expected : in Token_Pkg.Instance);
+      Computed : in FastToken.Buffer_Region;
+      Expected : in FastToken.Buffer_Region);
 
    procedure Check
      (Label    : in String;
@@ -68,7 +67,7 @@ package Gen_FastToken_AUnit is
    procedure Check
      is new AUnit.Checks.Gen_Check_Array
      (Item_Type   => Boolean,
-      Index_Type  => Token_Pkg.Reporting_ID,
+      Index_Type  => Token_Pkg.Grammar_ID,
       Array_Type  => Token_Pkg.Token_ID_Set,
       Check_Index => Check,
       Check_Item  => AUnit.Checks.Check);

@@ -33,11 +33,13 @@ with Ada.Unchecked_Deallocation;
 with FastToken.Token;
 generic
    with package Token is new FastToken.Token (<>);
+   type Semantic_Action is private;
+   Null_Semantic_Action : in Semantic_Action;
 package FastToken.Production is
 
    type Right_Hand_Side is record
       Tokens : Token.List.Instance;
-      Action : Token.Semantic_Action;
+      Action : Semantic_Action;
       Index  : Integer;
       --  Index of production among productions for a single nonterminal (the LHS)
    end record;
@@ -49,9 +51,9 @@ package FastToken.Production is
    --  The synthesization routine is called whenever the production is
    --  reduced by the parser.
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Token.Semantic_Action) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Token_ID; Action : in Token.Semantic_Action) return Right_Hand_Side;
-   function "+" (Action : in Token.Semantic_Action) return Right_Hand_Side;
+   function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side;
+   function "+" (Tokens : in Token.Token_ID; Action : in Semantic_Action) return Right_Hand_Side;
+   function "+" (Action : in Semantic_Action) return Right_Hand_Side;
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
    function "+" (Tokens : in Token.Token_ID; Index  : in Integer) return Right_Hand_Side;

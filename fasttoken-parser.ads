@@ -46,7 +46,7 @@ generic
    with function Token_Image (Item : in Token_ID) return String;
    with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
    with package Token is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
-   with package Lexer is new FastToken.Lexer (Token);
+   with package Lexer is new FastToken.Lexer (Token_ID);
 package FastToken.Parser is
 
    --  Make generic params visible in child packages (ie
@@ -56,8 +56,7 @@ package FastToken.Parser is
    package Lexer_Pkg renames Lexer;
 
    type Instance is abstract tagged record
-      Lexer           : Lexer_Pkg.Handle;
-      Invalid_Regions : Token.Region_Lists.List;
+      Lexer : Lexer_Pkg.Handle;
    end record;
 
    procedure Parse (Parser : in out Instance) is abstract;
@@ -75,10 +74,6 @@ package FastToken.Parser is
    --  Buffer_Size (if there is a buffer).
    --
    --  Appropriate if the Text_Feeder's input has changed.
-
-   function End_Of_Text (Parser : in Instance) return Boolean;
-   --  True if the lexer input buffer is empty, and text feeder
-   --  reports end of text.
 
    function Line (Parser : in Instance) return Natural;
    --  Returns the current text line in the text feeder input file at

@@ -28,9 +28,8 @@
 pragma License (Modified_GPL);
 
 with FastToken.Text_Feeder;
-with FastToken.Token;
 generic
-   with package Token is new FastToken.Token (<>);
+   type Token_ID is (<>);
 package FastToken.Lexer is
 
    type Instance is abstract tagged record
@@ -48,14 +47,10 @@ package FastToken.Lexer is
    --  This is appropriate when the Feeder text has been
    --  changed.
 
-   function End_Of_Text (Lexer : in Instance) return Boolean is abstract;
-   --  True if Lexer's internal buffer is empty, and
-   --  Lexer.Text_Feeder reports End_Of_Text.
-
    function Lexeme (Lexer : in Instance) return String is abstract;
    --  Return the actual text of the last token that was matched.
 
-   function Bounds (Lexer : in Instance) return Token.Buffer_Region is abstract;
+   function Bounds (Lexer : in Instance) return Buffer_Region is abstract;
    --  Returns the position of the start and end of the last token
    --  that was matched, in the internal buffer.
    --
@@ -73,7 +68,7 @@ package FastToken.Lexer is
    --  when syntax errors are detected. First column number is given
    --  in Initialize.
 
-   function Find_Next (Lexer : in out Instance) return Token.Instance is abstract;
+   function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.
    --
    --  Raises Syntax_Error with an appropriate message if no token

@@ -9,11 +9,11 @@ build/release_process.text
 need multi-mode for .wy files with Ada syntax
     feature/mhtml branch
 
-integrate with emacs process
-    ada_grammar.adb very slow to compile
-        eliminating all but one action subprograms; not much help
+update all tests
 
-        read state transitions from text file?
+integrate with emacs process
+    use wisi-lexer for indent info
+        test with subprogram
 
     do follow histogram for Ada
 
@@ -21,11 +21,15 @@ integrate with emacs process
 
     see how much panic mode helps
 
+ada_grammar.adb very slow to compile
+    eliminating all but one action subprograms; not much help
+
+    read state transitions from text file?
+
 need better lexer for fasttoken
     handle tick character literal
     handle utf-8
 
-    wisi-lexer would be simplest
     lexer used by libadalang?
 
 need case insensitive flag in .wy

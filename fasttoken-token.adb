@@ -50,47 +50,20 @@ package body FastToken.Token is
       return To_String (Result);
    end Image;
 
-   function Image (Item : in Buffer_Region) return String
-   is begin
-      return "(" & Int_Image (Item.Begin_Pos) & " . " & Int_Image (Item.End_Pos) & ")";
-   end Image;
-
-   function "and" (Left, Right : in Buffer_Region) return Buffer_Region
-   is begin
-      return (Integer'Min (Left.Begin_Pos, Right.Begin_Pos), Integer'Max (Left.End_Pos, Right.End_Pos));
-   end "and";
-
-   function Image (Item : in Instance; ID_Only : in Boolean) return String
-   is
-      Name : constant String := Token_Image (Item.ID);
-   begin
-      if ID_Only then
-         return Name;
-
-      elsif Item.Region = Null_Buffer_Region then
-         return "(" & Name & ")";
-
-      else
-         --  We don't call Image (Item.Region) here, because we want
-         --  elisp syntax, for compatiblity with elisp output.
-         return "(" & Name & Integer'Image (Item.Region.Begin_Pos) & " ." &
-           Integer'Image (Item.Region.End_Pos) & ")";
-      end if;
-   end Image;
-
-   function Get (ID : in Token_ID) return Instance
-   is begin
-      return (ID, Null_Buffer_Region);
-   end Get;
-
    package body List is
 
       procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
 
-      function Length (Item : in Instance) return Natural
+      function Is_Empty (Item : in Instance) return Boolean
+      is begin
+         return Item.Head = null;
+      end Is_Empty;
+
+      function Length (Item : in Instance) return Ada.Containers.Count_Type
       is
+         use Ada.Containers;
          Node   : List_Node_Ptr := Item.Head;
-         Result : Natural       := 0;
+         Result : Count_Type    := 0;
       begin
          loop
             exit when Node = null;
@@ -104,19 +77,8 @@ package body FastToken.Token is
       function Only (Subject : in Token_ID) return Instance
       is
          New_Node : constant List_Node_Ptr := new List_Node'
-           (Token => Get (Subject),
-            Next  => null);
-      begin
-         return
-           (Head => New_Node,
-            Tail => New_Node);
-      end Only;
-
-      function Only (Subject : in Token.Instance) return Instance
-      is
-         New_Node : constant List_Node_Ptr := new List_Node'
-           (Token => Subject,
-            Next  => null);
+           (ID   => Subject,
+            Next => null);
       begin
          return
            (Head => New_Node,
@@ -126,14 +88,14 @@ package body FastToken.Token is
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance
       is
          Right_Node : constant List_Node_Ptr := new List_Node'
-           (Token => Get (Right),
-            Next  => null);
+           (ID   => Right,
+            Next => null);
       begin
          return
-           (Head     => new List_Node'
-              (Token => Get (Left),
-               Next  => Right_Node),
-            Tail     => Right_Node);
+           (Head    => new List_Node'
+              (ID   => Left,
+               Next => Right_Node),
+            Tail    => Right_Node);
       end "&";
 
       function "&" (Left : in Instance; Right : in Token_ID) return Instance
@@ -141,18 +103,12 @@ package body FastToken.Token is
          if Left.Head = null then
             return Only (Right);
          else
-            Left.Tail.Next := new List_Node'(Get (Right), null);
+            Left.Tail.Next := new List_Node'(Right, null);
             return (Left.Head, Left.Tail.Next);
          end if;
       end "&";
 
-      function "&" (Left  : in Instance; Right : in Token.Instance) return Instance
-      is begin
-         Left.Tail.Next := new List_Node'(Right, null);
-         return (Left.Head, Left.Tail.Next);
-      end "&";
-
-      procedure Prepend (List : in out Instance; Item : in Token.Instance)
+      procedure Prepend (List : in out Instance; Item : in Token_ID)
       is
          New_Node : constant List_Node_Ptr := new List_Node'(Item, List.Head);
       begin
@@ -162,7 +118,7 @@ package body FastToken.Token is
          List.Head := New_Node;
       end Prepend;
 
-      procedure Append (List  : in out Instance; Item : in Token.Instance)
+      procedure Append (List  : in out Instance; Item : in Token_ID)
       is
          New_Node : constant List_Node_Ptr := new List_Node'(Item, null);
       begin
@@ -196,6 +152,19 @@ package body FastToken.Token is
          return List_Iterator (List.Head);
       end First;
 
+      function Pop (List : in out Instance) return Token_ID
+      is
+         Result : constant Token_ID := List.Head.ID;
+         Temp   : List_Node_Ptr     := List.Head;
+      begin
+         List.Head := List.Head.Next;
+         if List.Tail = Temp then
+            List.Tail := null;
+         end if;
+         Free (Temp);
+         return Result;
+      end Pop;
+
       procedure Next (Iterator : in out List_Iterator) is
       begin
          if Iterator /= null then
@@ -213,23 +182,18 @@ package body FastToken.Token is
          return Iterator = null;
       end Is_Done;
 
-      function Current (Iterator : in List_Iterator) return Token.Instance is
-      begin
-         return Iterator.Token;
+      function Current (Iterator : in List_Iterator) return Token_ID
+      is begin
+         return Iterator.ID;
       end Current;
 
-      function ID (Iterator : in List_Iterator) return Token_ID
-      is begin
-         return Iterator.Token.ID;
-      end ID;
-
-      procedure Put_Trace (Item : in Instance; ID_Only : in Boolean)
+      procedure Put_Trace (Item : in Instance)
       is
          I : List_Iterator := Item.First;
       begin
          loop
             exit when I = Null_Iterator;
-            Put_Trace (Image (I.Token, ID_Only));
+            Put_Trace (Token_Image (I.ID));
             Next (I);
             if I /= Null_Iterator then
                Put_Trace (", ");
@@ -238,34 +202,5 @@ package body FastToken.Token is
       end Put_Trace;
 
    end List;
-
-   function Total_Buffer_Region (Tokens : in List.Instance) return Buffer_Region
-   is
-      use List;
-      I      : List_Iterator := Tokens.First;
-      Result : Buffer_Region  := Null_Buffer_Region;
-   begin
-      if I = Null_Iterator then
-         return Null_Buffer_Region;
-      end if;
-
-      loop
-         exit when I = Null_Iterator;
-         declare
-            Region : Buffer_Region renames Current (I).Region;
-         begin
-            if Result.Begin_Pos > Region.Begin_Pos then
-               Result.Begin_Pos := Region.Begin_Pos;
-            end if;
-
-            if Result.End_Pos < Region.End_Pos then
-               Result.End_Pos := Region.End_Pos;
-            end if;
-         end;
-
-         Next (I);
-      end loop;
-      return Result;
-   end Total_Buffer_Region;
 
 end FastToken.Token;
