@@ -180,12 +180,6 @@ is
    end Create_Elisp;
 
 begin
-   if Verbosity > 0 then
-      Put_Line ("Grammar:");
-      Generate_Utils.Put_Trace_Production.Put_Trace (Grammar);
-      New_Line;
-   end if;
-
    case Valid_Parser_Algorithm (Generate_Params.Parser_Algorithm) is
    when LALR | LR1 =>
       Create_Elisp (Generate_Params.Parser_Algorithm);

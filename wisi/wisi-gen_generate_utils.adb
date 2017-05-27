@@ -465,7 +465,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       begin
          Grammar := Production.List.Only
-           (Accept_ID <= Find_Token_ID (Start_Token) & EOI_ID + Token_Pkg.Null_Action);
+           (Accept_ID <= Find_Token_ID (Start_Token) & EOI_ID + Token_Aug.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error

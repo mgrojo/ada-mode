@@ -40,21 +40,21 @@ generic
    with package Panic_Mode is new FastToken.Parser.LR.Panic_Mode
      (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);
 
-   type Semantic_State_Access_Type is private;
+   with procedure Reset (State : access Semantic_State_Type);
+   --  Start a new parse.
 
    with procedure Push_Token
-     (Token : in Token_Pkg.Grammar_ID;
-      State : in Semantic_State_Access_Type;
-      Lexer : in Lexer_Pkg.Handle);
-   --  Token has just been read from the lexer; push an augmented
-   --  token matching it on the stack.
+     (Token : in     Token_Pkg.Terminal_ID;
+      State : access Semantic_State_Type);
+   --  Previously input Token has just been pushed on the parser
+   --  stack; push an augmented token matching it on the stack.
 
    with procedure Merge_Tokens
-     (Nonterm : in Token.Nonterminal_ID;
-      Index   : in Natural;
-      Tokens  : in Token_Pkg.List.Instance;
-      Action  : in Semantic_Action;
-      State   : in Semantic_State_Access_Type);
+     (Nonterm : in     Token.Nonterminal_ID;
+      Index   : in     Natural;
+      Tokens  : in     Token_Pkg.List.Instance;
+      Action  : in     Semantic_Action;
+      State   : access Semantic_State_Type);
    --  Called when a production is used to reduce the parser stack.
    --  This should maintain a separate stack of augmented tokens, and
    --  call the semantic action. Also output a trace according to
@@ -62,21 +62,31 @@ generic
    --
    --  See fasttoken.token_regions.ads for an example.
 
+   with procedure Recover
+     (Popped_Tokens  : in     Token.List.Instance;
+      Skipped_Tokens : in     Token.List.Instance;
+      Pushed_Token   : in     Token.Nonterminal_ID;
+      State          : access Semantic_State_Type);
+   --  An error recover algorithm succeeded; adjust the augmented
+   --  token stack to match.
+   --
+   --  Popped_Tokens were popped off the stack; Skipped_Tokens were
+   --  skipped in the input stream, Pushed_Token was pushed on the
+   --  stack.
+
 package FastToken.Parser.LR.Parser is
 
-   type Instance is new FastToken.Parser.Instance with record
-      Table                : Parse_Table_Ptr;
+   type Instance is new FastToken.Parser.LR.Instance with record
       Max_Parallel         : Integer;
       Terminate_Same_State : Boolean;
-      Semantic_State       : Semantic_State_Access_Type;
    end record;
 
-   function Initialize
-     (Lexer                : in Lexer_Pkg.Handle;
-      Table                : in Parse_Table_Ptr;
-      Semantic_State       : in Semantic_State_Access_Type;
-      Max_Parallel         : in Integer := 15;
-      Terminate_Same_State : in Boolean := False)
+   function New_Parser
+     (Lexer                :         in     Lexer_Pkg.Handle;
+      Table                :         in     Parse_Table_Ptr;
+      Semantic_State       : aliased in out Semantic_State_Type;
+      Max_Parallel         :         in     Integer := 15;
+      Terminate_Same_State :         in     Boolean := False)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);

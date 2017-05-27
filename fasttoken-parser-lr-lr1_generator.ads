@@ -29,7 +29,7 @@ with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 generic
-   with package Production is new FastToken.Production (Token_Pkg);
+   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
 
    --  LR1_Items, Generator_Utils are generic parameters rather than
    --  local instantiations, so they can be shared with other
@@ -37,7 +37,7 @@ generic
    --  executable.
 
    with package LR1_Items is new Parser.LR1_Items
-     (Unknown_State_Index, Unknown_State, Production);
+     (Unknown_State_Index, Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
 
    with package Generator_Utils is new FastToken.Parser.LR.Generator_Utils (Production, LR1_Items);
 package FastToken.Parser.LR.LR1_Generator is

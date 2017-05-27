@@ -39,10 +39,10 @@ generic
    with package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_ID'Image,
       Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width, Semantic_Action, Null_Semantic_Action);
+   type Unknown_State_Index is range <>;
+   Unknown_State : in Unknown_State_Index;
    with package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
+     (Unknown_State_Index, Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
    Grammar           : in Production.List.Instance;
 package Gen_FastToken_AUnit is
 
@@ -145,7 +145,7 @@ package Gen_FastToken_AUnit is
      (Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
-      State      : in LR.Unknown_State_Index := LR.Unknown_State)
+      State      : in Unknown_State_Index := Unknown_State)
      return LR1_Items.Item_Ptr;
    --  Construct an LR1_Items item with Prod from Grammar, Dot before token
    --  Dot (1 indexed; use last + 1 for after last).
@@ -154,21 +154,21 @@ package Gen_FastToken_AUnit is
      (Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in LR1_Items.Lookahead;
-      State      : in LR.Unknown_State_Index := LR.Unknown_State)
+      State      : in Unknown_State_Index := Unknown_State)
      return LR1_Items.Item_Ptr
      renames Get_Item_Node;
 
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set;
    function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr;
 
-   function "+" (State : in LR.Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List;
+   function "+" (State : in Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List;
    function "&"
      (Left  : in LR1_Items.Item_Set_List;
       Right : in LR1_Items.Item_Set_List)
      return LR1_Items.Item_Set_List;
 
    function Get_Set
-     (To_State : in LR.State_Index;
+     (To_State : in Unknown_State_Index;
       Set_List : in LR1_Items.Item_Set_List)
      return LR1_Items.Item_Set_Ptr;
 
@@ -182,7 +182,7 @@ package Gen_FastToken_AUnit is
 
    procedure Add_Gotos
      (List  : in LR1_Items.Item_Set_List;
-      State : in LR.State_Index;
+      State : in Unknown_State_Index;
       Gotos : in LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set
@@ -204,28 +204,6 @@ package Gen_FastToken_AUnit is
 
    function "+" (Item : in Token_Array) return LR1_Items.Lookahead;
 
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Parse_Action_Verbs);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (LR.Unknown_State_Index);
-
-   procedure Check (Label : in String; Computed : in LR.Parse_Action_Rec; Expected : in LR.Parse_Action_Rec);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in LR.Parse_Action_Node_Ptr;
-      Expected : in LR.Parse_Action_Node_Ptr);
-
-   procedure Check (Label : in String; Computed : in LR.Action_Node_Ptr; Expected : in LR.Action_Node_Ptr);
-
-   procedure Check (Label : in String; Computed : in LR.Goto_Node_Ptr; Expected : in LR.Goto_Node_Ptr);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in LR.Parse_State;
-      Expected : in LR.Parse_State);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in LR.Parse_Table;
-      Expected : in LR.Parse_Table);
+   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
 
 end Gen_FastToken_AUnit;

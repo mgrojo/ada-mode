@@ -51,7 +51,7 @@ package body FastToken.Parser.LR.Panic_Mode is
          end loop Nonterms;
 
          Prev_Top := Cursor.Pop;
-         Panic.Popped_Tokens.Prepend (Prev_Top.Token);
+         Panic.Popped_Tokens.Append (Prev_Top.Token);
 
          Top := Cursor.Peek;
          exit Pop_Stack when Top.State = State_Index'First;
@@ -78,17 +78,16 @@ package body FastToken.Parser.LR.Panic_Mode is
    end Pop_To_Good;
 
    function Panic_Mode
-     (Table         : in     Parse_Table;
+     (Parser        : in out LR.Instance'Class;
       Parsers       : in out Parser_Lists.List;
-      Current_Token : in out Token_ID;
-      Lexer         : in     Lexer_Pkg.Handle)
+      Current_Token : in out Token_ID)
      return Boolean
    is
       Keep_Going : Boolean  := False;
       Last_ID    : Token_ID := Current_Token;
    begin
       for I in Parsers.Iterate loop
-         Keep_Going := Keep_Going or Pop_To_Good (Table, Parser_Lists.To_Cursor (Parsers, I));
+         Keep_Going := Keep_Going or Pop_To_Good (Parser.Table.all, Parser_Lists.To_Cursor (Parsers, I));
       end loop;
 
       if not Keep_Going then
@@ -106,7 +105,7 @@ package body FastToken.Parser.LR.Panic_Mode is
                Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
                Panic  : Panic_Reference renames Cursor.Panic_Ref;
             begin
-               if Table.Follow (Panic.Nonterm)(Current_Token) then
+               if Parser.Table.Follow (Panic.Nonterm)(Current_Token) then
                   Keep_Going := True;
                   Panic.Pushed_Token := Panic.Nonterm;
                   Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
@@ -124,7 +123,10 @@ package body FastToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Ada.Text_IO.Put_Line ("  discard " & Token_Image (Current_Token));
          end if;
-         Current_Token := Lexer.Find_Next;
+         Parser.Skipped_Tokens.Append (Current_Token);
+
+         Current_Token := Parser.Lexer.Find_Next;
+         Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
          if Trace_Parse > 1 then
             Ada.Text_IO.Put_Line ("  next " & Token_Image (Current_Token));
          end if;

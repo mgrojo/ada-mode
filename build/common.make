@@ -146,7 +146,7 @@ source-clean ::
 wisi-generate.exe : force
 	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-%.check : %.adb force; gnatmake -p -k -gnatc -Pfasttoken_test_agg.gpr $(GNATMAKE_ARGS) $*
+%.check : %.adb force; gnatmake -p -k -gnatc -Pfasttoken_test.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out 2>&1
@@ -190,7 +190,7 @@ wisi-clean :
 	./$*_run.exe -v 4 $< > $*.parse
 	dos2unix $*.parse
 
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test_agg.gpr $(GPRBUILD_ARGS) $*
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_yylex.ada : %.l
 	aflex -i -s -E -D../../wisi/fasttoken_aflex_dfa.adb.template -O../../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<

@@ -42,6 +42,17 @@ generic
    Token_Image_Width : Integer;
    type Semantic_Action is private;
    Null_Semantic_Action : in Semantic_Action;
+   type Semantic_State_Type is private;
+
+   with procedure Input_Token
+     (Token : in     Token_Pkg.Terminal_ID;
+      State : access Semantic_State_Type;
+      Lexer : in     FastToken.Parser.Lexer.Handle);
+   --  Parser just fetched Token from Lexer; save it for later push or
+   --  recover operations.
+
+   pragma Unreferenced (Input_Token);
+   --  referenced in children
 package FastToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
@@ -198,15 +209,21 @@ package FastToken.Parser.LR is
       Nonterm        : Token.Nonterminal_ID;
       Goto_State     : Unknown_State_Index;
       Popped_Tokens  : Token.List.Instance;
-      Skipped_Tokens : Token.List.Instance;
       Pushed_Token   : Token.Nonterminal_ID;
       --  Semantic actions are not performed on the popped or skipped
       --  tokens.
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Token.Nonterminal_ID'First, Unknown_State, Token.List.Null_List, Token.List.Null_List,
-      Token.Nonterminal_ID'First);
+     (Token.Nonterminal_ID'First, Unknown_State, Token.List.Null_List, Token.Nonterminal_ID'First);
+
+   type Instance is abstract new FastToken.Parser.Instance with record
+      Table          : Parse_Table_Ptr;
+      Semantic_State : access Semantic_State_Type;
+      Skipped_Tokens : Token.List.Instance;
+      --  During error recovery, all parallel parsers skip the same
+      --  tokens
+   end record;
 
    ----------
    --  Useful text output

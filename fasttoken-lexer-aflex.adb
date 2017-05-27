@@ -58,17 +58,10 @@ package body FastToken.Lexer.Aflex is
       --  Feeder is not reset here; user resets it.
    end Reset;
 
-   overriding function End_Of_Text (Lexer : in Instance) return Boolean
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      return YY_EOF_Has_Been_Seen;
-   end End_Of_Text;
-
-   overriding function Find_Next (Lexer : in out Instance) return Token.Instance
+   overriding function Find_Next (Lexer : in out Instance) return Token_ID
    is begin
       Lexer.Token := YYLex;
-      return (Lexer.Token, Lexer.Bounds);
+      return Lexer.Token;
    exception
    when E : others =>
       raise Syntax_Error with
@@ -100,7 +93,7 @@ package body FastToken.Lexer.Aflex is
       return YY_Text;
    end Lexeme;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region
+   overriding function Bounds (Lexer : in Instance) return Buffer_Region
    is
       pragma Unreferenced (Lexer);
    begin

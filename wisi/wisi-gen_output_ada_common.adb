@@ -28,6 +28,7 @@ package body Wisi.Gen_Output_Ada_Common is
      (Input_File_Name    : in String;
       Output_File_Name   : in String;
       Package_Name       : in String;
+      Output_Language    : in Ada_Output_Language;
       Interface_Kind     : in Valid_Interface;
       Lexer              : in Valid_Lexer;
       First_State_Index  : in Integer;
@@ -50,16 +51,25 @@ package body Wisi.Gen_Output_Ada_Common is
       Put_Line ("--");
       Put_Ada_Prologue_Context_Clause;
 
-      case Interface_Kind is
-      when Process =>
+      case Output_Language is
+      when Ada =>
          Put_Line ("with FastToken.Text_Feeder;");
-         Put_Line ("with FastToken.Token.Wisi_Process_Runtime;");
-
-      when Module =>
-         Put_Line ("with Emacs_Module_Aux;");
-         Put_Line ("with emacs_module_h;");
-         Put_Line ("with Interfaces.C;");
          Put_Line ("with FastToken.Token;");
+         Put_Line ("with FastToken.Token_Region;");
+
+      when Ada_Emacs =>
+         case Interface_Kind is
+         when Process =>
+            Put_Line ("with FastToken.Text_Feeder;");
+            Put_Line ("with FastToken.Token_Wisi;");
+            Put_Line ("with FastToken.Token.Wisi_Process_Runtime;");
+
+         when Module =>
+            Put_Line ("with Emacs_Module_Aux;");
+            Put_Line ("with emacs_module_h;");
+            Put_Line ("with Interfaces.C;");
+            Put_Line ("with FastToken.Token;");
+         end case;
       end case;
       Put_Line ("with FastToken.Lexer;");
       Put_Line ("with FastToken.Production;");
@@ -139,8 +149,16 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
       Indent_Line ("package Token_Pkg is new FastToken.Token");
       Indent_Line ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
-      Indent_Line ("package Production is new FastToken.Production (Token_Pkg);");
-      Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_Pkg);");
+      Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_ID);");
+      case Output_Language is
+      when Ada =>
+         Indent_Line ("package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root);");
+      when Ada_Emacs =>
+         Indent_Line ("package Token_Aug is new FastToken.Token_Wisi (Token_Pkg, Lexer_Root);");
+      end case;
+      Indent_Line
+        ("package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, " &
+           "Token_Aug.Null_Action);");
       Indent_Line ("package Parser_Root is new FastToken.Parser");
       Indent_Line
         ("  (Token_ID, First_Terminal, Last_Terminal, " &
@@ -151,7 +169,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line
         ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
       Indent_Line ("package LR is new Parser_Root.LR");
-      Indent_Line ("  (First_State_Index, Token_ID'Width);");
+      Indent_Line ("  (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,");
+      Indent_Line ("   Token_Aug.State_Type, Token_Aug.Input_Token);");
       Indent_Line
         ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
       Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
@@ -159,12 +178,13 @@ package body Wisi.Gen_Output_Ada_Common is
          ("package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
       Indent_Line
         ("package LR_Parser is new LR.Parser " &
-         "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode);");
+           "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode, Token_Aug.Reset,");
+      Indent_Line ("   Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);");
       New_Line;
 
-      case Interface_Kind is
-      when Process =>
-         Indent_Line ("package Tokens_Wisi_Process_Runtime is new Token_Pkg.Wisi_Process_Runtime;");
+      case Output_Language is
+      when Ada =>
+         Indent_Line ("State_Aug : aliased Token_Aug.State_Type;");
          New_Line;
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
@@ -175,14 +195,30 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("  return LR_Parser.Instance;");
          New_Line;
 
-      when Module =>
-         Indent_Line ("function Parse (Env : Emacs_Module_Aux.Emacs_Env_Access) return emacs_module_h.emacs_value;");
-         Indent_Line ("pragma Export (C, Parse, """ & Lower_Package_Name_Root & "_wisi_module_parse"");");
-         Indent_Line ("function Init (Env : Emacs_Module_Aux.Emacs_Env_Access) return Interfaces.C.int;");
-         Indent_Line ("pragma Export (C, Init, """ & Lower_Package_Name_Root & "_wisi_module_parse_init"");");
+      when Ada_Emacs =>
+         case Interface_Kind is
+         when Process =>
+            Indent_Line ("State_Aug : aliased Token_Aug.State;");
+            New_Line;
+            Indent_Line ("package Tokens_Wisi_Process_Runtime is new Token_Pkg.Wisi_Process_Runtime;");
+            New_Line;
+            Indent_Line ("function Create_Parser");
+            Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
+            Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
+            Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
+            Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+            Indent_Line ("  return LR_Parser.Instance;");
+            New_Line;
 
+         when Module =>
+            Indent_Line ("function Parse (Env : Emacs_Module_Aux.Emacs_Env_Access) return emacs_module_h.emacs_value;");
+            Indent_Line ("pragma Export (C, Parse, """ & Lower_Package_Name_Root & "_wisi_module_parse"");");
+            Indent_Line ("function Init (Env : Emacs_Module_Aux.Emacs_Env_Access) return Interfaces.C.int;");
+            Indent_Line ("pragma Export (C, Init, """ & Lower_Package_Name_Root & "_wisi_module_parse_init"");");
+
+         end case;
       end case;
-
       Put_Ada_Prologue_Declarations;
 
       Put_Line ("end " & Package_Name & ";");
@@ -382,7 +418,7 @@ package body Wisi.Gen_Output_Ada_Common is
          case Lexer is
          when Aflex_Lexer =>
             Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
-            Indent_Line ("   Token_Pkg.Region_Lists.Empty_List, Table, Max_Parallel, Terminate_Same_State);");
+            Indent_Line ("   Table, State_Aug'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);");
 
          when Elisp_Lexer =>
             Indent_Line ("  (Lexer.Initialize,");
@@ -480,6 +516,7 @@ package body Wisi.Gen_Output_Ada_Common is
       for State_Index in Parser.States'Range loop
          Actions :
          declare
+            use Standard.Ada.Containers;
             use Standard.Ada.Strings;
             use Standard.Ada.Strings.Unbounded;
             use Generate_Utils.LR;
@@ -527,7 +564,7 @@ package body Wisi.Gen_Output_Ada_Common is
                      Append (", ");
                      Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
                      Append (Integer'Image (Action_Node.Item.Index) & ", ");
-                     Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
+                     Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                      Append
                        ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                          elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
@@ -547,7 +584,7 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (", ");
                         Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
                         Append (Integer'Image (Action_Node.Item.Index) & ", ");
-                        Append (Integer'Image (Action_Node.Item.Token_Count) & ", ");
+                        Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
                           ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                             elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"

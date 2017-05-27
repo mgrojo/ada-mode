@@ -23,6 +23,7 @@ package body FastToken.Parser.LR.Parser_Lists is
 
    function Initialize return List
    is begin
+      --  FIXME: should clear all panic lists in existing parser; use Controlled.
       return
         (Parser_Label          => First_Parser_Label,
          Head                  => new Parser_Node'

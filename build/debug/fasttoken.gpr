@@ -1,6 +1,7 @@
 --  For using FastToken in other projects, and building FastToken
 -- (ediff "fasttoken.gpr" "../release/fasttoken.gpr")
 with "../common";
+with "sal";
 project FastToken is
 
    for Source_Dirs use

@@ -46,15 +46,7 @@ package body FastToken.Token_Region is
       return Result;
    end Get;
 
-   procedure Push_Token
-     (Token : in Token_Pkg.Grammar_ID;
-      State : in State_Access;
-      Lexer : in Token_Region.Lexer.Handle)
-   is begin
-      State.Stack.Append ((Token, Lexer.Bounds));
-   end Push_Token;
-
-   procedure Put_Trace (Nonterm : in Token; Index : in Natural; Tokens : in Token_List_Type)
+   procedure Put_Trace (Nonterm : in Token; Index : in Natural; Tokens : in Token_Stacks.Vector)
    is
       use Ada.Characters.Handling;
       use Token_Stacks;
@@ -75,12 +67,41 @@ package body FastToken.Token_Region is
       end loop;
    end Put_Trace;
 
+   procedure Reset (State : access State_Type)
+   is begin
+      State.Stack.Clear;
+      State.Pending_Input.Clear;
+      State.Invalid_Regions.Clear;
+   end Reset;
+
+   procedure Input_Token
+     (Token : in     Token_Pkg.Terminal_ID;
+      State : access State_Type;
+      Lexer : in     Token_Region.Lexer.Handle)
+   is begin
+      State.Pending_Input.Put ((Token, Lexer.Bounds));
+   end Input_Token;
+
+   procedure Push_Token
+     (ID    : in     Token_Pkg.Terminal_ID;
+      State : access State_Type)
+   is
+      use all type Token_Pkg.Token_ID;
+      Tok : constant Token := State.Pending_Input.Get;
+   begin
+      if ID /= Tok.ID then
+         raise Programmer_Error;
+      end if;
+
+      State.Stack.Append (Tok);
+   end Push_Token;
+
    procedure Merge_Tokens
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
-      Index   : in Natural;
-      Tokens  : in Token_Pkg.List.Instance;
-      Action  : in Semantic_Action;
-      State   : in State_Access)
+     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+      Index   : in     Natural;
+      Tokens  : in     Token_Pkg.List.Instance;
+      Action  : in     Semantic_Action;
+      State   : access State_Type)
    is
       use all type Ada.Containers.Count_Type;
       use all type Token_Stacks.Cursor;
@@ -89,7 +110,7 @@ package body FastToken.Token_Region is
       ID_I        : Token_Pkg.List.List_Iterator := Tokens.First;
       Aug_Nonterm : Token                        := Default_Token;
       Stack_I     : Token_Stacks.Cursor          := State.Stack.To_Cursor (State.Stack.Length - Tokens.Length + 1);
-      Aug_Tokens  : Token_List_Type;
+      Aug_Tokens  : Token_Stacks.Vector (Tokens.Length);
    begin
       Aug_Nonterm.ID := Nonterm;
 
@@ -133,5 +154,48 @@ package body FastToken.Token_Region is
 
       State.Stack.Append (Aug_Nonterm);
    end Merge_Tokens;
+
+   procedure Recover
+     (Popped_Tokens  : in     Token_Pkg.List.Instance;
+      Skipped_Tokens : in     Token_Pkg.List.Instance;
+      Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
+      State          : access State_Type)
+   is
+      use all type Token_Pkg.Token_ID;
+      use all type Token_Pkg.List.List_Iterator;
+
+      Region : Buffer_Region                := Null_Buffer_Region;
+      I      : Token_Pkg.List.List_Iterator := Popped_Tokens.First;
+      Tok    : Token;
+   begin
+      loop
+         exit when Is_Null (I);
+         Tok := State.Stack.Element (State.Stack.Last_Index);
+         State.Stack.Delete_Last;
+
+         if ID (I) /= Tok.ID then
+            raise Programmer_Error;
+         end if;
+
+         Region := Region and Tok.Region;
+         Next (I);
+      end loop;
+
+      I := Skipped_Tokens.First;
+      loop
+         exit when Is_Null (I);
+         Tok := State.Pending_Input.Get;
+
+         if ID (I) /= Tok.ID then
+            raise Programmer_Error;
+         end if;
+
+         Region := Region and Tok.Region;
+         Next (I);
+      end loop;
+
+      State.Stack.Append ((Pushed_Token, Region));
+      State.Invalid_Regions.Append (Region);
+   end Recover;
 
 end FastToken.Token_Region;

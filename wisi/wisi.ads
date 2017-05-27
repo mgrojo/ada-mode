@@ -55,6 +55,7 @@ package Wisi is
 
    type Output_Language_Type is (None, Ada, Ada_Emacs, Elisp);
    subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
+   subtype Ada_Output_Language is Output_Language_Type range Ada .. Ada_Emacs;
 
    type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer);
    subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Regexp_Lexer;

@@ -202,8 +202,7 @@ is
             Indent_Line (Lower_Package_Name_Root & "_process_dfa.Set_Buffer_Size,");
             Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
             Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init,");
-            Indent_Line (Lower_Package_Name_Root & "_process_io.yy_eof_has_been_seen);");
+            Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init);");
             Indent := Indent - 3;
 
          when Elisp_Lexer =>
@@ -740,6 +739,7 @@ begin
         (case Data.Interface_Kind is
          when Process => "_Process",
          when Module     => "_Module"),
+      Output_Language    => Ada_Emacs,
       Interface_Kind     => Generate_Params.Interface_Kind,
       Lexer              => Generate_Params.Lexer,
       First_State_Index  => Generate_Params.First_State_Index,

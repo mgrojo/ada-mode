@@ -76,12 +76,10 @@ package body FastToken.Parser.LR.Parser is
    end Names;
 
    procedure Reduce_Stack
-     (Current_Parser : in Parser_Lists.Cursor;
-      Action         : in Reduce_Action_Rec;
-      Semantic_State : in Semantic_State_Access_Type)
+     (Current_Parser : in     Parser_Lists.Cursor;
+      Action         : in     Reduce_Action_Rec;
+      Semantic_State : access Semantic_State_Type)
    is
-      use type Token.Semantic_Action;
-
       Tokens : Token.List.Instance;
    begin
       --  Pop the token states from the stack
@@ -129,7 +127,7 @@ package body FastToken.Parser.LR.Parser is
       case Action.Verb is
       when Shift =>
          Current_Parser.Push ((Action.State, Current_Token));
-         Push_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+         Push_Token (Current_Token, Parser.Semantic_State);
 
       when Reduce =>
          Reduce_Stack (Current_Parser, Action, Parser.Semantic_State);
@@ -229,10 +227,9 @@ package body FastToken.Parser.LR.Parser is
    end Duplicate_State;
 
    procedure Execute_Pending
-     (Current_Parser : in Parser_Lists.Cursor;
-      Semantic_State : in Semantic_State_Access_Type)
+     (Current_Parser : in     Parser_Lists.Cursor;
+      Semantic_State : access Semantic_State_Type)
    is
-      use all type Token.Semantic_Action;
       Action_Token : Parser_Lists.Action_Token;
    begin
       if Trace_Parse > 1 then
@@ -267,6 +264,9 @@ package body FastToken.Parser.LR.Parser is
       Action         : Parse_Action_Node_Ptr;
       Keep_Going     : Boolean;
    begin
+      Parser.Skipped_Tokens.Clear;
+      Reset (Parser.Semantic_State);
+
       loop
          --  exit on Accept_It action or syntax error.
 
@@ -275,6 +275,7 @@ package body FastToken.Parser.LR.Parser is
          case Current_Verb is
          when Shift =>
             Current_Token := Parser.Lexer.Find_Next;
+            Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
 
          when Accept_It =>
             declare
@@ -298,14 +299,19 @@ package body FastToken.Parser.LR.Parser is
          when Error =>
             --  All parsers errored; attempt recovery,
             if Any (Parser.Table.Panic_Recover) then
-               Keep_Going := Panic_Mode.Panic_Mode (Parser.Table.all, Parsers, Current_Token, Parser.Lexer);
+               Keep_Going := Panic_Mode.Panic_Mode (Parser, Parsers, Current_Token);
             else
                Keep_Going := False;
             end if;
 
-            if Keep_Going then
-               --  FIXME: push panic onto panic list.
-               null;
+            if Keep_Going and Parsers.Count = 1 then
+               declare
+                  Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
+               begin
+                  Recover (Panic.Popped_Tokens, Parser.Skipped_Tokens, Panic.Pushed_Token, Parser.Semantic_State);
+               end;
+
+               --  FIXME: else push panic onto pending
             else
                --  report errors
                declare
@@ -398,15 +404,15 @@ package body FastToken.Parser.LR.Parser is
       end loop;
    end Parse;
 
-   function Initialize
-     (Lexer                : in Lexer_Pkg.Handle;
-      Table                : in Parse_Table_Ptr;
-      Semantic_State       : in Semantic_State_Access_Type;
-      Max_Parallel         : in Integer := 15;
-      Terminate_Same_State : in Boolean := False)
+   function New_Parser
+     (Lexer                :         in     Lexer_Pkg.Handle;
+      Table                :         in     Parse_Table_Ptr;
+      Semantic_State       : aliased in out Semantic_State_Type;
+      Max_Parallel         :         in     Integer := 15;
+      Terminate_Same_State :         in     Boolean := False)
      return Instance
    is begin
-      return (Lexer, Table, Max_Parallel, Terminate_Same_State, Semantic_State);
-   end Initialize;
+      return (Lexer, Table, Semantic_State'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);
+   end New_Parser;
 
 end FastToken.Parser.LR.Parser;

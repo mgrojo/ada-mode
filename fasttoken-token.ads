@@ -109,6 +109,8 @@ package FastToken.Token is
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List
 
+      procedure Clear (List : in out Instance) renames Clean;
+
       type List_Iterator is private;
       Null_Iterator : constant List_Iterator;
 
@@ -154,32 +156,5 @@ package FastToken.Token is
 
       Null_List : constant Instance := (null, null);
    end List;
-
-   type Semantic_Action is access procedure
-     (Nonterm : in Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token.List.Instance);
-   --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production (0 origin);
-   --  Source is the right hand side tokens.
-
-   procedure Null_Semantic_Action
-     (Nonterm : in Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token.List.Instance)
-     is null;
-
-   Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
-
-   type State_Type is null record;
-
-   procedure Null_Merge_Tokens
-     (Nonterm : in     Nonterminal_ID;
-      Index   : in     Natural;
-      Tokens  : in     List.Instance;
-      Action  : in     Semantic_Action;
-      State   : in out State_Type)
-     is null;
-   --  For instantiating fasttoken-parser-lr-parser.ads with plain tokens.
 
 end FastToken.Token;

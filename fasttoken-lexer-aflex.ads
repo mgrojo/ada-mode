@@ -37,7 +37,7 @@ generic
    --  Must represent line end as ASCII.LF (that's what aflex uses).
    --  Initialize sets this to a copy of Lexer.Feeder
 
-   with function YYLex return FastToken.Lexer.Token.Token_ID;
+   with function YYLex return Token_ID;
    --  Read tokens from Feeder
 
    with function YY_Text return String;
@@ -56,8 +56,7 @@ generic
    YY_Begin_Column : in out Integer;
    --  Line, column of last token in input stream.
 
-   YY_Init              : in out Boolean;
-   YY_EOF_Has_Been_Seen : in out Boolean;
+   YY_Init : in out Boolean;
 
 package FastToken.Lexer.Aflex is
 
@@ -71,10 +70,7 @@ package FastToken.Lexer.Aflex is
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
-   overriding
-   function End_Of_Text (Lexer : in Instance) return Boolean;
-
-   overriding function Find_Next (Lexer : in out Instance) return Token.Instance;
+   overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
    overriding
    function Line (Lexer : in Instance) return Natural;
@@ -84,13 +80,13 @@ package FastToken.Lexer.Aflex is
 
    overriding function Lexeme (Lexer : in Instance) return String;
 
-   overriding function Bounds (Lexer : in Instance) return Token.Buffer_Region;
+   overriding function Bounds (Lexer : in Instance) return Buffer_Region;
 
 private
 
    type Instance is new FastToken.Lexer.Instance with
    record
-      Token : FastToken.Lexer.Token.Token_ID; --  last token read by find_next
+      Token : Token_ID; --  last token read by find_next
    end record;
 
 end FastToken.Lexer.Aflex;

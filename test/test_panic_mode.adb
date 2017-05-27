@@ -35,8 +35,8 @@ package body Test_Panic_Mode is
 
    procedure Check
      (Label    : in String;
-      Computed : in Ada_Lite.Token_Pkg.Buffer_Region;
-      Expected : in Ada_Lite.Token_Pkg.Buffer_Region)
+      Computed : in FastToken.Buffer_Region;
+      Expected : in FastToken.Buffer_Region)
    is
       use AUnit.Checks;
    begin
@@ -119,11 +119,8 @@ package body Test_Panic_Mode is
       end;
 
       declare
-         use all type Ada_Lite.Token_Pkg.Region_Lists.List;
-         use all type Ada_Lite.Token_Pkg.Region_Lists.Cursor;
+         use all type FastToken.Region_Lists.Cursor;
       begin
-         Parser.Invalid_Regions := Ada_Lite.Token_Pkg.Region_Lists.Empty_List;
-
          Parse_Text
            ("procedure Proc_1 is begin end Proc_1; procedure Proc_2 is if A = 2 then end;");
          --  |1       |10       |20       |30       |40       |50       |60       |70
@@ -133,8 +130,9 @@ package body Test_Panic_Mode is
 
          Check ("2.action_count", Action_Count (subprogram_body_ID), 1);
 
-         Check ("2.error_status.length", Length (Parser.Invalid_Regions), 1);
-         Check ("2.error_status.region",  Element (Parser.Invalid_Regions.First), (39, 76));
+         --  We don't have a Check for Region_Lists.
+         Check ("2.error_status.invalid_regions.length", State_Aug.Invalid_Regions.Length, 1);
+         Check ("2.error_status.invalid_regions.first", Element (State_Aug.Invalid_Regions.First), (39, 76));
       exception
       when FastToken.Syntax_Error =>
          Assert (False, "2.exception: got Syntax_Error");

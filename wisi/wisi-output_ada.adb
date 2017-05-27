@@ -149,8 +149,7 @@ is
          Indent_Line (Lower_Package_Name_Root & "_dfa.Set_Buffer_Size,");
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Line,");
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init,");
-         Indent_Line (Lower_Package_Name_Root & "_io.yy_eof_has_been_seen);");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init);");
          Indent := Indent - 3;
 
       when Elisp_Lexer | Regexp_Lexer =>
@@ -174,9 +173,6 @@ is
 
       else
          --  generate Action subprograms, populate Action_Names.
-
-         Indent_Line ("use Tokens_Wisi_Process_Runtime;");
-         New_Line;
 
          if Profile then
             Indent_Line ("Action_Counts : array (fasttoken_accept_ID .. Token_ID'Last) of Integer := (others => 0);");
@@ -202,10 +198,14 @@ is
                         All_Empty := False;
                         Temp (Index) := new String'(Name & "'Access");
 
+                        --  Profile matches
+                        --  FastToken.Token_Region.Semantic_Action;
+                        --  Token_Aug is an instantiation of
+                        --  Token_Region.
                         Indent_Line ("procedure " & Name);
-                        Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+                        Indent_Line (" (Nonterm : in Token_Aug.Token'Class;");
                         Indent_Line ("  Index   : in Natural;");
-                        Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
+                        Indent_Line ("  Source  : in Token_Aug.Token_Stacks.Vector)");
                         Indent_Line ("is");
 
                         for Line of RHS.Action loop
@@ -298,7 +298,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
-      Process, Generate_Params.Lexer, Generate_Params.First_State_Index, Generate_Params.First_Parser_Label);
+      Ada, Process, Generate_Params.Lexer, Generate_Params.First_State_Index, Generate_Params.First_Parser_Label);
 
    Create_Ada_Body;
 

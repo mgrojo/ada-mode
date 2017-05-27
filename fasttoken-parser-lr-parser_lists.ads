@@ -180,10 +180,8 @@ private
       Label           : Integer;            -- for debugging
       Verb            : Parse_Action_Verbs; -- last action performed
       Stack           : Stack_Node_Access;
-      Pending_Actions : Action_Token_List;
+      Pending_Actions : Action_Token_List; --  FIXME: include panic/recovery ;
       Panic           : aliased Panic_Data;
-      --  FIXME: should be a list; may need more than one panic needed
-      --  to complete parse.
    end record;
 
    type Parser_Node;
