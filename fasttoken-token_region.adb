@@ -61,7 +61,9 @@ package body FastToken.Token_Region is
 
          Token_Pkg.Put_Trace (Image (Tokens (I), ID_Only => False));
          Next (I);
-         if I /= No_Element then
+         if I = No_Element then
+            Put_Trace_Line ("");
+         else
             Token_Pkg.Put_Trace (", ");
          end if;
       end loop;

@@ -31,6 +31,7 @@ with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token;
+with FastToken.Token_Plain;
 package body Test_Accept_State is
 
    --  A simple grammar that OpenToken used to get wrong.
@@ -51,16 +52,19 @@ package body Test_Accept_State is
 
    Token_Image_Width : constant Integer := Token_ID'Width;
    package Token_Pkg is new FastToken.Token (Token_ID, Equals_ID, Identifier_ID, Token_ID'Image);
-   package Production is new FastToken.Production (Token_Pkg);
-   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-   package Lexer is new Lexer_Root.Regexp;
+   package Lexer_Root is new FastToken.Lexer (Token_ID);
+   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
+   package Lexer is new Lexer_Root.Regexp (Identifier_ID);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Equals_ID, Identifier_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
       Token_Pkg, Lexer_Root);
    First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR (First_State_Index, Token_Image_Width);
+   package LR is new Parser_Root.LR
+     (First_State_Index, Token_Image_Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+      Token_Aug.Input_Token);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -79,7 +83,7 @@ package body Test_Accept_State is
    use type Production.Right_Hand_Side; --  "+"
    use type Token_Pkg.List.Instance; --  "&"
 
-   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
+   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
    Grammar : constant Production.List.Instance :=
      --  First production in Grammar must be the terminating
@@ -90,7 +94,9 @@ package body Test_Accept_State is
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Parsers is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+   package Parsers is new LR.Parser
+     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
+      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
    Parser        : Parsers.Instance;
@@ -104,12 +110,13 @@ package body Test_Accept_State is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := Parsers.Initialize
+      Parser := Parsers.New_Parser
         (Lexer.Initialize (Syntax, String_Feeder'Access),
          Generators.Generate
            (Grammar,
             Trace           => Test.Debug,
-            Put_Parse_Table => Test.Debug));
+            Put_Parse_Table => Test.Debug),
+         Token_Aug.State);
 
       FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 

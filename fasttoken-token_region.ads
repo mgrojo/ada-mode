@@ -21,12 +21,18 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Bounded_Vectors;
+with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Token;
 with SAL.Gen_Definite_Queues;
 generic
    with package Token_Pkg is new FastToken.Token (<>);
    with package Lexer is new FastToken.Lexer (<>);
+
+   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
+   --  Accumulate Item in the trace buffer, output the trace buffer to
+   --  the display.
+
    Max_Stack_Size : in Ada.Containers.Count_Type := 500;
 package FastToken.Token_Region is
 

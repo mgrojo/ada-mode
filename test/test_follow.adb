@@ -26,6 +26,7 @@ with FastToken.Parser.LR1_Items;
 with FastToken.Parser.LR;
 with FastToken.Production;
 with FastToken.Token;
+with FastToken.Token_Plain;
 with Gen_FastToken_AUnit;
 package body Test_Follow is
 
@@ -50,23 +51,26 @@ package body Test_Follow is
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Token is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
-      package Production is new FastToken.Production (Token);
-      package Lexer_Root is new FastToken.Lexer (Token);
+      package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
+      package Lexer_Root is new FastToken.Lexer (Token_ID);
+      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
       package Parser_Root is new FastToken.Parser
         (Token_ID, Token_ID'First, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
-         Token, Lexer_Root);
+         Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+      package LR is new Parser_Root.LR
+        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+         Token_Aug.Input_Token);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
 
-      use all type Token.List.Instance;
+      use all type Token_Pkg.List.Instance;
       use all type Production.Right_Hand_Side;
       use all type Production.Instance;
       use all type Production.List.Instance;
 
-      Null_Action : Token.Semantic_Action renames Token.Null_Action;
+      Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID
@@ -80,11 +84,11 @@ package body Test_Follow is
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
       package FastToken_AUnit is new Gen_FastToken_AUnit
-        (Token_ID, Token_ID'First, EOF_ID, Token, Production, Lexer_Root,
-         Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
+        (Token_ID, Token_ID'First, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
+         Production, Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items, Grammar);
 
-      Has_Empty_Production : constant Token.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant Token.Nonterminal_Array_Token_Set := LR1_Items.First
+      Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
+      First                : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
         (Grammar, Has_Empty_Production, Trace => False);
 
       procedure One (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -93,7 +97,7 @@ package body Test_Follow is
 
          use Ada.Text_IO;
          use LR1_Items;
-         use Token;
+         use Token_Pkg;
 
          Computed : constant Nonterminal_Array_Terminal_Set := Follow (Grammar, First, Has_Empty_Production);
 

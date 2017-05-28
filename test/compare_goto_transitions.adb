@@ -29,6 +29,7 @@ with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Token;
+with FastToken.Token_Plain;
 with Gen_FastToken_AUnit;
 package body Compare_Goto_Transitions is
 
@@ -57,15 +58,18 @@ package body Compare_Goto_Transitions is
          Parameter_List_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Token_ID'First, EOF_ID, Token_ID'Image);
-      package Production is new FastToken.Production (Token_Pkg);
-      package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+      package Lexer_Root is new FastToken.Lexer (Token_ID);
+      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
       package Parser_Root is new FastToken.Parser
         (Token_ID, Token_ID'First, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+      package LR is new Parser_Root.LR
+        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
+         Token_Aug.State_Type, Token_Aug.Input_Token);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
       package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
@@ -75,7 +79,7 @@ package body Compare_Goto_Transitions is
       use all type Production.Instance;
       use all type Production.List.Instance;
 
-      Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
+      Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.
@@ -89,8 +93,9 @@ package body Compare_Goto_Transitions is
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
       package FastToken_AUnit is new Gen_FastToken_AUnit
-        (Token_ID, Token_ID'First, EOF_ID, Token_Pkg, Production, Lexer_Root,
-         Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
+        (Token_ID, Token_ID'First, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production,
+         Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items,
+         Grammar);
 
       Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set := LR1_Items.Has_Empty_Production (Grammar);
       First                : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First

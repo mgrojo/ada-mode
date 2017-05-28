@@ -61,8 +61,7 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Put_Line ("with FastToken.Text_Feeder;");
-            Put_Line ("with FastToken.Token_Wisi;");
-            Put_Line ("with FastToken.Token.Wisi_Process_Runtime;");
+            Put_Line ("with FastToken.Token_Wisi_Process;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
@@ -152,7 +151,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_ID);");
       case Output_Language is
       when Ada =>
-         Indent_Line ("package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root);");
+         Indent_Line ("package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root, Put_Trace_Line);");
       when Ada_Emacs =>
          Indent_Line ("package Token_Aug is new FastToken.Token_Wisi (Token_Pkg, Lexer_Root);");
       end case;
@@ -178,8 +177,8 @@ package body Wisi.Gen_Output_Ada_Common is
          ("package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
       Indent_Line
         ("package LR_Parser is new LR.Parser " &
-           "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode, Token_Aug.Reset,");
-      Indent_Line ("   Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);");
+           "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode,");
+      Indent_Line ("   Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);");
       New_Line;
 
       case Output_Language is

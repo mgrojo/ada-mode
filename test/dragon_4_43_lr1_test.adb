@@ -27,10 +27,12 @@ with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
 with FastToken.Parser.LR.Parser_Lists;
+with FastToken.Parser.LR.AUnit;
 with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Token;
+with FastToken.Token_Plain;
 with Gen_FastToken_AUnit;
 package body Dragon_4_43_LR1_Test is
 
@@ -50,13 +52,16 @@ package body Dragon_4_43_LR1_Test is
 
    First_State_Index : constant := 0;
    package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
-   package Production is new FastToken.Production (Token_Pkg);
-   package Lexer_Root is new FastToken.Lexer (Token_Pkg);
+   package Lexer_Root is new FastToken.Lexer (Token_ID);
+   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+   package LR is new Parser_Root.LR
+     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+      Token_Aug.Input_Token);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -65,7 +70,7 @@ package body Dragon_4_43_LR1_Test is
    use all type Production.Instance;
    use all type Production.List.Instance;
 
-   Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
+   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
    Grammar : constant Production.List.Instance :=
      --  [dragon] (2.21) pg 231
@@ -91,11 +96,13 @@ package body Dragon_4_43_LR1_Test is
       8 => 8,
       9 => 9);
 
-   package Lexer is new Lexer_Root.Regexp;
+   package Lexer is new Lexer_Root.Regexp (EOF_ID);
    First_Parser_Label : constant := 1;
    package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+   package LR_Parser is new LR.Parser
+     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
+      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -107,9 +114,11 @@ package body Dragon_4_43_LR1_Test is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
+     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production,
+      Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items, Grammar);
    use FastToken_AUnit;
+
+   package LR_AUnit is new LR.AUnit;
 
    Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set :=
      LR1_Items.Has_Empty_Production (Grammar);
@@ -294,16 +303,17 @@ package body Dragon_4_43_LR1_Test is
          Put (Expected);
       end if;
 
-      FastToken_AUnit.Check ("", Computed.all, Expected);
+      LR_AUnit.Check ("", Computed.all, Expected);
    end Parser_Table;
 
    procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : LR_Parser.Instance := LR_Parser.Initialize
+      Parser : LR_Parser.Instance := LR_Parser.New_Parser
         (Lexer.Initialize (Syntax, String_Feeder'Access),
-         Generators.Generate (Grammar, Trace => Test.Debug));
+         Generators.Generate (Grammar, Trace => Test.Debug),
+        Token_Aug.State);
 
       procedure Execute_Command (Command : in String)
       is begin

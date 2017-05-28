@@ -32,6 +32,7 @@ with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Parser.LR1_Items;
 with FastToken.Text_Feeder.String;
 with FastToken.Token;
+with FastToken.Token_Plain;
 package body Trivial_Productions_Test is
 
    Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -50,15 +51,18 @@ package body Trivial_Productions_Test is
          E_ID, F_ID, T_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Symbol_ID, EOF_ID, Token_ID'Image);
-      package Production is new FastToken.Production (Token_Pkg);
-      package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-      package Lexer is new Lexer_Root.Regexp;
+      package Lexer_Root is new FastToken.Lexer (Token_ID);
+      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
+      package Lexer is new Lexer_Root.Regexp (EOF_ID);
       package Parser_Root is new FastToken.Parser
         (Token_ID, Symbol_ID, EOF_ID, EOF_ID, E_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+      package LR is new Parser_Root.LR
+        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+         Token_Aug.Input_Token);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -72,24 +76,27 @@ package body Trivial_Productions_Test is
       use type Production.List.Instance;
 
       Grammar : constant Production.List.Instance :=
-        E_ID <= T_ID & EOF_ID + Token_Pkg.Null_Action and
-        T_ID <= F_ID + Token_Pkg.Null_Action and
-        F_ID <= Symbol_ID + Token_Pkg.Null_Action;
+        E_ID <= T_ID & EOF_ID + Token_Aug.Null_Action and
+        T_ID <= F_ID + Token_Aug.Null_Action and
+        F_ID <= Symbol_ID + Token_Aug.Null_Action;
 
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
       package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
       package LR_Parser is new LR.Parser
-        (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+        (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
+         Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
+
       Parser : LR_Parser.Instance;
 
       Text : constant String := "symbol";
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LR_Parser.Initialize
+      Parser := LR_Parser.New_Parser
         (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
-         LALR_Generator.Generate (Grammar, Trace => Test_Case (Test).Debug));
+         LALR_Generator.Generate (Grammar, Trace => Test_Case (Test).Debug),
+        Token_Aug.State);
 
       Feeder.Set (Text);
 
@@ -124,20 +131,25 @@ package body Trivial_Productions_Test is
          Parameter_List_ID);
 
       package Token_Pkg is new FastToken.Token (Token_ID, Function_ID, EOF_ID, Token_ID'Image);
-      package Production is new FastToken.Production (Token_Pkg);
-      package Lexer_Root is new FastToken.Lexer (Token_Pkg);
-      package Lexer is new Lexer_Root.Regexp;
+      package Lexer_Root is new FastToken.Lexer (Token_ID);
+      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
+      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
+      package Lexer is new Lexer_Root.Regexp (EOF_ID);
       package Parser_Root is new FastToken.Parser
         (Token_ID, Function_ID, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
          Token_Pkg, Lexer_Root);
       First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR (First_State_Index, Token_ID'Width);
+      package LR is new Parser_Root.LR
+        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+         Token_Aug.Input_Token);
       First_Parser_Label : constant := 1;
       package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
       package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LR_Parser is new LR.Parser (First_Parser_Label, Parser_Lists => Parser_Lists, Panic_Mode => Panic_Mode);
+      package LR_Parser is new LR.Parser
+        (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
+         Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
       package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Production);
+        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
       package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
       package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -157,7 +169,7 @@ package body Trivial_Productions_Test is
       use type Production.Instance;
       use type Production.List.Instance;
 
-      Null_Action : Token_Pkg.Semantic_Action renames Token_Pkg.Null_Action;
+      Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
       Grammar : constant Production.List.Instance :=
         FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
@@ -175,12 +187,13 @@ package body Trivial_Productions_Test is
    begin
       --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-      Parser := LR_Parser.Initialize
+      Parser := LR_Parser.New_Parser
         (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
          LALR_Generator.Generate
            (Grammar,
             Trace       => Test.Debug,
-            Put_Parse_Table => Test.Debug));
+            Put_Parse_Table => Test.Debug),
+        Token_Aug.State);
 
       Feeder.Set (Text);
       FastToken.Trace_Parse := (if Test.Debug then 1 else 0);

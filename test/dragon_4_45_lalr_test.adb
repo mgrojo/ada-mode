@@ -22,6 +22,7 @@ with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with FastToken.Lexer.Regexp;
+with FastToken.Parser.LR.AUnit;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.Panic_Mode;
@@ -52,14 +53,15 @@ package body Dragon_4_45_LALR_Test is
    First_State_Index : constant := 0;
    package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
    package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Region is new FastToken.Token_Region (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Region.Semantic_Action, Token_Region.Null_Action);
+   package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root);
+   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
    package Parser_Root is new FastToken.Parser
      (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
    package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Region.Semantic_Action, Token_Region.Null_Action);
+     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
+      Token_Aug.Input_Token);
    package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Region.Semantic_Action, Token_Region.Null_Action, Production);
+     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
    package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
    package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
@@ -69,7 +71,7 @@ package body Dragon_4_45_LALR_Test is
    use all type Production.Instance;
    use all type Production.List.Instance;
 
-   Null_Action : Token_Region.Semantic_Action renames Token_Region.Null_Action;
+   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
 
    Grammar : constant Production.List.Instance :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
@@ -96,7 +98,7 @@ package body Dragon_4_45_LALR_Test is
    package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
    package LR_Parser is new LR.Parser
      (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-      Token_Region.State_Access, Token_Region.Push_Token, Token_Region.Merge_Tokens);
+      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
 
    Syntax : constant Lexer.Syntax :=
      (
@@ -108,9 +110,11 @@ package body Dragon_4_45_LALR_Test is
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
    package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Token_Region.Semantic_Action, Token_Region.Null_Action, Production,
-      Lexer_Root, Parser_Root, First_State_Index, LR, LR1_Items, Grammar);
+     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production,
+      Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items, Grammar);
    use FastToken_AUnit;
+
+   package LR_AUnit is new LR.AUnit;
 
    ----------
    --  Test procedures
@@ -242,19 +246,19 @@ package body Dragon_4_45_LALR_Test is
          LR.Put (Expected);
       end if;
 
-      FastToken_AUnit.Check ("", Computed.all, Expected);
+      LR_AUnit.Check ("", Computed.all, Expected);
    end Parser_Table;
 
    procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
 
-      Semantic_State : aliased Token_Region.State;
+      Semantic_State : aliased Token_Aug.State_Type;
 
-      Parser : LR_Parser.Instance := LR_Parser.Initialize
+      Parser : LR_Parser.Instance := LR_Parser.New_Parser
         (Lexer.Initialize (Syntax, String_Feeder'Access),
          Generators.Generate (Grammar, Trace => Test.Debug),
-        Semantic_State'Unchecked_Access);
+        Semantic_State);
 
       procedure Execute_Command (Command : in String)
       is

@@ -23,7 +23,6 @@ with Ada.Containers;
 with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Parser.LR1_Items;
-with FastToken.Parser.LR;
 with FastToken.Production;
 with FastToken.Token;
 generic

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Just Token_IDs, for unit tests.
+--  Communicate with the Emacs Ada mode wisi lexer over a process interface.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -15,68 +15,55 @@
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 
-pragma License (Modified_GPL);
+pragma License (GPL);
 
-with Ada.Text_IO;
-with FastToken.Lexer;
-with FastToken.Token;
-generic
-   with package Token_Pkg is new FastToken.Token (<>);
-   with package Lexer is new FastToken.Lexer (<>);
-
-   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
-   --  Accumulate Item in the trace buffer, output the trace buffer to
-   --  the display.
-
-package FastToken.Token_Plain is
+package FastToken.Token_Wisi_Process is
 
    type Semantic_Action is access procedure
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
+     (Nonterm : in Nonterminal_ID;
       Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance);
-   --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production (0 origin);
-   --  Source is the right hand side tokens.
+      Source  : in Token.List.Instance);
 
    procedure Null_Semantic_Action
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
+     (Nonterm : in Nonterminal_ID;
       Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance)
+      Source  : in Token.List.Instance)
      is null;
 
    Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
 
    type State_Type is tagged null record;
+   --  The augmented tokens stack and input queue are kept in Emacs lisp,
+   --  with the lexer, to minimize traffic on the process interface.
 
    procedure Reset (State : access State_Type) is null;
+   --  Elisp tells the parser to reset, so it has already reset the
+   --  state.
 
    procedure Input_Token
      (Token : in     Token_Pkg.Terminal_ID;
       State : access State_Type;
       Lexer : in     Token_Plain.Lexer.Handle)
      is null;
+   --  Elisp lexes ahead and sends the tokens in parallel with parser
+   --  execution; they are already in the queue.
 
    procedure Push_Token
      (Token : in     Token_Pkg.Terminal_ID;
-      State : access State_Type)
-   is null;
+      State : access State_Type);
 
    procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
-      Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type);
-   --  Puts trace of production, and calls Action if non-null;
-   --  otherwise does nothing.
+     (Nonterm : in Token.Nonterminal_ID;
+      Index   : in Natural;
+      Tokens  : in Token.List.Instance;
+      Action  : in Semantic_Action);
 
    procedure Recover
      (Popped_Tokens  : in     Token_Pkg.List.Instance;
       Skipped_Tokens : in     Token_Pkg.List.Instance;
       Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
-      State          : access State_Type)
-     is null;
+      State          : access State_Type);
 
    State : aliased State_Type;
 
-end FastToken.Token_Plain;
+end FastToken.Token_Wisi;
