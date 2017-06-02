@@ -1,0 +1,34 @@
+with "aunit";
+with "aunit_sal_ext";
+with "standard_common";
+with "sal";
+project Sal_Test is
+
+   for Source_Dirs use
+     ("../test");
+
+   for Object_Dir use "objects";
+   for Exec_Dir use ".";
+
+   package Compiler is
+      case Standard_Common.Build is
+      when "Debug" =>
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Debug_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler'Default_Switches ("Ada");
+
+      when "Normal" =>
+         for Default_Switches ("Ada") use
+           Common.Compiler.Release_Switches &
+           Common.Compiler.Style_Checks &
+           Common.Compiler'Default_Switches ("Ada");
+
+      end case;
+   end Compiler;
+
+   package Binder is
+      for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
+   end Binder;
+
+end Sal_Test;
