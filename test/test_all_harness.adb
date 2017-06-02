@@ -2,7 +2,7 @@
 --
 --  Run all AUnit tests for SAL.
 --
---  Copyright (C) 2003 - 2009, 2012, 2015, 2016 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2003 - 2009, 2012, 2015, 2016, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -25,6 +25,7 @@ with SAL.CSV.Test;
 with SAL.File_Names.Test;
 with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
+with Test_Definite_Queues;
 with Test_Gen_Images;
 with Test_Network_Order;
 with Test_Randomize_Lists;
@@ -46,6 +47,7 @@ begin
    Add_Test (Suite, new SAL.File_Names.Test.Test_Case);
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
+   Add_Test (Suite, new Test_Definite_Queues.Test_Case);
    Add_Test (Suite, new Test_Network_Order.Test_Case);
    Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Stacks.Test_Case);

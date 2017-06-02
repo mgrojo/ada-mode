@@ -73,12 +73,15 @@ OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_TAI_To_UTC
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_GPS
 OK ../../Source_Common/Test/sal-time_conversions-test.adb : Test_Calendar
 OK ../../test/test_gen_images.adb : Nominal
+OK test_definite_queues.adb : Nominal
+OK test_definite_queues.adb : Errors
+OK test_definite_queues.adb : Overwrite
 OK sal-network_order.adb : all data types
 OK ../../test/test_randomize_lists.adb : Randomize
 OK ../../test/test_stacks.adb : Nominal
 OK Test_Math_Float_Stats : Test_Stats
 
-Total Tests Run:   78
-Successful Tests:  78
+Total Tests Run:   81
+Successful Tests:  81
 Failed Assertions: 0
 Unexpected Errors: 0
