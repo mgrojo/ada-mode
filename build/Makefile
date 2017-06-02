@@ -1,44 +1,97 @@
-# common tasks; see subdirectories for Ada builds
+# Gnu Makefile
+#
+# Top level rules here for visibility; lower level rules in rules.make
 
 ZIP_VERSION := 6.0b
 #w-$(shell date +%Y-%m-%d)
 
-.PHONY : zip force
+all : test-clean tests examples library
+#all : doc zip tag
+
+# ../../Test/test_one_harness.adb
+# ../../Test/test_all_harness.adb
+t_one : export Standard_Common_Build := Debug
+# t_one : aflex.exe
+t_one : one-clean
+t_one : ada_lite_yylex.adb
+#t_one : RUN_ARGS := 3
+# %_process.l : PARSER_ALG := LALR
+t_one : test_one_harness.run
+
+t_all : ada_lite_yylex.adb
+t_all : character_literal_yylex.adb
+t_all : ./wisi-generate.exe
+t_all : test_all_harness.run
+
+# from ../common.make
+# ../../wisi/test/body_instantiation_conflict.wy
+one-clean :
+	rm -rf ada_lite*
+# %_process.l : RUN_ARGS := -v 2 --first_state_index 1
+#one : one-clean
+one :
+	./case_expression_run.exe -v 4 ../../wisi/test/case_expression.input
+
+some-clean :
+	rm -rf $(SOME_CLEAN_FILE)*
+some : some-clean
+#some : RUN_ARGS := -v 4
+# some : aflex.exe
+# some : wisi-generate.exe
+# some : SOME_CLEAN_FILE := case_expression
+# some : case_expression_process_yylex.adb
+# some : case_expression-parse.diff
+# some : SOME_CLEAN_FILE := conflict_name
+# some : conflict_name-process.el.diff
+# some : conflict_name_process_yylex.adb
+# some : conflict_name-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_1
+# some : empty_production_1_process_yylex.adb
+# some : empty_production_1-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_2
+# some : empty_production_2_process_yylex.adb
+# some : empty_production_2-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_3
+# some : empty_production_3_process_yylex.adb
+# some : empty_production_3-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_4
+# some : empty_production_4_process_yylex.adb
+# some : empty_production_4-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_5
+# some : empty_production_5_process_yylex.adb
+# some : empty_production_5-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_6
+# some : empty_production_6_process_yylex.adb
+# some : empty_production_6-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_7
+# some : empty_production_7_process_yylex.adb
+# some : empty_production_7-parse.diff
+# some : SOME_CLEAN_FILE := empty_production_8
+# some : empty_production_8_process_yylex.adb
+# some : empty_production_8-parse.diff
+# some : SOME_CLEAN_FILE := identifier_list_name_conflict
+# some : identifier_list_name_conflict_process_yylex.adb
+# some : identifier_list_name_conflict-parse.diff
+some : SOME_CLEAN_FILE := subprograms
+# some : subprograms_process_yylex.adb
+# some : subprograms-parse.diff
+some : subprograms-process.el.diff
 
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html
 
-vpath %.texinfo ../Docs
-
-%.info : %.texinfo
-	makeinfo $< -o $@
-
-%.html : %.texinfo
-	makeinfo --html --no-split $< -o $@
-
-source-clean ::
-	-find ../ -name "*~" -delete
-	-find ../ -name ".#*" -delete
-	-find ../ -name "*,t" -delete
-
-linux-clean :
-	make -C linux_release distclean
-	make -C linux_debug distclean
-
 zip : source-clean bz2file zipfile
-
-BRANCH := $(notdir $(shell cd ..; pwd))
-
-bz2file : force
-	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
-	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > fasttoken-$(ZIP_VERSION).tar.bz2
-
-zipfile : ROOT := $(shell cd ..; basename `pwd`)
-zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/fasttoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
 tag :
 	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
 
+trace :
+	addr2line -e test_one_harness.exe 0x46b9e7 0x77e7fe6f 0x77e7fe41 0x77e805bd 0x77e81c68
+
+include ../../org.stephe_leake.makerules/texinfo_rules.make
+include rules.make
+
+# Local Variables:
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
+# end:
 # end of file

@@ -6,6 +6,15 @@ project FastToken_Lib is
    --  have to match the source package version.
    Version := "5.0.0";
 
+   type Lib_Type is ("static", "dynamic");
+   Libtype : Lib_Type := External ("LIBTYPE", "dynamic");
+
+   type Ext_Type is (".dll", ".so");
+   Dyn_Lib_Extension : Ext_Type := External ("DYNLIB_EXT", ".so");
+
+   type Run_Time_Type is ("zcx", "sjlj");
+   Run_Time : Run_Time_Type := External ("ADA_RUN_TIME", "zcx");
+
    for Languages use ("Ada");
    for Source_Dirs use
      ("../..",
