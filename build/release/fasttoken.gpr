@@ -6,6 +6,7 @@
 --  (ediff "../release/fasttoken.gpr" "../debug/fasttoken.gpr")
 
 with "../common";
+with "sal"
 project FastToken is
 
    for Source_Dirs use

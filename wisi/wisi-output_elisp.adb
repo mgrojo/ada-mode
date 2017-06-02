@@ -21,6 +21,7 @@ pragma License (Modified_GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with FastToken.Parser.LR.Wisi_Generate_Elisp;
 with Wisi.Gen_Generate_Utils;
+with Wisi.Output_Elisp_Common;
 procedure Wisi.Output_Elisp
   (Input_File_Name : in String;
    Elisp_Package   : in String;
@@ -70,48 +71,6 @@ is
          Put_Line (Line);
       end loop;
    end Header;
-
-   procedure Keyword_Table
-     (Elisp_Package : in String;
-      Keywords      : in Wisi.String_Pair_Lists.List)
-   is begin
-      Put_Line ("(defconst " & Elisp_Package & "-elisp-keyword-table");
-      Put_Line ("  (semantic-lex-make-keyword-table");
-      Put_Line ("   '(");
-      for Pair of Keywords loop
-         Put_Line ("    (" & (-Pair.Value) & " . " & (-Pair.Name) & ")");
-      end loop;
-      Put_Line ("    )");
-      Put_Line ("   nil)");
-      Put_Line ("  ""Table of language keywords."")");
-   end Keyword_Table;
-
-   procedure Token_Table
-     (Elisp_Package : in String;
-      Tokens        : in Wisi.Token_Lists.List)
-   is
-      use Standard.Ada.Strings.Unbounded; -- length
-   begin
-      Put_Line ("(defconst " & Elisp_Package & "-elisp-token-table");
-      Put_Line ("  (semantic-lex-make-type-table");
-      Put_Line ("   '(");
-      for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
-            Put_Line ("     (" & (-Kind.Kind));
-            for Token of Kind.Tokens loop
-               if 0 = Length (Token.Value) then
-                  Put_Line ("      (" & (-Token.Name) & ")");
-               else
-                  Put_Line ("      (" & (-Token.Name) & " . " & (-Token.Value) & ")");
-               end if;
-            end loop;
-            Put_Line ("     )");
-         end if;
-      end loop;
-      Put_Line ("    )");
-      Put_Line ("   nil)");
-      Put_Line ("  ""Table of language tokens."")");
-   end Token_Table;
 
    procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
    is
@@ -165,9 +124,9 @@ is
       Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-compile)");
       New_Line;
-      Keyword_Table (-Elisp_Package_1, Keywords);
+      Output_Elisp_Common.Indent_Keyword_Table (-Elisp_Package_1, "elisp", Keywords, To_String'Access);
       New_Line;
-      Token_Table (-Elisp_Package_1, Tokens);
+      Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens, To_String'Access);
       New_Line;
       Parser_Elisp.Output (-Elisp_Package_1, Tokens, Keywords, Rules, Parser);
       New_Line;

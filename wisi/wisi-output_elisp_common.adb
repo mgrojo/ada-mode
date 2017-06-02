@@ -38,11 +38,10 @@ package body Wisi.Output_Elisp_Common is
       return Result & "_ID"; -- Some elisp names may be Ada reserved words;
    end Elisp_Name_To_Ada;
 
-   procedure Indent_Keyword_Table_Elisp
+   procedure Indent_Keyword_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Keywords         : in     String_Pair_Lists.List;
-      EOI_Name         : in     Standard.Ada.Strings.Unbounded.Unbounded_String;
       Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String)
    is
       use Standard.Ada.Text_IO;
@@ -54,15 +53,14 @@ package body Wisi.Output_Elisp_Common is
       for Pair of Keywords loop
          Indent_Line ("(" & (-Pair.Value) & " . " & Image (Pair.Name) & ")");
       end loop;
-      Indent_Line ("(""$eoi"" . " & Image (EOI_Name) & ")");
       Indent_Line (")");
       Indent := Indent - 2;
       Indent_Line ("nil))");
       Indent := Indent - 3;
       New_Line;
-   end Indent_Keyword_Table_Elisp;
+   end Indent_Keyword_Table;
 
-   procedure Indent_Token_Table_Elisp
+   procedure Indent_Token_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Tokens           : in     Token_Lists.List;
@@ -100,9 +98,9 @@ package body Wisi.Output_Elisp_Common is
       Indent_Line ("nil))");
       Indent := Indent - 3;
       New_Line;
-   end Indent_Token_Table_Elisp;
+   end Indent_Token_Table;
 
-   procedure Indent_Names_Elisp
+   procedure Indent_Names
      (Output_File_Root : in     String;
       Label            : in     String;
       Names            : in     String_Lists.List)
@@ -118,6 +116,6 @@ package body Wisi.Output_Elisp_Common is
       Indent_Line ("])");
       Indent := Indent - 3;
       New_Line;
-   end Indent_Names_Elisp;
+   end Indent_Names;
 
 end Wisi.Output_Elisp_Common;

@@ -60,7 +60,8 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada_Emacs =>
          case Interface_Kind is
          when Process =>
-            Put_Line ("with FastToken.Text_Feeder;");
+            Put_Line ("with FastToken.Lexer.Elisp_Process;");
+            Put_Line ("with FastToken.Token;");
             Put_Line ("with FastToken.Token_Wisi_Process;");
 
          when Module =>
@@ -153,7 +154,7 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada =>
          Indent_Line ("package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root, Put_Trace_Line);");
       when Ada_Emacs =>
-         Indent_Line ("package Token_Aug is new FastToken.Token_Wisi (Token_Pkg, Lexer_Root);");
+         Indent_Line ("package Token_Aug is new FastToken.Token_Wisi_Process (Token_Pkg, Lexer_Root);");
       end case;
       Indent_Line
         ("package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, " &
@@ -197,16 +198,13 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada_Emacs =>
          case Interface_Kind is
          when Process =>
-            Indent_Line ("State_Aug : aliased Token_Aug.State;");
+            Indent_Line ("State_Aug : aliased Token_Aug.State_Type;");
             New_Line;
-            Indent_Line ("package Tokens_Wisi_Process_Runtime is new Token_Pkg.Wisi_Process_Runtime;");
+            Indent_Line ("package Lexer is new Lexer_Root.Elisp_Process (" & (-EOI_Name) & "_ID, Token_Pkg);");
             New_Line;
             Indent_Line ("function Create_Parser");
-            Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
-            Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-            Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
-            Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+            Indent_Line ("  (Algorithm    : in FastToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Max_Parallel : in Integer := 15)");
             Indent_Line ("  return LR_Parser.Instance;");
             New_Line;
 
@@ -354,11 +352,21 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("function Create_Parser");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
-         Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-         Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
-         Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+         case Data.Lexer is
+         when Aflex_Lexer =>
+            Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
+            Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
+            Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
+            Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+
+         when Elisp_Lexer =>
+            Indent_Line ("  (Algorithm    : in FastToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Max_Parallel : in Integer := 15)");
+
+         when Regexp_Lexer =>
+            raise Programmer_Error;
+         end case;
       when Module =>
          Indent_Line ("  (Env                 : in Emacs_Env_Access;");
          Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value;");
@@ -368,6 +376,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  return LR_Parser.Instance");
       Indent_Line ("is");
       Indent := Indent + 3;
+
       Indent_Line ("use LR;");
       Indent_Line ("use Production;");
       Indent_Line ("use all type FastToken.Parser_Algorithm_Type;");
@@ -420,25 +429,17 @@ package body Wisi.Gen_Output_Ada_Common is
             Indent_Line ("   Table, State_Aug'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);");
 
          when Elisp_Lexer =>
-            Indent_Line ("  (Lexer.Initialize,");
-            Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
+            Indent_Line ("  (Lexer.Initialize, Table, State_Aug'Access, Token_Pkg.List.Null_List,");
+            Indent_Line ("   Max_Parallel, Terminate_Same_State => True);");
 
          when Regexp_Lexer =>
             raise Programmer_Error;
          end case;
 
       when Module =>
-         case Lexer is
-         when Aflex_Lexer =>
-            raise Programmer_Error;
+         Indent_Line ("  (Lexer.Initialize (Env, Lexer_Elisp_Symbols),");
+         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
 
-         when Elisp_Lexer =>
-            Indent_Line ("  (Lexer.Initialize (Env, Lexer_Elisp_Symbols),");
-            Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
-
-         when Regexp_Lexer =>
-            raise Programmer_Error;
-         end case;
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");

@@ -22,20 +22,19 @@ package Wisi.Output_Elisp_Common is
 
    function Elisp_Name_To_Ada (Elisp_Name : in String) return String;
 
-   procedure Indent_Keyword_Table_Elisp
+   procedure Indent_Keyword_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Keywords         : in     String_Pair_Lists.List;
-      EOI_Name         : in     Standard.Ada.Strings.Unbounded.Unbounded_String;
       Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String);
 
-   procedure Indent_Token_Table_Elisp
+   procedure Indent_Token_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Tokens           : in     Token_Lists.List;
       Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String);
 
-   procedure Indent_Names_Elisp
+   procedure Indent_Names
      (Output_File_Root : in     String;
       Label            : in     String;
       Names            : in     String_Lists.List);

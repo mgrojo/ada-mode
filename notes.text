@@ -9,12 +9,13 @@ build/release_process.text
 need multi-mode for .wy files with Ada syntax
     feature/mhtml branch
 
-update all tests
-
 integrate with emacs process
     use wisi-lexer for indent info
         test with subprogram
 
+update all tests
+
+integrate with emacs process
     do follow histogram for Ada
 
     get wisi to cope with invalid regions
@@ -56,6 +57,9 @@ better syntax error handling
 
     or Emacs sub-process parser
         that was too slow with ada-mode 5.2, should be better with 6.x
+
+        using hashtable lookup for elisp id => ada id'pos
+            adapt gperf to emit elisp?
 
     or Emacs module
         use elisp lexer; time aflex vs wisi 5, 6 lexers

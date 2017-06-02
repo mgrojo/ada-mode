@@ -2,6 +2,10 @@
 --
 --  Communicate with the Emacs Ada mode wisi lexer over a process interface.
 --
+--  Reference:
+--
+--  [1] Emacs wisi-ext-parse.el wisi-ext-parse-execute defines protocol
+--
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
@@ -17,17 +21,22 @@
 
 pragma License (GPL);
 
+with FastToken.Lexer;
+with FastToken.Token;
+generic
+   with package Token_Pkg is new FastToken.Token (<>);
+   with package Lexer is new FastToken.Lexer (<>);
 package FastToken.Token_Wisi_Process is
 
    type Semantic_Action is access procedure
-     (Nonterm : in Nonterminal_ID;
+     (Nonterm : in Token_Pkg.Nonterminal_ID;
       Index   : in Natural;
-      Source  : in Token.List.Instance);
+      Source  : in Token_Pkg.List.Instance);
 
    procedure Null_Semantic_Action
-     (Nonterm : in Nonterminal_ID;
+     (Nonterm : in Token_Pkg.Nonterminal_ID;
       Index   : in Natural;
-      Source  : in Token.List.Instance)
+      Source  : in Token_Pkg.List.Instance)
      is null;
 
    Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
@@ -43,7 +52,7 @@ package FastToken.Token_Wisi_Process is
    procedure Input_Token
      (Token : in     Token_Pkg.Terminal_ID;
       State : access State_Type;
-      Lexer : in     Token_Plain.Lexer.Handle)
+      Lexer : in     Token_Wisi_Process.Lexer.Handle)
      is null;
    --  Elisp lexes ahead and sends the tokens in parallel with parser
    --  execution; they are already in the queue.
@@ -53,10 +62,11 @@ package FastToken.Token_Wisi_Process is
       State : access State_Type);
 
    procedure Merge_Tokens
-     (Nonterm : in Token.Nonterminal_ID;
-      Index   : in Natural;
-      Tokens  : in Token.List.Instance;
-      Action  : in Semantic_Action);
+     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+      Index   : in     Natural;
+      Tokens  : in     Token_Pkg.List.Instance;
+      Action  : in     Semantic_Action;
+      State   : access State_Type);
 
    procedure Recover
      (Popped_Tokens  : in     Token_Pkg.List.Instance;
@@ -66,4 +76,4 @@ package FastToken.Token_Wisi_Process is
 
    State : aliased State_Type;
 
-end FastToken.Token_Wisi;
+end FastToken.Token_Wisi_Process;

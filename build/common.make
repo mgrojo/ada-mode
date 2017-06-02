@@ -202,7 +202,7 @@ wisi-clean :
 aflex-clean :
 	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %-wy.el
 
 vpath %.wy ../../wisi/test ../../time
 vpath %-wy.good_el  ../../wisi/test

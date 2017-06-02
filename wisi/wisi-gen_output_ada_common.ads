@@ -30,7 +30,7 @@ generic
    with procedure Put_Aflex_Prologue;
 package Wisi.Gen_Output_Ada_Common is
 
-   EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"WISI_EOI";
+   EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
    --  EOI_Name must match wisi-output_elisp.adb EOI_Name, which must
    --  match Emacs ada-mode wisi.el wisi-eoi-term. It must
    --  be a valid Ada identifier when "_ID" is appended.

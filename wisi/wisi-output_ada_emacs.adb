@@ -6,8 +6,8 @@
 --
 --  If run in a separate process communicating over pipes with the
 --  Emacs process, the parser actions output encoded elisp actions;
---  the protocol is documented in Emacs Ada mode wisi-ext-parse.el,
---  function wisi-ext-parse-execute.
+--  the protocol is documented in Emacs Ada mode wisi-process-parse.el,
+--  function wisi-process-parse-execute.
 --
 --  If run in an Emacs dynamically loaded module, the parser actions
 --  call the elisp actions directly.
@@ -96,10 +96,6 @@ is
       --  Elisp_Action. It encodes and sends wisi-nterm, wisi-tokens,
       --  and the name of the elisp action function.
 
-      Elisp_Action_Index : Natural := 0;
-      --  We output a flat elisp array of Elisp_Action_Names;
-      --  Elisp_Action_Index is the encoded version of that.
-
       File_Name : constant String := Output_File_Name_Root &
         (case Data.Interface_Kind is
          when Process => "_process",
@@ -110,8 +106,6 @@ is
         (case Data.Interface_Kind is
          when Process => "_Process",
          when Module  => "_Module");
-
-      Lower_Package_Name_Root : constant String := To_Lower (-Data.Package_Name_Root);
 
       Body_File : File_Type;
 
@@ -158,20 +152,6 @@ is
       when Process =>
          Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
 
-         case Data.Lexer is
-         when Aflex_Lexer =>
-            Put_Line ("with FastToken.Lexer.Aflex;");
-            Put_Line ("with " & Lower_Package_Name_Root & "_process_YYLex;");
-            Put_Line ("with " & Lower_Package_Name_Root & "_process_dfa;");
-            Put_Line ("with " & Lower_Package_Name_Root & "_process_io;");
-
-         when Elisp_Lexer =>
-            Put_Line ("with FastToken.Lexer.Elisp_Process;");
-
-         when Regexp_Lexer =>
-            raise Programmer_Error;
-         end case;
-
       when Module =>
          Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
       end case;
@@ -190,29 +170,6 @@ is
 
       case Data.Interface_Kind is
       when Process =>
-         case Data.Lexer is
-         when Aflex_Lexer =>
-            Indent_Line ("package Lexer is new Lexer_Root.Aflex");
-            Indent_Line ("  (" & Lower_Package_Name_Root & "_process_io.Feeder,");
-            Indent := Indent + 3;
-            Indent_Line (Lower_Package_Name_Root & "_process_YYLex,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYText_ptr,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.YYLength,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.Set_Buffer_Size,");
-            Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Line,");
-            Indent_Line (Lower_Package_Name_Root & "_process_io.Tok_Begin_Col,");
-            Indent_Line (Lower_Package_Name_Root & "_process_dfa.yy_init);");
-            Indent := Indent - 3;
-
-         when Elisp_Lexer =>
-            Indent_Line ("package Lexer is new Lexer_Root.Elisp_Process;");
-
-         when Regexp_Lexer =>
-            raise Programmer_Error;
-         end case;
-         New_Line;
-
          --  Anything not starting with [ or ( is ignored by the Elisp side
          Indent_Line ("procedure Put_Trace (Item : in String)");
          Indent_Line ("is begin");
@@ -240,20 +197,14 @@ is
          Indent_Line ("Action_Counts : array (Nonterminal_ID) of Integer := (others => 0);");
       end if;
 
-      if Profile or Action_Count = 0 then
+      if Action_Count = 0 then
          null;
 
       else
-         --  Populate Action_Names
-         Indent_Line ("type Action_Code_List is array (Natural range <>) of Natural;");
-
-         Indent_Line ("Elisp_Action_Codes : constant array (Token_Pkg.Nonterminal_ID) of access Action_Code_List :=");
-         Indent_Line ("  (");
-         Indent := Indent + 3;
-
+         --  Populate Ada_Action_Names, Elisp_Action_Names
          for Rule of Rules loop
             declare
-               LHS_ID    : constant Generate_Utils.Token_Pkg.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+               LHS_ID : constant Generate_Utils.Token_Pkg.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 
                Index      : Integer := 0; -- Semantic_Action defines Index as zero-origin
                All_Empty  : Boolean := True;
@@ -263,85 +214,29 @@ is
                for RHS of Rule.Right_Hand_Sides loop
                   if RHS.Action.Length > 0 then
                      All_Empty := False;
-                     Temp_Elisp (Index) := new String'
-                       (-Rule.Left_Hand_Side & ':' & FastToken.Int_Image (Index));
+                     Temp_Elisp (Index) := new String'(-Rule.Left_Hand_Side & ':' & FastToken.Int_Image (Index));
                      Temp_Ada (Index)   := Elisp_Action;
                   end if;
-
                   Index := Index + 1;
                end loop;
 
                if not All_Empty then
                   Ada_Action_Names (LHS_ID)   := new Action_Name_List'(Temp_Ada);
                   Elisp_Action_Names (LHS_ID) := new Action_Name_List'(Temp_Elisp);
-
-                  Indent_Start (To_Token_Ada_Name (Rule.Left_Hand_Side) & " => new Action_Code_List'(");
-                  if Ada_Action_Names (LHS_ID)'Length = 1 then
-                     if Ada_Action_Names (LHS_ID)(0) = null then
-                        Put ("0 => 0),");
-                     else
-                        Put ("0 => " & FastToken.Int_Image (Elisp_Action_Index) & "),");
-                        Elisp_Action_Index := Elisp_Action_Index + 1;
-                     end if;
-                  else
-                     for I in Ada_Action_Names (LHS_ID)'Range loop
-                        if Ada_Action_Names (LHS_ID)(I) = null then
-                           Put ("0");
-                        else
-                           Put (FastToken.Int_Image (Elisp_Action_Index));
-                           Elisp_Action_Index := Elisp_Action_Index + 1;
-                        end if;
-
-                        if I = Ada_Action_Names (LHS_ID)'Last then
-                           Put_Line ("),");
-                        else
-                           Put (", ");
-                        end if;
-                     end loop;
-                  end if;
                end if;
             end;
          end loop;
-         Indent_Line ("others => null);");
-         Indent := Indent - 3;
-
-         New_Line;
-         Indent_Line ("procedure Elisp_Action");
-         Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
-         Indent_Line ("  Index   : in Natural;");
-         Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
-         Indent_Line ("is");
-
-         if Profile then
-            Indent_Line ("   pragma Unreferenced (Index, Source);");
-            Indent_Line ("begin");
-            Indent_Line ("   Action_Counts (Nonterm) := Action_Counts (Nonterm) + 1;");
-
-         else
-            Indent_Line ("   use Tokens_Wisi_Process_Runtime;");
-            Indent_Line ("begin");
-            Indent := Indent + 3;
-
-            Indent_Line ("if Source.Length > 0 then");
-            Indent := Indent + 3;
-
-            case Data.Interface_Kind is
-            when Process =>
-               Indent_Line ("Put_Line");
-               Indent_Line ("  (""["" & To_Code (Nonterm) & To_Codes (Source) & " &
-                              "Integer'Image (Elisp_Action_Codes (Nonterm) (Index)) & ""]"");");
-
-            when Module =>
-               Indent_Line ("Set_Wisi_Tokens (Nonterm, Source);");
-            end case;
-
-            Indent := Indent - 3;
-            Indent_Line ("end if;");
-         end if;
-         Indent := Indent - 3;
-         Indent_Line ("end Elisp_Action;");
-         New_Line;
       end if;
+
+      --  Elisp_Action is just a placeholder; need something to put
+      --  in Action. All work is done by
+      --  token_wisi_process.merge_tokens.
+      Indent_Line ("procedure Elisp_Action");
+      Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+      Indent_Line ("  Index   : in Natural;");
+      Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
+      Indent_Line ("is null;");
+      New_Line;
 
       Create_Create_Parser (Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind);
 
@@ -421,18 +316,19 @@ is
 
    procedure Create_Process_Elisp
    is
+      use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
       use Generate_Utils;
       use all type Rule_Lists.Cursor;
       use all type RHS_Lists.Cursor;
 
-      File_Name_Root : constant String := Output_File_Name_Root & "-process";
-      File           : File_Type;
-      Paren_Done     : Boolean         := False;
-      Rule_I         : Rule_Lists.Cursor;
-      RHS_I          : RHS_Lists.Cursor;
+      File         : File_Type;
+      Paren_1_Done : Boolean := False;
+      Paren_2_Done : Boolean := False;
+      Rule_I       : Rule_Lists.Cursor;
+      RHS_I        : RHS_Lists.Cursor;
    begin
-      Create (File, Out_File, File_Name_Root & ".el");
+      Create (File, Out_File, Output_File_Name_Root & "-process.el");
       Set_Output (File);
       Indent := 1;
 
@@ -441,57 +337,89 @@ is
       Put_Line (";;");
       Put_Prologue (False, Prologue_Context_Clause);
       New_Line;
+      Put_Line ("(require 'semantic/lex)");
+      Put_Line ("(require 'wisi-process-parse)");
+      New_Line;
 
-      --  FIXME: if elisp-lexer, output token, keyword tables
+      Output_Elisp_Common.Indent_Keyword_Table (Output_File_Name_Root, "elisp", Keywords, To_String'Access);
+      Output_Elisp_Common.Indent_Token_Table (Output_File_Name_Root, "elisp", Tokens, To_String'Access);
 
-      Indent_Line  ("(defconst " & File_Name_Root & "-token-table");
-      Indent_Start ("  [");
-      Indent := Indent + 3;
+      Indent_Line  ("(defconst " & Output_File_Name_Root & "-process-token-table");
+      Indent_Line  ("  (wisi-process-compile-tokens");
+      Indent_Start ("   [");
+      Indent := Indent + 4;
       declare
          Cursor : Token_Cursor := First;
       begin
          loop
             exit when Cursor.Is_Done;
-            if Paren_Done then
+            if Paren_1_Done then
                Indent_Line (-Cursor.Token_Name);
             else
-               Paren_Done := True;
+               Paren_1_Done := True;
                Put_Line (-Cursor.Token_Name);
             end if;
 
             Cursor.Next;
          end loop;
       end;
-      Indent_Line ("])");
-      Indent := Indent - 3;
+      Indent_Line ("]))");
+      Indent := Indent - 4;
       New_Line;
 
-      Indent_Line ("(defconst " & File_Name_Root & "-action-table");
-      Indent_Line ("  (wisi-ext-compile-actions");
+      Indent_Line ("(defconst " & Output_File_Name_Root & "-process-action-table");
+      Indent_Line ("  (wisi-process-compile-actions");
       Indent_Start ("   '(");
-      Indent     := Indent + 5;
-      Paren_Done := False;
-      Rule_I     := Rules.First;
+      Indent       := Indent + 5;
+      Paren_1_Done := False;
+      Rule_I       := Rules.First;
       for I in Elisp_Action_Names'Range loop
-         if Elisp_Action_Names (I) /= null then
+         if Elisp_Action_Names (I) = null then
+            if Paren_1_Done then
+               Indent_Line ("nil");
+            else
+               Paren_1_Done := True;
+               Put_Line ("nil");
+            end if;
+         else
             RHS_I := Constant_Reference (Rules, Rule_I).Right_Hand_Sides.First;
 
+            if Paren_1_Done then
+               Indent_Start ("(");
+            else
+               Paren_1_Done := True;
+               Put ("(");
+            end if;
+            Paren_2_Done := False;
+            Indent       := Indent + 1;
+
             for J in Elisp_Action_Names (I).all'Range loop
-               if Elisp_Action_Names (I) (J) /= null then
-                  if Paren_Done then
+               if Elisp_Action_Names (I) (J) = null then
+                  if Paren_2_Done then
+                     Indent_Line ("nil");
+                  else
+                     Paren_2_Done := True;
+                     Put ("nil");
+                  end if;
+               else
+                  if Paren_2_Done then
                      Indent_Start ("(""" & Elisp_Action_Names (I) (J).all & """");
                   else
-                     Paren_Done := True;
+                     Paren_2_Done := True;
                      Put ("(""" & Elisp_Action_Names (I) (J).all & """");
                   end if;
+                  Indent := Indent + 1;
                   for Line of Element (RHS_I).Action loop
                      New_Line;
                      Indent_Start (Line);
                   end loop;
                   Put_Line (")");
+                  Indent := Indent - 1;
                end if;
                Next (RHS_I);
             end loop;
+            Indent_Line (")");
+            Indent := Indent - 1;
          end if;
          Next (Rule_I);
       end loop;
@@ -499,7 +427,7 @@ is
       Indent := Indent - 5;
       New_Line;
 
-      Put_Line ("(provide '" & File_Name_Root & ")");
+      Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
       Close (File);
 
@@ -507,6 +435,7 @@ is
 
    procedure Create_Module_Elisp
    is
+      use Standard.Ada.Strings.Unbounded;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -530,20 +459,15 @@ is
 
       --  don't need the prologue here
 
-      --  FIXME: this partly duplicates wisi-output_elisp
-      --  Keyword_Table, Token_Table; factor out and share. or just
-      --  add all elisp here?
       Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-parse-common)");
       New_Line;
 
       --  Lexer tables; also contain terminals for wisi-tokens
-      Indent_Keyword_Table_Elisp
-        (Output_File_Name_Root, "elisp", Keywords, EOI_Name, Standard.Ada.Strings.Unbounded.To_String'Access);
-      Indent_Keyword_Table_Elisp (Output_File_Name_Root, "module", Keywords, EOI_Name, To_ID_Image'Access);
-      Indent_Token_Table_Elisp
-        (Output_File_Name_Root, "elisp", Tokens, Standard.Ada.Strings.Unbounded.To_String'Access);
-      Indent_Token_Table_Elisp (Output_File_Name_Root, "module", Tokens, To_ID_Image'Access);
+      Indent_Keyword_Table (Output_File_Name_Root, "elisp", Keywords, To_String'Access);
+      Indent_Keyword_Table (Output_File_Name_Root, "module", Keywords, To_ID_Image'Access);
+      Indent_Token_Table (Output_File_Name_Root, "elisp", Tokens, To_String'Access);
+      Indent_Token_Table (Output_File_Name_Root, "module", Tokens, To_ID_Image'Access);
 
       --  non-terminals. We only need the ones that actually have
       --  actions, and thus will appear in a call to To_Emacs. But
@@ -728,6 +652,16 @@ begin
 
    Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => True);
 
+   case Data.Lexer is
+   when Elisp_Lexer =>
+      null;
+
+   when others =>
+      raise Programmer_Error with "output language Ada_Emacs requires Elisp lexer";
+   end case;
+
+   --  FIXME: don't include non-reporting in Token_IDs
+
    Create_Ada_Spec
      (Input_File_Name,
       Output_File_Name => Output_File_Name_Root &
@@ -746,22 +680,6 @@ begin
       First_Parser_Label => Generate_Params.First_Parser_Label);
 
    Create_Ada_Body;
-
-   case Data.Lexer is
-   when Aflex_Lexer =>
-      if Data.Interface_Kind /= Process then
-         raise Programmer_Error with "Aflex_Lexer assumed Process interface";
-      end if;
-      Create_Aflex (Input_File_Name, Output_File_Name_Root & "_process");
-
-   when Elisp_Lexer =>
-      --  All of the lexers need an elisp file; the form of the elisp
-      --  file is determined by Interface_Kind (see below).
-      null;
-
-   when Regexp_Lexer =>
-      raise Programmer_Error;
-   end case;
 
    if not Profile then
       case Data.Interface_Kind is
