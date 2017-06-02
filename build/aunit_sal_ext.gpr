@@ -19,7 +19,7 @@
 with "aunit";
 project AUnit_SAL_Ext is
 
-   for Source_Dirs use ("../../source");
+   for Source_Dirs use ("../source");
 
    for Object_Dir use "objects";
 
