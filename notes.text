@@ -158,6 +158,8 @@ if wisi is too slow on large buffers:
             ... current code))
 
  wisi work
+Smart edit - delete if/then/endif, leaving content
+
 rewrite README to be useful as list-packages long description
     ie an advertisement for the package, not an install guide
 

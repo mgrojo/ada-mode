@@ -156,8 +156,6 @@ else
 # windows
 EXE_EXT := .exe
 
-# export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
-
 endif
 
 # for debugging:

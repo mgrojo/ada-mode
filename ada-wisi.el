@@ -1322,6 +1322,7 @@ Also return cache at start."
 		    ((abstract_subprogram_declaration
 		      subprogram_body
 		      subprogram_declaration
+		      subprogram_renaming_declaration
 		      null_procedure_declaration)
 		     (memq (wisi-cache-token cache) '(NOT OVERRIDING FUNCTION PROCEDURE)))
 
