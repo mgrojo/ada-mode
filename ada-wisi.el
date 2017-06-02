@@ -21,15 +21,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;;; History:
-;;
-;; implementation started Jan 2013
-;;
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada_grammar-elisp)
-(require 'ada_grammar-process)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -903,22 +897,54 @@ TOKEN-TEXT; move point to just past token."
        ))
     ))
 
+(defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
+(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
+(defvar ada_grammar-elisp-token-table nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-keyword-table nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
+(defvar ada_grammar-process-action-table nil) ;; ada_grammar-process.el
+(defvar ada_grammar-process-token-table nil) ;;ada_grammar-process.el
+
+(declare-function wisi-make-elisp-parser "wisi-elisp-parse") ;; autoloaded
+(declare-function wisi-make-process-parser "wisi-process-parse") ;; autoloaded
+
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(ada-wisi-comment)
-	      'ada-wisi-post-parse-fail
-	      ada-wisi-class-list
-	      ada_grammar-elisp-keyword-table
-	      ada_grammar-elisp-token-table
-	      ada_grammar-elisp-parse-table
-	      ada_grammar-process-token-table
-	      ada_grammar-process-action-table)
+  (let ((parser
+	 (cond
+	  ((or (null ada-parser)
+	       (eq 'elisp ada-parser))
+	   (require 'ada_grammar-elisp)
+	   (wisi-make-elisp-parser
+	    ada_grammar-elisp-parse-table
+	    #'wisi-forward-token))
+
+	  ((eq 'process ada-parser)
+	   (require 'ada_grammar-process)
+	   (wisi-make-process-parser
+	    :label "Ada"
+	    :exec ada-process-parse-exec
+	    :token-table (nth 0 ada_grammar-process-token-table)
+	    :action-table (nth 0 ada_grammar-process-action-table)
+	    :terminal-hashtable (nth 1 ada_grammar-process-token-table)))))
+
+	(lexer
+	 (wisi-make-elisp-lexer
+	  :token-table ada_grammar-elisp-token-table
+	  :keyword-table ada_grammar-elisp-keyword-table
+	  :string-quote-escape-doubled t
+	  :string-quote-escape nil))
+	 )
+
+    (wisi-setup '(ada-wisi-comment)
+		'ada-wisi-post-parse-fail
+		ada-wisi-class-list
+		parser
+		lexer)
+    )
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   (setq wisi-indent-hanging-function #'ada-indent-hanging)
-
-  ;; Handle escaped quotes in strings
-  (setf (wisi-lex-string-quote-escape-doubled wisi--lexer) t)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
   )

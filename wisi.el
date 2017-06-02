@@ -8,7 +8,7 @@
 ;;  indentation
 ;;  navigation
 ;; Version: 1.1.4
-;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
+;; package-requires: ((cl-lib "0.4") (emacs "24.2") (queue "0.1.1"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
@@ -92,6 +92,9 @@
 ;; ada-mode info for more information on the developer tools used for
 ;; ada-mode and wisi.
 ;;
+;; Alternately, to gain speed and error handling, we use wisi-generate
+;; to generate Ada source, and run that in an external process.
+;;
 ;;;; syntax-propertize
 ;;
 ;; `wisi-forward-token' relies on syntax properties, so
@@ -109,10 +112,9 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'seq)
-(require 'wisi-ext-parse)
-(require 'wisi-parse)
 (require 'wisi-parse-common)
+(require 'wisi-elisp-parse)
+(require 'wisi-process-parse)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
 ;; (when (and (= emacs-major-version 24)
@@ -152,7 +154,7 @@ invalid temporarily, or when making lots of changes.")
   "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
 Useful when debugging parser or parser actions.")
 
-;;;; lexer
+;;;; elisp lexer
 
 (cl-defstruct wisi-lex
   keyword-table ;; obarray holding keyword tokens
@@ -168,13 +170,54 @@ Useful when debugging parser or parser actions.")
   number-p ;; function that determines if argument is a number literal
   )
 
-(defconst wisi-eoi-term 'Wisi_EOI
-  ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
-  ;; be part of a valid Ada identifer.
-  "End Of Input token.")
-
 (defvar-local wisi--lexer nil
   "A `wisi-lex' struct defining the lexer for the current buffer.")
+
+(defun wisi-safe-intern (name obtable)
+  (let ((var (intern-soft name obtable)))
+    (and (boundp var) (symbol-value var))))
+
+(cl-defun wisi-make-elisp-lexer (&key token-table keyword-table string-quote-escape-doubled string-quote-escape)
+  "Return a ‘wisi-lex’ object."
+  (let ((punctuation-table (wisi-safe-intern "punctuation" token-table))
+	(punct-max-length 0)
+	(number (cadr (wisi-safe-intern "number" token-table)))
+	fail)
+    (dolist (item punctuation-table)
+      (when item ;; default matcher can be nil
+
+	;; check that all chars used in punctuation tokens have punctuation syntax
+	(mapc (lambda (char)
+		(when (not (= ?. (char-syntax char)))
+		  (setq fail t)
+		  (message "in %s, %c does not have punctuation syntax"
+			   (car item) char)))
+	      (cdr item))
+
+	(when (< punct-max-length (length (cdr item)))
+	  (setq punct-max-length (length (cdr item)))))
+      )
+
+    (when fail
+      (error "aborting due to punctuation errors"))
+
+    (when (and number
+	       (nth 2 number))
+      (require (nth 2 number))) ;; for number-p
+
+    (make-wisi-lex
+     :keyword-table keyword-table
+     :punctuation-table punctuation-table
+     :punctuation-table-max-length punct-max-length
+     :string-double-term (car (cadr (wisi-safe-intern "string-double" token-table)))
+     :string-quote-escape-doubled string-quote-escape-doubled
+     :string-quote-escape string-quote-escape
+     :string-single-term (car (cadr (wisi-safe-intern "string-single" token-table)))
+     :symbol-term (car (cadr (wisi-safe-intern "symbol" token-table)))
+     :number-term (nth 0 number)
+     :number-p (nth 1 number)
+     )
+    ))
 
 (cl-defstruct wisi-ind
   ;; data used while running parser for indent.
@@ -204,11 +247,6 @@ Useful when debugging parser or parser actions.")
   "A `wisi-ind' struct holding current indent information.")
 
 ;; struct wisi-tok defined in wisi-parse.el
-
-(defvar wisi--parse-action nil
-  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
-  "Reason current parse is begin run; one of
-{indent, face, navigate}.")
 
 (defun wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
@@ -382,7 +420,7 @@ wisi-forward-token, but does not look up symbol."
      ((bobp) nil)
 
      ((eq syntax 1)
-      ;; punctuation. Find the longest matching string in wisi-punctuation-table
+      ;; punctuation. Find the longest matching string in wisi-lex-punctuation-table
       (backward-char 1)
       (let ((next-point (point))
 	    temp-text done)
@@ -420,7 +458,7 @@ wisi-forward-token, but does not look up symbol."
 ;;;; token info cache
 ;;
 ;; the cache stores the results of parsing as text properties on
-;; keywords, for use by the indention and motion engines.
+;; keywords, for use by the indention, face, and motion engines.
 
 (cl-defstruct
   (wisi-cache
@@ -456,9 +494,7 @@ wisi-forward-token, but does not look up symbol."
   end  ;; marker at token at end of current statement
   )
 
-(defvar-local wisi-parse-table nil)
-(defvar-local wisi-token-table nil) ;; FIXME: move into some struct
-(defvar-local wisi-action-table nil)
+;; FIXME: move all cache ops here
 
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
@@ -738,14 +774,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
    ))
 
 (defvar-local wisi-class-list nil
-  ;; FIXME: move to some struct?
   "list of valid token classes; checked in wisi-statement-action.")
 
-(defvar wisi-parser 'elisp
-  ;; FIXME: move to some struct?
-  ;; FIXME: ’ext instead of ’ada; name of grammar is in wisi-ext-parse-exe
-  "Choice of wisi parser implementation; 'elisp or 'ada.
-'ada uses external program ada_mode_wisi_parse.")
+(defvar wisi--parser nil
+  "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
 (defun wisi--run-parse ()
   "Run the parser."
@@ -761,14 +793,8 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
     (condition-case-unless-debug err
 	(save-excursion
-	  (cl-ecase wisi-parser
-	    (elisp
-	     (wisi-parse wisi-parse-table 'wisi-forward-token))
-	    (ada
-	     ;; FIXME: grammar is specifed by .exe name; that must be here.
-	     (wisi-ext-parse wisi-token-table wisi-action-table))
-	    )
-	  (setq wisi-parse-failed nil)
+	  (wisi-parse-current wisi--parser)
+ 	  (setq wisi-parse-failed nil)
 	  (when (memq wisi--parse-action '(face navigate))
 	    ;; indent parse does not set caches; they are set in `wisi-indent-region'
 	    (move-marker (wisi-cache-max) (point)))
@@ -2246,12 +2272,12 @@ Called with BEGIN END.")
   (wisi-indent-line)
   (wisi-time #'wisi-indent-line count))
 
-(defun wisi-lex-buffer ()
+(defun wisi-lex-buffer (&optional parse-action)
   ;; for timing the lexer; set indent so we get the slowest time
   (interactive)
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
-  (let* ((wisi--parse-action 'indent)
+  (let* ((wisi--parse-action (or parse-action 'indent))
 	 (line-count (1+ (count-lines (point-min) (point-max))))
 	 (wisi--indent
 	  (make-wisi-ind
@@ -2262,6 +2288,7 @@ Called with BEGIN END.")
     (wisi--set-line-begin)
 
     (goto-char (point-min))
+    (while (forward-comment 1))
     (while (not (eq wisi-eoi-term (wisi-tok-token (wisi-forward-token)))))
     ))
 
@@ -2297,50 +2324,11 @@ Called with BEGIN END.")
 
 ;;;;; setup
 
-(defun wisi-safe-intern (name obtable)
-  (let ((var (intern-soft name obtable)))
-    (and (boundp var) (symbol-value var))))
-
-(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table token-table action-table)
+(defun wisi-setup (indent-calculate post-indent-fail class-list parser lexer)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
-
-  (let ((numbers (cadr (wisi-safe-intern "number" token-table))))
-    (setq wisi--lexer
-	  (make-wisi-lex
-	   :keyword-table keyword-table
-	   :punctuation-table (wisi-safe-intern "punctuation" token-table)
-	   :punctuation-table-max-length 0
-	   :string-double-term (car (cadr (wisi-safe-intern "string-double" token-table)))
-	   :string-quote-escape-doubled nil
-	   :string-quote-escape nil
-	   :string-single-term (car (cadr (wisi-safe-intern "string-single" token-table)))
-	   :symbol-term (car (cadr (wisi-safe-intern "symbol" token-table)))
-	   :number-term (car numbers)
-	   :number-p (cdr numbers)
-	   )))
-
-  (let (fail)
-    (dolist (item (wisi-lex-punctuation-table wisi--lexer))
-      (when item ;; default matcher can be nil
-
-	;; check that all chars used in punctuation tokens have punctuation syntax
-	(mapc (lambda (char)
-		(when (not (= ?. (char-syntax char)))
-		  (setq fail t)
-		  (message "in %s, %c does not have punctuation syntax"
-			   (car item) char)))
-	      (cdr item))
-
-	(when (< (wisi-lex-punctuation-table-max-length wisi--lexer) (length (cdr item)))
-	  (setf (wisi-lex-punctuation-table-max-length wisi--lexer) (length (cdr item)))))
-      )
-    (when fail
-      (error "aborting due to punctuation errors")))
-
-  (setq wisi-parse-table parse-table)
-  (setq wisi-token-table token-table)
-  (setq wisi-action-table action-table)
+  (setq wisi--parser parser)
+  (setq wisi--lexer lexer)
 
   (setq wisi--cache-max
 	(list

@@ -9,12 +9,16 @@
 ;; from Makefile:
 ;; M-x : (run-test "<filename>" t)
 
+(package-initialize)
+
 (require 'cl-lib)
-(require 'wisi-parse)
 (require 'wisi)
 
 ;; Default includes mtn, among others, which is broken in Emacs 24.3
 (setq vc-handled-backends '(CVS))
+
+(defvar wisi-test-parser 'elisp
+  "Set to ’process to test external process parser.")
 
 (defvar test-syntax-table
   (let ((table (make-syntax-table)))
@@ -79,8 +83,7 @@
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
   (interactive "Mgrammar filename root: ")
-  (let ((parse-table (symbol-value (intern-soft (concat filename "-elisp-parse-table"))))
-	(wisi-test-success nil)
+  (let ((wisi-test-success nil)
 	(expected-result t)
 	(wisi--cache-max
 	 (list
@@ -94,30 +97,43 @@
     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
     (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
-  (cl-ecase wisi-parser
-    (elisp
-     (wisi-setup
-      nil ;; indent-calculate
-      nil ;; post-indent-fail
-      test-class-list
-      (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
-      (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-      parse-table
-      nil nil))
+    (cl-ecase wisi-test-parser
+      (elisp
+       (require 'wisi-elisp-parse)
+       (require (intern (concat filename "-elisp")))
+       (wisi-setup
+	nil ;; indent-calculate
+	nil ;; post-indent-fail
+	test-class-list
+	(wisi-make-elisp-parser
+	 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
+	 `wisi-forward-token)
+	(wisi-make-elisp-lexer
+	 :token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+	 :keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+	 :string-quote-escape-doubled nil
+	 :string-quote-escape nil)))
 
-    (ada
-     (setq wisi-ext-parse-exec (concat filename "_wisi_parse.exe"))
-     (add-to-list 'exec-path default-directory)
-     (wisi-setup
-      nil ;; indent-calculate
-      nil ;; post-indent-fail
-      test-class-list ;; class-list
-      nil ;; keyword-table
-      nil ;; token-table
-      nil ;; parse-table
-     (symbol-value (intern-soft (concat filename "-process-token-table")))
-     (car (symbol-value (intern-soft (concat filename "-process-action-table"))))))
-    )
+      (process
+       (require 'wisi-elisp-parse)
+       (require (intern (concat filename "-process")))
+       (add-to-list 'exec-path default-directory)
+       (wisi-setup
+	nil ;; indent-calculate
+	nil ;; post-indent-fail
+	test-class-list ;; class-list
+	(wisi-make-process-parser
+	 :label filename
+	 :exec (concat filename "_wisi_parse.exe")
+	 :token-table (nth 0 (symbol-value (intern-soft (concat filename "-process-token-table"))))
+	 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
+	 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
+	(wisi-make-elisp-lexer
+	 :token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+	 :keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+	 :string-quote-escape-doubled nil
+	 :string-quote-escape nil)))
+      )
 
     ;; Not clear why this is not being done automatically
     (syntax-propertize (point-max))
@@ -129,12 +145,7 @@
 
     (goto-char (point-min))
     (condition-case-unless-debug err
-	(cl-ecase wisi-parser
-	  (elisp
-	   (wisi-parse parse-table 'wisi-forward-token))
-	  (ada
-	   (wisi-ext-parse wisi-token-names wisi-action-names))
-	  )
+      (wisi-parse-current wisi--parser)
       (error
        (setq wisi-test-success
 	     (equal (cdr err) expected-result))
@@ -173,14 +184,6 @@
 (defun run-test (filename)
   (interactive "Mgrammar filename root: ")
   (add-to-list 'load-path "../../test/wisi/")
-
-  (cl-ecase wisi-parser
-    (elisp
-     (require (intern (concat filename "-elisp"))))
-    (ada
-     (require (intern (concat filename "-process"))))
-
-    )
 
   ;; top level parse action must set `wisi-test-success' t.
 

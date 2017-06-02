@@ -78,7 +78,7 @@
     ["Select project ..."          ada-prj-select                   t]
     ["Parse and select current file" gpr-set-as-project             t]
     ["Show current project"        ada-prj-show                     t]
-    ["Show project search path"    ada-prj-show-path                t]
+    ["Show project search path"    ada-prj-show-prj-path            t]
     ["Next compilation error"      next-error                       t]
     ["Show secondary error"        ada-show-secondary-error         t]
     ["Show last parse error"       gpr-show-parse-error             t]

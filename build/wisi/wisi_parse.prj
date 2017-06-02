@@ -1,0 +1,5 @@
+gpr_file=wisi_parse_agg.gpr
+
+casing=$WISI_FASTTOKEN/../emacs_case_exceptions
+casing=../../../org.stephe_leake.aunit_ext/build/emacs_case_exceptions
+casing=../../../org.stephe_leake.sal/build/sal.casing

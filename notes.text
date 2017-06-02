@@ -9,36 +9,20 @@ o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a.s-2, o.e.a.s-1): syntax error handling in external process fasttoken parser
 o.e.a.stephe-5 (from o.e.a): available
 
-(add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-(setq ada-xref-tool 'gnat_inspect)
-
-run test from emacs -Q using installed elpa:
-(progn
-;;  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (package-initialize)
-  (setq debug-on-error t)
-;;  (setq wisi-debug 1)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (load "run-wisi-test")
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "ada-number-literal"))
-
 run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
+  (setq debug-on-quit t)
   (load "autoloads.el")
-  (load "run-indent-test-wisi-ext-gpr_query")
+  (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  (setq ada-wisi-font-lock-size-threshold 0)
-  (setq debug-on-error t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/")
-;;  (run-test "../../test/ada_mode-interactive_common.adb")
-  (find-file "../../test/ada_mode-parens.ads")
+  ;; (setq wisi-disable-face t)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/wisi/")
+  (run-test "../../test/ada_mode-nominal.adb")
   (ada-wisi-debug-keys))
 
 (progn
@@ -46,31 +30,53 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
-  (load "run-wisi-ext-test.el")
+  (load "run-wisi-process-test.el")
   (setq debug-on-error t)
   (setq wisi-disable-face t)
-  (setq wisi-ext-parse-exec-opts '("-v" "4"))
+  ; (setq wisi-ext-parse-exec-opts '("-v" "4"))
   (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
+(setq wisi-ext-parse-exec-opts '("-v" "4"))
+(setq wisi-ext-parse-exec-opts nil)
  syntax error handling
 
 /Projects/org.fasttoken/notes.text
 
-parse navigate fails in Ada buffers
+do commit
+    ada-mode
+    fasttoken
+    sal
+    aunit-ext
+
+wisi-process-parse use wisi lexer
+    testing
+        subprograms - hangs
+            ada code no output; run in debugger
+                change fasttoken, sal, aunit to have single build dir, Common_Build = debug flag
+
+        ada_mode-nominal.adb.diff process - hangs
+
+        ada_mode-nominal.adb.diff elisp - works
+
+need *-kill-session/process
+    ada-kill-all-sessions
+        gpr-query, ext-parse, gps?
+
 
 time lexers:
     gnatcoll-xref.adb
     'ada-lex
         (time-it 'wisi-ext-lex 1)
 
-    'wisi--lex
+    'wisi-lex
         (time-it 'wisi-lex-buffer 1)
 
-    opentoken (slow recognizer) ext: 0.637708 seconds, 0 gcs
-    fasttoken (aflex) ext:
+    o.e.a ext opentoken (slow recognizer): 0.637708 seconds, 0 gcs
     o.e.a.s-1 wisi: 0.569551 seconds, 2 gcs
-    o.e.a.s-4 wisi:
+    o.e.a.s-4 wisi indent: 0.402671 seconds, 2 gcs
+    o.e.a.s-4 wisi navigate: 0.333494 seconds, 1 gcs
+    o.e.a.s-4 ext aflex: 0.643523 seconds, 0 gcs
 
 need better lexer for fasttoken
     handle tick character literal

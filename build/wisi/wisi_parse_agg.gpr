@@ -4,7 +4,8 @@ aggregate project Wisi_Parse_Agg is
 
    for Project_Path use
      (FastToken,
-      "../../../org.stephe_leake.aunit_ext/build/release"
+      "../../../org.stephe_leake.aunit_ext/build/release",
+      "../../../org.stephe_leake.sal/build/release"
       );
 
    for Project_files use ("wisi_parse.gpr");

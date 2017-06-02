@@ -11,10 +11,9 @@ all : byte-compile-clean compile-ada-clean update compile-ada autoloads test-cle
 # this updates everything after any source change, without running the tests.
 update : ../../ada_grammar-elisp.el
 update : ../../gpr-grammar-elisp.el
-update : ../../ada_grammar_process.ads
+update : ada_mode_wisi_parse.exe
 update : install
 update : byte-compile
-update : ada_mode_wisi_parse.exe
 
 # *-elisp.el are in monotone, so this is all we need after a monotone update
 # doing byte-compile-clean first avoids errors caused by loading new source on old .elc
@@ -35,7 +34,7 @@ test : test-wisi
 # test : test-ada-gnatxref.stamp
 
 test : test-ada-gpr_query.stamp
-test : test-ada-ext-gpr_query.stamp
+test : test-ada-process-gpr_query.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr
 test : test-elisp
@@ -57,12 +56,17 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-#ONE_TEST_FILES += subprograms.wisi-test
-ONE_TEST_FILES += subprograms.wisi-ext-test
-one : RUNTEST := run-wisi-test.el
+#ONE_TEST_FILES += ada_mode-nominal.adb.diff
+#one : RUNTEST := run-indent-test-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
+ONE_TEST_FILES += subprograms.wisi-process-test
+one : RUNTEST := run-wisi-process-test.el
+one : export Ada_Mode_Wisi_Parse_Build := Debug
+one : WISI_FASTTOKEN := /Projects/org.fasttoken/build/debug
+one : WISI_SAL := /Projects/org.stephe-leake.sal/build/debug
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
-	rm -f $(ONE_TEST_FILES)
+	rm -f $(ONE_TEST_FILES) $(ONE_TEST_FILES:.diff=.tmp)
 	cd ../../test/wisi/; rm -f *-elisp.el *.output
 
 # one : update
@@ -70,12 +74,8 @@ one-clean: force
 # one-clean: force
 # 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
-two : export Ada_Mode_Wisi_Parse_Build := Debug
-two : export WISI_OPENTOKEN := /Projects/org.opentoken.stephe/build/debug
-two : run_ada_parser.exe
-	./run_ada_parser.exe -v 1 ../../test/ada_mode-conditional_expressions.adb > debug.parse
-
 vpath %.adb ../../ ../../test/wisi
+vpath %.ads ../../ ../../test/wisi
 vpath %.el ../../ ../../test/wisi
 vpath %.wy ../../ ../../test/wisi
 
@@ -100,15 +100,17 @@ endif
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
-%.wisi-ext-test : %_wisi_parse.exe
-	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-ext-test.el --eval '(run-test "$*")'
+%.wisi-process-test : %_wisi_parse.exe
+	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
 %_wisi_parse.exe : %_wisi_parse.adb %-process.el force
 	gprbuild -p wisi_parse_agg.gpr $<
 
+# we don't copy %_process.ads/b, because we'd also have to copy a lot
+# of fasttoken; we add fasttoken_test.gpr to wisi_parse.gpr.
 %-process.el : force
 	make -C $(WISI_FASTTOKEN) $*-process.el
-	cp $(WISI_FASTTOKEN)/$*-process.el $@
+	cp $(WISI_FASTTOKEN)/$*-process.el ../../test/wisi/$*-process.el
 
 .PRECIOUS : %-elisp.el %-process.el ../../%-grammar-elisp.el  %.ads
 
@@ -125,21 +127,12 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
-../../%_process.l : ../../%.wy $(WISI_FASTTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Aflex --interface process $(<F) > $(*F).ada_output
+../../%_process.ads : ../../%.wy $(WISI_FASTTOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
-../../%_process_yylex.ada : ../../%_process.l
-	cd ../../; aflex -i -s -E -D$(WISI_FASTTOKEN)/../../wisi/fasttoken_aflex_dfa.adb.template -O$(WISI_FASTTOKEN)/../../wisi/fasttoken_aflex_io.adb.template $(<F)
-
-../../%_process_yylex.adb : ../../%_process_yylex.ada
-	cd ../../; gnatchop -w $*_process_yylex.ada $*_process_dfa.ada $*_process_io.ada
-
-%.exe : ../../%.adb force
-	gprbuild -p ada_mode_wisi_parse_agg.gpr $<
-
 #ada_mode_wisi_parse.exe : export Ada_Mode_Wisi_Parse_Build := Debug
-ada_mode_wisi_parse.exe : ../../ada_grammar_process.adb ../../ada_grammar_process_yylex.adb force
+ada_mode_wisi_parse.exe : ../../ada_grammar_process.ads force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr
 
 run_ada_parser.exe : ../../ada_grammar_process.ads force
@@ -178,7 +171,7 @@ include ../common.make
 diffs : force
 	cd ../../; find build/wisi -name "*.diff" -not -size 0
 
-test-ada-gnatxref : RUNTEST := run-indent-test-wisi.el
+test-ada-gnatxref : RUNTEST := run-indent-test-elisp-gnatxref.el
 test-ada-gnatxref : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
 test-ada-gnatxref.stamp : force
@@ -187,7 +180,7 @@ test-ada-gnatxref.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el
+test-ada-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
 test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
 test-ada-gpr_query.stamp : force
@@ -196,7 +189,7 @@ test-ada-gpr_query.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-gpr: RUNTEST := run-indent-test-wisi.el
+test-gpr: RUNTEST := run-indent-test-elisp.el
 test-gpr: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 test-gpr.stamp : force
@@ -228,25 +221,24 @@ compare-ada-gps.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-ext-gpr_query : RUNTEST := run-indent-test-wisi-ext-gpr_query.el
-test-ada-ext-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-process-gpr_query : RUNTEST := run-indent-test-process-gpr_query.el
+test-ada-process-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
-test-ada-ext-gpr_query.stamp : force
+test-ada-process-gpr_query.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-ada-ext-gpr_query
+	$(MAKE) test-ada-process-gpr_query
 	touch $@
-
-# we don't use 'expand-file-name' here because that adds c:/ on windows
-# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/release")
-# eval: (ada-parse-prj-file "wisi_fasttoken.prj")
-# eval: (ada-select-prj-file "wisi_fasttoken.prj")
 
 # eval: (ada-parse-prj-file "../ada-mode.prj")
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
+# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/debug")
+# eval: (setenv "WISI_SAL" "/Projects/org.stephe-leake.sal/build/debug")
+
 # Local Variables:
 # eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/release")
-# eval: (ada-parse-prj-file "ada_mode_wisi_parse.prj")
-# eval: (ada-select-prj-file "ada_mode_wisi_parse.prj")
+# eval: (setenv "WISI_SAL" "/Projects/org.stephe-leake.sal/build/release")
+# eval: (load-file "ada_mode_wisi_parse.el")
+# eval: (load-file "ada_mode_elisp_prj.el")
 # End:
 # end of file

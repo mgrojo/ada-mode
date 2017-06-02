@@ -1,7 +1,7 @@
-;; run tests using wisi-ext-parse, gpr_query, otherwise ada-mode, gpr-mode defaults
+;; run tests using wisi-process-parse, gpr_query, otherwise ada-mode, gpr-mode defaults
 
 (setq ada-xref-tool 'gpr_query)
-(setq wisi-parser 'ada)
+(setq ada-parser 'process)
 ;; ada_mode_wisi_parse.exe must be installed in PATH
 
 (require 'run-indent-test)

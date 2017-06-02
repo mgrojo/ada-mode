@@ -1,8 +1,10 @@
 gpr_project_path=$WISI_FASTTOKEN
+gpr_project_path=$WISI_SAL
 
 gpr_file=ada_mode_wisi_parse.gpr
 
-casing=$WISI_OPENTOKEN/../emacs_case_exceptions
+casing=$WISI_FASTTOKEN/../emacs_case_exceptions
+casing=$WISI_SAL/../sal.casing
 
 -- for *.wy
 src_dir=../../

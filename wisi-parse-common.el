@@ -27,12 +27,30 @@
   (require 'wisi-compat-24.2)
 ;;)
 
+(cl-defstruct wisi-parser)
+
+(cl-defgeneric wisi-parse-current ((parser wisi-parser))
+  "Parse current buffer.")
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
 1 : report parse errors (for running tests)
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : also show top 10 items of parser stack.")
+
+(defvar wisi-parse-max-stack-size 500
+  "Maximum parse stack size")
+
+(defvar wisi--parse-action nil
+  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
+  "Reason current parse is begin run; one of
+{indent, face, navigate}.")
+
+(defconst wisi-eoi-term 'Wisi_EOI
+  ;; must match FastToken wisi-output_elisp.adb EOI_Name, which must
+  ;; be part of a valid Ada identifer.
+  "End Of Input token.")
 
 (defun wisi-error-msg (message &rest args)
   (let ((line (line-number-at-pos))
@@ -52,7 +70,7 @@
      "wisi parse error")
 
 (cl-defstruct wisi-tok
-  token  ;; symbol from a token table
+  token  ;; symbol from a token table ;; FIXME: rename to ’id’?
   region ;; cons giving buffer region containing token text
 
   nonterminal ;; t if a nonterminal
@@ -70,7 +88,7 @@
   ;; Otherwise nil.
 
   ;; The following are non-nil if token (terminal or non-terminal) is
-  ;; followed by blank or comment lines, or if not parsing for indent.
+  ;; followed by blank or comment lines
   comment-line ;; first blank or comment line following token
   comment-end ;; position at end of blank or comment lines
   )
@@ -81,15 +99,13 @@
     (and region
        (buffer-substring-no-properties (car region) (cdr region)))))
 
-(defun wisi-parse-max-pos (tokens)
-  "Return max position in tokens, or point if tokens nil."
-  (let ((result (if tokens 0 (point))))
-    (mapc
-     (lambda (token)
-       (when (cddr token)
-	 (setq result (max (cddr token) result))))
-     tokens)
-    result)
-  )
+(defun wisi-and-regions (left right)
+  "Return region enclosing both LEFT and RIGHT."
+  (if left
+      (if right
+	  (cons (min (car left) (car right))
+		(max (cdr left) (cdr right)))
+	left)
+    right))
 
 (provide 'wisi-parse-common)

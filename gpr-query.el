@@ -211,9 +211,11 @@ Uses `gpr_query'. Returns new list."
     (gpr-query-session-send "source_dirs" t)
     (goto-char (point-min))
     (while (not (looking-at gpr-query-prompt))
-      (cl-pushnew (directory-file-name
-		    (buffer-substring-no-properties (point) (point-at-eol)))
-                  src-dirs :test #'equal)
+      (cl-pushnew
+       (expand-file-name ; Canonicalize path part.
+	(directory-file-name
+	 (buffer-substring-no-properties (point) (point-at-eol))))
+	src-dirs :test #'equal)
       (forward-line 1))
     )
   src-dirs)
@@ -230,7 +232,7 @@ Uses `gpr_query'. Returns new list."
        (let ((dir (buffer-substring-no-properties (point) (point-at-eol))))
 	 (if (string= dir ".")
 	     (directory-file-name default-directory)
-	     dir))
+	   (expand-file-name dir))) ; Canonicalize path part.
        prj-dirs
        :test #'equal)
       (forward-line 1))
