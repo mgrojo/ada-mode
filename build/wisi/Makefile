@@ -61,9 +61,7 @@ test-wisi :: subprograms.wisi-test
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
 ONE_TEST_FILES += subprograms.wisi-process-test
 one : RUNTEST := run-wisi-process-test.el
-one : export Ada_Mode_Wisi_Parse_Build := Debug
-one : WISI_FASTTOKEN := /Projects/org.fasttoken/build/debug
-one : WISI_SAL := /Projects/org.stephe-leake.sal/build/debug
+one : export Standard_Common_Build := Debug
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
 	rm -f $(ONE_TEST_FILES) $(ONE_TEST_FILES:.diff=.tmp)
@@ -83,16 +81,16 @@ vpath %.wy ../../ ../../test/wisi
 # WISI_FASTTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else ifeq ($(shell uname),Darwin)
-export WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build/release
+export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 endif
@@ -131,7 +129,7 @@ endif
 	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
-#ada_mode_wisi_parse.exe : export Ada_Mode_Wisi_Parse_Build := Debug
+#ada_mode_wisi_parse.exe : export Standard_Common_Build := Debug
 ada_mode_wisi_parse.exe : ../../ada_grammar_process.ads force
 	gprbuild -p ada_mode_wisi_parse_agg.gpr
 
@@ -232,12 +230,8 @@ test-ada-process-gpr_query.stamp : force
 # eval: (ada-parse-prj-file "../ada-mode.prj")
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
-# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/debug")
-# eval: (setenv "WISI_SAL" "/Projects/org.stephe-leake.sal/build/debug")
-
 # Local Variables:
-# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build/release")
-# eval: (setenv "WISI_SAL" "/Projects/org.stephe-leake.sal/build/release")
+# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build")
 # eval: (load-file "ada_mode_wisi_parse.el")
 # eval: (load-file "ada_mode_elisp_prj.el")
 # End:

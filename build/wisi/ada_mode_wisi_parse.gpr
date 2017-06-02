@@ -17,6 +17,7 @@
 --  MA 02110-1335, USA.
 
 with "fasttoken";
+with "standard_common";
 project Ada_Mode_Wisi_Parse is
 
    for Main use ("ada_mode_wisi_parse.adb");
@@ -27,12 +28,10 @@ project Ada_Mode_Wisi_Parse is
 
    for Exec_Dir use ".";
 
-   type Build_Type is ("Debug", "Normal");
-   Build : Build_Type := External ("Ada_Mode_Wisi_Parse_Build", "Normal");
-
    for Languages use ("Ada");
 
    package Compiler is
+      --  FIXME: use Standard_Common vars
 
       Standard_Style := "-gnaty3abcefhiklnOprtx";
       Line_Length := "-gnatyM120";
@@ -50,7 +49,7 @@ project Ada_Mode_Wisi_Parse is
          "-fstack-check",
          "-gnat12");
 
-      case Build is
+      case Standard_Common.Build is
       when "Debug" =>
          for Default_Switches ("Ada") use Common_Switches & Standard_Style & Line_Length & ("-O0");
 
