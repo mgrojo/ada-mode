@@ -425,11 +425,11 @@ package body Wisi.Gen_Output_Ada_Common is
       when None | Process =>
          case Lexer is
          when Aflex_Lexer =>
-            Indent_Line ("  (Lexer.Initialize (Text_Feeder, Buffer_Size, First_Column => 0),");
+            Indent_Line ("  (Lexer.New_Lexer (Text_Feeder, Buffer_Size, First_Column => 0),");
             Indent_Line ("   Table, State_Aug'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);");
 
          when Elisp_Lexer =>
-            Indent_Line ("  (Lexer.Initialize, Table, State_Aug'Access, Token_Pkg.List.Null_List,");
+            Indent_Line ("  (Lexer.New_Lexer, Table, State_Aug'Access, Token_Pkg.List.Null_List,");
             Indent_Line ("   Max_Parallel, Terminate_Same_State => True);");
 
          when Regexp_Lexer =>
@@ -437,7 +437,7 @@ package body Wisi.Gen_Output_Ada_Common is
          end case;
 
       when Module =>
-         Indent_Line ("  (Lexer.Initialize (Env, Lexer_Elisp_Symbols),");
+         Indent_Line ("  (Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
          Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
 
       end case;

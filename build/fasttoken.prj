@@ -6,6 +6,6 @@ gpr_file=fasttoken_test.gpr
 
 gnat_stub_opts=-P fasttoken_test.gpr
 
-casing=../emacs_case_exceptions
+casing=emacs_case_exceptions
 casing=../../org.stephe_leake.aunit_ext/build/emacs_case_exceptions
 casing=../../org.stephe_leake.sal/build/sal.casing

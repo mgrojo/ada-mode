@@ -38,9 +38,10 @@ some : some-clean
 #some : RUN_ARGS := -v 4
 # some : aflex.exe
 # some : wisi-generate.exe
-# some : SOME_CLEAN_FILE := case_expression
-# some : case_expression_process_yylex.adb
-# some : case_expression-parse.diff
+some : SOME_CLEAN_FILE := case_expression
+some : case_expression-elisp.el.diff
+some : case_expression_yylex.adb
+some : case_expression-parse.diff
 # some : SOME_CLEAN_FILE := conflict_name
 # some : conflict_name-process.el.diff
 # some : conflict_name_process_yylex.adb

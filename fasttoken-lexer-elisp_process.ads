@@ -35,7 +35,9 @@ package FastToken.Lexer.Elisp_Process is
 
    type Instance is new FastToken.Lexer.Instance with private;
 
-   function Initialize return FastToken.Lexer.Handle;
+   procedure Initialize (Lexer : in out Instance);
+
+   function New_Lexer return FastToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 

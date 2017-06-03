@@ -6,22 +6,22 @@
 ;; (ediff "case_expression.wy" "../../../org.opentoken.stephe/wisi/test/case_expression.wy")
 
 %{
-;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+-- Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
-;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+-- This program is free software; you can redistribute it and/or
+-- modify it under the terms of the GNU General Public License as
+-- published by the Free Software Foundation; either version 3, or (at
+-- your option) any later version.
+--
+-- This software is distributed in the hope that it will be useful,
+-- but WITHOUT ANY WARRANTY; without even the implied warranty of
+-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+-- General Public License for more details.
+--
+-- You should have received a copy of the GNU General Public License
+-- along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-;;  requires added by wisi-generate
+--  requires added by wisi-generate
 %}
 
 ;; non-reporting
@@ -46,12 +46,13 @@
 %first_parser_label 0
 
 %parser_algorithm LALR_LR1
-%output_language Elisp
+%output_language Ada
+%lexer Aflex
+
 %%
 
 case_expression
   : WHEN discrete_choice EQUAL_GREATER factor
-    (setq wisi-test-success t)
   ;
 
 choice_expression

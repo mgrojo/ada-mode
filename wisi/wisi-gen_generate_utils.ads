@@ -50,7 +50,7 @@ package Wisi.Gen_Generate_Utils is
    Token_Count    : constant Token_ID := Count (Tokens);
    First_Terminal : constant Token_ID := Token_ID'First + Count_Non_Reporting;
    EOI_ID         : constant Token_ID := Token_Count + Token_ID (Keywords.Length) + 1; -- last terminal
-   Accept_ID      : constant Token_ID := Token_ID'Last;                                -- last nonterminal
+   Accept_ID      : constant Token_ID := EOI_ID + 1;                                   -- first nonterminal
 
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 

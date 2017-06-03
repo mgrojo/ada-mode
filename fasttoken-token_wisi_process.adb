@@ -29,9 +29,9 @@ package body FastToken.Token_Wisi_Process is
    Merge_Tokens_Code : constant String := "2 ";
    Recover_Code      : constant String := "3 ";
 
-   function To_Code (Nonterm : in Token_Pkg.Token_ID) return String
+   function To_Code (ID : in Token_Pkg.Token_ID) return String
    is begin
-      return Int_Image (Token_Pkg.Token_ID'Pos (Nonterm));
+      return Int_Image (Token_Pkg.Token_ID'Pos (ID));
    end To_Code;
 
    function To_Codes (Tokens : in Token_Pkg.List.Instance) return String
@@ -52,7 +52,7 @@ package body FastToken.Token_Wisi_Process is
    begin
       loop
          exit when I = Null_Iterator;
-         Token_Line := Token_Line & Int_Image (Token_Pkg.Token_ID'Pos (ID (I)));
+         Token_Line := Token_Line & Integer'Image (Token_Pkg.Token_ID'Pos (ID (I)));
          Next (I);
       end loop;
       return To_String (Token_Line & "]");

@@ -50,7 +50,13 @@ package body Wisi_Wy_Test is
       Spawn
         (Program_Name => Exe.all,
          Args         =>
-           (1         => WY_File),
+           (1         => new String'("--parser_algorithm"),
+            2         => new String'("LALR_LR1"),
+            3         => new String'("--output_language"),
+            4         => new String'("Elisp"),
+            5         => new String'("--lexer"),
+            6         => new String'("Elisp"),
+            7         => WY_File),
          Success      => Success);
 
       AUnit.Assertions.Assert
@@ -73,7 +79,7 @@ package body Wisi_Wy_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("../../wisi/test/wisi_wy_test.adb " & T.Root_Name.all);
+      return new String'("wisi/test/wisi_wy_test.adb " & T.Root_Name.all);
    end Name;
 
 end Wisi_Wy_Test;

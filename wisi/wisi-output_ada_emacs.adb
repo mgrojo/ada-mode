@@ -371,9 +371,13 @@ is
       Indent_Line ("  (wisi-process-compile-actions");
       Indent_Start ("   '(");
       Indent       := Indent + 5;
-      Paren_1_Done := False;
       Rule_I       := Rules.First;
-      for I in Elisp_Action_Names'Range loop
+
+      --  First nonterm is fasttoken_accept, which is not in rules
+      Put_Line ("nil");
+      Paren_1_Done := True;
+
+      for I in Generate_Utils.Token_ID'Succ (Elisp_Action_Names'First) .. Elisp_Action_Names'Last loop
          if Elisp_Action_Names (I) = null then
             if Paren_1_Done then
                Indent_Line ("nil");

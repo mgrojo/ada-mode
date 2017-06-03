@@ -41,13 +41,13 @@ generic
    with procedure Put_Trace_Line (Item : in String);
    with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
    with package Lexer_Root is new FastToken.Lexer (Token_ID);
-   with package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer, Put_Trace_Line);
+   with package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root, Put_Trace_Line);
    with package Parser_Root is new FastToken.Parser
      (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_Image, Put_Trace,
       Token_Pkg, Lexer_Root);
    First_State_Index : in Integer;
    with package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Semantic_Action,
+     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
       Token_Aug.State_Type, Token_Aug.Input_Token);
    First_Parser_Label : in Integer;
    with package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
@@ -56,8 +56,6 @@ generic
    with package LR_Parser is new LR.Parser
      (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode,
       Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
-
-   State : State_Aug.State_Type;
 
    with function Create_Parser
      (Algorithm            : in FastToken.Parser_Algorithm_Type;

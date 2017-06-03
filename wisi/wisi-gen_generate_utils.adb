@@ -46,7 +46,7 @@ package body Wisi.Gen_Generate_Utils is
       use type Standard.Ada.Strings.Unbounded.Unbounded_String;
       Result : Token_ID := Token_ID'First;
    begin
-      --  Same order as set_token_images below.
+      --  Same order as set_token_images, cursor below.
       for Kind of Tokens loop
          if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
@@ -77,7 +77,14 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       if Token = EOI_Name or
-        Token = "EOI" -- used in conflicts
+        Token = "EOI" -- used in conflicts FIXME: should not be
+      then
+         return Result;
+      end if;
+      Result := Result + 1;
+
+      if Token = FastToken_Accept_Name or
+        Token = "fasttoken_accept" -- FIXME: should not need this
       then
          return Result;
       end if;
@@ -90,12 +97,6 @@ package body Wisi.Gen_Generate_Utils is
          Result := Result + 1;
       end loop;
 
-      if Token = FastToken_Accept_Name or
-        Token = "fasttoken_accept"
-      then
-         return Result;
-      end if;
-
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
@@ -104,7 +105,7 @@ package body Wisi.Gen_Generate_Utils is
       ID           : Token_ID := Token_ID'First;
       Token_Images : ID_Array_Access_String_Pair_Type;
    begin
-      --  same order as output_ada
+      --  Same order as find_token_id above, cursor below.
 
       --  non-reporting
       for Kind of Tokens loop
@@ -143,17 +144,21 @@ package body Wisi.Gen_Generate_Utils is
 
       ID := ID + 1;
 
-      for Rule of Rules loop
-         Token_Images (ID, WY)     := new String'(-Rule.Left_Hand_Side);
-         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
-
-         ID := ID + 1;
-      end loop;
-
       if ID /= Accept_ID then raise Programmer_Error; end if;
 
       Token_Images (ID, WY)     := new String'(-FastToken_Accept_Name);
       Token_Images (ID, Output) := new String'(To_Token_Out_Image (FastToken_Accept_Name));
+
+      ID := ID + 1;
+
+      for Rule of Rules loop
+         Token_Images (ID, WY)     := new String'(-Rule.Left_Hand_Side);
+         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
+
+         if ID /= Token_ID'Last then
+            ID := ID + 1;
+         end if;
+      end loop;
 
       for ID in Token_Images'Range loop
          if Token_Images (ID, WY).all'Length > Token_WY_Image_Width then

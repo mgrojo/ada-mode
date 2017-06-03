@@ -31,21 +31,27 @@ with Ada.Strings.Fixed;
 with GNAT.OS_Lib;
 package body FastToken.Lexer.Elisp_Process is
 
-   function Initialize return Handle
+   procedure Initialize (Lexer : in out Instance)
+   is begin
+      --  We don't set Lexer.Feeder, because we don't actually use it
+      Lexer.Tokens.Clean;
+      Lexer.Buffer_Last := Lexer.Buffer'First - 1;
+      Lexer.Last_Token  := Token_ID'First;
+   end Initialize;
+
+   function New_Lexer return Handle
    is
       New_Lexer : constant access Instance := new Instance;
    begin
-      --  We don't set New_Lexer.Feeder, because we don't actually use it
-      New_Lexer.Buffer_Last := New_Lexer.Buffer'First - 1;
-      New_Lexer.Last_Token  := Token_ID'First;
+      Initialize (New_Lexer.all);
       return Handle (New_Lexer);
-   end Initialize;
+   end New_Lexer;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
    is
       pragma Unreferenced (Buffer_Size);
    begin
-      Lexer.Tokens.Clean;
+      Initialize (Lexer);
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
@@ -73,8 +79,10 @@ package body FastToken.Lexer.Elisp_Process is
                Space_Index := Index (Pattern => " ", Source => Lexer.Buffer (First .. Lexer.Buffer_Last));
                exit when Space_Index < First;
                Lexer.Tokens.Append (Token_ID'Val (Integer'Value (Lexer.Buffer (First .. Space_Index))));
+               First := Space_Index + 1;
             end loop;
-            if Space_Index = Lexer.Buffer_Last then
+            if Space_Index < First then
+               --  Save remaining bytes for next round
                Lexer.Buffer_Last := Lexer.Buffer'First - 1;
             else
                First := Lexer.Buffer_Last - Space_Index + 1; -- actually "last"

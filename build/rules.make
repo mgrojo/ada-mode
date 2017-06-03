@@ -47,7 +47,8 @@ tests : test_all_harness.diff
 # some also or only run from ../wisi/test/test_wisi_suite.adb We only
 # diff %-process.el on a couple tests, because it doesn't depend on
 # the grammar much
-tests : case_expression_process_yylex.adb
+tests : case_expression-elisp.el.diff
+tests : case_expression_yylex.adb
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
 tests : conflict_name_process_yylex.adb
@@ -172,11 +173,6 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $< $*-process.el > $@
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
-
-%_process.l : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Aflex --interface process $< > $*.parse_table
-	dos2unix $*.parse_table
-	dos2unix -q $*-process.el
 
 %.l : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table

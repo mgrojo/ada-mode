@@ -169,7 +169,7 @@ begin
             Arg_Next := Arg_Next + 1;
 
          else
-            raise User_Error;
+            raise User_Error with "invalid argument '" & Argument (Arg_Next) & "'";
          end if;
       end loop;
 
