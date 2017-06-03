@@ -146,7 +146,7 @@
     (goto-char (point-min))
     (condition-case-unless-debug err
       (wisi-parse-current wisi--parser)
-      (error
+      (wisi-parse-error
        (setq wisi-test-success
 	     (equal (cdr err) expected-result))
        (unless wisi-test-success

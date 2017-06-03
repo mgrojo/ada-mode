@@ -132,11 +132,6 @@
 	(error "%s process died" (wisi-process--parser-exec-file parser)))
       )))
 
-(defun wisi-process-parse-kill-process (parser)
-  (when (process-live-p (wisi-process--parser-process parser))
-    (process-send-string (wisi-process--parser-process parser) wisi-process-parse-quit-cmd)
-    ))
-
 (defun wisi-process-parse-show-buffer (parser)
   "Show PARSER buffer."
   (if (buffer-live-p (wisi-process--parser-buffer parser))
@@ -205,6 +200,7 @@ buffer.  Does not wait for command to complete."
   ;; see ‘wisi-process-parse--execute’
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (action-table (wisi-process--parser-action-table parser))
+	 (first-nonterm (- (length token-table) (length action-table))) ;; FIXME: move to wisi-process--parser
 	 nonterm
 	 nonterm-region
 	 nonterm-line
@@ -215,19 +211,21 @@ buffer.  Does not wait for command to complete."
 	 (tokens-2 (make-vector (length (aref sexp 2)) nil)) ;; for wisi-tokens
 	 tok i action)
 
-    (dotimes (i (length tokens-1))
+    (setq i (1- (length tokens-1)))
+    (while (>= i 0)
       (setq tok (wisi-process-parse--pop-stack parser))
       (unless (eq (wisi-tok-token tok) (aref token-table (aref tokens-1 i)))
 	(error "token id mismatch between parser queue and process output"))
 
       (setf nonterm-region (wisi-and-regions nonterm-region (wisi-tok-region tok)))
-      (aset tokens-2 i tok))
+      (aset tokens-2 i tok)
+      (setq i (1- i)))
 
     (when (eq wisi--parse-action 'indent)
       ;; Compute rest of nonterm. This duplicates part of
       ;; wisi-parse-reduce. Process tokens last to first to simplify
       ;; algorithms.
-      (setq i (length tokens-1))
+      (setq i (1- (length tokens-1)))
       (while (>= i 0)
 	(setq tok (aref tokens-1 i))
 	(setf (wisi-tok-line tok) (or (wisi-tok-line tok) nonterm-line))
@@ -258,12 +256,12 @@ buffer.  Does not wait for command to complete."
 
     (wisi-process-parse--push-stack parser nonterm)
 
-    ;; FIXME: Don't call action if nonterm has null region?
-    (setq action (aref action-table (wisi-tok-token nonterm)))
-    (when action
-      (setq action (aref action (aref sexp 3))))
-    (when action
-      (funcall action nonterm tokens-2))
+    (when nonterm-region
+      (setq action (aref action-table (- (aref sexp 1) first-nonterm)))
+      (when action
+	(setq action (aref action (aref sexp 3))))
+      (when action
+	(funcall action nonterm tokens-2)))
     ))
 
 (defun wisi-process-parse--recover (parser sexp)
@@ -332,6 +330,11 @@ buffer.  Does not wait for command to complete."
     (3 (wisi-process-parse--recover parser sexp))))
 
 ;;;;; main
+
+(cl-defmethod wisi-parse-kill ((parser wisi-process--parser))
+  (when (process-live-p (wisi-process--parser-process parser))
+    (process-send-string (wisi-process--parser-process parser) wisi-process-parse-quit-cmd)
+    ))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser))
   "Run the external parser on the current buffer."
@@ -480,9 +483,9 @@ symbols; indexed by nonterminal, production_index.
 
 OBARRAY is the obarray containing the byte-compiled action
 functions."
-  (let ((symbol-obarray (make-vector 13 0))
-	(table (make-vector (length nonterm-actions) nil))
-        (byte-compile-warnings '(not free-vars)) ;; for "wisi-test-success" in test/wisi/*
+  (let ((table (make-vector (length nonterm-actions) nil))
+        (symbol-obarray (make-vector (length nonterm-actions) 0))
+	(byte-compile-warnings '(not free-vars)) ;; for "wisi-test-success" in test/wisi/*
 	(nonterm-index 0)
 	(prod-index 0)
 	nonterm action name form symbol)

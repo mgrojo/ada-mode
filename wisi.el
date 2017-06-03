@@ -779,6 +779,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defvar wisi--parser nil
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
+(defun wisi-kill-parser ()
+  (interactive)
+  (wisi-parse-kill wisi--parser))
+
 (defun wisi--run-parse ()
   "Run the parser."
   (let ((msg (when (> wisi-debug 0)
@@ -2326,6 +2330,9 @@ Called with BEGIN END.")
 
 (defun wisi-setup (indent-calculate post-indent-fail class-list parser lexer)
   "Set up a buffer for parsing files with wisi."
+  (when wisi--parser
+    (wisi-kill-parser))
+
   (setq wisi-class-list class-list)
   (setq wisi--parser parser)
   (setq wisi--lexer lexer)

@@ -43,17 +43,9 @@ run test from emacs -Q using source:
 
 /Projects/org.fasttoken/notes.text
 
-do commit
-    ada-mode
-    fasttoken
-    sal
-    aunit-ext
-
 wisi-process-parse use wisi lexer
     testing
-        subprograms - hangs
-            ada code no output; run in debugger
-                change fasttoken, sal, aunit to have single build dir, Common_Build = debug flag
+        subprograms - passes
 
         ada_mode-nominal.adb.diff process - hangs
 
@@ -1348,6 +1340,15 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
 
  relevant files, debug hints
 Edebug displays
+
+in wisi-process-parse--merge_tokens:
+(setq edebug-eval-list
+ '(tokens-1
+   tok
+   (aref token-table (aref tokens-1 i))
+   (queue-head (wisi-process--parser-parse-stack parser))
+   sexp
+   ))
 
 in wisi-parse-reduce:
 (setq edebug-eval-list

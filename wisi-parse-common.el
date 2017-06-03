@@ -32,6 +32,9 @@
 (cl-defgeneric wisi-parse-current ((parser wisi-parser))
   "Parse current buffer.")
 
+(cl-defgeneric wisi-parse-kill ((parser wisi-parser))
+  "Kill any external process associated with parser.")
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
