@@ -31,10 +31,6 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with FastToken.Token;
-generic
-   with package Token is new FastToken.Token (<>);
-   type Semantic_Action is private;
-   Null_Semantic_Action : in Semantic_Action;
 package FastToken.Production is
 
    type Right_Hand_Side is record
@@ -52,11 +48,11 @@ package FastToken.Production is
    --  reduced by the parser.
 
    function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Token_ID; Action : in Semantic_Action) return Right_Hand_Side;
+   function "+" (Tokens : in Token_ID; Action : in Semantic_Action) return Right_Hand_Side;
    function "+" (Action : in Semantic_Action) return Right_Hand_Side;
 
    function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
-   function "+" (Tokens : in Token.Token_ID; Index  : in Integer) return Right_Hand_Side;
+   function "+" (Tokens : in Token_ID; Index  : in Integer) return Right_Hand_Side;
    function "+" (Index  : in Integer) return Right_Hand_Side;
    --  Create the right hand side of a production.
    --
@@ -64,7 +60,7 @@ package FastToken.Production is
    --  and generated grammar table source code.
 
    type Instance is record
-      LHS : Token.Nonterminal_ID;
+      LHS : Token_ID;
       RHS : Right_Hand_Side;
    end record;
    type Handle is access all Instance;
@@ -73,7 +69,7 @@ package FastToken.Production is
    --
    --    Subtraction <= Number & Minus_Sign & Number + Token.Null_Action
 
-   function "<=" (LHS : in Token.Nonterminal_ID; RHS : in Right_Hand_Side) return Instance;
+   function "<=" (LHS : in Token_ID; RHS : in Right_Hand_Side) return Instance;
 
    function First_Token (Item : in Instance) return Token.List.List_Iterator;
 
@@ -100,7 +96,7 @@ package FastToken.Production is
       procedure Next (Iterator : in out List_Iterator);
 
       function Current (Iterator : in List_Iterator) return Production.Instance;
-      function LHS (Iterator : in List_Iterator) return Token.Nonterminal_ID;
+      function LHS (Iterator : in List_Iterator) return Token_ID;
       function RHS (Iterator : in List_Iterator) return Right_Hand_Side;
 
       function Last_Production (Iterator : in List_Iterator) return Boolean;

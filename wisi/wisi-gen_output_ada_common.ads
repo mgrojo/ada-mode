@@ -41,7 +41,7 @@ package Wisi.Gen_Output_Ada_Common is
    function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, Params.First_State_Index, To_Token_Ada_Name);
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, To_Token_Ada_Name);
 
    type Data_Type is record
       Parser_Algorithm : Valid_Parser_Algorithm;
@@ -74,7 +74,7 @@ package Wisi.Gen_Output_Ada_Common is
 
    type Action_Name_List is array (Integer range <>) of access String;
    type Action_Name_List_Access is access Action_Name_List;
-   type Nonterminal_Array_Action_Names is array (Generate_Utils.Token_Pkg.Nonterminal_ID) of Action_Name_List_Access;
+   type Nonterminal_Array_Action_Names is array (Generate_Utils.Nonterminal_ID) of Action_Name_List_Access;
    Ada_Action_Names : Nonterminal_Array_Action_Names;
    --  Ada names of subprograms for each grammar semantic action;
    --  non-null only if there is an action in the grammar.

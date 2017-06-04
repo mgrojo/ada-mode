@@ -22,6 +22,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers;
+with Ada.Strings.Unbounded;
+with Ada.Strings;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
 package body FastToken.Parser.LR.LALR_Generator is
@@ -71,23 +73,41 @@ package body FastToken.Parser.LR.LALR_Generator is
       end loop;
    end Free;
 
+   function Propagate_Lookahead (Descriptor : in LALR_Generator.Descriptor) return Token_ID_Set
+   is
+      Result : Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Propagate_ID) := (others => False);
+   begin
+      Result (Descriptor.Propagate_ID) := True;
+      return Result;
+   end Propagate_Lookahead;
+
+   function Null_Lookahead (Descriptor : in LALR_Generator.Descriptor) return Token_ID_Set
+   is
+      Result : constant Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Propagate_ID) := (others => False);
+   begin
+      return Result;
+   end Null_Lookahead;
+
    ----------
    --  Debug output
 
-   procedure Put (Propagations : Item_Item_List_Mapping_Ptr) is
+   procedure Put
+     (Descriptor   : in FastToken.Descriptor'Class;
+      Propagations : in Item_Item_List_Mapping_Ptr)
+   is
       Next_Prop : Item_Item_List_Mapping_Ptr := Propagations;
       Next_To   : Item_List_Ptr;
    begin
       while Next_Prop /= null loop
 
          Ada.Text_IO.Put ("From ");
-         LR1_Items.Put (Next_Prop.From, Show_Lookaheads => True);
+         LR1_Items.Put (Descriptor, Next_Prop.From, Show_Lookaheads => True);
          Ada.Text_IO.New_Line;
 
          Next_To := Next_Prop.To;
          while Next_To /= null loop
             Ada.Text_IO.Put ("To   ");
-            LR1_Items.Put (Next_To.Item, Show_Lookaheads => True);
+            LR1_Items.Put (Descriptor, Next_To.Item, Show_Lookaheads => True);
             Ada.Text_IO.New_Line;
 
             Next_To := Next_To.Next;
@@ -99,24 +119,25 @@ package body FastToken.Parser.LR.LALR_Generator is
    end Put;
 
    procedure Put_Parse_Table
-     (Table   : in Parse_Table_Ptr;
-      Kernels : in LR1_Items.Item_Set_List)
+     (Table      : in Parse_Table_Ptr;
+      Kernels    : in LR1_Items.Item_Set_List;
+      Descriptor : in LALR_Generator.Descriptor)
    is
       use Ada.Text_IO;
    begin
       Put_Line ("LALR Parse Table:");
       Put_Line ("Panic_Recover:");
-      Token.Put (Table.Panic_Recover);
+      Put (Descriptor, Table.Panic_Recover);
       New_Line;
 
       Put_Line ("Follow:");
-      Token.Put (Table.Follow);
+      Put (Descriptor, Table.Follow);
       New_Line;
 
       for State in Table.States'Range loop
-         LR1_Items.Put (LR1_Items.Find (State, Kernels).all, Show_Lookaheads => True);
+         LR1_Items.Put (Descriptor, LR1_Items.Find (State, Kernels).all, Show_Lookaheads => True);
          New_Line;
-         Put (Table.States (State));
+         Put (Descriptor, Table.States (State));
 
          New_Line;
       end loop;
@@ -126,21 +147,21 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  Generator utils
 
    function LALR_Goto_Transitions
-     (Kernel  : in LR1_Items.Item_Set;
-      Symbol  : in Token.Token_ID;
-      First   : in Token.Nonterminal_Array_Token_Set;
-      Grammar : in Production.List.Instance;
-      Trace   : in Boolean)
+     (Kernel     : in LR1_Items.Item_Set;
+      Symbol     : in Token_ID;
+      First      : in Token_Array_Token_Set;
+      Grammar    : in Production.List.Instance;
+      Trace      : in Boolean;
+      Descriptor : in LALR_Generator.Descriptor)
      return LR1_Items.Item_Set
    is
       use Token.List;
       use LR1_Items;
-      use type Token.Token_ID;
 
       Goto_Set : Item_Set;
 
       Item   : Item_Ptr := Kernel.Set;
-      Dot_ID : Token.Token_ID;
+      Dot_ID : Token_ID;
    begin
       Goto_Set.State := Unknown_State;
 
@@ -154,7 +175,7 @@ package body FastToken.Parser.LR.LALR_Generator is
             --  If Symbol = EOF_Token, this is the start symbol accept
             --  production; don't need a kernel with dot after EOF.
             if Dot_ID = Symbol and
-              Symbol /= EOF_Token and
+              Symbol /= Descriptor.EOF_ID and
               null = Find (Prod (Item), Next (Dot (Item)), Goto_Set, Match_Lookaheads => False)
             then
                Add
@@ -166,12 +187,14 @@ package body FastToken.Parser.LR.LALR_Generator is
                      Lookaheads => Lookaheads (Item)));
 
                if Trace then
-                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
-                  Put (Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
+                  Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Image (Descriptor, Symbol));
+                  Put (Descriptor, Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                end if;
             end if;
 
-            if Dot_ID in Token.Nonterminal_ID and then First (Dot_ID)(Symbol) then
+            if Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+              First (Dot_ID, Symbol)
+            then
                --  Find the production(s) that create Dot_ID
                --  with first token Symbol and put them in.
                --
@@ -187,7 +210,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                      Prod  := Production.List.Current (Prod_I);
                      RHS_I := Prod.RHS.Tokens.First;
 
-                     if (Dot_ID = Prod.LHS or First (Dot_ID)(Prod.LHS)) and
+                     if (Dot_ID = Prod.LHS or First (Dot_ID, Prod.LHS)) and
                        (RHS_I /= Null_Iterator and then ID (RHS_I) = Symbol)
                      then
                         if null = Find
@@ -199,13 +222,13 @@ package body FastToken.Parser.LR.LALR_Generator is
                                 (Prod       => Prod,
                                  Dot        => Next (RHS_I),
                                  State      => Unknown_State, -- replaced in Kernels
-                                 Lookaheads => Null_Lookaheads));
+                                 Lookaheads => Null_Lookahead (Descriptor)));
 
                            --  else already in goto set
 
                            if Trace then
-                              Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Token.Token_Image (Symbol));
-                              Put (Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
+                              Ada.Text_IO.Put_Line ("LALR_Goto_Transitions " & Image (Descriptor, Symbol));
+                              Put (Descriptor, Goto_Set, Show_Lookaheads => True, Show_Goto_List => True);
                            end if;
                         end if;
                      end if;
@@ -224,14 +247,14 @@ package body FastToken.Parser.LR.LALR_Generator is
 
    function LALR_Kernels
      (Grammar           : in Production.List.Instance;
-      First             : in Token.Nonterminal_Array_Token_Set;
+      First             : in Token_Array_Token_Set;
+      First_State_Index : in State_Index;
       Trace             : in Boolean;
-      First_State_Index : in Unknown_State_Index)
+      Descriptor        : in LALR_Generator.Descriptor)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
       use type Token.List.List_Iterator;
-      use type Token.Token_ID;
 
       Kernel_List : Item_Set_List :=
         (Head         => new Item_Set'
@@ -239,7 +262,7 @@ package body FastToken.Parser.LR.LALR_Generator is
               (Production.List.Current (Production.List.First (Grammar)),
                Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
                First_State_Index,
-               Null_Lookaheads),
+               Null_Lookahead (Descriptor)),
             Goto_List => null,
             State     => First_State_Index,
             Next      => null),
@@ -261,12 +284,12 @@ package body FastToken.Parser.LR.LALR_Generator is
          while Checking_Set /= null loop
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Put (Checking_Set.all);
+               Put (Descriptor, Checking_Set.all);
             end if;
 
-            for Symbol in Token.Grammar_ID loop
+            for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop
 
-               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Trace);
+               New_Items := LALR_Goto_Transitions (Checking_Set.all, Symbol, First, Grammar, Trace, Descriptor);
 
                if New_Items.Set /= null then
 
@@ -276,7 +299,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                      New_Items_To_Check := True;
 
                      New_Items.Next  := Kernel_List.Head;
-                     New_Items.State := Kernel_List.Size + First_State_Index;
+                     New_Items.State := Kernel_List.Size + State_Index'First;
 
                      Set_State (New_Items.Set, New_Items.State);
 
@@ -300,7 +323,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                         if Trace then
                            Ada.Text_IO.Put_Line
                              ("  state" & Unknown_State_Index'Image (Checking_Set.State) &
-                                " adding goto on " & Token.Token_Image (Symbol) & " to state" &
+                                " adding goto on " & Image (Descriptor, Symbol) & " to state" &
                                 Unknown_State_Index'Image (New_Items_Set.State));
 
                         end if;
@@ -333,7 +356,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       From_Set     : in     LR1_Items.Item_Set;
       To_Prod      : in     Production.Instance;
       To_Dot       : in     Token.List.List_Iterator;
-      For_Token    : in     Token.Token_ID;
+      For_Token    : in     Token_ID;
       Propagations : in out Item_Item_List_Mapping_Ptr)
    is
       use all type Production.Instance;
@@ -405,8 +428,9 @@ package body FastToken.Parser.LR.LALR_Generator is
       Source_Set   : in     LR1_Items.Item_Set;
       Closure_Item : in     LR1_Items.Item_Ptr;
       Propagations : in out Item_Item_List_Mapping_Ptr;
-      Used_Tokens  : in out Token.Token_ID_Set;
-      Trace        : in     Boolean)
+      Used_Tokens  : in out Token_ID_Set;
+      Trace        : in     Boolean;
+      Descriptor   : in     LALR_Generator.Descriptor)
    is
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
@@ -416,7 +440,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("  closure_item: ");
-         LR1_Items.Put (Closure_Item, Show_Lookaheads => True);
+         LR1_Items.Put (Descriptor, Closure_Item, Show_Lookaheads => True);
          Ada.Text_IO.New_Line;
       end if;
 
@@ -425,50 +449,51 @@ package body FastToken.Parser.LR.LALR_Generator is
       end if;
 
       declare
-         Token_ID    : constant Token.Token_ID           := Token.List.ID (Dot (Closure_Item));
+         ID          : constant Token_ID                 := Token.List.ID (Dot (Closure_Item));
          Next_Dot    : constant Token.List.List_Iterator := Token.List.Next (Dot (Closure_Item));
-         Goto_Set    : constant LR1_Items.Item_Set_Ptr   := LR1_Items.Goto_Set (Source_Set, Token_ID);
+         Goto_Set    : constant LR1_Items.Item_Set_Ptr   := LR1_Items.Goto_Set (Source_Set, ID);
          Next_Kernel : constant LR1_Items.Item_Ptr       :=
            (if Goto_Set = null then null
             else LR1_Items.Find (Prod (Closure_Item), Next_Dot, Goto_Set.all, Match_Lookaheads => False));
       begin
          begin
-            Used_Tokens (Token_ID) := True;
+            Used_Tokens (ID) := True;
          exception
          when Constraint_Error =>
-            raise Grammar_Error with "non-reporting " & Token.Token_Image (Token_ID) & " used in grammar";
+            raise Grammar_Error with "non-reporting " & Image (Descriptor, ID) & " used in grammar";
          end;
 
-         if Lookaheads (Closure_Item).Propagate then
+         if Lookaheads (Closure_Item) (Descriptor.Propagate_ID) then
             Add_Propagations
               (From         => Source_Item,
                From_Set     => Source_Set,
                To_Prod      => Prod (Closure_Item),
                To_Dot       => Next_Dot,
-               For_Token    => Token_ID,
+               For_Token    => ID,
                Propagations => Propagations);
          end if;
 
          if Next_Kernel /= null then
             if Trace then
                Spontaneous_Count := Spontaneous_Count + 1;
-               Ada.Text_IO.Put_Line ("  spontaneous: " & LR1_Items.Image (Lookaheads (Closure_Item)));
+               Ada.Text_IO.Put_Line ("  spontaneous: " & Lookahead_Image (Descriptor, Lookaheads (Closure_Item)));
             end if;
 
             LR1_Items.Include (Next_Kernel, Lookaheads (Closure_Item), Exclude_Propagate => True);
          end if;
 
          if Spontaneous_Count > 0 then
-            Ada.Text_IO.Put ("  Next_Kernel (" & Token.Token_Image (Token_ID) & "): ");
-            LR1_Items.Put (Next_Kernel, Show_Lookaheads => True);
+            Ada.Text_IO.Put ("  Next_Kernel (" & Image (Descriptor, ID) & "): ");
+            LR1_Items.Put (Descriptor, Next_Kernel, Show_Lookaheads => True);
             Ada.Text_IO.New_Line;
          end if;
       end;
    end Generate_Lookahead_Info;
 
    procedure Propagate_Lookaheads
-     (List  : in Item_Item_List_Mapping_Ptr;
-      Trace : in Boolean)
+     (List       : in Item_Item_List_Mapping_Ptr;
+      Trace      : in Boolean;
+      Descriptor : in FastToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
 
@@ -491,7 +516,7 @@ package body FastToken.Parser.LR.LALR_Generator is
                if Trace and Added_One then
                   Added_Some := True;
                   Ada.Text_IO.Put ("  to: ");
-                  LR1_Items.Put (To.Item, Show_Lookaheads => True);
+                  LR1_Items.Put (Descriptor, To.Item, Show_Lookaheads => True);
                   Ada.Text_IO.New_Line;
                end if;
 
@@ -502,7 +527,7 @@ package body FastToken.Parser.LR.LALR_Generator is
             if Trace and Added_Some then
                Added_Some := False;
                Ada.Text_IO.Put ("from: ");
-               LR1_Items.Put (Mapping.From, Show_Lookaheads => True);
+               LR1_Items.Put (Descriptor, Mapping.From, Show_Lookaheads => True);
                Ada.Text_IO.New_Line;
             end if;
 
@@ -516,11 +541,12 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  become the set of LALR(1) kernels on output.
    procedure Fill_In_Lookaheads
      (Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
-      First                : in     Token.Nonterminal_Array_Token_Set;
+      Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Kernels              : in out LR1_Items.Item_Set_List;
-      Used_Tokens          : in out Token.Token_ID_Set;
-      Trace                : in     Boolean)
+      Used_Tokens          : in out Token_ID_Set;
+      Trace                : in     Boolean;
+      Descriptor           : in     LALR_Generator.Descriptor)
    is
       use all type LR1_Items.Item_Set_Ptr;
       use all type LR1_Items.Item_Ptr;
@@ -543,7 +569,7 @@ package body FastToken.Parser.LR.LALR_Generator is
       while Kernel /= null loop
          if Trace then
             Ada.Text_IO.Put ("Adding lookaheads for ");
-            LR1_Items.Put (Kernel.all, Show_Lookaheads => True);
+            LR1_Items.Put (Descriptor, Kernel.all, Show_Lookaheads => True);
          end if;
 
          Kernel_Item := Kernel.Set;
@@ -554,16 +580,16 @@ package body FastToken.Parser.LR.LALR_Generator is
                Prod (Kernel_Item),
                Dot (Kernel_Item),
                State (Kernel_Item),
-               (Propagate => True, Tokens => (others => False)));
+               Propagate_Lookahead (Descriptor));
 
             Closure := LR1_Items.Closure
-              (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Trace => False);
+              (Kernel_Item_Set, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
 
             Closure_Item := Closure.Set;
             while Closure_Item /= null loop
 
                Generate_Lookahead_Info
-                 (Kernel_Item, Kernel.all, Closure_Item, Propagation_List, Used_Tokens, Trace);
+                 (Kernel_Item, Kernel.all, Closure_Item, Propagation_List, Used_Tokens, Trace, Descriptor);
 
                Closure_Item := Next (Closure_Item);
             end loop;
@@ -578,11 +604,11 @@ package body FastToken.Parser.LR.LALR_Generator is
       if Trace then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("Propagations:");
-         Put (Propagation_List);
+         Put (Descriptor, Propagation_List);
          Ada.Text_IO.New_Line;
       end if;
 
-      Propagate_Lookaheads (Propagation_List, Trace);
+      Propagate_Lookaheads (Propagation_List, Trace, Descriptor);
 
       Free (Propagation_List);
       LR1_Items.Free (Kernel_Item_Set);
@@ -593,11 +619,12 @@ package body FastToken.Parser.LR.LALR_Generator is
    procedure Add_Actions
      (Kernels              : in     LR1_Items.Item_Set_List;
       Grammar              : in     Production.List.Instance;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
-      First                : in     Token.Nonterminal_Array_Token_Set;
+      Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
-      Trace                : in     Boolean)
+      Trace                : in     Boolean;
+      Descriptor           : in     LALR_Generator.Descriptor)
    is
       use type LR1_Items.Item_Set_Ptr;
 
@@ -606,9 +633,9 @@ package body FastToken.Parser.LR.LALR_Generator is
    begin
       while Kernel /= null loop
          Closure := LR1_Items.Closure
-           (Kernel.all, Has_Empty_Production, First, Grammar, Trace => False);
+           (Kernel.all, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
 
-         Add_Actions (Closure, Table, Has_Empty_Production, Conflicts, Trace);
+         Add_Actions (Closure, Table, Has_Empty_Production, Conflicts, Trace, Descriptor);
          Kernel := Kernel.Next;
 
          LR1_Items.Free (Closure);
@@ -619,14 +646,46 @@ package body FastToken.Parser.LR.LALR_Generator is
       end if;
    end Add_Actions;
 
+   overriding
+   function To_Lookahead (Descriptor : in LALR_Generator.Descriptor; Item : in Token_ID) return Token_ID_Set
+   is
+      Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Propagate_ID => False);
+   begin
+      Result (Item) := True;
+      return Result;
+   end To_Lookahead;
+
+   overriding
+   function Lookahead_Image (Descriptor : in LALR_Generator.Descriptor; Item : in Token_ID_Set) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := Null_Unbounded_String;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            if Length (Result) > 0 then
+               Result := Result & "/";
+            end if;
+            if I = Descriptor.Propagate_ID then
+               Result := Result & "#";
+            else
+               Result := Result & Image (Descriptor, I);
+            end if;
+         end if;
+      end loop;
+      return To_String (Result);
+   end Lookahead_Image;
+
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Known_Conflicts          : in Conflict_Lists.List      := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Token.Nonterminal_ID_Set := (others => False);
-      Trace                    : in Boolean                  := False;
-      Put_Parse_Table          : in Boolean                  := False;
-      Ignore_Unused_Tokens     : in Boolean                  := False;
-      Ignore_Unknown_Conflicts : in Boolean                  := False)
+      Descriptor               : in LALR_Generator.Descriptor;
+      First_State_Index        : in State_Index;
+      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
+      Trace                    : in Boolean             := False;
+      Put_Parse_Table          : in Boolean             := False;
+      Ignore_Unused_Tokens     : in Boolean             := False;
+      Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr
    is
       use all type Ada.Containers.Count_Type;
@@ -636,13 +695,13 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Token.Nonterminal_ID_Set          := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant Token.Nonterminal_Array_Token_Set := LR1_Items.First
-        (Grammar, Has_Empty_Production, Trace);
-      Used_Tokens          : Token.Token_ID_Set                         := (others => False);
+      Has_Empty_Production : constant Token_ID_Set := LR1_Items.Has_Empty_Production (Grammar, Descriptor);
 
-      Kernels : LR1_Items.Item_Set_List := LALR_Kernels
-        (Grammar, First, Trace, Unknown_State_Index (First_State_Index));
+      First : constant Token_Array_Token_Set := LR1_Items.First (Grammar, Descriptor, Has_Empty_Production, Trace);
+
+      Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
+
+      Kernels : LR1_Items.Item_Set_List := LALR_Kernels (Grammar, First, First_State_Index, Trace, Descriptor);
 
       First_Production : Production.Instance renames Production.List.Current (Grammar.First);
 
@@ -653,7 +712,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    begin
       Used_Tokens (First_Production.LHS) := True;
 
-      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace);
+      Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace, Descriptor);
 
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
@@ -661,33 +720,42 @@ package body FastToken.Parser.LR.LALR_Generator is
                Ada.Text_IO.Put_Line ("Unused tokens:");
                Unused_Tokens := True;
             end if;
-            Ada.Text_IO.Put_Line (Token.Token_Image (I));
+            Ada.Text_IO.Put_Line (Image (Descriptor, I));
          end if;
       end loop;
 
       if Trace then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Kernels:");
-         LR1_Items.Put (Kernels, Show_Lookaheads => True);
+         LR1_Items.Put (Descriptor, Kernels, Show_Lookaheads => True);
       end if;
 
-      Table := new Parse_Table (Kernels.Size - 1 + State_Index'First);
+      Table := new Parse_Table
+        (State_Last        => Kernels.Size - 1 + State_Index'First,
+         First_Terminal    => Descriptor.First_Terminal,
+         Last_Terminal     => Descriptor.Last_Terminal,
+         First_Nonterminal => Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-      Table.Panic_Recover := Panic_Recover;
-      Table.Follow        := LR1_Items.Follow (Grammar, First, Has_Empty_Production);
+      Table.Panic_Recover :=
+        (if Panic_Recover = Default_Panic_Recover
+         then (Table.First_Nonterminal .. Table.Last_Nonterminal => False)
+         else Panic_Recover);
+
+      Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 
       Add_Actions
-        (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace);
+        (Kernels, Grammar, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 
       if Put_Parse_Table then
-         LALR_Generator.Put_Parse_Table (Table, Kernels);
+         LALR_Generator.Put_Parse_Table (Table, Kernels, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
          Ada.Text_IO.Put_Line ("unknown conflicts:");
-         Put (Unknown_Conflicts);
+         Put (Descriptor, Unknown_Conflicts);
          if not Ignore_Unknown_Conflicts then
             raise Grammar_Error with "unknown conflicts; aborting";
          end if;
@@ -695,7 +763,7 @@ package body FastToken.Parser.LR.LALR_Generator is
 
       if Known_Conflicts_Edit.Length > 0 then
          Ada.Text_IO.Put_Line ("excess known conflicts:");
-         Put (Known_Conflicts_Edit);
+         Put (Descriptor, Known_Conflicts_Edit);
          if not Ignore_Unknown_Conflicts then
             raise Grammar_Error with "excess known conflicts; aborting";
          end if;

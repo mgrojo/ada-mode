@@ -28,27 +28,8 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
 with Ada.Unchecked_Deallocation;
 package body FastToken.Token is
-
-   function Image (Item : in Token_ID_Set) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result     : Unbounded_String;
-      Need_Comma : Boolean := False;
-   begin
-      for I in Item'Range loop
-         if Item (I) then
-            if Need_Comma then
-               Result := Result & ", ";
-            end if;
-            Result     := Result & Token.Token_Image (I);
-            Need_Comma := True;
-         end if;
-      end loop;
-      return To_String (Result);
-   end Image;
 
    package body List is
 
@@ -187,16 +168,16 @@ package body FastToken.Token is
          return Iterator.ID;
       end Current;
 
-      procedure Put_Trace (Item : in Instance)
+      procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Instance)
       is
          I : List_Iterator := Item.First;
       begin
          loop
             exit when I = Null_Iterator;
-            Put_Trace (Token_Image (I.ID));
+            Put_Trace (Trace, Image (Trace.Descriptor.all, I.ID));
             Next (I);
             if I /= Null_Iterator then
-               Put_Trace (", ");
+               Put_Trace (Trace, ", ");
             end if;
          end loop;
       end Put_Trace;

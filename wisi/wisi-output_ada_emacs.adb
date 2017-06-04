@@ -29,14 +29,15 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with FastToken;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.LR1_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
 with Wisi.Utils;
 procedure Wisi.Output_Ada_Emacs
   (Input_File_Name         : in String;
    Output_File_Name_Root   : in String;
-   Generate_Params         : in Generate_Param_Type;
+   Params                  : in Generate_Param_Type;
    Prologue_Context_Clause : in String_Lists.List;
    Prologue_Declarations   : in String_Lists.List;
    Keywords                : in String_Pair_Lists.List;
@@ -80,7 +81,7 @@ is
    end Put_Ada_Prologue_Declarations;
 
    package Common is new Wisi.Gen_Output_Ada_Common
-     (Keywords, Tokens, Conflicts, Rules, Generate_Params, Put_Ada_Prologue_Context_Clause,
+     (Keywords, Tokens, Conflicts, Rules, Params, Put_Ada_Prologue_Context_Clause,
       Put_Ada_Prologue_Declarations, Put_Ada_Prologue_Context_Clause);
    use Common;
 
@@ -111,8 +112,10 @@ is
 
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := Generate_Utils.LALR_Generator.Generate
+         Parsers (LALR) := FastToken.Parser.LR.LALR_Generator.Generate
            (Data.Grammar,
+            LALR_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -125,8 +128,10 @@ is
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := Generate_Utils.LR1_Generator.Generate
+         Parsers (LR1) := FastToken.Parser.LR.LR1_Generator.Generate
            (Data.Grammar,
+            LR1_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -204,7 +209,7 @@ is
          --  Populate Ada_Action_Names, Elisp_Action_Names
          for Rule of Rules loop
             declare
-               LHS_ID : constant Generate_Utils.Token_Pkg.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+               LHS_ID : constant Generate_Utils.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 
                Index      : Integer := 0; -- Semantic_Action defines Index as zero-origin
                All_Empty  : Boolean := True;
@@ -316,11 +321,12 @@ is
 
    procedure Create_Process_Elisp
    is
+      use Generate_Utils;
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
-      use Generate_Utils;
-      use all type Rule_Lists.Cursor;
+      use all type FastToken.Token_ID;
       use all type RHS_Lists.Cursor;
+      use all type Rule_Lists.Cursor;
 
       File         : File_Type;
       Paren_1_Done : Boolean := False;
@@ -377,7 +383,7 @@ is
       Put_Line ("nil");
       Paren_1_Done := True;
 
-      for I in Generate_Utils.Token_ID'Succ (Elisp_Action_Names'First) .. Elisp_Action_Names'Last loop
+      for I in Elisp_Action_Names'First + 1 .. Elisp_Action_Names'Last loop
          if Elisp_Action_Names (I) = null then
             if Paren_1_Done then
                Indent_Line ("nil");
@@ -446,9 +452,11 @@ is
       Lower_Package_Name_Root : constant String := -Data.Package_Name_Root;
 
       function To_ID_Image (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-      is begin
-         --  Ada 'Val is 0 origin; Generate_Utils Token_ID is 1 origin
-         return Integer'Image (-1 + Find_Token_ID (-Name));
+      is
+         use FastToken;
+      begin
+         --  Ada 'Val is 0 origin; Token_ID is 1 origin
+         return Token_ID'Image (-1 + Find_Token_ID (-Name));
       end To_ID_Image;
 
       File : File_Type;
@@ -678,10 +686,10 @@ begin
          when Process => "_Process",
          when Module     => "_Module"),
       Output_Language    => Ada_Emacs,
-      Interface_Kind     => Generate_Params.Interface_Kind,
-      Lexer              => Generate_Params.Lexer,
-      First_State_Index  => Generate_Params.First_State_Index,
-      First_Parser_Label => Generate_Params.First_Parser_Label);
+      Interface_Kind     => Params.Interface_Kind,
+      Lexer              => Params.Lexer,
+      First_State_Index  => Params.First_State_Index,
+      First_Parser_Label => Params.First_Parser_Label);
 
    Create_Ada_Body;
 

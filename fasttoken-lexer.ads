@@ -2,7 +2,7 @@
 --
 --  An abstract lexer interface.
 --
---  Copyright (C) 2014 - 2015 Stephe Leake
+--  Copyright (C) 2014 - 2015, 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -28,8 +28,6 @@
 pragma License (Modified_GPL);
 
 with FastToken.Text_Feeder;
-generic
-   type Token_ID is (<>);
 package FastToken.Lexer is
 
    type Instance is abstract tagged record

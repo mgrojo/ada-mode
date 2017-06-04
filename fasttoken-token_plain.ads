@@ -17,66 +17,41 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Token;
-generic
-   with package Token_Pkg is new FastToken.Token (<>);
-   with package Lexer is new FastToken.Lexer (<>);
-
-   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
-   --  Accumulate Item in the trace buffer, output the trace buffer to
-   --  the display.
-
 package FastToken.Token_Plain is
 
-   type Semantic_Action is access procedure
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance);
-   --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production (0 origin);
-   --  Source is the right hand side tokens.
+   type Augmented_Token is new FastToken.Augmented_Token with null record;
 
-   procedure Null_Semantic_Action
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance)
-     is null;
+   type State_Type is new FastToken.Token.Semantic_State with null record;
 
-   Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
+   overriding procedure Reset (State : access State_Type) is null;
 
-   type State_Type is tagged null record;
-
-   procedure Reset (State : access State_Type) is null;
-
-   procedure Input_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+   overriding procedure Input_Token
+     (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     Token_Plain.Lexer.Handle)
+      Lexer : in     FastToken.Lexer.Handle)
      is null;
 
-   procedure Push_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+   overriding procedure Push_Token
+     (Token : in     Token_ID;
       State : access State_Type)
    is null;
 
-   procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+   overriding procedure Merge_Tokens
+     (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
+      Tokens  : in     Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.
 
-   procedure Recover
-     (Popped_Tokens  : in     Token_Pkg.List.Instance;
-      Skipped_Tokens : in     Token_Pkg.List.Instance;
-      Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
+   overriding procedure Recover
+     (Popped_Tokens  : in     Token.List.Instance;
+      Skipped_Tokens : in     Token.List.Instance;
+      Pushed_Token   : in     Token_ID;
       State          : access State_Type)
      is null;
-
-   State : aliased State_Type;
 
 end FastToken.Token_Plain;

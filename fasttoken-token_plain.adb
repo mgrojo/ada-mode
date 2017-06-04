@@ -20,33 +20,50 @@ pragma License (GPL);
 with Ada.Characters.Handling;
 package body FastToken.Token_Plain is
 
-   procedure Put_Trace (Nonterm : in Token_Pkg.Nonterminal_ID; Index : in Natural; Tokens : in Token_Pkg.List.Instance)
+   procedure Put_Trace
+     (Trace   : in out FastToken.Trace'Class;
+      Nonterm : in     Token_ID;
+      Index   : in     Natural;
+      Tokens  : in     Token.List.Instance)
    is
       use Ada.Characters.Handling;
-      use Token_Pkg.List;
-      use Token_Pkg;
+      use Token.List;
 
-      Action_Name : constant String := To_Lower (Image (Nonterm)) &
+      Action_Name : constant String := To_Lower (Image (Trace.Descriptor.all, Nonterm)) &
         "_" & Int_Image (Index);
    begin
-      Put_Trace (Action_Name & ": " & Image (Nonterm) & " <= ");
-      Put_Trace (Tokens);
-      Put_Trace_Line ("");
+      Put_Trace (Trace, Action_Name & ": " & Image (Trace.Descriptor.all, Nonterm) & " <= ");
+      Put_Trace (Trace, Tokens);
+      Put_Trace_Line (Trace, "");
    end Put_Trace;
 
-   procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+   overriding procedure Merge_Tokens
+     (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
+      Tokens  : in     Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type)
    is
-      pragma Unreferenced (State);
+      function To_Augmented (Item : in Token.List.Instance) return Token_Stack_Type
+      is
+         use Token.List;
+
+         Result : Token_Stack_Type;
+         I      : List_Iterator := Item.First;
+      begin
+         loop
+            exit when Is_Null (I);
+            Result.Append (Augmented_Token'(ID => ID (I)));
+            Next (I);
+         end loop;
+         return Result;
+      end To_Augmented;
+
    begin
       if Action /= null then
-         Action (Nonterm, Index, Tokens);
+         Action (Augmented_Token'(ID => Nonterm), Index, To_Augmented (Tokens));
          if Trace_Parse > 1 then
-            Put_Trace (Nonterm, Index, Tokens);
+            Put_Trace (State.Trace.all, Nonterm, Index, Tokens);
          end if;
       end if;
    end Merge_Tokens;

@@ -20,12 +20,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
-with FastToken.Parser.LR1_Items;
-with FastToken.Production;
-generic
-   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
-   with package LR1_Items is new Parser.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
+with FastToken.Parser.LR.LR1_Items;
 package FastToken.Parser.LR.Generator_Utils is
 
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
@@ -40,11 +35,11 @@ package FastToken.Parser.LR.Generator_Utils is
       --  conflicts (not for known conflicts from the grammar
       --  definition file), for Text_IO output.
       Action_A    : Conflict_Parse_Actions;
-      LHS_A       : Token.Token_ID;
+      LHS_A       : Token_ID;
       Action_B    : Conflict_Parse_Actions;
-      LHS_B       : Token.Token_ID;
+      LHS_B       : Token_ID;
       State_Index : Unknown_State_Index;
-      On          : Token.Token_ID;
+      On          : Token_ID;
    end record;
 
    package Conflict_Lists is new Ada.Containers.Doubly_Linked_Lists (Conflict);
@@ -53,13 +48,14 @@ package FastToken.Parser.LR.Generator_Utils is
    --  Subpgrograms, alphabetical order
 
    procedure Add_Action
-     (Symbol               : in     Token.Terminal_ID;
+     (Symbol               : in     Token_ID;
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean);
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class);
    --  Add (Symbol, Action) to Action_List; check for conflicts
    --
    --  Closure .. Conflicts are for conflict reporting
@@ -67,19 +63,21 @@ package FastToken.Parser.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean);
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class);
    --  Add actions for Closure to Table. Has_Empty_Production,
    --  Conflicts used for conflict reporting.
 
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Trace                : in     Boolean);
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class);
    --  Add actions for Item.Lookaheads to Action_List
    --  Closure must be from the item set containing Item.
    --  Has_Empty_Production .. Closure used for conflict reporting.
@@ -90,24 +88,25 @@ package FastToken.Parser.LR.Generator_Utils is
    --  Delete Known_Conflicts from Conflicts.
 
    function Find
-     (Symbol      : in Token.Terminal_ID;
+     (Symbol      : in Token_ID;
       Action_List : in Action_Node_Ptr)
      return Action_Node_Ptr;
 
    function Find
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
-      Lookahead            : in Token.Token_ID;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set)
-     return Token.Token_ID;
+      Lookahead            : in Token_ID;
+      Has_Empty_Production : in Token_ID_Set;
+      Descriptor           : in FastToken.Descriptor'Class)
+     return Token_ID;
    --  Return the LHS of a production involved in Action, for a Conflict object.
 
-   function Image (Item : in Conflict) return String;
+   function Image (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict) return String;
 
    function Is_Present (Item : in Conflict; Conflicts : in Conflict_Lists.List) return Boolean;
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
-   procedure Put (Item : in Conflict_Lists.List);
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict_Lists.List);
 
 end FastToken.Parser.LR.Generator_Utils;

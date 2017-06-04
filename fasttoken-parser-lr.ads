@@ -37,22 +37,6 @@
 pragma License (GPL);
 
 with Ada.Unchecked_Deallocation;
-generic
-   First_State_Index : in Natural;
-   Token_Image_Width : Integer;
-   type Semantic_Action is private;
-   Null_Semantic_Action : in Semantic_Action;
-   type Semantic_State_Type is private;
-
-   with procedure Input_Token
-     (Token : in     Token_Pkg.Terminal_ID;
-      State : access Semantic_State_Type;
-      Lexer : in     FastToken.Parser.Lexer.Handle);
-   --  Parser just fetched Token from Lexer; save it for later push or
-   --  recover operations.
-
-   pragma Unreferenced (Input_Token);
-   --  referenced in children
 package FastToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
@@ -69,7 +53,7 @@ package FastToken.Parser.LR is
    --  the state the parser need to change to.
 
    type Unknown_State_Index is new Integer range -1 .. Integer'Last;
-   subtype State_Index is Unknown_State_Index range Unknown_State_Index (First_State_Index) .. Unknown_State_Index'Last;
+   subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
    Unknown_State : constant Unknown_State_Index := -1;
 
    type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
@@ -78,7 +62,7 @@ package FastToken.Parser.LR is
       when Shift =>
          State : State_Index;
       when Reduce | Accept_It =>
-         LHS    : Token.Nonterminal_ID;
+         LHS    : Token_ID;
          Action : Semantic_Action;
          Index  : Natural;
          --  Index of production among productions for a nonterminal,
@@ -91,10 +75,9 @@ package FastToken.Parser.LR is
    end record;
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
-   Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
-     (Reduce, Token.Nonterminal_ID'First, Null_Semantic_Action, 0, 0);
+   Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
 
-   procedure Put_Trace (Item : in Parse_Action_Rec);
+   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Parse_Action_Rec);
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -108,7 +91,7 @@ package FastToken.Parser.LR is
    type Action_Node_Ptr is access Action_Node;
 
    type Action_Node is record
-      Symbol : Token.Terminal_ID; -- ignored if Action is Error
+      Symbol : Token_ID; -- ignored if Action is Error
       Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;
@@ -141,7 +124,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     LR.Semantic_Action);
+      Semantic_Action : in     FastToken.Semantic_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
@@ -151,7 +134,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     LR.Semantic_Action);
+      Semantic_Action : in     FastToken.Semantic_Action);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -179,12 +162,20 @@ package FastToken.Parser.LR is
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
-   type Parse_Table (State_Last : State_Index) is record
+   type Parse_Table
+     (State_Last        : State_Index;
+      First_Terminal    : Token_ID;
+      Last_Terminal     : Token_ID;
+      First_Nonterminal : Token_ID;
+      Last_Nonterminal  : Token_ID)
+     is record
 
       States        : Parse_State_Array (State_Index'First .. State_Last);
-      Panic_Recover : Token.Nonterminal_ID_Set;
-      Follow        : Token.Nonterminal_Array_Terminal_Set;
+      Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
+
+   Default_Panic_Recover : constant Token_ID_Set := (1 .. 0 => False);
 
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
@@ -192,7 +183,7 @@ package FastToken.Parser.LR is
    function Goto_For
      (Table : in Parse_Table;
       State : in State_Index;
-      ID    : in Token.Nonterminal_ID)
+      ID    : in Token_ID)
      return Unknown_State_Index;
    --  Return next state after reducing stack by ID; Unknown_State if
    --  none (only possible during error recovery).
@@ -200,26 +191,26 @@ package FastToken.Parser.LR is
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;
-      ID    : in Token.Terminal_ID)
+      ID    : in Token_ID)
      return Parse_Action_Node_Ptr;
    --  Return the action for State, ID.
 
    type Panic_Data is record
       --  Stored with parser state during panic mode recovery
-      Nonterm        : Token.Nonterminal_ID;
+      Nonterm        : Token_ID;
       Goto_State     : Unknown_State_Index;
       Popped_Tokens  : Token.List.Instance;
-      Pushed_Token   : Token.Nonterminal_ID;
+      Pushed_Token   : Token_ID;
       --  Semantic actions are not performed on the popped or skipped
       --  tokens.
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Token.Nonterminal_ID'First, Unknown_State, Token.List.Null_List, Token.Nonterminal_ID'First);
+     (Token_ID'First, Unknown_State, Token.List.Null_List, Token_ID'First);
 
    type Instance is abstract new FastToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
-      Semantic_State : access Semantic_State_Type;
+      Semantic_State : access FastToken.Token.Semantic_State;
       Skipped_Tokens : Token.List.Instance;
       --  During error recovery, all parallel parsers skip the same
       --  tokens
@@ -231,17 +222,17 @@ package FastToken.Parser.LR is
    function State_Image (Item : in State_Index) return String;
    --  no leading space
 
-   procedure Put (Item : in Parse_Action_Rec);
-   procedure Put (Action : in Parse_Action_Node_Ptr);
-   procedure Put (State : in Parse_State);
-   procedure Put (Table : in Parse_Table);
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Parse_Action_Rec);
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; State : in Parse_State);
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; Table : in Parse_Table);
 
 private
 
    --  Private to enforce use of Add; doesn't succeed, since only
    --  children use it.
    type Goto_Node is record
-      Symbol : Token.Nonterminal_ID;
+      Symbol : Token_ID;
       State  : State_Index;
       Next   : Goto_Node_Ptr;
    end record;

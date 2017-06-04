@@ -30,31 +30,18 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with FastToken.Production;
-generic
-   type Unknown_State_Index is range <>;
-   Unknown_State : in Unknown_State_Index;
-
-   type Semantic_Action is private;
-   Null_Semantic_Action : in Semantic_Action;
-   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
-package FastToken.Parser.LR1_Items is
+package FastToken.Parser.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
    --  [dragon] LALR algorithm 4.12. That is implemented by setting
-   --  Propagate = True.
-   type Lookahead is record
-      Propagate : Boolean;
-      Tokens    : Token.Terminal_ID_Set;
-   end record;
-   Null_Lookaheads : constant Lookahead := (False, (others => False));
-
-   function "+" (Item : in Token.Token_ID) return Lookahead;
+   --  lookahead (Last_Nonterminal + 1) true..
+   subtype Lookahead is Token_ID_Set;
 
    type Item_Node is private;
    type Item_Ptr is access Item_Node;
 
    function Prod (Item : in Item_Ptr) return Production.Instance;
-   function LHS (Item : in Item_Ptr) return Token.Nonterminal_ID;
+   function LHS (Item : in Item_Ptr) return Token_ID;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
    function Dot (Item : in Item_Ptr) return Token.List.List_Iterator;
    --  Token after Dot.
@@ -87,7 +74,7 @@ package FastToken.Parser.LR1_Items is
 
    procedure Include
      (Item  : in Item_Ptr;
-      Value : in Token.Terminal_ID);
+      Value : in Token_ID);
    procedure Include
      (Item              : in Item_Ptr;
       Value             : in Lookahead;
@@ -102,7 +89,7 @@ package FastToken.Parser.LR1_Items is
    type Goto_Item is private;
    type Goto_Item_Ptr is access Goto_Item;
 
-   function Symbol (List : in Goto_Item_Ptr) return Token.Token_ID;
+   function Symbol (List : in Goto_Item_Ptr) return Token_ID;
    function State (List : in Goto_Item_Ptr) return Unknown_State_Index;
    function Next (List : in Goto_Item_Ptr) return Goto_Item_Ptr;
 
@@ -110,13 +97,13 @@ package FastToken.Parser.LR1_Items is
    type Item_Set_Ptr is access Item_Set;
 
    function New_Goto_Item
-     (Symbol : in     Token.Token_ID;
+     (Symbol : in     Token_ID;
       Set    : in     Item_Set_Ptr)
      return Goto_Item_Ptr;
 
    procedure Add
      (List   : in out Goto_Item_Ptr;
-      Symbol : in     Token.Token_ID;
+      Symbol : in     Token_ID;
       Set    : in     Item_Set_Ptr);
    --  Add an item to List; keep List sorted in ascending order on Symbol.
 
@@ -135,7 +122,7 @@ package FastToken.Parser.LR1_Items is
      return Item_Set;
    --  Return a deep copy of Set, including only items for which Include returns True.
 
-   function In_Kernel (Item : in Item_Ptr) return Boolean;
+   function In_Kernel (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean;
    --  For use with Filter; [dragon] sec 4.7 pg 240
 
    type Item_Set_List is record
@@ -152,11 +139,11 @@ package FastToken.Parser.LR1_Items is
    --  Add New_Item to Target without checking to see if it is in there already.
 
    function Find
-     (Prod             : in Production.Instance;
-      Dot              : in Token.List.List_Iterator;
-      Right            : in Item_Set;
-      Lookaheads       : in Lookahead := Null_Lookaheads;
-      Match_Lookaheads : in Boolean)
+     (Prod             : in     Production.Instance;
+      Dot              : in     Token.List.List_Iterator;
+      Right            : in     Item_Set;
+      Lookaheads       : access Lookahead := null;
+      Match_Lookaheads : in     Boolean)
      return Item_Ptr;
    --  Return a pointer to an item in Right that matches Prod, Dot,
    --  and Lookaheads if Match_Lookaheads; null if not found.
@@ -175,25 +162,29 @@ package FastToken.Parser.LR1_Items is
    --  Return a pointer to the set in Sets containing State, null if not found.
 
    function Is_In
-     (Symbol    : in Token.Token_ID;
+     (Symbol    : in Token_ID;
       Set       : in Item_Set_Ptr;
       Goto_List : in Goto_Item_Ptr)
      return Boolean;
 
    function Goto_Set
      (From   : in Item_Set;
-      Symbol : in Token.Token_ID)
+      Symbol : in Token_ID)
      return Item_Set_Ptr;
    --  Return Item_Set from From.Goto_List where the goto symbol is
    --  Symbol; null if not found.
 
-   function Has_Empty_Production (Grammar : in Production.List.Instance) return Token.Nonterminal_ID_Set;
+   function Has_Empty_Production
+     (Grammar    : in Production.List.Instance;
+      Descriptor : in FastToken.Descriptor'Class)
+     return Token_ID_Set;
 
    function First
      (Grammar              : in Production.List.Instance;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set;
+      Descriptor           : in FastToken.Descriptor'Class;
+      Has_Empty_Production : in Token_ID_Set;
       Trace                : in Boolean)
-     return Token.Nonterminal_Array_Token_Set;
+     return Token_Array_Token_Set;
    --  For each nonterminal in Grammar, find the set of tokens
    --  (terminal or nonterminal) that any string derived from it can
    --  start with. Together with Has_Empty_Production, implements
@@ -201,18 +192,20 @@ package FastToken.Parser.LR1_Items is
 
    function Follow
      (Grammar              : in Production.List.Instance;
-      First                : in Token.Nonterminal_Array_Token_Set;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set)
-     return Token.Nonterminal_Array_Terminal_Set;
+      Descriptor           : in FastToken.Descriptor'Class;
+      First                : in Token_Array_Token_Set;
+      Has_Empty_Production : in Token_ID_Set)
+     return Token_Array_Token_Set;
    --  For each nonterminal in Grammar, find the set of terminal
    --  tokens that can follow it. Implements algorithm FOLLOW from
    --  [dragon] pg 189.
 
    function Closure
      (Set                  : in Item_Set;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set;
-      First                : in Token.Nonterminal_Array_Token_Set;
+      Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
+      Descriptor           : in FastToken.Descriptor'Class;
       Trace                : in Boolean)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
@@ -220,21 +213,31 @@ package FastToken.Parser.LR1_Items is
    --  Implements 'closure' from [dragon] algorithm 4.9 pg 232, but
    --  allows merging lookaheads into one item..
 
-   function Image (Item : in Lookahead) return String;
-
-   procedure Put (Item : in Item_Ptr; Show_Lookaheads : in Boolean);
+   procedure Put
+     (Descriptor      : in FastToken.Descriptor'Class;
+      Item            : in Item_Ptr;
+      Show_Lookaheads : in Boolean);
    --  Ignores Item.Next.
 
    procedure Put
-     (Item            : in Item_Set;
+     (Descriptor      : in FastToken.Descriptor'Class;
+      Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
       Show_Goto_List  : in Boolean := False);
    --  Ignores Item.Next.
 
-   procedure Put (Item : in Goto_Item_Ptr);
-   procedure Put (Item : in Item_Set_Ptr; Show_Lookaheads : in Boolean := True);
-   procedure Put (Item : in Item_Set_List; Show_Lookaheads : in Boolean := True);
+   procedure Put
+     (Descriptor : in FastToken.Descriptor'Class;
+      Item       : in Goto_Item_Ptr);
+   procedure Put
+     (Descriptor      : in FastToken.Descriptor'Class;
+      Item            : in Item_Set_Ptr;
+      Show_Lookaheads : in Boolean := True);
+   procedure Put
+     (Descriptor      : in FastToken.Descriptor'Class;
+      Item            : in Item_Set_List;
+      Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Set, Item_Set_Ptr);
@@ -256,12 +259,12 @@ private
       Prod       : Production.Instance;
       Dot        : Token.List.List_Iterator; -- token after item Dot
       State      : Unknown_State_Index;
-      Lookaheads : Lookahead;
+      Lookaheads : access Lookahead;
       Next       : Item_Ptr;
    end record;
 
    type Goto_Item is record
-      Symbol : Token.Token_ID;
+      Symbol : Token_ID;
       --  If Symbol is a terminal, this is a shift and goto state action.
       --  If Symbol is a non-terminal, this is a post-reduce goto state action.
       Set    : Item_Set_Ptr;
@@ -270,4 +273,4 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
-end FastToken.Parser.LR1_Items;
+end FastToken.Parser.LR.LR1_Items;

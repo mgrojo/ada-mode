@@ -26,16 +26,16 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
-      Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set;
-      First                : in Token.Nonterminal_Array_Token_Set;
+      Symbol               : in Token_ID;
+      Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Trace                : in Boolean)
+      Trace                : in Boolean;
+      Descriptor           : in FastToken.Descriptor)
      return LR1_Items.Item_Set
    is
       use Token.List;
       use LR1_Items;
-      use all type Token.Token_ID;
 
       Goto_Set : Item_Set;
       Item     : Item_Ptr := Set.Set;
@@ -48,7 +48,7 @@ package body FastToken.Parser.LR.LR1_Generator is
               --  We don't need a state with dot after EOF in the
               --  accept production. EOF should only appear in the
               --  accept production.
-              Symbol /= EOF_Token
+              Symbol /= Descriptor.EOF_ID
             then
                Add
                  (Goto_Set.Set,
@@ -61,27 +61,28 @@ package body FastToken.Parser.LR.LR1_Generator is
 
       if Goto_Set.Set /= null then
          if Trace then
-            Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Token.Token_Image (Symbol));
-            Put (Goto_Set, Show_Lookaheads => True);
+            Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Descriptor, Symbol));
+            Put (Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
 
-         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Trace => False);
+         return Closure (Goto_Set, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
       else
          return Goto_Set;
       end if;
    end LR1_Goto_Transitions;
 
    function LR1_Item_Sets
-     (Has_Empty_Production : in Token.Nonterminal_ID_Set;
-      First                : in Token.Nonterminal_Array_Token_Set;
+     (Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      First_State_Index    : in Unknown_State_Index;
-      Trace                : in Boolean)
+      First_State_Index    : in State_Index;
+      Trace                : in Boolean;
+      Descriptor           : in FastToken.Descriptor)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
       use type Token.List.List_Iterator;
-      use type Token.Token_ID;
+      use type Token_ID;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
@@ -92,11 +93,11 @@ package body FastToken.Parser.LR.LR1_Generator is
                   (Production.List.Current (Production.List.First (Grammar)),
                    Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
                    First_State_Index,
-                   +EOF_Token),
+                   To_Lookahead (Descriptor, Descriptor.EOF_ID)),
                 Goto_List => null,
-                State     => First_State_Index,
+                State     => State_Index'First,
                 Next      => null),
-               Has_Empty_Production, First, Grammar,
+               Has_Empty_Production, First, Grammar, Descriptor,
                Trace      => False)),
          Size             => 1);
 
@@ -114,13 +115,13 @@ package body FastToken.Parser.LR.LR1_Generator is
          while I /= null loop
             if Trace then
                Ada.Text_IO.Put ("Checking ");
-               Put (I.all, Show_Lookaheads => True, Show_Goto_List => True);
+               Put (Descriptor, I.all, Show_Lookaheads => True, Show_Goto_List => True);
             end if;
 
-            for Symbol in Token.Token_ID loop -- 'for each grammar symbol X'
+            for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
                New_Items := LR1_Goto_Transitions
-                 (I.all, Symbol, Has_Empty_Production, First, Grammar, Trace);
+                 (I.all, Symbol, Has_Empty_Production, First, Grammar, Trace, Descriptor);
 
                if New_Items.Set /= null then -- 'goto (I, X) not empty'
 
@@ -130,7 +131,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                      Added_Item := True;
 
                      New_Items.Next  := C.Head;
-                     New_Items.State := C.Size + First_State_Index;
+                     New_Items.State := C.Size + State_Index'First;
 
                      Set_State (New_Items.Set, New_Items.State);
 
@@ -153,7 +154,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                      then
                         if Trace then
                            Ada.Text_IO.Put_Line
-                             ("  adding goto on " & Token.Token_Image (Symbol) & " to state" &
+                             ("  adding goto on " & Image (Descriptor, Symbol) & " to state" &
                                 Unknown_State_Index'Image (New_Items_Set.State));
 
                         end if;
@@ -182,10 +183,11 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    procedure Add_Actions
      (Item_Sets            : in     LR1_Items.Item_Set_List;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
-      Trace                : in     Boolean)
+      Trace                : in     Boolean;
+      Descriptor           : in FastToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
 
@@ -193,7 +195,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       use type LR1_Items.Item_Set_Ptr;
    begin
       while Item_Set /= null loop
-         Add_Actions (Item_Set.all, Table, Has_Empty_Production, Conflicts, Trace);
+         Add_Actions (Item_Set.all, Table, Has_Empty_Production, Conflicts, Trace, Descriptor);
          Item_Set := Item_Set.Next;
       end loop;
 
@@ -203,37 +205,42 @@ package body FastToken.Parser.LR.LR1_Generator is
    end Add_Actions;
 
    procedure Put_Parse_Table
-     (Table     : in Parse_Table_Ptr;
-      Item_Sets : in LR1_Items.Item_Set_List)
+     (Table      : in Parse_Table_Ptr;
+      Item_Sets  : in LR1_Items.Item_Set_List;
+      Descriptor : in FastToken.Descriptor)
    is
       use Ada.Text_IO;
    begin
       Put_Line ("LR1 Parse Table:");
       Put_Line ("Panic_Recover:");
-      Token.Put (Table.Panic_Recover);
+      Put (Descriptor, Table.Panic_Recover);
       Put_Line ("Follow:");
-      Token.Put (Table.Follow);
+      Put (Descriptor, Table.Follow);
 
       for State in Table.States'Range loop
-         LR1_Items.Put (LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
+         LR1_Items.Put
+           (Descriptor, LR1_Items.Find (State, Item_Sets).all, Kernel_Only => True, Show_Lookaheads => True);
          New_Line;
-         Put (Table.States (State));
+         Put (Descriptor, Table.States (State));
 
          New_Line;
       end loop;
    end Put_Parse_Table;
 
-   function Check_Unused_Tokens (Grammar : in Production.List.Instance) return Boolean
+   function Check_Unused_Tokens
+     (Descriptor : in FastToken.Descriptor;
+      Grammar    : in Production.List.Instance)
+     return Boolean
    is
       use Production.List;
 
-      Used_Tokens : Token.Token_ID_Set := (others => False);
+      Used_Tokens : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Nonterminal => False);
 
       Unused_Tokens : Boolean := False;
 
       I : List_Iterator := First (Grammar);
    begin
-      Used_Tokens (Accept_Token) := True;
+      Used_Tokens (Descriptor.Accept_ID) := True;
 
       loop
          exit when Is_Done (I);
@@ -259,7 +266,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                Ada.Text_IO.Put_Line ("Unused tokens:");
                Unused_Tokens := True;
             end if;
-            Ada.Text_IO.Put_Line (Token.Token_Image (I));
+            Ada.Text_IO.Put_Line (Image (Descriptor, I));
          end if;
       end loop;
 
@@ -268,26 +275,28 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Known_Conflicts          : in Conflict_Lists.List      := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Token.Nonterminal_ID_Set := (others => False);
-      Trace                    : in Boolean                  := False;
-      Put_Parse_Table          : in Boolean                  := False;
-      Ignore_Unused_Tokens     : in Boolean                  := False;
-      Ignore_Unknown_Conflicts : in Boolean                  := False)
+      Descriptor               : in FastToken.Descriptor;
+      First_State_Index        : in State_Index;
+      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
+      Trace                    : in Boolean             := False;
+      Put_Parse_Table          : in Boolean             := False;
+      Ignore_Unused_Tokens     : in Boolean             := False;
+      Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr
    is
       use type Ada.Containers.Count_Type;
 
-      Unused_Tokens : constant Boolean := Check_Unused_Tokens (Grammar);
+      Unused_Tokens : constant Boolean := Check_Unused_Tokens (Descriptor, Grammar);
 
       Table : Parse_Table_Ptr;
 
-      Has_Empty_Production : constant Token.Nonterminal_ID_Set          := LR1_Items.Has_Empty_Production (Grammar);
-      First                : constant Token.Nonterminal_Array_Token_Set := LR1_Items.First
-        (Grammar, Has_Empty_Production, Trace);
+      Has_Empty_Production : constant Token_ID_Set          := LR1_Items.Has_Empty_Production (Grammar, Descriptor);
+      First                : constant Token_Array_Token_Set := LR1_Items.First
+        (Grammar, Descriptor, Has_Empty_Production, Trace);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, Unknown_State_Index (First_State_Index), Trace);
+        (Has_Empty_Production, First, Grammar, First_State_Index, Trace, Descriptor);
 
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
@@ -295,25 +304,34 @@ package body FastToken.Parser.LR.LR1_Generator is
       if Trace then
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("LR(1) Item_Sets:");
-         LR1_Items.Put (Item_Sets);
+         LR1_Items.Put (Descriptor, Item_Sets);
       end if;
 
-      Table := new Parse_Table (Item_Sets.Size - 1 + State_Index'First);
+      Table := new Parse_Table
+        (State_Last        => Item_Sets.Size - 1 + State_Index'First,
+         First_Terminal    => Descriptor.First_Terminal,
+         Last_Terminal     => Descriptor.Last_Terminal,
+         First_Nonterminal => Descriptor.First_Nonterminal,
+         Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-      Table.Panic_Recover := Panic_Recover;
-      Table.Follow        := LR1_Items.Follow (Grammar, First, Has_Empty_Production);
+      Table.Panic_Recover :=
+        (if Panic_Recover = Default_Panic_Recover
+         then (Table.First_Nonterminal .. Table.Last_Nonterminal => False)
+         else Panic_Recover);
 
-      Add_Actions (Item_Sets, Has_Empty_Production, Unknown_Conflicts, Table.all, Trace);
+      Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
+
+      Add_Actions (Item_Sets, Has_Empty_Production, Unknown_Conflicts, Table.all, Trace, Descriptor);
 
       if Put_Parse_Table then
-         LR1_Generator.Put_Parse_Table (Table, Item_Sets);
+         LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor);
       end if;
 
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
          Ada.Text_IO.Put_Line ("unknown conflicts:");
-         Put (Unknown_Conflicts);
+         Put (Descriptor, Unknown_Conflicts);
          if not Ignore_Unknown_Conflicts then
             raise Grammar_Error with "unknown conflicts; aborting";
          end if;
@@ -321,7 +339,7 @@ package body FastToken.Parser.LR.LR1_Generator is
 
       if Known_Conflicts_Edit.Length > 0 then
          Ada.Text_IO.Put_Line ("excess known conflicts:");
-         Put (Known_Conflicts_Edit);
+         Put (Descriptor, Known_Conflicts_Edit);
          if not Ignore_Unknown_Conflicts then
             raise Grammar_Error with "excess known conflicts; aborting";
          end if;

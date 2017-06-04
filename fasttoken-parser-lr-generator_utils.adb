@@ -21,19 +21,20 @@ with Ada.Text_IO;
 package body FastToken.Parser.LR.Generator_Utils is
 
    procedure Add_Action
-     (Symbol               : in     Token.Terminal_ID;
+     (Symbol               : in     Token_ID;
       Action               : in     Parse_Action_Rec;
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean)
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class)
    is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
       if Trace then
-         Ada.Text_IO.Put (Token.Token_Image (Symbol) & " => ");
-         Put (Action);
+         Ada.Text_IO.Put (Image (Descriptor, Symbol) & " => ");
+         Put (Descriptor, Action);
          Ada.Text_IO.New_Line;
       end if;
 
@@ -60,8 +61,8 @@ package body FastToken.Parser.LR.Generator_Utils is
                New_Conflict : constant Conflict :=
                  (Action_A    => Action_A.Verb,
                   Action_B    => Action_B.Verb,
-                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production),
-                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production),
+                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production, Descriptor),
+                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production, Descriptor),
                   State_Index => Closure.State,
                   On          => Symbol);
             begin
@@ -94,9 +95,10 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Actions
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
-      Trace                : in     Boolean)
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
       use all type Token.List.List_Iterator;
@@ -106,7 +108,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("adding actions for state" & State_Index'Image (State));
-         LR1_Items.Put (Closure.Goto_List);
+         LR1_Items.Put (Descriptor, Closure.Goto_List);
       end if;
 
       while Item /= null loop
@@ -114,21 +116,20 @@ package body FastToken.Parser.LR.Generator_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace);
+              (Item, Table.States (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace, Descriptor);
 
-         elsif Token.List.ID (Dot (Item)) in Token.Terminal_ID then
+         elsif Token.List.ID (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
             declare
                use all type Ada.Containers.Count_Type;
-               use all type Token.Token_ID;
                use all type LR1_Items.Item_Set_Ptr;
 
-               Dot_ID : constant Token.Terminal_ID := Token.List.ID (Dot (Item));
+               Dot_ID : constant Token_ID := Token.List.ID (Dot (Item));
                --  ID of token after Item.Dot
 
                Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Closure, Dot_ID);
             begin
-               if Dot_ID = EOF_Token then
+               if Dot_ID = Descriptor.EOF_ID then
                   --  This is the start symbol production with dot before EOF.
                   Add_Action
                     (Symbol               => Dot_ID,
@@ -139,7 +140,8 @@ package body FastToken.Parser.LR.Generator_Utils is
                      Closure              => Closure,
                      Has_Empty_Production => Has_Empty_Production,
                      Conflicts            => Conflicts,
-                     Trace                => Trace);
+                     Trace                => Trace,
+                     Descriptor           => Descriptor);
                else
                   if Goto_Set /= null then
                      Add_Action
@@ -151,14 +153,15 @@ package body FastToken.Parser.LR.Generator_Utils is
                         Closure              => Closure,
                         Has_Empty_Production => Has_Empty_Production,
                         Conflicts            => Conflicts,
-                        Trace                => Trace);
+                        Trace                => Trace,
+                        Descriptor           => Descriptor);
                   end if;
                end if;
             end;
          else
             --  Dot is before a non-terminal token; no action.
             if Trace then
-               Ada.Text_IO.Put_Line (Token.Token_Image (Token.List.ID (Dot (Item))) & " => no action");
+               Ada.Text_IO.Put_Line (Image (Descriptor, Token.List.ID (Dot (Item))) & " => no action");
             end if;
          end if;
 
@@ -176,7 +179,7 @@ package body FastToken.Parser.LR.Generator_Utils is
            --  enumeration type to make this 'default', for viewing this
            --  list in a debugger. The various Put routines do replace
            --  this with 'default'.
-           (Symbol => Token.Terminal_ID'Last,
+           (Symbol => Token_ID'Last,
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
             Next   => null);
 
@@ -217,7 +220,7 @@ package body FastToken.Parser.LR.Generator_Utils is
          Goto_Ptr : LR1_Items.Goto_Item_Ptr := Closure.Goto_List;
       begin
          while Goto_Ptr /= null loop
-            if Symbol (Goto_Ptr) in Token.Nonterminal_ID then
+            if Symbol (Goto_Ptr) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal then
                Add_Goto (Table.States (State), Symbol (Goto_Ptr), LR1_Items.State (Goto_Ptr));
             end if;
             Goto_Ptr := Next (Goto_Ptr);
@@ -228,10 +231,11 @@ package body FastToken.Parser.LR.Generator_Utils is
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
-      Has_Empty_Production : in     Token.Nonterminal_ID_Set;
+      Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
-      Trace                : in     Boolean)
+      Trace                : in     Boolean;
+      Descriptor           : in     FastToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
 
@@ -242,9 +246,9 @@ package body FastToken.Parser.LR.Generator_Utils is
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
-      --  We ignore propagate lookaheads here.
-      for Lookahead in Lookaheads (Item).Tokens'Range loop
-         if Lookaheads (Item).Tokens (Lookahead) then
+      --  We ignore propagate lookaheads here. FIXME: need check for that
+      for Lookahead in Lookaheads (Item)'Range loop
+         if Lookaheads (Item) (Lookahead) then
             Add_Action
               (Symbol               => Lookahead,
                Action               => Action,
@@ -252,7 +256,8 @@ package body FastToken.Parser.LR.Generator_Utils is
                Closure              => Closure,
                Has_Empty_Production => Has_Empty_Production,
                Conflicts            => Conflicts,
-               Trace                => Trace);
+               Trace                => Trace,
+               Descriptor           => Descriptor);
          end if;
       end loop;
    end Add_Lookahead_Actions;
@@ -295,11 +300,10 @@ package body FastToken.Parser.LR.Generator_Utils is
    end Delete_Known;
 
    function Find
-     (Symbol      : in Token.Terminal_ID;
+     (Symbol      : in Token_ID;
       Action_List : in Action_Node_Ptr)
      return Action_Node_Ptr
    is
-      use type Token.Terminal_ID;
       Action_Node : Action_Node_Ptr := Action_List;
    begin
       while Action_Node /= null loop
@@ -315,13 +319,13 @@ package body FastToken.Parser.LR.Generator_Utils is
    function Find
      (Closure              : in LR1_Items.Item_Set;
       Action               : in Parse_Action_Rec;
-      Lookahead            : in Token.Token_ID;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set)
-     return Token.Token_ID
+      Lookahead            : in Token_ID;
+      Has_Empty_Production : in Token_ID_Set;
+      Descriptor           : in FastToken.Descriptor'Class)
+     return Token_ID
    is
       use Token.List;
       use all type LR1_Items.Item_Set;
-      use all type Token.Token_ID;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 
@@ -343,7 +347,7 @@ package body FastToken.Parser.LR.Generator_Utils is
                if LHS (Item) = Action.LHS and
                  (Dot (Item) = Null_Iterator or else
                     (Next (Dot (Item)) = Null_Iterator and
-                       (ID (Dot (Item)) in Token.Nonterminal_ID and then
+                       (ID (Dot (Item)) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal and then
                           Has_Empty_Production (ID (Dot (Item))))))
                then
                   return Action.LHS;
@@ -351,7 +355,7 @@ package body FastToken.Parser.LR.Generator_Utils is
             when Accept_It =>
                if LHS (Item) = Action.LHS and
                  (Dot (Item) /= Null_Iterator and then
-                    ID (Dot (Item)) = EOF_Token)
+                    ID (Dot (Item)) = Descriptor.EOF_ID)
                then
                   return Action.LHS;
                end if;
@@ -368,22 +372,22 @@ package body FastToken.Parser.LR.Generator_Utils is
         ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
            (case Action.Verb is
             when Shift => State_Index'Image (Action.State),
-            when Reduce | Accept_It => " " & Token.Token_Image (Action.LHS),
+            when Reduce | Accept_It => " " & Image (Descriptor, Action.LHS),
             when others => "") & ", " &
-           Token.Token_Image (Lookahead) & " not found in");
-      LR1_Items.Put (Closure);
+           Image (Descriptor, Lookahead) & " not found in");
+      LR1_Items.Put (Descriptor, Closure);
       raise Programmer_Error;
    end Find;
 
-   function Image (Item : in Conflict) return String
+   function Image (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict) return String
    is begin
       return
         ("%conflict " &
            Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
            Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
-           Token.Token_Image (Item.LHS_A) & ", " &
-           Token.Token_Image (Item.LHS_B) &
-           "  on token " & Token.Token_Image (Item.On) &
+           Image (Descriptor, Item.LHS_A) & ", " &
+           Image (Descriptor, Item.LHS_B) &
+           "  on token " & Image (Descriptor, Item.On) &
            " (" & State_Index'Image (Item.State_Index) & ")"); -- state number last for easier delete
    end Image;
 
@@ -403,9 +407,7 @@ package body FastToken.Parser.LR.Generator_Utils is
    end Is_Present;
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean
-   is
-      use type Token.Token_ID;
-   begin
+   is begin
       --  Ignore State_Index. Actions are in canonical order; enforced
       --  in Add_Action above. For reduce/reduce, LHS_A, LHS_B are not
       --  in canonical order.
@@ -417,10 +419,10 @@ package body FastToken.Parser.LR.Generator_Utils is
         Known.On = Item.On;
    end Match;
 
-   procedure Put (Item : in Conflict_Lists.List)
+   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict_Lists.List)
    is begin
       for Conflict of Item loop
-         Ada.Text_IO.Put_Line (Image (Conflict));
+         Ada.Text_IO.Put_Line (Image (Descriptor, Conflict));
       end loop;
    end Put;
 

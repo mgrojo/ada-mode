@@ -26,32 +26,22 @@
 pragma License (Modified_GPL);
 
 with FastToken.Parser.LR.Generator_Utils;
-with FastToken.Parser.LR1_Items;
+with FastToken.Parser.LR.LR1_Items;
 with FastToken.Production;
-generic
-   with package Production is new FastToken.Production (Token_Pkg, Semantic_Action, Null_Semantic_Action);
-
-   --  LR1_Items, Generator_Utils are generic parameters rather than
-   --  local instantiations, so they can be shared with other
-   --  generator packages when more than one is present in an
-   --  executable.
-
-   with package LR1_Items is new Parser.LR1_Items
-     (Unknown_State_Index, Unknown_State, Semantic_Action, Null_Semantic_Action, Production);
-
-   with package Generator_Utils is new FastToken.Parser.LR.Generator_Utils (Production, LR1_Items);
 package FastToken.Parser.LR.LR1_Generator is
 
    use Generator_Utils;
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Known_Conflicts          : in Conflict_Lists.List      := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Token.Nonterminal_ID_Set := (others => False);
-      Trace                    : in Boolean                  := False;
-      Put_Parse_Table          : in Boolean                  := False;
-      Ignore_Unused_Tokens     : in Boolean                  := False;
-      Ignore_Unknown_Conflicts : in Boolean                  := False)
+      Descriptor               : in FastToken.Descriptor;
+      First_State_Index        : in State_Index;
+      Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
+      Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
+      Trace                    : in Boolean             := False;
+      Put_Parse_Table          : in Boolean             := False;
+      Ignore_Unused_Tokens     : in Boolean             := False;
+      Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr;
    --  Generate a generalized LR1 parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
@@ -75,20 +65,22 @@ package FastToken.Parser.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
-      Symbol               : in Token.Token_ID;
-      Has_Empty_Production : in Token.Nonterminal_ID_Set;
-      First                : in Token.Nonterminal_Array_Token_Set;
+      Symbol               : in Token_ID;
+      Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Trace                : in Boolean)
+      Trace                : in Boolean;
+      Descriptor           : in FastToken.Descriptor)
      return LR1_Items.Item_Set;
    --  'goto' from [dragon] algorithm 4.9
 
    function LR1_Item_Sets
-     (Has_Empty_Production : in Token.Nonterminal_ID_Set;
-      First                : in Token.Nonterminal_Array_Token_Set;
+     (Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      First_State_Index    : in Unknown_State_Index;
-      Trace                : in Boolean)
+      First_State_Index    : in State_Index;
+      Trace                : in Boolean;
+      Descriptor           : in FastToken.Descriptor)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 

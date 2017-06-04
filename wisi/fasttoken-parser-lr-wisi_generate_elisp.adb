@@ -22,7 +22,7 @@ with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
 package body FastToken.Parser.LR.Wisi_Generate_Elisp is
 
-   procedure Action_Table (Table : in Parse_Table)
+   procedure Action_Table (Table : in Parse_Table; Descriptor : in FastToken.Descriptor'Class)
    is begin
       --  FIXME: add panic_recover to elisp parser
       Put ("     [");
@@ -43,7 +43,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
                   Parse_Action_Node : Parse_Action_Node_Ptr := Action.Action;
                   Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
                begin
-                  Put (" (" & Token_Image (Action.Symbol) & " . ");
+                  Put (" (" & Image (Descriptor, Action.Symbol) & " . ");
 
                   if Conflict then
                      Put ("(");
@@ -62,7 +62,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Token_Image (Parse_Action.LHS) & " ." &
+                             ("(" & Image (Descriptor, Parse_Action.LHS) & " ." &
                                 Integer'Image (Parse_Action.Index) & ")");
 
                         when Shift =>
@@ -108,7 +108,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       Put_Line ("]");
    end Action_Table;
 
-   procedure Goto_Table (Table : in Parse_Table)
+   procedure Goto_Table (Table : in Parse_Table; Descriptor : in FastToken.Descriptor'Class)
    is
       function Filter_Terminals (List : in Goto_Node_Ptr) return Goto_Node_Ptr
       is
@@ -117,7 +117,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
          Item   : Goto_Node_Ptr := List;
       begin
          while Item /= null loop
-            if Item.Symbol in Token.Terminal_ID then
+            if Item.Symbol in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
                --  delete from Result list
                if Item = Result then
                   Result := Item.Next;
@@ -156,7 +156,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
                   Put ("      (");
                end if;
                loop
-                  Put ("(" & Token_Image (Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
+                  Put ("(" & Image (Descriptor, Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
@@ -176,7 +176,8 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       Tokens        : in Wisi.Token_Lists.List;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
-      Parser        : in Parse_Table_Ptr)
+      Parser        : in Parse_Table_Ptr;
+      Descriptor    : in FastToken.Descriptor'Class)
    is
       use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
@@ -254,8 +255,8 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       end loop;
       Put_Line (")");
 
-      Action_Table (Parser.all);
-      Goto_Table (Parser.all);
+      Action_Table (Parser.all, Descriptor);
+      Goto_Table (Parser.all, Descriptor);
       Put_Line ("))");
 
       Put_Line ("  ""Parser table."")");

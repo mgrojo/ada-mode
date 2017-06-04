@@ -1,17 +1,18 @@
 build/release_process.text
-
-build/release/Makefile
-build/debug/Makefile
-build/release_process.text
+build/Makefile
 
  current work
 
 need multi-mode for .wy files with Ada syntax
     feature/mhtml branch
 
-integrate with emacs process
-    use wisi-lexer for indent info
-        test with subprogram; see ada_mode notes
+change Token to non-generic; integer subtype
+    user view of tokens in:
+        Ada production declaration - enumeral, map to integer via 'Pos
+
+    subprograms passes
+
+    do all_harness
 
 update all tests
 

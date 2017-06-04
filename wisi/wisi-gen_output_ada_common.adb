@@ -476,20 +476,20 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       New_Line;
 
-      if not Token_Pkg.Any (Parser.Follow) then
+      if not FastToken.Any (Parser.Follow) then
          Indent_Line ("Table.Follow := (others => (others => False));");
       else
          Indent_Line ("Table.Follow :=");
          Indent_Start ("  (");
          Indent := Indent + 3;
-         for I in Parser.Follow'Range loop
-            if Token_Pkg.Any (Parser.Follow (I)) then
+         for I in Parser.Follow'Range (1) loop
+            if FastToken.Any (Parser.Follow, I) then
                Indent_Line (Token_Out_Image (I) & " =>");
                Indent_Start ("  (");
                Indent := Indent + 3;
                Paren_Done := False;
-               for J in Parser.Follow (I)'Range loop
-                  if Parser.Follow (I)(J) then
+               for J in Parser.Follow'Range (2) loop
+                  if Parser.Follow (I, J) then
                      if Paren_Done then
                         Put_Line (" |");
                         Indent_Start (" " & Token_Out_Image (J));
@@ -664,7 +664,8 @@ package body Wisi.Gen_Output_Ada_Common is
          if Quit then raise User_Error with "missing grammar file directives"; end if;
       end;
 
-      Data.Grammar                 := Generate_Utils.To_Grammar (Input_File_Name, -Params.Start_Token);
+      Data.Grammar := Generate_Utils.To_Grammar (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
+
       Data.Package_Name_Root       := +File_Name_To_Ada (Output_File_Root);
       Data.Lower_Package_Name_Root := +To_Lower (Output_File_Root);
    end Initialize;

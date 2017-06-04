@@ -19,7 +19,6 @@
 pragma License (Modified_GPL);
 
 with Wisi;
-generic
 package FastToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Output
@@ -27,6 +26,7 @@ package FastToken.Parser.LR.Wisi_Generate_Elisp is
       Tokens        : in Wisi.Token_Lists.List;
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
-      Parser        : in Parse_Table_Ptr);
+      Parser        : in Parse_Table_Ptr;
+      Descriptor    : in FastToken.Descriptor'Class);
 
 end FastToken.Parser.LR.Wisi_Generate_Elisp;

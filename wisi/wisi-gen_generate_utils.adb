@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 with Ada.Exceptions;
+with FastToken.Token;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
@@ -31,6 +32,9 @@ package body Wisi.Gen_Generate_Utils is
 
    function Count_Non_Reporting return Integer
    is
+      --  It is tempting to rename this to Last_Non_Reporting, and
+      --  return Token_ID, but many test grammars have no
+      --  non-reporting tokens.
       Result : Integer := 0;
    begin
       for Kind of Tokens loop
@@ -100,19 +104,21 @@ package body Wisi.Gen_Generate_Utils is
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   function Set_Token_Images return ID_Array_Access_String_Pair_Type
+   function Set_Token_Images return Token_Array_String
    is
-      ID           : Token_ID := Token_ID'First;
-      Token_Images : ID_Array_Access_String_Pair_Type;
+      ID        : Token_ID := Token_ID'First;
+      Out_Image : Token_Array_String (Token_ID'First .. LR1_Descriptor.Last_Nonterminal);
    begin
       --  Same order as find_token_id above, cursor below.
+
+      LR1_Descriptor.Image_Width := 0;
 
       --  non-reporting
       for Kind of Tokens loop
          if Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID, WY)     := new String'(-Pair.Name);
-               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+               LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
+               Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
 
                ID := ID + 1;
             end loop;
@@ -120,8 +126,8 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for Pair of Keywords loop
-         Token_Images (ID, WY)     := new String'(-Pair.Name);
-         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+         LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
+         Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
 
          ID := ID + 1;
       end loop;
@@ -129,44 +135,47 @@ package body Wisi.Gen_Generate_Utils is
       for Kind of Tokens loop
          if not Non_Reporting (-Kind.Kind) then
             for Pair of Kind.Tokens loop
-               Token_Images (ID, WY)     := new String'(-Pair.Name);
-               Token_Images (ID, Output) := new String'(To_Token_Out_Image (Pair.Name));
+               LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
+               Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
 
                ID := ID + 1;
             end loop;
          end if;
       end loop;
 
-      if ID /= EOI_ID then raise Programmer_Error; end if;
+      if ID /= EOF_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID, WY)     := new String'(-EOI_Name);
-      Token_Images (ID, Output) := new String'(To_Token_Out_Image (EOI_Name));
+      LR1_Descriptor.Image (ID) := new String'(-EOI_Name);
+      Out_Image (ID)            := new String'(To_Token_Out_Image (EOI_Name));
 
       ID := ID + 1;
 
-      if ID /= Accept_ID then raise Programmer_Error; end if;
+      if ID /= LR1_Descriptor.Accept_ID then raise Programmer_Error; end if;
 
-      Token_Images (ID, WY)     := new String'(-FastToken_Accept_Name);
-      Token_Images (ID, Output) := new String'(To_Token_Out_Image (FastToken_Accept_Name));
+      LR1_Descriptor.Image (ID) := new String'(-FastToken_Accept_Name);
+      Out_Image (ID)            := new String'(To_Token_Out_Image (FastToken_Accept_Name));
 
       ID := ID + 1;
 
       for Rule of Rules loop
-         Token_Images (ID, WY)     := new String'(-Rule.Left_Hand_Side);
-         Token_Images (ID, Output) := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
+         LR1_Descriptor.Image (ID) := new String'(-Rule.Left_Hand_Side);
+         Out_Image (ID)            := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
 
          if ID /= Token_ID'Last then
             ID := ID + 1;
          end if;
       end loop;
 
-      for ID in Token_Images'Range loop
-         if Token_Images (ID, WY).all'Length > Token_WY_Image_Width then
-            Token_WY_Image_Width := Token_Images (ID, WY).all'Length;
+      for ID in LR1_Descriptor.Image'Range loop
+         if LR1_Descriptor.Image (ID).all'Length > LR1_Descriptor.Image_Width then
+            LR1_Descriptor.Image_Width := LR1_Descriptor.Image (ID).all'Length;
          end if;
       end loop;
 
-      return Token_Images;
+      LALR_Descriptor.Image       := LR1_Descriptor.Image;
+      LALR_Descriptor.Image_Width := LR1_Descriptor.Image_Width;
+
+      return Out_Image;
    end Set_Token_Images;
 
    function Non_Reporting (Cursor : in Token_Cursor) return Boolean
@@ -406,7 +415,7 @@ package body Wisi.Gen_Generate_Utils is
       use Standard.Ada.Text_IO;
    begin
       Put_Line ("Tokens:");
-      for I in Token_ID'Range loop
+      for I in Token_ID'First .. LR1_Descriptor.Last_Terminal loop
          Put_Line (Token_ID'Image (I) & " => " & Token_WY_Image (I));
       end loop;
       New_Line;
@@ -454,23 +463,27 @@ package body Wisi.Gen_Generate_Utils is
       raise FastToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Token_Pkg.List.Instance; Token : in String) return Token_Pkg.List.Instance
+   function "&" (Tokens : in Token.List.Instance; Token : in String) return FastToken.Token.List.Instance
    is
-      use Token_Pkg.List;
+      use FastToken.Token.List;
    begin
       return Tokens & Find_Token_ID (Token);
    end "&";
 
-   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance
+   function To_Grammar
+     (Descriptor       : in FastToken.Descriptor;
+      Source_File_Name : in String;
+      Start_Token      : in String)
+     return Production.List.Instance
    is
       use Production;
-      use Token_Pkg.List;
+      use Token.List;
 
       Grammar : Production.List.Instance;
    begin
       begin
          Grammar := Production.List.Only
-           (Accept_ID <= Find_Token_ID (Start_Token) & EOI_ID + Token_Aug.Null_Action);
+           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -486,7 +499,7 @@ package body Wisi.Gen_Generate_Utils is
                declare
                   use Production.List;
 
-                  Tokens : Token_Pkg.List.Instance;
+                  Tokens : FastToken.Token.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
@@ -506,9 +519,10 @@ package body Wisi.Gen_Generate_Utils is
       return Grammar;
    end To_Grammar;
 
-   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_Pkg.Nonterminal_ID_Set
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set
    is
-      Result : Token_Pkg.Nonterminal_ID_Set := (others => False);
+      use all type Standard.Ada.Containers.Count_Type;
+      Result : Token_ID_Set := (1 .. (if Item.Length = 0 then 0 else Token_ID (Item.Length)) => False);
    begin
       for Token of Item loop
          Result (Find_Token_ID (Token)) := True;

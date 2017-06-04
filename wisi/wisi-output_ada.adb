@@ -22,13 +22,13 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with FastToken;
+with FastToken.Parser.LR.LR1_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
 procedure Wisi.Output_Ada
   (Input_File_Name         : in String;
    Output_File_Name_Root   : in String;
-   Generate_Params         : in Generate_Param_Type;
+   Params                  : in Generate_Param_Type;
    Prologue_Context_Clause : in String_Lists.List;
    Prologue_Declarations   : in String_Lists.List;
    Keywords                : in String_Pair_Lists.List;
@@ -66,7 +66,7 @@ is
    end Put_Aflex_Prologue;
 
    package Common is new Wisi.Gen_Output_Ada_Common
-     (Keywords, Tokens, Conflicts, Rules, Generate_Params, Put_Ada_Prologue_Context_Clause,
+     (Keywords, Tokens, Conflicts, Rules, Params, Put_Ada_Prologue_Context_Clause,
       Put_Ada_Prologue_Declarations, Put_Aflex_Prologue);
    use Common;
 
@@ -82,8 +82,10 @@ is
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := Generate_Utils.LALR_Generator.Generate
+         Parsers (LALR) := LALR_Generator.Generate
            (Data.Grammar,
+            LALR_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -96,8 +98,10 @@ is
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := Generate_Utils.LR1_Generator.Generate
+         Parsers (LR1) := FastToken.Parser.LR.LR1_Generator.Generate
            (Data.Grammar,
+            LR1_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -182,7 +186,7 @@ is
             declare
                use all type Standard.Ada.Containers.Count_Type;
 
-               LHS_ID    : constant Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+               LHS_ID    : constant FastToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
                Index     : Integer           := 0; -- Semantic_Action defines Index as zero-origin
                Temp      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
                All_Empty : Boolean           := True;
@@ -287,7 +291,7 @@ begin
         (Input_File_Name, 1, "Ada output language does not support Elisp lexer");
    end case;
 
-   case Generate_Params.Interface_Kind is
+   case Params.Interface_Kind is
    when None  =>
       null;
 
@@ -298,7 +302,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
-      Ada, Process, Generate_Params.Lexer, Generate_Params.First_State_Index, Generate_Params.First_Parser_Label);
+      Ada, Process, Params.Lexer, Params.First_State_Index, Params.First_Parser_Label);
 
    Create_Ada_Body;
 

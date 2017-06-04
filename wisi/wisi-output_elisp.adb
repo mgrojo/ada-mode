@@ -19,13 +19,15 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
+with FastToken.Parser.LR.LALR_Generator;
+with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.Wisi_Generate_Elisp;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Output_Elisp_Common;
 procedure Wisi.Output_Elisp
   (Input_File_Name : in String;
    Elisp_Package   : in String;
-   Generate_Params : in Generate_Param_Type;
+   Params          : in Generate_Param_Type;
    Prologue        : in String_Lists.List;
    Keywords        : in String_Pair_Lists.List;
    Tokens          : in Token_Lists.List;
@@ -48,17 +50,14 @@ is
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name,
-      Generate_Params.First_State_Index,
       To_Token_Out_Image => To_Token_Image);
-
-   package Parser_Elisp is new Generate_Utils.LR.Wisi_Generate_Elisp;
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
    Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
-     (Input_File_Name, -Generate_Params.Start_Token);
+     (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
    Parser : Generate_Utils.LR.Parse_Table_Ptr;
 
@@ -78,7 +77,7 @@ is
       File            : File_Type;
       Elisp_Package_1 : Unbounded_String;
    begin
-      case Valid_Parser_Algorithm (Generate_Params.Parser_Algorithm) is
+      case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
       when LALR | LR1 =>
             Elisp_Package_1 := +Elisp_Package;
       when LALR_LR1 =>
@@ -94,8 +93,10 @@ is
 
       case Algorithm is
       when LALR =>
-         Parser := Generate_Utils.LALR_Generator.Generate
+         Parser := FastToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
+            Generate_Utils.LALR_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -105,8 +106,10 @@ is
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
       when LR1 =>
-         Parser := Generate_Utils.LR1_Generator.Generate
+         Parser := FastToken.Parser.LR.LR1_Generator.Generate
            (Grammar,
+            Generate_Utils.LR1_Descriptor,
+            FastToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -128,7 +131,8 @@ is
       New_Line;
       Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens, To_String'Access);
       New_Line;
-      Parser_Elisp.Output (-Elisp_Package_1, Tokens, Keywords, Rules, Parser);
+      FastToken.Parser.LR.Wisi_Generate_Elisp.Output
+        (-Elisp_Package_1, Tokens, Keywords, Rules, Parser, Generate_Utils.LR1_Descriptor);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
       New_Line;
@@ -139,9 +143,9 @@ is
    end Create_Elisp;
 
 begin
-   case Valid_Parser_Algorithm (Generate_Params.Parser_Algorithm) is
+   case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
    when LALR | LR1 =>
-      Create_Elisp (Generate_Params.Parser_Algorithm);
+      Create_Elisp (Params.Parser_Algorithm);
    when LALR_LR1 =>
       Create_Elisp (LALR);
       Create_Elisp (LR1);

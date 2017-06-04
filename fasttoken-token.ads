@@ -1,12 +1,8 @@
 --  Abstract :
 --
---  An enumerated token type.
+--  Utilities for tokens.
 --
---  To store additional information about a token, see
---  fasttoken-token_regions.ads or fasttoken-token_wisi.ads.
---
---  Copyright (C) 2009, 2014 - 2015, 2017 Stephe Leake
---  Copyright (C) 1999, 2000 Ted Dennison
+--  Copyright (C) 2017 Stephe Leake
 --
 --  This file is part of the FastToken package.
 --
@@ -31,62 +27,8 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
-with Ada.Text_IO;
-generic
-   type Token_ID is (<>);
-
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
-   --  Tokens in the range Token_ID'First .. Pred (First_Terminal) are
-   --  non-reporting (comments, whitespace), and thus are not used in
-   --  generating parse tables.
-   --
-   --  Tokens in the range Succ (Last_Terminal) .. Token_ID'Last are
-   --  the nonterminals of a grammar.
-
-   with function Token_Image (Item : in Token_ID) return String;
-
-   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
-   --  Accumulate Item in the trace buffer.
-   --
-   --  Called when FastToken.Trace_Parse > 0
-
+with FastToken.Lexer;
 package FastToken.Token is
-
-   function Image (Item : in Token_ID) return String renames Token_Image;
-   --  Visible to clients.
-
-   subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
-   subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
-   --  We assume Last_Terminal < Token_ID'last; ie there are some nonterminals.
-
-   subtype Grammar_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
-   --  Tokens that can be used in a grammar.
-
-   type Token_ID_Set is array (Grammar_ID) of Boolean;
-   type Terminal_ID_Set is array (Terminal_ID) of Boolean;
-   type Nonterminal_ID_Set is array (Nonterminal_ID) of Boolean;
-   type Nonterminal_Array_Terminal_Set is array (Token.Nonterminal_ID) of Terminal_ID_Set;
-   type Nonterminal_Array_Token_Set is array (Token.Nonterminal_ID) of Token_ID_Set;
-
-   function Image (Item : in Token_ID_Set) return String;
-   function Any is new Gen_Any_1D (Grammar_ID, Token_ID_Set);
-   function Any is new Gen_Any_1D (Terminal_ID, Terminal_ID_Set);
-   function Any is new Gen_Any_1D (Nonterminal_ID, Nonterminal_ID_Set);
-   function Any is new Gen_Any_2D
-     (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Any);
-   function Any is new Gen_Any_2D
-     (Grammar_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Any);
-
-   procedure Put is new Gen_Put_1D (Grammar_ID, Token_ID_Set, Token_Image, Any);
-   procedure Put is new Gen_Put_1D (Terminal_ID, Terminal_ID_Set, Token_Image, Any);
-   procedure Put is new Gen_Put_1D (Nonterminal_ID, Nonterminal_ID_Set, Token_Image, Any);
-   procedure Put is new Gen_Put_2D
-     (Terminal_ID, Terminal_ID_Set, Nonterminal_ID, Nonterminal_Array_Terminal_Set, Token_Image, Token_Image, Any, Any);
-   procedure Put is new Gen_Put_2D
-     (Grammar_ID, Token_ID_Set, Nonterminal_ID, Nonterminal_Array_Token_Set, Token_Image, Token_Image, Any, Any);
-   --  Put Item to Ada.Text_IO.Current_Output.
 
    ----------
    --  Token lists
@@ -135,7 +77,7 @@ package FastToken.Token is
       procedure Append (List  : in out Instance; Item : in Token_ID);
       --  Append to tail of List.
 
-      procedure Put_Trace (Item : in Instance);
+      procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Instance);
       --  Put Item to Put_Trace.
 
    private
@@ -156,5 +98,43 @@ package FastToken.Token is
 
       Null_List : constant Instance := (null, null);
    end List;
+
+   type Semantic_State (Trace : access FastToken.Trace) is abstract tagged null record;
+   --  For storing augmented tokens, other semantic information
+
+   procedure Reset (State : access Semantic_State) is abstract;
+   --  Reset State to start a new parse.
+
+   procedure Input_Token
+     (Token : in     Token_ID;
+      State : access Semantic_State;
+      Lexer : in     FastToken.Lexer.Handle)
+     is abstract;
+   --  Parser just fetched Token from Lexer; save it for later push or
+   --  recover operations.
+
+   procedure Push_Token
+     (Token : in     Token_ID;
+      State : access Semantic_State)
+     is abstract;
+   --  Parser just pushed Token on the parse stack; push the
+   --  corresponding augmented token on the State stack.
+
+   procedure Merge_Tokens
+     (Nonterm : in     Token_ID;
+      Index   : in     Natural;
+      Tokens  : in     List.Instance;
+      Action  : in     Semantic_Action;
+      State   : access Semantic_State)
+   is abstract;
+   --  Parser reduces Tokens to Nonterm; perform same operations on
+   --  State stack, call associated Action.
+
+   procedure Recover
+     (Popped_Tokens  : in     List.Instance;
+      Skipped_Tokens : in     List.Instance;
+      Pushed_Token   : in     Token_ID;
+      State          : access Semantic_State)
+     is abstract;
 
 end FastToken.Token;

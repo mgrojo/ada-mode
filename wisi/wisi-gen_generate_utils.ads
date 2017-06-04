@@ -19,14 +19,9 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Lexer;
 with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LR1_Items;
 with FastToken.Production;
-with FastToken.Token;
-with FastToken.Token_Plain;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
    Tokens                : in Wisi.Token_Lists.List;
@@ -34,39 +29,49 @@ generic
    Rules                 : in Wisi.Rule_Lists.List;
    EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
    FastToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-   First_State_Index     : in Integer;
 
    with function To_Token_Out_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
    --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
-
-   subtype Token_ID is Integer range
-     1 .. Count (Tokens) + Integer (Keywords.Length) + 1 + Integer (Rules.Length) + 1;
-   --  one extra terminal for EOI
-   --  one extra non-terminal for the FastToken accept symbol followed by EOI.
+   use FastToken;
 
    function Count_Non_Reporting return Integer;
 
-   Token_Count    : constant Token_ID := Count (Tokens);
-   First_Terminal : constant Token_ID := Token_ID'First + Count_Non_Reporting;
-   EOI_ID         : constant Token_ID := Token_Count + Token_ID (Keywords.Length) + 1; -- last terminal
-   Accept_ID      : constant Token_ID := EOI_ID + 1;                                   -- first nonterminal
+   EOF_ID : constant Token_ID := Token_ID (Count (Tokens)) + Token_ID (Keywords.Length) + 1;
+
+   LR1_Descriptor : FastToken.Descriptor
+     (First_Terminal    => Token_ID (Count_Non_Reporting) + Token_ID'First,
+      Last_Terminal     => EOF_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => EOF_ID + 1,
+      First_Nonterminal => EOF_ID + 1,
+      Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
+   --  Image, Image_Width set by Set_Token_Images
+
+   LALR_Descriptor : FastToken.Parser.LR.LALR_Generator.Descriptor
+     (First_Terminal    => LR1_Descriptor.First_Terminal,
+      Last_Terminal     => LR1_Descriptor.Last_Terminal,
+      First_Nonterminal => EOF_ID + 1,
+      Last_Nonterminal  => LR1_Descriptor.Last_Nonterminal,
+      EOF_ID            => LR1_Descriptor.EOF_ID,
+      Accept_ID         => EOF_ID + 1,
+      Propagate_ID      => EOF_ID + 1);
+   --  Image, Image_Width set by Set_Token_Images
+
+   subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
+
+   Token_Output_Image_Width : Integer := 0; -- set by Set_Token_Images
+
+   function Set_Token_Images return Token_Array_String;
+
+   Token_Output_Image : constant Token_Array_String := Set_Token_Images;
+
+   function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
+   function Token_Out_Image (ID : in Token_ID) return String is (Token_Output_Image (ID).all);
 
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 
    function Find_Token_ID (Token : in String) return Token_ID;
-
-   type File_Kind is (WY, Output);
-   type ID_Array_Access_String_Pair_Type is array (Token_ID, File_Kind) of access constant String;
-
-   Token_WY_Image_Width : Integer := 0; -- set by Set_Token_Images
-
-   function Set_Token_Images return ID_Array_Access_String_Pair_Type;
-
-   Token_Images : constant ID_Array_Access_String_Pair_Type := Set_Token_Images;
-
-   function Token_WY_Image (ID : in Token_ID) return String is (Token_Images (ID, WY).all);
-   function Token_Out_Image (ID : in Token_ID) return String is (Token_Images (ID, Output).all);
 
    type Token_Cursor is tagged private;
    --  Iterate thru Tokens in a canonical order.
@@ -83,21 +88,12 @@ package Wisi.Gen_Generate_Utils is
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
 
-   package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, EOI_ID, Token_WY_Image);
-   package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-   package Parser_Root is new FastToken.Parser
-     (Token_ID, First_Terminal, EOI_ID, EOI_ID, Accept_ID, Token_WY_Image, Standard.Ada.Text_IO.Put,
-      Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR
-     (First_State_Index, Token_WY_Image_Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
-      Token_Aug.State_Type, Token_Aug.Input_Token);
-   package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
-   package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
+   --  FIXME: delete these
+   package Production renames FastToken.Production;
+   package Parser_Root renames Parser;
+   package LR renames Parser.LR;
+   package Generator_Utils renames Parser.LR.Generator_Utils;
+   package LALR_Generator renames LR.LALR_Generator;
 
    function To_Conflicts
      (Accept_Reduce_Conflict_Count : out Integer;
@@ -105,10 +101,14 @@ package Wisi.Gen_Generate_Utils is
       Reduce_Reduce_Conflict_Count : out Integer)
      return Generator_Utils.Conflict_Lists.List;
 
-   function To_Grammar (Source_File_Name : in String; Start_Token : in String) return Production.List.Instance;
-   --  Source_File_Name used in errors
+   function To_Grammar
+     (Descriptor       : in FastToken.Descriptor;
+      Source_File_Name : in String;
+      Start_Token      : in String)
+     return Production.List.Instance;
+   --  Descriptor, Source_File_Name used in error messages.
 
-   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_Pkg.Nonterminal_ID_Set;
+   function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
 
    function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index;
 private
