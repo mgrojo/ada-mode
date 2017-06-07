@@ -6,22 +6,16 @@ build/Makefile
 need multi-mode for .wy files with Ada syntax
     feature/mhtml branch
 
-change Token to non-generic; integer subtype
-    user view of tokens in:
-        Ada production declaration - enumeral, map to integer via 'Pos
-
-    subprograms passes
-
-    do all_harness
-
-update all tests
-
 integrate with emacs process
     do follow histogram for Ada
 
     get wisi to cope with invalid regions
 
     see how much panic mode helps
+
+some .wy in wisi_wy_test.adb, some in rules.make
+    be more consistent
+        easier to update in rules.make
 
 ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help

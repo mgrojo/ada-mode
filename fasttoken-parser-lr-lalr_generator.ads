@@ -26,32 +26,9 @@ with FastToken.Parser.LR.LR1_Items;
 with FastToken.Production;
 package FastToken.Parser.LR.LALR_Generator is
 
-   type Descriptor
-     (First_Terminal    : Token_ID;
-      Last_Terminal     : Token_ID;
-      First_Nonterminal : Token_ID;
-      Last_Nonterminal  : Token_ID;
-      EOF_ID            : Token_ID;
-      Accept_ID         : Token_ID;
-      Propagate_ID      : Token_ID)
-     is new FastToken.Descriptor
-       (First_Terminal    => First_Terminal,
-        Last_Terminal     => Last_Terminal,
-        First_Nonterminal => First_Nonterminal,
-        Last_Nonterminal  => Last_Nonterminal,
-        EOF_ID            => EOF_ID,
-        Accept_ID         => Accept_ID)
-     with null record;
-
-   overriding
-   function To_Lookahead (Descriptor : in LALR_Generator.Descriptor; Item : in Token_ID) return Token_ID_Set;
-
-   overriding
-   function Lookahead_Image (Descriptor : in LALR_Generator.Descriptor; Item : in Token_ID_Set) return String;
-
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Descriptor               : in LALR_Generator.Descriptor;
+      Descriptor               : in LALR_Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
@@ -85,16 +62,16 @@ package FastToken.Parser.LR.LALR_Generator is
       Symbol     : in Token_ID;
       First      : in Token_Array_Token_Set;
       Grammar    : in Production.List.Instance;
-      Trace      : in Boolean;
-      Descriptor : in LALR_Generator.Descriptor)
+      Descriptor : in LALR_Descriptor;
+      Trace      : in Boolean)
      return LR1_Items.Item_Set;
 
    function LALR_Kernels
      (Grammar           : in Production.List.Instance;
       First             : in Token_Array_Token_Set;
       First_State_Index : in State_Index;
-      Trace             : in Boolean;
-      Descriptor        : in LALR_Generator.Descriptor)
+      Descriptor        : in LALR_Descriptor;
+      Trace             : in Boolean)
      return LR1_Items.Item_Set_List;
 
 end FastToken.Parser.LR.LALR_Generator;

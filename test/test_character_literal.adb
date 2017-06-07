@@ -19,10 +19,11 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with AUnit.Checks;
 with Character_Literal;
+with FastToken.Parser.LR.Parser;
 with FastToken.Text_Feeder.Text_IO;
 with character_literal_dfa;
 package body Test_Character_Literal is
@@ -37,8 +38,8 @@ package body Test_Character_Literal is
       use AUnit.Checks;
       use Character_Literal;
 
-      File_Name : constant String := "../../wisi/test/character_literal.input";
-      Parser : LR_Parser.Instance := Create_Parser
+      File_Name : constant String := "../wisi/test/character_literal.input";
+      Parser : FastToken.Parser.LR.Parser.Instance := Create_Parser
         (FastToken.LALR,
          Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
@@ -72,7 +73,7 @@ package body Test_Character_Literal is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_character_literal.adb");
+      return new String'("../Test/test_character_literal.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

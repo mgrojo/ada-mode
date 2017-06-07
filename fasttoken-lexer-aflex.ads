@@ -62,7 +62,7 @@ package FastToken.Lexer.Aflex is
 
    type Instance is new FastToken.Lexer.Instance with private;
 
-   function Initialize
+   function New_Lexer
      (Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size  : in Integer                               := 1024;
       First_Column : in Integer                               := 1)

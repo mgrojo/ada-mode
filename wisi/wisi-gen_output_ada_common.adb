@@ -29,10 +29,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Output_File_Name   : in String;
       Package_Name       : in String;
       Output_Language    : in Ada_Output_Language;
+      Descriptor         : in FastToken.Descriptor'Class;
       Interface_Kind     : in Valid_Interface;
-      Lexer              : in Valid_Lexer;
-      First_State_Index  : in Integer;
-      First_Parser_Label : in Integer)
+      Lexer              : in Valid_Lexer)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -40,7 +39,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Lower_Package_Name_Root : constant String := To_Lower (Package_Name);
 
       Spec_File : File_Type;
-      Cursor    : Token_Cursor;
+
+      Cursor : Token_Cursor;
    begin
       Create (Spec_File, Out_File, Output_File_Name);
       Set_Output (Spec_File);
@@ -54,7 +54,6 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Put_Line ("with FastToken.Text_Feeder;");
-         Put_Line ("with FastToken.Token;");
          Put_Line ("with FastToken.Token_Region;");
 
       when Ada_Emacs =>
@@ -71,16 +70,13 @@ package body Wisi.Gen_Output_Ada_Common is
             Put_Line ("with FastToken.Token;");
          end case;
       end case;
-      Put_Line ("with FastToken.Lexer;");
-      Put_Line ("with FastToken.Production;");
       Put_Line ("with FastToken.Parser.LR.Parser;");
-      Put_Line ("with FastToken.Parser.LR.Parser_Lists;");
-      Put_Line ("with FastToken.Parser.LR.Panic_Mode;");
+      Put_Line ("with FastToken.Text_IO_Trace;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
-
       New_Line;
-      Indent_Line ("type Token_ID is");
+
+      Indent_Line ("type Token_Enum_ID is");
       Indent_Line ("  (");
       Indent := Indent + 3;
       Cursor := First;
@@ -100,91 +96,74 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       New_Line;
 
-      case Lexer is
-      when Aflex_Lexer =>
-         --  Aflex yylex skeleton (which we are not (yet) overriding)
-         --  has type "Token" as the return type, and expects that to
-         --  be defined in this package. It also assumes
-         --  "End_Of_Buffer" is defined here.
-         Indent_Line ("subtype Token is Token_ID;");
-         Indent_Line ("End_Of_Input : Token_ID renames " & (-EOI_Name) & "_ID;");
-      when Elisp_Lexer =>
-         null;
-      when Regexp_Lexer =>
-         raise Programmer_Error;
-      end case;
+      Indent_Line ("function ""+"" (Item : in Token_Enum_ID) return FastToken.Token_ID");
+      Indent_Line ("  is (FastToken.""+"" (FastToken.Token_ID'First, Token_Enum_ID'Pos (Item)));");
+      New_Line;
+      Indent_Line ("function ""-"" (Item : in FastToken.Token_ID) return Token_Enum_ID");
+      Indent_Line ("  is (Token_Enum_ID'Val (FastToken.""-"" (Item, FastToken.Token_ID'First)));");
+      New_Line;
 
-      Indent_Line ("First_Terminal : constant Token_ID := " & To_Token_Ada_Name (Keywords.First_Element.Name) & ";");
-      Indent_Line ("Last_Terminal  : constant Token_ID := " & (-EOI_Name) & "_ID;");
-
+      Indent_Line ("Descriptor : aliased FastToken.Descriptor :=");
+      Indent_Line ("  (First_Terminal    =>" & FastToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
+      Indent := Indent + 3;
+      Indent_Line ("Last_Terminal     =>" & FastToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
+      Indent_Line ("First_Nonterminal =>" & FastToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
+      Indent_Line ("Last_Nonterminal  =>" & FastToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
+      Indent_Line ("EOF_ID            =>" & FastToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
+      Indent_Line ("Accept_ID         =>" & FastToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
+      Indent_Line ("Image             =>");
       declare
          use Standard.Ada.Strings.Unbounded;
-         Token_Image_Width : Integer := 0;
+         Token_Image_Width : Integer      := 0;
+         Paren_Done        : Boolean      := False;
       begin
-         Indent_Line ("Token_Images   : constant array (Token_ID) of access constant String :=");
-         Indent_Line ("  (");
-         Indent := Indent + 3;
          Cursor := First;
+         Indent_Start ("  (");
+         Indent := Indent + 3;
          loop
             exit when Cursor.Is_Done;
-            Set_Col (Indent);
-            Put ("new String'(""" & (-Cursor.Token_Name));
+            if Paren_Done then
+               Indent_Start ("new String'(""" & (-Cursor.Token_Name));
+            else
+               Put ("new String'(""" & (-Cursor.Token_Name));
+               Paren_Done := True;
+            end if;
             Token_Image_Width := Integer'Max (Token_Image_Width, Length (Cursor.Token_Name));
             Cursor.Next;
             if Cursor.Is_Done then
-               Put_Line ("""));");
+               Put_Line (""")),");
             else
                Put_Line ("""),");
             end if;
          end loop;
 
          Indent := Indent - 3;
-         Indent_Line ("Token_Image_Width : constant Integer :=" & Integer'Image (Token_Image_Width) & ";");
+         Indent_Line ("Image_Width =>" & Integer'Image (Token_Image_Width) & ");");
          New_Line;
       end;
-
-      Indent_Line ("function Token_Image (ID : in Token_ID) return String is (Token_Images (ID).all);");
-      Indent_Line ("procedure Put_Trace (Item : in String);");
-      Indent_Line ("procedure Put_Trace_Line (Item : in String);");
+      Indent := Indent - 3;
       New_Line;
-      Indent_Line ("package Token_Pkg is new FastToken.Token");
-      Indent_Line ("  (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);");
-      Indent_Line ("package Lexer_Root is new FastToken.Lexer (Token_ID);");
-      case Output_Language is
-      when Ada =>
-         Indent_Line ("package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root, Put_Trace_Line);");
-      when Ada_Emacs =>
-         Indent_Line ("package Token_Aug is new FastToken.Token_Wisi_Process (Token_Pkg, Lexer_Root);");
+
+      case Lexer is
+      when Aflex_Lexer =>
+         --  Aflex yylex skeleton (which we are not (yet) overriding)
+         --  has type "Token" as the return type, and expects that to
+         --  be defined in this package. It also assumes
+         --  "End_Of_Buffer" is defined here.
+         Indent_Line ("--  For Aflex");
+         Indent_Line ("subtype Token is FastToken.Token_ID;");
+         Indent_Line ("End_Of_Input : Token renames Descriptor.EOF_ID;");
+      when Elisp_Lexer =>
+         null;
+      when Regexp_Lexer =>
+         raise Programmer_Error;
       end case;
-      Indent_Line
-        ("package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, " &
-           "Token_Aug.Null_Action);");
-      Indent_Line ("package Parser_Root is new FastToken.Parser");
-      Indent_Line
-        ("  (Token_ID, First_Terminal, Last_Terminal, " &
-           (-EOI_Name) & "_ID, " &
-           (-FastToken_Accept_Name) & "_ID, " &
-           "Token_Image, Put_Trace,");
-      Indent_Line ("   Token_Pkg, Lexer_Root);");
-      Indent_Line
-        ("First_State_Index : constant Integer := " & FastToken.Int_Image (First_State_Index) & ";");
-      Indent_Line ("package LR is new Parser_Root.LR");
-      Indent_Line ("  (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,");
-      Indent_Line ("   Token_Aug.State_Type, Token_Aug.Input_Token);");
-      Indent_Line
-        ("First_Parser_Label : constant Integer := " & FastToken.Int_Image (First_Parser_Label) & ";");
-      Indent_Line ("package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);");
-      Indent_Line
-         ("package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);");
-      Indent_Line
-        ("package LR_Parser is new LR.Parser " &
-           "(First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode,");
-      Indent_Line ("   Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);");
       New_Line;
 
       case Output_Language is
       when Ada =>
-         Indent_Line ("State_Aug : aliased Token_Aug.State_Type;");
+         Indent_Line ("Trace : aliased FastToken.Text_IO_Trace.Trace (Descriptor'Access);");
+         Indent_Line ("State : aliased FastToken.Token_Region.State_Type (Trace'Access);");
          New_Line;
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Algorithm            : in FastToken.Parser_Algorithm_Type;");
@@ -192,7 +171,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
          Indent_Line ("   Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;");
          Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
-         Indent_Line ("  return LR_Parser.Instance;");
+         Indent_Line ("  return FastToken.Parser.LR.Parser.Instance;");
          New_Line;
 
       when Ada_Emacs =>
@@ -213,9 +192,11 @@ package body Wisi.Gen_Output_Ada_Common is
             Indent_Line ("pragma Export (C, Parse, """ & Lower_Package_Name_Root & "_wisi_module_parse"");");
             Indent_Line ("function Init (Env : Emacs_Module_Aux.Emacs_Env_Access) return Interfaces.C.int;");
             Indent_Line ("pragma Export (C, Init, """ & Lower_Package_Name_Root & "_wisi_module_parse_init"");");
+            New_Line;
 
          end case;
       end case;
+
       Put_Ada_Prologue_Declarations;
 
       Put_Line ("end " & Package_Name & ";");
@@ -228,6 +209,8 @@ package body Wisi.Gen_Output_Ada_Common is
      (Input_File_Name       : in String;
       Output_File_Name_Root : in String)
    is
+      use FastToken;
+      use Generate_Utils;
       use Wisi.Utils;
       use all type Standard.Ada.Containers.Count_Type;
 
@@ -248,7 +231,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       --  We don't use a Token_Cursor here because the output depends on the Kind
       for Item of Keywords loop
-         Put_Line (-Item.Value & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+         Put_Line (-Item.Value & " {         return" & Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
       end loop;
 
       for Kind of Tokens loop
@@ -282,9 +265,11 @@ package body Wisi.Gen_Output_Ada_Common is
             for Item of Kind.Tokens loop
                if -Item.Value = "ada-wisi-number-p" then
                   Put_Line
-                    ("([0-9]+#)?[0-9a-fA-F._]+(#)? {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                    ("([0-9]+#)?[0-9a-fA-F._]+(#)? {         return " &
+                       Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
                else
-                  Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                  Put_Line (Strip_Quotes (-Item.Value) & " {         return " &
+                              Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
                end if;
             end loop;
 
@@ -298,7 +283,7 @@ package body Wisi.Gen_Output_Ada_Common is
                     ((if Value (1) = '"' and Value'Length <= 4
                       then Value
                       else Strip_Quotes (Value)) &
-                       " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+                       " {         return " & Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
                end;
             end loop;
 
@@ -307,7 +292,8 @@ package body Wisi.Gen_Output_Ada_Common is
                raise Programmer_Error;
             end if;
             for Item of Kind.Tokens loop
-               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " &
+                           Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-double""" then
@@ -315,7 +301,8 @@ package body Wisi.Gen_Output_Ada_Common is
                raise Programmer_Error with "only one string-double value supported";
             end if;
             for Item of Kind.Tokens loop
-               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " &
+                           Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
             end loop;
 
          elsif -Kind.Kind = """string-single""" then
@@ -323,7 +310,8 @@ package body Wisi.Gen_Output_Ada_Common is
                raise Programmer_Error with "only one string-single value supported";
             end if;
             for Item of Kind.Tokens loop
-               Put_Line (Strip_Quotes (-Item.Value) & " {         return " & To_Token_Ada_Name (Item.Name) & ";}");
+               Put_Line (Strip_Quotes (-Item.Value) & " {         return " &
+                           Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
             end loop;
 
          else
@@ -342,12 +330,15 @@ package body Wisi.Gen_Output_Ada_Common is
    end Create_Aflex;
 
    procedure Create_Create_Parser
-     (Parser_Algorithm : in Valid_Parser_Algorithm;
-      Lexer            : in Valid_Lexer;
-      Interface_Kind   : in Interface_Type)
+     (Parser_Algorithm   : in Valid_Parser_Algorithm;
+      Lexer              : in Valid_Lexer;
+      Interface_Kind     : in Interface_Type;
+      First_State_Index  : in Integer;
+      First_Parser_Label : in Integer)
    is
       use Generate_Utils;
       use Wisi.Utils;
+      use all type FastToken.Parser.LR.Unknown_State_Index;
    begin
       Indent_Line ("function Create_Parser");
       case Interface_Kind is
@@ -373,18 +364,37 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Max_Parallel        : in Integer := 15)");
       end case;
 
-      Indent_Line ("  return LR_Parser.Instance");
+      Indent_Line ("  return FastToken.Parser.LR.Parser.Instance");
       Indent_Line ("is");
       Indent := Indent + 3;
 
-      Indent_Line ("use LR;");
-      Indent_Line ("use Production;");
+      Indent_Line ("use FastToken.Parser.LR;");
       Indent_Line ("use all type FastToken.Parser_Algorithm_Type;");
-      Indent_Start ("Table : constant Parse_Table_Ptr := new Parse_Table (");
+      Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
+      Indent_Line  ("  (State_First   =>" & Integer'Image (First_State_Index) & ",");
+      Indent := Indent + 3;
+      Indent_Start ("State_Last       => ");
 
       case Parser_Algorithm is
       when LALR =>
-         Put_Line (LR.State_Image (Parsers (LALR).State_Last) & ");");
+         Put_Line (State_Image (Parsers (LALR).State_Last) & ",");
+
+      when LR1 =>
+         Put_Line (State_Image (Parsers (LR1).State_Last) & ",");
+
+      when LALR_LR1 =>
+         Put_Line
+           ("(case Algorithm is when LALR => " & State_Image (Parsers (LALR).State_Last) &
+              ", when LR1 => " & State_Image (Parsers (LR1).State_Last) & "),");
+      end case;
+      Indent_Line ("First_Terminal    => Descriptor.First_Terminal,");
+      Indent_Line ("Last_Terminal     => Descriptor.Last_Terminal,");
+      Indent_Line ("First_Nonterminal => Descriptor.First_Nonterminal,");
+      Indent_Line ("Last_Nonterminal  =>  Descriptor.Last_Nonterminal);");
+      Indent := Indent - 3;
+
+      case Parser_Algorithm is
+      when LALR =>
          Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
@@ -392,7 +402,6 @@ package body Wisi.Gen_Output_Ada_Common is
          Create_Parser_Core (Parsers (LALR));
 
       when LR1 =>
-         Put_Line (LR.State_Image (Parsers (LR1).State_Last) & ");");
          Indent_Line ("pragma Unreferenced (Algorithm);");
          Indent := Indent - 3;
          Indent_Line ("begin");
@@ -400,9 +409,6 @@ package body Wisi.Gen_Output_Ada_Common is
          Create_Parser_Core (Parsers (LR1));
 
       when LALR_LR1 =>
-         Put_Line
-           ("(case Algorithm is when LALR => " & LR.State_Image (Parsers (LALR).State_Last) &
-              ", when LR1 => " & LR.State_Image (Parsers (LR1).State_Last) & "));");
          Indent := Indent - 3;
          Indent_Line ("begin");
          Indent := Indent + 3;
@@ -426,7 +432,10 @@ package body Wisi.Gen_Output_Ada_Common is
          case Lexer is
          when Aflex_Lexer =>
             Indent_Line ("  (Lexer.New_Lexer (Text_Feeder, Buffer_Size, First_Column => 0),");
-            Indent_Line ("   Table, State_Aug'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);");
+            Indent_Line ("   Table, FastToken.Token.Semantic_State'Class (State)'Access, " &
+                           "FastToken.Token.List.Null_List,");
+            Indent_Line ("   Max_Parallel, " & FastToken.Int_Image (First_Parser_Label)
+                           & ", Terminate_Same_State);");
 
          when Elisp_Lexer =>
             Indent_Line ("  (Lexer.New_Lexer, Table, State_Aug'Access, Token_Pkg.List.Null_List,");
@@ -446,7 +455,7 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
    end Create_Create_Parser;
 
-   procedure Create_Parser_Core (Parser : in Generate_Utils.LR.Parse_Table_Ptr)
+   procedure Create_Parser_Core (Parser : in FastToken.Parser.LR.Parse_Table_Ptr)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -460,10 +469,10 @@ package body Wisi.Gen_Output_Ada_Common is
          if Parser.Panic_Recover (I) then
             if Paren_Done then
                Put_Line (" |");
-               Indent_Start (Token_Out_Image (I));
+               Indent_Start (FastToken.Int_Image (I));
             else
                Paren_Done := True;
-               Put (Token_Out_Image (I));
+               Put (FastToken.Int_Image (I));
             end if;
          end if;
       end loop;
@@ -484,7 +493,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent := Indent + 3;
          for I in Parser.Follow'Range (1) loop
             if FastToken.Any (Parser.Follow, I) then
-               Indent_Line (Token_Out_Image (I) & " =>");
+               Indent_Line (FastToken.Int_Image (I) & " =>");
                Indent_Start ("  (");
                Indent := Indent + 3;
                Paren_Done := False;
@@ -492,10 +501,10 @@ package body Wisi.Gen_Output_Ada_Common is
                   if Parser.Follow (I, J) then
                      if Paren_Done then
                         Put_Line (" |");
-                        Indent_Start (" " & Token_Out_Image (J));
+                        Indent_Start (" " & FastToken.Int_Image (J));
                      else
                         Paren_Done := True;
-                        Put (Token_Out_Image (J));
+                        Put (FastToken.Int_Image (J));
                      end if;
                   end if;
                end loop;
@@ -519,7 +528,7 @@ package body Wisi.Gen_Output_Ada_Common is
             use Standard.Ada.Containers;
             use Standard.Ada.Strings;
             use Standard.Ada.Strings.Unbounded;
-            use Generate_Utils.LR;
+            use FastToken.Parser.LR;
             Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
             Node        : Action_Node_Ptr := Parser.States (State_Index).Action_List;
             Line        : Unbounded_String;
@@ -550,19 +559,19 @@ package body Wisi.Gen_Output_Ada_Common is
                   case Action_Node.Item.Verb is
                   when Shift =>
                      Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
-                       Token_Out_Image (Node.Symbol);
+                       FastToken.Int_Image (Node.Symbol);
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
                   when Reduce | Accept_It =>
                      Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
-                       Token_Out_Image (Node.Symbol);
+                       FastToken.Int_Image (Node.Symbol);
                      if Action_Node.Item.Verb = Reduce then
                         Append (", Reduce");
                      else
                         Append (", Accept_It");
                      end if;
                      Append (", ");
-                     Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
+                     Append (FastToken.Int_Image (Action_Node.Item.LHS) & ",");
                      Append (Integer'Image (Action_Node.Item.Index) & ", ");
                      Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                      Append
@@ -582,7 +591,7 @@ package body Wisi.Gen_Output_Ada_Common is
                         Append (State_Image (Action_Node.Item.State));
                      when Reduce | Accept_It =>
                         Append (", ");
-                        Append (Token_Out_Image (Action_Node.Item.LHS) & ",");
+                        Append (FastToken.Int_Image (Action_Node.Item.LHS) & ",");
                         Append (Integer'Image (Action_Node.Item.Index) & ", ");
                         Append (Count_Type'Image (Action_Node.Item.Token_Count) & ", ");
                         Append
@@ -592,7 +601,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &
-                          LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                          FastToken.Parser.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                      end case;
                   end if;
                end;
@@ -604,14 +613,14 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Gotos :
          declare
-            use Generate_Utils.LR;
+            use FastToken.Parser.LR;
             Node : Goto_Node_Ptr := Parser.States (State_Index).Goto_List;
          begin
             loop
                exit when Node = null;
                Set_Col (Indent);
                Put ("Add_Goto (Table.States (" & State_Image (State_Index) & "), ");
-               Put_Line (Token_Out_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
+               Put_Line (FastToken.Int_Image (Symbol (Node)) & ", " & State_Image (State (Node)) & ");");
                Node := Next (Node);
             end loop;
          end Gotos;

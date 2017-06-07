@@ -34,7 +34,7 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file might be covered by the GNU Public License.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 package FastToken.Parser.LR is
@@ -163,14 +163,15 @@ package FastToken.Parser.LR is
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
    type Parse_Table
-     (State_Last        : State_Index;
+     (State_First       : State_Index;
+      State_Last        : State_Index;
       First_Terminal    : Token_ID;
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
-     is record
+   is record
 
-      States        : Parse_State_Array (State_Index'First .. State_Last);
+      States        : Parse_State_Array (State_First .. State_Last);
       Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
       Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
@@ -206,11 +207,11 @@ package FastToken.Parser.LR is
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Token_ID'First, Unknown_State, Token.List.Null_List, Token_ID'First);
+     (Token_ID'Last, Unknown_State, Token.List.Null_List, Token_ID'Last);
 
    type Instance is abstract new FastToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
-      Semantic_State : access FastToken.Token.Semantic_State;
+      Semantic_State : access FastToken.Token.Semantic_State'Class;
       Skipped_Tokens : Token.List.Instance;
       --  During error recovery, all parallel parsers skip the same
       --  tokens

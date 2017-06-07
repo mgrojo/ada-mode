@@ -24,6 +24,7 @@ with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite;
+with FastToken.Parser.LR.Parser;
 with FastToken.Text_Feeder.String;
 with FastToken.Text_Feeder.Text_IO;
 with ada_lite_dfa;
@@ -53,8 +54,8 @@ package body Test_Panic_Mode is
       use Ada.Exceptions;
       use Ada_Lite;
 
-      File_Name : constant String := "../../wisi/test/ada_lite.input";
-      Parser : LR_Parser.Instance := Create_Parser
+      File_Name : constant String := "../wisi/test/ada_lite.input";
+      Parser : FastToken.Parser.LR.Parser.Instance := Create_Parser
         (FastToken.LALR,
          Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
@@ -81,7 +82,7 @@ package body Test_Panic_Mode is
       use AUnit.Assertions;
       use AUnit.Checks;
 
-      Parser : LR_Parser.Instance := Create_Parser
+      Parser : FastToken.Parser.LR.Parser.Instance := Create_Parser
         (FastToken.LALR,
          Text_Feeder => String_Feeder'Access);
 
@@ -103,7 +104,7 @@ package body Test_Panic_Mode is
       ada_lite_dfa.aflex_debug := Test.Debug > 3;
       FastToken.Trace_Parse := Test.Debug;
 
-      Action_Count (subprogram_body_ID) := 0; -- incremented in No_Error
+      Action_Count (+subprogram_body_ID) := 0; -- incremented in No_Error
 
       begin
          Parse_Text ("procedure Proc_1 is begin if A = 2 then end; end;");
@@ -115,7 +116,7 @@ package body Test_Panic_Mode is
          Assert (False, "1.exception: did not get syntax error exception.");
       exception
       when FastToken.Syntax_Error =>
-         Check ("1.action_count", Action_Count (subprogram_body_ID), 0);
+         Check ("1.action_count", Action_Count (+subprogram_body_ID), 0);
       end;
 
       declare
@@ -128,11 +129,11 @@ package body Test_Panic_Mode is
          --
          --  panic mode encounters EOF and accepts Proc_1.
 
-         Check ("2.action_count", Action_Count (subprogram_body_ID), 1);
+         Check ("2.action_count", Action_Count (+subprogram_body_ID), 1);
 
          --  We don't have a Check for Region_Lists.
-         Check ("2.error_status.invalid_regions.length", State_Aug.Invalid_Regions.Length, 1);
-         Check ("2.error_status.invalid_regions.first", Element (State_Aug.Invalid_Regions.First), (39, 76));
+         Check ("2.error_status.invalid_regions.length", Ada_Lite.State.Invalid_Regions.Length, 1);
+         Check ("2.error_status.invalid_regions.first", Element (Ada_Lite.State.Invalid_Regions.First), (39, 76));
       exception
       when FastToken.Syntax_Error =>
          Assert (False, "2.exception: got Syntax_Error");
@@ -147,7 +148,7 @@ package body Test_Panic_Mode is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_panic_mode.adb");
+      return new String'("../Test/test_panic_mode.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

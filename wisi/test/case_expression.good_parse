@@ -4,39 +4,45 @@ read 44
 when A => 123.4
 
 
- 0 stack:  0 : (WHITESPACE), 
- 0: 0: (WHEN 28 . 31) : shift and goto state 1
- 0 stack:  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 1: (NUMBER_LITERAL 33 . 33) : shift and goto state 3
- 0 stack:  3 : (NUMBER_LITERAL 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 3: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor
+ 0 stack:  0 : 
+ 0: 0: WHEN : shift and goto state 1
+ 0 stack:  1 : WHEN,  0 : 
+ 0: 1: NUMBER_LITERAL : shift and goto state 3
+ 0 stack:  3 : NUMBER_LITERAL,  1 : WHEN,  0 : 
+ 0: 3: EQUAL_GREATER : reduce 1 tokens to factor
+(factor 33 . 33) <= (NUMBER_LITERAL 33 . 33)
  ... goto state 8
- 0 stack:  8 : (factor 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 8: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor_list
+ 0 stack:  8 : factor,  1 : WHEN,  0 : 
+ 0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list
+(factor_list 33 . 33) <= (factor 33 . 33)
  ... goto state 9
- 0 stack:  9 : (factor_list 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 9: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_relation
+ 0 stack:  9 : factor_list,  1 : WHEN,  0 : 
+ 0: 9: EQUAL_GREATER : reduce 1 tokens to choice_relation
+(choice_relation 33 . 33) <= (factor_list 33 . 33)
  ... goto state 6
- 0 stack:  6 : (choice_relation 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 6: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_expression
+ 0 stack:  6 : choice_relation,  1 : WHEN,  0 : 
+ 0: 6: EQUAL_GREATER : reduce 1 tokens to choice_expression
+(choice_expression 33 . 33) <= (choice_relation 33 . 33)
  ... goto state 5
- 0 stack:  5 : (choice_expression 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 5: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to discrete_choice
+ 0 stack:  5 : choice_expression,  1 : WHEN,  0 : 
+ 0: 5: EQUAL_GREATER : reduce 1 tokens to discrete_choice
+(discrete_choice 33 . 33) <= (choice_expression 33 . 33)
  ... goto state 7
- 0 stack:  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 7: (EQUAL_GREATER 35 . 36) : shift and goto state 12
- 0 stack:  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 12: (NUMBER_LITERAL 38 . 42) : shift and goto state 3
- 0 stack:  3 : (NUMBER_LITERAL 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 3: (WISI_EOI 1 . 1) : reduce 1 tokens to factor
+ 0 stack:  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 7: EQUAL_GREATER : shift and goto state 12
+ 0 stack:  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 12: NUMBER_LITERAL : shift and goto state 3
+ 0 stack:  3 : NUMBER_LITERAL,  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 3: Wisi_EOI : reduce 1 tokens to factor
+(factor 38 . 42) <= (NUMBER_LITERAL 38 . 42)
  ... goto state 16
- 0 stack:  16 : (factor 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 16: (WISI_EOI 1 . 1) : reduce 4 tokens to case_expression
-[11[(3 (28 . 32))(14 (33 . 34))(5 (35 . 37))(15 (38 . 43))] 0]
-case_expression_0: case_expression <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
+ 0 stack:  16 : factor,  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 16: Wisi_EOI : reduce 4 tokens to case_expression
+(case_expression 28 . 42) <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
  ... goto state 2
- 0 stack:  2 : (case_expression 28 . 42),  0 : (WHITESPACE), 
- 0: 2: (WISI_EOI 1 . 1) : accept it
+ 0 stack:  2 : case_expression,  0 : 
+ 0: 2: Wisi_EOI : accept it
+(fasttoken_accept 28 . 42) <= (case_expression 28 . 42)
 
 LR1_Parser parse:
 read 44
@@ -44,36 +50,42 @@ read 44
 when A => 123.4
 
 
- 0 stack:  0 : (WHITESPACE), 
- 0: 0: (WHEN 28 . 31) : shift and goto state 1
- 0 stack:  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 1: (NUMBER_LITERAL 33 . 33) : shift and goto state 3
- 0 stack:  3 : (NUMBER_LITERAL 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 3: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor
+ 0 stack:  0 : 
+ 0: 0: WHEN : shift and goto state 1
+ 0 stack:  1 : WHEN,  0 : 
+ 0: 1: NUMBER_LITERAL : shift and goto state 3
+ 0 stack:  3 : NUMBER_LITERAL,  1 : WHEN,  0 : 
+ 0: 3: EQUAL_GREATER : reduce 1 tokens to factor
+(factor 33 . 33) <= (NUMBER_LITERAL 33 . 33)
  ... goto state 8
- 0 stack:  8 : (factor 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 8: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to factor_list
+ 0 stack:  8 : factor,  1 : WHEN,  0 : 
+ 0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list
+(factor_list 33 . 33) <= (factor 33 . 33)
  ... goto state 9
- 0 stack:  9 : (factor_list 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 9: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_relation
+ 0 stack:  9 : factor_list,  1 : WHEN,  0 : 
+ 0: 9: EQUAL_GREATER : reduce 1 tokens to choice_relation
+(choice_relation 33 . 33) <= (factor_list 33 . 33)
  ... goto state 6
- 0 stack:  6 : (choice_relation 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 6: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to choice_expression
+ 0 stack:  6 : choice_relation,  1 : WHEN,  0 : 
+ 0: 6: EQUAL_GREATER : reduce 1 tokens to choice_expression
+(choice_expression 33 . 33) <= (choice_relation 33 . 33)
  ... goto state 5
- 0 stack:  5 : (choice_expression 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 5: (EQUAL_GREATER 35 . 36) : reduce 1 tokens to discrete_choice
+ 0 stack:  5 : choice_expression,  1 : WHEN,  0 : 
+ 0: 5: EQUAL_GREATER : reduce 1 tokens to discrete_choice
+(discrete_choice 33 . 33) <= (choice_expression 33 . 33)
  ... goto state 7
- 0 stack:  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 7: (EQUAL_GREATER 35 . 36) : shift and goto state 12
- 0 stack:  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 12: (NUMBER_LITERAL 38 . 42) : shift and goto state 15
- 0 stack:  15 : (NUMBER_LITERAL 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 15: (WISI_EOI 1 . 1) : reduce 1 tokens to factor
+ 0 stack:  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 7: EQUAL_GREATER : shift and goto state 12
+ 0 stack:  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 12: NUMBER_LITERAL : shift and goto state 15
+ 0 stack:  15 : NUMBER_LITERAL,  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 15: Wisi_EOI : reduce 1 tokens to factor
+(factor 38 . 42) <= (NUMBER_LITERAL 38 . 42)
  ... goto state 17
- 0 stack:  17 : (factor 38 . 42),  12 : (EQUAL_GREATER 35 . 36),  7 : (discrete_choice 33 . 33),  1 : (WHEN 28 . 31),  0 : (WHITESPACE), 
- 0: 17: (WISI_EOI 1 . 1) : reduce 4 tokens to case_expression
-[11[(3 (28 . 32))(14 (33 . 34))(5 (35 . 37))(15 (38 . 43))] 0]
-case_expression_0: case_expression <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
+ 0 stack:  17 : factor,  12 : EQUAL_GREATER,  7 : discrete_choice,  1 : WHEN,  0 : 
+ 0: 17: Wisi_EOI : reduce 4 tokens to case_expression
+(case_expression 28 . 42) <= (WHEN 28 . 31), (discrete_choice 33 . 33), (EQUAL_GREATER 35 . 36), (factor 38 . 42)
  ... goto state 2
- 0 stack:  2 : (case_expression 28 . 42),  0 : (WHITESPACE), 
- 0: 2: (WISI_EOI 1 . 1) : accept it
+ 0 stack:  2 : case_expression,  0 : 
+ 0: 2: Wisi_EOI : accept it
+(fasttoken_accept 28 . 42) <= (case_expression 28 . 42)

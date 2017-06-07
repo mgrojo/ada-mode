@@ -89,13 +89,10 @@ package FastToken is
    end record;
 
    function Image (Desc : in Descriptor'Class; Item : in Token_ID) return String;
+   --  Return Desc.Image (Item)
 
-   --  subtype Terminal_ID is Token_ID range First_Terminal .. Last_Terminal;
-   --  subtype Nonterminal_ID is Token.Token_ID range Token.Token_ID'Succ (Token.Last_Terminal) .. Token.Token_ID'Last;
-   --  --  We assume Last_Terminal < Token_ID'last; ie there are some nonterminals.
-
-   --  subtype Grammar_ID is Token_ID range First_Terminal .. Token.Token_ID'Last;
-   --  Tokens that can be used in a grammar.
+   function Int_Image (Item : in Token_ID) return String;
+   --  Return Token_ID'Image, leading space stripped.
 
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
@@ -103,21 +100,48 @@ package FastToken is
 
    function Image (Desc : in Descriptor'Class; Item : in Token_ID_Set) return String;
 
-   function To_Lookahead (Descriptor : in FastToken.Descriptor; Item : in Token_ID) return Token_ID_Set;
-   --  Base implementation returns (Descriptor.First_Terminal ..
-   --  Descriptor.Last_Terminal), with Item = True, others False. LALR
-   --  child type add Propagate_ID.
-
-   function Lookahead_Image (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set) return String;
-   --  Base implementation just returns aggregate syntas for Item.
-   --  LALR child includes '#' for Propagate_ID.
-
    type Token_Array_Token_Set is array (Token_ID range <>, Token_ID range <>) of Boolean;
 
    function Slice (Item : in Token_Array_Token_Set; I : in Token_ID) return Token_ID_Set;
    function Any (Item : in Token_Array_Token_Set; I : in Token_ID) return Boolean;
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
+
+   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set);
+   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_Array_Token_Set);
+   --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
+
+   function To_Lookahead (Descriptor : in FastToken.Descriptor; Item : in Token_ID) return Token_ID_Set;
+   --  Base implementation returns (Descriptor.First_Terminal ..
+   --  Descriptor.Last_Terminal), with Item = True, others False. LALR
+   --  child type adds Propagate_ID.
+
+   function Lookahead_Image (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set) return String;
+   --  Base implementation just returns aggregate syntas for Item.
+   --  LALR child includes '#' for Propagate_ID.
+
+   type LALR_Descriptor
+     (First_Terminal    : Token_ID;
+      Last_Terminal     : Token_ID;
+      First_Nonterminal : Token_ID;
+      Last_Nonterminal  : Token_ID;
+      EOF_ID            : Token_ID;
+      Accept_ID         : Token_ID;
+      Propagate_ID      : Token_ID)
+     is new Descriptor
+       (First_Terminal    => First_Terminal,
+        Last_Terminal     => Last_Terminal,
+        First_Nonterminal => First_Nonterminal,
+        Last_Nonterminal  => Last_Nonterminal,
+        EOF_ID            => EOF_ID,
+        Accept_ID         => Accept_ID)
+     with null record;
+
+   overriding
+   function To_Lookahead (Descriptor : in LALR_Descriptor; Item : in Token_ID) return Token_ID_Set;
+
+   overriding
+   function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String;
 
    ----------
    --  Augmented tokens
@@ -135,7 +159,7 @@ package FastToken is
    type Semantic_Action is access procedure
      (Nonterm : in Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in Token_Stacks.Vector);
+      Source  : in Token_Stack_Type);
    --  Routines of this type are called by the parser when it reduces
    --  a production to Nonterm. Index indicates which production (0 origin);
    --  Source is the right hand side tokens.
@@ -151,17 +175,20 @@ package FastToken is
    --  If Trace_Parse > 0, Parse prints helpful messages; higher value
    --  prints more.
 
-   type Trace (Descriptor : access FastToken.Descriptor'Class) is abstract tagged null record;
+   type Trace (Descriptor : access FastToken.Descriptor'Class) is abstract tagged limited null record;
    --  Derived types should support Ada.Text_IO for tests/debugging,
    --  and a protocol for inter-process communication for running a
    --  parser as a subprocess of an IDE.
 
-   procedure Put_Trace (Trace : in out FastToken.Trace; Item : in String) is abstract;
+   procedure Put (Trace : in out FastToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace object
 
-   procedure Put_Trace_Line (Trace : in out FastToken.Trace; Item : in String) is abstract;
+   procedure Put_Line (Trace : in out FastToken.Trace; Item : in String) is abstract;
    --  Accumulate Item in the trace buffer, output the trace buffer to
    --  the display.
+
+   procedure New_Line (Trace : in out FastToken.Trace) is abstract;
+   --  Output the trace buffer to the display.
 
    procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Token_ID);
    --  Accumulate Item in the trace buffer.
@@ -173,10 +200,6 @@ package FastToken is
    --  No leading space
 
    type Parser_Algorithm_Type is (LALR, LR1);
-
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set);
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_Array_Token_Set);
-   --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
 
    type Buffer_Region is record
       Begin_Pos : Natural;

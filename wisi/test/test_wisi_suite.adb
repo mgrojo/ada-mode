@@ -2,7 +2,7 @@
 --
 --  Build AUnit test suite containing all Wisi tests
 --
---  Copyright (C) 2013-2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -28,17 +28,17 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../../wisi/test/unused_tokens")));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens")));
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/body_instantiation_conflict")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/case_expression")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/identifier_list_name_conflict")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/range_conflict")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../../wisi/test/subprograms")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/case_expression")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/range_conflict")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/subprograms")));
 
-   --  other *.wy files in ../../wisi/test are used in Ada parser
+   --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.
 
    --  end test cases

@@ -174,10 +174,10 @@ package body FastToken.Token is
       begin
          loop
             exit when I = Null_Iterator;
-            Put_Trace (Trace, Image (Trace.Descriptor.all, I.ID));
+            Trace.Put (Image (Trace.Descriptor.all, I.ID));
             Next (I);
             if I /= Null_Iterator then
-               Put_Trace (Trace, ", ");
+               Trace.Put (", ");
             end if;
          end loop;
       end Put_Trace;

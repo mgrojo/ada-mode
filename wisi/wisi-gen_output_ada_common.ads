@@ -17,6 +17,8 @@
 
 pragma License (Modified_GPL);
 
+with FastToken.Parser.LR;
+with FastToken.Production;
 with Wisi.Gen_Generate_Utils;
 generic
    Keywords  : in Wisi.String_Pair_Lists.List;
@@ -40,6 +42,8 @@ package Wisi.Gen_Output_Ada_Common is
    function To_Token_Ada_Name (Item : in String) return String;
    function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
 
+   --  FIXME: to_token_out_image should be token_id'image; we don't
+   --  need to store the images.
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, To_Token_Ada_Name);
 
@@ -53,9 +57,9 @@ package Wisi.Gen_Output_Ada_Common is
       Shift_Reduce_Conflict_Count  : Integer := -1;
       Reduce_Reduce_Conflict_Count : Integer := -1;
       Table_Entry_Count            : Integer := -1;
-      Parser_State_Count           : Generate_Utils.LR.Unknown_State_Index := 0;
+      Parser_State_Count           : FastToken.Parser.LR.Unknown_State_Index := 0;
 
-      Grammar : Generate_Utils.Production.List.Instance;
+      Grammar : FastToken.Production.List.Instance;
 
       Package_Name_Root       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_Package_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -79,24 +83,25 @@ package Wisi.Gen_Output_Ada_Common is
    --  Ada names of subprograms for each grammar semantic action;
    --  non-null only if there is an action in the grammar.
 
-   Parsers : array (Single_Parser_Algorithm) of Generate_Utils.LR.Parse_Table_Ptr;
+   Parsers : array (Single_Parser_Algorithm) of FastToken.Parser.LR.Parse_Table_Ptr;
 
    procedure Create_Ada_Spec
-     (Input_File_Name    : in String;
-      Output_File_Name   : in String;
-      Package_Name       : in String;
-      Output_Language    : in Ada_Output_Language;
-      Interface_Kind     : in Valid_Interface;
+     (Input_File_Name  : in String;
+      Output_File_Name : in String;
+      Package_Name     : in String;
+      Output_Language  : in Ada_Output_Language;
+      Descriptor       : in FastToken.Descriptor'Class;
+      Interface_Kind   : in Valid_Interface;
+      Lexer            : in Valid_Lexer);
+
+   procedure Create_Create_Parser
+     (Parser_Algorithm   : in Valid_Parser_Algorithm;
       Lexer              : in Valid_Lexer;
+      Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
       First_Parser_Label : in Integer);
 
-   procedure Create_Create_Parser
-     (Parser_Algorithm : in Valid_Parser_Algorithm;
-      Lexer            : in Valid_Lexer;
-      Interface_Kind   : in Interface_Type);
-
-   procedure Create_Parser_Core (Parser : in Generate_Utils.LR.Parse_Table_Ptr);
+   procedure Create_Parser_Core (Parser : in FastToken.Parser.LR.Parse_Table_Ptr);
 
    procedure Create_Aflex
      (Input_File_Name       : in String;

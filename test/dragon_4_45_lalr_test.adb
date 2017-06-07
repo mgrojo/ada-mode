@@ -21,24 +21,20 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
+with FastToken.Gen_Token_Enum;
 with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.AUnit;
-with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Panic_Mode;
+with FastToken.Parser.LR.LR1_Items;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token;
-with FastToken.Token_Region;
+with FastToken.Text_IO_Trace;
 with Gen_FastToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
 
-   type Token_ID is
+   type Token_Enum_ID is
      (
       --  terminals
       Lower_C_ID,
@@ -50,30 +46,26 @@ package body Dragon_4_45_LALR_Test is
       Upper_S_ID,
       Upper_C_ID);
 
-   First_State_Index : constant := 0;
-   package Token_Pkg is new FastToken.Token (Token_ID, Lower_C_ID, EOF_ID, Token_ID'Image);
-   package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-   package Parser_Root is new FastToken.Parser
-     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Accept_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
-      Token_Aug.Input_Token);
-   package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+   package Token_Enum is new FastToken.Gen_Token_Enum
+     (Token_Enum_ID     => Token_Enum_ID,
+      First_Terminal    => Lower_C_ID,
+      Last_Terminal     => EOF_ID,
+      First_Nonterminal => Accept_ID,
+      Last_Nonterminal  => Upper_C_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => Accept_ID);
+   use Token_Enum;
+
+   First_State_Index  : constant := 0;
+   First_Parser_Label : constant := 1;
 
    --  Allow infix operators for building productions
-   use all type Token_Pkg.List.Instance;
-   use all type Production.Right_Hand_Side;
-   use all type Production.Instance;
-   use all type Production.List.Instance;
+   use all type FastToken.Production.Right_Hand_Side;
+   use all type FastToken.Production.List.Instance;
 
-   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
+   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
 
-   Grammar : constant Production.List.Instance :=
+   Grammar : constant FastToken.Production.List.Instance :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
@@ -92,35 +84,31 @@ package body Dragon_4_45_LALR_Test is
    S5  : constant := 5;
    S89 : constant := 6;
 
-   package Lexer is new Lexer_Root.Regexp (EOF_ID);
-   First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LR_Parser is new LR.Parser
-     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
+   package Lexer renames FastToken.Lexer.Regexp;
 
-   Syntax : constant Lexer.Syntax :=
-     (
-      Lower_C_ID => Lexer.Get ("c"),
-      Lower_D_ID => Lexer.Get ("d"),
-      EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
-     );
+   Syntax : constant Lexer.Syntax := To_Syntax
+     ((
+       Lower_C_ID => Lexer.Get ("c"),
+       Lower_D_ID => Lexer.Get ("d"),
+       EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
+     ));
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
-   package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_C_ID, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production,
-      Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items, Grammar);
+   package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
    use FastToken_AUnit;
 
-   package LR_AUnit is new LR.AUnit;
+   Has_Empty_Production : constant FastToken.Token_ID_Set :=
+     FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
+
+   First : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
+     (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
+
+   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   State : State_Type (Trace'Access);
 
    ----------
    --  Test procedures
-
-   First : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
-     (Grammar, Has_Empty_Production => (others => False), Trace => False);
 
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -128,22 +116,27 @@ package body Dragon_4_45_LALR_Test is
 
       --  FIRST defined in dragon pg 45
 
-      Expected : constant Token_Pkg.Nonterminal_Array_Token_Set :=
-        (Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
-         Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
-         Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False));
+      Expected : constant FastToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
+        ((Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
+          Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
+          Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False)));
    begin
       Check ("1", First, Expected);
    end Test_First;
 
    procedure Test_LALR_Kernels (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use LR1_Items;
+      use FastToken.Parser.LR.LR1_Items;
+      use all type FastToken.Token_ID;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := Generators.LALR_Kernels
-        (Grammar, First, Trace => Test.Debug, First_State_Index => First_State_Index);
+      Computed : constant Item_Set_List := FastToken.Parser.LR.LALR_Generator.LALR_Kernels
+        (Grammar, First, First_State_Index, LALR_Descriptor, Trace => Test.Debug);
+
+      Null_Lookaheads : constant FastToken.Token_ID_Set :=
+        --  + 1 for propagate
+        (LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal + 1 => False);
 
       Expected : constant Item_Set_List :=
       --  [dragon] example 4.42 pg 233 shows the item sets.
@@ -166,99 +159,110 @@ package body Dragon_4_45_LALR_Test is
    begin
       Add_Gotos
         (Expected, S0,
-         +(Lower_C_ID, Get_Set (S36, Expected)) &
-           (Lower_D_ID, Get_Set (S47, Expected)) &
-           (Upper_S_ID, Get_Set (S1, Expected)) &
-           (Upper_C_ID, Get_Set (S2, Expected)));
+         +(+Lower_C_ID, Get_Set (S36, Expected)) &
+           (+Lower_D_ID, Get_Set (S47, Expected)) &
+           (+Upper_S_ID, Get_Set (S1, Expected)) &
+           (+Upper_C_ID, Get_Set (S2, Expected)));
 
       Add_Gotos
         (Expected, S2,
-         +(Lower_C_ID, Get_Set (S36, Expected)) &
-           (Lower_D_ID, Get_Set (S47, Expected)) &
-           (Upper_C_ID, Get_Set (S5, Expected)));
+         +(+Lower_C_ID, Get_Set (S36, Expected)) &
+           (+Lower_D_ID, Get_Set (S47, Expected)) &
+           (+Upper_C_ID, Get_Set (S5, Expected)));
 
       Add_Gotos
         (Expected, S36,
-         +(Lower_C_ID, Get_Set (S36, Expected)) &
-           (Lower_D_ID, Get_Set (S47, Expected)) &
-           (Upper_C_ID, Get_Set (S89, Expected)));
+         +(+Lower_C_ID, Get_Set (S36, Expected)) &
+           (+Lower_D_ID, Get_Set (S47, Expected)) &
+           (+Upper_C_ID, Get_Set (S89, Expected)));
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("computed:");
-         Put (Computed);
+         Put (LALR_Descriptor, Computed);
          Ada.Text_IO.New_Line;
          Ada.Text_IO.Put_Line ("expected:");
-         Put (Expected);
+         Put (LALR_Descriptor, Expected);
       end if;
       Check ("", Computed, Expected);
    end Test_LALR_Kernels;
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use LR;
+      use FastToken.Parser.LR;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant LR.Parse_Table_Ptr := Generators.Generate (Grammar, Put_Parse_Table => Test.Debug);
-      Expected : LR.Parse_Table (6);
+      Computed : constant Parse_Table_Ptr := LALR_Generator.Generate
+        (Grammar, LALR_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug);
+
+      Expected : Parse_Table
+        (State_First       => 0,
+         State_Last        => 6,
+         First_Terminal    => +Lower_C_ID,
+         Last_Terminal     => +EOF_ID,
+         First_Nonterminal => +Accept_ID,
+         Last_Nonterminal  => +Upper_C_ID);
 
    begin
       Expected.Panic_Recover := (others => False);
+      Expected.Follow := To_Nonterminal_Array_Terminal_Set
+        ((Accept_ID  => (others => False),
+          Upper_S_ID => (EOF_ID => True, others => False),
+          Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True, others => False)));
 
       --  figure 4.41 pg 239
 
-      Add_Action (Expected.States (S0), Lower_C_ID, S36);
-      Add_Action (Expected.States (S0), Lower_D_ID, S47);
+      Add_Action (Expected.States (S0), +Lower_C_ID, S36);
+      Add_Action (Expected.States (S0), +Lower_D_ID, S47);
       Add_Error (Expected.States (S0));
-      Add_Goto (Expected.States (S0), Upper_C_ID, S2);
-      Add_Goto (Expected.States (S0), Upper_S_ID, S1);
+      Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
+      Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), EOF_ID, LR.Accept_It, Accept_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, +Accept_ID, 0, 1, Null_Action);
       Add_Error (Expected.States (S1));
 
-      Add_Action (Expected.States (S2), Lower_C_ID, S36);
-      Add_Action (Expected.States (S2), Lower_D_ID, S47);
+      Add_Action (Expected.States (S2), +Lower_C_ID, S36);
+      Add_Action (Expected.States (S2), +Lower_D_ID, S47);
       Add_Error (Expected.States (S2));
-      Add_Goto (Expected.States (S2), Upper_C_ID, S5);
+      Add_Goto (Expected.States (S2), +Upper_C_ID, S5);
 
-      Add_Action (Expected.States (S36), Lower_C_ID, S36);
-      Add_Action (Expected.States (S36), Lower_D_ID, S47);
+      Add_Action (Expected.States (S36), +Lower_C_ID, S36);
+      Add_Action (Expected.States (S36), +Lower_D_ID, S47);
       Add_Error (Expected.States (S36));
-      Add_Goto (Expected.States (S36), Upper_C_ID, S89);
+      Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), Lower_C_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
-      Add_Action (Expected.States (S47), Lower_D_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
-      Add_Action (Expected.States (S47), EOF_ID, LR.Reduce, Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), +EOF_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
       Add_Error (Expected.States (S47));
 
-      Add_Action (Expected.States (S5), EOF_ID, LR.Reduce, Upper_S_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S5), +EOF_ID, Reduce, +Upper_S_ID, 0, 2, Null_Action);
       Add_Error (Expected.States (S5));
 
-      Add_Action (Expected.States (S89), Lower_C_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
-      Add_Action (Expected.States (S89), Lower_D_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
-      Add_Action (Expected.States (S89), EOF_ID, LR.Reduce, Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
       Add_Error (Expected.States (S89));
 
       if Test.Debug then
          --  computed output above
          Ada.Text_IO.New_Line (2);
          Ada.Text_IO.Put_Line ("expected:");
-         LR.Put (Expected);
+         Put (LALR_Descriptor, Expected);
       end if;
 
-      LR_AUnit.Check ("", Computed.all, Expected);
+      Check ("", Computed.all, Expected);
    end Parser_Table;
 
    procedure Test_Parse (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
 
-      Semantic_State : aliased Token_Aug.State_Type;
-
-      Parser : LR_Parser.Instance := LR_Parser.New_Parser
-        (Lexer.Initialize (Syntax, String_Feeder'Access),
-         Generators.Generate (Grammar, Trace => Test.Debug),
-        Semantic_State);
+      Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+         FastToken.Parser.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
+         State,
+         First_Parser_Label);
 
       procedure Execute_Command (Command : in String)
       is
@@ -287,7 +291,7 @@ package body Dragon_4_45_LALR_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/dragon_4_45_lalr_test.adb");
+      return new String'("../Test/dragon_4_45_lalr_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
@@ -295,7 +299,7 @@ package body Dragon_4_45_LALR_Test is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug then
-         Register_Routine (T, Test_Parse'Access, "debug");
+         Register_Routine (T, Test_LALR_Kernels'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");
          Register_Routine (T, Test_LALR_Kernels'Access, "Test_LALR_Kernels");

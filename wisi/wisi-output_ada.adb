@@ -23,6 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with FastToken.Parser.LR.LR1_Generator;
+with FastToken.Parser.LR.LALR_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
 procedure Wisi.Output_Ada
@@ -72,6 +73,7 @@ is
 
    procedure Create_Ada_Body
    is
+      use all type FastToken.Parser.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -82,7 +84,7 @@ is
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := LALR_Generator.Generate
+         Parsers (LALR) := FastToken.Parser.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
             FastToken.Parser.LR.State_Index (Params.First_State_Index),
@@ -94,7 +96,7 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := Generate_Utils.To_State_Count (Parsers (LALR).State_Last);
+         Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
@@ -110,8 +112,9 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := Generate_Utils.LR.Unknown_State_Index'Max
-           (Data.Parser_State_Count, Generate_Utils.To_State_Count (Parsers (LR1).State_Last));
+         Data.Parser_State_Count := FastToken.Parser.LR.Unknown_State_Index'Max
+           (Data.Parser_State_Count,
+            Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
 
       Create (Body_File, Out_File, File_Name);
@@ -122,8 +125,7 @@ is
       Put_Command_Line  ("--  ");
       Put_Line ("--");
       Put_Ada_Prologue_Context_Clause;
-
-      Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
+      New_Line;
 
       case Data.Lexer is
       when Aflex_Lexer =>
@@ -137,13 +139,15 @@ is
          raise Programmer_Error;
       end case;
 
+      Put_Line ("with FastToken.Token;");
+
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
 
       case Data.Lexer is
       when Aflex_Lexer =>
-         Indent_Line ("package Lexer is new Lexer_Root.Aflex");
+         Indent_Line ("package Lexer is new FastToken.Lexer.Aflex");
          Indent_Line ("  (" & Lower_Package_Name_Root & "_io.Feeder,");
          Indent := Indent + 3;
          Indent_Line (Lower_Package_Name_Root & "_YYLex,");
@@ -155,22 +159,12 @@ is
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init);");
          Indent := Indent - 3;
+         New_Line;
 
       when Elisp_Lexer | Regexp_Lexer =>
          --  could support regexp_lexer
          raise Programmer_Error;
       end case;
-
-      Indent_Line ("procedure Put_Trace (Item : in String)");
-      Indent_Line ("is begin");
-      Indent_Line ("   Put (Item);");
-      Indent_Line ("end Put_Trace;");
-      New_Line;
-      Indent_Line ("procedure Put_Trace_Line (Item : in String)");
-      Indent_Line ("is begin");
-      Indent_Line ("   Put_Line (Item);");
-      Indent_Line ("end Put_Trace_Line;");
-      New_Line;
 
       if Action_Count = 0 then
          null;
@@ -202,14 +196,10 @@ is
                         All_Empty := False;
                         Temp (Index) := new String'(Name & "'Access");
 
-                        --  Profile matches
-                        --  FastToken.Token_Region.Semantic_Action;
-                        --  Token_Aug is an instantiation of
-                        --  Token_Region.
                         Indent_Line ("procedure " & Name);
-                        Indent_Line (" (Nonterm : in Token_Aug.Token'Class;");
+                        Indent_Line (" (Nonterm : in FastToken.Augmented_Token'Class;");
                         Indent_Line ("  Index   : in Natural;");
-                        Indent_Line ("  Source  : in Token_Aug.Token_Stacks.Vector)");
+                        Indent_Line ("  Source  : in FastToken.Token_Stack_Type)");
                         Indent_Line ("is");
 
                         for Line of RHS.Action loop
@@ -261,7 +251,8 @@ is
          end loop;
       end if;
 
-      Create_Create_Parser (Data.Parser_Algorithm, Data.Lexer, None);
+      Create_Create_Parser
+        (Data.Parser_Algorithm, Data.Lexer, None, Params.First_State_Index, Params.First_Parser_Label);
 
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);
@@ -271,7 +262,7 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           FastToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
            Integer'Image (Data.Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
@@ -302,7 +293,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
-      Ada, Process, Params.Lexer, Params.First_State_Index, Params.First_Parser_Label);
+      Ada, Generate_Utils.LR1_Descriptor, Process, Params.Lexer);
 
    Create_Ada_Body;
 

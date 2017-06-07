@@ -4,38 +4,37 @@ Tokens:
  3 => BEGIN
  4 => IS
  5 => SEMICOLON
- 6 => WISI_EOI
- 7 => declarations
- 8 => declarative_part
- 9 => body
- 10 => fasttoken_accept
+ 6 => Wisi_EOI
+ 7 => fasttoken_accept
+ 8 => declarations
+ 9 => declarative_part
+ 10 => body
 
 LALR Parse Table:
 Panic_Recover:
-(others => False));
 
 Follow:
 ( declarations =>
   (BEGIN |
    IS |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  declarative_part =>
   (BEGIN |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  body =>
   (BEGIN |
    IS |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ declarative_part WISI_EOI, 
+  fasttoken_accept <= ^ declarative_part Wisi_EOI, 
 
    IS               => shift and goto state 2
-   WISI_EOI         => reduce 0 tokens to declarative_part
+   Wisi_EOI         => reduce 0 tokens to declarative_part
    default          => ERROR
 
    declarations     goto state 3
@@ -43,7 +42,7 @@ State 1:
    body             goto state 5
 
 State 2:
-  body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
+  body <= IS ^ declarative_part BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
    BEGIN            => reduce 0 tokens to declarative_part
    IS               => shift and goto state 2
@@ -54,88 +53,89 @@ State 2:
    body             goto state 5
 
 State 3:
-  declarations <= declarations ^ body, BEGIN/IS/WISI_EOI
-  declarative_part <= declarations ^, BEGIN/WISI_EOI
+  declarations <= declarations ^ body, BEGIN/IS/Wisi_EOI
+  declarative_part <= declarations ^, BEGIN/Wisi_EOI
 
    BEGIN            => reduce 1 tokens to declarative_part
    IS               => shift and goto state 2
-   WISI_EOI         => reduce 1 tokens to declarative_part
+   Wisi_EOI         => reduce 1 tokens to declarative_part
    default          => ERROR
 
    body             goto state 6
 
 State 4:
-  fasttoken_accept <= declarative_part ^ WISI_EOI, 
+  fasttoken_accept <= declarative_part ^ Wisi_EOI, 
 
-   WISI_EOI         => accept it
+   Wisi_EOI         => accept it
    default          => ERROR
 
 
 State 5:
-  declarations <= body ^, BEGIN/IS/WISI_EOI
+  declarations <= body ^, BEGIN/IS/Wisi_EOI
 
    BEGIN            => reduce 1 tokens to declarations
    IS               => reduce 1 tokens to declarations
-   WISI_EOI         => reduce 1 tokens to declarations
+   Wisi_EOI         => reduce 1 tokens to declarations
    default          => ERROR
 
 
 State 6:
-  declarations <= declarations body ^, BEGIN/IS/WISI_EOI
+  declarations <= declarations body ^, BEGIN/IS/Wisi_EOI
 
    BEGIN            => reduce 2 tokens to declarations
    IS               => reduce 2 tokens to declarations
-   WISI_EOI         => reduce 2 tokens to declarations
+   Wisi_EOI         => reduce 2 tokens to declarations
    default          => ERROR
 
 
 State 7:
-  body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/WISI_EOI
+  body <= IS declarative_part ^ BEGIN SEMICOLON, BEGIN/IS/Wisi_EOI
 
    BEGIN            => shift and goto state 8
    default          => ERROR
 
 
 State 8:
-  body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/WISI_EOI
+  body <= IS declarative_part BEGIN ^ SEMICOLON, BEGIN/IS/Wisi_EOI
 
    SEMICOLON        => shift and goto state 9
    default          => ERROR
 
 
 State 9:
-  body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/WISI_EOI
+  body <= IS declarative_part BEGIN SEMICOLON ^, BEGIN/IS/Wisi_EOI
 
    BEGIN            => reduce 4 tokens to body
    IS               => reduce 4 tokens to body
-   WISI_EOI         => reduce 4 tokens to body
+   Wisi_EOI         => reduce 4 tokens to body
    default          => ERROR
 
 
 LR1 Parse Table:
 Panic_Recover:
-(others => False));
+
 Follow:
 ( declarations =>
   (BEGIN |
    IS |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  declarative_part =>
   (BEGIN |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  body =>
   (BEGIN |
    IS |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  others => (others => False))
+
 State 1:
-  fasttoken_accept <= ^ declarative_part WISI_EOI, WISI_EOI
+  fasttoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI
 
    IS               => shift and goto state 2
-   WISI_EOI         => reduce 0 tokens to declarative_part
+   Wisi_EOI         => reduce 0 tokens to declarative_part
    default          => ERROR
 
    declarations     goto state 3
@@ -143,7 +143,7 @@ State 1:
    body             goto state 5
 
 State 2:
-  body <= IS ^ declarative_part BEGIN SEMICOLON, IS/WISI_EOI
+  body <= IS ^ declarative_part BEGIN SEMICOLON, IS/Wisi_EOI
 
    BEGIN            => reduce 0 tokens to declarative_part
    IS               => shift and goto state 7
@@ -154,35 +154,35 @@ State 2:
    body             goto state 10
 
 State 3:
-  declarations <= declarations ^ body, IS/WISI_EOI
-  declarative_part <= declarations ^, WISI_EOI
+  declarations <= declarations ^ body, IS/Wisi_EOI
+  declarative_part <= declarations ^, Wisi_EOI
 
    IS               => shift and goto state 2
-   WISI_EOI         => reduce 1 tokens to declarative_part
+   Wisi_EOI         => reduce 1 tokens to declarative_part
    default          => ERROR
 
    body             goto state 6
 
 State 4:
-  fasttoken_accept <= declarative_part ^ WISI_EOI, WISI_EOI
+  fasttoken_accept <= declarative_part ^ Wisi_EOI, Wisi_EOI
 
-   WISI_EOI         => accept it
+   Wisi_EOI         => accept it
    default          => ERROR
 
 
 State 5:
-  declarations <= body ^, IS/WISI_EOI
+  declarations <= body ^, IS/Wisi_EOI
 
    IS               => reduce 1 tokens to declarations
-   WISI_EOI         => reduce 1 tokens to declarations
+   Wisi_EOI         => reduce 1 tokens to declarations
    default          => ERROR
 
 
 State 6:
-  declarations <= declarations body ^, IS/WISI_EOI
+  declarations <= declarations body ^, IS/Wisi_EOI
 
    IS               => reduce 2 tokens to declarations
-   WISI_EOI         => reduce 2 tokens to declarations
+   Wisi_EOI         => reduce 2 tokens to declarations
    default          => ERROR
 
 
@@ -208,7 +208,7 @@ State 8:
    body             goto state 12
 
 State 9:
-  body <= IS declarative_part ^ BEGIN SEMICOLON, IS/WISI_EOI
+  body <= IS declarative_part ^ BEGIN SEMICOLON, IS/Wisi_EOI
 
    BEGIN            => shift and goto state 11
    default          => ERROR
@@ -223,7 +223,7 @@ State 10:
 
 
 State 11:
-  body <= IS declarative_part BEGIN ^ SEMICOLON, IS/WISI_EOI
+  body <= IS declarative_part BEGIN ^ SEMICOLON, IS/Wisi_EOI
 
    SEMICOLON        => shift and goto state 15
    default          => ERROR
@@ -252,10 +252,10 @@ State 14:
 
 
 State 15:
-  body <= IS declarative_part BEGIN SEMICOLON ^, IS/WISI_EOI
+  body <= IS declarative_part BEGIN SEMICOLON ^, IS/Wisi_EOI
 
    IS               => reduce 4 tokens to body
-   WISI_EOI         => reduce 4 tokens to body
+   Wisi_EOI         => reduce 4 tokens to body
    default          => ERROR
 
 

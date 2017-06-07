@@ -89,6 +89,7 @@ is
 
    procedure Create_Ada_Body
    is
+      use all type FastToken.Parser.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -124,7 +125,7 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := Generate_Utils.To_State_Count (Parsers (LALR).State_Last);
+         Data.Parser_State_Count := Parsers (LALR).State_Last - Parsers (LALR).State_First + 1;
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
@@ -140,8 +141,9 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := Generate_Utils.LR.Unknown_State_Index'Max
-           (Data.Parser_State_Count, Generate_Utils.To_State_Count (Parsers (LR1).State_Last));
+         Data.Parser_State_Count := FastToken.Parser.LR.Unknown_State_Index'Max
+           (Data.Parser_State_Count,
+            Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
 
       Create (Body_File, Out_File, File_Name);
@@ -243,7 +245,8 @@ is
       Indent_Line ("is null;");
       New_Line;
 
-      Create_Create_Parser (Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind);
+      Create_Create_Parser
+        (Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label);
 
       case Data.Interface_Kind is
       when Process =>
@@ -311,7 +314,7 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           FastToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
            Integer'Image (Data.Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
@@ -686,10 +689,9 @@ begin
          when Process => "_Process",
          when Module     => "_Module"),
       Output_Language    => Ada_Emacs,
+      Descriptor         => Generate_Utils.LALR_Descriptor,
       Interface_Kind     => Params.Interface_Kind,
-      Lexer              => Params.Lexer,
-      First_State_Index  => Params.First_State_Index,
-      First_Parser_Label => Params.First_Parser_Label);
+      Lexer              => Params.Lexer);
 
    Create_Ada_Body;
 

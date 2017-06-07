@@ -21,7 +21,10 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 package body FastToken.Parser.LR.Parser_Lists is
 
-   function Initialize return List
+   function New_List
+     (First_State_Index  : in State_Index;
+      First_Parser_Label : in Integer)
+     return List
    is begin
       --  FIXME: should clear all panic lists in existing parser; use Controlled.
       return
@@ -32,8 +35,8 @@ package body FastToken.Parser.LR.Parser_Lists is
                Verb            => Parse_Action_Verbs'First,
                Stack           => new Stack_Node'
                  (Item         =>
-                    (State     => State_Index'First,
-                     Token     => Token_ID'First),
+                    (State     => First_State_Index,
+                     Token     => Token_ID'Last),
                   Next         => null),
                Pending_Actions => (null, null),
                Panic           => Default_Panic),
@@ -44,7 +47,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          Action_Token_Free     => null,
          Count                 => 1);
 
-   end Initialize;
+   end New_List;
 
    function Count (List : in Parser_Lists.List) return Integer
    is begin
@@ -176,20 +179,21 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Stack_1 = null and Stack_2 = null;
    end Stack_Equal;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Top_10 (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
    begin
-      Put_Trace (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
+      Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
       for I in 1 .. 10 loop
          exit when Stack_I = null;
-         Put_Trace
+         Trace.Put
            (State_Index'Image (Stack_I.Item.State) & " : " &
-              Token_Image (Stack_I.Item.Token) &
-              ", ");
+              (if Stack_I.Next = null
+               then ""
+               else Image (Trace.Descriptor.all, Stack_I.Item.Token) & ", "));
          Stack_I := Stack_I.Next;
       end loop;
-      Put_Trace_Line ("");
+      Trace.New_Line;
    end Put_Trace_Top_10;
 
    function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer
@@ -547,27 +551,41 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Result;
    end Action_Token_Free_Count;
 
-   procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token)
+   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token)
    is
       use Ada.Characters.Handling;
-      Action_Name : constant String := To_Lower
-        (Token_Image (Action_Token.Action.LHS)) &
-        "_" & FastToken.Int_Image (Action_Token.Action.Index);
    begin
-         Put_Trace
-           (Action_Name & ": " &
-              Token_Image (Action_Token.Action.LHS) & " <= ");
-      Token.List.Put_Trace (Action_Token.Tokens);
+      case Action_Token.Action.Verb is
+      when Shift =>
+         Trace.Put
+           ("shift " &
+              Image (Trace.Descriptor.all, Token.List.Current (Token.List.First (Action_Token.Tokens))));
+
+      when Reduce =>
+         declare
+            Action_Name : constant String := To_Lower
+              (Image (Trace.Descriptor.all, Action_Token.Action.LHS)) &
+              "_" & FastToken.Int_Image (Action_Token.Action.Index);
+         begin
+            Trace.Put
+              (Action_Name & ": " &
+                 Image (Trace.Descriptor.all, Action_Token.Action.LHS) & " <= ");
+            Token.List.Put_Trace (Trace, Action_Token.Tokens);
+         end;
+
+      when Accept_It | Error =>
+         raise Programmer_Error;
+      end case;
    end Put_Trace;
 
-   procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Pending_Actions (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
       loop
          exit when Action_Token = null;
-         Put_Trace (Action_Token.Item);
-         Put_Trace_Line ("");
+         Put_Trace (Trace, Action_Token.Item);
+         Trace.New_Line;
          Action_Token := Action_Token.Next;
       end loop;
    end Put_Trace_Pending_Actions;

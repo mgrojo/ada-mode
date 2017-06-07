@@ -21,18 +21,21 @@ with Ada.Characters.Handling;
 package body FastToken.Token_Plain is
 
    procedure Put_Trace
-     (Trace   : in out FastToken.Trace'Class;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      Tokens  : in     Token.List.Instance)
+     (Trace        : in out FastToken.Trace'Class;
+      Nonterm      : in     Token_ID;
+      Index        : in     Natural;
+      Tokens       : in     Token.List.Instance;
+      Include_Name : in     Boolean)
    is
       use Ada.Characters.Handling;
       use Token.List;
 
-      Action_Name : constant String := To_Lower (Image (Trace.Descriptor.all, Nonterm)) &
-        "_" & Int_Image (Index);
+      Action_Name : constant String :=
+        (if Include_Name
+         then To_Lower (Image (Trace.Descriptor.all, Nonterm)) & "_" & Int_Image (Index) & ": "
+         else "");
    begin
-      Put_Trace (Trace, Action_Name & ": " & Image (Trace.Descriptor.all, Nonterm) & " <= ");
+      Put_Trace (Trace, Action_Name & Image (Trace.Descriptor.all, Nonterm) & " <= ");
       Put_Trace (Trace, Tokens);
       Put_Trace_Line (Trace, "");
    end Put_Trace;
@@ -60,11 +63,11 @@ package body FastToken.Token_Plain is
       end To_Augmented;
 
    begin
+      if Trace_Parse > 1 then
+         Put_Trace (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
+      end if;
       if Action /= null then
          Action (Augmented_Token'(ID => Nonterm), Index, To_Augmented (Tokens));
-         if Trace_Parse > 1 then
-            Put_Trace (State.Trace.all, Nonterm, Index, Tokens);
-         end if;
       end if;
    end Merge_Tokens;
 

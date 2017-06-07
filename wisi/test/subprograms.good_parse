@@ -29,99 +29,103 @@ param_1
 --CACHE: nil
 Func_1
 
- 0 stack:  0 : (WHITESPACE), 
- 0: 0: (FUNCTION 20 . 27) : shift and goto state 1
- 0 stack:  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 1: (SYMBOL 43 . 48) : reduce 0 tokens to parameter_list
+ 0 stack:  0 : 
+ 0: 0: FUNCTION : shift and goto state 1
+ 0 stack:  1 : FUNCTION,  0 : 
+ 0: 1: SYMBOL : reduce 0 tokens to parameter_list
+(parameter_list) <= 
  ... goto state 10
- 0 stack:  10 : (parameter_list),  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 10: (SYMBOL 43 . 48) : shift and goto state 11
- 0 stack:  11 : (SYMBOL 43 . 48),  10 : (parameter_list),  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 11: (PROCEDURE 71 . 79) : reduce 3 tokens to subprogram
-[12[(2 (20 . 28))(13)(6 (43 . 49))] 1]
-subprogram_0: subprogram <= (FUNCTION 20 . 27), (parameter_list), (SYMBOL 43 . 48)
+ 0 stack:  10 : parameter_list,  1 : FUNCTION,  0 : 
+ 0: 10: SYMBOL : shift and goto state 11
+ 0 stack:  11 : SYMBOL,  10 : parameter_list,  1 : FUNCTION,  0 : 
+ 0: 11: PROCEDURE : reduce 3 tokens to subprogram
+subprogram_0: (subprogram 20 . 48) <= (FUNCTION 20 . 27), (parameter_list), (SYMBOL 43 . 48)
  ... goto state 6
- 0 stack:  6 : (subprogram 20 . 48),  0 : (WHITESPACE), 
- 0: 6: (PROCEDURE 71 . 79) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  0 : 
+ 0: 6: PROCEDURE : reduce 1 tokens to declaration
+(declaration 20 . 48) <= (subprogram 20 . 48)
  ... goto state 5
- 0 stack:  5 : (declaration 20 . 48),  0 : (WHITESPACE), 
- 0: 5: (PROCEDURE 71 . 79) : reduce 1 tokens to declarations
+ 0 stack:  5 : declaration,  0 : 
+ 0: 5: PROCEDURE : reduce 1 tokens to declarations
+(declarations 20 . 48) <= (declaration 20 . 48)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 4: (PROCEDURE 71 . 79) : shift and goto state 2
- 0 stack:  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 2: (SYMBOL 94 . 99) : reduce 0 tokens to parameter_list
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: PROCEDURE : shift and goto state 2
+ 0 stack:  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 2: SYMBOL : reduce 0 tokens to parameter_list
+(parameter_list) <= 
  ... goto state 9
- 0 stack:  9 : (parameter_list),  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 9: (SYMBOL 94 . 99) : shift and goto state 12
- 0 stack:  12 : (SYMBOL 94 . 99),  9 : (parameter_list),  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 12: (FUNCTION 121 . 128) : reduce 3 tokens to subprogram
-[12[(4 (71 . 80))(13)(6 (94 . 100))] 2]
-subprogram_1: subprogram <= (PROCEDURE 71 . 79), (parameter_list), (SYMBOL 94 . 99)
+ 0 stack:  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 9: SYMBOL : shift and goto state 12
+ 0 stack:  12 : SYMBOL,  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 12: FUNCTION : reduce 3 tokens to subprogram
+subprogram_1: (subprogram 71 . 99) <= (PROCEDURE 71 . 79), (parameter_list), (SYMBOL 94 . 99)
  ... goto state 6
- 0 stack:  6 : (subprogram 71 . 99),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 6: (FUNCTION 121 . 128) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: FUNCTION : reduce 1 tokens to declaration
+(declaration 71 . 99) <= (subprogram 71 . 99)
  ... goto state 7
- 0 stack:  7 : (declaration 71 . 99),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 7: (FUNCTION 121 . 128) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: FUNCTION : reduce 2 tokens to declarations
+(declarations 20 . 99) <= (declarations 20 . 48), (declaration 71 . 99)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 4: (FUNCTION 121 . 128) : shift and goto state 1
- 0 stack:  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 1: (LEFT_PAREN 146 . 146) : shift and goto state 8
- 0 stack:  8 : (LEFT_PAREN 146 . 146),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 8: (RIGHT_PAREN 170 . 170) : shift and goto state 13
- 0 stack:  13 : (RIGHT_PAREN 170 . 170),  8 : (LEFT_PAREN 146 . 146),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 13: (SYMBOL 185 . 190) : reduce 2 tokens to parameter_list
-[13[(3 (146 . 147))(5 (170 . 171))] 3]
-parameter_list_0: parameter_list <= (LEFT_PAREN 146 . 146), (RIGHT_PAREN 170 . 170)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: FUNCTION : shift and goto state 1
+ 0 stack:  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 1: LEFT_PAREN : shift and goto state 8
+ 0 stack:  8 : LEFT_PAREN,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 8: RIGHT_PAREN : shift and goto state 13
+ 0 stack:  13 : RIGHT_PAREN,  8 : LEFT_PAREN,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 13: SYMBOL : reduce 2 tokens to parameter_list
+parameter_list_0: (parameter_list 146 . 170) <= (LEFT_PAREN 146 . 146), (RIGHT_PAREN 170 . 170)
  ... goto state 10
- 0 stack:  10 : (parameter_list 146 . 170),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 10: (SYMBOL 185 . 190) : shift and goto state 11
- 0 stack:  11 : (SYMBOL 185 . 190),  10 : (parameter_list 146 . 170),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 11: (PROCEDURE 213 . 221) : reduce 3 tokens to subprogram
-[12[(2 (121 . 129))(13 (146 . 171))(6 (185 . 191))] 1]
-subprogram_0: subprogram <= (FUNCTION 121 . 128), (parameter_list 146 . 170), (SYMBOL 185 . 190)
+ 0 stack:  10 : parameter_list,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 10: SYMBOL : shift and goto state 11
+ 0 stack:  11 : SYMBOL,  10 : parameter_list,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 11: PROCEDURE : reduce 3 tokens to subprogram
+subprogram_0: (subprogram 121 . 190) <= (FUNCTION 121 . 128), (parameter_list 146 . 170), (SYMBOL 185 . 190)
  ... goto state 6
- 0 stack:  6 : (subprogram 121 . 190),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 6: (PROCEDURE 213 . 221) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: PROCEDURE : reduce 1 tokens to declaration
+(declaration 121 . 190) <= (subprogram 121 . 190)
  ... goto state 7
- 0 stack:  7 : (declaration 121 . 190),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 7: (PROCEDURE 213 . 221) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: PROCEDURE : reduce 2 tokens to declarations
+(declarations 20 . 190) <= (declarations 20 . 99), (declaration 121 . 190)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 4: (PROCEDURE 213 . 221) : shift and goto state 2
- 0 stack:  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 2: (LEFT_PAREN 239 . 239) : shift and goto state 8
- 0 stack:  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 8: (SYMBOL 241 . 247) : shift and goto state 14
- 0 stack:  14 : (SYMBOL 241 . 247),  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 14: (RIGHT_PAREN 271 . 271) : shift and goto state 15
- 0 stack:  15 : (RIGHT_PAREN 271 . 271),  14 : (SYMBOL 241 . 247),  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 15: (SYMBOL 286 . 291) : reduce 3 tokens to parameter_list
-[13[(3 (239 . 240))(6 (241 . 248))(5 (271 . 272))] 4]
-parameter_list_2: parameter_list <= (LEFT_PAREN 239 . 239), (SYMBOL 241 . 247), (RIGHT_PAREN 271 . 271)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: PROCEDURE : shift and goto state 2
+ 0 stack:  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 2: LEFT_PAREN : shift and goto state 8
+ 0 stack:  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 8: SYMBOL : shift and goto state 14
+ 0 stack:  14 : SYMBOL,  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 14: RIGHT_PAREN : shift and goto state 15
+ 0 stack:  15 : RIGHT_PAREN,  14 : SYMBOL,  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 15: SYMBOL : reduce 3 tokens to parameter_list
+parameter_list_2: (parameter_list 239 . 271) <= (LEFT_PAREN 239 . 239), (SYMBOL 241 . 247), (RIGHT_PAREN 271 . 271)
  ... goto state 9
- 0 stack:  9 : (parameter_list 239 . 271),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 9: (SYMBOL 286 . 291) : shift and goto state 12
- 0 stack:  12 : (SYMBOL 286 . 291),  9 : (parameter_list 239 . 271),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 12: (WISI_EOI 1 . 1) : reduce 3 tokens to subprogram
-[12[(4 (213 . 222))(13 (239 . 272))(6 (286 . 292))] 2]
-subprogram_1: subprogram <= (PROCEDURE 213 . 221), (parameter_list 239 . 271), (SYMBOL 286 . 291)
+ 0 stack:  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 9: SYMBOL : shift and goto state 12
+ 0 stack:  12 : SYMBOL,  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 12: Wisi_EOI : reduce 3 tokens to subprogram
+subprogram_1: (subprogram 213 . 291) <= (PROCEDURE 213 . 221), (parameter_list 239 . 271), (SYMBOL 286 . 291)
  ... goto state 6
- 0 stack:  6 : (subprogram 213 . 291),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 6: (WISI_EOI 1 . 1) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: Wisi_EOI : reduce 1 tokens to declaration
+(declaration 213 . 291) <= (subprogram 213 . 291)
  ... goto state 7
- 0 stack:  7 : (declaration 213 . 291),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 7: (WISI_EOI 1 . 1) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: Wisi_EOI : reduce 2 tokens to declarations
+(declarations 20 . 291) <= (declarations 20 . 190), (declaration 213 . 291)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 291),  0 : (WHITESPACE), 
- 0: 4: (WISI_EOI 1 . 1) : reduce 1 tokens to compilation_unit
-[9[(10 (20 . 292))] 0]
-compilation_unit_0: compilation_unit <= (declarations 20 . 291)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: Wisi_EOI : reduce 1 tokens to compilation_unit
+compilation_unit_0: (compilation_unit 20 . 291) <= (declarations 20 . 291)
  ... goto state 3
- 0 stack:  3 : (compilation_unit 20 . 291),  0 : (WHITESPACE), 
- 0: 3: (WISI_EOI 1 . 1) : accept it
+ 0 stack:  3 : compilation_unit,  0 : 
+ 0: 3: Wisi_EOI : accept it
+(fasttoken_accept 20 . 291) <= (compilation_unit 20 . 291)
 
 LR1_Parser parse:
 read 292
@@ -154,96 +158,100 @@ param_1
 --CACHE: nil
 Func_1
 
- 0 stack:  0 : (WHITESPACE), 
- 0: 0: (FUNCTION 20 . 27) : shift and goto state 1
- 0 stack:  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 1: (SYMBOL 43 . 48) : reduce 0 tokens to parameter_list
+ 0 stack:  0 : 
+ 0: 0: FUNCTION : shift and goto state 1
+ 0 stack:  1 : FUNCTION,  0 : 
+ 0: 1: SYMBOL : reduce 0 tokens to parameter_list
+(parameter_list) <= 
  ... goto state 10
- 0 stack:  10 : (parameter_list),  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 10: (SYMBOL 43 . 48) : shift and goto state 11
- 0 stack:  11 : (SYMBOL 43 . 48),  10 : (parameter_list),  1 : (FUNCTION 20 . 27),  0 : (WHITESPACE), 
- 0: 11: (PROCEDURE 71 . 79) : reduce 3 tokens to subprogram
-[12[(2 (20 . 28))(13)(6 (43 . 49))] 1]
-subprogram_0: subprogram <= (FUNCTION 20 . 27), (parameter_list), (SYMBOL 43 . 48)
+ 0 stack:  10 : parameter_list,  1 : FUNCTION,  0 : 
+ 0: 10: SYMBOL : shift and goto state 11
+ 0 stack:  11 : SYMBOL,  10 : parameter_list,  1 : FUNCTION,  0 : 
+ 0: 11: PROCEDURE : reduce 3 tokens to subprogram
+subprogram_0: (subprogram 20 . 48) <= (FUNCTION 20 . 27), (parameter_list), (SYMBOL 43 . 48)
  ... goto state 6
- 0 stack:  6 : (subprogram 20 . 48),  0 : (WHITESPACE), 
- 0: 6: (PROCEDURE 71 . 79) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  0 : 
+ 0: 6: PROCEDURE : reduce 1 tokens to declaration
+(declaration 20 . 48) <= (subprogram 20 . 48)
  ... goto state 5
- 0 stack:  5 : (declaration 20 . 48),  0 : (WHITESPACE), 
- 0: 5: (PROCEDURE 71 . 79) : reduce 1 tokens to declarations
+ 0 stack:  5 : declaration,  0 : 
+ 0: 5: PROCEDURE : reduce 1 tokens to declarations
+(declarations 20 . 48) <= (declaration 20 . 48)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 4: (PROCEDURE 71 . 79) : shift and goto state 2
- 0 stack:  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 2: (SYMBOL 94 . 99) : reduce 0 tokens to parameter_list
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: PROCEDURE : shift and goto state 2
+ 0 stack:  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 2: SYMBOL : reduce 0 tokens to parameter_list
+(parameter_list) <= 
  ... goto state 9
- 0 stack:  9 : (parameter_list),  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 9: (SYMBOL 94 . 99) : shift and goto state 12
- 0 stack:  12 : (SYMBOL 94 . 99),  9 : (parameter_list),  2 : (PROCEDURE 71 . 79),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 12: (FUNCTION 121 . 128) : reduce 3 tokens to subprogram
-[12[(4 (71 . 80))(13)(6 (94 . 100))] 2]
-subprogram_1: subprogram <= (PROCEDURE 71 . 79), (parameter_list), (SYMBOL 94 . 99)
+ 0 stack:  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 9: SYMBOL : shift and goto state 12
+ 0 stack:  12 : SYMBOL,  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 12: FUNCTION : reduce 3 tokens to subprogram
+subprogram_1: (subprogram 71 . 99) <= (PROCEDURE 71 . 79), (parameter_list), (SYMBOL 94 . 99)
  ... goto state 6
- 0 stack:  6 : (subprogram 71 . 99),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 6: (FUNCTION 121 . 128) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: FUNCTION : reduce 1 tokens to declaration
+(declaration 71 . 99) <= (subprogram 71 . 99)
  ... goto state 7
- 0 stack:  7 : (declaration 71 . 99),  4 : (declarations 20 . 48),  0 : (WHITESPACE), 
- 0: 7: (FUNCTION 121 . 128) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: FUNCTION : reduce 2 tokens to declarations
+(declarations 20 . 99) <= (declarations 20 . 48), (declaration 71 . 99)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 4: (FUNCTION 121 . 128) : shift and goto state 1
- 0 stack:  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 1: (LEFT_PAREN 146 . 146) : shift and goto state 8
- 0 stack:  8 : (LEFT_PAREN 146 . 146),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 8: (RIGHT_PAREN 170 . 170) : shift and goto state 13
- 0 stack:  13 : (RIGHT_PAREN 170 . 170),  8 : (LEFT_PAREN 146 . 146),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 13: (SYMBOL 185 . 190) : reduce 2 tokens to parameter_list
-[13[(3 (146 . 147))(5 (170 . 171))] 3]
-parameter_list_0: parameter_list <= (LEFT_PAREN 146 . 146), (RIGHT_PAREN 170 . 170)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: FUNCTION : shift and goto state 1
+ 0 stack:  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 1: LEFT_PAREN : shift and goto state 8
+ 0 stack:  8 : LEFT_PAREN,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 8: RIGHT_PAREN : shift and goto state 13
+ 0 stack:  13 : RIGHT_PAREN,  8 : LEFT_PAREN,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 13: SYMBOL : reduce 2 tokens to parameter_list
+parameter_list_0: (parameter_list 146 . 170) <= (LEFT_PAREN 146 . 146), (RIGHT_PAREN 170 . 170)
  ... goto state 10
- 0 stack:  10 : (parameter_list 146 . 170),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 10: (SYMBOL 185 . 190) : shift and goto state 11
- 0 stack:  11 : (SYMBOL 185 . 190),  10 : (parameter_list 146 . 170),  1 : (FUNCTION 121 . 128),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 11: (PROCEDURE 213 . 221) : reduce 3 tokens to subprogram
-[12[(2 (121 . 129))(13 (146 . 171))(6 (185 . 191))] 1]
-subprogram_0: subprogram <= (FUNCTION 121 . 128), (parameter_list 146 . 170), (SYMBOL 185 . 190)
+ 0 stack:  10 : parameter_list,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 10: SYMBOL : shift and goto state 11
+ 0 stack:  11 : SYMBOL,  10 : parameter_list,  1 : FUNCTION,  4 : declarations,  0 : 
+ 0: 11: PROCEDURE : reduce 3 tokens to subprogram
+subprogram_0: (subprogram 121 . 190) <= (FUNCTION 121 . 128), (parameter_list 146 . 170), (SYMBOL 185 . 190)
  ... goto state 6
- 0 stack:  6 : (subprogram 121 . 190),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 6: (PROCEDURE 213 . 221) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: PROCEDURE : reduce 1 tokens to declaration
+(declaration 121 . 190) <= (subprogram 121 . 190)
  ... goto state 7
- 0 stack:  7 : (declaration 121 . 190),  4 : (declarations 20 . 99),  0 : (WHITESPACE), 
- 0: 7: (PROCEDURE 213 . 221) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: PROCEDURE : reduce 2 tokens to declarations
+(declarations 20 . 190) <= (declarations 20 . 99), (declaration 121 . 190)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 4: (PROCEDURE 213 . 221) : shift and goto state 2
- 0 stack:  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 2: (LEFT_PAREN 239 . 239) : shift and goto state 8
- 0 stack:  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 8: (SYMBOL 241 . 247) : shift and goto state 14
- 0 stack:  14 : (SYMBOL 241 . 247),  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 14: (RIGHT_PAREN 271 . 271) : shift and goto state 15
- 0 stack:  15 : (RIGHT_PAREN 271 . 271),  14 : (SYMBOL 241 . 247),  8 : (LEFT_PAREN 239 . 239),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 15: (SYMBOL 286 . 291) : reduce 3 tokens to parameter_list
-[13[(3 (239 . 240))(6 (241 . 248))(5 (271 . 272))] 4]
-parameter_list_2: parameter_list <= (LEFT_PAREN 239 . 239), (SYMBOL 241 . 247), (RIGHT_PAREN 271 . 271)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: PROCEDURE : shift and goto state 2
+ 0 stack:  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 2: LEFT_PAREN : shift and goto state 8
+ 0 stack:  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 8: SYMBOL : shift and goto state 14
+ 0 stack:  14 : SYMBOL,  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 14: RIGHT_PAREN : shift and goto state 15
+ 0 stack:  15 : RIGHT_PAREN,  14 : SYMBOL,  8 : LEFT_PAREN,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 15: SYMBOL : reduce 3 tokens to parameter_list
+parameter_list_2: (parameter_list 239 . 271) <= (LEFT_PAREN 239 . 239), (SYMBOL 241 . 247), (RIGHT_PAREN 271 . 271)
  ... goto state 9
- 0 stack:  9 : (parameter_list 239 . 271),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 9: (SYMBOL 286 . 291) : shift and goto state 12
- 0 stack:  12 : (SYMBOL 286 . 291),  9 : (parameter_list 239 . 271),  2 : (PROCEDURE 213 . 221),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 12: (WISI_EOI 1 . 1) : reduce 3 tokens to subprogram
-[12[(4 (213 . 222))(13 (239 . 272))(6 (286 . 292))] 2]
-subprogram_1: subprogram <= (PROCEDURE 213 . 221), (parameter_list 239 . 271), (SYMBOL 286 . 291)
+ 0 stack:  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 9: SYMBOL : shift and goto state 12
+ 0 stack:  12 : SYMBOL,  9 : parameter_list,  2 : PROCEDURE,  4 : declarations,  0 : 
+ 0: 12: Wisi_EOI : reduce 3 tokens to subprogram
+subprogram_1: (subprogram 213 . 291) <= (PROCEDURE 213 . 221), (parameter_list 239 . 271), (SYMBOL 286 . 291)
  ... goto state 6
- 0 stack:  6 : (subprogram 213 . 291),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 6: (WISI_EOI 1 . 1) : reduce 1 tokens to declaration
+ 0 stack:  6 : subprogram,  4 : declarations,  0 : 
+ 0: 6: Wisi_EOI : reduce 1 tokens to declaration
+(declaration 213 . 291) <= (subprogram 213 . 291)
  ... goto state 7
- 0 stack:  7 : (declaration 213 . 291),  4 : (declarations 20 . 190),  0 : (WHITESPACE), 
- 0: 7: (WISI_EOI 1 . 1) : reduce 2 tokens to declarations
+ 0 stack:  7 : declaration,  4 : declarations,  0 : 
+ 0: 7: Wisi_EOI : reduce 2 tokens to declarations
+(declarations 20 . 291) <= (declarations 20 . 190), (declaration 213 . 291)
  ... goto state 4
- 0 stack:  4 : (declarations 20 . 291),  0 : (WHITESPACE), 
- 0: 4: (WISI_EOI 1 . 1) : reduce 1 tokens to compilation_unit
-[9[(10 (20 . 292))] 0]
-compilation_unit_0: compilation_unit <= (declarations 20 . 291)
+ 0 stack:  4 : declarations,  0 : 
+ 0: 4: Wisi_EOI : reduce 1 tokens to compilation_unit
+compilation_unit_0: (compilation_unit 20 . 291) <= (declarations 20 . 291)
  ... goto state 3
- 0 stack:  3 : (compilation_unit 20 . 291),  0 : (WHITESPACE), 
- 0: 3: (WISI_EOI 1 . 1) : accept it
+ 0 stack:  3 : compilation_unit,  0 : 
+ 0: 3: Wisi_EOI : accept it
+(fasttoken_accept 20 . 291) <= (compilation_unit 20 . 291)

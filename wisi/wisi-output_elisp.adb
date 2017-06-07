@@ -22,6 +22,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.Wisi_Generate_Elisp;
+with FastToken.Production;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Output_Elisp_Common;
 procedure Wisi.Output_Elisp
@@ -56,10 +57,10 @@ is
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant Generate_Utils.Production.List.Instance := Generate_Utils.To_Grammar
+   Grammar : constant FastToken.Production.List.Instance := Generate_Utils.To_Grammar
      (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
-   Parser : Generate_Utils.LR.Parse_Table_Ptr;
+   Parser : FastToken.Parser.LR.Parse_Table_Ptr;
 
    procedure Header (Elisp_Package : in String; Prologue : in String_Lists.List)
    is begin
@@ -89,7 +90,7 @@ is
          end case;
       end case;
 
-      Generate_Utils.LR.Free (Parser);
+      FastToken.Parser.LR.Free (Parser);
 
       case Algorithm is
       when LALR =>
@@ -142,6 +143,7 @@ is
       Set_Output (Standard_Output);
    end Create_Elisp;
 
+   use all type FastToken.Parser.LR.Unknown_State_Index;
 begin
    case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
    when LALR | LR1 =>
@@ -158,6 +160,6 @@ begin
            Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
            Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-           Generate_Utils.LR.State_Index'Image (Generate_Utils.To_State_Count (Parser.State_Last)) & " states");
+           FastToken.Parser.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
    end if;
 end Wisi.Output_Elisp;

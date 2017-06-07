@@ -21,17 +21,14 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
+with FastToken.Gen_Token_Enum;
 with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LR.Panic_Mode;
+with FastToken.Parser.LR.LR1_Items;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token;
-with FastToken.Token_Plain;
+with FastToken.Text_IO_Trace;
 with Gen_FastToken_AUnit;
 package body Grune_9_30 is
 
@@ -49,29 +46,25 @@ package body Grune_9_30 is
       Upper_B_ID
      );
 
-   package Token_Pkg is new FastToken.Token (Token_ID, Lower_A_ID, EOF_ID, Token_ID'Image);
-   package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-   package Parser_Root is new FastToken.Parser
-     (Token_ID, Token_ID'First, EOF_ID, EOF_ID, Upper_S_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
-      Token_Aug.State_Type, Token_Aug.Input_Token);
-   package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package LR1_Generator is new LR.LR1_Generator (Production, LR1_Items, Generator_Utils);
+   package Token_Enum is new FastToken.Gen_Token_Enum
+     (Token_Enum_ID     => Token_ID,
+      First_Terminal    => Lower_A_ID,
+      Last_Terminal     => EOF_ID,
+      First_Nonterminal => Upper_S_ID,
+      Last_Nonterminal  => Upper_B_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => Upper_S_ID);
+   use Token_Enum;
 
-   use all type Production.Instance;
-   use all type Production.List.Instance;
-   use all type Production.Right_Hand_Side;
-   use all type Token_Pkg.List.Instance;
+   First_State_Index  : constant := 1;
+   First_Parser_Label : constant := 1;
 
-   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
+   use all type FastToken.Production.Right_Hand_Side;
+   use all type FastToken.Production.List.Instance;
 
-   Grammar : constant Production.List.Instance :=
+   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+
+   Grammar : constant FastToken.Production.List.Instance :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
@@ -81,33 +74,28 @@ package body Grune_9_30 is
      Upper_B_ID <= +Null_Action                                       -- 4
    ;
 
-   package Lexer is new Lexer_Root.Regexp (EOF_ID);
-   First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LR_Parser is new LR.Parser
-     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
+   package Lexer renames FastToken.Lexer.Regexp;
 
-   Syntax : constant Lexer.Syntax :=
-     (
-      Lower_A_ID => Lexer.Get ("a"),
-      Lower_B_ID => Lexer.Get ("b"),
-      Lower_C_ID => Lexer.Get ("c"),
-      EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
-     );
+   Syntax : constant Lexer.Syntax := To_Syntax
+     ((
+       Lower_A_ID => Lexer.Get ("a"),
+       Lower_B_ID => Lexer.Get ("b"),
+       Lower_C_ID => Lexer.Get ("c"),
+       EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
+      ));
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
-   package FastToken_AUnit is new Gen_FastToken_AUnit
-     (Token_ID, Lower_A_ID, EOF_ID, Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production,
-      Lexer_Root, Parser_Root, LR.Unknown_State_Index, LR.Unknown_State, LR1_Items, Grammar);
+   package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
 
-   Has_Empty_Production : constant Token_Pkg.Nonterminal_ID_Set :=
-     LR1_Items.Has_Empty_Production (Grammar);
+   Has_Empty_Production : constant FastToken.Token_ID_Set :=
+     FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
 
-   First : constant Token_Pkg.Nonterminal_Array_Token_Set := LR1_Items.First
-     (Grammar, Has_Empty_Production, Trace => False);
+   First : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
+     (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
+
+   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   State : State_Type (Trace'Access);
 
    ----------
    --  Test procedures
@@ -117,10 +105,10 @@ package body Grune_9_30 is
       Test : Test_Case renames Test_Case (T);
       use Ada.Text_IO;
       use FastToken_AUnit;
-      use LR1_Items;
+      use FastToken.Parser.LR.LR1_Items;
 
-      Computed : Item_Set_List := LR1_Generator.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, Trace => Test.Debug);
+      Computed : Item_Set_List := FastToken.Parser.LR.LR1_Generator.LR1_Item_Sets
+        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug);
 
       Expected : Item_Set_List :=
         --  Item sets from [Grune] fig 9.31 a. States are numbered as in
@@ -138,17 +126,17 @@ package body Grune_9_30 is
         (6 + Get_Item (1, 4, +EOF_ID));
 
    begin
-      Add_Gotos (Expected, 1, +(Lower_A_ID, Get_Set (2, Expected)) & (Upper_A_ID, Get_Set (3, Expected)));
+      Add_Gotos (Expected, 1, +(+Lower_A_ID, Get_Set (2, Expected)) & (+Upper_A_ID, Get_Set (3, Expected)));
       --  no gotos from state 2
-      Add_Gotos (Expected, 3, +(Lower_B_ID, Get_Set (4, Expected)) & (Upper_B_ID, Get_Set (5, Expected)));
+      Add_Gotos (Expected, 3, +(+Lower_B_ID, Get_Set (4, Expected)) & (+Upper_B_ID, Get_Set (5, Expected)));
       --  no gotos from state 4
-      Add_Gotos (Expected, 5, +(Lower_C_ID, Get_Set (6, Expected)));
+      Add_Gotos (Expected, 5, +(+Lower_C_ID, Get_Set (6, Expected)));
 
       if Test.Debug then
          Put_Line ("computed:");
-         Put (Computed);
+         Put (LR1_Descriptor, Computed);
          Put_Line ("expected:");
-         Put (Expected);
+         Put (LR1_Descriptor, Expected);
       end if;
 
       Check ("", Computed, Expected);
@@ -161,10 +149,11 @@ package body Grune_9_30 is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : LR_Parser.Instance := LR_Parser.New_Parser
-        (Lexer.Initialize (Syntax, String_Feeder'Access),
-         LR1_Generator.Generate (Grammar, Trace => Test.Debug),
-         Token_Aug.State);
+      Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+         FastToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
+         State,
+         First_Parser_Label);
 
       procedure Execute_Command (Command : in String)
       is begin
@@ -192,7 +181,7 @@ package body Grune_9_30 is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/grune_9_30.adb");
+      return new String'("../Test/grune_9_30.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

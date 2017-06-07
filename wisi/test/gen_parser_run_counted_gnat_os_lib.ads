@@ -20,49 +20,15 @@
 
 pragma License (GPL);
 
-with FastToken.Lexer;
-with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
 with FastToken.Text_Feeder;
-with FastToken.Token;
-with FastToken.Token_Region;
 generic
-   type Token_ID is (<>);
-   First_Terminal : in Token_ID;
-   Last_Terminal  : in Token_ID;
-   --  We assume this package is instantiated for a grammar generated
-   --  by wisi-generate, which allows the following assumptions:
-   --
-   --  Last_Terminal is EOF_ID
-   --  Token_ID'Succ(Last_Terminal) is Accept_ID
-   with function Token_Image (Item : in Token_ID) return String;
-   with procedure Put_Trace (Item : in String);
-   with procedure Put_Trace_Line (Item : in String);
-   with package Token_Pkg is new FastToken.Token (Token_ID, First_Terminal, Last_Terminal, Token_Image, Put_Trace);
-   with package Lexer_Root is new FastToken.Lexer (Token_ID);
-   with package Token_Aug is new FastToken.Token_Region (Token_Pkg, Lexer_Root, Put_Trace_Line);
-   with package Parser_Root is new FastToken.Parser
-     (Token_ID, First_Terminal, Last_Terminal, Last_Terminal, Token_ID'Succ (Last_Terminal), Token_Image, Put_Trace,
-      Token_Pkg, Lexer_Root);
-   First_State_Index : in Integer;
-   with package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action,
-      Token_Aug.State_Type, Token_Aug.Input_Token);
-   First_Parser_Label : in Integer;
-   with package Parser_Lists is new LR.Parser_Lists (First_Parser_Label, Put_Trace, Put_Trace_Line);
-   with package Panic_Mode is new LR.Panic_Mode
-     (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists);
-   with package LR_Parser is new LR.Parser
-     (First_Parser_Label, Put_Trace, Put_Trace_Line, Parser_Lists, Panic_Mode,
-      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
-
    with function Create_Parser
      (Algorithm            : in FastToken.Parser_Algorithm_Type;
       Max_Parallel         : in Integer                               := 15;
       Terminate_Same_State : in Boolean                               := False;
       Text_Feeder          : in FastToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size          : in Integer                               := 1024)
-     return LR_Parser.Instance;
+     return FastToken.Parser.LR.Parser.Instance;
 
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib;

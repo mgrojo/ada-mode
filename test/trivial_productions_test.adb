@@ -21,18 +21,13 @@
 
 pragma License (GPL);
 
-with Ada.Text_IO;
+with FastToken.Gen_Token_Enum;
 with FastToken.Lexer.Regexp;
 with FastToken.Production;
-with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Parser.LR1_Items;
 with FastToken.Text_Feeder.String;
-with FastToken.Token;
-with FastToken.Token_Plain;
+with FastToken.Text_IO_Trace;
 package body Trivial_Productions_Test is
 
    Feeder : aliased FastToken.Text_Feeder.String.Instance;
@@ -40,9 +35,13 @@ package body Trivial_Productions_Test is
    ----------
    --  Test procedures
 
-   procedure Expression (Test : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      type Token_ID is
+   package Expression is
+      procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class);
+   end Expression;
+
+   package body Expression is
+
+      type Token_Enum_ID is
         (
          --  Terminals
          Symbol_ID, EOF_ID,
@@ -50,64 +49,65 @@ package body Trivial_Productions_Test is
          --  Nonterminals
          E_ID, F_ID, T_ID);
 
-      package Token_Pkg is new FastToken.Token (Token_ID, Symbol_ID, EOF_ID, Token_ID'Image);
-      package Lexer_Root is new FastToken.Lexer (Token_ID);
-      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-      package Lexer is new Lexer_Root.Regexp (EOF_ID);
-      package Parser_Root is new FastToken.Parser
-        (Token_ID, Symbol_ID, EOF_ID, EOF_ID, E_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-      First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR
-        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
-         Token_Aug.Input_Token);
-      package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-      package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-      package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+      package Token_Enum is new FastToken.Gen_Token_Enum
+        (Token_Enum_ID     => Token_Enum_ID,
+         First_Terminal    => Symbol_ID,
+         Last_Terminal     => EOF_ID,
+         First_Nonterminal => E_ID,
+         Last_Nonterminal  => T_ID,
+         EOF_ID            => EOF_ID,
+         Accept_ID         => E_ID);
+      use Token_Enum;
 
-      Syntax : constant Lexer.Syntax :=
-        (EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character),
-         Symbol_ID => Lexer.Get ("symbol"));
+      procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
+      is
 
-      use type Token_Pkg.List.Instance;
-      use type Production.Right_Hand_Side;
-      use type Production.Instance;
-      use type Production.List.Instance;
+         First_State_Index  : constant := 1;
+         First_Parser_Label : constant := 1;
 
-      Grammar : constant Production.List.Instance :=
-        E_ID <= T_ID & EOF_ID + Token_Aug.Null_Action and
-        T_ID <= F_ID + Token_Aug.Null_Action and
-        F_ID <= Symbol_ID + Token_Aug.Null_Action;
+         package Lexer renames FastToken.Lexer.Regexp;
 
-      First_Parser_Label : constant := 1;
-      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-      package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LR_Parser is new LR.Parser
-        (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-         Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
+         Syntax : constant Lexer.Syntax := To_Syntax
+           ((EOF_ID    => Lexer.Get ("" & FastToken.EOF_Character),
+             Symbol_ID => Lexer.Get ("symbol")));
 
-      Parser : LR_Parser.Instance;
+         use type FastToken.Production.Right_Hand_Side;
+         use type FastToken.Production.List.Instance;
 
-      Text : constant String := "symbol";
-   begin
-      --  The test is that there are no exceptions raised, either during grammar construction or parsing
+         Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
 
-      Parser := LR_Parser.New_Parser
-        (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
-         LALR_Generator.Generate (Grammar, Trace => Test_Case (Test).Debug),
-        Token_Aug.State);
+         Grammar : constant FastToken.Production.List.Instance :=
+           E_ID <= T_ID & EOF_ID + Null_Action and
+           T_ID <= F_ID + Null_Action and
+           F_ID <= Symbol_ID + Null_Action;
 
-      Feeder.Set (Text);
+         Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+         State : State_Type (Trace'Access);
 
-      Parser.Parse;
+         Parser : FastToken.Parser.LR.Parser.Instance;
 
+         Text : constant String := "symbol";
+      begin
+         --  The test is that there are no exceptions raised, either during grammar construction or parsing
+
+         Parser := FastToken.Parser.LR.Parser.New_Parser
+           (Lexer.New_Lexer (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
+            FastToken.Parser.LR.LALR_Generator.Generate
+              (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug),
+            State,
+            First_Parser_Label);
+
+         Feeder.Set (Text);
+
+         Parser.Parse;
+
+      end Test_One;
    end Expression;
 
-   procedure Subprograms (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      Test : Test_Case renames Test_Case (T);
-
+   package Subprograms is
+      procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class);
+   end Subprograms;
+   package body Subprograms is
       --  Hand-written FastToken grammar matching
       --  ../wisi/test/subprograms.wy, to show that wisi-generate
       --  produces the same grammar.
@@ -130,75 +130,78 @@ package body Trivial_Productions_Test is
          Subprogram_ID,
          Parameter_List_ID);
 
-      package Token_Pkg is new FastToken.Token (Token_ID, Function_ID, EOF_ID, Token_ID'Image);
-      package Lexer_Root is new FastToken.Lexer (Token_ID);
-      package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-      package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-      package Lexer is new Lexer_Root.Regexp (EOF_ID);
-      package Parser_Root is new FastToken.Parser
-        (Token_ID, Function_ID, EOF_ID, EOF_ID, FastToken_Accept_ID, Token_ID'Image, Ada.Text_IO.Put,
-         Token_Pkg, Lexer_Root);
-      First_State_Index : constant := 1;
-      package LR is new Parser_Root.LR
-        (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
-         Token_Aug.Input_Token);
-      First_Parser_Label : constant := 1;
-      package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-      package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-      package LR_Parser is new LR.Parser
-        (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-         Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
-      package LR1_Items is new Parser_Root.LR1_Items
-        (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-      package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-      package LALR_Generator is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+      package Token_Enum is new FastToken.Gen_Token_Enum
+        (Token_Enum_ID     => Token_ID,
+         First_Terminal    => Function_ID,
+         Last_Terminal     => EOF_ID,
+         First_Nonterminal => FastToken_Accept_ID,
+         Last_Nonterminal  => Parameter_List_ID,
+         EOF_ID            => EOF_ID,
+         Accept_ID         => FastToken_Accept_ID);
+      use Token_Enum;
 
-      Syntax : constant Lexer.Syntax :=
-        (
-         Whitespace_ID  => Lexer.Get (" ", Report => False),
-         Function_ID    => Lexer.Get ("function"),
-         Left_Paren_ID  => Lexer.Get ("\("),
-         Procedure_ID   => Lexer.Get ("procedure"),
-         Right_Paren_ID => Lexer.Get ("\)"),
-         Symbol_ID      => Lexer.Get ("symbol"),
-         EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
-        );
+      procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
+      is
+         Test : Test_Case renames Test_Case (T);
 
-      use type Token_Pkg.List.Instance;
-      use type Production.Right_Hand_Side;
-      use type Production.Instance;
-      use type Production.List.Instance;
+         First_State_Index  : constant := 1;
+         First_Parser_Label : constant := 1;
 
-      Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
+         package Lexer renames FastToken.Lexer.Regexp;
 
-      Grammar : constant Production.List.Instance :=
-        FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
-        Declarations_ID     <= Declaration_ID + Null_Action and
-        Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and
-        Declaration_ID      <= Subprogram_ID + Null_Action and
-        Subprogram_ID       <= Function_ID & Parameter_List_ID & Symbol_ID + Null_Action and
-        Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and
-        Parameter_List_ID   <= +Null_Action and
-        Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
+         Syntax : constant Lexer.Syntax := To_Syntax
+           ((
+             Whitespace_ID  => Lexer.Get (" ", Report => False),
+             Function_ID    => Lexer.Get ("function"),
+             Left_Paren_ID  => Lexer.Get ("\("),
+             Procedure_ID   => Lexer.Get ("procedure"),
+             Right_Paren_ID => Lexer.Get ("\)"),
+             Symbol_ID      => Lexer.Get ("symbol"),
+             EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
+            ));
 
-      Parser : LR_Parser.Instance;
+         use type FastToken.Production.Right_Hand_Side;
+         use type FastToken.Production.List.Instance;
 
-      Text : constant String := "function (symbol) symbol procedure";
-   begin
-      --  The test is that there are no exceptions raised, either during grammar construction or parsing
+         Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
 
-      Parser := LR_Parser.New_Parser
-        (Lexer.Initialize (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
-         LALR_Generator.Generate
-           (Grammar,
-            Trace       => Test.Debug,
-            Put_Parse_Table => Test.Debug),
-        Token_Aug.State);
+         Grammar : constant FastToken.Production.List.Instance :=
+           FastToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
+           Declarations_ID     <= Declaration_ID + Null_Action and
+           Declarations_ID     <= Declarations_ID & Declaration_ID + Null_Action and
+           Declaration_ID      <= Subprogram_ID + Null_Action and
+           Subprogram_ID       <= Function_ID & Parameter_List_ID & Symbol_ID + Null_Action and
+           Subprogram_ID       <= Procedure_ID & Parameter_List_ID + Null_Action and
+           Parameter_List_ID   <= +Null_Action and
+           Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-      Feeder.Set (Text);
-      FastToken.Trace_Parse := (if Test.Debug then 1 else 0);
-      Parser.Parse;
+         Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+         State : State_Type (Trace'Access);
 
+         Parser : FastToken.Parser.LR.Parser.Instance;
+
+         Text : constant String := "function (symbol) symbol procedure";
+      begin
+         --  The test is that there are no exceptions raised, either during grammar construction or parsing
+
+         Parser := FastToken.Parser.LR.Parser.New_Parser
+           (Lexer.New_Lexer
+              (Syntax, Feeder'Access,
+               Buffer_Size     => Text'Length + 1),
+            FastToken.Parser.LR.LALR_Generator.Generate
+              (Grammar,
+               LALR_Descriptor,
+               First_State_Index,
+               Trace           => Test.Debug,
+               Put_Parse_Table => Test.Debug),
+            State,
+            First_Parser_Label);
+
+         Feeder.Set (Text);
+         FastToken.Trace_Parse := (if Test.Debug then 1 else 0);
+         Parser.Parse;
+
+      end Test_One;
    end Subprograms;
 
    ----------
@@ -208,15 +211,15 @@ package body Trivial_Productions_Test is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      Register_Routine (T, Expression'Access, "Expression");
-      Register_Routine (T, Subprograms'Access, "Subprograms");
+      Register_Routine (T, Expression.Test_One'Access, "Expression");
+      Register_Routine (T, Subprograms.Test_One'Access, "Subprograms");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/trivial_productions_test.adb");
+      return new String'("../Test/trivial_productions_test.adb");
    end Name;
 
 end Trivial_Productions_Test;

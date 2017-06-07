@@ -34,9 +34,8 @@
 %first_state_index 1
 %first_parser_label 1
 %parser_algorithm LALR_LR1
-%output_language Ada_Emacs
+%output_language Ada
 %lexer Aflex
-%interface process
 
 %%
 
@@ -52,7 +51,7 @@ declarative_part
 
 body
   : IS declarative_part BEGIN SEMICOLON
-    (wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])
+    (null; -- wisi-statement-action [1 block-middle 3 block-middle 4 statement-end])
   ;
 
 %%

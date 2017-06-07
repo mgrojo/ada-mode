@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 with Ada.Exceptions;
 package body FastToken.Lexer.Aflex is
 
-   function Initialize
+   function New_Lexer
      (Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size     : in Integer                     := 1024;
       First_Column    : in Integer                     := 1)
@@ -45,7 +45,7 @@ package body FastToken.Lexer.Aflex is
       FastToken.Lexer.Aflex.Feeder := Feeder;
 
       return Handle (New_Lexer);
-   end Initialize;
+   end New_Lexer;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
    is

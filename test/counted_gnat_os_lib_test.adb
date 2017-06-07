@@ -108,7 +108,7 @@ package body Counted_GNAT_OS_Lib_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/counted_gnat_os_lib_test.adb");
+      return new String'("../Test/counted_gnat_os_lib_test.adb");
    end Name;
 
 end Counted_GNAT_OS_Lib_Test;

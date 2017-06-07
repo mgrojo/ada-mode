@@ -19,14 +19,18 @@ pragma License (GPL);
 
 package body FastToken.Parser.LR.Panic_Mode is
 
-   function Pop_To_Good (Table : in Parse_Table; Cursor : in Parser_Lists.Cursor) return Boolean
+   function Pop_To_Good
+     (Table  : in     Parse_Table;
+      Cursor : in     Parser_Lists.Cursor;
+      Trace  : in out FastToken.Trace'Class)
+     return Boolean
    is
       use Token;
-      Panic    : Parser_Lists.Panic_Reference renames Cursor.Panic_Ref;
+      Panic    : Panic_Data := Default_Panic;
       Top      : Parser_Lists.Stack_Item := Cursor.Peek;
-      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Token.Grammar_ID'First);
+      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Token_ID'Last);
    begin
-      Panic.Element.all := Default_Panic;
+      Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
 
       Pop_Stack :
       loop
@@ -43,11 +47,9 @@ package body FastToken.Parser.LR.Panic_Mode is
                exit Pop_Stack when Panic.Goto_State /= Unknown_State;
             end if;
 
-            if Panic.Nonterm = Nonterminal_ID'Last then
-               exit Nonterms;
-            else
-               Panic.Nonterm := Nonterminal_ID'Succ (Panic.Nonterm);
-            end if;
+            exit Nonterms when Panic.Nonterm = Trace.Descriptor.Last_Nonterminal;
+
+            Panic.Nonterm := Panic.Nonterm + 1;
          end loop Nonterms;
 
          Prev_Top := Cursor.Pop;
@@ -56,24 +58,26 @@ package body FastToken.Parser.LR.Panic_Mode is
          Top := Cursor.Peek;
          exit Pop_Stack when Top.State = State_Index'First;
 
-         Panic.Nonterm := Nonterminal_ID'First;
+         Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
       end loop Pop_Stack;
 
       if Trace_Parse > 0 then
-         Put_Trace (Integer'Image (Cursor.Label) & ": recover");
+         Trace.Put (Integer'Image (Cursor.Label) & ": recover");
          if Top.State = State_Index'First then
-            Put_Trace_Line (" failed");
+            Trace.Put_Line (" failed");
          else
-            Put_Trace_Line
+            Trace.Put_Line
               (" state" & Unknown_State_Index'Image (Top.State) &
-                 " " & Token_Image (Panic.Nonterm) & " goto" & Unknown_State_Index'Image (Panic.Goto_State));
+                 " " & Image (Trace.Descriptor.all, Panic.Nonterm) &
+                 " goto" & Unknown_State_Index'Image (Panic.Goto_State));
 
             if Trace_Parse > 2 then
-               Parser_Lists.Put_Trace_Top_10 (Cursor);
+               Parser_Lists.Put_Trace_Top_10 (Trace, Cursor);
             end if;
          end if;
       end if;
 
+      Cursor.Panic_Ref.Element.all := Panic;
       return Top.State /= State_Index'First;
    end Pop_To_Good;
 
@@ -83,11 +87,14 @@ package body FastToken.Parser.LR.Panic_Mode is
       Current_Token : in out Token_ID)
      return Boolean
    is
+      Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+
       Keep_Going : Boolean  := False;
       Last_ID    : Token_ID := Current_Token;
    begin
       for I in Parsers.Iterate loop
-         Keep_Going := Keep_Going or Pop_To_Good (Parser.Table.all, Parser_Lists.To_Cursor (Parsers, I));
+         Keep_Going := Keep_Going or Pop_To_Good
+           (Parser.Table.all, Parser_Lists.To_Cursor (Parsers, I), Parser.Semantic_State.Trace.all);
       end loop;
 
       if not Keep_Going then
@@ -105,14 +112,15 @@ package body FastToken.Parser.LR.Panic_Mode is
                Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
                Panic  : Panic_Reference renames Cursor.Panic_Ref;
             begin
-               if Parser.Table.Follow (Panic.Nonterm)(Current_Token) then
+               if Parser.Table.Follow (Panic.Nonterm, Current_Token) then
                   Keep_Going := True;
                   Panic.Pushed_Token := Panic.Nonterm;
                   Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
 
                   if Trace_Parse > 0 then
-                     Put_Trace_Line
-                       (Integer'Image (Cursor.Label) & ": recover: resume, pushed " & Token_Image (Panic.Nonterm));
+                     Trace.Put_Line
+                       (Integer'Image (Cursor.Label) & ": recover: resume, pushed " &
+                          Image (Trace.Descriptor.all, Panic.Nonterm));
                   end if;
                end if;
             end;
@@ -121,24 +129,24 @@ package body FastToken.Parser.LR.Panic_Mode is
          exit Matching_Input when Keep_Going;
 
          if Trace_Parse > 1 then
-            Ada.Text_IO.Put_Line ("  discard " & Token_Image (Current_Token));
+            Trace.Put_Line ("  discard " & Image (Trace.Descriptor.all, Current_Token));
          end if;
          Parser.Skipped_Tokens.Append (Current_Token);
 
          Current_Token := Parser.Lexer.Find_Next;
-         Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+         FastToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
          if Trace_Parse > 1 then
-            Ada.Text_IO.Put_Line ("  next " & Token_Image (Current_Token));
+            Trace.Put_Line ("  next " & Image (Trace.Descriptor.all, Current_Token));
          end if;
 
          --  Allow EOF_Token to succeed
-         exit Matching_Input when Last_ID = EOF_Token;
+         exit Matching_Input when Last_ID = Trace.Descriptor.EOF_ID;
          Last_ID := Current_Token;
       end loop Matching_Input;
 
       if Trace_Parse > 0 then
          if not Keep_Going then
-            Put_Trace_Line ("recover: fail");
+            Trace.Put_Line ("recover: fail");
          end if;
       end if;
       return Keep_Going;

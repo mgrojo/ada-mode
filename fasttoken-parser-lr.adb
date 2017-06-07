@@ -60,16 +60,16 @@ package body FastToken.Parser.LR is
    begin
       case Item.Verb is
       when Shift =>
-         Put_Trace (Trace, "shift and goto state" & State_Index'Image (Item.State));
+         Trace.Put ("shift and goto state" & State_Index'Image (Item.State));
 
       when Reduce =>
-         Put_Trace
-           (Trace, "reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
+         Trace.Put
+           ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
               Image (Trace.Descriptor.all, Item.LHS));
       when Accept_It =>
-         Put_Trace (Trace, "accept it");
+         Trace.Put ("accept it");
       when Error =>
-         Put_Trace (Trace, "ERROR");
+         Trace.Put ("ERROR");
       end case;
    end Put_Trace;
 
@@ -211,7 +211,7 @@ package body FastToken.Parser.LR is
          exit when Node.Next = null;
          Node := Node.Next;
       end loop;
-      Node.Next := new Action_Node'(Token_ID'First, new Parse_Action_Node'(Action, null), null);
+      Node.Next := new Action_Node'(Token_ID'Last, new Parse_Action_Node'(Action, null), null);
    end Add_Error;
 
    procedure Add_Goto
@@ -255,6 +255,10 @@ package body FastToken.Parser.LR is
       use type Token_ID;
       Action_Node : Action_Node_Ptr := Table.States (State).Action_List;
    begin
+      if Action_Node = null then
+         raise Programmer_Error with "no actions for state" & Unknown_State_Index'Image (State);
+      end if;
+
       while Action_Node.Next /= null and Action_Node.Symbol /= ID loop
          Action_Node := Action_Node.Next;
       end loop;
@@ -324,17 +328,17 @@ package body FastToken.Parser.LR is
       Goto_Ptr   : Goto_Node_Ptr   := State.Goto_List;
    begin
       while Action_Ptr /= null loop
+         Put ("   ");
          if Action_Ptr.Next = null then
-            Put ("   default" & (Descriptor.Image_Width - 7) * ' ' & " => ");
-            Put (Descriptor, Action_Ptr.Action);
-            New_Line;
-         else
-            Put ("   " & Image (Descriptor, Action_Ptr.Symbol) &
+            Put ("default" & (Descriptor.Image_Width - 7) * ' ' & " => ");
+
+         elsif Action_Ptr.Action.Item.Verb /= Error then
+            Put (Image (Descriptor, Action_Ptr.Symbol) &
                    (Descriptor.Image_Width - Image (Descriptor, Action_Ptr.Symbol)'Length) * ' '
                    & " => ");
-            Put (Descriptor, Action_Ptr.Action);
-            New_Line;
          end if;
+         Put (Descriptor, Action_Ptr.Action);
+         New_Line;
          Action_Ptr := Action_Ptr.Next;
       end loop;
 

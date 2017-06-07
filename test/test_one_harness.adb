@@ -21,9 +21,7 @@ with AUnit.Reporter.Text;
 with AUnit.Options;
 with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
-with Association_Grammar_Test;
---  with Dragon_4_43_LR1_Test;
---  with Dragon_4_45_LALR_Test;
+with Parser_Lists_Test;
 procedure Test_One_Harness
 is
    Suite    : constant Access_Test_Suite := new Test_Suite;
@@ -31,11 +29,12 @@ is
    Result   : AUnit.Test_Results.Result;
    Status   : AUnit.Status;
 
-   Debug : constant Boolean := Ada.Command_Line.Argument_Count > 0;
+   Debug : constant Integer :=
+     (if Ada.Command_Line.Argument_Count > 0 then Integer'Value (Ada.Command_Line.Argument (1))
+      else 0);
+   --  pragma Unreferenced (Debug);
 begin
---   Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug));
---   Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug));
-   Add_Test (Suite, new Association_Grammar_Test.Test_Case (Debug));
+   Add_Test (Suite, new Parser_Lists_Test.Test_Case (Debug > 0));
 
    Run (Suite, AUnit.Options.Default_Options, Result, Status);
 

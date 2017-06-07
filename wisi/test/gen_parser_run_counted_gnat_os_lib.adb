@@ -44,8 +44,8 @@ is
      renames Ada.Strings.Unbounded.To_String;
 
    File_Length : Integer;
-   LALR_Parser : LR_Parser.Instance;
-   LR1_Parser  : LR_Parser.Instance;
+   LALR_Parser : FastToken.Parser.LR.Parser.Instance;
+   LR1_Parser  : FastToken.Parser.LR.Parser.Instance;
 
    procedure Use_File (File_Name : in String)
    is

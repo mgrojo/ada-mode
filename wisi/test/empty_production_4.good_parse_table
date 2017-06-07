@@ -5,32 +5,31 @@ Tokens:
  4 => PROCEDURE
  5 => SEMICOLON
  6 => IDENTIFIER
- 7 => WISI_EOI
- 8 => compilation_unit
- 9 => subprogram_declaration
- 10 => overriding_indicator
- 11 => other_indicator
- 12 => fasttoken_accept
+ 7 => Wisi_EOI
+ 8 => fasttoken_accept
+ 9 => compilation_unit
+ 10 => subprogram_declaration
+ 11 => overriding_indicator
+ 12 => other_indicator
 
 LALR Parse Table:
 Panic_Recover:
-(others => False));
 
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  subprogram_declaration =>
   (OVERRIDING |
    OTHER |
    PROCEDURE |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  overriding_indicator =>
   (OVERRIDING |
    OTHER |
    PROCEDURE |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  other_indicator =>
   (PROCEDURE => True,
@@ -38,7 +37,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -65,14 +64,14 @@ State 3:
 
 
 State 4:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   WISI_EOI               => accept it
+   Wisi_EOI               => accept it
    default                => ERROR
 
 
 State 5:
-  compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, WISI_EOI
+  compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -83,7 +82,7 @@ State 5:
    overriding_indicator   goto state 6
 
 State 6:
-  subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/WISI_EOI
+  subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    OTHER                  => shift and goto state 3
    PROCEDURE              => reduce 0 tokens to other_indicator
@@ -92,14 +91,14 @@ State 6:
    other_indicator        goto state 7
 
 State 7:
-  subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    PROCEDURE              => shift and goto state 10
    default                => ERROR
 
 
 State 8:
-  compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, WISI_EOI
+  compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -110,61 +109,62 @@ State 8:
    overriding_indicator   goto state 6
 
 State 9:
-  compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^, WISI_EOI
+  compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^, Wisi_EOI
 
-   WISI_EOI               => reduce 3 tokens to compilation_unit
+   Wisi_EOI               => reduce 3 tokens to compilation_unit
    default                => ERROR
 
 
 State 10:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    IDENTIFIER             => shift and goto state 11
    default                => ERROR
 
 
 State 11:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, OVERRIDING/OTHER/PROCEDURE/WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    SEMICOLON              => shift and goto state 12
    default                => ERROR
 
 
 State 12:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, OVERRIDING/OTHER/PROCEDURE/WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, OVERRIDING/OTHER/PROCEDURE/Wisi_EOI
 
    OVERRIDING             => reduce 5 tokens to subprogram_declaration
    OTHER                  => reduce 5 tokens to subprogram_declaration
    PROCEDURE              => reduce 5 tokens to subprogram_declaration
-   WISI_EOI               => reduce 5 tokens to subprogram_declaration
+   Wisi_EOI               => reduce 5 tokens to subprogram_declaration
    default                => ERROR
 
 
 LR1 Parse Table:
 Panic_Recover:
-(others => False));
+
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  subprogram_declaration =>
   (OVERRIDING |
    OTHER |
    PROCEDURE |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  overriding_indicator =>
   (OVERRIDING |
    OTHER |
    PROCEDURE |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  other_indicator =>
   (PROCEDURE => True,
    others => False)
  others => (others => False))
+
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -184,14 +184,14 @@ State 2:
 
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   WISI_EOI               => accept it
+   Wisi_EOI               => accept it
    default                => ERROR
 
 
 State 4:
-  compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, WISI_EOI
+  compilation_unit <= subprogram_declaration ^ subprogram_declaration subprogram_declaration, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -225,7 +225,7 @@ State 7:
 
 
 State 8:
-  compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, WISI_EOI
+  compilation_unit <= subprogram_declaration subprogram_declaration ^ subprogram_declaration, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -236,14 +236,14 @@ State 8:
    overriding_indicator   goto state 10
 
 State 9:
-  compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^, WISI_EOI
+  compilation_unit <= subprogram_declaration subprogram_declaration subprogram_declaration ^, Wisi_EOI
 
-   WISI_EOI               => reduce 3 tokens to compilation_unit
+   Wisi_EOI               => reduce 3 tokens to compilation_unit
    default                => ERROR
 
 
 State 10:
-  subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, WISI_EOI
+  subprogram_declaration <= overriding_indicator ^ other_indicator PROCEDURE IDENTIFIER SEMICOLON, Wisi_EOI
 
    OTHER                  => shift and goto state 6
    PROCEDURE              => reduce 0 tokens to other_indicator
@@ -266,14 +266,14 @@ State 12:
 
 
 State 13:
-  subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator ^ PROCEDURE IDENTIFIER SEMICOLON, Wisi_EOI
 
    PROCEDURE              => shift and goto state 14
    default                => ERROR
 
 
 State 14:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE ^ IDENTIFIER SEMICOLON, Wisi_EOI
 
    IDENTIFIER             => shift and goto state 16
    default                => ERROR
@@ -289,16 +289,16 @@ State 15:
 
 
 State 16:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER ^ SEMICOLON, Wisi_EOI
 
    SEMICOLON              => shift and goto state 17
    default                => ERROR
 
 
 State 17:
-  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, WISI_EOI
+  subprogram_declaration <= overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON ^, Wisi_EOI
 
-   WISI_EOI               => reduce 5 tokens to subprogram_declaration
+   Wisi_EOI               => reduce 5 tokens to subprogram_declaration
    default                => ERROR
 
 

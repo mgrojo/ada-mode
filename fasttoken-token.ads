@@ -99,7 +99,7 @@ package FastToken.Token is
       Null_List : constant Instance := (null, null);
    end List;
 
-   type Semantic_State (Trace : access FastToken.Trace) is abstract tagged null record;
+   type Semantic_State (Trace : access FastToken.Trace'Class) is abstract tagged limited null record;
    --  For storing augmented tokens, other semantic information
 
    procedure Reset (State : access Semantic_State) is abstract;
@@ -127,7 +127,7 @@ package FastToken.Token is
       Action  : in     Semantic_Action;
       State   : access Semantic_State)
    is abstract;
-   --  Parser reduces Tokens to Nonterm; perform same operations on
+   --  Parser reduced Tokens to Nonterm; perform same operations on
    --  State stack, call associated Action.
 
    procedure Recover
@@ -136,5 +136,11 @@ package FastToken.Token is
       Pushed_Token   : in     Token_ID;
       State          : access Semantic_State)
      is abstract;
+   --  An error recover algorithm succeeded; adjust the augmented
+   --  token stack to match.
+   --
+   --  Popped_Tokens were popped off the stack; Skipped_Tokens were
+   --  skipped in the input stream, Pushed_Token was pushed on the
+   --  stack.
 
 end FastToken.Token;

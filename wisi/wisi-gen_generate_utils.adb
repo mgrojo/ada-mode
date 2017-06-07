@@ -415,7 +415,7 @@ package body Wisi.Gen_Generate_Utils is
       use Standard.Ada.Text_IO;
    begin
       Put_Line ("Tokens:");
-      for I in Token_ID'First .. LR1_Descriptor.Last_Terminal loop
+      for I in Token_ID'First .. LR1_Descriptor.Last_Nonterminal loop
          Put_Line (Token_ID'Image (I) & " => " & Token_WY_Image (I));
       end loop;
       New_Line;
@@ -425,13 +425,13 @@ package body Wisi.Gen_Generate_Utils is
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return Generator_Utils.Conflict_Lists.List
+     return FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List
    is
-      use Generator_Utils;
-      use type LR.Unknown_State_Index;
-      use type LR.Parse_Action_Verbs;
-      Result   : Generator_Utils.Conflict_Lists.List;
-      Conflict : Generator_Utils.Conflict;
+      use FastToken.Parser.LR.Generator_Utils;
+      use all type FastToken.Parser.LR.Unknown_State_Index;
+      use all type FastToken.Parser.LR.Parse_Action_Verbs;
+      Result   : FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
+      Conflict : FastToken.Parser.LR.Generator_Utils.Conflict;
    begin
       Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
@@ -447,11 +447,11 @@ package body Wisi.Gen_Generate_Utils is
             Find_Token_ID (-Item.On));
 
          case Conflict.Action_A is
-         when LR.Shift =>
+         when Shift =>
             Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
-         when LR.Reduce =>
+         when Reduce =>
             Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
-         when LR.Accept_It =>
+         when Accept_It =>
             Accept_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
          end case;
 
@@ -522,20 +522,13 @@ package body Wisi.Gen_Generate_Utils is
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set
    is
       use all type Standard.Ada.Containers.Count_Type;
-      Result : Token_ID_Set := (1 .. (if Item.Length = 0 then 0 else Token_ID (Item.Length)) => False);
+      Result : Token_ID_Set := (LR1_Descriptor.First_Nonterminal .. LR1_Descriptor.Last_Nonterminal => False);
    begin
       for Token of Item loop
          Result (Find_Token_ID (Token)) := True;
       end loop;
       return Result;
    end To_Nonterminal_ID_Set;
-
-   function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index
-   is
-      use all type LR.Unknown_State_Index;
-   begin
-      return State_Last - LR.State_Index'First + 1;
-   end To_State_Count;
 
 begin
    if Verbosity > 0 then

@@ -69,8 +69,8 @@ package FastToken.Parser.LR.LR1_Generator is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Trace                : in Boolean;
-      Descriptor           : in FastToken.Descriptor)
+      Descriptor           : in FastToken.Descriptor;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set;
    --  'goto' from [dragon] algorithm 4.9
 
@@ -79,8 +79,8 @@ package FastToken.Parser.LR.LR1_Generator is
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in State_Index;
-      Trace                : in Boolean;
-      Descriptor           : in FastToken.Descriptor)
+      Descriptor           : in FastToken.Descriptor;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 

@@ -246,18 +246,24 @@ package body FastToken.Parser.LR.Generator_Utils is
          Ada.Text_IO.Put_Line ("processing lookaheads");
       end if;
 
-      --  We ignore propagate lookaheads here. FIXME: need check for that
+      --  We ignore propagate lookaheads here.
       for Lookahead in Lookaheads (Item)'Range loop
          if Lookaheads (Item) (Lookahead) then
-            Add_Action
-              (Symbol               => Lookahead,
-               Action               => Action,
-               Action_List          => Action_List,
-               Closure              => Closure,
-               Has_Empty_Production => Has_Empty_Production,
-               Conflicts            => Conflicts,
-               Trace                => Trace,
-               Descriptor           => Descriptor);
+            if Descriptor in LALR_Descriptor and then
+              Lookahead = LALR_Descriptor (Descriptor).Propagate_ID
+            then
+               null;
+            else
+               Add_Action
+                 (Symbol               => Lookahead,
+                  Action               => Action,
+                  Action_List          => Action_List,
+                  Closure              => Closure,
+                  Has_Empty_Production => Has_Empty_Production,
+                  Conflicts            => Conflicts,
+                  Trace                => Trace,
+                  Descriptor           => Descriptor);
+            end if;
          end if;
       end loop;
    end Add_Lookahead_Actions;

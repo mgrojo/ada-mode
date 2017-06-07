@@ -30,8 +30,8 @@ package body FastToken.Parser.LR.LR1_Generator is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Trace                : in Boolean;
-      Descriptor           : in FastToken.Descriptor)
+      Descriptor           : in FastToken.Descriptor;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set
    is
       use Token.List;
@@ -76,8 +76,8 @@ package body FastToken.Parser.LR.LR1_Generator is
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in State_Index;
-      Trace                : in Boolean;
-      Descriptor           : in FastToken.Descriptor)
+      Descriptor           : in FastToken.Descriptor;
+      Trace                : in Boolean)
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
@@ -95,7 +95,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                    First_State_Index,
                    To_Lookahead (Descriptor, Descriptor.EOF_ID)),
                 Goto_List => null,
-                State     => State_Index'First,
+                State     => First_State_Index,
                 Next      => null),
                Has_Empty_Production, First, Grammar, Descriptor,
                Trace      => False)),
@@ -121,7 +121,7 @@ package body FastToken.Parser.LR.LR1_Generator is
             for Symbol in Descriptor.First_Terminal .. Descriptor.Last_Nonterminal loop -- 'for each grammar symbol X'
 
                New_Items := LR1_Goto_Transitions
-                 (I.all, Symbol, Has_Empty_Production, First, Grammar, Trace, Descriptor);
+                 (I.all, Symbol, Has_Empty_Production, First, Grammar, Descriptor, Trace);
 
                if New_Items.Set /= null then -- 'goto (I, X) not empty'
 
@@ -131,7 +131,7 @@ package body FastToken.Parser.LR.LR1_Generator is
                      Added_Item := True;
 
                      New_Items.Next  := C.Head;
-                     New_Items.State := C.Size + State_Index'First;
+                     New_Items.State := C.Size + First_State_Index;
 
                      Set_State (New_Items.Set, New_Items.State);
 
@@ -214,8 +214,11 @@ package body FastToken.Parser.LR.LR1_Generator is
       Put_Line ("LR1 Parse Table:");
       Put_Line ("Panic_Recover:");
       Put (Descriptor, Table.Panic_Recover);
+      New_Line;
+
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
+      New_Line;
 
       for State in Table.States'Range loop
          LR1_Items.Put
@@ -296,7 +299,7 @@ package body FastToken.Parser.LR.LR1_Generator is
         (Grammar, Descriptor, Has_Empty_Production, Trace);
 
       Item_Sets : constant LR1_Items.Item_Set_List := LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, Trace, Descriptor);
+        (Has_Empty_Production, First, Grammar, First_State_Index, Descriptor, Trace);
 
       Unknown_Conflicts    : Conflict_Lists.List;
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
@@ -308,7 +311,8 @@ package body FastToken.Parser.LR.LR1_Generator is
       end if;
 
       Table := new Parse_Table
-        (State_Last        => Item_Sets.Size - 1 + State_Index'First,
+        (State_First       => First_State_Index,
+         State_Last        => Item_Sets.Size - 1 + First_State_Index,
          First_Terminal    => Descriptor.First_Terminal,
          Last_Terminal     => Descriptor.Last_Terminal,
          First_Nonterminal => Descriptor.First_Nonterminal,

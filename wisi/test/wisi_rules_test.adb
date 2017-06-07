@@ -355,7 +355,7 @@ package body Wisi_Rules_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../wisi/test/wisi_rules_test.adb");
+      return new String'("../wisi/test/wisi_rules_test.adb");
    end Name;
 
 end Wisi_Rules_Test;

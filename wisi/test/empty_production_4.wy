@@ -17,9 +17,8 @@
 %first_state_index 1
 %first_parser_label 1
 %parser_algorithm LALR_LR1
-%output_language Emacs_Ada
+%output_language Ada
 %lexer Aflex
-%interface process
 
 %%
 
@@ -30,10 +29,10 @@ compilation_unit
 ;; test various action syntax
 subprogram_declaration
   : overriding_indicator other_indicator PROCEDURE IDENTIFIER SEMICOLON
-    (progn
-      (wisi-statement-action [1 statement-start 2 statement-other 4 name-1])
-      (wisi-motion-action [3 5])
-      (wisi-extend-action 1))
+    (null; -- progn
+      --  (wisi-statement-action [1 statement-start 2 statement-other 4 name-1])
+      --  (wisi-motion-action [3 5])
+      --  (wisi-extend-action 1))
   ;
 
 overriding_indicator

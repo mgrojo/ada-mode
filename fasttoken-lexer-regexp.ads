@@ -34,11 +34,7 @@ pragma License (Modified_GPL);
 with Ada.Unchecked_Deallocation;
 with FastToken.Regexp;
 with FastToken.Text_Feeder;
-generic
-   Last_Terminal : in Token_ID;
 package FastToken.Lexer.Regexp is
-
-   subtype Syntax_ID is Token_ID range Token_ID'First .. Last_Terminal;
 
    type Syntax_Item is record
       Regexp : FastToken.Regexp.Regexp;
@@ -52,11 +48,11 @@ package FastToken.Lexer.Regexp is
      return Syntax_Item;
    --  Compiles Regexp with Case_Sensitive.
 
-   type Syntax is array (Syntax_ID) of Syntax_Item;
+   type Syntax is array (Token_ID range <>) of Syntax_Item;
 
-   type Instance is new FastToken.Lexer.Instance with private;
+   type Instance (Last_Terminal : Token_ID) is new FastToken.Lexer.Instance with private;
 
-   function Initialize
+   function New_Lexer
      (Syntax       : in FastToken.Lexer.Regexp.Syntax;
       Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
       Buffer_Size  : in Integer                               := 1024)
@@ -81,10 +77,10 @@ private
    type String_Access is access String;
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
 
-   type Instance is new FastToken.Lexer.Instance with
+   type Instance (Last_Terminal : Token_ID) is new FastToken.Lexer.Instance with
    record
       ID          : Token_ID; --  last token read by find_next
-      Syntax      : FastToken.Lexer.Regexp.Syntax;
+      Syntax      : FastToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);
       Buffer      : String_Access;
       Buffer_Head : Integer;
       Buffer_Tail : Integer;

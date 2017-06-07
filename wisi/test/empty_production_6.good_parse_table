@@ -6,20 +6,19 @@ Tokens:
  5 => COLON_EQUAL
  6 => SEMICOLON
  7 => IDENTIFIER
- 8 => WISI_EOI
- 9 => compilation_unit
- 10 => statement
- 11 => sequence_of_statements
- 12 => label_opt
- 13 => fasttoken_accept
+ 8 => Wisi_EOI
+ 9 => fasttoken_accept
+ 10 => compilation_unit
+ 11 => statement
+ 12 => sequence_of_statements
+ 13 => label_opt
 
 LALR Parse Table:
 Panic_Recover:
-(others => False));
 
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  statement =>
   (END |
@@ -35,7 +34,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    BEGIN                  => shift and goto state 2
    default                => ERROR
@@ -43,7 +42,7 @@ State 1:
    compilation_unit       goto state 3
 
 State 2:
-  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
 
    IDENTIFIER             => shift and goto state 4,
                              reduce 0 tokens to label_opt
@@ -54,9 +53,9 @@ State 2:
    label_opt              goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   WISI_EOI               => accept it
+   Wisi_EOI               => accept it
    default                => ERROR
 
 
@@ -76,7 +75,7 @@ State 5:
 
 
 State 6:
-  compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, Wisi_EOI
   sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
 
    END                    => shift and goto state 9
@@ -102,7 +101,7 @@ State 8:
 
 
 State 9:
-  compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, Wisi_EOI
 
    SEMICOLON              => shift and goto state 12
    default                => ERROR
@@ -124,9 +123,9 @@ State 11:
 
 
 State 12:
-  compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, Wisi_EOI
 
-   WISI_EOI               => reduce 4 tokens to compilation_unit
+   Wisi_EOI               => reduce 4 tokens to compilation_unit
    default                => ERROR
 
 
@@ -154,10 +153,10 @@ State 15:
 
 LR1 Parse Table:
 Panic_Recover:
-(others => False));
+
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  statement =>
   (END |
@@ -171,8 +170,9 @@ Follow:
   (IDENTIFIER => True,
    others => False)
  others => (others => False))
+
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    BEGIN                  => shift and goto state 2
    default                => ERROR
@@ -180,7 +180,7 @@ State 1:
    compilation_unit       goto state 3
 
 State 2:
-  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN ^ sequence_of_statements END SEMICOLON, Wisi_EOI
 
    IDENTIFIER             => shift and goto state 4,
                              reduce 0 tokens to label_opt
@@ -191,9 +191,9 @@ State 2:
    label_opt              goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   WISI_EOI               => accept it
+   Wisi_EOI               => accept it
    default                => ERROR
 
 
@@ -213,7 +213,7 @@ State 5:
 
 
 State 6:
-  compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements ^ END SEMICOLON, Wisi_EOI
   sequence_of_statements <= sequence_of_statements ^ statement, END/IDENTIFIER
 
    END                    => shift and goto state 9
@@ -239,7 +239,7 @@ State 8:
 
 
 State 9:
-  compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements END ^ SEMICOLON, Wisi_EOI
 
    SEMICOLON              => shift and goto state 12
    default                => ERROR
@@ -261,9 +261,9 @@ State 11:
 
 
 State 12:
-  compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, WISI_EOI
+  compilation_unit <= BEGIN sequence_of_statements END SEMICOLON ^, Wisi_EOI
 
-   WISI_EOI               => reduce 4 tokens to compilation_unit
+   Wisi_EOI               => reduce 4 tokens to compilation_unit
    default                => ERROR
 
 

@@ -67,7 +67,7 @@ package body FastToken.Lexer.Regexp is
          return False;
       end if;
 
-      for I in Syntax_ID loop
+      for I in Lexer.Syntax'Range loop
          Clear (Lexer.Syntax (I).Regexp);
       end loop;
 
@@ -80,7 +80,7 @@ package body FastToken.Lexer.Regexp is
             end if;
          end if;
 
-         for I in Syntax_ID loop
+         for I in Lexer.Syntax'Range loop
             if State (Lexer.Syntax (I).Regexp) /= Error then
                Current_State := Match
                  (Lexer.Syntax (I).Regexp,
@@ -150,14 +150,14 @@ package body FastToken.Lexer.Regexp is
          Report);
    end Get;
 
-   function Initialize
+   function New_Lexer
      (Syntax       : in FastToken.Lexer.Regexp.Syntax;
       Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
       Buffer_Size  : in Integer                               := 1024)
      return FastToken.Lexer.Handle
    is
       use type Token_ID;
-      New_Lexer : constant access Instance := new Instance;
+      New_Lexer : constant access Instance := new Instance (Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
       New_Lexer.Feeder := Feeder;
@@ -165,7 +165,7 @@ package body FastToken.Lexer.Regexp is
       Reset (New_Lexer.all, Buffer_Size);
 
       return Handle (New_Lexer);
-   end Initialize;
+   end New_Lexer;
 
    overriding procedure Reset
      (Lexer       : in out Instance;

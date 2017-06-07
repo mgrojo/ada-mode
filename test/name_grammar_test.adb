@@ -23,17 +23,13 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
+with FastToken.Gen_Token_Enum;
 with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token;
-with FastToken.Token_Plain;
+with FastToken.Text_IO_Trace;
 package body Name_Grammar_Test is
 
    type Token_ID is
@@ -46,52 +42,49 @@ package body Name_Grammar_Test is
       Identifier_ID,
       EOF_ID,
 
-      --  non-terminals
+      --  non-terminals; accept is neither first nor last.
       Component_ID,
       Component_List_ID,
       Name_ID,
       Statement_ID,
       Symbol_Name_ID);
 
-   package Token_Pkg is new FastToken.Token (Token_ID, Dot_ID, EOF_ID, Token_ID'Image);
-   package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-   package Lexer is new Lexer_Root.Regexp (EOF_ID);
-   package Parser_Root is new FastToken.Parser
-     (Token_ID, Dot_ID, EOF_ID, EOF_ID, Statement_ID, Token_ID'Image, Ada.Text_IO.Put, Token_Pkg, Lexer_Root);
-   First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
-      Token_Aug.Input_Token);
-   package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
+   package Token_Enum is new FastToken.Gen_Token_Enum
+     (Token_Enum_ID     => Token_ID,
+      First_Terminal    => Dot_ID,
+      Last_Terminal     => EOF_ID,
+      First_Nonterminal => Component_ID,
+      Last_Nonterminal  => Symbol_Name_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => Statement_ID);
+   use Token_Enum;
 
-   Syntax : constant Lexer.Syntax :=
-     (
-      Whitespace_ID  => Lexer.Get (" ", Report => False),
-      Dot_ID         => Lexer.Get ("\."),
-      Paren_Left_ID  => Lexer.Get ("\("),
-      Paren_Right_ID => Lexer.Get ("\)"),
-      Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
-      EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
-     );
+   First_State_Index  : constant := 1;
+   First_Parser_Label : constant := 1;
+
+   package Lexer renames FastToken.Lexer.Regexp;
+
+   Syntax : constant Lexer.Syntax := To_Syntax
+     ((
+       Whitespace_ID  => Lexer.Get (" ", Report => False),
+       Dot_ID         => Lexer.Get ("\."),
+       Paren_Left_ID  => Lexer.Get ("\("),
+       Paren_Right_ID => Lexer.Get ("\)"),
+       Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
+       EOF_ID         => Lexer.Get ("" & FastToken.EOF_Character)
+      ));
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
-   use type Production.Instance;        --  "<="
-   use type Production.List.Instance;   --  "and"
-   use type Production.Right_Hand_Side; --  "+"
-   use type Token_Pkg.List.Instance;    --  "&"
+   use all type FastToken.Production.List.Instance;   --  "and"
+   use all type FastToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
+   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
 
    --  valid names:
    --  Module (Index)
    --  Module.Component
-   Simple_Grammar : constant Production.List.Instance :=
+   Simple_Grammar : constant FastToken.Production.List.Instance :=
      Statement_ID  <= Name_ID & EOF_ID + Null_Action and
      Name_ID       <= Identifier_ID & Component_ID + Null_Action and
      Component_ID  <= Dot_ID & Identifier_ID + Null_Action and
@@ -100,7 +93,7 @@ package body Name_Grammar_Test is
    --  valid names:
    --  Module.Symbol (Index)
    --  Module.Symbol.Component
-   Medium_Grammar : constant Production.List.Instance :=
+   Medium_Grammar : constant FastToken.Production.List.Instance :=
      Statement_ID   <= Name_ID & EOF_ID + Null_Action and
      Name_ID        <= Symbol_Name_ID & Component_ID + Null_Action and
      Symbol_Name_ID <= Identifier_ID & Dot_ID & Identifier_ID + Null_Action and
@@ -113,7 +106,7 @@ package body Name_Grammar_Test is
    --  Module.Symbol.Component
    --  Module.Symbol (Index).Component
    --  Module.Symbol.Component (Index) ...
-   Full_Grammar : constant Production.List.Instance :=
+   Full_Grammar : constant FastToken.Production.List.Instance :=
      Statement_ID      <= Name_ID & EOF_ID + Null_Action and
      Name_ID           <= Symbol_Name_ID & Component_List_ID + Null_Action and
      Name_ID           <= Symbol_Name_ID + Null_Action and
@@ -123,14 +116,13 @@ package body Name_Grammar_Test is
      Component_ID      <= Dot_ID & Identifier_ID + Null_Action and
      Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
-   First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package Parsers is new LR.Parser
-     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
+   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   State : State_Type (Trace'Access);
 
-   procedure Parse_Command (Lable : in String; Parser : in out Parsers.Instance; Command : in String)
+   procedure Parse_Command
+     (Label   : in     String;
+      Parser  : in out FastToken.Parser.LR.Parser.Instance;
+      Command : in     String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
@@ -145,7 +137,7 @@ package body Name_Grammar_Test is
    exception
    when E : others =>
       AUnit.Assertions.Assert
-        (False, Lable & "'" & Command & "': " &
+        (False, Label & "'" & Command & "': " &
            Ada.Exceptions.Exception_Name (E) & " : " & Ada.Exceptions.Exception_Message (E));
    end Parse_Command;
 
@@ -163,7 +155,7 @@ package body Name_Grammar_Test is
       Trace_File_Name : constant String := "name_grammar_test.out";
       Trace_File : File_Type;
 
-      Expected_Trace_File_Name : constant String := "../../Test/name_grammar_test.good_out";
+      Expected_Trace_File_Name : constant String := "../Test/name_grammar_test.good_out";
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.
@@ -177,14 +169,17 @@ package body Name_Grammar_Test is
 
       Put_Line ("Simple Parser");
       declare
-         Parser : Parsers.Instance := Parsers.New_Parser
-           (Lexer.Initialize (Syntax, String_Feeder'Access),
-            Generators.Generate
+         Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+            FastToken.Parser.LR.LALR_Generator.Generate
               (Simple_Grammar,
+               LALR_Descriptor,
+               First_State_Index,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => True),
-            Token_Aug.State);
+            State,
+            First_Parser_Label);
       begin
          Parse_Command ("Simple Parser", Parser, "Module (Index)");
          Parse_Command ("Simple Parser", Parser, "Module.Component");
@@ -193,14 +188,17 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Medium Parser");
       declare
-         Parser : Parsers.Instance := Parsers.New_Parser
-           (Lexer.Initialize (Syntax, String_Feeder'Access),
-            Generators.Generate
+         Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+            FastToken.Parser.LR.LALR_Generator.Generate
               (Medium_Grammar,
+               LALR_Descriptor,
+               First_State_Index,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => True),
-            Token_Aug.State);
+            State,
+            First_Parser_Label);
       begin
          Parse_Command ("Medium Parser", Parser, "Module.Symbol (Index)");
          Parse_Command ("Medium Parser", Parser, "Module.Symbol.Component");
@@ -209,14 +207,17 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : Parsers.Instance := Parsers.New_Parser
-           (Lexer.Initialize (Syntax, String_Feeder'Access),
-            Generators.Generate
+         Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+            FastToken.Parser.LR.LALR_Generator.Generate
               (Full_Grammar,
+               LALR_Descriptor,
+               First_State_Index,
                Put_Parse_Table      => Test.Debug,
                Trace                => Test.Debug,
                Ignore_Unused_Tokens => False),
-            Token_Aug.State);
+            State,
+            First_Parser_Label);
       begin
          Parse_Command ("Full Parser", Parser, "Module.Symbol");
          Parse_Command ("Full Parser", Parser, "Module.Symbol (Index)");
@@ -245,7 +246,7 @@ package body Name_Grammar_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/name_grammar_test.adb");
+      return new String'("../Test/name_grammar_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

@@ -20,7 +20,6 @@
 pragma License (Modified_GPL);
 
 with FastToken.Parser.LR.Generator_Utils;
-with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Production;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
@@ -40,7 +39,9 @@ package Wisi.Gen_Generate_Utils is
    EOF_ID : constant Token_ID := Token_ID (Count (Tokens)) + Token_ID (Keywords.Length) + 1;
 
    LR1_Descriptor : FastToken.Descriptor
-     (First_Terminal    => Token_ID (Count_Non_Reporting) + Token_ID'First,
+     (First_Terminal    => (if Count_Non_Reporting > 0
+                            then Token_ID (Count_Non_Reporting) + Token_ID'First
+                            else Token_ID'First),
       Last_Terminal     => EOF_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => EOF_ID + 1,
@@ -48,7 +49,7 @@ package Wisi.Gen_Generate_Utils is
       Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
    --  Image, Image_Width set by Set_Token_Images
 
-   LALR_Descriptor : FastToken.Parser.LR.LALR_Generator.Descriptor
+   LALR_Descriptor : FastToken.LALR_Descriptor
      (First_Terminal    => LR1_Descriptor.First_Terminal,
       Last_Terminal     => LR1_Descriptor.Last_Terminal,
       First_Nonterminal => EOF_ID + 1,
@@ -88,18 +89,11 @@ package Wisi.Gen_Generate_Utils is
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
 
-   --  FIXME: delete these
-   package Production renames FastToken.Production;
-   package Parser_Root renames Parser;
-   package LR renames Parser.LR;
-   package Generator_Utils renames Parser.LR.Generator_Utils;
-   package LALR_Generator renames LR.LALR_Generator;
-
    function To_Conflicts
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return Generator_Utils.Conflict_Lists.List;
+     return FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
 
    function To_Grammar
      (Descriptor       : in FastToken.Descriptor;
@@ -110,7 +104,6 @@ package Wisi.Gen_Generate_Utils is
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
 
-   function To_State_Count (State_Last : in LR.State_Index) return LR.State_Index;
 private
 
    type Token_Cursor_State is

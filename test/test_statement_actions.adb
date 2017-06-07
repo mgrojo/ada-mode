@@ -21,18 +21,13 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
-with Ada.Text_IO;
+with FastToken.Gen_Token_Enum;
 with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.Generator_Utils;
 with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Parser.LR1_Items;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
-with FastToken.Token;
-with FastToken.Token_Plain;
+with FastToken.Text_IO_Trace;
 package body Test_Statement_Actions is
 
    type Token_ID is
@@ -50,69 +45,59 @@ package body Test_Statement_Actions is
       Statement_Sequence_ID,
       Parse_Sequence_ID);
 
-   package Token_Pkg is new FastToken.Token (Token_ID, Plus_Minus_ID, EOF_ID, Token_ID'Image);
-   package Lexer_Root is new FastToken.Lexer (Token_ID);
-   package Token_Aug is new FastToken.Token_Plain (Token_Pkg, Lexer_Root);
-   package Production is new FastToken.Production (Token_Pkg, Token_Aug.Semantic_Action, Token_Aug.Null_Action);
-   package Lexer is new Lexer_Root.Regexp (EOF_ID);
-   package Parser_Root is new FastToken.Parser
-     (Token_ID, Plus_Minus_ID, EOF_ID, EOF_ID, Parse_Sequence_ID, Token_ID'Image, Ada.Text_IO.Put,
-      Token_Pkg, Lexer_Root);
-   First_State_Index : constant := 1;
-   package LR is new Parser_Root.LR
-     (First_State_Index, Token_ID'Width, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Token_Aug.State_Type,
-      Token_Aug.Input_Token);
+   package Token_Enum is new FastToken.Gen_Token_Enum
+     (Token_Enum_ID     => Token_ID,
+      First_Terminal    => Plus_Minus_ID,
+      Last_Terminal     => EOF_ID,
+      First_Nonterminal => Statement_ID,
+      Last_Nonterminal  => Parse_Sequence_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => Parse_Sequence_ID);
+   use Token_Enum;
+
+   First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
-   package Parser_Lists is new LR.Parser_Lists (First_Parser_Label);
-   package Panic_Mode is new LR.Panic_Mode (First_Parser_Label, Parser_Lists => Parser_Lists);
-   package LR_Parser is new LR.Parser
-     (First_Parser_Label, Ada.Text_IO.Put, Ada.Text_IO.Put_Line, Parser_Lists, Panic_Mode,
-      Token_Aug.Reset, Token_Aug.Push_Token, Token_Aug.Merge_Tokens, Token_Aug.Recover);
-   package LR1_Items is new Parser_Root.LR1_Items
-     (LR.Unknown_State_Index, LR.Unknown_State, Token_Aug.Semantic_Action, Token_Aug.Null_Action, Production);
-   package Generator_Utils is new LR.Generator_Utils (Production, LR1_Items);
-   package Generators is new LR.LALR_Generator (Production, LR1_Items, Generator_Utils);
 
-   use all type Production.Instance;        --  "<="
-   use all type Production.List.Instance;   --  "and"
-   use all type Production.Right_Hand_Side; --  "+"
-   use all type Token_Pkg.List.Instance;    --  "&"
+   use all type FastToken.Production.List.Instance;   --  "and"
+   use all type FastToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : Token_Aug.Semantic_Action renames Token_Aug.Null_Action;
+   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
 
    package Set_Statement is
 
-      Grammar : constant Production.List.Instance :=
-        Production.List.Only
+      Grammar : constant FastToken.Production.List.Instance :=
+        FastToken.Production.List.Only
         (Statement_ID <= Set_ID & Int_ID + Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      Grammar : constant Production.List.Instance :=
+      Grammar : constant FastToken.Production.List.Instance :=
         Statement_ID <= Verify_ID & Int_ID + Null_Action
         and
         Statement_ID <= Verify_ID & Int_ID & Plus_Minus_ID + Null_Action;
    end Verify_Statement;
 
-   Syntax : constant Lexer.Syntax :=
-     (
-      Whitespace_ID => Lexer.Get (" ", Report => False),
-      Plus_Minus_ID => Lexer.Get ("\+-"),
-      Semicolon_ID  => Lexer.Get (";"),
-      Set_ID        => Lexer.Get ("set"),
-      Verify_ID     => Lexer.Get ("verify"),
-      Int_ID        => Lexer.Get ("[0-9]+"),
-      EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
-     );
+   package Lexer renames FastToken.Lexer.Regexp;
+
+   Syntax : constant Lexer.Syntax := To_Syntax
+     ((
+       Whitespace_ID => Lexer.Get (" ", Report => False),
+       Plus_Minus_ID => Lexer.Get ("\+-"),
+       Semicolon_ID  => Lexer.Get (";"),
+       Set_ID        => Lexer.Get ("set"),
+       Verify_ID     => Lexer.Get ("verify"),
+       Int_ID        => Lexer.Get ("[0-9]+"),
+       EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
+      ));
 
    Action_Count : Integer := 0;
 
    procedure Statement_Semi_Action
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
+     (Nonterm : in FastToken.Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance)
+      Source  : in FastToken.Token_Stack_Type)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
@@ -121,7 +106,7 @@ package body Test_Statement_Actions is
       Action_Count := Action_Count + 1;
    end Statement_Semi_Action;
 
-   Grammar : constant Production.List.Instance :=
+   Grammar : constant FastToken.Production.List.Instance :=
      Parse_Sequence_ID     <= Statement_Sequence_ID & EOF_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID & Statement_Sequence_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID + Null_Action and
@@ -130,8 +115,11 @@ package body Test_Statement_Actions is
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
+   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   State : State_Type (Trace'Access);
+
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
-   Parser        : LR_Parser.Instance;
+   Parser        : FastToken.Parser.LR.Parser.Instance;
 
    procedure Execute_Command (Command : in String)
    is begin
@@ -154,10 +142,12 @@ package body Test_Statement_Actions is
 
       use AUnit.Checks;
    begin
-      Parser := LR_Parser.New_Parser
-        (Lexer.Initialize (Syntax, String_Feeder'Access),
-         Generators.Generate (Grammar, Trace => Test.Debug),
-        Token_Aug.State);
+      Parser := FastToken.Parser.LR.Parser.New_Parser
+        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+         FastToken.Parser.LR.LALR_Generator.Generate
+           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
+         State,
+         First_Parser_Label);
 
       FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
@@ -178,7 +168,7 @@ package body Test_Statement_Actions is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Test/test_statement_actions.adb");
+      return new String'("../Test/test_statement_actions.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

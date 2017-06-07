@@ -1,20 +1,7 @@
 ;;; identifier_list_name_conflict-lr1-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe ../../wisi/test/identifier_list_name_conflict.wy
+;;; with command line: wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
+;;; ../wisi/test/identifier_list_name_conflict.wy
 
-;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
-
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
-;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
 (require 'semantic/lex)
@@ -23,11 +10,11 @@
 (defconst identifier_list_name_conflict-lr1-elisp-keyword-table
   (semantic-lex-make-keyword-table
    '(
-    ("(" . LEFT_PAREN)
-    (")" . RIGHT_PAREN)
-    )
-   nil)
-  "Table of language keywords.")
+     ("(" . LEFT_PAREN)
+     (")" . RIGHT_PAREN)
+     )
+   nil))
+
 
 (defconst identifier_list_name_conflict-lr1-elisp-token-table
   (semantic-lex-make-type-table
@@ -35,16 +22,16 @@
      ("punctuation"
       (COMMA . ",")
       (EQUAL_GREATER . "=>")
-     )
+      )
      ("string-double"
       (STRING_LITERAL . "\"[^\"]*\"")
-     )
+      )
      ("symbol"
       (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+      )
      )
-    )
-   nil)
-  "Table of language tokens.")
+   nil))
+
 
 (defconst identifier_list_name_conflict-lr1-elisp-parse-table
    (wisi-compile-grammar
@@ -56,7 +43,7 @@
        ((association_list COMMA association )))
       (compilation
        ((compilation_unit compilation_unit compilation_unit )
-        (setq wisi-test-success t)))
+        (null; -- setq wisi-test-success t)))
       (compilation_unit
        ((identifier_list ))
        ((name_list ))

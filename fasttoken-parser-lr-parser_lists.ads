@@ -21,17 +21,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-with Ada.Text_IO;
-generic
-   First_Parser_Label : in Integer;
-
-   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
-   --  Accumulate Item in the trace buffer.
-
-   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
-   --  Accumulate Item in the trace buffer, output the trace buffer to
-   --  the display.
-
 package FastToken.Parser.LR.Parser_Lists is
 
    type Parser_State is private;
@@ -42,7 +31,10 @@ package FastToken.Parser.LR.Parser_Lists is
      Default_Iterator  => Iterate,
      Iterator_Element  => Parser_State;
 
-   function Initialize return List;
+   function New_List
+     (First_State_Index  : in State_Index;
+      First_Parser_Label : in Integer)
+     return List;
 
    function Count (List : in Parser_Lists.List) return Integer;
 
@@ -78,12 +70,12 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
-   procedure Put_Trace_Top_10 (Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace_Top_10 (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Put_Trace.
 
    --  pending user actions
    type Action_Token is record
-      Action : Reduce_Action_Rec;
+      Action : Parse_Action_Rec;
       Tokens : Token.List.Instance;
    end record;
 
@@ -147,8 +139,8 @@ package FastToken.Parser.LR.Parser_Lists is
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
-   procedure Put_Trace (Action_Token : in Parser_Lists.Action_Token);
-   procedure Put_Trace_Pending_Actions (Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
+   procedure Put_Trace_Pending_Actions (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
 
 private
 

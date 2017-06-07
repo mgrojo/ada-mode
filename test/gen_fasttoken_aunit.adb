@@ -34,13 +34,13 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Token_Pkg.List.List_Iterator;
-      Expected : in Token_Pkg.List.List_Iterator)
+      Computed : in FastToken.Token.List.List_Iterator;
+      Expected : in FastToken.Token.List.List_Iterator)
    is
       use AUnit.Checks;
-      use Token_Pkg;
-      use Production;
-      use Token_Pkg.List;
+      use FastToken.Token;
+      use FastToken.Production;
+      use FastToken.Token.List;
       Computed_I : List_Iterator := Computed;
       Expected_I : List_Iterator := Expected;
       Index      : Integer       := 1;
@@ -59,11 +59,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Production.Instance;
-      Expected : in Production.Instance)
+      Computed : in FastToken.Production.Instance;
+      Expected : in FastToken.Production.Instance)
    is
       use AUnit.Checks;
-      use Token_Pkg;
+      use FastToken.Token;
    begin
       Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
       Check (Label & ".LHS", Computed.LHS, Expected.LHS);
@@ -71,25 +71,13 @@ package body Gen_FastToken_AUnit is
    end Check;
 
    procedure Check
-     (Label    : in String;
-      Computed : in LR1_Items.Lookahead;
-      Expected : in LR1_Items.Lookahead)
-   is
-      use AUnit.Checks;
-      use LR1_Items;
-   begin
-      Check (Label & ".Propagate", Computed.Propagate, Expected.Propagate);
-      Check (Label & ".Tokens", Computed.Tokens, Expected.Tokens);
-   end Check;
-
-   procedure Check
      (Label            : in String;
-      Computed         : in LR1_Items.Item_Ptr;
-      Expected         : in LR1_Items.Item_Ptr;
+      Computed         : in FastToken.Parser.LR.LR1_Items.Item_Ptr;
+      Expected         : in FastToken.Parser.LR.LR1_Items.Item_Ptr;
       Match_Lookaheads : in Boolean)
    is
       use AUnit.Checks;
-      use LR1_Items;
+      use FastToken.Parser.LR.LR1_Items;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -119,13 +107,13 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in LR1_Items.Item_Set;
-      Expected         : in LR1_Items.Item_Set;
+      Computed         : in FastToken.Parser.LR.LR1_Items.Item_Set;
+      Expected         : in FastToken.Parser.LR.LR1_Items.Item_Set;
       Match_Lookaheads : in Boolean := True)
    is
       use AUnit.Checks;
-      use type LR1_Items.Goto_Item_Ptr;
-      use type LR1_Items.Item_Set_Ptr;
+      use type FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
+      use type FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
@@ -135,11 +123,11 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LR1_Items.Goto_Item_Ptr;
-      Expected : in LR1_Items.Goto_Item_Ptr)
+      Computed : in FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
+      Expected : in FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr)
    is
       use AUnit.Checks;
-      use LR1_Items;
+      use FastToken.Parser.LR.LR1_Items;
       Computed_I : Goto_Item_Ptr := Computed;
       Expected_I : Goto_Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -166,13 +154,13 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in LR1_Items.Item_Set_Ptr;
-      Expected         : in LR1_Items.Item_Set_Ptr;
+      Computed         : in FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      Expected         : in FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
       Match_Lookaheads : in Boolean := True)
    is
-      use type LR1_Items.Item_Set_Ptr;
-      Computed_1 : LR1_Items.Item_Set_Ptr := Computed;
-      Expected_1 : LR1_Items.Item_Set_Ptr := Expected;
+      use type FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      Computed_1 : FastToken.Parser.LR.LR1_Items.Item_Set_Ptr := Computed;
+      Expected_1 : FastToken.Parser.LR.LR1_Items.Item_Set_Ptr := Expected;
       I          : Integer                           := 1;
    begin
       if Computed_1 = null then
@@ -194,78 +182,84 @@ package body Gen_FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in LR1_Items.Item_Set_List;
-      Expected : in LR1_Items.Item_Set_List)
+      Computed : in FastToken.Parser.LR.LR1_Items.Item_Set_List;
+      Expected : in FastToken.Parser.LR.LR1_Items.Item_Set_List)
    is begin
       Check (Label & ".Size", Computed.Size, Expected.Size);
       Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
    end Check;
 
-   function Get_Production (Prod : in Positive) return Production.List.List_Iterator
+   function Get_Production (Prod : in Positive) return FastToken.Production.List.List_Iterator
    is
-      Grammar_I : Production.List.List_Iterator := Grammar.First;
+      Grammar_I : FastToken.Production.List.List_Iterator := Grammar.First;
    begin
       for I in 2 .. Prod loop
-         Production.List.Next (Grammar_I);
+         FastToken.Production.List.Next (Grammar_I);
       end loop;
 
       return Grammar_I;
    end Get_Production;
 
-   function Get_Production (Prod : in Positive) return Production.Instance
+   function Get_Production (Prod : in Positive) return FastToken.Production.Instance
    is begin
-      return Production.List.Current (Get_Production (Prod));
+      return FastToken.Production.List.Current (Get_Production (Prod));
    end Get_Production;
 
    function Get_Item_Node
      (Prod       : in Positive;
       Dot        : in Positive;
-      Lookaheads : in LR1_Items.Lookahead;
-      State      : in Unknown_State_Index := Unknown_State)
-     return LR1_Items.Item_Ptr
+      Lookaheads : in FastToken.Parser.LR.LR1_Items.Lookahead;
+      State      : in FastToken.Parser.LR.Unknown_State_Index := FastToken.Parser.LR.Unknown_State)
+     return FastToken.Parser.LR.LR1_Items.Item_Ptr
    is
-      Grammar_I : Production.List.List_Iterator := Grammar.First;
+      Grammar_I : FastToken.Production.List.List_Iterator := Grammar.First;
 
-      Dot_I : Token_Pkg.List.List_Iterator;
+      Dot_I : FastToken.Token.List.List_Iterator;
    begin
       for I in 2 .. Prod loop
-         Production.List.Next (Grammar_I);
+         FastToken.Production.List.Next (Grammar_I);
       end loop;
 
-      if Production.List.Is_Done (Grammar_I) then
+      if FastToken.Production.List.Is_Done (Grammar_I) then
          raise FastToken.Programmer_Error with Integer'Image (Prod) & " > length (grammar)";
       end if;
 
-      Dot_I := Production.First_Token (Production.List.Current (Grammar_I));
+      Dot_I := FastToken.Production.First_Token (FastToken.Production.List.Current (Grammar_I));
       for I in 2 .. Dot loop
-         Token_Pkg.List.Next (Dot_I);
+         FastToken.Token.List.Next (Dot_I);
       end loop;
 
-      return LR1_Items.New_Item_Node (Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
+      return FastToken.Parser.LR.LR1_Items.New_Item_Node
+        (FastToken.Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
-   function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set
+   function "+" (Item : in FastToken.Parser.LR.LR1_Items.Item_Ptr) return FastToken.Parser.LR.LR1_Items.Item_Set
    is begin
-      return LR1_Items.Item_Set'(Item, null, LR1_Items.State (Item), null);
+      return FastToken.Parser.LR.LR1_Items.Item_Set'(Item, null, FastToken.Parser.LR.LR1_Items.State (Item), null);
    end "+";
 
-   function "+" (Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_Ptr
+   function "+" (Item : in FastToken.Parser.LR.LR1_Items.Item_Ptr) return FastToken.Parser.LR.LR1_Items.Item_Set_Ptr
    is begin
-      return new LR1_Items.Item_Set'(Item, null, LR1_Items.State (Item), null);
+      return new FastToken.Parser.LR.LR1_Items.Item_Set'(Item, null, FastToken.Parser.LR.LR1_Items.State (Item), null);
    end "+";
 
-   function "+" (State : in Unknown_State_Index; Item : in LR1_Items.Item_Ptr) return LR1_Items.Item_Set_List
+   function "+"
+     (State : in FastToken.Parser.LR.Unknown_State_Index;
+      Item  : in FastToken.Parser.LR.LR1_Items.Item_Ptr)
+     return FastToken.Parser.LR.LR1_Items.Item_Set_List
    is begin
-      LR1_Items.Set_State (Item, State);
+      FastToken.Parser.LR.LR1_Items.Set_State (Item, State);
       return
-        (Head => new LR1_Items.Item_Set'(Item, null, State, null),
+        (Head => new FastToken.Parser.LR.LR1_Items.Item_Set'(Item, null, State, null),
          Size => 1);
    end "+";
 
-   function "&" (Left, Right : in LR1_Items.Item_Set_List) return LR1_Items.Item_Set_List
+   function "&"
+     (Left, Right : in FastToken.Parser.LR.LR1_Items.Item_Set_List)
+     return FastToken.Parser.LR.LR1_Items.Item_Set_List
    is
-      use LR1_Items;
-      use all type Unknown_State_Index;
+      use FastToken.Parser.LR.LR1_Items;
+      use all type FastToken.Parser.LR.Unknown_State_Index;
 
       I : Item_Set_Ptr;
    begin
@@ -282,12 +276,12 @@ package body Gen_FastToken_AUnit is
    end "&";
 
    function Get_Set
-     (To_State : in Unknown_State_Index;
-      Set_List : in LR1_Items.Item_Set_List)
-     return LR1_Items.Item_Set_Ptr
+     (To_State : in FastToken.Parser.LR.Unknown_State_Index;
+      Set_List : in FastToken.Parser.LR.LR1_Items.Item_Set_List)
+     return FastToken.Parser.LR.LR1_Items.Item_Set_Ptr
    is
-      use LR1_Items;
-      use all type Unknown_State_Index;
+      use FastToken.Parser.LR.LR1_Items;
+      use all type FastToken.Parser.LR.Unknown_State_Index;
 
       I : Item_Set_Ptr := Set_List.Head;
    begin
@@ -298,26 +292,29 @@ package body Gen_FastToken_AUnit is
       return I;
    end Get_Set;
 
-   function "+" (Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr
+   function "+" (Right : in AUnit_Goto_Item) return FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr
    is begin
-      return LR1_Items.New_Goto_Item (Right.Symbol, Right.Set);
+      return FastToken.Parser.LR.LR1_Items.New_Goto_Item (Right.Symbol, Right.Set);
    end "+";
 
-   function "&" (Left : in LR1_Items.Goto_Item_Ptr; Right : in AUnit_Goto_Item) return LR1_Items.Goto_Item_Ptr
+   function "&"
+     (Left  : in FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
+      Right : in AUnit_Goto_Item)
+     return FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr
    is
-      Result : LR1_Items.Goto_Item_Ptr := Left;
+      Result : FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr := Left;
    begin
-      LR1_Items.Add (Result, Right.Symbol, Right.Set);
+      FastToken.Parser.LR.LR1_Items.Add (Result, Right.Symbol, Right.Set);
       return Left;
    end "&";
 
    procedure Add_Gotos
-     (List  : in LR1_Items.Item_Set_List;
-      State : in Unknown_State_Index;
-      Gotos : in LR1_Items.Goto_Item_Ptr)
+     (List  : in FastToken.Parser.LR.LR1_Items.Item_Set_List;
+      State : in FastToken.Parser.LR.Unknown_State_Index;
+      Gotos : in FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr)
    is
-      use LR1_Items;
-      use all type Unknown_State_Index;
+      use FastToken.Parser.LR.LR1_Items;
+      use all type FastToken.Parser.LR.Unknown_State_Index;
       I : Item_Set_Ptr := List.Head;
    begin
       loop
@@ -330,8 +327,8 @@ package body Gen_FastToken_AUnit is
    function Get_Item_Set
      (Prod      : in Positive;
       Dot       : in Positive;
-      Lookahead : in LR1_Items.Lookahead)
-     return LR1_Items.Item_Set
+      Lookahead : in FastToken.Parser.LR.LR1_Items.Lookahead)
+     return FastToken.Parser.LR.LR1_Items.Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -339,35 +336,146 @@ package body Gen_FastToken_AUnit is
             Dot        => Dot,
             Lookaheads => Lookahead),
          Goto_List       => null,
-         State           => Unknown_State,
+         State           => FastToken.Parser.LR.Unknown_State,
          Next            => null);
    end Get_Item_Set;
 
-   function Get_Item_Set
-     (Prod : in Positive;
-      Dot  : in Positive;
-      Next : in LR1_Items.Item_Set_Ptr)
-     return LR1_Items.Item_Set
-   is begin
-      return
-        (Set => Get_Item_Node
-           (Prod       => Prod,
-            Dot        => Dot,
-            Lookaheads => LR1_Items.Null_Lookaheads),
-         Goto_List       => null,
-         State           => Unknown_State,
-         Next            => Next);
-   end Get_Item_Set;
-
-   function "+" (Item : in Token_Array) return LR1_Items.Lookahead
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Parse_Action_Rec;
+      Expected : in FastToken.Parser.LR.Parse_Action_Rec)
    is
-      use LR1_Items;
-      Result : Lookahead := (False, (others => False));
+      use Standard.AUnit.Checks;
+      use all type FastToken.Parser.LR.Parse_Action_Verbs;
    begin
-      for I in Item'Range loop
-         Result.Tokens (Item (I)) := True;
+      Check (Label & ".Verb", Computed.Verb, Expected.Verb);
+      case Computed.Verb is
+      when Shift =>
+         Check (Label & ".State", Computed.State, Expected.State);
+      when Reduce | Accept_It =>
+         Check (Label & ".LHS", Computed.LHS, Expected.LHS);
+         --  Ignoring Action
+         Check (Label & ".Index", Computed.Index, Expected.Index);
+         Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
+      when Error =>
+         null;
+      end case;
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Parse_Action_Node_Ptr;
+      Expected : in FastToken.Parser.LR.Parse_Action_Node_Ptr)
+   is
+      use Standard.AUnit.Checks;
+      use Standard.AUnit.Assertions;
+      use type FastToken.Parser.LR.Parse_Action_Node_Ptr;
+      Computed_I : FastToken.Parser.LR.Parse_Action_Node_Ptr := Computed;
+      Expected_I : FastToken.Parser.LR.Parse_Action_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         Assert (Computed /= null, Label & " Computed is null");
+         Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Item", Computed_I.Item, Expected_I.Item);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
       end loop;
-      return Result;
-   end "+";
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Action_Node_Ptr;
+      Expected : in FastToken.Parser.LR.Action_Node_Ptr)
+   is
+      use Standard.AUnit.Checks;
+      use Standard.AUnit.Assertions;
+      use type FastToken.Parser.LR.Action_Node_Ptr;
+      Computed_I : FastToken.Parser.LR.Action_Node_Ptr := Computed;
+      Expected_I : FastToken.Parser.LR.Action_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         Assert (Computed /= null, Label & " Computed is null");
+         Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
+         Check (Label & Integer'Image (Index) & ".Action", Computed_I.Action, Expected_I.Action);
+         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
+         Computed_I := Computed_I.Next;
+         Expected_I := Expected_I.Next;
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Goto_Node_Ptr;
+      Expected : in FastToken.Parser.LR.Goto_Node_Ptr)
+   is
+      use Standard.AUnit.Checks;
+      use Standard.AUnit.Assertions;
+      use all type FastToken.Parser.LR.Goto_Node_Ptr;
+      Computed_I : FastToken.Parser.LR.Goto_Node_Ptr := Computed;
+      Expected_I : FastToken.Parser.LR.Goto_Node_Ptr := Expected;
+      Index      : Integer  := 1;
+   begin
+      if Computed /= null or Expected /= null then
+         Assert (Computed /= null, Label & " Computed is null");
+         Assert (Expected /= null, Label & " Expected is null");
+      else
+         --  both are null
+         return;
+      end if;
+
+      loop
+         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
+         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
+         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
+         Computed_I := Next (Computed_I);
+         Expected_I := Next (Expected_I);
+         Index      := Index + 1;
+         exit when Computed_I = null;
+      end loop;
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Parse_State;
+      Expected : in FastToken.Parser.LR.Parse_State)
+   is begin
+      Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
+      Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
+   end Check;
+
+   procedure Check
+     (Label    : in String;
+      Computed : in FastToken.Parser.LR.Parse_Table;
+      Expected : in FastToken.Parser.LR.Parse_Table)
+   is begin
+      Check (Label & ".States'first", Computed.States'First, Expected.States'First);
+      Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
+      for I in Computed.States'Range loop
+         Check
+           (Label & ".States." & FastToken.Parser.LR.State_Index'Image (I), Computed.States (I), Expected.States (I));
+      end loop;
+      Check (Label & ".Panic_Recover", Computed.Panic_Recover, Expected.Panic_Recover);
+      Check (Label & ".Follow", Computed.Follow, Expected.Follow);
+   end Check;
 
 end Gen_FastToken_AUnit;

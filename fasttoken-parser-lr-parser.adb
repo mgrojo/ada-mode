@@ -29,6 +29,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Strings.Unbounded;
+with FastToken.Parser.LR.Panic_Mode;
+with FastToken.Parser.LR.Parser_Lists;
 package body FastToken.Parser.LR.Parser is
 
    type Token_ID_Array is array (Integer range <>) of Token_ID;
@@ -58,7 +60,10 @@ package body FastToken.Parser.LR.Parser is
       end;
    end Expecting;
 
-   function Names (Tokens : in Token_ID_Array) return String
+   function Names
+     (Descriptor : in FastToken.Descriptor'Class;
+      Tokens     : in Token_ID_Array)
+     return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String;
@@ -67,7 +72,7 @@ package body FastToken.Parser.LR.Parser is
       --  the error message to overflow the GNAT exception message
       --  limit.
       for I in Tokens'First .. Integer'Min (Tokens'Last, 10) loop
-         Result := Result & Token_Image (Tokens (I));
+         Result := Result & Image (Descriptor, Tokens (I));
          if I /= Tokens'Last then
             Result := Result & ", ";
          end if;
@@ -78,7 +83,7 @@ package body FastToken.Parser.LR.Parser is
    procedure Reduce_Stack
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Semantic_State : access Semantic_State_Type)
+      Semantic_State : access FastToken.Token.Semantic_State'Class)
    is
       Tokens : Token.List.Instance;
    begin
@@ -93,12 +98,14 @@ package body FastToken.Parser.LR.Parser is
          if Current_Parser.Active_Parser_Count > 1 then
             Current_Parser.Enqueue (Action_Token);
             if Trace_Parse > 1 then
-               Put_Trace ("pending ");
-               Parser_Lists.Put_Trace (Action_Token);
-               Put_Trace_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
+               Semantic_State.Trace.Put ("pending ");
+               Parser_Lists.Put_Trace (Semantic_State.Trace.all, Action_Token);
+               Semantic_State.Trace.New_Line;
+               Semantic_State.Trace.Put_Line
+                 (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action, Semantic_State);
+            FastToken.Token.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action, Semantic_State);
             --  Merge_Tokens puts a trace, with extra token info
 
             Token.List.Clean (Tokens);
@@ -111,23 +118,41 @@ package body FastToken.Parser.LR.Parser is
       Current_Parser : in Parser_Lists.Cursor;
       Current_Token  : in Token_ID;
       Parser         : in Instance)
-   is begin
+   is
+      Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+   begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
-            Parser_Lists.Put_Trace_Top_10 (Current_Parser);
+            Parser_Lists.Put_Trace_Top_10 (Trace, Current_Parser);
          end if;
-         Put_Trace
+         Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
-              Token_Image (Current_Token) & " : ");
-         Put_Trace (Action);
-         Put_Trace_Line ("");
+              Image (Trace.Descriptor.all, Current_Token) & " : ");
+         Put_Trace (Trace, Action);
+         Trace.New_Line;
       end if;
 
       case Action.Verb is
       when Shift =>
          Current_Parser.Push ((Action.State, Current_Token));
-         Push_Token (Current_Token, Parser.Semantic_State);
+
+         declare
+            Action_Token : constant Parser_Lists.Action_Token := (Action, Token.List.Only (Current_Token));
+            Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+         begin
+            if Current_Parser.Active_Parser_Count > 1 then
+               Current_Parser.Enqueue (Action_Token);
+               if Trace_Parse > 1 then
+                  Trace.Put ("pending ");
+                  Parser_Lists.Put_Trace (Trace, Action_Token);
+                  Trace.New_Line;
+                  Trace.Put_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
+               end if;
+            else
+               FastToken.Token.Push_Token (Current_Token, Parser.Semantic_State);
+            end if;
+         end;
 
       when Reduce =>
          Reduce_Stack (Current_Parser, Action, Parser.Semantic_State);
@@ -140,7 +165,7 @@ package body FastToken.Parser.LR.Parser is
              Token    => Action.LHS));
 
          if Trace_Parse > 1 then
-            Put_Trace_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
+            Trace.Put_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
          end if;
 
       when Accept_It =>
@@ -228,36 +253,39 @@ package body FastToken.Parser.LR.Parser is
 
    procedure Execute_Pending
      (Current_Parser : in     Parser_Lists.Cursor;
-      Semantic_State : access Semantic_State_Type)
+      Semantic_State : access FastToken.Token.Semantic_State'Class)
    is
       Action_Token : Parser_Lists.Action_Token;
    begin
       if Trace_Parse > 1 then
-         Put_Trace_Line ("execute pending");
+         Semantic_State.Trace.Put_Line ("execute pending");
       end if;
       loop
          exit when Current_Parser.Pending_Actions_Empty;
          Action_Token := Current_Parser.Dequeue;
 
-         Merge_Tokens
-           (Action_Token.Action.LHS, Action_Token.Action.Index, Action_Token.Tokens, Action_Token.Action.Action,
-            Semantic_State);
+         case Action_Token.Action.Verb is
+         when Shift =>
+            Token.Push_Token (Token.List.Current (Token.List.First (Action_Token.Tokens)), Semantic_State);
 
-         if Trace_Parse > 1 then
-            --  Do Put after calling Action, so New_Token has result of Action
-            Parser_Lists.Put_Trace (Action_Token);
-            Put_Trace_Line ("");
-         end if;
-         --  Action_Token.New_Token still on stack; freed later
+         when Reduce =>
+            Token.Merge_Tokens
+              (Action_Token.Action.LHS, Action_Token.Action.Index, Action_Token.Tokens, Action_Token.Action.Action,
+               Semantic_State);
+
+         when Accept_It | Error =>
+            raise Programmer_Error with "execute_pending; " & Parse_Action_Verbs'Image (Action_Token.Action.Verb);
+         end case;
+
          Token.List.Clean (Action_Token.Tokens);
       end loop;
    end Execute_Pending;
 
    overriding procedure Parse (Parser : in out Instance)
    is
-      use all type Token.Nonterminal_ID_Set;
-
-      Parsers        : Parser_Lists.List := Parser_Lists.Initialize;
+      Parsers        : Parser_Lists.List := Parser_Lists.New_List
+        (First_State_Index  => Parser.Table.State_First,
+         First_Parser_Label => Parser.First_Parser_Label);
       Current_Verb   : Parse_Action_Verbs;
       Current_Token  : Token_ID;
       Current_Parser : Parser_Lists.Cursor;
@@ -265,7 +293,7 @@ package body FastToken.Parser.LR.Parser is
       Keep_Going     : Boolean;
    begin
       Parser.Skipped_Tokens.Clear;
-      Reset (Parser.Semantic_State);
+      FastToken.Token.Reset (Parser.Semantic_State);
 
       loop
          --  exit on Accept_It action or syntax error.
@@ -275,7 +303,7 @@ package body FastToken.Parser.LR.Parser is
          case Current_Verb is
          when Shift =>
             Current_Token := Parser.Lexer.Find_Next;
-            Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+            FastToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
 
          when Accept_It =>
             declare
@@ -308,14 +336,15 @@ package body FastToken.Parser.LR.Parser is
                declare
                   Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
                begin
-                  Recover (Panic.Popped_Tokens, Parser.Skipped_Tokens, Panic.Pushed_Token, Parser.Semantic_State);
+                  FastToken.Token.Recover
+                    (Panic.Popped_Tokens, Parser.Skipped_Tokens, Panic.Pushed_Token, Parser.Semantic_State);
                end;
 
                --  FIXME: else push panic onto pending
             else
                --  report errors
                declare
-                  ID     : constant String := Token_Image (Current_Token);
+                  ID     : constant String := Image (Parser.Semantic_State.Trace.Descriptor.all, Current_Token);
                   Lexeme : constant String := Parser.Lexer.Lexeme;
 
                   --  FIXME: merge expecting from all active parsers
@@ -324,7 +353,8 @@ package body FastToken.Parser.LR.Parser is
                   --  FIXME: Free (Parsers);
                   raise Syntax_Error with
                     Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                    ": Syntax error; expecting one of " & Names (Expecting_Tokens) &
+                    ": Syntax error; expecting one of " &
+                    Names (Parser.Semantic_State.Trace.Descriptor.all, Expecting_Tokens) &
                     "; found " & ID & " '" & Lexeme & "'";
                end;
             end if;
@@ -341,7 +371,7 @@ package body FastToken.Parser.LR.Parser is
 
             if Current_Verb = Shift and Current_Parser.Verb = Error then
                if Trace_Parse > 0 then
-                  Put_Trace_Line
+                  Parser.Semantic_State.Trace.Put_Line
                     (Integer'Image (Current_Parser.Label) & ": terminate (" &
                        Int_Image (Parsers.Count - 1) & " active)");
                end if;
@@ -355,7 +385,7 @@ package body FastToken.Parser.LR.Parser is
               (Current_Verb = Shift and Duplicate_State (Parsers, Current_Parser))
             then
                if Trace_Parse > 0 then
-                  Put_Trace_Line
+                  Parser.Semantic_State.Trace.Put_Line
                     (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
                        Int_Image (Parsers.Count - 1) & " active)");
                end if;
@@ -384,11 +414,12 @@ package body FastToken.Parser.LR.Parser is
 
                   else
                      if Trace_Parse > 0 then
-                        Put_Trace ("spawn parser from " & Int_Image (Current_Parser.Label));
+                        Parser.Semantic_State.Trace.Put
+                          ("spawn parser from " & Int_Image (Current_Parser.Label));
                      end if;
                      Parsers.Prepend_Copy (Current_Parser);
                      if Trace_Parse > 0 then
-                        Put_Trace_Line (" (" & Int_Image (Parsers.Count) & " active)");
+                        Parser.Semantic_State.Trace.Put_Line (" (" & Int_Image (Parsers.Count) & " active)");
                      end if;
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser);
                   end if;
@@ -407,12 +438,15 @@ package body FastToken.Parser.LR.Parser is
    function New_Parser
      (Lexer                :         in     Lexer_Pkg.Handle;
       Table                :         in     Parse_Table_Ptr;
-      Semantic_State       : aliased in out Semantic_State_Type;
+      Semantic_State       : aliased in out FastToken.Token.Semantic_State'Class;
       Max_Parallel         :         in     Integer := 15;
+      First_Parser_Label   :         in     Integer := 1;
       Terminate_Same_State :         in     Boolean := False)
      return Instance
    is begin
-      return (Lexer, Table, Semantic_State'Access, Token_Pkg.List.Null_List, Max_Parallel, Terminate_Same_State);
+      return
+        (Lexer, Table, Semantic_State'Access, Token_Pkg.List.Null_List,
+         Max_Parallel, First_Parser_Label, Terminate_Same_State);
    end New_Parser;
 
 end FastToken.Parser.LR.Parser;

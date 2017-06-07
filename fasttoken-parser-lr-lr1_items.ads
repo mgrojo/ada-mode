@@ -76,15 +76,18 @@ package FastToken.Parser.LR.LR1_Items is
      (Item  : in Item_Ptr;
       Value : in Token_ID);
    procedure Include
-     (Item              : in Item_Ptr;
-      Value             : in Lookahead;
-      Exclude_Propagate : in Boolean);
+     (Item              : in     Item_Ptr;
+      Value             : in     Lookahead;
+      Descriptor        : access constant FastToken.Descriptor'Class;
+      Exclude_Propagate : in     Boolean);
    procedure Include
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
       Added             :    out Boolean;
+      Descriptor        : access constant FastToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean);
-   --  Add Value to Item.Lookahead
+   --  Add Value to Item.Lookahead.
+   --  Descriptor may be null when Exclude_Propagate is False
 
    type Goto_Item is private;
    type Goto_Item_Ptr is access Goto_Item;
@@ -117,8 +120,9 @@ package FastToken.Parser.LR.LR1_Items is
    Null_Item_Set : constant Item_Set := (null, null, Unknown_State, null);
 
    function Filter
-     (Set     : in     Item_Set;
-      Include : access function (Item : in Item_Ptr) return Boolean)
+     (Set        : in     Item_Set;
+      Descriptor : in     FastToken.Descriptor'Class;
+      Include    : access function (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
      return Item_Set;
    --  Return a deep copy of Set, including only items for which Include returns True.
 
@@ -216,7 +220,7 @@ package FastToken.Parser.LR.LR1_Items is
    procedure Put
      (Descriptor      : in FastToken.Descriptor'Class;
       Item            : in Item_Ptr;
-      Show_Lookaheads : in Boolean);
+      Show_Lookaheads : in Boolean := True);
    --  Ignores Item.Next.
 
    procedure Put

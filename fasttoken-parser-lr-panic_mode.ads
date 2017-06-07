@@ -46,12 +46,6 @@
 pragma License (Modified_GPL);
 
 with FastToken.Parser.LR.Parser_Lists;
-generic
-   First_Parser_Label : in Integer;
-   with procedure Put_Trace (Item : in String) is Ada.Text_IO.Put;
-   with procedure Put_Trace_Line (Item : in String) is Ada.Text_IO.Put_Line;
-   with package Parser_Lists is new FastToken.Parser.LR.Parser_Lists
-     (First_Parser_Label, Put_Trace, Put_Trace_Line);
 package FastToken.Parser.LR.Panic_Mode is
 
    function Panic_Mode

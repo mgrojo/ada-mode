@@ -47,32 +47,32 @@ tests : test_all_harness.diff
 # some also or only run from ../wisi/test/test_wisi_suite.adb We only
 # diff %-process.el on a couple tests, because it doesn't depend on
 # the grammar much
-tests : case_expression-elisp.el.diff
+#tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
 tests : case_expression_yylex.adb
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
-tests : conflict_name_process_yylex.adb
+tests : conflict_name_yylex.adb
 tests : conflict_name-parse.diff
-tests : empty_production_1_process_yylex.adb
+tests : empty_production_1_yylex.adb
 tests : empty_production_1-parse.diff
-tests : empty_production_2_process_yylex.adb
+tests : empty_production_2_yylex.adb
 tests : empty_production_2-parse.diff
-tests : empty_production_3_process_yylex.adb
+tests : empty_production_3_yylex.adb
 tests : empty_production_3-parse.diff
-tests : empty_production_4_process_yylex.adb
+tests : empty_production_4_yylex.adb
 tests : empty_production_4-parse.diff
-tests : empty_production_5_process_yylex.adb
+tests : empty_production_5_yylex.adb
 tests : empty_production_5-parse.diff
-tests : empty_production_6_process_yylex.adb
+tests : empty_production_6_yylex.adb
 tests : empty_production_6-parse.diff
-tests : empty_production_7_process_yylex.adb
+tests : empty_production_7_yylex.adb
 tests : empty_production_7-parse.diff
-tests : empty_production_8_process_yylex.adb
+tests : empty_production_8_yylex.adb
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_process_yylex.adb
+tests : identifier_list_name_conflict_yylex.adb
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
-tests : subprograms_process_yylex.adb
+tests : subprograms_yylex.adb
 tests : subprograms-parse.diff
 
 examples : asu_example_3_6-run.run

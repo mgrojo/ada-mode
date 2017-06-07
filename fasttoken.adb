@@ -34,6 +34,14 @@ package body FastToken is
       return Desc.Image (Item).all;
    end Image;
 
+   function Int_Image (Item : in Token_ID) return String
+   is
+      use Ada.Strings;
+      use Ada.Strings.Fixed;
+   begin
+      return Trim (Token_ID'Image (Item), Both);
+   end Int_Image;
+
    function Any (Item : in Token_ID_Set) return Boolean
    is begin
       for I in Item'Range loop
@@ -86,6 +94,36 @@ package body FastToken is
       return To_String (Result);
    end Lookahead_Image;
 
+   overriding
+   function To_Lookahead (Descriptor : in LALR_Descriptor; Item : in Token_ID) return Token_ID_Set
+   is
+      Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Propagate_ID => False);
+   begin
+      Result (Item) := True;
+      return Result;
+   end To_Lookahead;
+
+   overriding
+   function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := Null_Unbounded_String;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            if Length (Result) > 0 then
+               Result := Result & "/";
+            end if;
+            if I = Descriptor.Propagate_ID then
+               Result := Result & "#";
+            else
+               Result := Result & Image (Descriptor, I);
+            end if;
+         end if;
+      end loop;
+      return To_String (Result);
+   end Lookahead_Image;
+
    function Slice (Item : in Token_Array_Token_Set; I : in Token_ID) return Token_ID_Set
    is
       Result : Token_ID_Set := (Item'First (2) .. Item'Last (2) => False);
@@ -127,7 +165,7 @@ package body FastToken is
 
    procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Token_ID)
    is begin
-      Put_Trace (Trace, Image (Trace.Descriptor.all, Item));
+      Trace.Put (Image (Trace.Descriptor.all, Item));
    end Put_Trace;
 
    function Int_Image (Item : in Integer) return String

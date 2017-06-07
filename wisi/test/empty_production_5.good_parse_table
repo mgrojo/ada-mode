@@ -5,29 +5,28 @@ Tokens:
  4 => RIGHT_PAREN
  5 => SEMICOLON
  6 => IDENTIFIER
- 7 => WISI_EOI
- 8 => compilation_unit
- 9 => accept_statement
- 10 => name
- 11 => parameter_profile
- 12 => fasttoken_accept
+ 7 => Wisi_EOI
+ 8 => fasttoken_accept
+ 9 => compilation_unit
+ 10 => accept_statement
+ 11 => name
+ 12 => parameter_profile
 
 LALR Parse Table:
 Panic_Recover:
-(others => False));
 
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  accept_statement =>
   (ACCEPT |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  name =>
   (ACCEPT |
    LEFT_PAREN |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  parameter_profile =>
   (SEMICOLON => True,
@@ -35,7 +34,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, 
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    ACCEPT            => shift and goto state 2
    default           => ERROR
@@ -44,7 +43,7 @@ State 1:
    accept_statement  goto state 4
 
 State 2:
-  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/WISI_EOI
+  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
    IDENTIFIER        => shift and goto state 6
    default           => ERROR
@@ -52,14 +51,14 @@ State 2:
    name              goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, 
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
 
-   WISI_EOI          => accept it
+   Wisi_EOI          => accept it
    default           => ERROR
 
 
 State 4:
-  compilation_unit <= accept_statement ^ accept_statement, WISI_EOI
+  compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
 
    ACCEPT            => shift and goto state 2
    default           => ERROR
@@ -67,9 +66,9 @@ State 4:
    accept_statement  goto state 5
 
 State 5:
-  compilation_unit <= accept_statement accept_statement ^, WISI_EOI
+  compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
 
-   WISI_EOI          => reduce 2 tokens to compilation_unit
+   Wisi_EOI          => reduce 2 tokens to compilation_unit
    default           => ERROR
 
 
@@ -82,7 +81,7 @@ State 6:
 
 
 State 7:
-  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/WISI_EOI
+  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, ACCEPT/Wisi_EOI
 
    LEFT_PAREN        => shift and goto state 8
    SEMICOLON         => reduce 0 tokens to parameter_profile
@@ -98,17 +97,17 @@ State 8:
 
 
 State 9:
-  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/WISI_EOI
+  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, ACCEPT/Wisi_EOI
 
    SEMICOLON         => shift and goto state 10
    default           => ERROR
 
 
 State 10:
-  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/WISI_EOI
+  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, ACCEPT/Wisi_EOI
 
    ACCEPT            => reduce 4 tokens to accept_statement
-   WISI_EOI          => reduce 4 tokens to accept_statement
+   Wisi_EOI          => reduce 4 tokens to accept_statement
    default           => ERROR
 
 
@@ -128,26 +127,27 @@ State 12:
 
 LR1 Parse Table:
 Panic_Recover:
-(others => False));
+
 Follow:
 ( compilation_unit =>
-  (WISI_EOI => True,
+  (Wisi_EOI => True,
    others => False)
  accept_statement =>
   (ACCEPT |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  name =>
   (ACCEPT |
    LEFT_PAREN |
-   WISI_EOI => True,
+   Wisi_EOI => True,
    others => False)
  parameter_profile =>
   (SEMICOLON => True,
    others => False)
  others => (others => False))
+
 State 1:
-  fasttoken_accept <= ^ compilation_unit WISI_EOI, WISI_EOI
+  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    ACCEPT            => shift and goto state 2
    default           => ERROR
@@ -164,14 +164,14 @@ State 2:
    name              goto state 8
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ WISI_EOI, WISI_EOI
+  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
-   WISI_EOI          => accept it
+   Wisi_EOI          => accept it
    default           => ERROR
 
 
 State 4:
-  compilation_unit <= accept_statement ^ accept_statement, WISI_EOI
+  compilation_unit <= accept_statement ^ accept_statement, Wisi_EOI
 
    ACCEPT            => shift and goto state 5
    default           => ERROR
@@ -179,7 +179,7 @@ State 4:
    accept_statement  goto state 6
 
 State 5:
-  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, WISI_EOI
+  accept_statement <= ACCEPT ^ name parameter_profile SEMICOLON, Wisi_EOI
 
    IDENTIFIER        => shift and goto state 7
    default           => ERROR
@@ -187,9 +187,9 @@ State 5:
    name              goto state 11
 
 State 6:
-  compilation_unit <= accept_statement accept_statement ^, WISI_EOI
+  compilation_unit <= accept_statement accept_statement ^, Wisi_EOI
 
-   WISI_EOI          => reduce 2 tokens to compilation_unit
+   Wisi_EOI          => reduce 2 tokens to compilation_unit
    default           => ERROR
 
 
@@ -225,7 +225,7 @@ State 10:
 
 
 State 11:
-  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, WISI_EOI
+  accept_statement <= ACCEPT name ^ parameter_profile SEMICOLON, Wisi_EOI
 
    LEFT_PAREN        => shift and goto state 9
    SEMICOLON         => reduce 0 tokens to parameter_profile
@@ -234,7 +234,7 @@ State 11:
    parameter_profile goto state 12
 
 State 12:
-  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, WISI_EOI
+  accept_statement <= ACCEPT name parameter_profile ^ SEMICOLON, Wisi_EOI
 
    SEMICOLON         => shift and goto state 16
    default           => ERROR
@@ -262,9 +262,9 @@ State 15:
 
 
 State 16:
-  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, WISI_EOI
+  accept_statement <= ACCEPT name parameter_profile SEMICOLON ^, Wisi_EOI
 
-   WISI_EOI          => reduce 4 tokens to accept_statement
+   Wisi_EOI          => reduce 4 tokens to accept_statement
    default           => ERROR
 
 

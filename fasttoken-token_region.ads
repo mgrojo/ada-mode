@@ -20,7 +20,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Text_IO;
 with FastToken.Lexer;
 with FastToken.Token;
 with SAL.Gen_Definite_Queues;
@@ -30,22 +29,23 @@ package FastToken.Token_Region is
       Region : Buffer_Region;
    end record;
 
-   function Image (Item : in Token; ID_Only : in Boolean) return String;
+   function Image
+     (Descriptor : in FastToken.Descriptor'Class;
+      Item       : in Token;
+      ID_Only    : in Boolean)
+     return String;
    --  Return a string for debug/test messages
 
-   function Get (ID : in Token_Pkg.Grammar_ID) return Token;
-   --  Return a token with ID; other components from Default_Token.
-
-   Default_Token : constant Token := (Token_Pkg.Grammar_ID'First, Null_Buffer_Region);
-
+   Default_Token : constant Token := (Token_ID'Last, Null_Buffer_Region);
 
    package Token_Queues is new SAL.Gen_Definite_Queues (Token);
 
-   type State_Type is new Augmented_State with record
+   type State_Type is new FastToken.Token.Semantic_State with record
       Stack : Token_Stack_Type;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
 
-      Pending_Input : Token_Queues.Queue_Type (Integer (Max_Stack_Size));
+      Pending_Input : Token_Queues.Queue_Type (500);
+      --  FIXME: get default queue size from somewhere.
       --  Tokens are kept in Pending_Input during parallel parser
       --  execution, and during error recovery. Max_Stack_Size is a
       --  reasonable guess for the maximum queue needed; better would
@@ -55,36 +55,33 @@ package FastToken.Token_Region is
       Invalid_Regions : Region_Lists.List;
    end record;
 
+   overriding
    procedure Reset (State : access State_Type);
 
+   overriding
    procedure Input_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+     (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     Token_Region.Lexer.Handle);
-   --  Parser just fetched Token from Lexer; save it on the input
-   --  queue for later push or recover operations.
+      Lexer : in     FastToken.Lexer.Handle);
 
+   overriding
    procedure Push_Token
-     (ID    : in     Token_Pkg.Terminal_ID;
+     (ID    : in     Token_ID;
       State : access State_Type);
 
+   overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+     (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
+      Tokens  : in     FastToken.Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type);
-   --  For instantiating fasttoken-parser-lr-parser.ads.
-   --  Merge top items on State.Stack matching Token_IDs into one new token
-   --  with Nonterm ID, call Semantic_Action, push it onto State.Stack.
 
+   overriding
    procedure Recover
-     (Popped_Tokens  : in     Token_Pkg.List.Instance;
-      Skipped_Tokens : in     Token_Pkg.List.Instance;
-      Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
+     (Popped_Tokens  : in     FastToken.Token.List.Instance;
+      Skipped_Tokens : in     FastToken.Token.List.Instance;
+      Pushed_Token   : in     Token_ID;
       State          : access State_Type);
-   --  For instantiating fasttoken-parser-lr-parser.ads.
-   --  An error recover algorithm succeeded; adjust the augmented
-   --  token stack to match, add region to State.Invalid_Region
 
 end FastToken.Token_Region;

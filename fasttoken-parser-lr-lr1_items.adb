@@ -448,17 +448,23 @@ package body FastToken.Parser.LR.LR1_Items is
      (Set               : in out Lookahead;
       Value             : in     Lookahead;
       Added             :    out Boolean;
+      Descriptor        : access constant FastToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
-   is
-      --  FIXME: do we need exclude_propagate? not defined for LR1
-      pragma Unreferenced (Exclude_Propagate);
-   begin
+   is begin
+      --   Descriptor is null when Exclude_Propagate is False
       Added := False;
 
       for I in Set'Range loop
-         if Value (I) then
-            Added := Added or not Set (I);
-            Set (I) := True;
+         if Exclude_Propagate and then
+           Descriptor.all in LALR_Descriptor and then
+           I = LALR_Descriptor (Descriptor.all).Propagate_ID
+         then
+            null;
+         else
+            if Value (I) then
+               Added := Added or not Set (I);
+               Set (I) := True;
+            end if;
          end if;
       end loop;
    end Include;
@@ -473,11 +479,12 @@ package body FastToken.Parser.LR.LR1_Items is
    procedure Include
      (Set               : in out Lookahead;
       Value             : in     Lookahead;
+      Descriptor        : access constant FastToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is
       Added : Boolean;
    begin
-      Include (Set, Value, Added, Exclude_Propagate);
+      Include (Set, Value, Added, Descriptor, Exclude_Propagate);
    end Include;
 
    procedure Include
@@ -488,20 +495,22 @@ package body FastToken.Parser.LR.LR1_Items is
    end Include;
 
    procedure Include
-     (Item              : in Item_Ptr;
-      Value             : in Lookahead;
-      Exclude_Propagate : in Boolean)
+     (Item              : in     Item_Ptr;
+      Value             : in     Lookahead;
+      Descriptor        : access constant FastToken.Descriptor'Class;
+      Exclude_Propagate : in     Boolean)
    is begin
-      Include (Item.Lookaheads.all, Value, Exclude_Propagate);
+      Include (Item.Lookaheads.all, Value, Descriptor, Exclude_Propagate);
    end Include;
 
    procedure Include
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
       Added             :    out Boolean;
+      Descriptor        : access constant FastToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is begin
-      Include (Item.Lookaheads.all, Value, Added, Exclude_Propagate);
+      Include (Item.Lookaheads.all, Value, Added, Descriptor, Exclude_Propagate);
    end Include;
 
    function Symbol (List : in Goto_Item_Ptr) return Token_ID
@@ -714,7 +723,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
          Modified := True;
       else
-         Include (Found.Lookaheads.all, Lookaheads, Modified, Exclude_Propagate => False);
+         Include (Found.Lookaheads.all, Lookaheads, Modified, null, Exclude_Propagate => False);
       end if;
 
       return Modified;
@@ -886,8 +895,9 @@ package body FastToken.Parser.LR.LR1_Items is
    end In_Kernel;
 
    function Filter
-     (Set : in Item_Set;
-     Include : access function (Item : in Item_Ptr) return Boolean)
+     (Set        : in     Item_Set;
+      Descriptor : in     FastToken.Descriptor'Class;
+      Include    : access function (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
      return Item_Set
    is
       Result      : Item_Set;
@@ -902,7 +912,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
       --  Walk I thru Set.Set, copying Include items to Result_Tail.
       while I /= null and then
-        (not Include (I))
+        (not Include (Descriptor, I))
       loop
          I := I.Next;
       end loop;
@@ -913,7 +923,7 @@ package body FastToken.Parser.LR.LR1_Items is
          Result_Tail.Next := null;
 
          while I.Next /= null loop
-            if Include (I.Next) then
+            if Include (Descriptor, I.Next) then
                Result_Tail.Next      := new Item_Node'(I.Next.all);
                Result_Tail.Next.Next := null;
             end if;
@@ -968,7 +978,7 @@ package body FastToken.Parser.LR.LR1_Items is
    procedure Put
      (Descriptor      : in FastToken.Descriptor'Class;
       Item            : in Item_Ptr;
-      Show_Lookaheads : in Boolean)
+      Show_Lookaheads : in Boolean := True)
    is begin
       Ada.Text_IO.Put (Image (Descriptor, Item.all, Show_State => True, Show_Lookaheads => Show_Lookaheads));
    end Put;
