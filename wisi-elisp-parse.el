@@ -80,6 +80,9 @@ point at which that max was spawned.")
    :gotos (aref automaton 1)
    :next-token next-token))
 
+(cl-defmethod wisi-parse-kill ((_parser wisi-elisp-parser))
+  nil)
+
 (cl-defmethod wisi-parse-current ((parser wisi-elisp-parser))
   "Parse current buffer from beginning."
 

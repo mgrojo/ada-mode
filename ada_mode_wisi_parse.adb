@@ -22,21 +22,24 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada_Grammar_Process;
+with FastToken.Lexer.Elisp_Process;
+with FastToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
-with FastToken;
 with System.Storage_Elements;
 procedure Ada_Mode_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
-   Version          : constant String := "5.1.5";
+   Version          : constant String := "0.0";
 
    Prompt : constant String := ";;> ";
+
+   Protocol_Error : exception;
 
    procedure Usage
    is
    begin
       Put_Line ("usage: ada_mode_wisi_parse [-v level]");
-      Put_Line ("-v level : enable parse trace output (will screw up Emacs eval)");
+      Put_Line ("-v level : enable parse trace output");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -55,8 +58,8 @@ is
 
    Programmer_Error : exception;
 
-   Parser : Ada_Grammar_Process.LR_Parser.Instance := Ada_Grammar_Process.Create_Parser
-     (Algorithm   => FastToken.LALR);
+   Parser : FastToken.Parser.LR.Parser.Instance := Ada_Grammar_Process.Create_Parser
+     (Algorithm => FastToken.LALR);
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -93,7 +96,7 @@ is
    exception
    when Constraint_Error =>
       --  From Integer'Value
-      raise Programmer_Error with "command byte count not provided; got '" & Temp & "'";
+      raise Protocol_Error with "invalid command byte count; '" & Temp & "'";
    end Get_Command_Length;
 
    function Get_String
@@ -182,7 +185,7 @@ begin
                Put_Line
                  ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
                     Ada.Exceptions.Exception_Message (E) & """)");
-               Ada_Grammar_Process.Lexer.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
+               FastToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
             end;
 
          elsif Match ("quit") then
@@ -192,9 +195,9 @@ begin
             Put_Line ("(error ""bad command: '" & Command_Line & "'"")");
          end if;
       exception
-      when E : Constraint_Error =>
-         --  from get_command_length
-         Put_Line ("(error ""bad command length: " & Ada.Exceptions.Exception_Message (E) & """)");
+      when E : Protocol_Error =>
+         --  don't exit the loop; allow debugging bad elisp
+         Put_Line ("(protocol error "": " & Ada.Exceptions.Exception_Message (E) & """)");
       end;
    end loop;
 exception

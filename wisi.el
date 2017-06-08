@@ -776,7 +776,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defvar-local wisi-class-list nil
   "list of valid token classes; checked in wisi-statement-action.")
 
-(defvar wisi--parser nil
+(defvar-local wisi--parser nil
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
 
 (defun wisi-kill-parser ()
@@ -911,10 +911,13 @@ delete from `wisi-end-caches'."
 	(setq i (1+ i)))
       )))
 
-(defvar wisi-tokens nil)
-(defvar wisi-nterm nil)
-;; keep byte-compiler happy; `wisi-tokens' and `wisi-nterm' are bound in
-;; action created by wisi-semantic-action, and in module parser.
+(defvar wisi-tokens nil
+  "Array of ‘wisi-tok’ structures for the right hand side of the current production.
+Let-bound in parser semantic actions.")
+
+(defvar wisi-nterm nil
+  "The token id for the left hand side of the current production.
+Let-bound in parser semantic actions.")
 
 (defun wisi-statement-action (pairs)
   "Cache navigation information in text properties of tokens.
@@ -2221,7 +2224,16 @@ Called with BEGIN END.")
     (when to-indent (back-to-indentation))
     ))
 
-;;;; debug
+;;;; debugging
+
+(defun wisi-debug-keys ()
+  "Add debug key definitions to `global-map'."
+  (interactive)
+  (define-key global-map "\M-h" 'wisi-show-containing-or-previous-cache)
+  (define-key global-map "\M-i" 'wisi-show-indent)
+  (define-key global-map "\M-j" 'wisi-show-cache)
+  )
+
 (defun wisi-parse-buffer (&optional parse-action)
   (interactive)
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
@@ -2328,7 +2340,7 @@ Called with BEGIN END.")
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-indent-fail class-list parser lexer)
+(cl-defun wisi-setup (&key indent-calculate post-indent-fail class-list parser lexer)
   "Set up a buffer for parsing files with wisi."
   (when wisi--parser
     (wisi-kill-parser))

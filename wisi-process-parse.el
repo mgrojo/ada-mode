@@ -189,7 +189,7 @@ buffer.  Does not wait for command to complete."
   ;; sexp is  [push_token id]
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (wisi-process-parse--dequeue-input parser)))
-    (unless (eq (wisi-tok-token tok) (aref (wisi-process--parser-token-table parser) (aref sexp 1)))
+    (unless (eq (wisi-tok-token tok) (aref (wisi-process--parser-token-table parser) (1- (aref sexp 1))))
       (error "token id mismatch between parser queue and process output"))
 
     (wisi-process-parse--push-stack parser tok)
@@ -200,7 +200,9 @@ buffer.  Does not wait for command to complete."
   ;; see ‘wisi-process-parse--execute’
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (action-table (wisi-process--parser-action-table parser))
-	 (first-nonterm (- (length token-table) (length action-table))) ;; FIXME: move to wisi-process--parser
+	 (first-nonterm (+ 1 (length token-table) (- (length action-table))))
+	 ;; includes translation from ada 1 index to elisp 0 index
+	 ;; FIXME: move to wisi-process--parser?
 	 nonterm
 	 nonterm-region
 	 nonterm-line
@@ -214,7 +216,7 @@ buffer.  Does not wait for command to complete."
     (setq i (1- (length tokens-1)))
     (while (>= i 0)
       (setq tok (wisi-process-parse--pop-stack parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (aref tokens-1 i)))
+      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref tokens-1 i))))
 	(error "token id mismatch between parser queue and process output"))
 
       (setf nonterm-region (wisi-and-regions nonterm-region (wisi-tok-region tok)))
@@ -246,7 +248,7 @@ buffer.  Does not wait for command to complete."
 
     (setq nonterm
 	  (make-wisi-tok
-	   :token (aref token-table (aref sexp 1))
+	   :token (aref token-table (1- (aref sexp 1)))
 	   :region nonterm-region
 	   :nonterminal t
 	   :line nonterm-line
@@ -261,7 +263,7 @@ buffer.  Does not wait for command to complete."
       (when action
 	(setq action (aref action (aref sexp 3))))
       (when action
-	(funcall action nonterm tokens-2)))
+	(funcall action (wisi-tok-token nonterm) tokens-2)))
     ))
 
 (defun wisi-process-parse--recover (parser sexp)
@@ -272,19 +274,19 @@ buffer.  Does not wait for command to complete."
     (setq ids (aref sexp 1))
     (dotimes (i (length ids))
       (setq tok (wisi-process-parse--pop-stack parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (aref ids i)))
+      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref ids i))))
 	(error "token id mismatch between parser queue and process output")))
 
     (setq ids (aref sexp 2))
     (dotimes (i (length ids))
       (setq tok (wisi-process-parse--dequeue-input parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (aref ids i)))
+      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref ids i))))
 	(error "token id mismatch between parser queue and process output")))
 
     (wisi-process-parse--push-stack
      parser
      (make-wisi-tok
-      :token (aref token-table (aref sexp 3))
+      :token (aref token-table (1- (aref sexp 3)))
       ;; FIXME: set region to all popped, skipped?
       ))
 
@@ -308,7 +310,7 @@ buffer.  Does not wait for command to complete."
   ;; [merge_tokens nonterm_id [id ...] production_index]
   ;;    Pop tokens from auqmented stack (should match [id ...]),
   ;;    combine into nonterm, push that onto augmented stack. Call
-  ;;    action_table (nonterm_id, procduction_index) with
+  ;;    action-table (nonterm_id, procduction_index) with
   ;;    wisi-nonterm, wisi-tokens bound to nonterm, tokens.
   ;;
   ;;    FIXME: don’t need right hand side token ids, just count. Keep for
@@ -321,8 +323,8 @@ buffer.  Does not wait for command to complete."
   ;; merge_tokens = 2
   ;; recover = 3
   ;;
-  ;; nonterm_id, *id - token_id’pos; index into token-table
-  ;; production_index - index into action_table for nonterm
+  ;; nonterm_id, *id - token_id’pos; index into token-table (ada 1 origin)
+  ;; production_index - index into action-table for nonterm (ada 1 origin)
 
   (cl-ecase (aref sexp 0)
     (1 (wisi-process-parse--push_token parser sexp))
@@ -463,7 +465,8 @@ TOKENS, values integer index into TOKENS."
     (setq hash-table (make-hash-table :test #'eq :size count))
 
     (while (>= count 0)
-      (puthash (aref tokens count) count hash-table)
+      ;; elisp array is 0 orgin, Ada token_id is 1 origin
+      (puthash (aref tokens count) (1+ count) hash-table)
       (setq count (1- count)))
 
     (list tokens hash-table)

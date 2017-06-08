@@ -21,22 +21,25 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with FastToken.Parser;
+with FastToken.Lexer.Elisp_Process;
+with FastToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
 with Subprograms_Process;
 with System.Storage_Elements;
 procedure Subprograms_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
-   Version          : constant String := "5.1.5";
+   Version          : constant String := "0.0";
 
    Prompt : constant String := ";;> ";
+
+   Protocol_Error : exception;
 
    procedure Usage
    is
    begin
-      Put_Line ("usage: *_wisi_parse [-v level]");
-      Put_Line ("-v level : enable parse trace output (will screw up Emacs eval)");
+      Put_Line ("usage: subprograms_wisi_parse [-v level]");
+      Put_Line ("-v level : enable parse trace output");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -55,7 +58,7 @@ is
 
    Programmer_Error : exception;
 
-   Parser : Subprograms_Process.LR_Parser.Instance := Subprograms_Process.Create_Parser
+   Parser : FastToken.Parser.LR.Parser.Instance := Subprograms_Process.Create_Parser
      (Algorithm   => FastToken.LALR);
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -93,7 +96,7 @@ is
    exception
    when Constraint_Error =>
       --  From Integer'Value
-      raise Programmer_Error with "command byte count not provided; got '" & Temp & "'";
+      raise Protocol_Error with "invalid command byte count; '" & Temp & "'";
    end Get_Command_Length;
 
    function Get_String
@@ -120,35 +123,6 @@ is
       return Source (First + 1 .. Last - 1);
    end Get_String;
 
-   function Get_Integer
-     (Source : in     String;
-      Last   : in out Integer)
-     return Integer
-   is
-      use Ada.Exceptions;
-      use Ada.Strings.Fixed;
-      First : constant Integer := Last + 2; -- skip leading space
-   begin
-      Last := Index
-        (Source  => Source,
-         Pattern => " ",
-         From    => First);
-
-      if Last = 0 then
-         Last := Source'Last;
-      else
-         Last := Last - 1;
-      end if;
-
-      return Integer'Value (Source (First .. Last));
-   exception
-   when E : others =>
-      Put_Line ("bad integer '" & Source (First .. Source'Last) & "'");
-      Put_Line ("Exception : " & Exception_Name (E));
-      Put_Line (Exception_Message (E));
-      raise;
-   end Get_Integer;
-
 begin
    declare
       use Ada.Command_Line;
@@ -170,7 +144,7 @@ begin
       end case;
    end;
 
-   Put_Line ("*_wisi_parse " & Version & ", protocol version " & Protocol_Version);
+   Put_Line ("subprograms_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and tokens from standard_input via GNAT.OS_Lib,
    --  send results to standard_output.
@@ -211,19 +185,19 @@ begin
                Put_Line
                  ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
                     Ada.Exceptions.Exception_Message (E) & """)");
-               Subprograms_Process.Lexer.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
+               FastToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
             end;
 
          elsif Match ("quit") then
-            --  Args:
             exit;
+
          else
             Put_Line ("(error ""bad command: '" & Command_Line & "'"")");
          end if;
       exception
-      when E : Constraint_Error =>
-         --  from get_command_length
-         Put_Line ("(error ""bad command length: " & Ada.Exceptions.Exception_Message (E) & """)");
+      when E : Protocol_Error =>
+         --  don't exit the loop; allow debugging bad elisp
+         Put_Line ("(protocol error "": " & Ada.Exceptions.Exception_Message (E) & """)");
       end;
    end loop;
 exception

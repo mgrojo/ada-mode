@@ -102,37 +102,37 @@
        (require 'wisi-elisp-parse)
        (require (intern (concat filename "-elisp")))
        (wisi-setup
-	nil ;; indent-calculate
-	nil ;; post-indent-fail
-	test-class-list
-	(wisi-make-elisp-parser
-	 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
-	 `wisi-forward-token)
-	(wisi-make-elisp-lexer
-	 :token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-	 :keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
-	 :string-quote-escape-doubled nil
-	 :string-quote-escape nil)))
+	:indent-calculate nil
+	:post-indent-fail nil
+	:class-list test-class-list
+	:parser (wisi-make-elisp-parser
+		 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
+		 `wisi-forward-token)
+	:lexer (wisi-make-elisp-lexer
+		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:string-quote-escape-doubled nil
+		:string-quote-escape nil)))
 
       (process
        (require 'wisi-elisp-parse)
        (require (intern (concat filename "-process")))
        (add-to-list 'exec-path default-directory)
        (wisi-setup
-	nil ;; indent-calculate
-	nil ;; post-indent-fail
-	test-class-list ;; class-list
-	(wisi-make-process-parser
-	 :label filename
-	 :exec (concat filename "_wisi_parse.exe")
-	 :token-table (nth 0 (symbol-value (intern-soft (concat filename "-process-token-table"))))
-	 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
-	 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
-	(wisi-make-elisp-lexer
-	 :token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-	 :keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
-	 :string-quote-escape-doubled nil
-	 :string-quote-escape nil)))
+	:indent-calculate nil
+	:post-indent-fail nil
+	:class-list test-class-list
+	:parser (wisi-make-process-parser
+		 :label filename
+		 :exec (concat filename "_wisi_parse.exe")
+		 :token-table (nth 0 (symbol-value (intern-soft (concat filename "-process-token-table"))))
+		 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
+		 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
+	:lexer (wisi-make-elisp-lexer
+		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:string-quote-escape-doubled nil
+		:string-quote-escape nil)))
       )
 
     ;; Not clear why this is not being done automatically
@@ -150,7 +150,7 @@
        (setq wisi-test-success
 	     (equal (cdr err) expected-result))
        (unless wisi-test-success
-	 (message err))))
+	 (message (cdr err)))))
       ;; parse action must set wisi-test-success t
     (unless wisi-test-success
       (error "parse test failed")))

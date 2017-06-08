@@ -803,15 +803,6 @@ Also return cache at start."
 	result))
     ))
 
-;;;; debugging
-(defun ada-wisi-debug-keys ()
-  "Add debug key definitions to `ada-mode-map'."
-  (interactive)
-  (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key ada-mode-map "\M-i" 'wisi-show-indent)
-  (define-key ada-mode-map "\M-j" 'wisi-show-cache)
-  )
-
 (defun ada-wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
 syntax for a numeric literal; otherwise nil. point is after
@@ -936,11 +927,12 @@ TOKEN-TEXT; move point to just past token."
 	  :string-quote-escape nil))
 	 )
 
-    (wisi-setup '(ada-wisi-comment)
-		'ada-wisi-post-parse-fail
-		ada-wisi-class-list
-		parser
-		lexer)
+    (wisi-setup
+     :indent-calculate '(ada-wisi-comment)
+     :post-indent-fail 'ada-wisi-post-parse-fail
+     :class-list ada-wisi-class-list
+     :parser parser
+     :lexer lexer)
     )
 
   (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)

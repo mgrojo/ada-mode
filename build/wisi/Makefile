@@ -102,7 +102,7 @@ endif
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
 %_wisi_parse.exe : %_wisi_parse.adb %-process.el force
-	gprbuild -p wisi_parse_agg.gpr $<
+	gprbuild -p wisi_parse.gpr $<
 
 # we don't copy %_process.ads/b, because we'd also have to copy a lot
 # of fasttoken; we add fasttoken_test.gpr to wisi_parse.gpr.
@@ -131,10 +131,10 @@ endif
 
 #ada_mode_wisi_parse.exe : export Standard_Common_Build := Debug
 ada_mode_wisi_parse.exe : ../../ada_grammar_process.ads force
-	gprbuild -p ada_mode_wisi_parse_agg.gpr
+	gprbuild -p ada_mode_wisi_parse.gpr
 
 run_ada_parser.exe : ../../ada_grammar_process.ads force
-	gprbuild -p ada_mode_wisi_parse_agg.gpr run_ada_parser.adb
+	gprbuild -p ada_mode_wisi_parse.gpr run_ada_parser.adb
 
 install : INSTALL_BIN := $(dir $(shell cygpath -w $(shell bash -c "type -p emacs")))
 install : ada_mode_wisi_parse.exe
