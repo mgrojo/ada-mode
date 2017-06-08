@@ -35,6 +35,14 @@
 (cl-defgeneric wisi-parse-kill ((parser wisi-parser))
   "Kill any external process associated with parser.")
 
+(cl-defgeneric wisi-parse-find-token ((parser wisi-parser) token-symbol)
+  "Find token with TOKEN-SYMBOL on current parser stack, return token struct.
+For use in grammar actions.")
+
+(cl-defgeneric wisi-parse-prev-token ((parser wisi-parser) n)
+  "Return the Nth token on the stack before the token currently being reduced.
+For use in grammar actions.")
+
 (defvar wisi-debug 0
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code

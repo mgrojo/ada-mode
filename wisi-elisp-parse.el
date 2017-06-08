@@ -477,8 +477,7 @@ STACK of the first and last tokens of the nonterminal."
       (cons i j))
     ))
 
-(defun wisi-parse-find-token (token-symbol)
-  ;; FIXME: add to wisi-parse-common, dispatch on parser, implement for process
+(cl-defmethod wisi-parse-find-token ((_parser wisi-elisp-parser) token-symbol)
   "Find token with TOKEN-SYMBOL on current parser stack, return token struct.
 For use in grammar actions."
   ;; Called from wisi-parse-exec-action in wisi-parse-reduce
@@ -494,10 +493,8 @@ For use in grammar actions."
       tok)
     ))
 
-(defun wisi-parse-prev-token (n)
-  ;; FIXME: add to wisi-parse-common, dispatch on parser, implement for process
-  "Return the Nth token on the stack before the token currently being reduced.
-For use in grammar actions."
+(cl-defmethod wisi-parse-prev-token ((_parser wisi-elisp-parser) n)
+  ;; IMPROVEME: store stack in parser
   (let* ((stack (wisi-elisp-parser-state-stack wisi-elisp-parser-state))
 	 (sp (1- (wisi-elisp-parser-state-sp wisi-elisp-parser-state)))
 	 (i (- sp (* 2 n))))

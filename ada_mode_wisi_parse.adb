@@ -178,8 +178,6 @@ begin
             begin
                Parser.Lexer.Reset (0);
                Parser.Parse;
-               --  Set point to match elisp parser
-               Put_Line ("(goto-char " & FastToken.Int_Image (Parser.Lexer.Bounds.End_Pos) & ")");
             exception
             when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
                Put_Line

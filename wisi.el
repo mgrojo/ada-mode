@@ -150,9 +150,12 @@ point is at start of TOK, and may be moved.")
 Language code can set this non-nil when syntax is known to be
 invalid temporarily, or when making lots of changes.")
 
-(defvar wisi-disable-face nil
+(defcustom wisi-disable-face nil
   "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
-Useful when debugging parser or parser actions.")
+Useful when debugging parser or parser actions."
+  :type 'boolean
+  :group 'wisi
+  :safe 'booleanp)
 
 ;;;; elisp lexer
 

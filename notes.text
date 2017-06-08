@@ -11,30 +11,31 @@ o.e.a.stephe-5 (from o.e.a): available
 
 run test from emacs -Q using source:
 (progn
+  (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
   (load "autoloads.el")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  ;; (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/wisi/")
+  (setq wisi-disable-face t)
+  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
   (run-test "../../test/ada_mode-nominal.adb")
-  (ada-wisi-debug-keys))
+  (wisi-debug-keys))
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
   (load "autoloads.el")
   (load "run-wisi-process-test.el")
   ; (setq debug-on-error t)
   (setq wisi-disable-face t)
   (setq wisi-process-parse-exec-opts '("-v" "4"))
-  (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  (find-file "/Projects/org.emacs.ada-mode/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
 (setq wisi-process-parse-exec-opts '("-v" "4"))
@@ -43,18 +44,7 @@ run test from emacs -Q using source:
 
 /Projects/org.fasttoken/notes.text
 
-wisi-process-parse use wisi lexer, non-generic fasttoken
-    testing
-        subprograms - passing
-
-        ada_mode-nominal.adb.diff process -
-
-        ada_mode-nominal.adb.diff elisp -
-
-need *-kill-session/process
-    ada-kill-all-sessions
-        gpr-query, ext-parse, gps?
-
+recompile all with non-debug
 
 time lexers:
     gnatcoll-xref.adb

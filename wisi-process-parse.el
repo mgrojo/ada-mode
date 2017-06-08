@@ -185,6 +185,24 @@ buffer.  Does not wait for command to complete."
 
     ))
 
+(cl-defmethod wisi-parse-find-token ((parser wisi-process--parser) token-symbol)
+  (let* ((stack (wisi-process--parser-parse-stack parser))
+	 (sp 0)
+	 (tok (queue-nth stack 0)))
+    (while (and (< sp (queue-length stack))
+		(not (eq token-symbol (wisi-tok-token tok))))
+      (setq sp (1+ sp))
+      (setq tok (queue-nth stack 0)))
+    (if (= sp (queue-length stack))
+	(error "token %s not found on parser stack" token-symbol)
+      tok)
+    ))
+
+(cl-defmethod wisi-parse-prev-token ((parser wisi-process--parser) n)
+  (let* ((stack (wisi-process--parser-parse-stack parser)))
+    (when (< n (queue-length stack))
+      (queue-nth stack n))))
+
 (defun wisi-process-parse--push_token (parser sexp)
   ;; sexp is  [push_token id]
   ;; see ‘wisi-process-parse--execute’
@@ -209,8 +227,9 @@ buffer.  Does not wait for command to complete."
 	 nonterm-first
 	 nonterm-comment-line
 	 nonterm-comment-end
-	 (tokens-1 (aref sexp 2))
-	 (tokens-2 (make-vector (length (aref sexp 2)) nil)) ;; for wisi-tokens
+	 (comment-set nil)
+	 (tokens-1 (aref sexp 2)) ;; token ids from process
+	 (tokens-2 (make-vector (length (aref sexp 2)) nil)) ;; wisi-tok, for wisi-tokens
 	 tok i action)
 
     (setq i (1- (length tokens-1)))
@@ -227,22 +246,25 @@ buffer.  Does not wait for command to complete."
       ;; Compute rest of nonterm. This duplicates part of
       ;; wisi-parse-reduce. Process tokens last to first to simplify
       ;; algorithms.
-      (setq i (1- (length tokens-1)))
+      (setq i (1- (length tokens-2)))
       (while (>= i 0)
-	(setq tok (aref tokens-1 i))
-	(setf (wisi-tok-line tok) (or (wisi-tok-line tok) nonterm-line))
+	(setq tok (aref tokens-2 i))
+	(setq nonterm-line (or (wisi-tok-line tok) nonterm-line))
 	(if (wisi-tok-nonterminal tok)
 	    (when (wisi-tok-first tok)
-	      (setf nonterm-first (wisi-tok-first tok)))
+	      (setq nonterm-first (wisi-tok-first tok)))
 	  (setq nonterm-first
 		(or (and (wisi-tok-first tok) (wisi-tok-line tok))
 		    (wisi-tok-comment-line tok)
 		    nonterm-first)))
 
-	(when (and (not nonterm-comment-line)
-		   (wisi-tok-comment-line tok))
-	  (setf nonterm-comment-line (wisi-tok-comment-line tok))
-	  (setq nonterm-comment-end (wisi-tok-comment-end tok)))
+	(when (and (not comment-set)
+		   (wisi-tok-region tok))
+	  ;; comment-line reports only trailing comments; it is set
+	  ;; from the last non-nil token in nonterm.
+	  (setq nonterm-comment-line (wisi-tok-comment-line tok))
+	  (setq nonterm-comment-end (wisi-tok-comment-end tok))
+	  (setq comment-set t))
 
 	(setq i (1- i))))
 
@@ -323,8 +345,8 @@ buffer.  Does not wait for command to complete."
   ;; merge_tokens = 2
   ;; recover = 3
   ;;
-  ;; nonterm_id, *id - token_id’pos; index into token-table (ada 1 origin)
-  ;; production_index - index into action-table for nonterm (ada 1 origin)
+  ;; nonterm_id, *id - token_id’pos; index into token-table (process 1 origin)
+  ;; production_index - index into action-table for nonterm (process 0 origin)
 
   (cl-ecase (aref sexp 0)
     (1 (wisi-process-parse--push_token parser sexp))
