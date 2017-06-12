@@ -29,7 +29,8 @@ with FastToken.Parser.LR.Parser;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Text_IO_Trace;
-with Gen_FastToken_AUnit;
+with FastToken.AUnit;
+with FastToken_AUnit; use FastToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
@@ -95,9 +96,6 @@ package body Dragon_4_45_LALR_Test is
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
-   package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
-   use FastToken_AUnit;
-
    Has_Empty_Production : constant FastToken.Token_ID_Set :=
      FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
 
@@ -113,6 +111,7 @@ package body Dragon_4_45_LALR_Test is
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use FastToken.AUnit;
 
       --  FIRST defined in dragon pg 45
 
@@ -148,13 +147,13 @@ package body Dragon_4_45_LALR_Test is
       --  states is different. In this test, we accomodate that by
       --  using symbolic names matching the example state labels, and
       --  adding kernels to the list in the order we compute them.
-        (S0 + Get_Item (1, 1, Null_Lookaheads)) &
-        (S36 + Get_Item (3, 2, Null_Lookaheads)) &
-        (S47 + Get_Item (4, 2, Null_Lookaheads)) &
-        (S1 + Get_Item (1, 2, Null_Lookaheads)) &
-        (S2 + Get_Item (2, 2, Null_Lookaheads)) &
-        (S5 + Get_Item (2, 3, Null_Lookaheads)) &
-        (S89 + Get_Item (3, 3, Null_Lookaheads));
+        (S0 + Get_Item (Grammar, 1, 1, Null_Lookaheads)) &
+        (S36 + Get_Item (Grammar, 3, 2, Null_Lookaheads)) &
+        (S47 + Get_Item (Grammar, 4, 2, Null_Lookaheads)) &
+        (S1 + Get_Item (Grammar, 1, 2, Null_Lookaheads)) &
+        (S2 + Get_Item (Grammar, 2, 2, Null_Lookaheads)) &
+        (S5 + Get_Item (Grammar, 2, 3, Null_Lookaheads)) &
+        (S89 + Get_Item (Grammar, 3, 3, Null_Lookaheads));
 
    begin
       Add_Gotos
@@ -259,7 +258,7 @@ package body Dragon_4_45_LALR_Test is
       Test : Test_Case renames Test_Case (T);
 
       Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
          FastToken.Parser.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);

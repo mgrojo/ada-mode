@@ -29,7 +29,7 @@ with FastToken.Parser.LR.Parser;
 with FastToken.Production;
 with FastToken.Text_Feeder.String;
 with FastToken.Text_IO_Trace;
-with Gen_FastToken_AUnit;
+with FastToken_AUnit;
 package body Grune_9_30 is
 
    type Token_ID is
@@ -86,8 +86,6 @@ package body Grune_9_30 is
 
    String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
 
-   package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
-
    Has_Empty_Production : constant FastToken.Token_ID_Set :=
      FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
 
@@ -115,15 +113,15 @@ package body Grune_9_30 is
         --  [Grune], but added to the list in the order we compute.
         --
         --  Our Item_Sets also include the gotos.
-        (1 + (Get_Item (1, 1, +EOF_ID) &
-                Get_Item (2, 1, +(Lower_B_ID, Lower_C_ID)))) &
-        (2 + Get_Item (2, 2, +(Lower_B_ID, Lower_C_ID))) &
-        (3 + (Get_Item (1, 2, +EOF_ID) &
-                Get_Item (3, 1, +Lower_C_ID) &
-                Get_Item (4, 1, +Lower_C_ID))) &
-        (4 + Get_Item (3, 2, +Lower_C_ID)) &
-        (5 + Get_Item (1, 3, +EOF_ID)) &
-        (6 + Get_Item (1, 4, +EOF_ID));
+        (1 + (Get_Item (Grammar, 1, 1, +EOF_ID) &
+                Get_Item (Grammar, 2, 1, +(Lower_B_ID, Lower_C_ID)))) &
+        (2 + Get_Item (Grammar, 2, 2, +(Lower_B_ID, Lower_C_ID))) &
+        (3 + (Get_Item (Grammar, 1, 2, +EOF_ID) &
+                Get_Item (Grammar, 3, 1, +Lower_C_ID) &
+                Get_Item (Grammar, 4, 1, +Lower_C_ID))) &
+        (4 + Get_Item (Grammar, 3, 2, +Lower_C_ID)) &
+        (5 + Get_Item (Grammar, 1, 3, +EOF_ID)) &
+        (6 + Get_Item (Grammar, 1, 4, +EOF_ID));
 
    begin
       Add_Gotos (Expected, 1, +(+Lower_A_ID, Get_Set (2, Expected)) & (+Upper_A_ID, Get_Set (3, Expected)));
@@ -150,7 +148,7 @@ package body Grune_9_30 is
       Test : Test_Case renames Test_Case (T);
 
       Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
          FastToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);

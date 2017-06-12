@@ -198,23 +198,20 @@ package FastToken.Parser.LR is
 
    type Panic_Data is record
       --  Stored with parser state during panic mode recovery
-      Nonterm        : Token_ID;
-      Goto_State     : Unknown_State_Index;
-      Popped_Tokens  : Token.List.Instance;
-      Pushed_Token   : Token_ID;
+      Nonterm       : Token_ID;
+      Goto_State    : Unknown_State_Index;
+      Popped_Tokens : Token.List.Instance;
+      Pushed_Tokens : Token.List.Instance;
       --  Semantic actions are not performed on the popped or skipped
       --  tokens.
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Token_ID'Last, Unknown_State, Token.List.Null_List, Token_ID'Last);
+     (Token_ID'Last, Unknown_State, Token.List.Null_List, Token.List.Null_List);
 
    type Instance is abstract new FastToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
       Semantic_State : access FastToken.Token.Semantic_State'Class;
-      Skipped_Tokens : Token.List.Instance;
-      --  During error recovery, all parallel parsers skip the same
-      --  tokens
    end record;
 
    ----------

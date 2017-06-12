@@ -52,11 +52,16 @@ package body FastToken is
       return False;
    end Any;
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID_Set) return String
+   function Image
+     (Desc      : in Descriptor'Class;
+      Item      : in Token_ID_Set;
+      Max_Count : in Integer := Integer'Last)
+     return String
    is
       use Ada.Strings.Unbounded;
       Result     : Unbounded_String;
       Need_Comma : Boolean := False;
+      Count      : Integer := 0;
    begin
       for I in Item'Range loop
          if Item (I) then
@@ -65,6 +70,10 @@ package body FastToken is
             end if;
             Result     := Result & Image (Desc, I);
             Need_Comma := True;
+            Count := Count + 1;
+            if Count = Max_Count then
+               return To_String (Result);
+            end if;
          end if;
       end loop;
       return To_String (Result);

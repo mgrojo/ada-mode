@@ -25,7 +25,7 @@ with FastToken.Gen_Token_Enum;
 with FastToken.Parser.LR.LR1_Items;
 with FastToken.Parser.LR;
 with FastToken.Production;
-with Gen_FastToken_AUnit;
+with FastToken.AUnit;
 package body Test_Follow is
 
    package Subprograms is
@@ -75,8 +75,6 @@ package body Test_Follow is
         Parameter_List_ID   <= +Null_Action and                                          -- 6
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
-      package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
-
       Has_Empty_Production : constant FastToken.Token_ID_Set := FastToken.Parser.LR.LR1_Items.Has_Empty_Production
         (Grammar, LALR_Descriptor);
       First                : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
@@ -107,7 +105,7 @@ package body Test_Follow is
             Put_Line ("Expected:");
             FastToken.Put (LALR_Descriptor, Expected);
          end if;
-         FastToken_AUnit.Check ("1", Computed, Expected);
+         FastToken.AUnit.Check ("1", Computed, Expected);
       end One;
 
    end Subprograms;

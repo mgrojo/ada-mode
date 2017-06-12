@@ -50,12 +50,16 @@ package FastToken.Lexer.Regexp is
 
    type Syntax is array (Token_ID range <>) of Syntax_Item;
 
-   type Instance (Last_Terminal : Token_ID) is new FastToken.Lexer.Instance with private;
+   type Instance
+     (Trace         : not null access FastToken.Trace'Class;
+      Last_Terminal : Token_ID)
+     is new FastToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Syntax       : in FastToken.Lexer.Regexp.Syntax;
-      Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
-      Buffer_Size  : in Integer                               := 1024)
+     (Trace       : not null access FastToken.Trace'Class;
+      Syntax      : in              FastToken.Lexer.Regexp.Syntax;
+      Feeder      : in              FastToken.Text_Feeder.Text_Feeder_Ptr;
+      Buffer_Size : in              Integer := 1024)
      return FastToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
@@ -77,7 +81,11 @@ private
    type String_Access is access String;
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
 
-   type Instance (Last_Terminal : Token_ID) is new FastToken.Lexer.Instance with
+   type Instance
+     (Trace         : not null access FastToken.Trace'Class;
+      Last_Terminal : Token_ID)
+     is new FastToken.Lexer.Instance (Trace => Trace)
+     with
    record
       ID          : Token_ID; --  last token read by find_next
       Syntax      : FastToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);

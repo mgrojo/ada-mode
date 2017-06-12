@@ -66,6 +66,19 @@ package body FastToken.Token is
             Tail => New_Node);
       end Only;
 
+      function Deep_Copy (Item : in Instance) return Instance
+      is
+         Result : Instance;
+         I : List_Iterator := Item.First;
+      begin
+         loop
+            exit when Is_Null (I);
+            Result := Result & ID (I);
+            Next (I);
+         end loop;
+         return Result;
+      end Deep_Copy;
+
       function "&" (Left : in Token_ID; Right : in Token_ID) return Instance
       is
          Right_Node : constant List_Node_Ptr := new List_Node'
@@ -145,6 +158,16 @@ package body FastToken.Token is
          Free (Temp);
          return Result;
       end Pop;
+
+      function Peek (List : in out Instance; I : in Integer) return Token_ID
+      is
+         Temp : List_Node_Ptr := List.Head;
+      begin
+         for J in 1 .. I - 1 loop
+            Temp := Temp.Next;
+         end loop;
+         return Temp.ID;
+      end Peek;
 
       procedure Next (Iterator : in out List_Iterator) is
       begin

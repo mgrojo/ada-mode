@@ -151,13 +151,14 @@ package body FastToken.Lexer.Regexp is
    end Get;
 
    function New_Lexer
-     (Syntax       : in FastToken.Lexer.Regexp.Syntax;
-      Feeder       : in FastToken.Text_Feeder.Text_Feeder_Ptr;
-      Buffer_Size  : in Integer                               := 1024)
+     (Trace       : not null access FastToken.Trace'Class;
+      Syntax      : in              FastToken.Lexer.Regexp.Syntax;
+      Feeder      : in              FastToken.Text_Feeder.Text_Feeder_Ptr;
+      Buffer_Size : in              Integer := 1024)
      return FastToken.Lexer.Handle
    is
       use type Token_ID;
-      New_Lexer : constant access Instance := new Instance (Syntax'Last);
+      New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
       New_Lexer.Feeder := Feeder;

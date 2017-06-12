@@ -28,16 +28,16 @@
 pragma License (Modified_GPL);
 
 with FastToken.Token;
-generic
-   EOF_Token : in Token_ID;
-   with package Token_Pkg is new FastToken.Token (Token_ID => Token_ID, others => <>);
 package FastToken.Lexer.Elisp_Process is
 
    type Instance is new FastToken.Lexer.Instance with private;
 
-   procedure Initialize (Lexer : in out Instance);
+   procedure Initialize (Lexer : in out Instance; EOF_ID : in Token_ID);
 
-   function New_Lexer return FastToken.Lexer.Handle;
+   function New_Lexer
+     (EOF_ID : in              Token_ID;
+      Trace  : not null access FastToken.Trace'Class)
+     return FastToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
@@ -60,8 +60,9 @@ private
    record
       Buffer      : String (1 .. 4096);
       Buffer_Last : Integer;
-      Tokens      : Token_Pkg.List.Instance; --  Filled at tail, emptied at head by Find_Next
+      Tokens      : Token.List.Instance; --  Filled at tail, emptied at head by Find_Next
       Last_Token  : Token_ID;
+      EOF_ID      : Token_ID;
    end record;
 
 end FastToken.Lexer.Elisp_Process;

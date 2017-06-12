@@ -9,7 +9,6 @@ OK wisi/test/wisi_wy_test.adb ../wisi/test/body_instantiation_conflict : Run_Tes
 OK wisi/test/wisi_wy_test.adb ../wisi/test/case_expression : Run_Test
 OK wisi/test/wisi_wy_test.adb ../wisi/test/identifier_list_name_conflict : Run_Test
 OK wisi/test/wisi_wy_test.adb ../wisi/test/range_conflict : Run_Test
-OK wisi/test/wisi_wy_test.adb ../wisi/test/subprograms : Run_Test
 OK ../Test/association_grammar_test.adb : Nominal
 OK ../Test/compare_goto_transitions.adb : Subprograms
 OK ../Test/counted_gnat_os_lib_test.adb : Discard
@@ -35,12 +34,14 @@ OK ../Test/test_character_literal.adb : Nominal
 OK ../Test/test_follow.adb : Subprograms.One
 OK ../Test/test_lr_expecting.adb : Nominal
 OK ../Test/test_panic_mode.adb : No_Error
-OK ../Test/test_panic_mode.adb : Errors
+OK ../Test/test_panic_mode.adb : Error_1
+OK ../Test/test_panic_mode.adb : Error_2
+OK ../Test/test_panic_mode.adb : Error_3
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   39
-Successful Tests:  39
+Total Tests Run:   40
+Successful Tests:  40
 Failed Assertions: 0
 Unexpected Errors: 0

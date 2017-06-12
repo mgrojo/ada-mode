@@ -28,57 +28,25 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Strings.Unbounded;
 with FastToken.Parser.LR.Panic_Mode;
 with FastToken.Parser.LR.Parser_Lists;
 package body FastToken.Parser.LR.Parser is
 
-   type Token_ID_Array is array (Integer range <>) of Token_ID;
-
-   function Expecting (Table : in Parse_Table_Ptr; State : in State_Index) return Token_ID_Array
+   procedure Expecting
+     (Table  : in     Parse_Table_Ptr;
+      State  : in     State_Index;
+      Result : in out FastToken.Token_ID_Set)
    is
       Action : Action_Node_Ptr := Table.States (State).Action_List;
-      Count  : Integer         := 0;
    begin
       loop
-         exit when Action = null;
+         --  Last action is error; don't include it.
+         exit when Action.Next = null;
 
-         Count  := Count + 1;
+         Result (Action.Symbol) := True;
          Action := Action.Next;
       end loop;
-
-      --  Last action is error; don't include it.
-      declare
-         Result : Token_ID_Array (1 .. Count - 1);
-      begin
-         Action := Table.States (State).Action_List;
-         for I in Result'Range loop
-            Result (I) := Action.Symbol;
-            Action     := Action.Next;
-         end loop;
-         return Result;
-      end;
    end Expecting;
-
-   function Names
-     (Descriptor : in FastToken.Descriptor'Class;
-      Tokens     : in Token_ID_Array)
-     return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String;
-   begin
-      --  More than 10 names is just confusing, and forces the rest of
-      --  the error message to overflow the GNAT exception message
-      --  limit.
-      for I in Tokens'First .. Integer'Min (Tokens'Last, 10) loop
-         Result := Result & Image (Descriptor, Tokens (I));
-         if I /= Tokens'Last then
-            Result := Result & ", ";
-         end if;
-      end loop;
-      return To_String (Result);
-   end Names;
 
    procedure Reduce_Stack
      (Current_Parser : in     Parser_Lists.Cursor;
@@ -292,7 +260,6 @@ package body FastToken.Parser.LR.Parser is
       Action         : Parse_Action_Node_Ptr;
       Keep_Going     : Boolean;
    begin
-      Parser.Skipped_Tokens.Clear;
       FastToken.Token.Reset (Parser.Semantic_State);
 
       loop
@@ -325,40 +292,51 @@ package body FastToken.Parser.LR.Parser is
             null;
 
          when Error =>
-            --  All parsers errored; attempt recovery,
-            if Any (Parser.Table.Panic_Recover) then
-               Keep_Going := Panic_Mode.Panic_Mode (Parser, Parsers, Current_Token);
-            else
-               Keep_Going := False;
-            end if;
+            --  All parsers errored; atempt recovery,
+            declare
+               use Parser_Lists;
+               Descriptor : FastToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
+               Expecting  : FastToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
+            begin
+               for I in Parsers.Iterate loop
+                  LR.Parser.Expecting (Parser.Table, To_Cursor (Parsers, I).Peek.State, Expecting);
+               end loop;
 
-            if Keep_Going and Parsers.Count = 1 then
-               declare
-                  Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
-               begin
-                  FastToken.Token.Recover
-                    (Panic.Popped_Tokens, Parser.Skipped_Tokens, Panic.Pushed_Token, Parser.Semantic_State);
-               end;
+               Token.Error (Expecting, Parser.Semantic_State);
 
-               --  FIXME: else push panic onto pending
-            else
-               --  report errors
-               declare
-                  ID     : constant String := Image (Parser.Semantic_State.Trace.Descriptor.all, Current_Token);
-                  Lexeme : constant String := Parser.Lexer.Lexeme;
+               if Any (Parser.Table.Panic_Recover) then
+                  Keep_Going := Panic_Mode.Panic_Mode (Parser, Parsers, Current_Token);
+               else
+                  Keep_Going := False;
+               end if;
 
-                  --  FIXME: merge expecting from all active parsers
-                  Expecting_Tokens : constant Token_ID_Array := Expecting (Parser.Table, Parsers.First.Peek.State);
-               begin
-                  --  FIXME: Free (Parsers);
-                  raise Syntax_Error with
-                    Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                    ": Syntax error; expecting one of " &
-                    Names (Parser.Semantic_State.Trace.Descriptor.all, Expecting_Tokens) &
-                    "; found " & ID & " '" & Lexeme & "'";
-               end;
-            end if;
+               if Keep_Going and Parsers.Count = 1 then
+                  declare
+                     Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
+                  begin
+                     FastToken.Token.Recover (Panic.Popped_Tokens, Panic.Pushed_Tokens, Parser.Semantic_State);
+                  end;
 
+                  --  FIXME: else push panic onto pending
+               else
+                  --  report errors
+                  declare
+                     ID     : constant String := Image (Descriptor, Current_Token);
+                     Lexeme : constant String := Parser.Lexer.Lexeme;
+
+                     --  More than 10 names is just confusing, and forces the rest of
+                     --  the error message to overflow the GNAT exception message
+                     --  limit.
+                     Expecting_Names : constant String := Image (Descriptor, Expecting, Max_Count => 10);
+                  begin
+                     --  FIXME: Free (Parsers);
+                     raise Syntax_Error with
+                       Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
+                       ": Syntax error; expecting one of " & Expecting_Names &
+                       "; found " & ID & " '" & Lexeme & "'";
+                  end;
+               end if;
+            end;
          end case;
 
          Current_Parser := Parser_Lists.First (Parsers);
@@ -445,7 +423,7 @@ package body FastToken.Parser.LR.Parser is
      return Instance
    is begin
       return
-        (Lexer, Table, Semantic_State'Access, Token_Pkg.List.Null_List,
+        (Lexer, Table, Semantic_State'Access,
          Max_Parallel, First_Parser_Label, Terminate_Same_State);
    end New_Parser;
 

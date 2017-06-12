@@ -97,7 +97,7 @@ package body Test_Accept_State is
       --  The test is that there are no exceptions.
 
       Parser := FastToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
          FastToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,

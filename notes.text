@@ -3,15 +3,14 @@ build/Makefile
 
  current work
 
-need multi-mode for .wy files with Ada syntax
-    feature/mhtml branch
-
 integrate with emacs process
     do follow histogram for Ada
 
     get wisi to cope with invalid regions
 
     see how much panic mode helps
+
+rename to adatoken
 
 some .wy in wisi_wy_test.adb, some in rules.make
     be more consistent
@@ -21,6 +20,7 @@ ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
 
     read state transitions from text file?
+    -> .exe is independent of language
 
 need better lexer for fasttoken
     handle tick character literal
@@ -85,6 +85,8 @@ wisi-generate lr1 way too slow for Ada
 
         fast access to First (beta) => array (nonterminal) of list of terminal
 
+        use multiple threads?
+
     lr1_goto_transitions needs:
         fast closure
         cache?
@@ -96,7 +98,9 @@ wisi-generate lr1 way too slow for Ada
             => use cache; invalidate when ?
 
         fast find (set, states)
-            => Store states in red/black tree sorted on concat LHS.
+            => Store states in red/black tree sorted on concat LHS/dot position
+                or hash table on that key
+                    keeps changing, not clear if it's worth finding a perfect hash table
                 each node has a list of states that differ only in lookahead
                 => one for LALR
 

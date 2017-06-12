@@ -108,14 +108,68 @@ package body FastToken.Parser.LR.Panic_Mode is
          for I in Parsers.Iterate loop
             declare
                use Parser_Lists;
+               use all type Ada.Containers.Count_Type;
 
-               Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
-               Panic  : Panic_Reference renames Cursor.Panic_Ref;
+               Cursor     : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
+               Panic      : Panic_Reference renames Cursor.Panic_Ref;
+
+               Use_Popped : Token_ID := Token_ID'Last;
+
+               function Check_Popped return Boolean
+               is begin
+                  if Panic.Popped_Tokens.Length > 0 then
+                     declare
+                        ID : constant Token_ID := Panic.Popped_Tokens.Peek (1);
+                     begin
+                        if ID in Trace.Descriptor.First_Terminal .. Trace.Descriptor.Last_Terminal then
+                           if Parser.Table.Follow (Panic.Nonterm, ID) then
+                              Use_Popped := ID;
+                              return True;
+                           end if;
+                        end if;
+                     end;
+                  end if;
+                  return False;
+               end Check_Popped;
+
             begin
-               if Parser.Table.Follow (Panic.Nonterm, Current_Token) then
+               --  We check the first popped token, as well as
+               --  the current tokens, to handle languages like Ada
+               --  with "end * ;", where there is a missing 'end', and
+               --  this one is in the popped tokens.
+               if Parser.Table.Follow (Panic.Nonterm, Current_Token) or Check_Popped then
                   Keep_Going := True;
-                  Panic.Pushed_Token := Panic.Nonterm;
+                  Panic.Pushed_Tokens.Append (Panic.Nonterm);
                   Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
+
+                  if Use_Popped /= Token_ID'Last then
+                     declare
+                        ID     : constant Token_ID     := Panic.Popped_Tokens.Peek (1);
+                        State  : constant State_Index  := Cursor.Peek.State;
+                        Action : constant Parse_Action_Rec := Action_For (Parser.Table.all, State, ID).Item;
+                        --  We ignore conflicts in Action; just take the first one.
+                     begin
+                        Panic.Pushed_Tokens.Append (ID);
+                        if Trace_Parse > 1 then
+                           Trace.Put
+                             (Integer'Image (Cursor.Label) & " recover: " &
+                                State_Image (State) & ": " &
+                                Image (Trace.Descriptor.all, ID) & " : ");
+                           Put_Trace (Trace, Action);
+                           Trace.New_Line;
+                        end if;
+
+                        case Action.Verb is
+                        when Shift =>
+                           Cursor.Push ((Action.State, ID));
+
+                        when Reduce | Accept_It | Error =>
+                           --  We should not get here.
+                           raise Programmer_Error with "recover: non-shift action not supported";
+
+                        end case;
+                     end;
+                  end if;
 
                   if Trace_Parse > 0 then
                      Trace.Put_Line
@@ -131,7 +185,7 @@ package body FastToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Trace.Put_Line ("  discard " & Image (Trace.Descriptor.all, Current_Token));
          end if;
-         Parser.Skipped_Tokens.Append (Current_Token);
+         FastToken.Token.Discard_Token (Current_Token, Parser.Semantic_State);
 
          Current_Token := Parser.Lexer.Find_Next;
          FastToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);

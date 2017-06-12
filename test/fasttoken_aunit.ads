@@ -19,21 +19,10 @@
 pragma License (GPL);
 
 with AUnit.Checks;
-with Ada.Containers;
 with FastToken.Parser.LR.LR1_Items;
 with FastToken.Production;
 with FastToken.Token;
-generic
-   Grammar : in FastToken.Production.List.Instance;
-package Gen_FastToken_AUnit is
-
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (FastToken.Token_ID);
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in FastToken.Buffer_Region;
-      Expected : in FastToken.Buffer_Region);
+package FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
@@ -44,24 +33,6 @@ package Gen_FastToken_AUnit is
      (Label    : in String;
       Computed : in FastToken.Production.Instance;
       Expected : in FastToken.Production.Instance);
-
-   procedure Check
-     is new AUnit.Checks.Gen_Check_Unconstrained_Array
-       (Item_Type   => Boolean,
-        Index_Type  => FastToken.Token_ID,
-        Array_Type  => FastToken.Token_ID_Set,
-        Check_Index => Check,
-        Check_Item  => Standard.AUnit.Checks.Check);
-
-   procedure Check
-     is new AUnit.Checks.Gen_Check_Unconstrained_2D_Array
-       (Item_Type     => Boolean,
-        Index_1_Type  => FastToken.Token_ID,
-        Index_2_Type  => FastToken.Token_ID,
-        Array_Type    => FastToken.Token_Array_Token_Set,
-        Check_Index_1 => Check,
-        Check_Index_2 => Check,
-        Check_Item    => AUnit.Checks.Check);
 
    procedure Check
      (Label            : in String;
@@ -91,12 +62,19 @@ package Gen_FastToken_AUnit is
       Computed : in FastToken.Parser.LR.LR1_Items.Item_Set_List;
       Expected : in FastToken.Parser.LR.LR1_Items.Item_Set_List);
 
-   function Get_Production (Prod : in Positive) return FastToken.Production.List.List_Iterator;
-   function Get_Production (Prod : in Positive) return FastToken.Production.Instance;
+   function Get_Production
+     (Grammar : in FastToken.Production.List.Instance;
+      Prod    : in Positive)
+     return FastToken.Production.List.List_Iterator;
+   function Get_Production
+     (Grammar : in FastToken.Production.List.Instance;
+      Prod    : in Positive)
+     return FastToken.Production.Instance;
    --  Return Prod production in Grammar; 1 indexed.
 
    function Get_Item_Node
-     (Prod       : in Positive;
+     (Grammar    : in FastToken.Production.List.Instance;
+      Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in FastToken.Parser.LR.LR1_Items.Lookahead;
       State      : in FastToken.Parser.LR.Unknown_State_Index := FastToken.Parser.LR.Unknown_State)
@@ -105,7 +83,8 @@ package Gen_FastToken_AUnit is
    --  Dot (1 indexed; use last + 1 for after last).
 
    function Get_Item
-     (Prod       : in Positive;
+     (Grammar    : in FastToken.Production.List.Instance;
+      Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in FastToken.Parser.LR.LR1_Items.Lookahead;
       State      : in FastToken.Parser.LR.Unknown_State_Index := FastToken.Parser.LR.Unknown_State)
@@ -146,7 +125,8 @@ package Gen_FastToken_AUnit is
       Gotos : in FastToken.Parser.LR.LR1_Items.Goto_Item_Ptr);
 
    function Get_Item_Set
-     (Prod      : in Positive;
+     (Grammar   : in FastToken.Production.List.Instance;
+      Prod      : in Positive;
       Dot       : in Positive;
       Lookahead : in FastToken.Parser.LR.LR1_Items.Lookahead)
      return FastToken.Parser.LR.LR1_Items.Item_Set;
@@ -165,4 +145,4 @@ package Gen_FastToken_AUnit is
       Computed : in FastToken.Parser.LR.Parse_Table;
       Expected : in FastToken.Parser.LR.Parse_Table);
 
-end Gen_FastToken_AUnit;
+end FastToken_AUnit;

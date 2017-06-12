@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 with FastToken.Text_Feeder;
 package FastToken.Lexer is
 
-   type Instance is abstract tagged record
+   type Instance (Trace : not null access FastToken.Trace'Class) is abstract tagged record
       Feeder : FastToken.Text_Feeder.Text_Feeder_Ptr;
    end record;
 

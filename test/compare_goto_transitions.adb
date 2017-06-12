@@ -27,7 +27,7 @@ with FastToken.Parser.LR.LALR_Generator;
 with FastToken.Parser.LR.LR1_Generator;
 with FastToken.Parser.LR.LR1_Items;
 with FastToken.Production;
-with Gen_FastToken_AUnit;
+with FastToken_AUnit;
 package body Compare_Goto_Transitions is
 
    ----------
@@ -80,8 +80,6 @@ package body Compare_Goto_Transitions is
         Parameter_List_ID   <= +Null_Action and                                          -- 6
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
-      package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
-
       Has_Empty_Production : constant FastToken.Token_ID_Set :=
         FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, Token_Enum.LALR_Descriptor);
       First                : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
@@ -95,7 +93,7 @@ package body Compare_Goto_Transitions is
 
          Set : constant Item_Set := Closure
            ((Set      => FastToken_AUnit.Get_Item_Node
-               (Prod, 1, FastToken.To_Lookahead (Token_Enum.LALR_Descriptor, +Symbol)),
+               (Grammar, Prod, 1, FastToken.To_Lookahead (Token_Enum.LALR_Descriptor, +Symbol)),
              Goto_List => null,
              State     => FastToken.Parser.LR.Unknown_State,
              Next      => null),

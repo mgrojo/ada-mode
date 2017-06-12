@@ -43,6 +43,39 @@ package body FastToken.Token_Region is
    end Image;
 
    procedure Put_Trace
+     (Trace : in out FastToken.Trace'Class;
+      Stack : in     Token_Stack_Type;
+      Count : in     Ada.Containers.Count_Type)
+   is
+      use Token_Stacks;
+      use all type Ada.Containers.Count_Type;
+
+      I : Cursor := Stack.To_Cursor (Stack.Length - Count + 1);
+   begin
+      loop
+         exit when I = No_Element;
+
+         Trace.Put (Image (Trace.Descriptor.all, Token (Stack (I).Element.all), ID_Only => False));
+         Next (I);
+         if I /= No_Element then
+            Trace.Put (", ");
+         end if;
+      end loop;
+   end Put_Trace;
+
+   procedure Put_Trace
+     (Trace : in out FastToken.Trace'Class;
+      Queue : in     Token_Queues.Queue_Type)
+   is begin
+      for I in 0 .. Queue.Count - 1 loop
+         Trace.Put (Image (Trace.Descriptor.all, Queue.Peek (I), ID_Only => False));
+         if I /= Queue.Count - 1 then
+            Trace.Put (", ");
+         end if;
+      end loop;
+   end Put_Trace;
+
+   procedure Put_Trace
      (Trace               : in out FastToken.Trace'Class;
       Nonterm             : in     Token;
       Index               : in     Natural;
@@ -58,28 +91,35 @@ package body FastToken.Token_Region is
         (if Include_Action_Name
          then To_Lower (Image (Trace.Descriptor.all, Nonterm.ID)) & "_" & FastToken.Int_Image (Index) & ": "
          else "");
-
-      I : Cursor := Stack.To_Cursor (Stack.Length - Tokens_Length + 1);
    begin
       Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm, ID_Only => False) & " <= ");
-      loop
-         exit when I = No_Element;
-
-         Trace.Put (Image (Trace.Descriptor.all, Token (Stack (I).Element.all), ID_Only => False));
-         Next (I);
-         if I /= No_Element then
-            Trace.Put (", ");
-         end if;
-      end loop;
+      Put_Trace (Trace, Stack, Tokens_Length);
       Trace.New_Line;
    end Put_Trace;
+
+   procedure Put_Trace
+     (Trace : in out FastToken.Trace'Class;
+      State : in     State_Type)
+   is
+   begin
+      Trace.Put ("semantic state: stack: ");
+      Put_Trace (Trace, State.Stack, State.Stack.Length);
+      Trace.New_Line;
+      Trace.Put ("semantic state: input queue: ");
+      Put_Trace (Trace, State.Input_Queue);
+      Trace.New_Line;
+      --  FIXME: invalid_regions?
+   end Put_Trace;
+
+   ----------
+   --  Public subprograms
 
    overriding
    procedure Reset (State : access State_Type)
    is begin
       State.Stack.Clear;
-      State.Pending_Input.Clear;
-      State.Invalid_Regions.Clear;
+      State.Input_Queue.Clear;
+      State.Recover.Clear;
    end Reset;
 
    overriding
@@ -88,7 +128,7 @@ package body FastToken.Token_Region is
       State : access State_Type;
       Lexer : in     FastToken.Lexer.Handle)
    is begin
-      State.Pending_Input.Put ((Token, Lexer.Bounds));
+      State.Input_Queue.Put ((Token, Lexer.Bounds));
    end Input_Token;
 
    overriding
@@ -96,7 +136,7 @@ package body FastToken.Token_Region is
      (ID    : in     Token_ID;
       State : access State_Type)
    is
-      Tok : constant Token := State.Pending_Input.Get;
+      Tok : constant Token := State.Input_Queue.Get;
    begin
       if ID /= Tok.ID then
          raise Programmer_Error;
@@ -104,6 +144,31 @@ package body FastToken.Token_Region is
 
       State.Stack.Append (Tok);
    end Push_Token;
+
+   overriding procedure Error
+     (Expecting : in     FastToken.Token_ID_Set;
+      State     : access State_Type)
+   is begin
+      State.Recover.Append
+        ((First_Terminal => State.Trace.Descriptor.First_Terminal,
+          Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
+          Error_Token    => State.Input_Queue.Peek,
+          Expecting      => Expecting,
+          Invalid_Region => Null_Buffer_Region));
+   end Error;
+
+   overriding
+   procedure Discard_Token
+     (ID    : in     Token_ID;
+      State : access State_Type)
+   is
+      Tok : constant Token := State.Input_Queue.Get;
+   begin
+      if ID /= Tok.ID then
+         raise Programmer_Error;
+      end if;
+      State.Invalid_Region := State.Invalid_Region and Tok.Region;
+   end Discard_Token;
 
    overriding
    procedure Merge_Tokens
@@ -172,17 +237,22 @@ package body FastToken.Token_Region is
 
    overriding
    procedure Recover
-     (Popped_Tokens  : in     FastToken.Token.List.Instance;
-      Skipped_Tokens : in     FastToken.Token.List.Instance;
-      Pushed_Token   : in     Token_ID;
-      State          : access State_Type)
+     (Popped_Tokens : in     FastToken.Token.List.Instance;
+      Pushed_Tokens : in     FastToken.Token.List.Instance;
+      State         : access State_Type)
    is
       use all type FastToken.Token.List.List_Iterator;
 
-      Region : Buffer_Region                      := Null_Buffer_Region;
+      Region : Buffer_Region                      := State.Invalid_Region; -- discarded tokens
       I      : FastToken.Token.List.List_Iterator := Popped_Tokens.First;
       Tok    : Token;
    begin
+      State.Invalid_Region := Null_Buffer_Region;
+
+      if Trace_Parse > 2 then
+         Put_Trace (State.Trace.all, State.all);
+      end if;
+
       loop
          exit when Is_Null (I);
          Tok := Token (State.Stack.Element (State.Stack.Last_Index));
@@ -196,21 +266,18 @@ package body FastToken.Token_Region is
          Next (I);
       end loop;
 
-      I := Skipped_Tokens.First;
+      I := Pushed_Tokens.First;
       loop
          exit when Is_Null (I);
-         Tok := State.Pending_Input.Get;
-
-         if ID (I) /= Tok.ID then
-            raise Programmer_Error;
-         end if;
-
-         Region := Region and Tok.Region;
+         State.Stack.Append (Token'(ID (I), Null_Buffer_Region));
          Next (I);
       end loop;
 
-      State.Stack.Append (Token'(Pushed_Token, Region));
-      State.Invalid_Regions.Append (Region);
+      State.Recover.Reference (State.Recover.Last).Invalid_Region := Region;
+
+      if Trace_Parse > 2 then
+         Put_Trace (State.Trace.all, State.all);
+      end if;
    end Recover;
 
 end FastToken.Token_Region;

@@ -23,57 +23,50 @@ pragma License (GPL);
 
 with FastToken.Lexer;
 with FastToken.Token;
-generic
-   with package Token_Pkg is new FastToken.Token (<>);
-   with package Lexer is new FastToken.Lexer (<>);
 package FastToken.Token_Wisi_Process is
 
-   type Semantic_Action is access procedure
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance);
+   type Augmented_Token is new FastToken.Augmented_Token with null record;
 
-   procedure Null_Semantic_Action
-     (Nonterm : in Token_Pkg.Nonterminal_ID;
-      Index   : in Natural;
-      Source  : in Token_Pkg.List.Instance)
-     is null;
-
-   Null_Action : constant Semantic_Action := Null_Semantic_Action'Access;
-
-   type State_Type is tagged null record;
+   type State_Type is new FastToken.Token.Semantic_State with null record;
    --  The augmented tokens stack and input queue are kept in Emacs lisp,
    --  with the lexer, to minimize traffic on the process interface.
 
+   overriding
    procedure Reset (State : access State_Type) is null;
    --  Elisp tells the parser to reset, so it has already reset the
    --  state.
 
+   overriding
    procedure Input_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+     (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     Token_Wisi_Process.Lexer.Handle)
-     is null;
+      Lexer : in     FastToken.Lexer.Handle);
    --  Elisp lexes ahead and sends the tokens in parallel with parser
-   --  execution; they are already in the queue.
+   --  execution; they are already in the queue. Echoes the tokens if
+   --  Trace_Parse > 3.
 
+   overriding
    procedure Push_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+     (Token : in     Token_ID;
       State : access State_Type);
 
+   overriding
+   procedure Discard_Token
+     (Token : in     Token_ID;
+      State : access State_Type);
+
+   overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+     (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
+      Tokens  : in     Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type);
 
+   overriding
    procedure Recover
-     (Popped_Tokens  : in     Token_Pkg.List.Instance;
-      Skipped_Tokens : in     Token_Pkg.List.Instance;
-      Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
+     (Popped_Tokens  : in     Token.List.Instance;
+      Pushed_Token   : in     Token_ID;
       State          : access State_Type);
-
-   State : aliased State_Type;
 
 end FastToken.Token_Wisi_Process;

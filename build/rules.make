@@ -72,8 +72,9 @@ tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_yylex.adb
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
-tests : subprograms_yylex.adb
-tests : subprograms-parse.diff
+
+# we don't run subprograms-parse because subprograms is used in a real
+# Emacs Ada mode test, so it has real elisp syntax.
 
 examples : asu_example_3_6-run.run
 examples : asu_example_4_46-run.run
@@ -182,8 +183,9 @@ DIFF_OPT := -u -w
 	make -C /Projects/edu.uci.aflex/build install
 
 # delete files created by wisi-generate
+# don't delete prj.el
 wisi-clean :
-	rm -f *.parse_table *.ads *.adb *.el *.l
+	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l
 
 %.parse : %.input %_run.exe
 	./$*_run.exe -v 4 $< > $*.parse

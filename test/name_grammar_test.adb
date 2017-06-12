@@ -170,7 +170,7 @@ package body Name_Grammar_Test is
       Put_Line ("Simple Parser");
       declare
          Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
             FastToken.Parser.LR.LALR_Generator.Generate
               (Simple_Grammar,
                LALR_Descriptor,
@@ -189,7 +189,7 @@ package body Name_Grammar_Test is
       Put_Line ("Medium Parser");
       declare
          Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
             FastToken.Parser.LR.LALR_Generator.Generate
               (Medium_Grammar,
                LALR_Descriptor,
@@ -208,7 +208,7 @@ package body Name_Grammar_Test is
       Put_Line ("Full Parser");
       declare
          Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
             FastToken.Parser.LR.LALR_Generator.Generate
               (Full_Grammar,
                LALR_Descriptor,

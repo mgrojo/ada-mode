@@ -82,12 +82,10 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %output_language Ada
 %lexer Aflex
 
-;; Good candidates for panic_recover are nonterms followed reliably by
-;; a small set of terminals. These are all followed by END or EOF
-;; (some are also followed by a few others).
+;; These are used in unit tests; still figuring out how to pick
+;; these..
 %panic_recover case_statement_alternative_list
 %panic_recover compilation_unit
-%panic_recover elsif_statement_list
 %panic_recover handled_sequence_of_statements
 %panic_recover sequence_of_statements_opt
 

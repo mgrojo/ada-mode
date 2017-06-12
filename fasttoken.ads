@@ -98,7 +98,11 @@ package FastToken is
 
    function Any (Item : in Token_ID_Set) return Boolean;
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID_Set) return String;
+   function Image
+     (Desc      : in Descriptor'Class;
+      Item      : in Token_ID_Set;
+      Max_Count : in Integer := Integer'Last)
+     return String;
 
    type Token_Array_Token_Set is array (Token_ID range <>, Token_ID range <>) of Boolean;
 
@@ -175,7 +179,7 @@ package FastToken is
    --  If Trace_Parse > 0, Parse prints helpful messages; higher value
    --  prints more.
 
-   type Trace (Descriptor : access FastToken.Descriptor'Class) is abstract tagged limited null record;
+   type Trace (Descriptor : not null access FastToken.Descriptor'Class) is abstract tagged limited null record;
    --  Derived types should support Ada.Text_IO for tests/debugging,
    --  and a protocol for inter-process communication for running a
    --  parser as a subprocess of an IDE.

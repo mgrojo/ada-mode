@@ -143,7 +143,7 @@ package body Test_LR_Expecting is
       Test : Test_Case renames Test_Case (T);
    begin
       Parser := FastToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
          FastToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,

@@ -59,6 +59,8 @@ package body Trivial_Productions_Test is
          Accept_ID         => E_ID);
       use Token_Enum;
 
+      Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
 
@@ -81,7 +83,6 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
          State : State_Type (Trace'Access);
 
          Parser : FastToken.Parser.LR.Parser.Instance;
@@ -91,7 +92,7 @@ package body Trivial_Productions_Test is
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
          Parser := FastToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
+           (Lexer.New_Lexer (Trace'Access, Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
             FastToken.Parser.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug),
             State,
@@ -140,6 +141,8 @@ package body Trivial_Productions_Test is
          Accept_ID         => FastToken_Accept_ID);
       use Token_Enum;
 
+      Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
          Test : Test_Case renames Test_Case (T);
@@ -175,7 +178,6 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
          State : State_Type (Trace'Access);
 
          Parser : FastToken.Parser.LR.Parser.Instance;
@@ -186,7 +188,8 @@ package body Trivial_Productions_Test is
 
          Parser := FastToken.Parser.LR.Parser.New_Parser
            (Lexer.New_Lexer
-              (Syntax, Feeder'Access,
+              (Trace'Access,
+               Syntax, Feeder'Access,
                Buffer_Size     => Text'Length + 1),
             FastToken.Parser.LR.LALR_Generator.Generate
               (Grammar,

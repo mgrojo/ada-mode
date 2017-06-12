@@ -97,6 +97,17 @@ package FastToken.Gen_Token_Enum is
       State : access State_Type)
      is null;
 
+   overriding procedure Error
+     (Expecting : in     Token_ID_Set;
+      State     : access State_Type)
+   is null;
+
+   overriding
+   procedure Discard_Token
+     (ID    : in     Token_ID;
+      State : access State_Type)
+   is null;
+
    overriding procedure Merge_Tokens
      (Nonterm : in     Token_ID;
       Index   : in     Natural;
@@ -107,10 +118,9 @@ package FastToken.Gen_Token_Enum is
    --  otherwise does nothing.
 
    overriding procedure Recover
-     (Popped_Tokens  : in     Token.List.Instance;
-      Skipped_Tokens : in     Token.List.Instance;
-      Pushed_Token   : in     Token_ID;
-      State          : access State_Type)
+     (Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance;
+      State         : access State_Type)
      is null;
 
    ----------

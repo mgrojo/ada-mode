@@ -25,19 +25,20 @@ package body FastToken.Token_Wisi_Process is
    --  body subprograms
 
    --  See [1]
-   Push_Token_Code   : constant String := "1 ";
-   Merge_Tokens_Code : constant String := "2 ";
-   Recover_Code      : constant String := "3 ";
+   Push_Token_Code    : constant String := "1 ";
+   Discard_Token_Code : constant String := "2 ";
+   Merge_Tokens_Code  : constant String := "3 ";
+   Recover_Code       : constant String := "4 ";
 
-   function To_Code (ID : in Token_Pkg.Token_ID) return String
+   function To_Code (ID : in Token_ID) return String
    is begin
-      return Int_Image (Token_Pkg.Token_ID'Pos (ID));
+      return Int_Image (ID);
    end To_Code;
 
-   function To_Codes (Tokens : in Token_Pkg.List.Instance) return String
+   function To_Codes (Tokens : in Token.List.Instance) return String
    is
       use Ada.Text_IO; -- Count
-      use Token_Pkg.List;
+      use Token.List;
       --  A token image consists of:
       --
       --  ID - int
@@ -52,7 +53,7 @@ package body FastToken.Token_Wisi_Process is
    begin
       loop
          exit when I = Null_Iterator;
-         Token_Line := Token_Line & Integer'Image (Token_Pkg.Token_ID'Pos (ID (I)));
+         Token_Line := Token_Line & Integer'Image (Token_ID'Pos (ID (I)));
          Next (I);
       end loop;
       return To_String (Token_Line & "]");
@@ -61,8 +62,22 @@ package body FastToken.Token_Wisi_Process is
    ----------
    --  Spec visible subrograms
 
+   overriding
+   procedure Input_Token
+     (Token : in     Token_ID;
+      State : access State_Type;
+      Lexer : in     FastToken.Lexer.Handle)
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      if Trace_Parse > 3 then
+         Put_Trace (State.Trace.all, Token);
+      end if;
+   end Input_Token;
+
+   overriding
    procedure Push_Token
-     (Token : in     Token_Pkg.Terminal_ID;
+     (Token : in     Token_ID;
       State : access State_Type)
    is
       pragma Unreferenced (State);
@@ -70,10 +85,21 @@ package body FastToken.Token_Wisi_Process is
       Ada.Text_IO.Put_Line ("[" & Push_Token_Code & To_Code (Token) & "]");
    end Push_Token;
 
+   overriding
+   procedure Discard_Token
+     (Token : in     Token_ID;
+      State : access State_Type)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Discard_Token_Code & To_Code (Token) & "]");
+   end Discard_Token;
+
+   overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_Pkg.Nonterminal_ID;
+     (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token_Pkg.List.Instance;
+      Tokens  : in     Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type)
    is
@@ -83,16 +109,16 @@ package body FastToken.Token_Wisi_Process is
         ("[" & Merge_Tokens_Code & To_Code (Nonterm) & To_Codes (Tokens) & Integer'Image (Index) & "]");
    end Merge_Tokens;
 
+   overriding
    procedure Recover
-     (Popped_Tokens  : in     Token_Pkg.List.Instance;
-      Skipped_Tokens : in     Token_Pkg.List.Instance;
-      Pushed_Token   : in     Token_Pkg.Nonterminal_ID;
+     (Popped_Tokens  : in     Token.List.Instance;
+      Pushed_Token   : in     Token_ID;
       State          : access State_Type)
    is
       pragma Unreferenced (State);
    begin
       Ada.Text_IO.Put_Line
-        ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Codes (Skipped_Tokens) & To_Code (Pushed_Token) & "]");
+        ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Code (Pushed_Token) & "]");
    end Recover;
 
 end FastToken.Token_Wisi_Process;

@@ -54,13 +54,13 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Put_Line ("with FastToken.Text_Feeder;");
+         Put_Line ("with FastToken.Text_IO_Trace;");
          Put_Line ("with FastToken.Token_Region;");
 
       when Ada_Emacs =>
          case Interface_Kind is
          when Process =>
-            Put_Line ("with FastToken.Lexer.Elisp_Process;");
-            Put_Line ("with FastToken.Token;");
+            Put_Line ("with FastToken.Text_IO_Trace;");
             Put_Line ("with FastToken.Token_Wisi_Process;");
 
          when Module =>
@@ -71,7 +71,6 @@ package body Wisi.Gen_Output_Ada_Common is
          end case;
       end case;
       Put_Line ("with FastToken.Parser.LR.Parser;");
-      Put_Line ("with FastToken.Text_IO_Trace;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
@@ -177,14 +176,13 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada_Emacs =>
          case Interface_Kind is
          when Process =>
-            Indent_Line ("State_Aug : aliased Token_Aug.State_Type;");
-            New_Line;
-            Indent_Line ("package Lexer is new Lexer_Root.Elisp_Process (" & (-EOI_Name) & "_ID, Token_Pkg);");
+            Indent_Line ("Trace : aliased FastToken.Text_IO_Trace.Trace (Descriptor'Access);");
+            Indent_Line ("State : aliased FastToken.Token_Wisi_Process.State_Type (Trace'Access);");
             New_Line;
             Indent_Line ("function Create_Parser");
             Indent_Line ("  (Algorithm    : in FastToken.Parser_Algorithm_Type;");
             Indent_Line ("   Max_Parallel : in Integer := 15)");
-            Indent_Line ("  return LR_Parser.Instance;");
+            Indent_Line ("  return FastToken.Parser.LR.Parser.Instance;");
             New_Line;
 
          when Module =>
@@ -431,15 +429,17 @@ package body Wisi.Gen_Output_Ada_Common is
       when None | Process =>
          case Lexer is
          when Aflex_Lexer =>
-            Indent_Line ("  (Lexer.New_Lexer (Text_Feeder, Buffer_Size, First_Column => 0),");
-            Indent_Line ("   Table, FastToken.Token.Semantic_State'Class (State)'Access, " &
-                           "FastToken.Token.List.Null_List,");
+            Indent_Line ("  (Lexer.New_Lexer (Trace'Access, Text_Feeder, Buffer_Size, First_Column => 0),");
+            Indent_Line ("   Table, FastToken.Token.Semantic_State'Class (State)'Access,");
             Indent_Line ("   Max_Parallel, " & FastToken.Int_Image (First_Parser_Label)
                            & ", Terminate_Same_State);");
 
          when Elisp_Lexer =>
-            Indent_Line ("  (Lexer.New_Lexer, Table, State_Aug'Access, Token_Pkg.List.Null_List,");
-            Indent_Line ("   Max_Parallel, Terminate_Same_State => True);");
+            Indent_Line ("  (FastToken.Lexer.Elisp_Process.New_Lexer (" & FastToken.Int_Image (EOF_ID) &
+                           ", Trace'Access),");
+            Indent_Line ("   Table, FastToken.Token.Semantic_State'Class (State)'Access,");
+            Indent_Line ("   Max_Parallel, " & FastToken.Int_Image (First_Parser_Label)
+                           & ", Terminate_Same_State => True);");
 
          when Regexp_Lexer =>
             raise Programmer_Error;
@@ -562,6 +562,7 @@ package body Wisi.Gen_Output_Ada_Common is
                        FastToken.Int_Image (Node.Symbol);
                      Append (", ");
                      Append (State_Image (Action_Node.Item.State));
+
                   when Reduce | Accept_It =>
                      Line := +"Add_Action (Table.States (" & State_Image (State_Index) & "), " &
                        FastToken.Int_Image (Node.Symbol);
@@ -585,10 +586,9 @@ package body Wisi.Gen_Output_Ada_Common is
 
                   Action_Node := Action_Node.Next;
                   if Action_Node /= null then
+                     --  There is a conflict; must be Shift/{Reduce|Accept} or Reduce/{Reduce|Accept}.
+                     --  The added parameters are the same in either case.
                      case Action_Node.Item.Verb is
-                     when Shift =>
-                        Append (", ");
-                        Append (State_Image (Action_Node.Item.State));
                      when Reduce | Accept_It =>
                         Append (", ");
                         Append (FastToken.Int_Image (Action_Node.Item.LHS) & ",");

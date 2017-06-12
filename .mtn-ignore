@@ -1,12 +1,13 @@
 ^Docs/wisi-user_guide\.html$
 ^Docs/wisi-user_guide\.info$
+^build/.*\-elisp.el$
+^build/.*\-process.el$
 ^build/.*\.ada$
 ^build/.*\.adb$
 ^build/.*\.ads$
 ^build/.*\.aflex_output$
 ^build/.*\.bz2$
 ^build/.*\.diff$
-^build/.*\.el$
 ^build/.*\.exe$
 ^build/.*\.gz$
 ^build/.*\.in$

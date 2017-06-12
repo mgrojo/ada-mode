@@ -31,13 +31,14 @@ with Ada.Exceptions;
 package body FastToken.Lexer.Aflex is
 
    function New_Lexer
-     (Feeder          : in Text_Feeder.Text_Feeder_Ptr := null;
-      Buffer_Size     : in Integer                     := 1024;
-      First_Column    : in Integer                     := 1)
+     (Trace        : not null access FastToken.Trace'Class;
+      Feeder       : in              Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size  : in              Integer                     := 1024;
+      First_Column : in              Integer                     := 1)
      return Handle
    is
       pragma Unreferenced (First_Column);
-      New_Lexer : constant access Instance := new Instance;
+      New_Lexer : constant access Instance := new Instance (Trace);
    begin
       Set_Buffer_Size (Buffer_Size);
 
@@ -48,14 +49,15 @@ package body FastToken.Lexer.Aflex is
    end New_Lexer;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
-   is
-      pragma Unreferenced (Lexer);
-   begin
+   is begin
       --  yyrestart is not visible in yylex.adb; it does this
       YY_Init := True;
       Set_Buffer_Size (Buffer_Size + 2); -- +2 for EOL EOF
 
-      --  Feeder is not reset here; user resets it.
+      --  Feeder is not reset here; user resets it. But we do copy
+      --  Lexer.Feeder to Aflex.Feeder, since the user only knows
+      --  about the former.
+      FastToken.Lexer.Aflex.Feeder := Lexer.Feeder;
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID

@@ -27,9 +27,7 @@
 
 (defconst subprograms-process-token-table
   (wisi-process-compile-tokens
-   [WHITESPACE
-    COMMENT
-    FUNCTION
+   [FUNCTION
     LEFT_PAREN
     PROCEDURE
     RIGHT_PAREN
@@ -47,20 +45,20 @@
   (wisi-process-compile-actions
    '(nil
      (("compilation_unit:0"
-       (null; -- setq wisi-test-success t))
+       (setq wisi-test-success t))
       )
      nil
      nil
      (("subprogram:0"
-       (null; -- wisi-statement-action [1 function 2 other]))
+       (wisi-statement-action [1 function 2 other]))
       ("subprogram:1"
-       (null; -- wisi-statement-action [1 procedure 2 other]))
+       (wisi-statement-action [1 procedure 2 other]))
       )
      (("parameter_list:0"
-       (null; -- wisi-statement-action [1 open-paren 2 close-paren]))
+       (wisi-statement-action [1 open-paren 2 close-paren]))
       nil
       ("parameter_list:2"
-       (null; -- wisi-statement-action [1 open-paren 3 close-paren]))
+       (wisi-statement-action [1 open-paren 3 close-paren]))
       )
      )))
 

@@ -31,19 +31,20 @@ with Ada.Strings.Fixed;
 with GNAT.OS_Lib;
 package body FastToken.Lexer.Elisp_Process is
 
-   procedure Initialize (Lexer : in out Instance)
+   procedure Initialize (Lexer : in out Instance; EOF_ID : in Token_ID)
    is begin
       --  We don't set Lexer.Feeder, because we don't actually use it
       Lexer.Tokens.Clean;
       Lexer.Buffer_Last := Lexer.Buffer'First - 1;
       Lexer.Last_Token  := Token_ID'First;
+      Lexer.EOF_ID      := EOF_ID;
    end Initialize;
 
-   function New_Lexer return Handle
+   function New_Lexer (EOF_ID : in Token_ID; Trace : not null access FastToken.Trace'Class) return Handle
    is
-      New_Lexer : constant access Instance := new Instance;
+      New_Lexer : constant access Instance := new Instance (Trace);
    begin
-      Initialize (New_Lexer.all);
+      Initialize (New_Lexer.all, EOF_ID);
       return Handle (New_Lexer);
    end New_Lexer;
 
@@ -51,13 +52,13 @@ package body FastToken.Lexer.Elisp_Process is
    is
       pragma Unreferenced (Buffer_Size);
    begin
-      Initialize (Lexer);
+      Initialize (Lexer, Lexer.EOF_ID);
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
    is begin
-      if Lexer.Last_Token = EOF_Token then
-         return EOF_Token;
+      if Lexer.Last_Token = Lexer.EOF_ID then
+         return Lexer.EOF_ID;
       end if;
 
       if Lexer.Tokens.Is_Empty then
@@ -71,6 +72,9 @@ package body FastToken.Lexer.Elisp_Process is
             Space_Index   : Integer;
          begin
             Lexer.Buffer_Last := Lexer.Buffer_Last + Read_Bytes;
+            if Trace_Parse > 3 then
+               Lexer.Trace.Put_Line (Lexer.Buffer (Lexer.Buffer'First .. Lexer.Buffer_Last));
+            end if;
 
             --  Input is a sequence of integers separated by spaces;
             --  Token_ID'Pos. Check for the trailing space to be sure
@@ -78,7 +82,14 @@ package body FastToken.Lexer.Elisp_Process is
             loop
                Space_Index := Index (Pattern => " ", Source => Lexer.Buffer (First .. Lexer.Buffer_Last));
                exit when Space_Index < First;
-               Lexer.Tokens.Append (Token_ID'Val (Integer'Value (Lexer.Buffer (First .. Space_Index))));
+               begin
+                  Lexer.Tokens.Append (Token_ID'Val (Integer'Value (Lexer.Buffer (First .. Space_Index - 1))));
+               exception
+               when Constraint_Error =>
+                  Lexer.Trace.Put_Line
+                    ("bad token_id value: '" & Lexer.Buffer (First .. Space_Index - 1) & "'; " &
+                       "First '" & Integer'Image (First) & "', Space_Index '" & Integer'Image (Space_Index) & "'");
+               end;
                First := Space_Index + 1;
             end loop;
             if Space_Index < First then
@@ -131,7 +142,7 @@ package body FastToken.Lexer.Elisp_Process is
    begin
       loop
          Token := Lexer.Find_Next;
-         exit when Token = EOF_Token;
+         exit when Token = Lexer.EOF_ID;
       end loop;
    end Discard_Rest_Of_Input;
 

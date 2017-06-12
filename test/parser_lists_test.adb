@@ -23,12 +23,12 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
+with FastToken.AUnit;
 with FastToken.Gen_Token_Enum;
 with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Production;
 with FastToken.Text_IO_Trace;
 with FastToken.Token;
-with Gen_FastToken_AUnit;
+with FastToken_AUnit; use FastToken_AUnit;
 package body Parser_Lists_Test is
 
    type Token_Enum_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
@@ -43,18 +43,15 @@ package body Parser_Lists_Test is
       Accept_ID         => Statement_ID);
    use Token_Enum;
 
-   Grammar : FastToken.Production.List.Instance;
-
    Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-
-   package FastToken_AUnit is new Gen_FastToken_AUnit (Grammar);
-   use FastToken_AUnit;
 
    procedure Check
      (Label    : in String;
       Computed : in FastToken.Parser.LR.Parser_Lists.Stack_Item;
       Expected : in FastToken.Parser.LR.Parser_Lists.Stack_Item)
-   is begin
+   is
+      use FastToken.AUnit;
+   begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Token", Computed.Token, Expected.Token);
    end Check;
@@ -208,6 +205,7 @@ package body Parser_Lists_Test is
    procedure Pending (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
+      use FastToken.AUnit;
       use FastToken.Parser.LR;
       use FastToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;

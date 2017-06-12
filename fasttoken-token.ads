@@ -51,7 +51,10 @@ package FastToken.Token is
       procedure Clean (List : in out Instance);
       --  Delete and free all elements of List
 
+      procedure Free (List : in out Instance) renames Clean;
       procedure Clear (List : in out Instance) renames Clean;
+
+      function Deep_Copy (Item : in Instance) return Instance;
 
       type List_Iterator is private;
       Null_Iterator : constant List_Iterator;
@@ -60,6 +63,9 @@ package FastToken.Token is
 
       function Pop (List : in out Instance) return Token_ID;
       --  Delete head of List from List, return it.
+
+      function Peek (List : in out Instance; I : in Integer) return Token_ID;
+      --  Return the Ith element; head is 1.
 
       procedure Next (Iterator : in out List_Iterator);
       function Next (Iterator : in List_Iterator) return List_Iterator;
@@ -99,7 +105,10 @@ package FastToken.Token is
       Null_List : constant Instance := (null, null);
    end List;
 
-   type Semantic_State (Trace : access FastToken.Trace'Class) is abstract tagged limited null record;
+   ----------
+   --  Semantic state
+
+   type Semantic_State (Trace : not null access FastToken.Trace'Class) is abstract tagged limited null record;
    --  For storing augmented tokens, other semantic information
 
    procedure Reset (State : access Semantic_State) is abstract;
@@ -110,15 +119,30 @@ package FastToken.Token is
       State : access Semantic_State;
       Lexer : in     FastToken.Lexer.Handle)
      is abstract;
-   --  Parser just fetched Token from Lexer; save it for later push or
-   --  recover operations.
+   --  Parser just fetched Token from Lexer; save it in the State
+   --  input queue for later push or recover operations.
 
    procedure Push_Token
      (Token : in     Token_ID;
       State : access Semantic_State)
      is abstract;
-   --  Parser just pushed Token on the parse stack; push the
-   --  corresponding augmented token on the State stack.
+   --  Parser just pushed Token on the parse stack; remove the
+   --  corresponding augmented token from the State input queue, push
+   --  it on the State stack.
+
+   procedure Error
+     (Expecting : in     Token_ID_Set;
+      State     : access Semantic_State)
+   is abstract;
+   --  Parser has detected an error with the current token; save
+   --  information useful for an error message.
+
+   procedure Discard_Token
+     (Token : in     Token_ID;
+      State : access Semantic_State)
+     is abstract;
+   --  Token (the current token from input) was discarded; discard
+   --  corresponding augmented token from the State input queue.
 
    procedure Merge_Tokens
      (Nonterm : in     Token_ID;
@@ -131,16 +155,16 @@ package FastToken.Token is
    --  State stack, call associated Action.
 
    procedure Recover
-     (Popped_Tokens  : in     List.Instance;
-      Skipped_Tokens : in     List.Instance;
-      Pushed_Token   : in     Token_ID;
-      State          : access Semantic_State)
+     (Popped_Tokens : in     List.Instance;
+      Pushed_Tokens : in     List.Instance;
+      State         : access Semantic_State)
      is abstract;
-   --  An error recover algorithm succeeded; adjust the augmented
-   --  token stack to match.
+   --  An error recover algorithm succeeded; adjust the State augmented
+   --  token stack and input queue to match.
    --
-   --  Popped_Tokens were popped off the stack; Skipped_Tokens were
-   --  skipped in the input stream, Pushed_Token was pushed on the
-   --  stack.
+   --  Skipped tokens were reported via Discard_Token.
+   --
+   --  Popped_Tokens were popped off the stack, Pushed_Token was
+   --  pushed on the stack.
 
 end FastToken.Token;

@@ -19,18 +19,8 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-package body Gen_FastToken_AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in FastToken.Buffer_Region;
-      Expected : in FastToken.Buffer_Region)
-   is
-      use AUnit.Checks;
-   begin
-      Check (Label & ".Begin_Pos", Computed.Begin_Pos, Expected.Begin_Pos);
-      Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
-   end Check;
+with FastToken.AUnit; use FastToken.AUnit;
+package body FastToken_AUnit is
 
    procedure Check
      (Label    : in String;
@@ -189,7 +179,10 @@ package body Gen_FastToken_AUnit is
       Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
    end Check;
 
-   function Get_Production (Prod : in Positive) return FastToken.Production.List.List_Iterator
+   function Get_Production
+     (Grammar : in FastToken.Production.List.Instance;
+      Prod    : in Positive)
+     return FastToken.Production.List.List_Iterator
    is
       Grammar_I : FastToken.Production.List.List_Iterator := Grammar.First;
    begin
@@ -200,13 +193,17 @@ package body Gen_FastToken_AUnit is
       return Grammar_I;
    end Get_Production;
 
-   function Get_Production (Prod : in Positive) return FastToken.Production.Instance
+   function Get_Production
+     (Grammar : in FastToken.Production.List.Instance;
+      Prod    : in Positive)
+     return FastToken.Production.Instance
    is begin
-      return FastToken.Production.List.Current (Get_Production (Prod));
+      return FastToken.Production.List.Current (Get_Production (Grammar, Prod));
    end Get_Production;
 
    function Get_Item_Node
-     (Prod       : in Positive;
+     (Grammar    : in FastToken.Production.List.Instance;
+      Prod       : in Positive;
       Dot        : in Positive;
       Lookaheads : in FastToken.Parser.LR.LR1_Items.Lookahead;
       State      : in FastToken.Parser.LR.Unknown_State_Index := FastToken.Parser.LR.Unknown_State)
@@ -325,14 +322,16 @@ package body Gen_FastToken_AUnit is
    end Add_Gotos;
 
    function Get_Item_Set
-     (Prod      : in Positive;
+     (Grammar   : in FastToken.Production.List.Instance;
+      Prod      : in Positive;
       Dot       : in Positive;
       Lookahead : in FastToken.Parser.LR.LR1_Items.Lookahead)
      return FastToken.Parser.LR.LR1_Items.Item_Set
    is begin
       return
         (Set => Get_Item_Node
-           (Prod       => Prod,
+           (Grammar,
+            Prod       => Prod,
             Dot        => Dot,
             Lookaheads => Lookahead),
          Goto_List       => null,
@@ -478,4 +477,4 @@ package body Gen_FastToken_AUnit is
       Check (Label & ".Follow", Computed.Follow, Expected.Follow);
    end Check;
 
-end Gen_FastToken_AUnit;
+end FastToken_AUnit;

@@ -157,16 +157,11 @@ is
 
       case Data.Interface_Kind is
       when Process =>
-         Indent_Line ("with Ada.Text_IO; use Ada.Text_IO;");
+         Put_Line ("with FastToken.Lexer.Elisp_Process;");
+         Put_Line ("with FastToken.Token;");
 
       when Module =>
-         Indent_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
-      end case;
-
-      case Data.Interface_Kind is
-      when Process =>
-         null;
-      when Module =>
+         Put_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
          Put_Line ("with Ada.Exceptions;");
          Put_Line ("with Ada.Strings.Unbounded;");
       end case;
@@ -174,31 +169,6 @@ is
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
-
-      case Data.Interface_Kind is
-      when Process =>
-         --  Anything not starting with [ or ( is ignored by the Elisp side
-         Indent_Line ("procedure Put_Trace (Item : in String)");
-         Indent_Line ("is begin");
-         Indent_Line ("   Put (Item);");
-         Indent_Line ("end Put_Trace;");
-         New_Line;
-         Indent_Line ("procedure Put_Trace_Line (Item : in String)");
-         Indent_Line ("is begin");
-         Indent_Line ("   Put_Line (Item);");
-         Indent_Line ("end Put_Trace_Line;");
-         New_Line;
-
-      when Module =>
-         null;
-
-         --  FIXME:
-         --  Add_Elisp_Name ("wisi-debug");
-         --  Add_Elisp_Name ("wisi-nonterm");
-         --  Add_Elisp_Name ("wisi-tokens");
-         --  Add_Elisp_Name ("wisi-cache-max");
-
-      end case;
 
       if Profile then
          Indent_Line ("Action_Counts : array (Nonterminal_ID) of Integer := (others => 0);");
@@ -239,9 +209,9 @@ is
       --  in Action. All work is done by
       --  token_wisi_process.merge_tokens.
       Indent_Line ("procedure Elisp_Action");
-      Indent_Line (" (Nonterm : in Token_Pkg.Nonterminal_ID;");
+      Indent_Line (" (Nonterm : in FastToken.Augmented_Token'Class;");
       Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Source  : in Token_Pkg.List.Instance)");
+      Indent_Line ("  Source  : in FastToken.Token_Stack_Type)");
       Indent_Line ("is null;");
       New_Line;
 
