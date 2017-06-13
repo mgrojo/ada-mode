@@ -81,13 +81,26 @@ package body SAL.Gen_Definite_Queues is
       end return;
    end Remove;
 
-   function Peek (Queue : in Queue_Type) return Item_Type
+   procedure Drop (Queue : in out Queue_Type)
    is begin
       if Queue.Count = 0 then
          raise Container_Empty;
       end if;
 
-      return Queue.Data (Queue.Head);
+      Queue.Count := Queue.Count - 1;
+
+      if Queue.Count > 0 then
+         Queue.Head := Wrap (Queue, Queue.Head + 1);
+      end if;
+   end Drop;
+
+   function Peek (Queue : in Queue_Type; N : Integer := 0) return Item_Type
+   is begin
+      if Queue.Count = 0 then
+         raise Container_Empty;
+      end if;
+
+      return Queue.Data (Wrap (Queue, Queue.Head + N));
    end Peek;
 
    procedure Add (Queue : in out Queue_Type; Item : in Item_Type) is

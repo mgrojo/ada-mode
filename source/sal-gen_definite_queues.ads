@@ -49,8 +49,14 @@ package SAL.Gen_Definite_Queues is
 
    function Get (Queue : in out Queue_Type) return Item_Type renames Remove;
 
-   function Peek (Queue : in Queue_Type) return Item_Type;
-   --  Return a copy of the head item, without removing it.
+   procedure Drop (Queue : in out Queue_Type);
+   --  Remove head item from Queue, discard it.
+   --
+   --  Raises Container_Empty if Is_Empty.
+
+   function Peek (Queue : in Queue_Type; N : Integer := 0) return Item_Type;
+   --  Return a copy of a queue item, without removing it. N = 0 is
+   --  the queue head.
 
    procedure Add (Queue : in out Queue_Type; Item : in Item_Type);
    --  Add Item to the tail of Queue.

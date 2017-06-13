@@ -1,12 +1,12 @@
--- For compiling SAL tests
+--  For use by other projects writing tests; includes sal-*-aunit
 with "aunit";
 with "aunit_sal_ext";
 with "standard_common";
-with "sal_devel";
-project Sal_Test is
+with "sal";
+project SAL_Devel is
 
    for Source_Dirs use
-     ("../test");
+     ("../source_devel");
 
    for Object_Dir use "objects";
    for Exec_Dir use ".";
@@ -21,15 +21,10 @@ project Sal_Test is
 
       when "Normal" =>
          for Default_Switches ("Ada") use
-           Common.Compiler.Release_Switches &
-           Common.Compiler.Style_Checks &
-           Common.Compiler'Default_Switches ("Ada");
-
+           Standard_Common.Compiler.Release_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler'Default_Switches ("Ada");
       end case;
    end Compiler;
 
-   package Binder is
-      for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
-   end Binder;
-
-end Sal_Test;
+end SAL_Devel;
