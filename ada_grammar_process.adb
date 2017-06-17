@@ -43,7 +43,10 @@ package body Ada_Grammar_Process is
       pragma Unreferenced (Algorithm);
    begin
       Table.Panic_Recover :=
-        (others => False);
+        (163 |
+         223 |
+         309 => True,
+         others => False);
 
       Table.Follow :=
         (108 =>
@@ -22783,7 +22786,7 @@ package body Ada_Grammar_Process is
       return
         (FastToken.Lexer.Elisp_Process.New_Lexer (106, Trace'Access),
          Table, FastToken.Token.Semantic_State'Class (State)'Access,
-         FastToken.Token.List.Null_List, Max_Parallel, 0, Terminate_Same_State => True);
+         Max_Parallel, 0, Terminate_Same_State => True);
    end Create_Parser;
 
 end Ada_Grammar_Process;

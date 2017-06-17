@@ -27,7 +27,11 @@
   (require 'wisi-compat-24.2)
 ;;)
 
-(cl-defstruct wisi-parser)
+(cl-defstruct wisi-parser
+  error-msgs
+  ;; List of error messages from last parse. Can be more than one if
+  ;; parser supports error recovery.
+)
 
 (cl-defgeneric wisi-parse-current ((parser wisi-parser))
   "Parse current buffer.")
@@ -118,5 +122,18 @@ For use in grammar actions.")
 		(max (cdr left) (cdr right)))
 	left)
     right))
+
+;;;; debugging
+(defun wisi-tok-debug-image (tok)
+  "Return id and region from TOK, as string."
+  (cond
+   ((wisi-tok-region tok)
+    (format "(%s %d . %d)"
+	    (wisi-tok-token tok)
+	    (car (wisi-tok-region tok))
+	    (cdr (wisi-tok-region tok))))
+   (t
+    (format "(%s)" (wisi-tok-token tok)))
+   ))
 
 (provide 'wisi-parse-common)

@@ -79,12 +79,15 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     ;;    of the previous EMACSCMD, and the test fails if they don't
     ;;    match.
     ;;
+    ;; --EMACS_SKIP_UNLESS: <form>
+    ;;   skip entire test if form evals nil
+    ;;
     ;; --EMACSDEBUG: <form>
     ;;    Eval form, display result. Also used for setting breakpoint.
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
-		(re-search-forward "--EMACS\\(CMD\\|RESULT\\|DEBUG\\):" nil t))
+		(re-search-forward "--EMACS\\([^:]+\\):" nil t))
       (cond
        ((string= (match-string 1) "CMD")
 	(looking-at ".*$")
@@ -119,6 +122,15 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 		    expected-result)
 	    ))))
 
+       ((string= (match-string 1) "_SKIP_UNLESS")
+	(looking-at ".*$")
+	(unless (eval (car (read-from-string (match-string 0))))
+	  (setq skip-cmds t)
+	  (setq skip-reindent-test t)
+	  (setq skip-recase-test t)
+	  ;; We don’t set ‘skip-write’ t here, so the *.diff Make target succeeds.
+	  ))
+
        ((string= (match-string 1) "DEBUG")
 	(looking-at ".*$")
 	(message "DEBUG: %s:%d %s"
@@ -128,7 +140,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 
        (t
 	(setq error-count (1+ error-count))
-	(error (concat "Unexpected command " (match-string 1))))))
+	(error (concat "Unexpected EMACS test command " (match-string 1))))))
 
     (when (> error-count 0)
       (error

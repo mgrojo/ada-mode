@@ -14,60 +14,42 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
   (load "autoloads.el")
-  (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
+  (load "run-indent-test-process-gpr_query")
+  ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/ada_mode-nominal.adb")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/wisi/")
+  (run-test "../../test/ada_mode-interactive_recover.adb")
   (wisi-debug-keys))
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
   (load "run-wisi-process-test.el")
   ; (setq debug-on-error t)
   (setq wisi-disable-face t)
   (setq wisi-process-parse-exec-opts '("-v" "4"))
-  (find-file "/Projects/org.emacs.ada-mode/test/wisi/subprograms.input")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
 (setq wisi-process-parse-exec-opts '("-v" "4"))
 (setq wisi-process-parse-exec-opts nil)
+(kill-process " *Ada_wisi_parse*")
+
  syntax error handling
 
 /Projects/org.fasttoken/notes.text
 
-recompile all with non-debug
+if face parse triggers in the middle of other parse => boom
+    need general lock on parser
 
-time lexers:
-    gnatcoll-xref.adb
-    'ada-lex
-        (time-it 'wisi-ext-lex 1)
-
-    'wisi-lex
-        (time-it 'wisi-lex-buffer 1)
-
-    o.e.a ext opentoken (slow recognizer): 0.637708 seconds, 0 gcs
-    o.e.a.s-1 wisi: 0.569551 seconds, 2 gcs
-    o.e.a.s-4 wisi indent: 0.402671 seconds, 2 gcs
-    o.e.a.s-4 wisi navigate: 0.333494 seconds, 1 gcs
-    o.e.a.s-4 ext aflex: 0.643523 seconds, 0 gcs
-
-need better lexer for fasttoken
-    handle tick character literal
-    handle utf-8
-
-    wisi-lexer would be simplest
-    lexer used by libadalang?
-
-add error handling
+more error handling
 
     continue by adding virtual tokens
         find shortest path from current state to defined action on next real token
@@ -142,6 +124,13 @@ parse face is slow
 
  indent issues
 indent is slow
+    take advantage of multicore:
+        Process ext feedback while waiting to send more
+            Need ewouldblock in lisp
+
+        Put parallel parse in separate tasks.
+
+        at least one thread in module
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
@@ -209,6 +198,11 @@ time indent
             last line:   7251
 
             second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
+
+        june 8 Ada fasttoken process parser, wisi lexer
+            (setq wisi-indent-region-fallback nil)
+            second line cold cache: 5.351977 seconds 15 gcs
             second line warm cache: 0.006563 seconds
 
 time wisi-forward-token use structs

@@ -180,6 +180,11 @@
 %parser_algorithm LALR
 %output_language Elisp
 
+;; We want to recover from incomplete declarations and statements.
+%panic_recover handled_sequence_of_statements
+%panic_recover sequence_of_statements_opt
+%panic_recover declarations
+
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA

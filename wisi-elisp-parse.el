@@ -103,6 +103,8 @@ point at which that max was spawned.")
 	 some-pending
 	 )
 
+    (setf (wisi-parser-error-msgs parser) nil)
+
     (goto-char (point-min))
     (forward-comment (point-max))
     (aset (wisi-elisp-parser-state-stack (aref parser-states 0)) 0 0)
@@ -120,12 +122,13 @@ point at which that max was spawned.")
 	    (when result
 	      ;; spawn a new parser
 	      (when (= active-parser-count wisi-elisp-parse-max-parallel)
-		(signal 'wisi-parse-error
-			(let ((state (aref (wisi-elisp-parser-state-stack parser-state)
-					   (wisi-elisp-parser-state-sp parser-state))))
-			  (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"
-						  " simplify grammar, or increase `wisi-elisp-parse-max-parallel'")
-						  state))))
+		(let* ((state (aref (wisi-elisp-parser-state-stack parser-state)
+				    (wisi-elisp-parser-state-sp parser-state)))
+		       (msg (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"
+						    " simplify grammar, or increase `wisi-elisp-parse-max-parallel'")
+					    state)))
+		  (push msg (wisi-parser-error-msgs parser))
+		  (signal 'wisi-parse-error msg)))
 
 	      (let ((j (wisi-elisp-parse-free-parser parser-states)))
 		(cond
@@ -164,15 +167,15 @@ point at which that max was spawned.")
 		(0
 		 (cond
 		  ((= active-parser-count-prev 1)
-		   ;; We were not in a parallel parse; report the error.
-		   (let ((state (aref (wisi-elisp-parser-state-stack parser-state)
-                                      (wisi-elisp-parser-state-sp parser-state))))
-		     (signal 'wisi-parse-error
-			     (wisi-error-msg "syntax error in grammar state %d; unexpected %s, expecting one of %s"
-					     state
-					     (wisi-token-text token)
-					     (mapcar 'car (aref actions state))))
-		     ))
+		   ;; We were not in a parallel parse; abandon parsing, report the error.
+		   (let* ((state (aref (wisi-elisp-parser-state-stack parser-state)
+				       (wisi-elisp-parser-state-sp parser-state)))
+			  (msg (wisi-error-msg "syntax error in grammar state %d; unexpected %s, expecting one of %s"
+					       state
+					       (wisi-token-text token)
+					       (mapcar 'car (aref actions state)))))
+		     (push msg (wisi-parser-error-msgs parser))
+		     (signal 'wisi-parse-error msg)))
 		  (t
 		   ;; Report errors from all parsers that failed on this token.
 		   (let ((msg))

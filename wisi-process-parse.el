@@ -88,7 +88,9 @@
 	  (make-process
 	   :name process-name
 	   :buffer (wisi-process--parser-buffer parser)
-	   :command (append (list (wisi-process--parser-exec-file parser))
+	   :command (append (list
+			     (wisi-process--parser-exec-file parser)
+			     "-v" (format "%d" wisi-debug))
 			    wisi-process-parse-exec-opts)))
 
     (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
@@ -182,7 +184,6 @@ buffer.  Does not wait for command to complete."
        (process-send-string process (format "%d " (gethash wisi-eoi-term term-hash)))
        (signal 'wisi-parse-error (cdr err))) ;; tell higher level code about error.
       )
-
     ))
 
 (cl-defmethod wisi-parse-find-token ((parser wisi-process--parser) token-symbol)
@@ -192,7 +193,7 @@ buffer.  Does not wait for command to complete."
     (while (and (< sp (queue-length stack))
 		(not (eq token-symbol (wisi-tok-token tok))))
       (setq sp (1+ sp))
-      (setq tok (queue-nth stack 0)))
+      (setq tok (queue-nth stack sp)))
     (if (= sp (queue-length stack))
 	(error "token %s not found on parser stack" token-symbol)
       tok)
@@ -203,14 +204,50 @@ buffer.  Does not wait for command to complete."
     (when (< n (queue-length stack))
       (queue-nth stack n))))
 
+(defun wisi-process-parse--id-to-enum (token-table int-id)
+  "Translate INT-ID from process integer token ids to elisp enumeral id
+from TOKEN-TABLE."
+  (aref token-table (1- int-id)))
+
+(defun wisi-process-parse--check-id (label token-table tok id)
+  "Check that TOK id equals ID; throw error if not."
+  (let ((enum (wisi-process-parse--id-to-enum token-table id)))
+    (unless (eq (wisi-tok-token tok) enum)
+      (error "%s: token id mismatch between elisp input queue %s and process input queue %s"
+	     label (wisi-tok-debug-image tok) enum))))
+
 (defun wisi-process-parse--push_token (parser sexp)
   ;; sexp is  [push_token id]
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (wisi-process-parse--dequeue-input parser)))
-    (unless (eq (wisi-tok-token tok) (aref (wisi-process--parser-token-table parser) (1- (aref sexp 1))))
-      (error "token id mismatch between parser queue and process output"))
-
+    (wisi-process-parse--check-id "push_token" (wisi-process--parser-token-table parser) tok (aref sexp 1))
+    (when (> wisi-debug 1)
+      (message "push token %s" (wisi-tok-debug-image tok)))
     (wisi-process-parse--push-stack parser tok)
+    ))
+
+(defun wisi-process-parse--discard_token (parser sexp)
+  ;; sexp is  [discard_token id]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((tok (wisi-process-parse--dequeue-input parser)))
+    (wisi-process-parse--check-id "discard_token" (wisi-process--parser-token-table parser) tok (aref sexp 1))
+    (when (> wisi-debug 1)
+      (message "discard token %s" (wisi-tok-debug-image tok)))
+    ))
+
+(defun wisi-process-parse--error (parser sexp)
+  ;; sexp is [error [expected_id ...]]
+  (let* ((token-table (wisi-process--parser-token-table parser))
+	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1))))
+
+    (goto-char (car (wisi-tok-region (queue-first (wisi-process--parser-input-queue parser)))))
+    (push
+     (format "%s:%d:%d: syntax error; expecting one of '%s'"
+	     (file-name-nondirectory (buffer-file-name))
+	     (line-number-at-pos (point))
+	     (current-column)
+	     elisp-ids)
+     (wisi-parser-error-msgs parser))
     ))
 
 (defun wisi-process-parse--merge_tokens (parser sexp)
@@ -235,9 +272,7 @@ buffer.  Does not wait for command to complete."
     (setq i (1- (length tokens-1)))
     (while (>= i 0)
       (setq tok (wisi-process-parse--pop-stack parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref tokens-1 i))))
-	(error "token id mismatch between parser queue and process output"))
-
+      (wisi-process-parse--check-id "merge_tokens" token-table tok (aref tokens-1 i))
       (setf nonterm-region (wisi-and-regions nonterm-region (wisi-tok-region tok)))
       (aset tokens-2 i tok)
       (setq i (1- i)))
@@ -289,30 +324,30 @@ buffer.  Does not wait for command to complete."
     ))
 
 (defun wisi-process-parse--recover (parser sexp)
-  ;; sexp is [recover [popped_id ...] [skipped_id ...] pushed_id]
+  ;; sexp is [recover [popped_id ...] [pushed_id ..]]
   ;; see ‘wisi-process-parse--execute’
   (let ((token-table (wisi-process--parser-token-table parser))
-	ids tok)
+	ids enum-ids tok)
     (setq ids (aref sexp 1))
     (dotimes (i (length ids))
       (setq tok (wisi-process-parse--pop-stack parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref ids i))))
-	(error "token id mismatch between parser queue and process output")))
+      (when (> wisi-debug 1) (push tok enum-ids))
+      (wisi-process-parse--check-id "recover: popped" token-table tok (aref ids i)))
+
+    (when (> wisi-debug 1)
+      (message "recover: popped tokens %s" (mapcar #'wisi-tok-debug-image enum-ids))
+      (setq enum-ids nil))
 
     (setq ids (aref sexp 2))
     (dotimes (i (length ids))
-      (setq tok (wisi-process-parse--dequeue-input parser))
-      (unless (eq (wisi-tok-token tok) (aref token-table (1- (aref ids i))))
-	(error "token id mismatch between parser queue and process output")))
+      (setq tok
+	    (make-wisi-tok
+	     :token (aref token-table (1- (aref ids i)))
+	     ))
+      (when (> wisi-debug 1)
+	(message "recover: pushed token %s" (wisi-tok-debug-image tok)))
 
-    (wisi-process-parse--push-stack
-     parser
-     (make-wisi-tok
-      :token (aref token-table (1- (aref sexp 3)))
-      ;; FIXME: set region to all popped, skipped?
-      ))
-
-    ;; FIXME: report invalid region
+      (wisi-process-parse--push-stack parser tok))
   ))
 
 (defun wisi-process-parse--execute (parser sexp)
@@ -329,6 +364,13 @@ buffer.  Does not wait for command to complete."
   ;;    pop token (should have id = id) from the input queue, push it
   ;;    on the augmented token stack
   ;;
+  ;; [discard_token id]
+  ;;    pop token (should have id = id) from the input queue, discard it
+  ;;
+  ;; [error [expected_id ...]]
+  ;;    head of input queue caused a syntax error; save for later
+  ;;    reporting (error recovery started).
+  ;;
   ;; [merge_tokens nonterm_id [id ...] production_index]
   ;;    Pop tokens from auqmented stack (should match [id ...]),
   ;;    combine into nonterm, push that onto augmented stack. Call
@@ -338,20 +380,44 @@ buffer.  Does not wait for command to complete."
   ;;    FIXME: don’t need right hand side token ids, just count. Keep for
   ;;    now so can double-check.
   ;;
-  ;; [recover [popped_id ...] [skipped_id ...] pushed_id]
+  ;; [recover [popped_id ...] [skipped_id ...] [pushed_id ..]]
   ;;
   ;; where:
-  ;; push_token = 1
-  ;; merge_tokens = 2
-  ;; recover = 3
+  ;; push_token    = 1
+  ;; discard_token = 2
+  ;; error 	   = 3
+  ;; merge_tokens  = 4
+  ;; recover 	   = 5
   ;;
   ;; nonterm_id, *id - token_id’pos; index into token-table (process 1 origin)
   ;; production_index - index into action-table for nonterm (process 0 origin)
 
   (cl-ecase (aref sexp 0)
     (1 (wisi-process-parse--push_token parser sexp))
-    (2 (wisi-process-parse--merge_tokens parser sexp))
-    (3 (wisi-process-parse--recover parser sexp))))
+    (2 (wisi-process-parse--discard_token parser sexp))
+    (3 (wisi-process-parse--error parser sexp))
+    (4 (wisi-process-parse--merge_tokens parser sexp))
+    (5 (wisi-process-parse--recover parser sexp))))
+
+(defun wisi-process-parse-report-error (parser action)
+  "ACTION must be a signal form for a syntax error; execute the resulting form.
+Replace line, column in ACTION with data from head of input queue.
+"
+  ;; Since we are using an LR parser, syntax errors are always
+  ;; reported for the most recently read token.
+  (let ((msg (nth 2 action))
+	(tok (queue-nth (wisi-process--parser-input-queue parser) 0)))
+    (goto-char (car (wisi-tok-region tok)))
+    (string-match "\\(.*\\):0:0: \\(.*\\)''" msg)
+    (signal
+     'wisi-parse-error
+     (format "%s:%d:%d: %s'%s'"
+	     (match-string 1 msg)
+	     (line-number-at-pos (point))
+	     (current-column)
+	     (match-string 2 msg)
+	     (wisi-token-text tok)))
+    ))
 
 ;;;;; main
 
@@ -378,6 +444,7 @@ buffer.  Does not wait for command to complete."
 	 (start-time (float-time))
 	 start-wait-time)
 
+    (setf (wisi-parser-error-msgs parser) nil)
     (queue-clear (wisi-process--parser-input-queue parser))
     (queue-clear (wisi-process--parser-parse-stack parser))
 
@@ -387,7 +454,8 @@ buffer.  Does not wait for command to complete."
       ;; There is some race condition when first starting emacs;
       ;; loading more emacs code vs starting the external process
       ;; interface or something. It is quite repeatable when running
-      ;; unit tests; this delay makes the tests work
+      ;; unit tests; this delay makes the tests work.
+      ;; FIXME: face parse clobbers indent/navigate parse? still need this?
       (sit-for 0.2))
 
     (set-buffer action-buffer)
@@ -429,7 +497,14 @@ buffer.  Does not wait for command to complete."
 	    (set-buffer source-buffer)
 	    (if (listp action)
 		;; post-parser action
-		(eval action)
+		(cond
+		 ((and (eq 'signal (nth 0 action))
+		       (string-match "Syntax error" (nth 2 action)))
+		  ;; Recovery failed for this error, so signal it.
+		  (wisi-process-parse-report-error parser action))
+
+		 (t
+		  (eval action)))
 
 	      ;; encoded parser action
 	      (wisi-process-parse--execute parser action))
@@ -533,5 +608,14 @@ functions."
 	(setq prod-index (1+ prod-index)))
       (setq nonterm-index (1+ nonterm-index)))
     (list table symbol-obarray)))
+
+;;;;; debugging
+(defun wisi-process-parse-ids-to-enum (token-table &rest int-ids)
+  "Translate INT-IDS from process integer token ids to elisp enumeral ids.
+Returns reversed sequence."
+  (let ((enum-ids nil))
+    (cl-dolist (i int-ids)
+      (push (aref token-table (1- i)) enum-ids))
+    enum-ids))
 
 (provide 'wisi-process-parse)

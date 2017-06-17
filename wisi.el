@@ -748,14 +748,14 @@ Used to ignore whitespace changes in before/after change hooks.")
 If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS must be (1- mark)."
   (get-text-property pos 'wisi-cache))
 
-(defvar-local wisi-parse-error-msg nil)
-
 (defun wisi-goto-error ()
   "Move point to position in last error message (if any)."
-  (when (and wisi-parse-error-msg
-	     (string-match ":\\([0-9]+\\):\\([0-9]+\\):" wisi-parse-error-msg))
-    (let ((line (string-to-number (match-string 1 wisi-parse-error-msg)))
-	  (col (string-to-number (match-string 2 wisi-parse-error-msg))))
+  ;; FIXME: next-error goto next etc
+  (when (and (wisi-parser-error-msgs wisi--parser)
+	     (string-match ":\\([0-9]+\\):\\([0-9]+\\):" (car (wisi-parser-error-msgs wisi--parser))))
+    (let* ((msg (car (wisi-parser-error-msgs wisi--parser)))
+	   (line (string-to-number (match-string 1 msg)))
+	   (col (string-to-number (match-string 2 msg))))
       (push-mark)
       (goto-char (point-min))
       (forward-line (1- line))
@@ -765,9 +765,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   "Show last wisi-parse error."
   (interactive)
   (cond
-   (wisi-parse-failed
+   ((wisi-parser-error-msgs wisi--parser)
     (wisi-goto-error)
-    (message wisi-parse-error-msg))
+    (message (car (wisi-parser-error-msgs wisi--parser))))
 
    ((wisi-parse-try wisi--last-parse-action)
     (message "need parse"))
@@ -796,9 +796,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (when (> wisi-debug 0)
       (message msg))
 
-    (setq wisi-parse-error-msg nil)
-
-    (condition-case-unless-debug err
+    (condition-case-unless-debug nil
 	(save-excursion
 	  (wisi-parse-current wisi--parser)
  	  (setq wisi-parse-failed nil)
@@ -821,20 +819,20 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  ;; parse does not set caches; see `wisi-indent-region'
 	  nil))
        (setq wisi-parse-failed t)
-       (setq wisi-parse-error-msg (cdr err)))
-      )
+       ;; parser should have stored this error message in parser-error-msgs
+       ))
 
-    (if wisi-parse-error-msg
-	;; error
-	(when (> wisi-debug 0)
-	  (message "%s error" msg)
-	  (wisi-goto-error)
-	  (error wisi-parse-error-msg)))
+    (when (> wisi-debug 0)
+      (if (wisi-parser-error-msgs wisi--parser)
+	  ;; error
+	  (progn
+	    (message "%s error" msg)
+	    (wisi-goto-error)
+	    (error (car (wisi-parser-error-msgs wisi--parser))))
 
-      ;; no error
-      (when (> wisi-debug 0)
+	;; no error
 	(message "%s done" msg))
-      ))
+      )))
 
 (defvar-local wisi--last-parse-action nil
   "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
@@ -2378,7 +2376,7 @@ Called with BEGIN END.")
   (setq wisi--change-end (copy-marker (point-min) t))
 
   (unless wisi-disable-face
-    (jit-lock-register 'wisi-fontify-region))
+    (jit-lock-register #'wisi-fontify-region))
 
   ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))

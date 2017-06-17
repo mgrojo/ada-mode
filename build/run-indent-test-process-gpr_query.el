@@ -7,6 +7,7 @@
 (require 'run-indent-test)
 
 (setq debug-on-error t)
-(setq wisi-debug 1);; report parse errors
+
+(setq wisi-debug 0);; don’t report parse errors; recover from them!
 
 ;;; end of file
