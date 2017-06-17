@@ -51,6 +51,11 @@ package FastToken.Token_Wisi_Process is
       State : access State_Type);
 
    overriding
+   procedure Error
+     (Expecting : in     Token_ID_Set;
+      State     : access State_Type);
+
+   overriding
    procedure Discard_Token
      (Token : in     Token_ID;
       State : access State_Type);
@@ -65,8 +70,8 @@ package FastToken.Token_Wisi_Process is
 
    overriding
    procedure Recover
-     (Popped_Tokens  : in     Token.List.Instance;
-      Pushed_Token   : in     Token_ID;
-      State          : access State_Type);
+     (Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance;
+      State         : access State_Type);
 
 end FastToken.Token_Wisi_Process;

@@ -27,13 +27,35 @@ package body FastToken.Token_Wisi_Process is
    --  See [1]
    Push_Token_Code    : constant String := "1 ";
    Discard_Token_Code : constant String := "2 ";
-   Merge_Tokens_Code  : constant String := "3 ";
-   Recover_Code       : constant String := "4 ";
+   Error_Code         : constant String := "3 ";
+   Merge_Tokens_Code  : constant String := "4 ";
+   Recover_Code       : constant String := "5 ";
 
    function To_Code (ID : in Token_ID) return String
    is begin
       return Int_Image (ID);
    end To_Code;
+
+   function To_Codes (Tokens : in Token_ID_Set) return String
+   is
+      --  A token image consists of:
+      --
+      --  ID - int
+      Chars_Per_Token : constant Integer := Integer'Width;
+
+      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
+        (Max => 2 + Integer (Tokens'Length) * Chars_Per_Token);
+      use Bounded;
+
+      Token_Line : Bounded_String := To_Bounded_String ("[");
+   begin
+      for I in Tokens'Range loop
+         if Tokens (I) then
+            Token_Line := Token_Line & Token_ID'Image (I);
+         end if;
+      end loop;
+      return To_String (Token_Line & "]");
+   end To_Codes;
 
    function To_Codes (Tokens : in Token.List.Instance) return String
    is
@@ -86,6 +108,16 @@ package body FastToken.Token_Wisi_Process is
    end Push_Token;
 
    overriding
+   procedure Error
+     (Expecting : in     Token_ID_Set;
+      State     : access State_Type)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Error_Code & To_Codes (Expecting) & "]");
+   end Error;
+
+   overriding
    procedure Discard_Token
      (Token : in     Token_ID;
       State : access State_Type)
@@ -111,14 +143,14 @@ package body FastToken.Token_Wisi_Process is
 
    overriding
    procedure Recover
-     (Popped_Tokens  : in     Token.List.Instance;
-      Pushed_Token   : in     Token_ID;
-      State          : access State_Type)
+     (Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance;
+      State         : access State_Type)
    is
       pragma Unreferenced (State);
    begin
       Ada.Text_IO.Put_Line
-        ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Code (Pushed_Token) & "]");
+        ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Codes (Pushed_Tokens) & "]");
    end Recover;
 
 end FastToken.Token_Wisi_Process;
