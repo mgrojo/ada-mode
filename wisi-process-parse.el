@@ -44,6 +44,7 @@
   (token-table nil) 	       ;; vector of token symbols (terminal and nonterminal), indexed by integer
   (action-table nil) 	       ;; vector of vectors of semantic actions, indexed by nonterminal, production index
   (term-hash nil) 	       ;; hash table with keys of terminal token symbols, value of integer index
+  (busy nil)                   ;; t while parser is active
   (input-queue (queue-create)) ;; stores wisi-tok tokens returned by wisi-forward-token
   (parse-stack (queue-create)) ;; stores wisi-tok tokens mirroring external parse stack
   (process nil) 	       ;; running ada_mode_wisi_parse
@@ -51,7 +52,7 @@
   (new-session t) 	       ;; Non-nil indicates session is new; delay after first command.
   )
 
-;			       ;;###autoload
+;;;###autoload
 (cl-defun wisi-make-process-parser (&key label exec token-table action-table terminal-hashtable)
   "Return a ‘wisi-process--parser’ object."
   (let ((exec-file (locate-file exec exec-path '("" ".exe"))))
@@ -95,6 +96,7 @@
 
     (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
     (setf (wisi-process--parser-new-session parser) t)
+    (setf (wisi-process--parser-busy parser) nil)
 
     ;; FIXME: check protocol and version numbers
     (wisi-process-parse--wait parser)
@@ -430,119 +432,134 @@ Replace line, column in ACTION with data from head of input queue.
   "Run the external parser on the current buffer."
   (wisi-process-parse--require-process parser)
 
-  (let* ((source-buffer (current-buffer))
-	 (action-buffer (wisi-process--parser-buffer parser))
-	 (process (wisi-process--parser-process parser))
-	 (w32-pipe-read-delay 0) ;; fastest subprocess read
-	 action
-	 action-end
-	 (action-count 0)
-	 (sexp-start (point-min))
-	 (wait-count 0)
-	 (need-more nil)
-	 (done nil)
-	 (start-time (float-time))
-	 start-wait-time)
+  ;; font-lock can trigger a face parse while navigate or indent parse
+  ;; is active, due to ‘accept-process-output’ below. font-lock cannot
+  ;; hang (it is called from an idle timer), so don’t wait. Don’t
+  ;; throw an error either; there is no syntax error. Just leave point
+  ;; at point-min, so font-lock knows nothing was done.
+  (unless (wisi-process--parser-busy parser)
+    (condition-case err
+	(let* ((source-buffer (current-buffer))
+	       (action-buffer (wisi-process--parser-buffer parser))
+	       (process (wisi-process--parser-process parser))
+	       (w32-pipe-read-delay 0) ;; fastest subprocess read
+	       action
+	       action-end
+	       (action-count 0)
+	       (sexp-start (point-min))
+	       (wait-count 0)
+	       (need-more nil)
+	       (done nil)
+	       (start-time (float-time))
+	       start-wait-time)
 
-    (setf (wisi-parser-error-msgs parser) nil)
-    (queue-clear (wisi-process--parser-input-queue parser))
-    (queue-clear (wisi-process--parser-parse-stack parser))
+	  (setf (wisi-process--parser-busy parser) t)
 
-    (wisi-process-parse--send-parse parser)
-    (when (wisi-process--parser-new-session parser)
-      (setf (wisi-process--parser-new-session parser) nil)
-      ;; There is some race condition when first starting emacs;
-      ;; loading more emacs code vs starting the external process
-      ;; interface or something. It is quite repeatable when running
-      ;; unit tests; this delay makes the tests work.
-      ;; FIXME: face parse clobbers indent/navigate parse? still need this?
-      (sit-for 0.2))
 
-    (set-buffer action-buffer)
+	  (setf (wisi-parser-error-msgs parser) nil)
+	  (queue-clear (wisi-process--parser-input-queue parser))
+	  (queue-clear (wisi-process--parser-parse-stack parser))
 
-    ;; process responses until prompt received
-    (while (and (process-live-p process)
-		(not done))
+	  (wisi-process-parse--send-parse parser)
+	  (when (wisi-process--parser-new-session parser)
+	    (setf (wisi-process--parser-new-session parser) nil)
+	    ;; There is some race condition when first starting emacs;
+	    ;; loading more emacs code vs starting the external process
+	    ;; interface or something. It is quite repeatable when running
+	    ;; unit tests; this delay makes the tests work.
+	    ;; FIXME: face parse clobbers indent/navigate parse? still need this?
+	    (sit-for 0.2))
 
-      ;; process all responses currently in buffer
-      (while (and (process-live-p process)
-		  (not need-more)
-		  (not done))
+	  (set-buffer action-buffer)
 
-	(goto-char sexp-start)
+	  ;; process responses until prompt received
+	  (while (and (process-live-p process)
+		      (not done))
 
-	(cond
-	 ((eobp)
-	  (setq need-more t))
+	    ;; process all responses currently in buffer
+	    (while (and (process-live-p process)
+			(not need-more)
+			(not done))
 
-	 ((looking-at wisi-process-parse-prompt)
-	  (setq done t))
+	      (goto-char sexp-start)
 
-	 ((or (looking-at "\\[") ;; semantic action
-	      (looking-at "(")) ;; post-parse expression to eval
-	  (condition-case nil
-	      (setq action-end (scan-sexps (point) 1))
-	    (error
-	     ;; incomplete action
-	     (setq need-more t)
-	     nil))
+	      (cond
+	       ((eobp)
+		(setq need-more t))
 
-	  (unless need-more
-	    (setq action-count (1+ action-count))
-	    (setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
-	    (goto-char action-end)
-	    (forward-line 1)
-	    (setq sexp-start (point))
+	       ((looking-at wisi-process-parse-prompt)
+		(setq done t))
 
-	    (set-buffer source-buffer)
-	    (if (listp action)
-		;; post-parser action
-		(cond
-		 ((and (eq 'signal (nth 0 action))
-		       (string-match "Syntax error" (nth 2 action)))
-		  ;; Recovery failed for this error, so signal it.
-		  (wisi-process-parse-report-error parser action))
+	       ((or (looking-at "\\[") ;; semantic action
+		    (looking-at "(")) ;; post-parse expression to eval
+		(condition-case nil
+		    (setq action-end (scan-sexps (point) 1))
+		  (error
+		   ;; incomplete action
+		   (setq need-more t)
+		   nil))
 
-		 (t
-		  (eval action)))
+		(unless need-more
+		  (setq action-count (1+ action-count))
+		  (setq action (car (read-from-string (buffer-substring-no-properties (point) action-end))))
+		  (goto-char action-end)
+		  (forward-line 1)
+		  (setq sexp-start (point))
 
-	      ;; encoded parser action
-	      (wisi-process-parse--execute parser action))
+		  (set-buffer source-buffer)
+		  (if (listp action)
+		      ;; post-parser action
+		      (cond
+		       ((and (eq 'signal (nth 0 action))
+			     (string-match "Syntax error" (nth 2 action)))
+			;; Recovery failed for this error, so signal it.
+			(wisi-process-parse-report-error parser action))
 
-	    (set-buffer action-buffer)
-	    ))
+		       (t
+			(eval action)))
 
-	 (t
-	  ;; debug output, error message
-	  (forward-line 1)
-	  (setq sexp-start (point)))
-	 )
-	)
+		    ;; encoded parser action
+		    (wisi-process-parse--execute parser action))
 
-      (unless done
-	;; end of buffer, or process died
-	(unless (process-live-p process)
-	  (wisi-process-parse-show-buffer parser)
-	  (error "wisi-process-parse process died"))
+		  (set-buffer action-buffer)
+		  ))
 
-	(setq wait-count (1+ wait-count))
-	(setq start-wait-time (float-time))
-	(accept-process-output process) ;; no time-out; that's a race condition
+	       (t
+		;; debug output, error message
+		(forward-line 1)
+		(setq sexp-start (point)))
+	       )
+	      )
 
-	(setq need-more nil))
-      );; while not done
+	    (unless done
+	      ;; end of buffer, or process died
+	      (unless (process-live-p process)
+		(wisi-process-parse-show-buffer parser)
+		(error "wisi-process-parse process died"))
 
-    ;; got command prompt
-    (unless (process-live-p process)
-      (wisi-process-parse-show-buffer parser)
-      (error "wisi-process-parse process died"))
+	      (setq wait-count (1+ wait-count))
+	      (setq start-wait-time (float-time))
+	      (accept-process-output process) ;; no time-out; that's a race condition
 
-    (when (> wisi-process-parse-debug 0)
-      (message "total time: %f" (- (float-time) start-time))
-      (message "action-count: %d" action-count))
+	      (setq need-more nil))
+	    );; while not done
 
-    (set-buffer source-buffer)
-    ))
+	  ;; got command prompt
+	  (unless (process-live-p process)
+	    (wisi-process-parse-show-buffer parser)
+	    (error "wisi-process-parse process died"))
+
+	  (when (> wisi-process-parse-debug 0)
+	    (message "total time: %f" (- (float-time) start-time))
+	    (message "action-count: %d" action-count))
+
+	  (set-buffer source-buffer)
+	  (setf (wisi-process--parser-busy parser) nil)
+	  )
+      (error
+       (setf (wisi-process--parser-busy parser) nil)
+       (apply #'signal err)
+       ))))
 
 (defun wisi-process-compile-tokens (tokens)
   "Compile terminals from TOKENS into a hash-table.

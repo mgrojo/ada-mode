@@ -5,12 +5,6 @@
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
 
--- FIXME: when run from the test Makefile, parse for fontify kicks in
--- while parse for indent is running, screwing things up. This
--- disables that; need a more general method to avoid running two
--- parses simultaneously.
---EMACSCMD:(jit-lock-unregister #'wisi-fontify-region)
-
 --EMACSCMD:(indent-region (point-min) (point-max))
 --EMACSCMD:(progn (ada-show-parse-error)(looking-at "; -- error reported here"))
 

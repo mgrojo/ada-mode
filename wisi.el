@@ -738,6 +738,17 @@ Used to ignore whitespace changes in before/after change hooks.")
 	(wisi-set-parse-try t 'navigate)
 	(wisi-set-parse-try t 'indent)
 
+	;; Always invalidate from a statement start, to ensure
+	;; next/prev motion caches are properly updated. But don’t
+	;; force a parse for this.
+	(when (< begin (wisi-cache-max 'navigate))
+	  (let ((cache (wisi-get-cache begin)))
+	    (unless cache
+	      (goto-char begin)
+	      (setq cache (wisi-backward-cache)))
+	    (wisi-goto-start cache)
+	    (setq begin (point))))
+
 	(wisi-invalidate-cache 'face begin)
 	(wisi-invalidate-cache 'navigate begin)
 	(wisi-invalidate-cache 'indent begin))
@@ -1138,8 +1149,9 @@ vector [number token_id token_id ...]:
 		    (setq mark (copy-marker (1+ (point))))
 
 		    (if prev-keyword-mark
-			;; Don't include this token if prev/next already
-			;; set by a lower level statement
+			;; Don't include this token if prev/next
+			;; already set by a lower level statement,
+			;; such as a nested if/then/elsif/end if.
 			(when (and (null (wisi-cache-prev cache))
 				   (null (wisi-cache-next prev-cache)))
 			  (setf (wisi-cache-prev cache) prev-keyword-mark)
@@ -1937,12 +1949,10 @@ Return cache for paren, or nil if no containing paren."
 (defun wisi-goto-start (cache)
   "Move point to containing ancestor of CACHE that has class statement-start.
 Return start cache."
-  (when
-    ;; cache nil at bob, or on cache in partially parsed statement
-    (while (and cache
-		(not (eq (wisi-cache-class cache) 'statement-start)))
-      (setq cache (wisi-goto-containing cache)))
-    )
+  ;; cache nil at bob, or on cache in partially parsed statement
+  (while (and cache
+	      (not (eq (wisi-cache-class cache) 'statement-start)))
+    (setq cache (wisi-goto-containing cache)))
   cache)
 
 (defun wisi-goto-end-1 (cache)

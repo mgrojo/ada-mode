@@ -56,16 +56,16 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-test
 
-#ONE_TEST_FILES += ada_mode-nominal.adb.diff
-#one : RUNTEST := run-indent-test-process-gpr_query.el
+ONE_TEST_FILES += ada_mode-interactive_recover.adb.diff
+one : RUNTEST := run-indent-test-process-gpr_query.el
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
-ONE_TEST_FILES += subprograms.wisi-process-test
-one : RUNTEST := run-wisi-process-test.el
-one : export Standard_Common_Build := Debug
+#ONE_TEST_FILES += subprograms.wisi-process-test
+#one : RUNTEST := run-wisi-process-test.el
+#one : export Standard_Common_Build := Debug
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
 	rm -f $(ONE_TEST_FILES) $(ONE_TEST_FILES:.diff=.tmp)
-	cd ../../test/wisi/; rm -f *-elisp.el *.output
+#	cd ../../test/wisi/; rm -f *-elisp.el *-process.el *.output
 
 # one : update
 # one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
@@ -93,6 +93,7 @@ else
 export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
+INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
 
 %.wisi-test : %-elisp.el
@@ -136,9 +137,8 @@ ada_mode_wisi_parse.exe : ../../ada_grammar_process.ads force
 run_ada_parser.exe : ../../ada_grammar_process.ads force
 	gprbuild -p ada_mode_wisi_parse.gpr run_ada_parser.adb
 
-install : INSTALL_BIN := $(dir $(shell cygpath -w $(shell bash -c "type -p emacs")))
 install : ada_mode_wisi_parse.exe
-	strip -o $(INSTALL_BIN)$^ $^
+	strip -o $(INSTALL_BIN)/$^ $^
 
 clean ::
 	rm -f *.a *.ads *.adb *.exe
