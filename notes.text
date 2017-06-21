@@ -4,6 +4,9 @@ build/Makefile
  current work
 
 rename to wisitoken
+    created branch, editing files
+
+upgrade to GNAT GPL 2017
 
 some .wy in wisi_wy_test.adb, some in rules.make
     be more consistent

@@ -5,7 +5,7 @@
 @settitle wisi-generate User Guide
 
 @copying
-Copyright @copyright{} 2014-2015 Stephen Leake.
+Copyright @copyright{} 2014-2015, 2017 Stephen Leake.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this
@@ -57,26 +57,12 @@ the Emacs 'wisi' package implements an indentation engine that used to
 be based on the Emacs wisent parser. However, that parser has now been
 replaced by a generalized LALR parser, so ``wisi'' is just a name.
 
-``wisent'' is the European bison @url{http://en.wikipedia.org/wiki/Wisent}.
-
-The wisent parser generator is the Gnu parser generator implemented in
-Emacs elisp, as part of the semantic package
-@url{http://cedet.sourceforge.net/semantic.shtml}.  The parser is an
-LALR parser; see ``Compilers, Principles, Techniques, and Tools'' by
-Aho, Sethi, Ullman (The Red Dragon Book) for more information on LALR
-parsers.
-
-While implementing the Emacs Ada indentation engine, it became clear
-that forcing the Ada grammar to be LALR was hard; it was easier to
-implement a generalized LALR parser, which tolerates some grammar
-conflicts.
-
-The OpenToken grammar compiler (wisi-generate) reads a grammar file in
+The WisiToken grammar compiler @code{wisi-generate} reads a grammar file in
 wisi syntax, and outputs a compiled grammar in elisp format; it can
 then be used by wisi-parse.
 
 Alternately, wisi-generate can output Ada code, for use with the
-OpenToken parser.
+WisiToken parser run-time.
 
 @node Common grammar problems, Syntax, Overview, Top
 @chapter Common grammar problems
@@ -213,7 +199,9 @@ with some additions and deletions (@pxref{Top,Bison,Overview,bison}).
 The top level file structure is:
 @verbatim
 %{
-PROLOGUE
+PRE_PROLOGUE
+%%
+POST_PROLOGUE
 %}
 
 DECLARATIONS
@@ -235,15 +223,24 @@ Comments are started by ``;;'' and terminated by end of line.
 @section Prologue
 
 The Prologue contains arbitrary code, copied verbatim into the
-output. @code{wisi-generate} adds the necessary @code{require} forms
-for the elisp lexer, parser, and wisi actions; you only need to add
-add additional code if you use other actions.
+output.
+
+For Elisp output, @code{wisi-generate} adds the necessary
+@code{require} forms for the elisp lexer, parser, and wisi actions;
+you only need to add add additional code if you use other
+actions. Only the @code{PRE_PROLOGUE} is output; there is no need for
+a @code{POST_PROLOGUE} in Elisp output.
+
+For Ada output, the @code{PRE_PROLOGUE} section is output in the
+context-clause (before the package declaration); the
+@code{POST_PROLOGUE} is output after other package declarations, at
+the end of the package spec.
 
 @node Declarations, Rules, Prologue, Syntax
 @section Declarations
 
 The Declarations sections declares terminal tokens, conflicts, and
-the start symbol.
+other parser parameters.
 
 @menu
 * Tokens::
@@ -317,24 +314,71 @@ argument is the comment start syntax.
 
 @end table
 
-@node Conflicts, Start symbol, Tokens, Declarations
-@subsection Conflicts
-
-@verbatim
-%conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
-@end verbatim
-
-The conflict description is output by wisi-generate when an undeclared
-conflict is detected.
-
-@node Start symbol,  , Conflicts, Declarations
-@subsection Start symbol
+@node Other parser parameters,  , Conflicts, Declarations
+@subsection Other parser parameters
 
 @table @code
 @item %start
 The start token for the grammar.
 
+@item %first_parser_label
+The integer used to label the first of the parallel parsers;
+defaults to 0.
+
+@item %first_state_index
+The integer used to label the first of the generated parser states;
+defaults to 0.
+
+@item %interface
+The interface between the parser and Emacs; one of @code{Module |
+Process}.
+
+@item %lexer
+The lexer; one of @code{aflex | elisp | regexp}.
+
+@item %output_language
+The generator output language; one of:
+
+@table @code
+@item Ada
+Generates stand-alone Ada code.
+
+@item Ada_Emacs
+Generates Ada code for an Emacs module or subprocess.
+
+@item Elisp
+Generates Elisp code, for the Emacs wisi parser.
+
 @end table
+
+@item %parser_algorithm
+One of @code{LALR | LR1}.
+
+Parser tables produces by LR1 can be significantly larger than LALR
+tables. So far there is no reason to prefer LR1 over LALR; it is
+supported to allow experimenting with error recovery; that may be
+better with LR1 tables.
+
+@item %panic_recover
+Specifies a nonterminal used by ``panic mode'' error recovery; may be
+repeated to specify more nonterminals. Determining appropriate
+panic nonterminals for a particular grammar is an art.
+
+@item start
+The start symbol for the grammar.
+
+@end table
+
+@node Conflicts, Start symbol, Tokens, Declarations
+@subsection Conflicts
+
+An example conflict declaration:
+@verbatim
+%conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
+@end verbatim
+
+The conflict description is output by wisi-generate when an undeclared
+conflict is detected; it can be copied into the grammar source file.
 
 @node Rules,  , Declarations, Syntax
 @section Rules
@@ -345,12 +389,13 @@ production rules and actions.
 The syntax of rules is:
 
 @verbatim
-{non-terminal} : {token} ... [action] | {token} ... [action] ;
+{non-terminal} : {token} ... [action] | {token} ... [(action)] ;
 @end verbatim
 
 Each rule gives the expansion of a non-terminal token into a list of
 tokens (both terminal and non-terminal); optional productions are
 separated by ``|''. Each list of tokens is followed by an ``action'',
-which is an elisp form that will be executed the production is reduced.
+which is output-language code enclosed in parens, that will be
+executed when the production is reduced.
 
 @bye
