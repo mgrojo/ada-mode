@@ -3,14 +3,7 @@ build/Makefile
 
  current work
 
-integrate with emacs process
-    do follow histogram for Ada
-
-    get wisi to cope with invalid regions
-
-    see how much panic mode helps
-
-rename to adatoken
+rename to wisitoken
 
 some .wy in wisi_wy_test.adb, some in rules.make
     be more consistent

@@ -9,9 +9,6 @@
 
 VPATH := ../..
 VPATH += ../Test
-VPATH += ../Examples/ASU_Example_3_6
-VPATH += ../Examples/ASU_Example_4_46
-VPATH += ../Examples/ASU_Example_5_10
 VPATH += ../wisi
 VPATH += ../wisi/test
 
@@ -76,51 +73,7 @@ tests : subprograms-process.el.diff
 # we don't run subprograms-parse because subprograms is used in a real
 # Emacs Ada mode test, so it has real elisp syntax.
 
-examples : asu_example_3_6-run.run
-examples : asu_example_4_46-run.run
-examples : asu_example_5_10_lr-run.run
-
-asu_example_3_6-run.run : asu_example_3_6-run.exe
-	cd ../Examples/ASU_Example_3_6; $(CURDIR)/asu_example_3_6-run.exe
-
-asu_example_4_46-run.run : asu_example_4_46-run.exe
-	cd ../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46-run.exe
-
-asu_example_4_46_rd-run.run : asu_example_4_46_rd-run.exe
-	cd ../Examples/ASU_Example_4_46; $(CURDIR)/asu_example_4_46_rd-run.exe
-
-asu_example_5_10_lr-run.run : asu_example_5_10_lr-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_lr-run.exe Example.txt
-
-asu_example_5_10_rd_commute-run.run : asu_example_5_10_rd_commute-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_commute-run.exe Example.txt
-
-asu_example_5_10_rd_list-run.run : asu_example_5_10_rd_list-run.exe
-	cd ../Examples/ASU_Example_5_10; $(CURDIR)/asu_example_5_10_rd_list-run.exe Example.txt
-
-ada_count.run : ada_count.exe
-	./ada_count.exe ../Examples/Language_Lexer_Examples/ada_count.adb ../Examples/Language_Lexer_Examples/test_ada_lexer.adb
-
 test_all_harness.out : test_all_harness.exe wisi-generate.exe
-
-test_ada_lexer.run : test_ada_lexer.exe
-	./test_ada_lexer.exe ../Examples/Language_Lexer_Examples/test_ada_lexer.adb
-
-test_html_lexer_safe.out : test_html_lexer_safe.exe test_html_scan.html
-	./$^ $(RUN_ARGS) > $@
-
-test_html_lexer_safe-syntax_error.out : test_html_lexer_safe.exe test_html_scan-syntax_error.html
-	./$^ $(RUN_ARGS) > $@
-
-test_html_lexer_unsafe.run : test_html_lexer_unsafe.exe
-	./test_html_lexer_unsafe.exe ../Docs/fasttoken.html
-
-test_java_lexer.run : test_java_lexer.exe
-	./test_java_lexer.exe ../Examples/Language_Lexer_Examples/something.java
-
-# yes, we use the java source as a test for the m3 lexer. Close enough!
-test_m3_lexer.run : test_m3_lexer.exe
-	./test_m3_lexer.exe ../Examples/Language_Lexer_Examples/something.java
 
 install: library wisi-generate.exe
 	make -f Install.make install
