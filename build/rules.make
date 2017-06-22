@@ -160,6 +160,9 @@ source-clean ::
 	-find ../ -name "*~" -delete
 	-find ../ -name ".#*" -delete
 
+recursive-clean ::
+	gnatclean -F -r -P wisitoken_test.gpr
+
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 bz2file : force

@@ -152,7 +152,7 @@ is
          Indent := Indent + 3;
          Indent_Line (Lower_Package_Name_Root & "_YYLex,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.YYText,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.YYText_ptr,");
+         Indent_Line (Lower_Package_Name_Root & "_dfa.yytext_ptr,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.YYLength,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.Set_Buffer_Size,");
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Line,");
