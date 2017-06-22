@@ -21,17 +21,17 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-with FastToken.Lexer;
-with FastToken.Token;
+with WisiToken.Lexer;
+with WisiToken.Token;
 with SAL.Gen_Definite_Queues;
-package FastToken.Token_Region is
+package WisiToken.Token_Region is
 
-   type Token is new FastToken.Augmented_Token with record
+   type Token is new WisiToken.Augmented_Token with record
       Region : Buffer_Region;
    end record;
 
    function Image
-     (Descriptor : in FastToken.Descriptor'Class;
+     (Descriptor : in WisiToken.Descriptor'Class;
       Item       : in Token;
       ID_Only    : in Boolean)
      return String;
@@ -52,7 +52,7 @@ package FastToken.Token_Region is
 
    package Recover_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Recover_Data);
 
-   type State_Type is new FastToken.Token.Semantic_State with record
+   type State_Type is new WisiToken.Token.Semantic_State with record
       Stack : Token_Stack_Type;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
@@ -81,7 +81,7 @@ package FastToken.Token_Region is
    procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle);
+      Lexer : in     WisiToken.Lexer.Handle);
 
    overriding
    procedure Push_Token
@@ -101,14 +101,14 @@ package FastToken.Token_Region is
    procedure Merge_Tokens
      (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     FastToken.Token.List.Instance;
+      Tokens  : in     WisiToken.Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type);
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     FastToken.Token.List.Instance;
-      Pushed_Tokens : in     FastToken.Token.List.Instance;
+     (Popped_Tokens : in     WisiToken.Token.List.Instance;
+      Pushed_Tokens : in     WisiToken.Token.List.Instance;
       State         : access State_Type);
 
-end FastToken.Token_Region;
+end WisiToken.Token_Region;

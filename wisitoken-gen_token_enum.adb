@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
-package body FastToken.Gen_Token_Enum is
+package body WisiToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_Array_String
    is
@@ -30,9 +30,9 @@ package body FastToken.Gen_Token_Enum is
       return Result;
    end Token_Enum_Image;
 
-   function To_Syntax (Item : in Enum_Syntax) return FastToken.Lexer.Regexp.Syntax
+   function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax
    is
-      Result : FastToken.Lexer.Regexp.Syntax (Token_ID'First .. +Last_Terminal);
+      Result : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. +Last_Terminal);
    begin
       for I in Result'Range loop
          Result (I) := Item (-I);
@@ -40,34 +40,34 @@ package body FastToken.Gen_Token_Enum is
       return Result;
    end To_Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return FastToken.Token.List.Instance
+   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Token.List.Instance
    is begin
-      return FastToken.Token.List."&" (+Left, +Right);
+      return WisiToken.Token.List."&" (+Left, +Right);
    end "&";
 
    function "&"
-     (Left  : in FastToken.Token.List.Instance;
+     (Left  : in WisiToken.Token.List.Instance;
       Right : in Token_Enum_ID)
-     return FastToken.Token.List.Instance
+     return WisiToken.Token.List.Instance
    is begin
-      return FastToken.Token.List."&" (Left, +Right);
+      return WisiToken.Token.List."&" (Left, +Right);
    end "&";
 
-   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return FastToken.Production.Right_Hand_Side
+   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return WisiToken.Production.Right_Hand_Side
    is begin
-      return FastToken.Production."+" (+Left, Right);
+      return WisiToken.Production."+" (+Left, Right);
    end "+";
 
    function "<="
      (Left  : in Token_Enum_ID;
-      Right : in FastToken.Production.Right_Hand_Side)
-     return FastToken.Production.Instance
+      Right : in WisiToken.Production.Right_Hand_Side)
+     return WisiToken.Production.Instance
    is begin
-      return FastToken.Production."<=" (+Left, Right);
+      return WisiToken.Production."<=" (+Left, Right);
    end "<=";
 
    procedure Put_Trace
-     (Trace        : in out FastToken.Trace'Class;
+     (Trace        : in out WisiToken.Trace'Class;
       Nonterm      : in     Token_ID;
       Index        : in     Natural;
       Tokens       : in     Token.List.Instance;
@@ -122,7 +122,7 @@ package body FastToken.Gen_Token_Enum is
 
    function To_Nonterminal_Array_Token_Set
      (Item : in Nonterminal_Array_Token_Set)
-     return FastToken.Token_Array_Token_Set
+     return WisiToken.Token_Array_Token_Set
    is
       Result : Token_Array_Token_Set :=
         (LR1_Descriptor.First_Nonterminal .. LR1_Descriptor.Last_Nonterminal =>
@@ -138,7 +138,7 @@ package body FastToken.Gen_Token_Enum is
 
    function To_Nonterminal_Array_Terminal_Set
      (Item : in Nonterminal_Array_Terminal_Set)
-     return FastToken.Token_Array_Token_Set
+     return WisiToken.Token_Array_Token_Set
    is
       Result : Token_Array_Token_Set :=
         (LR1_Descriptor.First_Nonterminal .. LR1_Descriptor.Last_Nonterminal =>
@@ -152,7 +152,7 @@ package body FastToken.Gen_Token_Enum is
       return Result;
    end To_Nonterminal_Array_Terminal_Set;
 
-   function "+" (Item : in Token_Array) return FastToken.Token_ID_Set
+   function "+" (Item : in Token_Array) return WisiToken.Token_ID_Set
    is
       Result : Token_ID_Set := (LR1_Descriptor.First_Terminal .. LR1_Descriptor.Last_Terminal => False);
    begin
@@ -162,9 +162,9 @@ package body FastToken.Gen_Token_Enum is
       return Result;
    end "+";
 
-   function "+" (Item : in Token_Enum_ID) return FastToken.Token_ID_Set
+   function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID_Set
    is begin
       return +Token_Array'(1 => Item);
    end "+";
 
-end FastToken.Gen_Token_Enum;
+end WisiToken.Gen_Token_Enum;

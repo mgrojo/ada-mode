@@ -4,7 +4,7 @@
 --
 --  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -19,10 +19,10 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LR.Wisi_Generate_Elisp;
-with FastToken.Production;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.LR1_Generator;
+with WisiToken.Parser.LR.Wisi_Generate_Elisp;
+with WisiToken.Production;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Output_Elisp_Common;
 procedure Wisi.Output_Elisp
@@ -42,7 +42,7 @@ is
    --  See comments in wisi-output_ada_emacs.adb EOI_Name for what
    --  this must match.
 
-   FastToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
+   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
 
    function To_Token_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -50,17 +50,17 @@ is
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name,
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name,
       To_Token_Out_Image => To_Token_Image);
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
    Reduce_Reduce_Conflict_Count : Integer;
 
-   Grammar : constant FastToken.Production.List.Instance := Generate_Utils.To_Grammar
+   Grammar : constant WisiToken.Production.List.Instance := Generate_Utils.To_Grammar
      (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
-   Parser : FastToken.Parser.LR.Parse_Table_Ptr;
+   Parser : WisiToken.Parser.LR.Parse_Table_Ptr;
 
    procedure Header (Elisp_Package : in String; Prologue : in String_Lists.List)
    is begin
@@ -90,14 +90,14 @@ is
          end case;
       end case;
 
-      FastToken.Parser.LR.Free (Parser);
+      WisiToken.Parser.LR.Free (Parser);
 
       case Algorithm is
       when LALR =>
-         Parser := FastToken.Parser.LR.LALR_Generator.Generate
+         Parser := WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             Generate_Utils.LALR_Descriptor,
-            FastToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -107,10 +107,10 @@ is
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
       when LR1 =>
-         Parser := FastToken.Parser.LR.LR1_Generator.Generate
+         Parser := WisiToken.Parser.LR.LR1_Generator.Generate
            (Grammar,
             Generate_Utils.LR1_Descriptor,
-            FastToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
@@ -132,7 +132,7 @@ is
       New_Line;
       Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens, To_String'Access);
       New_Line;
-      FastToken.Parser.LR.Wisi_Generate_Elisp.Output
+      WisiToken.Parser.LR.Wisi_Generate_Elisp.Output
         (-Elisp_Package_1, Tokens, Keywords, Rules, Parser, Generate_Utils.LR1_Descriptor);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
@@ -143,7 +143,7 @@ is
       Set_Output (Standard_Output);
    end Create_Elisp;
 
-   use all type FastToken.Parser.LR.Unknown_State_Index;
+   use all type WisiToken.Parser.LR.Unknown_State_Index;
 begin
    case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
    when LALR | LR1 =>
@@ -160,6 +160,6 @@ begin
            Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
            Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
-           FastToken.Parser.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
+           WisiToken.Parser.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
    end if;
 end Wisi.Output_Elisp;

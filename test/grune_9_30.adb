@@ -21,15 +21,15 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LR.LR1_Items;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
-with FastToken_AUnit;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LR1_Generator;
+with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
+with WisiToken_AUnit;
 package body Grune_9_30 is
 
    type Token_ID is
@@ -46,7 +46,7 @@ package body Grune_9_30 is
       Upper_B_ID
      );
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Lower_A_ID,
       Last_Terminal     => EOF_ID,
@@ -59,12 +59,12 @@ package body Grune_9_30 is
    First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
 
-   use all type FastToken.Production.Right_Hand_Side;
-   use all type FastToken.Production.List.Instance;
+   use all type WisiToken.Production.Right_Hand_Side;
+   use all type WisiToken.Production.List.Instance;
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
-   Grammar : constant FastToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Production.List.Instance :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
      and
      Upper_A_ID <= Lower_A_ID + Null_Action                           -- 2
@@ -74,25 +74,25 @@ package body Grune_9_30 is
      Upper_B_ID <= +Null_Action                                       -- 4
    ;
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
      ((
        Lower_A_ID => Lexer.Get ("a"),
        Lower_B_ID => Lexer.Get ("b"),
        Lower_C_ID => Lexer.Get ("c"),
-       EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
-   Has_Empty_Production : constant FastToken.Token_ID_Set :=
-     FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
+     WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
 
-   First : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
    ----------
@@ -102,10 +102,10 @@ package body Grune_9_30 is
    is
       Test : Test_Case renames Test_Case (T);
       use Ada.Text_IO;
-      use FastToken_AUnit;
-      use FastToken.Parser.LR.LR1_Items;
+      use WisiToken_AUnit;
+      use WisiToken.Parser.LR.LR1_Items;
 
-      Computed : Item_Set_List := FastToken.Parser.LR.LR1_Generator.LR1_Item_Sets
+      Computed : Item_Set_List := WisiToken.Parser.LR.LR1_Generator.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug);
 
       Expected : Item_Set_List :=
@@ -147,9 +147,9 @@ package body Grune_9_30 is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+      Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);
 
@@ -166,7 +166,7 @@ package body Grune_9_30 is
       end Execute_Command;
 
    begin
-      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       Execute_Command ("abc");
       Execute_Command ("ac");

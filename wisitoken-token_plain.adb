@@ -18,10 +18,10 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
-package body FastToken.Token_Plain is
+package body WisiToken.Token_Plain is
 
    procedure Put_Trace
-     (Trace        : in out FastToken.Trace'Class;
+     (Trace        : in out WisiToken.Trace'Class;
       Nonterm      : in     Token_ID;
       Index        : in     Natural;
       Tokens       : in     Token.List.Instance;
@@ -71,4 +71,4 @@ package body FastToken.Token_Plain is
       end if;
    end Merge_Tokens;
 
-end FastToken.Token_Plain;
+end WisiToken.Token_Plain;

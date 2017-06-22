@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -28,10 +28,10 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
-package body FastToken.Lexer.Aflex is
+package body WisiToken.Lexer.Aflex is
 
    function New_Lexer
-     (Trace        : not null access FastToken.Trace'Class;
+     (Trace        : not null access WisiToken.Trace'Class;
       Feeder       : in              Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size  : in              Integer                     := 1024;
       First_Column : in              Integer                     := 1)
@@ -43,7 +43,7 @@ package body FastToken.Lexer.Aflex is
       Set_Buffer_Size (Buffer_Size);
 
       New_Lexer.Feeder := Feeder;
-      FastToken.Lexer.Aflex.Feeder := Feeder;
+      WisiToken.Lexer.Aflex.Feeder := Feeder;
 
       return Handle (New_Lexer);
    end New_Lexer;
@@ -57,7 +57,7 @@ package body FastToken.Lexer.Aflex is
       --  Feeder is not reset here; user resets it. But we do copy
       --  Lexer.Feeder to Aflex.Feeder, since the user only knows
       --  about the former.
-      FastToken.Lexer.Aflex.Feeder := Lexer.Feeder;
+      WisiToken.Lexer.Aflex.Feeder := Lexer.Feeder;
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
@@ -105,4 +105,4 @@ package body FastToken.Lexer.Aflex is
       return (YY_Text_Ptr - 1, YY_Text_Ptr + YY_Length - 2);
    end Bounds;
 
-end FastToken.Lexer.Aflex;
+end WisiToken.Lexer.Aflex;

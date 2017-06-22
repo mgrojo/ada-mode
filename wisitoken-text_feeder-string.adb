@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 1999, 2014, 2015 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,7 +27,7 @@
 
 pragma License (Modified_GPL);
 
-package body FastToken.Text_Feeder.String is
+package body WisiToken.Text_Feeder.String is
 
    overriding procedure Get
      (Feeder   : in out Instance;
@@ -45,7 +45,7 @@ package body FastToken.Text_Feeder.String is
       else
          Text_End := New_Text'First + Data_Length - 1;
          New_Text (New_Text'First .. Text_End) := Ada.Strings.Unbounded.To_String (Feeder.Next_Value);
-         Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String ((1 => FastToken.EOF_Character));
+         Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String ((1 => WisiToken.EOF_Character));
       end if;
    end Get;
 
@@ -54,7 +54,7 @@ package body FastToken.Text_Feeder.String is
       Value  : in     Standard.String)
    is begin
       Feeder.Next_Value := Ada.Strings.Unbounded.To_Unbounded_String
-        (Value & FastToken.EOF_Character);
+        (Value & WisiToken.EOF_Character);
    end Set;
 
    overriding function End_Of_Text (Feeder : Instance) return Boolean
@@ -62,4 +62,4 @@ package body FastToken.Text_Feeder.String is
       return Ada.Strings.Unbounded.Length (Feeder.Next_Value) <= 1;
    end End_Of_Text;
 
-end FastToken.Text_Feeder.String;
+end WisiToken.Text_Feeder.String;

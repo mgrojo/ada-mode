@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  Root of FastToken lexer/parser generator and exector.
+--  Root of WisiToken lexer/parser generator and exector.
 --
 --  The token type is an integer subtype, to avoid making this package
 --  generic, which would make all other packages generic, and
@@ -12,9 +12,9 @@
 --  Copyright (C) 2009, 2010, 2013 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 FlightSafety International and Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -38,7 +38,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
-package FastToken is
+package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
 
@@ -52,7 +52,7 @@ package FastToken is
 
    --  We use this regardless of OS, since we need a standard way of
    --  representing an end of line in a string buffer. We use
-   --  LF to match FastToken.Lexer.Aflex; Aflex hard-codes LF.
+   --  LF to match WisiToken.Lexer.Aflex; Aflex hard-codes LF.
    EOL_Character : constant Character := Ada.Characters.Latin_1.LF;
 
    --  Similarly, this is independent of OS
@@ -111,16 +111,16 @@ package FastToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set);
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_Array_Token_Set);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set);
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
 
-   function To_Lookahead (Descriptor : in FastToken.Descriptor; Item : in Token_ID) return Token_ID_Set;
+   function To_Lookahead (Descriptor : in WisiToken.Descriptor; Item : in Token_ID) return Token_ID_Set;
    --  Base implementation returns (Descriptor.First_Terminal ..
    --  Descriptor.Last_Terminal), with Item = True, others False. LALR
    --  child type adds Propagate_ID.
 
-   function Lookahead_Image (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set) return String;
+   function Lookahead_Image (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set) return String;
    --  Base implementation just returns aggregate syntas for Item.
    --  LALR child includes '#' for Propagate_ID.
 
@@ -179,22 +179,22 @@ package FastToken is
    --  If Trace_Parse > 0, Parse prints helpful messages; higher value
    --  prints more.
 
-   type Trace (Descriptor : not null access FastToken.Descriptor'Class) is abstract tagged limited null record;
+   type Trace (Descriptor : not null access WisiToken.Descriptor'Class) is abstract tagged limited null record;
    --  Derived types should support Ada.Text_IO for tests/debugging,
    --  and a protocol for inter-process communication for running a
    --  parser as a subprocess of an IDE.
 
-   procedure Put (Trace : in out FastToken.Trace; Item : in String) is abstract;
+   procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace object
 
-   procedure Put_Line (Trace : in out FastToken.Trace; Item : in String) is abstract;
+   procedure Put_Line (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Accumulate Item in the trace buffer, output the trace buffer to
    --  the display.
 
-   procedure New_Line (Trace : in out FastToken.Trace) is abstract;
+   procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Output the trace buffer to the display.
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Token_ID);
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
    --  Accumulate Item in the trace buffer.
 
    ----------
@@ -219,4 +219,4 @@ package FastToken is
 
    package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
-end FastToken;
+end WisiToken;

@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
@@ -26,7 +26,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
+with WisiToken.Text_Feeder.Counted_GNAT_OS_Lib;
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib
 is
    procedure Put_Usage
@@ -44,8 +44,8 @@ is
      renames Ada.Strings.Unbounded.To_String;
 
    File_Length : Integer;
-   LALR_Parser : FastToken.Parser.LR.Parser.Instance;
-   LR1_Parser  : FastToken.Parser.LR.Parser.Instance;
+   LALR_Parser : WisiToken.Parser.LR.Parser.Instance;
+   LR1_Parser  : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Use_File (File_Name : in String)
    is
@@ -57,22 +57,22 @@ is
          File : constant File_Descriptor := Open_Read (File_Name, Text);
          --  Mode Text normalizes CR/LF to LF
 
-         Feeder : constant FastToken.Text_Feeder.Text_Feeder_Ptr :=
-           FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
+         Feeder : constant WisiToken.Text_Feeder.Text_Feeder_Ptr :=
+           WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
 
-         Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-           FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
+         Counted_Feeder : WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+           WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
 
       begin
          File_Length := Integer (GNAT.OS_Lib.File_Length (File));
          Counted_Feeder.Reset (File_Length);
-         LALR_Parser := Create_Parser (FastToken.LALR, Text_Feeder => Feeder);
-         LR1_Parser  := Create_Parser (FastToken.LR1, Text_Feeder => Feeder);
+         LALR_Parser := Create_Parser (WisiToken.LALR, Text_Feeder => Feeder);
+         LR1_Parser  := Create_Parser (WisiToken.LR1, Text_Feeder => Feeder);
       end;
    exception
    when Name_Error =>
       Put_Line (File_Name & " cannot be opened");
-      raise FastToken.User_Error;
+      raise WisiToken.User_Error;
    end Use_File;
 
 begin
@@ -85,7 +85,7 @@ begin
 
       when 3 =>
          if Argument (1) = "-v" then
-            FastToken.Trace_Parse := Integer'Value (Argument (2));
+            WisiToken.Trace_Parse := Integer'Value (Argument (2));
 
          else
             Set_Exit_Status (Failure);
@@ -111,15 +111,15 @@ begin
       Put_Line ("LALR_Parser parse:");
       LALR_Parser.Parse;
    exception
-   when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
+   when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
    end;
 
    declare
       use GNAT.OS_Lib;
 
-      Counted_Feeder : FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-        FastToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (LR1_Parser.Lexer.Feeder.all);
+      Counted_Feeder : WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
+        WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (LR1_Parser.Lexer.Feeder.all);
    begin
       Counted_Feeder.Reset (File_Length);
    end;
@@ -130,7 +130,7 @@ begin
       Put_Line ("LR1_Parser parse:");
       LR1_Parser.Parse;
    exception
-   when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
+   when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
    end;
 

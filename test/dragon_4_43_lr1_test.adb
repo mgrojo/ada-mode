@@ -21,16 +21,16 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LR1_Generator;
-with FastToken.Parser.LR.LR1_Items;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
-with FastToken.AUnit;
-with FastToken_AUnit; use FastToken_AUnit;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LR1_Generator;
+with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
+with WisiToken.AUnit;
+with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_43_LR1_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
@@ -47,7 +47,7 @@ package body Dragon_4_43_LR1_Test is
       Upper_S_ID,
       Upper_C_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Lower_C_ID,
       Last_Terminal     => EOF_ID,
@@ -60,12 +60,12 @@ package body Dragon_4_43_LR1_Test is
    First_State_Index  : constant := 0;
    First_Parser_Label : constant := 1;
 
-   use all type FastToken.Production.Right_Hand_Side;
-   use all type FastToken.Production.List.Instance;
+   use all type WisiToken.Production.Right_Hand_Side;
+   use all type WisiToken.Production.List.Instance;
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
-   Grammar : constant FastToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Production.List.Instance :=
      --  [dragon] (2.21) pg 231
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
@@ -76,7 +76,7 @@ package body Dragon_4_43_LR1_Test is
      Upper_C_ID <= Lower_D_ID + Null_Action -- 4
      ;
 
-   Map : constant array (FastToken.Parser.LR.State_Index range 0 .. 9) of FastToken.Parser.LR.Unknown_State_Index :=
+   Map : constant array (WisiToken.Parser.LR.State_Index range 0 .. 9) of WisiToken.Parser.LR.Unknown_State_Index :=
      --  Map (dragon index) = our index; see comment in Test_LR1_Items
      (0 => 0,
       1 => 3,
@@ -89,24 +89,24 @@ package body Dragon_4_43_LR1_Test is
       8 => 8,
       9 => 9);
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
      ((
        Lower_C_ID => Lexer.Get ("c"),
        Lower_D_ID => Lexer.Get ("d"),
-       EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
      ));
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
-   Has_Empty_Production : constant FastToken.Token_ID_Set :=
-     FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
+     WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
 
-   First : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
    ----------
@@ -114,31 +114,31 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_First_Follow (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use FastToken.AUnit;
+      use WisiToken.AUnit;
       Test : Test_Case renames Test_Case (T);
 
       --  FIRST defined in [dragon] pg 189; we add nonterminals
 
-      Expected_First : constant FastToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
+      Expected_First : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
         ((Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False)));
 
       --  FOLLOW defined in [dragon] pg 189
-      Expected_Follow : constant FastToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
+      Expected_Follow : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Terminal_Set
         ((Accept_ID  => (others => False),
           Upper_S_ID => (EOF_ID => True, others => False),
           Upper_C_ID => (Lower_C_ID | Lower_D_ID | EOF_ID => True, others => False)));
 
-      Computed_Follow : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.Follow
+      Computed_Follow : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.Follow
         (Grammar, LR1_Descriptor, First, Has_Empty_Production);
    begin
-      Check ("0", Has_Empty_Production, FastToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));
+      Check ("0", Has_Empty_Production, WisiToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));
       Check ("1", First, Expected_First);
 
       if Test.Debug then
          Ada.Text_IO.Put_Line ("Follow:");
-         FastToken.Put (LR1_Descriptor, Computed_Follow);
+         WisiToken.Put (LR1_Descriptor, Computed_Follow);
       end if;
 
       Check ("2", Computed_Follow, Expected_Follow);
@@ -146,11 +146,11 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Test_LR1_Items (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use FastToken.Parser.LR.LR1_Items;
+      use WisiToken.Parser.LR.LR1_Items;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := FastToken.Parser.LR.LR1_Generator.LR1_Item_Sets
+      Computed : constant Item_Set_List := WisiToken.Parser.LR.LR1_Generator.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug);
 
       Expected : constant Item_Set_List :=
@@ -226,11 +226,11 @@ package body Dragon_4_43_LR1_Test is
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use FastToken.Parser.LR;
+      use WisiToken.Parser.LR;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Parse_Table_Ptr := FastToken.Parser.LR.LR1_Generator.Generate
+      Computed : constant Parse_Table_Ptr := WisiToken.Parser.LR.LR1_Generator.Generate
         (Grammar, LR1_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug);
 
       Expected : Parse_Table
@@ -306,9 +306,9 @@ package body Dragon_4_43_LR1_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+      Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);
 
@@ -325,7 +325,7 @@ package body Dragon_4_43_LR1_Test is
       end Execute_Command;
 
    begin
-      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       Execute_Command ("cdcd");
    end Test_Parse;

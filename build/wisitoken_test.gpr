@@ -10,13 +10,13 @@
 --  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 --  GNU General Public License for more details.
 
---  For running FastToken tests.
+--  For running WisiToken tests.
 
 with "aunit";
 with "aunit_sal_ext";
-with "fasttoken";
+with "wisitoken";
 with "standard_common";
-project FastToken_Test is
+project WisiToken_Test is
 
    for Source_Dirs use
      (
@@ -32,7 +32,7 @@ project FastToken_Test is
    package Compiler is
       -- AUnit requires -fno-strict-aliasing
       for Default_Switches ("Ada") use
-        FastToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
+        WisiToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
    end Compiler;
 
@@ -47,4 +47,4 @@ project FastToken_Test is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    end Binder;
 
-end FastToken_Test;
+end WisiToken_Test;

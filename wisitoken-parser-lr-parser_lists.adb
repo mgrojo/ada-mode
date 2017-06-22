@@ -4,7 +4,7 @@
 --
 --  Copyright (C) 2014-2017  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -19,7 +19,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
-package body FastToken.Parser.LR.Parser_Lists is
+package body WisiToken.Parser.LR.Parser_Lists is
 
    function New_List
      (First_State_Index  : in State_Index;
@@ -179,7 +179,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Stack_1 = null and Stack_2 = null;
    end Stack_Equal;
 
-   procedure Put_Trace_Top_10 (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
    begin
@@ -551,7 +551,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       return Result;
    end Action_Token_Free_Count;
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token)
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token)
    is
       use Ada.Characters.Handling;
    begin
@@ -565,7 +565,7 @@ package body FastToken.Parser.LR.Parser_Lists is
          declare
             Action_Name : constant String := To_Lower
               (Image (Trace.Descriptor.all, Action_Token.Action.LHS)) &
-              "_" & FastToken.Int_Image (Action_Token.Action.Index);
+              "_" & WisiToken.Int_Image (Action_Token.Action.Index);
          begin
             Trace.Put
               (Action_Name & ": " &
@@ -578,7 +578,7 @@ package body FastToken.Parser.LR.Parser_Lists is
       end case;
    end Put_Trace;
 
-   procedure Put_Trace_Pending_Actions (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
+   procedure Put_Trace_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Action_Token : Action_Token_Node_Access := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
@@ -590,4 +590,4 @@ package body FastToken.Parser.LR.Parser_Lists is
       end loop;
    end Put_Trace_Pending_Actions;
 
-end FastToken.Parser.LR.Parser_Lists;
+end WisiToken.Parser.LR.Parser_Lists;

@@ -18,15 +18,15 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
-package body FastToken.Token_Region is
+package body WisiToken.Token_Region is
 
    function Image
-     (Descriptor : in FastToken.Descriptor'Class;
+     (Descriptor : in WisiToken.Descriptor'Class;
       Item       : in Token;
       ID_Only    : in Boolean)
      return String
    is
-      Name : constant String := FastToken.Image (Descriptor, Item.ID);
+      Name : constant String := WisiToken.Image (Descriptor, Item.ID);
    begin
       if ID_Only then
          return Name;
@@ -43,7 +43,7 @@ package body FastToken.Token_Region is
    end Image;
 
    procedure Put_Trace
-     (Trace : in out FastToken.Trace'Class;
+     (Trace : in out WisiToken.Trace'Class;
       Stack : in     Token_Stack_Type;
       Count : in     Ada.Containers.Count_Type)
    is
@@ -64,7 +64,7 @@ package body FastToken.Token_Region is
    end Put_Trace;
 
    procedure Put_Trace
-     (Trace : in out FastToken.Trace'Class;
+     (Trace : in out WisiToken.Trace'Class;
       Queue : in     Token_Queues.Queue_Type)
    is begin
       for I in 0 .. Queue.Count - 1 loop
@@ -76,7 +76,7 @@ package body FastToken.Token_Region is
    end Put_Trace;
 
    procedure Put_Trace
-     (Trace               : in out FastToken.Trace'Class;
+     (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token;
       Index               : in     Natural;
       Stack               : in     Token_Stacks.Vector;
@@ -89,7 +89,7 @@ package body FastToken.Token_Region is
 
       Action_Name : constant String :=
         (if Include_Action_Name
-         then To_Lower (Image (Trace.Descriptor.all, Nonterm.ID)) & "_" & FastToken.Int_Image (Index) & ": "
+         then To_Lower (Image (Trace.Descriptor.all, Nonterm.ID)) & "_" & WisiToken.Int_Image (Index) & ": "
          else "");
    begin
       Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm, ID_Only => False) & " <= ");
@@ -98,7 +98,7 @@ package body FastToken.Token_Region is
    end Put_Trace;
 
    procedure Put_Trace
-     (Trace : in out FastToken.Trace'Class;
+     (Trace : in out WisiToken.Trace'Class;
       State : in     State_Type)
    is
    begin
@@ -126,7 +126,7 @@ package body FastToken.Token_Region is
    procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle)
+      Lexer : in     WisiToken.Lexer.Handle)
    is begin
       State.Input_Queue.Put ((Token, Lexer.Bounds));
    end Input_Token;
@@ -146,7 +146,7 @@ package body FastToken.Token_Region is
    end Push_Token;
 
    overriding procedure Error
-     (Expecting : in     FastToken.Token_ID_Set;
+     (Expecting : in     WisiToken.Token_ID_Set;
       State     : access State_Type)
    is begin
       State.Recover.Append
@@ -174,15 +174,15 @@ package body FastToken.Token_Region is
    procedure Merge_Tokens
      (Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     FastToken.Token.List.Instance;
+      Tokens  : in     WisiToken.Token.List.Instance;
       Action  : in     Semantic_Action;
       State   : access State_Type)
    is
       use all type Ada.Containers.Count_Type;
       use all type Token_Stacks.Cursor;
-      use all type FastToken.Token.List.List_Iterator;
+      use all type WisiToken.Token.List.List_Iterator;
 
-      ID_I : FastToken.Token.List.List_Iterator := Tokens.First;
+      ID_I : WisiToken.Token.List.List_Iterator := Tokens.First;
 
       Aug_Nonterm : Token               := Default_Token;
       Stack_I     : Token_Stacks.Cursor := State.Stack.To_Cursor (State.Stack.Length - Tokens.Length + 1);
@@ -237,14 +237,14 @@ package body FastToken.Token_Region is
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     FastToken.Token.List.Instance;
-      Pushed_Tokens : in     FastToken.Token.List.Instance;
+     (Popped_Tokens : in     WisiToken.Token.List.Instance;
+      Pushed_Tokens : in     WisiToken.Token.List.Instance;
       State         : access State_Type)
    is
-      use all type FastToken.Token.List.List_Iterator;
+      use all type WisiToken.Token.List.List_Iterator;
 
       Region : Buffer_Region                      := State.Invalid_Region; -- discarded tokens
-      I      : FastToken.Token.List.List_Iterator := Popped_Tokens.First;
+      I      : WisiToken.Token.List.List_Iterator := Popped_Tokens.First;
       Tok    : Token;
    begin
       State.Invalid_Region := Null_Buffer_Region;
@@ -280,4 +280,4 @@ package body FastToken.Token_Region is
       end if;
    end Recover;
 
-end FastToken.Token_Region;
+end WisiToken.Token_Region;

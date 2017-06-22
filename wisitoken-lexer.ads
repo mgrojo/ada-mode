@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2014 - 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,11 +27,11 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Text_Feeder;
-package FastToken.Lexer is
+with WisiToken.Text_Feeder;
+package WisiToken.Lexer is
 
-   type Instance (Trace : not null access FastToken.Trace'Class) is abstract tagged record
-      Feeder : FastToken.Text_Feeder.Text_Feeder_Ptr;
+   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged record
+      Feeder : WisiToken.Text_Feeder.Text_Feeder_Ptr;
    end record;
 
    subtype Class is Instance'Class;
@@ -72,4 +72,4 @@ package FastToken.Lexer is
    --  Raises Syntax_Error with an appropriate message if no token
    --  is found.
 
-end FastToken.Lexer;
+end WisiToken.Lexer;

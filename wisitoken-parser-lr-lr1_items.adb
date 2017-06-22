@@ -5,17 +5,17 @@
 --  Copyright (C) 2002, 2003, 2008, 2009, 2012 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-package body FastToken.Parser.LR.LR1_Items is
+package body WisiToken.Parser.LR.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
    function Reverse_List (List : in Item_Ptr) return Item_Ptr
@@ -108,7 +108,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
    function First
      (Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Non_Terminal         : in Token_ID;
       Trace                : in Boolean)
@@ -189,7 +189,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
    function First
      (Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Trace                : in Boolean)
      return Token_Array_Token_Set
@@ -223,7 +223,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
    function Has_Empty_Production
      (Grammar    : in Production.List.Instance;
-      Descriptor : in FastToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set
    is
       use type Token.List.List_Iterator;
@@ -246,7 +246,7 @@ package body FastToken.Parser.LR.LR1_Items is
 
    function Follow
      (Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       First                : in Token_Array_Token_Set;
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set
@@ -448,7 +448,7 @@ package body FastToken.Parser.LR.LR1_Items is
      (Set               : in out Lookahead;
       Value             : in     Lookahead;
       Added             :    out Boolean;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is begin
       --   Descriptor is null when Exclude_Propagate is False
@@ -479,7 +479,7 @@ package body FastToken.Parser.LR.LR1_Items is
    procedure Include
      (Set               : in out Lookahead;
       Value             : in     Lookahead;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is
       Added : Boolean;
@@ -497,7 +497,7 @@ package body FastToken.Parser.LR.LR1_Items is
    procedure Include
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is begin
       Include (Item.Lookaheads.all, Value, Descriptor, Exclude_Propagate);
@@ -507,7 +507,7 @@ package body FastToken.Parser.LR.LR1_Items is
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
       Added             :    out Boolean;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean)
    is begin
       Include (Item.Lookaheads.all, Value, Added, Descriptor, Exclude_Propagate);
@@ -734,7 +734,7 @@ package body FastToken.Parser.LR.LR1_Items is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       Trace                : in Boolean)
      return Item_Set
    is
@@ -880,7 +880,7 @@ package body FastToken.Parser.LR.LR1_Items is
       end loop;
    end Free;
 
-   function In_Kernel (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean
+   function In_Kernel (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean
    is
       use Token.List;
    begin
@@ -896,8 +896,8 @@ package body FastToken.Parser.LR.LR1_Items is
 
    function Filter
      (Set        : in     Item_Set;
-      Descriptor : in     FastToken.Descriptor'Class;
-      Include    : access function (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
+      Descriptor : in     WisiToken.Descriptor'Class;
+      Include    : access function (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
      return Item_Set
    is
       Result      : Item_Set;
@@ -934,7 +934,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Filter;
 
    function Image
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Node;
       Show_State      : in Boolean;
       Show_Lookaheads : in Boolean)
@@ -976,7 +976,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Image;
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Ptr;
       Show_Lookaheads : in Boolean := True)
    is begin
@@ -984,7 +984,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Put;
 
    procedure Put
-     (Descriptor : in FastToken.Descriptor'Class;
+     (Descriptor : in WisiToken.Descriptor'Class;
       Item       : in Goto_Item_Ptr)
    is
       use Ada.Text_IO;
@@ -1000,7 +1000,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Put;
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
@@ -1028,7 +1028,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Put;
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_Ptr;
       Show_Lookaheads : in Boolean := True)
    is
@@ -1045,7 +1045,7 @@ package body FastToken.Parser.LR.LR1_Items is
    end Put;
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True)
    is
@@ -1055,7 +1055,7 @@ package body FastToken.Parser.LR.LR1_Items is
       Put (Descriptor, Item.Head, Show_Lookaheads);
    end Put;
 
-end FastToken.Parser.LR.LR1_Items;
+end WisiToken.Parser.LR.LR1_Items;
 --  Local Variables:
 --  jit-lock-defer-time: 0.5
 --  End:

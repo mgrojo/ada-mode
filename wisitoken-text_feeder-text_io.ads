@@ -19,9 +19,9 @@
 pragma License (GPL);
 
 private with Ada.Text_IO;
-package FastToken.Text_Feeder.Text_IO is
+package WisiToken.Text_Feeder.Text_IO is
 
-   type Instance is limited new FastToken.Text_Feeder.Instance with private;
+   type Instance is limited new WisiToken.Text_Feeder.Instance with private;
    type Handle is access all Instance'Class;
 
    function Create (File_Name : in String) return Text_Feeder_Ptr;
@@ -42,8 +42,8 @@ package FastToken.Text_Feeder.Text_IO is
 
 private
 
-   type Instance is limited new FastToken.Text_Feeder.Instance with record
+   type Instance is limited new WisiToken.Text_Feeder.Instance with record
       File : Ada.Text_IO.File_Type;
    end record;
 
-end FastToken.Text_Feeder.Text_IO;
+end WisiToken.Text_Feeder.Text_IO;

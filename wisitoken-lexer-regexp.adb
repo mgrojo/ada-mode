@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,7 +27,7 @@
 
 pragma License (Modified_GPL);
 
-package body FastToken.Lexer.Regexp is
+package body WisiToken.Lexer.Regexp is
 
    procedure Get_More_Text (Lexer : in out Instance; Current_Char : in out Integer)
    is
@@ -53,7 +53,7 @@ package body FastToken.Lexer.Regexp is
       --
       --  Return True if a token is matched, False if not.
 
-      use FastToken.Regexp;
+      use WisiToken.Regexp;
       use type Token_ID;
 
       Current_Char         : Integer := Lexer.Buffer_Head;
@@ -146,16 +146,16 @@ package body FastToken.Lexer.Regexp is
       return Syntax_Item
    is begin
       return
-        (FastToken.Regexp.Compile (Regexp, Case_Sensitive),
+        (WisiToken.Regexp.Compile (Regexp, Case_Sensitive),
          Report);
    end Get;
 
    function New_Lexer
-     (Trace       : not null access FastToken.Trace'Class;
-      Syntax      : in              FastToken.Lexer.Regexp.Syntax;
-      Feeder      : in              FastToken.Text_Feeder.Text_Feeder_Ptr;
+     (Trace       : not null access WisiToken.Trace'Class;
+      Syntax      : in              WisiToken.Lexer.Regexp.Syntax;
+      Feeder      : in              WisiToken.Text_Feeder.Text_Feeder_Ptr;
       Buffer_Size : in              Integer := 1024)
-     return FastToken.Lexer.Handle
+     return WisiToken.Lexer.Handle
    is
       use type Token_ID;
       New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
@@ -230,4 +230,4 @@ package body FastToken.Lexer.Regexp is
       return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
    end Bounds;
 
-end FastToken.Lexer.Regexp;
+end WisiToken.Lexer.Regexp;

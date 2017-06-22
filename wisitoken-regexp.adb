@@ -2,15 +2,15 @@
 --
 --  See spec.
 --
---  Copyright (C) 2015 Stephen Leake
+--  Copyright (C) 2015, 2017 Stephen Leake
 --  Copyright (C) 1998-2010, AdaCore
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
@@ -25,14 +25,14 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  and a copy of the GCC Runtime Library Exception distributed with
---  the FastToken package; see files GPL.txt and GPL_runtime.txt. If
+--  the WisiToken package; see files GPL.txt and GPL_runtime.txt. If
 --  not, see <http://www.gnu.org/licenses/>.
 
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with GNAT.Case_Util;
-package body FastToken.Regexp is
+package body WisiToken.Regexp is
 
    Initial_Max_States_In_Primary_Table : constant := 100;
    --  Initial size for the number of states in the indefinite state
@@ -1341,7 +1341,7 @@ package body FastToken.Regexp is
       end if;
    end State;
 
-end FastToken.Regexp;
+end WisiToken.Regexp;
 --  Local Variables:
 --  jit-lock-defer-time: 0.5
 --  End:

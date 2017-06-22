@@ -20,13 +20,13 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with Ada.Exceptions;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
 package body Test_Accept_State is
 
    --  A simple grammar that OpenToken used to get wrong.
@@ -45,7 +45,7 @@ package body Test_Accept_State is
       Parse_Sequence_ID,
       Statement_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Equals_ID,
       Last_Terminal     => Identifier_ID,
@@ -58,7 +58,7 @@ package body Test_Accept_State is
    First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
      ((
@@ -67,24 +67,24 @@ package body Test_Accept_State is
        Int_ID        => Lexer.Get ("[0-9]+"),
        Set_ID        => Lexer.Get ("set"),
        Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
-       EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID        => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
 
-   use all type FastToken.Production.List.Instance;   --  "and"
-   use all type FastToken.Production.Right_Hand_Side; --  "+"
+   use all type WisiToken.Production.List.Instance;   --  "and"
+   use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
-   Grammar : constant FastToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Production.List.Instance :=
      --  First production in Grammar must be the terminating
      --  production; it gets the accept action.
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
-   Parser        : FastToken.Parser.LR.Parser.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
+   Parser        : WisiToken.Parser.LR.Parser.Instance;
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
    ----------
@@ -96,9 +96,9 @@ package body Test_Accept_State is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := FastToken.Parser.LR.Parser.New_Parser
+      Parser := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
             First_State_Index,
@@ -107,7 +107,7 @@ package body Test_Accept_State is
          State,
          First_Parser_Label);
 
-      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       String_Feeder.Set ("set A = 2");
 

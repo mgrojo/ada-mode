@@ -19,7 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Bounded;
 with Ada.Text_IO;
-package body FastToken.Token_Wisi_Process is
+package body WisiToken.Token_Wisi_Process is
 
    ----------
    --  body subprograms
@@ -88,7 +88,7 @@ package body FastToken.Token_Wisi_Process is
    procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle)
+      Lexer : in     WisiToken.Lexer.Handle)
    is
       pragma Unreferenced (Lexer);
    begin
@@ -153,4 +153,4 @@ package body FastToken.Token_Wisi_Process is
         ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Codes (Pushed_Tokens) & "]");
    end Recover;
 
-end FastToken.Token_Wisi_Process;
+end WisiToken.Token_Wisi_Process;

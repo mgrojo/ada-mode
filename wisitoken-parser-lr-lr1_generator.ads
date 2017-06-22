@@ -9,9 +9,9 @@
 --
 --  Copyright (C) 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -25,16 +25,16 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR.Generator_Utils;
-with FastToken.Parser.LR.LR1_Items;
-with FastToken.Production;
-package FastToken.Parser.LR.LR1_Generator is
+with WisiToken.Parser.LR.Generator_Utils;
+with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.Production;
+package WisiToken.Parser.LR.LR1_Generator is
 
    use Generator_Utils;
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Descriptor               : in FastToken.Descriptor;
+      Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
@@ -48,7 +48,7 @@ package FastToken.Parser.LR.LR1_Generator is
    --  Grammar.
    --
    --  If Trace, output debug info to Standard_Error about generation
-   --  process. We don't use FastToken.Trace here; we often want to
+   --  process. We don't use WisiToken.Trace here; we often want to
    --  see a trace of the parser execution without the parser
    --  generation.
    --
@@ -69,7 +69,7 @@ package FastToken.Parser.LR.LR1_Generator is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor;
+      Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set;
    --  'goto' from [dragon] algorithm 4.9
@@ -79,9 +79,9 @@ package FastToken.Parser.LR.LR1_Generator is
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in State_Index;
-      Descriptor           : in FastToken.Descriptor;
+      Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set_List;
    --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
-end FastToken.Parser.LR.LR1_Generator;
+end WisiToken.Parser.LR.LR1_Generator;

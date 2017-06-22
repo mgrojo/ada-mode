@@ -5,17 +5,17 @@
 --
 --  Copyright (C) 2009, 2014, 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -29,7 +29,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-package body FastToken.Token is
+package body WisiToken.Token is
 
    package body List is
 
@@ -191,7 +191,7 @@ package body FastToken.Token is
          return Iterator.ID;
       end Current;
 
-      procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Instance)
+      procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Instance)
       is
          I : List_Iterator := Item.First;
       begin
@@ -207,4 +207,4 @@ package body FastToken.Token is
 
    end List;
 
-end FastToken.Token;
+end WisiToken.Token;

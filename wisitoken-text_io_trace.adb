@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body FastToken.Text_IO_Trace is
+package body WisiToken.Text_IO_Trace is
 
    overriding
    procedure Put (Trace : in out Text_IO_Trace.Trace; Item : in String)
@@ -65,4 +65,4 @@ package body FastToken.Text_IO_Trace is
       Trace.File := null;
    end Clear_File;
 
-end FastToken.Text_IO_Trace;
+end WisiToken.Text_IO_Trace;

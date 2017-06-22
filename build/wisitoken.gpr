@@ -1,7 +1,7 @@
---  For using FastToken in other projects, and building FastToken
+--  For using WisiToken in other projects, and building WisiToken
 with "sal";
 with "standard_common";
-project FastToken is
+project WisiToken is
 
    for Source_Dirs use
      ("..",
@@ -38,4 +38,4 @@ project FastToken is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    end Binder;
 
-end FastToken;
+end WisiToken;

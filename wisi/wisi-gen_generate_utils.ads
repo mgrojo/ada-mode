@@ -1,11 +1,11 @@
 --  Abstract :
 --
---  Utilities for translating input file structures to FastToken
+--  Utilities for translating input file structures to WisiToken
 --  structures needed for LALR.Generate.
 --
 --  Copyright (C) 2014, 2015, 2017  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -19,26 +19,26 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR.Generator_Utils;
-with FastToken.Production;
+with WisiToken.Parser.LR.Generator_Utils;
+with WisiToken.Production;
 generic
    Keywords              : in Wisi.String_Pair_Lists.List;
    Tokens                : in Wisi.Token_Lists.List;
    Conflicts             : in Wisi.Conflict_Lists.List;
    Rules                 : in Wisi.Rule_Lists.List;
    EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
-   FastToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
+   WisiToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
 
    with function To_Token_Out_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
    --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
-   use FastToken;
+   use WisiToken;
 
    function Count_Non_Reporting return Integer;
 
    EOF_ID : constant Token_ID := Token_ID (Count (Tokens)) + Token_ID (Keywords.Length) + 1;
 
-   LR1_Descriptor : FastToken.Descriptor
+   LR1_Descriptor : WisiToken.Descriptor
      (First_Terminal    => (if Count_Non_Reporting > 0
                             then Token_ID (Count_Non_Reporting) + Token_ID'First
                             else Token_ID'First),
@@ -49,7 +49,7 @@ package Wisi.Gen_Generate_Utils is
       Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
    --  Image, Image_Width set by Set_Token_Images
 
-   LALR_Descriptor : FastToken.LALR_Descriptor
+   LALR_Descriptor : WisiToken.LALR_Descriptor
      (First_Terminal    => LR1_Descriptor.First_Terminal,
       Last_Terminal     => LR1_Descriptor.Last_Terminal,
       First_Nonterminal => EOF_ID + 1,
@@ -93,10 +93,10 @@ package Wisi.Gen_Generate_Utils is
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
+     return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
 
    function To_Grammar
-     (Descriptor       : in FastToken.Descriptor;
+     (Descriptor       : in WisiToken.Descriptor;
       Source_File_Name : in String;
       Start_Token      : in String)
      return Production.List.Instance;
@@ -107,7 +107,7 @@ package Wisi.Gen_Generate_Utils is
 private
 
    type Token_Cursor_State is
-     (Non_Reporting, Terminals_Keywords, Terminals_Others, EOI, FastToken_Accept, Nonterminal, Done);
+     (Non_Reporting, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
    type Token_Cursor is tagged record
       State       : Token_Cursor_State;

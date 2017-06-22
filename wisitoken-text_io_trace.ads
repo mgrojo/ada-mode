@@ -18,9 +18,9 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
-package FastToken.Text_IO_Trace is
+package WisiToken.Text_IO_Trace is
 
-   type Trace is limited new FastToken.Trace with private;
+   type Trace is limited new WisiToken.Trace with private;
    --  Defaults to Ada.Text_IO.Standard_Output
 
    overriding
@@ -39,7 +39,7 @@ package FastToken.Text_IO_Trace is
    --  Clear internal file; output to Text_IO.Current_Output.
 
 private
-   type Trace is limited new FastToken.Trace with record
+   type Trace is limited new WisiToken.Trace with record
       File : Ada.Text_IO.File_Access;
    end record;
-end FastToken.Text_IO_Trace;
+end WisiToken.Text_IO_Trace;

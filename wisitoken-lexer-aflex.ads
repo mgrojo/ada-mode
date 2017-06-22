@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  FastToken wrapper around the aflex lexer
+--  WisiToken wrapper around the aflex lexer
 --
 --  aflex must be run with the following options:
 --
@@ -8,17 +8,17 @@
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -31,9 +31,9 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Text_Feeder;
+with WisiToken.Text_Feeder;
 generic
-   Feeder : in out FastToken.Text_Feeder.Text_Feeder_Ptr;
+   Feeder : in out WisiToken.Text_Feeder.Text_Feeder_Ptr;
    --  Must represent line end as ASCII.LF (that's what aflex uses).
    --  Initialize sets this to a copy of Lexer.Feeder
 
@@ -58,16 +58,16 @@ generic
 
    YY_Init : in out Boolean;
 
-package FastToken.Lexer.Aflex is
+package WisiToken.Lexer.Aflex is
 
-   type Instance is new FastToken.Lexer.Instance with private;
+   type Instance is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Trace        : not null access FastToken.Trace'Class;
-      Feeder       : in              FastToken.Text_Feeder.Text_Feeder_Ptr := null;
+     (Trace        : not null access WisiToken.Trace'Class;
+      Feeder       : in              WisiToken.Text_Feeder.Text_Feeder_Ptr := null;
       Buffer_Size  : in              Integer                               := 1024;
       First_Column : in              Integer                               := 1)
-     return FastToken.Lexer.Handle;
+     return WisiToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
@@ -85,9 +85,9 @@ package FastToken.Lexer.Aflex is
 
 private
 
-   type Instance is new FastToken.Lexer.Instance with
+   type Instance is new WisiToken.Lexer.Instance with
    record
       Token : Token_ID; --  last token read by find_next
    end record;
 
-end FastToken.Lexer.Aflex;
+end WisiToken.Lexer.Aflex;

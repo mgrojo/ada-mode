@@ -1,20 +1,20 @@
 --  Abstract:
 --
---  FastToken wrapper around the Elisp lexer, with a process interface
+--  WisiToken wrapper around the Elisp lexer, with a process interface
 --
 --  Copyright (C) 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,17 +27,17 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Token;
-package FastToken.Lexer.Elisp_Process is
+with WisiToken.Token;
+package WisiToken.Lexer.Elisp_Process is
 
-   type Instance is new FastToken.Lexer.Instance with private;
+   type Instance is new WisiToken.Lexer.Instance with private;
 
    procedure Initialize (Lexer : in out Instance; EOF_ID : in Token_ID);
 
    function New_Lexer
      (EOF_ID : in              Token_ID;
-      Trace  : not null access FastToken.Trace'Class)
-     return FastToken.Lexer.Handle;
+      Trace  : not null access WisiToken.Trace'Class)
+     return WisiToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
@@ -56,7 +56,7 @@ package FastToken.Lexer.Elisp_Process is
 
 private
 
-   type Instance is new FastToken.Lexer.Instance with
+   type Instance is new WisiToken.Lexer.Instance with
    record
       Buffer      : String (1 .. 4096);
       Buffer_Last : Integer;
@@ -65,4 +65,4 @@ private
       EOF_ID      : Token_ID;
    end record;
 
-end FastToken.Lexer.Elisp_Process;
+end WisiToken.Lexer.Elisp_Process;

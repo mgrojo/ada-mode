@@ -23,8 +23,8 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Character_Literal;
-with FastToken.Parser.LR.Parser;
-with FastToken.Text_Feeder.Text_IO;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Text_Feeder.Text_IO;
 with character_literal_dfa;
 package body Test_Character_Literal is
 
@@ -39,12 +39,12 @@ package body Test_Character_Literal is
       use Character_Literal;
 
       File_Name : constant String := "../wisi/test/character_literal.input";
-      Parser : FastToken.Parser.LR.Parser.Instance := Create_Parser
-        (FastToken.LALR,
-         Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
+      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser
+        (WisiToken.LALR,
+         Text_Feeder => WisiToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
       character_literal_dfa.aflex_debug := Test.Debug > 0; -- keep for future debugging
-      FastToken.Trace_Parse             := Test.Debug;
+      WisiToken.Trace_Parse             := Test.Debug;
 
       Parser.Parse;
 
@@ -58,7 +58,7 @@ package body Test_Character_Literal is
    when AUnit.Assertions.Assertion_Error =>
       raise;
 
-   when E : FastToken.Syntax_Error =>
+   when E : WisiToken.Syntax_Error =>
       Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
       AUnit.Assertions.Assert (False, "syntax error");
 

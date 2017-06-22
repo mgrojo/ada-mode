@@ -1,24 +1,24 @@
 --  Abstract:
 --
---  FastToken lexer using compiled regular expressions interpreted at runtime.
+--  WisiToken lexer using compiled regular expressions interpreted at runtime.
 --
 --  This is slower, but easier to use, than the Aflex lexer; it is
---  used in most of the FastToken unit tests. Since it uses regexp, it
+--  used in most of the WisiToken unit tests. Since it uses regexp, it
 --  is easy to convert to an Aflex lexer.
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -32,12 +32,12 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-with FastToken.Regexp;
-with FastToken.Text_Feeder;
-package FastToken.Lexer.Regexp is
+with WisiToken.Regexp;
+with WisiToken.Text_Feeder;
+package WisiToken.Lexer.Regexp is
 
    type Syntax_Item is record
-      Regexp : FastToken.Regexp.Regexp;
+      Regexp : WisiToken.Regexp.Regexp;
       Report : Boolean;
    end record;
 
@@ -51,16 +51,16 @@ package FastToken.Lexer.Regexp is
    type Syntax is array (Token_ID range <>) of Syntax_Item;
 
    type Instance
-     (Trace         : not null access FastToken.Trace'Class;
+     (Trace         : not null access WisiToken.Trace'Class;
       Last_Terminal : Token_ID)
-     is new FastToken.Lexer.Instance with private;
+     is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Trace       : not null access FastToken.Trace'Class;
-      Syntax      : in              FastToken.Lexer.Regexp.Syntax;
-      Feeder      : in              FastToken.Text_Feeder.Text_Feeder_Ptr;
+     (Trace       : not null access WisiToken.Trace'Class;
+      Syntax      : in              WisiToken.Lexer.Regexp.Syntax;
+      Feeder      : in              WisiToken.Text_Feeder.Text_Feeder_Ptr;
       Buffer_Size : in              Integer := 1024)
-     return FastToken.Lexer.Handle;
+     return WisiToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
 
@@ -82,13 +82,13 @@ private
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Access);
 
    type Instance
-     (Trace         : not null access FastToken.Trace'Class;
+     (Trace         : not null access WisiToken.Trace'Class;
       Last_Terminal : Token_ID)
-     is new FastToken.Lexer.Instance (Trace => Trace)
+     is new WisiToken.Lexer.Instance (Trace => Trace)
      with
    record
       ID          : Token_ID; --  last token read by find_next
-      Syntax      : FastToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);
+      Syntax      : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);
       Buffer      : String_Access;
       Buffer_Head : Integer;
       Buffer_Tail : Integer;
@@ -96,4 +96,4 @@ private
       Lexeme_Tail : Integer;
    end record;
 
-end FastToken.Lexer.Regexp;
+end WisiToken.Lexer.Regexp;

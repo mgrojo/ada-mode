@@ -17,20 +17,20 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Lexer;
-with FastToken.Token;
-package FastToken.Token_Plain is
+with WisiToken.Lexer;
+with WisiToken.Token;
+package WisiToken.Token_Plain is
 
-   type Augmented_Token is new FastToken.Augmented_Token with null record;
+   type Augmented_Token is new WisiToken.Augmented_Token with null record;
 
-   type State_Type is new FastToken.Token.Semantic_State with null record;
+   type State_Type is new WisiToken.Token.Semantic_State with null record;
 
    overriding procedure Reset (State : access State_Type) is null;
 
    overriding procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle)
+      Lexer : in     WisiToken.Lexer.Handle)
      is null;
 
    overriding procedure Push_Token
@@ -54,4 +54,4 @@ package FastToken.Token_Plain is
       State          : access State_Type)
      is null;
 
-end FastToken.Token_Plain;
+end WisiToken.Token_Plain;

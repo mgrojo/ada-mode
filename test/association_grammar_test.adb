@@ -23,13 +23,13 @@ with AUnit.Checks.Text_IO;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
 package body Association_Grammar_Test is
 
    type Token_Enum_ID is
@@ -52,7 +52,7 @@ package body Association_Grammar_Test is
       Association_List_ID,
       Statement_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Comma_ID,
       Last_Terminal     => EOF_ID,
@@ -62,7 +62,7 @@ package body Association_Grammar_Test is
       Accept_ID         => Statement_ID);
    use Token_Enum;
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
    Syntax : constant Lexer.Syntax := To_Syntax
      ((Whitespace_ID    => Lexer.Get (" ", Report => False),
        Comma_ID         => Lexer.Get (","),
@@ -71,15 +71,15 @@ package body Association_Grammar_Test is
        Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+"),
        Paren_Left_ID    => Lexer.Get ("\("),
        Paren_Right_ID   => Lexer.Get ("\)"),
-       EOF_ID           => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID           => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
-   use type FastToken.Production.List.Instance;   --  "and"
-   use type FastToken.Production.Right_Hand_Side; --  "+"
+   use type WisiToken.Production.List.Instance;   --  "and"
+   use type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
    --  valid syntax:
    --  (identifier)
@@ -87,7 +87,7 @@ package body Association_Grammar_Test is
    --  (identifier => identifier)
    --  (integer => identifier)
    --  (identifier => identifier, integer => identifier)
-   Full_Grammar : constant FastToken.Production.List.Instance :=
+   Full_Grammar : constant WisiToken.Production.List.Instance :=
      Statement_ID        <= Aggregate_ID & EOF_ID + Null_Action and
      Aggregate_ID        <= Paren_Left_ID & Association_List_ID & Paren_Right_ID + Null_Action and
      Association_List_ID <= Association_ID & Comma_ID & Association_List_ID + Null_Action and
@@ -98,16 +98,16 @@ package body Association_Grammar_Test is
 
    First_Parser_Label : constant := 1;
 
-   Parser : FastToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
    procedure Parse_Command (Command : in String)
    is begin
       Trace.Put_Line ("'" & Command & "'");
 
-      FastToken.Text_Feeder.String.Set (String_Feeder, Command);
+      WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
 
       Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
@@ -146,9 +146,9 @@ package body Association_Grammar_Test is
       Create (Trace_File, Out_File, Trace_File_Name);
       Trace.Set_File (Trace_File'Access);
 
-      Parser := FastToken.Parser.LR.Parser.New_Parser
+      Parser := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.Parser.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1,
@@ -157,7 +157,7 @@ package body Association_Grammar_Test is
          State,
          First_Parser_Label);
 
-      FastToken.Trace_Parse := 2;
+      WisiToken.Trace_Parse := 2;
 
       Parse_Command ("(identifier)");
       Parse_Command ("(identifier, identifier)");
@@ -167,7 +167,7 @@ package body Association_Grammar_Test is
 
       Trace.Clear_File;
       Close (Trace_File);
-      FastToken.Trace_Parse := 0;
+      WisiToken.Trace_Parse := 0;
 
       Check_Files ("1", Trace_File_Name, Expected_Trace_File_Name);
    exception
@@ -177,7 +177,7 @@ package body Association_Grammar_Test is
          Close (Trace_File);
          Set_Output (Standard_Output);
       end if;
-      FastToken.Trace_Parse := 0;
+      WisiToken.Trace_Parse := 0;
       raise;
    end Nominal;
 

@@ -17,8 +17,8 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR;
-with FastToken.Production;
+with WisiToken.Parser.LR;
+with WisiToken.Production;
 with Wisi.Gen_Generate_Utils;
 generic
    Keywords  : in Wisi.String_Pair_Lists.List;
@@ -37,7 +37,7 @@ package Wisi.Gen_Output_Ada_Common is
    --  match Emacs ada-mode wisi.el wisi-eoi-term. It must
    --  be a valid Ada identifier when "_ID" is appended.
 
-   FastToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"fasttoken_accept";
+   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"fasttoken_accept";
 
    function To_Token_Ada_Name (Item : in String) return String;
    function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
@@ -45,7 +45,7 @@ package Wisi.Gen_Output_Ada_Common is
    --  FIXME: to_token_out_image should be token_id'image; we don't
    --  need to store the images.
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, FastToken_Accept_Name, To_Token_Ada_Name);
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Ada_Name);
 
    type Data_Type is record
       Parser_Algorithm : Valid_Parser_Algorithm;
@@ -57,9 +57,9 @@ package Wisi.Gen_Output_Ada_Common is
       Shift_Reduce_Conflict_Count  : Integer := -1;
       Reduce_Reduce_Conflict_Count : Integer := -1;
       Table_Entry_Count            : Integer := -1;
-      Parser_State_Count           : FastToken.Parser.LR.Unknown_State_Index := 0;
+      Parser_State_Count           : WisiToken.Parser.LR.Unknown_State_Index := 0;
 
-      Grammar : FastToken.Production.List.Instance;
+      Grammar : WisiToken.Production.List.Instance;
 
       Package_Name_Root       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Lower_Package_Name_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -83,14 +83,14 @@ package Wisi.Gen_Output_Ada_Common is
    --  Ada names of subprograms for each grammar semantic action;
    --  non-null only if there is an action in the grammar.
 
-   Parsers : array (Single_Parser_Algorithm) of FastToken.Parser.LR.Parse_Table_Ptr;
+   Parsers : array (Single_Parser_Algorithm) of WisiToken.Parser.LR.Parse_Table_Ptr;
 
    procedure Create_Ada_Spec
      (Input_File_Name  : in String;
       Output_File_Name : in String;
       Package_Name     : in String;
       Output_Language  : in Ada_Output_Language;
-      Descriptor       : in FastToken.Descriptor'Class;
+      Descriptor       : in WisiToken.Descriptor'Class;
       Interface_Kind   : in Valid_Interface;
       Lexer            : in Valid_Lexer);
 
@@ -101,7 +101,7 @@ package Wisi.Gen_Output_Ada_Common is
       First_State_Index  : in Integer;
       First_Parser_Label : in Integer);
 
-   procedure Create_Parser_Core (Parser : in FastToken.Parser.LR.Parse_Table_Ptr);
+   procedure Create_Parser_Core (Parser : in WisiToken.Parser.LR.Parse_Table_Ptr);
 
    procedure Create_Aflex
      (Input_File_Name       : in String;

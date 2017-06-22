@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2017 Stephen LeakeAll Rights Reserved.
+--  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
 --  This library is free software;  you can redistribute it and/or modify it
 --  under terms of the  GNU General Public License  as published by the Free
@@ -17,12 +17,12 @@
 
 pragma License (GPL);
 
-package body FastToken.Parser.LR.Panic_Mode is
+package body WisiToken.Parser.LR.Panic_Mode is
 
    function Pop_To_Good
      (Table  : in     Parse_Table;
       Cursor : in     Parser_Lists.Cursor;
-      Trace  : in out FastToken.Trace'Class)
+      Trace  : in out WisiToken.Trace'Class)
      return Boolean
    is
       use Token;
@@ -87,7 +87,7 @@ package body FastToken.Parser.LR.Panic_Mode is
       Current_Token : in out Token_ID)
      return Boolean
    is
-      Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+      Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
 
       Keep_Going : Boolean  := False;
       Last_ID    : Token_ID := Current_Token;
@@ -185,10 +185,10 @@ package body FastToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Trace.Put_Line ("  discard " & Image (Trace.Descriptor.all, Current_Token));
          end if;
-         FastToken.Token.Discard_Token (Current_Token, Parser.Semantic_State);
+         WisiToken.Token.Discard_Token (Current_Token, Parser.Semantic_State);
 
          Current_Token := Parser.Lexer.Find_Next;
-         FastToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+         WisiToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
          if Trace_Parse > 1 then
             Trace.Put_Line ("  next " & Image (Trace.Descriptor.all, Current_Token));
          end if;
@@ -206,4 +206,4 @@ package body FastToken.Parser.LR.Panic_Mode is
       return Keep_Going;
    end Panic_Mode;
 
-end FastToken.Parser.LR.Panic_Mode;
+end WisiToken.Parser.LR.Panic_Mode;

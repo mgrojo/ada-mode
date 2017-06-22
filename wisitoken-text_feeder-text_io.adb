@@ -18,7 +18,7 @@
 
 pragma License (GPL);
 
-package body FastToken.Text_Feeder.Text_IO is
+package body WisiToken.Text_Feeder.Text_IO is
 
    function Create (File_Name : in String) return Text_Feeder_Ptr
    is
@@ -75,4 +75,4 @@ package body FastToken.Text_Feeder.Text_IO is
    is begin
       return Ada.Text_IO.End_Of_File (Feeder.File);
    end End_Of_Text;
-end FastToken.Text_Feeder.Text_IO;
+end WisiToken.Text_Feeder.Text_IO;

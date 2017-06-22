@@ -4,9 +4,9 @@
 --
 --  Copyright (C) 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -22,7 +22,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
-package body FastToken.Parser.LR.LR1_Generator is
+package body WisiToken.Parser.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
@@ -30,7 +30,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor;
+      Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set
    is
@@ -76,7 +76,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
       First_State_Index    : in State_Index;
-      Descriptor           : in FastToken.Descriptor;
+      Descriptor           : in WisiToken.Descriptor;
       Trace                : in Boolean)
      return LR1_Items.Item_Set_List
    is
@@ -187,7 +187,7 @@ package body FastToken.Parser.LR.LR1_Generator is
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean;
-      Descriptor           : in FastToken.Descriptor)
+      Descriptor           : in WisiToken.Descriptor)
    is
       --  Add actions for all Item_Sets to Table.
 
@@ -207,7 +207,7 @@ package body FastToken.Parser.LR.LR1_Generator is
    procedure Put_Parse_Table
      (Table      : in Parse_Table_Ptr;
       Item_Sets  : in LR1_Items.Item_Set_List;
-      Descriptor : in FastToken.Descriptor)
+      Descriptor : in WisiToken.Descriptor)
    is
       use Ada.Text_IO;
    begin
@@ -231,7 +231,7 @@ package body FastToken.Parser.LR.LR1_Generator is
    end Put_Parse_Table;
 
    function Check_Unused_Tokens
-     (Descriptor : in FastToken.Descriptor;
+     (Descriptor : in WisiToken.Descriptor;
       Grammar    : in Production.List.Instance)
      return Boolean
    is
@@ -278,7 +278,7 @@ package body FastToken.Parser.LR.LR1_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Descriptor               : in FastToken.Descriptor;
+      Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
@@ -356,4 +356,4 @@ package body FastToken.Parser.LR.LR1_Generator is
       return Table;
    end Generate;
 
-end FastToken.Parser.LR.LR1_Generator;
+end WisiToken.Parser.LR.LR1_Generator;

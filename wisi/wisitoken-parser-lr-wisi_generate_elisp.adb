@@ -4,7 +4,7 @@
 --
 --  Copyright (C) 2012-2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -20,9 +20,9 @@ pragma License (GPL);
 
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
-package body FastToken.Parser.LR.Wisi_Generate_Elisp is
+package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
 
-   procedure Action_Table (Table : in Parse_Table; Descriptor : in FastToken.Descriptor'Class)
+   procedure Action_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
    is begin
       --  FIXME: add panic_recover to elisp parser
       Put ("     [");
@@ -108,7 +108,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       Put_Line ("]");
    end Action_Table;
 
-   procedure Goto_Table (Table : in Parse_Table; Descriptor : in FastToken.Descriptor'Class)
+   procedure Goto_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
    is
       function Filter_Terminals (List : in Goto_Node_Ptr) return Goto_Node_Ptr
       is
@@ -177,7 +177,7 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       Keywords      : in Wisi.String_Pair_Lists.List;
       Rules         : in Wisi.Rule_Lists.List;
       Parser        : in Parse_Table_Ptr;
-      Descriptor    : in FastToken.Descriptor'Class)
+      Descriptor    : in WisiToken.Descriptor'Class)
    is
       use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
@@ -262,4 +262,4 @@ package body FastToken.Parser.LR.Wisi_Generate_Elisp is
       Put_Line ("  ""Parser table."")");
    end Output;
 
-end FastToken.Parser.LR.Wisi_Generate_Elisp;
+end WisiToken.Parser.LR.Wisi_Generate_Elisp;

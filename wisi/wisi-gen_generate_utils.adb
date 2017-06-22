@@ -18,7 +18,7 @@
 
 pragma License (GPL);
 with Ada.Exceptions;
-with FastToken.Token;
+with WisiToken.Token;
 with Wisi.Utils;
 package body Wisi.Gen_Generate_Utils is
 
@@ -87,7 +87,7 @@ package body Wisi.Gen_Generate_Utils is
       end if;
       Result := Result + 1;
 
-      if Token = FastToken_Accept_Name or
+      if Token = WisiToken_Accept_Name or
         Token = "fasttoken_accept" -- FIXME: should not need this
       then
          return Result;
@@ -152,8 +152,8 @@ package body Wisi.Gen_Generate_Utils is
 
       if ID /= LR1_Descriptor.Accept_ID then raise Programmer_Error; end if;
 
-      LR1_Descriptor.Image (ID) := new String'(-FastToken_Accept_Name);
-      Out_Image (ID)            := new String'(To_Token_Out_Image (FastToken_Accept_Name));
+      LR1_Descriptor.Image (ID) := new String'(-WisiToken_Accept_Name);
+      Out_Image (ID)            := new String'(To_Token_Out_Image (WisiToken_Accept_Name));
 
       ID := ID + 1;
 
@@ -334,14 +334,14 @@ package body Wisi.Gen_Generate_Utils is
             Cursor.State := Done;
          else
             Cursor :=
-              (State       => FastToken_Accept,
+              (State       => WisiToken_Accept,
                Token_Kind  => Wisi.Token_Lists.No_Element,
                Token_Item  => String_Pair_Lists.No_Element,
                Keyword     => String_Pair_Lists.No_Element,
                Nonterminal => Rule_Lists.No_Element);
          end if;
 
-      when FastToken_Accept =>
+      when WisiToken_Accept =>
          Cursor :=
            (State       => Nonterminal,
             Token_Kind  => Wisi.Token_Lists.No_Element,
@@ -394,8 +394,8 @@ package body Wisi.Gen_Generate_Utils is
       when EOI =>
          return EOI_Name;
 
-      when FastToken_Accept =>
-         return FastToken_Accept_Name;
+      when WisiToken_Accept =>
+         return WisiToken_Accept_Name;
 
       when Nonterminal =>
          declare
@@ -425,13 +425,13 @@ package body Wisi.Gen_Generate_Utils is
      (Accept_Reduce_Conflict_Count : out Integer;
       Shift_Reduce_Conflict_Count  : out Integer;
       Reduce_Reduce_Conflict_Count : out Integer)
-     return FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List
+     return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List
    is
-      use FastToken.Parser.LR.Generator_Utils;
-      use all type FastToken.Parser.LR.Unknown_State_Index;
-      use all type FastToken.Parser.LR.Parse_Action_Verbs;
-      Result   : FastToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
-      Conflict : FastToken.Parser.LR.Generator_Utils.Conflict;
+      use WisiToken.Parser.LR.Generator_Utils;
+      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use all type WisiToken.Parser.LR.Parse_Action_Verbs;
+      Result   : WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
+      Conflict : WisiToken.Parser.LR.Generator_Utils.Conflict;
    begin
       Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
@@ -460,18 +460,18 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    exception
    when E : Not_Found =>
-      raise FastToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
+      raise WisiToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
-   function "&" (Tokens : in Token.List.Instance; Token : in String) return FastToken.Token.List.Instance
+   function "&" (Tokens : in Token.List.Instance; Token : in String) return WisiToken.Token.List.Instance
    is
-      use FastToken.Token.List;
+      use WisiToken.Token.List;
    begin
       return Tokens & Find_Token_ID (Token);
    end "&";
 
    function To_Grammar
-     (Descriptor       : in FastToken.Descriptor;
+     (Descriptor       : in WisiToken.Descriptor;
       Source_File_Name : in String;
       Start_Token      : in String)
      return Production.List.Instance
@@ -499,7 +499,7 @@ package body Wisi.Gen_Generate_Utils is
                declare
                   use Production.List;
 
-                  Tokens : FastToken.Token.List.Instance;
+                  Tokens : WisiToken.Token.List.Instance;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;

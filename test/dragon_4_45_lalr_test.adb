@@ -21,16 +21,16 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Exceptions;
 with Ada.Text_IO;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.LR1_Items;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
-with FastToken.AUnit;
-with FastToken_AUnit; use FastToken_AUnit;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
+with WisiToken.AUnit;
+with WisiToken_AUnit; use WisiToken_AUnit;
 package body Dragon_4_45_LALR_Test is
 
    --  grammar in eqn (4.21) example 4.42 pg 231
@@ -47,7 +47,7 @@ package body Dragon_4_45_LALR_Test is
       Upper_S_ID,
       Upper_C_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Lower_C_ID,
       Last_Terminal     => EOF_ID,
@@ -61,12 +61,12 @@ package body Dragon_4_45_LALR_Test is
    First_Parser_Label : constant := 1;
 
    --  Allow infix operators for building productions
-   use all type FastToken.Production.Right_Hand_Side;
-   use all type FastToken.Production.List.Instance;
+   use all type WisiToken.Production.Right_Hand_Side;
+   use all type WisiToken.Production.List.Instance;
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
-   Grammar : constant FastToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Production.List.Instance :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
      and
      Upper_S_ID <= Upper_C_ID & Upper_C_ID + Null_Action -- 2
@@ -85,24 +85,24 @@ package body Dragon_4_45_LALR_Test is
    S5  : constant := 5;
    S89 : constant := 6;
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
      ((
        Lower_C_ID => Lexer.Get ("c"),
        Lower_D_ID => Lexer.Get ("d"),
-       EOF_ID     => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
      ));
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
-   Has_Empty_Production : constant FastToken.Token_ID_Set :=
-     FastToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
+   Has_Empty_Production : constant WisiToken.Token_ID_Set :=
+     WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
 
-   First : constant FastToken.Token_Array_Token_Set := FastToken.Parser.LR.LR1_Items.First
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
    ----------
@@ -111,11 +111,11 @@ package body Dragon_4_45_LALR_Test is
    procedure Test_First (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use FastToken.AUnit;
+      use WisiToken.AUnit;
 
       --  FIRST defined in dragon pg 45
 
-      Expected : constant FastToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
+      Expected : constant WisiToken.Token_Array_Token_Set := To_Nonterminal_Array_Token_Set
         ((Accept_ID  => (Upper_S_ID | Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_S_ID => (Upper_C_ID | Lower_C_ID | Lower_D_ID => True, others => False),
           Upper_C_ID => (Lower_C_ID | Lower_D_ID => True, others => False)));
@@ -125,15 +125,15 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Test_LALR_Kernels (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use FastToken.Parser.LR.LR1_Items;
-      use all type FastToken.Token_ID;
+      use WisiToken.Parser.LR.LR1_Items;
+      use all type WisiToken.Token_ID;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := FastToken.Parser.LR.LALR_Generator.LALR_Kernels
+      Computed : constant Item_Set_List := WisiToken.Parser.LR.LALR_Generator.LALR_Kernels
         (Grammar, First, First_State_Index, LALR_Descriptor, Trace => Test.Debug);
 
-      Null_Lookaheads : constant FastToken.Token_ID_Set :=
+      Null_Lookaheads : constant WisiToken.Token_ID_Set :=
         --  + 1 for propagate
         (LALR_Descriptor.First_Terminal .. LALR_Descriptor.Last_Terminal + 1 => False);
 
@@ -187,7 +187,7 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use FastToken.Parser.LR;
+      use WisiToken.Parser.LR;
 
       Test : Test_Case renames Test_Case (T);
 
@@ -257,9 +257,9 @@ package body Dragon_4_45_LALR_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : FastToken.Parser.LR.Parser.Instance := FastToken.Parser.LR.Parser.New_Parser
+      Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);
 
@@ -278,7 +278,7 @@ package body Dragon_4_45_LALR_Test is
       end Execute_Command;
 
    begin
-      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       Execute_Command ("cdcd");
    end Test_Parse;

@@ -1,4 +1,4 @@
-# makefile rules for FastToken
+# makefile rules for WisiToken
 
 # note that we use .exe for test executables even on non-windows, to
 # keep the makerules simpler.
@@ -33,7 +33,7 @@ tests : test_all_harness.diff
 #
 # to parse .wy, build %_yylex.adb, and run the parser, we'd like to do:
 #
-# %_run.exe : %_run.adb %_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# %_run.exe : %_run.adb %_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*_run
 #
 # but that gets overridden by the simpler .exe rule for other things.
 # So we must list %_yylex.adb explicitly in tests.
@@ -82,7 +82,7 @@ uninstall:
 	make -f Install.make install-clean
 
 library:
-	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pfasttoken_lib
+	gprbuild -p --RTS=$(ADA_RUN_TIME) -Pwisitoken_lib
 
 clean :: test-clean
 	rm -rf obj *.exe
@@ -99,9 +99,9 @@ source-clean ::
 # the test executables are only in the test project file, which requires AUnit
 # Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
 wisi-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken.gpr $(GPRBUILD_ARGS) wisi-generate
+	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate
 
-%.check : %.adb force; gnatmake -p -k -gnatc -Pfasttoken_test.gpr $(GNATMAKE_ARGS) $*
+%.check : %.adb force; gnatmake -p -k -gnatc -Pwisitoken_test.gpr $(GNATMAKE_ARGS) $*
 
 %.out : %.exe
 	./$*.exe $(RUN_ARGS) > $*.out 2>&1
@@ -144,10 +144,10 @@ wisi-clean :
 	./$*_run.exe -v 4 $< > $*.parse
 	dos2unix $*.parse
 
-%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P fasttoken_test.gpr $(GPRBUILD_ARGS) $*
+%.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
 %_yylex.ada : %.l
-	aflex -i -s -E -D../wisi/fasttoken_aflex_dfa.adb.template -O../wisi/fasttoken_aflex_io.adb.template $(AFLEX_ARGS) $<
+	aflex -i -s -E -D../wisi/wisitoken_aflex_dfa.adb.template -O../wisi/wisitoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
 %_yylex.adb : %_yylex.ada
 	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
@@ -165,11 +165,11 @@ BRANCH := $(notdir $(shell cd ..; pwd))
 bz2file : force
 	rm -rf ../../$(BRANCH)-$(ZIP_VERSION)
 	mtn checkout --branch $(BRANCH) ../../$(BRANCH)-$(ZIP_VERSION)
-	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > fasttoken-$(ZIP_VERSION).tar.bz2
+	tar -c -O  -C ../.. --exclude=_MTN --exclude "build/x86*" --exclude=.mtn-ignore --exclude=.dvc-exclude --exclude debug_parser.adb --no-anchor $(BRANCH)-$(ZIP_VERSION) | bzip2 -9 > wisitoken-$(ZIP_VERSION).tar.bz2
 
 zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
-	cd ../..; zip -q -r $(CURDIR)/fasttoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
+	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
 .PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %-wy.el
 

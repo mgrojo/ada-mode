@@ -5,17 +5,17 @@
 --  Copyright (C) 2013, 2014, 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -28,7 +28,7 @@
 
 pragma License (Modified_GPL);
 
-package body FastToken.Production is
+package body WisiToken.Production is
 
    function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side
    is begin
@@ -169,4 +169,4 @@ package body FastToken.Production is
 
    end List;
 
-end FastToken.Production;
+end WisiToken.Production;

@@ -5,7 +5,7 @@
 ZIP_VERSION := 6.0b
 #w-$(shell date +%Y-%m-%d)
 
-all : test-clean tests examples library
+all : test-clean tests library
 #all : doc zip tag
 
 # ../../Test/test_one_harness.adb
@@ -74,10 +74,6 @@ some : wisi-generate.exe
 # some : SOME_CLEAN_FILE += identifier_list_name_conflict
 # some : identifier_list_name_conflict_yylex.adb
 # some : identifier_list_name_conflict-parse.diff
-# some : SOME_CLEAN_FILE += subprograms
-# some : subprograms_yylex.adb
-# some : subprograms-parse.diff
-# some : subprograms-process.el.diff
 
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html

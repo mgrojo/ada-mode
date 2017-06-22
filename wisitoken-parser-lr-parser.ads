@@ -5,9 +5,9 @@
 --  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -21,10 +21,10 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Token;
-package FastToken.Parser.LR.Parser is
+with WisiToken.Token;
+package WisiToken.Parser.LR.Parser is
 
-   type Instance is new FastToken.Parser.LR.Instance with record
+   type Instance is new WisiToken.Parser.LR.Instance with record
       Max_Parallel         : Integer;
       First_Parser_Label   : Integer;
       Terminate_Same_State : Boolean;
@@ -33,7 +33,7 @@ package FastToken.Parser.LR.Parser is
    function New_Parser
      (Lexer                :         in     Lexer_Pkg.Handle;
       Table                :         in     Parse_Table_Ptr;
-      Semantic_State       : aliased in out FastToken.Token.Semantic_State'Class;
+      Semantic_State       : aliased in out WisiToken.Token.Semantic_State'Class;
       Max_Parallel         :         in     Integer := 15;
       First_Parser_Label   :         in     Integer := 1;
       Terminate_Same_State :         in     Boolean := False)
@@ -46,4 +46,4 @@ package FastToken.Parser.LR.Parser is
    --  2 - input tokens, reduce actions
    --  3 - parse stack
 
-end FastToken.Parser.LR.Parser;
+end WisiToken.Parser.LR.Parser;

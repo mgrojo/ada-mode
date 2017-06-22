@@ -21,13 +21,13 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
-with FastToken.Gen_Token_Enum;
-with FastToken.Lexer.Regexp;
-with FastToken.Parser.LR.LALR_Generator;
-with FastToken.Parser.LR.Parser;
-with FastToken.Production;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_IO_Trace;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_IO_Trace;
 package body Test_Statement_Actions is
 
    type Token_ID is
@@ -45,7 +45,7 @@ package body Test_Statement_Actions is
       Statement_Sequence_ID,
       Parse_Sequence_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_ID,
       First_Terminal    => Plus_Minus_ID,
       Last_Terminal     => EOF_ID,
@@ -58,28 +58,28 @@ package body Test_Statement_Actions is
    First_State_Index  : constant := 1;
    First_Parser_Label : constant := 1;
 
-   use all type FastToken.Production.List.Instance;   --  "and"
-   use all type FastToken.Production.Right_Hand_Side; --  "+"
+   use all type WisiToken.Production.List.Instance;   --  "and"
+   use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : FastToken.Semantic_Action renames FastToken.Null_Action;
+   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
 
    package Set_Statement is
 
-      Grammar : constant FastToken.Production.List.Instance :=
-        FastToken.Production.List.Only
+      Grammar : constant WisiToken.Production.List.Instance :=
+        WisiToken.Production.List.Only
         (Statement_ID <= Set_ID & Int_ID + Null_Action);
 
    end Set_Statement;
 
    package Verify_Statement is
 
-      Grammar : constant FastToken.Production.List.Instance :=
+      Grammar : constant WisiToken.Production.List.Instance :=
         Statement_ID <= Verify_ID & Int_ID + Null_Action
         and
         Statement_ID <= Verify_ID & Int_ID & Plus_Minus_ID + Null_Action;
    end Verify_Statement;
 
-   package Lexer renames FastToken.Lexer.Regexp;
+   package Lexer renames WisiToken.Lexer.Regexp;
 
    Syntax : constant Lexer.Syntax := To_Syntax
      ((
@@ -89,15 +89,15 @@ package body Test_Statement_Actions is
        Set_ID        => Lexer.Get ("set"),
        Verify_ID     => Lexer.Get ("verify"),
        Int_ID        => Lexer.Get ("[0-9]+"),
-       EOF_ID        => Lexer.Get ("" & FastToken.EOF_Character)
+       EOF_ID        => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
 
    Action_Count : Integer := 0;
 
    procedure Statement_Semi_Action
-     (Nonterm : in FastToken.Augmented_Token'Class;
+     (Nonterm : in WisiToken.Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in FastToken.Token_Stack_Type)
+      Source  : in WisiToken.Token_Stack_Type)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
@@ -106,7 +106,7 @@ package body Test_Statement_Actions is
       Action_Count := Action_Count + 1;
    end Statement_Semi_Action;
 
-   Grammar : constant FastToken.Production.List.Instance :=
+   Grammar : constant WisiToken.Production.List.Instance :=
      Parse_Sequence_ID     <= Statement_Sequence_ID & EOF_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID & Statement_Sequence_ID + Null_Action and
      Statement_Sequence_ID <= Statement_Semi_ID + Null_Action and
@@ -115,15 +115,15 @@ package body Test_Statement_Actions is
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access);
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
-   Parser        : FastToken.Parser.LR.Parser.Instance;
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
+   Parser        : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Execute_Command (Command : in String)
    is begin
-      FastToken.Text_Feeder.String.Set (String_Feeder, Command);
+      WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
 
       Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
@@ -142,14 +142,14 @@ package body Test_Statement_Actions is
 
       use AUnit.Checks;
    begin
-      Parser := FastToken.Parser.LR.Parser.New_Parser
+      Parser := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         FastToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
          State,
          First_Parser_Label);
 
-      FastToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
       Execute_Command ("set 2;");
 

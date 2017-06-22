@@ -3,8 +3,8 @@
 (require 'ada-project)
 (require 'xref-ada)
 
-(ada-parse-prj-file "fasttoken.prj")
-(ada-select-prj-file "fasttoken.prj")
+(ada-parse-prj-file "wisitoken.prj")
+(ada-select-prj-file "wisitoken.prj")
 
 (add-to-list 'project-find-functions 'project-menu-prj)
 
@@ -13,7 +13,7 @@
 
 ;; extensions to ada-fix-error
 
-(defun fasttoken-gnat-fix-error (msg source-buffer source-window)
+(defun wisitoken-gnat-fix-error (msg source-buffer source-window)
   "For `ada-gnat-fix-error-hook'."
 
   (let ((start-pos (point))
@@ -27,7 +27,7 @@
      result
      (unwind-protect
 	 (cond
-	  ;; Fasttoken access type naming convention
+	  ;; Wisitoken access type naming convention
 	  ((looking-at (concat "expected \\(private \\)?type " ada-gnat-quoted-name-regexp))
 	   (let ((type (match-string 2)))
 	     (next-line 1)
@@ -53,6 +53,6 @@
       nil)
     ))
 
-(add-hook 'ada-gnat-fix-error-hook 'fasttoken-gnat-fix-error)
+(add-hook 'ada-gnat-fix-error-hook 'wisitoken-gnat-fix-error)
 
 ;; end of file

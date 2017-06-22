@@ -19,7 +19,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-package body FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
+package body WisiToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
    procedure Initialize (Feeder : in out Instance; File : in GNAT.OS_Lib.File_Descriptor)
    is begin
@@ -154,4 +154,4 @@ package body FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
       return Feeder.Get_Count;
    end Get_Count;
 
-end FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
+end WisiToken.Text_Feeder.Counted_GNAT_OS_Lib;

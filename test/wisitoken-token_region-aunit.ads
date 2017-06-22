@@ -17,11 +17,11 @@
 
 pragma License (GPL);
 
-package FastToken.Token_Region.AUnit is
+package WisiToken.Token_Region.AUnit is
 
    procedure Check
      (Label    : in String;
       Computed : in Token;
       Expected : in Token);
 
-end FastToken.Token_Region.AUnit;
+end WisiToken.Token_Region.AUnit;

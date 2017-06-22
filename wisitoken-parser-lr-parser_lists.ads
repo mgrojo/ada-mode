@@ -4,9 +4,9 @@
 --
 --  Copyright (C) 2014-2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -21,7 +21,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-package FastToken.Parser.LR.Parser_Lists is
+package WisiToken.Parser.LR.Parser_Lists is
 
    type Parser_State is private;
 
@@ -70,7 +70,7 @@ package FastToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
-   procedure Put_Trace_Top_10 (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Put_Trace.
 
    --  pending user actions
@@ -139,8 +139,8 @@ package FastToken.Parser.LR.Parser_Lists is
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
-   procedure Put_Trace_Pending_Actions (Trace : in out FastToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
+   procedure Put_Trace_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
 
 private
 
@@ -199,4 +199,4 @@ private
       Ptr  : Parser_Node_Access;
    end record;
 
-end FastToken.Parser.LR.Parser_Lists;
+end WisiToken.Parser.LR.Parser_Lists;

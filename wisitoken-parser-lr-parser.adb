@@ -5,17 +5,17 @@
 --  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -28,14 +28,14 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR.Panic_Mode;
-with FastToken.Parser.LR.Parser_Lists;
-package body FastToken.Parser.LR.Parser is
+with WisiToken.Parser.LR.Panic_Mode;
+with WisiToken.Parser.LR.Parser_Lists;
+package body WisiToken.Parser.LR.Parser is
 
    procedure Expecting
      (Table  : in     Parse_Table_Ptr;
       State  : in     State_Index;
-      Result : in out FastToken.Token_ID_Set)
+      Result : in out WisiToken.Token_ID_Set)
    is
       Action : Action_Node_Ptr := Table.States (State).Action_List;
    begin
@@ -51,7 +51,7 @@ package body FastToken.Parser.LR.Parser is
    procedure Reduce_Stack
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Semantic_State : access FastToken.Token.Semantic_State'Class)
+      Semantic_State : access WisiToken.Token.Semantic_State'Class)
    is
       Tokens : Token.List.Instance;
    begin
@@ -73,7 +73,7 @@ package body FastToken.Parser.LR.Parser is
                  (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            FastToken.Token.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action, Semantic_State);
+            WisiToken.Token.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action, Semantic_State);
             --  Merge_Tokens puts a trace, with extra token info
 
             Token.List.Clean (Tokens);
@@ -87,7 +87,7 @@ package body FastToken.Parser.LR.Parser is
       Current_Token  : in Token_ID;
       Parser         : in Instance)
    is
-      Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+      Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
    begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
@@ -107,7 +107,7 @@ package body FastToken.Parser.LR.Parser is
 
          declare
             Action_Token : constant Parser_Lists.Action_Token := (Action, Token.List.Only (Current_Token));
-            Trace : FastToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+            Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
          begin
             if Current_Parser.Active_Parser_Count > 1 then
                Current_Parser.Enqueue (Action_Token);
@@ -118,7 +118,7 @@ package body FastToken.Parser.LR.Parser is
                   Trace.Put_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
                end if;
             else
-               FastToken.Token.Push_Token (Current_Token, Parser.Semantic_State);
+               WisiToken.Token.Push_Token (Current_Token, Parser.Semantic_State);
             end if;
          end;
 
@@ -221,7 +221,7 @@ package body FastToken.Parser.LR.Parser is
 
    procedure Execute_Pending
      (Current_Parser : in     Parser_Lists.Cursor;
-      Semantic_State : access FastToken.Token.Semantic_State'Class)
+      Semantic_State : access WisiToken.Token.Semantic_State'Class)
    is
       Action_Token : Parser_Lists.Action_Token;
    begin
@@ -260,7 +260,7 @@ package body FastToken.Parser.LR.Parser is
       Action         : Parse_Action_Node_Ptr;
       Keep_Going     : Boolean;
    begin
-      FastToken.Token.Reset (Parser.Semantic_State);
+      WisiToken.Token.Reset (Parser.Semantic_State);
 
       loop
          --  exit on Accept_It action or syntax error.
@@ -270,7 +270,7 @@ package body FastToken.Parser.LR.Parser is
          case Current_Verb is
          when Shift =>
             Current_Token := Parser.Lexer.Find_Next;
-            FastToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+            WisiToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
 
          when Accept_It =>
             declare
@@ -295,8 +295,8 @@ package body FastToken.Parser.LR.Parser is
             --  All parsers errored; atempt recovery,
             declare
                use Parser_Lists;
-               Descriptor : FastToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
-               Expecting  : FastToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
+               Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
+               Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
             begin
                for I in Parsers.Iterate loop
                   LR.Parser.Expecting (Parser.Table, To_Cursor (Parsers, I).Peek.State, Expecting);
@@ -314,7 +314,7 @@ package body FastToken.Parser.LR.Parser is
                   declare
                      Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
                   begin
-                     FastToken.Token.Recover (Panic.Popped_Tokens, Panic.Pushed_Tokens, Parser.Semantic_State);
+                     WisiToken.Token.Recover (Panic.Popped_Tokens, Panic.Pushed_Tokens, Parser.Semantic_State);
                   end;
 
                   --  FIXME: else push panic onto pending
@@ -416,7 +416,7 @@ package body FastToken.Parser.LR.Parser is
    function New_Parser
      (Lexer                :         in     Lexer_Pkg.Handle;
       Table                :         in     Parse_Table_Ptr;
-      Semantic_State       : aliased in out FastToken.Token.Semantic_State'Class;
+      Semantic_State       : aliased in out WisiToken.Token.Semantic_State'Class;
       Max_Parallel         :         in     Integer := 15;
       First_Parser_Label   :         in     Integer := 1;
       Terminate_Same_State :         in     Boolean := False)
@@ -427,4 +427,4 @@ package body FastToken.Parser.LR.Parser is
          Max_Parallel, First_Parser_Label, Terminate_Same_State);
    end New_Parser;
 
-end FastToken.Parser.LR.Parser;
+end WisiToken.Parser.LR.Parser;

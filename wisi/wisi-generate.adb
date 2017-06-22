@@ -5,7 +5,7 @@
 --
 --  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -24,7 +24,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with FastToken;
+with WisiToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
@@ -225,7 +225,7 @@ when E : User_Error =>
       Put_Usage;
    end;
 
-when E : FastToken.Grammar_Error =>
+when E : WisiToken.Grammar_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
    Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
 

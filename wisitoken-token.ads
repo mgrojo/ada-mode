@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,8 +27,8 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Lexer;
-package FastToken.Token is
+with WisiToken.Lexer;
+package WisiToken.Token is
 
    ----------
    --  Token lists
@@ -83,7 +83,7 @@ package FastToken.Token is
       procedure Append (List  : in out Instance; Item : in Token_ID);
       --  Append to tail of List.
 
-      procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Instance);
+      procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Instance);
       --  Put Item to Put_Trace.
 
    private
@@ -108,7 +108,7 @@ package FastToken.Token is
    ----------
    --  Semantic state
 
-   type Semantic_State (Trace : not null access FastToken.Trace'Class) is abstract tagged limited null record;
+   type Semantic_State (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited null record;
    --  For storing augmented tokens, other semantic information
 
    procedure Reset (State : access Semantic_State) is abstract;
@@ -117,7 +117,7 @@ package FastToken.Token is
    procedure Input_Token
      (Token : in     Token_ID;
       State : access Semantic_State;
-      Lexer : in     FastToken.Lexer.Handle)
+      Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
    --  Parser just fetched Token from Lexer; save it in the State
    --  input queue for later push or recover operations.
@@ -167,4 +167,4 @@ package FastToken.Token is
    --  Popped_Tokens were popped off the stack, Pushed_Token was
    --  pushed on the stack.
 
-end FastToken.Token;
+end WisiToken.Token;

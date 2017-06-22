@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  Regular expressions, for FastToken.Lexer.Regexp. It supports a
+--  Regular expressions, for WisiToken.Lexer.Regexp. It supports a
 --  subset of the syntax of regular expressions copied from familiar
 --  Unix style utilities.
 --
@@ -10,12 +10,12 @@
 --  Copyright (C) 2015 Stephen Leake
 --  Copyright (C) 1998-2010, AdaCore
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
@@ -30,14 +30,14 @@
 --
 --  You should have received a copy of the
 --  GNU General Public License and
---  a copy of the GCC Runtime Library Exception distributed with the FastToken package;
+--  a copy of the GCC Runtime Library Exception distributed with the WisiToken package;
 --  see files GPL.txt and GPL_runtime.txt. If not, see
 --  <http://www.gnu.org/licenses/>.
 
 pragma License (Modified_GPL);
 
 with Ada.Finalization;
-package FastToken.Regexp is
+package WisiToken.Regexp is
 
    --  The regular expression must first be compiled, using the Compile
    --  function, which creates a finite state matching table, allowing
@@ -136,4 +136,4 @@ private
    overriding procedure Adjust (R : in out Regexp);
    --  Deep copy R.R.all
 
-end FastToken.Regexp;
+end WisiToken.Regexp;

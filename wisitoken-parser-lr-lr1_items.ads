@@ -5,17 +5,17 @@
 --  Copyright (C) 2003, 2008, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -29,8 +29,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-with FastToken.Production;
-package FastToken.Parser.LR.LR1_Items is
+with WisiToken.Production;
+package WisiToken.Parser.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
    --  [dragon] LALR algorithm 4.12. That is implemented by setting
@@ -78,13 +78,13 @@ package FastToken.Parser.LR.LR1_Items is
    procedure Include
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean);
    procedure Include
      (Item              : in     Item_Ptr;
       Value             : in     Lookahead;
       Added             :    out Boolean;
-      Descriptor        : access constant FastToken.Descriptor'Class;
+      Descriptor        : access constant WisiToken.Descriptor'Class;
       Exclude_Propagate : in     Boolean);
    --  Add Value to Item.Lookahead.
    --  Descriptor may be null when Exclude_Propagate is False
@@ -121,12 +121,12 @@ package FastToken.Parser.LR.LR1_Items is
 
    function Filter
      (Set        : in     Item_Set;
-      Descriptor : in     FastToken.Descriptor'Class;
-      Include    : access function (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
+      Descriptor : in     WisiToken.Descriptor'Class;
+      Include    : access function (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean)
      return Item_Set;
    --  Return a deep copy of Set, including only items for which Include returns True.
 
-   function In_Kernel (Descriptor : in FastToken.Descriptor'Class; Item : in Item_Ptr) return Boolean;
+   function In_Kernel (Descriptor : in WisiToken.Descriptor'Class; Item : in Item_Ptr) return Boolean;
    --  For use with Filter; [dragon] sec 4.7 pg 240
 
    type Item_Set_List is record
@@ -180,12 +180,12 @@ package FastToken.Parser.LR.LR1_Items is
 
    function Has_Empty_Production
      (Grammar    : in Production.List.Instance;
-      Descriptor : in FastToken.Descriptor'Class)
+      Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set;
 
    function First
      (Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       Has_Empty_Production : in Token_ID_Set;
       Trace                : in Boolean)
      return Token_Array_Token_Set;
@@ -196,7 +196,7 @@ package FastToken.Parser.LR.LR1_Items is
 
    function Follow
      (Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       First                : in Token_Array_Token_Set;
       Has_Empty_Production : in Token_ID_Set)
      return Token_Array_Token_Set;
@@ -209,7 +209,7 @@ package FastToken.Parser.LR.LR1_Items is
       Has_Empty_Production : in Token_ID_Set;
       First                : in Token_Array_Token_Set;
       Grammar              : in Production.List.Instance;
-      Descriptor           : in FastToken.Descriptor'Class;
+      Descriptor           : in WisiToken.Descriptor'Class;
       Trace                : in Boolean)
      return Item_Set;
    --  Return the closure of Set over Grammar. First must be the
@@ -218,13 +218,13 @@ package FastToken.Parser.LR.LR1_Items is
    --  allows merging lookaheads into one item..
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Ptr;
       Show_Lookaheads : in Boolean := True);
    --  Ignores Item.Next.
 
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set;
       Show_Lookaheads : in Boolean := True;
       Kernel_Only     : in Boolean := False;
@@ -232,14 +232,14 @@ package FastToken.Parser.LR.LR1_Items is
    --  Ignores Item.Next.
 
    procedure Put
-     (Descriptor : in FastToken.Descriptor'Class;
+     (Descriptor : in WisiToken.Descriptor'Class;
       Item       : in Goto_Item_Ptr);
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_Ptr;
       Show_Lookaheads : in Boolean := True);
    procedure Put
-     (Descriptor      : in FastToken.Descriptor'Class;
+     (Descriptor      : in WisiToken.Descriptor'Class;
       Item            : in Item_Set_List;
       Show_Lookaheads : in Boolean := True);
    --  Put Item to Ada.Text_IO.Standard_Output. Does not end with New_Line.
@@ -277,4 +277,4 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
-end FastToken.Parser.LR.LR1_Items;
+end WisiToken.Parser.LR.LR1_Items;

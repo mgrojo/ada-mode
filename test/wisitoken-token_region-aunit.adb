@@ -20,18 +20,18 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.AUnit;
-package body FastToken.Token_Region.AUnit is
+with WisiToken.AUnit;
+package body WisiToken.Token_Region.AUnit is
 
    procedure Check
      (Label    : in String;
       Computed : in Token;
       Expected : in Token)
    is
-      use FastToken.AUnit;
+      use WisiToken.AUnit;
    begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
       Check (Label & ".Region", Computed.Region, Expected.Region);
    end Check;
 
-end FastToken.Token_Region.AUnit;
+end WisiToken.Token_Region.AUnit;

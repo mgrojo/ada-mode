@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2014, 2015, 2017 Stephen Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
@@ -23,17 +23,17 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Exceptions;
-with FastToken.AUnit;
-with FastToken.Gen_Token_Enum;
-with FastToken.Parser.LR.Parser_Lists;
-with FastToken.Text_IO_Trace;
-with FastToken.Token;
-with FastToken_AUnit; use FastToken_AUnit;
+with WisiToken.AUnit;
+with WisiToken.Gen_Token_Enum;
+with WisiToken.Parser.LR.Parser_Lists;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Token;
+with WisiToken_AUnit; use WisiToken_AUnit;
 package body Parser_Lists_Test is
 
    type Token_Enum_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
 
-   package Token_Enum is new FastToken.Gen_Token_Enum
+   package Token_Enum is new WisiToken.Gen_Token_Enum
      (Token_Enum_ID     => Token_Enum_ID,
       First_Terminal    => Identifier_ID,
       Last_Terminal     => EOF_ID,
@@ -43,14 +43,14 @@ package body Parser_Lists_Test is
       Accept_ID         => Statement_ID);
    use Token_Enum;
 
-   Trace : aliased FastToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
 
    procedure Check
      (Label    : in String;
-      Computed : in FastToken.Parser.LR.Parser_Lists.Stack_Item;
-      Expected : in FastToken.Parser.LR.Parser_Lists.Stack_Item)
+      Computed : in WisiToken.Parser.LR.Parser_Lists.Stack_Item;
+      Expected : in WisiToken.Parser.LR.Parser_Lists.Stack_Item)
    is
-      use FastToken.AUnit;
+      use WisiToken.AUnit;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Token", Computed.Token, Expected.Token);
@@ -62,8 +62,8 @@ package body Parser_Lists_Test is
    procedure Init (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use FastToken.Parser.LR;
-      use FastToken.Parser.LR.Parser_Lists;
+      use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
@@ -74,7 +74,7 @@ package body Parser_Lists_Test is
       Check ("1: Label", Cursor.Label, 1);
       Check ("1: Verb", Cursor.Verb, Shift);
       Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("1: Peek", Cursor.Peek, (1, FastToken.Token_ID'Last));
+      Check ("1: Peek", Cursor.Peek, (1, WisiToken.Token_ID'Last));
       Check ("1: Action_Tokens_Empty", Cursor.Pending_Actions_Empty, True);
    end Init;
 
@@ -82,8 +82,8 @@ package body Parser_Lists_Test is
    is
       pragma Unreferenced (T);
       use AUnit.Checks;
-      use FastToken.Parser.LR;
-      use FastToken.Parser.LR.Parser_Lists;
+      use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.Parser_Lists;
 
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
@@ -91,7 +91,7 @@ package body Parser_Lists_Test is
       Item_1 : constant Stack_Item := (2, +If_ID);
       Item_2 : constant Stack_Item := (3, +Then_ID);
    begin
-      Check ("1: Pop", Cursor.Pop, (0, FastToken.Token_ID'Last));
+      Check ("1: Pop", Cursor.Pop, (0, WisiToken.Token_ID'Last));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
       Check ("1: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
 
@@ -119,8 +119,8 @@ package body Parser_Lists_Test is
    procedure Parser_List (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use FastToken.Parser.LR;
-      use FastToken.Parser.LR.Parser_Lists;
+      use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
@@ -170,8 +170,8 @@ package body Parser_Lists_Test is
    procedure Stack_Equal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use FastToken.Parser.LR;
-      use FastToken.Parser.LR.Parser_Lists;
+      use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
 
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
@@ -205,17 +205,17 @@ package body Parser_Lists_Test is
    procedure Pending (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       pragma Unreferenced (T);
-      use FastToken.AUnit;
-      use FastToken.Parser.LR;
-      use FastToken.Parser.LR.Parser_Lists;
+      use WisiToken.AUnit;
+      use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
 
       Item_1  : constant Action_Token :=
-        ((Reduce, +Statement_ID, null, 0, 0), FastToken.Token.List.Null_List);
+        ((Reduce, +Statement_ID, null, 0, 0), WisiToken.Token.List.Null_List);
       Item_2  : constant Action_Token :=
-        ((Reduce, +Procedure_ID, null, 0, 0), FastToken.Token.List.Null_List);
+        ((Reduce, +Procedure_ID, null, 0, 0), WisiToken.Token.List.Null_List);
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
    begin
@@ -255,10 +255,10 @@ package body Parser_Lists_Test is
       Test : Test_Case renames Test_Case (T);
 
       use AUnit.Checks;
-      use FastToken.Parser.LR.Parser_Lists;
-      use FastToken.Parser.LR;
-      use FastToken;
-      use all type FastToken.Token.List.Instance;
+      use WisiToken.Parser.LR.Parser_Lists;
+      use WisiToken.Parser.LR;
+      use WisiToken;
+      use all type WisiToken.Token.List.Instance;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
 
@@ -370,7 +370,7 @@ package body Parser_Lists_Test is
       Check ("3b", Stack_Equal (Cursor, Parsers.First), True);
 
    exception
-   when E : FastToken.Programmer_Error =>
+   when E : WisiToken.Programmer_Error =>
       AUnit.Assertions.Assert (False, Ada.Exceptions.Exception_Message (E));
    end Copy;
 

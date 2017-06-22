@@ -17,9 +17,9 @@
 
 pragma License (GPL);
 
-with FastToken.Lexer.Regexp;
-with FastToken.Production;
-with FastToken.Token;
+with WisiToken.Lexer.Regexp;
+with WisiToken.Production;
+with WisiToken.Token;
 generic
    type Token_Enum_ID is (<>);
    First_Terminal    : Token_Enum_ID;
@@ -28,7 +28,7 @@ generic
    Last_Nonterminal  : Token_Enum_ID;
    EOF_ID            : Token_Enum_ID;
    Accept_ID         : Token_Enum_ID;
-package FastToken.Gen_Token_Enum is
+package WisiToken.Gen_Token_Enum is
 
    function "+" (Item : in Token_Enum_ID) return Token_ID
      is (Token_ID'First + Token_Enum_ID'Pos (Item));
@@ -38,7 +38,7 @@ package FastToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_Array_String;
 
-   LR1_Descriptor : aliased FastToken.Descriptor :=
+   LR1_Descriptor : aliased WisiToken.Descriptor :=
      (First_Terminal    =>  +First_Terminal,
       Last_Terminal     =>  +Last_Terminal,
       First_Nonterminal =>  +First_Nonterminal,
@@ -48,7 +48,7 @@ package FastToken.Gen_Token_Enum is
       Image             => Token_Enum_Image,
       Image_Width       => Token_Enum_ID'Width);
 
-   LALR_Descriptor : aliased FastToken.LALR_Descriptor :=
+   LALR_Descriptor : aliased WisiToken.LALR_Descriptor :=
      (First_Terminal    =>  +First_Terminal,
       Last_Terminal     =>  +Last_Terminal,
       First_Nonterminal =>  +First_Nonterminal,
@@ -60,36 +60,36 @@ package FastToken.Gen_Token_Enum is
       Image_Width       => Token_Enum_ID'Width);
 
    type Enum_Syntax is array (Token_Enum_ID range Token_Enum_ID'First .. Last_Terminal) of
-     FastToken.Lexer.Regexp.Syntax_Item;
+     WisiToken.Lexer.Regexp.Syntax_Item;
 
-   function To_Syntax (Item : in Enum_Syntax) return FastToken.Lexer.Regexp.Syntax;
+   function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return FastToken.Token.List.Instance;
+   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Token.List.Instance;
 
    function "&"
-     (Left  : in FastToken.Token.List.Instance;
+     (Left  : in WisiToken.Token.List.Instance;
       Right : in Token_Enum_ID)
-     return FastToken.Token.List.Instance;
+     return WisiToken.Token.List.Instance;
 
-   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return FastToken.Production.Right_Hand_Side;
+   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return WisiToken.Production.Right_Hand_Side;
 
    function "<="
      (Left  : in Token_Enum_ID;
-      Right : in FastToken.Production.Right_Hand_Side)
-     return FastToken.Production.Instance;
+      Right : in WisiToken.Production.Right_Hand_Side)
+     return WisiToken.Production.Instance;
 
-   type Augmented_Token is new FastToken.Augmented_Token with record
+   type Augmented_Token is new WisiToken.Augmented_Token with record
       Enum_ID : Token_Enum_ID;
    end record;
 
-   type State_Type is new FastToken.Token.Semantic_State with null record;
+   type State_Type is new WisiToken.Token.Semantic_State with null record;
 
    overriding procedure Reset (State : access State_Type) is null;
 
    overriding procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle)
+      Lexer : in     WisiToken.Lexer.Handle)
      is null;
 
    overriding procedure Push_Token
@@ -134,17 +134,17 @@ package FastToken.Gen_Token_Enum is
 
    function To_Nonterminal_Array_Token_Set
      (Item : in Nonterminal_Array_Token_Set)
-     return FastToken.Token_Array_Token_Set;
+     return WisiToken.Token_Array_Token_Set;
 
    type Nonterminal_Array_Terminal_Set is array (Nonterminal_ID, Terminal_ID) of Boolean;
 
    function To_Nonterminal_Array_Terminal_Set
      (Item : in Nonterminal_Array_Terminal_Set)
-     return FastToken.Token_Array_Token_Set;
+     return WisiToken.Token_Array_Token_Set;
 
    type Token_Array is array (Positive range <>) of Token_Enum_ID;
 
-   function "+" (Item : in Token_Array) return FastToken.Token_ID_Set;
-   function "+" (Item : in Token_Enum_ID) return FastToken.Token_ID_Set;
+   function "+" (Item : in Token_Array) return WisiToken.Token_ID_Set;
+   function "+" (Item : in Token_Enum_ID) return WisiToken.Token_ID_Set;
 
-end FastToken.Gen_Token_Enum;
+end WisiToken.Gen_Token_Enum;

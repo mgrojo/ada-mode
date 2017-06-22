@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-package body FastToken.Parser.LR.Generator_Utils is
+package body WisiToken.Parser.LR.Generator_Utils is
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -28,7 +28,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
-      Descriptor           : in     FastToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor'Class)
    is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
@@ -98,7 +98,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Has_Empty_Production : in     Token_ID_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
-      Descriptor           : in     FastToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
       use all type Token.List.List_Iterator;
@@ -235,7 +235,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean;
-      Descriptor           : in     FastToken.Descriptor'Class)
+      Descriptor           : in     WisiToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
 
@@ -327,7 +327,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
-      Descriptor           : in FastToken.Descriptor'Class)
+      Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
       use Token.List;
@@ -385,7 +385,7 @@ package body FastToken.Parser.LR.Generator_Utils is
       raise Programmer_Error;
    end Find;
 
-   function Image (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict) return String
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict) return String
    is begin
       return
         ("%conflict " &
@@ -425,11 +425,11 @@ package body FastToken.Parser.LR.Generator_Utils is
         Known.On = Item.On;
    end Match;
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Conflict_Lists.List)
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict_Lists.List)
    is begin
       for Conflict of Item loop
          Ada.Text_IO.Put_Line (Image (Descriptor, Conflict));
       end loop;
    end Put;
 
-end FastToken.Parser.LR.Generator_Utils;
+end WisiToken.Parser.LR.Generator_Utils;

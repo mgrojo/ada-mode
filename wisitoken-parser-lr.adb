@@ -4,17 +4,17 @@
 --
 --  Copyright (C) 2013-2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -29,7 +29,7 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
-package body FastToken.Parser.LR is
+package body WisiToken.Parser.LR is
 
    function State_Image (Item : in State_Index) return String
    is
@@ -54,7 +54,7 @@ package body FastToken.Parser.LR is
       return List.Next;
    end Next;
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Parse_Action_Rec)
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Containers;
    begin
@@ -132,7 +132,7 @@ package body FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     FastToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_Action)
    is
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
@@ -166,7 +166,7 @@ package body FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     FastToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_Action)
    is
       Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
       Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
@@ -192,7 +192,7 @@ package body FastToken.Parser.LR is
         (case Verb is
          when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
          when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
-         when others => raise FastToken.Programmer_Error);
+         when others => raise WisiToken.Programmer_Error);
       Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
@@ -287,7 +287,7 @@ package body FastToken.Parser.LR is
       end if;
    end Goto_For;
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Parse_Action_Rec)
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Text_IO;
    begin
@@ -305,7 +305,7 @@ package body FastToken.Parser.LR is
       end case;
    end Put;
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr)
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr)
    is
       use Ada.Text_IO;
       Ptr    : Parse_Action_Node_Ptr   := Action;
@@ -320,7 +320,7 @@ package body FastToken.Parser.LR is
       end loop;
    end Put;
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; State : in Parse_State)
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State)
    is
       use Ada.Text_IO;
       use Ada.Strings.Fixed;
@@ -353,7 +353,7 @@ package body FastToken.Parser.LR is
       end loop;
    end Put;
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Table : in Parse_Table)
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table)
    is
       use Ada.Text_IO;
    begin
@@ -370,4 +370,4 @@ package body FastToken.Parser.LR is
       end loop;
    end Put;
 
-end FastToken.Parser.LR;
+end WisiToken.Parser.LR;

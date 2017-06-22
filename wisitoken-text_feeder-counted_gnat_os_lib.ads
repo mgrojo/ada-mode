@@ -25,9 +25,9 @@
 pragma License (GPL);
 
 with GNAT.OS_Lib;
-package FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
+package WisiToken.Text_Feeder.Counted_GNAT_OS_Lib is
 
-   type Instance is new FastToken.Text_Feeder.Instance with private;
+   type Instance is new WisiToken.Text_Feeder.Instance with private;
    type Handle is access all Instance'Class;
 
    procedure Initialize (Feeder : in out Instance; File : in GNAT.OS_Lib.File_Descriptor);
@@ -53,11 +53,11 @@ package FastToken.Text_Feeder.Counted_GNAT_OS_Lib is
    --  Count of calls to Get since Reset before end of text.
 private
 
-   type Instance is new FastToken.Text_Feeder.Instance with record
+   type Instance is new WisiToken.Text_Feeder.Instance with record
       File       : GNAT.OS_Lib.File_Descriptor;
       Max_Bytes  : Integer;
       Read_Bytes : Integer;
       Get_Count  : Integer;
    end record;
 
-end FastToken.Text_Feeder.Counted_GNAT_OS_Lib;
+end WisiToken.Text_Feeder.Counted_GNAT_OS_Lib;

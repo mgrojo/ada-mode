@@ -5,9 +5,9 @@
 --  Copyright (C) 2002 - 2005, 2008 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -24,7 +24,7 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-package body FastToken.Parser.LR.LALR_Generator is
+package body WisiToken.Parser.LR.LALR_Generator is
 
    --  The following types are used for computing lookahead
    --  propagations.
@@ -90,7 +90,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    --  Debug output
 
    procedure Put
-     (Descriptor   : in FastToken.Descriptor'Class;
+     (Descriptor   : in WisiToken.Descriptor'Class;
       Propagations : in Item_Item_List_Mapping_Ptr)
    is
       Next_Prop : Item_Item_List_Mapping_Ptr := Propagations;
@@ -121,9 +121,9 @@ package body FastToken.Parser.LR.LALR_Generator is
       Kernels    : in LR1_Items.Item_Set_List;
       Descriptor : in LALR_Descriptor)
    is
-      use all type FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      use all type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
       use Ada.Text_IO;
-      Kernel : FastToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      Kernel : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
    begin
       Put_Line ("LALR Parse Table:");
       Put_Line ("Panic_Recover:");
@@ -498,7 +498,7 @@ package body FastToken.Parser.LR.LALR_Generator is
    procedure Propagate_Lookaheads
      (List       :         in Item_Item_List_Mapping_Ptr;
       Trace      :         in Boolean;
-      Descriptor : aliased in FastToken.Descriptor'Class)
+      Descriptor : aliased in WisiToken.Descriptor'Class)
    is
       use all type LR1_Items.Item_Ptr;
 
@@ -753,4 +753,4 @@ package body FastToken.Parser.LR.LALR_Generator is
       return Table;
    end Generate;
 
-end FastToken.Parser.LR.LALR_Generator;
+end WisiToken.Parser.LR.LALR_Generator;

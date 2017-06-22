@@ -21,13 +21,13 @@
 
 pragma License (GPL);
 
-with FastToken.Lexer;
-with FastToken.Token;
-package FastToken.Token_Wisi_Process is
+with WisiToken.Lexer;
+with WisiToken.Token;
+package WisiToken.Token_Wisi_Process is
 
-   type Augmented_Token is new FastToken.Augmented_Token with null record;
+   type Augmented_Token is new WisiToken.Augmented_Token with null record;
 
-   type State_Type is new FastToken.Token.Semantic_State with null record;
+   type State_Type is new WisiToken.Token.Semantic_State with null record;
    --  The augmented tokens stack and input queue are kept in Emacs lisp,
    --  with the lexer, to minimize traffic on the process interface.
 
@@ -40,7 +40,7 @@ package FastToken.Token_Wisi_Process is
    procedure Input_Token
      (Token : in     Token_ID;
       State : access State_Type;
-      Lexer : in     FastToken.Lexer.Handle);
+      Lexer : in     WisiToken.Lexer.Handle);
    --  Elisp lexes ahead and sends the tokens in parallel with parser
    --  execution; they are already in the queue. Echoes the tokens if
    --  Trace_Parse > 3.
@@ -74,4 +74,4 @@ package FastToken.Token_Wisi_Process is
       Pushed_Tokens : in     Token.List.Instance;
       State         : access State_Type);
 
-end FastToken.Token_Wisi_Process;
+end WisiToken.Token_Wisi_Process;

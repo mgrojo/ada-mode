@@ -5,9 +5,9 @@
 --  Copyright (C) 2002 - 2003, 2009 - 2010, 2013 - 2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -21,10 +21,10 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR.Generator_Utils; use FastToken.Parser.LR.Generator_Utils;
-with FastToken.Parser.LR.LR1_Items;
-with FastToken.Production;
-package FastToken.Parser.LR.LALR_Generator is
+with WisiToken.Parser.LR.Generator_Utils; use WisiToken.Parser.LR.Generator_Utils;
+with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.Production;
+package WisiToken.Parser.LR.LALR_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
@@ -42,7 +42,7 @@ package FastToken.Parser.LR.LALR_Generator is
    --  Grammar.
    --
    --  If Trace, output debug info to Standard_Error about generation
-   --  process. We don't use FastToken.Trace here; we often want to
+   --  process. We don't use WisiToken.Trace here; we often want to
    --  see a trace of the parser execution without the parser
    --  generation.
    --
@@ -74,4 +74,4 @@ package FastToken.Parser.LR.LALR_Generator is
       Trace             : in Boolean)
      return LR1_Items.Item_Set_List;
 
-end FastToken.Parser.LR.LALR_Generator;
+end WisiToken.Parser.LR.LALR_Generator;

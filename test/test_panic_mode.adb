@@ -24,23 +24,23 @@ with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite;
-with FastToken.AUnit;
-with FastToken.Parser.LR.Parser;
-with FastToken.Text_Feeder.String;
-with FastToken.Text_Feeder.Text_IO;
-with FastToken.Token_Region.AUnit;
+with WisiToken.AUnit;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Text_Feeder.String;
+with WisiToken.Text_Feeder.Text_IO;
+with WisiToken.Token_Region.AUnit;
 with ada_lite_dfa;
 package body Test_Panic_Mode is
 
-   String_Feeder : aliased FastToken.Text_Feeder.String.Instance;
-   Parser        : FastToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser
-     (FastToken.LALR,
+   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
+   Parser        : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser
+     (WisiToken.LALR,
       Text_Feeder => String_Feeder'Access);
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
       ada_lite_dfa.aflex_debug := Debug > 3;
-      FastToken.Trace_Parse    := Debug;
+      WisiToken.Trace_Parse    := Debug;
 
       Ada_Lite.Action_Count := (others => 0);
 
@@ -61,8 +61,8 @@ package body Test_Panic_Mode is
 
    procedure Check
      (Label    : in String;
-      Computed : in FastToken.Buffer_Region;
-      Expected : in FastToken.Buffer_Region)
+      Computed : in WisiToken.Buffer_Region;
+      Expected : in WisiToken.Buffer_Region)
    is
       use AUnit.Checks;
    begin
@@ -80,18 +80,18 @@ package body Test_Panic_Mode is
       use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
-      Parser : FastToken.Parser.LR.Parser.Instance := Create_Parser
-        (FastToken.LALR,
-         Text_Feeder => FastToken.Text_Feeder.Text_IO.Create (File_Name));
+      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser
+        (WisiToken.LALR,
+         Text_Feeder => WisiToken.Text_Feeder.Text_IO.Create (File_Name));
    begin
       --  The test is that there is no exception.
 
       ada_lite_dfa.aflex_debug := False; -- keep for future debugging
-      FastToken.Trace_Parse := Test.Debug;
+      WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Parse;
    exception
-   when E : FastToken.Syntax_Error =>
+   when E : WisiToken.Syntax_Error =>
       Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
       AUnit.Assertions.Assert (False, "syntax error");
 
@@ -114,7 +114,7 @@ package body Test_Panic_Mode is
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
    exception
-   when FastToken.Syntax_Error =>
+   when WisiToken.Syntax_Error =>
       Assert (False, "exception: got syntax error exception.");
    end Error_1;
 
@@ -125,7 +125,7 @@ package body Test_Panic_Mode is
       use AUnit.Assertions;
       use AUnit.Checks;
 
-      use all type FastToken.Region_Lists.Cursor;
+      use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
         ("procedure Proc_1 is begin end Proc_1; procedure Proc_2 is if A = 2 then end;", Test.Debug);
@@ -138,10 +138,10 @@ package body Test_Panic_Mode is
 
       Check ("recover.length", Ada_Lite.State.Recover.Length, 1);
       Check ("recover.invalid_region",
-             FastToken.Token_Region.Recover_Data_Lists.Element (Ada_Lite.State.Recover.First).Invalid_Region,
+             WisiToken.Token_Region.Recover_Data_Lists.Element (Ada_Lite.State.Recover.First).Invalid_Region,
              (39, 76));
    exception
-   when FastToken.Syntax_Error =>
+   when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
    end Error_2;
 
@@ -163,12 +163,12 @@ package body Test_Panic_Mode is
       --  handled_sequence_of_statements 36, keeps end 80, succeeds.
       Check ("recover.length", State.Recover.Length, 1);
       declare
-         use FastToken.AUnit;
-         use FastToken.Token_Region.AUnit;
-         use FastToken.Token_Region;
+         use WisiToken.AUnit;
+         use WisiToken.Token_Region.AUnit;
+         use WisiToken.Token_Region;
          Temp : Recover_Data renames Recover_Data_Lists.Element (State.Recover.First);
 
-         Expecting : FastToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
+         Expecting : WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
            (others => False);
       begin
          Expecting (+IF_ID) := True;
@@ -179,7 +179,7 @@ package body Test_Panic_Mode is
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
    exception
-   when FastToken.Syntax_Error =>
+   when WisiToken.Syntax_Error =>
       Assert (False, "1.exception: got Syntax_Error");
    end Error_3;
 

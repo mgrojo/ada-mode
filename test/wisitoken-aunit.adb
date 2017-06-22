@@ -17,12 +17,12 @@
 
 pragma License (Modified_GPL);
 
-package body FastToken.AUnit is
+package body WisiToken.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in FastToken.Buffer_Region;
-      Expected : in FastToken.Buffer_Region)
+      Computed : in WisiToken.Buffer_Region;
+      Expected : in WisiToken.Buffer_Region)
    is
       use Standard.AUnit.Checks;
    begin
@@ -30,4 +30,4 @@ package body FastToken.AUnit is
       Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
    end Check;
 
-end FastToken.AUnit;
+end WisiToken.AUnit;

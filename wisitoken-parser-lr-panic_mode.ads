@@ -45,8 +45,8 @@
 
 pragma License (Modified_GPL);
 
-with FastToken.Parser.LR.Parser_Lists;
-package FastToken.Parser.LR.Panic_Mode is
+with WisiToken.Parser.LR.Parser_Lists;
+package WisiToken.Parser.LR.Panic_Mode is
 
    function Panic_Mode
      (Parser        : in out LR.Instance'Class;
@@ -57,4 +57,4 @@ package FastToken.Parser.LR.Panic_Mode is
    --  input, to allow recovering from an error state.
    --  Return True if successful.
 
-end FastToken.Parser.LR.Panic_Mode;
+end WisiToken.Parser.LR.Panic_Mode;

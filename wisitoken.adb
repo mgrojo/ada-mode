@@ -2,17 +2,17 @@
 --
 --  Copyright (C) 2009, 2014-2015, 2017 Stephe Leake
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -27,7 +27,7 @@
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-package body FastToken is
+package body WisiToken is
 
    function Image (Desc : in Descriptor'Class; Item : in Token_ID) return String
    is begin
@@ -79,7 +79,7 @@ package body FastToken is
       return To_String (Result);
    end Image;
 
-   function To_Lookahead (Descriptor : in FastToken.Descriptor; Item : in Token_ID) return Token_ID_Set
+   function To_Lookahead (Descriptor : in WisiToken.Descriptor; Item : in Token_ID) return Token_ID_Set
    is
       Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
    begin
@@ -87,7 +87,7 @@ package body FastToken is
       return Result;
    end To_Lookahead;
 
-   function Lookahead_Image (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set) return String
+   function Lookahead_Image (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := Null_Unbounded_String;
@@ -172,7 +172,7 @@ package body FastToken is
       end loop;
    end Or_Slice;
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Token_ID)
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
    is begin
       Trace.Put (Image (Trace.Descriptor.all, Item));
    end Put_Trace;
@@ -185,12 +185,12 @@ package body FastToken is
       return Trim (Integer'Image (Item), Both);
    end Int_Image;
 
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_ID_Set)
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set)
    is begin
       Ada.Text_IO.Put (Image (Descriptor, Item));
    end Put;
 
-   procedure Put (Descriptor : in FastToken.Descriptor; Item : in Token_Array_Token_Set)
+   procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set)
    is
       use Ada.Text_IO;
       Paren_Done : Boolean := False;
@@ -237,4 +237,4 @@ package body FastToken is
       return (Integer'Min (Left.Begin_Pos, Right.Begin_Pos), Integer'Max (Left.End_Pos, Right.End_Pos));
    end "and";
 
-end FastToken;
+end WisiToken;

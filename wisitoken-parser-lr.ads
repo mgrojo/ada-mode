@@ -13,17 +13,17 @@
 --  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
---  This file is part of the FastToken package.
+--  This file is part of the WisiToken package.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under the terms of the GNU General Public License
 --  as published by the Free Software Foundation; either version 3, or
---  (at your option) any later version. The FastToken package is
+--  (at your option) any later version. The WisiToken package is
 --  distributed in the hope that it will be useful, but WITHOUT ANY
 --  WARRANTY; without even the implied warranty of MERCHANTABILITY or
 --  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
 --  License for more details. You should have received a copy of the
---  GNU General Public License distributed with the FastToken package;
+--  GNU General Public License distributed with the WisiToken package;
 --  see file GPL.txt. If not, write to the Free Software Foundation,
 --  59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 --
@@ -37,7 +37,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
-package FastToken.Parser.LR is
+package WisiToken.Parser.LR is
 
    --  No private types; that would make it too hard to write the unit tests
 
@@ -77,7 +77,7 @@ package FastToken.Parser.LR is
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
 
-   procedure Put_Trace (Trace : in out FastToken.Trace'Class; Item : in Parse_Action_Rec);
+   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -124,7 +124,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     FastToken.Semantic_Action);
+      Semantic_Action : in     WisiToken.Semantic_Action);
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
@@ -134,7 +134,7 @@ package FastToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     FastToken.Semantic_Action);
+      Semantic_Action : in     WisiToken.Semantic_Action);
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
@@ -209,9 +209,9 @@ package FastToken.Parser.LR is
    Default_Panic : constant Panic_Data :=
      (Token_ID'Last, Unknown_State, Token.List.Null_List, Token.List.Null_List);
 
-   type Instance is abstract new FastToken.Parser.Instance with record
+   type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
-      Semantic_State : access FastToken.Token.Semantic_State'Class;
+      Semantic_State : access WisiToken.Token.Semantic_State'Class;
    end record;
 
    ----------
@@ -220,10 +220,10 @@ package FastToken.Parser.LR is
    function State_Image (Item : in State_Index) return String;
    --  no leading space
 
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Item : in Parse_Action_Rec);
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; State : in Parse_State);
-   procedure Put (Descriptor : in FastToken.Descriptor'Class; Table : in Parse_Table);
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State);
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table);
 
 private
 
@@ -241,4 +241,4 @@ private
       Action : in     Parse_Action_Rec);
    --  Add action to List, sorted on ascending Symbol.
 
-end FastToken.Parser.LR;
+end WisiToken.Parser.LR;
