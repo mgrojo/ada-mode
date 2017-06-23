@@ -1482,8 +1482,20 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-prj-reparse-select-current ()
   "Reparse the current project file, re-select it.
 Useful when the project file has been edited."
+  (interactive)
   (ada-parse-prj-file ada-prj-current-file)
   (ada-select-prj-file ada-prj-current-file))
+
+(defun ada-reset-comp-prj ()
+  "Reset compilation and project vars affected by a change in compiler version.
+Useful when experimenting with an upgraded compiler."
+  (interactive)
+  (when (buffer-live-p "*compilation*")
+    (with-current-buffer "*compilation*"
+      (setq compilation-environment nil)))
+  (setq ada-prj-alist nil)
+  (setq ada-prj-current-project nil)
+  )
 
 (defvar ada-prj-parse-one-compiler nil
   ;; project file parse
