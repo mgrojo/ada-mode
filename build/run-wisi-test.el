@@ -9,10 +9,16 @@
 ;; from Makefile:
 ;; M-x : (run-test "<filename>" t)
 
-(require 'wisi-parse)
+(package-initialize)
+
+(require 'cl-lib)
+(require 'wisi)
 
 ;; Default includes mtn, among others, which is broken in Emacs 24.3
 (setq vc-handled-backends '(CVS))
+
+(defvar wisi-test-parser 'elisp
+  "Set to ’process to test external process parser.")
 
 (defvar test-syntax-table
   (let ((table (make-syntax-table)))
@@ -38,12 +44,14 @@
 
 (defconst test-class-list
   '(
+    block-start
     close-paren
     function
     open-paren
     other
     procedure
     statement-end
+    statement-other
     statement-start
     )
   )
@@ -74,9 +82,8 @@
 
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
-  (interactive "Mgrammar filename: ")
-  (let ((parse-table (symbol-value (intern-soft (concat filename "-wy--parse-table"))))
-	(wisi-test-success nil)
+  (interactive "Mgrammar filename root: ")
+  (let ((wisi-test-success nil)
 	(expected-result t)
 	(wisi--cache-max
 	 (list
@@ -88,15 +95,48 @@
     ;; use Ada style comments in source
     (set-syntax-table test-syntax-table)
     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
-    (font-lock-fontify-buffer)
+    (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
-    (wisi-setup
-     nil ;; indent-calculate
-     nil ;; post-indent-fail
-     test-class-list
-     (symbol-value (intern-soft (concat filename "-wy--keyword-table")))
-     (symbol-value (intern-soft (concat filename "-wy--token-table")))
-     parse-table)
+    (cl-ecase wisi-test-parser
+      (elisp
+       (require 'wisi-elisp-parse)
+       (require (intern (concat filename "-elisp")))
+       (wisi-setup
+	:indent-calculate nil
+	:post-indent-fail nil
+	:class-list test-class-list
+	:parser (wisi-make-elisp-parser
+		 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
+		 `wisi-forward-token)
+	:lexer (wisi-make-elisp-lexer
+		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:string-quote-escape-doubled nil
+		:string-quote-escape nil)))
+
+      (process
+       (require 'wisi-elisp-parse)
+       (require (intern (concat filename "-process")))
+       (add-to-list 'exec-path default-directory)
+       (wisi-setup
+	:indent-calculate nil
+	:post-indent-fail nil
+	:class-list test-class-list
+	:parser (wisi-make-process-parser
+		 :label filename
+		 :exec (concat filename "_wisi_parse.exe")
+		 :token-table (nth 0 (symbol-value (intern-soft (concat filename "-process-token-table"))))
+		 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
+		 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
+	:lexer (wisi-make-elisp-lexer
+		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
+		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:string-quote-escape-doubled nil
+		:string-quote-escape nil)))
+      )
+
+    ;; Not clear why this is not being done automatically
+    (syntax-propertize (point-max))
 
     ;; Check for expected error result
     (goto-char (point-min))
@@ -105,13 +145,13 @@
 
     (goto-char (point-min))
     (condition-case-unless-debug err
-	(wisi-parse parse-table 'wisi-forward-token)
-      ;; parse action must set wisi-test-success t
-      (error
+      (wisi-parse-current wisi--parser)
+      (wisi-parse-error
        (setq wisi-test-success
-	     (equal (cadr err) expected-result))
+	     (equal (cdr err) expected-result))
        (unless wisi-test-success
-	 (message (cadr err)))))
+	 (message (cdr err)))))
+      ;; parse action must set wisi-test-success t
     (unless wisi-test-success
       (error "parse test failed")))
 
@@ -142,8 +182,9 @@
     ))
 
 (defun run-test (filename)
+  (interactive "Mgrammar filename root: ")
   (add-to-list 'load-path "../../test/wisi/")
-  (require (intern (concat filename "-wy")))
+
   ;; top level parse action must set `wisi-test-success' t.
 
   ;; fail for any parse errors.
@@ -163,4 +204,5 @@
       (write-file (concat filename ".wisi-test")))
   ))
 
+(provide 'run-wisi-test)
 ;; end of file

@@ -312,6 +312,11 @@ nil, only the file name."
   :type 'string
   :group 'ada-indentation)
 
+(defcustom ada-process-parse-exec "ada_mode_wisi_parse"
+  "Name of executable to use for external process Ada parser,"
+  :type 'string
+  :group 'ada-indentation)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -2647,7 +2652,7 @@ package body file, containing skeleton code that will compile.")
 
 ;;;; fill-comment
 
-(defvar wisi-inibit-parse nil);; in wisi.el; so far that's the only parser we use.
+(defvar wisi-inhibit-parse nil);; in wisi.el; so far that's the only parser we use.
 
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
@@ -2885,7 +2890,7 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
   ;; ada-fill-comment-prefix. In post-local because user may want to
-  ;; set it per-file.
+  ;; set it per-file. FIXME: only in emacs < 25?
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
   (cl-case ada-language-version
@@ -2923,6 +2928,16 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
+(defvar ada-parser nil
+  "Indicate parser and lexer to use for Ada buffers:
+
+elisp : wisi parser and lexer implemented in elisp, fallback gps
+  external parser for indent.
+
+process : wisi elisp lexer, external process parser specified
+  by ‘ada-process-parse-exec ’.
+")
+
 (provide 'ada-mode)
 
 ;;;;; Global initializations
@@ -2932,6 +2947,15 @@ The paragraph is indented on the first line."
 (if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
     (require 'ada-gps)
   (require 'ada-wisi))
+
+(cl-case ada-parser
+  (elisp nil)
+  (process nil)
+  (t
+   (if (locate-file ada-process-parse-exec exec-path '("" ".exe"))
+       (setq ada-parser 'process)
+     (setq ada-parser 'elisp)))
+  )
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))

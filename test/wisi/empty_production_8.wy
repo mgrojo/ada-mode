@@ -1,10 +1,10 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can
 ;;; be empty, and confused with a similar production
+;;;
+;;; also testing pending actions; object_declaration action is not
+;;; output until after conflict is resolved.
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 %keyword ALIASED "aliased"
@@ -28,7 +28,10 @@ object_declaration_list
 
 object_declaration
   : IDENTIFIER aliased_opt constant_opt SEMICOLON
+    (wisi-statement-action [1 statement-start 4 statement-end])
   | IDENTIFIER constant_opt COLON_EQUAL SEMICOLON
+    (wisi-statement-action [1 statement-start 3 statement-other
+                              4 statement-end])
   ;
 
 aliased_opt

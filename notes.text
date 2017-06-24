@@ -4,87 +4,88 @@ build/Makefile
 build/wisi/Makefile
 
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
-o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
+o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a.s-2, cherry pick from -1): syntax error handling in external process wisitoken parser
 o.e.a.stephe-5 (from o.e.a): available
 
-(add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-(setq ada-xref-tool 'gnat_inspect)
-
-run test from emacs -Q using installed elpa:
-(progn
-;;  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (package-initialize)
-  (setq debug-on-error t)
-;;  (setq wisi-debug 1)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (load "run-wisi-test")
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "ada-number-literal"))
-
 run test from emacs -Q using source:
 (progn
+  (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
+  (setq debug-on-quit t)
   (load "autoloads.el")
-  (require 'ada-mode)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
-  (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
-  (ada-wisi-debug-keys)
-  (run-test-here)
-  )
+  (load "run-indent-test-process-gpr_query")
+  ; (setq wisi-debug 1)
+  (setq wisi-disable-face t)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/wisi/")
+  (run-test "../../test/ada_mode-interactive_recover.adb")
+  (wisi-debug-keys))
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
-  (require 'ada-mode)
-  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
-  )
+  (load "run-wisi-process-test.el")
+  ; (setq debug-on-error t)
+  (setq wisi-disable-face t)
+  (setq wisi-process-parse-exec-opts '("-v" "4"))
+  (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  (run-test "subprograms"))
 
-install packages in -Q:
-(progn
- (require 'package)
- (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
- (list-packages))
+(kill-process " *Ada_wisi_parse*<5>")
 
  current work
 
-indent bugs:
-   type Nonterminal_Array_Token_Set
-     (First_Nonterminal : Token_ID;
-      Last_Nonterminal  : Token_ID)
-     is record
-      Set : array (Token_ID range <>) of Token_ID_Set;
-   end record;
+delete wisi-process--parser-new-session?
+    was a workaround for font-lock interrupting foreground parse
 
-cache invalidate bugs:
-    loop
-        declare
-        begin
-           foo;
-        end;
-    end loop;
+match wisitoken rename
 
-    delete block, leaving 'foo;'
-    cache on some previous line still there; foo double indented until delete preceding newline
+more error handling
 
+    continue by adding virtual tokens
+        find shortest path from current state to defined action on next real token
+            go thru FIRST, look for actions on next token, use first found
+                provide grammar source hint for picking? (prefer semicolon, or 'then')
+            if none, recurse (breadth-first search)
+        can compute at grammar compile time
+        add result as 'error' entry in state machine?
 
-    delete elsif clause
-        navigate from ’then’ skips all elsif clauses
+        cache for virtual end token (if one needed) located after last real token in sentence
+            needed for 'goto end', and for setting something in 'end' field
+            add space if at eob?
+
+        no storage cache for other virtual tokens
+
+        adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
+            that will later add 'end if;' before the next 'end', which will be wrong
+                no problem; it will be deleted by invalidate-cache when the new 'end if' is typed/parsed
+                invalidate-cache must also delete refs to the virtual token?
+                    they will be overwritten?
+
+    don't use virtual tokens for indent
+        => don't set markers to them
+
+    show location of virtual tokens in 'show parse error'?
+        could be many
+
+(setq ada-gps-size-threshold most-positive-fixnum)
+(setq wisi-disable-face t)
+(setq wisi-indent-region-fallback nil)
 
 parse face is slow
     noticeable delay when typing code
 
     fasttoken-parser-lr-lalr_generator.adb
-    per iteration 0.278141, 0.281266
+    (time-it (lambda () (wisi-invalidate-cache 'face (point-min)) (wisi-validate-cache (point-max) t 'face)) 1)
+
+    elisp parser: per iteration 0.278141, 0.281266
 
     parse-action nil: 0.256851
         set jit-lock-defer-time for now
@@ -92,7 +93,15 @@ parse face is slow
         module will be faster
         maybe process with elisp lexer
 
+ indent issues
 indent is slow
+    take advantage of multicore:
+        Process ext feedback while waiting to send more
+            Need ewouldblock in lisp
+
+        Put parallel parse in separate tasks.
+
+        at least one thread in module
 
     wisi-anchored-2, wisi--indent-token-1
         don't apply anchor if all lines already anchored
@@ -160,6 +169,11 @@ time indent
             last line:   7251
 
             second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
+
+        june 8 Ada fasttoken process parser, wisi lexer
+            (setq wisi-indent-region-fallback nil)
+            second line cold cache: 5.351977 seconds 15 gcs
             second line warm cache: 0.006563 seconds
 
 time wisi-forward-token use structs
@@ -524,9 +538,335 @@ skip blocks of text unless needed for current user command
 
     include *.adb, build/Makefile in ELPA for gpr_query, ada_mode_gps_indent
 
-5.1.d:
+see https://github.com/ensime for Emacs SCALA compiler interface
+    c:/Archive/Emacs/ensime-emacs-master.zip
 
-handle parser errors more gracefully
+5.1.c: use compiled OpenToken parser in background process
+    (setq wisi-ext-parse-exec "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/ada_mode_wisi_parse.exe")
+    build/wisi/Makefile
+    build/Makefile
+
+    (setq wisi-parser 'elisp)
+    (setq wisi-parser 'ada)
+    (setq wisi-ada-parse-exec-opts "-v")
+    (setq wisi-ada-parse-exec-opts nil)
+    (setq wisi-ada-parse-debug 1)
+    (setq wisi-ada-parse-debug 0)
+    (setq wisi-debug 2)
+    (setq wisi-debug 1)
+    (setq wisi-debug 0)
+
+    c:/Projects/org.opentoken.stephe/build/debug/Makefile
+
+run all ada-mode tests with ext parser
+
+do FFI
+
+wisi-parse-buffer is slow:
+    philippe.waroquiers@eurocontrol.int has a file that takes 10 seconds to parse with Emacs Ada mode 5.1.4
+        needs to be < 1 second
+        apparantly around 70,000 lines, 250,000 bytes
+
+    => gnatcoll-xref.adb needs to be < 0.2 second
+
+time wisi-parse-buffer and portions thereof
+    'ada-lex
+        (time-it 'wisi-ext-lex 1)
+
+    'wisi--lex
+        (time-it 'wisi-lex-buffer 1)
+
+    'actions:
+        (progn
+         (setq wisi-ext-parse-debug 1)
+         (wisi-invalidate-cache)
+         (wisi-ext-parse-exec-buffer " *ada_mode_wisi_parse*" ada_grammar-names))
+
+    'actions-read
+        (progn
+         (setq wisi-ext-parse-debug 2)
+         (wisi-invalidate-cache)
+         (wisi-ext-parse-exec-buffer " *ada_mode_wisi_parse*" ada_grammar-names))
+
+    'ada:
+        (progn
+            (setq wisi-parser 'ada)
+            (setq wisi-ada-parse-debug 1))
+        or
+        (progn
+            (setq wisi-parser 'ada)
+            (setq wisi-ada-parse-debug 0)
+            (wisi-invalidate-cache)
+            (time-it 'wisi-parse-buffer 1))
+
+    'cat:
+        (require 'extract-text-props)
+        (let ((w32-pipe-read-delay 0))
+           (pipe-torture "cat.exe"))
+        pipe-torture is in extract-text-props.el
+
+    'command:
+        time ./run_ada_parser file > parse.text
+
+    'elisp:
+        (progn
+            (setq wisi-parser 'elisp)
+            (wisi-invalidate-cache)
+            (time-it 'wisi-parse-buffer 1))
+
+    'text-props:
+        M-x extract-text-props
+        (progn (wisi-invalidate-cache) (time-it 'apply-text-props 1))
+
+    (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
+
+    /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+        7082 lines, 250780 bytes, 19946 caches
+        actions: 20633  encoded actions: 78885 lines, 1393119 bytes
+        coded actions saved in c:/Projects/org.emacs.ada-mode.stephe-1/gnatcoll-xref.actions
+
+        cygwin:
+            'ada: 0.995001, 0.890001, 0.845001
+
+            'cat: 0.085000, 0.070000
+
+            'elisp: 1.480002, 1.705002, 1.715003
+
+        windows:
+            'ada-lex: 0.637708 seconds, 0 gcs
+            'wisi-lex: 0.569551 seconds, 2 gcs
+
+            'actions: 0.982802, 1.076402
+
+            'actions-read: 0.312001, 0.234000
+                FFI would gain this plus 2 * cat
+
+            'ada:     1.076402, 1.045202, 1.060802
+                parse is fully parallel, and fast enough (just barely)
+
+            'command: 0m0.874s, 0m0.905s, 0m0.842s
+                _slower_ than elisp parser
+
+            'cat: 0.075000, 0.075000
+
+            'elisp: 1.638003, 1.622403, 1.669203
+                'ada is (/ (- 1.6 1.0) 1.6) = 37.5% faster
+
+            'text-props: 0.312001, 0.187200, 0.187200
+                moving text-prop computation to ada would reduce total time to:
+                    max (<parse-in-ada>, <apply-text-props>, <text-props-in-ada>)
+
+        linux:
+            'ada: using gnat 2013
+
+            'cat:
+
+    ada_mode_wisi_parse.adb
+        lines: 251 bytes: 8846
+        actions: 699 encoded actions: 2709 lines, 44252 bytes
+        ada_mode_wisi_parse.actions
+
+                'command: 0m0.047s
+
+                'ada: 0.764402
+
+    implement wisi actions in Ada
+        compute a list of text properties in ada_mode_wisi_parse, and return
+        that to the Emacs process to be applied.
+
+        can leave some in elisp; send either computed text properties or encoded unrecognized actions
+            leave face-action, extend-action in elisp
+            start with statement-action, since that will create the data structure that the other actions need
+
+        extract text properties from .adb, build elisp sexps, execute
+            extract-text-props.el
+            (load "extract-text-props")
+
+            (progn (wisi-invalidate-cache) (time-it 'apply-text-props 1))
+            gnatcoll-xref 0.310000 seconds! back in business
+
+        need FFI
+            15 Sept: sent email to Aurélien Aptel aurelien.aptel+emacs@gmail.com
+
+    use gprof to find Ada bottleneck
+        use array for stack
+            obvious from code, but time it!
+            stack size = generic = 100, double when need more
+
+
+    Emacs read/write is slow: bug 18626
+        ~/Mail/drafts/message-20141004-010440
+        http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18626
+
+> You could try playing with 2 parameters that currently are fixed: the
+> size of the pipe buffer (set by pipe2 in w32.c, where we use 0 which
+> AFAIK defaults to 4KB); and the delay used by send_process in
+> process.c when it gets EAGAIN/EWOULDBLOCK from the 'write' call
+> (currently 20 milliseconds).
+
+        (sal-msys32)
+        (shell-msys)
+        cd /c/Projects/emacs/emacs-24.3.94/src
+        make
+
+        c:/Projects/org.emacs.ada-mode.stephe-1/extract-text-props.el
+        c:/Projects/emacs/emacs-24.3.94/src/xdisp.c
+
+        c:/Projects/emacs/emacs-24.3.94/src/w32.c
+            pipe2 : buffer size is second parameter in call to _pipe
+            (pipe-torture-read "/Projects/emacs/emacs-24.3.94/src/xdisp.c")
+
+            (setq w32-pipe-read-delay 50)
+            pipe size 0 : 11.965184
+                   9192 : 12.012684
+                  80000 : 12.018934
+
+            (setq w32-pipe-read-delay 0)
+            pipe size 0 : 0.180000 0.095000
+
+
+        c:/Projects/emacs/emacs-24.3.94/src/process.c
+            send_process : delay is second arg in wait_reading_process_output
+
+            windows:
+            (pipe-torture "/Projects/org.emacs.ada-mode.stephe-1/build/wisi/debug.exe" "4096")
+            (* 0.020 (/ 974233 4096)) = 4.74
+            20 * 1000 * 1000 : 4.450068
+            10 * 1000 * 1000 : 2.443788
+             0 * 1000 * 1000 : hangs until C-g (blocking call)
+            -1 : (busy wait)
+
+            linux:
+            (require 'extract-text-props)
+            (pipe-torture "/home/Projects/org.emacs.ada-mode.stephe-1/build/wisi/debug_counted" "974233" "974233")
+            send_process : delay is second arg in wait_reading_process_output
+            internal pipe size is 65536
+            20 * 1000 * 1000 : 0.3
+            10 * 1000 * 1000 : 0.29
+            -1 (busy wait)   : 0.3 !?
+
+    Emacs dead lock: see bug 18420
+        c:/home/stephe/Mail/drafts/message-20140907-003138
+        http://debbugs.gnu.org/cgi/bugreport.cgi?bug=18420
+
+        fixed in 24.3.94
+
+        will be fixed in 24.4
+            protocol 2
+            parallel processing
+
+        workaround for 24.2, 24.3
+            protocol 1
+            queue all output in ada_mode_wisi_parse till parse completed
+
+    split out recursive descent stuff
+        avoid compile time overhead, name conflicts/confusion, build runtime overhead
+        make token.enumerated abstract?
+        rd child
+            Parse
+        lalr child
+            ?
+
+    lalr does not need to be child of production
+
+    move Source (= analyzer) out of Token, into new abstract root
+        add missing functions from analyzer
+
+    move lookahead_queue out of analyzer, into lookahead/rd child?
+
+    OpenToken lexer is too slow?
+
+        replace with aflex
+            time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb
+            real    0m0.359s
+            user    0m0.031s
+            sys     0m0.000s
+
+            from http://sourceforge.net/projects/p2ada/files/p2ada/Sources/
+            c:/Projects/aflex/build/Makefile
+            time ./run_ada_lexer /apps/GNAT-gpl_2014/gnatcoll-1.7w-src/src/sqlite/gnatcoll-xref.adb > foo.text
+            real	0m0.200s
+            user	0m0.000s
+            sys	0m0.000s
+            includes file io
+
+            edit yylex.adb to remove "ECHO" call in state 104, warm file cache:
+            real	0m0.080s
+            user	0m0.000s
+            sys	0m0.000s
+
+            build with optimization
+            no better; dominated by io
+
+            (/ 0.36 0.08) = 4.5
+
+        integrate aflex as an OpenToken lexer
+            not yet; time parser first
+
+            aflex generates ada_syntax.a, containing function yylex
+                change aflex to name function ada_syntax.yylex
+
+                ECHO is an error handler?
+                    writes via "Text_IO.Put (user_output_file)"
+
+            ada_syntax_dfa -> ada_syntax-dfa.ads
+
+        generate *.l, associated packages from *.wy
+
+        see http://harmonia.cs.berkeley.edu/papers/twagner-lexing.pdf
+            ideas on incremental lexing after edit
+
+    factor out generic for parser_lists stack, action_token
+
+    add container iterators to wisi.*_Lists
+        use in generate
+
+    add container iterators to Token_Lists, use in wisi_tokens
+
+    add error recovery to parser
+        insert virtual tokens to take parser from current state to next token
+            compute in lalr child package; enhance parser table error action?
+
+        incremental GLR resources (from Danial Colascione <dancol@dancol.org>):
+        [1] http://harmonia.cs.berkeley.edu/papers/twagner-thesis.pdf
+            ../org.emacs.ada-mode/twagner-thesis.pdf
+
+        [2] http://fileadmin.cs.lth.se/cs/Personal/Emma_Soderberg/docs/SLE08pres.pdf
+
+        use while-no-input to run parser in background
+
+        Bridge parsing: perform one pass over the buffer using a
+        simplified grammar that looks only at nesting constructs,
+        insert virtual braces to make everything balance, and then
+        apply the usual parsing algorithm (with ad-hoc error recovery)
+        to the result.
+
+    more intelligent rules in wisi when parser fails?
+
+    still too slow?:
+        free list in wisi_tokens
+
+        recursive_lalr child
+            don't allocate new tokens for stack; just store token_id
+                avoid runtime allocation overhead
+            pass token region, lexeme to user action
+
+        write rd grammar from .wy?
+            see asu_example_5_10
+            see gpr parser
+
+    doc git/elpa checkout, config
+
+    clear execute bits in git
+        git update-index --chmod=-x <file>
+
+    subtitle in ada-mode.texi doesn't appear in .info, .html
+
+    don't do syntax-propertize for font-lock, unless parsing is already done
+        triggered by 'return' keyword; see ada-wisi.el ada-wisi-post-local-vars
+
+5.1.d handle parser errors more gracefully
+
     continue by adding virtual tokens
         find shortest path from current state to defined action on next real token
             go thru FIRST, look for actions on next token, use first found
@@ -620,8 +960,6 @@ gpr log-edit-function-name
 separate color for vendor-specific aspects
     spark aspects in test/aspects.ads
 
-(see general below for more possibilites)
-
 completion:
     match GPS behavior
         get completion candidates from gpr_query
@@ -644,12 +982,6 @@ find-identifer-in-prj
 reflect changes in subprogram spec to subprogram body
     ada-resync-spec-body
 
-fix fontification of aspect names
-    they are _not_ context clauses
-    they are often on a different line than 'with'
-    there are more than one of them
-    use parser actions
-
 fix wisi-compile.el needing comp.el, not comp.elc
     some systems don't install emacs source by default
 
@@ -661,10 +993,6 @@ handle all indent options like ada-case-strict
         use an alist or auto naming rule to define prj var
 
     or user write cond string-match on default-dir
-
-set face correctly for name on next line
-    edited some tests; see fixmes
-    use parser actions
 
 use post-self-insert-hook for casing
     in 23.2?
@@ -907,6 +1235,63 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
     12 sep 2013: sent email
 
  relevant files, debug hints
+Edebug displays
+
+in wisi-process-parse--merge_tokens:
+(setq edebug-eval-list
+ '(tokens-1
+   tok
+   (aref token-table (aref tokens-1 i))
+   (queue-head (wisi-process--parser-parse-stack parser))
+   sexp
+   ))
+
+in wisi-parse-reduce:
+(setq edebug-eval-list
+ '(nonterm
+   tok
+   first
+   ))
+
+in wisi--indent-token-1:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   i
+   delta
+   indent
+   ))
+
+in wisi-indent-action:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   wisi-tokens
+   deltas
+   wisi-token-index
+   tok
+   token-delta
+   comment-delta
+   ))
+
+wisi-indent-region:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   anchor-indent
+   i
+   indent
+   new-indent
+   ))
+
+use elp (emacs lisp profiler)?
+    (with-current-buffer (find-file-noselect "~/src/xdisp.c")
+      (elp-instrument-function 'c-beginning-of-defun)
+      (goto-char (point-max))
+      (condition-case nil
+          (while (beginning-of-defun) nil)
+        (error nil))
+      (elp-results))
+
 (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
     B - profiler-report-render-reversed-calltree shows low-level time hogs
 
@@ -931,6 +1316,12 @@ https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/
+    untar with cygwin
+    in mys32 under emacs:
+        cd /c/Projects/emacs/emacs-24.3.9x
+        ./configure --prefix=/mingw32
+        make
+        # don't make install, just run from the build dir
 
  access to ada-france:
 
@@ -948,7 +1339,24 @@ read/write access requires a public key:
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
+ git config for elpa checkout
+[core]
+	repositoryformatversion = 0
+	filemode = false # don't set exec bits
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "origin"]
+	fetch = +refs/heads/master:refs/remotes/origin/master
+	push  = +refs/heads/master
+	url = stephen_leake@git.sv.gnu.org:/srv/git/emacs/elpa.git
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+
  release process
+do opentoken release, if needed
+
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
 
@@ -1017,6 +1425,8 @@ bump versions
         first line
     README-wisi
         first line
+    ada_mode_wisi_parse.adb
+        Version
     build/Makefile
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION

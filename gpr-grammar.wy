@@ -98,10 +98,12 @@
 %keyword WHEN "when"
 %keyword WITH "with"
 
-%token <symbol> IDENTIFIER
-%token <string-double> STRING_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <string-double> STRING_LITERAL "\"[^\"]*\""
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state term, identifier_opt on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_item, case_items on token WHEN

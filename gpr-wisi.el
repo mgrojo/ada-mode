@@ -31,7 +31,7 @@
 ;;;;
 
 (require 'gpr-indent-user-options)
-(require 'gpr-grammar-wy)
+(require 'gpr-grammar-elisp)
 (require 'gpr-mode)
 (require 'wisi)
 
@@ -71,12 +71,18 @@
 ;;;;
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '()
-	      nil
-	      gpr-wisi-class-list
-	      gpr-grammar-wy--keyword-table
-	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :class-list gpr-wisi-class-list
+   :parser (wisi-make-elisp-parser
+	    gpr-grammar-elisp-parse-table
+	    #'wisi-forward-token)
+   :lexer (wisi-make-elisp-lexer
+	  :token-table gpr-grammar-elisp-token-table
+	  :keyword-table gpr-grammar-elisp-keyword-table
+	  :string-quote-escape-doubled nil
+	  :string-quote-escape nil))
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)

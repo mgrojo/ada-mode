@@ -1,4 +1,4 @@
 -- Just parse successfully
--- (ediff "case_expression.input" "../../../org.opentoken.stephe/wisi/test/case_expression.input")
-when A => 
+-- (ediff "case_expression.input" "../../../org.fasttoken/wisi/test/case_expression.input")
+when A => 123.4
 
