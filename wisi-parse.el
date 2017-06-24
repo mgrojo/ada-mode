@@ -131,8 +131,6 @@ point at which that max was spawned.")
   obtain the next token from the current buffer after point, as a
   wisi-tok object."
 
-  ;; FIXME: (aref automaton 3) is the obarray storing the semantic actions;
-  ;; not used here (see related FIXME in wisi-compile)
   (let* ((actions (aref automaton 0))
 	 (gotos   (aref automaton 1))
 	 (parser-states ;; vector of parallel parser states

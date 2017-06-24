@@ -189,7 +189,7 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
        ;; search-forward failed
        (error "parse gpr failed")
        ))
-    (list src-dirs obj-dirs prj-dirs)))
+    (list (cl-remove-duplicates src-dirs) (cl-remove-duplicates obj-dirs) (cl-remove-duplicates prj-dirs))))
 
 ;; FIXME: use a dispatching function instead, with autoload, to
 ;; avoid "require" here, and this declare

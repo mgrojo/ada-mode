@@ -5,12 +5,15 @@
 -- no code before "private"
 private
 generic
-package Ada_Mode.Generic_Parent is
+package Ada_Mode.Generic_Parent is --  target 0
 
    generic
       type Param_Type is (<>);
       with function Function_1 (Param : in Param_Type) return Boolean;
    procedure Generic_Procedure (Param_1 : in Param_Type);
+
+   --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " --  target 0"))
+   --EMACSRESULT:t
 
    generic procedure Generic_Procedure_Rename renames Generic_Procedure;
 

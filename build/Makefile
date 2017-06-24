@@ -156,8 +156,6 @@ else
 # windows
 EXE_EXT := .exe
 
-# export GPS_ROOT ?= d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src
-
 endif
 
 # for debugging:
@@ -166,12 +164,14 @@ endif
 #export Ada_Mode_GPS_Indent_Build := Debug
 #export BUILD := Debug
 
-# '-' means no std .gpr; use gnat_utils from ~/Projects (source debug)
-# set in Emacs for gud-gdb
-# (setenv "GPR_PROJECT_PATH" "-:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.7w-src/src")
-# (setenv "GPR_PROJECT_PATH" nil)
-# export GPR_PROJECT_PATH := -:/home/gds/Projects/gnat_util-7.2.1-src:/home/gds/Projects/gnatcoll-1.7w-src/src
-gpr_query$(EXE_EXT) : force
+../gpr_query-process_refresh.adb : ../gpr_query-process_refresh.adb.gp
+	gnatprep -DGNAT_VERSION=$(GNAT_VERSION) $< $@
+
+../gpr_query.gpr : ../gpr_query.gpr.gp
+	gnatprep -DGNAT_VERSION=$(GNAT_VERSION) $< $@
+
+gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
+	echo $$GPR_PROJECT_PATH
 	gprbuild -p ../gpr_query.gpr
 
 # (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
@@ -188,16 +188,22 @@ trace :
 	addr2line -e ../ada_mode_gps_indent.exe 0x96c9bd 0x96b1f6 0x96b24a 0x401cb6 0x989036 0x4013db 0x759e7c02 0x7708ab8d 0x7708ab58
 
 $(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
-	gprinstall -f -P ../gpr_query.gpr
+	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
 $(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-install : install_gpr_query install_ada_mode_gps_indent
+install : install_gpr_query
+
+ifeq ($(GNAT_VERSION),GPL_2016)
+# GPS source code copied from GPS GPL 2016; not compatible with gnatcoll GPL 2017
+install : install_ada_mode_gps_indent
+endif
 
 clean ::
 	rm -rf ../obj
-	rm -rf ../gpr_query$(EXE_EXT)
+	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
+	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_gps_indent$(EXE_EXT)
 
 # (getenv "GPR_PROJECT_PATH")

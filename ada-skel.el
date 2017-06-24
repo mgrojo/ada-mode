@@ -125,7 +125,7 @@ This could end in a token recognized by `ada-skel-expand'."
   "--  additional permissions described in the GCC Runtime Library Exception,\n"
   "--  version 3.1, as published by the Free Software Foundation.\n"
   "\n"
-  "pragma License (GPL);\n"
+  "pragma License (Modified_GPL);\n"
 
 )
 

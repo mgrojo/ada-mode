@@ -18,6 +18,9 @@
 
 with "gnatcoll";
 with "gnatcoll_sqlite";
+#if GNAT_VERSION="GPL_2017"
+with "gnatcoll_xref";
+#end if;
 with "gnat_util";
 project Gpr_query is
    for Main use ("gpr_query.adb");

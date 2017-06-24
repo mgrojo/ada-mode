@@ -384,7 +384,7 @@ is -- target 0
 
    --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
-      --EMACSRESUT: t
+      --EMACSRESULT: t
       --EMACSCMD:(ada-which-function)
       --EMACSRESULT:"Protected_Buffer"
 
