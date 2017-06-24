@@ -99,6 +99,14 @@ wisi-indent-region:
 (setq wisi-indent-region-fallback nil)
  current issues:
 
+indent bugs:
+   type Nonterminal_Array_Token_Set
+     (First_Nonterminal : Token_ID;
+      Last_Nonterminal  : Token_ID)
+     is record
+      Set : array (Token_ID range <>) of Token_ID_Set;
+   end record;
+
 cache invalidate bugs:
     loop
         declare
