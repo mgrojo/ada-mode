@@ -38,14 +38,14 @@ run test from emacs -Q using source:
   (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
-(kill-process " *Ada_wisi_parse*")
+(kill-process " *Ada_wisi_parse*<5>")
 
- syntax error handling
-
-/Projects/org.fasttoken/notes.text
+ current issues:
 
 delete wisi-process--parser-new-session?
     was a workaround for font-lock interrupting foreground parse
+
+match wisitoken rename
 
 more error handling
 
@@ -79,7 +79,6 @@ more error handling
 (setq wisi-disable-face t)
 (setq wisi-indent-region-fallback nil)
 
- current issues:
 parse face is slow
     noticeable delay when typing code
 

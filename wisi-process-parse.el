@@ -36,10 +36,13 @@
 ;; The executable builds internal parser structures on startup,
 ;; then runs a loop, waiting for parse requests.
 ;;
-;; We only need one process per language; there is no persistent state.
+;; We only need one process per language; there is no persistent state
+;; in the process between parses, and processes are too heavy-weight
+;; to have one per buffer. We use a global alist of parser objects to
+;; find the right one for the current buffer.
 
 (cl-defstruct (wisi-process--parser (:include wisi-parser))
-  (label nil) 		       ;; string; prefix of buffer name, process name
+  (label nil)                  ;; string uniquely identifying parser
   (exec-file nil) 	       ;; absolute file name of executable
   (token-table nil) 	       ;; vector of token symbols (terminal and nonterminal), indexed by integer
   (action-table nil) 	       ;; vector of vectors of semantic actions, indexed by nonterminal, production index
@@ -52,60 +55,67 @@
   (new-session t) 	       ;; Non-nil indicates session is new; delay after first command.
   )
 
+(defvar wisi-process--alist nil
+  "Alist mapping string label to ‘wisi-process--session’ struct")
+
 ;;;###autoload
 (cl-defun wisi-make-process-parser (&key label exec token-table action-table terminal-hashtable)
-  "Return a ‘wisi-process--parser’ object."
-  (let ((exec-file (locate-file exec exec-path '("" ".exe"))))
+  "Return a ‘wisi-process--parser’ object matching LABEL.
+If not found in ‘wisi-process--alist’, create using other parameters."
+  (or (cdr (assoc label wisi-process--alist))
+      (let ((exec-file (locate-file exec exec-path '("" ".exe")))
+	    parser)
 
-    (unless exec-file
-      (error "%s not found on `exec-path'" exec))
+	(unless exec-file
+	  (error "%s not found on `exec-path'" exec))
 
-    (make-wisi-process--parser
-     :label label
-     :exec-file exec-file
-     :token-table token-table
-     :action-table action-table
-     :term-hash terminal-hashtable
+	(setq parser
+	      (make-wisi-process--parser
+	       :label label
+	       :exec-file exec-file
+	       :token-table token-table
+	       :action-table action-table
+	       :term-hash terminal-hashtable))
+
+	(push (cons label parser) wisi-process--alist)
+
+	parser
      )))
 
 (defvar wisi-process-parse-exec-opts nil
   "List of command-line options for external parse executable.
 ’-v n’ outputs debug info.")
 
-(defun wisi-process-parse--start-process (parser)
-  "Start or restart the parser process running EXEC."
-  (let ((process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
-	(process-name (format " *%s_wisi_parse*" (wisi-process--parser-label parser))))
-
-    (unless (buffer-live-p (wisi-process--parser-buffer parser))
-      ;; User may have killed buffer to kill parser.
-      (setf (wisi-process--parser-buffer parser)
-	    (get-buffer-create process-name)))
-
-    (with-current-buffer (wisi-process--parser-buffer parser)
-      (erase-buffer)); delete any previous messages, prompt
-
-    (setf (wisi-process--parser-process parser)
-	  (make-process
-	   :name process-name
-	   :buffer (wisi-process--parser-buffer parser)
-	   :command (append (list
-			     (wisi-process--parser-exec-file parser)
-			     "-v" (format "%d" wisi-debug))
-			    wisi-process-parse-exec-opts)))
-
-    (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
-    (setf (wisi-process--parser-new-session parser) t)
-    (setf (wisi-process--parser-busy parser) nil)
-
-    ;; FIXME: check protocol and version numbers
-    (wisi-process-parse--wait parser)
-    ))
-
 (defun wisi-process-parse--require-process (parser)
   "Start the process for PARSER if not already started."
   (unless (process-live-p (wisi-process--parser-process parser))
-    (wisi-process-parse--start-process parser)))
+    (let ((process-connection-type nil) ;; use a pipe, not a pty; avoid line-by-line reads
+	  (process-name (format " *%s_wisi_parse*" (wisi-process--parser-label parser))))
+
+      (unless (buffer-live-p (wisi-process--parser-buffer parser))
+	;; User may have killed buffer to kill parser.
+	(setf (wisi-process--parser-buffer parser)
+	      (get-buffer-create process-name)))
+
+      (with-current-buffer (wisi-process--parser-buffer parser)
+	(erase-buffer)); delete any previous messages, prompt
+
+      (setf (wisi-process--parser-process parser)
+	    (make-process
+	     :name process-name
+	     :buffer (wisi-process--parser-buffer parser)
+	     :command (append (list
+			       (wisi-process--parser-exec-file parser)
+			       "-v" (format "%d" wisi-debug))
+			      wisi-process-parse-exec-opts)))
+
+      (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
+      (setf (wisi-process--parser-new-session parser) t)
+      (setf (wisi-process--parser-busy parser) nil)
+
+      ;; FIXME: check protocol and version numbers
+      (wisi-process-parse--wait parser)
+      )))
 
 (defun wisi-process-parse--wait (parser)
   "Wait for the current command to complete."
