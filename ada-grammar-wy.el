@@ -1130,7 +1130,8 @@
        ((PACKAGE name aspect_specification_opt IS declarative_part_opt PRIVATE declarative_part_opt END name_opt )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 motion 6 motion])
-        (wisi-containing-action 1 5)
+        (wisi-containing-action 1 4)
+        (wisi-containing-action 4 5)
         (wisi-containing-action 1 7)
         (wisi-motion-action [1 4 6])
         (wisi-face-apply-action [2 font-lock-function-name-face 9 font-lock-function-name-face])
@@ -1138,7 +1139,8 @@
        ((PACKAGE name aspect_specification_opt IS declarative_part_opt END name_opt )
         (progn
         (wisi-statement-action [1 statement-start 2 name 4 motion])
-        (wisi-containing-action 1 5)
+        (wisi-containing-action 1 4)
+        (wisi-containing-action 4 5)
         (wisi-motion-action [1 4])
         (wisi-face-apply-action [2 font-lock-function-name-face 7 font-lock-function-name-face])
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0]))))
@@ -1529,7 +1531,8 @@
        ((overriding_indicator_opt subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 2 statement-override 4 motion 6 motion 10 statement-end])
-        (wisi-containing-action 2 5)
+        (wisi-containing-action 2 4)
+        (wisi-containing-action 4 5)
         (wisi-containing-action 2 7)
         (wisi-motion-action [1 [2 FUNCTION PROCEDURE] 4 6 10])
         (wisi-face-apply-action [9 font-lock-function-name-face])

@@ -44,6 +44,7 @@
 	  cache object-text object-indentation)
 
       (save-excursion
+	(while (forward-comment 1))
 	(setq cache (wisi-goto-statement-start))
 	(setq object-text (wisi-token-text (wisi-forward-token)))
 	(setq object-indentation (current-indentation)))
