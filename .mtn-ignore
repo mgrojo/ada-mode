@@ -31,6 +31,7 @@
 ^gpr_query$
 ^gpr_query-process_refresh\.adb$
 ^gpr_query\.db$
+^gpr_query\.gpr$
 ^obj$
 ^run_sjw\.text$
 ^test/.*\.ali$

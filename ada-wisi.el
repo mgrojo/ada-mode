@@ -577,9 +577,14 @@ new indentation for point."
 	0)
 
        (t
-	(while (memq (wisi-cache-class cache) '(name name-paren))
+	(while (memq (wisi-cache-class cache) '(close-paren name name-paren))
 	  ;; not useful for indenting
-	  (setq cache (wisi-backward-cache)))
+	  (cond
+	   ((eq (wisi-cache-class cache) 'close-paren)
+	    (setq cache (wisi-goto-containing cache)))
+
+	   (t
+	    (setq cache (wisi-backward-cache)))))
 
 	(cl-ecase (wisi-cache-class cache)
 	  (block-end
@@ -689,7 +694,13 @@ new indentation for point."
 
 	  (block-start
 	   (cl-case (wisi-cache-nonterm cache)
-	     ((exception_handler
+	     ((entry_body
+	       ;; test/ada_mode-nominal.adb
+	       ;; entry E2
+	       ;;   (X : Integer)
+	       ;;   -- an expression with 'not' to see if we need that in the
+
+	       exception_handler
 	       ;; test/ada_mode-nominal.adb
 	       ;; when -- 2
 	       ;;   Bad_Thing -- ada-mode 4.01 indentation
@@ -708,15 +719,10 @@ new indentation for point."
 	      (+ (ada-wisi-current-indentation start) ada-indent))
 	     ))
 
-	  (close-paren
-	   ;; test/ada_mode-parens.adb
-	   ;;               and then E))
-	   ;; or else G
-	   (ada-wisi-indent-containing ada-indent-broken cache nil start))
-
 	  (expression-start
 	   (cond
-	    ((eq 'LEFT_PAREN (wisi-cache-token cache))
+	    ((and (eq 'LEFT_PAREN (wisi-cache-token cache))
+		  (not (ada-same-paren-depth-p start (point))))
 	     (if (= (point) (cadr prev-token))
 		 ;; test/ada_mode-parens.adb
 		 ;; Local_9 : String := (
@@ -741,16 +747,61 @@ new indentation for point."
 		    (containing3 (wisi-get-containing-cache containing2)))
 
 	       (cond
-		((and (eq 'EQUAL_GREATER (wisi-cache-token containing1))
-		      (or
-		       (eq 'aspect_specification_opt (wisi-cache-nonterm containing2))
-		       (and (eq 'association_list (wisi-cache-nonterm containing2))
-			    (eq 'aspect_specification_opt (wisi-cache-nonterm containing3)))))
+		((and (not (ada-pos-in-paren-p start))
+		      (or (eq 'aspect_specification_opt (wisi-cache-nonterm containing2))
+			  (eq 'aspect_specification_opt (wisi-cache-nonterm containing3))))
 		 ;; special case for aspects
 		 ;; test/aspects.ads
 		 ;; with Pre => X > 10 and
+                 ;;             X < 50 and
+                 ;;             F (X),
+		 ;;   Post =>
+		 ;;     Y >= X and
+		 ;;     Some_Very_Verbose_Predicate (X, Y);
 
-		 (wisi-goto-containing cache);; EQUAL_GREATER
+		 ;;
+		 ;; Indenting ’X < 50’
+		 ;; cache nonterm is expression_opt at ’X < 10’
+		 ;; containing1 nonterm is association_opt at ’=>’
+		 ;; containing2 nonterm is aspect_specification_opt at ’with’
+		 ;;
+		 ;; Indenting ’F (X)’:
+		 ;; cache nonterm is relation_and_list at ’X < 50’
+		 ;; containing1 nonterm is expression_opt at ’X < 10’
+		 ;; containing2 nonterm is association_opt at ’=>’
+		 ;; containing3 nonterm is aspect_specification_opt at ’with’
+		 ;;
+		 ;; Indenting ’Y’
+		 ;; cache nonterm is association_opt at ’=>’
+		 ;; containing1 nonterm is association_list at ’,’
+		 ;; containing2 nonterm is aspect_specification_opt at ’with’
+		 ;;
+		 ;; Indenting ’Some_...’:
+		 ;; cache nonterm is expression_opt at ’Y’ (loop on ’name’ above)
+		 ;; containing1 nonterm is association_opt at ’=>’
+		 ;; containing2 nonterm is association_list at ’,’
+		 ;; containing3 nonterm is aspect_specification_opt at ’with’
+		 ;;
+		 ;; does _not_ include this case:
+		 ;; test/aspects.ads
+		 ;; function Wuff return Boolean with Pre =>
+		 ;;     (for all X in U =>
+		 ;;        (if X in D then
+		 ;; indenting ’(if’; handled by containing paren
+
+		 ;; move point to ’=>’
+		 (cond
+		  ((eq 'aspect_specification_opt (wisi-cache-nonterm containing2))
+		   (wisi-goto-containing cache))
+		  ((eq 'aspect_specification_opt (wisi-cache-nonterm containing3))
+		   (cond
+		    ((eq 'association_opt (wisi-cache-nonterm containing2))
+		     (wisi-goto-containing containing1))
+		    ((eq 'association_list (wisi-cache-nonterm containing2))
+		     (wisi-goto-containing cache))
+		    ))
+		  )
+
 		 (let ((cache-col (current-column))
 		       (cache-pos (point))
 		       (line-end-pos (line-end-position)))
@@ -791,6 +842,11 @@ new indentation for point."
 				relation_xor_list))
 		   (setq cache (wisi-goto-containing cache)))
 
+		 ;; test/ada_mode-parens.adb
+		 ;; or else ((B.all
+		 ;;             and then C)
+		 ;;            or else
+		 ;;
 		 ;; test/ada_mode-parens.adb
 		 ;; Local_2 : Integer := (1 + 2 +
 		 ;;                         3);

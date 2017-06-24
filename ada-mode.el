@@ -1880,6 +1880,15 @@ If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
 If PARSE-RESULT is non-nil, use it instead of calling `syntax-ppss'."
   (> (nth 0 (or parse-result (syntax-ppss))) 0))
 
+(defun ada-pos-in-paren-p (pos)
+  "Return t if POS is inside a pair of parentheses."
+  (save-excursion
+    (> (nth 0 (syntax-ppss pos)) 0)))
+
+(defun ada-same-paren-depth-p (pos1 pos2)
+  "Return t if POS1 is at same parentheses depth as POS2."
+  (= (nth 0 (syntax-ppss pos1)) (nth 0 (syntax-ppss pos2))))
+
 (defun ada-goto-open-paren (&optional offset parse-result)
   "Move point to innermost opening paren surrounding current point, plus OFFSET.
 Throw error if not in paren.  If PARSE-RESULT is non-nil, use it

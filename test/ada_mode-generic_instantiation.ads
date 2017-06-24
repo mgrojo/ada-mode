@@ -4,7 +4,7 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode-no-gpr.adp")
 
 --EMACSCMD:(progn (forward-line 2)(ada-find-other-file t)(looking-at "package Ada_Mode.Generic_Parent is"))
---EMACSRESULT:(eq ada-xref-tool 'gnat)
+--EMACSRESULT:t
 with Ada_Mode.Generic_Parent;
 with Ada_Mode.Nominal;
 private

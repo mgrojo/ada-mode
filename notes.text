@@ -6,7 +6,7 @@ build/wisi/Makefile
 o.e.a.stephe-1 (from o.e.a): external process opentoken parser
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2): syntax error handling in fasttoken
+o.e.a.stephe-4 (from o.e.a.s-2, cherry pick from -1): syntax error handling in external process wisitoken parser
 o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
@@ -58,121 +58,11 @@ install packages in -Q:
  (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
  (list-packages))
 
-
- Eurocontrol bugs:
-
-ada_mode_gps_indent bug #1: wisi-validate-cache: parse failed
-    use wisi parser for navigation, face with gps for indent; done
-    AdaCore ticket: not reported
-
-ada_mode_gps_indent bug #2: does not honor ada-broken-indent
-    GPS code patch - done
-    AdaCore ticket: Q406-078
-
-ada_mode_gps_indent bug #3: comments inside expressions badly indented
-    post processor for comments. - done
-    AdaCore ticket: Q406-082
-
-ada_mode_gps_indent bug #4: multiline comments starting after code
-    post processor for comments - done
-    AdaCore ticket: Q406-083
-
-ada_mode_gps_indent bug #5: jumps to column zero after RET
-    insert fictitious code when call GPS - done
-    AdaCore ticket: not reported
-
-ada_mode_gps_indent bug #6: indentation inside aggregate which is a parameter
-    GPS code patch - done
-    AdaCore ticket: Q406-085
-
-ada_mode_gps_indent bug #7: comments after last parameter and end of statement
-    fix ada-gps-comment - done
-    AdaCore ticket: not reported; GPS gets it right
-
-ada_mode_gps_indent bug #8: double ada-indent-broken in rare cases
-    bug triggered by coding standard violation; low priority
-    needs GPS code patch; waiting for AdaCore
-    AdaCore ticket: Q406-088
-
-ada_mode_gps_indent bug #9: hanging indent in expressions
-    bug in GPS
-    'and' expression also wrong in ada-wisi
-    also tests ada-indent-hanging-rel-exp
-
-ada_mode_gps_indent bug #10: more comments, ada-gps only
-    GPS gets this right
-    fix other comment cases in gps code, delete ada-gps-comment
-
-ada_mode_gps_indent bug #11: hanging indent in named association
-    bug in GPS
-
-ada_mode_gps_indent bug #12: comment align with hanging code.
-    bug in GPS
-
- Eurocontrol work:
-(setq ada-gps-size-threshold 0)
-test/debug.adb
-
-(setq ada-gps-size-threshold 100000)
-test/debug_wisi.adb
-
-disable or use electric-indent-post-self-insert-function
-    called during ada-indent-newline-indent
-    on post-self-insert-hook
-        use that for ada-mode capitalization
-
-AdaCore suggests using the libadalang indentation engine
-    see Q406-078
-    doesn't tolerate syntax errors yet
-    fix as much of ada-gps as possible, then wait for libadalang to replace it
-
-ada_mode_gps_indent 1.001 compiled for linux in c:/tmp
-
-download GPS 17.1, verify and report GPS bugs
-    see email for list
-
-ada-indent-hanging-rel-exp
-    see FIXME: in ada-wisi.el
-    need input from ludovic
-
-    add to NEWS
-    add to .texi
-
-    not relevant for gps?
-
-    more cases:
-
-    if FTFX.Main_CASA_Result.Suspension.Status /= Previous_Suspension_Info.Status
-      or FTFX.Main_CASA_Result.Suspension.Delay_Threshold_Exceeded_Reg
-        /= Previous_Suspension_Info.Delay_Threshold_Exceeded_Reg
-    wisi aligns "/=" with "or"
-
-if wisi is too slow on large buffers:
-    see o.e.a.stephe-2 parse-action
-    modify grammar actions:
-        (cl-ecase wisi-indent-engine
-         (gps ;; reduced to just face, nav
-            (wisi-statement-action ...)
-            (wisi-containing-action ...))
-         (wisi
-            ... current code))
-
- wisi work
-Smart edit - delete if/then/endif, leaving content
+ current work
 
 rewrite README to be useful as list-packages long description
+    that's how list-packages uses it
     ie an advertisement for the package, not an install guide
-
-show list of projects in ada | Project | select
-    see prj_select for code
-
-Try antlr error recovery on Ada. Add elisp target.
-
-Compare libadalang grammar to mine/lrm
-
-Report byte-compiler warning bug.
-    wisi-compile.el binds byte-compiler-warnings
-    Why is ada-indent ok (in stephe-2)?
 
 indent bugs:
    if not Update_Flight_Status
@@ -193,6 +83,40 @@ indent bugs:
 
 gpr_query --help show relevant trace settings
     add -v; shows *.ali
+
+do release
+
+upgrade to gnat gpl 2017
+    gpr_query installed
+        crashes in test/ada_mode-child_procedure.adb
+        and under main emacs
+        run in gdb; in Tree.Load
+        need debug enabled in gnatcoll; reinstall with Gnatcoll_Build=Debug
+        crashes in gnatcoll-projects.adb Load call to Internal_Load
+        in call to Set_Path_From_Gnatls_Attribute
+            due to missing 'with' (should not be any!?)
+        in call to Process_gnatlist (default_gnatlist)
+        'catch exception' lands in gnatcoll_utils.Get_Command_Output call to Expect
+            exception process_died
+            handled right there, but never gets to the handler
+                spawn process is just broken?
+                try small example
+
+disable or use electric-indent-post-self-insert-function
+    called during ada-indent-newline-indent
+    on post-self-insert-hook
+        use that for ada-mode capitalization
+
+show list of projects in ada | Project | select
+    see prj_select for code
+
+Smart edit - delete if/then/endif, leaving content
+
+Try antlr error recovery on Ada. Add elisp target.
+
+Report byte-compiler warning bug.
+    wisi-compile.el binds byte-compiler-warnings
+    Why is ada-indent ok (in stephe-2)?
 
 see pdf-tools for ideas on compiling during package install
 

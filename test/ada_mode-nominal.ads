@@ -56,7 +56,7 @@ private with Ada.Containers.Vectors,
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line -2)(forward-word 2)(forward-char 1)(ada-goto-declaration nil)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line -2)(forward-word 4)(ada-goto-declaration nil)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
@@ -440,9 +440,10 @@ is -- target 0
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
    protected type Protected_1 is -- Protected_1
-      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
+
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "protected type Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "private -- Protected_1"))
       --EMACSRESULT:t
 
       --EMACSCMD:(ada-which-function)
@@ -470,9 +471,10 @@ is -- target 0
       -- This is a comment just before 'private'; broken versions of the
       -- indentation engine aligned this with 'private'.
    private -- Protected_1
-      --EMACSCMD:(progn (end-of-line 0)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
+
+      --EMACSCMD:(progn (end-of-line -1)(forward-word -3) (backward-sexp)(looking-at "is -- Protected_1"))
       --EMACSRESULT:t
-      --EMACSCMD:(progn (end-of-line -2)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
+      --EMACSCMD:(progn (end-of-line -3)(forward-word -3) (forward-sexp)(looking-at "; -- Protected_1"))
       --EMACSRESULT:t
 
       -- More than three objects, to be sure we are handling

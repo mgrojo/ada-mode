@@ -742,9 +742,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
-  (let ((containing (wisi-cache-containing cache)))
-    (and containing
-	 (wisi-get-cache (1- containing)))))
+  (when cache
+    (let ((containing (wisi-cache-containing cache)))
+      (and containing
+	   (wisi-get-cache (1- containing))))))
 
 (defun wisi-cache-region (cache)
   "Return region designated by cache.
