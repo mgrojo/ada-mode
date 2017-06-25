@@ -1,11 +1,11 @@
-gpr_project_path=$WISI_FASTTOKEN
+gpr_project_path=$WISI_WISITOKEN
 gpr_project_path=../../../org.stephe_leake.aunit_ext/build
 gpr_project_path=../../../org.stephe_leake.sal/build
 gpr_project_path=../../../org.stephe_leake.makerules
 
 gpr_file=ada_mode_wisi_parse.gpr
 
-casing=$WISI_FASTTOKEN/emacs_case_exceptions
+casing=$WISI_WISITOKEN/emacs_case_exceptions
 casing=../../../org.stephe_leake.sal/build/sal.casing
 
 -- for *.wy

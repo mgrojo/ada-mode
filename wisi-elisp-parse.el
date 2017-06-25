@@ -38,6 +38,12 @@ the grammar is excessively redundant.")
   "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
 point at which that max was spawned.")
 
+(defvar wisi-debug-identical 0
+  "Debug terminating identical parsers.
+0 - keep lower-numbered parser.
+1 - keep higher-numbered parser.
+2 - error.")
+
 (cl-defstruct (wisi-elisp-parser-state
 	    (:copier nil))
   label ;; integer identifying parser for debug
@@ -193,6 +199,7 @@ point at which that max was spawned.")
 					  (wisi-token-text token)
 					  (mapcar 'car (aref actions state)))))
 			   )))
+		     (push msg (wisi-parser-error-msgs parser))
 		     (signal 'wisi-parse-error msg)))
 		  ))
 
@@ -221,7 +228,7 @@ point at which that max was spawned.")
       (setq active (wisi-elisp-parsers-active parser-states active-parser-count))
       (when (eq active 'shift)
 	(when (> active-parser-count 1)
-	  (setq active-parser-count (wisi-elisp-parse-elim-identical parser-states active-parser-count)))
+	  (setq active-parser-count (wisi-elisp-parse-elim-identical parser parser-states active-parser-count)))
 
 	(setq token (funcall (wisi-elisp-parser-next-token parser))))
     )
@@ -306,7 +313,7 @@ token, execute `reduce' parsers."
       (error "no active parsers"))
     result))
 
-(defun wisi-elisp-parse-elim-identical (parser-states active-parser-count)
+(defun wisi-elisp-parse-elim-identical (parser parser-states active-parser-count)
   "Check for parsers in PARSER-STATES that have reached identical states eliminate one.
 Return new ACTIVE-PARSER-COUNT. Assumes all parsers have active
 nil, `shift', or `accept'."
@@ -318,7 +325,8 @@ nil, `shift', or `accept'."
 	(when (wisi-elisp-parser-state-active (aref parser-states (+ parser-i parser-j 1)))
 	  (when (eq (wisi-elisp-parser-state-sp (aref parser-states parser-i))
 		     (wisi-elisp-parser-state-sp (aref parser-states (+ parser-i parser-j 1))))
-	    (let ((compare t))
+	    (let ((compare t)
+		  exec)
 	      (dotimes (stack-i (wisi-elisp-parser-state-sp (aref parser-states parser-i)))
 		(setq
 		 compare
@@ -331,14 +339,38 @@ nil, `shift', or `accept'."
 		(setq active-parser-count (1- active-parser-count))
 		(when (> wisi-debug 1)
 		  (message "terminate identical parser %d (%d active)"
-			   (+ parser-i parser-j 1) active-parser-count))
-		(setf (wisi-elisp-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil)
+			   (+ parser-i parser-j 1) active-parser-count)
+		  (let ((state-i (aref parser-states parser-i))
+			(state-j (aref parser-states (+ parser-i parser-j 1))))
+		    (message "%d actions:" (wisi-elisp-parser-state-label state-i))
+		    (mapc #'wisi-elisp-parse-debug-put-action (wisi-elisp-parser-state-pending state-i))
+
+		    (message "%d actions:" (wisi-elisp-parser-state-label state-j))
+		    (mapc #'wisi-elisp-parse-debug-put-action (wisi-elisp-parser-state-pending state-j))
+		    ))
+		(cl-ecase wisi-debug-identical
+		  (0
+		   (setq exec parser-i)
+		   (setf (wisi-elisp-parser-state-active (aref parser-states (+ parser-i parser-j 1))) nil))
+
+		  (1
+		   (setq exec (+ parser-i parser-j 1))
+		   (setf (wisi-elisp-parser-state-active (aref parser-states parser-i)) nil))
+
+		  (2
+		   (let ((msg "identical parser stacks"))
+		     (push msg (wisi-parser-error-msgs parser))
+		     (signal 'wisi-parse-error msg)))
+		  )
 		(when (= active-parser-count 1)
-		  ;; the actions for the two parsers are not
-		  ;; identical, but either is good enough for
-		  ;; indentation and navigation, so we just do the
-		  ;; actions for the one that is not terminating.
-		  (wisi-elisp-parse-execute-pending (aref parser-states parser-i)))
+		  ;; The actions for the two parsers are not
+		  ;; identical, but most of the time either is good
+		  ;; enough for indentation and navigation, so we just
+		  ;; do the actions for the one that is not
+		  ;; terminating. Some times, a significant action is
+		  ;; lost. In that case, turn on
+		  ;; ‘wisi-debug-identical’ to investigate fixing it.
+		  (wisi-elisp-parse-execute-pending (aref parser-states exec)))
 		))))
 	)))
   active-parser-count)
@@ -358,6 +390,12 @@ nil, `shift', or `accept'."
 (defvar wisi-elisp-parser-state nil
   "Let-bound in `wisi-elisp-parse-reduce', used in `wisi-parse-find-token'.")
 
+(defun wisi-elisp-parse-debug-put-action (action)
+  ;; Action is (semantic-function nonterm [tokens])
+  (message "%s [%s]"
+	   (nth 0 action)
+	   (mapcar #'wisi-tok-debug-image (nth 2 action))))
+
 (defun wisi-elisp-parse-execute-pending (parser-state)
   (let ((wisi-elisp-parser-state parser-state);; reference, for wisi-parse-find-token
 	(pending (wisi-elisp-parser-state-pending parser-state)))
@@ -366,7 +404,7 @@ nil, `shift', or `accept'."
       (message "%d: pending actions:" (wisi-elisp-parser-state-label parser-state)))
 
     (while pending
-      (when (> wisi-debug 1) (message "%s" (car pending)))
+      (when (> wisi-debug 1) (wisi-elisp-parse-debug-put-action (car pending)))
 
       (let ((func-args (pop pending)))
 	(wisi-elisp-parse-exec-action (nth 0 func-args) (nth 1 func-args) (cl-caddr func-args)))

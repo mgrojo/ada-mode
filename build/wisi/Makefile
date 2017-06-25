@@ -33,7 +33,7 @@ test : test-wisi
 # GPL 2014: can't compile ada_mode-nominal.ads protected type
 # test : test-ada-gnatxref.stamp
 
-test : test-ada-gpr_query.stamp
+test : test-ada-elisp-gpr_query.stamp
 test : test-ada-process-gpr_query.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr
@@ -54,13 +54,13 @@ test-wisi :: empty_production_8.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
-test-wisi :: subprograms.wisi-test
+test-wisi :: subprograms.wisi-process-test
 
-ONE_TEST_FILES += ada_mode-interactive_recover.adb.diff
-one : RUNTEST := run-indent-test-process-gpr_query.el
-#one : RUNTEST := run-indent-test-elisp-gpr_query.el
-#ONE_TEST_FILES += subprograms.wisi-process-test
-#one : RUNTEST := run-wisi-process-test.el
+ONE_TEST_FILES += bug_1920.adb.diff
+#one : RUNTEST := run-indent-test-process-gpr_query.el
+one : RUNTEST := run-indent-test-elisp-gpr_query.el
+# ONE_TEST_FILES += body_instantiation_conflict.wisi-test
+# one : RUNTEST := run-wisi-test.el
 #one : export Standard_Common_Build := Debug
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
@@ -78,19 +78,19 @@ vpath %.el ../../ ../../test/wisi
 vpath %.wy ../../ ../../test/wisi
 
 # These are correct paths for Stephe's development machines;
-# WISI_FASTTOKEN can be overridden on the 'make' command line or by an
+# WISI_WISITOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
 ifeq ($(shell uname),Linux)
-export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build
+export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else ifeq ($(shell uname),Darwin)
-export WISI_FASTTOKEN ?= /home/Projects/fasttoken/org.fasttoken/build
+export WISI_WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
 export ADA_PROJECT_PATH=../../test/:../../test/subdir
 
 else
 # windows
-export WISI_FASTTOKEN ?= /Projects/org.fasttoken/build
+export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../../test/;../../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
@@ -106,10 +106,10 @@ endif
 	gprbuild -p wisi_parse.gpr $<
 
 # we don't copy %_process.ads/b, because we'd also have to copy a lot
-# of fasttoken; we add fasttoken_test.gpr to wisi_parse.gpr.
+# of wisitoken; we add wisitoken_test.gpr to wisi_parse.gpr.
 %-process.el : force
-	make -C $(WISI_FASTTOKEN) $*-process.el
-	cp $(WISI_FASTTOKEN)/$*-process.el ../../test/wisi/$*-process.el
+	make -C $(WISI_WISITOKEN) $*-process.el
+	cp $(WISI_WISITOKEN)/$*-process.el ../../test/wisi/$*-process.el
 
 .PRECIOUS : %-elisp.el %-process.el ../../%-grammar-elisp.el  %.ads
 
@@ -117,8 +117,8 @@ endif
 
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
-%-elisp.el : %.wy $(WISI_FASTTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).output
+%-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).output
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else
@@ -126,8 +126,8 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
-../../%_process.ads : ../../%.wy $(WISI_FASTTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_FASTTOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
+../../%_process.ads : ../../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
 #ada_mode_wisi_parse.exe : export Standard_Common_Build := Debug
@@ -144,9 +144,9 @@ clean ::
 	rm -f *.a *.ads *.adb *.exe
 	rm -rf obj
 
-# ../../../org.fasttoken/wisi/wisi-generate.adb
-$(WISI_FASTTOKEN)/wisi-generate.exe : force
-	$(MAKE) -C $(WISI_FASTTOKEN) wisi-generate.exe
+# ../../../org.wisitoken/wisi/wisi-generate.adb
+$(WISI_WISITOKEN)/wisi-generate.exe : force
+	$(MAKE) -C $(WISI_WISITOKEN) wisi-generate.exe
 
 .PHONY : force
 
@@ -178,12 +178,12 @@ test-ada-gnatxref.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-ada-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
-test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+test-ada-elisp-gpr_query : RUNTEST := run-indent-test-elisp-gpr_query.el
+test-ada-elisp-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
 
-test-ada-gpr_query.stamp : force
+test-ada-elisp-gpr_query.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-ada-gpr_query
+	$(MAKE) test-ada-elisp-gpr_query
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
@@ -231,7 +231,7 @@ test-ada-process-gpr_query.stamp : force
 # eval: (ada-select-prj-file "../ada-mode.prj")
 
 # Local Variables:
-# eval: (setenv "WISI_FASTTOKEN" "/Projects/org.fasttoken/build")
+# eval: (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken/build")
 # eval: (load-file "ada_mode_wisi_parse.el")
 # eval: (load-file "ada_mode_elisp_prj.el")
 # End:

@@ -58,8 +58,8 @@ is
 
    Programmer_Error : exception;
 
-   Parser : FastToken.Parser.LR.Parser.Instance := Ada_Grammar_Process.Create_Parser
-     (Algorithm => FastToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Grammar_Process.Create_Parser
+     (Algorithm => WisiToken.LALR);
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -75,7 +75,7 @@ is
       --
       --  With GNAT GPL 2016, GNAT.OS_Lib.Read does _not_ wait for all
       --  N bytes or EOF; it returns as soon as it gets some bytes.
-      --  FastToken.Lexer.Elisp_Process handles this for the tokens.
+      --  WisiToken.Lexer.Elisp_Process handles this for the tokens.
       --
       --  Note that with this loop we cannot detect EOF; that's ok for
       --  this application.
@@ -133,7 +133,7 @@ begin
 
       when 2 =>
          if Argument (1) = "-v" then
-            FastToken.Trace_Parse := Integer'Value (Argument (2));
+            WisiToken.Trace_Parse := Integer'Value (Argument (2));
          else
             raise Programmer_Error with "invalid option: " & Argument (1);
          end if;
@@ -179,11 +179,11 @@ begin
                Parser.Lexer.Reset (0);
                Parser.Parse;
             exception
-            when E : FastToken.Parse_Error | FastToken.Syntax_Error =>
+            when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                Put_Line
                  ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
                     Ada.Exceptions.Exception_Message (E) & """)");
-               FastToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
+               WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
             end;
 
          elsif Match ("quit") then

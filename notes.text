@@ -3,7 +3,7 @@ General notes on Emacs Ada mode
 build/Makefile
 build/wisi/Makefile
 
-o.e.a.stephe-1 (from o.e.a): external process opentoken parser
+o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
 o.e.a.stephe-4 (from o.e.a.s-2, cherry pick from -1): syntax error handling in external process wisitoken parser
@@ -42,10 +42,18 @@ run test from emacs -Q using source:
 
  current work
 
+run all tests
+    test-wisi passes
+    test-ada-elisp-gpr_query.stamp
+
+
 delete wisi-process--parser-new-session?
     was a workaround for font-lock interrupting foreground parse
 
-match wisitoken rename
+can now run sub-processes in batch!?
+    change .diff test to run in batch
+
+make block/loop labels face match goto labels?
 
 more error handling
 

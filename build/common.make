@@ -35,6 +35,7 @@ COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_recover.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
@@ -146,12 +147,13 @@ autoloads : force
 #    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
 ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 
-# All gpr-query functions run "gpr_query" in a background process to
-# save startup time. That fails in batch mode; batch mode does not
-# support background processes. So we don't run tests in batch mode.
-# We can't use -nw here because the standard input is not a tty (at
-# least on Windows). We don't include any other dependencies, because
-# the complete list is complex, and we sometimes want to ignore it.
+# All gpr-query functions run "gpr_query" in a background process.
+# That fails in batch mode; batch mode does not support background
+# processes. FIXME: not true in Emacs 25? So we don't run tests in
+# batch mode. We can't use -nw here because the standard input is not
+# a tty (at least on Windows). We don't include any other
+# dependencies, because the complete list is complex, and we sometimes
+# want to ignore it.
 %.tmp : %
 	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 

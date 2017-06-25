@@ -26,10 +26,12 @@
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 %token <string> STRING_LITERAL
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
 %%

@@ -16,7 +16,7 @@
 --  the Free Software Foundation, 51 Franklin Street, Suite 500, Boston,
 --  MA 02110-1335, USA.
 
-with "fasttoken";
+with "wisitoken";
 with "standard_common";
 project Ada_Mode_Wisi_Parse is
 

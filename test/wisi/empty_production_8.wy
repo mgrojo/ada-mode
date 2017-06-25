@@ -12,9 +12,11 @@
 
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %start object_declaration_list
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state constant_opt, aliased_opt on token CONSTANT
 
