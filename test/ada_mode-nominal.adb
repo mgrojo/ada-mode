@@ -261,7 +261,7 @@ is -- target 0
                   --  a comment after a label
                   D := D - Float (F1);
             end case; -- 7
-            <<Label_2>> --  a sequence_of_statements can have a trailing label
+         <<Label_2>> --  a sequence_of_statements can have a trailing label
          end return; -- 8
                      --EMACSCMD:(progn(forward-line -1)(forward-word 2)(backward-sexp)(looking-at "do"))
       end; -- no F2 on purpose
