@@ -12,7 +12,7 @@ package Ada_Mode.Generic_Instantiation is
    --EMACSCMD:(progn (end-of-line 0)(backward-word)(forward-sexp)(beginning-of-line)(looking-at "end Ada_Mode.Generic_Instantiation;"))
    --EMACSRESULT:t
 
-   --EMACSCMD:(jit-lock-fontify-now)
+   --EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
    --EMACSCMD:(test-face "Ada_Mode.Generic_Parent" 'font-lock-function-name-face)
    package Instance is new Ada_Mode.Generic_Parent;

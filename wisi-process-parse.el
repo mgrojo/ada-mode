@@ -104,9 +104,7 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 	    (make-process
 	     :name process-name
 	     :buffer (wisi-process--parser-buffer parser)
-	     :command (append (list
-			       (wisi-process--parser-exec-file parser)
-			       "-v" (format "%d" wisi-debug))
+	     :command (append (list (wisi-process--parser-exec-file parser))
 			      wisi-process-parse-exec-opts)))
 
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
@@ -149,7 +147,7 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 (defun wisi-process-parse-show-buffer (parser)
   "Show PARSER buffer."
   (if (buffer-live-p (wisi-process--parser-buffer parser))
-      (switch-to-buffer (wisi-process--parser-buffer parser))
+      (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
 (defun wisi-process-parse--enqueue-input (parser token)
@@ -168,7 +166,7 @@ If not found in ‘wisi-process--alist’, create using other parameters."
   "Send a parse command to PARSER external process, followed by
 the tokens returned by ‘wisi-forward-token’ in the current
 buffer.  Does not wait for command to complete."
-  (let* ((cmd (format "parse \"%s\"" (buffer-name)))
+  (let* ((cmd (format "parse \"%s\" %d" (buffer-name) wisi-debug))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser))
 	 (term-hash (wisi-process--parser-term-hash parser))
@@ -332,6 +330,7 @@ from TOKEN-TABLE."
       (when action
 	(setq action (aref action (aref sexp 3))))
       (when action
+	(when (> wisi-debug 1) (message "%s" action))
 	(funcall action (wisi-tok-token nonterm) tokens-2)))
     ))
 
@@ -445,9 +444,18 @@ Replace line, column in ACTION with data from head of input queue.
   ;; font-lock can trigger a face parse while navigate or indent parse
   ;; is active, due to ‘accept-process-output’ below. font-lock cannot
   ;; hang (it is called from an idle timer), so don’t wait. Don’t
-  ;; throw an error either; there is no syntax error. Just leave point
-  ;; at point-min, so font-lock knows nothing was done.
-  (unless (wisi-process--parser-busy parser)
+  ;; throw an error either; there is no syntax error.
+  (if (wisi-process--parser-busy parser)
+      (progn
+	(message "%s parse abandoned; parser busy" wisi--parse-action)
+	(goto-char (point-min))
+	;; Leaving point at point-min sets wisi-cache-max to
+	;; point-min, so we know parsing still needs to be
+	;; done. However, font-lock thinks the buffer is done.  We
+	;; tried signaling ’quit here to force font-lock to try again,
+	;; but that did not work. This only happens in unit tests, so
+	;; they can call ’wisi-parse-buffer ’face’.
+	)
     (condition-case err
 	(let* ((source-buffer (current-buffer))
 	       (action-buffer (wisi-process--parser-buffer parser))
@@ -501,7 +509,7 @@ Replace line, column in ACTION with data from head of input queue.
 		(setq done t))
 
 	       ((or (looking-at "\\[") ;; semantic action
-		    (looking-at "(")) ;; post-parse expression to eval
+		    (looking-at "(")) ;; error or other expression to eval
 		(condition-case nil
 		    (setq action-end (scan-sexps (point) 1))
 		  (error
@@ -568,7 +576,7 @@ Replace line, column in ACTION with data from head of input queue.
 	  )
       (error
        (setf (wisi-process--parser-busy parser) nil)
-       (apply #'signal err)
+       (signal (car err) (cdr err))
        ))))
 
 (defun wisi-process-compile-tokens (tokens)

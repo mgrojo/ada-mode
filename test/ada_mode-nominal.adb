@@ -1,6 +1,6 @@
 -- A comment before the first code
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")

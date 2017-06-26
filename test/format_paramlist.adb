@@ -4,7 +4,7 @@
 -- We are editing things in ada-align; don't abort for temporary bad syntax
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 package body Format_Paramlist is
 

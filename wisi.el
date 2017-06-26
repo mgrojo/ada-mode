@@ -807,7 +807,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (when (> wisi-debug 0)
       (message msg))
 
-    (condition-case-unless-debug nil
+    (condition-case-unless-debug err
 	(save-excursion
 	  (wisi-parse-current wisi--parser)
  	  (setq wisi-parse-failed nil)
@@ -831,7 +831,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  nil))
        (setq wisi-parse-failed t)
        ;; parser should have stored this error message in parser-error-msgs
-       ))
+       )
+      (error
+       ;; parser failed for other reason
+       (error (cdr err))))
 
     (when (> wisi-debug 0)
       (if (wisi-parser-error-msgs wisi--parser)

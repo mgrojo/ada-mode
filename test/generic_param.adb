@@ -1,6 +1,6 @@
 --  Tests the indentation after a generic statement and some faces
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 procedure Generic_Param is
 

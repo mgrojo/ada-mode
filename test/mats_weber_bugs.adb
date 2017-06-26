@@ -1,7 +1,7 @@
 -- Bugs reported by Mats Weber <Mats.Weber@elca-matrix.ch>
 -- ada-mode version: 2.23
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 with Ada.Text_Io; use Ada.Text_Io;
 package body Mats_Weber_Bugs is

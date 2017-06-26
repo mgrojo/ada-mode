@@ -3,7 +3,7 @@
 --
 -- Also other stuff
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 --EMACSCMD:(setq skip-recase-test t) we have identifiers that don't follow the standard naming convention
 

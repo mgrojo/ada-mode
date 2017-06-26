@@ -446,7 +446,7 @@ Return nil or new parser (a wisi-elisp-parser-state struct)."
 		       (wisi-elisp-parser-state-active parser-state)
 		       (wisi-elisp-parser-state-sp parser-state)
 		       msg))
-	    (message "   %d: %s: %s" state token parse-action))
+	    (message "   %d: %s: %s" state (wisi-tok-debug-image token) parse-action))
 	(message "%d: %d: %s: %s" (wisi-elisp-parser-state-label parser-state) state token parse-action)))
 
     (when (and (listp parse-action)

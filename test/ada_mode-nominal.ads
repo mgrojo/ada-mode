@@ -1,4 +1,4 @@
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 
 --EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" font-lock-function-name-face))
 with

@@ -43,8 +43,17 @@ run test from emacs -Q using source:
  current work
 
 run all tests
+    (setq wisi-debug 2)
+    (setq wisi-debug 0)
+    (setq ada-parser 'elisp)
+    (setq ada-parser 'process)
+
     test-wisi passes
-    test-ada-elisp-gpr_query.stamp
+    test-ada-elisp-gpr_query.stamp passes
+    test-ada-process-gpr_query.stamp passes
+
+deleted "if ... then", left "else ... end if;"
+    (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: recover: non-shift action not supported")
 
 
 delete wisi-process--parser-new-session?
