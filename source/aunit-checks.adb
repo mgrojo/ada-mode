@@ -124,6 +124,32 @@ package body AUnit.Checks is
       end loop;
    end Gen_Check_Unconstrained_Array;
 
+   procedure Gen_Check_Unconstrained_2D_Array
+     (Label          : in String;
+      Computed       : in Array_Type;
+      Expected       : in Array_Type;
+      Strict_Indices : in Boolean    := True)
+   is begin
+      if Strict_Indices then
+         Check_Index_1 (Label & "'First (1)", Computed'First (1), Expected'First (1));
+         Check_Index_1 (Label & "'Last (1)", Computed'Last (1), Expected'Last (1));
+         Check_Index_2 (Label & "'First (2)", Computed'First (2), Expected'First (2));
+         Check_Index_2 (Label & "'Last (2)", Computed'Last (2), Expected'Last (2));
+      else
+         Check (Label & "'Length (1)", Computed'Length (1), Expected'Length (1));
+         Check (Label & "'Length (2)", Computed'Length (2), Expected'Length (2));
+      end if;
+
+      for I in Computed'Range (1) loop
+         for J in Computed'Range (2) loop
+            Check_Item 
+              (Label & "(" & Index_1_Type'Image (I) & Index_2_Type'Image (J) & ")",
+               Computed (I, J), 
+               Expected (I, J));
+         end loop;
+      end loop;
+   end Gen_Check_Unconstrained_2D_Array;
+
    procedure Gen_Check_Unconstrained_Array_Tolerance
      (Label          : in String;
       Computed       : in Array_Type;

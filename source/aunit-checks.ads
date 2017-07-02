@@ -126,6 +126,29 @@ package AUnit.Checks is
 
    generic
       type Item_Type is private;
+      type Index_1_Type is (<>);
+      type Index_2_Type is (<>);
+      type Array_Type is array (Index_1_Type range <>, Index_2_Type range <>) of Item_Type;
+      with procedure Check_Item
+        (Label    : in String;
+         Computed : in Item_Type;
+         Expected : in Item_Type);
+      with procedure Check_Index_1
+        (Label    : in String;
+         Computed : in Index_1_Type;
+         Expected : in Index_1_Type);
+      with procedure Check_Index_2
+        (Label    : in String;
+         Computed : in Index_2_Type;
+         Expected : in Index_2_Type);
+   procedure Gen_Check_Unconstrained_2D_Array
+     (Label          : in String;
+      Computed       : in Array_Type;
+      Expected       : in Array_Type;
+      Strict_Indices : in Boolean    := True);
+
+   generic
+      type Item_Type is private;
       Zero_Item : in Item_Type;
       type Index_Type is (<>);
       type Array_Type is array (Index_Type range <>) of Item_Type;
