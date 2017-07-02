@@ -38,21 +38,26 @@ run test from emacs -Q using source:
   (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
-(kill-process " *Ada_wisi_parse*<5>")
-
  current work
+test/debug.adb
+    changing from package to procedure
+        declaration in statement part
+procedure Debug
+is
+   package Instance is new Ada_Mode.Generic_Parent;
+end;
 
-run all tests
+    infinite loop in parser recover!
     (setq wisi-debug 2)
-    (setq wisi-debug 0)
-    (setq ada-parser 'elisp)
-    (setq ada-parser 'process)
 
-    test-wisi passes
-    test-ada-elisp-gpr_query.stamp passes
-    test-ada-process-gpr_query.stamp passes
 
 deleted "if ... then", left "else ... end if;"
+procedure Debug
+is begin
+   elsif  then
+   else
+   end if;
+end;
     (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: recover: non-shift action not supported")
 
 

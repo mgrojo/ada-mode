@@ -56,9 +56,9 @@ test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 test-wisi :: subprograms.wisi-process-test
 
-ONE_TEST_FILES += bug_1920.adb.diff
-#one : RUNTEST := run-indent-test-process-gpr_query.el
-one : RUNTEST := run-indent-test-elisp-gpr_query.el
+ONE_TEST_FILES += ada_mode-interactive_gps_fallback.adb.diff
+one : RUNTEST := run-indent-test-process-gpr_query.el
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
 # ONE_TEST_FILES += body_instantiation_conflict.wisi-test
 # one : RUNTEST := run-wisi-test.el
 #one : export Standard_Common_Build := Debug
@@ -187,7 +187,7 @@ test-ada-elisp-gpr_query.stamp : force
 	touch $@
 	find . -name "*.diff" -not -size 0 >> test.log
 
-test-gpr: RUNTEST := run-indent-test-elisp.el
+test-gpr: RUNTEST := run-indent-test-elisp-gpr_query.el
 test-gpr: $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 test-gpr.stamp : force

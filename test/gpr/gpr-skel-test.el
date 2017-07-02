@@ -7,6 +7,8 @@
 ;; in gpr buffer: (setq skeleton-end-hook nil)
 ;; (setq wisi-debug 1)
 
+(package-initialize) ;; for queue
+
 (require 'gpr-mode)
 
 (defun skeleton-expand-all (skel-token-alist exclude)
