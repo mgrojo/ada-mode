@@ -34,6 +34,8 @@ package body WisiToken.Parser.LR.Panic_Mode is
 
       Pop_Stack :
       loop
+         exit Pop_Stack when Top.State = State_Index'First;
+
          Nonterms :
          loop
             if Table.Panic_Recover (Panic.Nonterm) then
@@ -56,7 +58,6 @@ package body WisiToken.Parser.LR.Panic_Mode is
          Panic.Popped_Tokens.Append (Prev_Top.Token);
 
          Top := Cursor.Peek;
-         exit Pop_Stack when Top.State = State_Index'First;
 
          Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
       end loop Pop_Stack;

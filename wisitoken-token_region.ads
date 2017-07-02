@@ -41,7 +41,7 @@ package WisiToken.Token_Region is
 
    package Token_Queues is new SAL.Gen_Definite_Queues (Token);
 
-   type Recover_Data
+   type Error_Data
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
@@ -50,7 +50,7 @@ package WisiToken.Token_Region is
       Invalid_Region : Buffer_Region;
    end record;
 
-   package Recover_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Recover_Data);
+   package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
 
    type State_Type is new WisiToken.Token.Semantic_State with record
       Stack : Token_Stack_Type;
@@ -71,7 +71,8 @@ package WisiToken.Token_Region is
       --  Temporary storage during recovery; Discard_Token increases
       --  this, Recover resets it.
 
-      Recover : Recover_Data_Lists.List;
+      Errors : Error_Data_Lists.List;
+      --  Error is called whether the error is recovered or not.
    end record;
 
    overriding

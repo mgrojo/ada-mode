@@ -40,7 +40,7 @@ package WisiToken.Parser.LR.Parser is
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);
-   --  Trace_Parse setttings:
+   --  Trace_Parse settings:
    --  0 - no info
    --  1 - parallel parser create, delete
    --  2 - input tokens, reduce actions

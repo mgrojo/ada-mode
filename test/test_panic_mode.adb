@@ -128,18 +128,16 @@ package body Test_Panic_Mode is
       use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
-        ("procedure Proc_1 is begin end Proc_1; procedure Proc_2 is if A = 2 then end;", Test.Debug);
+        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end Proc_1; ", Test.Debug);
       --  |1       |10       |20       |30       |40       |50       |60       |70
-      --  Missing "begin" in Proc_2
-      --
-      --  panic mode encounters EOF and accepts Proc_1.
+      --  Missing "begin" in Block_2
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
-      Check ("recover.length", Ada_Lite.State.Recover.Length, 1);
-      Check ("recover.invalid_region",
-             WisiToken.Token_Region.Recover_Data_Lists.Element (Ada_Lite.State.Recover.First).Invalid_Region,
-             (39, 76));
+      Check ("errors.length", Ada_Lite.State.Errors.Length, 3);
+      Check ("errors.invalid_region 1",
+             WisiToken.Token_Region.Error_Data_Lists.Element (Ada_Lite.State.Errors.First).Invalid_Region,
+             (25, 38));
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
@@ -161,27 +159,43 @@ package body Test_Panic_Mode is
 
       --  Enters recover at ';' 83; pops stack to
       --  handled_sequence_of_statements 36, keeps end 80, succeeds.
-      Check ("recover.length", State.Recover.Length, 1);
+      Check ("errors.length", State.Errors.Length, 1);
       declare
          use WisiToken.AUnit;
          use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region;
-         Temp : Recover_Data renames Recover_Data_Lists.Element (State.Recover.First);
+         Temp : Error_Data renames Error_Data_Lists.Element (State.Errors.First);
 
          Expecting : WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
            (others => False);
       begin
          Expecting (+IF_ID) := True;
 
-         Check ("recover.error_token", Temp.Error_Token, (+SEMICOLON_ID, (84, 84)));
-         Check ("recover.expecting", Temp.Expecting, Expecting);
-         Check ("recover.invalid_region", Temp.Invalid_Region, (37, 83));
+         Check ("errors.error_token", Temp.Error_Token, (+SEMICOLON_ID, (84, 84)));
+         Check ("errors.expecting", Temp.Expecting, Expecting);
+         Check ("errors.invalid_region", Temp.Invalid_Region, (37, 83));
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "1.exception: got Syntax_Error");
    end Error_3;
+
+   procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parse_Text ("else then ", Test.Debug);
+      --  Bogus syntax; test no exceptions due to empty stack etc.
+
+      Assert (False, "1.exception: did not get Syntax_Error");
+   exception
+   when WisiToken.Syntax_Error =>
+      Check ("error.length", State.Errors.Length, 1);
+   end Error_4;
 
    ----------
    --  Public subprograms
@@ -197,14 +211,15 @@ package body Test_Panic_Mode is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      --  if T.Debug > 0 then
-      --     Register_Routine (T, Error_3'Access, "debug");
-      --  else
+      if T.Debug > 0 then
+         Register_Routine (T, Error_4'Access, "debug");
+      else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
          Register_Routine (T, Error_2'Access, "Error_2");
          Register_Routine (T, Error_3'Access, "Error_3");
---      end if;
+         Register_Routine (T, Error_4'Access, "Error_4");
+      end if;
    end Register_Tests;
 
 end Test_Panic_Mode;

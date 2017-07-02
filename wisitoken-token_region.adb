@@ -119,7 +119,7 @@ package body WisiToken.Token_Region is
    is begin
       State.Stack.Clear;
       State.Input_Queue.Clear;
-      State.Recover.Clear;
+      State.Errors.Clear;
    end Reset;
 
    overriding
@@ -149,7 +149,7 @@ package body WisiToken.Token_Region is
      (Expecting : in     WisiToken.Token_ID_Set;
       State     : access State_Type)
    is begin
-      State.Recover.Append
+      State.Errors.Append
         ((First_Terminal => State.Trace.Descriptor.First_Terminal,
           Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
           Error_Token    => State.Input_Queue.Peek,
@@ -273,7 +273,7 @@ package body WisiToken.Token_Region is
          Next (I);
       end loop;
 
-      State.Recover.Reference (State.Recover.Last).Invalid_Region := Region;
+      State.Errors.Reference (State.Errors.Last).Invalid_Region := Region;
 
       if Trace_Parse > 2 then
          Put_Trace (State.Trace.all, State.all);

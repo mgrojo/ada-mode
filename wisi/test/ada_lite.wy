@@ -85,7 +85,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 ;; These are used in unit tests; still figuring out how to pick
 ;; these..
 %panic_recover case_statement_alternative_list
-%panic_recover compilation_unit
+%panic_recover declarations
 %panic_recover handled_sequence_of_statements
 %panic_recover sequence_of_statements_opt
 
