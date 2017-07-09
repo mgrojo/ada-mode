@@ -14,6 +14,10 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:(gnatprep-setup)
 
+-- In Emacs < 25, we need to force syntax propertize to give gnatprep
+-- statements comment syntax.
+--EMACSCMD:(when (< emacs-major-version 25) (syntax-propertize (point-max)))
+
 --EMACSCMD:(jit-lock-fontify-now)
 
 procedure Gnatprep is

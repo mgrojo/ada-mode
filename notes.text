@@ -60,31 +60,8 @@ install packages in -Q:
 
  current work
 
-rewrite README to be useful as list-packages long description
-    that's how list-packages uses it
-    ie an advertisement for the package, not an install guide
-
-indent bugs:
-   if not Update_Flight_Status
-     and then FTFX.Covering.Cumulative_Shift > Time.Zero
-     and then Input_ATOT /= Time.None_Time
-     and then Normal_Flight.Profiles (Flight_Model.CTFM) /= Curtain.Profile.None
-       and then Input_ATOT /= Take_Off_Time (Normal_Flight, Flight_Model.CTFM)
-   then
-   end if;
-
-   C :=
-     Fim.Kind (Action_Info.Message) /= Fim.DLA
-       and Fim.Kind (Action_Info.Message) /= Fim.APL
-         and Fim.Kind (Action_Info.Message) /= Fim.ACH
-           and Fim.Kind (Action_Info.Message) /= Fim.ARR
-             and Fim.Kind (Action_Info.Message) /= Fim.DEP;
-
-
-gpr_query --help show relevant trace settings
-    add -v; shows *.ali
-
 do release
+    see below
 
 upgrade to gnat gpl 2017
     gpr_query installed
@@ -101,6 +78,8 @@ upgrade to gnat gpl 2017
             handled right there, but never gets to the handler
                 spawn process is just broken?
                 try small example
+
+    try reinstall gnatcoll?
 
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
