@@ -318,7 +318,9 @@ are indented correctly.")
     (end-of-line)
     (wisi-validate-cache (point))
     (wisi-backward-token)
-    (when (eq 'statement-end (wisi-cache-class (setq cache (wisi-get-cache (point)))))
+    (setq cache (wisi-get-cache (point)))
+    (when (and cache
+	       (eq 'statement-end (wisi-cache-class cache)))
       (wisi-goto-start cache))))
 
 (defun ada-gps-comment ()

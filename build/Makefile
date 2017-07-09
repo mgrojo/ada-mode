@@ -16,9 +16,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 5.2.1
+export ADA_MODE_VERSION    := 5.2.2
 export ADA_REF_MAN_VERSION := 2012.3
-export WISI_VERSION        := 1.1.4
+export WISI_VERSION        := 1.1.5
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -90,6 +90,9 @@ pub-ada : force
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
+	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
+	rm $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
+	rm $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 

@@ -29,6 +29,7 @@ test : test-wisi
 # test : test-ada-gnatxref.stamp
 
 test : test-ada-gpr_query.stamp
+test : test-ada-gps.stamp
 test : gpr-skel.gpr.diff
 test : test-gpr
 test : test-elisp

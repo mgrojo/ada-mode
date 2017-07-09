@@ -12,7 +12,7 @@ begin
                                                      -- ( = icao_mode.old_format)
 
    A ((1,
-      2), -- trailing comment
-          -- comment aligned with trailing comment
+       2), -- trailing comment
+           -- comment aligned with trailing comment
       3);
 end Bug_004;
