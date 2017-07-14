@@ -74,7 +74,7 @@ package body Parser_Lists_Test is
       Check ("1: Label", Cursor.Label, 1);
       Check ("1: Verb", Cursor.Verb, Shift);
       Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("1: Peek", Cursor.Peek, (1, WisiToken.Token_ID'Last));
+      Check ("1: Peek", Cursor.Peek, (1, WisiToken.Invalid_Token));
       Check ("1: Action_Tokens_Empty", Cursor.Pending_Actions_Empty, True);
    end Init;
 
@@ -91,7 +91,7 @@ package body Parser_Lists_Test is
       Item_1 : constant Stack_Item := (2, +If_ID);
       Item_2 : constant Stack_Item := (3, +Then_ID);
    begin
-      Check ("1: Pop", Cursor.Pop, (0, WisiToken.Token_ID'Last));
+      Check ("1: Pop", Cursor.Pop, (0, WisiToken.Invalid_Token));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
       Check ("1: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
 

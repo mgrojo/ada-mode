@@ -135,7 +135,7 @@ case_statement
   ;
 
 case_statement_alternative
-  : WHEN NUMERIC_LITERAL EQUAL_GREATER handled_sequence_of_statements
+  : WHEN NUMERIC_LITERAL EQUAL_GREATER sequence_of_statements_opt
   ;
 
 ;; We don't allow an empty list here; that leads to parallel parser
@@ -180,7 +180,7 @@ declarative_part_opt
   ;
 
 elsif_statement_item
-  : ELSIF expression_opt THEN handled_sequence_of_statements
+  : ELSIF expression_opt THEN sequence_of_statements_opt
   ;
 
 elsif_statement_list

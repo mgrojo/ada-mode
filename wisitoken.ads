@@ -63,6 +63,8 @@ package WisiToken is
 
    type Token_ID is range 1 .. Integer'Last;
 
+   Invalid_Token : constant Token_ID := Token_ID'Last;
+
    type Token_Array_String is array (Token_ID range <>) of access constant String;
 
    type Descriptor

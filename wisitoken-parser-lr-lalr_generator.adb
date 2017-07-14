@@ -699,6 +699,9 @@ package body WisiToken.Parser.LR.LALR_Generator is
             Ada.Text_IO.Put_Line (Image (Descriptor, I));
          end if;
       end loop;
+      if Unused_Tokens then
+         Ada.Text_IO.New_Line;
+      end if;
 
       if Trace then
          Ada.Text_IO.New_Line;

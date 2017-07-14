@@ -197,6 +197,31 @@ package body Test_Panic_Mode is
       Check ("error.length", State.Errors.Length, 1);
    end Error_4;
 
+   procedure Error_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
+      --  Deleted "if then" (to move it elsewhere).
+      --  Caused "recover: non-shift action not supported" in earlier version.
+      --  Now discards 'elsif then else', fails on 'end if; end'.
+
+      Assert (False, "1.exception: did not get Syntax_Error");
+   exception
+   when WisiToken.Syntax_Error =>
+      if Test.Debug > 0 then
+         for Data of State.Errors loop
+            Ada.Text_IO.Put_Line
+              ("error token: " & WisiToken.Token_Region.Image (Descriptor, Data.Error_Token, ID_Only => False) &
+                 " expecting: " & WisiToken.Image (Descriptor, Data.Expecting));
+         end loop;
+      end if;
+      Check ("error.length", State.Errors.Length, 2);
+   end Error_5;
+
    ----------
    --  Public subprograms
 
@@ -212,13 +237,14 @@ package body Test_Panic_Mode is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 0 then
-         Register_Routine (T, Error_4'Access, "debug");
+         Register_Routine (T, Error_1'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
          Register_Routine (T, Error_2'Access, "Error_2");
          Register_Routine (T, Error_3'Access, "Error_3");
          Register_Routine (T, Error_4'Access, "Error_4");
+         Register_Routine (T, Error_5'Access, "Error_5");
       end if;
    end Register_Tests;
 

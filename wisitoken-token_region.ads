@@ -37,7 +37,7 @@ package WisiToken.Token_Region is
      return String;
    --  Return a string for debug/test messages
 
-   Default_Token : constant Token := (Token_ID'Last, Null_Buffer_Region);
+   Default_Token : constant Token := (Invalid_Token, Null_Buffer_Region);
 
    package Token_Queues is new SAL.Gen_Definite_Queues (Token);
 

@@ -28,7 +28,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
       use Token;
       Panic    : Panic_Data := Default_Panic;
       Top      : Parser_Lists.Stack_Item := Cursor.Peek;
-      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Token_ID'Last);
+      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Invalid_Token);
    begin
       Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
 
@@ -114,7 +114,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                Cursor     : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
                Panic      : Panic_Reference renames Cursor.Panic_Ref;
 
-               Use_Popped : Token_ID := Token_ID'Last;
+               Use_Popped : Token_ID := Invalid_Token;
 
                function Check_Popped return Boolean
                is begin
@@ -139,34 +139,40 @@ package body WisiToken.Parser.LR.Panic_Mode is
                --  with "end * ;", where there is a missing 'end', and
                --  this one is in the popped tokens.
                if Parser.Table.Follow (Panic.Nonterm, Current_Token) or Check_Popped then
-                  Keep_Going := True;
-                  Panic.Pushed_Tokens.Append (Panic.Nonterm);
-                  Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
+                  if Use_Popped = Invalid_Token then
+                     --  Check_Popped returned false.
+                     Keep_Going := True;
+                     Panic.Pushed_Tokens.Append (Panic.Nonterm);
+                     Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
 
-                  if Use_Popped /= Token_ID'Last then
+                  else
+                     --  Check to see if we really can use the popped token
                      declare
-                        ID     : constant Token_ID     := Panic.Popped_Tokens.Peek (1);
-                        State  : constant State_Index  := Cursor.Peek.State;
-                        Action : constant Parse_Action_Rec := Action_For (Parser.Table.all, State, ID).Item;
+                        ID     : constant Token_ID         := Panic.Popped_Tokens.Peek (1);
+                        Action : constant Parse_Action_Rec := Action_For (Parser.Table.all, Panic.Goto_State, ID).Item;
                         --  We ignore conflicts in Action; just take the first one.
                      begin
-                        Panic.Pushed_Tokens.Append (ID);
-                        if Trace_Parse > 1 then
-                           Trace.Put
-                             (Integer'Image (Cursor.Label) & " recover: " &
-                                State_Image (State) & ": " &
-                                Image (Trace.Descriptor.all, ID) & " : ");
-                           Put_Trace (Trace, Action);
-                           Trace.New_Line;
-                        end if;
-
                         case Action.Verb is
                         when Shift =>
+                           Keep_Going := True;
+                           Panic.Pushed_Tokens.Append (Panic.Nonterm);
+                           Cursor.Push ((Panic.Goto_State, Panic.Nonterm));
+
+                           Panic.Pushed_Tokens.Append (ID);
+                           if Trace_Parse > 1 then
+                              Trace.Put
+                                (Integer'Image (Cursor.Label) & " recover: " &
+                                   State_Image (Panic.Goto_State) & ": " &
+                                   Image (Trace.Descriptor.all, ID) & " : ");
+                              Put_Trace (Trace, Action);
+                              Trace.New_Line;
+                           end if;
+
                            Cursor.Push ((Action.State, ID));
 
                         when Reduce | Accept_It | Error =>
-                           --  We should not get here.
-                           raise Programmer_Error with "recover: non-shift action not supported";
+                           --  We can't handle this; check next nonterm
+                           null;
 
                         end case;
                      end;

@@ -4,4 +4,5 @@ UNUSED_TERMINAL_2
 UNUSED_TERMINAL_3
 unused_nonterm_1
 unused_nonterm_2
+
 unused tokens; aborting

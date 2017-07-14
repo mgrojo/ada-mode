@@ -211,7 +211,7 @@ package body WisiToken.Parser.LR is
          exit when Node.Next = null;
          Node := Node.Next;
       end loop;
-      Node.Next := new Action_Node'(Token_ID'Last, new Parse_Action_Node'(Action, null), null);
+      Node.Next := new Action_Node'(Invalid_Token, new Parse_Action_Node'(Action, null), null);
    end Add_Error;
 
    procedure Add_Goto

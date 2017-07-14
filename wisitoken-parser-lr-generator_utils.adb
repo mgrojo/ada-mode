@@ -175,11 +175,9 @@ package body WisiToken.Parser.LR.Generator_Utils is
          Default_Action : constant Action_Node :=
            --  The symbol here is actually irrelevant; it is the
            --  position as the last on a state's action list that makes
-           --  it the default. It's too bad we can't extend an
-           --  enumeration type to make this 'default', for viewing this
-           --  list in a debugger. The various Put routines do replace
+           --  it the default. The various Put routines replace
            --  this with 'default'.
-           (Symbol => Token_ID'Last,
+           (Symbol => Invalid_Token,
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
             Next   => null);
 

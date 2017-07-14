@@ -173,6 +173,7 @@ is
          --  generate Action subprograms, populate Action_Names.
 
          if Profile then
+            --  FIXME: get token_id_last from descriptor
             Indent_Line ("Action_Counts : array (fasttoken_accept_ID .. Token_ID'Last) of Integer := (others => 0);");
          end if;
 

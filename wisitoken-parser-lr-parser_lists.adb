@@ -36,7 +36,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
                Stack           => new Stack_Node'
                  (Item         =>
                     (State     => First_State_Index,
-                     Token     => Token_ID'Last),
+                     Token     => Invalid_Token),
                   Next         => null),
                Pending_Actions => (null, null),
                Panic           => Default_Panic),

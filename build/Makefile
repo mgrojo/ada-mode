@@ -8,12 +8,12 @@ ZIP_VERSION := 6.0b
 all : test-clean tests library
 #all : doc zip tag
 
-# ../../Test/test_one_harness.adb
-# ../../Test/test_all_harness.adb
+# ../Test/test_one_harness.adb
+# ../Test/test_all_harness.adb
 t_one : export Standard_Common_Build := Debug
 # t_one : aflex.exe
 #t_one : one-clean
-t_one : character_literal_yylex.adb
+t_one : ada_lite_yylex.adb
 #t_one : RUN_ARGS := 3
 # %_process.l : PARSER_ALG := LALR
 t_one : test_one_harness.run

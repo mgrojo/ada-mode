@@ -207,7 +207,7 @@ package WisiToken.Parser.LR is
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Token_ID'Last, Unknown_State, Token.List.Null_List, Token.List.Null_List);
+     (Invalid_Token, Unknown_State, Token.List.Null_List, Token.List.Null_List);
 
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
