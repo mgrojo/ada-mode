@@ -25,18 +25,20 @@ with WisiToken.Token;
 package WisiToken.Parser.LR.Parser is
 
    type Instance is new WisiToken.Parser.LR.Instance with record
-      Max_Parallel         : Integer;
-      First_Parser_Label   : Integer;
-      Terminate_Same_State : Boolean;
+      Max_Parallel            : Integer;
+      First_Parser_Label      : Integer;
+      Terminate_Same_State    : Boolean;
+      Enable_McKenzie_Recover : Boolean;
    end record;
 
    function New_Parser
-     (Lexer                :         in     Lexer_Pkg.Handle;
-      Table                :         in     Parse_Table_Ptr;
-      Semantic_State       : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel         :         in     Integer := 15;
-      First_Parser_Label   :         in     Integer := 1;
-      Terminate_Same_State :         in     Boolean := False)
+     (Lexer                   :         in     Lexer_Pkg.Handle;
+      Table                   :         in     Parse_Table_Ptr;
+      Semantic_State          : aliased in out WisiToken.Token.Semantic_State'Class;
+      Max_Parallel            :         in     Integer := 15;
+      First_Parser_Label      :         in     Integer := 1;
+      Terminate_Same_State    :         in     Boolean := False;
+      Enable_McKenzie_Recover :         in     Boolean := False)
      return Instance;
 
    overriding procedure Parse (Parser : in out Instance);

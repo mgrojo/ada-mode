@@ -26,7 +26,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
      return Boolean
    is
       use Token;
-      Panic    : Panic_Data := Default_Panic;
+      Panic    : Recover_Data'Class := Default_Recover;
       Top      : Parser_Lists.Stack_Item := Cursor.Peek;
       Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Invalid_Token);
    begin
@@ -78,11 +78,11 @@ package body WisiToken.Parser.LR.Panic_Mode is
          end if;
       end if;
 
-      Cursor.Panic_Ref.Element.all := Panic;
+      Cursor.Recover_Ref.Element.all := Panic;
       return Top.State /= State_Index'First;
    end Pop_To_Good;
 
-   function Panic_Mode
+   function Recover
      (Parser        : in out LR.Instance'Class;
       Parsers       : in out Parser_Lists.List;
       Current_Token : in out Token_ID)
@@ -93,6 +93,14 @@ package body WisiToken.Parser.LR.Panic_Mode is
       Keep_Going : Boolean  := False;
       Last_ID    : Token_ID := Current_Token;
    begin
+      for I in Parsers.Iterate loop
+         declare
+            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
+         begin
+            Cursor.Set_Recover (new Recover_Data'(Default_Recover));
+         end;
+      end loop;
+
       for I in Parsers.Iterate loop
          Keep_Going := Keep_Going or Pop_To_Good
            (Parser.Table.all, Parser_Lists.To_Cursor (Parsers, I), Parser.Semantic_State.Trace.all);
@@ -112,7 +120,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                use all type Ada.Containers.Count_Type;
 
                Cursor     : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
-               Panic      : Panic_Reference renames Cursor.Panic_Ref;
+               Panic      : Recover_Reference renames Cursor.Recover_Ref;
 
                Use_Popped : Token_ID := Invalid_Token;
 
@@ -211,6 +219,6 @@ package body WisiToken.Parser.LR.Panic_Mode is
          end if;
       end if;
       return Keep_Going;
-   end Panic_Mode;
+   end Recover;
 
 end WisiToken.Parser.LR.Panic_Mode;

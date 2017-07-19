@@ -1,34 +1,15 @@
 --  Abstract :
 --
---  Implement [dragon] panic mode error recovery, extended to parallel parsers.
+--  Implement [McKenzie] error recovery, extended to parallel parsers.
 --
---  Algorithm:
+--  References:
 --
---  loop
---      for all active parsers:
---          pop stack until top state s has a reduce action on a "good" nonterminal
---      end loop;
+--  [McKenzie] McKenzie, Bruce J., Yeatman, Corey, and De Vere,
+--  Lorraine. Error repair in shift reduce parsers. ACM Trans. Prog.
+--  Lang. Syst., 17(4):672-689, July 1995.  Described in [Grune 2008] ref 321.
 --
---      if all parsers at stack bottom, give up
---
---      loop
---          for all active parsers:
---              if next_input in Follow (good nonterm);
---                  push goto_for (s, nonterm)
---                      _don't_ call reduce action, since don't have all tokens
---          end loop
---
---          if any parsers active, exit all loops
---
---          discard next_input
---              save for next try
---
---          if reach disard limit, exit loop
---      end loop
---  end loop
---
---  continue with shift input; parsers that did not get adjusted above
---  will error and terminate.
+--  [Grune 2008] Parsing Techniques, A Practical Guide, Second
+--  Edition. Dick Grune, Ceriel J.H. Jacobs.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -46,7 +27,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Parser.LR.Parser_Lists;
-package WisiToken.Parser.LR.Panic_Mode is
+package WisiToken.Parser.LR.McKenzie_Recover is
 
    function Recover
      (Parser        : in out LR.Instance'Class;
@@ -57,4 +38,4 @@ package WisiToken.Parser.LR.Panic_Mode is
    --  input, to allow recovering from an error state.
    --  Return True if successful.
 
-end WisiToken.Parser.LR.Panic_Mode;
+end WisiToken.Parser.LR.McKenzie_Recover;

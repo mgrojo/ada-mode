@@ -3,56 +3,37 @@ build/Makefile
 
  current work
 
-some .wy in wisi_wy_test.adb, some in rules.make
-    be more consistent
-        easier to update in rules.make
-
-ada_grammar.adb very slow to compile
-    eliminating all but one action subprograms; not much help
-
-    read state transitions from text file?
-    -> .exe is independent of language
-
-need better lexer for fasttoken
-    handle tick character literal
-    handle utf-8
-
-    lexer used by libadalang?
-
-need case insensitive flag in .wy
-    use for keywords
-    pass to lexers
-
 better syntax error handling
-    d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf
-        does this do:
-            if expecting has exactly one token, insert that
-                "if then end;"
+    "d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf"
+        try email for copy of code B.McKenzie@cosc.canterbury.ac.nz
+            not listed on web page: http://www.canterbury.ac.nz/engineering/schools/csse/our-people/
+            email bounced
+        try email dept for current contact info
 
-    write tests using Ada-like grammar with example syntax errors
-        partial 'if' statement
-        missing ;
-        missing )
+    does this do:
+        if expecting has exactly one token, insert that
+            "if then end;"
+
+    test with parallel parsers
+        force a conflict
+        don't terminate any if all fail
+        exit recover with first success
 
     if needed, speed up
+        use tasks for multi-processor?
 
     try check all stacked states for current input symbol in goto/Follow;
         works for typical "missing trailing tokens"
 
     then to elisp parser?
 
-    or Emacs sub-process parser
-        that was too slow with ada-mode 5.2, should be better with 6.x
-
-        using hashtable lookup for elisp id => ada id'pos
-            adapt gperf to emit elisp?
-
-    or Emacs module
-        use elisp lexer; time aflex vs wisi 5, 6 lexers
+    or Emacs module parser
         elisp lexer supports utf-8, other encodings; tick/char_literal
 
-    Leaves some sections uncached - OK if not user line (not typical editing case).
-    If indent cache nil, use previous line.
+    Leaves some sections unindented - OK if not user line (not typical editing case).
+        not uncached; if indent is not computed, cache is 0
+        If indent cache 0, use previous line?
+        see how it works in practice
 
 move output_ada_emacs, output_elisp to ada-mode source tree?
     extendable dispatch?
@@ -131,6 +112,26 @@ wisi-generate lr1 way too slow for Ada
 
 integrate with emacs module
     split out ada_grammar from ada_grammar_process, _module
+
+some .wy in wisi_wy_test.adb, some in rules.make
+    be more consistent
+        easier to update in rules.make
+
+ada_grammar.adb very slow to compile
+    eliminating all but one action subprograms; not much help
+
+    read state transitions from text file?
+    -> .exe is independent of language
+
+need better lexer for wisitoken
+    handle tick character literal
+    handle utf-8
+
+    lexer used by libadalang?
+
+need case insensitive flag in .wy
+    use for keywords
+    pass to lexers
 
 Test case gathering - wisi fallback email first use each day.
 

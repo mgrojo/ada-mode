@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with WisiToken.Parser.LR.McKenzie_Recover;
 with WisiToken.Parser.LR.Panic_Mode;
 with WisiToken.Parser.LR.Parser_Lists;
 package body WisiToken.Parser.LR.Parser is
@@ -292,7 +293,7 @@ package body WisiToken.Parser.LR.Parser is
             null;
 
          when Error =>
-            --  All parsers errored; atempt recovery,
+            --  All parsers errored; attempt recovery,
             declare
                use Parser_Lists;
                Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
@@ -304,20 +305,26 @@ package body WisiToken.Parser.LR.Parser is
 
                Token.Error (Expecting, Parser.Semantic_State);
 
-               if Any (Parser.Table.Panic_Recover) then
-                  Keep_Going := Panic_Mode.Panic_Mode (Parser, Parsers, Current_Token);
+               if Parser.Enable_McKenzie_Recover then
+                  Keep_Going := McKenzie_Recover.Recover (Parser, Parsers, Current_Token);
+               else
+                  Keep_Going := False;
+               end if;
+
+               if not Keep_Going and then Any (Parser.Table.Panic_Recover) then
+                  Keep_Going := Panic_Mode.Recover (Parser, Parsers, Current_Token);
                else
                   Keep_Going := False;
                end if;
 
                if Keep_Going and Parsers.Count = 1 then
                   declare
-                     Panic : Parser_Lists.Panic_Reference renames Parser_Lists.First (Parsers).Panic_Ref;
+                     Recover : Parser_Lists.Recover_Reference renames Parser_Lists.First (Parsers).Recover_Ref;
                   begin
-                     WisiToken.Token.Recover (Panic.Popped_Tokens, Panic.Pushed_Tokens, Parser.Semantic_State);
+                     WisiToken.Token.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Parser.Semantic_State);
                   end;
 
-                  --  FIXME: else push panic onto pending
+                  --  FIXME: else push recover onto pending
                else
                   --  report errors
                   declare
@@ -414,17 +421,18 @@ package body WisiToken.Parser.LR.Parser is
    end Parse;
 
    function New_Parser
-     (Lexer                :         in     Lexer_Pkg.Handle;
-      Table                :         in     Parse_Table_Ptr;
-      Semantic_State       : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel         :         in     Integer := 15;
-      First_Parser_Label   :         in     Integer := 1;
-      Terminate_Same_State :         in     Boolean := False)
+     (Lexer                   :         in     Lexer_Pkg.Handle;
+      Table                   :         in     Parse_Table_Ptr;
+      Semantic_State          : aliased in out WisiToken.Token.Semantic_State'Class;
+      Max_Parallel            :         in     Integer := 15;
+      First_Parser_Label      :         in     Integer := 1;
+      Terminate_Same_State    :         in     Boolean := False;
+      Enable_McKenzie_Recover :         in     Boolean := False)
      return Instance
    is begin
       return
         (Lexer, Table, Semantic_State'Access,
-         Max_Parallel, First_Parser_Label, Terminate_Same_State);
+         Max_Parallel, First_Parser_Label, Terminate_Same_State, Enable_McKenzie_Recover);
    end New_Parser;
 
 end WisiToken.Parser.LR.Parser;

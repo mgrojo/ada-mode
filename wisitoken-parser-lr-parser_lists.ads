@@ -51,10 +51,12 @@ package WisiToken.Parser.LR.Parser_Lists is
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
-   type Panic_Reference (Element : not null access Panic_Data) is null record
+   procedure Set_Recover (Cursor : in Parser_Lists.Cursor; Data : in Recover_Data_Access);
+
+   type Recover_Reference (Element : not null access Recover_Data'Class) is null record
    with Implicit_Dereference => Element;
 
-   function Panic_Ref (Position : in Cursor) return Panic_Reference;
+   function Recover_Ref (Position : in Cursor) return Recover_Reference;
 
    --  Parser stack
    type Stack_Item is record
@@ -172,8 +174,8 @@ private
       Label           : Integer;            -- for debugging
       Verb            : Parse_Action_Verbs; -- last action performed
       Stack           : Stack_Node_Access;
-      Pending_Actions : Action_Token_List; --  FIXME: include panic/recovery ;
-      Panic           : aliased Panic_Data;
+      Pending_Actions : Action_Token_List;  --  FIXME: include panic/recovery ;
+      Recover         : Recover_Data_Access;
    end record;
 
    type Parser_Node;

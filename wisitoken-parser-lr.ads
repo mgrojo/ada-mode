@@ -39,8 +39,6 @@ pragma License (Modified_GPL);
 with Ada.Unchecked_Deallocation;
 package WisiToken.Parser.LR is
 
-   --  No private types; that would make it too hard to write the unit tests
-
    --  Following are the types used in the parse table. The parse
    --  table is an array indexed by parse state that where each state
    --  contains a list of parse actions and a list of gotos.
@@ -196,17 +194,26 @@ package WisiToken.Parser.LR is
      return Parse_Action_Node_Ptr;
    --  Return the action for State, ID.
 
-   type Panic_Data is record
-      --  Stored with parser state during panic mode recovery
+   type Recover_Data is tagged record
+      --  Stored with parser state during recovery. Base type is
+      --  sufficient for panic mode recovery; other recovery
+      --  algorithms may extend this.
+      --
+      --  Tokens skipped in the input stream are not stored here; they
+      --  are reported via Semantic_State.Discard_Token.
+      --
+      --  Semantic actions are not performed on the popped or skipped
+      --  tokens.
       Nonterm       : Token_ID;
       Goto_State    : Unknown_State_Index;
       Popped_Tokens : Token.List.Instance;
       Pushed_Tokens : Token.List.Instance;
-      --  Semantic actions are not performed on the popped or skipped
-      --  tokens.
    end record;
 
-   Default_Panic : constant Panic_Data :=
+   type Recover_Data_Access is access Recover_Data'Class;
+   procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
+
+   Default_Recover : constant Recover_Data :=
      (Invalid_Token, Unknown_State, Token.List.Null_List, Token.List.Null_List);
 
    type Instance is abstract new WisiToken.Parser.Instance with record

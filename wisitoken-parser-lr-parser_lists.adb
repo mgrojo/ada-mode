@@ -26,7 +26,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
       First_Parser_Label : in Integer)
      return List
    is begin
-      --  FIXME: should clear all panic lists in existing parser; use Controlled.
       return
         (Parser_Label          => First_Parser_Label,
          Head                  => new Parser_Node'
@@ -39,7 +38,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
                      Token     => Invalid_Token),
                   Next         => null),
                Pending_Actions => (null, null),
-               Panic           => Default_Panic),
+               Recover         => null),
             Next               => null,
             Prev               => null),
          Parser_Free           => null,
@@ -56,12 +55,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function First (List : aliased in out Parser_Lists.List'Class) return Cursor
    is begin
-      --  WORKAROUND: with 'Access, Debian gnat 4.9.2 reports
-      --  "non-local pointer cannot point to local object", even
-      --  though GNAT Pro 7.3.1 and GNAT GPL 2014 allow 'Access. There
-      --  doesn't seem to be a way to use a legitimate access param
-      --  while still meeting the Iterator requirements.
-      return (List'Unchecked_Access, Ptr => List.Head);
+      return (List'Access, Ptr => List.Head);
    end First;
 
    procedure Next (Cursor : in out Parser_Lists.Cursor)
@@ -96,10 +90,16 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Cursor.Ptr.Item.Verb;
    end Verb;
 
-   function Panic_Ref (Position : in Cursor) return Panic_Reference
+   procedure Set_Recover (Cursor : in Parser_Lists.Cursor; Data : in Recover_Data_Access)
    is begin
-      return (Element => Position.Ptr.all.Item.Panic'Access);
-   end Panic_Ref;
+      Free (Cursor.Ptr.Item.Recover);
+      Cursor.Ptr.Item.Recover := Data;
+   end Set_Recover;
+
+   function Recover_Ref (Position : in Cursor) return Recover_Reference
+   is begin
+      return (Element => Position.Ptr.all.Item.Recover);
+   end Recover_Ref;
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
@@ -370,7 +370,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
             Cursor.Ptr.Item.Verb,
             New_Stack,
             New_Action_Token,
-            Default_Panic),
+            null),
          Next => List.Head,
          Prev => null);
 
@@ -434,8 +434,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Ptr  :         in     Parser_Node_Access)
      return Cursor
    is begin
-      --  see WORKAROUND in First
-      return (List'Unchecked_Access, Ptr);
+      return (List'Access, Ptr);
    end To_Cursor;
 
    function Constant_Reference
@@ -492,8 +491,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class
    is begin
-      --  see WORKAROUND in First
-      return Iterator'(Container => Container'Unchecked_Access);
+      return Iterator'(Container => Container'Access);
    end Iterate;
 
    function Count (Action_Token : in Action_Token_List) return Integer
