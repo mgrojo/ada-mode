@@ -252,6 +252,7 @@ package body WisiToken.Parser.LR.Parser is
 
    overriding procedure Parse (Parser : in out Instance)
    is
+      use all type Ada.Containers.Count_Type;
       Parsers        : Parser_Lists.List := Parser_Lists.New_List
         (First_State_Index  => Parser.Table.State_First,
          First_Parser_Label => Parser.First_Parser_Label);
@@ -270,7 +271,13 @@ package body WisiToken.Parser.LR.Parser is
 
          case Current_Verb is
          when Shift =>
-            Current_Token := Parser.Lexer.Find_Next;
+            if Parser.Lookahead.Length = 0 then
+               Current_Token := Parser.Lexer.Find_Next;
+            else
+               Current_Token := Parser.Lookahead (Positive_Index_Type'First);
+               Parser.Lookahead.Delete_First;
+            end if;
+
             WisiToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
 
          when Accept_It =>
@@ -425,14 +432,15 @@ package body WisiToken.Parser.LR.Parser is
       Table                   :         in     Parse_Table_Ptr;
       Semantic_State          : aliased in out WisiToken.Token.Semantic_State'Class;
       Max_Parallel            :         in     Integer := 15;
-      First_Parser_Label      :         in     Integer := 1;
-      Terminate_Same_State    :         in     Boolean := False;
-      Enable_McKenzie_Recover :         in     Boolean := False)
+      First_Parser_Label      :         in     Integer := 1)
      return Instance
    is begin
       return
-        (Lexer, Table, Semantic_State'Access,
-         Max_Parallel, First_Parser_Label, Terminate_Same_State, Enable_McKenzie_Recover);
+        (Lexer, Table, Semantic_State'Access, Empty_Token_Array,
+         Max_Parallel, First_Parser_Label,
+         Terminate_Same_State    => True,
+         Enable_Panic_Recover    => False,
+         Enable_McKenzie_Recover => False);
    end New_Parser;
 
 end WisiToken.Parser.LR.Parser;

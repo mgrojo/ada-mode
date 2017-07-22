@@ -66,6 +66,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item;
+   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type;
    function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item;
    procedure Pop (Cursor : in Parser_Lists.Cursor);
    procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item);

@@ -23,7 +23,8 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with WisiToken.Lexer;
 with WisiToken.Token;
-with SAL.Gen_Definite_Queues;
+with SAL.Gen_Queue_Interfaces;
+with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Token_Region is
 
    type Token is new WisiToken.Augmented_Token with record
@@ -39,7 +40,8 @@ package WisiToken.Token_Region is
 
    Default_Token : constant Token := (Invalid_Token, Null_Buffer_Region);
 
-   package Token_Queues is new SAL.Gen_Definite_Queues (Token);
+   package Token_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Token);
+   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token, Token_Queue_Interfaces);
 
    type Error_Data
      (First_Terminal : Token_ID;
@@ -53,19 +55,14 @@ package WisiToken.Token_Region is
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
 
    type State_Type is new WisiToken.Token.Semantic_State with record
-      Stack : Token_Stack_Type;
+      Stack : Augmented_Token_Array;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
 
-      Input_Queue : Token_Queues.Queue_Type (500);
+      Input_Queue : Token_Queues.Queue_Type;
       --  Tokens are kept in Input_Queue during parallel parser
       --  execution, and during error recovery; added by Input_Token,
       --  moved to Stack by Push_Token.
-      --
-      --  IMPROVEME: get default queue size from somewhere.
-      --  Max_Stack_Size is a reasonable guess for the maximum queue
-      --  needed; better would be to set it at run-time based on
-      --  history of compiling a particular project.
 
       Invalid_Region : Buffer_Region;
       --  Temporary storage during recovery; Discard_Token increases

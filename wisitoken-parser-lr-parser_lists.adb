@@ -106,6 +106,25 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Cursor.Ptr.Item.Stack = null;
    end Stack_Empty;
 
+   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type
+   is
+      Ptr    : Stack_Node_Access := Cursor.Ptr.Item.Stack;
+      Temp   : State_Stacks.Stack_Type;
+      Result : State_Stacks.Stack_Type;
+      --  no append for Stack_Type (faster to do this); build inverted, copy to revert
+   begin
+      loop
+         exit when Ptr = null;
+         Temp.Push (Ptr.Item.State);
+         Ptr := Ptr.Next;
+      end loop;
+      loop
+         exit when Temp.Is_Empty;
+         Result.Push (Temp.Pop);
+      end loop;
+      return Result;
+   end Copy_Stack;
+
    function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item
    is
       Ptr : Stack_Node_Access := Cursor.Ptr.Item.Stack;

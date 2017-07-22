@@ -44,10 +44,10 @@ package body WisiToken.Token_Region is
 
    procedure Put_Trace
      (Trace : in out WisiToken.Trace'Class;
-      Stack : in     Token_Stack_Type;
+      Stack : in     Augmented_Token_Array;
       Count : in     Ada.Containers.Count_Type)
    is
-      use Token_Stacks;
+      use Augmented_Token_Arrays;
       use all type Ada.Containers.Count_Type;
 
       I : Cursor := Stack.To_Cursor (Stack.Length - Count + 1);
@@ -66,7 +66,9 @@ package body WisiToken.Token_Region is
    procedure Put_Trace
      (Trace : in out WisiToken.Trace'Class;
       Queue : in     Token_Queues.Queue_Type)
-   is begin
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
       for I in 0 .. Queue.Count - 1 loop
          Trace.Put (Image (Trace.Descriptor.all, Queue.Peek (I), ID_Only => False));
          if I /= Queue.Count - 1 then
@@ -79,13 +81,13 @@ package body WisiToken.Token_Region is
      (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token;
       Index               : in     Natural;
-      Stack               : in     Token_Stacks.Vector;
+      Stack               : in     Augmented_Token_Array;
       Tokens_Length       : in     Ada.Containers.Count_Type;
       Include_Action_Name : in     Boolean)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Characters.Handling;
-      use Token_Stacks;
+      use Augmented_Token_Arrays;
 
       Action_Name : constant String :=
         (if Include_Action_Name
@@ -179,14 +181,14 @@ package body WisiToken.Token_Region is
       State   : access State_Type)
    is
       use all type Ada.Containers.Count_Type;
-      use all type Token_Stacks.Cursor;
+      use all type Augmented_Token_Arrays.Cursor;
       use all type WisiToken.Token.List.List_Iterator;
 
       ID_I : WisiToken.Token.List.List_Iterator := Tokens.First;
 
-      Aug_Nonterm : Token               := Default_Token;
-      Stack_I     : Token_Stacks.Cursor := State.Stack.To_Cursor (State.Stack.Length - Tokens.Length + 1);
-      Aug_Tokens  : Token_Stacks.Vector;
+      Aug_Nonterm : Token                         := Default_Token;
+      Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - Tokens.Length + 1);
+      Aug_Tokens  : Augmented_Token_Arrays.Vector;
    begin
       Aug_Nonterm.ID := Nonterm;
 
@@ -201,7 +203,7 @@ package body WisiToken.Token_Region is
             end if;
 
             if Action /= null then
-               Token_Stacks.Append (Aug_Tokens, Token);
+               Aug_Tokens.Append (Token);
             end if;
 
             if Aug_Nonterm.Region.Begin_Pos > Token.Region.Begin_Pos then

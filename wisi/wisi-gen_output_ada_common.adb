@@ -430,16 +430,17 @@ package body Wisi.Gen_Output_Ada_Common is
          case Lexer is
          when Aflex_Lexer =>
             Indent_Line ("  (Lexer.New_Lexer (Trace'Access, Text_Feeder, Buffer_Size, First_Column => 0),");
-            Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
-            Indent_Line ("   Max_Parallel, " & WisiToken.Int_Image (First_Parser_Label)
-                           & ", Terminate_Same_State, Enable_McKenzie_Recover => True);");
+            Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access, WisiToken.Empty_Token_Array,");
+            Indent_Line ("   Max_Parallel, " & WisiToken.Int_Image (First_Parser_Label) &
+                           ", Terminate_Same_State, Enable_Panic_Recover => True, Enable_McKenzie_Recover => True);");
 
          when Elisp_Lexer =>
             Indent_Line ("  (WisiToken.Lexer.Elisp_Process.New_Lexer (" & WisiToken.Int_Image (EOF_ID) &
                            ", Trace'Access),");
-            Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
-            Indent_Line ("   Max_Parallel, " & WisiToken.Int_Image (First_Parser_Label)
-                           & ", Terminate_Same_State => True, Enable_McKenzie_Recover => True);");
+            Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access, WisiToken.Empty_Token_Array,");
+            Indent_Line ("   Max_Parallel, " & WisiToken.Int_Image (First_Parser_Label) &
+                           ", Terminate_Same_State => True, Enable_Panic_Recover => True," &
+                           " Enable_McKenzie_Recover => True);");
 
          when Regexp_Lexer =>
             raise Programmer_Error;

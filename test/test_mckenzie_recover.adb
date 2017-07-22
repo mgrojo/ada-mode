@@ -39,6 +39,8 @@ package body Test_McKenzie_Recover is
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
+      Parser.Enable_McKenzie_Recover := True;
+
       ada_lite_dfa.aflex_debug := Debug > 3;
       WisiToken.Trace_Parse    := Debug;
 

@@ -37,6 +37,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Stack_Interfaces;
+with SAL.Gen_Unbounded_Definite_Stacks;
 package WisiToken.Parser.LR is
 
    --  Following are the types used in the parse table. The parse
@@ -184,15 +186,15 @@ package WisiToken.Parser.LR is
       State : in State_Index;
       ID    : in Token_ID)
      return Unknown_State_Index;
-   --  Return next state after reducing stack by ID; Unknown_State if
-   --  none (only possible during error recovery).
+   --  Return next state after reducing stack by nonterminal ID;
+   --  Unknown_State if none (only possible during error recovery).
 
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;
       ID    : in Token_ID)
      return Parse_Action_Node_Ptr;
-   --  Return the action for State, ID.
+   --  Return the action for State, terminal ID.
 
    type Recover_Data is tagged record
       --  Stored with parser state during recovery. Base type is
@@ -216,9 +218,13 @@ package WisiToken.Parser.LR is
    Default_Recover : constant Recover_Data :=
      (Invalid_Token, Unknown_State, Token.List.Null_List, Token.List.Null_List);
 
+   package State_Stack_Interface is new SAL.Gen_Stack_Interfaces (State_Index);
+   package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interface);
+
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
       Semantic_State : access WisiToken.Token.Semantic_State'Class;
+      Lookahead      : Token_Arrays.Vector; -- Filled by recover algorithms; use before calling Lexer.Find_Next
    end record;
 
    ----------

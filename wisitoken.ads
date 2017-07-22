@@ -63,6 +63,11 @@ package WisiToken is
 
    type Token_ID is range 1 .. Integer'Last;
 
+   subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
+   package Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Token_ID);
+   subtype Token_Array is Token_Arrays.Vector;
+   Empty_Token_Array : Token_Array renames Token_Arrays.Empty_Vector;
+
    Invalid_Token : constant Token_ID := Token_ID'Last;
 
    type Token_Array_String is array (Token_ID range <>) of access constant String;
@@ -123,7 +128,7 @@ package WisiToken is
    --  child type adds Propagate_ID.
 
    function Lookahead_Image (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set) return String;
-   --  Base implementation just returns aggregate syntas for Item.
+   --  Base implementation just returns aggregate syntax for Item.
    --  LALR child includes '#' for Propagate_ID.
 
    type LALR_Descriptor
@@ -157,15 +162,14 @@ package WisiToken is
    end record;
    --  Derived types add various lexical information.
 
-   subtype Stack_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-   package Token_Stacks is new Ada.Containers.Indefinite_Vectors (Stack_Index_Type, Augmented_Token'Class);
+   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
 
-   subtype Token_Stack_Type is Token_Stacks.Vector;
+   subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
 
    type Semantic_Action is access procedure
      (Nonterm : in Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in Token_Stack_Type);
+      Source  : in Augmented_Token_Array);
    --  Routines of this type are called by the parser when it reduces
    --  a production to Nonterm. Index indicates which production (0 origin);
    --  Source is the right hand side tokens.

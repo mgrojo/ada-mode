@@ -211,7 +211,7 @@ is
       Indent_Line ("procedure Elisp_Action");
       Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
       Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Source  : in WisiToken.Token_Stack_Type)");
+      Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
       Indent_Line ("is null;");
       New_Line;
 
