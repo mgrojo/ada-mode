@@ -172,10 +172,10 @@ package body WisiToken is
       end loop;
    end Or_Slice;
 
-   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
    is begin
       Trace.Put (Image (Trace.Descriptor.all, Item));
-   end Put_Trace;
+   end Put;
 
    function Int_Image (Item : in Integer) return String
    is

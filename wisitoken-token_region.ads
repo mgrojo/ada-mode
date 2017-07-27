@@ -77,36 +77,36 @@ package WisiToken.Token_Region is
 
    overriding
    procedure Input_Token
-     (Token : in     Token_ID;
-      State : access State_Type;
+     (State : access State_Type;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle);
 
    overriding
    procedure Push_Token
-     (ID    : in     Token_ID;
-      State : access State_Type);
+     (State : access State_Type;
+      Token : in     Token_ID);
 
    overriding procedure Error
-     (Expecting : in     Token_ID_Set;
-      State     : access State_Type);
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set);
 
    overriding
    procedure Discard_Token
-     (ID    : in     Token_ID;
-      State : access State_Type);
+     (State : access State_Type;
+      Token : in     Token_ID);
 
    overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     WisiToken.Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type);
+      Action  : in     Semantic_Action);
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance;
-      State         : access State_Type);
+     (State         : access State_Type;
+      Popped_Tokens : in     WisiToken.Token.List.Instance;
+      Pushed_Tokens : in     WisiToken.Token.List.Instance);
 
 end WisiToken.Token_Region;

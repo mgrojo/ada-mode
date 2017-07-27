@@ -31,6 +31,35 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Cost            : Float := 0.0;
    end record;
 
+   procedure Put
+     (Message : in     String;
+      Parser  : access LR.Instance'Class;
+      Config  : in     Configuration)
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+   begin
+      Put (Trace, Message & ": ");
+      Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek));
+      Trace.Put (" ");
+      Put (Trace, Parser.Lookahead (Config.Lookahead_Index));
+      Trace.Put (" ");
+      if Config.Inserted.Length = 0 then
+         Put (Trace, "null");
+      else
+         Put (Trace, Config.Inserted (1));
+      end if;
+      Trace.Put (" ");
+      if Config.Deleted.Length = 0 then
+         Put (Trace, "null");
+      else
+         Put (Trace, Config.Deleted (1));
+      end if;
+      Put (Trace, Float'Image (Config.Cost));
+      Trace.New_Line;
+   end Put;
+
    Insert_Cost : constant Float := 1.0;
    Delete_Cost : constant Float := 1.0;
    --  FIXME: make insert/delete costs per-language parameters?
@@ -38,7 +67,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    function Order_Config (A, B : in Configuration) return Boolean
    is begin
       --  FIXME: prefer insertions over deletions, or use cost for that?
-      return A.Cost > B.Cost;
+      --
+      --  Remove lowest cost first.
+      return A.Cost < B.Cost;
    end Order_Config;
 
    package Config_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Configuration);
@@ -46,9 +77,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
      (Element_Type     => Configuration,
       Queue_Interfaces => Config_Queue_Interfaces);
 
-   type McKenzie_Data (Table : Parse_Table_Ptr) is new Recover_Data with record
-
-      Queue : Config_Queues.Queue_Type;
+   type McKenzie_Data (Parser : access LR.Instance'Class) is new Recover_Data with
+   record
+      Queue         : Config_Queues.Queue_Type;
+      Enqueue_Count : Integer := 0;
+      Check_Count   : Integer := 0;
    end record;
 
    procedure Clear_Queue (Data : in out McKenzie_Data)
@@ -60,6 +93,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    is begin
       --  FIXME: prune duplicate/higher cost configs
       Data.Queue.Add (Config, Order_Config'Access);
+      Data.Enqueue_Count := Data.Enqueue_Count + 1;
+      if Trace_Parse > 1 then
+         Put ("enqueue", Data.Parser, Config);
+      end if;
    end Enqueue;
 
    function Delete_Min (Data : in out McKenzie_Data) return Configuration
@@ -82,9 +119,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          New_State := New_Config.Stack.Pop;
       end loop;
 
-      New_State := Goto_For (Data.Table.all, New_State, Action.LHS);
+      New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
 
-      Next_Action := Action_For (Data.Table.all, New_State, Inserted_Token);
+      Next_Action := Action_For (Data.Parser.Table.all, New_State, Inserted_Token);
       loop
          exit when Next_Action = null;
          case Next_Action.Item.Verb is
@@ -112,6 +149,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    is
       Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
       Action : Parse_Action_Node_Ptr;
+
+      EOF_ID : Token_ID renames Parser.Semantic_State.Trace.Descriptor.EOF_ID;
+
+      procedure Trace_Result
+      is begin
+         Data.Parser.Semantic_State.Trace.Put_Line
+           ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
+              ", check " & Integer'Image (Data.Check_Count));
+      end Trace_Result;
+
    begin
       Clear_Queue (Data);
       Enqueue
@@ -132,35 +179,44 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             Config     : constant Configuration := Delete_Min (Data);
             New_Config : Configuration;
          begin
-            if Action_For (Data.Table.all, Config.Stack.Peek, Parser.Lookahead (Config.Lookahead_Index))
+            Data.Check_Count := Data.Check_Count + 1;
+            if Trace_Parse > 1 then
+               Put ("check  ", Data.Parser, Config);
+            end if;
+            if Action_For (Data.Parser.Table.all, Config.Stack.Peek, Parser.Lookahead (Config.Lookahead_Index))
               .Item.Verb in Shift | Reduce
             then
                --  FIXME: require three good tokens
+               if Trace_Parse > 0 then
+                  Trace_Result;
+               end if;
                return Config;
             end if;
 
             if Config.Deleted = Empty_Token_Array then
                --  Find insertions to try
-               for ID in Data.Table.First_Terminal .. Data.Table.Last_Terminal loop
-                  Action := Action_For (Data.Table.all, Config.Stack.Peek, ID);
-                  loop
-                     exit when Action = null;
-                     case Action.Item.Verb is
-                     when Shift =>
-                        New_Config := Config;
-                        New_Config.Stack.Push (Action.Item.State);
-                        New_Config.Inserted.Append (ID);
-                        New_Config.Cost := New_Config.Cost + Insert_Cost;
-                        Enqueue (Data, New_Config);
+               for ID in Data.Parser.Table.First_Terminal .. Data.Parser.Table.Last_Terminal loop
+                  if ID /= EOF_ID then
+                     Action := Action_For (Data.Parser.Table.all, Config.Stack.Peek, ID);
+                     loop
+                        exit when Action = null;
+                        case Action.Item.Verb is
+                        when Shift =>
+                           New_Config := Config;
+                           New_Config.Stack.Push (Action.Item.State);
+                           New_Config.Inserted.Append (ID);
+                           New_Config.Cost := New_Config.Cost + Insert_Cost;
+                           Enqueue (Data, New_Config);
 
-                     when Reduce =>
-                        Do_Reduce (Data, Config, Action.Item, ID);
+                        when Reduce =>
+                           Do_Reduce (Data, Config, Action.Item, ID);
 
-                     when Accept_It | Error =>
-                        null;
-                     end case;
-                     Action := Action.Next;
-                  end loop;
+                        when Accept_It | Error =>
+                           null;
+                        end case;
+                        Action := Action.Next;
+                     end loop;
+                  end if;
                end loop;
             end if;
 
@@ -171,6 +227,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
                Parser.Lookahead.Append (Parser.Lexer.Find_Next);
+               Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
             end if;
             New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
             New_Config.Cost := New_Config.Cost + Delete_Cost;
@@ -178,6 +235,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
          end;
       end loop;
+      if Trace_Parse > 0 then
+         Trace_Result;
+      end if;
       raise Recover_Fail;
    end Recover;
 
@@ -187,19 +247,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Current_Token : in out Token_ID)
      return Boolean
    is
-      Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
-
       Keep_Going : Boolean := False;
    begin
-      Keep_Going := False;
-
       Parser.Lookahead.Append (Current_Token);
+
+      if Parsers.Count > 1 then
+         --  See FIXME below
+         raise Programmer_Error with "McKenzie_Recover does not support Parsers.Count > 1 (yet)";
+      end if;
 
       for I in Parsers.Iterate loop
          declare
             Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
          begin
-            Cursor.Set_Recover (new McKenzie_Data (Parser.Table));
+            Cursor.Set_Recover (new McKenzie_Data (Parser'Unchecked_Access));
          end;
       end loop;
 
@@ -207,9 +268,21 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          declare
             Result : Configuration;
          begin
-            Result := Recover (Parser, Parser_Lists.To_Cursor (Parsers, I));
+            Result     := Recover (Parser, Parser_Lists.To_Cursor (Parsers, I));
+            Keep_Going := True;
 
-            --  FIXME: process result; adjust semantic_state, drop deleted from lookahead
+            --  FIXME: Lookahead, Current_Token might be different for different parsers;
+            --  process inserted, deleted tokens now, pending actions, so LR.Parser does not deal with lookahead.
+            --  parser i must also process non-common deleted tokens from all other parsers.
+            for ID of Result.Deleted loop
+               Parser.Semantic_State.Discard_Token (ID);
+               Parser.Lookahead.Delete_First;
+            end loop;
+
+            for ID of reverse Result.Inserted loop
+               Parser.Semantic_State.Input_Token (ID, null);
+               Parser.Lookahead.Prepend (ID);
+            end loop;
 
             Current_Token := Parser.Lookahead (Positive_Index_Type'First);
             Parser.Lookahead.Delete_First;
@@ -219,11 +292,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          end;
       end loop;
 
-      if Trace_Parse > 0 then
-         if not Keep_Going then
-            Trace.Put_Line ("recover: fail");
-         end if;
-      end if;
       return Keep_Going;
    end Recover;
 

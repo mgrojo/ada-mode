@@ -8,6 +8,16 @@ better syntax error handling
             email bounced
         try email dept for current contact info
 
+    t_one RUN_ARGS=1
+        Error_1 passes
+
+        not terminating
+            infinite loop of insert more semicolons
+                would be detected by duplicate elim
+
+    Prefer keywords over identifiers, operators = take advantage of empty expressions.
+        Per language cost function
+
     does this do:
         if expecting has exactly one token, insert that
             "if then end;"
@@ -15,13 +25,14 @@ better syntax error handling
     test with parallel parsers
         force a conflict
         don't terminate any if all fail
-        exit recover with first success
-
-    if needed, speed up
-        use tasks for multi-processor?
+        _dont_ exit recover with first success; all parsers may succeed
 
     try check all stacked states for current input symbol in goto/Follow;
         works for typical "missing trailing tokens"
+
+    cache recover for subsequent parse
+
+    test lr vs lalr tables
 
     then to elisp parser?
 
@@ -32,6 +43,13 @@ better syntax error handling
         not uncached; if indent is not computed, cache is 0
         If indent cache 0, use previous line?
         see how it works in practice
+
+    speed up
+        check follow faster than goto_for/action_for?
+
+        use tasks for multi-processor?
+
+        compress parser table via default reduce?
 
 move output_ada_emacs, output_elisp to ada-mode source tree?
     extendable dispatch?

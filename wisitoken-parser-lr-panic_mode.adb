@@ -200,10 +200,10 @@ package body WisiToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Trace.Put_Line ("  discard " & Image (Trace.Descriptor.all, Current_Token));
          end if;
-         WisiToken.Token.Discard_Token (Current_Token, Parser.Semantic_State);
+         Parser.Semantic_State.Discard_Token (Current_Token);
 
          Current_Token := Parser.Lexer.Find_Next;
-         WisiToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+         Parser.Semantic_State.Input_Token (Current_Token, Parser.Lexer);
          if Trace_Parse > 1 then
             Trace.Put_Line ("  next " & Image (Trace.Descriptor.all, Current_Token));
          end if;

@@ -115,56 +115,63 @@ package WisiToken.Token is
    --  Reset State to start a new parse.
 
    procedure Input_Token
-     (Token : in     Token_ID;
-      State : access Semantic_State;
+     (State : access Semantic_State;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
-   --  Parser just fetched Token from Lexer; save it in the State
-   --  input queue for later push or recover operations.
+   --  If Lexer is not null, the parser just fetched Token from Lexer;
+   --  add it to the tail of the State input queue for later
+   --  operations.
+   --
+   --  If Lexer is null, Token was inserted in an error recover
+   --  operation, and should be added to the head of the input queue.
 
    procedure Push_Token
-     (Token : in     Token_ID;
-      State : access Semantic_State)
+     (State : access Semantic_State;
+      Token : in     Token_ID)
      is abstract;
    --  Parser just pushed Token on the parse stack; remove the
-   --  corresponding augmented token from the State input queue, push
-   --  it on the State stack.
+   --  corresponding augmented token from the tail of the State input
+   --  queue, push it on the State stack.
 
    procedure Error
-     (Expecting : in     Token_ID_Set;
-      State     : access Semantic_State)
+     (State     : access Semantic_State;
+      Expecting : in     Token_ID_Set)
    is abstract;
-   --  Parser has detected an error with the current token; save
-   --  information useful for an error message.
+   --  The parser has detected an error with the current token (must
+   --  be the tail of the State input queue). Expecting is the set of
+   --  tokens expected by the parser. Save information useful for an
+   --  error message.
 
    procedure Discard_Token
-     (Token : in     Token_ID;
-      State : access Semantic_State)
+     (State : access Semantic_State;
+      Token : in     Token_ID)
      is abstract;
-   --  Token (the current token from input) was discarded; discard
-   --  corresponding augmented token from the State input queue.
+   --  Token was discarded in an error recover opertation; discard the
+   --  corresponding augmented token from the head of the State input
+   --  queue.
 
    procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access Semantic_State;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access Semantic_State)
+      Action  : in     Semantic_Action)
    is abstract;
    --  Parser reduced Tokens to Nonterm; perform same operations on
    --  State stack, call associated Action.
 
    procedure Recover
-     (Popped_Tokens : in     List.Instance;
-      Pushed_Tokens : in     List.Instance;
-      State         : access Semantic_State)
+     (State         : access Semantic_State;
+      Popped_Tokens : in     List.Instance;
+      Pushed_Tokens : in     List.Instance)
      is abstract;
    --  An error recover algorithm succeeded; adjust the State augmented
    --  token stack and input queue to match.
    --
    --  Skipped tokens were reported via Discard_Token.
    --
-   --  Popped_Tokens were popped off the stack, Pushed_Token was
+   --  Popped_Tokens were popped off the stack, Pushed_Tokens were
    --  pushed on the stack.
 
 end WisiToken.Token;

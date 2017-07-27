@@ -1,4 +1,6 @@
 GNAT
+McKenzie
+WisiToken
 YYLex
 *1D
 *2D
@@ -8,7 +10,6 @@ YYLex
 *EOF
 *EOI
 *EOL
-*FastToken
 *GNAT
 *GPL
 *ID
@@ -21,7 +22,6 @@ YYLex
 *LR
 *LR1
 *LRk
-*McKenzie
 *OS
 *RHS
 *WY

@@ -126,30 +126,38 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Input_Token
-     (Token : in     Token_ID;
-      State : access State_Type;
+     (State : access State_Type;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
-   is begin
-      State.Input_Queue.Put ((Token, Lexer.Bounds));
+   is
+      use all type WisiToken.Lexer.Handle;
+   begin
+      if Lexer = null then
+         State.Input_Queue.Add_To_Head ((Token, Null_Buffer_Region));
+      else
+         State.Input_Queue.Put ((Token, Lexer.Bounds));
+      end if;
    end Input_Token;
 
    overriding
    procedure Push_Token
-     (ID    : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      Token : in     Token_ID)
    is
-      Tok : constant Token := State.Input_Queue.Get;
+      Tok : constant Token_Region.Token := State.Input_Queue.Get;
    begin
-      if ID /= Tok.ID then
-         raise Programmer_Error;
+      if Token /= Tok.ID then
+         raise Programmer_Error with "token_region.push_token: Token " &
+           Image (State.Trace.Descriptor.all, Token) &
+           ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
       end if;
 
       State.Stack.Append (Tok);
    end Push_Token;
 
    overriding procedure Error
-     (Expecting : in     WisiToken.Token_ID_Set;
-      State     : access State_Type)
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set)
    is begin
       State.Errors.Append
         ((First_Terminal => State.Trace.Descriptor.First_Terminal,
@@ -161,12 +169,12 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Discard_Token
-     (ID    : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      Token : in     Token_ID)
    is
-      Tok : constant Token := State.Input_Queue.Get;
+      Tok : constant Token_Region.Token := State.Input_Queue.Get;
    begin
-      if ID /= Tok.ID then
+      if Token /= Tok.ID then
          raise Programmer_Error;
       end if;
       State.Invalid_Region := State.Invalid_Region and Tok.Region;
@@ -174,11 +182,11 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     WisiToken.Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type)
+      Action  : in     Semantic_Action)
    is
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
@@ -239,9 +247,9 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance;
-      State         : access State_Type)
+     (State         : access State_Type;
+      Popped_Tokens : in     WisiToken.Token.List.Instance;
+      Pushed_Tokens : in     WisiToken.Token.List.Instance)
    is
       use all type WisiToken.Token.List.List_Iterator;
 

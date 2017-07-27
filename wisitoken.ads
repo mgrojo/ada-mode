@@ -200,7 +200,7 @@ package WisiToken is
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
    --  Output the trace buffer to the display.
 
-   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
    --  Accumulate Item in the trace buffer.
 
    ----------

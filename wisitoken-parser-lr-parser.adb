@@ -74,7 +74,7 @@ package body WisiToken.Parser.LR.Parser is
                  (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
-            WisiToken.Token.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action, Semantic_State);
+            Semantic_State.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action);
             --  Merge_Tokens puts a trace, with extra token info
 
             Token.List.Clean (Tokens);
@@ -119,7 +119,7 @@ package body WisiToken.Parser.LR.Parser is
                   Trace.Put_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
                end if;
             else
-               WisiToken.Token.Push_Token (Current_Token, Parser.Semantic_State);
+               Parser.Semantic_State.Push_Token (Current_Token);
             end if;
          end;
 
@@ -235,12 +235,11 @@ package body WisiToken.Parser.LR.Parser is
 
          case Action_Token.Action.Verb is
          when Shift =>
-            Token.Push_Token (Token.List.Current (Token.List.First (Action_Token.Tokens)), Semantic_State);
+            Semantic_State.Push_Token (Token.List.Current (Token.List.First (Action_Token.Tokens)));
 
          when Reduce =>
-            Token.Merge_Tokens
-              (Action_Token.Action.LHS, Action_Token.Action.Index, Action_Token.Tokens, Action_Token.Action.Action,
-               Semantic_State);
+            Semantic_State.Merge_Tokens
+              (Action_Token.Action.LHS, Action_Token.Action.Index, Action_Token.Tokens, Action_Token.Action.Action);
 
          when Accept_It | Error =>
             raise Programmer_Error with "execute_pending; " & Parse_Action_Verbs'Image (Action_Token.Action.Verb);
@@ -260,7 +259,6 @@ package body WisiToken.Parser.LR.Parser is
       Current_Token  : Token_ID;
       Current_Parser : Parser_Lists.Cursor;
       Action         : Parse_Action_Node_Ptr;
-      Keep_Going     : Boolean;
    begin
       WisiToken.Token.Reset (Parser.Semantic_State);
 
@@ -278,7 +276,7 @@ package body WisiToken.Parser.LR.Parser is
                Parser.Lookahead.Delete_First;
             end if;
 
-            WisiToken.Token.Input_Token (Current_Token, Parser.Semantic_State, Parser.Lexer);
+            Parser.Semantic_State.Input_Token (Current_Token, Parser.Lexer);
 
          when Accept_It =>
             declare
@@ -301,37 +299,52 @@ package body WisiToken.Parser.LR.Parser is
 
          when Error =>
             --  All parsers errored; attempt recovery,
+            --  FIXME: move recover into parser loop!
             declare
                use Parser_Lists;
                Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
                Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
+               Keep_Going : Boolean                := False;
             begin
                for I in Parsers.Iterate loop
                   LR.Parser.Expecting (Parser.Table, To_Cursor (Parsers, I).Peek.State, Expecting);
                end loop;
 
-               Token.Error (Expecting, Parser.Semantic_State);
+               Parser.Semantic_State.Error (Expecting);
 
                if Parser.Enable_McKenzie_Recover then
                   Keep_Going := McKenzie_Recover.Recover (Parser, Parsers, Current_Token);
-               else
-                  Keep_Going := False;
                end if;
 
                if not Keep_Going and then Any (Parser.Table.Panic_Recover) then
                   Keep_Going := Panic_Mode.Recover (Parser, Parsers, Current_Token);
-               else
-                  Keep_Going := False;
+
+                  if Keep_Going then
+                     --  FIXME: delete or move into Panic_Mode
+                     declare
+                        Recover : Parser_Lists.Recover_Reference renames Parser_Lists.First (Parsers).Recover_Ref;
+                     begin
+                        Parser.Semantic_State.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens);
+                     end;
+                  end if;
+               end if;
+
+               if Trace_Parse > 0 then
+                  if Keep_Going then
+                     Parser.Semantic_State.Trace.Put_Line
+                       ("recover: succeed, current_token " &
+                          Image (Parser.Semantic_State.Trace.Descriptor.all, Current_Token));
+                     if Parsers.Count > 1 then
+                        Parser.Semantic_State.Trace.Put_Line ("recover abandoned; parsers.count > 1");
+                     end if;
+                  else
+                     Parser.Semantic_State.Trace.Put_Line ("recover: fail");
+                  end if;
                end if;
 
                if Keep_Going and Parsers.Count = 1 then
-                  declare
-                     Recover : Parser_Lists.Recover_Reference renames Parser_Lists.First (Parsers).Recover_Ref;
-                  begin
-                     WisiToken.Token.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Parser.Semantic_State);
-                  end;
-
-                  --  FIXME: else push recover onto pending
+                  null;
+                  --  FIXME: if parsers_count > 1 push recover onto pending
                else
                   --  report errors
                   declare

@@ -206,10 +206,13 @@ package WisiToken.Parser.LR is
       --
       --  Semantic actions are not performed on the popped or skipped
       --  tokens.
+      --
+      --  FIXME: McKenzie doesn't use any of these fields; delete or
+      --  move to panic_mode.
       Nonterm       : Token_ID;
       Goto_State    : Unknown_State_Index;
-      Popped_Tokens : Token.List.Instance;
-      Pushed_Tokens : Token.List.Instance;
+      Popped_Tokens : Token.List.Instance; -- from parse stack
+      Pushed_Tokens : Token.List.Instance; -- to parse stack from input queue
    end record;
 
    type Recover_Data_Access is access Recover_Data'Class;
@@ -224,7 +227,7 @@ package WisiToken.Parser.LR is
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
       Semantic_State : access WisiToken.Token.Semantic_State'Class;
-      Lookahead      : Token_Arrays.Vector; -- Filled by recover algorithms; use before calling Lexer.Find_Next
+      Lookahead      : aliased Token_Arrays.Vector; -- Filled by recover algorithms; use before calling Lexer.Find_Next
    end record;
 
    ----------
