@@ -2,7 +2,7 @@
 --
 --  Stack implementation using Ada.Containers.Vectors.
 --
---  Copyright (C) 1998-2000, 2002-2003, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 1998-2000, 2002-2003, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -16,31 +16,21 @@
 --  Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 --  USA.
 --
---  As a special exception, if other files instantiate generics from
---  SAL, or you link SAL object files with other files to produce an
---  executable, that does not by itself cause the resulting executable
---  to be covered by the GNU General Public License. This exception
---  does not however invalidate any other reasons why the executable
---  file might be covered by the GNU Public License.
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
 pragma License (Modified_GPL);
 
 with Ada.Containers;
-with Ada.Finalization;
 with SAL.Gen_Stack_Interfaces;
 private with Ada.Containers.Vectors;
 generic
    type Element_Type is private;
    with package Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Element_Type);
-
 package SAL.Gen_Unbounded_Definite_Stacks is
-   pragma Elaborate_Body; -- SAL.Poly.Unbounded_Arrays is.
 
-   type Stack_Type is new Ada.Finalization.Limited_Controlled and Stack_Interfaces.Stack_Type with private;
-
-   overriding procedure Initialize (Stack : in out Stack_Type);
-
-   overriding procedure Finalize (Stack : in out Stack_Type);
+   type Stack_Type is new Stack_Interfaces.Stack_Type with private;
 
    overriding procedure Clear (Stack : in out Stack_Type);
 
@@ -50,7 +40,10 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    overriding function Max_Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type;
 
-   overriding function Peek (Stack : in Stack_Type; Index : in Natural) return Element_Type;
+   overriding function Peek
+     (Stack : in Stack_Type;
+      Index : in Stack_Interfaces.Positive_Count_Type := 1)
+     return Element_Type;
 
    overriding procedure Pop (Stack : in out Stack_Type);
 
@@ -64,13 +57,13 @@ private
 
    subtype Positive_Count_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
 
-   package Item_Arrays is new Ada.Containers.Vectors
+   package Element_Arrays is new Ada.Containers.Vectors
      (Index_Type   => Positive_Count_Type,
       Element_Type => Element_Type);
 
-   type Stack_Type is new Ada.Finalization.Limited_Controlled and Stack_Interfaces.Stack_Type with record
-      Top  : Ada.Containers.Count_Type;
-      Data : Item_Arrays.Vector;
+   type Stack_Type is new Stack_Interfaces.Stack_Type with record
+      Top  : Ada.Containers.Count_Type := 0; -- empty
+      Data : Element_Arrays.Vector;
       --  Top of stack is at Data (Top).
    end record;
 

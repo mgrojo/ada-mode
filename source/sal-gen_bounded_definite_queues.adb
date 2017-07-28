@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Definite_Queues is
+package body SAL.Gen_Bounded_Definite_Queues is
 
    --  Local subprograms
 
@@ -151,4 +151,4 @@ package body SAL.Gen_Definite_Queues is
       end if;
    end Add_To_Head;
 
-end SAL.Gen_Definite_Queues;
+end SAL.Gen_Bounded_Definite_Queues;

@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 generic
    type Item_Type is private;
-package SAL.Gen_Definite_Queues is
+package SAL.Gen_Bounded_Definite_Queues is
    pragma Pure;
 
    type Queue_Type (Size : Positive) is tagged private;
@@ -96,4 +96,4 @@ private
       --  each Add and Remove.
    end record;
 
-end SAL.Gen_Definite_Queues;
+end SAL.Gen_Bounded_Definite_Queues;

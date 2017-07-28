@@ -2,7 +2,7 @@
 --
 --  Abstract stack interface.
 --
---  Copyright (C)1998, 2003, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C)1998, 2003, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -34,6 +34,8 @@ package SAL.Gen_Stack_Interfaces is
 
    type Stack_Type is limited interface;
 
+   subtype Positive_Count_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
+
    ------------
    --  Dispatching operations on Stack_Type (alphabetical order)
 
@@ -49,7 +51,7 @@ package SAL.Gen_Stack_Interfaces is
    function Max_Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type is abstract;
    --  Return maximum of Depth since Stack was initialized.
 
-   function Peek (Stack : in Stack_Type; Index : in Natural) return Item_Type is abstract;
+   function Peek (Stack : in Stack_Type; Index : in Positive_Count_Type := 1) return Item_Type is abstract;
    --  Return the Index'th item from the top of Stack; the Item is _not_ removed.
    --  Top item has index 1.
    --

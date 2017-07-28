@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 1998, 2003, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 1998, 2003, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -27,20 +27,9 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Stacks is
 
-   overriding procedure Initialize (Stack : in out Stack_Type)
-   is begin
-      Stack.Top  := 0;
-   end Initialize;
-
-   overriding procedure Finalize (Stack : in out Stack_Type)
-   is begin
-      Stack.Data := Item_Arrays.Empty_Vector;
-      Stack.Top := 0;
-   end Finalize;
-
    overriding procedure Clear (Stack : in out Stack_Type)
    is
-      use Item_Arrays;
+      use Element_Arrays;
    begin
       --  We don't change the reserved capacity, on the assumption the
       --  stack will be used again.
@@ -69,11 +58,14 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       return Stack.Data.Last_Index;
    end Max_Depth;
 
-   overriding function Peek (Stack : in Stack_Type; Index : in Natural) return Element_Type
+   overriding function Peek
+     (Stack : in Stack_Type;
+      Index : in Stack_Interfaces.Positive_Count_Type := 1)
+     return Element_Type
    is
       use Ada.Containers;
    begin
-      return Item_Arrays.Element (Stack.Data, Stack.Top - Count_Type (Index) + 1);
+      return Element_Arrays.Element (Stack.Data, Stack.Top - Index + 1);
    end Peek;
 
    overriding procedure Pop (Stack : in out Stack_Type)
