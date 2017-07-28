@@ -271,12 +271,12 @@ package body WisiToken.Parser.LR.Parser is
          when Shift =>
             if Parser.Lookahead.Length = 0 then
                Current_Token := Parser.Lexer.Find_Next;
+               Parser.Semantic_State.Input_Token (Current_Token, Parser.Lexer);
             else
+               --  Input_Token was called for these when read from Lexer.
                Current_Token := Parser.Lookahead (Positive_Index_Type'First);
                Parser.Lookahead.Delete_First;
             end if;
-
-            Parser.Semantic_State.Input_Token (Current_Token, Parser.Lexer);
 
          when Accept_It =>
             declare
@@ -298,8 +298,7 @@ package body WisiToken.Parser.LR.Parser is
             null;
 
          when Error =>
-            --  All parsers errored; attempt recovery,
-            --  FIXME: move recover into parser loop!
+            --  All parsers errored; attempt recovery
             declare
                use Parser_Lists;
                Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
@@ -333,7 +332,8 @@ package body WisiToken.Parser.LR.Parser is
                   if Keep_Going then
                      Parser.Semantic_State.Trace.Put_Line
                        ("recover: succeed, current_token " &
-                          Image (Parser.Semantic_State.Trace.Descriptor.all, Current_Token));
+                          Image (Parser.Semantic_State.Trace.Descriptor.all, Current_Token) &
+                          " lookahead count " & Ada.Containers.Count_Type'Image (Parser.Lookahead.Length));
                      if Parsers.Count > 1 then
                         Parser.Semantic_State.Trace.Put_Line ("recover abandoned; parsers.count > 1");
                      end if;
@@ -349,7 +349,7 @@ package body WisiToken.Parser.LR.Parser is
                   --  report errors
                   declare
                      ID     : constant String := Image (Descriptor, Current_Token);
-                     Lexeme : constant String := Parser.Lexer.Lexeme;
+                     Lexeme : constant String := Parser.Lexer.Lexeme; --  FIXME: wrong if recover filled lookahead
 
                      --  More than 10 names is just confusing, and forces the rest of
                      --  the error message to overflow the GNAT exception message
@@ -375,6 +375,11 @@ package body WisiToken.Parser.LR.Parser is
             --  shifted it.
 
             if Current_Verb = Shift and Current_Parser.Verb = Error then
+               --  This parser errored on current input, some other
+               --  parser can continue with current input. This is how
+               --  grammar conflicts are resolved when the input text
+               --  is valid, so just terminate this parser.
+
                if Trace_Parse > 0 then
                   Parser.Semantic_State.Trace.Put_Line
                     (Integer'Image (Current_Parser.Label) & ": terminate (" &

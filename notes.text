@@ -10,10 +10,8 @@ better syntax error handling
 
     t_one RUN_ARGS=1
         Error_1 passes
+        Error_2 passes
 
-        not terminating
-            infinite loop of insert more semicolons
-                would be detected by duplicate elim
 
     Prefer keywords over identifiers, operators = take advantage of empty expressions.
         Per language cost function
@@ -46,6 +44,8 @@ better syntax error handling
 
     speed up
         check follow faster than goto_for/action_for?
+            should be; computing follow is expensive closure
+            requires adding tokens to recover stack
 
         use tasks for multi-processor?
 

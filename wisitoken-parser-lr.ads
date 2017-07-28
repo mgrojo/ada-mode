@@ -120,7 +120,7 @@ package WisiToken.Parser.LR is
    procedure Add_Action
      (State           : in out LR.Parse_State;
       Symbol          : in     Token_ID;
-      Verb            : in     LR.Parse_Action_Verbs;
+      Verb            : in     Parse_Action_Verbs;
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
@@ -140,7 +140,7 @@ package WisiToken.Parser.LR is
    procedure Add_Action
      (State             : in out LR.Parse_State;
       Symbol            : in     Token_ID;
-      Verb              : in     LR.Parse_Action_Verbs;
+      Verb              : in     Parse_Action_Verbs;
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;

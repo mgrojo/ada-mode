@@ -34,6 +34,7 @@ package WisiToken.Token is
    --  Token lists
 
    package List is
+      --  FIXME: replace with Token_Array?
 
       type Instance is tagged private;
 
@@ -120,11 +121,11 @@ package WisiToken.Token is
       Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
    --  If Lexer is not null, the parser just fetched Token from Lexer;
-   --  add it to the tail of the State input queue for later
-   --  operations.
+   --  add it to the tail of the State input queue, with augmenting
+   --  data from Lexer, for later operations (Append is ignored).
    --
    --  If Lexer is null, Token was inserted in an error recover
-   --  operation, and should be added to the head of the input queue.
+   --  operation; add to queue head with default augmenting data.
 
    procedure Push_Token
      (State : access Semantic_State;
@@ -149,7 +150,7 @@ package WisiToken.Token is
      is abstract;
    --  Token was discarded in an error recover opertation; discard the
    --  corresponding augmented token from the head of the State input
-   --  queue.
+   --  queue, and record the buffer region as invalid.
 
    procedure Merge_Tokens
      (State   : access Semantic_State;
@@ -167,11 +168,11 @@ package WisiToken.Token is
       Pushed_Tokens : in     List.Instance)
      is abstract;
    --  An error recover algorithm succeeded; adjust the State augmented
-   --  token stack and input queue to match.
+   --  token stack, input queue, and invalid region to match.
    --
    --  Skipped tokens were reported via Discard_Token.
    --
    --  Popped_Tokens were popped off the stack, Pushed_Tokens were
-   --  pushed on the stack.
+   --  pushed on the stack; add those to the invalid region.
 
 end WisiToken.Token;

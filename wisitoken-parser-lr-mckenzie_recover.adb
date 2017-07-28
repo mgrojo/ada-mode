@@ -92,11 +92,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    procedure Enqueue (Data : in out McKenzie_Data; Config : in Configuration)
    is begin
       --  FIXME: prune duplicate/higher cost configs
-      Data.Queue.Add (Config, Order_Config'Access);
-      Data.Enqueue_Count := Data.Enqueue_Count + 1;
       if Trace_Parse > 1 then
          Put ("enqueue", Data.Parser, Config);
       end if;
+      Data.Queue.Add (Config, Order_Config'Access);
+      Data.Enqueue_Count := Data.Enqueue_Count + 1;
    end Enqueue;
 
    function Delete_Min (Data : in out McKenzie_Data) return Configuration
@@ -111,7 +111,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Inserted_Token : in     Token_ID)
    is
       New_Config : Configuration := Config;
-      New_State : State_Index;
+      New_State  : Unknown_State_Index;
 
       Next_Action : Parse_Action_Node_Ptr;
    begin
@@ -120,6 +120,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end loop;
 
       New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
+
+      if New_State = Unknown_State then
+         return;
+      end if;
 
       Next_Action := Action_For (Data.Parser.Table.all, New_State, Inserted_Token);
       loop
@@ -141,6 +145,42 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end loop;
    end Do_Reduce;
 
+   function Check (Data : in McKenzie_Data; Config : in Configuration; Terminal : in Token_ID) return Boolean
+   is
+      --  Return True if Config allows parsing to continue
+
+      --  FIXME: require three good input tokens
+
+      Action : Parse_Action_Node_Ptr := Action_For (Data.Parser.Table.all, Config.Stack.Peek, Terminal);
+      Result : Boolean               := False;
+   begin
+      loop
+         exit when Action = null;
+
+         case Action.Item.Verb is
+         when Shift =>
+            return True;
+
+         when Reduce =>
+            --  See if Do_Reduce will succeed
+            declare
+               New_State : constant State_Index := Config.Stack.Peek (Action.Item.Token_Count);
+            begin
+               Result := Result or Goto_For (Data.Parser.Table.all, New_State, Action.Item.LHS) /= Unknown_State;
+            end;
+
+         when Error =>
+            null;
+
+         when Accept_It =>
+            raise Programmer_Error;
+         end case;
+
+         Action := Action.Next;
+      end loop;
+      return Result;
+   end Check;
+
    function Recover
      (Parser : in out LR.Instance'Class;
       Cursor : in     Parser_Lists.Cursor)
@@ -160,6 +200,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end Trace_Result;
 
    begin
+      if Trace_Parse > 1 then
+         Data.Parser.Semantic_State.Trace.New_Line;
+      end if;
+
       Clear_Queue (Data);
       Enqueue
         (Data,
@@ -176,17 +220,17 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          declare
             use all type Token_Array;
             use all type Ada.Containers.Count_Type;
+
             Config     : constant Configuration := Delete_Min (Data);
             New_Config : Configuration;
+
+            Current_Input : constant Token_ID := Parser.Lookahead (Config.Lookahead_Index);
          begin
             Data.Check_Count := Data.Check_Count + 1;
             if Trace_Parse > 1 then
                Put ("check  ", Data.Parser, Config);
             end if;
-            if Action_For (Data.Parser.Table.all, Config.Stack.Peek, Parser.Lookahead (Config.Lookahead_Index))
-              .Item.Verb in Shift | Reduce
-            then
-               --  FIXME: require three good tokens
+            if Check (Data, Config, Current_Input) then
                if Trace_Parse > 0 then
                   Trace_Result;
                end if;
@@ -227,6 +271,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
                Parser.Lookahead.Append (Parser.Lexer.Find_Next);
+               --  We must call Input_Token here, while the lexer data is valid
                Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
             end if;
             New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
@@ -266,6 +311,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       for I in Parsers.Iterate loop
          declare
+            use all type Ada.Containers.Count_Type;
             Result : Configuration;
          begin
             Result     := Recover (Parser, Parser_Lists.To_Cursor (Parsers, I));
@@ -275,14 +321,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             --  process inserted, deleted tokens now, pending actions, so LR.Parser does not deal with lookahead.
             --  parser i must also process non-common deleted tokens from all other parsers.
             for ID of Result.Deleted loop
+               --  Input_Token was called for these tokens, so we must call Discard_Token
                Parser.Semantic_State.Discard_Token (ID);
                Parser.Lookahead.Delete_First;
             end loop;
 
             for ID of reverse Result.Inserted loop
-               Parser.Semantic_State.Input_Token (ID, null);
                Parser.Lookahead.Prepend (ID);
+               --  Main parser will call Push_Token on these; pretend they were read from the lexer.
+               Parser.Semantic_State.Input_Token (ID, null);
             end loop;
+
+            Parser.Semantic_State.Recover
+              (Popped_Tokens => WisiToken.Token.List.Null_List,
+               Pushed_Tokens => WisiToken.Token.List.Null_List);
 
             Current_Token := Parser.Lookahead (Positive_Index_Type'First);
             Parser.Lookahead.Delete_First;

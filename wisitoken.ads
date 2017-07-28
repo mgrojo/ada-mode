@@ -38,6 +38,7 @@ pragma License (Modified_GPL);
 with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
+with Ada.Containers.Vectors;
 package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -64,7 +65,7 @@ package WisiToken is
    type Token_ID is range 1 .. Integer'Last;
 
    subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-   package Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Token_ID);
+   package Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
    subtype Token_Array is Token_Arrays.Vector;
    Empty_Token_Array : Token_Array renames Token_Arrays.Empty_Vector;
 

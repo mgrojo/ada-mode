@@ -236,6 +236,10 @@ if_statement
   ;
 
 
+label
+  : IDENTIFIER COLON ;; on blocks, loops
+  ;
+
 library_item
   : subprogram_declaration
   | subprogram_body
@@ -358,7 +362,8 @@ simple_statement
   ;
 
 statement
-  : simple_statement
+  : label
+  | simple_statement
   | compound_statement
   ;
 

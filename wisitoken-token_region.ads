@@ -64,9 +64,9 @@ package WisiToken.Token_Region is
       --  execution, and during error recovery; added by Input_Token,
       --  moved to Stack by Push_Token.
 
-      Invalid_Region : Buffer_Region;
+      Invalid_Region : Buffer_Region := Null_Buffer_Region;
       --  Temporary storage during recovery; Discard_Token increases
-      --  this, Recover resets it.
+      --  this, Update_Invalid_Region resets it.
 
       Errors : Error_Data_Lists.List;
       --  Error is called whether the error is recovered or not.

@@ -132,14 +132,17 @@ package body Test_McKenzie_Recover is
       Parse_Text
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end Proc_1; ", Test.Debug);
       --  |1       |10       |20       |30       |40       |50       |60       |70
-      --  Missing "begin" in Block_2
+      --  Missing "begin" in Block_2, but McKenzie won't find that.
+      --
+      --  Parser errors at Block_2, expecting "if". McKenzie will
+      --  replace "Block_2" with "if".
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
-      Check ("errors.length", Ada_Lite.State.Errors.Length, 3);
+      Check ("errors.length", Ada_Lite.State.Errors.Length, 1);
       Check ("errors.invalid_region 1",
              WisiToken.Token_Region.Error_Data_Lists.Element (Ada_Lite.State.Errors.First).Invalid_Region,
-             (25, 38));
+             (63, 69));
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
@@ -239,7 +242,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 0 then
-         Register_Routine (T, Error_1'Access, "debug");
+         Register_Routine (T, Error_2'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
