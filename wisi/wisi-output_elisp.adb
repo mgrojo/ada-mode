@@ -33,7 +33,6 @@ procedure Wisi.Output_Elisp
    Keywords        : in String_Pair_Lists.List;
    Tokens          : in Token_Lists.List;
    Conflicts       : in Conflict_Lists.List;
-   Panic_Recover   : in String_Lists.List;
    Rules           : in Rule_Lists.List;
    Rule_Count      : in Integer;
    Action_Count    : in Integer)
@@ -93,27 +92,29 @@ is
       WisiToken.Parser.LR.Free (Parser);
 
       case Algorithm is
-      when LALR =>
+      when LALR                      =>
          Parser := WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             Generate_Utils.LALR_Descriptor,
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
+            Panic_Recover            => WisiToken.Parser.LR.Default_Panic_Recover,
+            McKenzie_Param           => WisiToken.Parser.LR.Default_McKenzie_Param,
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-      when LR1 =>
+      when LR1                       =>
          Parser := WisiToken.Parser.LR.LR1_Generator.Generate
            (Grammar,
             Generate_Utils.LR1_Descriptor,
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
+            Panic_Recover            => WisiToken.Parser.LR.Default_Panic_Recover,
+            McKenzie_Param           => WisiToken.Parser.LR.Default_McKenzie_Param,
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,

@@ -104,6 +104,8 @@ package Wisi.Gen_Generate_Utils is
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
 
+   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.Parser.LR.McKenzie_Param_Type;
+
 private
 
    type Token_Cursor_State is

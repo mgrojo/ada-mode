@@ -336,6 +336,18 @@ Process}.
 @item %lexer
 The lexer; one of @code{aflex | elisp | regexp}.
 
+@item %mckenzie_cost_default <insert> <delete>
+McKenzie error recovery default costs for insert and delete single
+tokens; two floating point numbers. If not specified, default costs
+are zero. Costs can be negative; they all add linearly.
+
+@item %mckenzie_cost_insert <keyword> <cost>
+McKenzie error recovery insert cost for a specific keyword.
+
+@item %mckenzie_enqueue_limit <integer>
+McKenzie error recovery limit on items enqueued; default max integer.
+@c FIXME: describe mckenzie, panic more completely
+
 @item %output_language
 The generator output language; one of:
 
@@ -364,7 +376,7 @@ Specifies a nonterminal used by ``panic mode'' error recovery; may be
 repeated to specify more nonterminals. Determining appropriate
 panic nonterminals for a particular grammar is an art.
 
-@item start
+@item %start
 The start symbol for the grammar.
 
 @end table

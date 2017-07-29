@@ -16,9 +16,7 @@ better syntax error handling
             enters recover several times
             last at eof, fails on enqueue limit 100
 
-            need per language cost function:
-                Prefer keywords over identifiers, operators = take advantage of empty expressions.
-                Prefer "end", "exit", ";" over everything
+            need per language cost function: edited, compiles; broke error_1, error_2
 
 
     does this do:

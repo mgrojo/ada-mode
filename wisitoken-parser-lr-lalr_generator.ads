@@ -32,6 +32,7 @@ package WisiToken.Parser.LR.LALR_Generator is
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
+      McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;

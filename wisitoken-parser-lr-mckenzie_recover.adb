@@ -64,15 +64,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Trace.New_Line;
    end Put;
 
-   Insert_Cost         : constant Float := 1.0;
-   Delete_Cost         : constant Float := 1.0;
-   Enqueue_Count_Limit : constant       := 100;
-   --  FIXME: make these per-language parameters
-
    function Order_Config (A, B : in Configuration) return Boolean
    is begin
-      --  FIXME: prefer insertions over deletions, or use cost for that?
-      --
       --  Remove lowest cost first.
       return A.Cost < B.Cost;
    end Order_Config;
@@ -145,7 +138,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             New_Config.Stack.Push (New_State);
             New_Config.Stack.Push (Next_Action.Item.State);
             New_Config.Inserted.Append (Inserted_Token);
-            New_Config.Cost := New_Config.Cost + Insert_Cost;
+            New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Insert (Inserted_Token);
             Enqueue (Data, New_Config);
 
          when Reduce =>
@@ -230,7 +223,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
           Deleted         => Token_Arrays.Empty_Vector,
           Cost            => 0.0));
       loop
-         exit when Data.Queue.Is_Empty or Data.Enqueue_Count > Enqueue_Count_Limit;
+         exit when Data.Queue.Is_Empty or Data.Enqueue_Count > Data.Parser.Table.McKenzie.Enqueue_Limit;
 
          declare
             use all type Token_Array;
@@ -272,7 +265,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                            New_Config := Config;
                            New_Config.Stack.Push (Action.Item.State);
                            New_Config.Inserted.Append (ID);
-                           New_Config.Cost := New_Config.Cost + Insert_Cost;
+                           New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Insert (ID);
                            Enqueue (Data, New_Config);
 
                         when Reduce =>
@@ -294,23 +287,27 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             if Parser.Lookahead (Config.Lookahead_Index) /= EOF_ID then
                --  Try a deletion (can't delete EOF)
-               New_Config := Config;
+               declare
+                  Deleted_Token : constant Token_ID := Parser.Lookahead (New_Config.Lookahead_Index);
+               begin
+                  New_Config      := Config;
+                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_Token);
 
-               New_Config.Deleted.Append (Parser.Lookahead (New_Config.Lookahead_Index));
-               if Trace_Parse > 2 then
-                  Trace.Put ("delete ");
-                  Trace.Put (New_Config.Deleted (1));
-                  Trace.New_Line;
-               end if;
+                  New_Config.Deleted.Append (Deleted_Token);
+                  if Trace_Parse > 2 then
+                     Trace.Put ("delete ");
+                     Trace.Put (Deleted_Token);
+                     Trace.New_Line;
+                  end if;
 
-               if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
-                  Parser.Lookahead.Append (Parser.Lexer.Find_Next);
-                  --  We must call Input_Token here, while the lexer data is valid
-                  Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
-               end if;
-               New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
-               New_Config.Cost := New_Config.Cost + Delete_Cost;
-               Enqueue (Data, New_Config);
+                  if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
+                     Parser.Lookahead.Append (Parser.Lexer.Find_Next);
+                     --  We must call Input_Token here, while the lexer data is valid
+                     Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
+                  end if;
+                  New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
+                  Enqueue (Data, New_Config);
+               end;
             end if;
 
          end;

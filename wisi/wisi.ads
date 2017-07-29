@@ -74,7 +74,8 @@ package Wisi is
    subtype Valid_Interface is Interface_Type range Process .. Module;
 
    type Generate_Param_Type is record
-      --  Set by grammar file declarations
+      --  Set by grammar file declarations. Error recover parameters
+      --  are elsewhere.
       Output_Language    : Output_Language_Type  := None;
       Parser_Algorithm   : Parser_Algorithm_Type := None;
       Lexer              : Lexer_Type            := None;
@@ -90,6 +91,13 @@ package Wisi is
    end record;
 
    package String_Pair_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
+
+   type McKenzie_Recover_Param_Type is record
+      Default_Insert : Float   := 0.0;
+      Default_Delete : Float   := 0.0;
+      Insert         : String_Pair_Lists.List;
+      Enqueue_Limit  : Integer := Integer'Last;
+   end record;
 
    type Token_Kind_Type is record
       Kind   : Standard.Ada.Strings.Unbounded.Unbounded_String;

@@ -282,6 +282,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
+      McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
       Ignore_Unused_Tokens     : in Boolean             := False;
@@ -322,6 +323,8 @@ package body WisiToken.Parser.LR.LR1_Generator is
         (if Panic_Recover = Default_Panic_Recover
          then (Table.First_Nonterminal .. Table.Last_Nonterminal => False)
          else Panic_Recover);
+
+      Table.McKenzie := McKenzie_Param;
 
       Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 

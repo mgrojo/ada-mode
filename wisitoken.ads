@@ -72,6 +72,7 @@ package WisiToken is
    Invalid_Token : constant Token_ID := Token_ID'Last;
 
    type Token_Array_String is array (Token_ID range <>) of access constant String;
+   type Token_Array_Float is array (Token_ID range <>) of Float;
 
    type Descriptor
      (First_Terminal    : Token_ID;

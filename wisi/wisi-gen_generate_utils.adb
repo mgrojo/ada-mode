@@ -530,6 +530,18 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end To_Nonterminal_ID_Set;
 
+   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.Parser.LR.McKenzie_Param_Type
+   is
+      Result : WisiToken.Parser.LR.McKenzie_Param_Type (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   begin
+      Result.Insert := (others => Item.Default_Insert);
+      Result.Delete := (others => Item.Default_Delete);
+      for Pair of Item.Insert loop
+         Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
+      end loop;
+      return Result;
+   end To_McKenzie_Param;
+
 begin
    if Verbosity > 0 then
       Put_Tokens;

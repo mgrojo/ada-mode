@@ -162,6 +162,22 @@ package WisiToken.Parser.LR is
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
+   type McKenzie_Param_Type
+     (First_Terminal : Token_ID;
+      Last_Terminal  : Token_ID)
+   is record
+      Insert        : Token_Array_Float (First_Terminal .. Last_Terminal);
+      Delete        : Token_Array_Float (First_Terminal .. Last_Terminal);
+      Enqueue_Limit : Integer;
+   end record;
+
+   Default_McKenzie_Param : constant McKenzie_Param_Type :=
+     (First_Terminal => Token_ID'Last,
+      Last_Terminal  => Token_ID'First,
+      Insert         => (others => 0.0),
+      Delete         => (others => 0.0),
+      Enqueue_Limit  => Integer'Last);
+
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;
@@ -169,10 +185,11 @@ package WisiToken.Parser.LR is
       Last_Terminal     : Token_ID;
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
-   is record
-
+     is
+   record
       States        : Parse_State_Array (State_First .. State_Last);
       Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
+      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal);
       Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
 
