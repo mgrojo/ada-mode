@@ -73,7 +73,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                  " goto" & Unknown_State_Index'Image (Panic.Goto_State));
 
             if Trace_Parse > 2 then
-               Parser_Lists.Put_Trace_Top_10 (Trace, Cursor);
+               Parser_Lists.Put_Top_10 (Trace, Cursor);
             end if;
          end if;
       end if;
@@ -172,7 +172,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                                 (Integer'Image (Cursor.Label) & " recover: " &
                                    State_Image (Panic.Goto_State) & ": " &
                                    Image (Trace.Descriptor.all, ID) & " : ");
-                              Put_Trace (Trace, Action);
+                              Put (Trace, Action);
                               Trace.New_Line;
                            end if;
 

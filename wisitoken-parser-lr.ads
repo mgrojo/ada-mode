@@ -77,7 +77,7 @@ package WisiToken.Parser.LR is
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
 
-   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 
    type Parse_Action_Node;
    type Parse_Action_Node_Ptr is access Parse_Action_Node;
@@ -223,6 +223,8 @@ package WisiToken.Parser.LR is
 
    package State_Stack_Interface is new SAL.Gen_Stack_Interfaces (State_Index);
    package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interface);
+
+   function Image (Stack : in State_Stacks.Stack_Type) return String;
 
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;

@@ -84,8 +84,8 @@ package WisiToken.Token is
       procedure Append (List  : in out Instance; Item : in Token_ID);
       --  Append to tail of List.
 
-      procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Instance);
-      --  Put Item to Put_Trace.
+      procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Instance);
+      --  Put Item to Trace.
 
    private
       type List_Node;

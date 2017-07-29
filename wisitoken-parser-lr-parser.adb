@@ -68,7 +68,7 @@ package body WisiToken.Parser.LR.Parser is
             Current_Parser.Enqueue (Action_Token);
             if Trace_Parse > 1 then
                Semantic_State.Trace.Put ("pending ");
-               Parser_Lists.Put_Trace (Semantic_State.Trace.all, Action_Token);
+               Parser_Lists.Put (Semantic_State.Trace.all, Action_Token);
                Semantic_State.Trace.New_Line;
                Semantic_State.Trace.Put_Line
                  (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
@@ -92,13 +92,13 @@ package body WisiToken.Parser.LR.Parser is
    begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
-            Parser_Lists.Put_Trace_Top_10 (Trace, Current_Parser);
+            Parser_Lists.Put_Top_10 (Trace, Current_Parser);
          end if;
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Current_Parser.Peek.State) & ": " &
               Image (Trace.Descriptor.all, Current_Token) & " : ");
-         Put_Trace (Trace, Action);
+         Put (Trace, Action);
          Trace.New_Line;
       end if;
 
@@ -114,7 +114,7 @@ package body WisiToken.Parser.LR.Parser is
                Current_Parser.Enqueue (Action_Token);
                if Trace_Parse > 1 then
                   Trace.Put ("pending ");
-                  Parser_Lists.Put_Trace (Trace, Action_Token);
+                  Parser_Lists.Put (Trace, Action_Token);
                   Trace.New_Line;
                   Trace.Put_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
                end if;

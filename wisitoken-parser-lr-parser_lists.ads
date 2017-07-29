@@ -73,8 +73,8 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
-   procedure Put_Trace_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
-   --  Put image of top 10 stack items to Put_Trace.
+   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
+   --  Put image of top 10 stack items to Trace.
 
    --  pending user actions
    type Action_Token is record
@@ -142,8 +142,8 @@ package WisiToken.Parser.LR.Parser_Lists is
    function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
-   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
-   procedure Put_Trace_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
+   procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
 
 private
 

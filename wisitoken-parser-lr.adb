@@ -28,8 +28,20 @@
 pragma License (GPL);
 
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken.Parser.LR is
+
+   function Image (Stack : in State_Stacks.Stack_Type) return String
+   is
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String;
+   begin
+      for I in 1 .. Stack.Depth loop
+         Result := Result & (State_Image (Stack.Peek (I)) & ", ");
+      end loop;
+      return To_String (Result);
+   end Image;
 
    function State_Image (Item : in State_Index) return String
    is
@@ -54,7 +66,7 @@ package body WisiToken.Parser.LR is
       return List.Next;
    end Next;
 
-   procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec)
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Containers;
    begin
@@ -71,7 +83,7 @@ package body WisiToken.Parser.LR is
       when Error =>
          Trace.Put ("ERROR");
       end case;
-   end Put_Trace;
+   end Put;
 
    procedure Add
      (List   : in out Action_Node_Ptr;

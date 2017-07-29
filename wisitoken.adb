@@ -177,6 +177,16 @@ package body WisiToken is
       Trace.Put (Image (Trace.Descriptor.all, Item));
    end Put;
 
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Array)
+   is begin
+      Trace.Put ("(");
+      for ID of Item loop
+         Put (Trace, ID);
+         Put (Trace, ", ");
+      end loop;
+      Trace.Put (")");
+   end Put;
+
    function Int_Image (Item : in Integer) return String
    is
       use Ada.Strings;

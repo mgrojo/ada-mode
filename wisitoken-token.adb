@@ -191,7 +191,7 @@ package body WisiToken.Token is
          return Iterator.ID;
       end Current;
 
-      procedure Put_Trace (Trace : in out WisiToken.Trace'Class; Item : in Instance)
+      procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Instance)
       is
          I : List_Iterator := Item.First;
       begin
@@ -203,7 +203,7 @@ package body WisiToken.Token is
                Trace.Put (", ");
             end if;
          end loop;
-      end Put_Trace;
+      end Put;
 
    end List;
 

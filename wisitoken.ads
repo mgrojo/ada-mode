@@ -202,6 +202,7 @@ package WisiToken is
    --  Output the trace buffer to the display.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Array);
    --  Accumulate Item in the trace buffer.
 
    ----------

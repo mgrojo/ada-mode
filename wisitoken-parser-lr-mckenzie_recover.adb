@@ -41,28 +41,33 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
    begin
       Put (Trace, Message & ": ");
-      Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek));
+      if Trace_Parse > 2 then
+         Trace.Put (Image (Config.Stack));
+      else
+         Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek));
+      end if;
       Trace.Put (" ");
       Put (Trace, Parser.Lookahead (Config.Lookahead_Index));
       Trace.Put (" ");
       if Config.Inserted.Length = 0 then
          Put (Trace, "null");
       else
-         Put (Trace, Config.Inserted (1));
+         Put (Trace, Config.Inserted);
       end if;
       Trace.Put (" ");
       if Config.Deleted.Length = 0 then
          Put (Trace, "null");
       else
-         Put (Trace, Config.Deleted (1));
+         Put (Trace, Config.Deleted);
       end if;
       Put (Trace, Float'Image (Config.Cost));
       Trace.New_Line;
    end Put;
 
-   Insert_Cost : constant Float := 1.0;
-   Delete_Cost : constant Float := 1.0;
-   --  FIXME: make insert/delete costs per-language parameters?
+   Insert_Cost         : constant Float := 1.0;
+   Delete_Cost         : constant Float := 1.0;
+   Enqueue_Count_Limit : constant       := 100;
+   --  FIXME: make these per-language parameters
 
    function Order_Config (A, B : in Configuration) return Boolean
    is begin
@@ -115,10 +120,17 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Next_Action : Parse_Action_Node_Ptr;
    begin
+      if Trace_Parse > 2 then
+         Data.Parser.Semantic_State.Trace.Put (Image (New_Config.Stack));
+         Data.Parser.Semantic_State.Trace.New_Line;
+         Put (Data.Parser.Semantic_State.Trace.all, Action);
+         Data.Parser.Semantic_State.Trace.New_Line;
+      end if;
+
       for I in 1 .. Action.Token_Count loop
          New_State := New_Config.Stack.Pop;
       end loop;
-
+      New_State := New_Config.Stack.Peek;
       New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
 
       if New_State = Unknown_State then
@@ -131,11 +143,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          case Next_Action.Item.Verb is
          when Shift =>
             New_Config.Stack.Push (New_State);
+            New_Config.Stack.Push (Next_Action.Item.State);
             New_Config.Inserted.Append (Inserted_Token);
             New_Config.Cost := New_Config.Cost + Insert_Cost;
             Enqueue (Data, New_Config);
 
          when Reduce =>
+            New_Config.Stack.Push (New_State);
             Do_Reduce (Data, New_Config, Next_Action.Item, Inserted_Token);
 
          when Accept_It | Error =>
@@ -164,7 +178,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          when Reduce =>
             --  See if Do_Reduce will succeed
             declare
-               New_State : constant State_Index := Config.Stack.Peek (Action.Item.Token_Count);
+               use all type Ada.Containers.Count_Type;
+               New_State : constant State_Index := Config.Stack.Peek (Action.Item.Token_Count + 1);
             begin
                Result := Result or Goto_For (Data.Parser.Table.all, New_State, Action.Item.LHS) /= Unknown_State;
             end;
@@ -192,16 +207,18 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       EOF_ID : Token_ID renames Parser.Semantic_State.Trace.Descriptor.EOF_ID;
 
+      Trace : WisiToken.Trace'Class renames Data.Parser.Semantic_State.Trace.all;
+
       procedure Trace_Result
       is begin
-         Data.Parser.Semantic_State.Trace.Put_Line
+         Trace.Put_Line
            ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
               ", check " & Integer'Image (Data.Check_Count));
       end Trace_Result;
 
    begin
       if Trace_Parse > 1 then
-         Data.Parser.Semantic_State.Trace.New_Line;
+         Trace.New_Line;
       end if;
 
       Clear_Queue (Data);
@@ -213,9 +230,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
           Deleted         => Token_Arrays.Empty_Vector,
           Cost            => 0.0));
       loop
-         exit when Data.Queue.Is_Empty;
-
-         --  FIXME: terminate on max insert/delete/queue size?
+         exit when Data.Queue.Is_Empty or Data.Enqueue_Count > Enqueue_Count_Limit;
 
          declare
             use all type Token_Array;
@@ -246,6 +261,14 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                         exit when Action = null;
                         case Action.Item.Verb is
                         when Shift =>
+                           if Trace_Parse > 2 then
+                              Trace.Put ("insert ");
+                              Trace.Put (ID);
+                              Trace.New_Line;
+                              Put (Trace, Action.Item);
+                              Trace.New_Line;
+                           end if;
+
                            New_Config := Config;
                            New_Config.Stack.Push (Action.Item.State);
                            New_Config.Inserted.Append (ID);
@@ -253,6 +276,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                            Enqueue (Data, New_Config);
 
                         when Reduce =>
+                           if Trace_Parse > 2 then
+                              Trace.Put ("try insert ");
+                              Trace.Put (ID);
+                              Trace.New_Line;
+                           end if;
                            Do_Reduce (Data, Config, Action.Item, ID);
 
                         when Accept_It | Error =>
@@ -264,19 +292,26 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end loop;
             end if;
 
-            --  Try a deletion
-            New_Config := Config;
+            if Parser.Lookahead (Config.Lookahead_Index) /= EOF_ID then
+               --  Try a deletion (can't delete EOF)
+               New_Config := Config;
 
-            New_Config.Deleted.Append (Parser.Lookahead (New_Config.Lookahead_Index));
+               New_Config.Deleted.Append (Parser.Lookahead (New_Config.Lookahead_Index));
+               if Trace_Parse > 2 then
+                  Trace.Put ("delete ");
+                  Trace.Put (New_Config.Deleted (1));
+                  Trace.New_Line;
+               end if;
 
-            if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
-               Parser.Lookahead.Append (Parser.Lexer.Find_Next);
-               --  We must call Input_Token here, while the lexer data is valid
-               Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
+               if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
+                  Parser.Lookahead.Append (Parser.Lexer.Find_Next);
+                  --  We must call Input_Token here, while the lexer data is valid
+                  Parser.Semantic_State.Input_Token (Parser.Lookahead (Parser.Lookahead.Last_Index), Parser.Lexer);
+               end if;
+               New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
+               New_Config.Cost := New_Config.Cost + Delete_Cost;
+               Enqueue (Data, New_Config);
             end if;
-            New_Config.Lookahead_Index := New_Config.Lookahead_Index + 1;
-            New_Config.Cost := New_Config.Cost + Delete_Cost;
-            Enqueue (Data, New_Config);
 
          end;
       end loop;

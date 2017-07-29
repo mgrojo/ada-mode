@@ -251,6 +251,7 @@ package body WisiToken.Token_Region is
       Popped_Tokens : in     WisiToken.Token.List.Instance;
       Pushed_Tokens : in     WisiToken.Token.List.Instance)
    is
+      use all type Ada.Containers.Count_Type;
       use all type WisiToken.Token.List.List_Iterator;
 
       Region : Buffer_Region                      := State.Invalid_Region; -- discarded tokens
@@ -286,7 +287,9 @@ package body WisiToken.Token_Region is
       State.Errors.Reference (State.Errors.Last).Invalid_Region := Region;
 
       if Trace_Parse > 2 then
-         Put_Trace (State.Trace.all, State.all);
+         if Popped_Tokens.Length + Pushed_Tokens.Length > 0 then
+            Put_Trace (State.Trace.all, State.all);
+         end if;
       end if;
    end Recover;
 

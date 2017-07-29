@@ -12,9 +12,14 @@ better syntax error handling
         Error_1 passes
         Error_2 passes
 
+        Error_3
+            enters recover several times
+            last at eof, fails on enqueue limit 100
 
-    Prefer keywords over identifiers, operators = take advantage of empty expressions.
-        Per language cost function
+            need per language cost function:
+                Prefer keywords over identifiers, operators = take advantage of empty expressions.
+                Prefer "end", "exit", ";" over everything
+
 
     does this do:
         if expecting has exactly one token, insert that

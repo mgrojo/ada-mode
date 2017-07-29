@@ -159,12 +159,15 @@ package body Test_McKenzie_Recover is
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
          Test.Debug);
-      --  Missing "end if"; previous version reported mismatch between
-      --  parser and augmented.
+      --  Missing "end if" at 67.
 
-      --  Enters recover at ';' 83; pops stack to
-      --  handled_sequence_of_statements 36, keeps end 80, succeeds.
-      Check ("errors.length", State.Errors.Length, 1);
+      --  Enters recover at ';' 83.
+      --  Inserts 'if'. Continues to 'loop' 90, error expecting block label or ';'.
+      --  Inserts ';'. Continues to ';' 94, expecting statement.
+      --  Inserts 'exit'. Continues to 'Water' 100, expecting 'loop'.
+      --  Inserts 'loop'. Continues to 186 EOF (treating 'Water' as loop label), expecting
+      --  'end <loop>; end <procedure>;'.
+      Check ("errors.length", State.Errors.Length, 2);
       declare
          use WisiToken.AUnit;
          use WisiToken.Token_Region.AUnit;
@@ -242,7 +245,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 0 then
-         Register_Routine (T, Error_2'Access, "debug");
+         Register_Routine (T, Error_3'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
