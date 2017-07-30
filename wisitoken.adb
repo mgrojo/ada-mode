@@ -29,9 +29,17 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken is
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID) return String
+   function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String
    is begin
-      return Desc.Image (Item).all;
+      if Pad then
+         return Ada.Strings.Fixed.Head
+           (Desc.Image (Item).all,
+            (if Item in Desc.First_Terminal .. Desc.Last_Terminal
+             then Desc.Terminal_Image_Width
+             else Desc.Image_Width));
+      else
+         return Desc.Image (Item).all;
+      end if;
    end Image;
 
    function Int_Image (Item : in Token_ID) return String

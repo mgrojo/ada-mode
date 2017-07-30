@@ -34,4 +34,16 @@ package body WisiToken.Token_Region.AUnit is
       Check (Label & ".Region", Computed.Region, Expected.Region);
    end Check;
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Error_Data;
+      Expected : in Error_Data)
+   is
+      use WisiToken.AUnit;
+   begin
+      Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
+      Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
+      Check (Label & ".Invalid_Region", Computed.Invalid_Region, Computed.Invalid_Region);
+   end Check;
+
 end WisiToken.Token_Region.AUnit;

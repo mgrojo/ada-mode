@@ -178,6 +178,9 @@ package WisiToken.Parser.LR is
       Delete         => (others => 0.0),
       Enqueue_Limit  => Integer'Last);
 
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
+   --  Put Item to Ada.Text_IO.Current_Output
+
    type Parse_Table
      (State_First       : State_Index;
       State_Last        : State_Index;

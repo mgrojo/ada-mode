@@ -17,9 +17,10 @@
 
 pragma License (GPL);
 
+with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken;
 with Wisi.Utils;
+with WisiToken;
 package body Wisi.Gen_Output_Ada_Common is
 
    --  Public subprograms in alphabetical order
@@ -113,8 +114,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Image             =>");
       declare
          use Standard.Ada.Strings.Unbounded;
-         Token_Image_Width : Integer      := 0;
-         Paren_Done        : Boolean      := False;
+         Paren_Done : Boolean := False;
       begin
          Cursor := First;
          Indent_Start ("  (");
@@ -127,7 +127,6 @@ package body Wisi.Gen_Output_Ada_Common is
                Put ("new String'(""" & (-Cursor.Token_Name));
                Paren_Done := True;
             end if;
-            Token_Image_Width := Integer'Max (Token_Image_Width, Length (Cursor.Token_Name));
             Cursor.Next;
             if Cursor.Is_Done then
                Put_Line (""")),");
@@ -137,7 +136,8 @@ package body Wisi.Gen_Output_Ada_Common is
          end loop;
 
          Indent := Indent - 3;
-         Indent_Line ("Image_Width =>" & Integer'Image (Token_Image_Width) & ");");
+         Indent_Line ("Terminal_Image_Width =>" & Integer'Image (Descriptor.Terminal_Image_Width) & ",");
+         Indent_Line ("Image_Width          =>" & Integer'Image (Descriptor.Image_Width) & ");");
          New_Line;
       end;
       Indent := Indent - 3;
@@ -456,18 +456,56 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
    end Create_Create_Parser;
 
-   procedure Create_Parser_Core (Parser : in WisiToken.Parser.LR.Parse_Table_Ptr)
+   procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr)
    is
+      use all type WisiToken.Token_ID;
+      use all type WisiToken.Parser.LR.McKenzie_Param_Type;
       use Generate_Utils;
       use Wisi.Utils;
 
-      Paren_Done : Boolean := False;
+      Paren_Done      : Boolean  := False;
+      Count           : Integer;
+      Floats_Per_Line : constant := 8;
+
+      function Float_Image (Item : in Float) return String
+      is
+         use Standard.Ada.Strings;
+         use Standard.Ada.Strings.Fixed;
+      begin
+         return Trim (Float'Image (Item), Both);
+      end Float_Image;
+
+      procedure Put (Label : in String; Item : in WisiToken.Token_Array_Float)
+      is begin
+         Indent_Line (Label & " =>");
+         Indent_Start ("  (");
+         Indent := Indent + 3;
+         Count := 0;
+         for I in Table.McKenzie.Insert'Range loop
+            Count := Count + 1;
+            Put (Float_Image (Item (I)));
+
+            if I = Item'Last then
+               Put_Line ("),");
+
+            elsif Count = Floats_Per_Line then
+               Count := 0;
+               Put_Line (",");
+               Indent_Start ("");
+
+            else
+               Put (", ");
+            end if;
+         end loop;
+         Indent := Indent - 3;
+      end Put;
+
    begin
       Indent_Line ("Table.Panic_Recover :=");
       Indent_Start ("  (");
       Indent := Indent + 3;
-      for I in Parser.Panic_Recover'Range loop
-         if Parser.Panic_Recover (I) then
+      for I in Table.Panic_Recover'Range loop
+         if Table.Panic_Recover (I) then
             if Paren_Done then
                Put_Line (" |");
                Indent_Start (WisiToken.Int_Image (I));
@@ -486,20 +524,34 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       New_Line;
 
-      if not WisiToken.Any (Parser.Follow) then
+      if Table.McKenzie = WisiToken.Parser.LR.Default_McKenzie_Param then
+         Indent_Line ("Table.McKenzie := Default_McKenzie_Param;");
+      else
+         Indent_Line ("Table.McKenzie :=");
+         Indent_Line ("  (First_Terminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
+         Indent := Indent + 3;
+         Indent_Line ("Last_Terminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
+         Put ("Insert", Table.McKenzie.Insert);
+         Put ("Delete", Table.McKenzie.Delete);
+         Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ");");
+         Indent := Indent - 3;
+         New_Line;
+      end if;
+
+      if not WisiToken.Any (Table.Follow) then
          Indent_Line ("Table.Follow := (others => (others => False));");
       else
          Indent_Line ("Table.Follow :=");
          Indent_Start ("  (");
          Indent := Indent + 3;
-         for I in Parser.Follow'Range (1) loop
-            if WisiToken.Any (Parser.Follow, I) then
+         for I in Table.Follow'Range (1) loop
+            if WisiToken.Any (Table.Follow, I) then
                Indent_Line (WisiToken.Int_Image (I) & " =>");
                Indent_Start ("  (");
                Indent := Indent + 3;
                Paren_Done := False;
-               for J in Parser.Follow'Range (2) loop
-                  if Parser.Follow (I, J) then
+               for J in Table.Follow'Range (2) loop
+                  if Table.Follow (I, J) then
                      if Paren_Done then
                         Put_Line (" |");
                         Indent_Start (" " & WisiToken.Int_Image (J));
@@ -523,7 +575,7 @@ package body Wisi.Gen_Output_Ada_Common is
       end if;
       New_Line;
 
-      for State_Index in Parser.States'Range loop
+      for State_Index in Table.States'Range loop
          Actions :
          declare
             use Standard.Ada.Containers;
@@ -531,7 +583,7 @@ package body Wisi.Gen_Output_Ada_Common is
             use Standard.Ada.Strings.Unbounded;
             use WisiToken.Parser.LR;
             Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
-            Node        : Action_Node_Ptr := Parser.States (State_Index).Action_List;
+            Node        : Action_Node_Ptr := Table.States (State_Index).Action_List;
             Line        : Unbounded_String;
 
             procedure Append (Item : in String)
@@ -615,7 +667,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Gotos :
          declare
             use WisiToken.Parser.LR;
-            Node : Goto_Node_Ptr := Parser.States (State_Index).Goto_List;
+            Node : Goto_Node_Ptr := Table.States (State_Index).Goto_List;
          begin
             loop
                exit when Node = null;

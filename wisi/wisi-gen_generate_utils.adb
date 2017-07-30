@@ -111,6 +111,7 @@ package body Wisi.Gen_Generate_Utils is
    begin
       --  Same order as find_token_id above, cursor below.
 
+      LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width := 0;
 
       --  non-reporting
@@ -167,6 +168,12 @@ package body Wisi.Gen_Generate_Utils is
       end loop;
 
       for ID in LR1_Descriptor.Image'Range loop
+         if ID in LR1_Descriptor.First_Terminal .. LR1_Descriptor.Last_Terminal then
+            if LR1_Descriptor.Image (ID).all'Length > LR1_Descriptor.Terminal_Image_Width then
+               LR1_Descriptor.Terminal_Image_Width := LR1_Descriptor.Image (ID).all'Length;
+            end if;
+         end if;
+
          if LR1_Descriptor.Image (ID).all'Length > LR1_Descriptor.Image_Width then
             LR1_Descriptor.Image_Width := LR1_Descriptor.Image (ID).all'Length;
          end if;

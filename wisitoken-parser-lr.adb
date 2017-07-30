@@ -258,6 +258,33 @@ package body WisiToken.Parser.LR is
       end if;
    end Add_Goto;
 
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type)
+   is
+      use Ada.Text_IO;
+      use Ada.Strings.Fixed;
+   begin
+      Put_Line ("(Insert =>");
+      for I in Item.Insert'Range loop
+         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Float'Image (Item.Insert (I)));
+         if I = Item.Insert'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("(Delete =>");
+      for I in Item.Delete'Range loop
+         Put (" " & Image (Descriptor, I) & " =>" & Float'Image (Item.Delete (I)));
+         if I = Item.Delete'Last then
+            Put_Line (")");
+         else
+            Put_Line (",");
+         end if;
+      end loop;
+      Put_Line ("Enqueue_Limit =>" & Integer'Image (Item.Enqueue_Limit));
+      New_Line;
+   end Put;
+
    function Action_For
      (Table : in Parse_Table;
       State : in State_Index;

@@ -130,6 +130,10 @@ package body WisiToken.Parser.LR.LALR_Generator is
       Put (Descriptor, Table.Panic_Recover);
       New_Line;
 
+      Put_Line ("McKenzie:");
+      Put (Descriptor, Table.McKenzie);
+      New_Line;
+
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
       New_Line;

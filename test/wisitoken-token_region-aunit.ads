@@ -24,4 +24,9 @@ package WisiToken.Token_Region.AUnit is
       Computed : in Token;
       Expected : in Token);
 
+   procedure Check
+     (Label    : in String;
+      Computed : in Error_Data;
+      Expected : in Error_Data);
+
 end WisiToken.Token_Region.AUnit;

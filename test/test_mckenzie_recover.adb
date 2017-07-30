@@ -24,7 +24,6 @@ with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Ada_Lite;
-with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_Feeder.String;
 with WisiToken.Text_Feeder.Text_IO;
@@ -134,15 +133,15 @@ package body Test_McKenzie_Recover is
       --  |1       |10       |20       |30       |40       |50       |60       |70
       --  Missing "begin" in Block_2, but McKenzie won't find that.
       --
-      --  Parser errors at Block_2, expecting "if". McKenzie will
-      --  replace "Block_2" with "if".
+      --  Parser errors at Block_2, expecting "if". McKenzie inserts
+      --  "if;", leaving  "Block_2;" as a procedure call.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       Check ("errors.length", Ada_Lite.State.Errors.Length, 1);
       Check ("errors.invalid_region 1",
              WisiToken.Token_Region.Error_Data_Lists.Element (Ada_Lite.State.Errors.First).Invalid_Region,
-             (63, 69));
+             WisiToken.Null_Buffer_Region);
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
@@ -163,25 +162,81 @@ package body Test_McKenzie_Recover is
 
       --  Enters recover at ';' 83.
       --  Inserts 'if'. Continues to 'loop' 90, error expecting block label or ';'.
-      --  Inserts ';'. Continues to ';' 94, expecting statement.
-      --  Inserts 'exit'. Continues to 'Water' 100, expecting 'loop'.
-      --  Inserts 'loop'. Continues to 186 EOF (treating 'Water' as loop label), expecting
-      --  'end <loop>; end <procedure>;'.
-      Check ("errors.length", State.Errors.Length, 2);
+      --  Inserts ';'. Continues to ';' 94, expecting statement or 'end loop'.
+      --  Inserts 'end loop'. Continues to 'Water' 100, expecting 'loop'.
+      --  Inserts 'loop'. Continues to EOF (treating 'Water' as loop label), expecting
+      --  statement or 'end <procedure>;' .
+      --  Inserts 'end;', succeeds
+      Check ("errors.length", State.Errors.Length, 5);
       declare
-         use WisiToken.AUnit;
          use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region;
-         Temp : Error_Data renames Error_Data_Lists.Element (State.Errors.First);
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Cursor : Error_Data_Lists.Cursor := State.Errors.First;
 
-         Expecting : WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
+         Null_Expecting : constant WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
            (others => False);
+
+         Expecting : WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) := Null_Expecting;
       begin
          Expecting (+IF_ID) := True;
 
-         Check ("errors.error_token", Temp.Error_Token, (+SEMICOLON_ID, (84, 84)));
-         Check ("errors.expecting", Temp.Expecting, Expecting);
-         Check ("errors.invalid_region", Temp.Invalid_Region, (37, 83));
+         Check
+           ("1", Element (Cursor),
+            (First_Terminal => Descriptor.First_Terminal,
+             Last_Terminal  => Descriptor.Last_Terminal,
+             Error_Token    => (+SEMICOLON_ID, (84, 84)),
+             Expecting      => Expecting,
+             Invalid_Region => WisiToken.Null_Buffer_Region));
+
+         Next (Cursor);
+         Expecting                  := Null_Expecting;
+         Expecting (+SEMICOLON_ID)  := True;
+         Expecting (+IDENTIFIER_ID) := True;
+         Check ("2", Element (Cursor),
+                (Descriptor.First_Terminal, Descriptor.Last_Terminal,
+                 (+LOOP_ID, (90, 93)), Expecting, WisiToken.Null_Buffer_Region));
+
+         Next (Cursor);
+         Expecting                  := Null_Expecting;
+         Expecting (+BEGIN_ID)      := True;
+         Expecting (+CASE_ID)       := True;
+         Expecting (+DECLARE_ID)    := True;
+         Expecting (+END_ID)        := True;
+         Expecting (+EXIT_ID)       := True;
+         Expecting (+IF_ID)         := True;
+         Expecting (+LOOP_ID)       := True;
+         Expecting (+RETURN_ID)     := True;
+         Expecting (+IDENTIFIER_ID) := True;
+         Check ("3", Element (Cursor),
+                (Descriptor.First_Terminal, Descriptor.Last_Terminal,
+                 (+SEMICOLON_ID, (94, 94)), Expecting, WisiToken.Null_Buffer_Region));
+
+         Next (Cursor);
+         Expecting            := Null_Expecting;
+         Expecting (+LOOP_ID) := True;
+         Check ("4", Element (Cursor),
+                (Descriptor.First_Terminal, Descriptor.Last_Terminal,
+                 (+IDENTIFIER_ID, (100, 104)), Expecting, WisiToken.Null_Buffer_Region));
+
+         Next (Cursor);
+         Expecting                  := Null_Expecting;
+         Expecting (+BEGIN_ID)      := True;
+         Expecting (+CASE_ID)       := True;
+         Expecting (+DECLARE_ID)    := True;
+         Expecting (+ELSE_ID)       := True;
+         Expecting (+ELSIF_ID)      := True;
+         Expecting (+END_ID)        := True;
+         Expecting (+EXIT_ID)       := True;
+         Expecting (+IF_ID)         := True;
+         Expecting (+LOOP_ID)       := True;
+         Expecting (+RETURN_ID)     := True;
+         Expecting (+WHEN_ID)       := True;
+         Expecting (+IDENTIFIER_ID) := True;
+         Check ("5", Element (Cursor),
+                (Descriptor.First_Terminal, Descriptor.Last_Terminal,
+                 (+Wisi_EOI_ID, (1, 1)), Expecting, WisiToken.Null_Buffer_Region));
+
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
    exception

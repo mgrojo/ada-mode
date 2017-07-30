@@ -11,17 +11,11 @@ better syntax error handling
     t_one RUN_ARGS=1
         Error_1 passes
         Error_2 passes
+        Error_3 passes
 
-        Error_3
-            enters recover several times
-            last at eof, fails on enqueue limit 100
+        Error_4
 
-            need per language cost function: edited, compiles; broke error_1, error_2
-
-
-    does this do:
-        if expecting has exactly one token, insert that
-            "if then end;"
+        Error_5
 
     test with parallel parsers
         force a conflict
@@ -46,9 +40,7 @@ better syntax error handling
         see how it works in practice
 
     speed up
-        check follow faster than goto_for/action_for?
-            should be; computing follow is expensive closure
-            requires adding tokens to recover stack
+        replace look on ID calling action_for with iterate action list for state
 
         use tasks for multi-processor?
 

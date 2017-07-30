@@ -94,11 +94,13 @@ package WisiToken is
       Image : Token_Array_String (1 .. Last_Nonterminal);
       --  User names for tokens.
 
-      Image_Width : Integer; --  max width of Image
+      Terminal_Image_Width : Integer;
+      Image_Width          : Integer; --  max width of Image
    end record;
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID) return String;
-   --  Return Desc.Image (Item)
+   function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String;
+   --  Return Desc.Image (Item), possibly padded to
+   --  Terminal_Image_Width (if Item is a terminal) or to Image_Width.
 
    function Int_Image (Item : in Token_ID) return String;
    --  Return Token_ID'Image, leading space stripped.
