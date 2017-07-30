@@ -15,6 +15,24 @@ Tokens:
 LALR Parse Table:
 Panic_Recover:
 
+McKenzie:
+(Insert =>
+ OVERRIDING => 0.00000E+00,
+ OTHER      => 0.00000E+00,
+ PROCEDURE  => 0.00000E+00,
+ SEMICOLON  => 0.00000E+00,
+ IDENTIFIER => 0.00000E+00,
+ Wisi_EOI   => 0.00000E+00)
+(Delete =>
+ OVERRIDING => 0.00000E+00,
+ OTHER      => 0.00000E+00,
+ PROCEDURE  => 0.00000E+00,
+ SEMICOLON  => 0.00000E+00,
+ IDENTIFIER => 0.00000E+00,
+ Wisi_EOI   => 0.00000E+00)
+Enqueue_Limit => 2147483647
+
+
 Follow:
 ( compilation_unit =>
   (Wisi_EOI => True,
@@ -141,6 +159,24 @@ State 12:
 
 LR1 Parse Table:
 Panic_Recover:
+
+McKenzie:
+(Insert =>
+ OVERRIDING => 0.00000E+00,
+ OTHER      => 0.00000E+00,
+ PROCEDURE  => 0.00000E+00,
+ SEMICOLON  => 0.00000E+00,
+ IDENTIFIER => 0.00000E+00,
+ Wisi_EOI   => 0.00000E+00)
+(Delete =>
+ OVERRIDING => 0.00000E+00,
+ OTHER      => 0.00000E+00,
+ PROCEDURE  => 0.00000E+00,
+ SEMICOLON  => 0.00000E+00,
+ IDENTIFIER => 0.00000E+00,
+ Wisi_EOI   => 0.00000E+00)
+Enqueue_Limit => 2147483647
+
 
 Follow:
 ( compilation_unit =>

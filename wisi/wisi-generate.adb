@@ -24,6 +24,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with GNAT.Traceback.Symbolic;
 with WisiToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada;
@@ -239,6 +240,7 @@ when E :  others =>
       use Standard.Ada.Command_Line;
    begin
       Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+      Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       Set_Exit_Status (Failure);
    end;
 

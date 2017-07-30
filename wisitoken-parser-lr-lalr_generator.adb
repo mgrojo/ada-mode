@@ -727,7 +727,17 @@ package body WisiToken.Parser.LR.LALR_Generator is
          then (Table.First_Nonterminal .. Table.Last_Nonterminal => False)
          else Panic_Recover);
 
-      Table.McKenzie := McKenzie_Param;
+      if McKenzie_Param = Default_McKenzie_Param then
+         --  Descriminants in Default are wrong
+         Table.McKenzie :=
+           (First_Terminal => Descriptor.First_Terminal,
+            Last_Terminal  => Descriptor.Last_Terminal,
+            Insert         => (others => 0.0),
+            Delete         => (others => 0.0),
+            Enqueue_Limit  => Integer'Last);
+      else
+         Table.McKenzie := McKenzie_Param;
+      end if;
 
       Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 

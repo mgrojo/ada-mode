@@ -1,6 +1,11 @@
 build/Makefile
 
  current work
+elsif is in follow (statement)
+    in ada_lite.parse_table
+    because of lalr?
+    try lr1
+
 better syntax error handling
     "d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf"
         try email for copy of code B.McKenzie@cosc.canterbury.ac.nz
@@ -12,10 +17,33 @@ better syntax error handling
         Error_1 passes
         Error_2 passes
         Error_3 passes
-
-        Error_4
+        Error_4 passes
 
         Error_5
+            deleted 'if then'
+
+            new algorithm:
+                search dfa backwards from elsif; insert 'if then'
+                    the only state that shifts elsif is 184 elsif_statement_list <=
+                    the only 'goto state 184' is in 165 'if_statement <=' on elsif_statement_list
+                    the only 'goto state 165' is in 156 'if_statement <=' on sequence_of_statements_opt
+                    sequence_of_statements_opt includes empty, ... if_statement
+                    the only goto 156 is in 125 'if_statement <=' on shift THEN => insert THEN
+                    the only goto 125 is in 97  'if_statement <=' on expression_opt
+                    expression_opt includes empty
+                    many 'goto state 97'; all on 'shift IF' => insert IF, terminate
+
+                search all non-first keywords in 'declarations', 'statements'?
+
+                instead of separate insert algorithm, adjust mckenzie costs:
+                    find keyword sequences separated by empty nonterms
+
+                    include current_token in cost function
+                        cost of "if then | elsif" = 0.0
+
+                    include current state and current token in cost function:
+                        cost of "125 | then | elsif" = 0
+                        125 implied by trying 'then' without preceding 'if'
 
     test with parallel parsers
         force a conflict

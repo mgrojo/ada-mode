@@ -99,8 +99,6 @@ is
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Panic_Recover            => WisiToken.Parser.LR.Default_Panic_Recover,
-            McKenzie_Param           => WisiToken.Parser.LR.Default_McKenzie_Param,
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,
@@ -113,8 +111,6 @@ is
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count, Reduce_Reduce_Conflict_Count),
-            Panic_Recover            => WisiToken.Parser.LR.Default_Panic_Recover,
-            McKenzie_Param           => WisiToken.Parser.LR.Default_McKenzie_Param,
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,

@@ -109,6 +109,7 @@ is
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
+            Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
             Ignore_Unused_Tokens     => Verbosity > 1,

@@ -97,7 +97,7 @@ package body Test_Statement_Actions is
    procedure Statement_Semi_Action
      (Nonterm : in WisiToken.Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in WisiToken.Token_Stack_Type)
+      Source  : in WisiToken.Augmented_Token_Array)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);

@@ -179,8 +179,9 @@ package body Wisi.Gen_Generate_Utils is
          end if;
       end loop;
 
-      LALR_Descriptor.Image       := LR1_Descriptor.Image;
-      LALR_Descriptor.Image_Width := LR1_Descriptor.Image_Width;
+      LALR_Descriptor.Image                := LR1_Descriptor.Image;
+      LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
+      LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
 
       return Out_Image;
    end Set_Token_Images;
@@ -546,6 +547,7 @@ package body Wisi.Gen_Generate_Utils is
       for Pair of Item.Insert loop
          Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
       end loop;
+      Result.Enqueue_Limit := Item.Enqueue_Limit;
       return Result;
    end To_McKenzie_Param;
 

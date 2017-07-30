@@ -38,26 +38,30 @@ package WisiToken.Gen_Token_Enum is
 
    function Token_Enum_Image return Token_Array_String;
 
+   subtype Terminal_Enum_ID is Token_Enum_ID range First_Terminal .. Last_Terminal;
+
    LR1_Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal    =>  +First_Terminal,
-      Last_Terminal     =>  +Last_Terminal,
-      First_Nonterminal =>  +First_Nonterminal,
-      Last_Nonterminal  =>  +Last_Nonterminal,
-      EOF_ID            =>  +EOF_ID,
-      Accept_ID         =>  +Accept_ID,
-      Image             => Token_Enum_Image,
-      Image_Width       => Token_Enum_ID'Width);
+     (First_Terminal       => +First_Terminal,
+      Last_Terminal        => +Last_Terminal,
+      First_Nonterminal    => +First_Nonterminal,
+      Last_Nonterminal     => +Last_Nonterminal,
+      EOF_ID               => +EOF_ID,
+      Accept_ID            => +Accept_ID,
+      Image                => Token_Enum_Image,
+      Terminal_Image_Width => Terminal_Enum_ID'Width,
+      Image_Width          => Token_Enum_ID'Width);
 
    LALR_Descriptor : aliased WisiToken.LALR_Descriptor :=
-     (First_Terminal    =>  +First_Terminal,
-      Last_Terminal     =>  +Last_Terminal,
-      First_Nonterminal =>  +First_Nonterminal,
-      Last_Nonterminal  =>  +Last_Nonterminal,
-      EOF_ID            =>  +EOF_ID,
-      Accept_ID         =>  +Accept_ID,
-      Propagate_ID      =>  +First_Nonterminal,
-      Image             => Token_Enum_Image,
-      Image_Width       => Token_Enum_ID'Width);
+     (First_Terminal       => +First_Terminal,
+      Last_Terminal        => +Last_Terminal,
+      First_Nonterminal    => +First_Nonterminal,
+      Last_Nonterminal     => +Last_Nonterminal,
+      EOF_ID               => +EOF_ID,
+      Accept_ID            => +Accept_ID,
+      Propagate_ID         => +First_Nonterminal,
+      Image                => Token_Enum_Image,
+      Terminal_Image_Width => Terminal_Enum_ID'Width,
+      Image_Width          => Token_Enum_ID'Width);
 
    type Enum_Syntax is array (Token_Enum_ID range Token_Enum_ID'First .. Last_Terminal) of
      WisiToken.Lexer.Regexp.Syntax_Item;
@@ -87,40 +91,40 @@ package WisiToken.Gen_Token_Enum is
    overriding procedure Reset (State : access State_Type) is null;
 
    overriding procedure Input_Token
-     (Token : in     Token_ID;
-      State : access State_Type;
+     (State : access State_Type;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
      is null;
 
    overriding procedure Push_Token
-     (Token : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      Token : in     Token_ID)
      is null;
 
    overriding procedure Error
-     (Expecting : in     Token_ID_Set;
-      State     : access State_Type)
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set)
    is null;
 
    overriding
    procedure Discard_Token
-     (ID    : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      ID    : in     Token_ID)
    is null;
 
    overriding procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type);
+      Action  : in     Semantic_Action);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.
 
    overriding procedure Recover
-     (Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
-      State         : access State_Type)
+     (State         : access State_Type;
+      Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance)
      is null;
 
    ----------

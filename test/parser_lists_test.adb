@@ -328,9 +328,9 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Action_B);
       Cursor.Push ((10, End_2));
 
-      if Test.Debug then Put_Trace_Top_10 (Trace, Cursor); end if;
+      if Test.Debug then Put_Top_10 (Trace, Cursor); end if;
       Parsers.Prepend_Copy (Cursor);
-      if Test.Debug then Put_Trace_Top_10 (Trace, Parsers.First); end if;
+      if Test.Debug then Put_Top_10 (Trace, Parsers.First); end if;
 
       Check ("1", Stack_Equal (Cursor, Parsers.First), True);
 
@@ -341,9 +341,9 @@ package body Parser_Lists_Test is
       Cursor.Push ((11, Statement_2));
       Cursor.Enqueue (Action_2);
 
-      if Test.Debug then Put_Trace_Top_10 (Trace, Cursor); end if;
+      if Test.Debug then Put_Top_10 (Trace, Cursor); end if;
       Parsers.Prepend_Copy (Cursor);
-      if Test.Debug then Put_Trace_Top_10 (Trace, Parsers.First); end if;
+      if Test.Debug then Put_Top_10 (Trace, Parsers.First); end if;
       Check ("2c", Stack_Equal (Cursor, Parsers.First), True);
 
       Cursor.Push ((12, End_1));
@@ -357,14 +357,14 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Action_1);
 
       if Test.Debug then
-         Put_Trace_Top_10 (Trace, Cursor);
-         Put_Trace_Pending_Actions (Trace, Cursor);
+         Put_Top_10 (Trace, Cursor);
+         Put_Pending_Actions (Trace, Cursor);
       end if;
 
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then
-         Put_Trace_Top_10 (Trace, Parsers.First);
-         Put_Trace_Pending_Actions (Trace, Parsers.First);
+         Put_Top_10 (Trace, Parsers.First);
+         Put_Pending_Actions (Trace, Parsers.First);
       end if;
 
       Check ("3b", Stack_Equal (Cursor, Parsers.First), True);

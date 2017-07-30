@@ -66,7 +66,7 @@ package body WisiToken.Gen_Token_Enum is
       return WisiToken.Production."<=" (+Left, Right);
    end "<=";
 
-   procedure Put_Trace
+   procedure Put
      (Trace        : in out WisiToken.Trace'Class;
       Nonterm      : in     Token_ID;
       Index        : in     Natural;
@@ -83,22 +83,22 @@ package body WisiToken.Gen_Token_Enum is
          else "");
    begin
       Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm) & " <= ");
-      Put_Trace (Trace, Tokens);
+      Put (Trace, Tokens);
       Trace.New_Line;
-   end Put_Trace;
+   end Put;
 
    overriding procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type)
+      Action  : in     Semantic_Action)
    is
-      function To_Augmented (Item : in Token.List.Instance) return Token_Stack_Type
+      function To_Augmented (Item : in Token.List.Instance) return Augmented_Token_Array
       is
          use Token.List;
 
-         Result : Token_Stack_Type;
+         Result : Augmented_Token_Array;
          I      : List_Iterator := Item.First;
       begin
          loop
@@ -109,11 +109,11 @@ package body WisiToken.Gen_Token_Enum is
          return Result;
       end To_Augmented;
 
-      Enum_Nonterm     : constant Token_Enum_ID    := -Nonterm;
-      Augmented_Tokens : constant Token_Stack_Type := To_Augmented (Tokens);
+      Enum_Nonterm     : constant Token_Enum_ID         := -Nonterm;
+      Augmented_Tokens : constant Augmented_Token_Array := To_Augmented (Tokens);
    begin
       if Trace_Parse > 1 then
-         Put_Trace (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
+         Put (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
       end if;
       if Action /= null then
          Action (Augmented_Token'(ID => Nonterm, Enum_ID => Enum_Nonterm), Index, Augmented_Tokens);

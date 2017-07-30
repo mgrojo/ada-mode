@@ -274,7 +274,7 @@ package body WisiToken.Parser.LR is
       end loop;
       Put_Line ("(Delete =>");
       for I in Item.Delete'Range loop
-         Put (" " & Image (Descriptor, I) & " =>" & Float'Image (Item.Delete (I)));
+         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Float'Image (Item.Delete (I)));
          if I = Item.Delete'Last then
             Put_Line (")");
          else
