@@ -114,7 +114,6 @@ package body SAL.Gen_Unbounded_Definite_Queues is
          else
             --  example >: insert 5 into (3, 4, 6)
             --  example <: insert 1 into (2, 0)
-            Next (I);
             Queue.Data.Insert (Before => I, New_Item => Element);
          end if;
       end if;
