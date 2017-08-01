@@ -284,15 +284,19 @@ is
 
       Set_Output (Standard_Output);
 
-      Put_Line
-        (Integer'Image (Rule_Count) & " rules," &
-           Integer'Image (Action_Count) & " actions," &
-           WisiToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
-           Integer'Image (Data.Table_Entry_Count) & " table entries");
-      Put_Line
-        (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-           Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+      if Verbosity > 0 then
+         --  Match wisi-output_elisp, wisi-output_ada format
+         Put_Line
+           (Integer'Image (Rule_Count) & " rules," &
+              Integer'Image (Action_Count) & " actions," &
+              WisiToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+              Integer'Image (Data.Table_Entry_Count) & " table entries");
+         Put_Line
+           (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+              Integer'Image (Data.Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+              Integer'Image (Data.Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
+
+      end if;
    end Create_Ada_Body;
 
    procedure Create_Process_Elisp

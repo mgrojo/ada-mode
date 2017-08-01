@@ -128,7 +128,7 @@ package body Name_Grammar_Test is
 
       String_Feeder.Set (Command);
 
-      Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+      Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
       Parser.Parse;
 

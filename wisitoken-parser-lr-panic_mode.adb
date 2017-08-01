@@ -215,7 +215,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
 
       if Trace_Parse > 0 then
          if not Keep_Going then
-            Trace.Put_Line ("recover: fail");
+            Trace.Put_Line ("panic recover: fail");
          end if;
       end if;
       return Keep_Going;

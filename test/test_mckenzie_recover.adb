@@ -54,7 +54,7 @@ package body Test_McKenzie_Recover is
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
-      Parser.Reset (Buffer_Size => Text'Length);
+      Parser.Lexer.Reset (Buffer_Size => Text'Length);
       Parser.Parse;
    end Parse_Text;
 
@@ -244,6 +244,46 @@ package body Test_McKenzie_Recover is
       Assert (False, "1.exception: got Syntax_Error");
    end Error_3;
 
+   procedure Dotted_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 35; -- test that the special rule works.
+
+      Parse_Text
+        ("procedure Parent.Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; " &
+           --      |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
+           "end Parent.Water; ",
+         --  |104  |110      |120
+         Test.Debug);
+      --  Missing "end if" at 67. Same as Error_3, but procedure name
+      --  is dotted, so it can't be a loop label.
+      --
+      --  Test special rule for dotted names.
+
+      --  Enters recover at ';' 83.
+      --  Inserts 'if'. Continues to 'loop' 90, error expecting block label or ';'.
+      --  Inserts ';'. Continues to ';' 94, expecting statement or 'end loop'.
+      --  Inserts 'end loop'. Continues to 'Water' 100, expecting 'loop'.
+      --  Inserts 'loop'. Continues to '.', expecting ';'
+      --  After enqueing 94 configs, Inserts '; IDENTIFIER'. Continues
+      --  to EOF, expecting statement or 'end;'
+      --  Inserts 'end ;', succeeds.
+      --
+      --  With the full Ada language, finding '; IDENTIFIER' takes too
+      --  long, so we introduce a special rule to shortcut it; that
+      --  cuts the enqueued configs to 3.
+
+      Check ("errors.length", State.Errors.Length, 6);
+      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1.exception: got Syntax_Error");
+   end Dotted_Name;
+
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
@@ -269,8 +309,7 @@ package body Test_McKenzie_Recover is
    begin
       Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
-      --  Caused "recover: non-shift action not supported" in earlier version.
-      --  Now discards 'elsif then else', fails on 'end if; end'.
+      --  FIXME: quits at enqueue limit; need keyword sequence rule
 
       Assert (False, "1.exception: did not get Syntax_Error");
    exception
@@ -282,8 +321,27 @@ package body Test_McKenzie_Recover is
                  " expecting: " & WisiToken.Image (Descriptor, Data.Expecting));
          end loop;
       end if;
-      Check ("error.length", State.Errors.Length, 2);
+      Check ("error.length", State.Errors.Length, 1);
    end Error_5;
+
+   procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parse_Text ("procedure Debug is begin loop B; end; ", Test.Debug);
+      --  Missing "end loop"
+      --
+      --  Inserts 'loop', continues to EOF, inserts 'end;', succeeds
+      Check ("errors.length", State.Errors.Length, 2);
+
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (True, "1.exception: got Syntax_Error");
+      Check ("error.length", State.Errors.Length, 2);
+   end Check_Accept;
 
    ----------
    --  Public subprograms
@@ -300,14 +358,16 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 0 then
-         Register_Routine (T, Error_3'Access, "debug");
+         Register_Routine (T, Dotted_Name'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
          Register_Routine (T, Error_2'Access, "Error_2");
          Register_Routine (T, Error_3'Access, "Error_3");
+         Register_Routine (T, Dotted_Name'Access, "Dotted_Name");
          Register_Routine (T, Error_4'Access, "Error_4");
          Register_Routine (T, Error_5'Access, "Error_5");
+         Register_Routine (T, Check_Accept'Access, "Check_Accept");
       end if;
    end Register_Tests;
 

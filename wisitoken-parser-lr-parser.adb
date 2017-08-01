@@ -261,6 +261,7 @@ package body WisiToken.Parser.LR.Parser is
       Action         : Parse_Action_Node_Ptr;
    begin
       WisiToken.Token.Reset (Parser.Semantic_State);
+      Parser.Lookahead.Clear;
 
       loop
          --  exit on Accept_It action or syntax error.
@@ -315,7 +316,7 @@ package body WisiToken.Parser.LR.Parser is
                   Keep_Going := McKenzie_Recover.Recover (Parser, Parsers, Current_Token);
                end if;
 
-               if not Keep_Going and then Any (Parser.Table.Panic_Recover) then
+               if not (Keep_Going and Parser.Enable_Panic_Recover) and then Any (Parser.Table.Panic_Recover) then
                   Keep_Going := Panic_Mode.Recover (Parser, Parsers, Current_Token);
 
                   if Keep_Going then
@@ -446,7 +447,7 @@ package body WisiToken.Parser.LR.Parser is
    end Parse;
 
    function New_Parser
-     (Lexer                   :         in     Lexer_Pkg.Handle;
+     (Lexer                   :         in     WisiToken.Lexer.Handle;
       Table                   :         in     Parse_Table_Ptr;
       Semantic_State          : aliased in out WisiToken.Token.Semantic_State'Class;
       Max_Parallel            :         in     Integer := 15;

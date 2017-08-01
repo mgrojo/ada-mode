@@ -29,19 +29,15 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
-with WisiToken.Token;
 package WisiToken.Parser is
 
-   --  Historical renames. FIXME: delete
-   package Token_Pkg renames Token;
-   package Lexer_Pkg renames Lexer;
-
    type Instance is abstract tagged record
-      Lexer : Lexer_Pkg.Handle;
+      Lexer : WisiToken.Lexer.Handle;
    end record;
 
    procedure Parse (Parser : in out Instance) is abstract;
-   --  Attempt a parse.
+   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
+   --  allow continuing in the same input stream.
    --
    --  Raises Syntax_Error for lexer errors, Parse_Error for
    --  parser errors.
@@ -49,29 +45,5 @@ package WisiToken.Parser is
    --  If an error is encountered but a recover strategy succeeds, no
    --  exception is raised. Parser.Invalid_Regions contains the
    --  regions ignored.
-
-   procedure Reset (Parser : in out Instance; Buffer_Size : in Integer := 0);
-   --  Reset the internal lexer, reallocating the input buffer to
-   --  Buffer_Size (if there is a buffer).
-   --
-   --  Appropriate if the Text_Feeder's input has changed.
-
-   function Line (Parser : in Instance) return Natural;
-   --  Returns the current text line in the text feeder input file at
-   --  which parsing will resume (if there is an input file).
-   --
-   --  Useful for error messages when errors are detected.
-
-   function Column (Parser : in Instance) return Natural;
-   --  Returns the current text column in the text feeder input file
-   --  at which processing will resume (if there is an input file).
-   --
-   --  Useful for printing error messages when errors are detected.
-
-   function Last_Char_Pos (Parser : in Instance) return Integer;
-   --  Returns the position in the internal lexer input buffer of
-   --  the end of the last token parsed.
-   --
-   --  Useful when the input buffer contains the entire input text.
 
 end WisiToken.Parser;

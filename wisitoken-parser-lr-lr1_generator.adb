@@ -335,7 +335,9 @@ package body WisiToken.Parser.LR.LR1_Generator is
             Last_Terminal  => Descriptor.Last_Terminal,
             Insert         => (others => 0.0),
             Delete         => (others => 0.0),
-            Enqueue_Limit  => Integer'Last);
+            Enqueue_Limit  => Default_McKenzie_Param.Enqueue_Limit,
+            Dot_ID         => Default_McKenzie_Param.Dot_ID,
+            Identifier_ID  => Default_McKenzie_Param.Identifier_ID);
       else
          Table.McKenzie := McKenzie_Param;
       end if;

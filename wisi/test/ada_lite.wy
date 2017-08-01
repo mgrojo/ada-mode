@@ -57,6 +57,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %token <punctuation> COLON ":"
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> COMMA ","
+%token <punctuation> DOT "."
 %token <punctuation> EQUAL "="
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> GREATER ">"
@@ -121,6 +122,9 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 ;; Prefer 'end', ';' over everything
 %mckenzie_cost_insert END 1.0
 %mckenzie_cost_insert SEMICOLON 1.0
+
+;; Parameters for special recovery rules
+%mckenzie_dotted_name DOT IDENTIFIER
 
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
@@ -286,6 +290,7 @@ multiplying_operator : STAR | SLASH ;
 
 name
   : IDENTIFIER
+  | selected_component
   | name actual_parameter_part ;; function_call, procedure call.
   ;
 
@@ -366,6 +371,10 @@ relation
 relational_operator
   : EQUAL | SLASH_EQUAL | LESS | LESS_EQUAL | GREATER | GREATER_EQUAL ;
   ;;  =   | /=          | <    |  <=        | >       | >=
+
+selected_component
+  : name DOT IDENTIFIER
+  ;
 
 sequence_of_statements
   : statement

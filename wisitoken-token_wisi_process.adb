@@ -25,6 +25,7 @@ package body WisiToken.Token_Wisi_Process is
    --  body subprograms
 
    --  See [1]
+   Input_Token_Code   : constant String := "0 ";
    Push_Token_Code    : constant String := "1 ";
    Discard_Token_Code : constant String := "2 ";
    Error_Code         : constant String := "3 ";
@@ -86,21 +87,25 @@ package body WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Input_Token
-     (Token : in     Token_ID;
-      State : access State_Type;
+     (State : access State_Type;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
    is
-      pragma Unreferenced (Lexer);
+      use all type WisiToken.Lexer.Handle;
    begin
       if Trace_Parse > 3 then
-         Put_Trace (State.Trace.all, Token);
+         Put (State.Trace.all, Token);
+      end if;
+      if Lexer = null then
+         --  Token inserted by error recover; tell elisp about it
+         Ada.Text_IO.Put_Line ("[" & Input_Token_Code & To_Code (Token) & "]");
       end if;
    end Input_Token;
 
    overriding
    procedure Push_Token
-     (Token : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      Token : in     Token_ID)
    is
       pragma Unreferenced (State);
    begin
@@ -109,8 +114,8 @@ package body WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Error
-     (Expecting : in     Token_ID_Set;
-      State     : access State_Type)
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set)
    is
       pragma Unreferenced (State);
    begin
@@ -119,8 +124,8 @@ package body WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Discard_Token
-     (Token : in     Token_ID;
-      State : access State_Type)
+     (State : access State_Type;
+      Token : in     Token_ID)
    is
       pragma Unreferenced (State);
    begin
@@ -129,11 +134,11 @@ package body WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type)
+      Action  : in     Semantic_Action)
    is
       pragma Unreferenced (State, Action);
    begin
@@ -143,9 +148,9 @@ package body WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
-      State         : access State_Type)
+     (State         : access State_Type;
+      Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance)
    is
       pragma Unreferenced (State);
    begin

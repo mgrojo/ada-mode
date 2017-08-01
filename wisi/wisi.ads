@@ -97,6 +97,10 @@ package Wisi is
       Default_Delete : Float   := 0.0;
       Insert         : String_Pair_Lists.List;
       Enqueue_Limit  : Integer := Integer'Last;
+
+      --  For special rules
+      Dot_ID        : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Identifier_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
    type Token_Kind_Type is record

@@ -1,7 +1,3 @@
-GNAT
-McKenzie
-WisiToken
-YYLex
 *1D
 *2D
 *CR
@@ -22,7 +18,11 @@ YYLex
 *LR
 *LR1
 *LRk
+*McKenzie
 *OS
 *RHS
 *WY
 *YY
+GNAT
+WisiToken
+YYLex

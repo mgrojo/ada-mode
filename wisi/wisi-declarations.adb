@@ -44,9 +44,10 @@ is
    McKenzie_Cost_Default_Str  : constant String := "%mckenzie_cost_default";
    McKenzie_Cost_Insert_Str   : constant String := "%mckenzie_cost_insert";
    McKenzie_Enqueue_Limit_Str : constant String := "%mckenzie_enqueue_limit";
+   Mckenzie_Dotted_Name_Str   : constant String := "%mckenzie_dotted_name";
    Output_Language_Str        : constant String := "%output_language";
-   Parser_Algorithm_Str       : constant String := "%parser_algorithm";
    Panic_Recover_Str          : constant String := "%panic_recover";
+   Parser_Algorithm_Str       : constant String := "%parser_algorithm";
    Start_Str                  : constant String := "%start";
    Token_Str                  : constant String := "%token";
 
@@ -163,6 +164,16 @@ begin
 
          elsif Match (McKenzie_Enqueue_Limit_Str) then
             McKenzie_Recover.Enqueue_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
+
+         elsif Match (Mckenzie_Dotted_Name_Str) then
+            declare
+               Dot_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Dot_Last      : constant Integer := -1 + Index_Blank (Line, Dot_First);
+               Identifier_First : constant Integer := Index_Non_Blank (Line, Dot_Last + 1);
+            begin
+               McKenzie_Recover.Dot_ID        := +Line (Dot_First .. Dot_Last);
+               McKenzie_Recover.Identifier_ID := +Line (Identifier_First .. Line'Last);
+            end;
 
          elsif Match (Output_Language_Str) then
             if Generate_Params.Output_Language = None then

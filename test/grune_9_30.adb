@@ -157,7 +157,7 @@ package body Grune_9_30 is
       is begin
          String_Feeder.Set (Command);
 
-         Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+         Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
          Parser.Parse;
       exception

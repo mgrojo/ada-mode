@@ -33,7 +33,7 @@ package WisiToken.Parser.LR.Parser is
    end record;
 
    function New_Parser
-     (Lexer              :         in     Lexer_Pkg.Handle;
+     (Lexer              :         in     WisiToken.Lexer.Handle;
       Table              :         in     Parse_Table_Ptr;
       Semantic_State     : aliased in out WisiToken.Token.Semantic_State'Class;
       Max_Parallel       :         in     Integer := 15;

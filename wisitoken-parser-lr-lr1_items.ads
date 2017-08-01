@@ -43,7 +43,7 @@ package WisiToken.Parser.LR.LR1_Items is
    function Prod (Item : in Item_Ptr) return Production.Instance;
    function LHS (Item : in Item_Ptr) return Token_ID;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
-   function Dot (Item : in Item_Ptr) return Token.List.List_Iterator;
+   function Dot (Item : in Item_Ptr) return WisiToken.Token.List.List_Iterator;
    --  Token after Dot.
    function State (Item : in Item_Ptr) return Unknown_State_Index;
    function Lookaheads (Item : in Item_Ptr) return Lookahead;
@@ -51,7 +51,7 @@ package WisiToken.Parser.LR.LR1_Items is
 
    function New_Item_Node
      (Prod       : in Production.Instance;
-      Dot        : in Token.List.List_Iterator;
+      Dot        : in WisiToken.Token.List.List_Iterator;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
      return Item_Ptr;
@@ -59,7 +59,7 @@ package WisiToken.Parser.LR.LR1_Items is
    procedure Set
      (Item       : in out Item_Node;
       Prod       : in     Production.Instance;
-      Dot        : in     Token.List.List_Iterator;
+      Dot        : in     WisiToken.Token.List.List_Iterator;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead);
    --  Replace all values in Item.
@@ -144,7 +144,7 @@ package WisiToken.Parser.LR.LR1_Items is
 
    function Find
      (Prod             : in     Production.Instance;
-      Dot              : in     Token.List.List_Iterator;
+      Dot              : in     WisiToken.Token.List.List_Iterator;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
       Match_Lookaheads : in     Boolean)
@@ -261,7 +261,7 @@ private
 
    type Item_Node is record
       Prod       : Production.Instance;
-      Dot        : Token.List.List_Iterator; -- token after item Dot
+      Dot        : WisiToken.Token.List.List_Iterator; -- token after item Dot
       State      : Unknown_State_Index;
       Lookaheads : access Lookahead;
       Next       : Item_Ptr;

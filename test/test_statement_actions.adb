@@ -125,7 +125,7 @@ package body Test_Statement_Actions is
    is begin
       WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
 
-      Parser.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+      Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
 
       Parser.Parse;
    exception

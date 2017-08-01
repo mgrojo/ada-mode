@@ -186,7 +186,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                return True;
             end if;
 
-         when Accept_It | Error =>
+         when Accept_It =>
+            return True;
+
+         when Error =>
             null;
          end case;
          Next_Action := Next_Action.Next;
@@ -221,7 +224,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             null;
 
          when Accept_It =>
-            raise Programmer_Error;
+            return True;
          end case;
 
          Action := Action.Next;
@@ -229,12 +232,56 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       return False;
    end Check;
 
+   --  FIXME: make visible, add to some hook in .wy
+   function Dotted_Name
+     (Parser        : in out LR.Instance'Class;
+      Cursor        : in     Parser_Lists.Cursor;
+      Param         : in     McKenzie_Param_Type;
+      Config        :    out Configuration)
+     return Boolean
+   is
+      --  Assume Cursor parser encountered an error at Current_Token.
+      --  If Cursor.Stack, Current_Token match a dotted name that
+      --  errored on '.', set config to an appropriate root config,
+      --  and return True. Else return False.
+
+      Current_Token : constant Token_ID := Parser.Lookahead (1);
+   begin
+      if Param.Dot_ID = Default_McKenzie_Param.Dot_ID and
+        Param.Identifier_ID = Default_McKenzie_Param.Identifier_ID
+      then
+         --  This rule is not enabled
+         return False;
+      end if;
+
+      if Cursor.Peek.Token = Param.Identifier_ID and
+        Current_Token = Param.Dot_ID
+      then
+         Config :=
+           (Stack           => Parser_Lists.Copy_Stack (Cursor),
+            Lookahead_Index => Positive_Index_Type'First,
+            Inserted        => Token_Arrays.Empty_Vector,
+            Deleted         => Token_Arrays.Empty_Vector,
+            Cost            => 0.0);
+
+         --  Ideally we would replace the identifier on the stack with
+         --  a dummy inserted one, leaving the real identifier to be
+         --  part of the dotted name; that would allow proper syntax
+         --  coloring etc. But this is close enough.
+         Parser.Lookahead.Prepend (Param.Identifier_ID);
+         Parser.Semantic_State.Input_Token (Param.Identifier_ID, null);
+         return True;
+      else
+         return False;
+      end if;
+   end Dotted_Name;
+
    function Recover
      (Parser : in out LR.Instance'Class;
       Cursor : in     Parser_Lists.Cursor)
      return Configuration
-      --  Raises Recover_Fail or returns recover Config
    is
+      --  Raises Recover_Fail or returns recover Config
       Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
       Action : Parse_Action_Node_Ptr;
 
@@ -242,26 +289,33 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Trace : WisiToken.Trace'Class renames Data.Parser.Semantic_State.Trace.all;
 
-      procedure Trace_Result
+      procedure Trace_Result (Success : in Boolean)
       is begin
          Trace.Put_Line
            ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
-              ", check " & Integer'Image (Data.Check_Count));
+              ", check " & Integer'Image (Data.Check_Count) &
+              "; " & (if Success then "succeed" else "fail"));
       end Trace_Result;
 
+      Root_Config : Configuration;
    begin
       if Trace_Parse > 1 then
          Trace.New_Line;
       end if;
 
       Clear_Queue (Data);
-      Enqueue
-        (Data,
-         (Stack           => Parser_Lists.Copy_Stack (Cursor),
-          Lookahead_Index => Positive_Index_Type'First,
-          Inserted        => Token_Arrays.Empty_Vector,
-          Deleted         => Token_Arrays.Empty_Vector,
-          Cost            => 0.0));
+
+      if not Dotted_Name (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+         Root_Config :=
+           (Stack           => Parser_Lists.Copy_Stack (Cursor),
+            Lookahead_Index => 1,
+            Inserted        => Token_Arrays.Empty_Vector,
+            Deleted         => Token_Arrays.Empty_Vector,
+            Cost            => 0.0);
+      end if;
+
+      Enqueue (Data, Root_Config);
+
       loop
          exit when Data.Queue.Is_Empty or Data.Enqueue_Count > Data.Parser.Table.McKenzie.Enqueue_Limit;
 
@@ -280,7 +334,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             end if;
             if Check (Data, Config, Current_Input) then
                if Trace_Parse > 0 then
-                  Trace_Result;
+                  Trace_Result (Success => True);
                end if;
                return Config;
             end if;
@@ -354,7 +408,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          end;
       end loop;
       if Trace_Parse > 0 then
-         Trace_Result;
+         Trace_Result (Success => False);
       end if;
       raise Recover_Fail;
    end Recover;

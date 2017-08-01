@@ -39,6 +39,7 @@ pragma License (Modified_GPL);
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Stacks;
+with WisiToken.Token;
 package WisiToken.Parser.LR is
 
    --  Following are the types used in the parse table. The parse
@@ -169,6 +170,10 @@ package WisiToken.Parser.LR is
       Insert        : Token_Array_Float (First_Terminal .. Last_Terminal);
       Delete        : Token_Array_Float (First_Terminal .. Last_Terminal);
       Enqueue_Limit : Integer;
+
+      --  For special rules
+      Dot_ID        : Token_ID;
+      Identifier_ID : Token_ID;
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -176,7 +181,9 @@ package WisiToken.Parser.LR is
       Last_Terminal  => Token_ID'First,
       Insert         => (others => 0.0),
       Delete         => (others => 0.0),
-      Enqueue_Limit  => Integer'Last);
+      Enqueue_Limit  => Integer'Last,
+      Dot_ID         => Token_ID'Last,
+      Identifier_ID  => Token_ID'Last);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
    --  Put Item to Ada.Text_IO.Current_Output
@@ -231,15 +238,15 @@ package WisiToken.Parser.LR is
       --  move to panic_mode.
       Nonterm       : Token_ID;
       Goto_State    : Unknown_State_Index;
-      Popped_Tokens : Token.List.Instance; -- from parse stack
-      Pushed_Tokens : Token.List.Instance; -- to parse stack from input queue
+      Popped_Tokens : WisiToken.Token.List.Instance; -- from parse stack
+      Pushed_Tokens : WisiToken.Token.List.Instance; -- to parse stack from input queue
    end record;
 
    type Recover_Data_Access is access Recover_Data'Class;
    procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
 
    Default_Recover : constant Recover_Data :=
-     (Invalid_Token, Unknown_State, Token.List.Null_List, Token.List.Null_List);
+     (Invalid_Token, Unknown_State, WisiToken.Token.List.Null_List, WisiToken.Token.List.Null_List);
 
    package State_Stack_Interface is new SAL.Gen_Stack_Interfaces (State_Index);
    package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interface);

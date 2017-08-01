@@ -55,7 +55,7 @@ package body Test_Panic_Mode is
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
-      Parser.Reset (Buffer_Size => Text'Length);
+      Parser.Lexer.Reset (Buffer_Size => Text'Length);
       Parser.Parse;
    end Parse_Text;
 
@@ -133,6 +133,7 @@ package body Test_Panic_Mode is
         ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end Proc_1; ", Test.Debug);
       --  |1       |10       |20       |30       |40       |50       |60       |70
       --  Missing "begin" in Block_2
+      --  FIXME: failing
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
@@ -160,8 +161,10 @@ package body Test_Panic_Mode is
       --  parser and augmented.
 
       --  Enters recover at ';' 83; pops stack to
-      --  handled_sequence_of_statements 36, keeps end 80, succeeds.
-      Check ("errors.length", State.Errors.Length, 1);
+      --  handled_sequence_of_statements 36, keeps end 80,
+      --  FIXME: update description, add tests for rest of errors, or delete.
+      --  FIXME: failing
+      Check ("errors.length", State.Errors.Length, 5);
       declare
          use WisiToken.AUnit;
          use WisiToken.Token_Region.AUnit;
@@ -210,6 +213,7 @@ package body Test_Panic_Mode is
       --  Deleted "if then" (to move it elsewhere).
       --  Caused "recover: non-shift action not supported" in earlier version.
       --  Now discards 'elsif then else', fails on 'end if; end'.
+      --  FIXME: fails with mismatched token id in discard
 
       Assert (False, "1.exception: did not get Syntax_Error");
    exception
@@ -231,7 +235,7 @@ package body Test_Panic_Mode is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_panic_mode.adb");
+      return new String'("test_panic_mode.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

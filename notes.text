@@ -1,17 +1,14 @@
 build/Makefile
 
  current work
-elsif is in follow (statement)
-    in ada_lite.parse_table
-    because of lalr?
-    try lr1
-
 better syntax error handling
     "d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf"
-        try email for copy of code B.McKenzie@cosc.canterbury.ac.nz
-            not listed on web page: http://www.canterbury.ac.nz/engineering/schools/csse/our-people/
-            email bounced
-        try email dept for current contact info
+
+    rename mckenzie to dpa_explore?
+        dpa = deterministic parsing automata (McKenzie)
+            = Deterministic Pushdown Automata (Wikipedia, Grune)
+
+        includes special rules
 
     t_one RUN_ARGS=1
         Error_1 passes
@@ -73,6 +70,10 @@ better syntax error handling
         use tasks for multi-processor?
 
         compress parser table via default reduce?
+
+wisi-generate accept two output languages
+    a lot is shared
+    only need ada_output, but it doesn't hurt
 
 move output_ada_emacs, output_elisp to ada-mode source tree?
     extendable dispatch?

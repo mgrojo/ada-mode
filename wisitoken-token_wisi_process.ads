@@ -38,8 +38,8 @@ package WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Input_Token
-     (Token : in     Token_ID;
-      State : access State_Type;
+     (State : access State_Type;
+      Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle);
    --  Elisp lexes ahead and sends the tokens in parallel with parser
    --  execution; they are already in the queue. Echoes the tokens if
@@ -47,31 +47,31 @@ package WisiToken.Token_Wisi_Process is
 
    overriding
    procedure Push_Token
-     (Token : in     Token_ID;
-      State : access State_Type);
+     (State : access State_Type;
+      Token : in     Token_ID);
 
    overriding
    procedure Error
-     (Expecting : in     Token_ID_Set;
-      State     : access State_Type);
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set);
 
    overriding
    procedure Discard_Token
-     (Token : in     Token_ID;
-      State : access State_Type);
+     (State : access State_Type;
+      Token : in     Token_ID);
 
    overriding
    procedure Merge_Tokens
-     (Nonterm : in     Token_ID;
+     (State   : access State_Type;
+      Nonterm : in     Token_ID;
       Index   : in     Natural;
       Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action;
-      State   : access State_Type);
+      Action  : in     Semantic_Action);
 
    overriding
    procedure Recover
-     (Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
-      State         : access State_Type);
+     (State         : access State_Type;
+      Popped_Tokens : in     Token.List.Instance;
+      Pushed_Tokens : in     Token.List.Instance);
 
 end WisiToken.Token_Wisi_Process;

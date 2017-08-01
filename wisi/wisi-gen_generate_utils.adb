@@ -540,6 +540,8 @@ package body Wisi.Gen_Generate_Utils is
 
    function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.Parser.LR.McKenzie_Param_Type
    is
+      use Standard.Ada.Strings.Unbounded;
+
       Result : WisiToken.Parser.LR.McKenzie_Param_Type (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
    begin
       Result.Insert := (others => Item.Default_Insert);
@@ -548,6 +550,15 @@ package body Wisi.Gen_Generate_Utils is
          Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
       end loop;
       Result.Enqueue_Limit := Item.Enqueue_Limit;
+
+      --  Dotted_Name special rule
+      if Length (Item.Dot_ID) = 0 then
+         Result.Dot_ID        := WisiToken.Parser.LR.Default_McKenzie_Param.Dot_ID;
+         Result.Identifier_ID := WisiToken.Parser.LR.Default_McKenzie_Param.Identifier_ID;
+      else
+         Result.Dot_ID        := Find_Token_ID (-Item.Dot_ID);
+         Result.Identifier_ID := Find_Token_ID (-Item.Identifier_ID);
+      end if;
       return Result;
    end To_McKenzie_Param;
 

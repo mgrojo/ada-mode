@@ -41,7 +41,7 @@ is
    --  See comments in wisi-output_ada_emacs.adb EOI_Name for what
    --  this must match.
 
-   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"opentoken_accept";
+   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
    function To_Token_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
    is begin
@@ -151,12 +151,14 @@ begin
    end case;
 
    if Verbosity > 0 then
+      --  Match wisi-output_ada.adb, wisi-output_ada_emacs.adb format
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
-           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
-           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts," &
            WisiToken.Parser.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
+      Put_Line
+        (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
+           Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &
+           Integer'Image (Reduce_Reduce_Conflict_Count) & " reduce/reduce conflicts");
    end if;
 end Wisi.Output_Elisp;

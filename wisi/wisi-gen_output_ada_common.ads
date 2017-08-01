@@ -52,7 +52,6 @@ package Wisi.Gen_Output_Ada_Common is
       Lexer            : Valid_Lexer;
       Interface_Kind   : Valid_Interface;
 
-      --  These are set by *_Generator.Generate
       Accept_Reduce_Conflict_Count : Integer := -1;
       Shift_Reduce_Conflict_Count  : Integer := -1;
       Reduce_Reduce_Conflict_Count : Integer := -1;
