@@ -118,4 +118,26 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       end if;
    end Top;
 
+   procedure Set_Depth
+     (Stack : in out Stack_Type;
+      Depth : in     Stack_Interfaces.Positive_Count_Type)
+   is begin
+      Stack :=
+        (Top  => Depth,
+         Data => Element_Arrays.To_Vector (Depth));
+   end Set_Depth;
+
+   procedure Set
+     (Stack   : in out Stack_Type;
+      Index   : in     Stack_Interfaces.Positive_Count_Type;
+      Depth   : in     Stack_Interfaces.Positive_Count_Type;
+      Element : in     Element_Type)
+   is
+      use all type Ada.Containers.Count_Type;
+      --  Same Position algorithm as in Peek
+   begin
+      Stack.Top := Depth;
+      Stack.Data.Replace_Element (Depth - Index + 1, Element);
+   end Set;
+
 end SAL.Gen_Unbounded_Definite_Stacks;

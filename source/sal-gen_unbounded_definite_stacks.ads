@@ -53,6 +53,30 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    overriding function Top (Stack : in Stack_Type) return Element_Type;
 
+   --  Other operations
+
+   Empty_Stack : constant Stack_Type;
+
+   procedure Set_Depth
+     (Stack : in out Stack_Type;
+      Depth : in     Stack_Interfaces.Positive_Count_Type);
+   --  Empty Stack, set its Depth to Depth. Must be followed by Set
+   --  for each element.
+   --
+   --  Useful when creating a stack from pre-existing data.
+
+   procedure Set
+     (Stack   : in out Stack_Type;
+      Index   : in     Stack_Interfaces.Positive_Count_Type;
+      Depth     : in     Stack_Interfaces.Positive_Count_Type;
+      Element : in     Element_Type);
+   --  Set a Stack element. Index is the same as Peek Index; Depth is
+   --  used to compute the index in the underlying array.
+   --
+   --  Stack must have been initialized by Set_Depth.
+   --
+   --  Useful when creating a stack from pre-existing data.
+
 private
 
    subtype Positive_Count_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
@@ -66,5 +90,7 @@ private
       Data : Element_Arrays.Vector;
       --  Top of stack is at Data (Top).
    end record;
+
+   Empty_Stack : constant Stack_Type := (0, Element_Arrays.Empty_Vector);
 
 end SAL.Gen_Unbounded_Definite_Stacks;
