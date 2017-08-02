@@ -27,6 +27,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Iterator_Interfaces;
 with WisiToken.Lexer;
 package WisiToken.Token is
 
@@ -36,7 +37,25 @@ package WisiToken.Token is
    package List is
       --  FIXME: replace with Token_Array?
 
-      type Instance is tagged private;
+      type Instance is tagged private
+      with
+        Constant_Indexing => Constant_Reference,
+        Default_Iterator  => Iterate,
+        Iterator_Element  => Token_ID;
+
+      type Constant_Reference_Type (Element : not null access constant Token_ID) is null record
+      with Implicit_Dereference => Element;
+
+      type List_Node_Ptr is private;
+
+      function Constant_Reference
+        (Container : aliased in Instance'Class;
+         Position  :         in List_Node_Ptr)
+        return Constant_Reference_Type;
+
+      function Has_Element (Cursor : in List_Node_Ptr) return Boolean;
+      package Iterator_Interfaces is new Ada.Iterator_Interfaces (List_Node_Ptr, Has_Element);
+      function Iterate (Container : aliased Instance) return Iterator_Interfaces.Forward_Iterator'Class;
 
       Null_List : constant Instance;
 
@@ -91,7 +110,7 @@ package WisiToken.Token is
       type List_Node;
       type List_Node_Ptr is access List_Node;
       type List_Node is record
-         ID   : Token_ID;
+         ID   : aliased Token_ID;
          Next : List_Node_Ptr;
       end record;
 

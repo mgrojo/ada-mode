@@ -479,7 +479,7 @@ package body Wisi.Gen_Generate_Utils is
    end "&";
 
    function To_Grammar
-     (Descriptor       : in WisiToken.Descriptor;
+     (Descriptor       : in WisiToken.Descriptor'Class;
       Source_File_Name : in String;
       Start_Token      : in String)
      return Production.List.Instance

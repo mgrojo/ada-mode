@@ -8,19 +8,36 @@ better syntax error handling
         dpa = deterministic parsing automata (McKenzie)
             = Deterministic Pushdown Automata (Wikipedia, Grune)
 
+        aflex uses "dfa" deterministic finite automata
+        grune also uses 'deterministic fs automata' (Finite State)
+
         includes special rules
 
     t_one RUN_ARGS=1
-        Error_1 passes
-        Error_2 passes
-        Error_3 passes
-        Error_4 passes
-
         Error_5
             deleted 'if then'
 
-            new algorithm:
-                search dfa backwards from elsif; insert 'if then'
+            new algorithm 1:
+                if error symbol is in a terminal sequence:
+                        need fast lookup; use linear search for now
+                    find first terminal in sequence that is in follow (current state)
+                    insert that terminal, subsequent to error sybmol
+
+                code data structure for output of terminal_sequences by hand for if_statement
+                code special function, see if it works
+
+            new algorithm 2:
+                adjust mckenzie costs to include terminal sequences
+                include current_token in cost function
+                    cost of "if then | elsif" = 0.0
+
+                include current state and current token in cost function:
+                    cost of "125 | then | elsif" = 0
+                    125 implied by trying 'then' without preceding 'if'
+
+
+            two ways to build terminal sequences:
+                search dpa backwards from elsif; insert 'if then'
                     the only state that shifts elsif is 184 elsif_statement_list <=
                     the only 'goto state 184' is in 165 'if_statement <=' on elsif_statement_list
                     the only 'goto state 165' is in 156 'if_statement <=' on sequence_of_statements_opt
@@ -30,29 +47,23 @@ better syntax error handling
                     expression_opt includes empty
                     many 'goto state 97'; all on 'shift IF' => insert IF, terminate
 
-                search all non-first keywords in 'declarations', 'statements'?
+                    search all non-first keywords in 'declarations', 'statements'?
 
-                instead of separate insert algorithm, adjust mckenzie costs:
-                    find keyword sequences separated by empty nonterms
-
-                    include current_token in cost function
-                        cost of "if then | elsif" = 0.0
-
-                    include current state and current token in cost function:
-                        cost of "125 | then | elsif" = 0
-                        125 implied by trying 'then' without preceding 'if'
+                process grammar to generate keyword sequences separated by empty nonterms
+                    terminal_sequences.adb
+                    need to recurse into nonterms
+                        ie insert "elsif then" in 'if_statement'
 
     test with parallel parsers
         force a conflict
         don't terminate any if all fail
         _dont_ exit recover with first success; all parsers may succeed
 
-    try check all stacked states for current input symbol in goto/Follow;
-        works for typical "missing trailing tokens"
-
     cache recover for subsequent parse
 
-    test lr vs lalr tables
+    test lr1 vs lalr tables
+        ada_lite.lr1_parse_table
+        10 times the states, table entries
 
     then to elisp parser?
 

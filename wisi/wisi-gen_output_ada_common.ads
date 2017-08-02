@@ -37,7 +37,7 @@ package Wisi.Gen_Output_Ada_Common is
    --  match Emacs ada-mode wisi.el wisi-eoi-term. It must
    --  be a valid Ada identifier when "_ID" is appended.
 
-   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"fasttoken_accept";
+   WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
    function To_Token_Ada_Name (Item : in String) return String;
    function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;

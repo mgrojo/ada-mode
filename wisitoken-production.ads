@@ -29,6 +29,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
 with WisiToken.Token;
 package WisiToken.Production is
@@ -75,7 +76,25 @@ package WisiToken.Production is
 
    package List is
 
-      type Instance is tagged private;
+      type Instance is tagged private
+      with
+        Constant_Indexing => Constant_Reference,
+        Default_Iterator  => Iterate,
+        Iterator_Element  => Production.Instance;
+
+      type Constant_Reference_Type (Element : not null access constant Production.Instance) is null record
+      with Implicit_Dereference => Element;
+
+      type List_Node_Ptr is private;
+
+      function Constant_Reference
+        (Container : aliased in Instance'Class;
+         Position  :         in List_Node_Ptr)
+        return Constant_Reference_Type;
+
+      function Has_Element (Cursor : in List_Node_Ptr) return Boolean;
+      package Iterator_Interfaces is new Ada.Iterator_Interfaces (List_Node_Ptr, Has_Element);
+      function Iterate (Container : aliased Instance) return Iterator_Interfaces.Forward_Iterator'Class;
 
       function Only (Subject : in Production.Instance) return Instance;
       function "+" (Subject : in Production.Instance) return Instance
@@ -110,7 +129,7 @@ package WisiToken.Production is
       type List_Node;
       type List_Node_Ptr is access List_Node;
       type List_Node is record
-         Production : WisiToken.Production.Instance;
+         Production : aliased WisiToken.Production.Instance;
          Next       : List_Node_Ptr;
       end record;
 

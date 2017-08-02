@@ -33,6 +33,57 @@ package body WisiToken.Token is
 
    package body List is
 
+      function Constant_Reference
+        (Container : aliased in Instance'Class;
+         Position  :         in List_Node_Ptr)
+        return Constant_Reference_Type
+      is
+         pragma Unreferenced (Container);
+      begin
+         --  WORKAROUND: gcc 6 reports an error for Position.Item'Access here; this passes all tests
+         return (Element => Position.all.ID'Access);
+      end Constant_Reference;
+
+      function Has_Element (Cursor : in List_Node_Ptr) return Boolean
+      is begin
+         return Cursor /= null;
+      end Has_Element;
+
+      type List_Access_Constant is access constant Instance;
+      type Iterator is new Iterator_Interfaces.Forward_Iterator with record
+         Container : List_Access_Constant;
+      end record;
+
+      overriding function First (Object : Iterator) return List_Node_Ptr;
+      overriding function Next
+        (Object   : Iterator;
+         Position : List_Node_Ptr)
+        return List_Node_Ptr;
+
+      overriding function First (Object : Iterator) return List_Node_Ptr
+      is begin
+         return Object.Container.Head;
+      end First;
+
+      overriding function Next
+        (Object   : Iterator;
+         Position : List_Node_Ptr)
+        return List_Node_Ptr
+      is
+         pragma Unreferenced (Object);
+      begin
+         if Position = null then
+            return null;
+         else
+            return Position.Next;
+         end if;
+      end Next;
+
+      function Iterate (Container : aliased Instance) return Iterator_Interfaces.Forward_Iterator'Class
+      is begin
+         return Iterator'(Container => Container'Access);
+      end Iterate;
+
       procedure Free is new Ada.Unchecked_Deallocation (List_Node, List_Node_Ptr);
 
       function Is_Empty (Item : in Instance) return Boolean
