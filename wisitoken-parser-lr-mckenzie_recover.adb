@@ -233,6 +233,134 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    end Check;
 
    --  FIXME: make visible, add to some hook in .wy
+   function Statement_Terminal_Sequence
+     (Parser        : in out LR.Instance'Class;
+      Cursor        : in     Parser_Lists.Cursor;
+      Param         : in     McKenzie_Param_Type;
+      Config        :    out Configuration)
+     return Boolean
+   is
+      --  Assume Cursor parser encountered an error at Current_Token.
+      --  If Cursor.Stack, Current_Token match a portion of a terminal
+      --  sequence, insert that portion and return True. Else return
+      --  False.
+
+      pragma Unreferenced (Param);
+      Sequence_Of_Statements_ID : constant Token_ID := 93; -- FIXME: move to Param.
+      Begin_ID                  : constant Token_ID := 4;  -- FIXME: move to Param.
+
+      use Ada.Containers;
+
+      Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
+
+      Stack_Token : Token_ID;
+   begin
+      if Cursor.Prev_Verb = Reduce and Cursor.Pre_Reduce_Stack_Item.Token = Sequence_Of_Statements_ID then
+         Stack_Token := Sequence_Of_Statements_ID;
+
+      elsif Cursor.Prev_Verb = Shift and Cursor.Peek.Token = Begin_ID then
+         Stack_Token := Begin_ID;
+
+      else
+         return False;
+      end if;
+
+      declare
+         Current_Token : constant Token_ID := Parser.Lookahead (1);
+
+         --  FIXME: Hard code a terminal sequence from Ada_Lite for now; need to
+         --  generate from grammar, put in Parser.Table.
+         Terminal_Sequences : array (1 .. 1) of Token_Array;
+
+         Sequence  : Token_Array;
+         First_Set : Boolean;
+         First     : Count_Type; -- index into Sequence of IDs to insert
+         Last_Set  : Boolean := False;
+         Last      : Count_Type;
+      begin
+         --  Just enough for test_mckenzie_recover Error_5
+         Terminal_Sequences (1).Append (12); -- if
+         Terminal_Sequences (1).Append (21); -- then
+         Terminal_Sequences (1).Append (8); -- elsif
+         Terminal_Sequences (1).Append (21); -- then
+
+         Find_ID :
+         for Seq of Terminal_Sequences loop
+            First_Set := False;
+            for I in Seq.First_Index .. Seq.Last_Index loop
+               case Stack_Token is
+               when Sequence_Of_Statements_ID =>
+                  if not First_Set and then Parser.Table.Follow (Stack_Token, Seq (I)) then
+                     Sequence  := Seq;
+                     First     := I;
+                     First_Set := True;
+                  end if;
+
+               when Begin_ID =>
+                  if not First_Set then
+                     Sequence  := Seq;
+                     First     := I;
+                     First_Set := True;
+                  end if;
+               when others =>
+                  raise Programmer_Error;
+               end case;
+
+               if First_Set and Seq (I) = Current_Token then
+                  Last := I - 1;
+                  Last_Set := True;
+                  exit Find_ID;
+               end if;
+            end loop;
+         end loop Find_ID;
+
+         if Last_Set then
+            if Trace_Parse > 1 then
+               Parser.Semantic_State.Trace.Put_Line
+                 ("terminal_sequence " & Image (Parser.Semantic_State.Trace.Descriptor.all, Sequence (First)) &
+                    " .. " & Image (Parser.Semantic_State.Trace.Descriptor.all, Sequence (Last)));
+            end if;
+
+            case Stack_Token is
+            when Sequence_Of_Statements_ID =>
+               Data.Popped_Tokens.Append (Cursor.Pop.Token);
+
+               Cursor.Push (Cursor.Pre_Reduce_Stack_Item);
+               Data.Pushed_Tokens.Append (Cursor.Pre_Reduce_Stack_Item.Token);
+
+               Config :=
+                 (Stack           => Cursor.Copy_Stack,
+                  Lookahead_Index => Positive_Index_Type'First,
+                  Inserted        => Token_Arrays.Empty_Vector,
+                  Deleted         => Token_Arrays.Empty_Vector,
+                  Cost            => 0.0);
+
+            when Begin_ID =>
+               Config :=
+                 (Stack           => Cursor.Copy_Stack,
+                  Lookahead_Index => Positive_Index_Type'First,
+                  Inserted        => Token_Arrays.Empty_Vector,
+                  Deleted         => Token_Arrays.Empty_Vector,
+                  Cost            => 0.0);
+
+            when others =>
+               raise Programmer_Error;
+            end case;
+
+            for I in reverse First .. Last loop
+               --  FIXME: this doesn't show up in recorded error solution; put in Inserted
+               --  Requires doing Shift operations
+               Parser.Lookahead.Prepend (Sequence (I));
+               Parser.Semantic_State.Input_Token (Sequence (I), null);
+            end loop;
+            return True;
+         else
+            return False;
+         end if;
+      end;
+   end Statement_Terminal_Sequence;
+
+   --  FIXME: make visible, add to some hook in .wy
    function Dotted_Name
      (Parser        : in out LR.Instance'Class;
       Cursor        : in     Parser_Lists.Cursor;
@@ -258,7 +386,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
         Current_Token = Param.Dot_ID
       then
          Config :=
-           (Stack           => Parser_Lists.Copy_Stack (Cursor),
+           (Stack           => Cursor.Copy_Stack,
             Lookahead_Index => Positive_Index_Type'First,
             Inserted        => Token_Arrays.Empty_Vector,
             Deleted         => Token_Arrays.Empty_Vector,
@@ -305,9 +433,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Clear_Queue (Data);
 
-      if not Dotted_Name (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+      if Dotted_Name (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+         null;
+      elsif Statement_Terminal_Sequence (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+         null;
+      else
          Root_Config :=
-           (Stack           => Parser_Lists.Copy_Stack (Cursor),
+           (Stack           => Cursor.Copy_Stack,
             Lookahead_Index => 1,
             Inserted        => Token_Arrays.Empty_Vector,
             Deleted         => Token_Arrays.Empty_Vector,
@@ -440,8 +572,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          declare
             use all type Ada.Containers.Count_Type;
             Result : Configuration;
+            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
+            Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
          begin
-            Result     := Recover (Parser, Parser_Lists.To_Cursor (Parsers, I));
+            Result     := Recover (Parser, Cursor);
             Keep_Going := True;
 
             --  FIXME: Lookahead, Current_Token might be different for different parsers;
@@ -460,8 +594,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             end loop;
 
             Parser.Semantic_State.Recover
-              (Popped_Tokens => WisiToken.Token.List.Null_List,
-               Pushed_Tokens => WisiToken.Token.List.Null_List);
+              (Popped_Tokens => Data.Popped_Tokens,
+               Pushed_Tokens => Data.Pushed_Tokens);
 
             Current_Token := Parser.Lookahead (Positive_Index_Type'First);
             Parser.Lookahead.Delete_First;

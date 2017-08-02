@@ -124,6 +124,8 @@ package body WisiToken.Parser.LR.Parser is
          end;
 
       when Reduce =>
+         Current_Parser.Pre_Reduce_Stack_Save;
+
          Reduce_Stack (Current_Parser, Action, Parser.Semantic_State);
 
          Current_Parser.Push
@@ -341,6 +343,7 @@ package body WisiToken.Parser.LR.Parser is
                   else
                      Parser.Semantic_State.Trace.Put_Line ("recover: fail");
                   end if;
+                  Parser.Semantic_State.Trace.New_Line;
                end if;
 
                if Keep_Going and Parsers.Count = 1 then
@@ -456,10 +459,11 @@ package body WisiToken.Parser.LR.Parser is
    is begin
       return
         (Lexer, Table, Semantic_State'Access, Empty_Token_Array,
-         Max_Parallel, First_Parser_Label,
-         Terminate_Same_State    => True,
          Enable_Panic_Recover    => False,
-         Enable_McKenzie_Recover => False);
+         Enable_McKenzie_Recover => False,
+         Max_Parallel            => Max_Parallel,
+         First_Parser_Label      => First_Parser_Label,
+         Terminate_Same_State    => True);
    end New_Parser;
 
 end WisiToken.Parser.LR.Parser;

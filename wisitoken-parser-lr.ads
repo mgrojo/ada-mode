@@ -256,7 +256,11 @@ package WisiToken.Parser.LR is
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
       Semantic_State : access WisiToken.Token.Semantic_State'Class;
-      Lookahead      : aliased Token_Arrays.Vector; -- Filled by recover algorithms; use before calling Lexer.Find_Next
+      Lookahead      : aliased Token_Arrays.Vector;
+      --  Filled by recover algorithms; use before calling Lexer.Find_Next
+
+      Enable_Panic_Recover    : Boolean;
+      Enable_McKenzie_Recover : Boolean;
    end record;
 
    ----------

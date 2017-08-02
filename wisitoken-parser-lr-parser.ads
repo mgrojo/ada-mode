@@ -25,11 +25,9 @@ with WisiToken.Token;
 package WisiToken.Parser.LR.Parser is
 
    type Instance is new WisiToken.Parser.LR.Instance with record
-      Max_Parallel            : Integer;
-      First_Parser_Label      : Integer;
-      Terminate_Same_State    : Boolean;
-      Enable_Panic_Recover    : Boolean;
-      Enable_McKenzie_Recover : Boolean;
+      Max_Parallel         : Integer;
+      First_Parser_Label   : Integer;
+      Terminate_Same_State : Boolean;
    end record;
 
    function New_Parser

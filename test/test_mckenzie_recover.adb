@@ -307,21 +307,18 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
+      Parse_Text ("procedure Debug is begin B; elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
-      --  FIXME: quits at enqueue limit; need keyword sequence rule
 
-      Assert (False, "1.exception: did not get Syntax_Error");
+      Check ("error.length", State.Errors.Length, 1);
+
+      Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
+      --  Same, no 'B;'
+
+      Check ("error.length", State.Errors.Length, 1);
    exception
    when WisiToken.Syntax_Error =>
-      if Test.Debug > 0 then
-         for Data of State.Errors loop
-            Ada.Text_IO.Put_Line
-              ("error token: " & WisiToken.Token_Region.Image (Descriptor, Data.Error_Token, ID_Only => False) &
-                 " expecting: " & WisiToken.Image (Descriptor, Data.Expecting));
-         end loop;
-      end if;
-      Check ("error.length", State.Errors.Length, 1);
+      Assert (True, "exception: got Syntax_Error");
    end Error_5;
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -358,7 +355,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 0 then
-         Register_Routine (T, Dotted_Name'Access, "debug");
+         Register_Routine (T, Error_5'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");

@@ -25,27 +25,27 @@ package body WisiToken.Parser.LR.Parser_Lists is
      (First_State_Index  : in State_Index;
       First_Parser_Label : in Integer)
      return List
-   is begin
+   is
+      Stack : Parser_Stacks.Stack_Type;
+   begin
+      Stack.Push ((First_State_Index, Invalid_Token));
+
       return
         (Parser_Label          => First_Parser_Label,
          Head                  => new Parser_Node'
            (Item               =>
               (Label           => First_Parser_Label,
                Verb            => Parse_Action_Verbs'First,
-               Stack           => new Stack_Node'
-                 (Item         =>
-                    (State     => First_State_Index,
-                     Token     => Invalid_Token),
-                  Next         => null),
+               Prev_Verb       => Parse_Action_Verbs'First,
+               Stack           => Stack,
+               Pre_Reduce_Item => Default_Stack_Item,
                Pending_Actions => (null, null),
                Recover         => null),
             Next               => null,
             Prev               => null),
          Parser_Free           => null,
-         Stack_Free            => null,
          Action_Token_Free     => null,
          Count                 => 1);
-
    end New_List;
 
    function Count (List : in Parser_Lists.List) return Integer
@@ -82,6 +82,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs)
    is begin
+      Cursor.Ptr.Item.Prev_Verb := Cursor.Ptr.Item.Verb;
+
       Cursor.Ptr.Item.Verb := Verb;
    end Set_Verb;
 
@@ -89,6 +91,11 @@ package body WisiToken.Parser.LR.Parser_Lists is
    is begin
       return Cursor.Ptr.Item.Verb;
    end Verb;
+
+   function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
+   is begin
+      return Cursor.Ptr.Item.Prev_Verb;
+   end Prev_Verb;
 
    procedure Set_Recover (Cursor : in Parser_Lists.Cursor; Data : in Recover_Data_Access)
    is begin
@@ -103,117 +110,94 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
    is begin
-      return Cursor.Ptr.Item.Stack = null;
+      return Cursor.Ptr.Item.Stack.Is_Empty;
    end Stack_Empty;
 
    function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type
    is
-      Ptr    : Stack_Node_Access := Cursor.Ptr.Item.Stack;
-      Temp   : State_Stacks.Stack_Type;
       Result : State_Stacks.Stack_Type;
-      --  no append for Stack_Type (faster to do this); build inverted, copy to revert
+
+      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
+
+      Depth : constant Parser_Stack_Interfaces.Positive_Count_Type := Stack.Depth;
    begin
-      loop
-         exit when Ptr = null;
-         Temp.Push (Ptr.Item.State);
-         Ptr := Ptr.Next;
-      end loop;
-      loop
-         exit when Temp.Is_Empty;
-         Result.Push (Temp.Pop);
+      Result.Set_Depth (Depth);
+      for I in 1 .. Stack.Depth loop
+         Result.Set (I, Depth, Stack.Peek (I).State);
       end loop;
       return Result;
    end Copy_Stack;
 
    function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item
-   is
-      Ptr : Stack_Node_Access := Cursor.Ptr.Item.Stack;
-   begin
-      --  We don't check if Depth is > stack size; that's a severe programming error.
-      for I in 2 .. Depth loop
-         Ptr := Ptr.Next;
-      end loop;
-      return Ptr.Item;
+   is begin
+      return Cursor.Ptr.Item.Stack.Peek (Parser_Stack_Interfaces.Positive_Count_Type (Depth));
    end Peek;
 
-   procedure Free (List : in out Parser_Lists.List; Stack : in out Stack_Node_Access)
-   is
-      Temp_Free : constant Stack_Node_Access := List.Stack_Free;
-   begin
-      List.Stack_Free := Stack;
-      Stack           := Stack.Next; -- not null; for free (cursor) below
-
-      List.Stack_Free.all :=
-        (Item     =>
-           (State => Unknown_State,
-            Token => Token_ID'First),
-         Next     => Temp_Free);
-   end Free;
-
    function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
-   is
-      Result : constant Stack_Item := Cursor.Ptr.Item.Stack.Item;
-   begin
-      Free (Cursor.List.all, Cursor.Ptr.Item.Stack);
-
-      return Result;
+   is begin
+      return Cursor.Ptr.Item.Stack.Pop;
    end Pop;
 
    procedure Pop (Cursor : in Parser_Lists.Cursor)
    is begin
-      Free (Cursor.List.all, Cursor.Ptr.Item.Stack);
+      Cursor.Ptr.Item.Stack.Pop;
    end Pop;
 
    procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item)
-   is
-      Temp : constant Stack_Node_Access := Cursor.List.Stack_Free;
-   begin
-      if Temp = null then
-         Cursor.Ptr.Item.Stack := new Stack_Node'(Item, Cursor.Ptr.Item.Stack);
-      else
-         Cursor.List.Stack_Free := Cursor.List.Stack_Free.Next;
-         Temp.all               := (Item, Cursor.Ptr.Item.Stack);
-         Cursor.Ptr.Item.Stack  := Temp;
-      end if;
+   is begin
+      Cursor.Ptr.Item.Stack.Push (Item);
    end Push;
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean
    is
-      use type Token_ID;
-
-      Stack_1 : Stack_Node_Access := Cursor_1.Ptr.Item.Stack;
-      Stack_2 : Stack_Node_Access := Cursor_2.Ptr.Item.Stack;
+      use all type Parser_Stacks.Stack_Type;
    begin
-      loop
-         exit when Stack_1 = null or Stack_2 = null;
-         if not
-           (Stack_1.Item.State = Stack_2.Item.State and
-              Stack_1.Item.Token = Stack_2.Item.Token)
-         then
-            return False;
-         end if;
-         Stack_1 := Stack_1.Next;
-         Stack_2 := Stack_2.Next;
-      end loop;
-      return Stack_1 = null and Stack_2 = null;
+      return Cursor_1.Ptr.Item.Stack = Cursor_2.Ptr.Item.Stack;
    end Stack_Equal;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
-      Stack_I : Stack_Node_Access := Cursor.Ptr.Item.Stack;
+      use Parser_Stack_Interfaces;
+      use all type Ada.Containers.Count_Type;
+
+      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
+      Last  : constant Positive_Count_Type := Positive_Count_Type'Min (10, Stack.Depth);
    begin
       Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
-      for I in 1 .. 10 loop
-         exit when Stack_I = null;
+      for I in 1 .. Last loop
          Trace.Put
-           (State_Index'Image (Stack_I.Item.State) & " : " &
-              (if Stack_I.Next = null
+           (State_Index'Image (Stack.Peek (I).State) & " : " &
+              (if I = Last
                then ""
-               else Image (Trace.Descriptor.all, Stack_I.Item.Token) & ", "));
-         Stack_I := Stack_I.Next;
+               else Image (Trace.Descriptor.all, Stack.Peek (I).Token) & ", "));
       end loop;
       Trace.New_Line;
    end Put_Top_10;
+
+   procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
+   is begin
+      Cursor.Ptr.Item.Pre_Reduce_Item := Cursor.Ptr.Item.Stack.Peek;
+   end Pre_Reduce_Stack_Save;
+
+   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type
+   is
+      Result : State_Stacks.Stack_Type;
+
+      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
+
+      Depth : constant Parser_Stack_Interfaces.Positive_Count_Type := Stack.Depth;
+   begin
+      Result.Set_Depth (Depth);
+      for I in 1 .. Stack.Depth loop
+         Result.Set (I, Depth, Stack.Peek (I).State);
+      end loop;
+      return Result;
+   end Copy_Stack;
+
+   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   is begin
+      return Cursor.Ptr.Item.Pre_Reduce_Item;
+   end Pre_Reduce_Stack_Item;
 
    function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer
    is
@@ -299,11 +283,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
    end Pending_Actions_Empty;
 
    procedure Deep_Copy
-     (Stack               : in     Stack_Node_Access;
-      Stack_Free          : in out Stack_Node_Access;
-      Pending_Actions     : in     Action_Token_List;
+     (Pending_Actions     : in     Action_Token_List;
       Action_Token_Free   : in out Action_Token_Node_Access;
-      New_Stack           :    out Stack_Node_Access;
       New_Pending_Actions :    out Action_Token_List)
    is
       use Token.List;
@@ -311,44 +292,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
       J          : Action_Token_Node_Access := Pending_Actions.Head;
       Iter       : List_Iterator;
       New_Tokens : Token.List.Instance;
-
-      I    : Stack_Node_Access := Stack;
-      Copy : Stack_Node_Access;
-      Temp : Stack_Node_Access;
-
-      New_Stack_Item   : Stack_Item;
    begin
 
-      --  Create a copy of Stack in Copy, in reverse order.
-      loop
-         exit when I = null;
-
-         New_Stack_Item := I.Item;
-
-         if Stack_Free = null then
-            Copy := new Stack_Node'(New_Stack_Item, Copy);
-         else
-            Temp       := Copy;
-            Copy       := Stack_Free;
-            Stack_Free := Stack_Free.Next;
-            Copy.all   := (New_Stack_Item, Temp);
-         end if;
-         I := I.Next;
-      end loop;
-
-      --  Move to New_Stack, in correct order.
-      I         := Copy;
-      New_Stack := null;
-
-      loop
-         exit when I = null;
-         Temp      := I.Next;
-         I.Next    := New_Stack;
-         New_Stack := I;
-         I         := Temp;
-      end loop;
-
-      --  Copy Pending_Actions
       J := Pending_Actions.Head;
       loop
          exit when J = null;
@@ -374,24 +319,23 @@ package body WisiToken.Parser.LR.Parser_Lists is
    is
       Temp : constant Parser_Node_Access := List.Parser_Free;
 
-      New_Stack        : Stack_Node_Access;
       New_Action_Token : Action_Token_List;
 
       New_Parser : Parser_Node;
    begin
-      Deep_Copy
-        (Cursor.Ptr.Item.Stack, List.Stack_Free, Cursor.Ptr.Item.Pending_Actions, List.Action_Token_Free,
-         New_Stack, New_Action_Token);
+      Deep_Copy (Cursor.Ptr.Item.Pending_Actions, List.Action_Token_Free, New_Action_Token);
 
       New_Parser :=
-        (Item =>
-           (List.Parser_Label + 1,
-            Cursor.Ptr.Item.Verb,
-            New_Stack,
-            New_Action_Token,
-            null),
-         Next => List.Head,
-         Prev => null);
+        (Item               =>
+           (Label           => List.Parser_Label + 1,
+            Verb            => Cursor.Ptr.Item.Verb,
+            Prev_Verb       => Cursor.Ptr.Item.Prev_Verb,
+            Stack           => Cursor.Ptr.Item.Stack,
+            Pre_Reduce_Item => Cursor.Ptr.Item.Pre_Reduce_Item,
+            Pending_Actions => New_Action_Token,
+            Recover         => null),
+         Next               => List.Head,
+         Prev               => null);
 
       List.Parser_Label := List.Parser_Label + 1;
       List.Count        := List.Count + 1;
@@ -411,7 +355,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class)
    is
       Temp_Free    : constant Parser_Node_Access := Cursor.List.Parser_Free;
-      Stack        : Stack_Node_Access           := Cursor.Ptr.Item.Stack;
       Action_Token : Action_Token_Node_Access    := Cursor.Ptr.Item.Pending_Actions.Head;
    begin
       Cursor.List.Count := Cursor.List.Count - 1;
@@ -433,11 +376,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
       Cursor.List.Parser_Free.Next := Temp_Free;
       Cursor.List.Parser_Free.Prev := null;
-
-      loop
-         exit when Stack = null;
-         Free (Cursor.List.all, Stack);
-      end loop;
 
       loop
          exit when Action_Token = null;
@@ -541,19 +479,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
       end loop;
       return Result;
    end Parser_Free_Count;
-
-   function Stack_Free_Count (List : in Parser_Lists.List) return Integer
-   is
-      Result : Integer := 0;
-      Node   : Stack_Node_Access := List.Stack_Free;
-   begin
-      loop
-         exit when Node = null;
-         Result := Result + 1;
-         Node   := Node.Next;
-      end loop;
-      return Result;
-   end Stack_Free_Count;
 
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer
    is

@@ -93,26 +93,20 @@ package body Parser_Lists_Test is
    begin
       Check ("1: Pop", Cursor.Pop, (0, WisiToken.Invalid_Token));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
-      Check ("1: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
 
       Cursor.Push (Item_1);
-      Check ("2a: Stack_Free_Count", Parsers.Stack_Free_Count, 0);
       Check ("2a: Stack_Empty", Cursor.Stack_Empty, False);
       Check ("2: Pop", Cursor.Pop, Item_1);
-      Check ("2b: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
       Check ("2b: Stack_Empty", Cursor.Stack_Empty, True);
 
       Cursor.Push (Item_1);
       Cursor.Push (Item_2);
-      Check ("3a: Stack_Free_Count", Parsers.Stack_Free_Count, 0);
       Check ("3a: Stack_Empty", Cursor.Stack_Empty, False);
       Check ("3b: Pop", Cursor.Pop, Item_2);
       Check ("3b: Peek.State", Cursor.Peek.State, Item_1.State);
-      Check ("3b: Stack_Free_Count", Parsers.Stack_Free_Count, 1);
       Check ("3b: Stack_Empty", Cursor.Stack_Empty, False);
 
       Check ("3c: Pop", Cursor.Pop, Item_1);
-      Check ("3c: Stack_Free_Count", Parsers.Stack_Free_Count, 2);
       Check ("3c: Stack_Empty", Cursor.Stack_Empty, True);
    end Stack;
 

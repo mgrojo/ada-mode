@@ -4,15 +4,6 @@ build/Makefile
 better syntax error handling
     "d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf"
 
-    rename mckenzie to dpa_explore?
-        dpa = deterministic parsing automata (McKenzie)
-            = Deterministic Pushdown Automata (Wikipedia, Grune)
-
-        aflex uses "dfa" deterministic finite automata
-        grune also uses 'deterministic fs automata' (Finite State)
-
-        includes special rules
-
     t_one RUN_ARGS=1
         Error_5
             deleted 'if then'
@@ -25,6 +16,24 @@ better syntax error handling
 
                 code data structure for output of terminal_sequences by hand for if_statement
                 code special function, see if it works
+                    'if' _not_ in Follow (116 sequence_of_statements_opt)
+                    need to save state before reduction; state 122, procedure_call_statement
+                        'if' is in that follow
+                        _not_ the same as McKenzie save state; that was about default reductions.
+                        also not due to LALR state confusion; ada_lite.lr1_parse_table shows same issue
+                        This is about handled_sequence_of_statements not being a list!?
+                        only need to save previous state, nonterm, not full stack, and only if reduce is by 1 item
+
+                    rule must check that prev_non_term is sequence_of_statements, then search only statement
+                    terminal sequences.
+
+                arg. Different if no preceding statement:
+                    0: 30: BEGIN : shift and goto state 35
+                    0: 35: ELSIF : ERROR
+
+                works
+                    move param into .wy
+                    include 'statement' as root nonterm to search for sequences
 
             new algorithm 2:
                 adjust mckenzie costs to include terminal sequences
@@ -54,6 +63,15 @@ better syntax error handling
                     need to recurse into nonterms
                         ie insert "elsif then" in 'if_statement'
 
+    rename mckenzie to dpa_explore?
+        dpa = deterministic parsing automata (McKenzie)
+            = Deterministic Pushdown Automata (Wikipedia, Grune)
+
+        aflex uses "dfa" deterministic finite automata
+        grune also uses 'deterministic fs automata' (Finite State)
+
+        includes special rules
+
     test with parallel parsers
         force a conflict
         don't terminate any if all fail
@@ -81,6 +99,8 @@ better syntax error handling
         use tasks for multi-processor?
 
         compress parser table via default reduce?
+
+        set initial capacity on stacks
 
 wisi-generate accept two output languages
     a lot is shared

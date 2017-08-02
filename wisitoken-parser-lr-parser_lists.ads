@@ -50,6 +50,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
+   function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
    procedure Set_Recover (Cursor : in Parser_Lists.Cursor; Data : in Recover_Data_Access);
 
@@ -63,6 +64,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       State : Unknown_State_Index;
       Token : Token_ID;
    end record;
+   Default_Stack_Item : constant Stack_Item := (Unknown_State, Invalid_Token);
 
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item;
@@ -75,6 +77,14 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
+
+   procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor);
+   --  Save a copy of top Cursor.Stack item.
+   --
+   --  McKenzie error recover algorithm needs the parse state before
+   --  last reduce action.
+
+   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Stack_Item;
 
    --  pending user actions
    type Action_Token is record
@@ -139,7 +149,6 @@ package WisiToken.Parser.LR.Parser_Lists is
    --  For unit tests, debug assertions
 
    function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
-   function Stack_Free_Count (List : in Parser_Lists.List) return Integer;
    function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
@@ -147,13 +156,8 @@ package WisiToken.Parser.LR.Parser_Lists is
 
 private
 
-   --  FIXME: change stack to bounded vector
-   type Stack_Node;
-   type Stack_Node_Access is access Stack_Node;
-   type Stack_Node is record
-      Item : Stack_Item;
-      Next : Stack_Node_Access;
-   end record;
+   package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Stack_Item);
+   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Stack_Item, Parser_Stack_Interfaces);
 
    type Action_Token_Node;
    type Action_Token_Node_Access is access Action_Token_Node;
@@ -172,10 +176,12 @@ private
    function Count (Action_Token : in Action_Token_List) return Integer;
 
    type Parser_State is record
-      Label           : Integer;            -- for debugging
+      Label           : Integer;            -- for debugging/verbosity
       Verb            : Parse_Action_Verbs; -- last action performed
-      Stack           : Stack_Node_Access;
-      Pending_Actions : Action_Token_List;  --  FIXME: include panic/recovery ;
+      Prev_Verb       : Parse_Action_Verbs; -- previous action performed
+      Stack           : Parser_Stacks.Stack_Type;
+      Pre_Reduce_Item : Stack_Item := Default_Stack_Item;
+      Pending_Actions : Action_Token_List;  --  FIXME: include panic/recovery
       Recover         : Recover_Data_Access;
    end record;
 
@@ -192,7 +198,6 @@ private
       Parser_Label      : Integer;
       Head              : Parser_Node_Access;
       Parser_Free       : Parser_Node_Access;
-      Stack_Free        : Stack_Node_Access;
       Action_Token_Free : Action_Token_Node_Access;
       Count             : Integer;
    end record;
