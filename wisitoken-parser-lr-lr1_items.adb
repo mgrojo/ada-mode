@@ -227,19 +227,29 @@ package body WisiToken.Parser.LR.LR1_Items is
      return Token_ID_Set
    is
       use type Token.List.List_Iterator;
-      Result : Token_ID_Set := (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal => False);
-      Prod_I : Production.List.List_Iterator := Production.List.First (Grammar);
-      Prod   : Production.Instance;
-      RHS_I  : Token.List.List_Iterator;
+      subtype Nonterminal is Token_ID range Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal;
+      Result  : Token_ID_Set                  := (Nonterminal => False);
+      Prod_I  : Production.List.List_Iterator := Production.List.First (Grammar);
+      Prod    : Production.Instance;
+      RHS_I   : Token.List.List_Iterator;
+      Changed : Boolean                       := True;
    begin
-      while not Production.List.Is_Done (Prod_I) loop
-         Prod  := Production.List.Current (Prod_I);
-         RHS_I := Prod.RHS.Tokens.First;
+      loop
+         exit when not Changed;
+         Changed := False;
+         while not Production.List.Is_Done (Prod_I) loop
+            Prod  := Production.List.Current (Prod_I);
+            RHS_I := Prod.RHS.Tokens.First;
 
-         if RHS_I = Token.List.Null_Iterator then
-            Result (Prod.LHS) := True;
-         end if;
-         Production.List.Next (Prod_I);
+            if (RHS_I = Token.List.Null_Iterator or else
+                  (Token.List.ID (RHS_I) in Nonterminal and then Result (Token.List.ID (RHS_I)))) and
+              not Result (Prod.LHS)
+            then
+               Result (Prod.LHS) := True;
+               Changed := True;
+            end if;
+            Production.List.Next (Prod_I);
+         end loop;
       end loop;
       return Result;
    end Has_Empty_Production;

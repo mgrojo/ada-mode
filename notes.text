@@ -15,18 +15,6 @@ better syntax error handling
                     insert that sequence subset
 
                 improve terminal_sequences_1.adb to produce required data
-                    Empty (association_list) /= True!?
-                        has_empty is not transitive; it should be?
-                            used in First, Follow, Fill_In_Lookaheads
-                                in First, has_empty should be transitive
-
-                            First, Fill_In_Lookaheads used in lalr_generator
-                            First used in lr1_generator
-
-                        write test of has_empty, first for ada_lite
-                            add to test_follow, make it pass; done
-                            then make has_empty transitive, see what changes.
-                            also run other tests
 
                     search for preceding terminal/nonterminal
 

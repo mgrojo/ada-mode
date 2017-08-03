@@ -182,6 +182,8 @@ package WisiToken.Parser.LR.LR1_Items is
      (Grammar    : in Production.List.Instance;
       Descriptor : in WisiToken.Descriptor'Class)
      return Token_ID_Set;
+   --  Result (ID) is True if any production for ID can be an empty
+   --  production, recursively.
 
    function First
      (Grammar              : in Production.List.Instance;

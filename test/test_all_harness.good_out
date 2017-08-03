@@ -32,16 +32,20 @@ OK ../Test/parser_lists_test.adb : Copy
 OK ../Test/test_accept_state.adb : Nominal
 OK ../Test/test_character_literal.adb : Nominal
 OK ../Test/test_follow.adb : Subprograms.One
+OK ../Test/test_follow.adb : Test_Ada_Lite.One
 OK ../Test/test_lr_expecting.adb : Nominal
-OK ../Test/test_panic_mode.adb : No_Error
-OK ../Test/test_panic_mode.adb : Error_1
-OK ../Test/test_panic_mode.adb : Error_2
-OK ../Test/test_panic_mode.adb : Error_3
+OK test_panic_mode.adb : No_Error
+OK test_panic_mode.adb : Error_1
+OK test_panic_mode.adb : Error_2
+OK test_panic_mode.adb : Error_3
+OK test_panic_mode.adb : Error_4
+OK test_panic_mode.adb : Error_5
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   40
-Successful Tests:  40
+
+Total Tests Run:   43
+Successful Tests:  43
 Failed Assertions: 0
 Unexpected Errors: 0

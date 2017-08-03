@@ -181,8 +181,12 @@ package body Test_Follow is
             Has_Empty : constant WisiToken.Token_ID_Set := WisiToken.Parser.LR.LR1_Items.Has_Empty_Production
               (Grammar, Descriptor);
 
-            Expected_Has_Empty : WisiToken.Token_ID_Set (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal)
-              := (others => False);
+            Expected_Has_Empty : constant WisiToken.Token_ID_Set
+              (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) := Token_Enum.To_Token_ID_Set
+                ((association_opt_ID | association_list_ID | declarative_part_opt_ID | expression_opt_ID |
+                    identifier_opt_ID | name_opt_ID | parameter_profile_opt_ID | parameter_specification_ID |
+                    parameter_specification_list_ID | sequence_of_statements_opt_ID => True,
+                  others => False));
 
             First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
               (Grammar, Descriptor, Has_Empty, Trace => False);
@@ -203,7 +207,7 @@ package body Test_Follow is
                      unary_adding_operator_ID => True,
                    others => False),
                 association_list_ID =>
-                  (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID |
+                  (COMMA_ID | LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID |
                      association_opt_ID | association_list_ID | expression_ID | expression_opt_ID | factor_ID |
                      name_ID | paren_expression_ID | primary_ID | relation_and_list_ID | relation_or_list_ID |
                      relation_xor_list_ID | relation_ID | selected_component_ID | simple_expression_ID | term_ID |
@@ -297,7 +301,7 @@ package body Test_Follow is
                 parameter_profile_opt_ID => (LEFT_PAREN_ID | formal_part_ID => True, others => False),
                 parameter_specification_ID => (IDENTIFIER_ID => True, others => False),
                 parameter_specification_list_ID =>
-                  (IDENTIFIER_ID | parameter_specification_ID | parameter_specification_list_ID => True,
+                  (IDENTIFIER_ID | SEMICOLON_ID | parameter_specification_ID | parameter_specification_list_ID => True,
                    others => False),
                 paren_expression_ID => (LEFT_PAREN_ID => True, others => False),
                 primary_ID =>
@@ -558,15 +562,6 @@ package body Test_Follow is
                 others => (others => False)));
 
          begin
-            Expected_Has_Empty (+association_opt_ID)           := True;
-            Expected_Has_Empty (+declarative_part_opt_ID)      := True;
-            Expected_Has_Empty (+expression_opt_ID)            := True;
-            Expected_Has_Empty (+identifier_opt_ID)            := True;
-            Expected_Has_Empty (+name_opt_ID)                  := True;
-            Expected_Has_Empty (+parameter_profile_opt_ID)     := True;
-            Expected_Has_Empty (+parameter_specification_ID)   := True;
-            Expected_Has_Empty (+sequence_of_statements_opt_ID) := True;
-
             if Test.Debug then
                Put_Line ("Computed First: ");
                WisiToken.Put (Descriptor, First);
