@@ -11,29 +11,28 @@ better syntax error handling
             new algorithm 1:
                 if error symbol is in a terminal sequence:
                         need fast lookup; use linear search for now
-                    find first terminal in sequence that is in follow (current state)
-                    insert that terminal, subsequent to error sybmol
+                    find first terminal in sequence that is in follow (current state), or equiv
+                    insert that sequence subset
 
-                code data structure for output of terminal_sequences by hand for if_statement
-                code special function, see if it works
-                    'if' _not_ in Follow (116 sequence_of_statements_opt)
-                    need to save state before reduction; state 122, procedure_call_statement
-                        'if' is in that follow
-                        _not_ the same as McKenzie save state; that was about default reductions.
-                        also not due to LALR state confusion; ada_lite.lr1_parse_table shows same issue
-                        This is about handled_sequence_of_statements not being a list!?
-                        only need to save previous state, nonterm, not full stack, and only if reduce is by 1 item
+                improve terminal_sequences_1.adb to produce required data
+                    Empty (association_list) /= True!?
+                        has_empty is not transitive; it should be?
+                            used in First, Follow, Fill_In_Lookaheads
+                                in First, has_empty should be transitive
 
-                    rule must check that prev_non_term is sequence_of_statements, then search only statement
-                    terminal sequences.
+                            First, Fill_In_Lookaheads used in lalr_generator
+                            First used in lr1_generator
 
-                arg. Different if no preceding statement:
-                    0: 30: BEGIN : shift and goto state 35
-                    0: 35: ELSIF : ERROR
+                        write test of has_empty, first for ada_lite
+                            add to test_follow, make it pass; done
+                            then make has_empty transitive, see what changes.
+                            also run other tests
 
-                works
-                    move param into .wy
-                    include 'statement' as root nonterm to search for sequences
+                    search for preceding terminal/nonterminal
+
+                move param into .wy
+
+                move terminal_sequences.adb into wisi-*
 
             new algorithm 2:
                 adjust mckenzie costs to include terminal sequences
@@ -46,7 +45,14 @@ better syntax error handling
 
 
             two ways to build terminal sequences:
+                process grammar to generate keyword sequences separated by empty nonterms
+                    terminal_sequences_1.adb
+                    need to recurse into _some_ nonterms
+                        ie insert "elsif then" in 'if_statement'
+                        hard to know which to recurse; annotate grammar?
+
                 search dpa backwards from elsif; insert 'if then'
+                    terminal_sequences_2.adb
                     the only state that shifts elsif is 184 elsif_statement_list <=
                     the only 'goto state 184' is in 165 'if_statement <=' on elsif_statement_list
                     the only 'goto state 165' is in 156 'if_statement <=' on sequence_of_statements_opt
@@ -56,12 +62,9 @@ better syntax error handling
                     expression_opt includes empty
                     many 'goto state 97'; all on 'shift IF' => insert IF, terminate
 
-                    search all non-first keywords in 'declarations', 'statements'?
+                    search all productions in 'declarations', 'statements'?
+                        start with final terminal, work backward to first
 
-                process grammar to generate keyword sequences separated by empty nonterms
-                    terminal_sequences.adb
-                    need to recurse into nonterms
-                        ie insert "elsif then" in 'if_statement'
 
     rename mckenzie to dpa_explore?
         dpa = deterministic parsing automata (McKenzie)

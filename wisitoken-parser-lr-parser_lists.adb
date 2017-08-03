@@ -179,21 +179,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Cursor.Ptr.Item.Pre_Reduce_Item := Cursor.Ptr.Item.Stack.Peek;
    end Pre_Reduce_Stack_Save;
 
-   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type
-   is
-      Result : State_Stacks.Stack_Type;
-
-      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
-
-      Depth : constant Parser_Stack_Interfaces.Positive_Count_Type := Stack.Depth;
-   begin
-      Result.Set_Depth (Depth);
-      for I in 1 .. Stack.Depth loop
-         Result.Set (I, Depth, Stack.Peek (I).State);
-      end loop;
-      return Result;
-   end Copy_Stack;
-
    function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Stack_Item
    is begin
       return Cursor.Ptr.Item.Pre_Reduce_Item;
