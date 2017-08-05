@@ -129,7 +129,7 @@ package Ada_Grammar_Process is
       STRING_LITERAL_ID,
       CHARACTER_LITERAL_ID,
       Wisi_EOI_ID,
-      fasttoken_accept_ID,
+      wisitoken_accept_ID,
       abstract_limited_synchronized_opt_ID,
       abstract_limited_opt_ID,
       abstract_tagged_limited_opt_ID,
@@ -484,7 +484,7 @@ package Ada_Grammar_Process is
          new String'("STRING_LITERAL"),
          new String'("CHARACTER_LITERAL"),
          new String'("Wisi_EOI"),
-         new String'("fasttoken_accept"),
+         new String'("wisitoken_accept"),
          new String'("abstract_limited_synchronized_opt"),
          new String'("abstract_limited_opt"),
          new String'("abstract_tagged_limited_opt"),
@@ -718,7 +718,8 @@ package Ada_Grammar_Process is
          new String'("unary_adding_operator"),
          new String'("use_clause"),
          new String'("with_clause")),
-      Image_Width => 38);
+      Terminal_Image_Width => 17,
+      Image_Width          => 38);
 
 
 

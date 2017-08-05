@@ -39,32 +39,77 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
-test/debug.adb
-    changing from package to procedure
-        declaration in statement part
-procedure Debug
-is
-   package Instance is new Ada_Mode.Generic_Parent;
-end;
+indentation error:
+      return
+        (Parser_Label             => First_Parser_Label,
+         Head                     => new Parser_Node'
+           (Item                  =>
+                (Label            => First_Parser_Label,
 
-    infinite loop in parser recover!
-    (setq wisi-debug 2)
+navigation error:
+   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
+   is
+      use Parser_Stack_Interfaces;
+      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
+      Last  : constant Positive_Count_Type := Positive_Count_Type'Max (10, Stack.Depth);
+   begin
+      Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
+      for I in 1 .. Last loop
+         Trace.Put
+           (State_Index'Image (Stack.Peek (I).State) & " : " &
+              (if I = Last
+               then ""
+               else Image (Trace.Descriptor.all, Stack.Peek (I).Token) & ", "));
+      end loop;
+      Trace.New_Line;
+   end Put_Top_10;
+
+    fix "operator not visible" on 'I = Last' => "already at outermost containing token"
 
 
-deleted "if ... then", left "else ... end if;"
-procedure Debug
-is begin
-   elsif  then
-   else
-   end if;
-end;
-    (error "unhandled exception: WISITOKEN.PROGRAMMER_ERROR: recover: non-shift action not supported")
+add mode to log all recover failures for later analysis
 
+testing mckenzie recover
+    test/ada_mode-interactive_recover.adb
+        same as wisitoken test_mckenzie_recover error_2, but Ada needs higher enqueue limit;
+        actually _not_ the same; final name has a dot
+        need to drop dot, then insert '; end loop', treating first part of identifier as function call
+            that is enqueued, with a cost of 9.0
+            only checks cost 5 before running out.
+
+        or pop identifier from stack, insert 'end loop;' before that.
+            always a good idea when error on dot
+
+    infinite loop in panic recover (test mckenzie):
+
+   function Recover
+     (Parser        : in out LR.Instance'Class;
+      Cursor        : in     Parser_Lists.Cursor;
+      Current_Token : in     Token_ID)
+     return Configuration
+      --  Raises Recover_Fail or returns recover Config
+   is
+      Data : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref);
+   begin
+      Clear_Queue (Data);
+      Enqueue (Data, (Copy_Stack (Cursor), Token_Lists.Empty_Vector, Token_Lists.Empty_Vector, 0.0));
+      loop
+         exit when Data.Queue.Is_Empty;
+         declare
+      end loop;
+      raise Recover_Fail;
+   end Recover;
+
+    expand 'declare'
+
+merge build/wisi into build
+    in main first
 
 delete wisi-process--parser-new-session?
     was a workaround for font-lock interrupting foreground parse
 
 can now run sub-processes in batch!?
+    but not font-lock
     change .diff test to run in batch
 
 make block/loop labels face match goto labels?
@@ -101,6 +146,8 @@ more error handling
 (setq wisi-disable-face t)
 (setq wisi-indent-region-fallback nil)
 
+ speed issues
+
 parse face is slow
     noticeable delay when typing code
 
@@ -115,8 +162,14 @@ parse face is slow
         module will be faster
         maybe process with elisp lexer
 
- indent issues
 indent is slow
+    don't send right-hand-side tokens for reduce
+
+    use module instead of process
+        try mingw64 gnat on Windows
+            need gprbuild
+                source on github
+
     take advantage of multicore:
         Process ext feedback while waiting to send more
             Need ewouldblock in lisp
@@ -198,18 +251,7 @@ time indent
             second line cold cache: 5.351977 seconds 15 gcs
             second line warm cache: 0.006563 seconds
 
-time wisi-forward-token use structs
-    (setq ada-gps-size-threshold most-positive-fixnum)
-    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
-            7252 lines, 256857 chars
-    (time-it 'wisi-lex-buffer 10)
-
-    non-struct:                        Total 2.102593 seconds; per iteration 0.210259
-    structs:                           Total 2.454529 seconds; per iteration 0.245453
-    count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
-    line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
-
-
+ indent issues
 http://langserver.org/
     open protocol for IDE/compiler communication
 

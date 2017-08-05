@@ -23,7 +23,7 @@ package body Ada_Grammar_Process is
    procedure Elisp_Action
     (Nonterm : in WisiToken.Augmented_Token'Class;
      Index   : in Natural;
-     Source  : in WisiToken.Token_Stack_Type)
+     Source  : in WisiToken.Augmented_Token_Array)
    is null;
 
    function Create_Parser
@@ -39,7 +39,7 @@ package body Ada_Grammar_Process is
          First_Terminal    => Descriptor.First_Terminal,
          Last_Terminal     => Descriptor.Last_Terminal,
          First_Nonterminal => Descriptor.First_Nonterminal,
-         Last_Nonterminal  =>  Descriptor.Last_Nonterminal);
+         Last_Nonterminal  => Descriptor.Last_Nonterminal);
       pragma Unreferenced (Algorithm);
    begin
       Table.Panic_Recover :=
@@ -47,6 +47,41 @@ package body Ada_Grammar_Process is
          223 |
          309 => True,
          others => False);
+
+      Table.McKenzie :=
+        (First_Terminal => 3,
+         Last_Terminal  => 106,
+         Insert =>
+           (4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00, 1.00000E+00, 4.00000E+00, 4.00000E+00,
+            3.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 2.00000E+00, 4.00000E+00, 4.00000E+00,
+            3.00000E+00, 3.00000E+00, 4.00000E+00, 2.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            3.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 3.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 3.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 1.00000E+00, 4.00000E+00, 4.00000E+00,
+            4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00, 4.00000E+00),
+         Delete =>
+           (5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00,
+            5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00, 5.00000E+00),
+         Enqueue_Limit  => 100,
+         Dot_ID         => 2147483647,
+         Identifier_ID  => 2147483647);
 
       Table.Follow :=
         (108 =>
@@ -22820,8 +22855,10 @@ package body Ada_Grammar_Process is
 
       return
         (WisiToken.Lexer.Elisp_Process.New_Lexer (106, Trace'Access),
-         Table, WisiToken.Token.Semantic_State'Class (State)'Access,
-         Max_Parallel, 0, Terminate_Same_State => True);
+         Table, WisiToken.Token.Semantic_State'Class (State)'Access, WisiToken.Empty_Token_Array,
+         Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,
+         Max_Parallel => Max_Parallel, First_Parser_Label => 0,
+         Terminate_Same_State => True);
    end Create_Parser;
 
 end Ada_Grammar_Process;

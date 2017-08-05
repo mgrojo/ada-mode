@@ -253,7 +253,7 @@
     STRING_LITERAL
     CHARACTER_LITERAL
     Wisi_EOI
-    fasttoken_accept
+    wisitoken_accept
     abstract_limited_synchronized_opt
     abstract_limited_opt
     abstract_tagged_limited_opt
@@ -1097,14 +1097,15 @@
      nil
      (("loop_statement:0"
        (progn
-       (wisi-statement-action [1 statement-start 2 motion 7 statement-end])
+       (wisi-statement-action [1 statement-start 2 motion 4 motion 7 statement-end])
        (wisi-containing-action 1 3)
-       (wisi-motion-action [1 2 7])
+       (wisi-motion-action [1 2 4 7])
        (wisi-indent-action [0 0 [ada-indent ada-indent] 0 0 0 0])))
       ("loop_statement:1"
        (progn
-       (wisi-statement-action [1 statement-start 6 statement-end])
+       (wisi-statement-action [1 statement-start 3 motion 6 statement-end])
        (wisi-containing-action 1 2)
+       (wisi-motion-action [1 3 6])
        (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0 0])))
       )
      nil

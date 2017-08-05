@@ -166,7 +166,13 @@ If not found in ‘wisi-process--alist’, create using other parameters."
   "Send a parse command to PARSER external process, followed by
 the tokens returned by ‘wisi-forward-token’ in the current
 buffer.  Does not wait for command to complete."
-  (let* ((cmd (format "parse \"%s\" %d" (buffer-name) wisi-debug))
+  (let* ((cmd (format "parse \"%s\" %d %d %d %d"
+		      (buffer-name)
+		      wisi-debug
+		      (if wisi-panic-enable 1 0)
+		      (if wisi-mckenzie-enable 1 0)
+		      (if wisi-mckenzie-enqueue-limit wisi-mckenzie-enqueue-limit -1)
+		      ))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser))
 	 (term-hash (wisi-process--parser-term-hash parser))
@@ -225,6 +231,17 @@ from TOKEN-TABLE."
     (unless (eq (wisi-tok-token tok) enum)
       (error "%s: token id mismatch between elisp input queue %s and process input queue %s"
 	     label (wisi-tok-debug-image tok) enum))))
+
+(defun wisi-process-parse--input_token (parser sexp)
+  ;; sexp is  [input_token id]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((tok (make-wisi-tok
+	      :token (wisi-process-parse--id-to-enum (wisi-process--parser-token-table parser) (aref sexp 1))
+	      :region nil)))
+    (queue-prepend (wisi-process--parser-input-queue parser) tok)
+    (when (> wisi-debug 1)
+      (message "input token %s" (wisi-tok-debug-image tok)))
+    ))
 
 (defun wisi-process-parse--push_token (parser sexp)
   ;; sexp is  [push_token id]
@@ -371,6 +388,10 @@ from TOKEN-TABLE."
   ;;
   ;; Actions:
   ;;
+  ;; [input_token id]
+  ;;    id was inserted by an error recover algorithm; add to head of
+  ;;    the input queue
+  ;;
   ;; [push_token id]
   ;;    pop token (should have id = id) from the input queue, push it
   ;;    on the augmented token stack
@@ -394,6 +415,7 @@ from TOKEN-TABLE."
   ;; [recover [popped_id ...] [skipped_id ...] [pushed_id ..]]
   ;;
   ;; where:
+  ;; input_token   = 0
   ;; push_token    = 1
   ;; discard_token = 2
   ;; error 	   = 3
@@ -404,6 +426,7 @@ from TOKEN-TABLE."
   ;; production_index - index into action-table for nonterm (process 0 origin)
 
   (cl-ecase (aref sexp 0)
+    (0 (wisi-process-parse--input_token parser sexp))
     (1 (wisi-process-parse--push_token parser sexp))
     (2 (wisi-process-parse--discard_token parser sexp))
     (3 (wisi-process-parse--error parser sexp))
@@ -418,16 +441,21 @@ Replace line, column in ACTION with data from head of input queue.
   ;; reported for the most recently read token.
   (let ((msg (nth 2 action))
 	(tok (queue-nth (wisi-process--parser-input-queue parser) 0)))
-    (goto-char (car (wisi-tok-region tok)))
+    (if tok
+	(goto-char (car (wisi-tok-region tok)))
+      ;; at end of buffer
+      (goto-char (point-max)))
     (string-match "\\(.*\\):0:0: \\(.*\\)''" msg)
     (signal
      'wisi-parse-error
-     (format "%s:%d:%d: %s'%s'"
-	     (match-string 1 msg)
-	     (line-number-at-pos (point))
-	     (current-column)
-	     (match-string 2 msg)
-	     (wisi-token-text tok)))
+     (concat
+      (format "%s:%d:%d: %s"
+	      (match-string 1 msg)
+	      (line-number-at-pos (point))
+	      (current-column)
+	      (match-string 2 msg))
+      (when tok
+	(format "'%s'" (wisi-token-text tok)))))
     ))
 
 ;;;;; main
@@ -472,7 +500,6 @@ Replace line, column in ACTION with data from head of input queue.
 	       start-wait-time)
 
 	  (setf (wisi-process--parser-busy parser) t)
-
 
 	  (setf (wisi-parser-error-msgs parser) nil)
 	  (queue-clear (wisi-process--parser-input-queue parser))
@@ -557,7 +584,14 @@ Replace line, column in ACTION with data from head of input queue.
 
 	      (setq wait-count (1+ wait-count))
 	      (setq start-wait-time (float-time))
-	      (accept-process-output process) ;; no time-out; that's a race condition
+
+	      ;; If we specify no time-out here, we get messages about
+	      ;; "blocking call with quit inhibited", when this is
+	      ;; called by font-lock from the display engine.
+	      ;;
+	      ;; FIXME: but now we have a race condition between
+	      ;; reading the output and waiting for it?
+	      (accept-process-output process 1.0 nil t)
 
 	      (setq need-more nil))
 	    );; while not done

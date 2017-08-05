@@ -65,7 +65,7 @@ one : RUNTEST := run-indent-test-process-gpr_query.el
 one : one-clean $(ONE_TEST_FILES)
 one-clean: force
 	rm -f $(ONE_TEST_FILES) $(ONE_TEST_FILES:.diff=.tmp)
-#	cd ../../test/wisi/; rm -f *-elisp.el *-process.el *.output
+#	cd ../../test/wisi/; rm -f *-elisp.el *-process.el *output
 
 # one : update
 # one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
@@ -118,7 +118,7 @@ endif
 # -v 1 dumps grammar
 # -v 2 dumps debug info from parser table generation, continues with unused tokens, unknown conflicts
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).output
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).elisp_output
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else

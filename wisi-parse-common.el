@@ -54,8 +54,20 @@ For use in grammar actions.")
 2 : show parse states, position point at parse errors, debug-on-error works in parser
 3 : also show top 10 items of parser stack.")
 
+;; The following parameters are easily changeable for debugging.
+(defvar-local wisi-panic-enable nil
+  "If non-nil, enable panic mode error recovery.")
+
+(defvar-local wisi-mckenzie-enable nil
+  "If non-nil, enable McKenzie error recovery.")
+
+(defvar-local wisi-mckenzie-enqueue-limit nil
+  "If non-nil, McKenzie recover algorithm limit; higher has more recover power, but takes longer.
+If nil, uses value from grammar file.")
+
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size")
+;; end of easily changeable parameters
 
 (defvar wisi--parse-action nil
   ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache

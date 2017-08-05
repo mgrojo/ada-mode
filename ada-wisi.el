@@ -927,6 +927,9 @@ TOKEN-TEXT; move point to just past token."
 	  :string-quote-escape nil))
 	 )
 
+    ;; Panic mode is not very useful with Ada.
+    (setq wisi-mckenzie-enable t)
+
     (wisi-setup
      :indent-calculate '(ada-wisi-comment)
      :post-indent-fail 'ada-wisi-post-parse-fail

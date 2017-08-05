@@ -185,6 +185,36 @@
 %panic_recover sequence_of_statements_opt
 %panic_recover declarations
 
+;; Set McKenzie costs to take advantage of syntax to get to solution faster.
+
+;; Default insert, delete cost. Assume user is not about to delete
+;; stuff, so make delete expensive.
+%mckenzie_cost_default 4.0 5.0
+
+;; Prefer inserting important/common keywords over identifiers and
+;; operators to take advantage of empty expressions.
+%mckenzie_cost_insert BEGIN 3.0
+%mckenzie_cost_insert CASE 3.0
+%mckenzie_cost_insert DECLARE 3.0
+%mckenzie_cost_insert ELSE 3.0
+%mckenzie_cost_insert EXIT 3.0
+%mckenzie_cost_insert IS 3.0
+%mckenzie_cost_insert LEFT_PAREN 3.0
+%mckenzie_cost_insert RETURN 3.0
+%mckenzie_cost_insert RIGHT_PAREN 3.0
+%mckenzie_cost_insert THEN 3.0
+%mckenzie_cost_insert WHEN 3.0
+
+%mckenzie_enqueue_limit 100
+
+;; These can follow 'end', or start new statements
+%mckenzie_cost_insert IF 2.0
+%mckenzie_cost_insert LOOP 2.0
+
+;; Prefer 'end', ';' over everything
+%mckenzie_cost_insert END 1.0
+%mckenzie_cost_insert SEMICOLON 1.0
+
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
@@ -1446,14 +1476,15 @@ loop_statement
   : iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
  ;; label included in statement
     (progn
-      (wisi-statement-action [1 statement-start 2 motion 7 statement-end])
+      (wisi-statement-action [1 statement-start 2 motion 4 motion 7 statement-end])
       (wisi-containing-action 1 3)
-      (wisi-motion-action [1 2 7])
+      (wisi-motion-action [1 2 4 7]) ;; 4 for hide loop body
       (wisi-indent-action [0 0 [ada-indent ada-indent] 0 0 0 0]))
   | LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 6 statement-end])
+      (wisi-statement-action [1 statement-start 3 motion 6 statement-end])
       (wisi-containing-action 1 2)
+      (wisi-motion-action [1 3 6]) ;; 3 for hide loop body
       (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0 0]))
   ;
 

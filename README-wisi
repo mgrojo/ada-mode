@@ -1,7 +1,8 @@
 Emacs wisi package 1.1.4
 
 The wisi package provides utilities for using generalized LALR parsers
-to do indentation and navigation. See ada-mode for an example of its
+to do indentation and navigation. It also supports
+parsers in external processes. See ada-mode for an example of its
 use.
 
 It is provided as a Gnu ELPA package; to install the package, add to

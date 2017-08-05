@@ -834,7 +834,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
        )
       (error
        ;; parser failed for other reason
-       (error (cdr err))))
+       (error (cadr err))))
 
     (when (> wisi-debug 0)
       (if (wisi-parser-error-msgs wisi--parser)
@@ -1123,6 +1123,7 @@ vector [number token_id token_id ...]:
 	      (when region
 		(unless start (setq start (car region)))
 		(setq cache (wisi-get-cache (car region)))
+		(unless cache (error "no cache on token %d; add to statement-action" token-number))
 		(setq mark (copy-marker (1+ (car region))))
 
 		(if prev-keyword-mark
