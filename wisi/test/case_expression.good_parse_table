@@ -39,7 +39,15 @@ McKenzie:
  TICK           => 0.00000E+00,
  NUMBER_LITERAL => 0.00000E+00,
  IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
+ Wisi_EOI       => 0.00000E+00,
+ wisitoken_accept  => 0.00000E+00,
+ case_expression   => 0.00000E+00,
+ choice_expression => 0.00000E+00,
+ choice_relation   => 0.00000E+00,
+ discrete_choice   => 0.00000E+00,
+ factor            => 0.00000E+00,
+ factor_list       => 0.00000E+00,
+ range_nt          => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -239,7 +247,15 @@ McKenzie:
  TICK           => 0.00000E+00,
  NUMBER_LITERAL => 0.00000E+00,
  IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
+ Wisi_EOI       => 0.00000E+00,
+ wisitoken_accept  => 0.00000E+00,
+ case_expression   => 0.00000E+00,
+ choice_expression => 0.00000E+00,
+ choice_relation   => 0.00000E+00,
+ discrete_choice   => 0.00000E+00,
+ factor            => 0.00000E+00,
+ factor_list       => 0.00000E+00,
+ range_nt          => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

@@ -42,6 +42,7 @@ is
    Keyword_Str                : constant String := "%keyword";
    Lexer_Str                  : constant String := "%lexer";
    McKenzie_Cost_Default_Str  : constant String := "%mckenzie_cost_default";
+   McKenzie_Cost_Delete_Str   : constant String := "%mckenzie_cost_delete";
    McKenzie_Cost_Insert_Str   : constant String := "%mckenzie_cost_insert";
    McKenzie_Enqueue_Limit_Str : constant String := "%mckenzie_enqueue_limit";
    Mckenzie_Dotted_Name_Str   : constant String := "%mckenzie_dotted_name";
@@ -150,6 +151,16 @@ begin
             begin
                McKenzie_Recover.Default_Insert := Float'Value (Line (Insert_First .. Insert_Last));
                McKenzie_Recover.Default_Delete := Float'Value (Line (Insert_Last + 1 .. Line'Last));
+            end;
+
+         elsif Match (McKenzie_Cost_Delete_Str) then
+            declare
+               Keyword_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Keyword_Last  : constant Integer := -1 + Index_Blank (Line, Keyword_First);
+            begin
+               McKenzie_Recover.Delete.Append
+                 ((Name  => +Line (Keyword_First .. Keyword_Last),
+                   Value => +Line (Keyword_Last + 1 .. Line'Last)));
             end;
 
          elsif Match (McKenzie_Cost_Insert_Str) then

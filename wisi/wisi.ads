@@ -95,6 +95,7 @@ package Wisi is
    type McKenzie_Recover_Param_Type is record
       Default_Insert : Float   := 0.0;
       Default_Delete : Float   := 0.0;
+      Delete         : String_Pair_Lists.List;
       Insert         : String_Pair_Lists.List;
       Enqueue_Limit  : Integer := Integer'Last;
 

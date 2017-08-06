@@ -92,9 +92,8 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 
-;; Default insert, delete cost. Assume user is not about to delete
-;; stuff, so make delete expensive.
-%mckenzie_cost_default 5.0 6.0
+;; Default insert, delete cost.
+%mckenzie_cost_default 5.0 4.0
 
 ;; Prefer inserting keywords over identifiers and operators to take
 ;; advantage of empty expressions.
@@ -119,7 +118,13 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %mckenzie_cost_insert IF 2.0
 %mckenzie_cost_insert LOOP 2.0
 
-;; Prefer 'end', ';' over everything
+;; We often have an extra 'begin' while moving stuff around. Deleting
+;; that requires popping it and the corresponding nonterm off the
+;; parse stack.
+%mckenzie_cost_delete BEGIN 1.0
+%mckenzie_cost_delete declarative_part_opt 1.0
+
+;; Prefer insert 'end', ';' over everything
 %mckenzie_cost_insert END 1.0
 %mckenzie_cost_insert SEMICOLON 1.0
 

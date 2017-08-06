@@ -478,7 +478,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Start ("  (");
          Indent := Indent + 3;
          Count := 0;
-         for I in Table.McKenzie.Insert'Range loop
+         for I in Item'Range loop
             Count := Count + 1;
             Put (Float_Image (Item (I)));
 
@@ -525,14 +525,15 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Table.McKenzie := Default_McKenzie_Param;");
       else
          Indent_Line ("Table.McKenzie :=");
-         Indent_Line ("  (First_Terminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
+         Indent_Line ("  (First_Terminal   =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
          Indent := Indent + 3;
-         Indent_Line ("Last_Terminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
+         Indent_Line ("Last_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
+         Indent_Line ("Last_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Nonterminal) & ",");
          Put ("Insert", Table.McKenzie.Insert);
          Put ("Delete", Table.McKenzie.Delete);
-         Indent_Line ("Enqueue_Limit  =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");
-         Indent_Line ("Dot_ID         =>" & WisiToken.Token_ID'Image (Table.McKenzie.Dot_ID) & ",");
-         Indent_Line ("Identifier_ID  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Identifier_ID) & ");");
+         Indent_Line ("Enqueue_Limit    =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");
+         Indent_Line ("Dot_ID           =>" & WisiToken.Token_ID'Image (Table.McKenzie.Dot_ID) & ",");
+         Indent_Line ("Identifier_ID   =>" & WisiToken.Token_ID'Image (Table.McKenzie.Identifier_ID) & ");");
          Indent := Indent - 3;
          New_Line;
       end if;

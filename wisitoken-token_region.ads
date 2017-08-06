@@ -97,6 +97,11 @@ package WisiToken.Token_Region is
       Token : in     Token_ID);
 
    overriding
+   procedure Pop_Token
+     (State : access State_Type;
+      Token : in     Token_ID);
+
+   overriding
    procedure Merge_Tokens
      (State   : access State_Type;
       Nonterm : in     Token_ID;

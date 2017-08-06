@@ -30,6 +30,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       use Ada.Containers;
    begin
       Put ("(" & Image (Descriptor, Config.Stack) & Count_Type'Image (Config.Lookahead_Index) & " ");
+      WisiToken.Put (Descriptor, Config.Popped);
+      Put (" ");
       WisiToken.Put (Descriptor, Config.Inserted);
       Put (" ");
       WisiToken.Put (Descriptor, Config.Deleted);
@@ -53,6 +55,12 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end if;
       Trace.Put (" ");
       Put (Trace, Parser.Lookahead (Config.Lookahead_Index));
+      Trace.Put (" ");
+      if Config.Popped.Length = 0 then
+         Put (Trace, "null");
+      else
+         Put (Trace, Config.Popped);
+      end if;
       Trace.Put (" ");
       if Config.Inserted.Length = 0 then
          Put (Trace, "null");
@@ -348,6 +356,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                Config :=
                  (Stack           => Cursor.Copy_Stack,
                   Lookahead_Index => Positive_Index_Type'First,
+                  Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
                   Deleted         => Token_Arrays.Empty_Vector,
                   Cost            => 0.0);
@@ -356,6 +365,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                Config :=
                  (Stack           => Cursor.Copy_Stack,
                   Lookahead_Index => Positive_Index_Type'First,
+                  Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
                   Deleted         => Token_Arrays.Empty_Vector,
                   Cost            => 0.0);
@@ -404,6 +414,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       if Cursor.Peek.Token = Param.Identifier_ID and
         Current_Token = Param.Dot_ID
       then
+         if Trace_Parse > 1 then
+            Parser.Semantic_State.Trace.Put_Line ("special rule Dotted_Name matched");
+         end if;
+
          --  Parser encountered something like:
          --
          --      loop ... end Parent.Child;
@@ -419,6 +433,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Config :=
            (Stack           => Cursor.Copy_Stack,
             Lookahead_Index => Positive_Index_Type'First,
+            Popped          => Token_Arrays.Empty_Vector,
             Inserted        => Token_Arrays.Empty_Vector,
             Deleted         => Token_Arrays.Empty_Vector,
             Cost            => 0.0);
@@ -462,6 +477,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Root_Config :=
            (Stack           => Cursor.Copy_Stack,
             Lookahead_Index => 1,
+            Popped          => Token_Arrays.Empty_Vector,
             Inserted        => Token_Arrays.Empty_Vector,
             Deleted         => Token_Arrays.Empty_Vector,
             Cost            => 0.0);
@@ -493,6 +509,29 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   Put ("succeed", Data.Parser, Config);
                end if;
                return Config;
+            end if;
+
+            if Config.Deleted = Empty_Token_Array and
+              Config.Inserted = Empty_Token_Array and
+              Config.Stack.Depth > 1 -- can't delete the first state
+            then
+               --  Try deleting stack top
+               declare
+                  Deleted_Token : constant Token_ID := Config.Stack.Peek.Token;
+               begin
+                  New_Config      := Config;
+                  New_Config.Stack.Pop;
+                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_Token);
+
+                  New_Config.Popped.Append (Deleted_Token);
+                  if Trace_Parse > 2 then
+                     Trace.Put ("pop ");
+                     Trace.Put (Deleted_Token);
+                     Trace.New_Line;
+                  end if;
+
+                  Enqueue (Data, New_Config);
+               end;
             end if;
 
             if Config.Deleted = Empty_Token_Array then
@@ -601,6 +640,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          begin
             Result     := Recover (Parser, Cursor);
             Keep_Going := True;
+
+            for ID of Result.Popped loop
+               Cursor.Pop;
+               Parser.Semantic_State.Pop_Token (ID);
+            end loop;
 
             --  FIXME: Lookahead, Current_Token might be different for different parsers;
             --  process inserted, deleted tokens now, pending actions, so LR.Parser does not deal with lookahead.

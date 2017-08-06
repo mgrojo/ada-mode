@@ -31,6 +31,16 @@ package body WisiToken.AUnit is
       end return;
    end To_Token_Array;
 
+   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_Array) return Token_ID_Set
+   is begin
+      return Result : Token_ID_Set := (First .. Last => False)
+      do
+         for ID of Item loop
+            Result (ID) := True;
+         end loop;
+      end return;
+   end To_Token_ID_Set;
+
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;

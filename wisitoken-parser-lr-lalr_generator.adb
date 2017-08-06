@@ -730,13 +730,14 @@ package body WisiToken.Parser.LR.LALR_Generator is
       if McKenzie_Param = Default_McKenzie_Param then
          --  Descriminants in Default are wrong
          Table.McKenzie :=
-           (First_Terminal => Descriptor.First_Terminal,
-            Last_Terminal  => Descriptor.Last_Terminal,
-            Insert         => (others => 0.0),
-            Delete         => (others => 0.0),
-            Enqueue_Limit  => Default_McKenzie_Param.Enqueue_Limit,
-            Dot_ID         => Default_McKenzie_Param.Dot_ID,
-            Identifier_ID  => Default_McKenzie_Param.Identifier_ID);
+           (First_Terminal   => Descriptor.First_Terminal,
+            Last_Terminal    => Descriptor.Last_Terminal,
+            Last_Nonterminal => Descriptor.Last_Nonterminal,
+            Insert           => (others => 0.0),
+            Delete           => (others => 0.0),
+            Enqueue_Limit    => Default_McKenzie_Param.Enqueue_Limit,
+            Dot_ID           => Default_McKenzie_Param.Dot_ID,
+            Identifier_ID    => Default_McKenzie_Param.Identifier_ID);
       else
          Table.McKenzie := McKenzie_Param;
       end if;

@@ -165,11 +165,13 @@ package WisiToken.Parser.LR is
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
    type McKenzie_Param_Type
-     (First_Terminal : Token_ID;
-      Last_Terminal  : Token_ID)
+     (First_Terminal   : Token_ID;
+      Last_Terminal    : Token_ID;
+      Last_Nonterminal : Token_ID)
    is record
       Insert        : Token_Array_Float (First_Terminal .. Last_Terminal);
-      Delete        : Token_Array_Float (First_Terminal .. Last_Terminal);
+      Delete        : Token_Array_Float (First_Terminal .. Last_Nonterminal);
+      --  Delete includes nonterms popped off the parse stack
       Enqueue_Limit : Integer;
 
       --  For special rules
@@ -178,13 +180,14 @@ package WisiToken.Parser.LR is
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
-     (First_Terminal => Token_ID'Last,
-      Last_Terminal  => Token_ID'First,
-      Insert         => (others => 0.0),
-      Delete         => (others => 0.0),
-      Enqueue_Limit  => Integer'Last,
-      Dot_ID         => Token_ID'Last,
-      Identifier_ID  => Token_ID'Last);
+     (First_Terminal   => Token_ID'Last,
+      Last_Terminal    => Token_ID'First,
+      Last_Nonterminal => Token_ID'First,
+      Insert           => (others => 0.0),
+      Delete           => (others => 0.0),
+      Enqueue_Limit    => Integer'Last,
+      Dot_ID           => Token_ID'Last,
+      Identifier_ID    => Token_ID'Last);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
    --  Put Item to Ada.Text_IO.Current_Output
@@ -200,7 +203,7 @@ package WisiToken.Parser.LR is
    record
       States        : Parse_State_Array (State_First .. State_Last);
       Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal);
+      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal, Last_Nonterminal);
       Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
 

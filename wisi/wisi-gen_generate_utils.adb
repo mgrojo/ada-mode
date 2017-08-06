@@ -542,10 +542,16 @@ package body Wisi.Gen_Generate_Utils is
    is
       use Standard.Ada.Strings.Unbounded;
 
-      Result : WisiToken.Parser.LR.McKenzie_Param_Type (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+      Result : WisiToken.Parser.LR.McKenzie_Param_Type
+        (LR1_Descriptor.First_Terminal,
+         LR1_Descriptor.Last_Terminal,
+         LR1_Descriptor.Last_Nonterminal);
    begin
       Result.Insert := (others => Item.Default_Insert);
       Result.Delete := (others => Item.Default_Delete);
+      for Pair of Item.Delete loop
+         Result.Delete (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
+      end loop;
       for Pair of Item.Insert loop
          Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
       end loop;

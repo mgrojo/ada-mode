@@ -176,6 +176,15 @@ package WisiToken.Token is
    --  corresponding augmented token from the head of the State input
    --  queue, and record the buffer region as invalid.
 
+   procedure Pop_Token
+     (State : access Semantic_State;
+      Token : in     Token_ID)
+     is abstract;
+   --  Previously Pushed Token was popped from the parse stack in an
+   --  error recover opertation; discard the corresponding augmented
+   --  token from the top of the State stack, and record the buffer
+   --  region as invalid.
+
    procedure Merge_Tokens
      (State   : access Semantic_State;
       Nonterm : in     Token_ID;

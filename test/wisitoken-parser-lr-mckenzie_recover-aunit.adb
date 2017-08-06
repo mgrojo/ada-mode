@@ -42,6 +42,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
    begin
       Check (Label & ".Stack", Computed_Config.Stack, Expected_Config.Stack);
       Check (Label & ".Lookahead_Index", Computed_Config.Lookahead_Index, Expected_Config.Lookahead_Index);
+      Check (Label & ".Popped", Computed_Config.Popped, Expected_Config.Popped);
       Check (Label & ".Inserted", Computed_Config.Inserted, Expected_Config.Inserted);
       Check (Label & ".Deleted", Computed_Config.Deleted, Expected_Config.Deleted);
       Check (Label & ".Cost", Computed_Config.Cost, Expected_Config.Cost);

@@ -1,9 +1,6 @@
 build/Makefile
 
  current work
-add pop token to mckenzie
-    t_one Extra_Begin
-
 fix McKenzie with parallel parsers
         force a conflict
         don't terminate any if all fail

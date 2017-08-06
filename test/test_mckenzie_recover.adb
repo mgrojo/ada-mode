@@ -172,85 +172,75 @@ package body Test_McKenzie_Recover is
       --  Inserts 'end;', succeeds
       Check ("errors.length", State.Errors.Length, 5);
       declare
-         use WisiToken.Token_Region.AUnit;
+         use WisiToken.AUnit;
          use WisiToken.Token_Region;
+         use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region.Error_Data_Lists;
          Cursor : Error_Data_Lists.Cursor := State.Errors.First;
-
-         Null_Expecting : constant WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) :=
-           (others => False);
-
-         Expecting : WisiToken.Token_ID_Set (Descriptor.First_Terminal .. Descriptor.Last_Terminal) := Null_Expecting;
       begin
-         Expecting (+IF_ID) := True;
-
          Check
            ("1", Element (Cursor),
             (First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
              Error_Token       => (+SEMICOLON_ID, (84, 84)),
-             Expecting         => Expecting,
+             Expecting         => To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (1 => +IF_ID)),
              Invalid_Region    => WisiToken.Null_Buffer_Region,
              Recover           => null),
             Check_Recover_Data => null);
 
          Next (Cursor);
-         Expecting                  := Null_Expecting;
-         Expecting (+SEMICOLON_ID)  := True;
-         Expecting (+IDENTIFIER_ID) := True;
          Check
            ("2", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+LOOP_ID, (90, 93)), Expecting, WisiToken.Null_Buffer_Region,
+             (+LOOP_ID, (90, 93)),
+             To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (+SEMICOLON_ID, +IDENTIFIER_ID)),
+             WisiToken.Null_Buffer_Region,
              Recover => null),
             Check_Recover_Data => null);
 
          Next (Cursor);
-         Expecting                  := Null_Expecting;
-         Expecting (+BEGIN_ID)      := True;
-         Expecting (+CASE_ID)       := True;
-         Expecting (+DECLARE_ID)    := True;
-         Expecting (+END_ID)        := True;
-         Expecting (+EXIT_ID)       := True;
-         Expecting (+IF_ID)         := True;
-         Expecting (+LOOP_ID)       := True;
-         Expecting (+RETURN_ID)     := True;
-         Expecting (+IDENTIFIER_ID) := True;
          Check
            ("3", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+SEMICOLON_ID, (94, 94)), Expecting, WisiToken.Null_Buffer_Region,
+             (+SEMICOLON_ID, (94, 94)),
+             To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID, +RETURN_ID, +IDENTIFIER_ID)),
+             WisiToken.Null_Buffer_Region,
              Recover => null),
             Check_Recover_Data => null);
 
          Next (Cursor);
-         Expecting            := Null_Expecting;
-         Expecting (+LOOP_ID) := True;
          Check
            ("4", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+IDENTIFIER_ID, (100, 104)), Expecting, WisiToken.Null_Buffer_Region,
+             (+IDENTIFIER_ID, (100, 104)),
+             To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (1 => +LOOP_ID)),
+             WisiToken.Null_Buffer_Region,
              Recover => null),
             Check_Recover_Data => null);
 
          Next (Cursor);
-         Expecting                  := Null_Expecting;
-         Expecting (+BEGIN_ID)      := True;
-         Expecting (+CASE_ID)       := True;
-         Expecting (+DECLARE_ID)    := True;
-         Expecting (+ELSE_ID)       := True;
-         Expecting (+ELSIF_ID)      := True;
-         Expecting (+END_ID)        := True;
-         Expecting (+EXIT_ID)       := True;
-         Expecting (+IF_ID)         := True;
-         Expecting (+LOOP_ID)       := True;
-         Expecting (+RETURN_ID)     := True;
-         Expecting (+WHEN_ID)       := True;
-         Expecting (+IDENTIFIER_ID) := True;
          Check
            ("5", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+Wisi_EOI_ID, (1, 1)), Expecting, WisiToken.Null_Buffer_Region,
+             (+Wisi_EOI_ID, (1, 1)),
+             To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +ELSE_ID, +ELSIF_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID,
+                 +RETURN_ID, +WHEN_ID, +IDENTIFIER_ID))
+             , WisiToken.Null_Buffer_Region,
              Recover => null),
             Check_Recover_Data => null);
 
@@ -268,7 +258,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 35; -- test that the special rule works.
+      Parser.Table.McKenzie.Enqueue_Limit := 35; -- test that the special rule reduces enqueues.
 
       Parse_Text
         ("procedure Parent.Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; " &
@@ -290,8 +280,8 @@ package body Test_McKenzie_Recover is
       --  Inserts 'end ;', succeeds.
       --
       --  With the full Ada language, finding '; IDENTIFIER' for error 5 takes too
-      --  long, so we introduce a special rule to shortcut it; that
-      --  cuts the enqueued configs to 3.
+      --  long, so we introduce the Dotted_Name special rule to shortcut it; that
+      --  cuts the enqueued configs to 4.
 
       Check ("errors.length", State.Errors.Length, 6);
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
@@ -317,14 +307,20 @@ package body Test_McKenzie_Recover is
             Ada.Text_IO.New_Line;
          end if;
 
-         --  FIXME: Inserted IDENTIFIER does not show up in recover data for reuse
          Check
-           ("errors.5.recover",
+           ("errors.5.recover (Dotted_Name)",
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
-              (Stack           => To_State_Stack ((189, 188, 167, 160, 127, 101, 35, 30, 11, 10, 0)),
+              (Stack           => To_State_Stack
+                 --  FIXME: two consecutive semicolons?
+                 (((189, +SEMICOLON_ID), (188, +SEMICOLON_ID), (167, +LOOP_ID), (160, +END_ID),
+                   (127, +sequence_of_statements_opt_ID), (101, +LOOP_ID), (35, +BEGIN_ID),
+                   (30, +declarative_part_opt_ID), (11, +IS_ID), (10, +subprogram_specification_ID),
+                   (0, WisiToken.Invalid_Token))),
                Lookahead_Index => 1,
+               Popped          => WisiToken.Empty_Token_Array,
                Inserted        => To_Token_Array ((1 => +SEMICOLON_ID)),
+               --  FIXME: IDENTIFIER inserted by special rule does not show up in recover data for reuse
                Deleted         => WisiToken.Empty_Token_Array,
                Cost            => 1.0));
       end;
@@ -396,20 +392,57 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+
       Parse_Text
         ("procedure Debug is begin procedure Put_Top_10 is begin end Put_Top_10; begin end Debug; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80
          Test.Debug);
       --  Added 'begin' at end, intending to delete first 'begin'
       --
-      --  insert 'end;' after 'begin 20'. FIXME: should delete 'begin' (requires popping parse stack)
-      --  insert 'procedure IDENTIFIER is' before 'begin 72'
-      Check ("errors.length", State.Errors.Length, 2);
+      --  Pop 'begin 20', reduced declarative_part_opt. Continue to EOF.
+      Check ("errors.length", State.Errors.Length, 1);
+      declare
+         use WisiToken.AUnit;
+         use WisiToken.Parser.LR.AUnit;
+         use WisiToken.Token_Region.AUnit;
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := State.Errors.First;
+      begin
+
+         if WisiToken.Trace_Parse > 0 then
+            Ada.Text_IO.Put ("Config: ");
+            WisiToken.Parser.LR.McKenzie_Recover.Put
+              (State.Trace.Descriptor.all,
+               WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all));
+            Ada.Text_IO.New_Line;
+         end if;
+
+         Check
+           ("errors.1",
+            Element (Cursor),
+            (First_Terminal     => Descriptor.First_Terminal,
+             Last_Terminal      => Descriptor.Last_Terminal,
+             Error_Token        => (+PROCEDURE_ID, (26, 34)),
+             Expecting          => To_Token_ID_Set
+               (Descriptor.First_Terminal,
+                Descriptor.Last_Terminal,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID, +RETURN_ID, +IDENTIFIER_ID)),
+             Invalid_Region     => (20, 24),
+             Recover            => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
+               (Stack           => To_State_Stack
+                  (((11, +IS_ID), (10, +subprogram_specification_ID), (0, WisiToken.Invalid_Token))),
+                Lookahead_Index => 1,
+                Popped          => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
+                Inserted        => WisiToken.Empty_Token_Array,
+                Deleted         => WisiToken.Empty_Token_Array,
+                Cost            => 2.0)),
+            Check_Recover_Data  => WisiToken.Parser.LR.McKenzie_Recover.AUnit.Check'Access);
+      end;
 
    exception
    when WisiToken.Syntax_Error =>
-      Assert (True, "1.exception: got Syntax_Error");
-      Check ("error.length", State.Errors.Length, 2);
+      Assert (False, "1.exception: got Syntax_Error");
    end Extra_Begin;
 
    ----------
@@ -426,8 +459,8 @@ package body Test_McKenzie_Recover is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug > 0 then
-         Register_Routine (T, Dotted_Name'Access, "debug");
+      if T.Debug > 1 then
+         Register_Routine (T, Extra_Begin'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");

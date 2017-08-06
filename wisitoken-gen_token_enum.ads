@@ -112,6 +112,12 @@ package WisiToken.Gen_Token_Enum is
       ID    : in     Token_ID)
    is null;
 
+   overriding
+   procedure Pop_Token
+     (State : access State_Type;
+      ID    : in     Token_ID)
+   is null;
+
    overriding procedure Merge_Tokens
      (State   : access State_Type;
       Nonterm : in     Token_ID;

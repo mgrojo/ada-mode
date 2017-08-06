@@ -184,6 +184,20 @@ package body WisiToken.Token_Region is
    end Discard_Token;
 
    overriding
+   procedure Pop_Token
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is
+      Tok : constant Token_Region.Token := Token_Region.Token (Augmented_Token_Arrays.Element (State.Stack.Last));
+   begin
+      State.Stack.Delete_Last;
+      if Token /= Tok.ID then
+         raise Programmer_Error;
+      end if;
+      State.Invalid_Region := State.Invalid_Region and Tok.Region;
+   end Pop_Token;
+
+   overriding
    procedure Merge_Tokens
      (State   : access State_Type;
       Nonterm : in     Token_ID;
