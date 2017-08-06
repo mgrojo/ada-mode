@@ -32,17 +32,6 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken.Parser.LR is
 
-   function Image (Stack : in State_Stacks.Stack_Type) return String
-   is
-      use Ada.Strings.Unbounded;
-      Result : Unbounded_String;
-   begin
-      for I in 1 .. Stack.Depth loop
-         Result := Result & (State_Image (Stack.Peek (I)) & ", ");
-      end loop;
-      return To_String (Result & ")");
-   end Image;
-
    function State_Image (Item : in State_Index) return String
    is
       use Ada.Strings;
@@ -50,6 +39,32 @@ package body WisiToken.Parser.LR is
    begin
       return Trim (State_Index'Image (Item), Both);
    end State_Image;
+
+   function Image
+     (Descriptor : in WisiToken.Descriptor'Class;
+      Stack      : in Parse_Stacks.Stack_Type;
+      Depth      : in Ada.Containers.Count_Type := 0)
+     return String
+   is
+      use Ada.Strings.Unbounded;
+      use Parse_Stack_Interfaces;
+      use all type Ada.Containers.Count_Type;
+
+      Last : constant Positive_Count_Type :=
+        (if Depth = 0
+         then Stack.Depth
+         else Positive_Count_Type'Min (Depth, Stack.Depth));
+
+      Result : Unbounded_String;
+   begin
+      for I in 1 .. Stack.Depth loop
+         Result := Result & (State_Image (Stack.Peek (I).State) & " : " &
+              (if I = Last
+               then ""
+               else Image (Descriptor, Stack.Peek (I).Token) & ", "));
+      end loop;
+      return To_String (Result & ")");
+   end Image;
 
    function Symbol (List : in Goto_Node_Ptr) return Token_ID
    is begin

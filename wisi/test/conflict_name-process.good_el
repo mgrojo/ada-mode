@@ -49,7 +49,7 @@
     TICK
     IDENTIFIER
     Wisi_EOI
-    fasttoken_accept
+    wisitoken_accept
     aggregate
     attribute_reference
     attribute_designator

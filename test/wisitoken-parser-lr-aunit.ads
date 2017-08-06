@@ -28,10 +28,27 @@ package WisiToken.Parser.LR.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
 
-   type State_Array is array (State_Stack_Interfaces.Positive_Count_Type range <>) of Unknown_State_Index;
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Parser.LR.Parse_Action_Verbs);
 
-   function To_State_Stack (Item : in State_Array) return State_Stacks.Stack_Type;
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_State;
+      Expected : in Parse_State);
 
-   procedure Check is new State_Stacks.Gen_AUnit (Check);
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_Table;
+      Expected : in Parse_Table);
+
+   procedure Check
+     (Label    : in String;
+      Computed : in Parse_Stack_Item;
+      Expected : in Parse_Stack_Item);
+
+   type Parse_Stack_Item_Array is array (Parse_Stack_Interfaces.Positive_Count_Type range <>) of Parse_Stack_Item;
+
+   function To_State_Stack (Item : in Parse_Stack_Item_Array) return Parse_Stacks.Stack_Type;
+
+   procedure Check is new Parse_Stacks.Gen_AUnit (Check);
 
 end WisiToken.Parser.LR.AUnit;

@@ -3,8 +3,8 @@
 ;;
 ;; The grammar is ambiguous between an identifier_list and a
 ;; name_list, if none of the names are string literals. This shows up
-;; in the the compiled grammar as several reduce/reduce conflict, and
-;; in the parser as two parsers reaching accept.
+;; in the the compiled grammar as several reduce/reduce conflicts, and
+;; in the parser as two parsers reaching an identical state.
 
 %{
 %}

@@ -27,8 +27,8 @@ package body WisiToken.Parser.LR.Panic_Mode is
    is
       use Token;
       Panic    : Recover_Data'Class := Default_Recover;
-      Top      : Parser_Lists.Stack_Item := Cursor.Peek;
-      Prev_Top : Parser_Lists.Stack_Item := (Unknown_State, Invalid_Token);
+      Top      : Parse_Stack_Item   := Cursor.Peek;
+      Prev_Top : Parse_Stack_Item   := (Unknown_State, Invalid_Token);
    begin
       Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
 

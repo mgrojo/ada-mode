@@ -44,7 +44,6 @@ OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-
 Total Tests Run:   43
 Successful Tests:  43
 Failed Assertions: 0

@@ -150,12 +150,15 @@ package body WisiToken.Token_Wisi_Process is
    procedure Recover
      (State         : access State_Type;
       Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance)
+      Pushed_Tokens : in     Token.List.Instance;
+      Recover       : in     WisiToken.Token.Recover_Data_Access)
    is
+      pragma Unreferenced (Recover);
       pragma Unreferenced (State);
    begin
       Ada.Text_IO.Put_Line
         ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Codes (Pushed_Tokens) & "]");
+      --  FIXME: send Recover
    end Recover;
 
 end WisiToken.Token_Wisi_Process;

@@ -184,7 +184,7 @@ object_declaration_list_1: (object_declaration_list 1 . 104) <= (object_declarat
  ... goto state 3
  2 stack:  3 : object_declaration_list,  1 : 
  2: 3: Wisi_EOI : accept it
-(fasttoken_accept 1 . 104) <= (object_declaration_list 1 . 104)
+(wisitoken_accept 1 . 104) <= (object_declaration_list 1 . 104)
 
 LR1_Parser parse:
 read 105
@@ -362,4 +362,4 @@ object_declaration_list_1: (object_declaration_list 1 . 104) <= (object_declarat
  ... goto state 3
  2 stack:  3 : object_declaration_list,  1 : 
  2: 3: Wisi_EOI : accept it
-(fasttoken_accept 1 . 104) <= (object_declaration_list 1 . 104)
+(wisitoken_accept 1 . 104) <= (object_declaration_list 1 . 104)

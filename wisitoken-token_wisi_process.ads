@@ -72,6 +72,7 @@ package WisiToken.Token_Wisi_Process is
    procedure Recover
      (State         : access State_Type;
       Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance);
+      Pushed_Tokens : in     Token.List.Instance;
+      Recover       : in     WisiToken.Token.Recover_Data_Access);
 
 end WisiToken.Token_Wisi_Process;

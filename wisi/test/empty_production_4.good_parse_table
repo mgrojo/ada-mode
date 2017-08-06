@@ -6,7 +6,7 @@ Tokens:
  5 => SEMICOLON
  6 => IDENTIFIER
  7 => Wisi_EOI
- 8 => fasttoken_accept
+ 8 => wisitoken_accept
  9 => compilation_unit
  10 => subprogram_declaration
  11 => overriding_indicator
@@ -55,7 +55,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -82,7 +82,7 @@ State 3:
 
 
 State 4:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
    Wisi_EOI               => accept it
    default                => ERROR
@@ -200,7 +200,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    OVERRIDING             => shift and goto state 2
    OTHER                  => reduce 0 tokens to overriding_indicator
@@ -220,7 +220,7 @@ State 2:
 
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI               => accept it
    default                => ERROR

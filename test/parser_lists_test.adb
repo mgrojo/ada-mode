@@ -25,10 +25,10 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.Parser.LR.AUnit;
 with WisiToken.Parser.LR.Parser_Lists;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token;
-with WisiToken_AUnit; use WisiToken_AUnit;
 package body Parser_Lists_Test is
 
    type Token_Enum_ID is (Identifier_ID, If_ID, Then_ID, Else_ID, End_ID, EOF_ID, Statement_ID, Procedure_ID);
@@ -45,17 +45,6 @@ package body Parser_Lists_Test is
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
 
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parser_Lists.Stack_Item;
-      Expected : in WisiToken.Parser.LR.Parser_Lists.Stack_Item)
-   is
-      use WisiToken.AUnit;
-   begin
-      Check (Label & ".State", Computed.State, Expected.State);
-      Check (Label & ".Token", Computed.Token, Expected.Token);
-   end Check;
-
    ----------
    --  Test procedures
 
@@ -63,6 +52,7 @@ package body Parser_Lists_Test is
    is
       pragma Unreferenced (T);
       use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.AUnit;
       use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
 
@@ -83,13 +73,14 @@ package body Parser_Lists_Test is
       pragma Unreferenced (T);
       use AUnit.Checks;
       use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.AUnit;
       use WisiToken.Parser.LR.Parser_Lists;
 
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
 
-      Item_1 : constant Stack_Item := (2, +If_ID);
-      Item_2 : constant Stack_Item := (3, +Then_ID);
+      Item_1 : constant Parse_Stack_Item := (2, +If_ID);
+      Item_2 : constant Parse_Stack_Item := (3, +Then_ID);
    begin
       Check ("1: Pop", Cursor.Pop, (0, WisiToken.Invalid_Token));
       Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
@@ -170,8 +161,8 @@ package body Parser_Lists_Test is
 
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
 
-      Item_1  : constant Stack_Item := (2, +If_ID);
-      Item_2  : constant Stack_Item := (3, +Then_ID);
+      Item_1  : constant Parse_Stack_Item := (2, +If_ID);
+      Item_2  : constant Parse_Stack_Item := (3, +Then_ID);
 
       Cursor_1 : constant Cursor := Parsers.First;
       Cursor_2 : Cursor;
@@ -189,7 +180,7 @@ package body Parser_Lists_Test is
       Check ("1", Stack_Equal (Cursor_1, Cursor_2), True);
 
       declare
-         Junk : Stack_Item := Pop (Cursor_2);
+         Junk : Parse_Stack_Item := Cursor_2.Pop;
          pragma Unreferenced (Junk);
       begin
          Check ("2", Stack_Equal (Cursor_1, Cursor_2), False);
@@ -283,7 +274,7 @@ package body Parser_Lists_Test is
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
 
-      Junk : Stack_Item;
+      Junk : Parse_Stack_Item;
       pragma Unreferenced (Junk);
    begin
       --  All Action_Token.New_Token must point either to a token on

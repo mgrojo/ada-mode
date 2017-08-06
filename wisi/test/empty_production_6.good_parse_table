@@ -7,7 +7,7 @@ Tokens:
  6 => SEMICOLON
  7 => IDENTIFIER
  8 => Wisi_EOI
- 9 => fasttoken_accept
+ 9 => wisitoken_accept
  10 => compilation_unit
  11 => statement
  12 => sequence_of_statements
@@ -54,7 +54,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    BEGIN                  => shift and goto state 2
    default                => ERROR
@@ -73,7 +73,7 @@ State 2:
    label_opt              goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
    Wisi_EOI               => accept it
    default                => ERROR
@@ -212,7 +212,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    BEGIN                  => shift and goto state 2
    default                => ERROR
@@ -231,7 +231,7 @@ State 2:
    label_opt              goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI               => accept it
    default                => ERROR

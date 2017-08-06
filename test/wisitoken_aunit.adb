@@ -19,33 +19,11 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
+with WisiToken.Parser.LR.AUnit;
+with WisiToken.Token.AUnit;
 package body WisiToken_AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Token.List.List_Iterator;
-      Expected : in WisiToken.Token.List.List_Iterator)
-   is
-      use AUnit.Checks;
-      use WisiToken.Token;
-      use WisiToken.Production;
-      use WisiToken.Token.List;
-      Computed_I : List_Iterator := Computed;
-      Expected_I : List_Iterator := Expected;
-      Index      : Integer       := 1;
-   begin
-      loop
-         if Computed_I = Null_Iterator or Expected_I = Null_Iterator then
-            Check (Label & " = null", Computed_I = Null_Iterator and Expected_I = Null_Iterator, True);
-            exit;
-         end if;
-         Check (Label & Integer'Image (Index), ID (Computed_I), ID (Expected_I));
-         Next (Computed_I);
-         Next (Expected_I);
-         Index := Index + 1;
-      end loop;
-   end Check;
 
    procedure Check
      (Label    : in String;
@@ -54,6 +32,7 @@ package body WisiToken_AUnit is
    is
       use AUnit.Checks;
       use WisiToken.Token;
+      use WisiToken.Token.AUnit;
    begin
       Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
       Check (Label & ".LHS", Computed.LHS, Expected.LHS);
@@ -67,7 +46,9 @@ package body WisiToken_AUnit is
       Match_Lookaheads : in Boolean)
    is
       use AUnit.Checks;
+      use WisiToken.Parser.LR.AUnit;
       use WisiToken.Parser.LR.LR1_Items;
+      use WisiToken.Token.AUnit;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -102,6 +83,7 @@ package body WisiToken_AUnit is
       Match_Lookaheads : in Boolean := True)
    is
       use AUnit.Checks;
+      use WisiToken.Parser.LR.AUnit;
       use type WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
       use type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
    begin
@@ -117,6 +99,7 @@ package body WisiToken_AUnit is
       Expected : in WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr)
    is
       use AUnit.Checks;
+      use WisiToken.Parser.LR.AUnit;
       use WisiToken.Parser.LR.LR1_Items;
       Computed_I : Goto_Item_Ptr := Computed;
       Expected_I : Goto_Item_Ptr := Expected;
@@ -148,6 +131,7 @@ package body WisiToken_AUnit is
       Expected         : in WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
       Match_Lookaheads : in Boolean := True)
    is
+      use WisiToken.Parser.LR.AUnit;
       use type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
       Computed_1 : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr := Computed;
       Expected_1 : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr := Expected;
@@ -174,7 +158,9 @@ package body WisiToken_AUnit is
      (Label    : in String;
       Computed : in WisiToken.Parser.LR.LR1_Items.Item_Set_List;
       Expected : in WisiToken.Parser.LR.LR1_Items.Item_Set_List)
-   is begin
+   is
+      use WisiToken.Parser.LR.AUnit;
+   begin
       Check (Label & ".Size", Computed.Size, Expected.Size);
       Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
    end Check;
@@ -338,143 +324,5 @@ package body WisiToken_AUnit is
          State           => WisiToken.Parser.LR.Unknown_State,
          Next            => null);
    end Get_Item_Set;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_Action_Rec;
-      Expected : in WisiToken.Parser.LR.Parse_Action_Rec)
-   is
-      use Standard.AUnit.Checks;
-      use all type WisiToken.Parser.LR.Parse_Action_Verbs;
-   begin
-      Check (Label & ".Verb", Computed.Verb, Expected.Verb);
-      case Computed.Verb is
-      when Shift =>
-         Check (Label & ".State", Computed.State, Expected.State);
-      when Reduce | Accept_It =>
-         Check (Label & ".LHS", Computed.LHS, Expected.LHS);
-         --  Ignoring Action
-         Check (Label & ".Index", Computed.Index, Expected.Index);
-         Check (Label & ".Token_Count", Computed.Token_Count, Expected.Token_Count);
-      when Error =>
-         null;
-      end case;
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_Action_Node_Ptr;
-      Expected : in WisiToken.Parser.LR.Parse_Action_Node_Ptr)
-   is
-      use Standard.AUnit.Checks;
-      use Standard.AUnit.Assertions;
-      use type WisiToken.Parser.LR.Parse_Action_Node_Ptr;
-      Computed_I : WisiToken.Parser.LR.Parse_Action_Node_Ptr := Computed;
-      Expected_I : WisiToken.Parser.LR.Parse_Action_Node_Ptr := Expected;
-      Index      : Integer  := 1;
-   begin
-      if Computed /= null or Expected /= null then
-         Assert (Computed /= null, Label & " Computed is null");
-         Assert (Expected /= null, Label & " Expected is null");
-      else
-         --  both are null
-         return;
-      end if;
-
-      loop
-         Check (Label & Integer'Image (Index) & ".Item", Computed_I.Item, Expected_I.Item);
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
-         Index      := Index + 1;
-         exit when Computed_I = null;
-      end loop;
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Action_Node_Ptr;
-      Expected : in WisiToken.Parser.LR.Action_Node_Ptr)
-   is
-      use Standard.AUnit.Checks;
-      use Standard.AUnit.Assertions;
-      use type WisiToken.Parser.LR.Action_Node_Ptr;
-      Computed_I : WisiToken.Parser.LR.Action_Node_Ptr := Computed;
-      Expected_I : WisiToken.Parser.LR.Action_Node_Ptr := Expected;
-      Index      : Integer  := 1;
-   begin
-      if Computed /= null or Expected /= null then
-         Assert (Computed /= null, Label & " Computed is null");
-         Assert (Expected /= null, Label & " Expected is null");
-      else
-         --  both are null
-         return;
-      end if;
-
-      loop
-         Check (Label & Integer'Image (Index) & ".Symbol", Computed_I.Symbol, Expected_I.Symbol);
-         Check (Label & Integer'Image (Index) & ".Action", Computed_I.Action, Expected_I.Action);
-         Check (Label & Integer'Image (Index) & ".Next = null", Computed_I.Next = null, Expected_I.Next = null);
-         Computed_I := Computed_I.Next;
-         Expected_I := Expected_I.Next;
-         Index      := Index + 1;
-         exit when Computed_I = null;
-      end loop;
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Goto_Node_Ptr;
-      Expected : in WisiToken.Parser.LR.Goto_Node_Ptr)
-   is
-      use Standard.AUnit.Checks;
-      use Standard.AUnit.Assertions;
-      use all type WisiToken.Parser.LR.Goto_Node_Ptr;
-      Computed_I : WisiToken.Parser.LR.Goto_Node_Ptr := Computed;
-      Expected_I : WisiToken.Parser.LR.Goto_Node_Ptr := Expected;
-      Index      : Integer  := 1;
-   begin
-      if Computed /= null or Expected /= null then
-         Assert (Computed /= null, Label & " Computed is null");
-         Assert (Expected /= null, Label & " Expected is null");
-      else
-         --  both are null
-         return;
-      end if;
-
-      loop
-         Check (Label & Integer'Image (Index) & ".Symbol", Symbol (Computed_I), Symbol (Expected_I));
-         Check (Label & Integer'Image (Index) & ".State", State (Computed_I), State (Expected_I));
-         Check (Label & Integer'Image (Index) & ".Next = null", Next (Computed_I) = null, Next (Expected_I) = null);
-         Computed_I := Next (Computed_I);
-         Expected_I := Next (Expected_I);
-         Index      := Index + 1;
-         exit when Computed_I = null;
-      end loop;
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_State;
-      Expected : in WisiToken.Parser.LR.Parse_State)
-   is begin
-      Check (Label & ".Action_List", Computed.Action_List, Expected.Action_List);
-      Check (Label & ".Goto_List", Computed.Goto_List, Expected.Goto_List);
-   end Check;
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_Table;
-      Expected : in WisiToken.Parser.LR.Parse_Table)
-   is begin
-      Check (Label & ".States'first", Computed.States'First, Expected.States'First);
-      Check (Label & ".States'last", Computed.States'Last, Expected.States'Last);
-      for I in Computed.States'Range loop
-         Check
-           (Label & ".States." & WisiToken.Parser.LR.State_Index'Image (I), Computed.States (I), Expected.States (I));
-      end loop;
-      Check (Label & ".Panic_Recover", Computed.Panic_Recover, Expected.Panic_Recover);
-      Check (Label & ".Follow", Computed.Follow, Expected.Follow);
-   end Check;
 
 end WisiToken_AUnit;

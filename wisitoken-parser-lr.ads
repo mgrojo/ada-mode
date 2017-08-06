@@ -114,13 +114,13 @@ package WisiToken.Parser.LR is
    --  Run-time parse table construction subprograms:
 
    procedure Add_Action
-     (State       : in out LR.Parse_State;
+     (State       : in out Parse_State;
       Symbol      : in     Token_ID;
       State_Index : in     LR.State_Index);
    --  Add a Shift action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out LR.Parse_State;
+     (State           : in out Parse_State;
       Symbol          : in     Token_ID;
       Verb            : in     Parse_Action_Verbs;
       LHS_ID          : in     Token_ID;
@@ -130,7 +130,7 @@ package WisiToken.Parser.LR is
    --  Add a Reduce or Accept_It action to tail of State action list.
 
    procedure Add_Action
-     (State           : in out LR.Parse_State;
+     (State           : in out Parse_State;
       Symbol          : in     Token_ID;
       State_Index     : in     LR.State_Index;
       LHS_ID          : in     Token_ID;
@@ -140,7 +140,7 @@ package WisiToken.Parser.LR is
    --  Add a Shift/Reduce conflict to State.
 
    procedure Add_Action
-     (State             : in out LR.Parse_State;
+     (State             : in out Parse_State;
       Symbol            : in     Token_ID;
       Verb              : in     Parse_Action_Verbs;
       LHS_ID_1          : in     Token_ID;
@@ -153,11 +153,11 @@ package WisiToken.Parser.LR is
       Semantic_Action_2 : in     Semantic_Action);
    --  Add an Accept/Reduce or Reduce/Reduce conflict action to State.
 
-   procedure Add_Error (State  : in out LR.Parse_State);
+   procedure Add_Error (State  : in out Parse_State);
    --  Add an Error action to State, at tail of action list.
 
    procedure Add_Goto
-     (State    : in out LR.Parse_State;
+     (State    : in out Parse_State;
       Symbol   : in     Token_ID;
       To_State : in     LR.State_Index);
    --  Add a Goto to State; keep goto list sorted in ascending order on Symbol.
@@ -249,10 +249,15 @@ package WisiToken.Parser.LR is
    Default_Recover : constant Recover_Data :=
      (Invalid_Token, Unknown_State, WisiToken.Token.List.Null_List, WisiToken.Token.List.Null_List);
 
-   package State_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (State_Index);
-   package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interfaces);
+   --  Parse stack type. Visible here for error recover info.
+   type Parse_Stack_Item is record
+      State : Unknown_State_Index;
+      Token : Token_ID;
+   end record;
+   Default_Parse_Stack_Item : constant Parse_Stack_Item := (Unknown_State, Invalid_Token);
 
-   function Image (Stack : in State_Stacks.Stack_Type) return String;
+   package Parse_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parse_Stack_Item);
+   package Parse_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parse_Stack_Item, Parse_Stack_Interfaces);
 
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
@@ -269,6 +274,14 @@ package WisiToken.Parser.LR is
 
    function State_Image (Item : in State_Index) return String;
    --  no leading space
+
+   function Image
+     (Descriptor : in WisiToken.Descriptor'Class;
+      Stack      : in Parse_Stacks.Stack_Type;
+      Depth      : in Ada.Containers.Count_Type := 0)
+     return String;
+   --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
+   --  Stack.Depth) items.
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Action : in Parse_Action_Node_Ptr);

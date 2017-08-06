@@ -23,6 +23,7 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
+with WisiToken.Parser.LR.AUnit;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.LR1_Items;
 with WisiToken.Parser.LR.Parser;
@@ -188,6 +189,7 @@ package body Dragon_4_45_LALR_Test is
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       use WisiToken.Parser.LR;
+      use WisiToken.Parser.LR.AUnit;
 
       Test : Test_Case renames Test_Case (T);
 

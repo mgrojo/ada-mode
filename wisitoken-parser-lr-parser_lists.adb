@@ -26,7 +26,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       First_Parser_Label : in Integer)
      return List
    is
-      Stack : Parser_Stacks.Stack_Type;
+      Stack : Parse_Stacks.Stack_Type;
    begin
       Stack.Push ((First_State_Index, Invalid_Token));
 
@@ -38,7 +38,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
                Verb            => Parse_Action_Verbs'First,
                Prev_Verb       => Parse_Action_Verbs'First,
                Stack           => Stack,
-               Pre_Reduce_Item => Default_Stack_Item,
+               Pre_Reduce_Item => Default_Parse_Stack_Item,
                Pending_Actions => (null, null),
                Recover         => null),
             Next               => null,
@@ -113,27 +113,17 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Cursor.Ptr.Item.Stack.Is_Empty;
    end Stack_Empty;
 
-   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type
-   is
-      Result : State_Stacks.Stack_Type;
-
-      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
-
-      Depth : constant Parser_Stack_Interfaces.Positive_Count_Type := Stack.Depth;
-   begin
-      Result.Set_Depth (Depth);
-      for I in 1 .. Stack.Depth loop
-         Result.Set (I, Depth, Stack.Peek (I).State);
-      end loop;
-      return Result;
+   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return Parse_Stacks.Stack_Type
+   is begin
+      return Cursor.Ptr.Item.Stack;
    end Copy_Stack;
 
-   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item
+   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Parse_Stack_Item
    is begin
-      return Cursor.Ptr.Item.Stack.Peek (Parser_Stack_Interfaces.Positive_Count_Type (Depth));
+      return Cursor.Ptr.Item.Stack.Peek (Parse_Stack_Interfaces.Positive_Count_Type (Depth));
    end Peek;
 
-   function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   function Pop (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item
    is begin
       return Cursor.Ptr.Item.Stack.Pop;
    end Pop;
@@ -143,24 +133,24 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Cursor.Ptr.Item.Stack.Pop;
    end Pop;
 
-   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item)
+   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Parse_Stack_Item)
    is begin
       Cursor.Ptr.Item.Stack.Push (Item);
    end Push;
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean
    is
-      use all type Parser_Stacks.Stack_Type;
+      use all type Parse_Stacks.Stack_Type;
    begin
       return Cursor_1.Ptr.Item.Stack = Cursor_2.Ptr.Item.Stack;
    end Stack_Equal;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
-      use Parser_Stack_Interfaces;
+      use Parse_Stack_Interfaces;
       use all type Ada.Containers.Count_Type;
 
-      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
+      Stack : Parse_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
       Last  : constant Positive_Count_Type := Positive_Count_Type'Min (10, Stack.Depth);
    begin
       Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
@@ -179,7 +169,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Cursor.Ptr.Item.Pre_Reduce_Item := Cursor.Ptr.Item.Stack.Peek;
    end Pre_Reduce_Stack_Save;
 
-   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Stack_Item
+   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item
    is begin
       return Cursor.Ptr.Item.Pre_Reduce_Item;
    end Pre_Reduce_Stack_Item;

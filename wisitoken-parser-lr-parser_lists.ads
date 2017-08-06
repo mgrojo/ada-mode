@@ -60,18 +60,12 @@ package WisiToken.Parser.LR.Parser_Lists is
    function Recover_Ref (Position : in Cursor) return Recover_Reference;
 
    --  Parser stack
-   type Stack_Item is record
-      State : Unknown_State_Index;
-      Token : Token_ID;
-   end record;
-   Default_Stack_Item : constant Stack_Item := (Unknown_State, Invalid_Token);
-
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
-   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Stack_Item;
-   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return State_Stacks.Stack_Type;
-   function Pop (Cursor : in Parser_Lists.Cursor) return Stack_Item;
+   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Parse_Stack_Item;
+   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return Parse_Stacks.Stack_Type;
+   function Pop (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item;
    procedure Pop (Cursor : in Parser_Lists.Cursor);
-   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Stack_Item);
+   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Parse_Stack_Item);
 
    function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean;
 
@@ -84,7 +78,7 @@ package WisiToken.Parser.LR.Parser_Lists is
    --  McKenzie error recover algorithm needs the parse state before
    --  last reduce action.
 
-   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Stack_Item;
+   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item;
 
    --  pending user actions
    type Action_Token is record
@@ -156,9 +150,6 @@ package WisiToken.Parser.LR.Parser_Lists is
 
 private
 
-   package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Stack_Item);
-   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Stack_Item, Parser_Stack_Interfaces);
-
    type Action_Token_Node;
    type Action_Token_Node_Access is access Action_Token_Node;
    type Action_Token_Node is record
@@ -179,8 +170,8 @@ private
       Label           : Integer;            -- for debugging/verbosity
       Verb            : Parse_Action_Verbs; -- last action performed
       Prev_Verb       : Parse_Action_Verbs; -- previous action performed
-      Stack           : Parser_Stacks.Stack_Type;
-      Pre_Reduce_Item : Stack_Item := Default_Stack_Item;
+      Stack           : Parse_Stacks.Stack_Type;
+      Pre_Reduce_Item : Parse_Stack_Item := Default_Parse_Stack_Item;
       Pending_Actions : Action_Token_List;  --  FIXME: include panic/recovery
       Recover         : Recover_Data_Access;
    end record;

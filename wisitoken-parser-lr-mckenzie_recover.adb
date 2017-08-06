@@ -29,7 +29,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       use Ada.Text_IO;
       use Ada.Containers;
    begin
-      Put ("(" & Image (Config.Stack) & Count_Type'Image (Config.Lookahead_Index) & " ");
+      Put ("(" & Image (Descriptor, Config.Stack) & Count_Type'Image (Config.Lookahead_Index) & " ");
       WisiToken.Put (Descriptor, Config.Inserted);
       Put (" ");
       WisiToken.Put (Descriptor, Config.Deleted);
@@ -47,9 +47,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    begin
       Put (Trace, Message & ": ");
       if Trace_Parse > 2 then
-         Trace.Put (Image (Config.Stack));
+         Trace.Put (Image (Trace.Descriptor.all, Config.Stack));
       else
-         Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek));
+         Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek.State));
       end if;
       Trace.Put (" ");
       Put (Trace, Parser.Lookahead (Config.Lookahead_Index));
@@ -113,7 +113,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Action         : in     Shift_Action_Rec;
       Inserted_Token : in     Token_ID)
    is begin
-      Config.Stack.Push (Action.State);
+      Config.Stack.Push ((Action.State, Inserted_Token));
       Config.Inserted.Append (Inserted_Token);
       Config.Cost := Config.Cost + Data.Parser.Table.McKenzie.Insert (Inserted_Token);
       Enqueue (Data, Config);
@@ -125,22 +125,24 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Action         : in     Reduce_Action_Rec;
       Inserted_Token : in     Token_ID)
    is
+      Trace : WisiToken.Trace'Class renames Data.Parser.Semantic_State.Trace.all;
+
       New_Config_1 : Configuration := Config;
       New_Config_2 : Configuration;
       New_State    : Unknown_State_Index;
       Next_Action  : Parse_Action_Node_Ptr;
    begin
       if Trace_Parse > 2 then
-         Data.Parser.Semantic_State.Trace.Put (Image (New_Config_1.Stack));
-         Data.Parser.Semantic_State.Trace.New_Line;
-         Put (Data.Parser.Semantic_State.Trace.all, Action);
-         Data.Parser.Semantic_State.Trace.New_Line;
+         Trace.Put (Image (Trace.Descriptor.all, New_Config_1.Stack));
+         Trace.New_Line;
+         Put (Trace, Action);
+         Trace.New_Line;
       end if;
 
       for I in 1 .. Action.Token_Count loop
-         New_State := New_Config_1.Stack.Pop;
+         New_State := New_Config_1.Stack.Pop.State;
       end loop;
-      New_State := New_Config_1.Stack.Peek;
+      New_State := New_Config_1.Stack.Peek.State;
       New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
 
       if New_State = Unknown_State then
@@ -153,11 +155,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          exit when Next_Action = null;
          case Next_Action.Item.Verb is
          when Shift =>
-            New_Config_2.Stack.Push (New_State);
+            New_Config_2.Stack.Push ((New_State, Inserted_Token));
             Do_Shift (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Reduce =>
-            New_Config_2.Stack.Push (New_State);
+            New_Config_2.Stack.Push ((New_State, Inserted_Token));
             Do_Reduce (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Accept_It | Error =>
@@ -179,9 +181,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Next_Action : Parse_Action_Node_Ptr;
    begin
       for I in 1 .. Action.Token_Count loop
-         New_State := Config.Stack.Pop;
+         New_State := Config.Stack.Pop.State;
       end loop;
-      New_State := Config.Stack.Peek;
+      New_State := Config.Stack.Peek.State;
       New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
 
       if New_State = Unknown_State then
@@ -196,7 +198,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             return True;
 
          when Reduce =>
-            Config.Stack.Push (New_State);
+            Config.Stack.Push ((New_State, Current_Token));
             if Check_Reduce (Data, Config, Next_Action.Item, Current_Token) then
                return True;
             end if;
@@ -216,7 +218,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    is
       --  Return True if Config allows parsing to continue
 
-      Action : Parse_Action_Node_Ptr := Action_For (Data.Parser.Table.all, Config.Stack.Peek, Current_Token);
+      Action : Parse_Action_Node_Ptr := Action_For (Data.Parser.Table.all, Config.Stack.Peek.State, Current_Token);
    begin
       loop
          exit when Action = null;
@@ -497,7 +499,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                --  Find insertions to try
                for ID in Data.Parser.Table.First_Terminal .. Data.Parser.Table.Last_Terminal loop
                   if ID /= EOF_ID then
-                     Action := Action_For (Data.Parser.Table.all, Config.Stack.Peek, ID);
+                     Action := Action_For (Data.Parser.Table.all, Config.Stack.Peek.State, ID);
                      loop
                         exit when Action = null;
                         case Action.Item.Verb is

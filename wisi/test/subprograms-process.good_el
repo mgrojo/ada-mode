@@ -33,7 +33,7 @@
     RIGHT_PAREN
     SYMBOL
     Wisi_EOI
-    fasttoken_accept
+    wisitoken_accept
     compilation_unit
     declarations
     declaration

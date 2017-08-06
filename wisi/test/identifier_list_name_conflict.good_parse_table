@@ -8,7 +8,7 @@ Tokens:
  7 => STRING_LITERAL
  8 => IDENTIFIER
  9 => Wisi_EOI
- 10 => fasttoken_accept
+ 10 => wisitoken_accept
  11 => association
  12 => association_list
  13 => compilation
@@ -87,7 +87,7 @@ Follow:
  others => (others => False))
 
 State 0:
-  fasttoken_accept <= ^ compilation Wisi_EOI, 
+  wisitoken_accept <= ^ compilation Wisi_EOI, 
 
    LEFT_PAREN       => shift and goto state 1
    STRING_LITERAL   => shift and goto state 2
@@ -141,7 +141,7 @@ State 3:
 
 
 State 4:
-  fasttoken_accept <= compilation ^ Wisi_EOI, 
+  wisitoken_accept <= compilation ^ Wisi_EOI, 
 
    Wisi_EOI         => accept it
    default          => ERROR
@@ -417,7 +417,7 @@ Follow:
  others => (others => False))
 
 State 0:
-  fasttoken_accept <= ^ compilation Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ compilation Wisi_EOI, Wisi_EOI
 
    LEFT_PAREN       => shift and goto state 1
    STRING_LITERAL   => shift and goto state 2
@@ -467,7 +467,7 @@ State 3:
 
 
 State 4:
-  fasttoken_accept <= compilation ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= compilation ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI         => accept it
    default          => ERROR

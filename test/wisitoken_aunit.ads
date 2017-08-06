@@ -18,16 +18,11 @@
 
 pragma License (GPL);
 
-with AUnit.Checks;
 with WisiToken.Parser.LR.LR1_Items;
 with WisiToken.Production;
-with WisiToken.Token;
 package WisiToken_AUnit is
 
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Token.List.List_Iterator;
-      Expected : in WisiToken.Token.List.List_Iterator);
+   --  FIXME: move these to appropriate .AUnit
 
    procedure Check
      (Label    : in String;
@@ -130,19 +125,5 @@ package WisiToken_AUnit is
       Dot       : in Positive;
       Lookahead : in WisiToken.Parser.LR.LR1_Items.Lookahead)
      return WisiToken.Parser.LR.LR1_Items.Item_Set;
-
-   procedure Check is new AUnit.Checks.Gen_Check_Discrete (WisiToken.Parser.LR.Unknown_State_Index);
-
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Parser.LR.Parse_Action_Verbs);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_State;
-      Expected : in WisiToken.Parser.LR.Parse_State);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Parser.LR.Parse_Table;
-      Expected : in WisiToken.Parser.LR.Parse_Table);
 
 end WisiToken_AUnit;

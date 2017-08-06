@@ -41,7 +41,7 @@ package WisiToken.Parser.LR.McKenzie_Recover is
 
    --  Visible for unit test, sending to Emacs process.
    type Configuration is new WisiToken.Token.Recover_Data with record
-      Stack           : State_Stacks.Stack_Type;
+      Stack           : Parse_Stacks.Stack_Type;
       Lookahead_Index : Ada.Containers.Count_Type; -- index into parser.lookahead for next input token
       Inserted        : Token_Arrays.Vector;
       Deleted         : Token_Arrays.Vector;

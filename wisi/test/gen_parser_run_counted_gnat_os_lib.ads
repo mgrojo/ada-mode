@@ -24,11 +24,10 @@ with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_Feeder;
 generic
    with function Create_Parser
-     (Algorithm            : in WisiToken.Parser_Algorithm_Type;
-      Max_Parallel         : in Integer                               := 15;
-      Terminate_Same_State : in Boolean                               := False;
-      Text_Feeder          : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Buffer_Size          : in Integer                               := 1024)
+     (Algorithm    : in WisiToken.Parser_Algorithm_Type;
+      Max_Parallel : in Integer                               := 15;
+      Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size  : in Integer                               := 1024)
      return WisiToken.Parser.LR.Parser.Instance;
 
 procedure Gen_Parser_Run_Counted_GNAT_OS_Lib;

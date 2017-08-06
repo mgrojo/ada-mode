@@ -5,7 +5,7 @@ Tokens:
  4 => IS
  5 => SEMICOLON
  6 => Wisi_EOI
- 7 => fasttoken_accept
+ 7 => wisitoken_accept
  8 => declarations
  9 => declarative_part
  10 => body
@@ -45,7 +45,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ declarative_part Wisi_EOI, 
+  wisitoken_accept <= ^ declarative_part Wisi_EOI, 
 
    IS               => shift and goto state 2
    Wisi_EOI         => reduce 0 tokens to declarative_part
@@ -78,7 +78,7 @@ State 3:
    body             goto state 6
 
 State 4:
-  fasttoken_accept <= declarative_part ^ Wisi_EOI, 
+  wisitoken_accept <= declarative_part ^ Wisi_EOI, 
 
    Wisi_EOI         => accept it
    default          => ERROR
@@ -160,7 +160,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ declarative_part Wisi_EOI, Wisi_EOI
 
    IS               => shift and goto state 2
    Wisi_EOI         => reduce 0 tokens to declarative_part
@@ -192,7 +192,7 @@ State 3:
    body             goto state 6
 
 State 4:
-  fasttoken_accept <= declarative_part ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= declarative_part ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI         => accept it
    default          => ERROR

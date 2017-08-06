@@ -42,7 +42,7 @@ when A => 123.4
  ... goto state 2
  0 stack:  2 : case_expression,  0 : 
  0: 2: Wisi_EOI : accept it
-(fasttoken_accept 28 . 42) <= (case_expression 28 . 42)
+(wisitoken_accept 28 . 42) <= (case_expression 28 . 42)
 
 LR1_Parser parse:
 read 44
@@ -88,4 +88,4 @@ when A => 123.4
  ... goto state 2
  0 stack:  2 : case_expression,  0 : 
  0: 2: Wisi_EOI : accept it
-(fasttoken_accept 28 . 42) <= (case_expression 28 . 42)
+(wisitoken_accept 28 . 42) <= (case_expression 28 . 42)

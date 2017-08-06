@@ -6,7 +6,7 @@ Tokens:
  5 => SEMICOLON
  6 => IDENTIFIER
  7 => Wisi_EOI
- 8 => fasttoken_accept
+ 8 => wisitoken_accept
  9 => object_declaration_list
  10 => object_declaration
  11 => aliased_opt
@@ -54,7 +54,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ object_declaration_list Wisi_EOI, 
+  wisitoken_accept <= ^ object_declaration_list Wisi_EOI, 
 
    IDENTIFIER              => shift and goto state 2
    default                 => ERROR
@@ -77,7 +77,7 @@ State 2:
    constant_opt            goto state 9
 
 State 3:
-  fasttoken_accept <= object_declaration_list ^ Wisi_EOI, 
+  wisitoken_accept <= object_declaration_list ^ Wisi_EOI, 
   object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
 
    IDENTIFIER              => shift and goto state 2
@@ -206,7 +206,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ object_declaration_list Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ object_declaration_list Wisi_EOI, Wisi_EOI
 
    IDENTIFIER              => shift and goto state 2
    default                 => ERROR
@@ -229,7 +229,7 @@ State 2:
    constant_opt            goto state 9
 
 State 3:
-  fasttoken_accept <= object_declaration_list ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= object_declaration_list ^ Wisi_EOI, Wisi_EOI
   object_declaration_list <= object_declaration_list ^ object_declaration, IDENTIFIER/Wisi_EOI
 
    IDENTIFIER              => shift and goto state 2

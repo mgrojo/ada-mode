@@ -9,7 +9,7 @@ Tokens:
  8 => NUMBER_LITERAL
  9 => IDENTIFIER
  10 => Wisi_EOI
- 11 => fasttoken_accept
+ 11 => wisitoken_accept
  12 => case_expression
  13 => choice_expression
  14 => choice_relation
@@ -71,7 +71,7 @@ Follow:
  others => (others => False))
 
 State 0:
-  fasttoken_accept <= ^ case_expression Wisi_EOI, 
+  wisitoken_accept <= ^ case_expression Wisi_EOI, 
 
    WHEN              => shift and goto state 1
    default           => ERROR
@@ -93,7 +93,7 @@ State 1:
    range_nt          goto state 10
 
 State 2:
-  fasttoken_accept <= case_expression ^ Wisi_EOI, 
+  wisitoken_accept <= case_expression ^ Wisi_EOI, 
 
    Wisi_EOI          => accept it
    default           => ERROR
@@ -271,7 +271,7 @@ Follow:
  others => (others => False))
 
 State 0:
-  fasttoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ case_expression Wisi_EOI, Wisi_EOI
 
    WHEN              => shift and goto state 1
    default           => ERROR
@@ -293,7 +293,7 @@ State 1:
    range_nt          goto state 10
 
 State 2:
-  fasttoken_accept <= case_expression ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= case_expression ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI          => accept it
    default           => ERROR

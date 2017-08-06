@@ -68,7 +68,7 @@ body_0: (body 105 . 127) <= (IS 105 . 106), (declarative_part 112 . 120), (BEGIN
  ... goto state 4
  1 stack:  4 : declarative_part,  1 : 
  1: 4: Wisi_EOI : accept it
-(fasttoken_accept 43 . 127) <= (declarative_part 43 . 127)
+(wisitoken_accept 43 . 127) <= (declarative_part 43 . 127)
 
 LR1_Parser parse:
 read 128
@@ -140,4 +140,4 @@ body_0: (body 105 . 127) <= (IS 105 . 106), (declarative_part 112 . 120), (BEGIN
  ... goto state 4
  1 stack:  4 : declarative_part,  1 : 
  1: 4: Wisi_EOI : accept it
-(fasttoken_accept 43 . 127) <= (declarative_part 43 . 127)
+(wisitoken_accept 43 . 127) <= (declarative_part 43 . 127)

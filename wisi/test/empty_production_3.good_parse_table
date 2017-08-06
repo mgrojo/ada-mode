@@ -3,7 +3,7 @@ Tokens:
  2 => IN
  3 => IDENTIFIER
  4 => Wisi_EOI
- 5 => fasttoken_accept
+ 5 => wisitoken_accept
  6 => compilation_unit
  7 => mode
  8 => name
@@ -42,7 +42,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, 
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, 
 
    IDENTIFIER              => shift and goto state 2
    default                 => ERROR
@@ -60,7 +60,7 @@ State 2:
    mode                    goto state 7
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, 
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, 
 
    Wisi_EOI                => accept it
    default                 => ERROR
@@ -145,7 +145,7 @@ Follow:
  others => (others => False))
 
 State 1:
-  fasttoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= ^ compilation_unit Wisi_EOI, Wisi_EOI
 
    IDENTIFIER              => shift and goto state 2
    default                 => ERROR
@@ -163,7 +163,7 @@ State 2:
    mode                    goto state 8
 
 State 3:
-  fasttoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
+  wisitoken_accept <= compilation_unit ^ Wisi_EOI, Wisi_EOI
 
    Wisi_EOI                => accept it
    default                 => ERROR
