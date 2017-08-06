@@ -164,7 +164,10 @@ package body WisiToken.Token_Region is
           Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
           Error_Token    => State.Input_Queue.Peek,
           Expecting      => Expecting,
-          Invalid_Region => Null_Buffer_Region));
+
+          --  The following are set in Recover
+          Invalid_Region => Null_Buffer_Region,
+          Recover        => null));
    end Error;
 
    overriding
@@ -249,7 +252,8 @@ package body WisiToken.Token_Region is
    procedure Recover
      (State         : access State_Type;
       Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance)
+      Pushed_Tokens : in     WisiToken.Token.List.Instance;
+      Recover       : in     WisiToken.Token.Recover_Data_Access)
    is
       use all type Ada.Containers.Count_Type;
       use all type WisiToken.Token.List.List_Iterator;
@@ -284,7 +288,12 @@ package body WisiToken.Token_Region is
          Next (I);
       end loop;
 
-      State.Errors.Reference (State.Errors.Last).Invalid_Region := Region;
+      declare
+         Error : Error_Data renames State.Errors.Reference (State.Errors.Last);
+      begin
+         Error.Invalid_Region := Region;
+         Error.Recover        := Recover;
+      end;
 
       if Trace_Parse > 2 then
          if Popped_Tokens.Length + Pushed_Tokens.Length > 0 then

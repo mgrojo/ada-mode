@@ -74,6 +74,7 @@ package WisiToken.Parser.LR is
          null;
       end case;
    end record;
+   subtype Shift_Action_Rec is Parse_Action_Rec (Shift);
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
@@ -248,8 +249,8 @@ package WisiToken.Parser.LR is
    Default_Recover : constant Recover_Data :=
      (Invalid_Token, Unknown_State, WisiToken.Token.List.Null_List, WisiToken.Token.List.Null_List);
 
-   package State_Stack_Interface is new SAL.Gen_Stack_Interfaces (State_Index);
-   package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interface);
+   package State_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (State_Index);
+   package State_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (State_Index, State_Stack_Interfaces);
 
    function Image (Stack : in State_Stacks.Stack_Type) return String;
 

@@ -10,26 +10,31 @@
 --  version. This library is distributed in the hope that it will be useful,
 --  but WITHOUT ANY WARRANTY;  without even the implied warranty of MERCHAN-
 --  TABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-
+--
 --  As a special exception under Section 7 of GPL version 3, you are granted
 --  additional permissions described in the GCC Runtime Library Exception,
 --  version 3.1, as published by the Free Software Foundation.
 
-pragma License (GPL);
+pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
 package body WisiToken.Parser.LR.McKenzie_Recover is
 
    Recover_Fail : exception;
 
-   type Configuration is record
-      Stack           : State_Stacks.Stack_Type;
-      Lookahead_Index : Ada.Containers.Count_Type; -- index into parser.lookahead for next input token
-      Inserted        : Token_Arrays.Vector;
-      Deleted         : Token_Arrays.Vector;
-      Cost            : Float := 0.0;
-   end record;
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration)
+   is
+      use Ada.Text_IO;
+      use Ada.Containers;
+   begin
+      Put ("(" & Image (Config.Stack) & Count_Type'Image (Config.Lookahead_Index) & " ");
+      WisiToken.Put (Descriptor, Config.Inserted);
+      Put (" ");
+      WisiToken.Put (Descriptor, Config.Deleted);
+      Put (Float'Image (Config.Cost) & ")");
+   end Put;
 
    procedure Put
      (Message : in     String;
@@ -102,28 +107,40 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       return Data.Queue.Remove;
    end Delete_Min;
 
+   procedure Do_Shift
+     (Data           : in out McKenzie_Data;
+      Config         : in out Configuration;
+      Action         : in     Shift_Action_Rec;
+      Inserted_Token : in     Token_ID)
+   is begin
+      Config.Stack.Push (Action.State);
+      Config.Inserted.Append (Inserted_Token);
+      Config.Cost := Config.Cost + Data.Parser.Table.McKenzie.Insert (Inserted_Token);
+      Enqueue (Data, Config);
+   end Do_Shift;
+
    procedure Do_Reduce
      (Data           : in out McKenzie_Data;
       Config         : in     Configuration;
       Action         : in     Reduce_Action_Rec;
       Inserted_Token : in     Token_ID)
    is
-      New_Config : Configuration := Config;
-      New_State  : Unknown_State_Index;
-
-      Next_Action : Parse_Action_Node_Ptr;
+      New_Config_1 : Configuration := Config;
+      New_Config_2 : Configuration;
+      New_State    : Unknown_State_Index;
+      Next_Action  : Parse_Action_Node_Ptr;
    begin
       if Trace_Parse > 2 then
-         Data.Parser.Semantic_State.Trace.Put (Image (New_Config.Stack));
+         Data.Parser.Semantic_State.Trace.Put (Image (New_Config_1.Stack));
          Data.Parser.Semantic_State.Trace.New_Line;
          Put (Data.Parser.Semantic_State.Trace.all, Action);
          Data.Parser.Semantic_State.Trace.New_Line;
       end if;
 
       for I in 1 .. Action.Token_Count loop
-         New_State := New_Config.Stack.Pop;
+         New_State := New_Config_1.Stack.Pop;
       end loop;
-      New_State := New_Config.Stack.Peek;
+      New_State := New_Config_1.Stack.Peek;
       New_State := Goto_For (Data.Parser.Table.all, New_State, Action.LHS);
 
       if New_State = Unknown_State then
@@ -132,18 +149,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Next_Action := Action_For (Data.Parser.Table.all, New_State, Inserted_Token);
       loop
+         New_Config_2 := New_Config_1;
          exit when Next_Action = null;
          case Next_Action.Item.Verb is
          when Shift =>
-            New_Config.Stack.Push (New_State);
-            New_Config.Stack.Push (Next_Action.Item.State);
-            New_Config.Inserted.Append (Inserted_Token);
-            New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Insert (Inserted_Token);
-            Enqueue (Data, New_Config);
+            New_Config_2.Stack.Push (New_State);
+            Do_Shift (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Reduce =>
-            New_Config.Stack.Push (New_State);
-            Do_Reduce (Data, New_Config, Next_Action.Item, Inserted_Token);
+            New_Config_2.Stack.Push (New_State);
+            Do_Reduce (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Accept_It | Error =>
             null;
@@ -362,16 +377,18 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    --  FIXME: make visible, add to some hook in .wy
    function Dotted_Name
-     (Parser        : in out LR.Instance'Class;
-      Cursor        : in     Parser_Lists.Cursor;
-      Param         : in     McKenzie_Param_Type;
-      Config        :    out Configuration)
+     (Data   : in out McKenzie_Data;
+      Cursor : in     Parser_Lists.Cursor;
+      Config :    out Configuration)
      return Boolean
    is
       --  Assume Cursor parser encountered an error at Current_Token.
       --  If Cursor.Stack, Current_Token match a dotted name that
       --  errored on '.', set config to an appropriate root config,
       --  and return True. Else return False.
+
+      Parser : LR.Instance'Class renames Data.Parser.all;
+      Param : McKenzie_Param_Type renames Parser.Table.McKenzie;
 
       Current_Token : constant Token_ID := Parser.Lookahead (1);
    begin
@@ -385,6 +402,18 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       if Cursor.Peek.Token = Param.Identifier_ID and
         Current_Token = Param.Dot_ID
       then
+         --  Parser encountered something like:
+         --
+         --      loop ... end Parent.Child;
+         --
+         --  and errored on '.', expecting 'loop'
+         --  So we pushback 'IDENTIFIER', so that '.' is now legal.
+         --
+         --  Ideally we would replace the identifier on the stack with
+         --  a dummy inserted one, leaving the real identifier to be
+         --  part of the dotted name; that would allow proper syntax
+         --  coloring etc. But this is close enough.
+
          Config :=
            (Stack           => Cursor.Copy_Stack,
             Lookahead_Index => Positive_Index_Type'First,
@@ -392,10 +421,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             Deleted         => Token_Arrays.Empty_Vector,
             Cost            => 0.0);
 
-         --  Ideally we would replace the identifier on the stack with
-         --  a dummy inserted one, leaving the real identifier to be
-         --  part of the dotted name; that would allow proper syntax
-         --  coloring etc. But this is close enough.
+         --  FIXME: should not modify lookahead for single parser; see FIXME: in Recover below
+         --  Also, this is not recorded in Config for reuse.
          Parser.Lookahead.Prepend (Param.Identifier_ID);
          Parser.Semantic_State.Input_Token (Param.Identifier_ID, null);
          return True;
@@ -417,14 +444,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Trace : WisiToken.Trace'Class renames Data.Parser.Semantic_State.Trace.all;
 
-      procedure Trace_Result (Success : in Boolean)
-      is begin
-         Trace.Put_Line
-           ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
-              ", check " & Integer'Image (Data.Check_Count) &
-              "; " & (if Success then "succeed" else "fail"));
-      end Trace_Result;
-
       Root_Config : Configuration;
    begin
       if Trace_Parse > 1 then
@@ -433,7 +452,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Clear_Queue (Data);
 
-      if Dotted_Name (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+      if Dotted_Name (Data, Cursor, Root_Config) then
          null;
       elsif Statement_Terminal_Sequence (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
          null;
@@ -466,7 +485,10 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             end if;
             if Check (Data, Config, Current_Input) then
                if Trace_Parse > 0 then
-                  Trace_Result (Success => True);
+                  Trace.Put_Line
+                    ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
+                       ", check " & Integer'Image (Data.Check_Count));
+                  Put ("succeed", Data.Parser, Config);
                end if;
                return Config;
             end if;
@@ -489,10 +511,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                            end if;
 
                            New_Config := Config;
-                           New_Config.Stack.Push (Action.Item.State);
-                           New_Config.Inserted.Append (ID);
-                           New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Insert (ID);
-                           Enqueue (Data, New_Config);
+                           Do_Shift (Data, New_Config, Action.Item, ID);
 
                         when Reduce =>
                            if Trace_Parse > 2 then
@@ -511,7 +530,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end loop;
             end if;
 
-            --  Try a deletion
+            --  Try deleting current token
             declare
                Deleted_Token : constant Token_ID := Parser.Lookahead (Config.Lookahead_Index);
             begin
@@ -527,6 +546,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Trace.New_Line;
                   end if;
 
+                  --  FIXME: should not modify lookahead for single parser; see FIXME: in Recover below
                   if New_Config.Lookahead_Index = Parser.Lookahead.Last_Index then
                      Parser.Lookahead.Append (Parser.Lexer.Find_Next);
                      --  We must call Input_Token here, while the lexer data is valid
@@ -540,7 +560,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          end;
       end loop;
       if Trace_Parse > 0 then
-         Trace_Result (Success => False);
+         Trace.Put_Line
+           ("mckenzie enqueue" & Integer'Image (Data.Enqueue_Count) &
+              ", check " & Integer'Image (Data.Check_Count) & "; fail");
       end if;
       raise Recover_Fail;
    end Recover;
@@ -595,7 +617,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             Parser.Semantic_State.Recover
               (Popped_Tokens => Data.Popped_Tokens,
-               Pushed_Tokens => Data.Pushed_Tokens);
+               Pushed_Tokens => Data.Pushed_Tokens,
+               Recover       => new Configuration'(Result));
 
             Current_Token := Parser.Lookahead (Positive_Index_Type'First);
             Parser.Lookahead.Delete_First;

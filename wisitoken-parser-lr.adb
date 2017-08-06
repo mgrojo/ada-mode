@@ -40,7 +40,7 @@ package body WisiToken.Parser.LR is
       for I in 1 .. Stack.Depth loop
          Result := Result & (State_Image (Stack.Peek (I)) & ", ");
       end loop;
-      return To_String (Result);
+      return To_String (Result & ")");
    end Image;
 
    function State_Image (Item : in State_Index) return String

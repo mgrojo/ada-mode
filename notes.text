@@ -1,58 +1,147 @@
 build/Makefile
 
  current work
+add pop token to mckenzie
+    t_one Extra_Begin
+
+fix McKenzie with parallel parsers
+        force a conflict
+        don't terminate any if all fail
+        _dont_ exit recover with first success; all parsers may succeed
+   procedure Check
+     (Label    : in String;
+      Computed : in Error_Data;
+      Expected : in Error_Data)
+   is
+   end Check;
+
+       function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.
+
 better syntax error handling
-    "d:/Books/eBooks/Parsing/Grune 321 - Error repair in shift reduce parsers.pdf"
+    new algorithm 1:
+        if error symbol is in a terminal sequence:
+                need fast lookup; use linear search for now
+            find first terminal in sequence that is in follow (current state), or equiv
+            insert that sequence subset, do McKenzie
+
+        process grammar to generate shortest terminal sequences for each nonterm
+            same as Grune 326 S(A), but that does not require empty nonterms
+                it recurses into all nonterms, finding shortest string
+
+            that does _not_ insert 'elsif' into 'if_statement'
+                which is why we need a full graph search?
+
+            also produce second list with optional nonterms, to find sequence for elsif?
+                not repeating nonterms
+                how do we decide to keep 'elsif', but not all statement variants?
+
+            terminal_sequences_1.adb
+
+        move param into .wy
+
+        move terminal_sequences.adb into wisi-*
+
+    new algorithm 2:
+        adjust mckenzie costs to include terminal sequences
+        include current_token in cost function
+            cost of "if then | elsif" = 0.0
+
+        include current state and current token in cost function:
+            cost of "125 | then | elsif" = 0
+            125 implied by trying 'then' without preceding 'if'
 
     t_one RUN_ARGS=1
         Error_5
             deleted 'if then'
+            fixed with hardcoded 'if then else endif' sequence; need general solution
+                doing kim, choe 2001 dpa graph search
 
-            new algorithm 1:
-                if error symbol is in a terminal sequence:
-                        need fast lookup; use linear search for now
-                    find first terminal in sequence that is in follow (current state), or equiv
-                    insert that sequence subset
+        new test cases:
+procedure Debug
+is begin
+   procedure Put_Top_10
+   is
+   begin
+   end Put_Top_10;
 
-                improve terminal_sequences_1.adb to produce required data
+   begin
+   end Debug;
+            Added 'begin' at end, intending to delete first 'begin'
 
-                    search for preceding terminal/nonterminal
+            Mckenzie inserts "end;" after first 'begin', exceeds 200 at last 'begin'
+                needs to insert 'procedure IDENTIFIER is'
+                at enqueue_limit 400, that is inserted, with a cost of 11, but doesn't check beyond 9
+                at enqueue_limit 800, that is is checked, but fails
+                    fix that and time it
+                    works for ada_lite (sigh)
+                    attach debugger works
+                    looking for config.cost = 11, config.inserted.elements.all = (51, 103, 35)
+                    fails because it's in state 133 generic_instantiation!?
 
-                move param into .wy
+ 2 stack:  33 : subprogram_body,  14 : compilation_unit_list,  0 :
+ 2: 33: BEGIN : ERROR
 
-                move terminal_sequences.adb into wisi-*
+enqueue: 133, 130, 41, 26, 14, 0,  BEGIN (PROCEDURE, IDENTIFIER, IS, ) null 1.10000E+01
+26 includes "subprogram_body <= " _after_ "generic_instantiation <= overriding_indicator_opt ^ PROCEDURE name IS"
+41 has :
+generic_instantiation <= overriding_indicator_opt PROCEDURE ^ name IS
+procedure_specification <= PROCEDURE ^ name parameter_profile_opt, IS
+    on IDENTIFIER goto state 47
+    on name goto state 130
+47 is name <= IDENTIFIER ^, on IS reduce to 'name'
+130 has :
+generic_instantiation <= overriding_indicator_opt PROCEDURE name ^ IS
+procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS
+    on IS => shift and goto state 133,
+             reduce 0 tokens to parameter_profile_opt
 
-            new algorithm 2:
-                adjust mckenzie costs to include terminal sequences
-                include current_token in cost function
-                    cost of "if then | elsif" = 0.0
+    we need the second; queue another config; why didn't it?
+        restore config on second loop iteration
 
-                include current state and current token in cost function:
-                    cost of "125 | then | elsif" = 0
-                    125 implied by trying 'then' without preceding 'if'
+            first 'begin' is already pushed on stack, so McKenzie
+            doesn't consider deleting it (and neither does Kim_Choe),
+            but that would be the best solution.
 
+        'if **'
 
-            two ways to build terminal sequences:
-                process grammar to generate keyword sequences separated by empty nonterms
-                    terminal_sequences_1.adb
-                    need to recurse into _some_ nonterms
-                        ie insert "elsif then" in 'if_statement'
-                        hard to know which to recurse; annotate grammar?
+    Panic mode is supposed to skip input to ';', then pop states - grune 16.6.1
 
-                search dpa backwards from elsif; insert 'if then'
-                    terminal_sequences_2.adb
-                    the only state that shifts elsif is 184 elsif_statement_list <=
-                    the only 'goto state 184' is in 165 'if_statement <=' on elsif_statement_list
-                    the only 'goto state 165' is in 156 'if_statement <=' on sequence_of_statements_opt
-                    sequence_of_statements_opt includes empty, ... if_statement
-                    the only goto 156 is in 125 'if_statement <=' on shift THEN => insert THEN
-                    the only goto 125 is in 97  'if_statement <=' on expression_opt
-                    expression_opt includes empty
-                    many 'goto state 97'; all on 'shift IF' => insert IF, terminate
+    search dpa backwards from elsif; insert 'if then'
+        same result as Grune 326 graph search; do that?
 
-                    search all productions in 'declarations', 'statements'?
-                        start with final terminal, work backward to first
+        terminal_sequences_2.adb
+        states that shift ELSIF:
+            168 if_statement <= IF expression_opt THEN sequence_of_statements_opt ^ elsif_statement_list
+            187 elsif_statement_list <= elsif_statement_list ^ elsif_statement_list
+            need list/tree/hash of states that shift ID, sorted on ID
 
+        'goto state 187' is in 168 on elsif_statement_list
+
+        'goto state 168' is in
+            159 if_statement <= IF expression_opt THEN ^ sequence_of_statements_opt * on sequence_of_statements_opt
+            need list/tree/hash of states that goto state, sorted on goto state
+
+        'goto state 159' is in 128 'if_statement <=' on shift THEN => insert THEN
+            ditto
+
+        'goto state 128' is in 100 'if_statement <= IF ^ ' on expression_opt
+            ditto
+
+        'goto state 100' is in many, on 'shift IF' => insert IF, terminate
+
+        search all productions in 'declarations', 'statements'?
+            start with final terminal, work backward to first
+
+    Grune 326 Kim, Choe 2001
+        branch wisitoken.stephe_1
+        Definition 3.5 Lookback is just reduce
+        don't understand why RC(u) works
+        just implement the algorithms, see if that makes it clearer.
+            not clear how to compute S(A) for nonterminals?
+                Fischer Mauney 1989 ? no
+                fischer, dion, mauney 1979?
+                or dion, fischer, 1978? not in google scholar
+                or it's "just obvious"; extend terminal_sequences_1
 
     rename mckenzie to dpa_explore?
         dpa = deterministic parsing automata (McKenzie)
@@ -63,10 +152,7 @@ better syntax error handling
 
         includes special rules
 
-    test with parallel parsers
-        force a conflict
-        don't terminate any if all fail
-        _dont_ exit recover with first success; all parsers may succeed
+        use Grune 326 to find candidates
 
     cache recover for subsequent parse
 
@@ -92,6 +178,13 @@ better syntax error handling
         compress parser table via default reduce?
 
         set initial capacity on stacks
+
+        check_reduce does not need to copy stack
+            just keep track of current top separately, pointer into reduced top
+
+automatically augment grammar with empty productions
+    anything not a keyword is optional
+    may create too many conflicts
 
 wisi-generate accept two output languages
     a lot is shared

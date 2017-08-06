@@ -50,6 +50,7 @@ package WisiToken.Token_Region is
       Error_Token    : Token;
       Expecting      : Token_ID_Set (First_Terminal .. Last_Terminal);
       Invalid_Region : Buffer_Region;
+      Recover        : WisiToken.Token.Recover_Data_Access;
    end record;
 
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
@@ -107,6 +108,7 @@ package WisiToken.Token_Region is
    procedure Recover
      (State         : access State_Type;
       Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance);
+      Pushed_Tokens : in     WisiToken.Token.List.Instance;
+      Recover       : in     WisiToken.Token.Recover_Data_Access);
 
 end WisiToken.Token_Region;

@@ -165,11 +165,10 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("State : aliased WisiToken.Token_Region.State_Type (Trace'Access);");
          New_Line;
          Indent_Line ("function Create_Parser");
-         Indent_Line ("  (Algorithm            : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
-         Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-         Indent_Line ("   Text_Feeder          : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
-         Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+         Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Max_Parallel : in Integer                               := 15;");
+         Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
+         Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
          Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
          New_Line;
 
@@ -343,11 +342,10 @@ package body Wisi.Gen_Output_Ada_Common is
       when None | Process =>
          case Data.Lexer is
          when Aflex_Lexer =>
-            Indent_Line ("  (Algorithm            : in WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel         : in Integer                               := 15;");
-            Indent_Line ("   Terminate_Same_State : in Boolean                               := True;");
-            Indent_Line ("   Text_Feeder          : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
-            Indent_Line ("   Buffer_Size          : in Integer                               := 1024)");
+            Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Max_Parallel : in Integer                               := 15;");
+            Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
+            Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
 
          when Elisp_Lexer =>
             Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
@@ -388,7 +386,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("First_Terminal    => Descriptor.First_Terminal,");
       Indent_Line ("Last_Terminal     => Descriptor.Last_Terminal,");
       Indent_Line ("First_Nonterminal => Descriptor.First_Nonterminal,");
-      Indent_Line ("Last_Nonterminal  =>  Descriptor.Last_Nonterminal);");
+      Indent_Line ("Last_Nonterminal  => Descriptor.Last_Nonterminal);");
       Indent := Indent - 3;
 
       case Parser_Algorithm is
@@ -443,11 +441,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,");
          Indent_Line ("   Max_Parallel => Max_Parallel, First_Parser_Label => " &
                         WisiToken.Int_Image (First_Parser_Label) & ",");
-         Indent_Line ("   Terminate_Same_State => Terminate_Same_State);");
+         Indent_Line ("   Terminate_Same_State => True);");
 
       when Module =>
          Indent_Line ("  (Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State);");
+         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
 
       end case;
       Indent := Indent - 3;

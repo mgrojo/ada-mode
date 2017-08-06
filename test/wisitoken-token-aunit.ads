@@ -17,18 +17,17 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Token.AUnit;
-package WisiToken.Token_Region.AUnit is
+package WisiToken.Token.AUnit is
 
-   procedure Check
+   type Check_Recover_Type is access procedure
      (Label    : in String;
-      Computed : in Token;
-      Expected : in Token);
+      Computed : in Recover_Data'Class;
+      Expected : in Recover_Data'Class);
 
    procedure Check
      (Label              : in String;
-      Computed           : in Error_Data;
-      Expected           : in Error_Data;
-      Check_Recover_Data : in WisiToken.Token.AUnit.Check_Recover_Type);
+      Computed           : in Recover_Data_Access;
+      Expected           : in Recover_Data_Access;
+      Check_Recover_Data : in Check_Recover_Type);
 
-end WisiToken.Token_Region.AUnit;
+end WisiToken.Token.AUnit;

@@ -131,6 +131,11 @@ package WisiToken.Token is
    type Semantic_State (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited null record;
    --  For storing augmented tokens, other semantic information
 
+   type Recover_Data is abstract tagged null record;
+   type Recover_Data_Access is access all Recover_Data'Class;
+   --  For storing error recovery information, for reuse in subsequent
+   --  parse.
+
    procedure Reset (State : access Semantic_State) is abstract;
    --  Reset State to start a new parse.
 
@@ -184,7 +189,8 @@ package WisiToken.Token is
    procedure Recover
      (State         : access Semantic_State;
       Popped_Tokens : in     List.Instance;
-      Pushed_Tokens : in     List.Instance)
+      Pushed_Tokens : in     List.Instance;
+      Recover       : in     Recover_Data_Access)
      is abstract;
    --  An error recover algorithm succeeded; adjust the State augmented
    --  token stack, input queue, and invalid region to match.

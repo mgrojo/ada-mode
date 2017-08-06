@@ -27,6 +27,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Parser.LR.Parser_Lists;
+with WisiToken.Token;
 package WisiToken.Parser.LR.McKenzie_Recover is
 
    function Recover
@@ -37,5 +38,17 @@ package WisiToken.Parser.LR.McKenzie_Recover is
    --  Attempt to modify Parsers stacks, and Parser.Lexer current
    --  input, to allow recovering from an error state.
    --  Return True if successful.
+
+   --  Visible for unit test, sending to Emacs process.
+   type Configuration is new WisiToken.Token.Recover_Data with record
+      Stack           : State_Stacks.Stack_Type;
+      Lookahead_Index : Ada.Containers.Count_Type; -- index into parser.lookahead for next input token
+      Inserted        : Token_Arrays.Vector;
+      Deleted         : Token_Arrays.Vector;
+      Cost            : Float := 0.0;
+   end record;
+
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
+   --  Put Config to Ada.Text_IO.Current_Output
 
 end WisiToken.Parser.LR.McKenzie_Recover;

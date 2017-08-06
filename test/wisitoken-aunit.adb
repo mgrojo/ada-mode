@@ -19,6 +19,18 @@ pragma License (Modified_GPL);
 
 package body WisiToken.AUnit is
 
+   function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.Vector
+   is begin
+      return
+        Result : Token_Arrays.Vector
+      do
+         Result.Reserve_Capacity (Item'Length);
+         for I of Item loop
+            Result.Append (I);
+         end loop;
+      end return;
+   end To_Token_Array;
+
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;
