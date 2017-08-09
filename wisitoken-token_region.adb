@@ -67,7 +67,7 @@ package body WisiToken.Token_Region is
      (Trace : in out WisiToken.Trace'Class;
       Queue : in     Token_Queues.Queue_Type)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
    begin
       for I in 0 .. Queue.Count - 1 loop
          Trace.Put (Image (Trace.Descriptor.all, Queue.Peek (I), ID_Only => False));

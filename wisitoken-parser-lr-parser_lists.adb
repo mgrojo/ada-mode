@@ -120,7 +120,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Parse_Stack_Item
    is begin
-      return Cursor.Ptr.Item.Stack.Peek (Parse_Stack_Interfaces.Positive_Count_Type (Depth));
+      return Cursor.Ptr.Item.Stack.Peek (SAL.Base_Peek_Type (Depth));
    end Peek;
 
    function Pop (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item
@@ -147,11 +147,9 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
-      use Parse_Stack_Interfaces;
-      use all type Ada.Containers.Count_Type;
-
+      use all type SAL.Base_Peek_Type;
       Stack : Parse_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
-      Last  : constant Positive_Count_Type := Positive_Count_Type'Min (10, Stack.Depth);
+      Last  : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Min (10, Stack.Depth);
    begin
       Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
       for I in 1 .. Last loop

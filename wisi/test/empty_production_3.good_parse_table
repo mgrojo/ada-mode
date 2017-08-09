@@ -20,7 +20,12 @@ McKenzie:
 (Delete =>
  IN         => 0.00000E+00,
  IDENTIFIER => 0.00000E+00,
- Wisi_EOI   => 0.00000E+00)
+ Wisi_EOI   => 0.00000E+00,
+ wisitoken_accept        => 0.00000E+00,
+ compilation_unit        => 0.00000E+00,
+ mode                    => 0.00000E+00,
+ name                    => 0.00000E+00,
+ parameter_specification => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -123,7 +128,12 @@ McKenzie:
 (Delete =>
  IN         => 0.00000E+00,
  IDENTIFIER => 0.00000E+00,
- Wisi_EOI   => 0.00000E+00)
+ Wisi_EOI   => 0.00000E+00,
+ wisitoken_accept        => 0.00000E+00,
+ compilation_unit        => 0.00000E+00,
+ mode                    => 0.00000E+00,
+ name                    => 0.00000E+00,
+ parameter_specification => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

@@ -281,7 +281,7 @@ package WisiToken.Parser.LR is
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;
       Stack      : in Parse_Stacks.Stack_Type;
-      Depth      : in Ada.Containers.Count_Type := 0)
+      Depth      : in SAL.Base_Peek_Type := 0)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
    --  Stack.Depth) items.

@@ -27,7 +27,13 @@ McKenzie:
  RIGHT_PAREN => 0.00000E+00,
  TICK        => 0.00000E+00,
  IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
+ Wisi_EOI    => 0.00000E+00,
+ wisitoken_accept     => 0.00000E+00,
+ aggregate            => 0.00000E+00,
+ attribute_reference  => 0.00000E+00,
+ attribute_designator => 0.00000E+00,
+ name                 => 0.00000E+00,
+ qualified_expression => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -194,7 +200,13 @@ McKenzie:
  RIGHT_PAREN => 0.00000E+00,
  TICK        => 0.00000E+00,
  IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
+ Wisi_EOI    => 0.00000E+00,
+ wisitoken_accept     => 0.00000E+00,
+ aggregate            => 0.00000E+00,
+ attribute_reference  => 0.00000E+00,
+ attribute_designator => 0.00000E+00,
+ name                 => 0.00000E+00,
+ qualified_expression => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

@@ -45,7 +45,7 @@ package WisiToken.Parser.LR.AUnit is
       Computed : in Parse_Stack_Item;
       Expected : in Parse_Stack_Item);
 
-   type Parse_Stack_Item_Array is array (Parse_Stack_Interfaces.Positive_Count_Type range <>) of Parse_Stack_Item;
+   type Parse_Stack_Item_Array is array (SAL.Base_Peek_Type range <>) of Parse_Stack_Item;
 
    function To_State_Stack (Item : in Parse_Stack_Item_Array) return Parse_Stacks.Stack_Type;
 

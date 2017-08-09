@@ -277,7 +277,7 @@ package body WisiToken.Parser.LR.Parser is
                Parser.Semantic_State.Input_Token (Current_Token, Parser.Lexer);
             else
                --  Input_Token was called for these when read from Lexer.
-               Current_Token := Parser.Lookahead (Positive_Index_Type'First);
+               Current_Token := Parser.Lookahead (Natural_Index_Type'First);
                Parser.Lookahead.Delete_First;
             end if;
 

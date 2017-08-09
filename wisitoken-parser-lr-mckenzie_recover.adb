@@ -355,7 +355,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
                Config :=
                  (Stack           => Cursor.Copy_Stack,
-                  Lookahead_Index => Positive_Index_Type'First,
+                  Lookahead_Index => Natural_Index_Type'First,
                   Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
                   Deleted         => Token_Arrays.Empty_Vector,
@@ -364,7 +364,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             when Begin_ID =>
                Config :=
                  (Stack           => Cursor.Copy_Stack,
-                  Lookahead_Index => Positive_Index_Type'First,
+                  Lookahead_Index => Natural_Index_Type'First,
                   Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
                   Deleted         => Token_Arrays.Empty_Vector,
@@ -432,7 +432,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
          Config :=
            (Stack           => Cursor.Copy_Stack,
-            Lookahead_Index => Positive_Index_Type'First,
+            Lookahead_Index => Natural_Index_Type'First,
             Popped          => Token_Arrays.Empty_Vector,
             Inserted        => Token_Arrays.Empty_Vector,
             Deleted         => Token_Arrays.Empty_Vector,
@@ -489,8 +489,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          exit when Data.Queue.Is_Empty or Data.Enqueue_Count > Data.Parser.Table.McKenzie.Enqueue_Limit;
 
          declare
+            use all type SAL.Base_Peek_Type;
             use all type Token_Array;
-            use all type Ada.Containers.Count_Type;
 
             Config     : constant Configuration := Delete_Min (Data);
             New_Config : Configuration;
@@ -573,6 +573,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             --  Try deleting current token
             declare
+               use all type Ada.Containers.Count_Type;
                Deleted_Token : constant Token_ID := Parser.Lookahead (Config.Lookahead_Index);
             begin
                if Deleted_Token /= EOF_ID then
@@ -666,7 +667,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                Pushed_Tokens => Data.Pushed_Tokens,
                Recover       => new Configuration'(Result));
 
-            Current_Token := Parser.Lookahead (Positive_Index_Type'First);
+            Current_Token := Parser.Lookahead (Natural_Index_Type'First);
             Parser.Lookahead.Delete_First;
          exception
          when Recover_Fail =>

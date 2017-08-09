@@ -184,7 +184,7 @@ package body WisiToken.Parser.LR.AUnit is
         Result : Parse_Stacks.Stack_Type
       do
          Result.Set_Depth (Item'Length);
-         for I in Parse_Stack_Interfaces.Positive_Count_Type'(1) .. Item'Length loop
+         for I in SAL.Base_Peek_Type'(1) .. Item'Length loop
             Result.Set (I, Item'Length, Item (I));
          end loop;
       end return;

@@ -29,7 +29,12 @@ McKenzie:
  PROCEDURE  => 0.00000E+00,
  SEMICOLON  => 0.00000E+00,
  IDENTIFIER => 0.00000E+00,
- Wisi_EOI   => 0.00000E+00)
+ Wisi_EOI   => 0.00000E+00,
+ wisitoken_accept       => 0.00000E+00,
+ compilation_unit       => 0.00000E+00,
+ subprogram_declaration => 0.00000E+00,
+ overriding_indicator   => 0.00000E+00,
+ other_indicator        => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -174,7 +179,12 @@ McKenzie:
  PROCEDURE  => 0.00000E+00,
  SEMICOLON  => 0.00000E+00,
  IDENTIFIER => 0.00000E+00,
- Wisi_EOI   => 0.00000E+00)
+ Wisi_EOI   => 0.00000E+00,
+ wisitoken_accept       => 0.00000E+00,
+ compilation_unit       => 0.00000E+00,
+ subprogram_declaration => 0.00000E+00,
+ overriding_indicator   => 0.00000E+00,
+ other_indicator        => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

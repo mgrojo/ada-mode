@@ -22,7 +22,7 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
 
-   type Plain_Token_Array is array (Positive_Index_Type range <>) of Token_ID;
+   type Plain_Token_Array is array (Natural_Index_Type range <>) of Token_ID;
 
    function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.Vector;
 
@@ -31,7 +31,7 @@ package WisiToken.AUnit is
    --  For each element in Item, set result (element) True.
 
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
-     (Index_Type    => Positive_Index_Type,
+     (Index_Type    => Natural_Index_Type,
       Element_Type  => Token_ID,
       Container_Pkg => Token_Arrays,
       Check_Index   => Standard.AUnit.Checks.Containers.Check,

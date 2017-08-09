@@ -29,7 +29,12 @@ McKenzie:
  COLON_EQUAL => 0.00000E+00,
  SEMICOLON   => 0.00000E+00,
  IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
+ Wisi_EOI    => 0.00000E+00,
+ wisitoken_accept        => 0.00000E+00,
+ object_declaration_list => 0.00000E+00,
+ object_declaration      => 0.00000E+00,
+ aliased_opt             => 0.00000E+00,
+ constant_opt            => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -181,7 +186,12 @@ McKenzie:
  COLON_EQUAL => 0.00000E+00,
  SEMICOLON   => 0.00000E+00,
  IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
+ Wisi_EOI    => 0.00000E+00,
+ wisitoken_accept        => 0.00000E+00,
+ object_declaration_list => 0.00000E+00,
+ object_declaration      => 0.00000E+00,
+ aliased_opt             => 0.00000E+00,
+ constant_opt            => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

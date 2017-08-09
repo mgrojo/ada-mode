@@ -37,7 +37,16 @@ McKenzie:
  EQUAL_GREATER  => 0.00000E+00,
  STRING_LITERAL => 0.00000E+00,
  IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
+ Wisi_EOI       => 0.00000E+00,
+ wisitoken_accept => 0.00000E+00,
+ association      => 0.00000E+00,
+ association_list => 0.00000E+00,
+ compilation      => 0.00000E+00,
+ compilation_unit => 0.00000E+00,
+ identifier_list  => 0.00000E+00,
+ name             => 0.00000E+00,
+ name_list        => 0.00000E+00,
+ selector_name    => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 
@@ -367,7 +376,16 @@ McKenzie:
  EQUAL_GREATER  => 0.00000E+00,
  STRING_LITERAL => 0.00000E+00,
  IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
+ Wisi_EOI       => 0.00000E+00,
+ wisitoken_accept => 0.00000E+00,
+ association      => 0.00000E+00,
+ association_list => 0.00000E+00,
+ compilation      => 0.00000E+00,
+ compilation_unit => 0.00000E+00,
+ identifier_list  => 0.00000E+00,
+ name             => 0.00000E+00,
+ name_list        => 0.00000E+00,
+ selector_name    => 0.00000E+00)
 Enqueue_Limit => 2147483647
 
 

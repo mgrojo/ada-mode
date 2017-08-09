@@ -43,17 +43,17 @@ package body WisiToken.Parser.LR is
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;
       Stack      : in Parse_Stacks.Stack_Type;
-      Depth      : in Ada.Containers.Count_Type := 0)
+      Depth      : in SAL.Base_Peek_Type := 0)
      return String
    is
+      use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
       use Parse_Stack_Interfaces;
-      use all type Ada.Containers.Count_Type;
 
-      Last : constant Positive_Count_Type :=
+      Last : constant SAL.Base_Peek_Type :=
         (if Depth = 0
          then Stack.Depth
-         else Positive_Count_Type'Min (Depth, Stack.Depth));
+         else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
 
       Result : Unbounded_String;
    begin

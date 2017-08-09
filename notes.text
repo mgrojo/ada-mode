@@ -1,6 +1,22 @@
 build/Makefile
 
  current work
+doing too much at once for fixing mckenzie
+    - change parser_lists to use ada.containers
+      add free (parsers)
+
+    -  move some parser_state components to be visible
+      - change parser to use 'Current_Parser of Parsers'
+      - requires change in current_parser.free, current_parser.prepend_copy
+
+    - add new parser_state components for Mckenzie
+      change mckenzie, parser to use them
+
+    - all done
+
+next change in wisi/test/*.good_parse
+    don't output mckenzie if default
+
 fix McKenzie with parallel parsers
         force a conflict
         don't terminate any if all fail
