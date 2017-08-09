@@ -25,7 +25,7 @@ with WisiToken.Token;
 package WisiToken.Parser.LR.Parser is
 
    type Instance is new WisiToken.Parser.LR.Instance with record
-      Max_Parallel         : Integer;
+      Max_Parallel         : Ada.Containers.Count_Type;
       First_Parser_Label   : Integer;
       Terminate_Same_State : Boolean;
    end record;
@@ -34,7 +34,7 @@ package WisiToken.Parser.LR.Parser is
      (Lexer              :         in     WisiToken.Lexer.Handle;
       Table              :         in     Parse_Table_Ptr;
       Semantic_State     : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel       :         in     Integer := 15;
+      Max_Parallel       :         in     Ada.Containers.Count_Type := 15;
       First_Parser_Label :         in     Integer := 1)
      return Instance;
 

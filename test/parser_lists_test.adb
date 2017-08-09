@@ -22,7 +22,9 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks;
+with AUnit.Checks.Containers;
 with Ada.Exceptions;
+with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Parser.LR.AUnit;
@@ -55,6 +57,7 @@ package body Parser_Lists_Test is
       use WisiToken.Parser.LR.AUnit;
       use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
+      use AUnit.Checks.Containers;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
@@ -107,11 +110,11 @@ package body Parser_Lists_Test is
       use WisiToken.Parser.LR;
       use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
+      use AUnit.Checks.Containers;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
       Cursor  : Parser_Lists.Cursor := Parsers.First;
    begin
-      Check ("0: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
       Check ("0a: Label", Cursor.Label, 1);
 
       Prepend_Copy (Parsers, Cursor);
@@ -119,7 +122,6 @@ package body Parser_Lists_Test is
       Check ("0b: Label", Cursor.Label, 1);
 
       Cursor := Parsers.First;
-      Check ("1: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
       Check ("1: Count", Parsers.Count, 2);
       Check ("1: Label", Cursor.Label, 2);
 
@@ -128,26 +130,22 @@ package body Parser_Lists_Test is
 
       --  Delete last parser (label 1)
       Free (Cursor);
-      Check ("3: Parser_Free_Count", Parsers.Parser_Free_Count, 1);
       Check ("3: Count", Parsers.Count, 1);
       Check ("3: Is_Done", Cursor.Is_Done, True);
 
       Cursor := Parsers.First; -- label 2
       Prepend_Copy (Parsers, Cursor);
       Cursor := Parsers.First; -- label 3
-      Check ("4: Parser_Free_Count", Parsers.Parser_Free_Count, 0);
       Check ("4: Count", Parsers.Count, 2);
       Check ("4: Label", Cursor.Label, 3);
 
       --  Delete first parser (label 3); cursor advances to next
       Free (Cursor);
-      Check ("5: Parser_Free_Count", Parsers.Parser_Free_Count, 1);
       Check ("5: Count", Parsers.Count, 1);
       Check ("5: Is_Done", Cursor.Is_Done, False);
       Check ("5: Label", Cursor.Label, 2);
 
       Free (Cursor);
-      Check ("6: Parser_Free_Count", Parsers.Parser_Free_Count, 2);
       Check ("6: Count", Parsers.Count, 0);
       Check ("6: Is_Done", Cursor.Is_Done, True);
    end Parser_List;
@@ -194,6 +192,7 @@ package body Parser_Lists_Test is
       use WisiToken.Parser.LR;
       use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
+      use SAL.AUnit;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
 
@@ -212,17 +211,14 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Item_2);
       Check ("0b: action_token_count", Cursor.Pending_Actions_Count, 2);
       Check ("0b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
-      Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
 
       Check ("1 dequeue", Dequeue (Cursor).Action.LHS, +Statement_ID);
       Check ("1: action_token_count", Cursor.Pending_Actions_Count, 1);
       Check ("1: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
-      Check ("1: free count", Parsers.Action_Token_Free_Count, 1);
 
       Check ("2 dequeue", Dequeue (Cursor).Action.LHS, +Procedure_ID);
       Check ("2: action_token_count", Cursor.Pending_Actions_Count, 0);
       Check ("2: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
-      Check ("2: free count", Parsers.Action_Token_Free_Count, 2);
 
       --  Enqueue using free list
       Cursor.Enqueue (Item_1);
@@ -231,7 +227,6 @@ package body Parser_Lists_Test is
       Cursor.Enqueue (Item_2);
       Check ("3b: action_token_count", Cursor.Pending_Actions_Count, 2);
       Check ("3b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
-      Check ("0: free count", Parsers.Action_Token_Free_Count, 0);
 
    end Pending;
 

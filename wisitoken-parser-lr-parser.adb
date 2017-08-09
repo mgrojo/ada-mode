@@ -62,6 +62,7 @@ package body WisiToken.Parser.LR.Parser is
       end loop;
 
       declare
+         use all type Ada.Containers.Count_Type;
          Action_Token : constant Parser_Lists.Action_Token := (Action, Tokens);
       begin
          if Current_Parser.Active_Parser_Count > 1 then
@@ -71,7 +72,7 @@ package body WisiToken.Parser.LR.Parser is
                Parser_Lists.Put (Semantic_State.Trace.all, Action_Token);
                Semantic_State.Trace.New_Line;
                Semantic_State.Trace.Put_Line
-                 (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
+                 (" action count:" & SAL.Base_Peek_Type'Image (Current_Parser.Pending_Actions_Count));
             end if;
          else
             Semantic_State.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action);
@@ -107,6 +108,7 @@ package body WisiToken.Parser.LR.Parser is
          Current_Parser.Push ((Action.State, Current_Token));
 
          declare
+            use all type Ada.Containers.Count_Type;
             Action_Token : constant Parser_Lists.Action_Token := (Action, Token.List.Only (Current_Token));
             Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
          begin
@@ -116,7 +118,7 @@ package body WisiToken.Parser.LR.Parser is
                   Trace.Put ("pending ");
                   Parser_Lists.Put (Trace, Action_Token);
                   Trace.New_Line;
-                  Trace.Put_Line (" action count:" & Integer'Image (Current_Parser.Pending_Actions_Count));
+                  Trace.Put_Line (" action count:" & SAL.Base_Peek_Type'Image (Current_Parser.Pending_Actions_Count));
                end if;
             else
                Parser.Semantic_State.Push_Token (Current_Token);
@@ -165,19 +167,20 @@ package body WisiToken.Parser.LR.Parser is
    --
    --  Error : all Parsers.Verb return Error; report errors, terminate
    --  parse.
-   function Parse_Verb (Parsers : in Parser_Lists.List) return Parse_Action_Verbs
+   function Parse_Verb (Parsers : in out Parser_Lists.List) return Parse_Action_Verbs
    is
-      Shift_Count  : Integer := 0;
-      Accept_Count : Integer := 0;
-      Error_Count  : Integer := 0;
+      use Ada.Containers;
+      Shift_Count  : Count_Type := 0;
+      Accept_Count : Count_Type := 0;
+      Error_Count  : Count_Type := 0;
    begin
       --  Cursor.Verb is the last action a parser took. If it was Shift,
       --  that parser used the input token, and should not be executed
       --  again until another input token is available, after all
       --  parsers have shifted the current token or terminated.
-      for Cursor in Parsers.Iterate loop
+      for I in Parsers.Iterate loop
 
-         case Parser_Lists.Verb (Cursor) is
+         case Parser_Lists.Verb (I) is
          when Shift =>
             Shift_Count := Shift_Count + 1;
 
@@ -212,7 +215,7 @@ package body WisiToken.Parser.LR.Parser is
    begin
       for I in Parsers.Iterate loop
          declare
-            Cursor : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
+            Cursor : constant Parser_Lists.Cursor := To_Cursor (I);
          begin
             if Cursor /= Current_Parser and then Stack_Equal (Cursor, Current_Parser) then
                return True;
@@ -283,7 +286,7 @@ package body WisiToken.Parser.LR.Parser is
 
          when Accept_It =>
             declare
-               Count : constant Integer := Parsers.Count;
+               Count : constant Ada.Containers.Count_Type := Parsers.Count;
             begin
                --  FIXME: Free (Parsers);
                --  Action points into the parser table; it does not get free'd.
@@ -292,7 +295,7 @@ package body WisiToken.Parser.LR.Parser is
                   --  Panic mode error resolution does not help with this.
                   raise Parse_Error with
                     Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                    ": Ambiguous parse:" & Integer'Image (Count) & " parsers active.";
+                    ": Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.";
                end if;
             end;
             return;
@@ -309,7 +312,7 @@ package body WisiToken.Parser.LR.Parser is
                Keep_Going : Boolean                := False;
             begin
                for I in Parsers.Iterate loop
-                  LR.Parser.Expecting (Parser.Table, To_Cursor (Parsers, I).Peek.State, Expecting);
+                  LR.Parser.Expecting (Parser.Table, To_Cursor (I).Peek.State, Expecting);
                end loop;
 
                Parser.Semantic_State.Error (Expecting);
@@ -387,7 +390,7 @@ package body WisiToken.Parser.LR.Parser is
                if Trace_Parse > 0 then
                   Parser.Semantic_State.Trace.Put_Line
                     (Integer'Image (Current_Parser.Label) & ": terminate (" &
-                       Int_Image (Parsers.Count - 1) & " active)");
+                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
                end if;
                Current_Parser.Free;
 
@@ -401,7 +404,7 @@ package body WisiToken.Parser.LR.Parser is
                if Trace_Parse > 0 then
                   Parser.Semantic_State.Trace.Put_Line
                     (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
-                       Int_Image (Parsers.Count - 1) & " active)");
+                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
                end if;
                Current_Parser.Free;
 
@@ -424,7 +427,7 @@ package body WisiToken.Parser.LR.Parser is
                        ": too many parallel parsers required in grammar state" &
                        State_Index'Image (Current_Parser.Peek.State) &
                        "; simplify grammar, or increase max-parallel (" &
-                       Integer'Image (Parser.Max_Parallel) & ")";
+                       Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")";
 
                   else
                      if Trace_Parse > 0 then
@@ -433,7 +436,7 @@ package body WisiToken.Parser.LR.Parser is
                      end if;
                      Parsers.Prepend_Copy (Current_Parser);
                      if Trace_Parse > 0 then
-                        Parser.Semantic_State.Trace.Put_Line (" (" & Int_Image (Parsers.Count) & " active)");
+                        Parser.Semantic_State.Trace.Put_Line (" (" & Int_Image (Integer (Parsers.Count)) & " active)");
                      end if;
                      Do_Action (Action.Next.Item, Parsers.First, Current_Token, Parser);
                   end if;
@@ -450,11 +453,11 @@ package body WisiToken.Parser.LR.Parser is
    end Parse;
 
    function New_Parser
-     (Lexer                   :         in     WisiToken.Lexer.Handle;
-      Table                   :         in     Parse_Table_Ptr;
-      Semantic_State          : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel            :         in     Integer := 15;
-      First_Parser_Label      :         in     Integer := 1)
+     (Lexer              :         in     WisiToken.Lexer.Handle;
+      Table              :         in     Parse_Table_Ptr;
+      Semantic_State     : aliased in out WisiToken.Token.Semantic_State'Class;
+      Max_Parallel       :         in     Ada.Containers.Count_Type := 15;
+      First_Parser_Label :         in     Integer                   := 1)
      return Instance
    is begin
       return

@@ -95,7 +95,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
    begin
       for I in Parsers.Iterate loop
          declare
-            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
+            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (I);
          begin
             Cursor.Set_Recover (new Recover_Data'(Default_Recover));
          end;
@@ -103,7 +103,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
 
       for I in Parsers.Iterate loop
          Keep_Going := Keep_Going or Pop_To_Good
-           (Parser.Table.all, Parser_Lists.To_Cursor (Parsers, I), Parser.Semantic_State.Trace.all);
+           (Parser.Table.all, Parser_Lists.To_Cursor (I), Parser.Semantic_State.Trace.all);
       end loop;
 
       if not Keep_Going then
@@ -119,7 +119,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                use Parser_Lists;
                use all type Ada.Containers.Count_Type;
 
-               Cursor     : constant Parser_Lists.Cursor := To_Cursor (Parsers, I);
+               Cursor     : constant Parser_Lists.Cursor := To_Cursor (I);
                Panic      : Recover_Reference renames Cursor.Recover_Ref;
 
                Use_Popped : Token_ID := Invalid_Token;

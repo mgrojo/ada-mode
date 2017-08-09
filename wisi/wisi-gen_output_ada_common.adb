@@ -54,6 +54,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Output_Language is
       when Ada =>
+         Put_Line ("with Ada.Containers;");
          Put_Line ("with WisiToken.Text_Feeder;");
          Put_Line ("with WisiToken.Text_IO_Trace;");
          Put_Line ("with WisiToken.Token_Region;");
@@ -166,7 +167,7 @@ package body Wisi.Gen_Output_Ada_Common is
          New_Line;
          Indent_Line ("function Create_Parser");
          Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Max_Parallel : in Integer                               := 15;");
+         Indent_Line ("   Max_Parallel : in Ada.Containers.Count_Type             := 15;");
          Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
          Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
          Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
@@ -343,7 +344,7 @@ package body Wisi.Gen_Output_Ada_Common is
          case Data.Lexer is
          when Aflex_Lexer =>
             Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel : in Integer                               := 15;");
+            Indent_Line ("   Max_Parallel : in Ada.Containers.Count_Type             := 15;");
             Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
             Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
 

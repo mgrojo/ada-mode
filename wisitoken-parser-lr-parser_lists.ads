@@ -20,7 +20,10 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Iterator_Interfaces;
+with SAL.Gen_Queue_Interfaces;
+with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
    type Parser_State is private;
@@ -36,7 +39,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       First_Parser_Label : in Integer)
      return List;
 
-   function Count (List : in Parser_Lists.List) return Integer;
+   function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type;
 
    type Cursor is tagged private;
 
@@ -44,7 +47,7 @@ package WisiToken.Parser.LR.Parser_Lists is
    procedure Next (Cursor : in out Parser_Lists.Cursor);
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
 
-   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Integer;
+   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
    function Label (Cursor : in Parser_Lists.Cursor) return Integer;
 
@@ -61,7 +64,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    --  Parser stack
    function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
-   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in Integer := 1) return Parse_Stack_Item;
+   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in SAL.Base_Peek_Type := 1) return Parse_Stack_Item;
    function Copy_Stack (Cursor : in Parser_Lists.Cursor) return Parse_Stacks.Stack_Type;
    function Pop (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item;
    procedure Pop (Cursor : in Parser_Lists.Cursor);
@@ -89,40 +92,57 @@ package WisiToken.Parser.LR.Parser_Lists is
    Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, Token.List.Null_List);
 
    function Pending_Actions_Empty (Cursor : in Parser_Lists.Cursor) return Boolean;
-   function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return Integer;
+   function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type;
    procedure Enqueue
      (Cursor       : in Parser_Lists.Cursor;
       Action_Token : in Parser_Lists.Action_Token);
    function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token;
 
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
-   --  Copy parser at Cursor, add to current list. New copy will not
+   --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
 
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
-   --  Move Cursor to the internal free list, free its stack and
-   --  pending actions; it will not appear in future iterations. On
-   --  return, Cursor points to next parser (or none).
+   --  Delete the Cursor parser. It will not appear in future
+   --  iterations. On return, Cursor points to next parser (or none).
+
+   procedure Free (List : in out Parser_Lists.List);
+   --  Free all parsers in List.
 
    ----------
    --  Stuff for iterators, to allow
    --  'for Parser of Parsers loop'
-   --  'for Cursor in Parsers.Iterate loop'
+   --  'for I in Parsers.Iterate loop'
    --
    --  requires Parser_State to be not an incomplete type.
 
-   --  We'd like to use Cursor here, but we want that to be tagged,
-   --  to allow 'Cursor.Next' syntax, and the requirements of
-   --  iterators prevent a tagged cursor type (two tagged types on
-   --  First in body). So we use Parser_Node_Access as the iterator
-   --  type for Iterators.
+   --  We'd like to use Cursor here, but we want that to be tagged, to
+   --  allow 'Cursor.operation' syntax, and the requirements of
+   --  iterators prevent a tagged iterator type (two tagged types on
+   --  First in this package body). So we use Parser_Node_Access as
+   --  the iterator type for Iterators, and typical usage is:
+   --
+   --  for I in Parsers.Iterate loop
+   --     declare
+   --        Cursor : Parser_Lists.Cursor renames To_Cursor (Parsers, I);
+   --     begin
+   --        Cursor.<cursor operation>
+   --
+   --        ... Parsers (I).<visible parser_state component> ...
+   --     end;
+   --  end loop;
+   --
+   --  or:
+   --  for Current_Parser of Parsers loop
+   --     ... Current_Parser.<visible parser_state component> ...
+   --  end loop;
+   --
+   --  We only provide access to variable iterators; not worth
+   --  duplicating the code for constant.
 
    type Parser_Node_Access is private;
 
-   function To_Cursor
-     (List : aliased in out Parser_Lists.List'Class;
-      Ptr  :         in     Parser_Node_Access)
-     return Cursor;
+   function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
 
    type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
    with Implicit_Dereference => Element;
@@ -132,39 +152,24 @@ package WisiToken.Parser.LR.Parser_Lists is
       Position  :         in Parser_Node_Access)
      return Constant_Reference_Type;
 
-   function Has_Element (Cursor : in Parser_Node_Access) return Boolean;
-   function Verb (Cursor : in Parser_Node_Access) return Parse_Action_Verbs;
+   function Has_Element (Iterator : in Parser_Node_Access) return Boolean;
 
    package Iterator_Interfaces is new Ada.Iterator_Interfaces (Parser_Node_Access, Has_Element);
 
-   function Iterate (Container : aliased List) return Iterator_Interfaces.Forward_Iterator'Class;
+   function Iterate (Container : aliased in out List) return Iterator_Interfaces.Forward_Iterator'Class;
+
+   function Verb (Iterator : in Parser_Node_Access) return Parse_Action_Verbs;
 
    ----------
    --  For unit tests, debug assertions
-
-   function Parser_Free_Count (List : in Parser_Lists.List) return Integer;
-   function Action_Token_Free_Count (List : in Parser_Lists.List) return Integer;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
    procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
 
 private
 
-   type Action_Token_Node;
-   type Action_Token_Node_Access is access Action_Token_Node;
-   type Action_Token_Node is record
-      Item : Action_Token;
-      Next : Action_Token_Node_Access;
-      Prev : Action_Token_Node_Access;
-   end record;
-
-   type Action_Token_List is record
-      Head : Action_Token_Node_Access;
-      Tail : Action_Token_Node_Access;
-      --  Enqueue to tail, dequeue from head, so 'prev', 'next' make sense
-   end record;
-
-   function Count (Action_Token : in Action_Token_List) return Integer;
+   package Pend_Items_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Action_Token);
+   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Action_Token, Pend_Items_Queue_Interfaces);
 
    type Parser_State is record
       Label           : Integer;            -- for debugging/verbosity
@@ -172,30 +177,29 @@ private
       Prev_Verb       : Parse_Action_Verbs; -- previous action performed
       Stack           : Parse_Stacks.Stack_Type;
       Pre_Reduce_Item : Parse_Stack_Item := Default_Parse_Stack_Item;
-      Pending_Actions : Action_Token_List;  --  FIXME: include panic/recovery
+      Pending_Actions : Pend_Items_Queues.Queue_Type;  --  FIXME: include panic/recovery
       Recover         : Recover_Data_Access;
    end record;
 
-   type Parser_Node;
-   type Parser_Node_Access is access Parser_Node;
-
-   type Parser_Node is record
-      Item : aliased Parser_State;
-      Next : Parser_Node_Access;
-      Prev : Parser_Node_Access;
-   end record;
+   package Parser_State_Lists is new Ada.Containers.Doubly_Linked_Lists (Parser_State);
 
    type List is tagged record
-      Parser_Label      : Integer;
-      Head              : Parser_Node_Access;
-      Parser_Free       : Parser_Node_Access;
-      Action_Token_Free : Action_Token_Node_Access;
-      Count             : Integer;
+      Elements : aliased Parser_State_Lists.List;
+
+      New_Elements : aliased Parser_State_Lists.List;
+      --  filled by Prepend_Copy, emptied by First.
+
+      Parser_Label : Integer; -- label of last added parser.
    end record;
 
    type Cursor is tagged record
-      List : access Parser_Lists.List;
-      Ptr  : Parser_Node_Access;
+      Elements : access Parser_State_Lists.List;
+      Ptr      : Parser_State_Lists.Cursor;
+   end record;
+
+   type Parser_Node_Access is record
+      Elements : access Parser_State_Lists.List;
+      Ptr      : Parser_State_Lists.Cursor;
    end record;
 
 end WisiToken.Parser.LR.Parser_Lists;

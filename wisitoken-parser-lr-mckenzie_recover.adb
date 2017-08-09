@@ -615,6 +615,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Current_Token : in out Token_ID)
      return Boolean
    is
+      use all type Ada.Containers.Count_Type;
       Keep_Going : Boolean := False;
    begin
       Parser.Lookahead.Append (Current_Token);
@@ -626,7 +627,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       for I in Parsers.Iterate loop
          declare
-            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
+            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (I);
          begin
             Cursor.Set_Recover (new McKenzie_Data (Parser'Unchecked_Access));
          end;
@@ -634,9 +635,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       for I in Parsers.Iterate loop
          declare
-            use all type Ada.Containers.Count_Type;
             Result : Configuration;
-            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (Parsers, I);
+            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (I);
             Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
          begin
             Result     := Recover (Parser, Cursor);
