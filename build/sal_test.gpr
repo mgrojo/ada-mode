@@ -1,6 +1,4 @@
 -- For compiling SAL tests
-with "aunit";
-with "aunit_sal_ext";
 with "standard_common";
 with "sal_devel";
 project Sal_Test is

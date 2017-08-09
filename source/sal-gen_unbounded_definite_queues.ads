@@ -26,14 +26,17 @@ package SAL.Gen_Unbounded_Definite_Queues is
 
    type Queue_Type is new Queue_Interfaces.Queue_Type with private;
 
+   Empty_Queue : constant Queue_Type;
+
    overriding procedure Clear (Queue : in out Queue_Type);
-   overriding function Count (Queue : in Queue_Type) return Ada.Containers.Count_Type;
+   overriding function Count (Queue : in Queue_Type) return Base_Peek_Type;
+   overriding function Length (Queue : in Queue_Type) return Base_Peek_Type renames Count;
    overriding function Is_Empty (Queue : in Queue_Type) return Boolean;
    overriding function Is_Full (Queue : in Queue_Type) return Boolean is (False);
    overriding function Remove (Queue : in out Queue_Type) return Element_Type;
    overriding function Get (Queue : in out Queue_Type) return Element_Type renames Remove;
    overriding procedure Drop (Queue : in out Queue_Type);
-   overriding function Peek (Queue : in Queue_Type; N : Ada.Containers.Count_Type := 0) return Element_Type;
+   overriding function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Element_Type;
    overriding procedure Add (Queue : in out Queue_Type; Item : in Element_Type);
    overriding procedure Put (Queue : in out Queue_Type; Item : in Element_Type) renames Add;
    overriding procedure Add_To_Head (Queue : in out Queue_Type; Item : in Element_Type);
@@ -51,5 +54,7 @@ private
       Data : Element_Lists.List;
       --  Add at Tail = Last, remove at Head = First.
    end record;
+
+   Empty_Queue : constant Queue_Type := (Data => Element_Lists.Empty_List);
 
 end SAL.Gen_Unbounded_Definite_Queues;

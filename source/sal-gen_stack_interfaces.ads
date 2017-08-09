@@ -16,16 +16,11 @@
 --  Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307,
 --  USA.
 --
---  As a special exception, if other files instantiate generics from
---  SAL, or you link SAL object files with other files to produce an
---  executable, that does not by itself cause the resulting executable
---  to be covered by the GNU General Public License. This exception
---  does not however invalidate any other reasons why the executable
---  file might be covered by the GNU Public License.
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
 
-pragma License (Modified_Gpl);
-
-with Ada.Containers;
+pragma License (Modified_GPL);
 
 generic
    type Item_Type is private;
@@ -34,24 +29,22 @@ package SAL.Gen_Stack_Interfaces is
 
    type Stack_Type is limited interface;
 
-   subtype Positive_Count_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-
    ------------
    --  Dispatching operations on Stack_Type (alphabetical order)
 
    procedure Clear (Stack : in out Stack_Type) is abstract;
    --  Empty Stack of all items.
 
-   function Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type is abstract;
+   function Depth (Stack : in Stack_Type) return Base_Peek_Type is abstract;
    --  Returns current total items in the Stack
 
    function Is_Empty (Stack : in Stack_Type) return Boolean is abstract;
    --  Returns true iff no items are in Stack.
 
-   function Max_Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type is abstract;
+   function Max_Depth (Stack : in Stack_Type) return Base_Peek_Type is abstract;
    --  Return maximum of Depth since Stack was initialized.
 
-   function Peek (Stack : in Stack_Type; Index : in Positive_Count_Type := 1) return Item_Type is abstract;
+   function Peek (Stack : in Stack_Type; Index : in Peek_Type := 1) return Item_Type is abstract;
    --  Return the Index'th item from the top of Stack; the Item is _not_ removed.
    --  Top item has index 1.
    --

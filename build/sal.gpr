@@ -1,4 +1,6 @@
 --  For use by other projects
+with "aunit";
+with "aunit_sal_ext";
 with "standard_common";
 project SAL is
 

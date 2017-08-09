@@ -39,32 +39,26 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
       Stack.Top := 0;
    end Clear;
 
-   overriding function Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type
+   overriding function Depth (Stack : in Stack_Type) return Base_Peek_Type
    is begin
       return Stack.Top;
    end Depth;
 
    overriding function Is_Empty (Stack : in Stack_Type) return Boolean
-   is
-      use type Ada.Containers.Count_Type;
-   begin
+   is begin
       return Stack.Top = 0;
    end Is_Empty;
 
-   overriding function Max_Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type
-   is
-      use type Ada.Containers.Count_Type;
-   begin
+   overriding function Max_Depth (Stack : in Stack_Type) return Base_Peek_Type
+   is begin
       return Stack.Data.Last_Index;
    end Max_Depth;
 
    overriding function Peek
      (Stack : in Stack_Type;
-      Index : in Stack_Interfaces.Positive_Count_Type := 1)
+      Index : in Peek_Type := 1)
      return Element_Type
-   is
-      use Ada.Containers;
-   begin
+   is begin
       return Element_Arrays.Element (Stack.Data, Stack.Top - Index + 1);
    end Peek;
 
@@ -98,8 +92,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    is
       use Ada.Containers;
    begin
-      Stack.Top       := Stack.Top + 1;
-      Stack.Data.Reserve_Capacity (Stack.Top);
+      Stack.Top := Stack.Top + 1;
       if Stack.Top > Stack.Data.Last_Index then
          Stack.Data.Append (Item);
       else
@@ -120,22 +113,20 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
 
    procedure Set_Depth
      (Stack : in out Stack_Type;
-      Depth : in     Stack_Interfaces.Positive_Count_Type)
+      Depth : in     Peek_Type)
    is begin
       Stack :=
         (Top  => Depth,
-         Data => Element_Arrays.To_Vector (Depth));
+         Data => Element_Arrays.To_Vector (Ada.Containers.Count_Type (Depth)));
    end Set_Depth;
 
    procedure Set
      (Stack   : in out Stack_Type;
-      Index   : in     Stack_Interfaces.Positive_Count_Type;
-      Depth   : in     Stack_Interfaces.Positive_Count_Type;
+      Index   : in     Peek_Type;
+      Depth   : in     Peek_Type;
       Element : in     Element_Type)
-   is
-      use all type Ada.Containers.Count_Type;
+   is begin
       --  Same Position algorithm as in Peek
-   begin
       Stack.Top := Depth;
       Stack.Data.Replace_Element (Depth - Index + 1, Element);
    end Set;

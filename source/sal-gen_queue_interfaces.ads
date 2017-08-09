@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
 generic
    type Element_Type is private;
 package SAL.Gen_Queue_Interfaces is
@@ -31,8 +30,10 @@ package SAL.Gen_Queue_Interfaces is
    procedure Clear (Queue : in out Queue_Type) is abstract;
    --  Empty Queue.
 
-   function Count (Queue : in Queue_Type) return Ada.Containers.Count_Type is abstract;
+   function Count (Queue : in Queue_Type) return Base_Peek_Type is abstract;
    --  Returns count of items in the Queue
+
+   function Length (Queue : in Queue_Type) return Base_Peek_Type renames Count;
 
    function Is_Empty (Queue : in Queue_Type) return Boolean is abstract;
    --  Returns true if no items are in Queue.
@@ -52,8 +53,8 @@ package SAL.Gen_Queue_Interfaces is
    --
    --  Raises Container_Empty if Is_Empty.
 
-   function Peek (Queue : in Queue_Type; N : Ada.Containers.Count_Type := 0) return Element_Type is abstract;
-   --  Return a copy of a queue item, without removing it. N = 0 is
+   function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Element_Type is abstract;
+   --  Return a copy of a queue item, without removing it. N = 1 is
    --  the queue head.
    --
    --  Raises Parameter_Error if N > Count

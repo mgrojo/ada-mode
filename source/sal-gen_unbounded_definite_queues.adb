@@ -24,9 +24,9 @@ package body SAL.Gen_Unbounded_Definite_Queues is
       Queue.Data.Clear;
    end Clear;
 
-   overriding function Count (Queue : in Queue_Type) return Ada.Containers.Count_Type
+   overriding function Count (Queue : in Queue_Type) return Base_Peek_Type
    is begin
-      return Queue.Data.Length;
+      return Base_Peek_Type (Queue.Data.Length);
    end Count;
 
    overriding function Is_Empty (Queue : in Queue_Type) return Boolean
@@ -50,17 +50,17 @@ package body SAL.Gen_Unbounded_Definite_Queues is
       Queue.Data.Delete_First;
    end Drop;
 
-   overriding function Peek (Queue : in Queue_Type; N : Ada.Containers.Count_Type := 0) return Element_Type
+   overriding function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Element_Type
    is
+      use Ada.Containers;
       use Element_Lists;
-      use all type Ada.Containers.Count_Type;
       I : Cursor := Queue.Data.First;
    begin
-      if N > Queue.Data.Length then
+      if Count_Type (N) > Queue.Data.Length then
          raise Parameter_Error;
       end if;
 
-      for K in 1 .. N loop
+      for K in 2 .. N loop
          Next (I);
       end loop;
 

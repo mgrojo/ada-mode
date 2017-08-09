@@ -34,15 +34,15 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    overriding procedure Clear (Stack : in out Stack_Type);
 
-   overriding function Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type;
+   overriding function Depth (Stack : in Stack_Type) return Base_Peek_Type;
 
    overriding function Is_Empty (Stack : in Stack_Type) return Boolean;
 
-   overriding function Max_Depth (Stack : in Stack_Type) return Ada.Containers.Count_Type;
+   overriding function Max_Depth (Stack : in Stack_Type) return Base_Peek_Type;
 
    overriding function Peek
      (Stack : in Stack_Type;
-      Index : in Stack_Interfaces.Positive_Count_Type := 1)
+      Index : in Peek_Type := 1)
      return Element_Type;
 
    overriding procedure Pop (Stack : in out Stack_Type);
@@ -53,13 +53,14 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    overriding function Top (Stack : in Stack_Type) return Element_Type;
 
+   ----------
    --  Other operations
 
    Empty_Stack : constant Stack_Type;
 
    procedure Set_Depth
      (Stack : in out Stack_Type;
-      Depth : in     Stack_Interfaces.Positive_Count_Type);
+      Depth : in     Peek_Type);
    --  Empty Stack, set its Depth to Depth. Must be followed by Set
    --  for each element.
    --
@@ -67,8 +68,8 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
    procedure Set
      (Stack   : in out Stack_Type;
-      Index   : in     Stack_Interfaces.Positive_Count_Type;
-      Depth     : in     Stack_Interfaces.Positive_Count_Type;
+      Index   : in     Peek_Type;
+      Depth   : in     Peek_Type;
       Element : in     Element_Type);
    --  Set a Stack element. Index is the same as Peek Index; Depth is
    --  used to compute the index in the underlying array.
@@ -79,18 +80,16 @@ package SAL.Gen_Unbounded_Definite_Stacks is
 
 private
 
-   subtype Positive_Count_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-
    package Element_Arrays is new Ada.Containers.Vectors
-     (Index_Type   => Positive_Count_Type,
+     (Index_Type   => Peek_Type,
       Element_Type => Element_Type);
 
    type Stack_Type is new Stack_Interfaces.Stack_Type with record
-      Top  : Ada.Containers.Count_Type := 0; -- empty
+      Top  : Base_Peek_Type := Invalid_Peek_Index; -- empty
       Data : Element_Arrays.Vector;
       --  Top of stack is at Data (Top).
    end record;
 
-   Empty_Stack : constant Stack_Type := (0, Element_Arrays.Empty_Vector);
+   Empty_Stack : constant Stack_Type := (Invalid_Peek_Index, Element_Arrays.Empty_Vector);
 
 end SAL.Gen_Unbounded_Definite_Stacks;

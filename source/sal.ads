@@ -9,7 +9,7 @@
 --
 --  Contact Stephe at stephen_leake@stephe-leake.org.
 --
---  Copyright (C) 1997 - 2004, 2008, 2009, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 1997 - 2004, 2008, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  SAL is free software; you can redistribute it and/or modify it
 --  under terms of the GNU General Public License as published by the
@@ -30,6 +30,9 @@
 --  executable file might be covered by the GNU Public License.
 
 pragma License (Modified_GPL);
+
+with Ada.Containers;
+
 package SAL is
    pragma Pure;
 
@@ -66,5 +69,11 @@ package SAL is
    type Duplicate_Action_Type is (Allow, Ignore, Error);
 
    type Overflow_Action_Type is (Overwrite, Error);
+
+   --  We use a new type for Peek_Type, not just
+   --  Ada.Containers.Count_Type, to enforce Peek_Type'First = top/first.
+   type Base_Peek_Type is new Ada.Containers.Count_Type range 0 .. Ada.Containers.Count_Type'Last;
+   subtype Peek_Type is Base_Peek_Type range 1 .. Base_Peek_Type'Last;
+   Invalid_Peek_Index : constant Base_Peek_Type := 0;
 
 end SAL;
