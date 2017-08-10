@@ -88,7 +88,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
      (Element_Type     => Configuration,
       Queue_Interfaces => Config_Queue_Interfaces);
 
-   type McKenzie_Data (Parser : access LR.Instance'Class) is new Recover_Data with
+   type McKenzie_Data (Parser : access LR.Instance'Class) is new LR.Recover_Data with
    record
       Queue         : Config_Queues.Queue_Type;
       Enqueue_Count : Integer := 0;
@@ -275,7 +275,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Begin_ID                  : constant Token_ID := 4;  -- FIXME: move to Param.
 
       use Ada.Containers;
-      Data : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
 
       Stack_Token : Token_ID;
    begin
@@ -347,27 +346,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             case Stack_Token is
             when Sequence_Of_Statements_ID =>
-               Data.Popped_Tokens.Append (Parser_State.Stack.Pop.Token);
+               Config       := Default_Configuration;
+               Config.Stack := Parser_State.Stack;
 
-               Parser_State.Stack.Push (Parser_State.Pre_Reduce_Stack_Item);
-               Data.Pushed_Tokens.Append (Parser_State.Pre_Reduce_Stack_Item.Token);
-
-               Config :=
-                 (Stack           => Parser_State.Stack,
-                  Lookahead_Index => Natural_Index_Type'First,
-                  Popped          => Token_Arrays.Empty_Vector,
-                  Inserted        => Token_Arrays.Empty_Vector,
-                  Deleted         => Token_Arrays.Empty_Vector,
-                  Cost            => 0.0);
+               Config.Popped.Append (Config.Stack.Pop.Token);
+               Config.Pushed.Append (Parser_State.Pre_Reduce_Stack_Item.Token); --  FIXME: Pushed should take stack_item
+               Config.Stack.Push (Parser_State.Pre_Reduce_Stack_Item);
 
             when Begin_ID =>
-               Config :=
-                 (Stack           => Parser_State.Stack,
-                  Lookahead_Index => Natural_Index_Type'First,
-                  Popped          => Token_Arrays.Empty_Vector,
-                  Inserted        => Token_Arrays.Empty_Vector,
-                  Deleted         => Token_Arrays.Empty_Vector,
-                  Cost            => 0.0);
+               Config       := Default_Configuration;
+               Config.Stack := Parser_State.Stack;
 
             when others =>
                raise Programmer_Error;
@@ -429,13 +417,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          --  part of the dotted name; that would allow proper syntax
          --  coloring etc. But this is close enough.
 
-         Config :=
-           (Stack           => Parser_State.Stack,
-            Lookahead_Index => Natural_Index_Type'First,
-            Popped          => Token_Arrays.Empty_Vector,
-            Inserted        => Token_Arrays.Empty_Vector,
-            Deleted         => Token_Arrays.Empty_Vector,
-            Cost            => 0.0);
+         Config       := Default_Configuration;
+         Config.Stack := Parser_State.Stack;
 
          --  FIXME: should not modify lookahead for single parser; see FIXME: in Recover below
          --  Also, this is not recorded in Config for reuse.
@@ -474,14 +457,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       elsif Statement_Terminal_Sequence (Parser, Parser_State, Data.Parser.Table.McKenzie, Root_Config) then
          null;
       else
-         Root_Config :=
-           (Stack           => Parser_State.Stack,
-            Lookahead_Index => 1,
-            Popped          => Token_Arrays.Empty_Vector,
-            Inserted        => Token_Arrays.Empty_Vector,
-            Deleted         => Token_Arrays.Empty_Vector,
-            Cost            => 0.0);
+         Root_Config       := Default_Configuration;
+         Root_Config.Stack := Parser_State.Stack;
       end if;
+
+      Root_Config.Lookahead_Index := 1; --  Current_Token pushed in Recover below.
 
       Enqueue (Data, Root_Config);
 
@@ -630,15 +610,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Parser_State.Recover := new McKenzie_Data (Parser'Unchecked_Access);
 
          declare
-            Result : Configuration;
-            Data   : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
+            Result : Configuration; -- Not initialized to catch Recover_Fail
          begin
-            Result     := Recover (Parser, Parser_State);
+            Result := Recover (Parser, Parser_State);
             Keep_Going := True;
 
             for ID of Result.Popped loop
                Parser_State.Stack.Pop;
                Parser.Semantic_State.Pop_Token (ID);
+            end loop;
+
+            for ID of Result.Pushed loop
+               --  FIXME: do this?
+               --  Parser_State.Stack.Push (?);
+               Parser.Semantic_State.Push_Token (ID);
             end loop;
 
             --  FIXME: Lookahead, Current_Token might be different for different parsers;
@@ -657,8 +642,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             end loop;
 
             Parser.Semantic_State.Recover
-              (Popped_Tokens => Data.Popped_Tokens,
-               Pushed_Tokens => Data.Pushed_Tokens,
+              (Popped_Tokens => Result.Popped,
+               Pushed_Tokens => Result.Pushed,
                Recover       => new Configuration'(Result));
 
             Current_Token := Parser.Lookahead (Natural_Index_Type'First);

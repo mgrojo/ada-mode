@@ -129,8 +129,8 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Recover
      (State         : access State_Type;
-      Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
+      Popped_Tokens : in     Token_Array;
+      Pushed_Tokens : in     Token_Array;
       Recover       : in     WisiToken.Token.Recover_Data_Access)
      is null;
 

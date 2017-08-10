@@ -197,8 +197,8 @@ package WisiToken.Token is
 
    procedure Recover
      (State         : access Semantic_State;
-      Popped_Tokens : in     List.Instance;
-      Pushed_Tokens : in     List.Instance;
+      Popped_Tokens : in     Token_Array;
+      Pushed_Tokens : in     Token_Array;
       Recover       : in     Recover_Data_Access)
      is abstract;
    --  An error recover algorithm succeeded; adjust the State augmented

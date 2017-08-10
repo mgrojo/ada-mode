@@ -19,6 +19,16 @@ pragma License (GPL);
 
 package body WisiToken.Parser.LR.Panic_Mode is
 
+   type Panic_Data is new LR.Recover_Data with record
+      Nonterm       : Token_ID;
+      Goto_State    : Unknown_State_Index;
+      Popped_Tokens : Token_Array; -- from parse stack
+      Pushed_Tokens : Token_Array; -- to parse stack from input queue
+   end record;
+
+   Default_Panic : constant Panic_Data :=
+     (Invalid_Token, Unknown_State, Empty_Token_Array, Empty_Token_Array);
+
    function Pop_To_Good
      (Table        : in     Parse_Table;
       Parser_State : in out Parser_Lists.Parser_State;
@@ -26,7 +36,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
      return Boolean
    is
       use Token;
-      Panic    : Recover_Data renames Recover_Data (Parser_State.Recover.all);
+      Panic    : Panic_Data renames Panic_Data (Parser_State.Recover.all);
       Top      : Parser_Stack_Item   := Parser_State.Stack.Peek;
       Prev_Top : Parser_Stack_Item   := (Unknown_State, Invalid_Token);
    begin
@@ -93,7 +103,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
       Last_ID    : Token_ID := Current_Token;
    begin
       for Parser_State of Parsers loop
-         Parser_State.Recover := new Recover_Data'(Default_Recover);
+         Parser_State.Recover := new Panic_Data'(Default_Panic);
 
          Keep_Going := Keep_Going or Pop_To_Good
            (Parser.Table.all, Parser_State, Parser.Semantic_State.Trace.all);
@@ -112,7 +122,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                use Parser_Lists;
                use all type Ada.Containers.Count_Type;
 
-               Panic : Recover_Data renames Recover_Data (Parser_State.Recover.all);
+               Panic : Panic_Data renames Panic_Data (Parser_State.Recover.all);
 
                Use_Popped : Token_ID := Invalid_Token;
 
@@ -120,7 +130,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                is begin
                   if Panic.Popped_Tokens.Length > 0 then
                      declare
-                        ID : constant Token_ID := Panic.Popped_Tokens.Peek (1);
+                        ID : constant Token_ID := Panic.Popped_Tokens (1);
                      begin
                         if ID in Trace.Descriptor.First_Terminal .. Trace.Descriptor.Last_Terminal then
                            if Parser.Table.Follow (Panic.Nonterm, ID) then
@@ -148,7 +158,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                   else
                      --  Check to see if we really can use the popped token
                      declare
-                        ID     : constant Token_ID         := Panic.Popped_Tokens.Peek (1);
+                        ID     : constant Token_ID         := Panic.Popped_Tokens (1);
                         Action : constant Parse_Action_Rec := Action_For (Parser.Table.all, Panic.Goto_State, ID).Item;
                         --  We ignore conflicts in Action; just take the first one.
                      begin
@@ -204,6 +214,15 @@ package body WisiToken.Parser.LR.Panic_Mode is
          exit Matching_Input when Last_ID = Trace.Descriptor.EOF_ID;
          Last_ID := Current_Token;
       end loop Matching_Input;
+
+      if Keep_Going then
+         declare
+            Recover : Panic_Data renames Panic_Data (Parsers.First.State_Ref.Recover.all);
+         begin
+            --  FIXME: handle parsers.count > 1 (or delete Panic_Mode), set Recover
+            Parser.Semantic_State.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Recover => null);
+         end;
+      end if;
 
       if Trace_Parse > 0 then
          if not Keep_Going then

@@ -59,6 +59,7 @@ package WisiToken.Token_Region is
       Stack : Augmented_Token_Array;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
+      --  FIXME: change to SAL.stack?
 
       Input_Queue : Token_Queues.Queue_Type;
       --  Tokens are kept in Input_Queue during parallel parser
@@ -112,8 +113,8 @@ package WisiToken.Token_Region is
    overriding
    procedure Recover
      (State         : access State_Type;
-      Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance;
+      Popped_Tokens : in     WisiToken.Token_Array;
+      Pushed_Tokens : in     WisiToken.Token_Array;
       Recover       : in     WisiToken.Token.Recover_Data_Access);
 
 end WisiToken.Token_Region;

@@ -44,6 +44,7 @@ package WisiToken.Parser.LR.McKenzie_Recover is
       Stack           : Parser_Stacks.Stack_Type;
       Lookahead_Index : Ada.Containers.Count_Type; -- index into parser.lookahead for next input token
       Popped          : Token_Arrays.Vector;
+      Pushed          : Token_Arrays.Vector;
       Inserted        : Token_Arrays.Vector;
       Deleted         : Token_Arrays.Vector;
       Cost            : Float := 0.0;
@@ -51,5 +52,14 @@ package WisiToken.Parser.LR.McKenzie_Recover is
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
    --  Put Config to Ada.Text_IO.Current_Output
+
+   Default_Configuration : constant Configuration :=
+     (Stack           => Parser_Stacks.Empty_Stack,
+      Lookahead_Index => 0,
+      Popped          => Token_Arrays.Empty_Vector,
+      Pushed          => Token_Arrays.Empty_Vector,
+      Inserted        => Token_Arrays.Empty_Vector,
+      Deleted         => Token_Arrays.Empty_Vector,
+      Cost            => 0.0);
 
 end WisiToken.Parser.LR.McKenzie_Recover;

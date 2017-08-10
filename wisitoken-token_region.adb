@@ -265,15 +265,14 @@ package body WisiToken.Token_Region is
    overriding
    procedure Recover
      (State         : access State_Type;
-      Popped_Tokens : in     WisiToken.Token.List.Instance;
-      Pushed_Tokens : in     WisiToken.Token.List.Instance;
+      Popped_Tokens : in     WisiToken.Token_Array;
+      Pushed_Tokens : in     WisiToken.Token_Array;
       Recover       : in     WisiToken.Token.Recover_Data_Access)
    is
       use all type Ada.Containers.Count_Type;
       use all type WisiToken.Token.List.List_Iterator;
 
-      Region : Buffer_Region                      := State.Invalid_Region; -- discarded tokens
-      I      : WisiToken.Token.List.List_Iterator := Popped_Tokens.First;
+      Region : Buffer_Region := State.Invalid_Region; -- discarded tokens
       Tok    : Token;
    begin
       State.Invalid_Region := Null_Buffer_Region;
@@ -282,24 +281,19 @@ package body WisiToken.Token_Region is
          Put_Trace (State.Trace.all, State.all);
       end if;
 
-      loop
-         exit when Is_Null (I);
+      for ID of Popped_Tokens loop
          Tok := Token (State.Stack.Element (State.Stack.Last_Index));
          State.Stack.Delete_Last;
 
-         if ID (I) /= Tok.ID then
+         if ID /= Tok.ID then
             raise Programmer_Error;
          end if;
 
          Region := Region and Tok.Region;
-         Next (I);
       end loop;
 
-      I := Pushed_Tokens.First;
-      loop
-         exit when Is_Null (I);
-         State.Stack.Append (Token'(ID (I), Null_Buffer_Region));
-         Next (I);
+      for ID of Pushed_Tokens loop
+         State.Stack.Append (Token'(ID, Null_Buffer_Region));
       end loop;
 
       declare

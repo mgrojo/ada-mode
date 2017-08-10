@@ -227,30 +227,11 @@ package WisiToken.Parser.LR is
      return Parse_Action_Node_Ptr;
    --  Return the action for State, terminal ID.
 
-   type Recover_Data is tagged record
-      --  Stored with parser state during recovery. Base type is
-      --  sufficient for panic mode recovery; other recovery
-      --  algorithms may extend this.
-      --
-      --  Tokens skipped in the input stream are not stored here; they
-      --  are reported via Semantic_State.Discard_Token.
-      --
-      --  Semantic actions are not performed on the popped or skipped
-      --  tokens.
-      --
-      --  FIXME: McKenzie doesn't use any of these fields; delete or
-      --  move to panic_mode.
-      Nonterm       : Token_ID;
-      Goto_State    : Unknown_State_Index;
-      Popped_Tokens : WisiToken.Token.List.Instance; -- from parse stack
-      Pushed_Tokens : WisiToken.Token.List.Instance; -- to parse stack from input queue
-   end record;
+   type Recover_Data is tagged null record;
+   --  Stored with parser state during recovery.
 
    type Recover_Data_Access is access Recover_Data'Class;
    procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
-
-   Default_Recover : constant Recover_Data :=
-     (Invalid_Token, Unknown_State, WisiToken.Token.List.Null_List, WisiToken.Token.List.Null_List);
 
    --  Parser stack type. Visible here for error recover info.
    type Parser_Stack_Item is record

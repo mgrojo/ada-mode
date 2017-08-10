@@ -321,15 +321,6 @@ package body WisiToken.Parser.LR.Parser is
 
                if ((not Keep_Going) and Parser.Enable_Panic_Recover) and then Any (Parser.Table.Panic_Recover) then
                   Keep_Going := Panic_Mode.Recover (Parser, Parsers, Current_Token);
-
-                  if Keep_Going then
-                     --  FIXME: delete or move into Panic_Mode, add Recover
-                     declare
-                        Recover : LR.Recover_Data'Class renames Parsers.First.State_Ref.Recover.all;
-                     begin
-                        Parser.Semantic_State.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Recover => null);
-                     end;
-                  end if;
                end if;
 
                if Trace_Parse > 0 then
