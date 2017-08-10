@@ -42,13 +42,13 @@ package WisiToken.Parser.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Parse_Stack_Item;
-      Expected : in Parse_Stack_Item);
+      Computed : in Parser_Stack_Item;
+      Expected : in Parser_Stack_Item);
 
-   type Parse_Stack_Item_Array is array (SAL.Base_Peek_Type range <>) of Parse_Stack_Item;
+   type Parser_Stack_Item_Array is array (SAL.Base_Peek_Type range <>) of Parser_Stack_Item;
 
-   function To_State_Stack (Item : in Parse_Stack_Item_Array) return Parse_Stacks.Stack_Type;
+   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type;
 
-   procedure Check is new Parse_Stacks.Gen_AUnit (Check);
+   procedure Check is new Parser_Stacks.Gen_AUnit (Check);
 
 end WisiToken.Parser.LR.AUnit;

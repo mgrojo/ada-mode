@@ -169,8 +169,8 @@ package body WisiToken.Parser.LR.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in Parse_Stack_Item;
-      Expected : in Parse_Stack_Item)
+      Computed : in Parser_Stack_Item;
+      Expected : in Parser_Stack_Item)
    is
       use WisiToken.AUnit;
    begin
@@ -178,10 +178,10 @@ package body WisiToken.Parser.LR.AUnit is
       Check (Label & ".Token", Computed.Token, Expected.Token);
    end Check;
 
-   function To_State_Stack (Item : in Parse_Stack_Item_Array) return Parse_Stacks.Stack_Type
+   function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type
    is begin
       return
-        Result : Parse_Stacks.Stack_Type
+        Result : Parser_Stacks.Stack_Type
       do
          Result.Set_Depth (Item'Length);
          for I in SAL.Base_Peek_Type'(1) .. Item'Length loop

@@ -54,11 +54,12 @@ package body WisiToken.Parser.LR.Parser is
       Action         : in     Reduce_Action_Rec;
       Semantic_State : access WisiToken.Token.Semantic_State'Class)
    is
-      Tokens : Token.List.Instance;
+      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Tokens       : Token.List.Instance;
    begin
       --  Pop the token states from the stack
       for I in 1 .. Action.Token_Count loop
-         Token.List.Prepend (Tokens, Current_Parser.Pop.Token);
+         Token.List.Prepend (Tokens, Parser_State.Stack.Pop.Token);
       end loop;
 
       declare
@@ -66,13 +67,13 @@ package body WisiToken.Parser.LR.Parser is
          Action_Token : constant Parser_Lists.Action_Token := (Action, Tokens);
       begin
          if Current_Parser.Active_Parser_Count > 1 then
-            Current_Parser.Enqueue (Action_Token);
+            Parser_State.Pending_Actions.Put (Action_Token);
             if Trace_Parse > 1 then
                Semantic_State.Trace.Put ("pending ");
                Parser_Lists.Put (Semantic_State.Trace.all, Action_Token);
                Semantic_State.Trace.New_Line;
                Semantic_State.Trace.Put_Line
-                 (" action count:" & SAL.Base_Peek_Type'Image (Current_Parser.Pending_Actions_Count));
+                 (" action count:" & SAL.Base_Peek_Type'Image (Parser_State.Pending_Actions.Count));
             end if;
          else
             Semantic_State.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action);
@@ -89,7 +90,8 @@ package body WisiToken.Parser.LR.Parser is
       Current_Token  : in Token_ID;
       Parser         : in Instance)
    is
-      Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Trace        : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
    begin
       if Trace_Parse > 1 then
          if Trace_Parse > 2 then
@@ -97,7 +99,7 @@ package body WisiToken.Parser.LR.Parser is
          end if;
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
-              State_Image (Current_Parser.Peek.State) & ": " &
+              State_Image (Parser_State.Stack.Peek.State) & ": " &
               Image (Trace.Descriptor.all, Current_Token) & " : ");
          Put (Trace, Action);
          Trace.New_Line;
@@ -105,7 +107,7 @@ package body WisiToken.Parser.LR.Parser is
 
       case Action.Verb is
       when Shift =>
-         Current_Parser.Push ((Action.State, Current_Token));
+         Parser_State.Stack.Push ((Action.State, Current_Token));
 
          declare
             use all type Ada.Containers.Count_Type;
@@ -113,12 +115,12 @@ package body WisiToken.Parser.LR.Parser is
             Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
          begin
             if Current_Parser.Active_Parser_Count > 1 then
-               Current_Parser.Enqueue (Action_Token);
+               Parser_State.Pending_Actions.Put (Action_Token);
                if Trace_Parse > 1 then
                   Trace.Put ("pending ");
                   Parser_Lists.Put (Trace, Action_Token);
                   Trace.New_Line;
-                  Trace.Put_Line (" action count:" & SAL.Base_Peek_Type'Image (Current_Parser.Pending_Actions_Count));
+                  Trace.Put_Line (" action count:" & SAL.Base_Peek_Type'Image (Parser_State.Pending_Actions.Count));
                end if;
             else
                Parser.Semantic_State.Push_Token (Current_Token);
@@ -130,15 +132,15 @@ package body WisiToken.Parser.LR.Parser is
 
          Reduce_Stack (Current_Parser, Action, Parser.Semantic_State);
 
-         Current_Parser.Push
+         Parser_State.Stack.Push
            ((State    => Goto_For
                (Table => Parser.Table.all,
-                State => Current_Parser.Peek.State,
+                State => Parser_State.Stack.Peek.State,
                 ID    => Action.LHS),
              Token    => Action.LHS));
 
          if Trace_Parse > 1 then
-            Trace.Put_Line (" ... goto state " & State_Image (Current_Parser.Peek.State));
+            Trace.Put_Line (" ... goto state " & State_Image (Parser_State.Stack.Peek.State));
          end if;
 
       when Accept_It =>
@@ -169,18 +171,15 @@ package body WisiToken.Parser.LR.Parser is
    --  parse.
    function Parse_Verb (Parsers : in out Parser_Lists.List) return Parse_Action_Verbs
    is
+      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016 requires 'in out'
       use Ada.Containers;
       Shift_Count  : Count_Type := 0;
       Accept_Count : Count_Type := 0;
       Error_Count  : Count_Type := 0;
    begin
-      --  Cursor.Verb is the last action a parser took. If it was Shift,
-      --  that parser used the input token, and should not be executed
-      --  again until another input token is available, after all
-      --  parsers have shifted the current token or terminated.
-      for I in Parsers.Iterate loop
+      for Parser_State of Parsers loop
 
-         case Parser_Lists.Verb (I) is
+         case Parser_State.Verb is
          when Shift =>
             Shift_Count := Shift_Count + 1;
 
@@ -207,20 +206,19 @@ package body WisiToken.Parser.LR.Parser is
    end Parse_Verb;
 
    function Duplicate_State
-     (Parsers        : aliased in out Parser_Lists.List;
-      Current_Parser :         in     Parser_Lists.Cursor)
+     (Parsers        : in out Parser_Lists.List;
+      Current_Parser : in     Parser_Lists.Cursor)
      return Boolean
    is
-      use Parser_Lists;
+      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016 requires 'in out'
+      use all type Parser_Stacks.Stack_Type;
    begin
-      for I in Parsers.Iterate loop
-         declare
-            Cursor : constant Parser_Lists.Cursor := To_Cursor (I);
-         begin
-            if Cursor /= Current_Parser and then Stack_Equal (Cursor, Current_Parser) then
-               return True;
-            end if;
-         end;
+      for Parser_State of Parsers loop
+         if Parser_State.Label /= Current_Parser.Label and then
+           Parser_State.Stack = Current_Parser.State_Ref.Stack
+         then
+            return True;
+         end if;
       end loop;
       return False;
    end Duplicate_State;
@@ -229,14 +227,15 @@ package body WisiToken.Parser.LR.Parser is
      (Current_Parser : in     Parser_Lists.Cursor;
       Semantic_State : access WisiToken.Token.Semantic_State'Class)
    is
+      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Action_Token : Parser_Lists.Action_Token;
    begin
       if Trace_Parse > 1 then
          Semantic_State.Trace.Put_Line ("execute pending");
       end if;
       loop
-         exit when Current_Parser.Pending_Actions_Empty;
-         Action_Token := Current_Parser.Dequeue;
+         exit when Parser_State.Pending_Actions.Is_Empty;
+         Action_Token := Parser_State.Pending_Actions.Get;
 
          case Action_Token.Action.Verb is
          when Shift =>
@@ -257,7 +256,7 @@ package body WisiToken.Parser.LR.Parser is
    overriding procedure Parse (Parser : in out Instance)
    is
       use all type Ada.Containers.Count_Type;
-      Parsers        : Parser_Lists.List := Parser_Lists.New_List
+      Parsers        : aliased Parser_Lists.List := Parser_Lists.New_List
         (First_State_Index  => Parser.Table.State_First,
          First_Parser_Label => Parser.First_Parser_Label);
       Current_Verb   : Parse_Action_Verbs;
@@ -288,7 +287,6 @@ package body WisiToken.Parser.LR.Parser is
             declare
                Count : constant Ada.Containers.Count_Type := Parsers.Count;
             begin
-               --  FIXME: Free (Parsers);
                --  Action points into the parser table; it does not get free'd.
 
                if Count > 1 then
@@ -311,8 +309,8 @@ package body WisiToken.Parser.LR.Parser is
                Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
                Keep_Going : Boolean                := False;
             begin
-               for I in Parsers.Iterate loop
-                  LR.Parser.Expecting (Parser.Table, To_Cursor (I).Peek.State, Expecting);
+               for Parser_State of Parsers loop
+                  LR.Parser.Expecting (Parser.Table, Parser_State.Stack.Peek.State, Expecting);
                end loop;
 
                Parser.Semantic_State.Error (Expecting);
@@ -327,7 +325,7 @@ package body WisiToken.Parser.LR.Parser is
                   if Keep_Going then
                      --  FIXME: delete or move into Panic_Mode, add Recover
                      declare
-                        Recover : Parser_Lists.Recover_Reference renames Parser_Lists.First (Parsers).Recover_Ref;
+                        Recover : LR.Recover_Data'Class renames Parsers.First.State_Ref.Recover.all;
                      begin
                         Parser.Semantic_State.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Recover => null);
                      end;
@@ -363,7 +361,6 @@ package body WisiToken.Parser.LR.Parser is
                      --  limit.
                      Expecting_Names : constant String := Image (Descriptor, Expecting, Max_Count => 10);
                   begin
-                     --  FIXME: Free (Parsers);
                      raise Syntax_Error with
                        Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                        ": Syntax error; expecting one of " & Expecting_Names &
@@ -416,7 +413,7 @@ package body WisiToken.Parser.LR.Parser is
 
                Action := Action_For
                  (Table => Parser.Table.all,
-                  State => Current_Parser.Peek.State,
+                  State => Current_Parser.State_Ref.Stack.Peek.State,
                   ID    => Current_Token);
 
                if Action.Next /= null then
@@ -425,7 +422,7 @@ package body WisiToken.Parser.LR.Parser is
                      raise Parse_Error with
                        Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
                        ": too many parallel parsers required in grammar state" &
-                       State_Index'Image (Current_Parser.Peek.State) &
+                       State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
                        "; simplify grammar, or increase max-parallel (" &
                        Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")";
 

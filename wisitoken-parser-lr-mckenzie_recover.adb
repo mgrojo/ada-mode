@@ -259,14 +259,14 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    --  FIXME: make visible, add to some hook in .wy
    function Statement_Terminal_Sequence
-     (Parser        : in out LR.Instance'Class;
-      Cursor        : in     Parser_Lists.Cursor;
-      Param         : in     McKenzie_Param_Type;
-      Config        :    out Configuration)
+     (Parser       : in out LR.Instance'Class;
+      Parser_State : in out Parser_Lists.Parser_State;
+      Param        : in     McKenzie_Param_Type;
+      Config       :    out Configuration)
      return Boolean
    is
-      --  Assume Cursor parser encountered an error at Current_Token.
-      --  If Cursor.Stack, Current_Token match a portion of a terminal
+      --  Assume Parser_State parser encountered an error at Current_Token.
+      --  If Parser_State.Stack, Current_Token match a portion of a terminal
       --  sequence, insert that portion and return True. Else return
       --  False.
 
@@ -275,15 +275,14 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Begin_ID                  : constant Token_ID := 4;  -- FIXME: move to Param.
 
       use Ada.Containers;
-
-      Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
+      Data : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
 
       Stack_Token : Token_ID;
    begin
-      if Cursor.Prev_Verb = Reduce and Cursor.Pre_Reduce_Stack_Item.Token = Sequence_Of_Statements_ID then
+      if Parser_State.Prev_Verb = Reduce and Parser_State.Pre_Reduce_Stack_Item.Token = Sequence_Of_Statements_ID then
          Stack_Token := Sequence_Of_Statements_ID;
 
-      elsif Cursor.Prev_Verb = Shift and Cursor.Peek.Token = Begin_ID then
+      elsif Parser_State.Prev_Verb = Shift and Parser_State.Stack.Peek.Token = Begin_ID then
          Stack_Token := Begin_ID;
 
       else
@@ -348,13 +347,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             case Stack_Token is
             when Sequence_Of_Statements_ID =>
-               Data.Popped_Tokens.Append (Cursor.Pop.Token);
+               Data.Popped_Tokens.Append (Parser_State.Stack.Pop.Token);
 
-               Cursor.Push (Cursor.Pre_Reduce_Stack_Item);
-               Data.Pushed_Tokens.Append (Cursor.Pre_Reduce_Stack_Item.Token);
+               Parser_State.Stack.Push (Parser_State.Pre_Reduce_Stack_Item);
+               Data.Pushed_Tokens.Append (Parser_State.Pre_Reduce_Stack_Item.Token);
 
                Config :=
-                 (Stack           => Cursor.Copy_Stack,
+                 (Stack           => Parser_State.Stack,
                   Lookahead_Index => Natural_Index_Type'First,
                   Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
@@ -363,7 +362,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             when Begin_ID =>
                Config :=
-                 (Stack           => Cursor.Copy_Stack,
+                 (Stack           => Parser_State.Stack,
                   Lookahead_Index => Natural_Index_Type'First,
                   Popped          => Token_Arrays.Empty_Vector,
                   Inserted        => Token_Arrays.Empty_Vector,
@@ -389,13 +388,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    --  FIXME: make visible, add to some hook in .wy
    function Dotted_Name
-     (Data   : in out McKenzie_Data;
-      Cursor : in     Parser_Lists.Cursor;
-      Config :    out Configuration)
+     (Data         : in out McKenzie_Data;
+      Parser_State : in     Parser_Lists.Parser_State;
+      Config       :    out Configuration)
      return Boolean
    is
-      --  Assume Cursor parser encountered an error at Current_Token.
-      --  If Cursor.Stack, Current_Token match a dotted name that
+      --  Assume Parser_State parser encountered an error at Current_Token.
+      --  If Parser_State.Stack, Current_Token match a dotted name that
       --  errored on '.', set config to an appropriate root config,
       --  and return True. Else return False.
 
@@ -411,7 +410,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          return False;
       end if;
 
-      if Cursor.Peek.Token = Param.Identifier_ID and
+      if Parser_State.Stack.Peek.Token = Param.Identifier_ID and
         Current_Token = Param.Dot_ID
       then
          if Trace_Parse > 1 then
@@ -431,7 +430,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          --  coloring etc. But this is close enough.
 
          Config :=
-           (Stack           => Cursor.Copy_Stack,
+           (Stack           => Parser_State.Stack,
             Lookahead_Index => Natural_Index_Type'First,
             Popped          => Token_Arrays.Empty_Vector,
             Inserted        => Token_Arrays.Empty_Vector,
@@ -449,12 +448,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    end Dotted_Name;
 
    function Recover
-     (Parser : in out LR.Instance'Class;
-      Cursor : in     Parser_Lists.Cursor)
+     (Parser       : in out LR.Instance'Class;
+      Parser_State : in out Parser_Lists.Parser_State)
      return Configuration
    is
       --  Raises Recover_Fail or returns recover Config
-      Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
+
+      Data   : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
       Action : Parse_Action_Node_Ptr;
 
       EOF_ID : Token_ID renames Parser.Semantic_State.Trace.Descriptor.EOF_ID;
@@ -469,13 +469,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Clear_Queue (Data);
 
-      if Dotted_Name (Data, Cursor, Root_Config) then
+      if Dotted_Name (Data, Parser_State, Root_Config) then
          null;
-      elsif Statement_Terminal_Sequence (Parser, Cursor, Data.Parser.Table.McKenzie, Root_Config) then
+      elsif Statement_Terminal_Sequence (Parser, Parser_State, Data.Parser.Table.McKenzie, Root_Config) then
          null;
       else
          Root_Config :=
-           (Stack           => Cursor.Copy_Stack,
+           (Stack           => Parser_State.Stack,
             Lookahead_Index => 1,
             Popped          => Token_Arrays.Empty_Vector,
             Inserted        => Token_Arrays.Empty_Vector,
@@ -625,25 +625,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          raise Programmer_Error with "McKenzie_Recover does not support Parsers.Count > 1 (yet)";
       end if;
 
-      for I in Parsers.Iterate loop
-         declare
-            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (I);
-         begin
-            Cursor.Set_Recover (new McKenzie_Data (Parser'Unchecked_Access));
-         end;
-      end loop;
+      for Parser_State of Parsers loop
+         Free (Parser_State.Recover);
+         Parser_State.Recover := new McKenzie_Data (Parser'Unchecked_Access);
 
-      for I in Parsers.Iterate loop
          declare
             Result : Configuration;
-            Cursor : constant Parser_Lists.Cursor := Parser_Lists.To_Cursor (I);
-            Data   : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref.Element.all);
+            Data   : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
          begin
-            Result     := Recover (Parser, Cursor);
+            Result     := Recover (Parser, Parser_State);
             Keep_Going := True;
 
             for ID of Result.Popped loop
-               Cursor.Pop;
+               Parser_State.Stack.Pop;
                Parser.Semantic_State.Pop_Token (ID);
             end loop;
 

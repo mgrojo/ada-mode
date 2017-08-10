@@ -26,7 +26,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       First_Parser_Label : in Integer)
      return List
    is
-      Stack : Parse_Stacks.Stack_Type;
+      Stack : Parser_Stacks.Stack_Type;
    begin
       Stack.Push ((First_State_Index, Invalid_Token));
 
@@ -39,7 +39,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
              Verb            => Parse_Action_Verbs'First,
              Prev_Verb       => Parse_Action_Verbs'First,
              Stack           => Stack,
-             Pre_Reduce_Item => Default_Parse_Stack_Item,
+             Pre_Reduce_Item => Default_Parser_Stack_Item,
              Pending_Actions => Pend_Items_Queues.Empty_Queue,
              Recover         => null));
       end return;
@@ -95,73 +95,18 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Prev_Verb;
    end Prev_Verb;
 
-   procedure Set_Recover (Cursor : in Parser_Lists.Cursor; Data : in Recover_Data_Access)
-   is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
-   begin
-      Free (Item.Recover);
-      Item.Recover := Data;
-   end Set_Recover;
-
-   function Recover_Ref (Position : in Cursor) return Recover_Reference
+   function State_Ref (Position : in Cursor) return State_Reference
    is begin
-      return (Element => Parser_State_Lists.Constant_Reference (Position.Elements.all, Position.Ptr).Recover);
-   end Recover_Ref;
-
-   function Stack_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Stack.Is_Empty;
-   end Stack_Empty;
-
-   function Copy_Stack (Cursor : in Parser_Lists.Cursor) return Parse_Stacks.Stack_Type
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Stack;
-   end Copy_Stack;
-
-   function Peek (Cursor : in Parser_Lists.Cursor; Depth : in SAL.Base_Peek_Type := 1) return Parse_Stack_Item
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Stack.Peek (Depth);
-   end Peek;
-
-   function Pop (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item
-   is begin
-      return Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Stack.Pop;
-   end Pop;
-
-   procedure Pop (Cursor : in Parser_Lists.Cursor)
-   is begin
-      Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Stack.Pop;
-   end Pop;
-
-   procedure Push (Cursor : in Parser_Lists.Cursor; Item : in Parse_Stack_Item)
-   is begin
-      Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Stack.Push (Item);
-   end Push;
-
-   function Stack_Equal (Cursor_1, Cursor_2 : in Parser_Lists.Cursor) return Boolean
-   is
-      use all type Parse_Stacks.Stack_Type;
-   begin
-      return Parser_State_Lists.Constant_Reference (Cursor_1.Elements.all, Cursor_1.Ptr).Stack =
-        Parser_State_Lists.Constant_Reference (Cursor_2.Elements.all, Cursor_2.Ptr).Stack;
-   end Stack_Equal;
+      return (Element => Parser_State_Lists.Constant_Reference (Position.Elements.all, Position.Ptr).Element);
+   end State_Ref;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       use all type SAL.Base_Peek_Type;
       Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr);
-      Stack : Parse_Stacks.Stack_Type renames Item.Stack;
-      Last  : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Min (10, Stack.Depth);
+      Stack : Parser_Stacks.Stack_Type renames Item.Stack;
    begin
-      Trace.Put (Integer'Image (Item.Label) & " stack: ");
-      for I in 1 .. Last loop
-         Trace.Put
-           (State_Index'Image (Stack.Peek (I).State) & " : " &
-              (if I = Last
-               then ""
-               else Image (Trace.Descriptor.all, Stack.Peek (I).Token) & ", "));
-      end loop;
-      Trace.New_Line;
+      Put_Top_10 (Integer'Image (Item.Label) & " stack: ", Trace, Stack);
    end Put_Top_10;
 
    procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
@@ -170,35 +115,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
    begin
       Item.Pre_Reduce_Item := Item.Stack.Peek;
    end Pre_Reduce_Stack_Save;
-
-   function Pre_Reduce_Stack_Item (Cursor : in Parser_Lists.Cursor) return Parse_Stack_Item
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Pre_Reduce_Item;
-   end Pre_Reduce_Stack_Item;
-
-   function Pending_Actions_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type
-   is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Pending_Actions.Count;
-   end Pending_Actions_Count;
-
-   procedure Enqueue
-     (Cursor       : in Parser_Lists.Cursor;
-      Action_Token : in Parser_Lists.Action_Token)
-   is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
-   begin
-      Item.Pending_Actions.Put (Action_Token);
-   end Enqueue;
-
-   function Dequeue (Cursor : in Parser_Lists.Cursor) return Action_Token
-   is begin
-      return Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Pending_Actions.Get;
-   end Dequeue;
-
-   function Pending_Actions_Empty (Cursor : in Parser_Lists.Cursor) return Boolean
-   is begin
-      return Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Pending_Actions.Is_Empty;
-   end Pending_Actions_Empty;
 
    procedure Prepend_Copy
      (List   : in out Parser_Lists.List;
@@ -232,12 +148,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Parser_State_Lists.Delete (Cursor.Elements.all, Temp);
    end Free;
 
-   procedure Free (List : in out Parser_Lists.List)
-   is begin
-      Parser_State_Lists.Clear (List.Elements);
-      List.Parser_Label := -1;
-   end Free;
-
    ----------
    --  stuff for iterators
 
@@ -248,11 +158,19 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function Constant_Reference
      (Container : aliased in List'Class;
-      Position  : in Parser_Node_Access)
+      Position  :         in Parser_Node_Access)
      return Constant_Reference_Type
    is begin
       return (Element => Parser_State_Lists.Constant_Reference (Container.Elements, Position.Ptr).Element);
    end Constant_Reference;
+
+   function Reference
+     (Container : aliased in out List'Class;
+      Position  :         in     Parser_Node_Access)
+     return Reference_Type
+   is begin
+      return (Element => Parser_State_Lists.Reference (Container.Elements, Position.Ptr).Element);
+   end Reference;
 
    type List_Access is access all List;
 
@@ -291,10 +209,30 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Parser_State_Lists.Has_Element (Iterator.Ptr);
    end Has_Element;
 
-   function Verb (Iterator : in Parser_Node_Access) return Parse_Action_Verbs
+   function Label (Iterator : in Parser_State) return Integer
    is begin
-      return Parser_State_Lists.Constant_Reference (Iterator.Elements.all, Iterator.Ptr).Verb;
+      return Iterator.Label;
+   end Label;
+
+   function Verb (Iterator : in Parser_State) return Parse_Action_Verbs
+   is begin
+      return Iterator.Verb;
    end Verb;
+
+   function Prev_Verb (Iterator : in Parser_State) return Parse_Action_Verbs
+   is begin
+      return Iterator.Prev_Verb;
+   end Prev_Verb;
+
+   function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item
+   is begin
+      return Iterator.Pre_Reduce_Item;
+   end Pre_Reduce_Stack_Item;
+
+   procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class)
+   is begin
+      Put_Top_10 (Integer'Image (Iterator.Label) & " stack: ", Trace, Iterator.Stack);
+   end Put_Top_10;
 
    ----------
    --  For unit tests

@@ -66,9 +66,9 @@ package body Parser_Lists_Test is
       Check ("1: Is_Done", Cursor.Is_Done, False);
       Check ("1: Label", Cursor.Label, 1);
       Check ("1: Verb", Cursor.Verb, Shift);
-      Check ("1: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("1: Peek", Cursor.Peek, (1, WisiToken.Invalid_Token));
-      Check ("1: Action_Tokens_Empty", Cursor.Pending_Actions_Empty, True);
+      Check ("1: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, False);
+      Check ("1: Peek", Cursor.State_Ref.Stack.Peek, (1, WisiToken.Invalid_Token));
+      Check ("1: Action_Tokens_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, True);
    end Init;
 
    procedure Stack (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -82,26 +82,26 @@ package body Parser_Lists_Test is
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
       Cursor  : constant Parser_Lists.Cursor := Parsers.First;
 
-      Item_1 : constant Parse_Stack_Item := (2, +If_ID);
-      Item_2 : constant Parse_Stack_Item := (3, +Then_ID);
+      Item_1 : constant Parser_Stack_Item := (2, +If_ID);
+      Item_2 : constant Parser_Stack_Item := (3, +Then_ID);
    begin
-      Check ("1: Pop", Cursor.Pop, (0, WisiToken.Invalid_Token));
-      Check ("1: Stack_Empty", Cursor.Stack_Empty, True);
+      Check ("1: Pop", Cursor.State_Ref.Stack.Pop, (0, WisiToken.Invalid_Token));
+      Check ("1: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, True);
 
-      Cursor.Push (Item_1);
-      Check ("2a: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("2: Pop", Cursor.Pop, Item_1);
-      Check ("2b: Stack_Empty", Cursor.Stack_Empty, True);
+      Cursor.State_Ref.Stack.Push (Item_1);
+      Check ("2a: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, False);
+      Check ("2: Pop", Cursor.State_Ref.Stack.Pop, Item_1);
+      Check ("2b: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, True);
 
-      Cursor.Push (Item_1);
-      Cursor.Push (Item_2);
-      Check ("3a: Stack_Empty", Cursor.Stack_Empty, False);
-      Check ("3b: Pop", Cursor.Pop, Item_2);
-      Check ("3b: Peek.State", Cursor.Peek.State, Item_1.State);
-      Check ("3b: Stack_Empty", Cursor.Stack_Empty, False);
+      Cursor.State_Ref.Stack.Push (Item_1);
+      Cursor.State_Ref.Stack.Push (Item_2);
+      Check ("3a: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, False);
+      Check ("3b: Pop", Cursor.State_Ref.Stack.Pop, Item_2);
+      Check ("3b: Peek.State", Cursor.State_Ref.Stack.Peek.State, Item_1.State);
+      Check ("3b: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, False);
 
-      Check ("3c: Pop", Cursor.Pop, Item_1);
-      Check ("3c: Stack_Empty", Cursor.Stack_Empty, True);
+      Check ("3c: Pop", Cursor.State_Ref.Stack.Pop, Item_1);
+      Check ("3c: Stack_Empty", Cursor.State_Ref.Stack.Is_Empty, True);
    end Stack;
 
    procedure Parser_List (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -156,32 +156,33 @@ package body Parser_Lists_Test is
       use WisiToken.Parser.LR;
       use WisiToken.Parser.LR.Parser_Lists;
       use AUnit.Checks;
+      use all type Parser_Stacks.Stack_Type;
 
       Parsers : List := New_List (First_State_Index => 0, First_Parser_Label => 0);
 
-      Item_1  : constant Parse_Stack_Item := (2, +If_ID);
-      Item_2  : constant Parse_Stack_Item := (3, +Then_ID);
+      Item_1  : constant Parser_Stack_Item := (2, +If_ID);
+      Item_2  : constant Parser_Stack_Item := (3, +Then_ID);
 
       Cursor_1 : constant Cursor := Parsers.First;
       Cursor_2 : Cursor;
    begin
       Prepend_Copy (Parsers, Cursor_1);
       Check ("0a: Label", Cursor_1.Label, 0);
-      Cursor_1.Push (Item_1);
-      Cursor_1.Push (Item_2);
+      Cursor_1.State_Ref.Stack.Push (Item_1);
+      Cursor_1.State_Ref.Stack.Push (Item_2);
 
       Cursor_2 := Parsers.First;
       Check ("0b: Label", Cursor_2.Label, 1);
-      Cursor_2.Push (Item_1);
-      Cursor_2.Push (Item_2);
+      Cursor_2.State_Ref.Stack.Push (Item_1);
+      Cursor_2.State_Ref.Stack.Push (Item_2);
 
-      Check ("1", Stack_Equal (Cursor_1, Cursor_2), True);
+      Check ("1", Cursor_1.State_Ref.Stack = Cursor_2.State_Ref.Stack, True);
 
       declare
-         Junk : Parse_Stack_Item := Cursor_2.Pop;
+         Junk : Parser_Stack_Item := Cursor_2.State_Ref.Stack.Pop;
          pragma Unreferenced (Junk);
       begin
-         Check ("2", Stack_Equal (Cursor_1, Cursor_2), False);
+         Check ("2", Cursor_1.State_Ref.Stack = Cursor_2.State_Ref.Stack, False);
       end;
    end Stack_Equal;
 
@@ -203,30 +204,30 @@ package body Parser_Lists_Test is
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
    begin
-      Check ("0: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
-      Check ("0: action_token_count", Cursor.Pending_Actions_Count, 0);
-      Cursor.Enqueue (Item_1);
-      Check ("0a: action_token_count", Cursor.Pending_Actions_Count, 1);
-      Check ("0a: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
-      Cursor.Enqueue (Item_2);
-      Check ("0b: action_token_count", Cursor.Pending_Actions_Count, 2);
-      Check ("0b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
+      Check ("0: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, True);
+      Check ("0: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 0);
+      Cursor.State_Ref.Pending_Actions.Put (Item_1);
+      Check ("0a: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 1);
+      Check ("0a: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, False);
+      Cursor.State_Ref.Pending_Actions.Put (Item_2);
+      Check ("0b: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 2);
+      Check ("0b: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, False);
 
-      Check ("1 dequeue", Dequeue (Cursor).Action.LHS, +Statement_ID);
-      Check ("1: action_token_count", Cursor.Pending_Actions_Count, 1);
-      Check ("1: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
+      Check ("1 dequeue", Cursor.State_Ref.Pending_Actions.Get.Action.LHS, +Statement_ID);
+      Check ("1: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 1);
+      Check ("1: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, False);
 
-      Check ("2 dequeue", Dequeue (Cursor).Action.LHS, +Procedure_ID);
-      Check ("2: action_token_count", Cursor.Pending_Actions_Count, 0);
-      Check ("2: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, True);
+      Check ("2 dequeue", Cursor.State_Ref.Pending_Actions.Get.Action.LHS, +Procedure_ID);
+      Check ("2: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 0);
+      Check ("2: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, True);
 
       --  Enqueue using free list
-      Cursor.Enqueue (Item_1);
-      Check ("3a: action_token_count", Cursor.Pending_Actions_Count, 1);
-      Check ("3a: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
-      Cursor.Enqueue (Item_2);
-      Check ("3b: action_token_count", Cursor.Pending_Actions_Count, 2);
-      Check ("3b: Pending_Actions_Empty", Cursor.Pending_Actions_Empty, False);
+      Cursor.State_Ref.Pending_Actions.Put (Item_1);
+      Check ("3a: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 1);
+      Check ("3a: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, False);
+      Cursor.State_Ref.Pending_Actions.Put (Item_2);
+      Check ("3b: action_token_count", Cursor.State_Ref.Pending_Actions.Count, 2);
+      Check ("3b: Pending_Actions_Empty", Cursor.State_Ref.Pending_Actions.Is_Empty, False);
 
    end Pending;
 
@@ -239,6 +240,7 @@ package body Parser_Lists_Test is
       use WisiToken.Parser.LR;
       use WisiToken;
       use all type WisiToken.Token.List.Instance;
+      use all type Parser_Stacks.Stack_Type;
 
       Parsers : List := New_List (First_State_Index => 1, First_Parser_Label => 1);
 
@@ -269,7 +271,7 @@ package body Parser_Lists_Test is
 
       Cursor : constant Parser_Lists.Cursor := Parsers.First;
 
-      Junk : Parse_Stack_Item;
+      Junk : Parser_Stack_Item;
       pragma Unreferenced (Junk);
    begin
       --  All Action_Token.New_Token must point either to a token on
@@ -292,49 +294,49 @@ package body Parser_Lists_Test is
       --     if then Statement_A else if then Statement_B end end <eof>
 
       --  We use sequential state numbers, for debugging in this test
-      Cursor.Push ((1, If_1));
-      Cursor.Push ((2, Then_1));
-      Cursor.Push ((3, Ident_A));
-      Junk := Cursor.Pop; -- Ident_A
-      Cursor.Push ((4, Statement_A));
-      Cursor.Enqueue (Action_A);
-      Cursor.Push ((5, Else_1));
+      Cursor.State_Ref.Stack.Push ((1, If_1));
+      Cursor.State_Ref.Stack.Push ((2, Then_1));
+      Cursor.State_Ref.Stack.Push ((3, Ident_A));
+      Junk := Cursor.State_Ref.Stack.Pop; -- Ident_A
+      Cursor.State_Ref.Stack.Push ((4, Statement_A));
+      Cursor.State_Ref.Pending_Actions.Put (Action_A);
+      Cursor.State_Ref.Stack.Push ((5, Else_1));
 
-      Cursor.Push ((6, If_2));
-      Cursor.Push ((7, Then_2));
-      Cursor.Push ((8, Ident_B));
-      Junk := Cursor.Pop; -- Ident_B
-      Cursor.Push ((9, Statement_B));
-      Cursor.Enqueue (Action_B);
-      Cursor.Push ((10, End_2));
-
-      if Test.Debug then Put_Top_10 (Trace, Cursor); end if;
-      Parsers.Prepend_Copy (Cursor);
-      if Test.Debug then Put_Top_10 (Trace, Parsers.First); end if;
-
-      Check ("1", Stack_Equal (Cursor, Parsers.First), True);
-
-      Junk := Cursor.Pop; -- end_2
-      Junk := Cursor.Pop; -- statement_B
-      Junk := Cursor.Pop; -- then_2
-      Junk := Cursor.Pop; -- if_2
-      Cursor.Push ((11, Statement_2));
-      Cursor.Enqueue (Action_2);
+      Cursor.State_Ref.Stack.Push ((6, If_2));
+      Cursor.State_Ref.Stack.Push ((7, Then_2));
+      Cursor.State_Ref.Stack.Push ((8, Ident_B));
+      Junk := Cursor.State_Ref.Stack.Pop; -- Ident_B
+      Cursor.State_Ref.Stack.Push ((9, Statement_B));
+      Cursor.State_Ref.Pending_Actions.Put (Action_B);
+      Cursor.State_Ref.Stack.Push ((10, End_2));
 
       if Test.Debug then Put_Top_10 (Trace, Cursor); end if;
       Parsers.Prepend_Copy (Cursor);
       if Test.Debug then Put_Top_10 (Trace, Parsers.First); end if;
-      Check ("2c", Stack_Equal (Cursor, Parsers.First), True);
 
-      Cursor.Push ((12, End_1));
-      Junk := Cursor.Pop; -- end_1
-      Junk := Cursor.Pop; -- statement_2
-      Junk := Cursor.Pop; -- else_1
-      Junk := Cursor.Pop; -- statement_A
-      Junk := Cursor.Pop; -- then_1
-      Junk := Cursor.Pop; -- if_1
-      Cursor.Push ((13, Statement_1));
-      Cursor.Enqueue (Action_1);
+      Check ("1", Cursor.State_Ref.Stack = Parsers.First.State_Ref.Stack, True);
+
+      Junk := Cursor.State_Ref.Stack.Pop; -- end_2
+      Junk := Cursor.State_Ref.Stack.Pop; -- statement_B
+      Junk := Cursor.State_Ref.Stack.Pop; -- then_2
+      Junk := Cursor.State_Ref.Stack.Pop; -- if_2
+      Cursor.State_Ref.Stack.Push ((11, Statement_2));
+      Cursor.State_Ref.Pending_Actions.Put (Action_2);
+
+      if Test.Debug then Put_Top_10 (Trace, Cursor); end if;
+      Parsers.Prepend_Copy (Cursor);
+      if Test.Debug then Put_Top_10 (Trace, Parsers.First); end if;
+      Check ("2c", Cursor.State_Ref.Stack = Parsers.First.State_Ref.Stack, True);
+
+      Cursor.State_Ref.Stack.Push ((12, End_1));
+      Junk := Cursor.State_Ref.Stack.Pop; -- end_1
+      Junk := Cursor.State_Ref.Stack.Pop; -- statement_2
+      Junk := Cursor.State_Ref.Stack.Pop; -- else_1
+      Junk := Cursor.State_Ref.Stack.Pop; -- statement_A
+      Junk := Cursor.State_Ref.Stack.Pop; -- then_1
+      Junk := Cursor.State_Ref.Stack.Pop; -- if_1
+      Cursor.State_Ref.Stack.Push ((13, Statement_1));
+      Cursor.State_Ref.Pending_Actions.Put (Action_1);
 
       if Test.Debug then
          Put_Top_10 (Trace, Cursor);
@@ -347,7 +349,7 @@ package body Parser_Lists_Test is
          Put_Pending_Actions (Trace, Parsers.First);
       end if;
 
-      Check ("3b", Stack_Equal (Cursor, Parsers.First), True);
+      Check ("3b", Cursor.State_Ref.Stack = Parsers.First.State_Ref.Stack, True);
 
    exception
    when E : WisiToken.Programmer_Error =>

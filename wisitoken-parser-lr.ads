@@ -252,15 +252,18 @@ package WisiToken.Parser.LR is
    Default_Recover : constant Recover_Data :=
      (Invalid_Token, Unknown_State, WisiToken.Token.List.Null_List, WisiToken.Token.List.Null_List);
 
-   --  Parse stack type. Visible here for error recover info.
-   type Parse_Stack_Item is record
+   --  Parser stack type. Visible here for error recover info.
+   type Parser_Stack_Item is record
       State : Unknown_State_Index;
       Token : Token_ID;
    end record;
-   Default_Parse_Stack_Item : constant Parse_Stack_Item := (Unknown_State, Invalid_Token);
+   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token);
 
-   package Parse_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parse_Stack_Item);
-   package Parse_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parse_Stack_Item, Parse_Stack_Interfaces);
+   package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parser_Stack_Item);
+   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item, Parser_Stack_Interfaces);
+
+   procedure Put_Top_10 (Label : in String; Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type);
+   --  Put image of top 10 stack items to Trace.
 
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
@@ -280,7 +283,7 @@ package WisiToken.Parser.LR is
 
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;
-      Stack      : in Parse_Stacks.Stack_Type;
+      Stack      : in Parser_Stacks.Stack_Type;
       Depth      : in SAL.Base_Peek_Type := 0)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,

@@ -2,15 +2,17 @@ build/Makefile
 
  current work
 doing too much at once for fixing mckenzie
-    - change parser_lists to use ada.containers
-      add free (parsers)
 
-    -  move some parser_state components to be visible
-      - change parser to use 'Current_Parser of Parsers'
-      - requires change in current_parser.free, current_parser.prepend_copy
+    - move panic recover_data to panic_mode
 
     - add new parser_state components for Mckenzie
       change mckenzie, parser to use them
+
+    - review diffs with main branch
+
+    - replace wisitoken.token.list with token_array
+        or not; changes generate
+        ditto production.list
 
     - all done
 
