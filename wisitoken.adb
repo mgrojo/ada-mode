@@ -210,6 +210,20 @@ package body WisiToken is
       Trace.Put (")");
    end Put;
 
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Queues.Queue_Type)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      Trace.Put ("(");
+      for I in 1 .. Item.Count loop
+         Put (Trace, Item.Peek (I));
+         if I < Item.Count then
+            Put (Trace, ", ");
+         end if;
+      end loop;
+      Trace.Put (")");
+   end Put;
+
    function Int_Image (Item : in Integer) return String
    is
       use Ada.Strings;

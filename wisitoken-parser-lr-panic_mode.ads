@@ -49,9 +49,8 @@ with WisiToken.Parser.LR.Parser_Lists;
 package WisiToken.Parser.LR.Panic_Mode is
 
    function Recover
-     (Parser        : in out LR.Instance'Class;
-      Parsers       : in out Parser_Lists.List;
-      Current_Token : in out Token_ID)
+     (Parser  : in out LR.Instance'Class;
+      Parsers : in out Parser_Lists.List)
      return Boolean;
    --  Attempt to modify Parsers stacks, and Parser.Lexer current
    --  input, to allow recovering from an error state.

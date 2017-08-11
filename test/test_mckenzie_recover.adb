@@ -114,7 +114,7 @@ package body Test_McKenzie_Recover is
       --                1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
-      --  panic mode deletes 'if ..then', keeps 'end;', succeeds
+      --  error 1 at ';' 39. Inserts 'if', succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
    exception
@@ -311,18 +311,21 @@ package body Test_McKenzie_Recover is
            ("errors.5.recover (Dotted_Name)",
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
-              (Stack           => To_State_Stack
+              (Stack                  => To_State_Stack
                  --  FIXME: two consecutive semicolons?
                  (((189, +SEMICOLON_ID), (188, +SEMICOLON_ID), (167, +LOOP_ID), (160, +END_ID),
                    (127, +sequence_of_statements_opt_ID), (101, +LOOP_ID), (35, +BEGIN_ID),
                    (30, +declarative_part_opt_ID), (11, +IS_ID), (10, +subprogram_specification_ID),
-                   (0, WisiToken.Invalid_Token))),
-               Lookahead_Index => 1,
-               Popped          => WisiToken.Empty_Token_Array,
-               Inserted        => To_Token_Array ((1 => +SEMICOLON_ID)),
+                   (0, WisiToken.Invalid_Token_ID))),
+               Shared_Lookahead_Index => 1,
+               Local_Lookahead        => WisiToken.Empty_Token_Array,
+               Local_Lookahead_Index  => 0,
+               Pushed                 => WisiToken.Empty_Token_Array,
+               Popped                 => WisiToken.Empty_Token_Array,
+               Inserted               => To_Token_Array ((1 => +SEMICOLON_ID)),
                --  FIXME: IDENTIFIER inserted by special rule does not show up in recover data for reuse
-               Deleted         => WisiToken.Empty_Token_Array,
-               Cost            => 1.0));
+               Deleted                => WisiToken.Empty_Token_Array,
+               Cost                   => 1.0));
       end;
    exception
    when WisiToken.Syntax_Error =>
@@ -421,23 +424,26 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.1",
             Element (Cursor),
-            (First_Terminal     => Descriptor.First_Terminal,
-             Last_Terminal      => Descriptor.Last_Terminal,
-             Error_Token        => (+PROCEDURE_ID, (26, 34)),
-             Expecting          => To_Token_ID_Set
+            (First_Terminal            => Descriptor.First_Terminal,
+             Last_Terminal             => Descriptor.Last_Terminal,
+             Error_Token               => (+PROCEDURE_ID, (26, 34)),
+             Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
                 (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID, +RETURN_ID, +IDENTIFIER_ID)),
-             Invalid_Region     => (20, 24),
-             Recover            => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
-               (Stack           => To_State_Stack
-                  (((11, +IS_ID), (10, +subprogram_specification_ID), (0, WisiToken.Invalid_Token))),
-                Lookahead_Index => 1,
-                Popped          => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
-                Inserted        => WisiToken.Empty_Token_Array,
-                Deleted         => WisiToken.Empty_Token_Array,
-                Cost            => 2.0)),
-            Check_Recover_Data  => WisiToken.Parser.LR.McKenzie_Recover.AUnit.Check'Access);
+             Invalid_Region            => (20, 24),
+             Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
+               (Stack                  => To_State_Stack
+                  (((11, +IS_ID), (10, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
+                Shared_Lookahead_Index => 1,
+                Local_Lookahead        => WisiToken.Empty_Token_Array,
+                Local_Lookahead_Index  => 0,
+                Pushed                 => WisiToken.Empty_Token_Array,
+                Popped                 => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
+                Inserted               => WisiToken.Empty_Token_Array,
+                Deleted                => WisiToken.Empty_Token_Array,
+                Cost                   => 2.0)),
+            Check_Recover_Data         => WisiToken.Parser.LR.McKenzie_Recover.AUnit.Check'Access);
       end;
 
    exception
@@ -460,7 +466,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Extra_Begin'Access, "debug");
+         Register_Routine (T, Error_1'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");

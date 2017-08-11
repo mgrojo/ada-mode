@@ -31,35 +31,43 @@ with WisiToken.Token;
 package WisiToken.Parser.LR.McKenzie_Recover is
 
    function Recover
-     (Parser        : in out LR.Instance'Class;
-      Parsers       : in out Parser_Lists.List;
-      Current_Token : in out Token_ID)
+     (Parser  : in out LR.Instance'Class;
+      Parsers : in out Parser_Lists.List)
      return Boolean;
-   --  Attempt to modify Parsers stacks, and Parser.Lexer current
+   --  Attempt to modify Parsers stacks, and Parser.Lookahead current
    --  input, to allow recovering from an error state.
    --  Return True if successful.
 
    --  Visible for unit test, sending to Emacs process.
    type Configuration is new WisiToken.Token.Recover_Data with record
-      Stack           : Parser_Stacks.Stack_Type;
-      Lookahead_Index : Ada.Containers.Count_Type; -- index into parser.lookahead for next input token
-      Popped          : Token_Arrays.Vector;
-      Pushed          : Token_Arrays.Vector;
-      Inserted        : Token_Arrays.Vector;
-      Deleted         : Token_Arrays.Vector;
-      Cost            : Float := 0.0;
+      Stack                  : Parser_Stacks.Stack_Type;
+      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into shared parser.lookahead for next input token
+
+      Local_Lookahead        : Token_Arrays.Vector;
+      Local_Lookahead_Index  : Ada.Containers.Count_Type;
+      --  Local_Lookahead contains tokens inserted by special rules.
+      --  It is not a queue type, because we always access it via
+      --  Local_Lookahead_Index
+
+      Popped   : Token_Arrays.Vector;
+      Pushed   : Token_Arrays.Vector;
+      Inserted : Token_Arrays.Vector;
+      Deleted  : Token_Arrays.Vector;
+      Cost     : Float := 0.0;
    end record;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
    --  Put Config to Ada.Text_IO.Current_Output
 
    Default_Configuration : constant Configuration :=
-     (Stack           => Parser_Stacks.Empty_Stack,
-      Lookahead_Index => 0,
-      Popped          => Token_Arrays.Empty_Vector,
-      Pushed          => Token_Arrays.Empty_Vector,
-      Inserted        => Token_Arrays.Empty_Vector,
-      Deleted         => Token_Arrays.Empty_Vector,
-      Cost            => 0.0);
+     (Stack                  => Parser_Stacks.Empty_Stack,
+      Shared_Lookahead_Index => 0,
+      Local_Lookahead        => Token_Arrays.Empty_Vector,
+      Local_Lookahead_Index  => Natural_Index_Type'First,
+      Popped                 => Token_Arrays.Empty_Vector,
+      Pushed                 => Token_Arrays.Empty_Vector,
+      Inserted               => Token_Arrays.Empty_Vector,
+      Deleted                => Token_Arrays.Empty_Vector,
+      Cost                   => 0.0);
 
 end WisiToken.Parser.LR.McKenzie_Recover;

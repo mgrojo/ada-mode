@@ -39,6 +39,8 @@ with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
+with SAL.Gen_Queue_Interfaces;
+with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -69,7 +71,10 @@ package WisiToken is
    subtype Token_Array is Token_Arrays.Vector;
    Empty_Token_Array : Token_Array renames Token_Arrays.Empty_Vector;
 
-   Invalid_Token : constant Token_ID := Token_ID'Last;
+   Invalid_Token_ID : constant Token_ID := Token_ID'Last;
+
+   package Token_Interfaces is new SAL.Gen_Queue_Interfaces (Token_ID);
+   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_ID, Token_Interfaces);
 
    type Token_Array_String is array (Token_ID range <>) of access constant String;
    type Token_Array_Float is array (Token_ID range <>) of Float;
@@ -207,6 +212,7 @@ package WisiToken is
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Array);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Queues.Queue_Type);
    --  Accumulate Item in the trace buffer.
 
    ----------

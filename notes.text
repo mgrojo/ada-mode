@@ -1,23 +1,37 @@
 build/Makefile
 
+branches:
+org.wisitoken          - working, used by o.e.a.s-4
+org.wisitoken.stephe-1 - development
+
  current work
-doing too much at once for fixing mckenzie
 
-    - move panic recover_data to panic_mode
+add new parser_state components for parallel parser Mckenzie
+    run t_one test_mckenzie
+        Error_1: pass
 
-    - add new parser_state components for Mckenzie
-      change mckenzie, parser to use them
+    run all tests
+        hangs in test_all_harness?
+            but test_mckenzie was not compiled?
 
-    - review diffs with main branch
+review diffs with main branch
 
-    - replace wisitoken.token.list with token_array
-        or not; changes generate
-        ditto production.list
-
-    - all done
+propagate o.w.s-1 to o.w
+    make it work with o.e.a.s-4
 
 next change in wisi/test/*.good_parse
     don't output mckenzie if default
+
+Merge cursor, parser_node_access
+
+replace wisitoken.token.list with token_array
+    or not; changes generate?
+    ditto production.list
+
+Delete lr.put_top10 label arg
+    move it to parser_lists
+
+Make delete nonterm expensive. Del_cost first last cost
 
 fix McKenzie with parallel parsers
         force a conflict
@@ -185,17 +199,20 @@ procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS
         If indent cache 0, use previous line?
         see how it works in practice
 
-    speed up
-        replace look on ID calling action_for with iterate action list for state
+speed up
+    stack compare
+        override "=" to start comparison at stack top; most likely to be different
 
-        use tasks for multi-processor?
+    replace look on ID calling action_for with iterate action list for state
 
-        compress parser table via default reduce?
+    use tasks for multi-processor?
 
-        set initial capacity on stacks
+    compress parser table via default reduce?
 
-        check_reduce does not need to copy stack
-            just keep track of current top separately, pointer into reduced top
+    set initial capacity on stacks
+
+    check_reduce does not need to copy stack
+        just keep track of current top separately, pointer into reduced top
 
 automatically augment grammar with empty productions
     anything not a keyword is optional

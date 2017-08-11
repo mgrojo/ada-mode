@@ -177,7 +177,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
            --  position as the last on a state's action list that makes
            --  it the default. The various Put routines replace
            --  this with 'default'.
-           (Symbol => Invalid_Token,
+           (Symbol => Invalid_Token_ID,
             Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
             Next   => null);
 

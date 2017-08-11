@@ -38,7 +38,7 @@ package WisiToken.Token_Region is
      return String;
    --  Return a string for debug/test messages
 
-   Default_Token : constant Token := (Invalid_Token, Null_Buffer_Region);
+   Default_Token : constant Token := (Invalid_Token_ID, Null_Buffer_Region);
 
    package Token_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Token);
    package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token, Token_Queue_Interfaces);
@@ -66,6 +66,8 @@ package WisiToken.Token_Region is
       --  execution, and during error recovery; added by Input_Token,
       --  moved to Stack by Push_Token.
 
+      Lookahead : Token_Queues.Queue_Type;
+
       Invalid_Region : Buffer_Region := Null_Buffer_Region;
       --  Temporary storage during recovery; Discard_Token increases
       --  this, Update_Invalid_Region resets it.
@@ -75,6 +77,9 @@ package WisiToken.Token_Region is
    end record;
 
    overriding
+   procedure Put (State : access State_Type);
+
+   overriding
    procedure Reset (State : access State_Type);
 
    overriding
@@ -82,6 +87,22 @@ package WisiToken.Token_Region is
      (State : access State_Type;
       Token : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle);
+
+   overriding
+   procedure Input_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID;
+      Lexer : in     WisiToken.Lexer.Handle);
+
+   overriding
+   procedure Move_Lookahead_To_Input
+     (State : access State_Type;
+      Token : in     Token_ID);
+
+   overriding
+   procedure Move_Input_To_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID);
 
    overriding
    procedure Push_Token

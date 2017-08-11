@@ -162,7 +162,7 @@ package body Wisi.Gen_Generate_Utils is
          LR1_Descriptor.Image (ID) := new String'(-Rule.Left_Hand_Side);
          Out_Image (ID)            := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
 
-         if ID /= Invalid_Token then
+         if ID /= Invalid_Token_ID then
             ID := ID + 1;
          end if;
       end loop;

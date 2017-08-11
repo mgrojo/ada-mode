@@ -23,6 +23,7 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks.Containers;
+with SAL.AUnit;
 with WisiToken.AUnit;
 with WisiToken.Parser.LR.AUnit;
 package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
@@ -34,6 +35,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
    is
       use Standard.AUnit.Checks.Containers;
       use Standard.AUnit.Checks;
+      use SAL.AUnit;
       use WisiToken.AUnit;
       use WisiToken.Parser.LR.AUnit;
 
@@ -41,7 +43,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
       Expected_Config : Configuration renames Configuration (Expected);
    begin
       Check (Label & ".Stack", Computed_Config.Stack, Expected_Config.Stack);
-      Check (Label & ".Lookahead_Index", Computed_Config.Lookahead_Index, Expected_Config.Lookahead_Index);
+      Check
+        (Label & ".Shared_Lookahead_Index",
+         Computed_Config.Shared_Lookahead_Index,
+         Expected_Config.Shared_Lookahead_Index);
+      Check (Label & ".Local_Lookahead", Computed_Config.Local_Lookahead, Expected_Config.Local_Lookahead);
+      Check
+        (Label & ".Local_Lookahead_Index",
+         Computed_Config.Local_Lookahead_Index,
+         Expected_Config.Local_Lookahead_Index);
+      Check (Label & ".Pushed", Computed_Config.Pushed, Expected_Config.Pushed);
       Check (Label & ".Popped", Computed_Config.Popped, Expected_Config.Popped);
       Check (Label & ".Inserted", Computed_Config.Inserted, Expected_Config.Inserted);
       Check (Label & ".Deleted", Computed_Config.Deleted, Expected_Config.Deleted);

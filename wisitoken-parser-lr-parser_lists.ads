@@ -27,21 +27,39 @@ with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
    --  pending semantic actions
-   type Action_Token is record
-      Action : Parse_Action_Rec;
-      Tokens : Token.List.Instance;
+   type Pend_Semantic_Verbs is (Input, Push, Discard, Pop, Merge, Recover);
+   --  Verbs correspond to WisiToken.Token.Semantic_State operations.
+   --  For Input, the token must be a token inserted by error
+   --  recovery, with no lexer information.
+
+   type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
+      case Verb is
+      when Input | Push | Pop | Discard =>
+         ID : Token_ID;
+
+      when Merge =>
+         Action : Reduce_Action_Rec;
+         Tokens : Token.List.Instance;
+
+      when Recover =>
+         Popped  : Token_Arrays.Vector;
+         Pushed  : Token_Arrays.Vector;
+         Recover : WisiToken.Token.Recover_Data_Access;
+      end case;
    end record;
 
-   Null_Action_Token : constant Action_Token := (Null_Reduce_Action_Rec, Token.List.Null_List);
+   Null_Pend_Item : constant Pend_Item := (Push, Invalid_Token_ID);
 
-   package Pend_Items_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Action_Token);
-   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Action_Token, Pend_Items_Queue_Interfaces);
+   package Pend_Items_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Pend_Item);
+   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item, Pend_Items_Queue_Interfaces);
 
    type Base_Parser_State is tagged record
       --  Visible components for direct access
-      Stack           : Parser_Stacks.Stack_Type;
-      Pending_Actions : Pend_Items_Queues.Queue_Type;  --  FIXME: include panic/recovery
-      Recover         : Recover_Data_Access;
+      Stack                  : Parser_Stacks.Stack_Type;
+      Pend_Items             : Pend_Items_Queues.Queue_Type;
+      Recover                : Recover_Data_Access;
+      Local_Lookahead        : Token_Queues.Queue_Type; -- Filled only by error recovery
+      Shared_Lookahead_Index : SAL.Base_Peek_Type;
    end record;
 
    type Parser_State is new Base_Parser_State with private;
@@ -151,10 +169,11 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function Iterate (Container : aliased in out List) return Iterator_Interfaces.Forward_Iterator'Class;
 
-   --  Read only access to some private Parser_State components
+   --  Access to some private Parser_State components
 
    function Label (Iterator : in Parser_State) return Integer;
    function Verb (Iterator : in Parser_State) return Parse_Action_Verbs;
+   procedure Set_Verb (Iterator : in out Parser_State; Verb : in Parse_Action_Verbs);
    function Prev_Verb (Iterator : in Parser_State) return Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class);
@@ -162,7 +181,7 @@ package WisiToken.Parser.LR.Parser_Lists is
    ----------
    --  For unit tests, debug assertions
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Pend_Item : in Parser_Lists.Pend_Item);
    procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
 
 private
@@ -177,11 +196,7 @@ private
    package Parser_State_Lists is new Ada.Containers.Doubly_Linked_Lists (Parser_State);
 
    type List is tagged record
-      Elements : aliased Parser_State_Lists.List;
-
-      New_Elements : aliased Parser_State_Lists.List;
-      --  filled by Prepend_Copy, emptied by First.
-
+      Elements     : aliased Parser_State_Lists.List;
       Parser_Label : Integer; -- label of last added parser.
    end record;
 

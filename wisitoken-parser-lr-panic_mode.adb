@@ -27,7 +27,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
    end record;
 
    Default_Panic : constant Panic_Data :=
-     (Invalid_Token, Unknown_State, Empty_Token_Array, Empty_Token_Array);
+     (Invalid_Token_ID, Unknown_State, Empty_Token_Array, Empty_Token_Array);
 
    function Pop_To_Good
      (Table        : in     Parse_Table;
@@ -38,7 +38,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
       use Token;
       Panic    : Panic_Data renames Panic_Data (Parser_State.Recover.all);
       Top      : Parser_Stack_Item   := Parser_State.Stack.Peek;
-      Prev_Top : Parser_Stack_Item   := (Unknown_State, Invalid_Token);
+      Prev_Top : Parser_Stack_Item   := (Unknown_State, Invalid_Token_ID);
    begin
       Panic.Nonterm := Trace.Descriptor.First_Nonterminal;
 
@@ -92,15 +92,14 @@ package body WisiToken.Parser.LR.Panic_Mode is
    end Pop_To_Good;
 
    function Recover
-     (Parser        : in out LR.Instance'Class;
-      Parsers       : in out Parser_Lists.List;
-      Current_Token : in out Token_ID)
+     (Parser  : in out LR.Instance'Class;
+      Parsers : in out Parser_Lists.List)
      return Boolean
    is
       Trace : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
 
-      Keep_Going : Boolean  := False;
-      Last_ID    : Token_ID := Current_Token;
+      Keep_Going    : Boolean  := False;
+      Current_Token : Token_ID := Parser.Lookahead.Peek (1);
    begin
       for Parser_State of Parsers loop
          Parser_State.Recover := new Panic_Data'(Default_Panic);
@@ -124,7 +123,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
 
                Panic : Panic_Data renames Panic_Data (Parser_State.Recover.all);
 
-               Use_Popped : Token_ID := Invalid_Token;
+               Use_Popped : Token_ID := Invalid_Token_ID;
 
                function Check_Popped return Boolean
                is begin
@@ -149,7 +148,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
                --  with "end * ;", where there is a missing 'end', and
                --  this one is in the popped tokens.
                if Parser.Table.Follow (Panic.Nonterm, Current_Token) or Check_Popped then
-                  if Use_Popped = Invalid_Token then
+                  if Use_Popped = Invalid_Token_ID then
                      --  Check_Popped returned false.
                      Keep_Going := True;
                      Panic.Pushed_Tokens.Append (Panic.Nonterm);
@@ -209,10 +208,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
          if Trace_Parse > 1 then
             Trace.Put_Line ("  next " & Image (Trace.Descriptor.all, Current_Token));
          end if;
-
-         --  Allow EOF_Token to succeed
-         exit Matching_Input when Last_ID = Trace.Descriptor.EOF_ID;
-         Last_ID := Current_Token;
+         exit Matching_Input when Current_Token = Trace.Descriptor.EOF_ID;
       end loop Matching_Input;
 
       if Keep_Going then

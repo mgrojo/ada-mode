@@ -96,6 +96,22 @@ package WisiToken.Gen_Token_Enum is
       Lexer : in     WisiToken.Lexer.Handle)
      is null;
 
+   overriding procedure Input_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID;
+      Lexer : in     WisiToken.Lexer.Handle)
+     is null;
+
+   overriding procedure Move_Lookahead_To_Input
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is null;
+
+   overriding procedure Move_Input_To_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is null;
+
    overriding procedure Push_Token
      (State : access State_Type;
       Token : in     Token_ID)

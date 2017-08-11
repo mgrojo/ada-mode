@@ -57,7 +57,12 @@ package WisiToken.Parser.LR is
    subtype State_Index is Unknown_State_Index range 0 .. Unknown_State_Index'Last;
    Unknown_State : constant Unknown_State_Index := -1;
 
-   type Parse_Action_Verbs is (Shift, Reduce, Accept_It, Error);
+   type All_Parse_Action_Verbs is (Shift_Local_Lookahead, Shift, Reduce, Accept_It, Error);
+   subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
+   --  Shift_Local_Lookahead is only used in the main parser loop, for
+   --  parsers that have different current tokens after error
+   --  recovery.
+
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
       when Shift =>
@@ -238,7 +243,7 @@ package WisiToken.Parser.LR is
       State : Unknown_State_Index;
       Token : Token_ID;
    end record;
-   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token);
+   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token_ID);
 
    package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parser_Stack_Item);
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item, Parser_Stack_Interfaces);
@@ -249,7 +254,7 @@ package WisiToken.Parser.LR is
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table          : Parse_Table_Ptr;
       Semantic_State : access WisiToken.Token.Semantic_State'Class;
-      Lookahead      : aliased Token_Arrays.Vector;
+      Lookahead      : Token_Queues.Queue_Type;
       --  Filled by recover algorithms; use before calling Lexer.Find_Next
 
       Enable_Panic_Recover    : Boolean;

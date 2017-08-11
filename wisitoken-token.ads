@@ -136,6 +136,10 @@ package WisiToken.Token is
    --  For storing error recovery information, for reuse in subsequent
    --  parse.
 
+   procedure Put (State : access Semantic_State) is abstract;
+   --  Put a trace of State to State.Trace. Detail depends on
+   --  WisiToken.Trace_Parse.
+
    procedure Reset (State : access Semantic_State) is abstract;
    --  Reset State to start a new parse.
 
@@ -145,19 +149,45 @@ package WisiToken.Token is
       Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
    --  If Lexer is not null, the parser just fetched Token from Lexer;
-   --  add it to the tail of the State input queue, with augmenting
-   --  data from Lexer, for later operations (Append is ignored).
+   --  add it to the back of the State input queue, with augmenting
+   --  data from Lexer, for later operations.
    --
    --  If Lexer is null, Token was inserted in an error recover
-   --  operation; add to queue head with default augmenting data.
+   --  operation; add to queue front with default augmenting data.
+
+   procedure Input_Lookahead
+     (State : access Semantic_State;
+      Token : in     Token_ID;
+      Lexer : in     WisiToken.Lexer.Handle)
+     is abstract;
+   --  Lexer cannot be null. The parser just fetched Token from Lexer
+   --  during an error recovery lookahead. Add it to the back of the
+   --  State lookahead queue, with augmenting data from Lexer, for
+   --  later operations.
+
+   procedure Move_Lookahead_To_Input
+     (State : access Semantic_State;
+      Token : in     Token_ID)
+     is abstract;
+   --  Parser just read Token from lookahead; remove the corresponding
+   --  augmented token from the front of the State lookahead queue,
+   --  add it to the front of the State input queue.
+
+   procedure Move_Input_To_Lookahead
+     (State : access Semantic_State;
+      Token : in     Token_ID)
+     is abstract;
+   --  Parser is entering error recovery; move Token from the front of
+   --  the State input queue to the front of the State lookahead
+   --  queue.
 
    procedure Push_Token
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Parser just pushed Token on the parse stack; remove the
-   --  corresponding augmented token from the tail of the State input
-   --  queue, push it on the State stack.
+   --  Parser just pushed Token (from the normal input) on the parse
+   --  stack; remove the corresponding augmented token from the front
+   --  of the State input queue, push it on the State stack.
 
    procedure Error
      (State     : access Semantic_State;
@@ -173,7 +203,7 @@ package WisiToken.Token is
       Token : in     Token_ID)
      is abstract;
    --  Token was discarded in an error recover opertation; discard the
-   --  corresponding augmented token from the head of the State input
+   --  corresponding augmented token from the front of the State input
    --  queue, and record the buffer region as invalid.
 
    procedure Pop_Token

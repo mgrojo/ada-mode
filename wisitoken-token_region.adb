@@ -42,16 +42,18 @@ package body WisiToken.Token_Region is
       end if;
    end Image;
 
-   procedure Put_Trace
+   procedure Put
      (Trace : in out WisiToken.Trace'Class;
       Stack : in     Augmented_Token_Array;
-      Count : in     Ada.Containers.Count_Type)
+      Count : in     Ada.Containers.Count_Type := Ada.Containers.Count_Type'First)
    is
+      --  Put top Count items on Stack; all if -1.
       use Augmented_Token_Arrays;
       use all type Ada.Containers.Count_Type;
 
-      I : Cursor := Stack.To_Cursor (Stack.Length - Count + 1);
+      I : Cursor := Stack.To_Cursor (if Count = Ada.Containers.Count_Type'First then 1 else Stack.Length - Count + 1);
    begin
+      Trace.Put ("(");
       loop
          exit when I = No_Element;
 
@@ -61,23 +63,26 @@ package body WisiToken.Token_Region is
             Trace.Put (", ");
          end if;
       end loop;
-   end Put_Trace;
+      Trace.Put (")");
+   end Put;
 
-   procedure Put_Trace
+   procedure Put
      (Trace : in out WisiToken.Trace'Class;
       Queue : in     Token_Queues.Queue_Type)
    is
       use all type SAL.Base_Peek_Type;
    begin
-      for I in 0 .. Queue.Count - 1 loop
+      Trace.Put ("(");
+      for I in 1 .. Queue.Count loop
          Trace.Put (Image (Trace.Descriptor.all, Queue.Peek (I), ID_Only => False));
          if I /= Queue.Count - 1 then
             Trace.Put (", ");
          end if;
       end loop;
-   end Put_Trace;
+      Trace.Put (")");
+   end Put;
 
-   procedure Put_Trace
+   procedure Put
      (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token;
       Index               : in     Natural;
@@ -95,26 +100,25 @@ package body WisiToken.Token_Region is
          else "");
    begin
       Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm, ID_Only => False) & " <= ");
-      Put_Trace (Trace, Stack, Tokens_Length);
+      Put (Trace, Stack, Tokens_Length);
       Trace.New_Line;
-   end Put_Trace;
-
-   procedure Put_Trace
-     (Trace : in out WisiToken.Trace'Class;
-      State : in     State_Type)
-   is
-   begin
-      Trace.Put ("semantic state: stack: ");
-      Put_Trace (Trace, State.Stack, State.Stack.Length);
-      Trace.New_Line;
-      Trace.Put ("semantic state: input queue: ");
-      Put_Trace (Trace, State.Input_Queue);
-      Trace.New_Line;
-      --  FIXME: invalid_regions?
-   end Put_Trace;
+   end Put;
 
    ----------
    --  Public subprograms
+
+   overriding
+   procedure Put (State : access State_Type)
+   is
+   begin
+      State.Trace.Put ("semantic state: stack: ");
+      Put (State.Trace.all, State.Stack);
+      State.Trace.New_Line;
+      State.Trace.Put ("semantic state: input queue: ");
+      Put (State.Trace.all, State.Input_Queue);
+      State.Trace.New_Line;
+      --  FIXME: invalid_regions?
+   end Put;
 
    overriding
    procedure Reset (State : access State_Type)
@@ -138,6 +142,47 @@ package body WisiToken.Token_Region is
          State.Input_Queue.Put ((Token, Lexer.Bounds));
       end if;
    end Input_Token;
+
+   overriding
+   procedure Input_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID;
+      Lexer : in     WisiToken.Lexer.Handle)
+   is begin
+      State.Lookahead.Put ((Token, Lexer.Bounds));
+   end Input_Lookahead;
+
+   overriding
+   procedure Move_Lookahead_To_Input
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is
+      Tok : constant Token_Region.Token := State.Lookahead.Get;
+   begin
+      if Token /= Tok.ID then
+         raise Programmer_Error with "token_region.move_lookahead: Token " &
+           Image (State.Trace.Descriptor.all, Token) &
+           ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
+      end if;
+
+      State.Input_Queue.Put (Tok);
+   end Move_Lookahead_To_Input;
+
+   overriding
+   procedure Move_Input_To_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is
+      Tok : constant Token_Region.Token := State.Input_Queue.Get;
+   begin
+      if Token /= Tok.ID then
+         raise Programmer_Error with "token_region.move_lookahead: Token " &
+           Image (State.Trace.Descriptor.all, Token) &
+           ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
+      end if;
+
+      State.Lookahead.Put (Tok);
+   end Move_Input_To_Lookahead;
 
    overriding
    procedure Push_Token
@@ -247,7 +292,7 @@ package body WisiToken.Token_Region is
       if Trace_Parse > 1 then
          --  We use the stack for the trace, not Aug_Tokens, because
          --  we don't compute aug_tokens when Action is null.
-         Put_Trace
+         Put
            (State.Trace.all, Aug_Nonterm, Index, State.Stack, Tokens.Length, Include_Action_Name => Action /= null);
       end if;
 
@@ -278,7 +323,7 @@ package body WisiToken.Token_Region is
       State.Invalid_Region := Null_Buffer_Region;
 
       if Trace_Parse > 2 then
-         Put_Trace (State.Trace.all, State.all);
+         Put (State);
       end if;
 
       for ID of Popped_Tokens loop
@@ -305,7 +350,7 @@ package body WisiToken.Token_Region is
 
       if Trace_Parse > 2 then
          if Popped_Tokens.Length + Pushed_Tokens.Length > 0 then
-            Put_Trace (State.Trace.all, State.all);
+            Put (State);
          end if;
       end if;
    end Recover;

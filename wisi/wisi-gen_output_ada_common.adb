@@ -438,7 +438,8 @@ package body Wisi.Gen_Output_Ada_Common is
             raise Programmer_Error;
          end case;
 
-         Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access, WisiToken.Empty_Token_Array,");
+         Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
+         Indent_Line ("   Lookahead => WisiToken.Token_Queues.Empty_Queue,");
          Indent_Line ("   Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,");
          Indent_Line ("   Max_Parallel => Max_Parallel, First_Parser_Label => " &
                         WisiToken.Int_Image (First_Parser_Label) & ",");

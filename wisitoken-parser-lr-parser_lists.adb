@@ -28,20 +28,22 @@ package body WisiToken.Parser.LR.Parser_Lists is
    is
       Stack : Parser_Stacks.Stack_Type;
    begin
-      Stack.Push ((First_State_Index, Invalid_Token));
+      Stack.Push ((First_State_Index, Invalid_Token_ID));
 
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
          Result.Elements.Append
-           ((Label           => First_Parser_Label,
-             Verb            => Parse_Action_Verbs'First,
-             Prev_Verb       => Parse_Action_Verbs'First,
-             Stack           => Stack,
-             Pre_Reduce_Item => Default_Parser_Stack_Item,
-             Pending_Actions => Pend_Items_Queues.Empty_Queue,
-             Recover         => null));
+           ((Stack                  => Stack,
+             Pend_Items             => Pend_Items_Queues.Empty_Queue,
+             Recover                => null,
+             Local_Lookahead        => Token_Queues.Empty_Queue,
+             Shared_Lookahead_Index => SAL.Invalid_Peek_Index,
+             Label                  => First_Parser_Label,
+             Verb                   => Parse_Action_Verbs'First,
+             Prev_Verb              => Parse_Action_Verbs'First,
+             Pre_Reduce_Item        => Default_Parser_Stack_Item));
       end return;
    end New_List;
 
@@ -129,13 +131,15 @@ package body WisiToken.Parser.LR.Parser_Lists is
          --  that would be tampering with cursors.
       begin
          New_Item :=
-           (Label           => List.Parser_Label,
-            Verb            => Item.Verb,
-            Prev_Verb       => Item.Prev_Verb,
-            Stack           => Item.Stack,
-            Pre_Reduce_Item => Item.Pre_Reduce_Item,
-            Pending_Actions => Item.Pending_Actions,
-            Recover         => null);
+           (Stack                  => Item.Stack,
+            Pend_Items             => Item.Pend_Items,
+            Recover                => null,
+            Local_Lookahead        => Item.Local_Lookahead,
+            Shared_Lookahead_Index => Item.Shared_Lookahead_Index,
+            Label                  => List.Parser_Label,
+            Verb                   => Item.Verb,
+            Prev_Verb              => Item.Prev_Verb,
+            Pre_Reduce_Item        => Item.Pre_Reduce_Item);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
@@ -219,6 +223,12 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Iterator.Verb;
    end Verb;
 
+   procedure Set_Verb (Iterator : in out Parser_State; Verb : in Parse_Action_Verbs)
+   is begin
+      Iterator.Prev_Verb := Iterator.Verb;
+      Iterator.Verb      := Verb;
+   end Set_Verb;
+
    function Prev_Verb (Iterator : in Parser_State) return Parse_Action_Verbs
    is begin
       return Iterator.Prev_Verb;
@@ -237,26 +247,26 @@ package body WisiToken.Parser.LR.Parser_Lists is
    ----------
    --  For unit tests
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Action_Token : in Parser_Lists.Action_Token)
+   procedure Put (Trace : in out WisiToken.Trace'Class; Pend_Item : in Parser_Lists.Pend_Item)
    is
       use Ada.Characters.Handling;
    begin
-      case Action_Token.Action.Verb is
+      case Pend_Item.Action.Verb is
       when Shift =>
          Trace.Put
            ("shift " &
-              Image (Trace.Descriptor.all, Token.List.Current (Token.List.First (Action_Token.Tokens))));
+              Image (Trace.Descriptor.all, Token.List.Current (Token.List.First (Pend_Item.Tokens))));
 
       when Reduce =>
          declare
             Action_Name : constant String := To_Lower
-              (Image (Trace.Descriptor.all, Action_Token.Action.LHS)) &
-              "_" & WisiToken.Int_Image (Action_Token.Action.Index);
+              (Image (Trace.Descriptor.all, Pend_Item.Action.LHS)) &
+              "_" & WisiToken.Int_Image (Pend_Item.Action.Index);
          begin
             Trace.Put
               (Action_Name & ": " &
-                 Image (Trace.Descriptor.all, Action_Token.Action.LHS) & " <= ");
-            Token.List.Put (Trace, Action_Token.Tokens);
+                 Image (Trace.Descriptor.all, Pend_Item.Action.LHS) & " <= ");
+            Token.List.Put (Trace, Pend_Item.Tokens);
          end;
 
       when Accept_It | Error =>
@@ -267,11 +277,11 @@ package body WisiToken.Parser.LR.Parser_Lists is
    procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Queue : Pend_Items_Queues.Queue_Type renames Parser_State_Lists.Constant_Reference
-        (Cursor.Elements.all, Cursor.Ptr).Pending_Actions;
+        (Cursor.Elements.all, Cursor.Ptr).Pend_Items;
    begin
       for I in 1 .. Queue.Count loop
          declare
-            Item : Action_Token renames Queue.Peek (I);
+            Item : Pend_Item renames Queue.Peek (I);
          begin
             Put (Trace, Item);
             Trace.New_Line;
