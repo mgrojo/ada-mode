@@ -125,6 +125,7 @@ package body WisiToken.Token_Region is
    is begin
       State.Stack.Clear;
       State.Input_Queue.Clear;
+      State.Lookahead.Clear;
       State.Errors.Clear;
    end Reset;
 
@@ -322,10 +323,6 @@ package body WisiToken.Token_Region is
    begin
       State.Invalid_Region := Null_Buffer_Region;
 
-      if Trace_Parse > 2 then
-         Put (State);
-      end if;
-
       for ID of Popped_Tokens loop
          Tok := Token (State.Stack.Element (State.Stack.Last_Index));
          State.Stack.Delete_Last;
@@ -348,11 +345,6 @@ package body WisiToken.Token_Region is
          Error.Recover        := Recover;
       end;
 
-      if Trace_Parse > 2 then
-         if Popped_Tokens.Length + Pushed_Tokens.Length > 0 then
-            Put (State);
-         end if;
-      end if;
    end Recover;
 
 end WisiToken.Token_Region;

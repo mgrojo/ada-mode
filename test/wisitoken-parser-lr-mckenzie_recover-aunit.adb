@@ -43,6 +43,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
       Expected_Config : Configuration renames Configuration (Expected);
    begin
       Check (Label & ".Stack", Computed_Config.Stack, Expected_Config.Stack);
+      Check (Label & ".Verb", Computed_Config.Verb, Expected_Config.Verb);
       Check
         (Label & ".Shared_Lookahead_Index",
          Computed_Config.Shared_Lookahead_Index,

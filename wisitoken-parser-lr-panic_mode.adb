@@ -51,7 +51,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
             if Table.Panic_Recover (Panic.Nonterm) then
                Panic.Goto_State := Goto_For (Table, Top.State, Panic.Nonterm);
                if Panic.Goto_State = Prev_Top.State and
-                 Prev_Top.Token = Panic.Nonterm
+                 Prev_Top.ID = Panic.Nonterm
                then
                   --  parser already tried this; keep going back.
                   Panic.Goto_State := Unknown_State;
@@ -65,7 +65,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
          end loop Nonterms;
 
          Prev_Top := Parser_State.Stack.Pop;
-         Panic.Popped_Tokens.Append (Prev_Top.Token);
+         Panic.Popped_Tokens.Append (Prev_Top.ID);
 
          Top := Parser_State.Stack.Peek;
 

@@ -136,8 +136,8 @@ package body Test_McKenzie_Recover is
       --  |1       |10       |20       |30       |40       |50       |60       |70
       --  Missing "begin" in Block_2, but McKenzie won't find that.
       --
-      --  Parser errors at Block_2, expecting "if". McKenzie inserts
-      --  "if;", leaving  "Block_2;" as a procedure call.
+      --  error 1 at 'Block_2' 63, expecting 'if'.
+      --  Inserts 'if ;', leaving  "Block_2;" as a procedure call; succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
@@ -317,10 +317,11 @@ package body Test_McKenzie_Recover is
                    (127, +sequence_of_statements_opt_ID), (101, +LOOP_ID), (35, +BEGIN_ID),
                    (30, +declarative_part_opt_ID), (11, +IS_ID), (10, +subprogram_specification_ID),
                    (0, WisiToken.Invalid_Token_ID))),
+               Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                Shared_Lookahead_Index => 1,
                Local_Lookahead        => WisiToken.Empty_Token_Array,
                Local_Lookahead_Index  => 0,
-               Pushed                 => WisiToken.Empty_Token_Array,
+               Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
                Popped                 => WisiToken.Empty_Token_Array,
                Inserted               => To_Token_Array ((1 => +SEMICOLON_ID)),
                --  FIXME: IDENTIFIER inserted by special rule does not show up in recover data for reuse
@@ -357,16 +358,18 @@ package body Test_McKenzie_Recover is
    begin
       Parse_Text ("procedure Debug is begin B; elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
+      --
+      --  Matches Terminal_Sequence 'if .. then', succeeds
 
-      Check ("error.length", State.Errors.Length, 1);
+      Check ("1 error.length", State.Errors.Length, 1);
 
       Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
       --  Same, no 'B;'
 
-      Check ("error.length", State.Errors.Length, 1);
+      Check ("2 error.length", State.Errors.Length, 1);
    exception
    when WisiToken.Syntax_Error =>
-      Assert (True, "exception: got Syntax_Error");
+      Assert (False, "exception: got Syntax_Error");
    end Error_5;
 
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -435,10 +438,11 @@ package body Test_McKenzie_Recover is
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
                (Stack                  => To_State_Stack
                   (((11, +IS_ID), (10, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
+                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                 Shared_Lookahead_Index => 1,
                 Local_Lookahead        => WisiToken.Empty_Token_Array,
                 Local_Lookahead_Index  => 0,
-                Pushed                 => WisiToken.Empty_Token_Array,
+                Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
                 Popped                 => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
                 Inserted               => WisiToken.Empty_Token_Array,
                 Deleted                => WisiToken.Empty_Token_Array,
@@ -466,7 +470,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Error_1'Access, "debug");
+         Register_Routine (T, Error_5'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");

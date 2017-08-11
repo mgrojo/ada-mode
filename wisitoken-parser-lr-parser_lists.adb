@@ -35,7 +35,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
          Result.Parser_Label := First_Parser_Label;
 
          Result.Elements.Append
-           ((Stack                  => Stack,
+           ((Current_Token          => Invalid_Token_ID,
+             Stack                  => Stack,
              Pend_Items             => Pend_Items_Queues.Empty_Queue,
              Recover                => null,
              Local_Lookahead        => Token_Queues.Empty_Queue,
@@ -79,7 +80,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Label;
    end Label;
 
-   procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs)
+   procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is
       Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
    begin
@@ -87,7 +88,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Item.Verb      := Verb;
    end Set_Verb;
 
-   function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
+   function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs
    is begin
       return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Verb;
    end Verb;
@@ -131,7 +132,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
          --  that would be tampering with cursors.
       begin
          New_Item :=
-           (Stack                  => Item.Stack,
+           (Current_Token          => Item.Current_Token,
+            Stack                  => Item.Stack,
             Pend_Items             => Item.Pend_Items,
             Recover                => null,
             Local_Lookahead        => Item.Local_Lookahead,
@@ -218,18 +220,18 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Iterator.Label;
    end Label;
 
-   function Verb (Iterator : in Parser_State) return Parse_Action_Verbs
+   function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
    is begin
       return Iterator.Verb;
    end Verb;
 
-   procedure Set_Verb (Iterator : in out Parser_State; Verb : in Parse_Action_Verbs)
+   procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs)
    is begin
       Iterator.Prev_Verb := Iterator.Verb;
       Iterator.Verb      := Verb;
    end Set_Verb;
 
-   function Prev_Verb (Iterator : in Parser_State) return Parse_Action_Verbs
+   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
    is begin
       return Iterator.Prev_Verb;
    end Prev_Verb;

@@ -27,14 +27,14 @@ with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
    --  pending semantic actions
-   type Pend_Semantic_Verbs is (Input, Push, Discard, Pop, Merge, Recover);
+   type Pend_Semantic_Verbs is (Input, Lookahead_To_Input, Push, Discard, Pop, Merge, Recover);
    --  Verbs correspond to WisiToken.Token.Semantic_State operations.
    --  For Input, the token must be a token inserted by error
    --  recovery, with no lexer information.
 
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
-      when Input | Push | Pop | Discard =>
+      when Input | Lookahead_To_Input | Push | Pop | Discard =>
          ID : Token_ID;
 
       when Merge =>
@@ -55,6 +55,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    type Base_Parser_State is tagged record
       --  Visible components for direct access
+      Current_Token          : Token_ID;
       Stack                  : Parser_Stacks.Stack_Type;
       Pend_Items             : Pend_Items_Queues.Queue_Type;
       Recover                : Recover_Data_Access;
@@ -88,8 +89,8 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function Label (Cursor : in Parser_Lists.Cursor) return Integer;
 
-   procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in Parse_Action_Verbs);
-   function Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
+   procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
+   function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
    function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
    type State_Reference (Element : not null access Parser_State) is null record
@@ -172,9 +173,9 @@ package WisiToken.Parser.LR.Parser_Lists is
    --  Access to some private Parser_State components
 
    function Label (Iterator : in Parser_State) return Integer;
-   function Verb (Iterator : in Parser_State) return Parse_Action_Verbs;
-   procedure Set_Verb (Iterator : in out Parser_State; Verb : in Parse_Action_Verbs);
-   function Prev_Verb (Iterator : in Parser_State) return Parse_Action_Verbs;
+   function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
+   procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
+   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class);
 
@@ -187,9 +188,9 @@ package WisiToken.Parser.LR.Parser_Lists is
 private
 
    type Parser_State is new Base_Parser_State with record
-      Label           : Integer;            -- for debugging/verbosity
-      Verb            : Parse_Action_Verbs; -- last action performed
-      Prev_Verb       : Parse_Action_Verbs; -- previous action performed
+      Label           : Integer;                -- for debugging/verbosity
+      Verb            : All_Parse_Action_Verbs; -- current action to perform
+      Prev_Verb       : All_Parse_Action_Verbs; -- previous action performed
       Pre_Reduce_Item : Parser_Stack_Item := Default_Parser_Stack_Item;
    end record;
 

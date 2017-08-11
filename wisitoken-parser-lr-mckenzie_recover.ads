@@ -34,13 +34,13 @@ package WisiToken.Parser.LR.McKenzie_Recover is
      (Parser  : in out LR.Instance'Class;
       Parsers : in out Parser_Lists.List)
      return Boolean;
-   --  Attempt to modify Parsers stacks, and Parser.Lookahead current
-   --  input, to allow recovering from an error state.
-   --  Return True if successful.
+   --  Attempt to modify Parsers state and Parser.Lookahead to allow
+   --  recovering from an error state. Return True if successful.
 
    --  Visible for unit test, sending to Emacs process.
    type Configuration is new WisiToken.Token.Recover_Data with record
       Stack                  : Parser_Stacks.Stack_Type;
+      Verb                   : All_Parse_Action_Verbs;
       Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into shared parser.lookahead for next input token
 
       Local_Lookahead        : Token_Arrays.Vector;
@@ -50,7 +50,7 @@ package WisiToken.Parser.LR.McKenzie_Recover is
       --  Local_Lookahead_Index
 
       Popped   : Token_Arrays.Vector;
-      Pushed   : Token_Arrays.Vector;
+      Pushed   : Parser_Stacks.Stack_Type;
       Inserted : Token_Arrays.Vector;
       Deleted  : Token_Arrays.Vector;
       Cost     : Float := 0.0;
@@ -61,11 +61,12 @@ package WisiToken.Parser.LR.McKenzie_Recover is
 
    Default_Configuration : constant Configuration :=
      (Stack                  => Parser_Stacks.Empty_Stack,
+      Verb                   => Shift_Local_Lookahead,
       Shared_Lookahead_Index => 0,
       Local_Lookahead        => Token_Arrays.Empty_Vector,
       Local_Lookahead_Index  => Natural_Index_Type'First,
       Popped                 => Token_Arrays.Empty_Vector,
-      Pushed                 => Token_Arrays.Empty_Vector,
+      Pushed                 => Parser_Stacks.Empty_Stack,
       Inserted               => Token_Arrays.Empty_Vector,
       Deleted                => Token_Arrays.Empty_Vector,
       Cost                   => 0.0);

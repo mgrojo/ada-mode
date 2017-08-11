@@ -70,7 +70,7 @@ package body WisiToken.Parser.LR is
            (State_Index'Image (Stack.Peek (I).State) & " : " &
               (if I = Last
                then ""
-               else Image (Trace.Descriptor.all, Stack.Peek (I).Token) & ", "));
+               else Image (Trace.Descriptor.all, Stack.Peek (I).ID) & ", "));
       end loop;
       Trace.New_Line;
    end Put_Top_10;
@@ -104,7 +104,7 @@ package body WisiToken.Parser.LR is
          Result := Result & (State_Image (Stack.Peek (I).State) & " : " &
               (if I = Last
                then ""
-               else Image (Descriptor, Stack.Peek (I).Token) & ", "));
+               else Image (Descriptor, Stack.Peek (I).ID) & ", "));
       end loop;
       return To_String (Result & ")");
    end Image;

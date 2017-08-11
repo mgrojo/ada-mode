@@ -298,13 +298,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       use all type Ada.Containers.Count_Type;
 
-      Stack_Token : Token_ID;
+      Stack_ID : Token_ID;
    begin
-      if Parser_State.Prev_Verb = Reduce and Parser_State.Pre_Reduce_Stack_Item.Token = Sequence_Of_Statements_ID then
-         Stack_Token := Sequence_Of_Statements_ID;
+      if Parser_State.Prev_Verb = Reduce and Parser_State.Pre_Reduce_Stack_Item.ID = Sequence_Of_Statements_ID then
+         Stack_ID := Sequence_Of_Statements_ID;
 
-      elsif Parser_State.Prev_Verb = Shift and Parser_State.Stack.Peek.Token = Begin_ID then
-         Stack_Token := Begin_ID;
+      elsif Parser_State.Prev_Verb = Shift and Parser_State.Stack.Peek.ID = Begin_ID then
+         Stack_ID := Begin_ID;
 
       else
          return False;
@@ -333,9 +333,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          for Seq of Terminal_Sequences loop
             First_Set := False;
             for I in Seq.First_Index .. Seq.Last_Index loop
-               case Stack_Token is
+               case Stack_ID is
                when Sequence_Of_Statements_ID =>
-                  if not First_Set and then Parser.Table.Follow (Stack_Token, Seq (I)) then
+                  if not First_Set and then Parser.Table.Follow (Stack_ID, Seq (I)) then
                      Sequence  := Seq;
                      First     := I;
                      First_Set := True;
@@ -366,18 +366,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                     " .. " & Image (Parser.Semantic_State.Trace.Descriptor.all, Sequence (Last)));
             end if;
 
-            case Stack_Token is
+            case Stack_ID is
             when Sequence_Of_Statements_ID =>
                Config       := Default_Configuration;
                Config.Stack := Parser_State.Stack;
+               Config.Verb  := Reduce;
 
-               Config.Popped.Append (Config.Stack.Pop.Token);
-               Config.Pushed.Append (Parser_State.Pre_Reduce_Stack_Item.Token); --  FIXME: Pushed should take stack_item
+               Config.Popped.Append (Config.Stack.Pop.ID);
+               Config.Pushed.Push (Parser_State.Pre_Reduce_Stack_Item);
                Config.Stack.Push (Parser_State.Pre_Reduce_Stack_Item);
 
             when Begin_ID =>
                Config       := Default_Configuration;
                Config.Stack := Parser_State.Stack;
+               Config.Verb  := Shift_Local_Lookahead;
 
             when others =>
                raise Programmer_Error;
@@ -408,7 +410,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Parser : LR.Instance'Class renames Data.Parser.all;
       Param  : McKenzie_Param_Type renames Parser.Table.McKenzie;
 
-      Current_Token : constant Token_ID := Parser.Lookahead.Peek;
+      Current_ID : constant Token_ID := Parser.Lookahead.Peek;
    begin
       if Param.Dot_ID = Default_McKenzie_Param.Dot_ID and
         Param.Identifier_ID = Default_McKenzie_Param.Identifier_ID
@@ -417,8 +419,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          return False;
       end if;
 
-      if Parser_State.Stack.Peek.Token = Param.Identifier_ID and
-        Current_Token = Param.Dot_ID
+      if Parser_State.Stack.Peek.ID = Param.Identifier_ID and
+        Current_ID = Param.Dot_ID
       then
          if Trace_Parse > 1 then
             Parser.Semantic_State.Trace.Put_Line ("special rule Dotted_Name matched");
@@ -476,7 +478,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Root_Config.Stack := Parser_State.Stack;
       end if;
 
-      Root_Config.Shared_Lookahead_Index := 1; --  Current_Token pushed in Recover below.
+      Root_Config.Shared_Lookahead_Index := 1; --  Current_Token is in Lookahead.
 
       Enqueue (Data, Root_Config);
 
@@ -516,16 +518,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             then
                --  Try deleting stack top
                declare
-                  Deleted_Token : constant Token_ID := Config.Stack.Peek.Token;
+                  Deleted_ID : constant Token_ID := Config.Stack.Peek.ID;
                begin
                   New_Config      := Config;
                   New_Config.Stack.Pop;
-                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_Token);
+                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_ID);
 
-                  New_Config.Popped.Append (Deleted_Token);
+                  New_Config.Popped.Append (Deleted_ID);
                   if Trace_Parse > 2 then
                      Trace.Put ("pop ");
-                     Trace.Put (Deleted_Token);
+                     Trace.Put (Deleted_ID);
                      Trace.New_Line;
                   end if;
 
@@ -574,19 +576,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             --  by a special rule.
             declare
                use all type Ada.Containers.Count_Type;
-               Deleted_Token : constant Token_ID := Parser.Lookahead.Peek (Config.Shared_Lookahead_Index);
+               Deleted_ID : constant Token_ID := Parser.Lookahead.Peek (Config.Shared_Lookahead_Index);
             begin
                if Config.Local_Lookahead_Index > Config.Local_Lookahead.Last_Index and
-                 Deleted_Token /= EOF_ID
+                 Deleted_ID /= EOF_ID
                then
                   --  can't delete EOF
                   New_Config      := Config;
-                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_Token);
+                  New_Config.Cost := New_Config.Cost + Data.Parser.Table.McKenzie.Delete (Deleted_ID);
 
-                  New_Config.Deleted.Append (Deleted_Token);
+                  New_Config.Deleted.Append (Deleted_ID);
                   if Trace_Parse > 2 then
                      Trace.Put ("delete ");
-                     Trace.Put (Deleted_Token);
+                     Trace.Put (Deleted_ID);
                      Trace.New_Line;
                   end if;
 
@@ -676,10 +678,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             if Data.Success then
                if Keep_Going > 1 and not All_Equal then
 
-                  for ID of Data.Result.Pushed loop
-                     --  FIXME: do this?
-                     --  Parser_State.Stack.Push (?);
-                     Parser_State.Pend_Items.Put ((Parser_Lists.Push, ID));
+                  for ID of Data.Result.Popped loop
+                     Parser_State.Stack.Pop;
+                     Parser_State.Pend_Items.Put ((Parser_Lists.Pop, ID));
+                  end loop;
+
+                  for I in 1 .. Data.Result.Pushed.Depth loop
+                     declare
+                        Item : constant Parser_Stack_Item := Data.Result.Pushed.Pop;
+                     begin
+                        Parser_State.Stack.Push (Item);
+                        Parser_State.Pend_Items.Put ((Parser_Lists.Input, Item.ID));
+                        Parser_State.Pend_Items.Put ((Parser_Lists.Push, Item.ID));
+                     end;
                   end loop;
 
                   Parser_State.Shared_Lookahead_Index := 1;
@@ -697,24 +708,30 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
+                  --  popped/pushed handled above
+                  --  FIXME: if delete panic, delete popped/pushed here.
                   Parser_State.Pend_Items.Put
                     ((Verb    => Parser_Lists.Recover,
-                      Popped  => Data.Result.Popped,
-                      Pushed  => Data.Result.Pushed,
+                      Popped  => Empty_Token_Array,
+                      Pushed  => Empty_Token_Array,
                       Recover => new Configuration'(Data.Result)));
 
                else
                   --  Only one parser succeeded, or all got the same result.
 
-                  for ID of Data.Result.Pushed loop
-                     --  FIXME: do this?
-                     --  Parser_State.Stack.Push (?);
-                     Parser.Semantic_State.Push_Token (ID);
-                  end loop;
-
                   for ID of Data.Result.Popped loop
                      Parser_State.Stack.Pop;
                      Parser.Semantic_State.Pop_Token (ID);
+                  end loop;
+
+                  for I in 1 .. Data.Result.Pushed.Depth loop
+                     declare
+                        Item : constant Parser_Stack_Item := Data.Result.Pushed.Pop;
+                     begin
+                        Parser_State.Stack.Push (Item);
+                        Parser.Semantic_State.Input_Token (Item.ID, null);
+                        Parser.Semantic_State.Push_Token (Item.ID);
+                     end;
                   end loop;
 
                   Parser_State.Shared_Lookahead_Index := 1;
@@ -729,7 +746,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   --  there is only one parser, so main loop knows
                   --  whether Semantic_State.Input_Token has been
                   --  called or not.
-                  for ID of Data.Result.Inserted loop
+                  for ID of reverse Data.Result.Inserted loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
@@ -737,14 +754,48 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
+                  --  popped/pushed handled above
                   Parser.Semantic_State.Recover
-                    (Popped_Tokens => Data.Result.Popped,
-                     Pushed_Tokens => Data.Result.Pushed,
+                    (Popped_Tokens => Empty_Token_Array,
+                     Pushed_Tokens => Empty_Token_Array,
                      Recover       => new Configuration'(Data.Result));
                end if;
+
+               Parser_State.Set_Verb (Data.Result.Verb);
+
+               case Data.Result.Verb is
+               when Reduce =>
+                  if Parser_State.Local_Lookahead.Count > 0 then
+                     Parser_State.Current_Token := Parser_State.Local_Lookahead.Get;
+                     if Keep_Going > 1 then
+                        Parser_State.Pend_Items.Put ((Parser_Lists.Input, Parser_State.Current_Token));
+                     else
+                        Parser.Semantic_State.Input_Token (Parser_State.Current_Token, null);
+                     end if;
+                  else
+                     Parser_State.Current_Token := Parser.Lookahead.Peek (Parser_State.Shared_Lookahead_Index);
+                     if Keep_Going > 1 then
+                        Parser_State.Pend_Items.Put ((Parser_Lists.Lookahead_To_Input, Parser_State.Current_Token));
+                     else
+                        Parser.Semantic_State.Move_Lookahead_To_Input (Parser_State.Current_Token);
+                     end if;
+                  end if;
+
+               when Shift_Local_Lookahead =>
+                  --  Main loop will set Parser_State.Current_Token from lookahead.
+                  null;
+
+               when Shift | Accept_It | Error =>
+                  raise Programmer_Error;
+               end case;
+
             end if;
          end;
       end loop;
+
+      if Trace_Parse > 2 then
+         Parser.Semantic_State.Put;
+      end if;
 
       return Keep_Going > 0;
    end Recover;

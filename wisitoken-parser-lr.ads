@@ -59,9 +59,7 @@ package WisiToken.Parser.LR is
 
    type All_Parse_Action_Verbs is (Shift_Local_Lookahead, Shift, Reduce, Accept_It, Error);
    subtype Parse_Action_Verbs is All_Parse_Action_Verbs range Shift .. Error;
-   --  Shift_Local_Lookahead is only used in the main parser loop, for
-   --  parsers that have different current tokens after error
-   --  recovery.
+   --  Shift_Local_Lookahead is only used for error recovery.
 
    type Parse_Action_Rec (Verb : Parse_Action_Verbs := Shift) is record
       case Verb is
@@ -241,7 +239,7 @@ package WisiToken.Parser.LR is
    --  Parser stack type. Visible here for error recover info.
    type Parser_Stack_Item is record
       State : Unknown_State_Index;
-      Token : Token_ID;
+      ID    : Token_ID;
    end record;
    Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token_ID);
 
