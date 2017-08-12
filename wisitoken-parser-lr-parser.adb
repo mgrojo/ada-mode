@@ -378,7 +378,7 @@ package body WisiToken.Parser.LR.Parser is
             declare
                use Parser_Lists;
                Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
-               Keep_Going : Boolean;
+               Keep_Going : Boolean := False;
 
                Lookahead_Count : SAL.Base_Peek_Type := Parser.Lookahead.Length;
             begin
@@ -519,91 +519,93 @@ package body WisiToken.Parser.LR.Parser is
                   Execute_Pending (Parsers.First, Parser.Semantic_State);
                end if;
 
-            end if;
-
-            if Current_Verb = Shift_Local_Lookahead then
-               declare
-                  State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-               begin
-                  if State.Local_Lookahead.Length > 0 then
-                     --  These were inserted by special rules at start of
-                     --  recover; neither Input_Token nor Input_Lookahead
-                     --  was called.
-
-                     State.Current_Token := State.Local_Lookahead.Get;
-
-                     if Parsers.Count > 1 then
-                        State.Pend_Items.Put ((Parser_Lists.Input, State.Current_Token));
-                     else
-                        Parser.Semantic_State.Input_Token (State.Current_Token, null);
-                     end if;
-
-                  elsif Parser.Lookahead.Length > 0 then
-                     --  Input_Lookahead was called for these when read from
-                     --  Lexer during error recover.
-
-                     State.Current_Token := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
-                     State.Shared_Lookahead_Index := State.Shared_Lookahead_Index + 1;
-
-                     Parser.Semantic_State.Move_Lookahead_To_Input (State.Current_Token);
-                  end if;
-               end;
-            end if;
-
-            if Parser.Terminate_Same_State and then
-              (Current_Verb in Shift | Shift_Local_Lookahead and Duplicate_State (Parsers, Current_Parser))
-            then
-               if Trace_Parse > 0 then
-                  Trace.Put_Line
-                    (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
-                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
-               end if;
-               Current_Parser.Free;
-
-               if Parsers.Count = 1 then
-                  Execute_Pending (Parsers.First, Parser.Semantic_State);
-               end if;
-
-            elsif Current_Parser.Verb = Current_Verb or
-              (Current_Parser.Verb = Shift and Current_Verb = Shift_Local_Lookahead)
-            then
-               declare
-                  State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-               begin
-                  Action := Action_For
-                    (Table => Parser.Table.all,
-                     State => State.Stack.Peek.State,
-                     ID    => State.Current_Token);
-                  Do_Action (Action.Item, Current_Parser, State.Current_Token, Parser);
-               end;
-
-               if Action.Next /= null then
-                  --  conflict; spawn a new parser
-                  if Parsers.Count = Parser.Max_Parallel then
-                     raise Parse_Error with
-                       Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                       ": too many parallel parsers required in grammar state" &
-                       State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
-                       "; simplify grammar, or increase max-parallel (" &
-                       Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")";
-
-                  else
-                     if Trace_Parse > 0 then
-                        Trace.Put
-                          ("spawn parser from " & Int_Image (Current_Parser.Label));
-                     end if;
-                     Parsers.Prepend_Copy (Current_Parser);
-                     if Trace_Parse > 0 then
-                        Trace.Put_Line (" (" & Int_Image (Integer (Parsers.Count)) & " active)");
-                     end if;
-                     Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
-                  end if;
-               end if;
-
-               Current_Parser.Next;
             else
-               --  Current parser is waiting for others to catch up
-               Current_Parser.Next;
+               if Current_Verb = Shift_Local_Lookahead then
+                  declare
+                     State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+                  begin
+                     if State.Local_Lookahead.Length > 0 then
+                        --  These were inserted by special rules at start of
+                        --  recover; neither Input_Token nor Input_Lookahead
+                        --  was called.
+
+                        State.Current_Token := State.Local_Lookahead.Get;
+
+                        if Parsers.Count > 1 then
+                           State.Pend_Items.Put ((Parser_Lists.Input, State.Current_Token));
+                        else
+                           Parser.Semantic_State.Input_Token (State.Current_Token, null);
+                        end if;
+
+                     elsif Parser.Lookahead.Length > 0 then
+                        --  Input_Lookahead was called for these when read from
+                        --  Lexer during error recover.
+
+                        State.Current_Token := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
+                        State.Shared_Lookahead_Index := State.Shared_Lookahead_Index + 1;
+
+                        Parser.Semantic_State.Move_Lookahead_To_Input (State.Current_Token);
+                     end if;
+                  end;
+               end if;
+
+               if Parser.Terminate_Same_State and then
+                 (Current_Verb in Shift | Shift_Local_Lookahead and Duplicate_State (Parsers, Current_Parser))
+               then
+                  if Trace_Parse > 0 then
+                     Trace.Put_Line
+                       (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
+                          Int_Image (Integer (Parsers.Count) - 1) & " active)");
+                  end if;
+                  Current_Parser.Free;
+
+                  if Parsers.Count = 1 then
+                     Execute_Pending (Parsers.First, Parser.Semantic_State);
+                  end if;
+
+               elsif Current_Parser.Verb = Current_Verb or
+                 (Current_Parser.Verb = Shift and Current_Verb = Shift_Local_Lookahead)
+               then
+                  declare
+                     State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+                  begin
+                     Action := Action_For
+                       (Table => Parser.Table.all,
+                        State => State.Stack.Peek.State,
+                        ID    => State.Current_Token);
+                  end;
+
+                  if Action.Next /= null then
+                     --  conflict; spawn a new parser
+                     if Parsers.Count = Parser.Max_Parallel then
+                        raise Parse_Error with
+                          Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
+                          ": too many parallel parsers required in grammar state" &
+                          State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
+                          "; simplify grammar, or increase max-parallel (" &
+                          Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")";
+
+                     else
+                        if Trace_Parse > 0 then
+                           Trace.Put
+                             ("spawn parser from " & Int_Image (Current_Parser.Label));
+                        end if;
+                        Parsers.Prepend_Copy (Current_Parser);
+                        if Trace_Parse > 0 then
+                           Trace.Put_Line (" (" & Int_Image (Integer (Parsers.Count)) & " active)");
+                        end if;
+                        Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
+                     end if;
+                  end if;
+
+                  --  Must spawn new parser before modifying current parser stack.
+                  Do_Action (Action.Item, Current_Parser, Current_Parser.State_Ref.Current_Token, Parser);
+
+                  Current_Parser.Next;
+               else
+                  --  Current parser is waiting for others to catch up
+                  Current_Parser.Next;
+               end if;
             end if;
          end loop;
       end loop;

@@ -253,26 +253,25 @@ package body WisiToken.Parser.LR.Parser_Lists is
    is
       use Ada.Characters.Handling;
    begin
-      case Pend_Item.Action.Verb is
-      when Shift =>
-         Trace.Put
-           ("shift " &
-              Image (Trace.Descriptor.all, Token.List.Current (Token.List.First (Pend_Item.Tokens))));
+      Trace.Put (Pend_Semantic_Verbs'Image (Pend_Item.Verb) & " ");
 
-      when Reduce =>
+      case Pend_Item.Verb is
+      when Input | Lookahead_To_Input | Push | Discard | Pop =>
+         Trace.Put (Image (Trace.Descriptor.all, Pend_Item.ID));
+
+      when Merge =>
          declare
             Action_Name : constant String := To_Lower
               (Image (Trace.Descriptor.all, Pend_Item.Action.LHS)) &
               "_" & WisiToken.Int_Image (Pend_Item.Action.Index);
          begin
             Trace.Put
-              (Action_Name & ": " &
-                 Image (Trace.Descriptor.all, Pend_Item.Action.LHS) & " <= ");
+              (Action_Name & ": " & Image (Trace.Descriptor.all, Pend_Item.Action.LHS) & " <= ");
             Token.List.Put (Trace, Pend_Item.Tokens);
          end;
 
-      when Accept_It | Error =>
-         raise Programmer_Error;
+      when Recover =>
+         null;
       end case;
    end Put;
 

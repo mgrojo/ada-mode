@@ -104,7 +104,7 @@ package body Dragon_4_45_LALR_Test is
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access);
+   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    ----------
    --  Test procedures

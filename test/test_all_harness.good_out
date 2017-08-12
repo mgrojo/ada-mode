@@ -23,17 +23,20 @@ OK ../Test/dragon_4_45_lalr_test.adb : Test_Parse
 OK ../Test/grune_9_30.adb : Test_Item_Sets
 OK ../Test/grune_9_30.adb : Test_Parse
 OK ../Test/name_grammar_test.adb : Nominal
-OK ../Test/parser_lists_test.adb : Init
-OK ../Test/parser_lists_test.adb : Stack
-OK ../Test/parser_lists_test.adb : Parser_List
-OK ../Test/parser_lists_test.adb : Stack_Equal
-OK ../Test/parser_lists_test.adb : Pending
-OK ../Test/parser_lists_test.adb : Copy
 OK ../Test/test_accept_state.adb : Nominal
 OK ../Test/test_character_literal.adb : Nominal
 OK ../Test/test_follow.adb : Subprograms.One
 OK ../Test/test_follow.adb : Test_Ada_Lite.One
-OK ../Test/test_lr_expecting.adb : Nominal
+OK test_lr_expecting.adb : Nominal
+OK test_mckenzie_recover.adb : No_Error
+OK test_mckenzie_recover.adb : Error_1
+OK test_mckenzie_recover.adb : Error_2
+OK test_mckenzie_recover.adb : Error_3
+OK test_mckenzie_recover.adb : Dotted_Name
+OK test_mckenzie_recover.adb : Error_4
+OK test_mckenzie_recover.adb : Error_5
+OK test_mckenzie_recover.adb : Check_Accept
+OK test_mckenzie_recover.adb : Extra_Begin
 OK test_panic_mode.adb : No_Error
 OK test_panic_mode.adb : Error_1
 OK test_panic_mode.adb : Error_2
@@ -44,7 +47,7 @@ OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   43
-Successful Tests:  43
+Total Tests Run:   46
+Successful Tests:  46
 Failed Assertions: 0
 Unexpected Errors: 0

@@ -262,8 +262,8 @@ package WisiToken.Parser.LR is
    ----------
    --  Useful text output
 
-   function State_Image (Item : in State_Index) return String;
-   --  no leading space
+   function State_Image (Item : in Unknown_State_Index) return String;
+   --  no leading space; " " for Unknown_State
 
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;

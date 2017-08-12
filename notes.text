@@ -6,12 +6,6 @@ org.wisitoken.stephe-1 - development
 
  current work
 
-add new parser_state components for parallel parser Mckenzie
-    test_mckenzie all pass
-
-    run all tests
-        hangs in test_all_harness?
-
 review diffs with main branch
 
 propagate o.w.s-1 to o.w

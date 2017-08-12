@@ -87,6 +87,13 @@ package body WisiToken.Gen_Token_Enum is
       Trace.New_Line;
    end Put;
 
+   overriding procedure Error
+     (State     : access State_Type;
+      Expecting : in     Token_ID_Set)
+   is begin
+      State.Expecting := Expecting;
+   end Error;
+
    overriding procedure Merge_Tokens
      (State   : access State_Type;
       Nonterm : in     Token_ID;

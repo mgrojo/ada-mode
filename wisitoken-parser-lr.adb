@@ -75,12 +75,16 @@ package body WisiToken.Parser.LR is
       Trace.New_Line;
    end Put_Top_10;
 
-   function State_Image (Item : in State_Index) return String
+   function State_Image (Item : in Unknown_State_Index) return String
    is
       use Ada.Strings;
       use Ada.Strings.Fixed;
    begin
-      return Trim (State_Index'Image (Item), Both);
+      if Item = Unknown_State then
+         return " ";
+      else
+         return Trim (State_Index'Image (Item), Both);
+      end if;
    end State_Image;
 
    function Image

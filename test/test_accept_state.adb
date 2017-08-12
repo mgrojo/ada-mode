@@ -85,7 +85,7 @@ package body Test_Accept_State is
    Parser        : WisiToken.Parser.LR.Parser.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access);
+   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    ----------
    --  Test procedures

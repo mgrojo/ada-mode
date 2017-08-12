@@ -86,7 +86,15 @@ package WisiToken.Gen_Token_Enum is
       Enum_ID : Token_Enum_ID;
    end record;
 
-   type State_Type is new WisiToken.Token.Semantic_State with null record;
+   type State_Type
+     (Trace : not null access WisiToken.Trace'Class;
+      First_Terminal : Token_ID;
+      Last_Terminal  : Token_ID)
+   is new WisiToken.Token.Semantic_State (Trace => Trace) with record
+      Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
+   end record;
+
+   overriding procedure Put (State : access State_Type) is null;
 
    overriding procedure Reset (State : access State_Type) is null;
 
@@ -119,8 +127,8 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Error
      (State     : access State_Type;
-      Expecting : in     Token_ID_Set)
-   is null;
+      Expecting : in     Token_ID_Set);
+   --  Save Expecting for unit test/error message
 
    overriding
    procedure Discard_Token

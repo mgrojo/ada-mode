@@ -117,7 +117,7 @@ package body Name_Grammar_Test is
      Component_ID      <= Paren_Left_ID & Identifier_ID & Paren_Right_ID + Null_Action;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access);
+   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    procedure Parse_Command
      (Label   : in     String;

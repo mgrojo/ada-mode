@@ -83,7 +83,7 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         State : State_Type (Trace'Access);
+         State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
          Parser : WisiToken.Parser.LR.Parser.Instance;
 
@@ -178,7 +178,7 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         State : State_Type (Trace'Access);
+         State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
          Parser : WisiToken.Parser.LR.Parser.Instance;
 

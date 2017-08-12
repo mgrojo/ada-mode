@@ -19,13 +19,12 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks;
-with Ada.Exceptions;
+with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Production;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.Parser;
+with WisiToken.Production;
 with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Test_LR_Expecting is
@@ -118,11 +117,11 @@ package body Test_LR_Expecting is
    Parser        : WisiToken.Parser.LR.Parser.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access);
+   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    procedure Execute
-     (Command          : in String;
-      Expected_Message : in String)
+     (Command  : in String;
+      Expected : in WisiToken.Token_ID_Set)
    is begin
       WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
 
@@ -131,8 +130,8 @@ package body Test_LR_Expecting is
       Parser.Parse;
       AUnit.Assertions.Assert (False, Command & "; no exception");
    exception
-   when E : WisiToken.Syntax_Error =>
-      AUnit.Checks.Check (Command, Ada.Exceptions.Exception_Message (E), Expected_Message);
+   when WisiToken.Syntax_Error =>
+      WisiToken.AUnit.Check (Command, State.Expecting, Expected);
    end Execute;
 
    ----------
@@ -141,6 +140,7 @@ package body Test_LR_Expecting is
    procedure Nominal (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
+      use WisiToken.AUnit;
    begin
       Parser := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
@@ -155,15 +155,25 @@ package body Test_LR_Expecting is
 
       WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
 
-      Execute ("set A = 2", "1:10: Syntax error; expecting one of SEMICOLON_ID; found EOF_ID '" & ASCII.EOT & "'");
+      Execute
+        ("set A = 2",
+         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Semicolon_ID)));
 
-      Execute ("set A = ", "1:9: Syntax error; expecting one of INT_ID; found EOF_ID '" & ASCII.EOT & "'");
+      Execute
+        ("set A = ",
+         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Int_ID)));
 
-      Execute ("set A", "1:6: Syntax error; expecting one of EQUALS_ID; found EOF_ID '" & ASCII.EOT & "'");
+      Execute
+        ("set A",
+         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Equals_ID)));
 
-      Execute ("set", "1:4: Syntax error; expecting one of IDENTIFIER_ID; found EOF_ID '" & ASCII.EOT & "'");
+      Execute
+        ("set",
+         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (1 => +Identifier_ID)));
 
-      Execute ("2", "1:1: Syntax error; expecting one of SET_ID, VERIFY_ID; found INT_ID '2'");
+      Execute
+        ("2",
+         To_Token_ID_Set (LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal, (+Set_ID, +Verify_ID)));
    end Nominal;
 
    ----------
@@ -173,7 +183,7 @@ package body Test_LR_Expecting is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_lr_expecting.adb");
+      return new String'("test_lr_expecting.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

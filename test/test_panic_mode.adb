@@ -82,9 +82,10 @@ package body Test_Panic_Mode is
       use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
-      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser
-        (WisiToken.LALR,
-         Text_Feeder => WisiToken.Text_Feeder.Text_IO.Create (File_Name));
+
+      Feeder : constant WisiToken.Text_Feeder.Text_Feeder_Ptr := WisiToken.Text_Feeder.Text_IO.Create (File_Name);
+
+      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR, Text_Feeder => Feeder);
    begin
       --  The test is that there is no exception.
 
@@ -92,13 +93,12 @@ package body Test_Panic_Mode is
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Parse;
+      WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
    exception
    when E : WisiToken.Syntax_Error =>
       Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
       AUnit.Assertions.Assert (False, "syntax error");
-
-   when E : others =>
-      AUnit.Assertions.Assert (False, "parser raised exception: " & Exception_Name (E) & ": " & Exception_Message (E));
+      WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

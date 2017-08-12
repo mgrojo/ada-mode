@@ -116,7 +116,7 @@ package body Test_Statement_Actions is
      Verify_Statement.Grammar;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access);
+   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
    Parser        : WisiToken.Parser.LR.Parser.Instance;
