@@ -62,9 +62,9 @@ package WisiToken.Parser.LR.McKenzie_Recover is
    Default_Configuration : constant Configuration :=
      (Stack                  => Parser_Stacks.Empty_Stack,
       Verb                   => Shift_Local_Lookahead,
-      Shared_Lookahead_Index => 0,
+      Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
       Local_Lookahead        => Token_Arrays.Empty_Vector,
-      Local_Lookahead_Index  => Natural_Index_Type'First,
+      Local_Lookahead_Index  => Token_Arrays.No_Index,
       Popped                 => Token_Arrays.Empty_Vector,
       Pushed                 => Parser_Stacks.Empty_Stack,
       Inserted               => Token_Arrays.Empty_Vector,

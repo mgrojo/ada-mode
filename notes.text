@@ -7,12 +7,10 @@ org.wisitoken.stephe-1 - development
  current work
 
 add new parser_state components for parallel parser Mckenzie
-    run t_one test_mckenzie
-        Error_1, _2, _3, _4, _5, Check_Accept: pass
+    test_mckenzie all pass
 
     run all tests
         hangs in test_all_harness?
-            but test_mckenzie was not compiled?
 
 review diffs with main branch
 

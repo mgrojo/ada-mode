@@ -126,7 +126,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    is
       use all type Ada.Containers.Count_Type;
    begin
-      if Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index then
+      if Config.Local_Lookahead_Index /= Token_Arrays.No_Index and
+        Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
+      then
          return Config.Local_Lookahead (Config.Local_Lookahead_Index);
       else
          return Data.Parser.Lookahead.Peek (Config.Shared_Lookahead_Index);
@@ -138,7 +140,15 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Config         : in out Configuration;
       Action         : in     Shift_Action_Rec;
       Inserted_Token : in     Token_ID)
-   is begin
+   is
+      Trace : WisiToken.Trace'Class renames Data.Parser.Semantic_State.Trace.all;
+   begin
+      if Trace_Parse > 2 then
+         Trace.Put (Image (Trace.Descriptor.all, Config.Stack));
+         Trace.New_Line;
+         Put (Trace, Action);
+         Trace.New_Line;
+      end if;
       Config.Stack.Push ((Action.State, Inserted_Token));
       Config.Inserted.Append (Inserted_Token);
       Config.Cost := Config.Cost + Data.Parser.Table.McKenzie.Insert (Inserted_Token);
@@ -175,17 +185,18 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          return;
       end if;
 
+      New_Config_1.Stack.Push ((New_State, Action.LHS));
+
       Next_Action := Action_For (Data.Parser.Table.all, New_State, Inserted_Token);
       loop
          New_Config_2 := New_Config_1;
+
          exit when Next_Action = null;
          case Next_Action.Item.Verb is
          when Shift =>
-            New_Config_2.Stack.Push ((New_State, Inserted_Token));
             Do_Shift (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Reduce =>
-            New_Config_2.Stack.Push ((New_State, Inserted_Token));
             Do_Reduce (Data, New_Config_2, Next_Action.Item, Inserted_Token);
 
          when Accept_It | Error =>
@@ -388,6 +399,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             for I in reverse First .. Last loop
                Config.Local_Lookahead.Prepend (Sequence (I));
             end loop;
+            Config.Local_Lookahead_Index := 1;
             return True;
          else
             return False;
@@ -423,15 +435,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
         Current_ID = Param.Dot_ID
       then
          if Trace_Parse > 1 then
-            Parser.Semantic_State.Trace.Put_Line ("special rule Dotted_Name matched");
+            Parser.Semantic_State.Trace.Put_Line ("special rule Dotted_Name matched; insert IDENTIFIER");
          end if;
 
          --  Parser encountered something like:
          --
-         --      loop ... end Parent.Child;
+         --      loop ... end loop Parent.Child;
          --
-         --  and errored on '.', expecting 'loop'
-         --  So we pushback 'IDENTIFIER', so that '.' is now legal.
+         --  and errored on '.', expecting ';'. So we insert
+         --  'IDENTIFIER', so that normal McKenzie will find 'insert
+         --  ;' more quickly, and then '.' is legal.
+         --
+         --  We don't insert the semicolon as well, because there may
+         --  be other situations where the semicolon is wrong (ie,
+         --  association_opt in ada_lite.wy).
          --
          --  Ideally we would replace the identifier on the stack with
          --  a dummy inserted one, leaving the real identifier to be
@@ -442,6 +459,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Config.Stack := Parser_State.Stack;
 
          Config.Local_Lookahead.Prepend (Param.Identifier_ID);
+         Config.Local_Lookahead_Index := 1;
          return True;
       else
          return False;
@@ -547,8 +565,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                            if Trace_Parse > 2 then
                               Trace.Put ("insert ");
                               Trace.Put (ID);
-                              Trace.New_Line;
-                              Put (Trace, Action.Item);
                               Trace.New_Line;
                            end if;
 
@@ -746,11 +762,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   --  there is only one parser, so main loop knows
                   --  whether Semantic_State.Input_Token has been
                   --  called or not.
-                  for ID of reverse Data.Result.Inserted loop
+                  for ID of reverse Data.Result.Local_Lookahead loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  for ID of reverse Data.Result.Local_Lookahead loop
+                  for ID of reverse Data.Result.Inserted loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 

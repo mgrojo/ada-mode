@@ -269,14 +269,15 @@ package body Test_McKenzie_Recover is
       --  Missing "end if" at 67. Same as Error_3, but procedure name
       --  is dotted, so it can't be a loop label.
       --
-      --  Test special rule for dotted names.
+      --  Tests special rule for dotted names.
 
       --  error 1: at ';' 91, expecting 'if'.
       --  Inserts 'if'. Continues to error 2: at 'loop' 97, expecting block label or ';'.
       --  Inserts ';'. Continues to error 3: at ';' 101, expecting statement or 'end loop'.
       --  Inserts 'end loop'. Continues to error 4: at 'Parent' 107, expecting 'loop'.
       --  Inserts 'loop'. Continues to error 5: at '.' 113, expecting ';'
-      --  Inserts '; IDENTIFIER'. Continues to error 6: at EOF, expecting statement or 'end;'
+      --  Matches Dotted_Name special rule; inserts IDENTIFIER
+      --  Inserts ';'. Continues to error 6: at EOF, expecting statement or 'end;'
       --  Inserts 'end ;', succeeds.
       --
       --  With the full Ada language, finding '; IDENTIFIER' for error 5 takes too
@@ -312,19 +313,17 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 --  FIXME: two consecutive semicolons?
-                 (((189, +SEMICOLON_ID), (188, +SEMICOLON_ID), (167, +LOOP_ID), (160, +END_ID),
+                 (((189, +SEMICOLON_ID), (188, +identifier_opt_ID), (167, +LOOP_ID), (160, +END_ID),
                    (127, +sequence_of_statements_opt_ID), (101, +LOOP_ID), (35, +BEGIN_ID),
                    (30, +declarative_part_opt_ID), (11, +IS_ID), (10, +subprogram_specification_ID),
                    (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                Shared_Lookahead_Index => 1,
-               Local_Lookahead        => WisiToken.Empty_Token_Array,
-               Local_Lookahead_Index  => 0,
+               Local_Lookahead        => To_Token_Array ((1 => +IDENTIFIER_ID)),
+               Local_Lookahead_Index  => 1,
                Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
                Popped                 => WisiToken.Empty_Token_Array,
                Inserted               => To_Token_Array ((1 => +SEMICOLON_ID)),
-               --  FIXME: IDENTIFIER inserted by special rule does not show up in recover data for reuse
                Deleted                => WisiToken.Empty_Token_Array,
                Cost                   => 1.0));
       end;
@@ -359,7 +358,7 @@ package body Test_McKenzie_Recover is
       Parse_Text ("procedure Debug is begin B; elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
       --
-      --  Matches Terminal_Sequence 'if .. then', succeeds
+      --  Matches special rule Terminal_Sequence 'if .. then', succeeds
 
       Check ("1 error.length", State.Errors.Length, 1);
 

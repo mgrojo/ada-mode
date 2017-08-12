@@ -28,7 +28,7 @@ package WisiToken.Parser.LR.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (Unknown_State_Index);
 
-   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Parser.LR.Parse_Action_Verbs);
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Parser.LR.All_Parse_Action_Verbs);
 
    procedure Check
      (Label    : in String;
@@ -45,7 +45,7 @@ package WisiToken.Parser.LR.AUnit is
       Computed : in Parser_Stack_Item;
       Expected : in Parser_Stack_Item);
 
-   type Parser_Stack_Item_Array is array (SAL.Base_Peek_Type range <>) of Parser_Stack_Item;
+   type Parser_Stack_Item_Array is array (SAL.Peek_Type range <>) of Parser_Stack_Item;
 
    function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type;
 
