@@ -81,17 +81,21 @@ package body WisiToken.Parser.LR.Parser_Lists is
    end Label;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
-   is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
-   begin
-      Item.Prev_Verb := Item.Verb;
-      Item.Verb      := Verb;
+   is begin
+      Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Verb := Verb;
    end Set_Verb;
 
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs
    is begin
       return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Verb;
    end Verb;
+
+   procedure Save_Verb (Cursor : in Parser_Lists.Cursor)
+   is
+      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
+   begin
+      Item.Prev_Verb := Item.Verb;
+   end Save_Verb;
 
    function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
    is begin
@@ -109,7 +113,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr);
       Stack : Parser_Stacks.Stack_Type renames Item.Stack;
    begin
-      Put_Top_10 (Integer'Image (Item.Label) & " stack: ", Trace, Stack);
+      Trace.Put (Integer'Image (Item.Label) & " stack: ");
+      Put_Top_10 (Trace, Stack);
    end Put_Top_10;
 
    procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
@@ -227,8 +232,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs)
    is begin
-      Iterator.Prev_Verb := Iterator.Verb;
-      Iterator.Verb      := Verb;
+      Iterator.Verb := Verb;
    end Set_Verb;
 
    function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
@@ -243,7 +247,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class)
    is begin
-      Put_Top_10 (Integer'Image (Iterator.Label) & " stack: ", Trace, Iterator.Stack);
+      Trace.Put (Integer'Image (Iterator.Label) & " stack: ");
+      Put_Top_10 (Trace, Iterator.Stack);
    end Put_Top_10;
 
    ----------

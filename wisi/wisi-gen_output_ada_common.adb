@@ -527,10 +527,11 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Table.McKenzie := Default_McKenzie_Param;");
       else
          Indent_Line ("Table.McKenzie :=");
-         Indent_Line ("  (First_Terminal   =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
+         Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
          Indent := Indent + 3;
-         Indent_Line ("Last_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
-         Indent_Line ("Last_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Nonterminal) & ",");
+         Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
+         Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Nonterminal) & ",");
+         Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Nonterminal) & ",");
          Put ("Insert", Table.McKenzie.Insert);
          Put ("Delete", Table.McKenzie.Delete);
          Indent_Line ("Enqueue_Limit    =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");

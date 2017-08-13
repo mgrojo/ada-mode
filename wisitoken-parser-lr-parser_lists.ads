@@ -92,6 +92,9 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
+
+   procedure Save_Verb (Cursor : in Parser_Lists.Cursor);
+   --  Saves current verb to Prev_Verb
    function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs;
 
    type State_Reference (Element : not null access Parser_State) is null record
@@ -174,8 +177,8 @@ package WisiToken.Parser.LR.Parser_Lists is
    --  Access to some private Parser_State components
 
    function Label (Iterator : in Parser_State) return Integer;
-   function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
+   function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class);

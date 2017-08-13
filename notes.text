@@ -6,17 +6,9 @@ org.wisitoken.stephe-1 - development
 
  current work
 
-save prev_verb only when set verb to error; in -lr-parser.adb explicitly
-    fixmes in parse_verb
-
-test_mckenzie
-    error_4, Conflict pass; others fail
-
-Delete lr.put_top10 label arg
-    move it to parser_lists
-
 propagate o.w.s-1 to o.w
     make it work with o.e.a.s-4
+        Emacs_ada does not need descriptor.image?
 
 next change in wisi/test/*.good_parse
     don't output mckenzie if default
@@ -36,19 +28,27 @@ rename mckenzie to dpa_explore?
 
     includes special rules
 
-Make delete nonterm expensive. Del_cost first last cost
-
 better syntax error handling
     new algorithm 0:
         Grune 326 Kim, Choe 2001
         branch wisitoken.stephe_1
         Definition 3.5 Lookback is just reduce
+        faster because it searches grammar graph including nonterminals, not dpa with only terminals
         just implement the algorithms, see if that makes it clearer.
+            appears to be just Dijkstra
+                https://en.m.wikipedia.org/wiki/Dijkstra%27s_algorithm#Specialized_variants
+                    change costs to non-negative integers
+                not clear where the difference is
             not clear how to compute S(A) for nonterminals?
                 Fischer Mauney 1989 ? no
                 fischer, dion, mauney 1979?
                 or dion, fischer, 1978? not in google scholar
                 or it's "just obvious"; terminal_sequences_1
+
+        Annotate grammar to eliminate cycles for least-cost search?
+
+        Precompute list of forced paths to shift terminal - shortens path search
+            terminal_sequences_2 below
 
     new algorithm 1:
         if error symbol is in a terminal sequence:
@@ -89,55 +89,6 @@ better syntax error handling
 
         new test cases:
             'if **'
-
-procedure Debug
-is begin
-   procedure Put_Top_10
-   is
-   begin
-   end Put_Top_10;
-
-   begin
-   end Debug;
-            Added 'begin' at end, intending to delete first 'begin'
-
-            Mckenzie inserts "end;" after first 'begin', exceeds 200 at last 'begin'
-                needs to insert 'procedure IDENTIFIER is'
-                at enqueue_limit 400, that is inserted, with a cost of 11, but doesn't check beyond 9
-                at enqueue_limit 800, that is is checked, but fails
-                    fix that and time it
-                    works for ada_lite (sigh)
-                    attach debugger works
-                    looking for config.cost = 11, config.inserted.elements.all = (51, 103, 35)
-                    fails because it's in state 133 generic_instantiation!?
-
- 2 stack:  33 : subprogram_body,  14 : compilation_unit_list,  0 :
- 2: 33: BEGIN : ERROR
-
-enqueue: 133, 130, 41, 26, 14, 0,  BEGIN (PROCEDURE, IDENTIFIER, IS, ) null 1.10000E+01
-26 includes "subprogram_body <= " _after_ "generic_instantiation <= overriding_indicator_opt ^ PROCEDURE name IS"
-41 has :
-generic_instantiation <= overriding_indicator_opt PROCEDURE ^ name IS
-procedure_specification <= PROCEDURE ^ name parameter_profile_opt, IS
-    on IDENTIFIER goto state 47
-    on name goto state 130
-47 is name <= IDENTIFIER ^, on IS reduce to 'name'
-130 has :
-generic_instantiation <= overriding_indicator_opt PROCEDURE name ^ IS
-procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS
-    on IS => shift and goto state 133,
-             reduce 0 tokens to parameter_profile_opt
-
-    we need the second; queue another config; why didn't it?
-        restore config on second loop iteration
-
-            first 'begin' is already pushed on stack, so McKenzie
-            doesn't consider deleting it (and neither does Kim_Choe),
-            but that would be the best solution.
-
-        'if **'
-
-    Panic mode is supposed to skip input to ';', then pop states - grune 16.6.1
 
     search dpa backwards from elsif; insert 'if then'
         same result as Grune 326 graph search; do that?
@@ -180,6 +131,11 @@ procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS
         not uncached; if indent is not computed, cache is 0
         If indent cache 0, use previous line?
         see how it works in practice
+
+include actual token count in nonterminal pop cost?
+    requires cumulative token count on parser stack
+
+Panic mode is supposed to skip input to ';', then pop states - grune 16.6.1
 
 speed up
     stack compare

@@ -131,7 +131,13 @@ package WisiToken.Gen_Token_Enum is
    --  Save Expecting for unit test/error message
 
    overriding
-   procedure Discard_Token
+   procedure Discard_Input
+     (State : access State_Type;
+      ID    : in     Token_ID)
+   is null;
+
+   overriding
+   procedure Discard_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID)
    is null;

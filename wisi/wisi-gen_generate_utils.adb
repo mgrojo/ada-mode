@@ -18,8 +18,8 @@
 
 pragma License (GPL);
 with Ada.Exceptions;
-with WisiToken.Token;
 with Wisi.Utils;
+with WisiToken.Token;
 package body Wisi.Gen_Generate_Utils is
 
    function Non_Reporting (Kind : in String) return Boolean
@@ -545,10 +545,16 @@ package body Wisi.Gen_Generate_Utils is
       Result : WisiToken.Parser.LR.McKenzie_Param_Type
         (LR1_Descriptor.First_Terminal,
          LR1_Descriptor.Last_Terminal,
+         LR1_Descriptor.First_Nonterminal,
          LR1_Descriptor.Last_Nonterminal);
    begin
       Result.Insert := (others => Item.Default_Insert);
-      Result.Delete := (others => Item.Default_Delete);
+
+      Result.Delete (Result.First_Terminal .. Result.Last_Terminal) := (others => Item.Default_Delete_Terminal);
+
+      Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
+        (others => Item.Default_Delete_Nonterminal);
+
       for Pair of Item.Delete loop
          Result.Delete (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
       end loop;

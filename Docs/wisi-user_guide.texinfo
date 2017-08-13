@@ -32,7 +32,7 @@ section entitled "GNU Free Documentation License".
 
 @contents
 
-@node Top, Overview, (dir), (dir)
+@node Top
 @top Wisi User Guide
 
 @ifnottex
@@ -45,7 +45,7 @@ section entitled "GNU Free Documentation License".
 * Syntax::
 @end menu
 
-@node Overview, Common grammar problems, Top, Top
+@node Overview
 @chapter Overview
 
 Wisi is an add-on to OpenToken, that allows using Bison-style input
@@ -64,7 +64,7 @@ then be used by wisi-parse.
 Alternately, wisi-generate can output Ada code, for use with the
 WisiToken parser run-time.
 
-@node Common grammar problems, Syntax, Overview, Top
+@node Common grammar problems
 @chapter Common grammar problems
 
 LALR grammars are tricky. Here we describe some common problems people
@@ -74,7 +74,7 @@ run into.
 * Empty choice in list::
 @end menu
 
-@node Empty choice in list,  , Common grammar problems, Common grammar problems
+@node Empty choice in list
 @section Empty choice in list
 
 Many programming languages have lists in the grammar. For example, Ada
@@ -190,7 +190,7 @@ allows it to handle this option.
 Choice 2 is the preferred choice for Ada, since it involves the least
 modifications to the original Ada grammar in the Ada reference manual.
 
-@node Syntax,  , Common grammar problems, Top
+@node Syntax
 @chapter Syntax
 
 The wisi input file syntax is the based on Wisent and Gnu bison syntax
@@ -219,7 +219,7 @@ Comments are started by ``;;'' and terminated by end of line.
 * Rules::
 @end menu
 
-@node Prologue, Declarations, Syntax, Syntax
+@node Prologue
 @section Prologue
 
 The Prologue contains arbitrary code, copied verbatim into the
@@ -236,7 +236,7 @@ context-clause (before the package declaration); the
 @code{POST_PROLOGUE} is output after other package declarations, at
 the end of the package spec.
 
-@node Declarations, Rules, Prologue, Syntax
+@node Declarations
 @section Declarations
 
 The Declarations sections declares terminal tokens, conflicts, and
@@ -244,11 +244,11 @@ other parser parameters.
 
 @menu
 * Tokens::
+* Other parser parameters::
 * Conflicts::
-* Start symbol::
 @end menu
 
-@node Tokens, Conflicts, Declarations, Declarations
+@node Tokens
 @subsection Tokens
 There are two types of tokens; keywords and other:
 
@@ -314,7 +314,7 @@ argument is the comment start syntax.
 
 @end table
 
-@node Other parser parameters,  , Conflicts, Declarations
+@node Other parser parameters
 @subsection Other parser parameters
 
 @table @code
@@ -336,17 +336,21 @@ Process}.
 @item %lexer
 The lexer; one of @code{aflex | elisp | regexp}.
 
-@item %mckenzie_cost_default <insert> <delete>
+@item %mckenzie_cost_default <insert> <delete_terminal> <delete_nonterminal>
 McKenzie error recovery default costs for insert and delete single
-tokens; two floating point numbers. If not specified, default costs
+tokens; three floating point numbers. If not specified, default costs
 are zero. Costs can be negative; they all add linearly.
 
 @item %mckenzie_cost_insert <keyword> <cost>
 McKenzie error recovery insert cost for a specific keyword.
 
+@item %mckenzie_cost_delete <keyword> <cost>
+McKenzie error recovery delete cost for a specific keyword.
+
 @item %mckenzie_enqueue_limit <integer>
 McKenzie error recovery limit on items enqueued; default max integer.
 @c FIXME: describe mckenzie, panic more completely
+@c FIXME: mckenzie special rules
 
 @item %output_language
 The generator output language; one of:
@@ -381,7 +385,7 @@ The start symbol for the grammar.
 
 @end table
 
-@node Conflicts, Start symbol, Tokens, Declarations
+@node Conflicts
 @subsection Conflicts
 
 An example conflict declaration:
@@ -392,7 +396,7 @@ An example conflict declaration:
 The conflict description is output by wisi-generate when an undeclared
 conflict is detected; it can be copied into the grammar source file.
 
-@node Rules,  , Declarations, Syntax
+@node Rules
 @section Rules
 
 The rules section declares the non-terminal tokens, and the associated

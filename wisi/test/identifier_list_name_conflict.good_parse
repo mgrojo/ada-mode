@@ -10,13 +10,12 @@ Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
 
  0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
+ 0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
- 1 stack:  3 : IDENTIFIER,  0 : 
  1: 3: COMMA : reduce 1 tokens to name
 pending MERGE name_0: name <= IDENTIFIER
  action count: 1
  ... goto state 7
- 0 stack:  3 : IDENTIFIER,  0 : 
  0: 3: COMMA : reduce 1 tokens to identifier_list
 pending MERGE identifier_list_0: identifier_list <= IDENTIFIER
  action count: 1
@@ -34,6 +33,7 @@ pending PUSH COMMA
  1: 8: COMMA : shift and goto state 9
 pending PUSH COMMA
  action count: 3
+ 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
 pending PUSH IDENTIFIER
@@ -65,6 +65,7 @@ pending PUSH COMMA
  1: 8: COMMA : shift and goto state 9
 pending PUSH COMMA
  action count: 7
+ 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
 pending PUSH IDENTIFIER
@@ -106,6 +107,8 @@ pending PUSH STRING_LITERAL
  1: 5: STRING_LITERAL : shift and goto state 2
 pending PUSH STRING_LITERAL
  action count: 12
+ 0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
+ 1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1: duplicate state; terminate (1 active)
 execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))
@@ -210,13 +213,12 @@ Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
 
  0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
+ 0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
- 1 stack:  3 : IDENTIFIER,  0 : 
  1: 3: COMMA : reduce 1 tokens to name
 pending MERGE name_0: name <= IDENTIFIER
  action count: 1
  ... goto state 7
- 0 stack:  3 : IDENTIFIER,  0 : 
  0: 3: COMMA : reduce 1 tokens to identifier_list
 pending MERGE identifier_list_0: identifier_list <= IDENTIFIER
  action count: 1
@@ -234,6 +236,7 @@ pending PUSH COMMA
  1: 8: COMMA : shift and goto state 9
 pending PUSH COMMA
  action count: 3
+ 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
 pending PUSH IDENTIFIER
@@ -265,6 +268,7 @@ pending PUSH COMMA
  1: 8: COMMA : shift and goto state 9
 pending PUSH COMMA
  action count: 7
+ 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
 pending PUSH IDENTIFIER
@@ -306,6 +310,8 @@ pending PUSH STRING_LITERAL
  1: 5: STRING_LITERAL : shift and goto state 2
 pending PUSH STRING_LITERAL
  action count: 12
+ 0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
+ 1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1: duplicate state; terminate (1 active)
 execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))

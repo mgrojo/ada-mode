@@ -140,8 +140,9 @@ DIFF_OPT := -u -w
 wisi-clean :
 	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l
 
+# -v 3 gives stack trace
 %.parse : %.input %_run.exe
-	./$*_run.exe -v 4 $< > $*.parse
+	./$*_run.exe -v 3 $< > $*.parse
 	dos2unix $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*

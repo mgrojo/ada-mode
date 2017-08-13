@@ -29,13 +29,12 @@ object_declaration_0: (object_declaration 1 . 8) <= ((IDENTIFIER 1 . 7), (aliase
  ... goto state 3
  1 stack:  3 : object_declaration_list,  1 : 
  1: 3: IDENTIFIER : shift and goto state 2
+ 1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 1 (2 active)
- 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: CONSTANT : reduce 0 tokens to aliased_opt
 pending MERGE aliased_opt_0: aliased_opt <= 
  action count: 1
  ... goto state 8
- 1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  1: 2: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 1
@@ -43,6 +42,7 @@ pending PUSH CONSTANT
  2: 8: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 2
+ 1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2 stack:  7 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 7: SEMICOLON : reduce 1 tokens to constant_opt
 pending MERGE constant_opt_1: constant_opt <= CONSTANT
@@ -139,13 +139,12 @@ object_declaration_list_1: (object_declaration_list 1 . 82) <= ((object_declarat
  ... goto state 3
  2 stack:  3 : object_declaration_list,  1 : 
  2: 3: IDENTIFIER : shift and goto state 2
+ 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 2 (2 active)
- 3 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 2: CONSTANT : reduce 0 tokens to aliased_opt
 pending MERGE aliased_opt_0: aliased_opt <= 
  action count: 1
  ... goto state 8
- 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 1
@@ -153,6 +152,7 @@ pending PUSH CONSTANT
  3: 8: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 2
+ 2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3 stack:  7 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 7: COLON_EQUAL : reduce 1 tokens to constant_opt
 pending MERGE constant_opt_1: constant_opt <= CONSTANT
@@ -217,13 +217,12 @@ object_declaration_0: (object_declaration 1 . 8) <= ((IDENTIFIER 1 . 7), (aliase
  ... goto state 3
  1 stack:  3 : object_declaration_list,  1 : 
  1: 3: IDENTIFIER : shift and goto state 2
+ 1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 1 (2 active)
- 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: CONSTANT : reduce 0 tokens to aliased_opt
 pending MERGE aliased_opt_0: aliased_opt <= 
  action count: 1
  ... goto state 8
- 1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  1: 2: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 1
@@ -231,6 +230,7 @@ pending PUSH CONSTANT
  2: 8: CONSTANT : shift and goto state 11
 pending PUSH CONSTANT
  action count: 2
+ 1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2 stack:  11 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 11: SEMICOLON : reduce 1 tokens to constant_opt
 pending MERGE constant_opt_1: constant_opt <= CONSTANT
@@ -320,13 +320,12 @@ object_declaration_list_1: (object_declaration_list 1 . 82) <= ((object_declarat
  ... goto state 3
  2 stack:  3 : object_declaration_list,  1 : 
  2: 3: IDENTIFIER : shift and goto state 2
+ 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 2 (2 active)
- 3 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 2: CONSTANT : reduce 0 tokens to aliased_opt
 pending MERGE aliased_opt_0: aliased_opt <= 
  action count: 1
  ... goto state 8
- 2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: CONSTANT : shift and goto state 7
 pending PUSH CONSTANT
  action count: 1
@@ -334,6 +333,7 @@ pending PUSH CONSTANT
  3: 8: CONSTANT : shift and goto state 11
 pending PUSH CONSTANT
  action count: 2
+ 2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3 stack:  11 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 11: COLON_EQUAL : ERROR
  2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 

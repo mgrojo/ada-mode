@@ -168,9 +168,10 @@ package WisiToken.Parser.LR is
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
    type McKenzie_Param_Type
-     (First_Terminal   : Token_ID;
-      Last_Terminal    : Token_ID;
-      Last_Nonterminal : Token_ID)
+     (First_Terminal    : Token_ID;
+      Last_Terminal     : Token_ID;
+      First_Nonterminal : Token_ID;
+      Last_Nonterminal  : Token_ID)
    is record
       Insert        : Token_Array_Float (First_Terminal .. Last_Terminal);
       Delete        : Token_Array_Float (First_Terminal .. Last_Nonterminal);
@@ -183,14 +184,15 @@ package WisiToken.Parser.LR is
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
-     (First_Terminal   => Token_ID'Last,
-      Last_Terminal    => Token_ID'First,
-      Last_Nonterminal => Token_ID'First,
-      Insert           => (others => 0.0),
-      Delete           => (others => 0.0),
-      Enqueue_Limit    => Integer'Last,
-      Dot_ID           => Token_ID'Last,
-      Identifier_ID    => Token_ID'Last);
+     (First_Terminal    => Token_ID'Last,
+      Last_Terminal     => Token_ID'First,
+      First_Nonterminal => Token_ID'Last,
+      Last_Nonterminal  => Token_ID'First,
+      Insert            => (others => 0.0),
+      Delete            => (others => 0.0),
+      Enqueue_Limit     => Integer'Last,
+      Dot_ID            => Token_ID'Last,
+      Identifier_ID     => Token_ID'Last);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
    --  Put Item to Ada.Text_IO.Current_Output
@@ -206,7 +208,7 @@ package WisiToken.Parser.LR is
    record
       States        : Parse_State_Array (State_First .. State_Last);
       Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal, Last_Nonterminal);
+      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
       Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
 
@@ -246,7 +248,7 @@ package WisiToken.Parser.LR is
    package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parser_Stack_Item);
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item, Parser_Stack_Interfaces);
 
-   procedure Put_Top_10 (Label : in String; Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type);
+   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type);
    --  Put image of top 10 stack items to Trace.
 
    type Instance is abstract new WisiToken.Parser.Instance with record
@@ -268,7 +270,8 @@ package WisiToken.Parser.LR is
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;
       Stack      : in Parser_Stacks.Stack_Type;
-      Depth      : in SAL.Base_Peek_Type := 0)
+      Depth      : in SAL.Base_Peek_Type := 0;
+      Top_First  : in Boolean            := True)
      return String;
    --  If Depth = 0, put all of Stack. Otherwise put Min (Depth,
    --  Stack.Depth) items.

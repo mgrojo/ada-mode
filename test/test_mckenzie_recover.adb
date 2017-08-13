@@ -314,9 +314,9 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 (((189, +SEMICOLON_ID), (188, +identifier_opt_ID), (167, +LOOP_ID), (160, +END_ID),
-                   (127, +sequence_of_statements_opt_ID), (101, +LOOP_ID), (35, +BEGIN_ID),
-                   (30, +declarative_part_opt_ID), (11, +IS_ID), (10, +subprogram_specification_ID),
+                 (((196, +SEMICOLON_ID), (195, +identifier_opt_ID), (174, +LOOP_ID), (167, +END_ID),
+                   (133, +sequence_of_statements_opt_ID), (107, +LOOP_ID), (38, +BEGIN_ID),
+                   (33, +declarative_part_opt_ID), (12, +IS_ID), (11, +subprogram_specification_ID),
                    (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                Shared_Lookahead_Index => 1,
@@ -437,7 +437,7 @@ package body Test_McKenzie_Recover is
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
                (Stack                  => To_State_Stack
-                  (((11, +IS_ID), (10, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
+                  (((12, +IS_ID), (11, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
                 Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                 Shared_Lookahead_Index => 1,
                 Local_Lookahead        => WisiToken.Empty_Token_Array,

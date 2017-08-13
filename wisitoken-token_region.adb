@@ -43,9 +43,10 @@ package body WisiToken.Token_Region is
    end Image;
 
    procedure Put
-     (Trace : in out WisiToken.Trace'Class;
-      Stack : in     Augmented_Token_Array;
-      Count : in     Ada.Containers.Count_Type := Ada.Containers.Count_Type'First)
+     (Trace     : in out WisiToken.Trace'Class;
+      Stack     : in     Augmented_Token_Array;
+      Count     : in     Ada.Containers.Count_Type := Ada.Containers.Count_Type'First;
+      Top_First : in     Boolean                   := True)
    is
       --  Put top Count items on Stack; all if -1.
       use Augmented_Token_Arrays;
@@ -54,13 +55,23 @@ package body WisiToken.Token_Region is
       First : constant Count_Type := (if Count = Ada.Containers.Count_Type'First then 1 else Stack.Length - Count + 1);
    begin
       Trace.Put ("(");
-      for I in reverse First .. Stack.Last_Index loop
+      if Top_First then
+         for I in reverse First .. Stack.Last_Index loop
 
-         Trace.Put (Image (Trace.Descriptor.all, Token (Stack (I).Element.all), ID_Only => False));
-         if I /= Stack.Last_Index then
-            Trace.Put (", ");
-         end if;
-      end loop;
+            Trace.Put (Image (Trace.Descriptor.all, Token (Stack (I).Element.all), ID_Only => False));
+            if I /= First then
+               Trace.Put (", ");
+            end if;
+         end loop;
+      else
+         for I in First .. Stack.Last_Index loop
+
+            Trace.Put (Image (Trace.Descriptor.all, Token (Stack (I).Element.all), ID_Only => False));
+            if I /= Stack.Last_Index then
+               Trace.Put (", ");
+            end if;
+         end loop;
+      end if;
       Trace.Put (")");
    end Put;
 
@@ -98,7 +109,7 @@ package body WisiToken.Token_Region is
          else "");
    begin
       Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm, ID_Only => False) & " <= ");
-      Put (Trace, Stack, Tokens_Length);
+      Put (Trace, Stack, Count => Tokens_Length, Top_First => False);
       Trace.New_Line;
    end Put;
 

@@ -27,10 +27,14 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       use Ada.Text_IO;
       use Ada.Containers;
    begin
-      Put ("(" & Image (Descriptor, Config.Stack) & SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & " ");
+      Put ("(" & Image (Descriptor, Config.Stack));
+      Put (" " & All_Parse_Action_Verbs'Image (Config.Verb));
+      Put (SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & " ");
       WisiToken.Put (Descriptor, Config.Local_Lookahead);
       Put (" " & Count_Type'Image (Config.Local_Lookahead_Index) & " ");
       WisiToken.Put (Descriptor, Config.Popped);
+      Put (" ");
+      Put (Image (Descriptor, Config.Pushed));
       Put (" ");
       WisiToken.Put (Descriptor, Config.Inserted);
       Put (" ");
@@ -292,13 +296,22 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       --  False.
 
       pragma Unreferenced (Param);
-      Sequence_Of_Statements_ID : constant Token_ID := 93; -- FIXME: move to Param.
+      Sequence_Of_Statements_ID : constant Token_ID := 95; -- FIXME: move to Param.
       Begin_ID                  : constant Token_ID := 4;  -- FIXME: move to Param.
 
       use all type Ada.Containers.Count_Type;
 
       Stack_ID : Token_ID;
+
+      Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
    begin
+      if not (Descriptor.Image (Sequence_Of_Statements_ID).all = "sequence_of_statements" and
+                Descriptor.Image (Begin_ID).all = "BEGIN")
+      then
+         --  Language is not Ada_Lite; rule not valid
+         return False;
+      end if;
+
       if Parser_State.Prev_Verb = Reduce and Parser_State.Pre_Reduce_Stack_Item.ID = Sequence_Of_Statements_ID then
          Stack_ID := Sequence_Of_Statements_ID;
 
@@ -324,9 +337,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       begin
          --  Just enough for test_mckenzie_recover Error_5
          Terminal_Sequences (1).Append (12); -- if
-         Terminal_Sequences (1).Append (21); -- then
+         Terminal_Sequences (1).Append (22); -- then
          Terminal_Sequences (1).Append (8); -- elsif
-         Terminal_Sequences (1).Append (21); -- then
+         Terminal_Sequences (1).Append (22); -- then
 
          Find_ID :
          for Seq of Terminal_Sequences loop

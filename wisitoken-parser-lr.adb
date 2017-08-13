@@ -59,12 +59,11 @@ package body WisiToken.Parser.LR is
       New_Line;
    end Put;
 
-   procedure Put_Top_10 (Label : in String; Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
+   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
    is
       use all type SAL.Base_Peek_Type;
       Last : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Min (10, Stack.Depth);
    begin
-      Trace.Put (Label);
       for I in 1 .. Last loop
          Trace.Put
            (State_Index'Image (Stack.Peek (I).State) & " : " &
@@ -90,7 +89,8 @@ package body WisiToken.Parser.LR is
    function Image
      (Descriptor : in WisiToken.Descriptor'Class;
       Stack      : in Parser_Stacks.Stack_Type;
-      Depth      : in SAL.Base_Peek_Type := 0)
+      Depth      : in SAL.Base_Peek_Type := 0;
+      Top_First  : in Boolean            := True)
      return String
    is
       use all type SAL.Base_Peek_Type;
@@ -104,12 +104,23 @@ package body WisiToken.Parser.LR is
 
       Result : Unbounded_String;
    begin
-      for I in 1 .. Stack.Depth loop
-         Result := Result & (State_Image (Stack.Peek (I).State) & " : " &
-              (if I = Last
-               then ""
-               else Image (Descriptor, Stack.Peek (I).ID) & ", "));
-      end loop;
+      if Top_First then
+         for I in reverse 1 .. Stack.Depth loop
+            Result := Result &
+              (State_Image (Stack.Peek (I).State) & " : " &
+                 (if I = 1
+                  then ""
+                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+         end loop;
+      else
+         for I in 1 .. Stack.Depth loop
+            Result := Result &
+              (State_Image (Stack.Peek (I).State) & " : " &
+                 (if I = Last
+                  then ""
+                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+         end loop;
+      end if;
       return To_String (Result & ")");
    end Image;
 

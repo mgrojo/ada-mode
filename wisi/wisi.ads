@@ -93,11 +93,12 @@ package Wisi is
    package String_Pair_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
    type McKenzie_Recover_Param_Type is record
-      Default_Insert : Float   := 0.0;
-      Default_Delete : Float   := 0.0;
-      Delete         : String_Pair_Lists.List;
-      Insert         : String_Pair_Lists.List;
-      Enqueue_Limit  : Integer := Integer'Last;
+      Default_Insert             : Float   := 0.0;
+      Default_Delete_Terminal    : Float   := 0.0;
+      Default_Delete_Nonterminal : Float   := 0.0;
+      Delete                     : String_Pair_Lists.List;
+      Insert                     : String_Pair_Lists.List;
+      Enqueue_Limit              : Integer := Integer'Last;
 
       --  For special rules
       Dot_ID        : Standard.Ada.Strings.Unbounded.Unbounded_String;

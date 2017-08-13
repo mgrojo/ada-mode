@@ -194,8 +194,9 @@ package body Test_Follow is
             Expected_First : constant WisiToken.Token_Array_Token_Set := Token_Enum.To_Nonterminal_Array_Token_Set
               ((wisitoken_accept_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | compilation_unit_ID | compilation_unit_list_ID |
-                     function_specification_ID | library_item_ID | procedure_specification_ID | subprogram_body_ID |
-                     subprogram_declaration_ID | subprogram_specification_ID => True,
+                     function_specification_ID | generic_instantiation_ID | library_item_ID |
+                     procedure_specification_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID => True,
                    others => False),
                 actual_parameter_part_ID => (LEFT_PAREN_ID => True, others => False),
                 assignment_statement_ID => (IDENTIFIER_ID | name_ID | selected_component_ID => True, others => False),
@@ -225,33 +226,34 @@ package body Test_Follow is
                   (WHEN_ID | case_statement_alternative_ID | case_statement_alternative_list_ID => True,
                    others => False),
                 compilation_unit_ID =>
-                  (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | library_item_ID |
-                   procedure_specification_ID | subprogram_body_ID | subprogram_declaration_ID |
-                   subprogram_specification_ID => True,
+                  (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | generic_instantiation_ID | library_item_ID |
+                     procedure_specification_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID => True,
                    others => False),
                 compilation_unit_list_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | compilation_unit_ID | compilation_unit_list_ID |
-                   function_specification_ID | library_item_ID | procedure_specification_ID | subprogram_body_ID |
-                   subprogram_declaration_ID | subprogram_specification_ID => True,
+                     function_specification_ID | generic_instantiation_ID | library_item_ID |
+                     procedure_specification_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID => True,
                    others => False),
                 compound_statement_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | IF_ID | LOOP_ID | block_statement_ID | case_statement_ID |
-                   if_statement_ID | loop_statement_ID => True,
+                     if_statement_ID | loop_statement_ID => True,
                    others => False),
                 declaration_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | function_specification_ID |
-                   object_declaration_ID | procedure_specification_ID | proper_body_ID | subprogram_body_ID |
-                   subprogram_declaration_ID | subprogram_specification_ID => True,
+                     object_declaration_ID | procedure_specification_ID | proper_body_ID | subprogram_body_ID |
+                     subprogram_declaration_ID | subprogram_specification_ID => True,
                    others => False),
                 declarations_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
-                   function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
-                   subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
+                     function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
+                     subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
                    others => False),
                 declarative_part_opt_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
-                   function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
-                   subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
+                     function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
+                     subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
                    others => False),
                 elsif_statement_item_ID => (ELSIF_ID => True, others => False),
                 elsif_statement_list_ID =>
@@ -259,36 +261,38 @@ package body Test_Follow is
                 exit_statement_ID => (EXIT_ID => True, others => False),
                 expression_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | relation_and_list_ID | relation_or_list_ID |
-                   relation_xor_list_ID | relation_ID | selected_component_ID | simple_expression_ID | term_ID |
-                   term_list_ID | unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | relation_and_list_ID | relation_or_list_ID |
+                     relation_xor_list_ID | relation_ID | selected_component_ID | simple_expression_ID | term_ID |
+                     term_list_ID | unary_adding_operator_ID => True,
                    others => False),
                 expression_opt_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | expression_ID |
-                   factor_ID | name_ID | paren_expression_ID | primary_ID | relation_and_list_ID |
-                   relation_or_list_ID | relation_xor_list_ID | relation_ID | selected_component_ID |
-                   simple_expression_ID | term_ID | term_list_ID | unary_adding_operator_ID => True,
+                     factor_ID | name_ID | paren_expression_ID | primary_ID | relation_and_list_ID |
+                     relation_or_list_ID | relation_xor_list_ID | relation_ID | selected_component_ID |
+                     simple_expression_ID | term_ID | term_list_ID | unary_adding_operator_ID => True,
                    others => False),
                 factor_ID =>
                   (LEFT_PAREN_ID | NOT_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | name_ID | paren_expression_ID |
-                   primary_ID | selected_component_ID => True,
+                     primary_ID | selected_component_ID => True,
                    others => False),
                 formal_part_ID => (LEFT_PAREN_ID => True, others => False),
                 function_specification_ID => (FUNCTION_ID => True, others => False),
+                generic_instantiation_ID => (PROCEDURE_ID => True, others => False),
                 handled_sequence_of_statements_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | EXIT_ID | IF_ID | LOOP_ID | RETURN_ID | IDENTIFIER_ID |
-                   assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
-                   exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
-                   procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
-                   sequence_of_statements_opt_ID | simple_return_statement_ID | simple_statement_ID |
-                   statement_ID => True,
+                     assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
+                     exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
+                     procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
+                     sequence_of_statements_opt_ID | simple_return_statement_ID | simple_statement_ID |
+                     statement_ID => True,
                    others => False),
                 identifier_opt_ID => (IDENTIFIER_ID => True, others => False),
                 if_statement_ID => (IF_ID => True, others => False),
                 label_ID => (IDENTIFIER_ID => True, others => False),
                 library_item_ID =>
-                  (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | procedure_specification_ID |
-                   subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
+                  (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | generic_instantiation_ID |
+                     procedure_specification_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID => True,
                    others => False),
                 loop_statement_ID => (LOOP_ID => True, others => False),
                 multiplying_operator_ID => (SLASH_ID | STAR_ID => True, others => False),
@@ -306,7 +310,7 @@ package body Test_Follow is
                 paren_expression_ID => (LEFT_PAREN_ID => True, others => False),
                 primary_ID =>
                   (LEFT_PAREN_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | name_ID | paren_expression_ID |
-                   selected_component_ID => True,
+                     selected_component_ID => True,
                    others => False),
                 procedure_call_statement_ID =>
                   (IDENTIFIER_ID | name_ID | selected_component_ID => True,
@@ -314,30 +318,30 @@ package body Test_Follow is
                 procedure_specification_ID => (PROCEDURE_ID => True, others => False),
                 proper_body_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | procedure_specification_ID |
-                   subprogram_body_ID | subprogram_specification_ID => True,
+                     subprogram_body_ID | subprogram_specification_ID => True,
                    others => False),
                 relation_and_list_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | relation_and_list_ID | relation_ID |
-                   selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
-                   unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | relation_and_list_ID | relation_ID |
+                     selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
+                     unary_adding_operator_ID => True,
                    others => False),
                 relation_or_list_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | relation_or_list_ID | relation_ID |
-                   selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
-                   unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | relation_or_list_ID | relation_ID |
+                     selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
+                     unary_adding_operator_ID => True,
                    others => False),
                 relation_xor_list_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | relation_xor_list_ID | relation_ID |
-                   selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
-                   unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | relation_xor_list_ID | relation_ID |
+                     selected_component_ID | simple_expression_ID | term_ID | term_list_ID |
+                     unary_adding_operator_ID => True,
                    others => False),
                 relation_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | selected_component_ID | simple_expression_ID |
-                   term_ID | term_list_ID | unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | selected_component_ID | simple_expression_ID |
+                     term_ID | term_list_ID | unary_adding_operator_ID => True,
                    others => False),
                 relational_operator_ID =>
                   (EQUAL_ID | GREATER_ID | GREATER_EQUAL_ID | LESS_ID | LESS_EQUAL_ID | SLASH_EQUAL_ID => True,
@@ -345,53 +349,53 @@ package body Test_Follow is
                 selected_component_ID => (IDENTIFIER_ID | name_ID | selected_component_ID => True, others => False),
                 sequence_of_statements_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | EXIT_ID | IF_ID | LOOP_ID | RETURN_ID | IDENTIFIER_ID |
-                   assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
-                   exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
-                   procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
-                   simple_return_statement_ID | simple_statement_ID | statement_ID => True,
+                     assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
+                     exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
+                     procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
+                     simple_return_statement_ID | simple_statement_ID | statement_ID => True,
                    others => False),
                 sequence_of_statements_opt_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | EXIT_ID | IF_ID | LOOP_ID | RETURN_ID | IDENTIFIER_ID |
-                   assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
-                   exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
-                   procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
-                   simple_return_statement_ID | simple_statement_ID | statement_ID => True,
+                     assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
+                     exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
+                     procedure_call_statement_ID | selected_component_ID | sequence_of_statements_ID |
+                     simple_return_statement_ID | simple_statement_ID | statement_ID => True,
                    others => False),
                 simple_expression_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
-                   name_ID | paren_expression_ID | primary_ID | selected_component_ID | term_ID | term_list_ID |
-                   unary_adding_operator_ID => True,
+                     name_ID | paren_expression_ID | primary_ID | selected_component_ID | term_ID | term_list_ID |
+                     unary_adding_operator_ID => True,
                    others => False),
                 simple_return_statement_ID => (RETURN_ID => True, others => False),
                 simple_statement_ID =>
                   (EXIT_ID | RETURN_ID | IDENTIFIER_ID | assignment_statement_ID | exit_statement_ID | name_ID |
-                   procedure_call_statement_ID | selected_component_ID | simple_return_statement_ID => True,
+                     procedure_call_statement_ID | selected_component_ID | simple_return_statement_ID => True,
                    others => False),
                 statement_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | EXIT_ID | IF_ID | LOOP_ID | RETURN_ID | IDENTIFIER_ID |
-                   assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
-                   exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
-                   procedure_call_statement_ID | selected_component_ID | simple_return_statement_ID |
-                   simple_statement_ID => True,
+                     assignment_statement_ID | block_statement_ID | case_statement_ID | compound_statement_ID |
+                     exit_statement_ID | if_statement_ID | label_ID | loop_statement_ID | name_ID |
+                     procedure_call_statement_ID | selected_component_ID | simple_return_statement_ID |
+                     simple_statement_ID => True,
                    others => False),
                 subprogram_body_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | procedure_specification_ID |
-                   subprogram_specification_ID => True,
+                     subprogram_specification_ID => True,
                    others => False),
                 subprogram_declaration_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | procedure_specification_ID |
-                   subprogram_specification_ID => True,
+                     subprogram_specification_ID => True,
                    others => False),
                 subprogram_specification_ID =>
                   (FUNCTION_ID | PROCEDURE_ID | function_specification_ID | procedure_specification_ID => True,
                    others => False),
                 term_ID =>
                   (LEFT_PAREN_ID | NOT_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID | name_ID |
-                   paren_expression_ID | primary_ID | selected_component_ID | term_ID => True,
+                     paren_expression_ID | primary_ID | selected_component_ID | term_ID => True,
                    others => False),
                 term_list_ID =>
                   (LEFT_PAREN_ID | NOT_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID | name_ID |
-                   paren_expression_ID | primary_ID | selected_component_ID | term_ID | term_list_ID => True,
+                     paren_expression_ID | primary_ID | selected_component_ID | term_ID | term_list_ID => True,
                    others => False),
                 unary_adding_operator_ID => (MINUS_ID | PLUS_ID => True, others => False),
                 others => (others => False)));
@@ -452,6 +456,7 @@ package body Test_Follow is
                    others => False),
                 formal_part_ID => (IS_ID | RETURN_ID | SEMICOLON_ID => True, others => False),
                 function_specification_ID => (IS_ID | SEMICOLON_ID => True, others => False),
+                generic_instantiation_ID => (FUNCTION_ID | PROCEDURE_ID | Wisi_EOI_ID => True, others => False),
                 handled_sequence_of_statements_ID => (END_ID => True, others => False),
                 identifier_opt_ID => (WHEN_ID | SEMICOLON_ID => True, others => False),
                 if_statement_ID =>

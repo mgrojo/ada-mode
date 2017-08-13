@@ -147,7 +147,7 @@ package body WisiToken.Parser.LR.Parser is
             Parser.Semantic_State);
 
       when Error =>
-         null;
+         Current_Parser.Save_Verb; -- For error recovery
 
       end case;
 
@@ -200,14 +200,14 @@ package body WisiToken.Parser.LR.Parser is
          when Shift | Shift_Local_Lookahead =>
             if Parser_State.Local_Lookahead.Length > 0 then
                Shift_Local_Count := Shift_Local_Count + 1;
-               Parser_State.Set_Verb (Shift_Local_Lookahead); --  FIXME: screws up prev_verb; save that separately?
+               Parser_State.Set_Verb (Shift_Local_Lookahead);
 
             elsif Parser.Lookahead.Count > 0 and
               Max_Shared_Lookahead_Index /= SAL.Base_Peek_Type'First and
               Max_Shared_Lookahead_Index /= Parser_State.Shared_Lookahead_Index
             then
                Shift_Local_Count := Shift_Local_Count + 1;
-               Parser_State.Set_Verb (Shift_Local_Lookahead); --  FIXME: screws up prev_verb; save that separately?
+               Parser_State.Set_Verb (Shift_Local_Lookahead);
 
             else
                Shift_Count := Shift_Count + 1;
@@ -279,14 +279,14 @@ package body WisiToken.Parser.LR.Parser is
       if Trace_Parse > 1 then
          Semantic_State.Trace.Put_Line ("execute pending");
       end if;
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          WisiToken.Token.Put (Semantic_State);
       end if;
       loop
          exit when Parser_State.Pend_Items.Is_Empty;
          Item := Parser_State.Pend_Items.Get;
 
-         if Trace_Parse > 1 then
+         if Trace_Parse > 3 then
             Parser_Lists.Put (Semantic_State.Trace.all, Item);
             Semantic_State.Trace.New_Line;
          end if;
@@ -361,10 +361,6 @@ package body WisiToken.Parser.LR.Parser is
 
          Current_Verb := Parse_Verb (Parser, Parsers);
 
-         if Trace_Parse > 2 then
-            Trace.Put_Line ("verb: " & All_Parse_Action_Verbs'Image (Current_Verb));
-         end if;
-
          case Current_Verb is
          when Shift_Local_Lookahead =>
             --  Handled in parser loop below
@@ -375,7 +371,7 @@ package body WisiToken.Parser.LR.Parser is
                --  Input_Lookahead was called for these when read from
                --  Lexer during error recover.
                Shared_Current_Token := Parser.Lookahead.Get;
-               if Parsers.Count > 0 then
+               if Parsers.Count > 1 then
                   for Parser_State of Parsers loop
                      Parser_State.Pend_Items.Put ((Parser_Lists.Lookahead_To_Input, Shared_Current_Token));
                   end loop;
@@ -448,7 +444,7 @@ package body WisiToken.Parser.LR.Parser is
                   --  tokens, and set Parsers (*).Current_Token and
                   --  Parsers (*).Verb.
                   Parser.Lookahead.Put (Shared_Current_Token);
-                  if Parsers.Count > 0 then
+                  if Parsers.Count > 1 then
                      for Parser_State of Parsers loop
                         Parser_State.Pend_Items.Put ((Parser_Lists.Input_To_Lookahead, Shared_Current_Token));
                      end loop;
@@ -601,6 +597,8 @@ package body WisiToken.Parser.LR.Parser is
                         Put (Trace, State.Local_Lookahead);
                         Trace.Put (SAL.Base_Peek_Type'Image (State.Shared_Lookahead_Index));
                         Trace.New_Line;
+                        Parser.Semantic_State.Put;
+                        Trace.New_Line;
                      end if;
 
                      if State.Local_Lookahead.Length > 0 then
@@ -638,7 +636,6 @@ package body WisiToken.Parser.LR.Parser is
 
                if Trace_Parse > 2 then
                   Parser_Lists.Put_Top_10 (Trace, Current_Parser);
-                  Trace.Put_Line ("  local verb: " & All_Parse_Action_Verbs'Image (Current_Parser.State_Ref.Verb));
                end if;
 
                if Parser.Terminate_Same_State and then
