@@ -66,7 +66,7 @@ package WisiToken.Token_Region is
       --  execution, and during error recovery; added by Input_Token,
       --  moved to Stack by Push_Token.
 
-      Lookahead : Token_Queues.Queue_Type;
+      Lookahead_Queue : Token_Queues.Queue_Type;
 
       Invalid_Region : Buffer_Region := Null_Buffer_Region;
       --  Temporary storage during recovery; Discard_Token increases
@@ -114,7 +114,12 @@ package WisiToken.Token_Region is
       Expecting : in     Token_ID_Set);
 
    overriding
-   procedure Discard_Token
+   procedure Discard_Input
+     (State : access State_Type;
+      Token : in     Token_ID);
+
+   overriding
+   procedure Discard_Lookahead
      (State : access State_Type;
       Token : in     Token_ID);
 

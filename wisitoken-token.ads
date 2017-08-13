@@ -198,13 +198,22 @@ package WisiToken.Token is
    --  tokens expected by the parser. Save information useful for an
    --  error message.
 
-   procedure Discard_Token
+   procedure Discard_Input
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Token was discarded in an error recover opertation; discard the
-   --  corresponding augmented token from the front of the State input
-   --  queue, and record the buffer region as invalid.
+   --  Token was discarded from input in an error recover opertation;
+   --  discard the corresponding augmented token from the front of the
+   --  State input queue, and record the buffer region as invalid.
+
+   procedure Discard_Lookahead
+     (State : access Semantic_State;
+      Token : in     Token_ID)
+     is abstract;
+   --  Token was discarded from lookahead in an error recover
+   --  opertation; discard the corresponding augmented token from the
+   --  front of the State lookahead queue, and record the buffer
+   --  region as invalid.
 
    procedure Pop_Token
      (State : access Semantic_State;

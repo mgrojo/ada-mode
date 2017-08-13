@@ -53,31 +53,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Put (Trace, Unknown_State_Index'Image (Config.Stack.Peek.State));
       end if;
       Trace.Put (" ");
-      Put (Trace, Parser.Lookahead.Peek (Config.Shared_Lookahead_Index));
-      Trace.Put (" ");
+
       if Config.Local_Lookahead.Length = 0 then
-         Put (Trace, "null ");
+         Put (Trace, Parser.Lookahead.Peek (Config.Shared_Lookahead_Index));
       else
-         Put (Trace, Config.Local_Lookahead);
-         Trace.Put (" " & Count_Type'Image (Config.Local_Lookahead_Index) & " ");
+         Put (Trace, Config.Local_Lookahead (Config.Local_Lookahead_Index));
       end if;
-      if Config.Popped.Length = 0 then
-         Put (Trace, "null");
-      else
-         Put (Trace, Config.Popped);
-      end if;
+         Trace.Put (" ");
+      Put (Trace, Config.Popped);
       Trace.Put (" ");
-      if Config.Inserted.Length = 0 then
-         Put (Trace, "null");
-      else
-         Put (Trace, Config.Inserted);
-      end if;
+      Put (Trace, Config.Inserted);
       Trace.Put (" ");
-      if Config.Deleted.Length = 0 then
-         Put (Trace, "null");
-      else
-         Put (Trace, Config.Deleted);
-      end if;
+      Put (Trace, Config.Deleted);
+      Trace.Put (" ");
       Put (Trace, Float'Image (Config.Cost));
       Trace.New_Line;
    end Put;
@@ -483,6 +471,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    begin
       if Trace_Parse > 1 then
          Trace.New_Line;
+         Trace.Put_Line ("parser" & Integer'Image (Parser_State.Label) & ":");
       end if;
 
       Clear_Queue (Data);
@@ -594,7 +583,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                use all type Ada.Containers.Count_Type;
                Deleted_ID : constant Token_ID := Parser.Lookahead.Peek (Config.Shared_Lookahead_Index);
             begin
-               if Config.Local_Lookahead_Index > Config.Local_Lookahead.Last_Index and
+               if (Config.Local_Lookahead_Index = Token_Arrays.No_Index or
+                 Config.Local_Lookahead_Index > Config.Local_Lookahead.Last_Index) and
                  Deleted_ID /= EOF_ID
                then
                   --  can't delete EOF
@@ -713,7 +703,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
                   for ID of Data.Result.Deleted loop
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
-                     Parser_State.Pend_Items.Put ((Parser_Lists.Discard, ID));
+                     Parser_State.Pend_Items.Put ((Parser_Lists.Discard_Lookahead, ID));
                   end loop;
 
                   for ID of reverse Data.Result.Local_Lookahead loop
@@ -755,7 +745,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   for ID of Data.Result.Deleted loop
                      --  Input_Token was called for these tokens, so we must call Discard_Token
                      Parser.Lookahead.Drop;
-                     Parser.Semantic_State.Discard_Token (ID);
+                     Parser.Semantic_State.Discard_Input (ID);
                   end loop;
 
                   --  We use Parser_State.Local_Lookahead even when

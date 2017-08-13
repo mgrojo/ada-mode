@@ -27,14 +27,15 @@ with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
    --  pending semantic actions
-   type Pend_Semantic_Verbs is (Input, Lookahead_To_Input, Push, Discard, Pop, Merge, Recover);
+   type Pend_Semantic_Verbs is
+     (Input, Lookahead_To_Input, Input_To_Lookahead, Push, Discard_Input, Discard_Lookahead, Pop, Merge, Recover);
    --  Verbs correspond to WisiToken.Token.Semantic_State operations.
    --  For Input, the token must be a token inserted by error
    --  recovery, with no lexer information.
 
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
-      when Input | Lookahead_To_Input | Push | Pop | Discard =>
+      when Input | Lookahead_To_Input | Input_To_Lookahead | Push | Discard_Input | Discard_Lookahead | Pop  =>
          ID : Token_ID;
 
       when Merge =>

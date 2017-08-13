@@ -44,6 +44,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword IS "is"
 %keyword LEFT_PAREN "("
 %keyword LOOP "loop"
+%keyword NEW "new"
 %keyword NOT "not"
 %keyword OR "or"
 %keyword PROCEDURE "procedure"
@@ -120,9 +121,11 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
-;; parse stack.
+;; parse stack. Similarly, we often have an extra 'end'; deleting that
+;; is simple.
 %mckenzie_cost_delete BEGIN 1.0
 %mckenzie_cost_delete declarative_part_opt 1.0
+%mckenzie_cost_delete END 1.0
 
 ;; Prefer insert 'end', ';' over everything
 %mckenzie_cost_insert END 1.0
@@ -134,6 +137,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt  on token IS
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
 
 %%
@@ -261,6 +265,12 @@ function_specification
   : FUNCTION name parameter_and_result_profile
   ;
 
+generic_instantiation
+ ;; name generic_actual_part is included in name as a function call
+ ;; present to force a conflict with procedure_specification
+  : PROCEDURE name IS NEW name SEMICOLON
+  ;
+
 handled_sequence_of_statements
   : sequence_of_statements_opt
   ;
@@ -285,6 +295,7 @@ label
 library_item
   : subprogram_declaration
   | subprogram_body
+  | generic_instantiation
   ;
 
 loop_statement

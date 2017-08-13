@@ -22,6 +22,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
@@ -454,6 +455,63 @@ package body Test_McKenzie_Recover is
       Assert (False, "1.exception: got Syntax_Error");
    end Extra_Begin;
 
+   procedure Conflict (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+
+      begin
+         Parse_Text
+           ("procedure Check is end begin end Check; ",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Syntax error (extra 'end' 20) while two parsers are sorting out a conflict (state 15 'is 17').
+         --
+         --  parser 1 state 12 subprogram_body (should succeed): delete 'end 20'. Continue to EOF.
+         --  parser 0 state 25 generic_instantiation (should fail):
+         --  finds: insert 'new', delete 'end begin end' cost 8.0 => ambiguous parse
+         --  better: Pop 'is 17', insert 'is' state 12, delete 'end 20' cost 9.0 => identical stacks, terminate one
+         Check ("1 errors.length", State.Errors.Length, 2);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+
+      when E : WisiToken.Parse_Error =>
+         declare
+            use Ada.Exceptions;
+            use Ada.Strings.Fixed;
+            Msg : constant String := Exception_Message (E);
+         begin
+            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
+         end;
+      end;
+
+      --  Symmetric case where generic_instantiation is desired
+      begin
+         Parse_Text
+           ("procedure Check is end new Check; ",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Syntax error (extra 'end' 20) while two parsers are sorting out a conflict (state 15 'is 17').
+         --
+         --  parser 1 state 12 subprogram_body (should fail): insert 'begin'. Continue to error at 'new 23', terminate.
+         --  parser 0 state 25 generic_instantiation (should succeed):
+         --  finds: delete 'end'. Continue to eof, accept
+
+         Check ("2 errors.length", State.Errors.Length, 1); -- error from two parsers is merged into one report.
+
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "2 exception: got Syntax_Error");
+      when WisiToken.Parse_Error =>
+         Assert (False, "2 exception: got Parse_Error");
+      end;
+   end Conflict;
+
    ----------
    --  Public subprograms
 
@@ -469,7 +527,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Error_5'Access, "debug");
+         Register_Routine (T, Conflict'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
@@ -480,6 +538,7 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Error_5'Access, "Error_5");
          Register_Routine (T, Check_Accept'Access, "Check_Accept");
          Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
+         Register_Routine (T, Conflict'Access, "Conflict");
       end if;
    end Register_Tests;
 

@@ -256,7 +256,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Trace.Put (Pend_Semantic_Verbs'Image (Pend_Item.Verb) & " ");
 
       case Pend_Item.Verb is
-      when Input | Lookahead_To_Input | Push | Discard | Pop =>
+      when Input | Lookahead_To_Input | Input_To_Lookahead | Push | Discard_Input | Discard_Lookahead | Pop =>
          Trace.Put (Image (Trace.Descriptor.all, Pend_Item.ID));
 
       when Merge =>

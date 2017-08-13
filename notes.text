@@ -6,7 +6,14 @@ org.wisitoken.stephe-1 - development
 
  current work
 
-review diffs with main branch
+save prev_verb only when set verb to error; in -lr-parser.adb explicitly
+    fixmes in parse_verb
+
+test_mckenzie
+    error_4, Conflict pass; others fail
+
+Delete lr.put_top10 label arg
+    move it to parser_lists
 
 propagate o.w.s-1 to o.w
     make it work with o.e.a.s-4
@@ -20,25 +27,29 @@ replace wisitoken.token.list with token_array
     or not; changes generate?
     ditto production.list
 
-Delete lr.put_top10 label arg
-    move it to parser_lists
+rename mckenzie to dpa_explore?
+    dpa = deterministic parsing automata (McKenzie)
+        = Deterministic Pushdown Automata (Wikipedia, Grune)
+
+    aflex uses "dfa" deterministic finite automata
+    grune also uses 'deterministic fs automata' (Finite State)
+
+    includes special rules
 
 Make delete nonterm expensive. Del_cost first last cost
 
-fix McKenzie with parallel parsers
-        force a conflict
-        don't terminate any if all fail
-        _dont_ exit recover with first success; all parsers may succeed
-   procedure Check
-     (Label    : in String;
-      Computed : in Error_Data;
-      Expected : in Error_Data)
-   is
-   end Check;
-
-       function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.
-
 better syntax error handling
+    new algorithm 0:
+        Grune 326 Kim, Choe 2001
+        branch wisitoken.stephe_1
+        Definition 3.5 Lookback is just reduce
+        just implement the algorithms, see if that makes it clearer.
+            not clear how to compute S(A) for nonterminals?
+                Fischer Mauney 1989 ? no
+                fischer, dion, mauney 1979?
+                or dion, fischer, 1978? not in google scholar
+                or it's "just obvious"; terminal_sequences_1
+
     new algorithm 1:
         if error symbol is in a terminal sequence:
                 need fast lookup; use linear search for now
@@ -46,8 +57,7 @@ better syntax error handling
             insert that sequence subset, do McKenzie
 
         process grammar to generate shortest terminal sequences for each nonterm
-            same as Grune 326 S(A), but that does not require empty nonterms
-                it recurses into all nonterms, finding shortest string
+            same as Grune 326 S(A)
 
             that does _not_ insert 'elsif' into 'if_statement'
                 which is why we need a full graph search?
@@ -78,6 +88,8 @@ better syntax error handling
                 doing kim, choe 2001 dpa graph search
 
         new test cases:
+            'if **'
+
 procedure Debug
 is begin
    procedure Put_Top_10
@@ -152,28 +164,6 @@ procedure_specification <= PROCEDURE name ^ parameter_profile_opt, IS
 
         search all productions in 'declarations', 'statements'?
             start with final terminal, work backward to first
-
-    Grune 326 Kim, Choe 2001
-        branch wisitoken.stephe_1
-        Definition 3.5 Lookback is just reduce
-        don't understand why RC(u) works
-        just implement the algorithms, see if that makes it clearer.
-            not clear how to compute S(A) for nonterminals?
-                Fischer Mauney 1989 ? no
-                fischer, dion, mauney 1979?
-                or dion, fischer, 1978? not in google scholar
-                or it's "just obvious"; extend terminal_sequences_1
-
-    rename mckenzie to dpa_explore?
-        dpa = deterministic parsing automata (McKenzie)
-            = Deterministic Pushdown Automata (Wikipedia, Grune)
-
-        aflex uses "dfa" deterministic finite automata
-        grune also uses 'deterministic fs automata' (Finite State)
-
-        includes special rules
-
-        use Grune 326 to find candidates
 
     cache recover for subsequent parse
 
