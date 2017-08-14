@@ -38,33 +38,38 @@
 
 (defun ada-wisi-opentoken ()
   "Return appropriate indentation (an integer column) for continuation lines in an OpenToken grammar statement."
-  ;; We don't do any checking to see if we actually are in an
-  ;; OpenToken grammar statement, since this rule should only be
-  ;; included in package specs that exist solely to define OpenToken
-  ;; grammar fragments.
   (save-excursion
+    ;; Point is at indentation on a line
     (let ((token-text (wisi-token-text (wisi-backward-token)))
-	  cache)
-      (cond
-       ((equal token-text "<=")
-	(+ (current-indentation) ada-indent-broken))
+	  cache object-text object-indentation)
 
-       ((member token-text '("+" "&"))
-	(while (not (equal "<=" (wisi-token-text (wisi-backward-token)))))
-	(+ (current-indentation) ada-indent-broken))
+      (save-excursion
+	(while (forward-comment 1))
+	(setq cache (wisi-goto-statement-start))
+	(setq object-text (wisi-token-text (wisi-forward-token)))
+	(setq object-indentation (current-indentation)))
 
-       ((equal token-text "and")
-	;; test/ada_mode-opentoken.ads
-	;; Tokens.Statement <= Add_Statement and
-	;; Add_Statement <=
-	;;   ... and
-	;; Add_Statement <=
-	;;
-	(setq cache (wisi-goto-containing (wisi-backward-cache))) ;; Tokens.Statement
-	(wisi-goto-containing cache);; :=
+      (when (and (eq 'object_declaration (wisi-cache-nonterm cache))
+		 (equal "Grammar" object-text))
+	;; On an OpenToken Grammar declaration statement
+	(cond
+	 ((equal token-text "<=")
+	  (+ (current-indentation) ada-indent-broken))
 
-	(+ (current-indentation) ada-indent-broken))
-       ))))
+	 ((member token-text '("+" "&"))
+	  (while (not (equal "<=" (wisi-token-text (wisi-backward-token)))))
+	  (+ (current-indentation) ada-indent-broken))
+
+	 ((equal token-text "and")
+	  ;; test/ada_mode-opentoken.ads
+	  ;; Grammar : constant Production_List.Instance :=
+	  ;;   Tokens.Statement <= Add_Statement and
+	  ;;   Add_Statement <=
+	  ;;     ... and
+	  ;;   Add_Statement <=
+	  ;;
+	  (+ object-indentation ada-indent-broken))
+	 )))))
 
 (defconst ada-wisi-opentoken-align
   '(ada-opentoken

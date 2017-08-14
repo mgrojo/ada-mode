@@ -2,7 +2,11 @@
 --EMACSRESULT:'gpr-mode
 
 with "foo";
-aggregate project Casing_Agg extends "bar" is
+--EMACSCMD:(test-face "Casing_Agg" font-lock-function-name-face)
+aggregate
+project Casing_Agg
+extends "bar"
+is
 
    --EMACSCMD:(ada-case-adjust-buffer)
 
@@ -17,4 +21,5 @@ aggregate project Casing_Agg extends "bar" is
       for Attribute ("ada") use ("this", "that");
    end Linker;
 
+   --EMACSCMD:(test-face "Casing_Agg" font-lock-function-name-face)
 end Casing_Agg;
