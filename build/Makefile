@@ -58,7 +58,7 @@ test : test-wisi
 test : test-ada-gpr_query.stamp
 test : test-ada-gps.stamp
 test : gpr-skel.gpr.diff
-test : test-gpr
+test : test-gpr.stamp
 test : test-elisp
 test : summarize
 
@@ -124,7 +124,14 @@ test-ada-gps.stamp : force
 	rm -f *.diff *.tmp
 	$(MAKE) test-ada-gps
 	touch $@
-	find . -name "*.diff" -not -size 0 >> test.log
+
+test-gpr : RUNTEST := run-indent-test-gpr.el
+test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+
+test-gpr.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-gpr
+	touch $@
 
 # compare gps indent to ada-wisi indent
 compare-ada-gps : RUNTEST := run-indent-test-gps.el
