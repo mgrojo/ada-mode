@@ -56,6 +56,9 @@ install packages in -Q:
  (list-packages))
 
  current work
+font error
+    for Current_Parser in Parsers loop
+        'parsers' is in type font; actually an object
 
 indent bugs:
    type Nonterminal_Array_Token_Set
@@ -66,19 +69,29 @@ indent bugs:
    end record;
 
 cache invalidate bugs:
-    loop
-        declare
-        begin
-           foo;
-        end;
-    end loop;
+    insert or delete
+        elsif Skip_Current_Token then
 
-    delete block, leaving 'foo;'
-    cache on some previous line still there; foo double indented until delete preceding newline
+        in wisitoken-parser-lr-parser.adb
+        forward-sexp skipped other elsif's
+        (wisi-parse-buffer 'navigate) fixed it.
 
+    case:
+        after some edit somewhere:
+            forward-sexp skips 'when'
+            'case' has no next marker
+        M-x (wisi-parse-buffer 'navigate) fixes it
 
-    delete elsif clause
-        navigate from ’then’ skips all elsif clauses
+    nested block:
+        loop
+            declare
+            begin
+               foo;
+            end;
+        end loop;
+
+        delete block, leaving 'foo;'
+        cache on some previous line still there; foo double indented until delete preceding newline
 
 parse face is slow
     noticeable delay when typing code
