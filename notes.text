@@ -39,49 +39,12 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
-indentation error:
-      return
-        (Parser_Label             => First_Parser_Label,
-         Head                     => new Parser_Node'
-           (Item                  =>
-                (Label            => First_Parser_Label,
-
-navigation error:
-   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
-   is
-      use Parser_Stack_Interfaces;
-      Stack : Parser_Stacks.Stack_Type renames Cursor.Ptr.Item.Stack;
-      Last  : constant Positive_Count_Type := Positive_Count_Type'Max (10, Stack.Depth);
-   begin
-      Trace.Put (Integer'Image (Cursor.Ptr.Item.Label) & " stack: ");
-      for I in 1 .. Last loop
-         Trace.Put
-           (State_Index'Image (Stack.Peek (I).State) & " : " &
-              (if I = Last
-               then ""
-               else Image (Trace.Descriptor.all, Stack.Peek (I).Token) & ", "));
-      end loop;
-      Trace.New_Line;
-   end Put_Top_10;
-
-    fix "operator not visible" on 'I = Last' => "already at outermost containing token"
-
+use process sentinel to avoid race condition?
+    document it first
 
 add mode to log all recover failures for later analysis
 
 testing mckenzie recover
-    test/ada_mode-interactive_recover.adb
-        same as wisitoken test_mckenzie_recover error_2, but Ada needs higher enqueue limit;
-        actually _not_ the same; final name has a dot
-        need to drop dot, then insert '; end loop', treating first part of identifier as function call
-            that is enqueued, with a cost of 9.0
-            only checks cost 5 before running out.
-
-        or pop identifier from stack, insert 'end loop;' before that.
-            always a good idea when error on dot
-
-    infinite loop in panic recover (test mckenzie):
-
    function Recover
      (Parser        : in out LR.Instance'Class;
       Cursor        : in     Parser_Lists.Cursor;
@@ -100,7 +63,7 @@ testing mckenzie recover
       raise Recover_Fail;
    end Recover;
 
-    expand 'declare'
+    expand 'declare' => mckenzie fails on 'end recover' with enqueue_limit = 800
 
 merge build/wisi into build
     in main first

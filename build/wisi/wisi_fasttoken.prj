@@ -1,9 +1,0 @@
-gpr_file=$WISI_FASTTOKEN/fasttoken.gpr
-
-casing=$WISI_FASTTOKEN/../emacs_case_exceptions
-
--- for *.wy
-src_dir=../../
-src_dir=../../test/wisi
-
--- end of file
