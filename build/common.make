@@ -173,13 +173,10 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
 
-SYNTAX_FILES := $(SYNTAX_FILES:.adb=.check)
-SYNTAX_FILES := $(SYNTAX_FILES:.ads=.check)
-
 # remove duplicates
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
-compile-ada-test : $(COMPILE_FILES) $(SYNTAX_FILES)
+compile-ada-test : $(COMPILE_FILES)
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for
@@ -193,12 +190,6 @@ GPRBUILD := gprbuild
 
 %.ali : %.ads
 	$(GPRBUILD) -P ada_mode_compile.gpr -c $(<F)
-
-%.check : %.adb
-	$(GPRBUILD) -P ada_mode_compile.gpr -c -gnats $(<F)
-
-%.check : %.ads
-	$(GPRBUILD) -P ada_mode_compile.gpr -c -gnats $(<F)
 
 %.info : %.texi
 	makeinfo $< -o ../$@
@@ -218,8 +209,8 @@ doc-clean ::
 # delete the gpr_query database, to be sure it is rebuilt accurately
 # for the current compiler version.
 compile-ada-test-clean :
-	rm -f ../test/*.ali ../test/subdir/*.ali *.ali
-	rm -f ../test/*.bexch ../test/subdir/*.bexch *.bexch
+	rm -f ../test/*.ali ../test/subdir/*.ali
+	rm -f ../test/*.o ../test/subdir/*.o
 	rm -f ../test/gpr_query.db*
 
 test-clean ::
