@@ -471,7 +471,7 @@ For `wisi-indent-calculate-functions'.
       (goto-char name-pos))
     ))
 
-(defun ada-wisi-goto-declaration-start ()
+(defun ada-wisi-goto-declaration-start (&optional include-type)
   "For `ada-goto-declaration-start', which see.
 Also return cache at start."
   (wisi-validate-cache (point) t 'navigate)
@@ -486,6 +486,10 @@ Also return cache at start."
 	  (progn
 	    (setq done
 		  (cl-case (wisi-cache-nonterm cache)
+		    (full_type_declaration
+		     (when include-type
+		       (eq (wisi-cache-token cache) 'TYPE)))
+
 		    ((generic_package_declaration generic_subprogram_declaration)
 		     (eq (wisi-cache-token cache) 'GENERIC))
 
@@ -746,14 +750,14 @@ Also return cache at start."
 	     ada-symbol-end)))
     result))
 
-(defun ada-wisi-which-function ()
+(defun ada-wisi-which-function (include-type)
   "For `ada-which-function'."
   (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
   (when (> (wisi-cache-max 'navigate) (point))
     (save-excursion
       (let ((result nil)
-	    (cache (condition-case nil (ada-wisi-goto-declaration-start) (error nil))))
+	    (cache (condition-case nil (ada-wisi-goto-declaration-start include-type) (error nil))))
 	(if (null cache)
 	    ;; bob or failed parse
 	    (setq result "")
@@ -766,6 +770,9 @@ Also return cache at start."
 
 	  ;; add or delete 'body' as needed
 	  (cl-ecase (wisi-cache-nonterm cache)
+	    (full_type_declaration
+	     (setq result (ada-wisi-which-function-1 "type" nil)))
+
 	    (package_body
 	     (setq result (ada-wisi-which-function-1 "package" nil)))
 

@@ -39,6 +39,34 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
+fix release
+    version 5.3.1
+    gpr_query section in .info: menu structure wrong
+    can't build gpr_query from elpa install; need to run gnatprep
+        gcc run gnatprep, but not on gpr files
+        teach gprbuild to do it; provide an xml file
+        or use sh
+
+        check for gnatcoll_xref.gpr existence, not gnat version
+            see .sjw branch
+
+    test install with MSYS, Cygwin, Linux
+
+    ada_mode_gps_indent.gpr also needs gnatprep for 2017
+
+    test gnat gpl 2017 on linux
+        change NEWS statement; only not supported on Windows?
+
+    see below
+
+Ada 2020 features:
+    delta aggregates (partial aggregate notation)
+    http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.10
+    wait for wisi-2.0
+
+font error
+    for Current_Parser in Parsers loop
+        'parsers' is in type font; actually an object
 use process sentinel to avoid race condition?
     document it first
 
@@ -99,19 +127,11 @@ more error handling
                 invalidate-cache must also delete refs to the virtual token?
                     they will be overwritten?
 
-    don't use virtual tokens for indent
-        => don't set markers to them
-
-    show location of virtual tokens in 'show parse error'?
-        could be many
-
-(setq ada-gps-size-threshold most-positive-fixnum)
-(setq wisi-disable-face t)
-(setq wisi-indent-region-fallback nil)
-
  speed issues
 
 parse face is slow
+    compare to o.e.a
+
     noticeable delay when typing code
 
     fasttoken-parser-lr-lalr_generator.adb
@@ -238,31 +258,6 @@ ada-indent-hanging-rel-exp
     wisi aligns "/=" with "or"
 
  wisi work
-rewrite README to be useful as list-packages long description
-    that's how list-packages uses it
-    ie an advertisement for the package, not an install guide
-
-indent bugs:
-   if not Update_Flight_Status
-     and then FTFX.Covering.Cumulative_Shift > Time.Zero
-     and then Input_ATOT /= Time.None_Time
-     and then Normal_Flight.Profiles (Flight_Model.CTFM) /= Curtain.Profile.None
-       and then Input_ATOT /= Take_Off_Time (Normal_Flight, Flight_Model.CTFM)
-   then
-   end if;
-
-   C :=
-     Fim.Kind (Action_Info.Message) /= Fim.DLA
-       and Fim.Kind (Action_Info.Message) /= Fim.APL
-         and Fim.Kind (Action_Info.Message) /= Fim.ACH
-           and Fim.Kind (Action_Info.Message) /= Fim.ARR
-             and Fim.Kind (Action_Info.Message) /= Fim.DEP;
-
-
-gpr_query --help show relevant trace settings
-    add -v; shows *.ali
-
-do release
 
 upgrade to gnat gpl 2017
     gpr_query installed
@@ -279,6 +274,8 @@ upgrade to gnat gpl 2017
             handled right there, but never gets to the handler
                 spawn process is just broken?
                 try small example
+
+    try reinstall gnatcoll?
 
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
@@ -1382,7 +1379,7 @@ read/write access requires a public key:
 	merge = refs/heads/master
 
  release process
-do opentoken release, if needed
+do wisitoken release, if needed
 
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
@@ -1410,6 +1407,12 @@ check emacs buglist
 
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        bump second digit for major features
+        bump minor digit for bug fixes, minor features
+            - GPS indentation engine
+        bump first digit for really major or user-incompatible changes
+            - 5 use parser
+            - 6 compute indentation in grammar actions
 
     build stuff to compare with previous release in elpa:
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
@@ -1419,7 +1422,7 @@ bump versions
     change versions in compares below to match installed versions.
 
     compare:
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.3" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.4" "/Projects/elpa/packages/wisi" nil)
             NEWS-wisi.text
                 add release date
                 add new features
@@ -1427,7 +1430,7 @@ bump versions
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.0" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.1" "/Projects/elpa/packages/ada-mode" nil)
             NEWS-ada-mode.text
                 add release date
                 add new features
@@ -1455,6 +1458,7 @@ bump versions
     ada_mode_wisi_parse.adb
         Version
     build/Makefile
+        run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
@@ -1464,7 +1468,7 @@ bump versions
         opentoken find-replace i.jk
 
     (find-file "d:/Web/savannah/ada-mode/wisi/wisi.html")
-        wisi-i.j.k find-replace
+        i.j.k find-replace
         wisi-generate version
         opentoken version
 
@@ -1506,13 +1510,6 @@ Emacs 24.3, gnat 2016 (sal-standard), installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
-    build/Makefile uninstall-elpa
-
-Emacs 24.2, gnat 2016 (sal-standard), installed ada-mode:
-    (setenv "ADA_MODE_DIR" "-f package-initialize")
-    build/Makefile install-elpa
-    build/wisi/Makefile all
-        ignore byte-compile warnings about 'foo' from cl package called at runtime
     build/Makefile uninstall-elpa
 
 sync for Debian:
@@ -1565,13 +1562,13 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.1 ../org.emacs.ada-mode-5.2.1
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.2 ../org.emacs.ada-mode-5.2.2
 
 build/Makefile zip
 
 not under emacs:
     cd /Projects/org.emacs.ada-mode/build/
-    rm <old>.tar.gz .sig
+    rm <old>.*
     gpg2 -b *.tar.gz
 
     scp *.tar.gz     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
@@ -1585,9 +1582,15 @@ not under emacs:
 
 FIXME: wisi-generate.exe to savannah?
 
-after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
-http://www.nongnu.org/ada-mode/
-https://savannah.nongnu.org/projects/ada-mode
+after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup:
+
+Ada mode 5.2.2 is now available in GNU ELPA. See the homepage
+(http://www.nongnu.org/ada-mode/) for NEWS, or the project page
+(https://savannah.nongnu.org/projects/ada-mode) for tarball download.
+
+A major new feature in this release; the GPS indentation engine can be
+used as the primary or backup indentation engine. This makes indenting
+while editing faster on large files, and more friendly on all files.
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode

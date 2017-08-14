@@ -116,7 +116,7 @@ Loop_1 :
 
    --  ada-skel-loop with name
    --EMACSCMD:(progn (forward-line 1)(kill-line 1)(forward-word 1)(forward-line 1)(kill-line 2)(forward-char -1)(insert " Loop_1")(funcall ada-expand))
-Loop_1:
+Loop_1 :
    loop
       exit Loop_1 when ;
    end loop Loop_1;

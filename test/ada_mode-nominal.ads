@@ -840,6 +840,10 @@ private -- Ada_Mode.Nominal
 
    type Limited_Derived_Type_6 is abstract
      limited new Private_Type_1 with null record;
+   --EMACSCMD:(progn (forward-line -2)(ada-add-log-current-function))
+   --EMACSRESULT:"Limited_Derived_Type_6"
+   --EMACSCMD:(progn (forward-line -4)(ada-which-function))
+   --EMACSRESULT:"Abstract_Procedure_5"
 
    overriding function Function_2g (Param : in Limited_Derived_Type_6) return Float is abstract;
    overriding procedure Abstract_Procedure_1 (Item : access Limited_Derived_Type_6) is abstract;

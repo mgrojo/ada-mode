@@ -28,7 +28,7 @@
 ;;
 ;; M-x gpr-query
 
-(require 'ada-mode-compat-24.2)
+(require 'ada-mode-compat) ;; font-lock-ensure
 
 (require 'ada-mode) ;; for ada-prj-*, some other things
 (require 'gnat-core)
@@ -289,9 +289,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
   ;; can navigate to each result in turn via `next-error'.
   ;; FIXME: implement ada-xref-full-path.
   ;;
-  ;; FIXME: implement append. not as simple as just not erasing
-  ;; buffer; need to mess with compilation--ensure-parse cache to get
-  ;; new lines parsed.
+  ;; FIXME: implement append
 
   ;; Emacs column is 0-indexed, gpr_query is 1-indexed.
   (let ((cmd-1 (format "%s %s:%s:%d:%d" cmd identifier file line (1+ col)))
@@ -305,18 +303,8 @@ with compilation-error-regexp-alist set to COMP-ERR."
       ;; point is at EOB. gpr_query returns one line per result plus prompt, warnings
       (setq result-count (- (line-number-at-pos) 1))
 
-      (if (< emacs-major-version 25)
-	  ;; pre Emacs 25, font-lock-ensure applies compilation-message
-	  ;; text properties
-	  (font-lock-ensure)
-
-	;; post Emacs 25, compilation-next-error applies
-	;; compilation-message and font-lock-face text properties on
-	;; the fly via compilation--ensure-parse.
-	;;
-	;; 'compilation--flush-parse' is in before-change-functions,
-	;; but sometimes that doesn't work.
-	(compilation--flush-parse (point-min) (point-max)))
+      (compilation--flush-parse (point-min) (point-max))
+      (compilation--ensure-parse (point-max))
 
       (goto-char (point-min))
       (cond

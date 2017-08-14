@@ -183,7 +183,7 @@
 
 (defun run-test (filename)
   (interactive "Mgrammar filename root: ")
-  (add-to-list 'load-path "../../test/wisi/")
+  (add-to-list 'load-path "../test/wisi/")
 
   ;; top level parse action must set `wisi-test-success' t.
 
@@ -193,7 +193,7 @@
   ;; tests and report all failures.
   (setq wisi-debug 1)
   (let ((build-dir default-directory)
-	(input-file (concat "../../test/wisi/" filename ".input")))
+	(input-file (concat "../test/wisi/" filename ".input")))
     (unless (file-readable-p input-file)
       (error "%s not found" input-file))
     (find-file input-file)

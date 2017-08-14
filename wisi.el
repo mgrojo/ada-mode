@@ -7,7 +7,7 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 1.1.4
+;; Version: 1.1.5
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2") (queue "0.1.1"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
@@ -548,24 +548,41 @@ wisi-forward-token, but does not look up symbol."
 
 (defun wisi-invalidate-cache (action after)
   "Invalidate ACTION caches for the current buffer from AFTER to end of buffer."
-  (setq after
-	(save-excursion
-	  (goto-char after)
-	  (line-beginning-position)))
   (when (< after (wisi-cache-max action))
     (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%s:%d" action (current-buffer) after))
-    (move-marker (wisi-cache-max action) after)
     (cond
      ((eq 'face action)
       (wisi--delete-face-cache after))
 
      ((eq 'navigate action)
+      ;; We goto statement start to ensure that motion within nested
+      ;; structures is properly done (ie prev/next on ’elsif’ is not
+      ;; set by wisi-motion-action if already set by a lower level
+      ;; statement). We don’t do it for ’face or ’indent, because that
+      ;; might require a parse, and they don’t care about nested
+      ;; structures.
+      (save-excursion
+	(goto-char after)
+
+	;; This is copied from ‘wisi-goto-statement-start’; we can’t
+	;; call that because it would call ‘wisi-validate-cache’,
+	;; which would call ‘wisi-invalidate-cache’; infinite loop.
+	(wisi-goto-start (or (wisi-get-cache (point))
+			     (wisi-backward-cache)))
+
+	(setq after (point)))
       (wisi--delete-navigate-cache after))
 
      ((eq 'indent action)
       ;; indent cache is stored on newline before line being indented.
+      (setq after
+	    (save-excursion
+	      (goto-char after)
+	      (line-beginning-position)))
       (wisi--delete-indent-cache (max 1 (1- after))))
-     )))
+     )
+    (move-marker (wisi-cache-max action) after)
+    ))
 
 ;; wisi--change-* keep track of buffer modifications.
 ;; If wisi--change-end comes before wisi--change-beg, it means there were
@@ -1968,10 +1985,8 @@ Return start cache."
 Return start cache."
   (interactive)
   (wisi-validate-cache (point) t 'navigate)
-  (let ((cache (wisi-get-cache (point))))
-    (unless cache
-      (setq cache (wisi-backward-cache)))
-    (wisi-goto-start cache)))
+  (wisi-goto-start (or (wisi-get-cache (point))
+		       (wisi-backward-cache))))
 
 (defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."

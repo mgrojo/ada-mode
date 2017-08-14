@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.2.1
-;; package-requires: ((wisi "1.1.4") (cl-lib "0.4") (emacs "24.2"))
+;; Version: 5.2.2
+;; package-requires: ((wisi "1.1.5") (cl-lib "0.4") (emacs "24.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -168,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.2.1"))
+  (let ((version-string "5.2.2"))
     ;; must match:
     ;; ada-mode.texi
     ;; README-ada-mode
@@ -346,7 +346,7 @@ Values defined by cross reference packages.")
 	     map
 	     (char-to-string key)
 	     'ada-case-adjust-interactive)))
-	'( ?_ ?% ?& ?* ?( ?) ?- ?= ?+
+	'( ?_ ?% ?& ?* ?\( ?\) ?- ?= ?+
 	      ?| ?\; ?: ?' ?\" ?< ?, ?. ?> ?/ ?\n 32 ?\r ))
   )
 
@@ -1991,18 +1991,23 @@ unit name; it should return the Ada name that should be found in FILE-NAME.")
   ;;
   ;; This is run from ff-pre-load-hook, so ff-function-name may have
   ;; been set by ff-treat-special; don't reset it.
-  "Function called with no parameters; it should return the name
-of the package, protected type, subprogram, or task type whose
-definition/declaration point is in, or for declarations that
-don't have declarative regions, just after; or nil.  In addition,
-if `ff-function-name' is non-nil, store in `ff-function-name' a
-regexp that will find the function in the other file.")
+  "Function called with one parameter (INCLUDE-TYPE); it should
+return the name of the package, protected type, subprogram, or
+task type whose definition/declaration point is in, or for
+declarations that don't have declarative regions, just after; or
+nil.
 
-(defun ada-which-function ()
+If INCLUDE-TYPE is non-nil, include type names.
+
+In addition, if `ff-function-name' is non-nil, store in
+`ff-function-name' a regexp that will find the function in the
+other file.")
+
+(defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
   (interactive)
   (when ada-which-function
-    (funcall ada-which-function)))
+    (funcall ada-which-function include-type)))
 
 (defvar ada-on-context-clause nil
   ;; supplied by indentation engine
@@ -2047,7 +2052,7 @@ regexp that will find the function in the other file.")
   ;; first, then call `ada-which-function'
   (save-excursion
     (end-of-line 1)
-    (ada-which-function)))
+    (ada-which-function t)))
 
 (defun ada-set-point-accordingly ()
   "Move to the string specified in `ff-function-name', which may be a regexp,

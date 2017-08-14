@@ -11,11 +11,6 @@
 
 (cond
  ;; package handler details change between emacs versions
- ((string-equal emacs-version "24.2.1")
-  (when (package--dir "cl-lib" "0.5")
-    (package-delete "cl-lib" "0.5"))
-  (load-file "uninstall-elpa-24.3.el"))
-
  ((string-equal emacs-version "24.3.1")
   (load-file "uninstall-elpa-24.3.el"))
 

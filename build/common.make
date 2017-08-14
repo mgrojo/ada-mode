@@ -240,7 +240,7 @@ test-clean ::
 # ada-make-package-body.
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
-	cd ../test/wisi/; rm -f *-wy.el *.output
+	cd ../test/wisi/; rm -f *.elisp-el *.output
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete
