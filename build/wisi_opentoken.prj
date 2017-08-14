@@ -3,7 +3,7 @@ gpr_file=$WISI_OPENTOKEN/opentoken.gpr
 casing=$WISI_OPENTOKEN/../emacs_case_exceptions
 
 -- for *.wy
-src_dir=../../
-src_dir=../../test/wisi
+src_dir=../
+src_dir=../test/wisi
 
 -- end of file

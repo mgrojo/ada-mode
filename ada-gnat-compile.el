@@ -358,6 +358,11 @@ Prompt user if more than one."
 	   (forward-line 1)
 	   (move-to-column message-column)
 	   (cond
+	    ((looking-at "found procedure name")
+	     (pop-to-buffer source-buffer)
+	     (forward-word 1)
+	     (insert "'Access")
+	     t)
 	    ((looking-at "found type access")
 	     (pop-to-buffer source-buffer)
 	     (if (looking-at "'Access")

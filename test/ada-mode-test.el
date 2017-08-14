@@ -41,8 +41,8 @@
 (when (file-exists-p "case-exceptions-2.tmp")
   (delete-file "case-exceptions-2.tmp"))
 
-(copy-file "../../test/case-exceptions-1" "case-exceptions-1.tmp")
-(copy-file "../../test/case-exceptions-2" "case-exceptions-2.tmp")
+(copy-file "../test/case-exceptions-1" "case-exceptions-1.tmp")
+(copy-file "../test/case-exceptions-2" "case-exceptions-2.tmp")
 
 ;; ada-case-read-all-exceptions only reads from project variable; duplicate here.
 (setq ada-case-full-exceptions nil)
@@ -123,8 +123,8 @@
        (cons "CaMeL" t)
        (cons "ANother" t)))
 
-(ada-parse-prj-file "../../test/subdir/ada_mode.adp")
-(ada-select-prj-file "../../test/subdir/ada_mode.adp")
+(ada-parse-prj-file "../test/subdir/ada_mode.adp")
+(ada-select-prj-file "../test/subdir/ada_mode.adp")
 
 (test "case 3 full words"
       ada-case-full-exceptions

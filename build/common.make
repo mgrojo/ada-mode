@@ -5,13 +5,13 @@
 # thing on incorrect code, as long as it doesn't hang or crash.
 # Exceptions noted below in COMPILE_FILES.
 
-ADA_TEST_FILES := $(shell cd ../../test; ls *.ad[sb])
-ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../../test; ls subdir/*.ad[sb])
+ADA_TEST_FILES := $(shell cd ../test; ls *.ad[sb])
+ADA_TEST_FILES := $(ADA_TEST_FILES) $(shell cd ../test; ls subdir/*.ad[sb])
 
 ADA_TEST_FILES := $(filter-out debug.adb, $(ADA_TEST_FILES))# debug only
 ADA_TEST_FILES := $(filter-out debug.ads, $(ADA_TEST_FILES))# debug only
 
-GPR_TEST_FILES := $(shell cd ../../test/gpr; ls *.gpr)
+GPR_TEST_FILES := $(shell cd ../test/gpr; ls *.gpr)
 GPR_TEST_FILES := $(filter-out debug.gpr, $(GPR_TEST_FILES))
 GPR_TEST_FILES := $(filter-out gpr-skel.gpr, $(GPR_TEST_FILES))
 
@@ -109,13 +109,17 @@ SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
-ADA_GPS_TEST_FILES := $(shell cd ../../test/ada-gps; ls *.ad[sb])
+ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PHONY : all nominal one test test-clean
+.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp
 
-vpath %.ads ../../test ../../test/subdir ../../test/ada-gps
-vpath %.adb ../../test ../../test/subdir ../../test/ada-gps
-vpath %.gpr ../../test/gpr
+.PHONY : all force nominal one test test-clean
+
+vpath %.adb ../test ../test/subdir ../test/ada-gps
+vpath %.ads ../test ../test/subdir ../test/ada-gps
+vpath %.el ../ .
+vpath %.gpr ../test/gpr
+vpath %.wy ../ ../test/wisi
 
 # FIXME: this reports *.diff > 0 from previous tests as well
 test-gpr : RUNTEST := run-indent-test-gpr.el
@@ -129,10 +133,10 @@ test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 EMACS_EXE ?= emacs
 
 test-elisp :
-	$(EMACS_EXE) -Q -batch -L ../../test -L ../.. $(ADA_MODE_DIR) -l ada-mode-test.el
+	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../../test/gpr -L ../.. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../test/gpr -L .. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $*.tmp > $*.diff
@@ -140,10 +144,21 @@ gpr-skel.gpr.tmp :
 %.diff-run : % %.tmp
 	-diff -u $< $*.tmp
 
-.PRECIOUS : %.tmp
+%.wisi-test : %-wy.el
+	$(EMACS_EXE) -Q -batch $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
+
+# -v 1 dumps grammar; useful for debugging parse errors
+%-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+ifeq ($(shell uname),Linux)
+else ifeq ($(shell uname),Darwin)
+else
+# windows
+	cd ./$(<D); dos2unix $(@F)
+endif
 
 autoloads : force
-	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../../autoloads.el")))(update-directory-autoloads "../../")))'
+	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
 
 # load path rationale:
 #    .. for run-*.el
@@ -158,7 +173,7 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # least on Windows). We don't include any other dependencies, because
 # the complete list is complex, and we sometimes want to ignore it.
 %.tmp : %
-	$(EMACS_EXE) -Q -L .. $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)
@@ -169,7 +184,7 @@ SYNTAX_FILES := $(SYNTAX_FILES:.ads=.check)
 # remove duplicates
 COMPILE_FILES := $(sort $(COMPILE_FILES))
 
-compile-ada : $(COMPILE_FILES) $(SYNTAX_FILES)
+compile-ada-test : $(COMPILE_FILES) $(SYNTAX_FILES)
 
 # we compile with -gnatyN3 to be sure our indentation meets gnat's
 # check. We don't check any other style requirements; not needed for
@@ -190,26 +205,39 @@ GPRBUILD := gprbuild
 %.check : %.ads
 	$(GPRBUILD) -P ada_mode_compile.gpr -c -gnats $(<F)
 
+%.info : %.texi
+	makeinfo $< -o ../$@
+
+%.html : %.texi
+	makeinfo --html --no-split $< -o ../$@
+
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-ada-clean test-clean
-	find ../../ -name "*~" -delete
+clean :: compile-ada-test-clean test-clean doc-clean
+	find ../ -name "*~" -delete
+
+doc-clean ::
+	rm -f ../*.info ../*.html ../dir-ada-mode
+	cd ..; rm -f *-wy.el *.elc
+	rm -f *-wy.el *.elc
 
 # delete the gpr_query database, to be sure it is rebuilt accurately
 # for the current compiler version.
-compile-ada-clean :
-	rm -f ../../test/*.ali ../../test/subdir/*.ali *.ali
-	rm -f ../../test/*.bexch ../../test/subdir/*.bexch *.bexch
-	rm -f ../../test/gpr_query.db*
+compile-ada-test-clean :
+	rm -f ../test/*.ali ../test/subdir/*.ali *.ali
+	rm -f ../test/*.bexch ../test/subdir/*.bexch *.bexch
+	rm -f ../test/gpr_query.db*
 
 test-clean ::
 	rm -f *.diff *.tmp
 # ada_mode-spec.adb is a temporary, generated by
 # ada-make-package-body.
-	rm -f ../../test/ada_mode-spec.adb
+	rm -f ../test/ada_mode-spec.adb
+	rm -f *.log *.output *.wisi-test *.stamp
+	cd ../test/wisi/; rm -f *-wy.el *.output
+
 
 source-clean :: test-clean
-	-find ../../ -name "*~" -print -delete
-	-find ../../ -name ".#*" -print -delete
-	rm -rf ../../_MTN/resolutions
+	-find ../ -name "*~" -print -delete
+	-find ../ -name ".#*" -print -delete
 
 # end of file

@@ -59,9 +59,30 @@ install packages in -Q:
  (list-packages))
 
  current work
+fix release
+    version 5.3.1
+    gpr_query section in .info: menu structure wrong
+    can't build gpr_query from elpa install; need to run gnatprep
+        gcc run gnatprep, but not on gpr files
+        teach gprbuild to do it; provide an xml file
+        or use sh
 
-do release
+        check for gnatcoll_xref.gpr existence, not gnat version
+            see .sjw branch
+
+    test install with MSYS, Cygwin, Linux
+
+    ada_mode_gps_indent.gpr also needs gnatprep for 2017
+
+    test gnat gpl 2017 on linux
+        change NEWS statement; only not supported on Windows?
+
     see below
+
+Ada 2020 features:
+    delta aggregates (partial aggregate notation)
+    http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.10
+    wait for wisi-2.0
 
 upgrade to gnat gpl 2017
     gpr_query installed
@@ -839,6 +860,12 @@ check emacs buglist
 
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        bump second digit for major features
+        bump minor digit for bug fixes, minor features
+            - GPS indentation engine
+        bump first digit for really major or user-incompatible changes
+            - 5 use parser
+            - 6 compute indentation in grammar actions
 
     build stuff to compare with previous release in elpa:
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
@@ -986,13 +1013,13 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.1 ../org.emacs.ada-mode-5.2.1
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.2 ../org.emacs.ada-mode-5.2.2
 
 build/Makefile zip
 
 not under emacs:
     cd /Projects/org.emacs.ada-mode/build/
-    rm <old>.tar.gz .sig
+    rm <old>.*
     gpg2 -b *.tar.gz
 
     scp *.tar.gz     stephen_leake@dl.sv.nongnu.org:/releases/ada-mode/
@@ -1006,9 +1033,15 @@ not under emacs:
 
 FIXME: wisi-generate.exe to savannah?
 
-after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup
-http://www.nongnu.org/ada-mode/
-https://savannah.nongnu.org/projects/ada-mode
+after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup:
+
+Ada mode 5.2.2 is now available in GNU ELPA. See the homepage
+(http://www.nongnu.org/ada-mode/) for NEWS, or the project page
+(https://savannah.nongnu.org/projects/ada-mode) for tarball download.
+
+A major new feature in this release; the GPS indentation engine can be
+used as the primary or backup indentation engine. This makes indenting
+while editing faster on large files, and more friendly on all files.
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode

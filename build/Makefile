@@ -1,6 +1,4 @@
-# Build gpr_query, manuals; publish to web and ELPA; see subdirs for
-# building elisp code and running tests (each subdir supports a
-# different indentation engine)
+# Build elisp code, Ada executables, manuals; publish to web and ELPA
 #
 # test packages from process-archive: (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # test packages from all-in-place: (setq package-archives (list (cons "test" "/Projects/elpa/packages")))
@@ -22,16 +20,127 @@ export WISI_VERSION        := 1.1.5
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
-all : docs pub-ada pub-wisi build-elpa uninstall-elpa
-all : pub-ada-ref-man
+# test with mtn controlled source:  (setenv "ADA_MODE_DIR" "-L .. -l autoloads.el")
+# test with installed elpa package: (setenv "ADA_MODE_DIR" "-f package-initialize")
+ADA_MODE_DIR ?= -L .. -l autoloads.el
+
+elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test autoloads test-clean test
+
+pub : docs pub-ada pub-wisi build-elpa uninstall-elpa
+pub : pub-ada-ref-man
 
 docs : info html
+
+# this updates elisp after any source change, without running the tests.
+update-elisp : ../ada-grammar-wy.el ../gpr-grammar-wy.el byte-compile
+
+# *-wy.el are in monotone, so this is all we need after a monotone
+# update doing byte-compile-clean first avoids errors caused by
+# loading new source on old .elc
+byte-compile : byte-compile-clean
+	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(batch-byte-compile)' *.el
+
+byte-compile-clean :
+	cd ..; rm -f *.elc
+
+# IMPROVEME: test-wisi, test-elisp abort on failure; others accumulate failures in test.log
+test : test-wisi
+
+# The various gnatxref tests no longer work with any GPL version of GNAT.
+# But some customers still manage to use them, so we rely on their
+# testing.
+#
+# GPL 2016: 'gnatlist' does not include system libraries
+# GPL 2015: 'gnatfind -pada_mode_parent.gpr' can't find ada_mode-nominal.ali
+# GPL 2014: can't compile ada_mode-nominal.ads protected type
+# test : test-ada-gnatxref.stamp
+
+test : test-ada-gpr_query.stamp
+test : test-ada-gps.stamp
+test : gpr-skel.gpr.diff
+test : test-gpr
+test : test-elisp
+test : summarize
+
+test-wisi :: ada-number-literal.wisi-test
+test-wisi :: body_instantiation_conflict.wisi-test
+test-wisi :: case_expression.wisi-test
+test-wisi :: empty_production_6.wisi-test
+test-wisi :: empty_production_8.wisi-test
+test-wisi :: identifier_list_name_conflict.wisi-test
+test-wisi :: number-literal.wisi-test
+test-wisi :: range_conflict.wisi-test
+test-wisi :: subprograms.wisi-test
+
+summarize :
+	cat *.log
+
+ONE_TEST_FILES += access_in_record.ads
+#ONE_TEST_FILES += ada_mode-nominal.ads
+one : RUNTEST := run-indent-test-wisi-gpr_query.el
+# one : update
+one : one-clean $(addsuffix .diff, $(ONE_TEST_FILES))
+one-clean: force
+	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+
+include common.make
+
+# These are correct paths for Stephe's development machines;
+# WISI_OPENTOKEN can be overridden on the 'make' command line or by an
+# external environment variable.
+ifeq ($(shell uname),Linux)
+WISI_OPENTOKEN ?= /Projects/org.opentoken/build/release
+export ADA_PROJECT_PATH=../test/:../test/subdir
+
+else ifeq ($(shell uname),Darwin)
+WISI_OPENTOKEN ?= /home/Projects/opentoken/org.opentoken/build/release
+export ADA_PROJECT_PATH=../test/:../test/subdir
+
+else
+# windows
+WISI_OPENTOKEN ?= $(CURDIR)/../../org.opentoken/build/release
+export ADA_PROJECT_PATH=../test/;../test/subdir
+
+endif
+
+$(WISI_OPENTOKEN)/wisi-generate.exe : force
+	$(MAKE) -C $(WISI_OPENTOKEN) wisi-generate.exe
+
+test-ada-gpr_query : RUNTEST := run-indent-test-wisi-gpr_query.el
+test-ada-gpr_query : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+test-ada-gpr_query.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gpr_query
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+
+# ada-gps specific tests
+test-ada-gps : RUNTEST := run-indent-test-gps.el
+test-ada-gps : $(addsuffix .diff, $(ADA_GPS_TEST_FILES))
+
+test-ada-gps.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gps
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
+
+# compare gps indent to ada-wisi indent
+compare-ada-gps : RUNTEST := run-indent-test-gps.el
+compare-ada-gps : $(addsuffix .diff, $(subst subdir/,,$(ADA_TEST_FILES)))
+
+compare-ada-gps.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-ada-gps
+	touch $@
+	find . -name "*.diff" -not -size 0 >> test.log
 
 BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.emacs.ada-mode)
   TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION).tar.gz
-  TAR_DIR := ../../
+  TAR_DIR := ../
   TAR_PAT := org.emacs.ada-mode-$(ADA_MODE_VERSION)
 else
   TAR_FILE := $(BRANCH).tar.gz
@@ -60,22 +169,6 @@ html : $(addsuffix .html, $(MANUALS))
 	for file in $(INFO_FILES); do install-info ../$$file ../dir-ada-mode; done
 
 VPATH := ..
-
-%.info : %.texi
-	makeinfo $< -o ../$@
-
-%.html : %.texi
-	makeinfo --html --no-split $< -o ../$@
-
-clean ::
-	rm -f ../*.info ../*.html ../dir-ada-mode
-
-source-clean :
-	-find .. -name "*~" -print -delete
-	-find .. -name ".#*" -print -delete
-
-.PHONY : force
-
 # copy files to ELPA ada-mode package
 # First delete all files in ELPA, so we catch files deleted here.
 pub-ada : force
@@ -142,8 +235,6 @@ install-elpa-review :
 
 ## build gpr_query, ada_mode_gps_indent
 
-.PHONY : force
-
 GNAT_EXE    := $(shell which gnat)
 INSTALL_BIN := $(dir $(GNAT_EXE))
 
@@ -184,9 +275,6 @@ ada_mode_gps_indent$(EXE_EXT) : force
 debug_gps_indent$(EXE_EXT) : force
 	gprbuild -p ../ada_mode_gps_indent.gpr debug_gps_indent
 
-one : ada_mode_gps_indent$(EXE_EXT)
-	./ada_mode_gps_indent$(EXE_EXT) < commands.txt
-
 trace :
 	addr2line -e ../ada_mode_gps_indent.exe 0x96c9bd 0x96b1f6 0x96b24a 0x401cb6 0x989036 0x4013db 0x759e7c02 0x7708ab8d 0x7708ab58
 
@@ -212,8 +300,11 @@ clean ::
 # (getenv "GPR_PROJECT_PATH")
 # eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 
+# Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
 # eval: (ada-parse-prj-file "ada_mode_gps_indent.prj")
 # eval: (ada-select-prj-file "ada_mode_gps_indent.prj")
+# eval: (ada-parse-prj-file "ada-mode.prj")
+# eval: (ada-select-prj-file "ada-mode.prj")
 # end:
 # end of file
