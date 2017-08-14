@@ -976,15 +976,14 @@
       (loop_statement
        ((iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 2 motion 4 motion 7 statement-end])
+        (wisi-statement-action [1 statement-start 2 motion 7 statement-end])
         (wisi-containing-action 1 3)
-        (wisi-motion-action [1 2 4 7])
+        (wisi-motion-action [1 2 7])
         (wisi-indent-action [0 0 [ada-indent ada-indent] 0 0 0 0])))
        ((LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start 3 motion 6 statement-end])
+        (wisi-statement-action [1 statement-start 6 statement-end])
         (wisi-containing-action 1 2)
-        (wisi-motion-action [1 3 6])
         (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0 0]))))
       (membership_choice_list
        ((membership_choice ))
@@ -1022,7 +1021,7 @@
        ((attribute_reference ))
        ((name actual_parameter_part )
         (progn
-        (wisi-statement-action [1 motion])
+        (wisi-statement-action [1 misc])
         (wisi-containing-action 1 2)
         (wisi-indent-action [0 (if ada-indent-hanging-rel-exp
         (wisi-anchored 1 ada-indent-broken)
