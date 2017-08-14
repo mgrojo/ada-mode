@@ -306,20 +306,6 @@ Prompt user if more than one."
 	   t)
 
 ;;;; strings
-	  ((looking-at "package \"Ada\" is hidden")
-	   (pop-to-buffer source-buffer)
-	   (forward-word -1)
-	   (insert "Standard.")
-	   t)
-
-	  ((looking-at (concat "\\(?:possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
-	   (let ((expected-name (match-string 1)))
-	     (pop-to-buffer source-buffer)
-	     (looking-at ada-name-regexp)
-	     (delete-region (match-beginning 1) (match-end 1))
-	     (insert expected-name))
-	   t)
-
 	  ((looking-at (concat "\"end " ada-name-regexp ";\" expected"))
 	   (let ((expected-name (match-string 1)))
 	     (pop-to-buffer source-buffer)
@@ -406,6 +392,14 @@ Prompt user if more than one."
 	     (insert (concat stuff)));; if missing ")", don't need space; otherwise do?
 	   t)
 
+	  ((looking-at (concat "\\(?:possible \\)?misspelling of " ada-gnat-quoted-name-regexp))
+	   (let ((expected-name (match-string 1)))
+	     (pop-to-buffer source-buffer)
+	     (looking-at ada-name-regexp)
+	     (delete-region (match-beginning 1) (match-end 1))
+	     (insert expected-name))
+	   t)
+
 	  ((looking-at "No legal interpretation for operator")
 	   (forward-line 1)
 	   (move-to-column message-column)
@@ -431,6 +425,12 @@ Prompt user if more than one."
 	     (pop-to-buffer source-buffer)
 	     (ada-fix-add-use-type type)
 	   t))
+
+	  ((looking-at "package \"Ada\" is hidden")
+	   (pop-to-buffer source-buffer)
+	   (forward-word -1)
+	   (insert "Standard.")
+	   t)
 
 	  ((looking-at "parentheses required for unary minus")
 	   (set-buffer source-buffer)

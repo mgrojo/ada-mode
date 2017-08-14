@@ -82,7 +82,6 @@ one : RUNTEST := run-indent-test-wisi-gpr_query.el
 one : one-clean $(addsuffix .diff, $(ONE_TEST_FILES))
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
-
 # These are correct paths for Stephe's development machines;
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
@@ -309,9 +308,9 @@ clean ::
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
-# eval: (ada-parse-prj-file "ada_mode_gps_indent.prj")
-# eval: (ada-select-prj-file "ada_mode_gps_indent.prj")
-# eval: (ada-parse-prj-file "ada-mode.prj")
-# eval: (ada-select-prj-file "ada-mode.prj")
+# eval: (unless dvc-doing-ediff-p (ada-parse-prj-file "ada_mode_gps_indent.prj"))
+# eval: (unless dvc-doing-ediff-p (ada-select-prj-file "ada_mode_gps_indent.prj"))
+# eval: (unless dvc-doing-ediff-p (ada-parse-prj-file "ada-mode.prj"))
+# eval: (unless dvc-doing-ediff-p (ada-select-prj-file "ada-mode.prj"))
 # end:
 # end of file
