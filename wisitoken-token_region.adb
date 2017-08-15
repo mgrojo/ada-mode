@@ -226,6 +226,8 @@ package body WisiToken.Token_Region is
           --  The following are set in Recover
           Invalid_Region => Null_Buffer_Region,
           Recover        => null));
+
+      State.Invalid_Region := Null_Buffer_Region;
    end Error;
 
    overriding
@@ -335,41 +337,13 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Recover
-     (State         : access State_Type;
-      Popped_Tokens : in     WisiToken.Token_Array;
-      Pushed_Tokens : in     WisiToken.Token_Array;
-      Recover       : in     WisiToken.Token.Recover_Data_Access)
+     (State   : access State_Type;
+      Recover : in     WisiToken.Token.Recover_Data'Class)
    is
-      use all type Ada.Containers.Count_Type;
-      use all type WisiToken.Token.List.List_Iterator;
-
-      Region : Buffer_Region := State.Invalid_Region; -- discarded tokens
-      Tok    : Token;
+      Error : Error_Data renames State.Errors.Reference (State.Errors.Last);
    begin
-      State.Invalid_Region := Null_Buffer_Region;
-
-      for ID of Popped_Tokens loop
-         Tok := Token (State.Stack.Element (State.Stack.Last_Index));
-         State.Stack.Delete_Last;
-
-         if ID /= Tok.ID then
-            raise Programmer_Error;
-         end if;
-
-         Region := Region and Tok.Region;
-      end loop;
-
-      for ID of Pushed_Tokens loop
-         State.Stack.Append (Token'(ID, Null_Buffer_Region));
-      end loop;
-
-      declare
-         Error : Error_Data renames State.Errors.Reference (State.Errors.Last);
-      begin
-         Error.Invalid_Region := Region;
-         Error.Recover        := Recover;
-      end;
-
+      Error.Invalid_Region := State.Invalid_Region;
+      Error.Recover        := new WisiToken.Token.Recover_Data'Class'(Recover);
    end Recover;
 
 end WisiToken.Token_Region;

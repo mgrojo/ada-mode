@@ -43,8 +43,6 @@ package WisiToken.Parser.LR.Parser_Lists is
          Tokens : Token.List.Instance;
 
       when Recover =>
-         Popped  : Token_Arrays.Vector;
-         Pushed  : Token_Arrays.Vector;
          Recover : WisiToken.Token.Recover_Data_Access;
       end case;
    end record;

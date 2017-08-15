@@ -28,7 +28,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Unchecked_Deallocation;
 package body WisiToken.Token is
 
    package body List is

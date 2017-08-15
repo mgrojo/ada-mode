@@ -63,7 +63,7 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Put_Line ("with WisiToken.Text_IO_Trace;");
-            Put_Line ("with WisiToken.Token_Wisi_Process;");
+            Put_Line ("with WisiToken.Token_Emacs_Process;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
@@ -177,7 +177,7 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Indent_Line ("Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);");
-            Indent_Line ("State : aliased WisiToken.Token_Wisi_Process.State_Type (Trace'Access);");
+            Indent_Line ("State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);");
             New_Line;
             Indent_Line ("function Create_Parser");
             Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");

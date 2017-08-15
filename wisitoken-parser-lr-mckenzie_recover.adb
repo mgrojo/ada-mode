@@ -727,12 +727,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  --  popped/pushed handled above
-                  --  FIXME: if delete panic, delete popped/pushed here.
                   Parser_State.Pend_Items.Put
                     ((Verb    => Parser_Lists.Recover,
-                      Popped  => Empty_Token_Array,
-                      Pushed  => Empty_Token_Array,
                       Recover => new Configuration'(Data.Result)));
 
                else
@@ -773,11 +769,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  --  popped/pushed handled above
-                  Parser.Semantic_State.Recover
-                    (Popped_Tokens => Empty_Token_Array,
-                     Pushed_Tokens => Empty_Token_Array,
-                     Recover       => new Configuration'(Data.Result));
+                  Parser.Semantic_State.Recover (Data.Result);
                end if;
 
                Parser_State.Set_Verb (Data.Result.Verb);

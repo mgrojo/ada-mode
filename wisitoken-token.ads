@@ -28,6 +28,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
+with Ada.Unchecked_Deallocation;
 with WisiToken.Lexer;
 package WisiToken.Token is
 
@@ -132,9 +133,13 @@ package WisiToken.Token is
    --  For storing augmented tokens, other semantic information
 
    type Recover_Data is abstract tagged null record;
-   type Recover_Data_Access is access all Recover_Data'Class;
    --  For storing error recovery information, for reuse in subsequent
-   --  parse.
+   --  parse. Compare to WisiToken.Parser.LR.Recover_Data.
+
+   type Recover_Data_Access is access all Recover_Data'Class;
+   --  For storing Recover_Data in a Parser_Lists.Pend_Item.
+
+   procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
 
    procedure Put (State : access Semantic_State) is abstract;
    --  Put a trace of State to State.Trace. Detail depends on
@@ -169,7 +174,7 @@ package WisiToken.Token is
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Parser just read Token from lookahead; remove the corresponding
+   --  Parser just removed Token from lookahead; remove the corresponding
    --  augmented token from the front of the State lookahead queue,
    --  add it to the front of the State input queue.
 
@@ -185,44 +190,48 @@ package WisiToken.Token is
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Parser just pushed Token (from the normal input) on the parse
-   --  stack; remove the corresponding augmented token from the front
-   --  of the State input queue, push it on the State stack.
+   --  Parser just pushed Token on the parse stack; remove the
+   --  corresponding augmented token from the front of the State input
+   --  queue, push it on the State stack.
 
    procedure Error
      (State     : access Semantic_State;
       Expecting : in     Token_ID_Set)
    is abstract;
-   --  The parser has detected an error with the current token (must
-   --  be the tail of the State input queue). Expecting is the set of
-   --  tokens expected by the parser. Save information useful for an
-   --  error message.
+   --  The parser has detected an error with the current token (the
+   --  front of the State input queue). Expecting is the set of tokens
+   --  expected by the parser. Save information useful for an error
+   --  message.
+   --
+   --  Error recover has started; mark the start of an invalid buffer
+   --  region.
 
    procedure Discard_Input
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Token was discarded from input in an error recover opertation;
+   --  Token was discarded from input in an error recover operation;
    --  discard the corresponding augmented token from the front of the
-   --  State input queue, and record the buffer region as invalid.
+   --  State input queue, and add the token's buffer region to the
+   --  current invalid region.
 
    procedure Discard_Lookahead
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
    --  Token was discarded from lookahead in an error recover
-   --  opertation; discard the corresponding augmented token from the
-   --  front of the State lookahead queue, and record the buffer
-   --  region as invalid.
+   --  operation; discard the corresponding augmented token from the
+   --  front of the State lookahead queue, and add the token's buffer
+   --  region to the current invalid region.
 
    procedure Pop_Token
      (State : access Semantic_State;
       Token : in     Token_ID)
      is abstract;
-   --  Previously Pushed Token was popped from the parse stack in an
-   --  error recover opertation; discard the corresponding augmented
-   --  token from the top of the State stack, and record the buffer
-   --  region as invalid.
+   --  Token was popped from the parse stack in an error recover
+   --  operation; discard the corresponding augmented token from the
+   --  top of the State stack, and add the token's buffer region to
+   --  the current invalid region.
 
    procedure Merge_Tokens
      (State   : access Semantic_State;
@@ -232,20 +241,15 @@ package WisiToken.Token is
       Action  : in     Semantic_Action)
    is abstract;
    --  Parser reduced Tokens to Nonterm; perform same operations on
-   --  State stack, call associated Action.
+   --  State stack, call associated Action. Index identifies the
+   --  production used in the current parser state (on the top of the
+   --  parse stack).
 
    procedure Recover
-     (State         : access Semantic_State;
-      Popped_Tokens : in     Token_Array;
-      Pushed_Tokens : in     Token_Array;
-      Recover       : in     Recover_Data_Access)
+     (State   : access Semantic_State;
+      Recover : in     Recover_Data'Class)
      is abstract;
-   --  An error recover algorithm succeeded; adjust the State augmented
-   --  token stack, input queue, and invalid region to match.
-   --
-   --  Skipped tokens were reported via Discard_Token.
-   --
-   --  Popped_Tokens were popped off the stack, Pushed_Tokens were
-   --  pushed on the stack; add those to the invalid region.
+   --  An error recover algorithm finished; save the current invalid
+   --  region.
 
 end WisiToken.Token;

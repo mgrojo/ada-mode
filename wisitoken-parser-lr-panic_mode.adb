@@ -26,6 +26,9 @@ package body WisiToken.Parser.LR.Panic_Mode is
       Pushed_Tokens : Token_Array; -- to parse stack from input queue
    end record;
 
+   type Panic_Recover_Data is new WisiToken.Token.Recover_Data with null record;
+   Null_Panic_Recover_Data : Panic_Recover_Data;
+
    Default_Panic : constant Panic_Data :=
      (Invalid_Token_ID, Unknown_State, Empty_Token_Array, Empty_Token_Array);
 
@@ -215,8 +218,16 @@ package body WisiToken.Parser.LR.Panic_Mode is
          declare
             Recover : Panic_Data renames Panic_Data (Parsers.First.State_Ref.Recover.all);
          begin
+            for ID of Recover.Pushed_Tokens loop
+               Parser.Semantic_State.Input_Token (ID, null);
+               Parser.Semantic_State.Push_Token (ID);
+            end loop;
+            for ID of Recover.Popped_Tokens loop
+               Parser.Semantic_State.Pop_Token (ID);
+            end loop;
+
             --  FIXME: handle parsers.count > 1 (or delete Panic_Mode), set Recover
-            Parser.Semantic_State.Recover (Recover.Popped_Tokens, Recover.Pushed_Tokens, Recover => null);
+            Parser.Semantic_State.Recover (Recover => Null_Panic_Recover_Data);
          end;
       end if;
 

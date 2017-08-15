@@ -320,7 +320,8 @@ package body WisiToken.Parser.LR.Parser is
             Semantic_State.Discard_Lookahead (Item.ID);
 
          when Parser_Lists.Recover =>
-            Semantic_State.Recover (Item.Popped, Item.Pushed, Item.Recover);
+            Semantic_State.Recover (Item.Recover.all);
+            WisiToken.Token.Free (Item.Recover);
 
          end case;
       end loop;
