@@ -1,8 +1,18 @@
 --  Abstract :
 --
---  Emacs background process for Ada mode; parse token stream, return parser actions.
+--  Emacs background process for Ada mode; parse token stream, return
+--  parser actions.
 --
---  Copyright (C) 2014, 2017  All Rights Reserved.
+--  References :
+--
+--  [1] On the elisp side, the inter-process protocol is defined in
+--  wisi-process-parse.el, functions wisi-process-parse--send-parse
+--  and wisi-process-parse--execute.
+--
+--  [2] On the Ada side, it is defined here, and in
+--  wisitoken-token_emacs_process.adb
+--
+--  Copyright (C) 2014, 2017 All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

@@ -5,8 +5,7 @@
 ^ada_grammar.*output$
 ^ada_mode_gps_indent$
 ^autoloads\.el$
-^build/.*\.adb$
-^build/.*\.ads$
+^build/ada_grammar.*
 ^build/.*\.ali$
 ^build/.*\.diff$
 ^build/.*\.log$
@@ -16,6 +15,10 @@
 ^build/.*\.tar\.gz$
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
+^build/ada_grammar\.ada_output$
+^build/ada_grammar\.l$
+^build/ada_grammar_dfa\.ada$
+^build/ada_grammar_io\.ada$
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$

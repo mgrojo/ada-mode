@@ -1,7 +1,6 @@
 General notes on Emacs Ada mode
 
 build/Makefile
-build/wisi/Makefile
 
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
@@ -39,6 +38,42 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
+merged build/wisi into build, updated wisitoken
+
+    run ada_mode-interactive_recover.adb test
+        failing on elisp/ada input queue sync
+
+    run all process tests
+
+use process sentinel to avoid race condition?
+    document it first
+
+    delete wisi-process--parser-new-session?
+        was a workaround for font-lock interrupting foreground parse
+
+add mode to log all recover failures for later analysis
+
+testing mckenzie recover
+   function Recover
+     (Parser        : in out LR.Instance'Class;
+      Cursor        : in     Parser_Lists.Cursor;
+      Current_Token : in     Token_ID)
+     return Configuration
+      --  Raises Recover_Fail or returns recover Config
+   is
+      Data : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref);
+   begin
+      Clear_Queue (Data);
+      Enqueue (Data, (Copy_Stack (Cursor), Token_Lists.Empty_Vector, Token_Lists.Empty_Vector, 0.0));
+      loop
+         exit when Data.Queue.Is_Empty;
+         declare
+      end loop;
+      raise Recover_Fail;
+   end Recover;
+
+    expand 'declare' => mckenzie fails on 'end recover' with enqueue_limit = 800
+
 fix release
     version 5.3.1
     gpr_query section in .info: menu structure wrong
@@ -67,37 +102,6 @@ Ada 2020 features:
 font error
     for Current_Parser in Parsers loop
         'parsers' is in type font; actually an object
-use process sentinel to avoid race condition?
-    document it first
-
-add mode to log all recover failures for later analysis
-
-testing mckenzie recover
-   function Recover
-     (Parser        : in out LR.Instance'Class;
-      Cursor        : in     Parser_Lists.Cursor;
-      Current_Token : in     Token_ID)
-     return Configuration
-      --  Raises Recover_Fail or returns recover Config
-   is
-      Data : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref);
-   begin
-      Clear_Queue (Data);
-      Enqueue (Data, (Copy_Stack (Cursor), Token_Lists.Empty_Vector, Token_Lists.Empty_Vector, 0.0));
-      loop
-         exit when Data.Queue.Is_Empty;
-         declare
-      end loop;
-      raise Recover_Fail;
-   end Recover;
-
-    expand 'declare' => mckenzie fails on 'end recover' with enqueue_limit = 800
-
-merge build/wisi into build
-    in main first
-
-delete wisi-process--parser-new-session?
-    was a workaround for font-lock interrupting foreground parse
 
 can now run sub-processes in batch!?
     but not font-lock

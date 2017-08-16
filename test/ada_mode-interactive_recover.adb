@@ -24,4 +24,8 @@ is begin
 loop
 ; -- error 3 reported here before ';'; inserts 'end loop'
    end Ada_Mode.  -- error 4 reported here before '.'; fails
-Interactive_Recover;
+Interactive_Recover; 
+-- FIXME: improve recover algorithm to reduce required enqueue limit
+-- Local Variables:
+-- wisi-mckenzie-enqueue-limit: 1400
+-- End:

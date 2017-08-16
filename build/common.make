@@ -153,9 +153,9 @@ gpr-skel.gpr.tmp :
 # of wisitoken; we add wisitoken_test.gpr to wisi_parse.gpr.
 %-process.el : force
 	make -C $(WISI_WISITOKEN) $*-process.el
-	cp $(WISI_WISITOKEN)/$*-process.el ../../test/wisi/$*-process.el
+	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
 
-.PRECIOUS : %-elisp.el %-process.el ../../%-grammar-elisp.el  %.ads
+.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
 
 # -v 1 dumps grammar
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
@@ -166,6 +166,20 @@ else
 # windows
 	cd ./$(<D); dos2unix $(@F)
 endif
+
+../%_process.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
+	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
+
+%.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer Aflex $< > $(*F).ada_output
+	dos2unix $(*F).ads $(*F).adb
+
+%_yylex.ada : %.l
+	aflex -i -s -E -D$(WISI_WISITOKEN)/../wisi/wisitoken_aflex_dfa.adb.template -O$(WISI_WISITOKEN)/../wisi/wisitoken_aflex_io.adb.template $(AFLEX_ARGS) $<
+
+%_yylex.adb : %_yylex.ada
+	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'

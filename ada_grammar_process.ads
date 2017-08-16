@@ -2,22 +2,22 @@
 --  with command line: wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process
 --  ada_grammar.wy
 --
---   Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+--    Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
---   This program is free software; you can redistribute it and/or
---   modify it under the terms of the GNU General Public License as
---   published by the Free Software Foundation; either version 3, or (at
---   your option) any later version.
+--    This program is free software; you can redistribute it and/or
+--    modify it under the terms of the GNU General Public License as
+--    published by the Free Software Foundation; either version 3, or (at
+--    your option) any later version.
 --
---   This software is distributed in the hope that it will be useful,
---   but WITHOUT ANY WARRANTY; without even the implied warranty of
---   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
---   General Public License for more details.
+--    This software is distributed in the hope that it will be useful,
+--    but WITHOUT ANY WARRANTY; without even the implied warranty of
+--    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--    General Public License for more details.
 --
---   You should have received a copy of the GNU General Public License
---   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+--    You should have received a copy of the GNU General Public License
+--    along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Wisi_Process;
+with WisiToken.Token_Emacs_Process;
 with WisiToken.Parser.LR.Parser;
 package Ada_Grammar_Process is
 
@@ -724,7 +724,7 @@ package Ada_Grammar_Process is
 
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State : aliased WisiToken.Token_Wisi_Process.State_Type (Trace'Access);
+   State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);
 
    function Create_Parser
      (Algorithm    : in WisiToken.Parser_Algorithm_Type;

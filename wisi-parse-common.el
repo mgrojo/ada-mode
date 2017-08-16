@@ -61,9 +61,14 @@ For use in grammar actions.")
 (defvar-local wisi-mckenzie-enable nil
   "If non-nil, enable McKenzie error recovery.")
 
-(defvar-local wisi-mckenzie-enqueue-limit nil
-  "If non-nil, McKenzie recover algorithm limit; higher has more recover power, but takes longer.
-If nil, uses value from grammar file.")
+(defcustom wisi-mckenzie-enqueue-limit nil
+  "If integer, sets McKenzie recover algorithm limit.
+Higher value has more recover power, but takes longer.
+If nil, uses value from grammar file."
+  :type 'integer
+  :group 'wisi
+  :safe 'integerp)
+(make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
 
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size")
