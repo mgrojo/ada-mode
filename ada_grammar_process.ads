@@ -727,8 +727,7 @@ package Ada_Grammar_Process is
    State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);
 
    function Create_Parser
-     (Algorithm    : in WisiToken.Parser_Algorithm_Type;
-      Max_Parallel : in Integer := 15)
+     (Algorithm : in WisiToken.Parser_Algorithm_Type)
      return WisiToken.Parser.LR.Parser.Instance;
 
 end Ada_Grammar_Process;

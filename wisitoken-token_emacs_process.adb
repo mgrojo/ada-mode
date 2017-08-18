@@ -25,12 +25,17 @@ package body WisiToken.Token_Emacs_Process is
    --  body subprograms
 
    --  See [1]
-   Input_Token_Code   : constant String := "0 ";
-   Push_Token_Code    : constant String := "1 ";
-   Discard_Input_Code : constant String := "2 ";
-   Error_Code         : constant String := "3 ";
-   Merge_Tokens_Code  : constant String := "4 ";
-   Recover_Code       : constant String := "5 ";
+   Input_Token_Code             : constant String := "1 ";
+   Input_Lookahead_Code         : constant String := "2 ";
+   Move_Lookahead_To_Input_Code : constant String := "3 ";
+   Move_Input_To_Lookahead_Code : constant String := "4 ";
+   Push_Token_Code              : constant String := "5 ";
+   Error_Code                   : constant String := "6 ";
+   Discard_Input_Code           : constant String := "7 ";
+   Discard_Lookahead_Code       : constant String := "8 ";
+   Pop_Token_Code               : constant String := "9 ";
+   Merge_Tokens_Code            : constant String := "10 ";
+   --  Recover_Code = 11 not used
 
    function To_Code (ID : in Token_ID) return String
    is begin
@@ -108,6 +113,46 @@ package body WisiToken.Token_Emacs_Process is
    end Input_Token;
 
    overriding
+   procedure Input_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID;
+      Lexer : in     WisiToken.Lexer.Handle)
+   is
+      pragma Unreferenced (Lexer);
+      use all type WisiToken.Lexer.Handle;
+   begin
+      --  The elisp lexer has already put the token in the state
+      --  input queue; we move it to the lookahead queue.
+
+      if Trace_Parse > 3 then
+         Put (State.Trace.all, Token);
+      end if;
+      Ada.Text_IO.Put_Line ("[" & Input_Lookahead_Code & To_Code (Token) & "]");
+   end Input_Lookahead;
+
+   overriding
+   procedure Move_Lookahead_To_Input
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is begin
+      if Trace_Parse > 3 then
+         Put (State.Trace.all, Token);
+      end if;
+      Ada.Text_IO.Put_Line ("[" & Move_Lookahead_To_Input_Code & To_Code (Token) & "]");
+   end Move_Lookahead_To_Input;
+
+   overriding
+   procedure Move_Input_To_Lookahead
+     (State : access State_Type;
+      Token : in     Token_ID)
+   is begin
+      if Trace_Parse > 3 then
+         Put (State.Trace.all, Token);
+      end if;
+      Ada.Text_IO.Put_Line ("[" & Move_Input_To_Lookahead_Code & To_Code (Token) & "]");
+   end Move_Input_To_Lookahead;
+
+   overriding
    procedure Push_Token
      (State : access State_Type;
       Token : in     Token_ID)
@@ -140,12 +185,22 @@ package body WisiToken.Token_Emacs_Process is
    overriding
    procedure Discard_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID);
+      Token : in     Token_ID)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & To_Code (Token) & "]");
+   end Discard_Lookahead;
 
    overriding
    procedure Pop_Token
      (State : access State_Type;
-      Token : in     Token_ID);
+      Token : in     Token_ID)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Pop_Token_Code & To_Code (Token) & "]");
+   end Pop_Token;
 
    overriding
    procedure Merge_Tokens
@@ -160,20 +215,5 @@ package body WisiToken.Token_Emacs_Process is
       Ada.Text_IO.Put_Line
         ("[" & Merge_Tokens_Code & To_Code (Nonterm) & To_Codes (Tokens) & Integer'Image (Index) & "]");
    end Merge_Tokens;
-
-   overriding
-   procedure Recover
-     (State         : access State_Type;
-      Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
-      Recover       : in     WisiToken.Token.Recover_Data_Access)
-   is
-      pragma Unreferenced (Recover);
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line
-        ("[" & Recover_Code & To_Codes (Popped_Tokens) & To_Codes (Pushed_Tokens) & "]");
-      --  FIXME: send Recover
-   end Recover;
 
 end WisiToken.Token_Emacs_Process;

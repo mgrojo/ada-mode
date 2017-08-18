@@ -38,10 +38,13 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
+ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
+    detect that, exit
+
 merged build/wisi into build, updated wisitoken
 
-    run ada_mode-interactive_recover.adb test
-        failing on elisp/ada input queue sync
+    run test/ada_mode-interactive_recover.adb
+        parse succeeds, indentation is weird
 
     run all process tests
 

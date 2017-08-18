@@ -229,9 +229,10 @@ from TOKEN-TABLE."
 (defun wisi-process-parse--check-id (label token-table tok id)
   "Check that TOK id equals ID; throw error if not."
   (let ((enum (wisi-process-parse--id-to-enum token-table id)))
-    (unless (eq (wisi-tok-token tok) enum)
+    (unless (and tok enum
+		 (eq (wisi-tok-token tok) enum))
       (error "%s: token id mismatch; elisp %s, process %s"
-	     label (wisi-tok-debug-image tok) enum))))
+	     label (and tok (wisi-tok-debug-image tok)) enum))))
 
 (defun wisi-process-parse--input_token (parser sexp)
   ;; sexp is  [input_token id]
@@ -242,6 +243,15 @@ from TOKEN-TABLE."
     (queue-prepend (wisi-process--parser-input-queue parser) tok)
     (when (> wisi-debug 1)
       (message "input token %s" (wisi-tok-debug-image tok)))
+    ))
+
+(defun wisi-process-parse--input_lookahead (parser sexp)
+  ;; sexp is  [input_lookahead id]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((tok (queue-dequeue (wisi-process--parser-input-queue parser))))
+    (queue-append (wisi-process--parser-lookahead-queue parser) tok)
+    (when (> wisi-debug 1)
+      (message "input lookahead %s" (wisi-tok-debug-image tok)))
     ))
 
 (defun wisi-process-parse--move_lookahead_to_input (parser sexp)
@@ -410,7 +420,10 @@ from TOKEN-TABLE."
   ;;    error recover algorithm; add it to the front of the elisp
   ;;    input queue, with null augmented info.
   ;;
-  ;; Input_Lookahead not used
+  ;; [Input_Lookahead id] Parser read ID from parser lexer, added it
+  ;;    to back of lookahead queue. Move the corresponding augmented
+  ;;    token from the front of the elisp input queue to the back of
+  ;;    the elisp lookahead queue.
   ;;
   ;; [Move_Lookahead_To_Input id]
   ;;    Parser removed id from the parser lookahead; move the
@@ -462,11 +475,11 @@ from TOKEN-TABLE."
   ;;    (nonterm_id, production_index) with wisi-nonterm, wisi-tokens
   ;;    bound to nonterm, tokens.
   ;;
-  ;; Recover not used
+  ;; Recover not used. FIXME: cache and reuse.
   ;;
   ;; where:
   ;; Input_Token 	     =  1
-  ;; Input_Lookahead 	     =  2 ;; not used
+  ;; Input_Lookahead 	     =  2
   ;; Move_Lookahead_To_Input =  3
   ;; Move_Input_To_Lookahead =  4
   ;; Push_Token 	     =  5
@@ -482,7 +495,7 @@ from TOKEN-TABLE."
 
   (cl-ecase (aref sexp 0)
     (1  (wisi-process-parse--input_token parser sexp))
-    ;; 2 input-lookahead not used
+    (2  (wisi-process-parse--input_lookahead parser sexp))
     (3  (wisi-process-parse--move_lookahead_to_input parser sexp))
     (4  (wisi-process-parse--move_input_to_lookahead parser sexp))
     (5  (wisi-process-parse--push_token parser sexp))
@@ -491,6 +504,7 @@ from TOKEN-TABLE."
     (8  (wisi-process-parse--discard_lookahead parser sexp))
     (9  (wisi-process-parse--pop_token parser sexp))
     (10 (wisi-process-parse--merge_tokens parser sexp))
+    ;; 11 recover not used
     ))
 
 (defun wisi-process-parse-report-error (parser action)
@@ -544,7 +558,7 @@ Replace line, column in ACTION with data from head of input queue.
 	;; but that did not work. This only happens in unit tests, so
 	;; they can call ’wisi-parse-buffer ’face’.
 	)
-    (condition-case err
+    (condition-case-unless-debug err
 	(let* ((source-buffer (current-buffer))
 	       (action-buffer (wisi-process--parser-buffer parser))
 	       (process (wisi-process--parser-process parser))

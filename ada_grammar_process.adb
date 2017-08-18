@@ -27,8 +27,7 @@ package body Ada_Grammar_Process is
    is null;
 
    function Create_Parser
-     (Algorithm    : in WisiToken.Parser_Algorithm_Type;
-      Max_Parallel : in Integer := 15)
+     (Algorithm : in WisiToken.Parser_Algorithm_Type)
      return WisiToken.Parser.LR.Parser.Instance
    is
       use WisiToken.Parser.LR;
@@ -22890,7 +22889,7 @@ package body Ada_Grammar_Process is
          Table, WisiToken.Token.Semantic_State'Class (State)'Access,
          Lookahead => WisiToken.Token_Queues.Empty_Queue,
          Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,
-         Max_Parallel => Max_Parallel, First_Parser_Label => 0,
+         Max_Parallel => 15, First_Parser_Label => 0,
          Terminate_Same_State => True);
    end Create_Parser;
 

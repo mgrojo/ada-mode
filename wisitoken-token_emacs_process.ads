@@ -36,7 +36,8 @@ package WisiToken.Token_Emacs_Process is
    --  operations.
 
    overriding
-   procedure Put (State : access State_Type);
+   procedure Put (State : access State_Type) is null;
+   --  Only used for debugging.
 
    overriding
    procedure Reset (State : access State_Type) is null;
@@ -100,9 +101,9 @@ package WisiToken.Token_Emacs_Process is
 
    overriding
    procedure Recover
-     (State         : access State_Type;
-      Popped_Tokens : in     Token.List.Instance;
-      Pushed_Tokens : in     Token.List.Instance;
-      Recover       : in     WisiToken.Token.Recover_Data_Access);
+     (State   : access State_Type;
+      Recover : in     WisiToken.Token.Recover_Data'Class)
+     is null;
+   --  Not used.
 
 end WisiToken.Token_Emacs_Process;
