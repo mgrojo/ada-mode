@@ -67,25 +67,24 @@ package body WisiToken.Lexer.Aflex is
    exception
    when E : others =>
       raise Syntax_Error with
-        Int_Image (Lexer.Line + 1) &
-        ":" &
-        Int_Image (Lexer.Column) &
-        ": " & Ada.Exceptions.Exception_Name (E) &
-        " : " & Ada.Exceptions.Exception_Message (E);
+         Error_Message
+           ("", Lexer.Line, Lexer.Column,
+            "lexer find_next error: " & Ada.Exceptions.Exception_Name (E) &
+              " : " & Ada.Exceptions.Exception_Message (E));
    end Find_Next;
 
-   overriding function Line (Lexer : in Instance) return Natural
+   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
    is
       pragma Unreferenced (Lexer);
    begin
-      return YY_Begin_Line;
+      return Ada.Text_IO.Count (YY_Begin_Line);
    end Line;
 
-   overriding function Column (Lexer : in Instance) return Natural
+   overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is
       pragma Unreferenced (Lexer);
    begin
-      return YY_Begin_Column;
+      return Ada.Text_IO.Count (YY_Begin_Column);
    end Column;
 
    overriding function Lexeme (Lexer : in Instance) return String

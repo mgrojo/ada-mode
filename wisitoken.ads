@@ -39,6 +39,7 @@ with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
+with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken is
@@ -66,8 +67,8 @@ package WisiToken is
 
    type Token_ID is range 1 .. Integer'Last;
 
-   subtype Natural_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-   package Token_Arrays is new Ada.Containers.Vectors (Natural_Index_Type, Token_ID);
+   subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
+   package Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
    subtype Token_Array is Token_Arrays.Vector;
    Empty_Token_Array : Token_Array renames Token_Arrays.Empty_Vector;
 
@@ -172,7 +173,7 @@ package WisiToken is
    end record;
    --  Derived types add various lexical information.
 
-   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Natural_Index_Type, Augmented_Token'Class);
+   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
 
    subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
 
@@ -220,6 +221,13 @@ package WisiToken is
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space
+
+   function Error_Message
+     (File_Name : in String;
+      Line, Col : in Ada.Text_IO.Positive_Count;
+      Message   : in String)
+     return String;
+   --  Return Gnu-formatted error message.
 
    type Parser_Algorithm_Type is (LALR, LR1);
 

@@ -394,9 +394,9 @@ package body WisiToken.Parser.LR.Parser is
             begin
                if Count > 1 then
                   --  Panic mode error resolution does not help with this.
-                  raise Parse_Error with
-                    Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                    ": Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.";
+                  raise Parse_Error with Error_Message
+                    ("", Parser.Lexer.Line, Parser.Lexer.Column,
+                     "Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.");
                end if;
             end;
             return;
@@ -667,12 +667,12 @@ package body WisiToken.Parser.LR.Parser is
                   if Action.Next /= null then
                      --  conflict; spawn a new parser
                      if Parsers.Count = Parser.Max_Parallel then
-                        raise Parse_Error with
-                          Int_Image (Parser.Lexer.Line) & ":" & Int_Image (Parser.Lexer.Column) &
-                          ": too many parallel parsers required in grammar state" &
-                          State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
-                          "; simplify grammar, or increase max-parallel (" &
-                          Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")";
+                        raise Parse_Error with Error_Message
+                          ("", Parser.Lexer.Line, Parser.Lexer.Column,
+                           ": too many parallel parsers required in grammar state" &
+                             State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
+                             "; simplify grammar, or increase max-parallel (" &
+                             Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")");
 
                      else
                         if Trace_Parse > 0 then

@@ -18,12 +18,19 @@
 
 pragma License (GPL);
 
+with Ada.Directories;
+with Ada.IO_Exceptions;
 package body WisiToken.Text_Feeder.Text_IO is
 
    function Create (File_Name : in String) return Text_Feeder_Ptr
    is
+      use Ada.Directories;
       Result : constant Handle := new Instance;
    begin
+      if not Exists (File_Name) then
+         raise Ada.IO_Exceptions.Name_Error with "file '" & File_Name & "' not found";
+      end if;
+
       Ada.Text_IO.Open (Result.File, Ada.Text_IO.In_File, File_Name);
       return Text_Feeder_Ptr (Result);
    end Create;
@@ -75,4 +82,15 @@ package body WisiToken.Text_Feeder.Text_IO is
    is begin
       return Ada.Text_IO.End_Of_File (Feeder.File);
    end End_Of_Text;
+
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Positive_Count
+   is begin
+      return Ada.Text_IO.Line (Feeder.File);
+   end Line;
+
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Positive_Count
+   is begin
+      return Ada.Text_IO.Col (Feeder.File);
+   end Col;
+
 end WisiToken.Text_Feeder.Text_IO;

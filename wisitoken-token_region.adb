@@ -116,6 +116,37 @@ package body WisiToken.Token_Region is
    ----------
    --  Public subprograms
 
+   procedure Put
+     (File_Name  : in String;
+      List       : in Error_Data_Lists.List;
+      Descriptor : in WisiToken.Descriptor'Class)
+   is
+      use Ada.Text_IO;
+   begin
+      for Item of List loop
+         if Item.Error_Token.Line = 0 then
+            Put_Line
+              (File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                 ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => False) & "'");
+         else
+            Put_Line
+              (Error_Message
+                 (File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
+                  "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                 ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => True) & "'"));
+         end if;
+
+         if Item.Invalid_Region /= Null_Buffer_Region then
+            Put_Line ("   invalid_region: " & Image (Item.Invalid_Region));
+         end if;
+
+         if Item.Recover /= null then
+            null;
+            --  FIXME: Image (recover)
+         end if;
+      end loop;
+   end Put;
+
    overriding
    procedure Put (State : access State_Type)
    is
@@ -144,37 +175,55 @@ package body WisiToken.Token_Region is
    overriding
    procedure Input_Token
      (State : access State_Type;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
    is
+      use all type Ada.Text_IO.Count;
       use all type WisiToken.Lexer.Handle;
+      Token : Token_Region.Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
    begin
-      if Lexer = null then
-         State.Input_Queue.Add_To_Head ((Token, Null_Buffer_Region));
-      else
-         State.Input_Queue.Put ((Token, Lexer.Bounds));
+      if Lexer /= null then
+         Token.Line := Lexer.Line;
+         if Token.Line = 0 then
+            Token.Region := Lexer.Bounds;
+         else
+            Token.Col := Lexer.Column;
+         end if;
       end if;
+      State.Input_Queue.Put (Token);
    end Input_Token;
 
    overriding
    procedure Input_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
-   is begin
-      State.Lookahead_Queue.Put ((Token, Lexer.Bounds));
+   is
+      use all type Ada.Text_IO.Count;
+      Token : Token_Region.Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
+   begin
+      Token.Line := Lexer.Line;
+      if Token.Line = 0 then
+         Token.Region := Lexer.Bounds;
+      else
+         Token.Col := Lexer.Column;
+      end if;
+      if Trace_Parse > 2 then
+         State.Trace.Put_Line ("input_lookahead: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
+      end if;
+      State.Lookahead_Queue.Put (Token);
    end Input_Lookahead;
 
    overriding
    procedure Move_Lookahead_To_Input
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := State.Lookahead_Queue.Get;
    begin
-      if Token /= Tok.ID then
-         raise Programmer_Error with "token_region.move_lookahead_to_input: Token " &
-           Image (State.Trace.Descriptor.all, Token) &
+      if ID /= Tok.ID then
+         raise Programmer_Error with "token_region.move_lookahead_to_input: ID " &
+           Image (State.Trace.Descriptor.all, ID) &
            ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
       end if;
 
@@ -184,13 +233,13 @@ package body WisiToken.Token_Region is
    overriding
    procedure Move_Input_To_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := State.Input_Queue.Get;
    begin
-      if Token /= Tok.ID then
-         raise Programmer_Error with "token_region.move_input_to_lookahead: Token " &
-           Image (State.Trace.Descriptor.all, Token) &
+      if ID /= Tok.ID then
+         raise Programmer_Error with "token_region.move_input_to_lookahead: ID " &
+           Image (State.Trace.Descriptor.all, ID) &
            ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
       end if;
 
@@ -200,13 +249,13 @@ package body WisiToken.Token_Region is
    overriding
    procedure Push_Token
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := State.Input_Queue.Get;
    begin
-      if Token /= Tok.ID then
-         raise Programmer_Error with "token_region.push_token: Token " &
-           Image (State.Trace.Descriptor.all, Token) &
+      if ID /= Tok.ID then
+         raise Programmer_Error with "token_region.push_token: ID " &
+           Image (State.Trace.Descriptor.all, ID) &
            ", Tok " & Image (State.Trace.Descriptor.all, Tok, ID_Only => False);
       end if;
 
@@ -233,11 +282,11 @@ package body WisiToken.Token_Region is
    overriding
    procedure Discard_Input
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := State.Input_Queue.Get;
    begin
-      if Token /= Tok.ID then
+      if ID /= Tok.ID then
          raise Programmer_Error;
       end if;
       State.Invalid_Region := State.Invalid_Region and Tok.Region;
@@ -246,11 +295,11 @@ package body WisiToken.Token_Region is
    overriding
    procedure Discard_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := State.Lookahead_Queue.Get;
    begin
-      if Token /= Tok.ID then
+      if ID /= Tok.ID then
          raise Programmer_Error;
       end if;
       State.Invalid_Region := State.Invalid_Region and Tok.Region;
@@ -259,12 +308,12 @@ package body WisiToken.Token_Region is
    overriding
    procedure Pop_Token
      (State : access State_Type;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
    is
       Tok : constant Token_Region.Token := Token_Region.Token (Augmented_Token_Arrays.Element (State.Stack.Last));
    begin
       State.Stack.Delete_Last;
-      if Token /= Tok.ID then
+      if ID /= Tok.ID then
          raise Programmer_Error;
       end if;
       State.Invalid_Region := State.Invalid_Region and Tok.Region;
@@ -275,17 +324,17 @@ package body WisiToken.Token_Region is
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     WisiToken.Token.List.Instance;
+      IDs     : in     WisiToken.Token.List.Instance;
       Action  : in     Semantic_Action)
    is
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
       use all type WisiToken.Token.List.List_Iterator;
 
-      ID_I : WisiToken.Token.List.List_Iterator := Tokens.First;
+      ID_I : WisiToken.Token.List.List_Iterator := IDs.First;
 
       Aug_Nonterm : Token                         := Default_Token;
-      Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - Tokens.Length + 1);
+      Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
       Aug_Tokens  : Augmented_Token_Arrays.Vector;
    begin
       Aug_Nonterm.ID := Nonterm;
@@ -321,10 +370,10 @@ package body WisiToken.Token_Region is
          --  We use the stack for the trace, not Aug_Tokens, because
          --  we don't compute aug_tokens when Action is null.
          Put
-           (State.Trace.all, Aug_Nonterm, Index, State.Stack, Tokens.Length, Include_Action_Name => Action /= null);
+           (State.Trace.all, Aug_Nonterm, Index, State.Stack, IDs.Length, Include_Action_Name => Action /= null);
       end if;
 
-      for I in 1 .. Tokens.Length loop
+      for I in 1 .. IDs.Length loop
          State.Stack.Delete_Last;
       end loop;
 

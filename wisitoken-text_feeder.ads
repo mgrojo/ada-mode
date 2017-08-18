@@ -28,6 +28,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 package WisiToken.Text_Feeder is
 
    type Instance is abstract tagged limited null record;
@@ -52,5 +53,18 @@ package WisiToken.Text_Feeder is
    --  must be retured in New_Text.
 
    function End_Of_Text (Feeder : Instance) return Boolean is abstract;
+
+   function Line (Feeder : in Instance) return Ada.Text_IO.Positive_Count is abstract;
+   --  Return the line in the file in which the next input will be
+   --  read.
+   --
+   --  If the feeder does not support the notion of 'line', return 0.
+
+   function Col (Feeder : in Instance) return Ada.Text_IO.Positive_Count is abstract;
+   --  Return the column in the line at which the the next input will
+   --  be read.
+   --
+   --  If the feeder does not support the notion of 'line', return the
+   --  byte offset of the start of the token in the internal buffer.
 
 end WisiToken.Text_Feeder;

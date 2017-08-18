@@ -150,47 +150,47 @@ package WisiToken.Token is
 
    procedure Input_Token
      (State : access Semantic_State;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
-   --  If Lexer is not null, the parser just fetched Token from Lexer;
+   --  If Lexer is not null, the parser just fetched ID from Lexer;
    --  add it to the back of the State input queue, with augmenting
    --  data from Lexer, for later operations.
    --
-   --  If Lexer is null, Token was inserted in an error recover
+   --  If Lexer is null, ID was inserted in an error recover
    --  operation; add to queue front with default augmenting data.
 
    procedure Input_Lookahead
      (State : access Semantic_State;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle)
      is abstract;
-   --  Lexer cannot be null. The parser just fetched Token from Lexer
+   --  Lexer cannot be null. The parser just fetched ID from Lexer
    --  during an error recovery lookahead. Add it to the back of the
    --  State lookahead queue, with augmenting data from Lexer, for
    --  later operations.
 
    procedure Move_Lookahead_To_Input
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Parser just removed Token from lookahead; remove the corresponding
+   --  Parser just removed ID from lookahead; remove the corresponding
    --  augmented token from the front of the State lookahead queue,
    --  add it to the front of the State input queue.
 
    procedure Move_Input_To_Lookahead
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Parser is entering error recovery; move Token from the front of
+   --  Parser is entering error recovery; move ID from the front of
    --  the State input queue to the front of the State lookahead
    --  queue.
 
    procedure Push_Token
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Parser just pushed Token on the parse stack; remove the
+   --  Parser just pushed ID on the parse stack; remove the
    --  corresponding augmented token from the front of the State input
    --  queue, push it on the State stack.
 
@@ -208,27 +208,27 @@ package WisiToken.Token is
 
    procedure Discard_Input
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Token was discarded from input in an error recover operation;
+   --  ID was discarded from input in an error recover operation;
    --  discard the corresponding augmented token from the front of the
    --  State input queue, and add the token's buffer region to the
    --  current invalid region.
 
    procedure Discard_Lookahead
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Token was discarded from lookahead in an error recover
+   --  ID was discarded from lookahead in an error recover
    --  operation; discard the corresponding augmented token from the
    --  front of the State lookahead queue, and add the token's buffer
    --  region to the current invalid region.
 
    procedure Pop_Token
      (State : access Semantic_State;
-      Token : in     Token_ID)
+      ID    : in     Token_ID)
      is abstract;
-   --  Token was popped from the parse stack in an error recover
+   --  ID was popped from the parse stack in an error recover
    --  operation; discard the corresponding augmented token from the
    --  top of the State stack, and add the token's buffer region to
    --  the current invalid region.
@@ -237,10 +237,10 @@ package WisiToken.Token is
      (State   : access Semantic_State;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     List.Instance;
+      IDs     : in     List.Instance;
       Action  : in     Semantic_Action)
    is abstract;
-   --  Parser reduced Tokens to Nonterm; perform same operations on
+   --  Parser reduced IDs to Nonterm; perform same operations on
    --  State stack, call associated Action. Index identifies the
    --  production used in the current parser state (on the top of the
    --  parse stack).

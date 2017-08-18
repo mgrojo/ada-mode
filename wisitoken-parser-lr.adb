@@ -105,7 +105,7 @@ package body WisiToken.Parser.LR is
       Result : Unbounded_String;
    begin
       if Top_First then
-         for I in reverse 1 .. Stack.Depth loop
+         for I in 1 .. Stack.Depth loop
             Result := Result &
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
@@ -113,7 +113,7 @@ package body WisiToken.Parser.LR is
                   else Image (Descriptor, Stack.Peek (I).ID) & ", "));
          end loop;
       else
-         for I in 1 .. Stack.Depth loop
+         for I in reverse 1 .. Stack.Depth loop
             Result := Result &
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Last

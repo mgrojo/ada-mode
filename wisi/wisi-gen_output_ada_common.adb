@@ -54,7 +54,6 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Output_Language is
       when Ada =>
-         Put_Line ("with Ada.Containers;");
          Put_Line ("with WisiToken.Text_Feeder;");
          Put_Line ("with WisiToken.Text_IO_Trace;");
          Put_Line ("with WisiToken.Token_Region;");
@@ -166,10 +165,9 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("State : aliased WisiToken.Token_Region.State_Type (Trace'Access);");
          New_Line;
          Indent_Line ("function Create_Parser");
-         Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Max_Parallel : in Ada.Containers.Count_Type             := 15;");
-         Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
-         Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
+         Indent_Line ("  (Algorithm   : in WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Text_Feeder : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
+         Indent_Line ("   Buffer_Size : in Integer                               := 1024)");
          Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
          New_Line;
 
@@ -180,8 +178,7 @@ package body Wisi.Gen_Output_Ada_Common is
             Indent_Line ("State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);");
             New_Line;
             Indent_Line ("function Create_Parser");
-            Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel : in Integer := 15)");
+            Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");
             Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
             New_Line;
 
@@ -235,7 +232,8 @@ package body Wisi.Gen_Output_Ada_Common is
       for Kind of Tokens loop
          if -Kind.Kind = """line_comment""" then
             for Item of Kind.Tokens loop
-               Put_Line (Strip_Quotes (-Item.Value) & " {         null;}");
+               --  Tell Aflex to count comment lines (sigh).
+               Put_Line (Strip_Quotes (-Item.Value) & " {         Tok_End_Line := Tok_End_Line + 1;}");
             end loop;
 
          elsif -Kind.Kind = """whitespace""" then
@@ -263,7 +261,7 @@ package body Wisi.Gen_Output_Ada_Common is
             for Item of Kind.Tokens loop
                if -Item.Value = "ada-wisi-number-p" then
                   Put_Line
-                    ("([0-9]+#)?[0-9a-fA-F._]+(#)? {         return " &
+                    ("([0-9]+#)?[0-9][0-9a-fA-F._]*(#)? {         return " &
                        Token_ID'Image (Find_Token_ID (-Item.Name)) & ";}");
                else
                   Put_Line (Strip_Quotes (-Item.Value) & " {         return " &
@@ -343,22 +341,19 @@ package body Wisi.Gen_Output_Ada_Common is
       when None | Process =>
          case Data.Lexer is
          when Aflex_Lexer =>
-            Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel : in Ada.Containers.Count_Type             := 15;");
-            Indent_Line ("   Text_Feeder  : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
-            Indent_Line ("   Buffer_Size  : in Integer                               := 1024)");
+            Indent_Line ("  (Algorithm   : in WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Text_Feeder : in WisiToken.Text_Feeder.Text_Feeder_Ptr := null;");
+            Indent_Line ("   Buffer_Size : in Integer                               := 1024)");
 
          when Elisp_Lexer =>
-            Indent_Line ("  (Algorithm    : in WisiToken.Parser_Algorithm_Type;");
-            Indent_Line ("   Max_Parallel : in Integer := 15)");
+            Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");
 
          when Regexp_Lexer =>
             raise Programmer_Error;
          end case;
       when Module =>
          Indent_Line ("  (Env                 : in Emacs_Env_Access;");
-         Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value;");
-         Indent_Line ("   Max_Parallel        : in Integer := 15)");
+         Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value)");
       end case;
 
       Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance");
@@ -422,7 +417,6 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
       New_Line;
 
-      --  IMPROVEME: get Max_Parallel from some command line
       Indent_Line ("return");
       case Interface_Kind is
       when None | Process =>
@@ -441,13 +435,13 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
          Indent_Line ("   Lookahead => WisiToken.Token_Queues.Empty_Queue,");
          Indent_Line ("   Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,");
-         Indent_Line ("   Max_Parallel => Max_Parallel, First_Parser_Label => " &
+         Indent_Line ("   Max_Parallel => 15, First_Parser_Label => " &
                         WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
 
       when Module =>
          Indent_Line ("  (Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
-         Indent_Line ("   Table, Max_Parallel, Terminate_Same_State => True);");
+         Indent_Line ("   Table, Max_Parallel => 15, Terminate_Same_State => True);");
 
       end case;
       Indent := Indent - 3;

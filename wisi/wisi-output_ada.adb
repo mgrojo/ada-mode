@@ -42,17 +42,27 @@ procedure Wisi.Output_Ada
    Action_Count            : in Integer;
    Profile                 : in Boolean)
 is
+   function Ensure_Ada_Comment (Line : in String) return String
+   is begin
+      --  Translate Elisp comments to Ada comments.
+      return Result : String := Line do
+         if Line'Last >= 2 and then Line (Line'First .. Line'First + 1) = ";;" then
+            Result (Line'First .. Line'First + 1) := "--";
+         end if;
+      end return;
+   end Ensure_Ada_Comment;
+
    procedure Put_Ada_Prologue_Context_Clause
    is begin
       for Line of Prologue_Context_Clause loop
-         Put_Line (Line);
+         Put_Line (Ensure_Ada_Comment (Line));
       end loop;
    end Put_Ada_Prologue_Context_Clause;
 
    procedure Put_Ada_Prologue_Declarations
    is begin
       for Line of Prologue_Declarations loop
-         Wisi.Utils.Indent_Line (Line);
+         Wisi.Utils.Indent_Line (Ensure_Ada_Comment (Line));
       end loop;
    end Put_Ada_Prologue_Declarations;
 
@@ -184,39 +194,52 @@ is
             declare
                use all type Standard.Ada.Containers.Count_Type;
 
-               LHS_ID    : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-               Index     : Integer           := 0; -- Semantic_Action defines Index as zero-origin
-               Temp      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-               All_Empty : Boolean           := True;
+               LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+               Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
+               Temp       : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+               All_Empty  : Boolean                     := True;
+
+               function Is_Elisp (Action : in String_Lists.List) return Boolean
+               is
+                  Line : constant String := String_Lists.Element (Action.First);
+               begin
+                  return Line'Length >= 5 and then
+                    (Line (Line'First .. Line'First + 4) = "progn" or
+                       Line (Line'First .. Line'First + 4) = "wisi-");
+               end Is_Elisp;
+
             begin
                for RHS of Rule.Right_Hand_Sides loop
-                  if RHS.Action.Length > 0 then
+                  if RHS.Action.Length > 0 and then not Is_Elisp (RHS.Action) then
                      declare
-                        Name          : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Index);
-                        Unref_Nonterm : Boolean         := True;
-                        Unref_Index   : Boolean         := True;
-                        Unref_Source  : Boolean         := True;
-                     begin
-                        All_Empty := False;
-                        Temp (Index) := new String'(Name & "'Access");
+                        use Standard.Ada.Strings.Fixed;
 
+                        Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+
+                        Unref_Nonterm : Boolean := True;
+                        Unref_Index   : Boolean := True;
+                        Unref_Source  : Boolean := True;
+                     begin
+                        for Line of RHS.Action loop
+                           if 0 < Index (Line, "Nonterm") then
+                              Unref_Nonterm := False;
+                           end if;
+                           if 0 < Index (Line, "Index") then
+                              Unref_Index := False;
+                           end if;
+                           if 0 < Index (Line, "Source") then
+                              Unref_Source := False;
+                           end if;
+                        end loop;
+
+                        All_Empty := False;
+
+                        Temp (Prod_Index) := new String'(Name & "'Access");
                         Indent_Line ("procedure " & Name);
                         Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
                         Indent_Line ("  Index   : in Natural;");
                         Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
                         Indent_Line ("is");
-
-                        for Line of RHS.Action loop
-                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Nonterm") then
-                              Unref_Nonterm := False;
-                           end if;
-                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Index") then
-                              Unref_Index := False;
-                           end if;
-                           if 0 < Standard.Ada.Strings.Fixed.Index (Line, "Source") then
-                              Unref_Source := False;
-                           end if;
-                        end loop;
 
                         if Profile or Unref_Nonterm then
                            Indent_Line ("   pragma Unreferenced (Nonterm);");
@@ -245,7 +268,7 @@ is
                      end;
                   end if;
 
-                  Index := Index + 1;
+                  Prod_Index := Prod_Index + 1;
                end loop;
 
                if not All_Empty then

@@ -331,9 +331,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
          Sequence  : Token_Array;
          First_Set : Boolean;
-         First     : Natural_Index_Type; -- index into Sequence of IDs to insert
+         First     : Positive_Index_Type; -- index into Sequence of IDs to insert
          Last_Set  : Boolean := False;
-         Last      : Natural_Index_Type;
+         Last      : Positive_Index_Type;
       begin
          --  Just enough for test_mckenzie_recover Error_5
          Terminal_Sequences (1).Append (12); -- if

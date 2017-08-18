@@ -21,14 +21,17 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
-with WisiToken.Lexer;
-with WisiToken.Token;
+with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
+with WisiToken.Lexer;
+with WisiToken.Token;
 package WisiToken.Token_Region is
 
    type Token is new WisiToken.Augmented_Token with record
-      Region : Buffer_Region;
+      Line   : Ada.Text_IO.Count;
+      Col    : Ada.Text_IO.Count; -- valid if Line > 0
+      Region : Buffer_Region;     -- valid if Line = 0
    end record;
 
    function Image
@@ -38,7 +41,7 @@ package WisiToken.Token_Region is
      return String;
    --  Return a string for debug/test messages
 
-   Default_Token : constant Token := (Invalid_Token_ID, Null_Buffer_Region);
+   Default_Token : constant Token := (Invalid_Token_ID, 0, 0, Null_Buffer_Region);
 
    package Token_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Token);
    package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token, Token_Queue_Interfaces);
@@ -54,6 +57,12 @@ package WisiToken.Token_Region is
    end record;
 
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
+
+   procedure Put
+     (File_Name  : in String;
+      List       : in Error_Data_Lists.List;
+      Descriptor : in WisiToken.Descriptor'Class);
+   --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
    type State_Type is new WisiToken.Token.Semantic_State with record
       Stack : Augmented_Token_Array;
@@ -85,29 +94,29 @@ package WisiToken.Token_Region is
    overriding
    procedure Input_Token
      (State : access State_Type;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle);
 
    overriding
    procedure Input_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID;
+      ID    : in     Token_ID;
       Lexer : in     WisiToken.Lexer.Handle);
 
    overriding
    procedure Move_Lookahead_To_Input
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
    procedure Move_Input_To_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
    procedure Push_Token
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding procedure Error
      (State     : access State_Type;
@@ -116,24 +125,24 @@ package WisiToken.Token_Region is
    overriding
    procedure Discard_Input
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
    procedure Discard_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
    procedure Pop_Token
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
    procedure Merge_Tokens
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     WisiToken.Token.List.Instance;
+      IDs     : in     WisiToken.Token.List.Instance;
       Action  : in     Semantic_Action);
 
    overriding

@@ -27,6 +27,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Text_IO;
 with WisiToken.Text_Feeder;
 package WisiToken.Lexer is
 
@@ -55,16 +56,19 @@ package WisiToken.Lexer is
    --  Most useful when the internal buffer holds the entire input
    --  text, as it will for editor parsers.
 
-   function Line (Lexer : in Instance) return Natural is abstract;
-   --  Returns the current text line number at which processing will resume.
-   --  This is particularly useful for printing error messages when
-   --  syntax errors are detected.
+   function Line (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
+   --  Returns the current text line number in which the most recent
+   --  token was found.
+   --
+   --  If the underlying text feeder does not support the notion of
+   --  'line', returns 0.
 
-   function Column (Lexer : in Instance) return Natural is abstract;
-   --  Return the current text column number at which processing will
-   --  resume. This is particularly useful for printing error messages
-   --  when syntax errors are detected. First column number is given
-   --  in Initialize.
+   function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
+   --  Return the current text column number of the start of the most
+   --  recent token..
+   --
+   --  If the underlying text feeder does not support the notion of
+   --  'line', returns buffer offset in underlying buffer.
 
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.

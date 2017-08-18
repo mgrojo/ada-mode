@@ -18,7 +18,7 @@
 
 pragma License (GPL);
 
-private with Ada.Text_IO;
+with Ada.Text_IO;
 package WisiToken.Text_Feeder.Text_IO is
 
    type Instance is limited new WisiToken.Text_Feeder.Instance with private;
@@ -38,7 +38,9 @@ package WisiToken.Text_Feeder.Text_IO is
       Text_End :    out Integer);
 
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
-   --  Returns True after Max_Bytes has been read.
+
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Positive_Count;
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Positive_Count;
 
 private
 

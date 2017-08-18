@@ -26,7 +26,6 @@
 
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
-with Ada.Text_IO;
 package body WisiToken is
 
    function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String
@@ -273,6 +272,18 @@ package body WisiToken is
          Put_Line ((if Paren_Done then " " else "") & "others => (others => False))");
       end if;
    end Put;
+
+   function Error_Message
+     (File_Name : in String;
+      Line, Col : in Ada.Text_IO.Positive_Count;
+      Message   : in String)
+     return String
+   is begin
+      return File_Name & ":" &
+        Int_Image (Integer (Line)) & ":" &
+        Int_Image (Integer (Col)) & ": " &
+        Message;
+   end Error_Message;
 
    function Image (Item : in Buffer_Region) return String
    is begin

@@ -246,6 +246,7 @@ ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
 
     read state transitions from text file?
+        action subprogram names as integer index into array of subprogram pointers.
     -> .exe is independent of language
 
 need better lexer for wisitoken
