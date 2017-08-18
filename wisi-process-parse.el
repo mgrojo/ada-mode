@@ -577,6 +577,7 @@ Replace line, column in ACTION with data from head of input queue.
 
 	  (setf (wisi-parser-error-msgs parser) nil)
 	  (queue-clear (wisi-process--parser-input-queue parser))
+	  (queue-clear (wisi-process--parser-lookahead-queue parser))
 	  (queue-clear (wisi-process--parser-parse-stack parser))
 
 	  (wisi-process-parse--send-parse parser)

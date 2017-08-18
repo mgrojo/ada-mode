@@ -1,5 +1,9 @@
 # Build elisp code, Ada executables, manuals; publish to web and ELPA
 #
+# The gprbuild commands depend on the GPR_PROJECT_PATH environment
+# variable, that is set in the project files loaded in the file local
+# variables below.
+#
 # test ELPA packages from process-archive:
 #    (setq package-archives (list (cons "test" "/Projects/elpa/archive/packages")))
 # test ELPA packages from all-in-place: (setq package-archives (list (cons "test" "/Projects/elpa/packages")))
@@ -32,12 +36,18 @@ pub : pub-ada-ref-man
 
 docs : info html
 
-# this updates elisp after any source change, without running the tests.
-update-elisp : ../ada-grammar-wy.el ../gpr-grammar-wy.el byte-compile
+# this updates elisp and related executables after any source change,
+# without running the tests.
+update-elisp : ../ada_grammar-elisp.el
+update-elisp : ../gpr-grammar-elisp.el
+update-elisp : byte-compile
+update-elisp : install
 
-# this updates everything after any source change, without running the tests.
+# This updates everything after any source change, without running the
+# tests or publishing to elpa
 update-all : update-elisp
 update-all : install
+update-all : docs
 
 install : install_gpr_query
 install : install_ada_mode_wisi_parse
@@ -46,11 +56,13 @@ ifeq ($(GNAT_VERSION),GPL_2016)
 install : install_ada_mode_gps_indent
 endif
 
-# *-wy.el are in monotone, so this is all we need after a monotone
-# update doing byte-compile-clean first avoids errors caused by
-# loading new source on old .elc
+# *-elisp.el are in monotone, so this is all we need after a monotone
+# update. Doing byte-compile-clean first avoids errors caused by
+# loading new source on old .elc.
+#
+# 'package-initialize' is required for 'queue'.
 byte-compile : byte-compile-clean
-	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(batch-byte-compile)' *.el
+	cd ../; $(EMACS_EXE) -Q -batch -L . --eval '(progn (package-initialize)(batch-byte-compile))' *.el
 
 byte-compile-clean :
 	cd ..; rm -f *.elc
@@ -88,28 +100,36 @@ test-wisi :: subprograms.wisi-process-test
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-nominal.adb
-#ONE_TEST_FILES += ada_mode-nominal.ads
-one : RUNTEST := run-indent-test-wisi-gpr_query.el
+ONE_TEST_FILES += ada_mode-interactive_wisi.adb
+#ONE_TEST_FILES += debug.adb
+one : RUNTEST := run-indent-test-process-gpr_query.el
 # one : update
-one : one-clean $(addsuffix .diff, $(ONE_TEST_FILES))
+one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
-# These are correct paths for Stephe's development machines;
-# WISI_WISITOKEN can be overridden on the 'make' command line or by an
+
+# run_ada_parser args: <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>
+two : run_ada_parser.exe
+	../run_ada_parser.exe 0 0 1 1600 ../test/ada_mode-interactive_wisi.adb
+
+# WISI_WISITOKEN is correct for Stephe's development machines;
+# it can be overridden on the 'make' command line or by an
 # external environment variable.
+#
+# ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
+# interaction with gpr project files.
 ifeq ($(shell uname),Linux)
 export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
-export GPR_PROJECT_PATH=../test/:../test/subdir
+export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else ifeq ($(shell uname),Darwin)
 export WISI_WISITOKEN ?= /home/Projects/wisitoken/org.wisitoken/build
-export GPR_PROJECT_PATH=../../test/:../../test/subdir
+export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
 export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
-export GPR_PROJECT_PATH=../../test/;../../test/subdir
+export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
 endif
@@ -262,20 +282,27 @@ install-elpa-review :
 
 ## build gpr_query, ada_mode_gps_indent
 
-GNAT_EXE    := $(shell which gnat)
-INSTALL_BIN := $(dir $(GNAT_EXE))
-
 ifeq ($(shell uname),Linux)
 EXE_EXT :=
+
+GNAT_EXE    := $(shell which gnat)
+INSTALL_BIN := $(dir $(GNAT_EXE))
 
 # export GPS_ROOT ?= /Projects/gps-gpl-2016-src/
 
 else ifeq ($(shell uname),Darwin)
 EXE_EXT :=
 
+GNAT_EXE    := $(shell which gnat)
+INSTALL_BIN := $(dir $(GNAT_EXE))
+
 else
 # windows
 EXE_EXT := .exe
+
+# make can't see 'type', so we use 'which'
+GNAT_EXE    := $(shell cygpath --mixed $(shell which gnat))
+INSTALL_BIN := $(dir $(GNAT_EXE))
 
 endif
 
@@ -292,7 +319,6 @@ endif
 	gnatprep -DGNAT_VERSION=$(GNAT_VERSION) $< $@
 
 gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
-	echo $$GPR_PROJECT_PATH
 	gprbuild -p ../gpr_query.gpr
 
 # (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
@@ -305,27 +331,27 @@ debug_gps_indent$(EXE_EXT) : force
 trace :
 	addr2line -e ../ada_mode_gps_indent.exe 0x96c9bd 0x96b1f6 0x96b24a 0x401cb6 0x989036 0x4013db 0x759e7c02 0x7708ab8d 0x7708ab58
 
-$(INSTALL_BIN)/gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
+$(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
 
-$(INSTALL_BIN)/ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
+$(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
 #ada_mode_wisi_parse.exe : export Standard_Common_Build := Debug
-ada_mode_wisi_parse.exe : ../ada_grammar_process.ads force
-	gprbuild -p ada_mode_wisi_parse.gpr
+../ada_mode_wisi_parse.exe : ../ada_grammar_process.ads force
+	gprbuild -p ../ada_mode_wisi_parse.gpr
 
-run_ada_parser.exe : ../ada_grammar_process.ads force
+run_ada_parser.exe : ada_grammar.ads ada_grammar_yylex.adb force
 	gprbuild -p ada_mode_wisi_parse.gpr run_ada_parser.adb
 
-install_ada_mode_wisi_parse : ada_mode_wisi_parse.exe
-	strip -o $(INSTALL_BIN)/$^ $^
+install_ada_mode_wisi_parse : ../ada_mode_wisi_parse.exe
+	strip -o $(INSTALL_BIN)$(^F) $^
 
-# (getenv "GPR_PROJECT_PATH")
 # eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
+# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken/build"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
 # end:

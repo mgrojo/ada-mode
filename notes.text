@@ -41,13 +41,6 @@ run test from emacs -Q using source:
 ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
     detect that, exit
 
-merged build/wisi into build, updated wisitoken
-
-    run test/ada_mode-interactive_recover.adb
-        parse succeeds, indentation is weird
-
-    run all process tests
-
 use process sentinel to avoid race condition?
     document it first
 

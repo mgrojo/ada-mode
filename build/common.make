@@ -141,7 +141,7 @@ gpr-skel.gpr.tmp :
 	-diff -u $< $*.tmp
 
 %.wisi-test : %-elisp.el
-	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
+	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
@@ -149,11 +149,10 @@ gpr-skel.gpr.tmp :
 %_wisi_parse.exe : %_wisi_parse.adb %-process.el force
 	gprbuild -p wisi_parse.gpr $<
 
-# we don't copy %_process.ads/b, because we'd also have to copy a lot
-# of wisitoken; we add wisitoken_test.gpr to wisi_parse.gpr.
 %-process.el : force
 	make -C $(WISI_WISITOKEN) $*-process.el
 	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
+	cp $(WISI_WISITOKEN)/$*_process.ad? .
 
 .PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
 

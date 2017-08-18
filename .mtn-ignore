@@ -5,7 +5,6 @@
 ^ada_grammar.*output$
 ^ada_mode_gps_indent$
 ^autoloads\.el$
-^build/ada_grammar.*
 ^build/.*\.ali$
 ^build/.*\.diff$
 ^build/.*\.log$
@@ -15,6 +14,7 @@
 ^build/.*\.tar\.gz$
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
+^build/ada_grammar.*
 ^build/ada_grammar\.ada_output$
 ^build/ada_grammar\.l$
 ^build/ada_grammar_dfa\.ada$
@@ -22,6 +22,8 @@
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$
+^build/subprograms_process\.adb$
+^build/subprograms_process\.ads$
 ^build/test\.casing$
 ^dir-ada-mode$
 ^gpr-grammar.*output$

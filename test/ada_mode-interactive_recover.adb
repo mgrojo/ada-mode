@@ -19,12 +19,12 @@ is begin
             if B then
             end if;
             exit when C;
-         end; -- error 1 reported here; inserts 'if'
-      end  -- error 2 reported here before 'loop'; inserts ';' for 'begin'
-loop
-; -- error 3 reported here before ';'; inserts 'end loop'
-   end Ada_Mode.  -- error 4 reported here before '.'; fails
-Interactive_Recover; 
+         end; -- error 1 reported on ';' - inserts 'if'
+      end
+      loop  -- error 2 reported on 'loop'; inserts ';' for 'begin'
+         ; -- error 3 reported on ';'; inserts 'end loop'
+      end Ada_Mode.  -- error 4 reported on '.'; inserts '; IDENTIFIER'
+        Interactive_Recover; -- error 5 reported on eof, expecting 'end loop; end;'; inserts that, succeeds.
 -- FIXME: improve recover algorithm to reduce required enqueue limit
 -- Local Variables:
 -- wisi-mckenzie-enqueue-limit: 1400

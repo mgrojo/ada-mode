@@ -100,7 +100,12 @@
     (cl-ecase wisi-test-parser
       (elisp
        (require 'wisi-elisp-parse)
-       (require (intern (concat filename "-elisp")))
+       (let* ((grammar-file-root (concat filename "-elisp"))
+	      (grammar-file-name (concat grammar-file-root ".el"))
+	      (grammar-file-abs (locate-file grammar-file-name load-path)))
+	 (unless grammar-file-abs
+	   (error "can’t find ’%s’ on ’%s’" grammar-file-name load-path))
+	 (require (intern grammar-file-root)))
        (wisi-setup
 	:indent-calculate nil
 	:post-indent-fail nil
@@ -183,7 +188,7 @@
 
 (defun run-test (filename)
   (interactive "Mgrammar filename root: ")
-  (add-to-list 'load-path "../test/wisi/")
+  (add-to-list 'load-path (expand-file-name "../test/wisi/"))
 
   ;; top level parse action must set `wisi-test-success' t.
 

@@ -38,8 +38,7 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: subprograms_wisi_parse [-v level]");
-      Put_Line ("-v level : enable parse trace output");
+      Put_Line ("usage: subprograms_wisi_parse");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -47,11 +46,15 @@ is
       New_Line;
       Put_Line ("Commands: ");
       New_Line;
-      Put_Line ("NNparse ""<buffer-name>"" <tokens>");
-      Put_Line ("  NN includes 'parse ""<buffer-name>"">'");
+      Put_Line
+        ("NNparse ""<buffer-name>"" <verbosity> <panic_enable> <mckenzie_enable> <mckenzie_enqueue_limit> <tokens>");
+      Put_Line ("  NN excludes <tokens>");
       Put_Line ("  <buffer-name> used in error messages");
-      Put_Line ("  outputs: elisp vectors for parser actions or post-parser actions.");
-      Put_Line ("  See wisi-ext-parse-execute for details.");
+      Put_Line ("  <verbosity> is an integer; set parse trace output level");
+      Put_Line ("  <*_enable> is {0 | 1}; enable error recovery algorithm");
+      Put_Line ("  <mckenzie_enqueue_limit> is an integer; if -1, use value from grammar file.");
+      Put_Line ("  outputs: elisp vectors for parser actions or elisp forms for errors.");
+      Put_Line ("  See wisi-process-parse-execute for details.");
       New_Line;
       Put_Line ("04quit");
    end Usage;
@@ -117,11 +120,38 @@ is
          From    => First + 1);
 
       if First = 0 or Last = 0 then
-         raise Programmer_Error with "no '""' found for string";
+         raise Protocol_Error with "subprograms_wisi_parse: no '""' found for string";
       end if;
 
       return Source (First + 1 .. Last - 1);
    end Get_String;
+
+   function Get_Integer
+     (Source : in     String;
+      Last   : in out Integer)
+     return Integer
+   is
+      use Ada.Exceptions;
+      use Ada.Strings.Fixed;
+      First : constant Integer := Last + 2; -- final char of previous item, space
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => " ",
+         From    => First);
+
+      if Last = 0 then
+         Last := Source'Last;
+      else
+         Last := Last - 1;
+      end if;
+
+      return Integer'Value (Source (First .. Last));
+   exception
+   when others =>
+      Put_Line ("bad integer '" & Source (First .. Source'Last) & "'");
+      raise;
+   end Get_Integer;
 
 begin
    declare
@@ -130,13 +160,6 @@ begin
       case Argument_Count is
       when 0 =>
          null;
-
-      when 2 =>
-         if Argument (1) = "-v" then
-            WisiToken.Trace_Parse := Integer'Value (Argument (2));
-         else
-            raise Programmer_Error with "invalid option: " & Argument (1);
-         end if;
 
       when others =>
          Usage;
@@ -167,19 +190,25 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <buffer_name>
-            --  Input: <text_line>...
+            --  Args: <buffer_name> <verbosity> <panic_enable> <mckenzie_enable> <mckenzie_enqueue_limit>
+            --  Input: <token id>...
             --  Response:
-            --  [wisi action lisp vector]...
-            --  [error form]...
+            --  [parse action elisp vector]...
+            --  [elisp error form]...
             --  prompt
             declare
-               Buffer_Name : constant String  := Get_String (Command_Line, Last);
+               Buffer_Name : constant String := Get_String (Command_Line, Last);
+               Enqueue_Limit : Integer;
             begin
-               Parser.Lexer.Reset (0);
+               WisiToken.Trace_Parse               := Get_Integer (Command_Line, Last);
+               Parser.Enable_Panic_Recover         := 1 = Get_Integer (Command_Line, Last);
+               Parser.Enable_McKenzie_Recover      := 1 = Get_Integer (Command_Line, Last);
+               Enqueue_Limit := Get_Integer (Command_Line, Last);
+               if Enqueue_Limit > 0 then
+                  Parser.Table.McKenzie.Enqueue_Limit := Enqueue_Limit;
+               end if;
+               Parser.Lexer.Reset;
                Parser.Parse;
-               --  Set point to match elisp parser
-               Put_Line ("(goto-char " & WisiToken.Int_Image (Parser.Lexer.Bounds.End_Pos) & ")");
             exception
             when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                Put_Line
@@ -201,9 +230,6 @@ begin
       end;
    end loop;
 exception
-when End_Error =>
-   null;
-
 when E : others =>
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);
    New_Line (2);
