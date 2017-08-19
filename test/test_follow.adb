@@ -241,23 +241,28 @@ package body Test_Follow is
                      if_statement_ID | loop_statement_ID => True,
                    others => False),
                 declaration_ID =>
-                  (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | function_specification_ID |
-                     object_declaration_ID | procedure_specification_ID | proper_body_ID | subprogram_body_ID |
-                     subprogram_declaration_ID | subprogram_specification_ID => True,
+                  (FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID | body_ID |
+                     full_type_declaration_ID | function_specification_ID | object_declaration_ID |
+                     procedure_specification_ID | proper_body_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID | type_declaration_ID => True,
                    others => False),
                 declarations_ID =>
-                  (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
-                     function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
-                     subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
+                  (FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
+                     full_type_declaration_ID | function_specification_ID | object_declaration_ID |
+                     procedure_specification_ID | proper_body_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID | type_declaration_ID => True,
                    others => False),
                 declarative_part_opt_ID =>
-                  (FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
-                     function_specification_ID | object_declaration_ID | procedure_specification_ID | proper_body_ID |
-                     subprogram_body_ID | subprogram_declaration_ID | subprogram_specification_ID => True,
+                  (FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID | body_ID | declaration_ID | declarations_ID |
+                     full_type_declaration_ID | function_specification_ID | object_declaration_ID |
+                     procedure_specification_ID | proper_body_ID | subprogram_body_ID | subprogram_declaration_ID |
+                     subprogram_specification_ID | type_declaration_ID => True,
                    others => False),
                 elsif_statement_item_ID => (ELSIF_ID => True, others => False),
                 elsif_statement_list_ID =>
                   (ELSIF_ID | elsif_statement_item_ID | elsif_statement_list_ID => True, others => False),
+                enumeration_literal_list_ID => (IDENTIFIER_ID | enumeration_literal_list_ID => True, others => False),
+                enumeration_type_definition_ID => (LEFT_PAREN_ID => True, others => False),
                 exit_statement_ID => (EXIT_ID => True, others => False),
                 expression_ID =>
                   (LEFT_PAREN_ID | NOT_ID | MINUS_ID | PLUS_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID |
@@ -276,6 +281,7 @@ package body Test_Follow is
                      primary_ID | selected_component_ID => True,
                    others => False),
                 formal_part_ID => (LEFT_PAREN_ID => True, others => False),
+                full_type_declaration_ID => (TYPE_ID => True, others => False),
                 function_specification_ID => (FUNCTION_ID => True, others => False),
                 generic_instantiation_ID => (PROCEDURE_ID => True, others => False),
                 handled_sequence_of_statements_ID =>
@@ -397,6 +403,8 @@ package body Test_Follow is
                   (LEFT_PAREN_ID | NOT_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID | factor_ID | name_ID |
                      paren_expression_ID | primary_ID | selected_component_ID | term_ID | term_list_ID => True,
                    others => False),
+                type_declaration_ID => (TYPE_ID | full_type_declaration_ID => True, others => False),
+                type_definition_ID => (LEFT_PAREN_ID | enumeration_type_definition_ID => True, others => False),
                 unary_adding_operator_ID => (MINUS_ID | PLUS_ID => True, others => False),
                 others => (others => False)));
 
@@ -423,7 +431,7 @@ package body Test_Follow is
                   (BEGIN_ID | CASE_ID | DECLARE_ID | ELSE_ID | ELSIF_ID | END_ID | EXIT_ID | IF_ID | LOOP_ID |
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
                    others => False),
-                body_ID => (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID => True, others => False),
+                body_ID => (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
                 case_statement_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | ELSE_ID | ELSIF_ID | END_ID | EXIT_ID | IF_ID | LOOP_ID |
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
@@ -436,11 +444,15 @@ package body Test_Follow is
                   (BEGIN_ID | CASE_ID | DECLARE_ID | ELSE_ID | ELSIF_ID | END_ID | EXIT_ID | IF_ID | LOOP_ID |
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
                    others => False),
-                declaration_ID => (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID => True, others => False),
-                declarations_ID => (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID => True, others => False),
+                declaration_ID =>
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
+                declarations_ID =>
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
                 declarative_part_opt_ID => (BEGIN_ID => True, others => False),
                 elsif_statement_item_ID => (ELSE_ID | ELSIF_ID | END_ID => True, others => False),
                 elsif_statement_list_ID => (ELSE_ID | ELSIF_ID | END_ID => True, others => False),
+                enumeration_literal_list_ID => (RIGHT_PAREN_ID | COMMA_ID => True, others => False),
+                enumeration_type_definition_ID => (SEMICOLON_ID => True, others => False),
                 exit_statement_ID =>
                   (BEGIN_ID | CASE_ID | DECLARE_ID | ELSE_ID | ELSIF_ID | END_ID | EXIT_ID | IF_ID | LOOP_ID |
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
@@ -455,6 +467,8 @@ package body Test_Follow is
                      SLASH_EQUAL_ID | STAR_ID => True,
                    others => False),
                 formal_part_ID => (IS_ID | RETURN_ID | SEMICOLON_ID => True, others => False),
+                full_type_declaration_ID =>
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
                 function_specification_ID => (IS_ID | SEMICOLON_ID => True, others => False),
                 generic_instantiation_ID => (FUNCTION_ID | PROCEDURE_ID | Wisi_EOI_ID => True, others => False),
                 handled_sequence_of_statements_ID => (END_ID => True, others => False),
@@ -482,7 +496,7 @@ package body Test_Follow is
                    others => False),
                 name_opt_ID => (SEMICOLON_ID => True, others => False),
                 object_declaration_ID =>
-                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID => True,
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True,
                    others => False),
                 parameter_and_result_profile_ID => (IS_ID | SEMICOLON_ID => True, others => False),
                 parameter_profile_opt_ID => (IS_ID | SEMICOLON_ID => True, others => False),
@@ -503,7 +517,8 @@ package body Test_Follow is
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
                    others => False),
                 procedure_specification_ID => (IS_ID | SEMICOLON_ID => True, others => False),
-                proper_body_ID => (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID => True, others => False),
+                proper_body_ID =>
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
                 relation_and_list_ID =>
                   (AND_ID | IS_ID | RIGHT_PAREN_ID | THEN_ID | COMMA_ID | SEMICOLON_ID => True,
                    others => False),
@@ -546,10 +561,10 @@ package body Test_Follow is
                      RETURN_ID | WHEN_ID | IDENTIFIER_ID => True,
                    others => False),
                 subprogram_body_ID =>
-                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | Wisi_EOI_ID => True,
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID | Wisi_EOI_ID => True,
                    others => False),
                 subprogram_declaration_ID =>
-                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | IDENTIFIER_ID | Wisi_EOI_ID => True,
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID | Wisi_EOI_ID => True,
                    others => False),
                 subprogram_specification_ID => (IS_ID | SEMICOLON_ID => True, others => False),
                 term_ID =>
@@ -562,7 +577,10 @@ package body Test_Follow is
                      GREATER_EQUAL_ID | LESS_ID | LESS_EQUAL_ID | MINUS_ID | PLUS_ID | SEMICOLON_ID |
                      SLASH_EQUAL_ID => True,
                    others => False),
-                unary_adding_operator_ID =>
+                type_declaration_ID =>
+                  (BEGIN_ID | FUNCTION_ID | PROCEDURE_ID | TYPE_ID | IDENTIFIER_ID => True, others => False),
+                type_definition_ID => (SEMICOLON_ID => True, others => False),
+                 unary_adding_operator_ID =>
                   (LEFT_PAREN_ID | NOT_ID | NUMERIC_LITERAL_ID | IDENTIFIER_ID => True, others => False),
                 others => (others => False)));
 

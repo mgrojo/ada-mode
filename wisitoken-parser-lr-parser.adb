@@ -172,8 +172,8 @@ package body WisiToken.Parser.LR.Parser is
    --  Reduce : some Parsers.Verb return Reduce - no new token,
    --  execute Reduce parsers.
    --
-   --  Error : all Parsers.Verb return Error; report errors, terminate
-   --  parse.
+   --  Error : all Parsers.Verb return Error; attempt recovery or
+   --  terminate parse.
    function Parse_Verb
      (Parser  : in out LR.Instance'Class;
       Parsers : in out Parser_Lists.List)

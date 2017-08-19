@@ -39,8 +39,8 @@ package WisiToken.Text_Feeder.Text_IO is
 
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
 
-   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Positive_Count;
-   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Positive_Count;
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Count;
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Count;
 
 private
 

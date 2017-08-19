@@ -206,7 +206,7 @@ package body WisiToken.Lexer.Regexp is
       return Lexer.ID;
    end Find_Next;
 
-   overriding function Line (Lexer : in Instance) return Natural
+   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
    is
       pragma Unreferenced (Lexer);
    begin
@@ -214,10 +214,10 @@ package body WisiToken.Lexer.Regexp is
       return 1;
    end Line;
 
-   overriding function Column (Lexer : in Instance) return Natural
+   overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
       --  Useful for unit tests
-      return Lexer.Lexeme_Head;
+      return Ada.Text_IO.Count (Lexer.Lexeme_Head);
    end Column;
 
    overriding function Lexeme (Lexer : in Instance) return String

@@ -67,10 +67,10 @@ package WisiToken.Lexer.Regexp is
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
    overriding
-   function Line (Lexer : in Instance) return Natural;
+   function Line (Lexer : in Instance) return Ada.Text_IO.Count;
 
    overriding
-   function Column (Lexer : in Instance) return Natural;
+   function Column (Lexer : in Instance) return Ada.Text_IO.Count;
 
    overriding function Lexeme (Lexer : in Instance) return String;
 

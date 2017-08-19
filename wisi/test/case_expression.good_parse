@@ -7,10 +7,10 @@ when A => 123.4
  0 stack:  0 : 
  0: 0: WHEN : shift and goto state 1
  0 stack:  1 : WHEN,  0 : 
- 0: 1: NUMBER_LITERAL : shift and goto state 3
- 0 stack:  3 : NUMBER_LITERAL,  1 : WHEN,  0 : 
- 0: 3: EQUAL_GREATER : reduce 1 tokens to factor
-(factor 33 . 33) <= ((NUMBER_LITERAL 33 . 33))
+ 0: 1: IDENTIFIER : shift and goto state 4
+ 0 stack:  4 : IDENTIFIER,  1 : WHEN,  0 : 
+ 0: 4: EQUAL_GREATER : reduce 1 tokens to factor
+(factor 33 . 33) <= ((IDENTIFIER 33 . 33))
  ... goto state 8
  0 stack:  8 : factor,  1 : WHEN,  0 : 
  0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list
@@ -53,10 +53,10 @@ when A => 123.4
  0 stack:  0 : 
  0: 0: WHEN : shift and goto state 1
  0 stack:  1 : WHEN,  0 : 
- 0: 1: NUMBER_LITERAL : shift and goto state 3
- 0 stack:  3 : NUMBER_LITERAL,  1 : WHEN,  0 : 
- 0: 3: EQUAL_GREATER : reduce 1 tokens to factor
-(factor 33 . 33) <= ((NUMBER_LITERAL 33 . 33))
+ 0: 1: IDENTIFIER : shift and goto state 4
+ 0 stack:  4 : IDENTIFIER,  1 : WHEN,  0 : 
+ 0: 4: EQUAL_GREATER : reduce 1 tokens to factor
+(factor 33 . 33) <= ((IDENTIFIER 33 . 33))
  ... goto state 8
  0 stack:  8 : factor,  1 : WHEN,  0 : 
  0: 8: EQUAL_GREATER : reduce 1 tokens to factor_list

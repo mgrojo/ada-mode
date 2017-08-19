@@ -183,9 +183,10 @@ package body WisiToken.Token_Region is
       Token : Token_Region.Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
    begin
       if Lexer /= null then
+         Token.Region := Lexer.Bounds;
          Token.Line := Lexer.Line;
-         if Token.Line = 0 then
-            Token.Region := Lexer.Bounds;
+         if Token.Line /= 0 then
+            Token.Col := 0;
          else
             Token.Col := Lexer.Column;
          end if;
@@ -203,8 +204,9 @@ package body WisiToken.Token_Region is
       Token : Token_Region.Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
    begin
       Token.Line := Lexer.Line;
+      Token.Region := Lexer.Bounds;
       if Token.Line = 0 then
-         Token.Region := Lexer.Bounds;
+         Token.Col := 0;
       else
          Token.Col := Lexer.Column;
       end if;

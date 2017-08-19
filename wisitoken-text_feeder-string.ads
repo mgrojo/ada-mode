@@ -4,7 +4,7 @@
 --
 --  Mostly useful for unit tests of lexers and parsers.
 --
---  Copyright (C) 1999, 2015 Ted Dennison
+--  Copyright (C) 1999, 2015, 2017 Ted Dennison
 --
 --  This file is part of the WisiToken package.
 --
@@ -43,6 +43,12 @@ package WisiToken.Text_Feeder.String is
       Text_End :    out Integer);
 
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
+
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Count is (0);
+   --  We don't define line terminators within the string.
+
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Count is (1);
+   --  We always trim the internal buffer, so the next Get will start at 1.
 
 private
    type Instance is new WisiToken.Text_Feeder.Instance with record

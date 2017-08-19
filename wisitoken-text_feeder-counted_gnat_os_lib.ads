@@ -45,6 +45,12 @@ package WisiToken.Text_Feeder.Counted_GNAT_OS_Lib is
    overriding function End_Of_Text (Feeder : in Instance) return Boolean;
    --  Returns True after Max_Bytes has been read.
 
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Count is (0);
+   --  GNAT.OS_Lib does not provide Line
+
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Count is (1);
+   --  This feeder has no accessible internal buffer
+
    procedure Discard_Rest_Of_Input (Feeder : in out Instance);
 
    --  For profiling

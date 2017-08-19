@@ -176,7 +176,7 @@ package body Test_Panic_Mode is
       begin
          Expecting (+IF_ID) := True;
 
-         Check ("errors.error_token", Temp.Error_Token, (+SEMICOLON_ID, (84, 84)));
+         Check ("errors.error_token", Temp.Error_Token, (+SEMICOLON_ID, 0, 0, (84, 84)));
          Check ("errors.expecting", Temp.Expecting, Expecting);
          Check ("errors.invalid_region", Temp.Invalid_Region, WisiToken.Null_Buffer_Region);  --  FIXME: fix region
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);

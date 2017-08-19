@@ -183,7 +183,7 @@ package body Test_McKenzie_Recover is
            ("1", Element (Cursor),
             (First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       => (+SEMICOLON_ID, (84, 84)),
+             Error_Token       => (+SEMICOLON_ID, 0, 0, (84, 84)),
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -196,7 +196,7 @@ package body Test_McKenzie_Recover is
          Check
            ("2", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+LOOP_ID, (90, 93)),
+             (+LOOP_ID, 0, 0, (90, 93)),
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -209,7 +209,7 @@ package body Test_McKenzie_Recover is
          Check
            ("3", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+SEMICOLON_ID, (94, 94)),
+             (+SEMICOLON_ID, 0, 0, (94, 94)),
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -222,7 +222,7 @@ package body Test_McKenzie_Recover is
          Check
            ("4", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+IDENTIFIER_ID, (100, 104)),
+             (+IDENTIFIER_ID, 0, 0, (100, 104)),
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -235,7 +235,7 @@ package body Test_McKenzie_Recover is
          Check
            ("5", Element (Cursor),
             (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+Wisi_EOI_ID, (1, 1)),
+             (+Wisi_EOI_ID, 0, 0, (1, 1)),
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -314,9 +314,9 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 (((196, +SEMICOLON_ID), (195, +identifier_opt_ID), (174, +LOOP_ID), (167, +END_ID),
-                   (133, +sequence_of_statements_opt_ID), (107, +LOOP_ID), (38, +BEGIN_ID),
-                   (33, +declarative_part_opt_ID), (12, +IS_ID), (11, +subprogram_specification_ID),
+                 (((210, +SEMICOLON_ID), (209, +identifier_opt_ID), (185, +LOOP_ID), (178, +END_ID),
+                   (138, +sequence_of_statements_opt_ID), (112, +LOOP_ID), (41, +BEGIN_ID),
+                   (34, +declarative_part_opt_ID), (12, +IS_ID), (11, +subprogram_specification_ID),
                    (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                Shared_Lookahead_Index => 1,
@@ -429,7 +429,7 @@ package body Test_McKenzie_Recover is
             Element (Cursor),
             (First_Terminal            => Descriptor.First_Terminal,
              Last_Terminal             => Descriptor.Last_Terminal,
-             Error_Token               => (+PROCEDURE_ID, (26, 34)),
+             Error_Token               => (+PROCEDURE_ID, 0, 0, (26, 34)),
              Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
@@ -512,6 +512,45 @@ package body Test_McKenzie_Recover is
       end;
    end Conflict;
 
+   procedure Started_Type (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+
+      begin
+         Parse_Text
+           ("procedure Check is type begin end Check; ",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  'type' 20 with no type definition.
+         --
+         --  error 1 at 'begin' 25; expecing IDENTIFIER. deletes 'begin end', continues to ';' 40
+         --  error 2 at ';' 40; expecting type definition. pops IDENTIFIER, TYPE, IS, succeeds
+         --
+         --  FIXME: better would be to check ahead one more token so
+         --  first solution is rejected.
+
+         Check ("1 errors.length", State.Errors.Length, 2);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+
+      when E : WisiToken.Parse_Error =>
+         declare
+            use Ada.Exceptions;
+            use Ada.Strings.Fixed;
+            Msg : constant String := Exception_Message (E);
+         begin
+            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
+         end;
+      end;
+
+   end Started_Type;
+
    ----------
    --  Public subprograms
 
@@ -527,7 +566,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Conflict'Access, "debug");
+         Register_Routine (T, Error_5'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
@@ -539,6 +578,7 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Check_Accept'Access, "Check_Accept");
          Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
          Register_Routine (T, Conflict'Access, "Conflict");
+         Register_Routine (T, Started_Type'Access, "Started_Type");
       end if;
    end Register_Tests;
 

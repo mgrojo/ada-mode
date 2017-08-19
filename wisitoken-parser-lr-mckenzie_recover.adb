@@ -752,9 +752,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   Parser_State.Shared_Lookahead_Index := 1;
 
                   for ID of Data.Result.Deleted loop
-                     --  Input_Token was called for these tokens, so we must call Discard_Token
+                     --  Input_Lookahead was called for these tokens, so we must call Discard_Token
                      Parser.Lookahead.Drop;
-                     Parser.Semantic_State.Discard_Input (ID);
+                     Parser.Semantic_State.Discard_Lookahead (ID);
                   end loop;
 
                   --  We use Parser_State.Local_Lookahead even when

@@ -401,7 +401,7 @@ pending MERGE declarations_1: declarations <= declarations, declaration
  2 stack:  2 : IS,  4 : declarations,  1 : 
  1 stack:  2 : IS,  1 : 
  15 stack:  4 : declarations,  1 : 
-empty_production_2.input:1:49: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
+empty_production_2.input::2:49: : too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
 
 LR1_Parser parse:
 read 141
@@ -806,4 +806,4 @@ pending MERGE declarations_1: declarations <= declarations, declaration
  2 stack:  2 : IS,  4 : declarations,  1 : 
  1 stack:  2 : IS,  1 : 
  15 stack:  4 : declarations,  1 : 
-empty_production_2.input:1:49: too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)
+empty_production_2.input::2:49: : too many parallel parsers required in grammar state 4; simplify grammar, or increase max-parallel ( 15)

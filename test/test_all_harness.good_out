@@ -38,6 +38,7 @@ OK test_mckenzie_recover.adb : Error_5
 OK test_mckenzie_recover.adb : Check_Accept
 OK test_mckenzie_recover.adb : Extra_Begin
 OK test_mckenzie_recover.adb : Conflict
+OK test_mckenzie_recover.adb : Started_Type
 OK test_panic_mode.adb : No_Error
 OK test_panic_mode.adb : Error_1
 OK test_panic_mode.adb : Error_2
@@ -48,7 +49,7 @@ OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   47
-Successful Tests:  47
+Total Tests Run:   48
+Successful Tests:  48
 Failed Assertions: 0
 Unexpected Errors: 0

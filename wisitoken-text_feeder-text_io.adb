@@ -83,12 +83,12 @@ package body WisiToken.Text_Feeder.Text_IO is
       return Ada.Text_IO.End_Of_File (Feeder.File);
    end End_Of_Text;
 
-   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Positive_Count
+   overriding function Line (Feeder : in Instance) return Ada.Text_IO.Count
    is begin
       return Ada.Text_IO.Line (Feeder.File);
    end Line;
 
-   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Positive_Count
+   overriding function Col (Feeder : in Instance) return Ada.Text_IO.Count
    is begin
       return Ada.Text_IO.Col (Feeder.File);
    end Col;
