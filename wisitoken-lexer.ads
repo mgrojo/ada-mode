@@ -31,8 +31,10 @@ with Ada.Text_IO;
 with WisiToken.Text_Feeder;
 package WisiToken.Lexer is
 
-   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged record
-      Feeder : WisiToken.Text_Feeder.Text_Feeder_Ptr;
+   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged
+   record
+      Feeder              : WisiToken.Text_Feeder.Text_Feeder_Ptr;
+      Enable_Line_Numbers : Boolean;
    end record;
 
    subtype Class is Instance'Class;
@@ -61,7 +63,7 @@ package WisiToken.Lexer is
    --  token was found.
    --
    --  If the underlying text feeder does not support the notion of
-   --  'line', returns 0.
+   --  'line', or if Lexer.Enable_Line_Numbers is False, returns 0.
 
    function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
    --  Return the current text column number of the start of the most

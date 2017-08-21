@@ -63,10 +63,11 @@ package WisiToken.Lexer.Aflex is
    type Instance is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Trace        : not null access WisiToken.Trace'Class;
-      Feeder       : in              WisiToken.Text_Feeder.Text_Feeder_Ptr := null;
-      Buffer_Size  : in              Integer                               := 1024;
-      First_Column : in              Integer                               := 1)
+     (Trace               : not null access WisiToken.Trace'Class;
+      Feeder              : in              WisiToken.Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size         : in              Integer                               := 1024;
+      First_Column        : in              Integer                               := 1;
+      Enable_Line_Numbers : in              Boolean                               := False)
      return WisiToken.Lexer.Handle;
 
    overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);

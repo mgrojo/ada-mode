@@ -94,7 +94,7 @@ package body WisiToken.Gen_Token_Enum is
       State.Expecting := Expecting;
    end Error;
 
-   overriding procedure Merge_Tokens
+   overriding procedure Reduce_Stack
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
@@ -125,7 +125,7 @@ package body WisiToken.Gen_Token_Enum is
       if Action /= null then
          Action (Augmented_Token'(ID => Nonterm, Enum_ID => Enum_Nonterm), Index, Augmented_Tokens);
       end if;
-   end Merge_Tokens;
+   end Reduce_Stack;
 
    function To_Nonterminal_Array_Token_Set
      (Item : in Nonterminal_Array_Token_Set)

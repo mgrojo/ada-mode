@@ -5,13 +5,6 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-redesigning lookahead, semantic state
-    test_mckenzie_recover passes
-
-propagate o.w.s-1 to o.w
-    make it work with o.e.a.s-4
-        Emacs_ada does not need descriptor.image?
-
 next change in wisi/test/*.good_parse
     don't output mckenzie if default
 

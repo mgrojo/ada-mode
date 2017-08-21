@@ -224,7 +224,7 @@ package WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line, Col : in Ada.Text_IO.Positive_Count;
+      Line, Col : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
    --  Return Gnu-formatted error message.

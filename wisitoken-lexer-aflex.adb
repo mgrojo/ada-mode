@@ -31,10 +31,11 @@ with Ada.Exceptions;
 package body WisiToken.Lexer.Aflex is
 
    function New_Lexer
-     (Trace        : not null access WisiToken.Trace'Class;
-      Feeder       : in              Text_Feeder.Text_Feeder_Ptr := null;
-      Buffer_Size  : in              Integer                     := 1024;
-      First_Column : in              Integer                     := 1)
+     (Trace               : not null access WisiToken.Trace'Class;
+      Feeder              : in              Text_Feeder.Text_Feeder_Ptr := null;
+      Buffer_Size         : in              Integer                     := 1024;
+      First_Column        : in              Integer                     := 1;
+      Enable_Line_Numbers : in              Boolean                     := False)
      return Handle
    is
       pragma Unreferenced (First_Column);
@@ -42,8 +43,9 @@ package body WisiToken.Lexer.Aflex is
    begin
       Set_Buffer_Size (Buffer_Size);
 
-      New_Lexer.Feeder := Feeder;
-      WisiToken.Lexer.Aflex.Feeder := Feeder;
+      New_Lexer.Feeder              := Feeder;
+      New_Lexer.Enable_Line_Numbers := Enable_Line_Numbers;
+      WisiToken.Lexer.Aflex.Feeder  := Feeder;
 
       return Handle (New_Lexer);
    end New_Lexer;
@@ -74,10 +76,8 @@ package body WisiToken.Lexer.Aflex is
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      return Ada.Text_IO.Count (YY_Begin_Line);
+   is begin
+      return (if Lexer.Enable_Line_Numbers then Ada.Text_IO.Count (YY_Begin_Line) else 0);
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count

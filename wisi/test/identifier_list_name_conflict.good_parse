@@ -13,104 +13,93 @@ Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
  0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
  1: 3: COMMA : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 1
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 7
  0: 3: COMMA : reduce 1 tokens to identifier_list
-pending MERGE identifier_list_0: identifier_list <= IDENTIFIER
- action count: 1
+ 0: pending REDUCE_STACK identifier_list_0: identifier_list <= IDENTIFIER
  ... goto state 6
  1 stack:  7 : name,  0 : 
  1: 7: COMMA : reduce 1 tokens to name_list
-pending MERGE name_list_0: name_list <= name
- action count: 2
+ 1: pending REDUCE_STACK name_list_0: name_list <= name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
-pending PUSH COMMA
- action count: 2
+ 0: pending LOOKAHEAD_TO_CURRENT COMMA
+ 0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
-pending PUSH COMMA
- action count: 3
+ 1: pending LOOKAHEAD_TO_CURRENT COMMA
+ 1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
-pending PUSH IDENTIFIER
- action count: 4
+ 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
-pending PUSH IDENTIFIER
- action count: 3
+ 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: COMMA : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 5
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 23
  0 stack:  21 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 21: COMMA : reduce 3 tokens to identifier_list
-pending MERGE identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
- action count: 4
+ 0: pending REDUCE_STACK identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
  ... goto state 6
  1 stack:  23 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 23: COMMA : reduce 3 tokens to name_list
-pending MERGE name_list_1: name_list <= name_list, COMMA, name
- action count: 6
+ 1: pending REDUCE_STACK name_list_1: name_list <= name_list, COMMA, name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
-pending PUSH COMMA
- action count: 5
+ 0: pending LOOKAHEAD_TO_CURRENT COMMA
+ 0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
-pending PUSH COMMA
- action count: 7
+ 1: pending LOOKAHEAD_TO_CURRENT COMMA
+ 1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
-pending PUSH IDENTIFIER
- action count: 8
+ 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
-pending PUSH IDENTIFIER
- action count: 6
+ 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: STRING_LITERAL : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 9
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 23
  0 stack:  21 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 21: STRING_LITERAL : reduce 3 tokens to identifier_list
-pending MERGE identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
- action count: 7
+ 0: pending REDUCE_STACK identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
  ... goto state 6
  1 stack:  23 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 23: STRING_LITERAL : reduce 3 tokens to name_list
-pending MERGE name_list_1: name_list <= name_list, COMMA, name
- action count: 10
+ 1: pending REDUCE_STACK name_list_1: name_list <= name_list, COMMA, name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: STRING_LITERAL : reduce 1 tokens to compilation_unit
-pending MERGE compilation_unit_0: compilation_unit <= identifier_list
- action count: 8
+ 0: pending REDUCE_STACK compilation_unit_0: compilation_unit <= identifier_list
  ... goto state 5
  1 stack:  8 : name_list,  0 : 
  1: 8: STRING_LITERAL : reduce 1 tokens to compilation_unit
-pending MERGE compilation_unit_1: compilation_unit <= name_list
- action count: 11
+ 1: pending REDUCE_STACK compilation_unit_1: compilation_unit <= name_list
  ... goto state 5
  0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
-pending PUSH STRING_LITERAL
- action count: 9
+ 0: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
+ 0: pending PUSH_CURRENT STRING_LITERAL
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
-pending PUSH STRING_LITERAL
- action count: 12
+ 1: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
+ 1: pending PUSH_CURRENT STRING_LITERAL
  0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1: duplicate state; terminate (1 active)
-execute pending
+0: execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))
 (identifier_list 39 . 63) <= ((identifier_list 39 . 54), (COMMA 55 . 55), (IDENTIFIER 57 . 63))
@@ -216,104 +205,93 @@ Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
  0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
  1: 3: COMMA : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 1
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 7
  0: 3: COMMA : reduce 1 tokens to identifier_list
-pending MERGE identifier_list_0: identifier_list <= IDENTIFIER
- action count: 1
+ 0: pending REDUCE_STACK identifier_list_0: identifier_list <= IDENTIFIER
  ... goto state 6
  1 stack:  7 : name,  0 : 
  1: 7: COMMA : reduce 1 tokens to name_list
-pending MERGE name_list_0: name_list <= name
- action count: 2
+ 1: pending REDUCE_STACK name_list_0: name_list <= name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
-pending PUSH COMMA
- action count: 2
+ 0: pending LOOKAHEAD_TO_CURRENT COMMA
+ 0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
-pending PUSH COMMA
- action count: 3
+ 1: pending LOOKAHEAD_TO_CURRENT COMMA
+ 1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
-pending PUSH IDENTIFIER
- action count: 4
+ 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
-pending PUSH IDENTIFIER
- action count: 3
+ 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: COMMA : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 5
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 29
  0 stack:  27 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 27: COMMA : reduce 3 tokens to identifier_list
-pending MERGE identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
- action count: 4
+ 0: pending REDUCE_STACK identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
  ... goto state 6
  1 stack:  29 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 29: COMMA : reduce 3 tokens to name_list
-pending MERGE name_list_1: name_list <= name_list, COMMA, name
- action count: 6
+ 1: pending REDUCE_STACK name_list_1: name_list <= name_list, COMMA, name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
-pending PUSH COMMA
- action count: 5
+ 0: pending LOOKAHEAD_TO_CURRENT COMMA
+ 0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
-pending PUSH COMMA
- action count: 7
+ 1: pending LOOKAHEAD_TO_CURRENT COMMA
+ 1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
-pending PUSH IDENTIFIER
- action count: 8
+ 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
-pending PUSH IDENTIFIER
- action count: 6
+ 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
+ 0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: STRING_LITERAL : reduce 1 tokens to name
-pending MERGE name_0: name <= IDENTIFIER
- action count: 9
+ 1: pending REDUCE_STACK name_0: name <= IDENTIFIER
  ... goto state 29
  0 stack:  27 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 27: STRING_LITERAL : reduce 3 tokens to identifier_list
-pending MERGE identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
- action count: 7
+ 0: pending REDUCE_STACK identifier_list_1: identifier_list <= identifier_list, COMMA, IDENTIFIER
  ... goto state 6
  1 stack:  29 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 29: STRING_LITERAL : reduce 3 tokens to name_list
-pending MERGE name_list_1: name_list <= name_list, COMMA, name
- action count: 10
+ 1: pending REDUCE_STACK name_list_1: name_list <= name_list, COMMA, name
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: STRING_LITERAL : reduce 1 tokens to compilation_unit
-pending MERGE compilation_unit_0: compilation_unit <= identifier_list
- action count: 8
+ 0: pending REDUCE_STACK compilation_unit_0: compilation_unit <= identifier_list
  ... goto state 5
  1 stack:  8 : name_list,  0 : 
  1: 8: STRING_LITERAL : reduce 1 tokens to compilation_unit
-pending MERGE compilation_unit_1: compilation_unit <= name_list
- action count: 11
+ 1: pending REDUCE_STACK compilation_unit_1: compilation_unit <= name_list
  ... goto state 5
  0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
-pending PUSH STRING_LITERAL
- action count: 9
+ 0: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
+ 0: pending PUSH_CURRENT STRING_LITERAL
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
-pending PUSH STRING_LITERAL
- action count: 12
+ 1: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
+ 1: pending PUSH_CURRENT STRING_LITERAL
  0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1: duplicate state; terminate (1 active)
-execute pending
+0: execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))
 (identifier_list 39 . 63) <= ((identifier_list 39 . 54), (COMMA 55 . 55), (IDENTIFIER 57 . 63))

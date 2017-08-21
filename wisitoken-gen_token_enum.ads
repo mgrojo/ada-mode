@@ -98,29 +98,39 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Reset (State : access State_Type) is null;
 
-   overriding procedure Input_Token
+   overriding procedure Lexer_To_Current
      (State : access State_Type;
       Token : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle)
+      Lexer : not null access WisiToken.Lexer.Instance'Class)
      is null;
 
-   overriding procedure Input_Lookahead
+   overriding procedure Virtual_To_Current
+     (State : access State_Type;
+      ID    : in     Token_ID)
+   is null;
+
+   overriding procedure Lexer_To_Lookahead
      (State : access State_Type;
       Token : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle)
+      Lexer : not null access WisiToken.Lexer.Instance'Class)
      is null;
 
-   overriding procedure Move_Lookahead_To_Input
+   overriding procedure Virtual_To_Lookahead
+     (State : access State_Type;
+      ID    : in     Token_ID)
+   is null;
+
+   overriding procedure Lookahead_To_Current
      (State : access State_Type;
       Token : in     Token_ID)
    is null;
 
-   overriding procedure Move_Input_To_Lookahead
+   overriding procedure Current_To_Lookahead
      (State : access State_Type;
       Token : in     Token_ID)
    is null;
 
-   overriding procedure Push_Token
+   overriding procedure Push_Current
      (State : access State_Type;
       Token : in     Token_ID)
      is null;
@@ -131,24 +141,18 @@ package WisiToken.Gen_Token_Enum is
    --  Save Expecting for unit test/error message
 
    overriding
-   procedure Discard_Input
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is null;
-
-   overriding
    procedure Discard_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID)
    is null;
 
    overriding
-   procedure Pop_Token
+   procedure Discard_Stack
      (State : access State_Type;
       ID    : in     Token_ID)
    is null;
 
-   overriding procedure Merge_Tokens
+   overriding procedure Reduce_Stack
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;

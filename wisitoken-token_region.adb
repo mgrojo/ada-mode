@@ -183,7 +183,7 @@ package body WisiToken.Token_Region is
       Lexer : not null access WisiToken.Lexer.Instance'Class)
    is begin
       State.Current_Token := (ID, Line => Lexer.Line, Col => Lexer.Column, Region => Lexer.Bounds);
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("lexer_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -196,7 +196,7 @@ package body WisiToken.Token_Region is
    is begin
       State.Current_Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("virtual_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => True));
       end if;
@@ -212,7 +212,7 @@ package body WisiToken.Token_Region is
 
       State.Lookahead_Queue.Put (State.Current_Token);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("lexer_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -226,7 +226,7 @@ package body WisiToken.Token_Region is
       State.Current_Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
       State.Lookahead_Queue.Add_To_Head (State.Current_Token);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("virtual_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -244,7 +244,7 @@ package body WisiToken.Token_Region is
            ", Token " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False);
       end if;
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("lookahead_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -263,7 +263,7 @@ package body WisiToken.Token_Region is
 
       State.Lookahead_Queue.Add_To_Head (State.Current_Token);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("current_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -282,7 +282,7 @@ package body WisiToken.Token_Region is
 
       State.Stack.Append (State.Current_Token);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("push_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
       end if;
@@ -320,7 +320,7 @@ package body WisiToken.Token_Region is
            ", Token " & Image (State.Trace.Descriptor.all, Token, ID_Only => False);
       end if;
       State.Invalid_Region := State.Invalid_Region and Token.Region;
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line ("discard_lookahead: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
       end if;
    end Discard_Lookahead;
@@ -337,7 +337,7 @@ package body WisiToken.Token_Region is
          raise Programmer_Error;
       end if;
       State.Invalid_Region := State.Invalid_Region and Token.Region;
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line ("discard_stack: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
       end if;
    end Discard_Stack;
@@ -422,7 +422,7 @@ package body WisiToken.Token_Region is
    begin
       Error.Invalid_Region := State.Invalid_Region;
       Error.Recover        := new WisiToken.Token.Recover_Data'Class'(Recover);
-      if Trace_Parse > 2 then
+      if Trace_Parse > 3 then
          State.Trace.Put_Line
            ("recover: invalid_region " & Image (Error.Invalid_Region));
       end if;
