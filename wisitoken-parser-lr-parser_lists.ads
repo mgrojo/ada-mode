@@ -26,19 +26,19 @@ with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
-   --  pending semantic actions
    type Pend_Semantic_Verbs is
-     (Input, Lookahead_To_Input, Input_To_Lookahead, Push, Discard_Input, Discard_Lookahead, Pop, Merge, Recover);
+     (Virtual_To_Current, Virtual_To_Lookahead, Lookahead_To_Current, Current_To_Lookahead,
+      Push_Current, Discard_Lookahead, Discard_Stack, Reduce_Stack, Recover);
    --  Verbs correspond to WisiToken.Token.Semantic_State operations.
-   --  For Input, the token must be a token inserted by error
-   --  recovery, with no lexer information.
+   --  For Set_Current_Token, the token must be a token inserted by
+   --  error recovery, with no lexer information.
 
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
-      when Input | Lookahead_To_Input | Input_To_Lookahead | Push | Discard_Input | Discard_Lookahead | Pop  =>
+      when Virtual_To_Current .. Discard_Stack  =>
          ID : Token_ID;
 
-      when Merge =>
+      when Reduce_Stack =>
          Action : Reduce_Action_Rec;
          Tokens : Token.List.Instance;
 
@@ -47,7 +47,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       end case;
    end record;
 
-   Null_Pend_Item : constant Pend_Item := (Push, Invalid_Token_ID);
+   Null_Pend_Item : constant Pend_Item := (Push_Current, Invalid_Token_ID);
 
    package Pend_Items_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Pend_Item);
    package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item, Pend_Items_Queue_Interfaces);

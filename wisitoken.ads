@@ -166,12 +166,12 @@ package WisiToken is
    function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String;
 
    ----------
-   --  Augmented tokens
+   --  Augmented tokens, semantic actions
 
    type Augmented_Token is tagged record
       ID : Token_ID;
+      --  Derived types add various lexical information.
    end record;
-   --  Derived types add various lexical information.
 
    package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
 
@@ -182,8 +182,8 @@ package WisiToken is
       Index   : in Natural;
       Source  : in Augmented_Token_Array);
    --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production (0 origin);
-   --  Source is the right hand side tokens.
+   --  a production to Nonterm. Index indicates which production for
+   --  Nonterm (0 origin); Source is the right hand side tokens.
    --
    --  Nonterm is classwide to avoid freezing rules.
 

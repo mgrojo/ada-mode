@@ -314,8 +314,8 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 (((210, +SEMICOLON_ID), (209, +identifier_opt_ID), (185, +LOOP_ID), (178, +END_ID),
-                   (138, +sequence_of_statements_opt_ID), (112, +LOOP_ID), (41, +BEGIN_ID),
+                 (((236, +SEMICOLON_ID), (235, +identifier_opt_ID), (210, +LOOP_ID), (200, +END_ID),
+                   (148, +sequence_of_statements_opt_ID), (119, +LOOP_ID), (41, +BEGIN_ID),
                    (34, +declarative_part_opt_ID), (12, +IS_ID), (11, +subprogram_specification_ID),
                    (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
@@ -455,7 +455,7 @@ package body Test_McKenzie_Recover is
       Assert (False, "1.exception: got Syntax_Error");
    end Extra_Begin;
 
-   procedure Conflict (T : in out AUnit.Test_Cases.Test_Case'Class)
+   procedure Conflict_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
       use Ada_Lite;
@@ -475,7 +475,9 @@ package body Test_McKenzie_Recover is
          --  parser 0 state 25 generic_instantiation (should fail):
          --  finds: insert 'new', delete 'end begin end' cost 8.0 => ambiguous parse
          --  better: Pop 'is 17', insert 'is' state 12, delete 'end 20' cost 9.0 => identical stacks, terminate one
-         Check ("1 errors.length", State.Errors.Length, 2);
+
+         Assert (False, "1 did not get exception");
+
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -510,7 +512,33 @@ package body Test_McKenzie_Recover is
       when WisiToken.Parse_Error =>
          Assert (False, "2 exception: got Parse_Error");
       end;
-   end Conflict;
+   end Conflict_1;
+
+   procedure Conflict_2 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+
+      Parse_Text
+        ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; ",
+         --        |10       |20       |30       |40       |50       |60       |70       |80
+         Test.Debug);
+      --  Syntax error (missing ';' (and rest of extended return) at
+      --  82) while two parsers are sorting out a conflict.
+      --
+      --  Both have pending push_token, which used to mess up the
+      --  lookahead queue.
+      --
+      --  both insert semicolon, which leads to identical stacks.
+      Check ("1 errors.length", State.Errors.Length, 1);
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
+   end Conflict_2;
 
    procedure Started_Type (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -566,7 +594,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Error_5'Access, "debug");
+         Register_Routine (T, Started_Type'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
@@ -577,7 +605,8 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Error_5'Access, "Error_5");
          Register_Routine (T, Check_Accept'Access, "Check_Accept");
          Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
-         Register_Routine (T, Conflict'Access, "Conflict");
+         Register_Routine (T, Conflict_1'Access, "Conflict_1");
+         Register_Routine (T, Conflict_2'Access, "Conflict_2");
          Register_Routine (T, Started_Type'Access, "Started_Type");
       end if;
    end Register_Tests;

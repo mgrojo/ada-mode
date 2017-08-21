@@ -33,6 +33,18 @@ with WisiToken.Parser.LR.Panic_Mode;
 with WisiToken.Parser.LR.Parser_Lists;
 package body WisiToken.Parser.LR.Parser is
 
+   procedure Put
+     (Trace     : in out WisiToken.Trace'Class;
+      Pend_Item : in     Parser_Lists.Pend_Item;
+      Label     : in     Integer)
+   is begin
+      if Trace_Parse > 2 then
+         Trace.Put (Int_Image (Label) & ": pending ");
+         Parser_Lists.Put (Trace, Pend_Item);
+         Trace.New_Line;
+      end if;
+   end Put;
+
    procedure Expecting
      (Table  : in     Parse_Table_Ptr;
       State  : in     State_Index;
@@ -65,20 +77,14 @@ package body WisiToken.Parser.LR.Parser is
 
       if Current_Parser.Active_Parser_Count > 1 then
          declare
-            Pend_Item : constant Parser_Lists.Pend_Item := (Parser_Lists.Merge, Action, Tokens);
+            Pend_Item : constant Parser_Lists.Pend_Item := (Parser_Lists.Reduce_Stack, Action, Tokens);
          begin
             Parser_State.Pend_Items.Put (Pend_Item);
-            if Trace_Parse > 1 then
-               Semantic_State.Trace.Put ("pending ");
-               Parser_Lists.Put (Semantic_State.Trace.all, Pend_Item);
-               Semantic_State.Trace.New_Line;
-               Semantic_State.Trace.Put_Line
-                 (" action count:" & SAL.Base_Peek_Type'Image (Parser_State.Pend_Items.Count));
-            end if;
+            Put (Semantic_State.Trace.all, Pend_Item, Current_Parser.Label);
          end;
       else
-         Semantic_State.Merge_Tokens (Action.LHS, Action.Index, Tokens, Action.Action);
-         --  Merge_Tokens puts a trace, with extra token info
+         Semantic_State.Reduce_Stack (Action.LHS, Action.Index, Tokens, Action.Action);
+         --  Reduce_Stack puts a trace, with extra token info
 
          Token.List.Clean (Tokens);
       end if;
@@ -110,18 +116,16 @@ package body WisiToken.Parser.LR.Parser is
 
          if Current_Parser.Active_Parser_Count > 1 then
             declare
-               Pend_Item : constant Parser_Lists.Pend_Item := (Parser_Lists.Push, Current_Token);
+               Pend_Item : Parser_Lists.Pend_Item := (Parser_Lists.Lookahead_To_Current, Current_Token);
             begin
                Parser_State.Pend_Items.Put (Pend_Item);
-               if Trace_Parse > 1 then
-                  Trace.Put ("pending ");
-                  Parser_Lists.Put (Trace, Pend_Item);
-                  Trace.New_Line;
-                  Trace.Put_Line (" action count:" & SAL.Base_Peek_Type'Image (Parser_State.Pend_Items.Count));
-               end if;
+               Put (Trace, Pend_Item, Current_Parser.Label);
+               Pend_Item := (Parser_Lists.Push_Current, Current_Token);
+               Parser_State.Pend_Items.Put (Pend_Item);
+               Put (Trace, Pend_Item, Current_Parser.Label);
             end;
          else
-            Parser.Semantic_State.Push_Token (Current_Token);
+            Parser.Semantic_State.Push_Current (Current_Token);
          end if;
 
       when Reduce =>
@@ -270,54 +274,53 @@ package body WisiToken.Parser.LR.Parser is
    end Duplicate_State;
 
    procedure Execute_Pending
-     (Current_Parser : in     Parser_Lists.Cursor;
+     (Parser         : in     Instance;
+      Current_Parser : in     Parser_Lists.Cursor;
       Semantic_State : access WisiToken.Token.Semantic_State'Class)
    is
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Item         : Parser_Lists.Pend_Item;
    begin
       if Trace_Parse > 1 then
-         Semantic_State.Trace.Put_Line ("execute pending");
+         Semantic_State.Trace.Put_Line (Int_Image (Parser_State.Label) & ": execute pending");
       end if;
-      if Trace_Parse > 3 then
+      if Trace_Parse > 2 then
          WisiToken.Token.Put (Semantic_State);
+         Semantic_State.Trace.Put ("shared lookahead: ");
+         Put (Semantic_State.Trace.all, Parser.Lookahead);
+         Semantic_State.Trace.New_Line;
       end if;
       loop
          exit when Parser_State.Pend_Items.Is_Empty;
          Item := Parser_State.Pend_Items.Get;
 
-         if Trace_Parse > 3 then
-            Parser_Lists.Put (Semantic_State.Trace.all, Item);
-            Semantic_State.Trace.New_Line;
-         end if;
-
          case Item.Verb is
-         when Parser_Lists.Input =>
-            Semantic_State.Input_Token (Item.ID, Lexer => null);
+         when Parser_Lists.Virtual_To_Current =>
+            Semantic_State.Virtual_To_Current (Item.ID);
 
-         when Parser_Lists.Lookahead_To_Input =>
-            Semantic_State.Move_Lookahead_To_Input (Item.ID);
+         when Parser_Lists.Virtual_To_Lookahead =>
+            Semantic_State.Virtual_To_Lookahead (Item.ID);
 
-         when Parser_Lists.Input_To_Lookahead =>
-            Semantic_State.Move_Input_To_Lookahead (Item.ID);
+         when Parser_Lists.Lookahead_To_Current =>
+            Semantic_State.Lookahead_To_Current (Item.ID);
 
-         when Parser_Lists.Push =>
-            Semantic_State.Push_Token (Item.ID);
+         when Parser_Lists.Current_To_Lookahead =>
+            Semantic_State.Current_To_Lookahead (Item.ID);
 
-         when Parser_Lists.Merge =>
-            Semantic_State.Merge_Tokens
-              (Item.Action.LHS, Item.Action.Index, Item.Tokens, Item.Action.Action);
+         when Parser_Lists.Push_Current =>
+            Semantic_State.Push_Current (Item.ID);
 
-            Token.List.Clean (Item.Tokens);
-
-         when Parser_Lists.Pop =>
-            Semantic_State.Pop_Token (Item.ID);
-
-         when Parser_Lists.Discard_Input =>
-            Semantic_State.Discard_Input (Item.ID);
+         when Parser_Lists.Discard_Stack =>
+            Semantic_State.Discard_Stack (Item.ID);
 
          when Parser_Lists.Discard_Lookahead =>
             Semantic_State.Discard_Lookahead (Item.ID);
+
+         when Parser_Lists.Reduce_Stack =>
+            Semantic_State.Reduce_Stack
+              (Item.Action.LHS, Item.Action.Index, Item.Tokens, Item.Action.Action);
+
+            Token.List.Clean (Item.Tokens);
 
          when Parser_Lists.Recover =>
             Semantic_State.Recover (Item.Recover.all);
@@ -335,13 +338,14 @@ package body WisiToken.Parser.LR.Parser is
       Trace      : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
 
-      Parsers              : Parser_Lists.List := Parser_Lists.New_List
+      Parsers                   : Parser_Lists.List := Parser_Lists.New_List
         (First_State_Index  => Parser.Table.State_First,
          First_Parser_Label => Parser.First_Parser_Label);
-      Current_Verb         : All_Parse_Action_Verbs;
-      Shared_Current_Token : Token_ID;
-      Current_Parser       : Parser_Lists.Cursor;
-      Action               : Parse_Action_Node_Ptr;
+      Current_Verb              : All_Parse_Action_Verbs;
+      Shared_Current_Token      : Token_ID;
+      Semantic_Lookahead_Active : Boolean           := False;
+      Current_Parser            : Parser_Lists.Cursor;
+      Action                    : Parse_Action_Node_Ptr;
 
       function Get_Current_Token (Current_Parser : in Parser_Lists.Parser_State) return Token_ID
       is
@@ -374,14 +378,36 @@ package body WisiToken.Parser.LR.Parser is
                Shared_Current_Token := Parser.Lookahead.Get;
                if Parsers.Count > 1 then
                   for Parser_State of Parsers loop
-                     Parser_State.Pend_Items.Put ((Parser_Lists.Lookahead_To_Input, Shared_Current_Token));
+                     declare
+                        Pend_Item : constant Parser_Lists.Pend_Item :=
+                          (Parser_Lists.Lookahead_To_Current, Shared_Current_Token);
+                     begin
+                        Parser_State.Pend_Items.Put (Pend_Item);
+                        Put (Trace, Pend_Item, Parser_State.Label);
+                     end;
                   end loop;
                else
-                  Parser.Semantic_State.Move_Lookahead_To_Input (Shared_Current_Token);
+                  Parser.Semantic_State.Lookahead_To_Current (Shared_Current_Token);
                end if;
             else
                Shared_Current_Token := Parser.Lexer.Find_Next;
-               Parser.Semantic_State.Input_Token (Shared_Current_Token, Parser.Lexer);
+               if Parsers.Count > 1 then
+                  Parser.Semantic_State.Lexer_To_Lookahead (Shared_Current_Token, Parser.Lexer);
+
+                  --  We don't pend lookahead_to_current here, because
+                  --  we might enter error recovery and skip this
+                  --  token. We pend lookahead_to_current in
+                  --  Do_Action, just before pending push_current.
+                  --
+                  --  However, if the new Shared_Current_Token causes
+                  --  an error that reduces the parser count to 1, we
+                  --  need to skip current_to_lookahead at the start
+                  --  of error recovery.
+                  Semantic_Lookahead_Active := True;
+               else
+                  Semantic_Lookahead_Active := False;
+                  Parser.Semantic_State.Lexer_To_Current (Shared_Current_Token, Parser.Lexer);
+               end if;
             end if;
 
             for Parser_State of Parsers loop
@@ -418,10 +444,6 @@ package body WisiToken.Parser.LR.Parser is
                   LR.Parser.Expecting (Parser.Table, Parser_State.Stack.Peek.State, Expecting);
                end loop;
 
-               --  FIXME: each parser is in a different state; report
-               --  each error separately. On the other hand, we
-               --  normally expect all but one parser to error out, so
-               --  it's not clear how to handle this.
                Parser.Semantic_State.Error (Expecting);
 
                if Lookahead_Count > 0 then
@@ -444,13 +466,10 @@ package body WisiToken.Parser.LR.Parser is
                   --  or Parsers (*).Local_Lookahead with new input
                   --  tokens, and set Parsers (*).Current_Token and
                   --  Parsers (*).Verb.
-                  Parser.Lookahead.Put (Shared_Current_Token);
-                  if Parsers.Count > 1 then
-                     for Parser_State of Parsers loop
-                        Parser_State.Pend_Items.Put ((Parser_Lists.Input_To_Lookahead, Shared_Current_Token));
-                     end loop;
-                  else
-                     Parser.Semantic_State.Move_Input_To_Lookahead (Shared_Current_Token);
+                  Parser.Lookahead.Add_To_Head (Shared_Current_Token);
+
+                  if Parsers.Count = 1 and not Semantic_Lookahead_Active then
+                     Parser.Semantic_State.Current_To_Lookahead (Shared_Current_Token);
                   end if;
 
                   if Parser.Enable_McKenzie_Recover then
@@ -582,7 +601,7 @@ package body WisiToken.Parser.LR.Parser is
                Current_Parser.Free;
 
                if Parsers.Count = 1 then
-                  Execute_Pending (Parsers.First, Parser.Semantic_State);
+                  Execute_Pending (Parser, Parsers.First, Parser.Semantic_State);
                end if;
 
             else
@@ -610,22 +629,37 @@ package body WisiToken.Parser.LR.Parser is
                         State.Current_Token := State.Local_Lookahead.Get;
 
                         if Parsers.Count > 1 then
-                           State.Pend_Items.Put ((Parser_Lists.Input, State.Current_Token));
+                           --  When the pended actions are executed,
+                           --  Lookahead_To_Current, Push_Current will
+                           --  be called with this token. So we need
+                           --  to put it on the lookahead first. We
+                           --  can't call
+                           --  Semantic_State.Virtual_To_Lookahead
+                           --  now, because this token is not shared
+                           --  by the other parsers.
+                           declare
+                              Pend_Item : constant Parser_Lists.Pend_Item :=
+                                (Parser_Lists.Virtual_To_Lookahead, State.Current_Token);
+                           begin
+                              State.Pend_Items.Put (Pend_Item);
+                              Put (Trace, Pend_Item, Current_Parser.Label);
+                           end;
                         else
-                           Parser.Semantic_State.Input_Token (State.Current_Token, null);
+                           Parser.Semantic_State.Virtual_To_Current (State.Current_Token);
                         end if;
 
                      elsif Parser.Lookahead.Length >= State.Shared_Lookahead_Index then
                         --  Input_Lookahead was called for these when read from
                         --  Lexer during error recover.
 
-                        State.Current_Token := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
+                        State.Current_Token          := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
                         State.Shared_Lookahead_Index := State.Shared_Lookahead_Index + 1;
 
                         if Parsers.Count > 1 then
-                           State.Pend_Items.Put ((Parser_Lists.Lookahead_To_Input, State.Current_Token));
+                           --  We don't do Lookahead_To_Current here; see comment on this topic above.
+                           null;
                         else
-                           Parser.Semantic_State.Move_Lookahead_To_Input (State.Current_Token);
+                           Parser.Semantic_State.Lookahead_To_Current (State.Current_Token);
                         end if;
 
                      else
@@ -650,7 +684,7 @@ package body WisiToken.Parser.LR.Parser is
                   Current_Parser.Free;
 
                   if Parsers.Count = 1 then
-                     Execute_Pending (Parsers.First, Parser.Semantic_State);
+                     Execute_Pending (Parser, Parsers.First, Parser.Semantic_State);
                   end if;
 
                elsif Current_Parser.Verb = Current_Verb
@@ -676,9 +710,13 @@ package body WisiToken.Parser.LR.Parser is
 
                      else
                         if Trace_Parse > 0 then
-                           Trace.Put
-                             ("spawn parser from " & Int_Image (Current_Parser.Label));
+                           Trace.Put_Line ("spawn parser from " & Int_Image (Current_Parser.Label));
                         end if;
+
+                        if Parsers.Count = 1 then
+                           Parser.Semantic_State.Current_To_Lookahead (Current_Parser.State_Ref.Current_Token);
+                        end if;
+
                         Parsers.Prepend_Copy (Current_Parser);
                         if Trace_Parse > 0 then
                            Trace.Put_Line (" (" & Int_Image (Integer (Parsers.Count)) & " active)");

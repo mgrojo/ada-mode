@@ -48,6 +48,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword NOT "not"
 %keyword OR "or"
 %keyword PROCEDURE "procedure"
+%keyword RANGE "range"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
 %keyword THEN "then"
@@ -60,6 +61,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %token <punctuation> COLON_EQUAL ":="
 %token <punctuation> COMMA ","
 %token <punctuation> DOT "."
+%token <punctuation> DOT_DOT ".."
 %token <punctuation> EQUAL "="
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> GREATER ">"
@@ -138,6 +140,8 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt  on token IS
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
 
@@ -208,6 +212,12 @@ compound_statement
   | case_statement
   | loop_statement
   | block_statement
+  | extended_return_statement
+  ;
+
+constraint
+  : RANGE range_g
+  | index_constraint
   ;
 
 declaration
@@ -226,6 +236,8 @@ declarative_part_opt
   : ;; empty
   | declarations
   ;
+
+discrete_subtype_definition : subtype_indication | range_g ;
 
 elsif_statement_item
   : ELSIF expression_opt THEN sequence_of_statements_opt
@@ -260,6 +272,14 @@ expression
 expression_opt
   : ;; empty for user friendly
   | expression
+  ;
+
+extended_return_object_declaration
+  : IDENTIFIER COLON subtype_indication
+  ;
+
+extended_return_statement
+  : RETURN extended_return_object_declaration SEMICOLON
   ;
 
 factor
@@ -302,6 +322,9 @@ if_statement
   | IF expression_opt THEN sequence_of_statements_opt END IF SEMICOLON
   ;
 
+index_constraint
+  : LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
+  ;
 
 label
   : IDENTIFIER COLON ;; on blocks, loops
@@ -321,6 +344,7 @@ multiplying_operator : STAR | SLASH ;
 
 name
   : IDENTIFIER
+  | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
   | selected_component
   | name actual_parameter_part ;; function_call, procedure call.
   ;
@@ -331,8 +355,8 @@ name_opt
   ;
 
 object_declaration
-  : IDENTIFIER COLON IDENTIFIER COLON_EQUAL expression_opt SEMICOLON
-  | IDENTIFIER COLON IDENTIFIER SEMICOLON
+  : IDENTIFIER COLON subtype_indication COLON_EQUAL expression_opt SEMICOLON
+  | IDENTIFIER COLON subtype_indication SEMICOLON
   ;
 
 
@@ -377,6 +401,15 @@ procedure_specification
 
 proper_body
   : subprogram_body
+  ;
+
+range_g
+  : simple_expression DOT_DOT simple_expression
+  ;
+
+range_list
+  : range_g
+  | range_list COMMA range_g
   ;
 
 relation_and_list
@@ -453,6 +486,11 @@ subprogram_declaration
 subprogram_specification
   : procedure_specification
   | function_specification
+  ;
+
+subtype_indication
+  : name constraint
+  | name
   ;
 
 term

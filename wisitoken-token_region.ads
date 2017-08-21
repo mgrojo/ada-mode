@@ -70,11 +70,7 @@ package WisiToken.Token_Region is
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
       --  FIXME: change to SAL.stack?
 
-      Input_Queue : Token_Queues.Queue_Type;
-      --  Tokens are kept in Input_Queue during parallel parser
-      --  execution, and during error recovery; added by Input_Token,
-      --  moved to Stack by Push_Token.
-
+      Current_Token   : Token;
       Lookahead_Queue : Token_Queues.Queue_Type;
 
       Invalid_Region : Buffer_Region := Null_Buffer_Region;
@@ -92,29 +88,39 @@ package WisiToken.Token_Region is
    procedure Reset (State : access State_Type);
 
    overriding
-   procedure Input_Token
+   procedure Lexer_To_Current
      (State : access State_Type;
       ID    : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle);
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
-   procedure Input_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle);
-
-   overriding
-   procedure Move_Lookahead_To_Input
+   procedure Virtual_To_Current
      (State : access State_Type;
       ID    : in     Token_ID);
 
    overriding
-   procedure Move_Input_To_Lookahead
+   procedure Lexer_To_Lookahead
+     (State : access State_Type;
+      ID    : in     Token_ID;
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
+
+   overriding
+   procedure Virtual_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID);
 
    overriding
-   procedure Push_Token
+   procedure Lookahead_To_Current
+     (State : access State_Type;
+      ID    : in     Token_ID);
+
+   overriding
+   procedure Current_To_Lookahead
+     (State : access State_Type;
+      ID    : in     Token_ID);
+
+   overriding
+   procedure Push_Current
      (State : access State_Type;
       ID    : in     Token_ID);
 
@@ -123,22 +129,17 @@ package WisiToken.Token_Region is
       Expecting : in     Token_ID_Set);
 
    overriding
-   procedure Discard_Input
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
    procedure Discard_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID);
 
    overriding
-   procedure Pop_Token
+   procedure Discard_Stack
      (State : access State_Type;
       ID    : in     Token_ID);
 
    overriding
-   procedure Merge_Tokens
+   procedure Reduce_Stack
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
