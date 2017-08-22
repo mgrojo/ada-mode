@@ -41,7 +41,7 @@ docs : info html
 update-elisp : ../ada_grammar-elisp.el
 update-elisp : ../gpr-grammar-elisp.el
 update-elisp : byte-compile
-update-elisp : install
+update-elisp : install_ada_mode_wisi_parse
 
 # This updates everything after any source change, without running the
 # tests or publishing to elpa
@@ -110,7 +110,9 @@ one-clean: force
 
 # run_ada_parser args: <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>
 two : run_ada_parser.exe
-	../run_ada_parser.exe 0 0 1 1600 ../test/ada_mode-interactive_wisi.adb
+	../run_ada_parser.exe 2 0 1 -1 ../test/debug.adb
+# c:/Projects/org.stephe_leake.sal/source/sal-gen_graphs.adb
+
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an

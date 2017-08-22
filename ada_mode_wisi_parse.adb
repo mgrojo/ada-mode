@@ -208,6 +208,7 @@ begin
             --  prompt
             declare
                Buffer_Name : constant String := Get_String (Command_Line, Last);
+               pragma Unreferenced (Buffer_Name); --  FIXME: delete arg.
                Enqueue_Limit : Integer;
             begin
                WisiToken.Trace_Parse               := Get_Integer (Command_Line, Last);
@@ -220,23 +221,21 @@ begin
                Parser.Lexer.Reset;
                Parser.Parse;
             exception
-            when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-               Put_Line
-                 ("(signal 'wisi-parse-error """ & Buffer_Name & ":" &
-                    Ada.Exceptions.Exception_Message (E) & """)");
+            when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
+               Put_Line ("(parse_error)"); -- elisp adds more info
             end;
 
          elsif Match ("quit") then
             exit;
 
          else
-            Put_Line ("(error ""bad command: '" & Command_Line & "'"")");
+            Put_Line ("(error \""bad command: '" & Command_Line & "'\"")");
          end if;
       exception
       when E : Protocol_Error =>
          --  don't exit the loop; allow debugging bad elisp
-         Put_Line ("(protocol error "": " & Ada.Exceptions.Exception_Message (E) & """)");
+         Put_Line ("(error \""protocol error "": " & Ada.Exceptions.Exception_Message (E) & "\"")");
       end;
    end loop;
 exception

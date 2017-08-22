@@ -7,7 +7,6 @@ with ada_grammar_dfa;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_Feeder.Text_IO;
-with WisiToken.Token_Region;
 procedure Run_Ada_Parser
 is
    procedure Put_Usage
@@ -41,8 +40,9 @@ begin
       ada_grammar_dfa.aflex_debug := True;
    end if;
 
-   Parser.Enable_Panic_Recover    := Argument (2) /= "0";
-   Parser.Enable_McKenzie_Recover := Argument (3) /= "0";
+   Parser.Lexer.Enable_Line_Numbers := True;
+   Parser.Enable_Panic_Recover      := Argument (2) /= "0";
+   Parser.Enable_McKenzie_Recover   := Argument (3) /= "0";
 
    if Argument (4) /= "-1" then
       Parser.Table.McKenzie.Enqueue_Limit := Integer'Value (Argument (4));
@@ -52,8 +52,10 @@ begin
 
    WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
 exception
-when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-   WisiToken.Token_Region.Put (To_String (File_Name), Ada_Grammar.State.Errors, Ada_Grammar.Descriptor);
+when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+   New_Line;
+   --  Exception message starts with ":<line>:<column>: "
+   Put_Line (To_String (File_Name) & Ada.Exceptions.Exception_Message (E));
 
 when E : others =>
    New_Line;

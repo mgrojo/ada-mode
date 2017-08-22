@@ -786,8 +786,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	   (col (string-to-number (match-string 2 msg))))
       (push-mark)
       (goto-char (point-min))
-      (forward-line (1- line))
-      (forward-char col))))
+      ;; FIXME: lexer can be confused about lines? line > last line in buffer.
+      (condition-case nil
+	  (progn
+	    (forward-line (1- line))
+	    (forward-char col))
+	(error
+	 ;; just stay at eob.
+	 nil)))))
 
 (defun wisi-show-parse-error ()
   "Show last wisi-parse error."
@@ -1166,6 +1172,7 @@ vector [number token_id token_id ...]:
 		(unless start (setq start (car region)))
 		(goto-char (car region))
 		(setq cache (wisi-get-cache (point)))
+		(unless cache (error "no cache at %d; add to statement-action" (car region)))
 		(while (< (point) (cdr region))
 		  (when (wisi--match-token cache token-number start)
 		    (setq mark (copy-marker (1+ (point))))
@@ -1463,19 +1470,21 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 (defun wisi-anchored-1 (tok offset &optional no-accumulate)
   "Return offset of TOK relative to current indentation + OFFSET.
 For use in grammar indent actions."
-  (let ((pos (car (wisi-tok-region tok)))
-	delta)
+  (when (wisi-tok-region tok)
+    ;; region can be nil when token is inserted by error recovery
+    (let ((pos (car (wisi-tok-region tok)))
+	  delta)
 
-    (goto-char pos)
-    (setq delta (+ offset (- (current-column) (current-indentation))))
-    (wisi-anchored-2
-     (wisi-tok-line tok) ;; anchor-line
-     (if wisi-indent-comment
-	 (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
-       (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index))));; end
-     delta
-     no-accumulate)
-    ))
+      (goto-char pos)
+      (setq delta (+ offset (- (current-column) (current-indentation))))
+      (wisi-anchored-2
+       (wisi-tok-line tok) ;; anchor-line
+       (if wisi-indent-comment
+	   (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
+	 (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index))));; end
+       delta
+       no-accumulate)
+      )))
 
 (defun wisi--max-anchor (begin-line end)
   (let ((i (1- begin-line))

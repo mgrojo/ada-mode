@@ -467,6 +467,37 @@ Values defined by cross reference packages.")
      ["Reset parser"                  ada-reset-parser             t]
      )))
 
+(defun ada-project-menu-compute ()
+  "Return an easy-menu menu for `ada-project-menu-install'.
+Menu displays currently parsed Ada mode projects."
+  (let (menu)
+    (dolist (item ada-prj-alist)
+      (push
+       (vector
+	(if (equal (car item) ada-prj-current-file)
+	    ;; current project
+	    (concat (car item) "  *")
+	  (car item))
+	`(lambda () (interactive) (ada-select-prj-file ,(car item)))
+	t)
+       menu)
+      )
+    (nreverse menu)))
+
+(defun ada-project-menu-install ()
+  "Install the Ada project menu as a submenu."
+  (define-key-after
+    (lookup-key ada-mode-map [menu-bar Ada]);; map to put menu in
+    [ada-prj-select]          ;; key (a menu entry)
+    (easy-menu-binding        ;; binding
+     (easy-menu-create-menu
+      "Select Project"
+      (ada-project-menu-compute)))
+
+    ;; FIXME: this doesn’t work; "Select Project" is at end
+    (lookup-key ada-mode-map [menu-bar Ada Project\ files]) ;; after
+    ))
+
 (easy-menu-define ada-context-menu nil
   "Context menu keymap for Ada mode"
   '("Ada"
@@ -2795,6 +2826,8 @@ The paragraph is indented on the first line."
   (setq major-mode 'ada-mode)
   (setq mode-name "Ada")
   (use-local-map ada-mode-map)
+  (add-hook 'menu-bar-update-hook #'ada-project-menu-install)
+
   (set-syntax-table ada-mode-syntax-table)
   (define-abbrev-table 'ada-mode-abbrev-table ())
   (setq local-abbrev-table ada-mode-abbrev-table)

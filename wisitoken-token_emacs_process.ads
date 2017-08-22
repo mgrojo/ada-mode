@@ -45,31 +45,41 @@ package WisiToken.Token_Emacs_Process is
    --  state.
 
    overriding
-   procedure Input_Token
-     (State : access State_Type;
-      Token : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle);
+   procedure Lexer_To_Current
+     (State : access          State_Type;
+      ID    : in              Token_ID;
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
-   procedure Input_Lookahead
+   procedure Virtual_To_Current
      (State : access State_Type;
-      Token : in     Token_ID;
-      Lexer : in     WisiToken.Lexer.Handle);
+      ID    : in     Token_ID);
 
    overriding
-   procedure Move_Lookahead_To_Input
-     (State : access State_Type;
-      Token : in     Token_ID);
+   procedure Lexer_To_Lookahead
+     (State : access          State_Type;
+      ID    : in              Token_ID;
+      Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
-   procedure Move_Input_To_Lookahead
+   procedure Virtual_To_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
-   procedure Push_Token
+   procedure Lookahead_To_Current
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
+
+   overriding
+   procedure Current_To_Lookahead
+     (State : access State_Type;
+      ID    : in     Token_ID);
+
+   overriding
+   procedure Push_Current
+     (State : access State_Type;
+      ID    : in     Token_ID);
 
    overriding
    procedure Error
@@ -77,26 +87,21 @@ package WisiToken.Token_Emacs_Process is
       Expecting : in     Token_ID_Set);
 
    overriding
-   procedure Discard_Input
-     (State : access State_Type;
-      Token : in     Token_ID);
-
-   overriding
    procedure Discard_Lookahead
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
-   procedure Pop_Token
+   procedure Discard_Stack
      (State : access State_Type;
-      Token : in     Token_ID);
+      ID    : in     Token_ID);
 
    overriding
-   procedure Merge_Tokens
+   procedure Reduce_Stack
      (State   : access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      Tokens  : in     Token.List.Instance;
+      IDs     : in     Token.List.Instance;
       Action  : in     Semantic_Action);
 
    overriding
@@ -104,6 +109,5 @@ package WisiToken.Token_Emacs_Process is
      (State   : access State_Type;
       Recover : in     WisiToken.Token.Recover_Data'Class)
      is null;
-   --  Not used.
 
 end WisiToken.Token_Emacs_Process;

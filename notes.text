@@ -38,6 +38,12 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
+
+delete production name <= LEFT_PAREN range_list RIGHT_PAREN ?
+    redundant with subtype indication?
+    conflict is resolved via identical stacks
+    see test_mckenzie_recover conflict_2, test/ada_mode-recover_indent_2.adb
+
 ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
     detect that, exit
 
@@ -129,6 +135,11 @@ more error handling
 
  speed issues
 
+in parse table, many states have only two actions; reduce and error
+    compress all the reduce actions into one
+        specify terminal token set instead of single token
+    find a reference for this
+
 parse face is slow
     compare to o.e.a
 
@@ -186,6 +197,10 @@ indent is slow
 
     (time-it (lambda() (let ((wisi--parse-action nil)) (wisi--run-parse))) 1)
         smm-server.adb:
+
+parse navigate
+    wisi-motion-action
+        in [] token-numbers, skip statements with wisi-goto-end
 
 time indent
     (setq ada-gps-size-threshold most-positive-fixnum)
@@ -1261,12 +1276,12 @@ Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including a
  relevant files, debug hints
 Edebug displays
 
-in wisi-process-parse--merge_tokens:
+in wisi-process-parse--Reduce_Stack:
 (setq edebug-eval-list
  '(tokens-1
    tok
    (aref token-table (aref tokens-1 i))
-   (queue-head (wisi-process--parser-parse-stack parser))
+   (queue-head (wisi-process--parser-parse-stack wisi--parser))
    sexp
    ))
 

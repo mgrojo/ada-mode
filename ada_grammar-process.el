@@ -1099,7 +1099,9 @@
      (("label:0"
        (wisi-indent-action [[ada-indent-label 0]]))
       ("label:1"
-       (wisi-indent-action [ada-indent-label 0]))
+       (progn
+       (wisi-statement-action [1 misc])
+       (wisi-indent-action [ada-indent-label 0])))
       )
      nil
      nil

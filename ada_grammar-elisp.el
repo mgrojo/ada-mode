@@ -958,7 +958,9 @@
        ((goto_label )
         (wisi-indent-action [[ada-indent-label 0]]))
        ((IDENTIFIER COLON )
-        (wisi-indent-action [ada-indent-label 0])))
+        (progn
+        (wisi-statement-action [1 misc])
+        (wisi-indent-action [ada-indent-label 0]))))
       (library_item
        ((PRIVATE library_unit_declaration ))
        ((library_unit_declaration ))

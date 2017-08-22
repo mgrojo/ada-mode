@@ -200,7 +200,6 @@
 %mckenzie_cost_insert IS 3.0
 %mckenzie_cost_insert LEFT_PAREN 3.0
 %mckenzie_cost_insert RETURN 3.0
-%mckenzie_cost_insert RIGHT_PAREN 3.0
 %mckenzie_cost_insert THEN 3.0
 %mckenzie_cost_insert WHEN 3.0
 
@@ -216,7 +215,10 @@
 %mckenzie_cost_insert IF 2.0
 %mckenzie_cost_insert LOOP 2.0
 
-;; Prefer 'end', ';' over everything
+;; Most common paren error is missing closing paren.
+%mckenzie_cost_insert RIGHT_PAREN 1.0
+
+;; Prefer inserting 'end', ';' over everything
 %mckenzie_cost_insert END 1.0
 %mckenzie_cost_insert SEMICOLON 1.0
 
@@ -1463,7 +1465,9 @@ label
   : goto_label
     (wisi-indent-action [[ada-indent-label 0]])
   | IDENTIFIER COLON ;; on blocks, loops
-    (wisi-indent-action [ada-indent-label 0])
+    (progn
+      (wisi-statement-action [1 misc]) ;; so there is a cache at the start of sequence_of_statements
+      (wisi-indent-action [ada-indent-label 0]))
   ;
 
 library_item
