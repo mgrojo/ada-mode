@@ -314,10 +314,10 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 (((236, +SEMICOLON_ID), (235, +identifier_opt_ID), (210, +LOOP_ID), (200, +END_ID),
-                   (148, +sequence_of_statements_opt_ID), (119, +LOOP_ID), (41, +BEGIN_ID),
-                   (34, +declarative_part_opt_ID), (12, +IS_ID), (11, +subprogram_specification_ID),
-                   (0, WisiToken.Invalid_Token_ID))),
+                 (((245, +SEMICOLON_ID), (244, +identifier_opt_ID), (220, +LOOP_ID), (209, +END_ID),
+                   (178, +sequence_of_statements_opt_ID), (139, +LOOP_ID), (114, +BEGIN_ID),
+                   (84, +declarative_part_opt_ID), (29, +IS_ID), (14, +aspect_specification_opt_ID),
+                   (11, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                Shared_Lookahead_Index => 1,
                Local_Lookahead        => To_Token_Array ((1 => +IDENTIFIER_ID)),
@@ -437,7 +437,8 @@ package body Test_McKenzie_Recover is
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
                (Stack                  => To_State_Stack
-                  (((12, +IS_ID), (11, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
+                  (((29, +IS_ID), (14, +aspect_specification_opt_ID), (11, +subprogram_specification_ID),
+                    (0, WisiToken.Invalid_Token_ID))),
                 Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
                 Shared_Lookahead_Index => 1,
                 Local_Lookahead        => WisiToken.Empty_Token_Array,
@@ -556,7 +557,7 @@ package body Test_McKenzie_Recover is
             Test.Debug);
          --  'type' 20 with no type definition.
          --
-         --  error 1 at 'begin' 25; expecing IDENTIFIER. deletes 'begin end', continues to ';' 40
+         --  error 1 at 'begin' 25; expecting IDENTIFIER. deletes 'begin end', continues to ';' 40
          --  error 2 at ';' 40; expecting type definition. pops IDENTIFIER, TYPE, IS, succeeds
          --
          --  FIXME: better would be to check ahead one more token so
@@ -566,18 +567,39 @@ package body Test_McKenzie_Recover is
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
-
-      when E : WisiToken.Parse_Error =>
-         declare
-            use Ada.Exceptions;
-            use Ada.Strings.Fixed;
-            Msg : constant String := Exception_Message (E);
-         begin
-            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
-         end;
       end;
 
    end Started_Type;
+
+   procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 120; -- needed for this test
+
+      begin
+         Parse_Text
+           ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; ",
+            --        |10       |20       |30       |40       |50       |60       |70       |80       |90
+            Test.Debug);
+         --  Missing 'return foo' in function spec.
+         --
+         --  error 1 at 'is' 72; expecting 'return'. Inserts 'return IDENTIFIER'.
+         --  Spawns 1 parser in state 91: subprogram_body_stub/subprogram_body
+         --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
+         --  continues to eof, succeeds.
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+
+      end;
+
+   end Missing_Return;
 
    ----------
    --  Public subprograms
@@ -594,7 +616,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Started_Type'Access, "debug");
+         Register_Routine (T, Conflict_1'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
@@ -608,6 +630,7 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Conflict_1'Access, "Conflict_1");
          Register_Routine (T, Conflict_2'Access, "Conflict_2");
          Register_Routine (T, Started_Type'Access, "Started_Type");
+         Register_Routine (T, Missing_Return'Access, "Missing_Return");
       end if;
    end Register_Tests;
 

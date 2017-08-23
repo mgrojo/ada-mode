@@ -14,18 +14,15 @@ spawn parser from 1 (2 active)
  2: pending REDUCE_STACK label_opt_0: label_opt <= 
  ... goto state 7
  1: 2: IDENTIFIER : shift and goto state 4
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  2 stack:  7 : label_opt,  2 : BEGIN,  1 : 
  2: 7: IDENTIFIER : shift and goto state 8
- 2: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  2: pending PUSH_CURRENT IDENTIFIER
  1 stack:  4 : IDENTIFIER,  2 : BEGIN,  1 : 
  2 stack:  8 : IDENTIFIER,  7 : label_opt,  2 : BEGIN,  1 : 
  2: 8: COLON : ERROR
  1 stack:  4 : IDENTIFIER,  2 : BEGIN,  1 : 
  1: 4: COLON : shift and goto state 11
- 1: pending LOOKAHEAD_TO_CURRENT COLON
  1: pending PUSH_CURRENT COLON
  2: terminate (1 active)
 1: execute pending
@@ -77,18 +74,15 @@ spawn parser from 1 (2 active)
  2: pending REDUCE_STACK label_opt_0: label_opt <= 
  ... goto state 7
  1: 2: IDENTIFIER : shift and goto state 4
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  2 stack:  7 : label_opt,  2 : BEGIN,  1 : 
  2: 7: IDENTIFIER : shift and goto state 8
- 2: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  2: pending PUSH_CURRENT IDENTIFIER
  1 stack:  4 : IDENTIFIER,  2 : BEGIN,  1 : 
  2 stack:  8 : IDENTIFIER,  7 : label_opt,  2 : BEGIN,  1 : 
  2: 8: COLON : ERROR
  1 stack:  4 : IDENTIFIER,  2 : BEGIN,  1 : 
  1: 4: COLON : shift and goto state 11
- 1: pending LOOKAHEAD_TO_CURRENT COLON
  1: pending PUSH_CURRENT COLON
  2: terminate (1 active)
 1: execute pending

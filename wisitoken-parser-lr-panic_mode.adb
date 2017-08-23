@@ -206,7 +206,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
          end if;
 
          Current_Token := Parser.Lexer.Find_Next;
-         Parser.Semantic_State.Lexer_To_Current (Current_Token, Parser.Lexer);
+         Parser.Semantic_State.Lexer_To_Lookahead (Current_Token, Parser.Lexer);
          if Trace_Parse > 1 then
             Trace.Put_Line ("  next " & Image (Trace.Descriptor.all, Current_Token));
          end if;
@@ -218,7 +218,7 @@ package body WisiToken.Parser.LR.Panic_Mode is
             Recover : Panic_Data renames Panic_Data (Parsers.First.State_Ref.Recover.all);
          begin
             for ID of Recover.Pushed_Tokens loop
-               Parser.Semantic_State.Virtual_To_Current (ID);
+               Parser.Semantic_State.Virtual_To_Lookahead (ID);
                Parser.Semantic_State.Push_Current (ID);
             end loop;
             for ID of Recover.Popped_Tokens loop

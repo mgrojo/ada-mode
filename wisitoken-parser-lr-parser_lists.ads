@@ -27,15 +27,12 @@ with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
    type Pend_Semantic_Verbs is
-     (Virtual_To_Current, Virtual_To_Lookahead, Lookahead_To_Current, Current_To_Lookahead,
-      Push_Current, Discard_Lookahead, Discard_Stack, Reduce_Stack, Recover);
+     (Virtual_To_Lookahead, Push_Current, Discard_Lookahead, Discard_Stack, Reduce_Stack, Recover);
    --  Verbs correspond to WisiToken.Token.Semantic_State operations.
-   --  For Set_Current_Token, the token must be a token inserted by
-   --  error recovery, with no lexer information.
 
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
-      when Virtual_To_Current .. Discard_Stack  =>
+      when Virtual_To_Lookahead .. Discard_Stack =>
          ID : Token_ID;
 
       when Reduce_Stack =>
@@ -63,6 +60,10 @@ package WisiToken.Parser.LR.Parser_Lists is
    end record;
 
    type Parser_State is new Base_Parser_State with private;
+
+   procedure Pend (State : in out Parser_State; Item : in Pend_Item; Trace : in out WisiToken.Trace'Class);
+   --  Put Item on State.Pend_Items, and also to Trace if Trace_Parse
+   --  is high enough.
 
    type List is tagged private
    with

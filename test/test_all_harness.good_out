@@ -26,7 +26,6 @@ OK ../Test/name_grammar_test.adb : Nominal
 OK ../Test/test_accept_state.adb : Nominal
 OK ../Test/test_character_literal.adb : Nominal
 OK ../Test/test_follow.adb : Subprograms.One
-OK ../Test/test_follow.adb : Test_Ada_Lite.One
 OK test_lr_expecting.adb : Nominal
 OK test_mckenzie_recover.adb : No_Error
 OK test_mckenzie_recover.adb : Error_1
@@ -40,6 +39,7 @@ OK test_mckenzie_recover.adb : Extra_Begin
 OK test_mckenzie_recover.adb : Conflict_1
 OK test_mckenzie_recover.adb : Conflict_2
 OK test_mckenzie_recover.adb : Started_Type
+OK test_mckenzie_recover.adb : Missing_Return
 OK test_panic_mode.adb : No_Error
 OK test_panic_mode.adb : Error_1
 OK test_panic_mode.adb : Error_2

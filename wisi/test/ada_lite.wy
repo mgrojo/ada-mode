@@ -51,9 +51,11 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword RANGE "range"
 %keyword RETURN "return"
 %keyword RIGHT_PAREN ")"
+%keyword SEPARATE "separate"
 %keyword THEN "then"
 %keyword TYPE "type"
 %keyword WHEN "when"
+%keyword WITH "with"
 %keyword XOR "xor"
 
 ;; all tokens that consist of characters with punctuation syntax
@@ -137,6 +139,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 ;; Parameters for special recovery rules
 %mckenzie_dotted_name DOT IDENTIFIER
 
+%conflict REDUCE/REDUCE in state association_opt, expression_opt  on token IS
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
@@ -144,6 +147,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt  on token IS
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
+%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt  on token IS
 
 %%
 ;;;; grammar rules
@@ -152,6 +156,10 @@ actual_parameter_part
   : LEFT_PAREN association_list RIGHT_PAREN
   ;
 
+aspect_specification_opt
+  : ;; empty
+  | WITH association_list
+  ;
 assignment_statement
   : name COLON_EQUAL expression_opt SEMICOLON
   ;
@@ -176,10 +184,9 @@ block_statement
   | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
   ;
 
-;; In the full grammar, there are more choices here. We keep this
-;; trivial production in case we want to add those choices back to
-;; test something.
-body : proper_body ;
+body : proper_body | body_stub;
+
+body_stub : subprogram_body_stub;
 
 case_statement
   : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
@@ -474,9 +481,13 @@ statement
   ;
 
 subprogram_body
-  : subprogram_specification IS declarative_part_opt BEGIN
+  : subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN
     handled_sequence_of_statements END name_opt SEMICOLON
     (Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)
+  ;
+
+subprogram_body_stub
+  : subprogram_specification IS SEPARATE SEMICOLON
   ;
 
 subprogram_declaration

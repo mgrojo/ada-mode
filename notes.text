@@ -5,7 +5,7 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-next change in wisi/test/*.good_parse
+next change in wisi/test/*.good_parse_table
     don't output mckenzie if default
 
 Merge cursor, parser_node_access

@@ -24,20 +24,16 @@ spawn parser from 0 (2 active)
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 0: pending LOOKAHEAD_TO_CURRENT COMMA
  0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1: pending LOOKAHEAD_TO_CURRENT COMMA
  1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
- 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: COMMA : reduce 1 tokens to name
@@ -53,20 +49,16 @@ spawn parser from 0 (2 active)
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 0: pending LOOKAHEAD_TO_CURRENT COMMA
  0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1: pending LOOKAHEAD_TO_CURRENT COMMA
  1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
- 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: STRING_LITERAL : reduce 1 tokens to name
@@ -90,11 +82,9 @@ spawn parser from 0 (2 active)
  ... goto state 5
  0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
- 0: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
  0: pending PUSH_CURRENT STRING_LITERAL
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
- 1: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
  1: pending PUSH_CURRENT STRING_LITERAL
  0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
@@ -216,20 +206,16 @@ spawn parser from 0 (2 active)
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 0: pending LOOKAHEAD_TO_CURRENT COMMA
  0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1: pending LOOKAHEAD_TO_CURRENT COMMA
  1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
- 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: COMMA : reduce 1 tokens to name
@@ -245,20 +231,16 @@ spawn parser from 0 (2 active)
  ... goto state 8
  0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 0: pending LOOKAHEAD_TO_CURRENT COMMA
  0: pending PUSH_CURRENT COMMA
  1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1: pending LOOKAHEAD_TO_CURRENT COMMA
  1: pending PUSH_CURRENT COMMA
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
- 1: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  1: pending PUSH_CURRENT IDENTIFIER
  0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
- 0: pending LOOKAHEAD_TO_CURRENT IDENTIFIER
  0: pending PUSH_CURRENT IDENTIFIER
  1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: STRING_LITERAL : reduce 1 tokens to name
@@ -282,11 +264,9 @@ spawn parser from 0 (2 active)
  ... goto state 5
  0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
- 0: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
  0: pending PUSH_CURRENT STRING_LITERAL
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
- 1: pending LOOKAHEAD_TO_CURRENT STRING_LITERAL
  1: pending PUSH_CURRENT STRING_LITERAL
  0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  1 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 

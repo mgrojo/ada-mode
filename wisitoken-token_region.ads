@@ -70,7 +70,6 @@ package WisiToken.Token_Region is
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
       --  FIXME: change to SAL.stack?
 
-      Current_Token   : Token;
       Lookahead_Queue : Token_Queues.Queue_Type;
 
       Invalid_Region : Buffer_Region := Null_Buffer_Region;
@@ -88,17 +87,6 @@ package WisiToken.Token_Region is
    procedure Reset (State : access State_Type);
 
    overriding
-   procedure Lexer_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID;
-      Lexer : not null access WisiToken.Lexer.Instance'Class);
-
-   overriding
-   procedure Virtual_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
    procedure Lexer_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID;
@@ -106,16 +94,6 @@ package WisiToken.Token_Region is
 
    overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Lookahead_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Current_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID);
 

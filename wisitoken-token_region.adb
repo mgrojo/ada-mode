@@ -162,9 +162,6 @@ package body WisiToken.Token_Region is
       State.Trace.Put ("semantic state: lookahead queue: ");
       Put (State.Trace.all, State.Lookahead_Queue);
       State.Trace.New_Line;
-      State.Trace.Put ("semantic state: current_token: ");
-      Put (State.Trace.all, Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
-      State.Trace.New_Line;
       --  FIXME: invalid_regions?
    end Put;
 
@@ -177,44 +174,18 @@ package body WisiToken.Token_Region is
    end Reset;
 
    overriding
-   procedure Lexer_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID;
-      Lexer : not null access WisiToken.Lexer.Instance'Class)
-   is begin
-      State.Current_Token := (ID, Line => Lexer.Line, Col => Lexer.Column, Region => Lexer.Bounds);
-      if Trace_Parse > 3 then
-         State.Trace.Put_Line
-           ("lexer_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
-      end if;
-   end Lexer_To_Current;
-
-   overriding
-   procedure Virtual_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is begin
-      State.Current_Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
-
-      if Trace_Parse > 3 then
-         State.Trace.Put_Line
-           ("virtual_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => True));
-      end if;
-   end Virtual_To_Current;
-
-   overriding
    procedure Lexer_To_Lookahead
      (State : access          State_Type;
       ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'class)
-   is begin
-      State.Current_Token := (ID, Line => Lexer.Line, Col => Lexer.Column, Region => Lexer.Bounds);
-
-      State.Lookahead_Queue.Put (State.Current_Token);
+   is
+      Temp : constant Token := (ID, Line => Lexer.Line, Col => Lexer.Column, Region => Lexer.Bounds);
+   begin
+      State.Lookahead_Queue.Put (Temp);
 
       if Trace_Parse > 3 then
          State.Trace.Put_Line
-           ("lexer_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
+           ("lexer_to_lookahead: " & Image (State.Trace.Descriptor.all, Temp, ID_Only => False));
       end if;
    end Lexer_To_Lookahead;
 
@@ -222,69 +193,35 @@ package body WisiToken.Token_Region is
    procedure Virtual_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID)
-   is begin
-      State.Current_Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
-      State.Lookahead_Queue.Add_To_Head (State.Current_Token);
+   is
+      Temp : constant Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
+   begin
+      State.Lookahead_Queue.Add_To_Head (Temp);
 
       if Trace_Parse > 3 then
          State.Trace.Put_Line
-           ("virtual_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
+           ("virtual_to_lookahead: " & Image (State.Trace.Descriptor.all, Temp, ID_Only => False));
       end if;
    end Virtual_To_Lookahead;
-
-   overriding
-   procedure Lookahead_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is begin
-      State.Current_Token := State.Lookahead_Queue.Get;
-      if ID /= State.Current_Token.ID then
-         raise Programmer_Error with "token_region.lookahead_to_current: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
-           ", Token " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False);
-      end if;
-
-      if Trace_Parse > 3 then
-         State.Trace.Put_Line
-           ("lookahead_to_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
-      end if;
-   end Lookahead_To_Current;
-
-   overriding
-   procedure Current_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is begin
-      if ID /= State.Current_Token.ID then
-         raise Programmer_Error with "token_region.current_to_lookahead: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
-           ", Token " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False);
-      end if;
-
-      State.Lookahead_Queue.Add_To_Head (State.Current_Token);
-
-      if Trace_Parse > 3 then
-         State.Trace.Put_Line
-           ("current_to_lookahead: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
-      end if;
-   end Current_To_Lookahead;
 
    overriding
    procedure Push_Current
      (State : access State_Type;
       ID    : in     Token_ID)
-   is begin
-      if ID /= State.Current_Token.ID then
+   is
+      Temp : constant Token := State.Lookahead_Queue.Get;
+   begin
+      if ID /= Temp.ID then
          raise Programmer_Error with "token_region.push_current: ID " &
            Image (State.Trace.Descriptor.all, ID) &
-           ", Token " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False);
+           ", Token " & Image (State.Trace.Descriptor.all, Temp, ID_Only => False);
       end if;
 
-      State.Stack.Append (State.Current_Token);
+      State.Stack.Append (Temp);
 
       if Trace_Parse > 3 then
          State.Trace.Put_Line
-           ("push_current: " & Image (State.Trace.Descriptor.all, State.Current_Token, ID_Only => False));
+           ("push_current: " & Image (State.Trace.Descriptor.all, Temp, ID_Only => False));
       end if;
    end Push_Current;
 
@@ -297,7 +234,7 @@ package body WisiToken.Token_Region is
       State.Errors.Append
         ((First_Terminal => State.Trace.Descriptor.First_Terminal,
           Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
-          Error_Token    => State.Current_Token,
+          Error_Token    => State.Lookahead_Queue.Peek,
           Expecting      => Expecting,
 
           --  The following are set in Recover

@@ -98,17 +98,6 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Reset (State : access State_Type) is null;
 
-   overriding procedure Lexer_To_Current
-     (State : access State_Type;
-      Token : in     Token_ID;
-      Lexer : not null access WisiToken.Lexer.Instance'Class)
-     is null;
-
-   overriding procedure Virtual_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is null;
-
    overriding procedure Lexer_To_Lookahead
      (State : access State_Type;
       Token : in     Token_ID;
@@ -118,16 +107,6 @@ package WisiToken.Gen_Token_Enum is
    overriding procedure Virtual_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID)
-   is null;
-
-   overriding procedure Lookahead_To_Current
-     (State : access State_Type;
-      Token : in     Token_ID)
-   is null;
-
-   overriding procedure Current_To_Lookahead
-     (State : access State_Type;
-      Token : in     Token_ID)
    is null;
 
    overriding procedure Push_Current

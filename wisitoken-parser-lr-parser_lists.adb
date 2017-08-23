@@ -21,6 +21,16 @@ pragma License (Modified_GPL);
 with Ada.Characters.Handling;
 package body WisiToken.Parser.LR.Parser_Lists is
 
+   procedure Pend (State : in out Parser_State; Item : in Pend_Item; Trace : in out WisiToken.Trace'Class)
+   is begin
+      State.Pend_Items.Put (Item);
+      if Trace_Parse > 2 then
+         Trace.Put (Integer'Image (State.Label) & ": pending ");
+         Parser_Lists.Put (Trace, Item);
+         Trace.New_Line;
+      end if;
+   end Pend;
+
    function New_List
      (First_State_Index  : in State_Index;
       First_Parser_Label : in Integer)
@@ -261,7 +271,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Trace.Put (Pend_Semantic_Verbs'Image (Pend_Item.Verb) & " ");
 
       case Pend_Item.Verb is
-      when Virtual_To_Current .. Discard_Stack =>
+      when Virtual_To_Lookahead .. Discard_Stack =>
          Trace.Put (Image (Trace.Descriptor.all, Pend_Item.ID));
 
       when Reduce_Stack =>
