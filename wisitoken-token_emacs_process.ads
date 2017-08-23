@@ -45,17 +45,6 @@ package WisiToken.Token_Emacs_Process is
    --  state.
 
    overriding
-   procedure Lexer_To_Current
-     (State : access          State_Type;
-      ID    : in              Token_ID;
-      Lexer : not null access WisiToken.Lexer.Instance'Class);
-
-   overriding
-   procedure Virtual_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
    procedure Lexer_To_Lookahead
      (State : access          State_Type;
       ID    : in              Token_ID;
@@ -63,16 +52,6 @@ package WisiToken.Token_Emacs_Process is
 
    overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Lookahead_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Current_To_Lookahead
      (State : access State_Type;
       ID    : in     Token_ID);
 

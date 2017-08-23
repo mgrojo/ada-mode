@@ -25,18 +25,14 @@ package body WisiToken.Token_Emacs_Process is
    --  body subprograms
 
    --  See [1]
-   Lexer_To_Current_Code     : constant String := "1 ";
-   Virtual_To_Current_Code   : constant String := "2 ";
-   Lexer_To_Lookahead_Code   : constant String := "3 ";
-   Virtual_To_Lookahead_Code : constant String := "4 ";
-   Lookahead_To_Current_Code : constant String := "5 ";
-   Current_To_Lookahead_Code : constant String := "6 ";
-   Push_Current_Code         : constant String := "7 ";
-   Error_Code                : constant String := "8 ";
-   Discard_Lookahead_Code    : constant String := "9 ";
-   Discard_Stack_Code        : constant String := "10 ";
-   Reduce_Stack_Code         : constant String := "11 ";
-   --  Recover_Code = 12 not used
+   Lexer_To_Lookahead_Code   : constant String := "1 ";
+   Virtual_To_Lookahead_Code : constant String := "2 ";
+   Push_Current_Code         : constant String := "3 ";
+   Error_Code                : constant String := "4 ";
+   Discard_Lookahead_Code    : constant String := "5 ";
+   Discard_Stack_Code        : constant String := "6 ";
+   Reduce_Stack_Code         : constant String := "7 ";
+   --  Recover_Code = 8 not used
 
    function To_Code (ID : in Token_ID) return String
    is begin
@@ -92,31 +88,6 @@ package body WisiToken.Token_Emacs_Process is
    --  Spec visible subrograms
 
    overriding
-   procedure Lexer_To_Current
-     (State : access State_Type;
-      ID : in     Token_ID;
-      Lexer : not null access WisiToken.Lexer.Instance'Class)
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      if Trace_Parse > 3 then
-         Put (State.Trace.all, ID);
-      end if;
-      Ada.Text_IO.Put_Line ("[" & Lexer_To_Current_Code & To_Code (ID) & "]");
-   end Lexer_To_Current;
-
-   overriding
-   procedure Virtual_To_Current
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is begin
-      if Trace_Parse > 3 then
-         Put (State.Trace.all, ID);
-      end if;
-      Ada.Text_IO.Put_Line ("[" & Virtual_To_Current_Code & To_Code (ID) & "]");
-   end Virtual_To_Current;
-
-   overriding
    procedure Lexer_To_Lookahead
      (State : access State_Type;
       ID : in     Token_ID;
@@ -140,30 +111,6 @@ package body WisiToken.Token_Emacs_Process is
       end if;
       Ada.Text_IO.Put_Line ("[" & Virtual_To_Lookahead_Code & To_Code (ID) & "]");
    end Virtual_To_Lookahead;
-
-   overriding
-   procedure Lookahead_To_Current
-     (State : access State_Type;
-      ID : in     Token_ID)
-   is begin
-      if Trace_Parse > 3 then
-         State.Trace.Put ("Lookahead_To_Current ");
-         Put (State.Trace.all, ID);
-         State.Trace.Put (" ");
-      end if;
-      Ada.Text_IO.Put_Line ("[" & Lookahead_To_Current_Code & To_Code (ID) & "]");
-   end Lookahead_To_Current;
-
-   overriding
-   procedure Current_To_Lookahead
-     (State : access State_Type;
-      ID : in     Token_ID)
-   is begin
-      if Trace_Parse > 3 then
-         Put (State.Trace.all, ID);
-      end if;
-      Ada.Text_IO.Put_Line ("[" & Current_To_Lookahead_Code & To_Code (ID) & "]");
-   end Current_To_Lookahead;
 
    overriding
    procedure Push_Current

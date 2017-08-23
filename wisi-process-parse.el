@@ -51,7 +51,6 @@
   (lexer-queue (queue-create)) ;; stores wisi-tok tokens returned by wisi-forward-token
   (lookahead-queue (queue-create)) ;; stores wisi-tok tokens during error recover algorithms
   (parse-stack (queue-create)) ;; stores wisi-tok tokens mirroring external parse stack
-  (current-token nil)          ;; the current token
   (process nil) 	       ;; running ada_mode_wisi_parse
   (buffer nil) 		       ;; receives output of ada_mode_wisi_parse
   )
@@ -224,29 +223,9 @@ from TOKEN-TABLE."
   (let ((enum (wisi-process-parse--id-to-enum token-table id)))
     (unless (and tok enum
 		 (eq (wisi-tok-token tok) enum))
-      (error "%s: token id mismatch; elisp %s, process %s"
-	     label (and tok (wisi-tok-debug-image tok)) enum))))
-
-(defun wisi-process-parse--Lexer_To_Current (parser sexp)
-  ;; sexp is  [Lexer_To_Current id]
-  ;; see ‘wisi-process-parse--execute’
-  (let ((tok (queue-dequeue (wisi-process--parser-lexer-queue parser))))
-    (wisi-process-parse--check-id "Lexer_To_Current" (wisi-process--parser-token-table parser) tok (aref sexp 1))
-    (setf (wisi-process--parser-current-token parser) tok)
-    (when (> wisi-debug 1)
-      (message "Lexer_To_Current %s" (wisi-tok-debug-image tok)))
-    ))
-
-(defun wisi-process-parse--Virtual_To_Current (parser sexp)
-  ;; sexp is  [Virtual_To_Current id]
-  ;; see ‘wisi-process-parse--execute’
-  (let ((tok (make-wisi-tok
-	      :token (wisi-process-parse--id-to-enum (wisi-process--parser-token-table parser) (aref sexp 1))
-	      :region nil)))
-    (setf (wisi-process--parser-current-token parser) tok)
-    (when (> wisi-debug 1)
-      (message "Virtual_To_Current %s" (wisi-tok-debug-image tok)))
-    ))
+      (error "%s: token id mismatch; elisp %s, process %s%s"
+	     label (and tok (wisi-tok-debug-image tok)) enum
+	     (unless tok (format ", point %d" (point)))))))
 
 (defun wisi-process-parse--Lexer_To_Lookahead (parser sexp)
   ;; sexp is  [Lexer_To_Lookahead id]
@@ -269,30 +248,10 @@ from TOKEN-TABLE."
       (message "Virtual_To_Lookahead %s" (wisi-tok-debug-image tok)))
     ))
 
-(defun wisi-process-parse--Lookahead_To_Current (parser sexp)
-  ;; sexp is  [Lookahead_To_Current id]
-  ;; see ‘wisi-process-parse--execute’
-  (let ((tok (queue-dequeue (wisi-process--parser-lookahead-queue parser))))
-    (wisi-process-parse--check-id "Lookahead_To_Current" (wisi-process--parser-token-table parser) tok (aref sexp 1))
-    (setf (wisi-process--parser-current-token parser) tok)
-    (when (> wisi-debug 1)
-      (message "Lookahead_To_Current %s" (wisi-tok-debug-image tok)))
-    ))
-
-(defun wisi-process-parse--Current_To_Lookahead (parser sexp)
-  ;; sexp is  [Current_To_Lookahead id]
-  ;; see ‘wisi-process-parse--execute’
-  (let ((tok (wisi-process--parser-current-token parser)))
-    (wisi-process-parse--check-id "Current_To_Lookahead" (wisi-process--parser-token-table parser) tok (aref sexp 1))
-    (queue-prepend (wisi-process--parser-lookahead-queue parser) tok)
-    (when (> wisi-debug 1)
-      (message "Current_To_Lookahead %s" (wisi-tok-debug-image tok)))
-    ))
-
 (defun wisi-process-parse--Push_Current (parser sexp)
   ;; sexp is  [Push_Current id]
   ;; see ‘wisi-process-parse--execute’
-  (let ((tok (wisi-process--parser-current-token parser)))
+  (let ((tok (queue-dequeue (wisi-process--parser-lookahead-queue parser))))
     (wisi-process-parse--check-id "Push_Current" (wisi-process--parser-token-table parser) tok (aref sexp 1))
     (wisi-process-parse--push-stack parser tok)
     (when (> wisi-debug 1)
@@ -306,7 +265,7 @@ from TOKEN-TABLE."
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1))))
 
-    (goto-char (car (wisi-tok-region (wisi-process--parser-current-token parser))))
+    (goto-char (car (wisi-tok-region (queue-first (wisi-process--parser-lookahead-queue parser)))))
     (push
      (format "%s:%d:%d: syntax error; expecting one of '%s'"
 	     (file-name-nondirectory (buffer-file-name))
@@ -421,15 +380,6 @@ from TOKEN-TABLE."
   ;;
   ;; Actions:
   ;;
-  ;; [Lexer_To_Current id]
-  ;;    Parser fetched id from the lexer, and it is now the current
-  ;;    token; pop lexer-queue, store in current-token.
-  ;;
-  ;; [Virtual_To_Current id]
-  ;;    Parser retrieved ID from an error recover solution, and it is
-  ;;    now the current token; add null augmented info, store in
-  ;;    current-token.
-  ;;
   ;; [Lexer_To_Lookahead id]
   ;;    Parser read ID from parser lexer, added it to back of
   ;;    lookahead queue. Move the corresponding augmented token from
@@ -441,20 +391,10 @@ from TOKEN-TABLE."
   ;;    it to the front of the lookahead queue.  Add null augmented
   ;;    info, add to front of elisp lookahead queue.
   ;;
-  ;; [Lookahead_To_Current id]
-  ;;    Parser removed id from the parser lookahead; move the
-  ;;    correspond augmented token from the front of the elisp
-  ;;    lookahead queue to the front of the elisp input queue.
-  ;;
-  ;; [Current_To_Lookahead id]
-  ;;    Parser moved id from the current token to the lookahead queue;
-  ;;    move the corresponding augmented token from the from the elisp
-  ;;    current token to the front of the elisp lookahead queue.
-  ;;
   ;; [Push_Current id]
-  ;;    Parser pushed current token id onto the parser stack; push the
-  ;;    elisp augmented current token, on the elisp augmented token
-  ;;    parse stack.
+  ;;    Parser pushed current token id onto the parser stack; remove
+  ;;    the current token from front of the elisp lookahead queue,
+  ;;    push it on the elisp augmented token parse stack.
   ;;
   ;; [Error [expected_id ...]]
   ;;    The token at the front of the parser input queue caused a
@@ -487,35 +427,27 @@ from TOKEN-TABLE."
   ;; Recover not used. FIXME: cache and reuse.
   ;;
   ;; where:
-  ;; Lexer_To_Current 	  =  1
-  ;; Virtual_To_Current   =  2
-  ;; Lexer_To_Lookahead   =  3
-  ;; Virtual_To_Lookahead =  4
-  ;; Lookahead_To_Current =  5
-  ;; Current_To_Lookahead =  6
-  ;; Push_Current 	  =  7
-  ;; Error 		  =  8
-  ;; Discard_Lookahead 	  =  9
-  ;; Discard_Stack 	  = 10
-  ;; Reduce_Stack 	  = 11
-  ;; Recover 		  = 12 ;; not used
+  ;; Lexer_To_Lookahead   =  1
+  ;; Virtual_To_Lookahead =  2
+  ;; Push_Current 	  =  3
+  ;; Error 		  =  4
+  ;; Discard_Lookahead 	  =  5
+  ;; Discard_Stack 	  =  6
+  ;; Reduce_Stack 	  =  7
+  ;; Recover 		  =  8 ;; not used
   ;;
   ;; nonterm_id, *id - token_id’pos; index into token-table (process 1 origin)
   ;; production_index - index into action-table for nonterm (process 0 origin)
 
   (cl-ecase (aref sexp 0)
-    (1  (wisi-process-parse--Lexer_To_Current parser sexp))
-    (2  (wisi-process-parse--Virtual_To_Current parser sexp))
-    (3  (wisi-process-parse--Lexer_To_Lookahead parser sexp))
-    (4  (wisi-process-parse--Virtual_To_Lookahead parser sexp))
-    (5  (wisi-process-parse--Lookahead_To_Current parser sexp))
-    (6  (wisi-process-parse--Current_To_Lookahead parser sexp))
-    (7  (wisi-process-parse--Push_Current parser sexp))
-    (8  (wisi-process-parse--Error parser sexp))
-    (9  (wisi-process-parse--Discard_Lookahead parser sexp))
-    (10 (wisi-process-parse--Discard_Stack parser sexp))
-    (11 (wisi-process-parse--Reduce_Stack parser sexp))
-    ;; 12 recover not used
+    (1  (wisi-process-parse--Lexer_To_Lookahead parser sexp))
+    (2  (wisi-process-parse--Virtual_To_Lookahead parser sexp))
+    (3  (wisi-process-parse--Push_Current parser sexp))
+    (4  (wisi-process-parse--Error parser sexp))
+    (5  (wisi-process-parse--Discard_Lookahead parser sexp))
+    (6  (wisi-process-parse--Discard_Stack parser sexp))
+    (7  (wisi-process-parse--Reduce_Stack parser sexp))
+    ;; 8 recover not used
     ))
 
 ;;;;; main

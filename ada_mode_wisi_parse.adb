@@ -230,12 +230,12 @@ begin
             exit;
 
          else
-            Put_Line ("(error \""bad command: '" & Command_Line & "'\"")");
+            Put_Line ("(error ""bad command: '" & Command_Line & "'"")");
          end if;
       exception
       when E : Protocol_Error =>
          --  don't exit the loop; allow debugging bad elisp
-         Put_Line ("(error \""protocol error "": " & Ada.Exceptions.Exception_Message (E) & "\"")");
+         Put_Line ("(error ""protocol error "": " & Ada.Exceptions.Exception_Message (E) & """)");
       end;
    end loop;
 exception
