@@ -231,6 +231,10 @@ package body WisiToken.Token_Region is
    is
       use all type SAL.Base_Peek_Type;
    begin
+      if Trace_Parse > 3 then
+         State.Trace.Put_Line ("expecting: " & Image (State.Trace.Descriptor.all, Expecting));
+      end if;
+
       State.Errors.Append
         ((First_Terminal => State.Trace.Descriptor.First_Terminal,
           Last_Terminal  => State.Trace.Descriptor.Last_Terminal,

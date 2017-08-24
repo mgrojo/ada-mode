@@ -10,20 +10,20 @@
 ;;
 ;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
 ;;
-;; This file is part of FastToken.
+;; This file is part of WisiToken.
 ;;
-;; FastToken is free software: you can redistribute it and/or modify
+;; WisiToken is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 ;;
-;; FastToken is distributed in the hope that it will be useful,
+;; WisiToken is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with FastToken.  If not, see <http://www.gnu.org/licenses/>.
+;; along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 %{
 
@@ -39,8 +39,10 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword ELSIF "elsif"
 %keyword END "end"
 %keyword EXIT "exit"
+%keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword IF "if"
+%keyword IN "in"
 %keyword IS "is"
 %keyword LEFT_PAREN "("
 %keyword LOOP "loop"
@@ -98,6 +100,9 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 ;; Set costs to take advantage of syntax to get to solution faster.
 
+%mckenzie_enqueue_limit 100
+%mckenzie_check_limit 3
+
 ;; Default insert terminal, delete terminal, delete nonterminal cost.
 %mckenzie_cost_default 5.0 4.0 8.0
 
@@ -117,8 +122,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %mckenzie_cost_insert RIGHT_PAREN 4.0
 %mckenzie_cost_insert THEN 4.0
 %mckenzie_cost_insert WHEN 4.0
-
-%mckenzie_enqueue_limit 100
 
 ;; These can follow 'end', or start new statements
 %mckenzie_cost_insert IF 2.0
@@ -333,6 +336,10 @@ index_constraint
   : LEFT_PAREN discrete_subtype_definition RIGHT_PAREN
   ;
 
+iteration_scheme
+  : FOR IDENTIFIER IN discrete_subtype_definition
+  ;
+
 label
   : IDENTIFIER COLON ;; on blocks, loops
   ;
@@ -344,7 +351,8 @@ library_item
   ;
 
 loop_statement
-  : LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
+  : iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
+  | LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
   ;
 
 multiplying_operator : STAR | SLASH ;

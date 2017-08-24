@@ -173,10 +173,12 @@ package WisiToken.Parser.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert        : Token_Array_Float (First_Terminal .. Last_Terminal);
-      Delete        : Token_Array_Float (First_Terminal .. Last_Nonterminal);
+      Insert : Token_Array_Float (First_Terminal .. Last_Terminal);
+      Delete : Token_Array_Float (First_Terminal .. Last_Nonterminal);
       --  Delete includes nonterms popped off the parse stack
-      Enqueue_Limit : Integer;
+
+      Enqueue_Limit : Integer; -- max configurations to look at
+      Check_Limit   : Integer; -- max tokens to parse ahead when checking a configuration.
 
       --  For special rules
       Dot_ID        : Token_ID;
@@ -191,6 +193,7 @@ package WisiToken.Parser.LR is
       Insert            => (others => 0.0),
       Delete            => (others => 0.0),
       Enqueue_Limit     => Integer'Last,
+      Check_Limit       => 1,
       Dot_ID            => Token_ID'Last,
       Identifier_ID     => Token_ID'Last);
 

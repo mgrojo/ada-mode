@@ -45,6 +45,7 @@ is
    McKenzie_Cost_Delete_Str   : constant String := "%mckenzie_cost_delete";
    McKenzie_Cost_Insert_Str   : constant String := "%mckenzie_cost_insert";
    McKenzie_Enqueue_Limit_Str : constant String := "%mckenzie_enqueue_limit";
+   McKenzie_Check_Limit_Str   : constant String := "%mckenzie_check_limit";
    Mckenzie_Dotted_Name_Str   : constant String := "%mckenzie_dotted_name";
    Output_Language_Str        : constant String := "%output_language";
    Panic_Recover_Str          : constant String := "%panic_recover";
@@ -178,6 +179,9 @@ begin
 
          elsif Match (McKenzie_Enqueue_Limit_Str) then
             McKenzie_Recover.Enqueue_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
+
+         elsif Match (McKenzie_Check_Limit_Str) then
+            McKenzie_Recover.Check_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
 
          elsif Match (Mckenzie_Dotted_Name_Str) then
             declare

@@ -40,6 +40,10 @@ package body Test_McKenzie_Recover is
      (WisiToken.LALR,
       Text_Feeder => String_Feeder'Access);
 
+   Orig_Panic_Recover : Boolean;
+   Orig_Enqueue_Limit : Integer;
+   Orig_Check_Limit   : Integer;
+
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
       Parser.Enable_McKenzie_Recover := True;
@@ -158,18 +162,20 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
          Test.Debug);
       --  Missing "end if" at 67.
 
-      --  Enters recover at ';' 83.
-      --  Inserts 'if'. Continues to 'loop' 90, error expecting block label or ';'.
-      --  Inserts ';'. Continues to ';' 94, expecting statement or 'end loop'.
-      --  Inserts 'end loop'. Continues to 'Water' 100, expecting 'loop'.
-      --  Inserts 'loop'. Continues to EOF (treating 'Water' as loop label), expecting
-      --  statement or 'end <procedure>;' .
+      --  Error 1: ';' 83, expecting IF.
+      --  Inserts 'if'. Continues to
+      --  Error 2: 'loop' 90, expecting block label or ';'. Inserts ';'. Continues to
+      --  Error 3: ';' 94, expecting statement or 'end loop'. Inserts 'end loop'. Continues to
+      --  Error 4: 'Water' 100, expecting 'loop'. Inserts 'loop'. Continues (treating 'Water' as loop label)
+      --  Error 5: EOF, expecting statement or 'end <procedure>;' .
       --  Inserts 'end;', succeeds
       Check ("errors.length", State.Errors.Length, 5);
       declare
@@ -213,7 +219,8 @@ package body Test_McKenzie_Recover is
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID, +RETURN_ID, +IDENTIFIER_ID)),
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
+                 +IDENTIFIER_ID)),
              WisiToken.Null_Buffer_Region,
              Recover => null),
             Check_Recover_Data => null);
@@ -239,7 +246,7 @@ package body Test_McKenzie_Recover is
              To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +ELSE_ID, +ELSIF_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +ELSE_ID, +ELSIF_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID,
                  +RETURN_ID, +WHEN_ID, +IDENTIFIER_ID))
              , WisiToken.Null_Buffer_Region,
              Recover => null),
@@ -259,6 +266,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
       Parser.Table.McKenzie.Enqueue_Limit := 35; -- test that the special rule reduces enqueues.
 
       Parse_Text
@@ -314,8 +322,8 @@ package body Test_McKenzie_Recover is
             WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
             WisiToken.Parser.LR.McKenzie_Recover.Configuration'
               (Stack                  => To_State_Stack
-                 (((245, +SEMICOLON_ID), (244, +identifier_opt_ID), (220, +LOOP_ID), (209, +END_ID),
-                   (178, +sequence_of_statements_opt_ID), (139, +LOOP_ID), (114, +BEGIN_ID),
+                 (((256, +SEMICOLON_ID), (253, +identifier_opt_ID), (227, +LOOP_ID), (214, +END_ID),
+                   (181, +sequence_of_statements_opt_ID), (140, +LOOP_ID), (114, +BEGIN_ID),
                    (84, +declarative_part_opt_ID), (29, +IS_ID), (14, +aspect_specification_opt_ID),
                    (11, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
@@ -356,14 +364,16 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parse_Text ("procedure Debug is begin B; elsif then else end if; end; ", Test.Debug);
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
+      Parse_Text ("procedure Debug_1 is begin B; elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
       --
       --  Matches special rule Terminal_Sequence 'if .. then', succeeds
 
       Check ("1 error.length", State.Errors.Length, 1);
 
-      Parse_Text ("procedure Debug is begin elsif then else end if; end; ", Test.Debug);
+      Parse_Text ("procedure Debug_2 is begin elsif then else end if; end; ", Test.Debug);
       --  Same, no 'B;'
 
       Check ("2 error.length", State.Errors.Length, 1);
@@ -379,6 +389,8 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
       Parse_Text ("procedure Debug is begin loop B; end; ", Test.Debug);
       --  Missing "end loop"
       --
@@ -398,6 +410,8 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
       Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
 
       Parse_Text
@@ -433,7 +447,8 @@ package body Test_McKenzie_Recover is
              Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +IF_ID, +LOOP_ID, +RETURN_ID, +IDENTIFIER_ID)),
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
+                 +IDENTIFIER_ID)),
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
                (Stack                  => To_State_Stack
@@ -463,19 +478,21 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+      Parser.Table.McKenzie.Enqueue_Limit := 100;
 
       begin
          Parse_Text
-           ("procedure Check is end begin end Check; ",
+           ("procedure Check_1 is end begin end Check_1;",
             --        |10       |20       |30       |40       |50       |60       |70       |80
             Test.Debug);
-         --  Syntax error (extra 'end' 20) while two parsers are sorting out a conflict (state 15 'is 17').
+         --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
          --
-         --  parser 1 state 12 subprogram_body (should succeed): delete 'end 20'. Continue to EOF.
+         --  parser 1 state 12 subprogram_body (should succeed): delete 'end' 22.
+         --  Continue to EOF, succeed.
+         --
          --  parser 0 state 25 generic_instantiation (should fail):
-         --  finds: insert 'new', delete 'end begin end' cost 8.0 => ambiguous parse
-         --  better: Pop 'is 17', insert 'is' state 12, delete 'end 20' cost 9.0 => identical stacks, terminate one
+         --  finds: insert 'new', delete 'end begin end' cost 8.0, succeed => ambiguous parse
+         --  better: Pop 'is' 19, insert 'is' state 12, delete 'end 20' cost 9.0 => identical stacks, terminate one
 
          Assert (False, "1 did not get exception");
 
@@ -496,12 +513,14 @@ package body Test_McKenzie_Recover is
       --  Symmetric case where generic_instantiation is desired
       begin
          Parse_Text
-           ("procedure Check is end new Check; ",
+           ("procedure Check_2 is end new Check_2;",
             --        |10       |20       |30       |40       |50       |60       |70       |80
             Test.Debug);
-         --  Syntax error (extra 'end' 20) while two parsers are sorting out a conflict (state 15 'is 17').
+         --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
          --
-         --  parser 1 state 12 subprogram_body (should fail): insert 'begin'. Continue to error at 'new 23', terminate.
+         --  parser 1 state 12 subprogram_body (should fail): insert 'begin'.
+         --  Continue to error at 'new 23', terminate.
+         --
          --  parser 0 state 25 generic_instantiation (should succeed):
          --  finds: delete 'end'. Continue to eof, accept
 
@@ -548,6 +567,8 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
       Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
 
       begin
@@ -601,6 +622,43 @@ package body Test_McKenzie_Recover is
 
    end Missing_Return;
 
+   procedure Loop_Bounds (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
+
+      begin
+         Parse_Text
+           ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  'To' should be '..'
+         --
+         --  error 1 at 'To' 35; expecting '..'.
+         --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
+         --  continues to eof, succeeds.
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+
+      when E : WisiToken.Parse_Error =>
+         declare
+            use Ada.Exceptions;
+            use Ada.Strings.Fixed;
+            Msg : constant String := Exception_Message (E);
+         begin
+            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
+         end;
+      end;
+
+   end Loop_Bounds;
+
    ----------
    --  Public subprograms
 
@@ -616,7 +674,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Conflict_1'Access, "debug");
+         Register_Routine (T, Extra_Begin'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
@@ -631,9 +689,37 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Conflict_2'Access, "Conflict_2");
          Register_Routine (T, Started_Type'Access, "Started_Type");
          Register_Routine (T, Missing_Return'Access, "Missing_Return");
+         Register_Routine (T, Loop_Bounds'Access, "Loop_Bounds");
       end if;
    end Register_Tests;
 
+   overriding procedure Set_Up (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Run before each test
+      Parser.Table.McKenzie.Enqueue_Limit := Orig_Enqueue_Limit;
+      Parser.Table.McKenzie.Check_Limit   := Orig_Check_Limit;
+   end Set_Up;
+
+   overriding procedure Tear_Down_Case (T : in out Test_Case)
+   is
+      pragma Unreferenced (T);
+   begin
+      --  Run after all tests registered in Register_Tests
+      Parser.Enable_Panic_Recover := Orig_Panic_Recover;
+
+      Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
+      Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
+   end Tear_Down_Case;
+
 begin
-   Parser.Table.Panic_Recover := (others => False);
+   --  Doing this here instead of in Set_Up_Case makes this
+   --  independent of all other tests in test_all_harness.
+   Orig_Panic_Recover          := Parser.Enable_Panic_Recover;
+   Parser.Enable_Panic_Recover := False;
+
+   Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
+   Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
+
 end Test_McKenzie_Recover;

@@ -204,12 +204,11 @@ package body WisiToken.Parser.LR.Parser is
       end loop;
 
       if Shift_Local_Count = 0 and Parser.Lookahead.Length > 0 then
-         --  All parsers are at the same lookahead. Parse will fetch current
-         --  token from Lookahead (1).
+         --  All parsers are at the same lookahead. Parse will fetch
+         --  current token from Lookahead (1). Semantic state has
+         --  already handled the lookaheads we are dropping here.
          for I in 1 .. Max_Shared_Lookahead_Index - 1 loop
             Parser.Lookahead.Drop;
-            --  parsers semantic_state operations were executed or
-            --  pended when each lookahead was processed.
          end loop;
 
          for Parser_State of Parsers loop
@@ -257,7 +256,7 @@ package body WisiToken.Parser.LR.Parser is
       Item         : Parser_Lists.Pend_Item;
    begin
       if Trace_Parse > 1 then
-         Semantic_State.Trace.Put_Line (Int_Image (Parser_State.Label) & ": execute pending");
+         Semantic_State.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": execute pending");
       end if;
       if Trace_Parse > 3 then
          WisiToken.Token.Put (Semantic_State);
@@ -384,47 +383,28 @@ package body WisiToken.Parser.LR.Parser is
                use Parser_Lists;
                Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
                Keep_Going : Boolean := False;
-
-               Lookahead_Count : SAL.Base_Peek_Type := Parser.Lookahead.Length;
             begin
                for Parser_State of Parsers loop
-                  Lookahead_Count := Lookahead_Count + Parser_State.Local_Lookahead.Length;
                   LR.Parser.Expecting (Parser.Table, Parser_State.Stack.Peek.State, Expecting);
                end loop;
 
                Parser.Semantic_State.Error (Expecting);
 
-               if Lookahead_Count > 0 then
-                  --  We are still recovering from previous error; if we
-                  --  attempt recover, we'll lose track of the
-                  --  lookaheads. That means the previous recovery was
-                  --  not optimal, but it's too late to do anything about
-                  --  it now.
-                  --
-                  --  FIXME: recover should verify that parsing can
-                  --  continue thru the non-shared lookaheads, before
-                  --  accepting a solution. Or we could use a
-                  --  lookahead stack.
-                  Keep_Going := False;
-                  Trace.Put_Line ("recover not attempted; previous recover lookahead still active");
+               --  Recover algorithms expect current token on
+               --  Parser.Lookahead, will update Parser.Lookahead
+               --  or Parsers (*).Local_Lookahead with new input
+               --  tokens, and set Parsers (*).Current_Token and
+               --  Parsers (*).Verb.
+               Parser.Lookahead.Add_To_Head (Shared_Current_Token);
 
-               else
-                  --  Recover algorithms expect current token on
-                  --  Parser.Lookahead, will update Parser.Lookahead
-                  --  or Parsers (*).Local_Lookahead with new input
-                  --  tokens, and set Parsers (*).Current_Token and
-                  --  Parsers (*).Verb.
-                  Parser.Lookahead.Add_To_Head (Shared_Current_Token);
+               if Parser.Enable_McKenzie_Recover then
+                  Keep_Going := McKenzie_Recover.Recover (Parser, Parsers);
+               end if;
 
-                  if Parser.Enable_McKenzie_Recover then
-                     Keep_Going := McKenzie_Recover.Recover (Parser, Parsers);
-                  end if;
-
-                  if ((not Keep_Going) and Parser.Enable_Panic_Recover and Parsers.Count = 1) and then
-                    Any (Parser.Table.Panic_Recover)
-                  then
-                     Keep_Going := Panic_Mode.Recover (Parser, Parsers);
-                  end if;
+               if ((not Keep_Going) and Parser.Enable_Panic_Recover and Parsers.Count = 1) and then
+                 Any (Parser.Table.Panic_Recover)
+               then
+                  Keep_Going := Panic_Mode.Recover (Parser, Parsers);
                end if;
 
                if Trace_Parse > 0 then
@@ -566,9 +546,8 @@ package body WisiToken.Parser.LR.Parser is
                      end if;
 
                      if State.Local_Lookahead.Length > 0 then
-                        --  These were inserted by special rules at start of
-                        --  recover; neither Input_Token nor Input_Lookahead
-                        --  was called.
+                        --  These were inserted by special rules at
+                        --  start of error recover.
 
                         State.Current_Token := State.Local_Lookahead.Get;
 
@@ -579,8 +558,8 @@ package body WisiToken.Parser.LR.Parser is
                         end if;
 
                      elsif Parser.Lookahead.Length >= State.Shared_Lookahead_Index then
-                        --  Input_Lookahead was called for these when read from
-                        --  Lexer during error recover.
+                        --  These where read from Lexer during error
+                        --  recover.
 
                         State.Current_Token          := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
                         State.Shared_Lookahead_Index := State.Shared_Lookahead_Index + 1;

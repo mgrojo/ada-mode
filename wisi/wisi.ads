@@ -99,6 +99,7 @@ package Wisi is
       Delete                     : String_Pair_Lists.List;
       Insert                     : String_Pair_Lists.List;
       Enqueue_Limit              : Integer := Integer'Last;
+      Check_Limit                : Integer := Integer'Last;
 
       --  For special rules
       Dot_ID        : Standard.Ada.Strings.Unbounded.Unbounded_String;

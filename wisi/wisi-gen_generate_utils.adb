@@ -562,6 +562,7 @@ package body Wisi.Gen_Generate_Utils is
          Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
       end loop;
       Result.Enqueue_Limit := Item.Enqueue_Limit;
+      Result.Check_Limit   := Item.Check_Limit;
 
       --  Dotted_Name special rule
       if Length (Item.Dot_ID) = 0 then

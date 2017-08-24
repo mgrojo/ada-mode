@@ -5,6 +5,47 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
+grep for FastToken, OpenToken
+
+want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle it
+    so can't use run_ada_parser to debug indent/parse issues
+    use Quex lexer (recommended by AdaCore/langkit)
+        https://sourceforge.net/projects/quex/
+        windows installer in d:/Archive/Emacs
+        installed to d:/Apps/quex-0.67.5
+        example lexer : d:/Apps/quex/quex-0.67.5/demo/C/000/Makefile
+            edited Makefile so it runs
+            needs iconv
+            d:/msys64/mingw32/include/iconv.h
+            ./mingw32/lib/libiconv.a
+            use mingw32 compiler
+                use mingw32-make
+                creates lexer.exe
+                lexer.exe example.txt works
+
+        look in libadalang for Ada bindings to quex output
+
+        hand transform build/case_expression.l => build/case_expression.qx
+        d:/Apps/quex/quex-0.67.5/quex-exe.py -i case_expression.qx -o case_expression
+            C main in lexer-wchar.c
+            generated case_expression.cpp -token_ids -token -configuration case_expression
+            includes dedent, indent; option to turn that off?
+            needs libiconv
+
+    emacs lexer can't handle Π π either?
+
+use iterator on action_for, not loop on all terminals.
+
+debug_kim_choe.adb
+    use sal.gen_graph
+        write test_graphs in sal, with example from CLRS 22.2
+        c:/Projects/org.stephe_leake.sal/build/Makefile
+
+new test cases:
+    'if **'
+
+Emacs_ada does not need descriptor.image?
+
 next change in wisi/test/*.good_parse_table
     don't output mckenzie if default
 
@@ -26,7 +67,6 @@ rename mckenzie to dpa_explore?
 better syntax error handling
     new algorithm 0:
         Grune 326 Kim, Choe 2001
-        branch wisitoken.stephe_1
         Definition 3.5 Lookback is just reduce
         faster because it searches grammar graph including nonterminals, not dpa with only terminals
         just implement the algorithms, see if that makes it clearer.
@@ -42,7 +82,7 @@ better syntax error handling
 
         Annotate grammar to eliminate cycles for least-cost search?
 
-        Precompute list of forced paths to shift terminal - shortens path search
+        Precompute list of forced paths to shift terminal - shortens path search?
             terminal_sequences_2 below
 
     new algorithm 1:
@@ -81,9 +121,6 @@ better syntax error handling
             deleted 'if then'
             fixed with hardcoded 'if then else endif' sequence; need general solution
                 doing kim, choe 2001 dpa graph search
-
-        new test cases:
-            'if **'
 
     search dpa backwards from elsif; insert 'if then'
         same result as Grune 326 graph search; do that?
