@@ -19,37 +19,6 @@ Tokens:
  18 => selector_name
 
 LALR Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- LEFT_PAREN     => 0.00000E+00,
- RIGHT_PAREN    => 0.00000E+00,
- COMMA          => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- STRING_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
-(Delete =>
- LEFT_PAREN     => 0.00000E+00,
- RIGHT_PAREN    => 0.00000E+00,
- COMMA          => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- STRING_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00,
- wisitoken_accept => 0.00000E+00,
- association      => 0.00000E+00,
- association_list => 0.00000E+00,
- compilation      => 0.00000E+00,
- compilation_unit => 0.00000E+00,
- identifier_list  => 0.00000E+00,
- name             => 0.00000E+00,
- name_list        => 0.00000E+00,
- selector_name    => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( association =>
   (RIGHT_PAREN |
@@ -358,37 +327,6 @@ State 25:
 
 
 LR1 Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- LEFT_PAREN     => 0.00000E+00,
- RIGHT_PAREN    => 0.00000E+00,
- COMMA          => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- STRING_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
-(Delete =>
- LEFT_PAREN     => 0.00000E+00,
- RIGHT_PAREN    => 0.00000E+00,
- COMMA          => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- STRING_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00,
- wisitoken_accept => 0.00000E+00,
- association      => 0.00000E+00,
- association_list => 0.00000E+00,
- compilation      => 0.00000E+00,
- compilation_unit => 0.00000E+00,
- identifier_list  => 0.00000E+00,
- name             => 0.00000E+00,
- name_list        => 0.00000E+00,
- selector_name    => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( association =>
   (RIGHT_PAREN |

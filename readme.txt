@@ -1,17 +1,15 @@
-OpenToken Package Readme
+WisiToken Package Readme
 
-See Docs/opentoken.html for more info, including installation instructions.
+See Docs/wisitoken.html for more info, including installation instructions.
 
-OpenToken is useable in pure source form. There is a GNAT project file
-in Build/windows_release/opentoken.gpr.
+WisiToken is useable in pure source form. There is a GNAT project file
+in Build/windows_release/wisitoken.gpr.
 
-OpenToken is distributed under GPL version 3, with the GNAT
+WisiToken is distributed under GPL version 3, with the GNAT
 modification that allows use in non-GPL projects.
 
-See the Examples and Test directories for examples of OpenToken applications.
+See the Examples and Test directories for examples of WisiToken applications.
 
-OpenToken is currently maintained by Stephen Leake; mailto:stephen_leake@stephe-leake.org.
+WisiToken is currently maintained by Stephen Leake; mailto:stephen_leake@stephe-leake.org.
 
-Submit bugs via the Debian Bug system http://bugs.debian.org/Bugs/, against the opentoken source package.
-
-Discussion about OpenToken is on the newsgroup comp.lang.ada.
+Discussion about WisiToken is on the newsgroup comp.lang.ada.

@@ -1,4 +1,4 @@
-# install OpenToken in GNAT tree
+# install WisiToken in GNAT tree
 # (ediff "../windows_release/Makefile.install" "../linux_release/Makefile.install")
 
 # Where opentoken library should be installed

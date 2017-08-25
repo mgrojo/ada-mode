@@ -4,7 +4,7 @@
 --
 --  Copyright (C) 2012 - 2014, 2017 Stephen Leake.  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -28,7 +28,6 @@ procedure Wisi.Declarations
    Keywords         :    out String_Pair_Lists.List;
    Tokens           :    out Token_Lists.List;
    Conflicts        :    out Conflict_Lists.List;
-   Panic_Recover    :    out String_Lists.List;
    McKenzie_Recover : in out McKenzie_Recover_Param_Type)
 is
    --  McKenzie_Recover is 'in out' to preserve defaults.
@@ -48,8 +47,8 @@ is
    McKenzie_Check_Limit_Str   : constant String := "%mckenzie_check_limit";
    Mckenzie_Dotted_Name_Str   : constant String := "%mckenzie_dotted_name";
    Output_Language_Str        : constant String := "%output_language";
-   Panic_Recover_Str          : constant String := "%panic_recover";
    Parser_Algorithm_Str       : constant String := "%parser_algorithm";
+   Recover_Pattern_1_Str      : constant String := "%recover_pattern_1";
    Start_Str                  : constant String := "%start";
    Token_Str                  : constant String := "%token";
 
@@ -211,11 +210,19 @@ begin
                end;
             end if;
 
-         elsif Match (Panic_Recover_Str) then
+         elsif Match (Recover_Pattern_1_Str) then
             declare
-               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Stack_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Stack_Last      : constant Integer := -1 + Index_Blank (Line, Stack_First);
+               Error_First     : constant Integer := Index_Non_Blank (Line, Stack_Last + 1);
+               Error_Last      : constant Integer := -1 + Index_Blank (Line, Error_First);
+               Expecting_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
             begin
-               Panic_Recover.Append (Line (Value_First .. Line'Last));
+               McKenzie_Recover.Patterns.Append
+                 (Recover_Pattern_1'
+                    (Stack     => +Line (Stack_First .. Stack_Last),
+                     Error     => +Line (Error_First .. Error_Last),
+                     Expecting => +Line (Expecting_First .. Line'Last)));
             end;
 
          elsif Match (Start_Str) then

@@ -1,6 +1,6 @@
 -- (ediff "../debug/fasttoken_lib.gpr" "fasttoken_lib.gpr")
 with "../common";
-project FastToken_Lib is
+project WisiToken_Lib is
 
    --  Version must change for each user-visible change; it does not
    --  have to match the source package version.
@@ -58,4 +58,4 @@ project FastToken_Lib is
       end case;
    end Builder;
 
-end FastToken_Lib;
+end WisiToken_Lib;

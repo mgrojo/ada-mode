@@ -1,9 +1,9 @@
 --  Abstract :
 --
---  Partial test of FastToken.Parser.LR1_Items.Closure and
+--  Partial test of WisiToken.Parser.LR1_Items.Closure and
 --  LR1_Generator.LR1_Goto_Transistions handling of empty productions,
 --  using the grammar in fig 9.30 of [Grune]. See
---  empty_productions_1.ads for list of similar tests..
+--  empty_productions_1.ads for list of similar tests.
 --
 --  References:
 --

@@ -29,7 +29,7 @@ with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Test_Accept_State is
 
-   --  A simple grammar that OpenToken used to get wrong.
+   --  A simple grammar that WisiToken used to get wrong.
    --
    --  set foo = integer;
 

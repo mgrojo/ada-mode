@@ -5,7 +5,34 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-grep for FastToken, OpenToken
+new test cases:
+     package Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
+        missing 'new'
+
+   procedure Apply_Pattern
+     (Pattern : in Recover_Pattern_1;
+      Parser : in LR.Instance'Class;
+      Parser_State : in out Parser_Lists.Parser_State;
+      Error_ID in Token_ID;
+      Config out configuration)
+        missing two ':'; invoked align in parens
+            => ada-wisi-scan-paramlist: Wrong type argument: integer-or-marker-p, nil
+
+              if and
+        Expecting (Pattern.Expecting) and
+        Count (Expecting) = 1
+      then
+            missing 'expr'; invoked forward-sexp from 'if'
+                not expr_opt to avoid conflicts?
+                need insert nonterm!
+                or delete 'and' :)
+
+         if Item (I) then
+            Result := Result + 1;
+         end if;
+            start entering from begining, parse after each word
+
+    'if **'
 
 want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle it
     so can't use run_ada_parser to debug indent/parse issues
@@ -34,15 +61,21 @@ want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle
 
     emacs lexer can't handle Π π either?
 
+if hit enqueue_limit, use config that has highest check_token_count
+    save in config
+
 use iterator on action_for, not loop on all terminals.
+
+add iterator on goto_for
+    poor man's kim-choe graph search
 
 debug_kim_choe.adb
     use sal.gen_graph
         write test_graphs in sal, with example from CLRS 22.2
         c:/Projects/org.stephe_leake.sal/build/Makefile
+        add nonterm weights = shortest terminal count (+ 1 for empty?)
 
-new test cases:
-    'if **'
+    generate graph from action_for, goto_for
 
 Emacs_ada does not need descriptor.image?
 

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test computing Accept_State on grammars that OpenToken used to get
+--  Test computing Accept_State on grammars that WisiToken used to get
 --  wrong.
 --
 --  Copyright (C) 2010, 2012, 2017 Stephen Leake.  All Rights Reserved.

@@ -243,7 +243,6 @@ package body Dragon_4_43_LR1_Test is
          First_Nonterminal => +Accept_ID,
          Last_Nonterminal  => +Upper_C_ID);
    begin
-      Expected.Panic_Recover := (others => False);
       Expected.Follow := To_Nonterminal_Array_Terminal_Set
         ((Accept_ID  => (others => False),
           Upper_S_ID => (EOF_ID => True, others => False),

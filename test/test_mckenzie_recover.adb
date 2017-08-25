@@ -40,7 +40,6 @@ package body Test_McKenzie_Recover is
      (WisiToken.LALR,
       Text_Feeder => String_Feeder'Access);
 
-   Orig_Panic_Recover : Boolean;
    Orig_Enqueue_Limit : Integer;
    Orig_Check_Limit   : Integer;
 
@@ -162,28 +161,22 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
       Parse_Text
         ("procedure Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; end Water; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
          Test.Debug);
       --  Missing "end if" at 67.
+      --
+      --  This used to insert lots of stuff finishing all the blocks;
+      --  now it uses recover_pattern_1 for 'if'.
 
-      --  Error 1: ';' 83, expecting IF.
-      --  Inserts 'if'. Continues to
-      --  Error 2: 'loop' 90, expecting block label or ';'. Inserts ';'. Continues to
-      --  Error 3: ';' 94, expecting statement or 'end loop'. Inserts 'end loop'. Continues to
-      --  Error 4: 'Water' 100, expecting 'loop'. Inserts 'loop'. Continues (treating 'Water' as loop label)
-      --  Error 5: EOF, expecting statement or 'end <procedure>;' .
-      --  Inserts 'end;', succeeds
-      Check ("errors.length", State.Errors.Length, 5);
+      Check ("errors.length", State.Errors.Length, 1);
       declare
          use WisiToken.AUnit;
          use WisiToken.Token_Region;
          use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region.Error_Data_Lists;
-         Cursor : Error_Data_Lists.Cursor := State.Errors.First;
+         Cursor : constant Error_Data_Lists.Cursor := State.Errors.First;
       begin
          Check
            ("1", Element (Cursor),
@@ -198,148 +191,12 @@ package body Test_McKenzie_Recover is
              Recover           => null),
             Check_Recover_Data => null);
 
-         Next (Cursor);
-         Check
-           ("2", Element (Cursor),
-            (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+LOOP_ID, 0, 0, (90, 93)),
-             To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (+SEMICOLON_ID, +IDENTIFIER_ID)),
-             WisiToken.Null_Buffer_Region,
-             Recover => null),
-            Check_Recover_Data => null);
-
-         Next (Cursor);
-         Check
-           ("3", Element (Cursor),
-            (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+SEMICOLON_ID, 0, 0, (94, 94)),
-             To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
-                 +IDENTIFIER_ID)),
-             WisiToken.Null_Buffer_Region,
-             Recover => null),
-            Check_Recover_Data => null);
-
-         Next (Cursor);
-         Check
-           ("4", Element (Cursor),
-            (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+IDENTIFIER_ID, 0, 0, (100, 104)),
-             To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (1 => +LOOP_ID)),
-             WisiToken.Null_Buffer_Region,
-             Recover => null),
-            Check_Recover_Data => null);
-
-         Next (Cursor);
-         Check
-           ("5", Element (Cursor),
-            (Descriptor.First_Terminal, Descriptor.Last_Terminal,
-             (+Wisi_EOI_ID, 0, 0, (1, 1)),
-             To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +ELSE_ID, +ELSIF_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID,
-                 +RETURN_ID, +WHEN_ID, +IDENTIFIER_ID))
-             , WisiToken.Null_Buffer_Region,
-             Recover => null),
-            Check_Recover_Data => null);
-
          Check ("action_count", Action_Count (+subprogram_body_ID), 1);
       end;
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "1.exception: got Syntax_Error");
    end Error_3;
-
-   procedure Dotted_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      Test : Test_Case renames Test_Case (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-   begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-      Parser.Table.McKenzie.Enqueue_Limit := 35; -- test that the special rule reduces enqueues.
-
-      Parse_Text
-        ("procedure Parent.Water is begin loop begin D; if A then if B then end if; exit when C; end; end loop; " &
-           --      |10       |20       |30       |40       |50       |60       |70       |80       |90       |100
-           "end Parent.Water; ",
-         --  |104  |110      |120
-         Test.Debug);
-      --  Missing "end if" at 67. Same as Error_3, but procedure name
-      --  is dotted, so it can't be a loop label.
-      --
-      --  Tests special rule for dotted names.
-
-      --  error 1: at ';' 91, expecting 'if'.
-      --  Inserts 'if'. Continues to error 2: at 'loop' 97, expecting block label or ';'.
-      --  Inserts ';'. Continues to error 3: at ';' 101, expecting statement or 'end loop'.
-      --  Inserts 'end loop'. Continues to error 4: at 'Parent' 107, expecting 'loop'.
-      --  Inserts 'loop'. Continues to error 5: at '.' 113, expecting ';'
-      --  Matches Dotted_Name special rule; inserts IDENTIFIER
-      --  Inserts ';'. Continues to error 6: at EOF, expecting statement or 'end;'
-      --  Inserts 'end ;', succeeds.
-      --
-      --  With the full Ada language, finding '; IDENTIFIER' for error 5 takes too
-      --  long, so we introduce the Dotted_Name special rule to shortcut it; that
-      --  cuts the enqueued configs to 4.
-
-      Check ("errors.length", State.Errors.Length, 6);
-      Check ("action_count", Action_Count (+subprogram_body_ID), 1);
-
-      declare
-         use WisiToken.Parser.LR.AUnit;
-         use WisiToken.Parser.LR.McKenzie_Recover.AUnit;
-         use WisiToken.Token_Region.AUnit;
-         use WisiToken.Token_Region.Error_Data_Lists;
-         use WisiToken.Token_Region;
-         use WisiToken.AUnit;
-         Cursor : Error_Data_Lists.Cursor := State.Errors.First;
-      begin
-         for I in 2 .. 5 loop
-            Next (Cursor);
-         end loop;
-
-         if WisiToken.Trace_Parse > 0 then
-            Ada.Text_IO.Put ("Config: ");
-            WisiToken.Parser.LR.McKenzie_Recover.Put
-              (State.Trace.Descriptor.all,
-               WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all));
-            Ada.Text_IO.New_Line;
-         end if;
-
-         Check
-           ("errors.5.recover (Dotted_Name)",
-            WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all),
-            WisiToken.Parser.LR.McKenzie_Recover.Configuration'
-              (Stack                  => To_State_Stack
-                 (((256, +SEMICOLON_ID), (253, +identifier_opt_ID), (227, +LOOP_ID), (214, +END_ID),
-                   (181, +sequence_of_statements_opt_ID), (140, +LOOP_ID), (114, +BEGIN_ID),
-                   (84, +declarative_part_opt_ID), (29, +IS_ID), (14, +aspect_specification_opt_ID),
-                   (11, +subprogram_specification_ID), (0, WisiToken.Invalid_Token_ID))),
-               Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
-               Shared_Lookahead_Index => 1,
-               Local_Lookahead        => To_Token_Array ((1 => +IDENTIFIER_ID)),
-               Local_Lookahead_Index  => 1,
-               Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
-               Popped                 => WisiToken.Empty_Token_Array,
-               Inserted               => To_Token_Array ((1 => +SEMICOLON_ID)),
-               Deleted                => WisiToken.Empty_Token_Array,
-               Cost                   => 1.0));
-      end;
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1.exception: got Syntax_Error");
-   end Dotted_Name;
 
    procedure Error_4 (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -391,16 +248,16 @@ package body Test_McKenzie_Recover is
    begin
       Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
 
-      Parse_Text ("procedure Debug is begin loop B; end; ", Test.Debug);
-      --  Missing "end loop"
+      Parse_Text ("procedure Debug is begin A; ", Test.Debug);
+      --  Missing "end;"
       --
       --  Inserts 'loop', continues to EOF, inserts 'end;', succeeds
-      Check ("errors.length", State.Errors.Length, 2);
+      --  Test hitting EOF and Accept_It in error recovery
+      Check ("errors.length", State.Errors.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
       Assert (True, "1.exception: got Syntax_Error");
-      Check ("error.length", State.Errors.Length, 2);
    end Check_Accept;
 
    procedure Extra_Begin (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -646,18 +503,83 @@ package body Test_McKenzie_Recover is
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
-
-      when E : WisiToken.Parse_Error =>
-         declare
-            use Ada.Exceptions;
-            use Ada.Strings.Fixed;
-            Msg : constant String := Exception_Message (E);
-         begin
-            Assert (0 < Index (Source => Msg, Pattern => "Ambiguous parse"), "1 unexpected exception");
-         end;
       end;
 
    end Loop_Bounds;
+
+   procedure Pattern_1 (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parser.Table.McKenzie.Enqueue_Limit := 2; -- show that matching the pattern reduces enqueues
+
+      --  Test 'recover_pattern_1' for CASE
+      begin
+         Parse_Text
+           ("procedure Test_CASE_1 is begin case I is when 1 => A; end;",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Missing 'end case;'
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+      end;
+
+      --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
+      --  FIXME: recover finds "insert 'case; end'"; need another pattern
+      --  FIXME: delete or document test of Dotted_Name special rule
+      Parser.Table.McKenzie.Enqueue_Limit := 31; -- no pattern matching here
+      begin
+         Parse_Text
+           ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Missing 'end case;'
+         --
+         --  error 1 at ';' 56; expecting 'case'.
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+      end;
+
+      Parser.Table.McKenzie.Enqueue_Limit := 2; -- show that matching the pattern reduces enqueues
+
+      --  Test 'recover_pattern_1' for IF
+      begin
+         Parse_Text
+           ("procedure Test_IF is begin if A then B; end;",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Missing 'end if;'
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+      end;
+
+      --  Test 'recover_pattern_1' for LOOP
+      begin
+         Parse_Text
+           ("procedure Test_LOOP is begin for I in A loop B; end;",
+            --        |10       |20       |30       |40       |50       |60       |70       |80
+            Test.Debug);
+         --  Missing 'end loop;'
+
+         Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+      end;
+
+   end Pattern_1;
 
    ----------
    --  Public subprograms
@@ -674,13 +596,12 @@ package body Test_McKenzie_Recover is
       use AUnit.Test_Cases.Registration;
    begin
       if T.Debug > 1 then
-         Register_Routine (T, Extra_Begin'Access, "debug");
+         Register_Routine (T, No_Error'Access, "debug");
       else
          Register_Routine (T, No_Error'Access, "No_Error");
          Register_Routine (T, Error_1'Access, "Error_1");
          Register_Routine (T, Error_2'Access, "Error_2");
          Register_Routine (T, Error_3'Access, "Error_3");
-         Register_Routine (T, Dotted_Name'Access, "Dotted_Name");
          Register_Routine (T, Error_4'Access, "Error_4");
          Register_Routine (T, Error_5'Access, "Error_5");
          Register_Routine (T, Check_Accept'Access, "Check_Accept");
@@ -690,6 +611,7 @@ package body Test_McKenzie_Recover is
          Register_Routine (T, Started_Type'Access, "Started_Type");
          Register_Routine (T, Missing_Return'Access, "Missing_Return");
          Register_Routine (T, Loop_Bounds'Access, "Loop_Bounds");
+         Register_Routine (T, Pattern_1'Access, "Pattern_1");
       end if;
    end Register_Tests;
 
@@ -707,8 +629,6 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run after all tests registered in Register_Tests
-      Parser.Enable_Panic_Recover := Orig_Panic_Recover;
-
       Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
       Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
    end Tear_Down_Case;
@@ -716,9 +636,6 @@ package body Test_McKenzie_Recover is
 begin
    --  Doing this here instead of in Set_Up_Case makes this
    --  independent of all other tests in test_all_harness.
-   Orig_Panic_Recover          := Parser.Enable_Panic_Recover;
-   Parser.Enable_Panic_Recover := False;
-
    Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
    Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
 

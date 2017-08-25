@@ -10,6 +10,8 @@
 --  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
 --  Sethi, and Ullman (aka: "The [Red] Dragon Book").
 --
+--  [info] Docs/wisi-user_guide.texinfo
+--
 --  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
@@ -36,6 +38,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Stacks;
@@ -81,6 +84,9 @@ package WisiToken.Parser.LR is
    subtype Reduce_Action_Rec is Parse_Action_Rec (Reduce);
 
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
+
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String;
+   --  Ada aggregate syntax, leaving out tokens in reduce.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 
@@ -167,6 +173,26 @@ package WisiToken.Parser.LR is
 
    type Parse_State_Array is array (State_Index range <>) of Parse_State;
 
+   type Pattern is abstract tagged null record;
+   --  We don't declare a dispatching operation to implement Pattern
+   --  here, because the required types are not visible. See
+   --  wisitoken-parser-lr-mckenzie_recover.adb
+
+   function Image (Item : in Pattern) return String is abstract;
+   --  Return image of Item, using Token_ID'Image for any Token_IDs,
+   --  in Ada aggregate syntax.
+
+   package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
+
+   type Recover_Pattern_1 is new Pattern with record
+      --  See [info] node Error Recovery item recover_pattern_1
+      Stack     : Token_ID;
+      Error     : Token_ID;
+      Expecting : Token_ID;
+   end record;
+
+   overriding function Image (Item : in Recover_Pattern_1) return String;
+
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;
       Last_Terminal     : Token_ID;
@@ -181,6 +207,7 @@ package WisiToken.Parser.LR is
       Check_Limit   : Integer; -- max tokens to parse ahead when checking a configuration.
 
       --  For special rules
+      Patterns      : LR.Patterns.List;
       Dot_ID        : Token_ID;
       Identifier_ID : Token_ID;
    end record;
@@ -194,6 +221,7 @@ package WisiToken.Parser.LR is
       Delete            => (others => 0.0),
       Enqueue_Limit     => Integer'Last,
       Check_Limit       => 1,
+      Patterns          => LR.Patterns.Empty_List,
       Dot_ID            => Token_ID'Last,
       Identifier_ID     => Token_ID'Last);
 
@@ -209,13 +237,10 @@ package WisiToken.Parser.LR is
       Last_Nonterminal  : Token_ID)
      is
    record
-      States        : Parse_State_Array (State_First .. State_Last);
-      Panic_Recover : Token_ID_Set (First_Nonterminal .. Last_Nonterminal);
-      McKenzie      : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Follow        : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
+      States   : Parse_State_Array (State_First .. State_Last);
+      McKenzie : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Follow   : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
-
-   Default_Panic_Recover : constant Token_ID_Set := (1 .. 0 => False);
 
    type Parse_Table_Ptr is access Parse_Table;
    procedure Free is new Ada.Unchecked_Deallocation (Parse_Table, Parse_Table_Ptr);
@@ -234,6 +259,12 @@ package WisiToken.Parser.LR is
       ID    : in Token_ID)
      return Parse_Action_Node_Ptr;
    --  Return the action for State, terminal ID.
+
+   function Expecting
+     (Descriptor : in WisiToken.Descriptor'Class;
+      Table      : in Parse_Table;
+      State      : in State_Index)
+     return Token_ID_Set;
 
    type Recover_Data is tagged null record;
    --  Stored with parser state during recovery.
@@ -260,7 +291,6 @@ package WisiToken.Parser.LR is
       Lookahead      : Token_Queues.Queue_Type;
       --  Filled by recover algorithms; use before calling Lexer.Find_Next
 
-      Enable_Panic_Recover    : Boolean;
       Enable_McKenzie_Recover : Boolean;
    end record;
 

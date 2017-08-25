@@ -212,13 +212,12 @@ package body WisiToken.Parser.LR.LR1_Generator is
       use Ada.Text_IO;
    begin
       Put_Line ("LR1 Parse Table:");
-      Put_Line ("Panic_Recover:");
-      Put (Descriptor, Table.Panic_Recover);
-      New_Line;
 
-      Put_Line ("McKenzie:");
-      Put (Descriptor, Table.McKenzie);
-      New_Line;
+      if Table.McKenzie.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit then
+         Put_Line ("McKenzie:");
+         Put (Descriptor, Table.McKenzie);
+         New_Line;
+      end if;
 
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
@@ -285,7 +284,6 @@ package body WisiToken.Parser.LR.LR1_Generator is
       Descriptor               : in WisiToken.Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
-      Panic_Recover            : in Token_ID_Set        := Default_Panic_Recover;
       McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
       Trace                    : in Boolean             := False;
       Put_Parse_Table          : in Boolean             := False;
@@ -323,11 +321,6 @@ package body WisiToken.Parser.LR.LR1_Generator is
          First_Nonterminal => Descriptor.First_Nonterminal,
          Last_Nonterminal  => Descriptor.Last_Nonterminal);
 
-      Table.Panic_Recover :=
-        (if Panic_Recover = Default_Panic_Recover
-         then (Table.First_Nonterminal .. Table.Last_Nonterminal => False)
-         else Panic_Recover);
-
       if McKenzie_Param = Default_McKenzie_Param then
          --  Descriminants in Default are wrong
          Table.McKenzie :=
@@ -339,6 +332,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
             Delete            => (others => 0.0),
             Enqueue_Limit     => Default_McKenzie_Param.Enqueue_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
+            Patterns          => LR.Patterns.Empty_List,
             Dot_ID            => Default_McKenzie_Param.Dot_ID,
             Identifier_ID     => Default_McKenzie_Param.Identifier_ID);
       else

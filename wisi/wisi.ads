@@ -19,7 +19,7 @@
 --
 --  Copyright (C) 2012 - 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
---  The FastToken package is free software; you can redistribute it
+--  The WisiToken package is free software; you can redistribute it
 --  and/or modify it under terms of the GNU General Public License as
 --  published by the Free Software Foundation; either version 3, or
 --  (at your option) any later version. This library is distributed in
@@ -60,7 +60,7 @@ package Wisi is
    type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer);
    subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Regexp_Lexer;
    --  We append "_Lexer" to these names to avoid colliding with the
-   --  similarly-named FastToken packages. In the grammar file, they
+   --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
    Lexer_Names : constant array (Valid_Lexer) of access constant String :=
      (Aflex_Lexer  => new String'("aflex"),
@@ -92,6 +92,16 @@ package Wisi is
 
    package String_Pair_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (String_Pair_Type);
 
+   type Pattern is abstract tagged null record;
+
+   package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
+
+   type Recover_Pattern_1 is new Pattern with record
+      Stack     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Error     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Expecting : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
    type McKenzie_Recover_Param_Type is record
       Default_Insert             : Float   := 0.0;
       Default_Delete_Terminal    : Float   := 0.0;
@@ -104,6 +114,7 @@ package Wisi is
       --  For special rules
       Dot_ID        : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Identifier_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Patterns      : Wisi.Patterns.List;
    end record;
 
    type Token_Kind_Type is record

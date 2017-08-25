@@ -205,7 +205,6 @@ package body Dragon_4_45_LALR_Test is
          Last_Nonterminal  => +Upper_C_ID);
 
    begin
-      Expected.Panic_Recover := (others => False);
       Expected.Follow := To_Nonterminal_Array_Terminal_Set
         ((Accept_ID  => (others => False),
           Upper_S_ID => (EOF_ID => True, others => False),

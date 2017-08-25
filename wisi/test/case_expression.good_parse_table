@@ -19,38 +19,6 @@ Tokens:
  18 => range_nt
 
 LALR Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- RANGE          => 0.00000E+00,
- WHEN           => 0.00000E+00,
- DOT_DOT        => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- TICK           => 0.00000E+00,
- NUMBER_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
-(Delete =>
- RANGE          => 0.00000E+00,
- WHEN           => 0.00000E+00,
- DOT_DOT        => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- TICK           => 0.00000E+00,
- NUMBER_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00,
- wisitoken_accept  => 0.00000E+00,
- case_expression   => 0.00000E+00,
- choice_expression => 0.00000E+00,
- choice_relation   => 0.00000E+00,
- discrete_choice   => 0.00000E+00,
- factor            => 0.00000E+00,
- factor_list       => 0.00000E+00,
- range_nt          => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( case_expression =>
   (Wisi_EOI => True,
@@ -227,38 +195,6 @@ State 17:
 
 
 LR1 Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- RANGE          => 0.00000E+00,
- WHEN           => 0.00000E+00,
- DOT_DOT        => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- TICK           => 0.00000E+00,
- NUMBER_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00)
-(Delete =>
- RANGE          => 0.00000E+00,
- WHEN           => 0.00000E+00,
- DOT_DOT        => 0.00000E+00,
- EQUAL_GREATER  => 0.00000E+00,
- TICK           => 0.00000E+00,
- NUMBER_LITERAL => 0.00000E+00,
- IDENTIFIER     => 0.00000E+00,
- Wisi_EOI       => 0.00000E+00,
- wisitoken_accept  => 0.00000E+00,
- case_expression   => 0.00000E+00,
- choice_expression => 0.00000E+00,
- choice_relation   => 0.00000E+00,
- discrete_choice   => 0.00000E+00,
- factor            => 0.00000E+00,
- factor_list       => 0.00000E+00,
- range_nt          => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( case_expression =>
   (Wisi_EOI => True,

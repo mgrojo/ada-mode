@@ -1,4 +1,4 @@
-;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;; test a former WisiToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
 ;; also test number-literal
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression

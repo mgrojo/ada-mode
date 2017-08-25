@@ -29,7 +29,6 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Parser.LR.McKenzie_Recover;
-with WisiToken.Parser.LR.Panic_Mode;
 with WisiToken.Parser.LR.Parser_Lists;
 package body WisiToken.Parser.LR.Parser is
 
@@ -366,7 +365,7 @@ package body WisiToken.Parser.LR.Parser is
                Count : constant Ada.Containers.Count_Type := Parsers.Count;
             begin
                if Count > 1 then
-                  --  Panic mode error resolution does not help with this.
+                  --  Error recovery does not help with this.
                   raise Parse_Error with Error_Message
                     ("", Parser.Lexer.Line, Parser.Lexer.Column,
                      "Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.");
@@ -399,12 +398,6 @@ package body WisiToken.Parser.LR.Parser is
 
                if Parser.Enable_McKenzie_Recover then
                   Keep_Going := McKenzie_Recover.Recover (Parser, Parsers);
-               end if;
-
-               if ((not Keep_Going) and Parser.Enable_Panic_Recover and Parsers.Count = 1) and then
-                 Any (Parser.Table.Panic_Recover)
-               then
-                  Keep_Going := Panic_Mode.Recover (Parser, Parsers);
                end if;
 
                if Trace_Parse > 0 then
@@ -646,7 +639,6 @@ package body WisiToken.Parser.LR.Parser is
       return
         (Lexer, Table, Semantic_State'Access,
          Lookahead               => Token_Queues.Empty_Queue,
-         Enable_Panic_Recover    => False,
          Enable_McKenzie_Recover => False,
          Max_Parallel            => Max_Parallel,
          First_Parser_Label      => First_Parser_Label,

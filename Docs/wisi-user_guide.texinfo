@@ -48,8 +48,8 @@ section entitled "GNU Free Documentation License".
 @node Overview
 @chapter Overview
 
-Wisi is an add-on to OpenToken, that allows using Bison-style input
-files, and generates either OpenToken Ada source, or elisp source for
+Wisi is an add-on to WisiToken, that allows using Bison-style input
+files, and generates either WisiToken Ada source, or elisp source for
 the elisp wisi parser.
 
 At one point, ``wisi'' was short for ``Wisent Indentation engine'';
@@ -260,7 +260,7 @@ There are two types of tokens; keywords and other:
 @end verbatim
 
 ``Keywords'' are reserved words in the target language; the Emacs wisi
-and OpenToken lexers recognize them by the given string.
+and WisiToken lexers recognize them by the given string.
 
 In the Emacs wisi lexer, ``Tokens'' are recognized by Emacs syntax
 properties. These are the predefined token classes:
@@ -314,6 +314,53 @@ argument is the comment start syntax.
 
 @end table
 
+@node Error recovery
+@subsection Error recovery
+
+@table @code
+@item %mckenzie_cost_default <insert> <delete_terminal> <delete_nonterminal>
+McKenzie error recovery default costs for insert and delete single
+tokens; three floating point numbers. If not specified, default costs
+are zero. Costs can be negative; they all add linearly.
+
+@item %mckenzie_cost_insert <keyword> <cost>
+McKenzie error recovery insert cost for a specific keyword.
+
+@item %mckenzie_cost_delete <keyword> <cost>
+McKenzie error recovery delete cost for a specific keyword.
+
+@item %mckenzie_enqueue_limit <integer>
+McKenzie error recovery limit on items enqueued; default max integer.
+@c FIXME: describe mckenzie, panic more completely
+@c FIXME: mckenzie special rules
+
+@item %recover_pattern_1 <stack ID> <error ID> <expecting ID>
+If enter error recovery with <stack ID> on the parser stack, error
+token <error ID>, and expecting <expecting ID>, then insert <expecting
+ID> <error ID> <stack ID>.
+
+This handles the 'missing end if' problem in languages like Ada.  We
+are not likely to type 'end;' when meaning 'end if;'; we are more
+likely to not be done entering an 'if then else end if' statement:
+@example
+begin
+   if A > 0 then
+      C := B / A;
+   else
+end;
+@end example
+So if the parser just pushed 'end' on the parse stack, and enters error
+recovery on ';' expecting 'if', it is best to insert 'if; end':
+@example
+begin
+   if A > 0 then
+      C := B / A;
+   else
+end if; end;
+@end example
+
+@end table
+
 @node Other parser parameters
 @subsection Other parser parameters
 
@@ -335,22 +382,6 @@ Process}.
 
 @item %lexer
 The lexer; one of @code{aflex | elisp | regexp}.
-
-@item %mckenzie_cost_default <insert> <delete_terminal> <delete_nonterminal>
-McKenzie error recovery default costs for insert and delete single
-tokens; three floating point numbers. If not specified, default costs
-are zero. Costs can be negative; they all add linearly.
-
-@item %mckenzie_cost_insert <keyword> <cost>
-McKenzie error recovery insert cost for a specific keyword.
-
-@item %mckenzie_cost_delete <keyword> <cost>
-McKenzie error recovery delete cost for a specific keyword.
-
-@item %mckenzie_enqueue_limit <integer>
-McKenzie error recovery limit on items enqueued; default max integer.
-@c FIXME: describe mckenzie, panic more completely
-@c FIXME: mckenzie special rules
 
 @item %output_language
 The generator output language; one of:

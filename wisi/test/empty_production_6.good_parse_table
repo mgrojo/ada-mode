@@ -14,33 +14,6 @@ Tokens:
  13 => label_opt
 
 LALR Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- BEGIN       => 0.00000E+00,
- END         => 0.00000E+00,
- COLON       => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
-(Delete =>
- BEGIN       => 0.00000E+00,
- END         => 0.00000E+00,
- COLON       => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00,
- wisitoken_accept       => 0.00000E+00,
- compilation_unit       => 0.00000E+00,
- statement              => 0.00000E+00,
- sequence_of_statements => 0.00000E+00,
- label_opt              => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( compilation_unit =>
   (Wisi_EOI => True,
@@ -177,33 +150,6 @@ State 15:
 
 
 LR1 Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- BEGIN       => 0.00000E+00,
- END         => 0.00000E+00,
- COLON       => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
-(Delete =>
- BEGIN       => 0.00000E+00,
- END         => 0.00000E+00,
- COLON       => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00,
- wisitoken_accept       => 0.00000E+00,
- compilation_unit       => 0.00000E+00,
- statement              => 0.00000E+00,
- sequence_of_statements => 0.00000E+00,
- label_opt              => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( compilation_unit =>
   (Wisi_EOI => True,

@@ -32,6 +32,17 @@ with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 package body WisiToken.Parser.LR is
 
+   overriding
+   function Image (Item : in Recover_Pattern_1) return String
+   is begin
+      return
+        "WisiToken.Parser.LR.Recover_Pattern_1'(" &
+        Int_Image (Integer (Item.Stack)) & "," &
+        Token_ID'Image (Item.Error) & "," &
+        Token_ID'Image (Item.Expecting) &
+        ")";
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type)
    is
       use Ada.Text_IO;
@@ -138,6 +149,23 @@ package body WisiToken.Parser.LR is
    is begin
       return List.Next;
    end Next;
+
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String
+   is
+   begin
+      case Item.Verb is
+      when Shift =>
+         return "(Shift," & State_Index'Image (Item.State) & ")";
+
+      when Reduce =>
+         return "(Reduce," & Ada.Containers.Count_Type'Image (Item.Token_Count) & ", " &
+           Image (Descriptor, Item.LHS) & ")";
+      when Accept_It =>
+         return "(Accept It)";
+      when Error =>
+         return "(Error)";
+      end case;
+   end Image;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec)
    is
@@ -372,6 +400,25 @@ package body WisiToken.Parser.LR is
       end if;
    end Goto_For;
 
+   function Expecting
+     (Descriptor : in WisiToken.Descriptor'Class;
+      Table      : in Parse_Table;
+      State      : in State_Index)
+     return Token_ID_Set
+   is
+      Result : Token_ID_Set    := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
+      Action : Action_Node_Ptr := Table.States (State).Action_List;
+   begin
+      loop
+         --  Last action is error; don't include it.
+         exit when Action.Next = null;
+
+         Result (Action.Symbol) := True;
+         Action := Action.Next;
+      end loop;
+      return Result;
+   end Expecting;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Text_IO;
@@ -442,11 +489,14 @@ package body WisiToken.Parser.LR is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("Panic_Recover:");
-      Put (Descriptor, Table.Panic_Recover);
-
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
+
+      if Table.McKenzie.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit then
+         Put_Line ("McKenzie:");
+         Put (Descriptor, Table.McKenzie);
+         New_Line;
+      end if;
 
       for State in Table.States'Range loop
          Put_Line ("State" & State_Index'Image (State) & ":");

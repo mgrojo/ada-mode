@@ -115,6 +115,9 @@ package WisiToken is
 
    function Any (Item : in Token_ID_Set) return Boolean;
 
+   function Count (Item : in Token_ID_Set) return Integer;
+   --  Count of True elements.
+
    function Image
      (Desc      : in Descriptor'Class;
       Item      : in Token_ID_Set;

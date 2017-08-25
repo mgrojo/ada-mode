@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test FastToken.Production.Parser.Expecting
+--  Test WisiToken.Production.Parser.Expecting
 --
 --  Copyright (C) 2009, 2010, 2012, 2015 Stephen Leake.  All Rights Reserved.
 --

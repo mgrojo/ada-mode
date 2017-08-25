@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  test OpenToken.Text_Feeder.Counted_GNAT_OS_Lib
+--  test WisiToken.Text_Feeder.Counted_GNAT_OS_Lib
 --
 --  Copyright (C) 2014 Stephen Leake.  All Rights Reserved.
 --

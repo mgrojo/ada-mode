@@ -59,6 +59,18 @@ package body WisiToken is
       return False;
    end Any;
 
+   function Count (Item : in Token_ID_Set) return Integer
+   is
+      Result : Integer := 0;
+   begin
+      for I in Item'Range loop
+         if Item (I) then
+            Result := Result + 1;
+         end if;
+      end loop;
+      return Result;
+   end Count;
+
    function Image
      (Desc      : in Descriptor'Class;
       Item      : in Token_ID_Set;
@@ -200,13 +212,17 @@ package body WisiToken is
    end Put;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Array)
-   is begin
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
       Trace.Put ("(");
-      for ID of Item loop
-         Put (Trace, ID);
-         Put (Trace, ", ");
+      for I in Item.First_Index .. Item.Last_Index loop
+         Put (Trace, Item (I));
+         if I /= Item.Last_Index then
+            Put (Trace, ", ");
+         end if;
       end loop;
-      Trace.Put (")");
+      Put (Trace, ")");
    end Put;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Queues.Queue_Type)

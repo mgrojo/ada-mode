@@ -31,7 +31,6 @@ OK test_mckenzie_recover.adb : No_Error
 OK test_mckenzie_recover.adb : Error_1
 OK test_mckenzie_recover.adb : Error_2
 OK test_mckenzie_recover.adb : Error_3
-OK test_mckenzie_recover.adb : Dotted_Name
 OK test_mckenzie_recover.adb : Error_4
 OK test_mckenzie_recover.adb : Error_5
 OK test_mckenzie_recover.adb : Check_Accept
@@ -40,17 +39,13 @@ OK test_mckenzie_recover.adb : Conflict_1
 OK test_mckenzie_recover.adb : Conflict_2
 OK test_mckenzie_recover.adb : Started_Type
 OK test_mckenzie_recover.adb : Missing_Return
-OK test_panic_mode.adb : No_Error
-OK test_panic_mode.adb : Error_1
-OK test_panic_mode.adb : Error_2
-OK test_panic_mode.adb : Error_3
-OK test_panic_mode.adb : Error_4
-OK test_panic_mode.adb : Error_5
+OK test_mckenzie_recover.adb : Loop_Bounds
+OK test_mckenzie_recover.adb : Pattern_1
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   49
-Successful Tests:  49
+Total Tests Run:   44
+Successful Tests:  44
 Failed Assertions: 0
 Unexpected Errors: 0

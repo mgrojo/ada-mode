@@ -434,7 +434,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
          Indent_Line ("   Lookahead => WisiToken.Token_Queues.Empty_Queue,");
-         Indent_Line ("   Enable_Panic_Recover => True, Enable_McKenzie_Recover => True,");
+         Indent_Line ("   Enable_McKenzie_Recover => True,");
          Indent_Line ("   Max_Parallel => 15, First_Parser_Label => " &
                         WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
@@ -451,6 +451,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr)
    is
+      use all type WisiToken.Parser.LR.Patterns.List;
       use all type WisiToken.Token_ID;
       use all type WisiToken.Parser.LR.McKenzie_Param_Type;
       use Generate_Utils;
@@ -494,29 +495,6 @@ package body Wisi.Gen_Output_Ada_Common is
       end Put;
 
    begin
-      Indent_Line ("Table.Panic_Recover :=");
-      Indent_Start ("  (");
-      Indent := Indent + 3;
-      for I in Table.Panic_Recover'Range loop
-         if Table.Panic_Recover (I) then
-            if Paren_Done then
-               Put_Line (" |");
-               Indent_Start (WisiToken.Int_Image (I));
-            else
-               Paren_Done := True;
-               Put (WisiToken.Int_Image (I));
-            end if;
-         end if;
-      end loop;
-      if Paren_Done then
-         Put_Line (" => True,");
-         Indent_Line ("others => False);");
-      else
-         Put_Line ("others => False);");
-      end if;
-      Indent := Indent - 3;
-      New_Line;
-
       if Table.McKenzie = WisiToken.Parser.LR.Default_McKenzie_Param then
          Indent_Line ("Table.McKenzie := Default_McKenzie_Param;");
       else
@@ -530,10 +508,26 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Delete", Table.McKenzie.Delete);
          Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");
          Indent_Line ("Check_Limit   =>" & Integer'Image (Table.McKenzie.Check_Limit) & ",");
+         Indent_Line ("Patterns      => WisiToken.Parser.LR.Patterns.Empty_List,");
          Indent_Line ("Dot_ID        =>" & WisiToken.Token_ID'Image (Table.McKenzie.Dot_ID) & ",");
          Indent_Line ("Identifier_ID =>" & WisiToken.Token_ID'Image (Table.McKenzie.Identifier_ID) & ");");
          Indent := Indent - 3;
          New_Line;
+
+         --  WORKAROUND: GNAT GPL 2016 compiler hangs on this:
+         --  for Pattern of Table.McKenzie.Patterns loop
+         --     Indent_Line ("Table.Mckenzie.patterns.Append (" & Pattern.Image & ");");
+         --  end loop;
+         declare
+            use WisiToken.Parser.LR.Patterns;
+            I : Cursor := Table.McKenzie.Patterns.First;
+         begin
+            loop
+               exit when I = No_Element;
+               Indent_Line ("Table.McKenzie.Patterns.Append (" & Element (I).Image & ");");
+               Next (I);
+            end loop;
+         end;
       end if;
 
       if not WisiToken.Any (Table.Follow) then

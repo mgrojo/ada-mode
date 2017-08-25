@@ -572,6 +572,22 @@ package body Wisi.Gen_Generate_Utils is
          Result.Dot_ID        := Find_Token_ID (-Item.Dot_ID);
          Result.Identifier_ID := Find_Token_ID (-Item.Identifier_ID);
       end if;
+
+      for Pattern of Item.Patterns loop
+         if Pattern in Wisi.Recover_Pattern_1'Class then
+            declare
+               Pat : Wisi.Recover_Pattern_1 renames Wisi.Recover_Pattern_1 (Pattern);
+            begin
+               Result.Patterns.Append
+                 (WisiToken.Parser.LR.Recover_Pattern_1'
+                    (Stack     => Find_Token_ID (-Pat.Stack),
+                     Error     => Find_Token_ID (-Pat.Error),
+                     Expecting => Find_Token_ID (-Pat.Expecting)));
+            end;
+         else
+            raise Programmer_Error;
+         end if;
+      end loop;
       return Result;
    end To_McKenzie_Param;
 

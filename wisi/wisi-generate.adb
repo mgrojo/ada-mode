@@ -79,7 +79,6 @@ is
    Keywords                : String_Pair_Lists.List;
    Tokens                  : Token_Lists.List;
    Conflicts               : Conflict_Lists.List;
-   Panic_Recover           : String_Lists.List;
    McKenzie_Recover        : McKenzie_Recover_Param_Type;
    Rules                   : Rule_Lists.List;
    Rule_Count              : Integer;
@@ -184,7 +183,7 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologue_Context_Clause, Prologue_Declarations);
-   Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, Panic_Recover, McKenzie_Recover);
+   Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, McKenzie_Recover);
    Wisi.Rules (Input_File, Generate_Params.Output_Language, Rules, Rule_Count, Action_Count);
 
    --  FIXME: use run-time factory, dispatching instead of this case
@@ -197,12 +196,12 @@ begin
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, Panic_Recover, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
+         Keywords, Tokens, Conflicts, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, Panic_Recover, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
+         Keywords, Tokens, Conflicts, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms

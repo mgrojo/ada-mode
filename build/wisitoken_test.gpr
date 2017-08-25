@@ -23,7 +23,6 @@ project WisiToken_Test is
      (
       ".",
       "../Test",
-      "../time",
       "../wisi/test"
      );
 

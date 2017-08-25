@@ -43,7 +43,6 @@ procedure Wisi.Output_Ada_Emacs
    Keywords                : in String_Pair_Lists.List;
    Tokens                  : in Token_Lists.List;
    Conflicts               : in Conflict_Lists.List;
-   Panic_Recover           : in String_Lists.List;
    McKenzie_Recover        : in McKenzie_Recover_Param_Type;
    Rules                   : in Rule_Lists.List;
    Rule_Count              : in Integer;
@@ -120,7 +119,6 @@ is
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
@@ -137,7 +135,6 @@ is
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
-            Generate_Utils.To_Nonterminal_ID_Set (Panic_Recover),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,

@@ -91,13 +91,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %output_language Ada
 %lexer Aflex
 
-;; These are used in unit tests; still figuring out how to pick
-;; these..
-%panic_recover case_statement_alternative_list
-%panic_recover declarations
-%panic_recover handled_sequence_of_statements
-%panic_recover sequence_of_statements_opt
-
 ;; Set costs to take advantage of syntax to get to solution faster.
 
 %mckenzie_enqueue_limit 100
@@ -141,6 +134,17 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 ;; Parameters for special recovery rules
 %mckenzie_dotted_name DOT IDENTIFIER
+
+;; We are not likely to type 'end;' when meaning 'end if;'; more
+;; likely to not be done entering 'if then else'. So if just pushed
+;; 'end' on the stack, and enter error recovery on ';' expecting 'if',
+;; best to insert 'if; end'.
+
+;; args: stack ID, error ID, expecting ID
+;; result: insert expecting ID, error ID, stack ID.
+%recover_pattern_1 END SEMICOLON CASE
+%recover_pattern_1 END SEMICOLON IF
+%recover_pattern_1 END SEMICOLON LOOP
 
 %conflict REDUCE/REDUCE in state association_opt, expression_opt  on token IS
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA

@@ -1,7 +1,7 @@
 --  Abstract :
 --
 --  Test grammar generator with an Ada-like name syntax. In an
---  earlier version of OpenToken, this grammar reported spurious
+--  earlier version of WisiToken, this grammar reported spurious
 --  conflicts.
 --
 --  Copyright (C) 2015 Stephen Leake.  All Rights Reserved.

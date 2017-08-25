@@ -13,31 +13,6 @@ Tokens:
  12 => constant_opt
 
 LALR Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- ALIASED     => 0.00000E+00,
- CONSTANT    => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
-(Delete =>
- ALIASED     => 0.00000E+00,
- CONSTANT    => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00,
- wisitoken_accept        => 0.00000E+00,
- object_declaration_list => 0.00000E+00,
- object_declaration      => 0.00000E+00,
- aliased_opt             => 0.00000E+00,
- constant_opt            => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( object_declaration_list =>
   (IDENTIFIER |
@@ -170,31 +145,6 @@ State 13:
 
 
 LR1 Parse Table:
-Panic_Recover:
-
-McKenzie:
-(Insert =>
- ALIASED     => 0.00000E+00,
- CONSTANT    => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00)
-(Delete =>
- ALIASED     => 0.00000E+00,
- CONSTANT    => 0.00000E+00,
- COLON_EQUAL => 0.00000E+00,
- SEMICOLON   => 0.00000E+00,
- IDENTIFIER  => 0.00000E+00,
- Wisi_EOI    => 0.00000E+00,
- wisitoken_accept        => 0.00000E+00,
- object_declaration_list => 0.00000E+00,
- object_declaration      => 0.00000E+00,
- aliased_opt             => 0.00000E+00,
- constant_opt            => 0.00000E+00)
-Enqueue_Limit => 2147483647
-
-
 Follow:
 ( object_declaration_list =>
   (IDENTIFIER |

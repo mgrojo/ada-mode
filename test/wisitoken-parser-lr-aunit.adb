@@ -163,7 +163,7 @@ package body WisiToken.Parser.LR.AUnit is
          Check
            (Label & ".States." & State_Index'Image (I), Computed.States (I), Expected.States (I));
       end loop;
-      Check (Label & ".Panic_Recover", Computed.Panic_Recover, Expected.Panic_Recover);
+      --  We do not check McKenzie, since that is not computed.
       Check (Label & ".Follow", Computed.Follow, Expected.Follow);
    end Check;
 
