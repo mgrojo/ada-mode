@@ -1,14 +1,18 @@
 with Ada.Command_Line;      use Ada.Command_Line;
+with Ada.Containers;
 with Ada.Exceptions;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 with Ada_Grammar;
-with ada_grammar_dfa;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_Feeder.Text_IO;
+with WisiToken.Token_Region;
+with ada_grammar_dfa;
 procedure Run_Ada_Parser
 is
+   use all type Ada.Containers.Count_Type;
+
    procedure Put_Usage
    is begin
       Put_Line
@@ -51,6 +55,11 @@ begin
    Parser.Parse;
 
    WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
+   if Ada_Grammar.State.Errors.Length > 0 then
+      New_Line;
+      Put_Line ("Errors:");
+      WisiToken.Token_Region.Put (To_String (File_Name), Ada_Grammar.State.Errors, Ada_Grammar.Descriptor);
+   end if;
 exception
 when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
    New_Line;

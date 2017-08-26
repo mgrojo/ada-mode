@@ -640,7 +640,9 @@ Also return cache at start."
 
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
+  ;; IMPROVEME: define mini grammar that does this
   (wisi-validate-cache end t 'navigate)
+  (wisi-repair-errors begin end)
 
   (goto-char begin)
   (let (tok
@@ -897,8 +899,8 @@ TOKEN-TEXT; move point to just past token."
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
 (defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
-(defvar ada_grammar-elisp-token-table nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
-(defvar ada_grammar-elisp-keyword-table nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-token-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-keyword-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
 (defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
 (defvar ada_grammar-process-action-table nil) ;; ada_grammar-process.el
 (defvar ada_grammar-process-token-table nil) ;;ada_grammar-process.el
@@ -928,8 +930,8 @@ TOKEN-TEXT; move point to just past token."
 
 	(lexer
 	 (wisi-make-elisp-lexer
-	  :token-table ada_grammar-elisp-token-table
-	  :keyword-table ada_grammar-elisp-keyword-table
+	  :token-table-raw ada_grammar-elisp-token-table-raw
+	  :keyword-table-raw ada_grammar-elisp-keyword-table-raw
 	  :string-quote-escape-doubled t
 	  :string-quote-escape nil))
 	 )

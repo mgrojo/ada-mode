@@ -109,7 +109,7 @@ point at which that max was spawned.")
 	 some-pending
 	 )
 
-    (setf (wisi-parser-error-msgs parser) nil)
+    (setf (wisi-parser-errors parser) nil)
 
     (goto-char (point-min))
     (forward-comment (point-max))
@@ -133,7 +133,7 @@ point at which that max was spawned.")
 		       (msg (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"
 						    " simplify grammar, or increase `wisi-elisp-parse-max-parallel'")
 					    state)))
-		  (push msg (wisi-parser-error-msgs parser))
+		  (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
 		  (signal 'wisi-parse-error msg)))
 
 	      (let ((j (wisi-elisp-parse-free-parser parser-states)))
@@ -180,7 +180,7 @@ point at which that max was spawned.")
 					       state
 					       (wisi-token-text token)
 					       (mapcar 'car (aref actions state)))))
-		     (push msg (wisi-parser-error-msgs parser))
+		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  (t
 		   ;; Report errors from all parsers that failed on this token.
@@ -199,7 +199,7 @@ point at which that max was spawned.")
 					  (wisi-token-text token)
 					  (mapcar 'car (aref actions state)))))
 			   )))
-		     (push msg (wisi-parser-error-msgs parser))
+		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  ))
 
@@ -359,7 +359,7 @@ nil, `shift', or `accept'."
 
 		  (2
 		   (let ((msg "identical parser stacks"))
-		     (push msg (wisi-parser-error-msgs parser))
+		     (push (make-wisi--error :pos (point) :message msg) (wisi-parser-errors parser))
 		     (signal 'wisi-parse-error msg)))
 		  )
 		(when (= active-parser-count 1)

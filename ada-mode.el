@@ -700,8 +700,9 @@ Function is called with one optional argument; syntax-ppss result.")
   (funcall indent-line-function); so new list is indented properly
 
   (let* ((begin (point))
-	 (delend (progn (forward-sexp) (point))); just after matching closing paren
-	 (end (progn (backward-char) (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren
+	 (end (copy-marker
+	       (progn (backward-char) (forward-comment (- (point))) (point)))); end of last parameter-declaration
 	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
 	 (paramlist (ada-scan-paramlist (1+ begin) end)))
 

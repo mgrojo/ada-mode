@@ -4,6 +4,10 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 * Ada mode 6.0.0
 ** use wisi 2.0; indentation computed directly in parser actions.
 
+** support wisitoken generated Ada code parser, with error correction.
+
+** ada-format-paramlist repairs error in buffer text before scanning.
+
 * Ada mode 5.3.1
 
 ** Ada mode 5.2.2 should have been numbered 5.3.0, since it introduced

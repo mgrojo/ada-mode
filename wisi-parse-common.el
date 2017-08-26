@@ -27,9 +27,19 @@
   (require 'wisi-compat-24.2)
 ;;)
 
+(cl-defstruct (wisi--error)
+  ;; Includes information derived from compiler error recovery to edit
+  ;; text to fix one error.
+  pos      ;; position (integer or marker) in buffer where error was detected.
+  popped   ;; list of wisi-tok tokens before pos that were deleted.
+  inserted ;; list of token IDs that were inserted before pos
+  deleted  ;; list of wisi-tok tokens that were deleted after pos
+  message  ;; string error message
+  )
+
 (cl-defstruct wisi-parser
-  error-msgs
-  ;; List of error messages from last parse. Can be more than one if
+  errors
+  ;; List of wisi-errors from last parse. Can be more than one if
   ;; parser supports error recovery.
 )
 

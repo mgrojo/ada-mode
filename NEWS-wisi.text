@@ -10,6 +10,9 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 * wisi 2.0.0
 ** change indentation engine to compute indent directly in parser actions
 
+** add support for error corrections in parser; 'wisi-repair-error'
+   can apply the corrections to the buffer text.
+
 * wisi 1.1.5
 9 Jul 2017
 

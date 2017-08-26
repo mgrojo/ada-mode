@@ -19,6 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Bounded;
 with Ada.Text_IO;
+with WisiToken.Parser.LR.McKenzie_Recover;
 package body WisiToken.Token_Emacs_Process is
 
    ----------
@@ -32,7 +33,7 @@ package body WisiToken.Token_Emacs_Process is
    Discard_Lookahead_Code    : constant String := "5 ";
    Discard_Stack_Code        : constant String := "6 ";
    Reduce_Stack_Code         : constant String := "7 ";
-   --  Recover_Code = 8 not used
+   Recover_Code              : constant String := "8 ";
 
    function To_Code (ID : in Token_ID) return String
    is begin
@@ -80,6 +81,25 @@ package body WisiToken.Token_Emacs_Process is
          exit when I = Null_Iterator;
          Token_Line := Token_Line & Integer'Image (Token_ID'Pos (ID (I)));
          Next (I);
+      end loop;
+      return To_String (Token_Line & "]");
+   end To_Codes;
+
+   function To_Codes (Tokens : in Token_Array) return String
+   is
+      --  A token image consists of:
+      --
+      --  ID - int
+      Chars_Per_Token : constant Integer := Integer'Width;
+
+      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
+        (Max => 2 + Integer (Tokens.Length) * Chars_Per_Token);
+      use Bounded;
+
+      Token_Line : Bounded_String := To_Bounded_String ("[");
+   begin
+      for ID of Tokens loop
+         Token_Line := Token_Line & Integer'Image (Token_ID'Pos (ID));
       end loop;
       return To_String (Token_Line & "]");
    end To_Codes;
@@ -165,5 +185,26 @@ package body WisiToken.Token_Emacs_Process is
       Ada.Text_IO.Put_Line
         ("[" & Reduce_Stack_Code & To_Code (Nonterm) & To_Codes (IDs) & Integer'Image (Index) & "]");
    end Reduce_Stack;
+
+   overriding
+   procedure Recover
+     (State   : access State_Type;
+      Recover : in     WisiToken.Token.Recover_Data'Class)
+   is
+      pragma Unreferenced (State);
+      use WisiToken.Parser.LR.McKenzie_Recover;
+      use all type Token_Arrays.Vector;
+   begin
+      if Recover in Configuration'Class then
+         declare
+            Config : Configuration renames Configuration (Recover);
+            Pushed : constant Token_Array := WisiToken.Parser.LR.Extract_IDs (Config.Pushed);
+         begin
+            Ada.Text_IO.Put_Line ("[" & Recover_Code & To_Codes (Pushed & Config.Inserted) & "]");
+         end;
+      else
+         Ada.Text_IO.Put_Line ("[" & Recover_Code & "[]]");
+      end if;
+   end Recover;
 
 end WisiToken.Token_Emacs_Process;

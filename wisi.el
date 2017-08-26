@@ -160,6 +160,7 @@ Useful when debugging parser or parser actions."
 ;;;; elisp lexer
 
 (cl-defstruct wisi-lex
+  id-alist ;; alist mapping strings to token ids
   keyword-table ;; obarray holding keyword tokens
   punctuation-table ;; obarray holding punctuation tokens
   punctuation-table-max-length ;; max string length in punctuation-table
@@ -180,43 +181,66 @@ Useful when debugging parser or parser actions."
   (let ((var (intern-soft name obtable)))
     (and (boundp var) (symbol-value var))))
 
-(cl-defun wisi-make-elisp-lexer (&key token-table keyword-table string-quote-escape-doubled string-quote-escape)
+(cl-defun wisi-make-elisp-lexer (&key token-table-raw keyword-table-raw string-quote-escape-doubled string-quote-escape)
   "Return a ‘wisi-lex’ object."
-  (let ((punctuation-table (wisi-safe-intern "punctuation" token-table))
-	(punct-max-length 0)
-	(number (cadr (wisi-safe-intern "number" token-table)))
-	fail)
+  (let* ((token-table (semantic-lex-make-type-table token-table-raw))
+	 (keyword-table (semantic-lex-make-keyword-table keyword-table-raw))
+	 (punctuation-table (wisi-safe-intern "punctuation" token-table))
+	 (punct-max-length 0)
+	 (number (cadr (wisi-safe-intern "number" token-table)))
+	 (symbol (cadr (wisi-safe-intern "symbol" token-table)))
+	 (string-double (cadr (wisi-safe-intern "string-double" token-table)))
+	 (string-single (cadr (wisi-safe-intern "string-single" token-table)))
+	 id-alist
+	 fail)
     (dolist (item punctuation-table)
-      (when item ;; default matcher can be nil
+      ;; check that all chars used in punctuation tokens have punctuation syntax
+      (mapc (lambda (char)
+	      (when (not (= ?. (char-syntax char)))
+		(setq fail t)
+		(message "in %s, %c does not have punctuation syntax"
+			 (car item) char)))
+	    (cdr item))
 
-	;; check that all chars used in punctuation tokens have punctuation syntax
-	(mapc (lambda (char)
-		(when (not (= ?. (char-syntax char)))
-		  (setq fail t)
-		  (message "in %s, %c does not have punctuation syntax"
-			   (car item) char)))
-	      (cdr item))
+      ;; accumulate max length
+      (when (< punct-max-length (length (cdr item)))
+	(setq punct-max-length (length (cdr item))))
 
-	(when (< punct-max-length (length (cdr item)))
-	  (setq punct-max-length (length (cdr item)))))
+      ;; build id-alist
+      (push item id-alist)
       )
 
     (when fail
       (error "aborting due to punctuation errors"))
 
-    (when (and number
-	       (nth 2 number))
-      (require (nth 2 number))) ;; for number-p
+    (when number
+      (push (cons (nth 0 number) "1234") id-alist)
+      (when (nth 2 number)
+	(require (nth 2 number)))) ;; for number-p
+
+    ;; build rest of id-alist
+    (dolist (item keyword-table-raw)
+      (push (cons (cdr item) (car item)) id-alist))
+
+    (when symbol
+      (push (cons (car symbol) "a_bogus_identifier") id-alist))
+
+    (when string-double
+      (push (cons (car string-double) "\"\"") id-alist))
+
+    (when string-single
+      (push (cons (car string-single) "''") id-alist))
 
     (make-wisi-lex
+     :id-alist id-alist
      :keyword-table keyword-table
      :punctuation-table punctuation-table
      :punctuation-table-max-length punct-max-length
-     :string-double-term (car (cadr (wisi-safe-intern "string-double" token-table)))
+     :string-double-term (car string-double)
      :string-quote-escape-doubled string-quote-escape-doubled
      :string-quote-escape string-quote-escape
-     :string-single-term (car (cadr (wisi-safe-intern "string-single" token-table)))
-     :symbol-term (car (cadr (wisi-safe-intern "symbol" token-table)))
+     :string-single-term (car string-single)
+     :symbol-term (car symbol)
      :number-term (nth 0 number)
      :number-p (nth 1 number)
      )
@@ -412,13 +436,14 @@ If at end of buffer, return `wisi-eoi-term'."
   "Move point backward across one token, skipping whitespace and comments.
 Does _not_ handle numbers with wisi-number-p; just sees
 lower-level syntax.  Return a `wisi-tok' - same structure as
-wisi-forward-token, but does not look up symbol."
+wisi-forward-token, but only sets token-id and region."
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
 
   ;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
   (let ((end (point))
-	(syntax (syntax-class (syntax-after (1- (point))))))
+	(syntax (syntax-class (syntax-after (1- (point)))))
+	token-id token-text)
     (cond
      ((bobp) nil)
 
@@ -426,10 +451,11 @@ wisi-forward-token, but does not look up symbol."
       ;; punctuation. Find the longest matching string in wisi-lex-punctuation-table
       (backward-char 1)
       (let ((next-point (point))
-	    temp-text done)
+	    temp-text temp-id done)
 	(while (not done)
 	  (setq temp-text (buffer-substring-no-properties (point) end))
-	  (when (car (rassoc temp-text (wisi-lex-punctuation-table wisi--lexer)))
+	  (when (setq temp-id (car (rassoc temp-text (wisi-lex-punctuation-table wisi--lexer))))
+	    (setq token-id temp-id)
 	    (setq next-point (point)))
 	  (if (or
 	       (bobp)
@@ -441,20 +467,37 @@ wisi-forward-token, but does not look up symbol."
       )
 
      ((memq syntax '(4 5)) ;; open, close parenthesis
-      (backward-char 1))
+      (backward-char 1)
+      (setq token-id
+	    (symbol-value
+	     (intern-soft (buffer-substring-no-properties (point) end)
+			  (wisi-lex-keyword-table wisi--lexer)))))
 
      ((eq syntax 7)
       ;; a string quote. we assume we are after the end quote, not the start quote
-      (let ((forward-sexp-function nil))
-	(forward-sexp -1)))
+      (let ((delim (char-after (1- (point))))
+	    (forward-sexp-function nil))
+	(forward-sexp -1)
+	(setq token-id (if (= delim ?\")
+			   (wisi-lex-string-double-term wisi--lexer)
+			 (wisi-lex-string-single-term wisi--lexer)))
+	))
 
      (t ;; assuming word or symbol syntax
       (if (zerop (skip-syntax-backward "."))
-	  (skip-syntax-backward "w_'")))
+	  (skip-syntax-backward "w_'"))
+      (setq token-text (buffer-substring-no-properties (point) end))
+      (setq token-id
+	    (or (symbol-value (intern-soft (downcase token-text) (wisi-lex-keyword-table wisi--lexer)))
+		(and (functionp (wisi-lex-number-p wisi--lexer))
+		     (funcall (wisi-lex-number-p wisi--lexer) token-text)
+		     (setq token-text (buffer-substring-no-properties (point) end))
+		     (wisi-lex-number-term wisi--lexer))
+		(wisi-lex-symbol-term wisi--lexer))))
      )
 
     (make-wisi-tok
-     :token nil
+     :token token-id
      :region (cons (point) end))
     ))
 
@@ -779,29 +822,36 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 (defun wisi-goto-error ()
   "Move point to position in last error message (if any)."
   ;; FIXME: next-error goto next etc
-  (when (and (wisi-parser-error-msgs wisi--parser)
-	     (string-match ":\\([0-9]+\\):\\([0-9]+\\):" (car (wisi-parser-error-msgs wisi--parser))))
-    (let* ((msg (car (wisi-parser-error-msgs wisi--parser)))
-	   (line (string-to-number (match-string 1 msg)))
-	   (col (string-to-number (match-string 2 msg))))
-      (push-mark)
-      (goto-char (point-min))
-      ;; FIXME: lexer can be confused about lines? line > last line in buffer.
-      (condition-case nil
-	  (progn
-	    (forward-line (1- line))
-	    (forward-char col))
-	(error
-	 ;; just stay at eob.
-	 nil)))))
+  (when (wisi-parser-errors wisi--parser)
+    (let ((data (car (wisi-parser-errors wisi--parser))))
+      (cond
+       ((wisi--error-pos data)
+	(push-mark)
+	(goto-char (wisi--error-pos data)))
+
+       ((string-match ":\\([0-9]+\\):\\([0-9]+\\):" (wisi--error-message data))
+	(let* ((msg (wisi--error-message data))
+	       (line (string-to-number (match-string 1 msg)))
+	       (col (string-to-number (match-string 2 msg))))
+	  (push-mark)
+	  (goto-char (point-min))
+	  ;; FIXME: lexer can be confused about lines? line > last line in buffer.
+	  (condition-case nil
+	      (progn
+		(forward-line (1- line))
+		(forward-char col))
+	    (error
+	     ;; just stay at eob.
+	     nil))))
+       ))))
 
 (defun wisi-show-parse-error ()
   "Show last wisi-parse error."
   (interactive)
   (cond
-   ((wisi-parser-error-msgs wisi--parser)
+   ((wisi-parser-errors wisi--parser)
     (wisi-goto-error)
-    (message (car (wisi-parser-error-msgs wisi--parser))))
+    (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
 
    ((wisi-parse-try wisi--last-parse-action)
     (message "need parse"))
@@ -818,7 +868,13 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi-kill-parser ()
   (interactive)
-  (wisi-parse-kill wisi--parser))
+  (wisi-parse-kill wisi--parser)
+  ;; also force re-parse
+  (dolist (parse-action '(face navigate indent))
+    (wisi-set-parse-try t parse-action)
+    (move-marker (wisi-cache-max parse-action) (point-max));; force delete caches
+    (wisi-invalidate-cache parse-action (point-min)))
+  )
 
 (defun wisi--run-parse ()
   "Run the parser."
@@ -860,12 +916,12 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
        (error (cadr err))))
 
     (when (> wisi-debug 0)
-      (if (wisi-parser-error-msgs wisi--parser)
+      (if (wisi-parser-errors wisi--parser)
 	  ;; error
 	  (progn
 	    (message "%s error" msg)
 	    (wisi-goto-error)
-	    (error (car (wisi-parser-error-msgs wisi--parser))))
+	    (error (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
 
 	;; no error
 	(message "%s done" msg))
@@ -2263,6 +2319,41 @@ Called with BEGIN END.")
     (goto-char savep)
     (when to-indent (back-to-indentation))
     ))
+
+(defun wisi-repair-error-1 (data beg end)
+  "Repair error reported in DATA (a ’wisi-error’).
+If non-nil, only repair errors in BEG END region."
+  (let ((wisi--parse-action 'navigate) ;; tell wisi-forward-token not to compute indent stuff.
+	tok-2)
+    (when (or (null beg)
+	      (and (wisi--error-pos data)
+		   (<= beg (wisi--error-pos data))
+		   (<= (wisi--error-pos data) end)))
+
+      (goto-char (wisi--error-pos data))
+      (dolist (tok-1 (wisi--error-popped data))
+	(setq tok-2 (wisi-backward-token))
+	(if (eq (wisi-tok-token tok-1) (wisi-tok-token tok-2))
+	    (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
+	  (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
+
+      (dolist (tok-1 (wisi--error-deleted data))
+	(setq tok-2 (wisi-forward-token))
+	(if (eq (wisi-tok-token tok-1) (wisi-tok-token tok-2))
+	    (delete-region (car (wisi-tok-region tok-2)) (cdr (wisi-tok-region tok-2)))
+	  (error "mismatched tokens: parser %s, buffer %s" (wisi-tok-token tok-1) (wisi-tok-token tok-2))))
+
+      (dolist (id (wisi--error-inserted data))
+	(insert (cdr (assoc id (wisi-lex-id-alist wisi--lexer))))
+	(insert " "))
+      )))
+
+(defun wisi-repair-errors (&optional beg end)
+  "Repair errors reported by last parse.
+If non-nil, only repair errors in BEG END region."
+  (interactive)
+  (dolist (data (wisi-parser-errors wisi--parser))
+    (wisi-repair-error-1 data beg end)))
 
 ;;;; debugging
 

@@ -38,6 +38,25 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
+   procedure Apply_Pattern
+     (Pattern : in Recover_Pattern_1;
+      Parser : in LR.Instance'Class;
+      Parser_State : in out Parser_Lists.Parser_State;
+      Error_ID in Token_ID;
+      Config out configuration)
+        missing two ':'; invoked align in parens
+            => ada-wisi-scan-paramlist: Wrong type argument: integer-or-marker-p, nil
+
+    in wisi.el, add wisi-repair-errors (region errors)
+        repair errors by editing text if they are in region
+        written; needs code to build wisi-lex-id-alist
+
+    in wisi-scan-paramlist, call wisi-repair-errors on paramlist region
+
+    test/debug.adb
+
+stricter "changed" check for 'face parse: edit affected a region with 'face property
+    to handle new text that should have that property, compute face during indent
 
 delete production name <= LEFT_PAREN range_list RIGHT_PAREN ?
     redundant with subtype indication?

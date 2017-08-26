@@ -79,8 +79,8 @@
 	    gpr-grammar-elisp-parse-table
 	    #'wisi-forward-token)
    :lexer (wisi-make-elisp-lexer
-	  :token-table gpr-grammar-elisp-token-table
-	  :keyword-table gpr-grammar-elisp-keyword-table
+	  :token-table-raw gpr-grammar-elisp-token-table-raw
+	  :keyword-table-raw gpr-grammar-elisp-keyword-table-raw
 	  :string-quote-escape-doubled nil
 	  :string-quote-escape nil))
 

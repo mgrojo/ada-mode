@@ -86,7 +86,6 @@ package WisiToken.Token_Emacs_Process is
    overriding
    procedure Recover
      (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class)
-     is null;
+      Recover : in     WisiToken.Token.Recover_Data'Class);
 
 end WisiToken.Token_Emacs_Process;

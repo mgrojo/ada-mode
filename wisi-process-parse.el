@@ -53,6 +53,7 @@
   (parse-stack (queue-create)) ;; stores wisi-tok tokens mirroring external parse stack
   (process nil) 	       ;; running ada_mode_wisi_parse
   (buffer nil) 		       ;; receives output of ada_mode_wisi_parse
+  (error-active nil)           ;; t between calls of wisi-process-parse--Error and --Recover
   )
 
 (defvar wisi-process--alist nil
@@ -263,16 +264,22 @@ from TOKEN-TABLE."
   ;; see ‘wisi-process-parse--execute’
   ;; so far, we don’t need to track the invalid region
   (let* ((token-table (wisi-process--parser-token-table parser))
-	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1))))
+	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1)))
+	 (pos (car (wisi-tok-region (queue-first (wisi-process--parser-lookahead-queue parser))))))
 
-    (goto-char (car (wisi-tok-region (queue-first (wisi-process--parser-lookahead-queue parser)))))
-    (push
-     (format "%s:%d:%d: syntax error; expecting one of '%s'"
-	     (file-name-nondirectory (buffer-file-name))
-	     (line-number-at-pos (point))
-	     (current-column)
-	     elisp-ids)
-     (wisi-parser-error-msgs parser))
+    (goto-char pos)
+
+    (push (make-wisi--error
+	   :pos (copy-marker pos)
+	   :message
+	   (format "%s:%d:%d: syntax error; expecting one of '%s'"
+		   (file-name-nondirectory (buffer-file-name))
+		   (line-number-at-pos (point))
+		   (current-column)
+		   elisp-ids))
+	  (wisi-parser-errors parser))
+
+    (setf (wisi-process--parser-error-active parser) t)
     ))
 
 (defun wisi-process-parse--Discard_Lookahead (parser sexp)
@@ -280,6 +287,10 @@ from TOKEN-TABLE."
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (queue-dequeue (wisi-process--parser-lookahead-queue parser))))
     (wisi-process-parse--check-id "Discard_Lookahead" (wisi-process--parser-token-table parser) tok (aref sexp 1))
+    (when (wisi-process--parser-error-active parser)
+      (let ((data (car (wisi-parser-errors parser))))
+	(setf (wisi--error-deleted data) (append (wisi--error-deleted data) (list tok)))
+	))
     (when (> wisi-debug 1)
       (message "Discard_Lookahead/ %s" (wisi-tok-debug-image tok)))
     ))
@@ -289,6 +300,10 @@ from TOKEN-TABLE."
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (wisi-process-parse--pop-stack parser)))
     (wisi-process-parse--check-id "Discard_Stack" (wisi-process--parser-token-table parser) tok (aref sexp 1))
+    (when (wisi-process--parser-error-active parser)
+      (let ((data (car (wisi-parser-errors parser))))
+	(setf (wisi--error-popped data) (append (wisi--error-popped data) (list tok)))
+	))
     (when (> wisi-debug 1)
       (message "Discard_Stack %s" (wisi-tok-debug-image tok)))
     ))
@@ -367,6 +382,20 @@ from TOKEN-TABLE."
 	(funcall action (wisi-tok-token nonterm) tokens-2)))
     ))
 
+(defun wisi-process-parse--Recover (parser sexp)
+  ;; sexp is [Recover [inserted ...]]
+  ;; see ‘wisi-process-parse--execute’
+  ;; so far, we don’t need to track the invalid region
+  ;; popped, deleted are set in --Discard_Lookahead, --Discard_Stack above.
+  (setf (wisi-process--parser-error-active parser) nil)
+
+  (let* ((token-table (wisi-process--parser-token-table parser))
+	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1)))
+	 (data (car (wisi-parser-errors parser))))
+
+    (setf (wisi--error-inserted data) elisp-ids)
+    ))
+
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
   ;; sexp is an encoded version of a semantic state or production action
@@ -424,7 +453,12 @@ from TOKEN-TABLE."
   ;;    (nonterm_id, production_index) with wisi-nonterm, wisi-tokens
   ;;    bound to nonterm, tokens.
   ;;
-  ;; Recover not used. FIXME: cache and reuse.
+  ;; [Recover [inserted_id ...]]
+  ;;    The parser finished a successful error recovery. Tokens popped
+  ;;    off the parse stack (deleted before error point) are reported
+  ;;    in Discard_Stack, tokens deleted after error point in
+  ;;    Discard_Lookahead. Virtual tokens inserted before error report
+  ;;    are reported here. Mark the end of an invalid buffer region.
   ;;
   ;; where:
   ;; Lexer_To_Lookahead   =  1
@@ -434,7 +468,7 @@ from TOKEN-TABLE."
   ;; Discard_Lookahead 	  =  5
   ;; Discard_Stack 	  =  6
   ;; Reduce_Stack 	  =  7
-  ;; Recover 		  =  8 ;; not used
+  ;; Recover 		  =  8
   ;;
   ;; nonterm_id, *id - token_id’pos; index into token-table (process 1 origin)
   ;; production_index - index into action-table for nonterm (process 0 origin)
@@ -447,7 +481,7 @@ from TOKEN-TABLE."
     (5  (wisi-process-parse--Discard_Lookahead parser sexp))
     (6  (wisi-process-parse--Discard_Stack parser sexp))
     (7  (wisi-process-parse--Reduce_Stack parser sexp))
-    ;; 8 recover not used
+    (8  (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main
@@ -467,6 +501,12 @@ from TOKEN-TABLE."
   ;; throw an error either; there is no syntax error.
   (if (wisi-process--parser-busy parser)
       (progn
+	(push
+	 (make-wisi--error
+	  :pos 0
+	  :message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
+			   (file-name-nondirectory (buffer-file-name)) 1 1))
+	 (wisi-parser-errors parser))
 	(message "%s parse abandoned; parser busy" wisi--parse-action)
 	(goto-char (point-min))
 	;; Leaving point at point-min sets wisi-cache-max to
@@ -493,10 +533,12 @@ from TOKEN-TABLE."
 
 	  (setf (wisi-process--parser-busy parser) t)
 
-	  (setf (wisi-parser-error-msgs parser) nil)
+	  ;; reset parser
+	  (setf (wisi-parser-errors parser) nil)
 	  (queue-clear (wisi-process--parser-lexer-queue parser))
 	  (queue-clear (wisi-process--parser-lookahead-queue parser))
 	  (queue-clear (wisi-process--parser-parse-stack parser))
+	  (setf (wisi-process--parser-error-active parser) nil)
 
 	  (wisi-process-parse--send-parse parser)
 
@@ -542,7 +584,7 @@ from TOKEN-TABLE."
 		      (cond
 		       ((equal '(parse_error) action)
 			;; Parser detected a syntax error, and recovery failed, so signal it.
-			(signal 'wisi-parse-error (pop (wisi-parser-error-msgs parser))))
+			(signal 'wisi-parse-error (wisi--error-message (car (wisi-parser-errors parser)))))
 
 		       (t
 			;; Some other error
@@ -555,7 +597,7 @@ from TOKEN-TABLE."
 		  ))
 
 	       (t
-		;; debug output, error message
+		;; debug output
 		(forward-line 1)
 		(setq sexp-start (point)))
 	       )

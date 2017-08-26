@@ -20,59 +20,53 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst gpr-grammar-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("abstract" . ABSTRACT)
-     ("aggregate" . AGGREGATE)
-     ("case" . CASE)
-     ("configuration" . CONFIGURATION)
-     ("end" . END)
-     ("extends" . EXTENDS)
-     ("external" . EXTERNAL)
-     ("external_as_list" . EXTERNAL_AS_LIST)
-     ("for" . FOR)
-     ("is" . IS)
-     ("(" . LEFT_PAREN)
-     ("library" . LIBRARY)
-     ("null" . NULL)
-     ("others" . OTHERS)
-     ("package" . PACKAGE)
-     ("project" . PROJECT)
-     ("renames" . RENAMES)
-     (")" . RIGHT_PAREN)
-     ("standard" . STANDARD)
-     ("type" . TYPE)
-     ("use" . USE)
-     ("when" . WHEN)
-     ("with" . WITH)
-     )
-   nil))
+(defconst gpr-grammar-elisp-keyword-table-raw
+  '(
+   ("abstract" . ABSTRACT)
+   ("aggregate" . AGGREGATE)
+   ("case" . CASE)
+   ("configuration" . CONFIGURATION)
+   ("end" . END)
+   ("extends" . EXTENDS)
+   ("external" . EXTERNAL)
+   ("external_as_list" . EXTERNAL_AS_LIST)
+   ("for" . FOR)
+   ("is" . IS)
+   ("(" . LEFT_PAREN)
+   ("library" . LIBRARY)
+   ("null" . NULL)
+   ("others" . OTHERS)
+   ("package" . PACKAGE)
+   ("project" . PROJECT)
+   ("renames" . RENAMES)
+   (")" . RIGHT_PAREN)
+   ("standard" . STANDARD)
+   ("type" . TYPE)
+   ("use" . USE)
+   ("when" . WHEN)
+   ("with" . WITH)
+   ))
 
-
-(defconst gpr-grammar-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (AMPERSAND . "&")
-      (COLON . ":")
-      (COLON_EQUALS . ":=")
-      (COMMA . ",")
-      (DOT . ".")
-      (EQUAL_GREATER . "=>")
-      (QUOTE . "'")
-      (SEMICOLON . ";")
-      (VERTICAL_BAR . "|")
-      )
-     ("symbol"
-      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     ("string-double"
-      (STRING_LITERAL . "\"[^\"]*\"")
-      )
-     )
-   nil))
-
+(defconst gpr-grammar-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (AMPERSAND . "&")
+    (COLON . ":")
+    (COLON_EQUALS . ":=")
+    (COMMA . ",")
+    (DOT . ".")
+    (EQUAL_GREATER . "=>")
+    (QUOTE . "'")
+    (SEMICOLON . ";")
+    (VERTICAL_BAR . "|")
+    )
+   ("symbol"
+    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ("string-double"
+    (STRING_LITERAL . "\"[^\"]*\"")
+    )
+   ))
 
 (defconst gpr-grammar-elisp-parse-table
    (wisi-compile-grammar
@@ -528,5 +522,4 @@
   "Parser table.")
 
 (provide 'gpr-grammar-elisp)
-
 ;; end of file
