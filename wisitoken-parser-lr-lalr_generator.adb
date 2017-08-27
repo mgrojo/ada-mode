@@ -731,9 +731,7 @@ package body WisiToken.Parser.LR.LALR_Generator is
             Delete            => (others => 0.0),
             Enqueue_Limit     => Default_McKenzie_Param.Enqueue_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
-            Patterns          => LR.Patterns.Empty_List,
-            Dot_ID            => Default_McKenzie_Param.Dot_ID,
-            Identifier_ID     => Default_McKenzie_Param.Identifier_ID);
+            Patterns          => LR.Patterns.Empty_List);
       else
          Table.McKenzie := McKenzie_Param;
       end if;

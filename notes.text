@@ -8,30 +8,31 @@ org.wisitoken.stephe-1 - development
 new test cases:
      package Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
         missing 'new'
+        wisi/test/debug.adb
 
-   procedure Apply_Pattern
-     (Pattern : in Recover_Pattern_1;
-      Parser : in LR.Instance'Class;
-      Parser_State : in out Parser_Lists.Parser_State;
-      Error_ID in Token_ID;
-      Config out configuration)
-        missing two ':'; invoked align in parens
-            => ada-wisi-scan-paramlist: Wrong type argument: integer-or-marker-p, nil
+        error on '.' it thinks "Ada" is starting an object declaration in a procedure
 
-              if and
+        when a spawned parser dies, keep it around for mckenzie.check_limit tokens, include in error recovery.
+
+        in Check, treat 'name' as one token
+
+    ---------------
+     if and
         Expecting (Pattern.Expecting) and
         Count (Expecting) = 1
-      then
+     then
             missing 'expr'; invoked forward-sexp from 'if'
                 not expr_opt to avoid conflicts?
                 need insert nonterm!
                 or delete 'and' :)
 
+    ---------------------
          if Item (I) then
             Result := Result + 1;
          end if;
-            start entering from begining, parse after each word
+            start typing from begining, parse after each word
 
+    ------------------
     'if **'
 
 want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle it

@@ -233,7 +233,9 @@ package body Wisi.Gen_Output_Ada_Common is
          if -Kind.Kind = """line_comment""" then
             for Item of Kind.Tokens loop
                --  Tell Aflex to count comment lines (sigh).
-               Put_Line (Strip_Quotes (-Item.Value) & " {         Tok_End_Line := Tok_End_Line + 1;}");
+               Put_Line
+                 (Strip_Quotes (-Item.Value) &
+                    " {         Tok_End_Line := Tok_End_Line + 1; Token_At_End_Of_Line := True;}");
             end loop;
 
          elsif -Kind.Kind = """whitespace""" then
@@ -508,9 +510,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Delete", Table.McKenzie.Delete);
          Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");
          Indent_Line ("Check_Limit   =>" & Integer'Image (Table.McKenzie.Check_Limit) & ",");
-         Indent_Line ("Patterns      => WisiToken.Parser.LR.Patterns.Empty_List,");
-         Indent_Line ("Dot_ID        =>" & WisiToken.Token_ID'Image (Table.McKenzie.Dot_ID) & ",");
-         Indent_Line ("Identifier_ID =>" & WisiToken.Token_ID'Image (Table.McKenzie.Identifier_ID) & ");");
+         Indent_Line ("Patterns      => WisiToken.Parser.LR.Patterns.Empty_List);");
          Indent := Indent - 3;
          New_Line;
 

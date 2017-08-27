@@ -532,7 +532,6 @@ package body Test_McKenzie_Recover is
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       --  FIXME: recover finds "insert 'case; end'"; need another pattern
-      --  FIXME: delete or document test of Dotted_Name special rule
       Parser.Table.McKenzie.Enqueue_Limit := 31; -- no pattern matching here
       begin
          Parse_Text

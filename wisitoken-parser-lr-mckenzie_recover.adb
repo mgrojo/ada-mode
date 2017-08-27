@@ -441,65 +441,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end;
    end Statement_Terminal_Sequence;
 
-   --  FIXME: make visible, add to some hook in .wy
-   function Dotted_Name
-     (Data         : in out McKenzie_Data;
-      Parser_State : in     Parser_Lists.Parser_State;
-      Config       :    out Configuration)
-     return Boolean
-   is
-      --  Assume Parser_State parser encountered an error at Current_Token.
-      --  If Parser_State.Stack, Current_Token match a dotted name that
-      --  errored on '.', set config to an appropriate root config,
-      --  and return True. Else return False.
-
-      Parser : LR.Instance'Class renames Data.Parser.all;
-      Param  : McKenzie_Param_Type renames Parser.Table.McKenzie;
-
-      Current_ID : constant Token_ID := Parser.Lookahead.Peek;
-   begin
-      if Param.Dot_ID = Default_McKenzie_Param.Dot_ID and
-        Param.Identifier_ID = Default_McKenzie_Param.Identifier_ID
-      then
-         --  This rule is not enabled
-         return False;
-      end if;
-
-      if Parser_State.Stack.Peek.ID = Param.Identifier_ID and
-        Current_ID = Param.Dot_ID
-      then
-         if Trace_Parse > 1 then
-            Parser.Semantic_State.Trace.Put_Line ("special rule Dotted_Name matched; insert IDENTIFIER");
-         end if;
-
-         --  Parser encountered something like:
-         --
-         --      loop ... end loop Parent.Child;
-         --
-         --  and errored on '.', expecting ';'. So we insert
-         --  'IDENTIFIER', so that normal McKenzie will find 'insert
-         --  ;' more quickly, and then '.' is legal.
-         --
-         --  We don't insert the semicolon as well, because there may
-         --  be other situations where the semicolon is wrong (ie,
-         --  association_opt in ada_lite.wy).
-         --
-         --  Ideally we would replace the identifier on the stack with
-         --  a dummy inserted one, leaving the real identifier to be
-         --  part of the dotted name; that would allow proper syntax
-         --  coloring etc. But this is close enough.
-
-         Config       := Default_Configuration;
-         Config.Stack := Parser_State.Stack;
-
-         Config.Local_Lookahead.Prepend (Param.Identifier_ID);
-         Config.Local_Lookahead_Index := 1;
-         return True;
-      else
-         return False;
-      end if;
-   end Dotted_Name;
-
    function Apply_Pattern
      (Pattern      : in     Recover_Pattern_1;
       Parser       : in     LR.Instance'Class;
@@ -591,8 +532,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Clear_Queue (Data);
 
-      if Dotted_Name (Data, Parser_State, Root_Config) or else
-        Statement_Terminal_Sequence (Parser, Parser_State, Data.Parser.Table.McKenzie, Root_Config) or else
+      if Statement_Terminal_Sequence (Parser, Parser_State, Data.Parser.Table.McKenzie, Root_Config) or else
         Patterns (Parser, Parser_State, Root_Config)
       then
          if Trace_Parse > 1 then

@@ -112,9 +112,7 @@ package Wisi is
       Check_Limit                : Integer := Integer'Last;
 
       --  For special rules
-      Dot_ID        : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Identifier_ID : Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Patterns      : Wisi.Patterns.List;
+      Patterns : Wisi.Patterns.List;
    end record;
 
    type Token_Kind_Type is record

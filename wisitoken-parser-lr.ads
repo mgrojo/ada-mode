@@ -207,9 +207,7 @@ package WisiToken.Parser.LR is
       Check_Limit   : Integer; -- max tokens to parse ahead when checking a configuration.
 
       --  For special rules
-      Patterns      : LR.Patterns.List;
-      Dot_ID        : Token_ID;
-      Identifier_ID : Token_ID;
+      Patterns : LR.Patterns.List;
    end record;
 
    Default_McKenzie_Param : constant McKenzie_Param_Type :=
@@ -221,9 +219,7 @@ package WisiToken.Parser.LR is
       Delete            => (others => 0.0),
       Enqueue_Limit     => Integer'Last,
       Check_Limit       => 1,
-      Patterns          => LR.Patterns.Empty_List,
-      Dot_ID            => Token_ID'Last,
-      Identifier_ID     => Token_ID'Last);
+      Patterns          => LR.Patterns.Empty_List);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
    --  Put Item to Ada.Text_IO.Current_Output

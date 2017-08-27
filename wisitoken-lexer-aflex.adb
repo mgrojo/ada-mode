@@ -76,8 +76,10 @@ package body WisiToken.Lexer.Aflex is
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
-   is begin
-      return (if Lexer.Enable_Line_Numbers then Ada.Text_IO.Count (YY_Begin_Line) else 0);
+   is
+      use all type Ada.Text_IO.Count;
+   begin
+      return (if Lexer.Enable_Line_Numbers then Ada.Text_IO.Count (YY_Begin_Line) - 1 else 0);
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count

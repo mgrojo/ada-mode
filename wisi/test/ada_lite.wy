@@ -132,9 +132,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %mckenzie_cost_insert END 1.0
 %mckenzie_cost_insert SEMICOLON 1.0
 
-;; Parameters for special recovery rules
-%mckenzie_dotted_name DOT IDENTIFIER
-
 ;; We are not likely to type 'end;' when meaning 'end if;'; more
 ;; likely to not be done entering 'if then else'. So if just pushed
 ;; 'end' on the stack, and enter error recovery on ';' expecting 'if',

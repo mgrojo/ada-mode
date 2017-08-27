@@ -564,15 +564,6 @@ package body Wisi.Gen_Generate_Utils is
       Result.Enqueue_Limit := Item.Enqueue_Limit;
       Result.Check_Limit   := Item.Check_Limit;
 
-      --  Dotted_Name special rule
-      if Length (Item.Dot_ID) = 0 then
-         Result.Dot_ID        := WisiToken.Parser.LR.Default_McKenzie_Param.Dot_ID;
-         Result.Identifier_ID := WisiToken.Parser.LR.Default_McKenzie_Param.Identifier_ID;
-      else
-         Result.Dot_ID        := Find_Token_ID (-Item.Dot_ID);
-         Result.Identifier_ID := Find_Token_ID (-Item.Identifier_ID);
-      end if;
-
       for Pattern of Item.Patterns loop
          if Pattern in Wisi.Recover_Pattern_1'Class then
             declare
