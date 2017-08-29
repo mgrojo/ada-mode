@@ -180,49 +180,48 @@
 %parser_algorithm LALR
 %output_language Elisp
 
-;; We want to recover from incomplete declarations and statements.
-%panic_recover handled_sequence_of_statements
-%panic_recover sequence_of_statements_opt
-%panic_recover declarations
-
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
 ;; Default insert, delete terminal, delete nonterminal cost.
-%mckenzie_cost_default 4.0 4.0 8.0
+%mckenzie_cost_default 4 4 8
 
 ;; Prefer inserting important/common keywords over identifiers and
 ;; operators to take advantage of empty expressions.
-%mckenzie_cost_insert BEGIN 3.0
-%mckenzie_cost_insert CASE 3.0
-%mckenzie_cost_insert DECLARE 3.0
-%mckenzie_cost_insert ELSE 3.0
-%mckenzie_cost_insert EXIT 3.0
-%mckenzie_cost_insert IS 3.0
-%mckenzie_cost_insert LEFT_PAREN 3.0
-%mckenzie_cost_insert RETURN 3.0
-%mckenzie_cost_insert THEN 3.0
-%mckenzie_cost_insert WHEN 3.0
+%mckenzie_cost_insert BEGIN 3
+%mckenzie_cost_insert CASE 3
+%mckenzie_cost_insert DECLARE 3
+%mckenzie_cost_insert ELSE 3
+%mckenzie_cost_insert EXIT 3
+%mckenzie_cost_insert IS 3
+%mckenzie_cost_insert LEFT_PAREN 3
+%mckenzie_cost_insert RETURN 3
+%mckenzie_cost_insert THEN 3
+%mckenzie_cost_insert WHEN 3
 
 ;; We often have an extra 'begin' while moving stuff around. Deleting
 ;; that requires popping it and the corresponding nonterm off the
 ;; parse stack. Similarly, we often have an extra 'end'; deleting that
 ;; is simple.
-%mckenzie_cost_delete BEGIN 1.0
-%mckenzie_cost_delete declarative_part_opt 1.0
-%mckenzie_cost_delete END 1.0
+%mckenzie_cost_delete BEGIN 1
+%mckenzie_cost_delete declarative_part_opt 1
+%mckenzie_cost_delete END 1
 
 ;; These can follow 'end', or start new statements
-%mckenzie_cost_insert IF 2.0
-%mckenzie_cost_insert LOOP 2.0
+%mckenzie_cost_insert IF 2
+%mckenzie_cost_insert LOOP 2
 
 ;; Most common paren error is missing closing paren.
-%mckenzie_cost_insert RIGHT_PAREN 1.0
+%mckenzie_cost_insert RIGHT_PAREN 1
 
 ;; Prefer inserting 'end', ';' over everything
-%mckenzie_cost_insert END 1.0
-%mckenzie_cost_insert SEMICOLON 1.0
+%mckenzie_cost_insert END 1
+%mckenzie_cost_insert SEMICOLON 1
 
-%mckenzie_enqueue_limit 100
+%mckenzie_cost_limit 10
+
+;; 4 causes test/ada_mode-recover_align_1.adb to fail; two errors
+;; close together.
+%mckenzie_check_limit 3
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW

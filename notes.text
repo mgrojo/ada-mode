@@ -38,22 +38,39 @@ run test from emacs -Q using source:
   (run-test "subprograms"))
 
  current work
-   procedure Apply_Pattern
-     (Pattern : in Recover_Pattern_1;
-      Parser : in LR.Instance'Class;
-      Parser_State : in out Parser_Lists.Parser_State;
-      Error_ID in Token_ID;
-      Config out configuration)
-        missing two ':'; invoked align in parens
-            => ada-wisi-scan-paramlist: Wrong type argument: integer-or-marker-p, nil
+emacs hangs occasionally
+    killing ada_mode_wisi_parse.exe recovers
+        race condition in wisi-process-parse, called from font-lock?
+        try disable face
 
-    in wisi.el, add wisi-repair-errors (region errors)
-        repair errors by editing text if they are in region
-        written; needs code to build wisi-lex-id-alist
+    with face disabled, got error message "wisi--run-parse: Writing to process"
+        *Ada_wisi_parse* had:
+;; 3 81 106 5
+(error "bad command: '3 81 106 5'")
+;;>
+(error "unhandled exception: ADA_MODE_WISI_PARSE.PROTOCOL_ERROR: invalid command byte count; '8p'")
+        pipe overflowed or something
 
-    in wisi-scan-paramlist, call wisi-repair-errors on paramlist region
+parser gets bad commands
+    due to dropped bytes
+    need better recovery
+        elisp notice "bad command" messages, kill parser
 
-    test/debug.adb
+    manual wisi-kill-parser did not
+        because sending a 'quit' command did not work
+        need to call kill-process (with Windows fix, sigh)
+
+navigation bug:
+
+   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
+   is begin
+      return (if Lexer.Enable_Line_Numbers then Ada.Text_IO.Count (YY_Begin_Line) - 1 else 0);
+   end Line;
+      operator not visible for ") - 1"; invoke fix => already at outermost containing
+
+    still losing case | when | end case sometimes
+
+    add loop | exit | end loop
 
 stricter "changed" check for 'face parse: edit affected a region with 'face property
     to handle new text that should have that property, compute face during indent

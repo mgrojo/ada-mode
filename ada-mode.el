@@ -274,12 +274,18 @@ indentation parser accepts."
 (defcustom ada-fill-comment-prefix "-- "
   "Comment fill prefix."
   :type 'string)
-(make-variable-buffer-local 'ada-language-version)
+(make-variable-buffer-local 'ada-fill-comment-prefix)
 
 (defcustom ada-fill-comment-postfix " --"
   "Comment fill postfix."
   :type 'string)
-(make-variable-buffer-local 'ada-language-version)
+(make-variable-buffer-local 'ada-fill-comment-postfix)
+
+(defcustom ada-fill-comment-adaptive nil
+  "If non-nil, comments are filled to the same width (not including indentation),
+rather than to the same column."
+  :type 'boolean
+  :safe #'booleanp)
 
 (defcustom ada-prj-file-extensions '("adp" "prj")
   "List of Emacs Ada mode project file extensions.
@@ -700,6 +706,7 @@ Function is called with one optional argument; syntax-ppss result.")
   (funcall indent-line-function); so new list is indented properly
 
   (let* ((begin (point))
+	 ;; We use markers here, in case eror correction moves ‘end’.
 	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren
 	 (end (copy-marker
 	       (progn (backward-char) (forward-comment (- (point))) (point)))); end of last parameter-declaration
@@ -2713,9 +2720,11 @@ The paragraph is indented on the first line."
 	 ;; setting it in ada-mode causes indent-region to use it for
 	 ;; all indentation.
 	 (fill-prefix ada-fill-comment-prefix)
-	 (fill-column (current-fill-column)))
-
-    ;; We should run before-change-functions here, but we don't know from/to yet.
+	 (fill-column (if ada-fill-comment-adaptive
+			  (save-excursion
+			    (back-to-indentation)
+			    (+ (current-column) fill-column))
+			(current-fill-column))))
 
     ;;  Find end of comment paragraph
     (back-to-indentation)
@@ -2970,12 +2979,18 @@ The paragraph is indented on the first line."
 (defvar ada-parser nil
   "Indicate parser and lexer to use for Ada buffers:
 
-elisp : wisi parser and lexer implemented in elisp, fallback gps
-  external parser for indent.
+elisp : wisi parser and lexer implemented in elisp.
 
 process : wisi elisp lexer, external process parser specified
   by ‘ada-process-parse-exec ’.
 ")
+
+(defvar ada-fallback nil
+  "Indicate fallback indentation engine for Ada buffers.
+
+simple: indent to previous line.
+
+gps: gps external parser.")
 
 (provide 'ada-mode)
 
@@ -2983,9 +2998,14 @@ process : wisi elisp lexer, external process parser specified
 
 (require 'ada-build)
 
-(if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
-    (require 'ada-gps)
-  (require 'ada-wisi))
+(cl-case ada-fallback
+  (simple
+   (require 'ada-wisi))
+  (t
+   (if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
+       (require 'ada-gps)
+     (require 'ada-wisi)))
+  )
 
 (cl-case ada-parser
   (elisp nil)

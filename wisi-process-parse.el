@@ -160,12 +160,11 @@ If not found in ‘wisi-process--alist’, create using other parameters."
   "Send a parse command to PARSER external process, followed by
 the tokens returned by ‘wisi-forward-token’ in the current
 buffer.  Does not wait for command to complete."
-  (let* ((cmd (format "parse \"%s\" %d %d %d %d"
+  (let* ((cmd (format "parse \"%s\" %d %d %d"
 		      (buffer-name)
-		      wisi-debug
-		      (if wisi-panic-enable 1 0)
+		      (1- wisi-debug)
 		      (if wisi-mckenzie-enable 1 0)
-		      (if wisi-mckenzie-enqueue-limit wisi-mckenzie-enqueue-limit -1)
+		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      ))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser))
@@ -258,6 +257,18 @@ from TOKEN-TABLE."
     (when (> wisi-debug 1)
       (message "Push_Current %s" (wisi-tok-debug-image tok)))
     ))
+
+(defun wisi-process-parse--Begin_Parallel_Parse (parser sexp)
+  ;; sexp is  [Begin_Parallel_Parse id]
+  ;; see ‘wisi-process-parse--execute’
+  ;; FIXME: definition is wrong; waiting for better
+)
+
+(defun wisi-process-parse--End_Parallel_Parse (parser sexp)
+  ;; sexp is  [End_Parallel_Parse id]
+  ;; see ‘wisi-process-parse--execute’
+  ;; FIXME: definition is wrong; waiting for better
+)
 
 (defun wisi-process-parse--Error (parser sexp)
   ;; sexp is [Error [expected_id ...]]
@@ -425,6 +436,14 @@ from TOKEN-TABLE."
   ;;    the current token from front of the elisp lookahead queue,
   ;;    push it on the elisp augmented token parse stack.
   ;;
+  ;; [Begin_Parallel_Parse]
+  ;;    Parser has started parallel parsing; save front of lookahead
+  ;;    queue as error token if Error called. FIXME: wrong; parser can
+  ;;    advance!
+  ;;
+  ;; [End_Parallel_Parse]
+  ;;    Parser has finished parallel parsing
+  ;;
   ;; [Error [expected_id ...]]
   ;;    The token at the front of the parser input queue caused a
   ;;    syntax error; save information for later
@@ -460,15 +479,7 @@ from TOKEN-TABLE."
   ;;    Discard_Lookahead. Virtual tokens inserted before error report
   ;;    are reported here. Mark the end of an invalid buffer region.
   ;;
-  ;; where:
-  ;; Lexer_To_Lookahead   =  1
-  ;; Virtual_To_Lookahead =  2
-  ;; Push_Current 	  =  3
-  ;; Error 		  =  4
-  ;; Discard_Lookahead 	  =  5
-  ;; Discard_Stack 	  =  6
-  ;; Reduce_Stack 	  =  7
-  ;; Recover 		  =  8
+  ;; Numeric operation codes given in case expression below
   ;;
   ;; nonterm_id, *id - token_id’pos; index into token-table (process 1 origin)
   ;; production_index - index into action-table for nonterm (process 0 origin)
@@ -477,11 +488,13 @@ from TOKEN-TABLE."
     (1  (wisi-process-parse--Lexer_To_Lookahead parser sexp))
     (2  (wisi-process-parse--Virtual_To_Lookahead parser sexp))
     (3  (wisi-process-parse--Push_Current parser sexp))
-    (4  (wisi-process-parse--Error parser sexp))
-    (5  (wisi-process-parse--Discard_Lookahead parser sexp))
-    (6  (wisi-process-parse--Discard_Stack parser sexp))
-    (7  (wisi-process-parse--Reduce_Stack parser sexp))
-    (8  (wisi-process-parse--Recover parser sexp))
+    (4  (wisi-process-parse--Begin_Parallel_Parse parser sexp))
+    (5  (wisi-process-parse--End_Parallel_Parse parser sexp))
+    (6  (wisi-process-parse--Error parser sexp))
+    (7  (wisi-process-parse--Discard_Lookahead parser sexp))
+    (8  (wisi-process-parse--Discard_Stack parser sexp))
+    (9  (wisi-process-parse--Reduce_Stack parser sexp))
+    (10 (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main

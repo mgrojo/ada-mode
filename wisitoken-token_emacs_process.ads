@@ -61,6 +61,12 @@ package WisiToken.Token_Emacs_Process is
       ID    : in     Token_ID);
 
    overriding
+   procedure Begin_Parallel_Parse (State : access State_Type);
+
+   overriding
+   procedure End_Parallel_Parse (State : access State_Type);
+
+   overriding
    procedure Error
      (State     : access State_Type;
       Expecting : in     Token_ID_Set);

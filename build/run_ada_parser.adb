@@ -16,7 +16,7 @@ is
    procedure Put_Usage
    is begin
       Put_Line
-        ("run_ada_parser <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>");
+        ("run_ada_parser <verbosity> <enable_mckenzie> <mckenzie_cost_limit> <file_name>");
       Put_Line ("<enable_*>: 0 or 1");
    end Put_Usage;
 
@@ -25,13 +25,13 @@ is
    Feeder : WisiToken.Text_Feeder.Text_Feeder_Ptr;
    Parser : WisiToken.Parser.LR.Parser.Instance;
 begin
-   if Argument_Count /= 5 then
+   if Argument_Count /= 4 then
       Put_Usage;
       Set_Exit_Status (Failure);
       return;
    end if;
 
-   File_Name             := To_Unbounded_String (Argument (5));
+   File_Name             := To_Unbounded_String (Argument (4));
    WisiToken.Trace_Parse := Integer'Value (Argument (1));
 
    Feeder := WisiToken.Text_Feeder.Text_IO.Create (To_String (File_Name));
@@ -45,11 +45,10 @@ begin
    end if;
 
    Parser.Lexer.Enable_Line_Numbers := True;
-   Parser.Enable_Panic_Recover      := Argument (2) /= "0";
-   Parser.Enable_McKenzie_Recover   := Argument (3) /= "0";
+   Parser.Enable_McKenzie_Recover   := Argument (2) /= "0";
 
-   if Argument (4) /= "-1" then
-      Parser.Table.McKenzie.Enqueue_Limit := Integer'Value (Argument (4));
+   if Argument (3) /= "-1" then
+      Parser.Table.McKenzie.Cost_Limit := Integer'Value (Argument (3));
    end if;
 
    Parser.Parse;

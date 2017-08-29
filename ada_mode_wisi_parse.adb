@@ -57,12 +57,12 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-        ("NNparse ""<buffer-name>"" <verbosity> <panic_enable> <mckenzie_enable> <mckenzie_enqueue_limit> <tokens>");
+        ("NNparse ""<buffer-name>"" <verbosity> <mckenzie_enable> <mckenzie_cost_limit> <tokens>");
       Put_Line ("  NN excludes <tokens>");
       Put_Line ("  <buffer-name> used in error messages");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
       Put_Line ("  <*_enable> is {0 | 1}; enable error recovery algorithm");
-      Put_Line ("  <mckenzie_enqueue_limit> is an integer; if -1, use value from grammar file.");
+      Put_Line ("  <mckenzie_cost_limit> is an integer; if -1, use value from grammar file.");
       Put_Line ("  outputs: elisp vectors for parser actions or elisp forms for errors.");
       Put_Line ("  See wisi-process-parse-execute for details.");
       New_Line;
@@ -200,7 +200,7 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <buffer_name> <verbosity> <panic_enable> <mckenzie_enable> <mckenzie_enqueue_limit>
+            --  Args: <buffer_name> <verbosity> <mckenzie_enable> <mckenzie_cost_limit>
             --  Input: <token id>...
             --  Response:
             --  [parse action elisp vector]...
@@ -209,14 +209,13 @@ begin
             declare
                Buffer_Name : constant String := Get_String (Command_Line, Last);
                pragma Unreferenced (Buffer_Name); --  FIXME: delete arg.
-               Enqueue_Limit : Integer;
+               Cost_Limit : Integer;
             begin
-               WisiToken.Trace_Parse               := Get_Integer (Command_Line, Last);
-               Parser.Enable_Panic_Recover         := 1 = Get_Integer (Command_Line, Last);
-               Parser.Enable_McKenzie_Recover      := 1 = Get_Integer (Command_Line, Last);
-               Enqueue_Limit := Get_Integer (Command_Line, Last);
-               if Enqueue_Limit > 0 then
-                  Parser.Table.McKenzie.Enqueue_Limit := Enqueue_Limit;
+               WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);
+               Parser.Enable_McKenzie_Recover := 1 = Get_Integer (Command_Line, Last);
+               Cost_Limit                  := Get_Integer (Command_Line, Last);
+               if Cost_Limit > 0 then
+                  Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
                end if;
                Parser.Lexer.Reset;
                Parser.Parse;

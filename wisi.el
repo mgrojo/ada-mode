@@ -112,6 +112,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'compile)
 (require 'wisi-parse-common)
 (require 'wisi-elisp-parse)
 (require 'wisi-process-parse)
@@ -156,6 +157,12 @@ Useful when debugging parser or parser actions."
   :type 'boolean
   :group 'wisi
   :safe 'booleanp)
+
+(defconst wisi-error-buffer-name "*wisi syntax errors*"
+  "Name of buffer for displaying syntax errors.")
+
+(defvar wisi-error-buffer nil
+  "Buffer for displaying syntax errors.")
 
 ;;;; elisp lexer
 
@@ -846,12 +853,41 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
        ))))
 
 (defun wisi-show-parse-error ()
-  "Show last wisi-parse error."
+  "Show current wisi-parse errors."
   (interactive)
   (cond
    ((wisi-parser-errors wisi--parser)
-    (wisi-goto-error)
-    (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
+    (if (= 1 (length (wisi-parser-errors wisi--parser)))
+	(progn
+	  (wisi-goto-error)
+	  (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
+
+      ;; else show all errors in a ’compilation’ buffer
+      (setq wisi-error-buffer (get-buffer-create wisi-error-buffer-name))
+
+      (let ((errs (nreverse (cl-copy-seq (wisi-parser-errors wisi--parser)))))
+	(with-current-buffer wisi-error-buffer
+	  (compilation-mode)
+	  (setq next-error-last-buffer (current-buffer))
+	  (setq buffer-read-only nil)
+	  (erase-buffer)
+	  ;; compilation-nex-error-function assumes there is not an
+	  ;; error at point min, so we need a comment.
+	  (insert "wisi syntax errors")
+	  (newline)
+	  (dolist (err errs)
+	    (insert (wisi--error-message err))
+	    (newline)
+	    (newline))
+	  (compilation--flush-parse (point-min) (point-max))
+	  (compilation--ensure-parse (point-max))
+	  (setq buffer-read-only t)
+	  (goto-char (point-min)))
+	;; FIXME: specify display parameters to limit buffer height,
+	;; while still allowing other-frame-window
+	(display-buffer wisi-error-buffer)
+	(next-error))
+      ))
 
    ((wisi-parse-try wisi--last-parse-action)
     (message "need parse"))
@@ -885,6 +921,13 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 		       (line-number-at-pos (point))))))
     (when (> wisi-debug 0)
       (message msg))
+
+    (unless (eq wisi--parse-action 'face)
+      (when (buffer-live-p wisi-error-buffer)
+	(with-current-buffer wisi-error-buffer
+	  (setq buffer-read-only nil)
+	  (erase-buffer)
+	  (setq buffer-read-only t))))
 
     (condition-case-unless-debug err
 	(save-excursion

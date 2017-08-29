@@ -61,7 +61,7 @@ For use in grammar actions.")
   "wisi debug mode:
 0 : normal - ignore parse errors, for indenting new code
 1 : report parse errors (for running tests)
-2 : show parse states, position point at parse errors, debug-on-error works in parser
+2 : show parse states, position point at parse errors
 3 : also show top 10 items of parser stack.")
 
 ;; The following parameters are easily changeable for debugging.
@@ -71,14 +71,14 @@ For use in grammar actions.")
 (defvar-local wisi-mckenzie-enable nil
   "If non-nil, enable McKenzie error recovery.")
 
-(defcustom wisi-mckenzie-enqueue-limit nil
+(defcustom wisi-mckenzie-cost-limit nil
   "If integer, sets McKenzie recover algorithm limit.
 Higher value has more recover power, but takes longer.
 If nil, uses value from grammar file."
   :type 'integer
   :group 'wisi
   :safe 'integerp)
-(make-variable-buffer-local 'wisi-mckenzie-enqueue-limit)
+(make-variable-buffer-local 'wisi-mckenzie-cost-limit)
 
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size")

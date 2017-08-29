@@ -29,11 +29,13 @@ package body WisiToken.Token_Emacs_Process is
    Lexer_To_Lookahead_Code   : constant String := "1 ";
    Virtual_To_Lookahead_Code : constant String := "2 ";
    Push_Current_Code         : constant String := "3 ";
-   Error_Code                : constant String := "4 ";
-   Discard_Lookahead_Code    : constant String := "5 ";
-   Discard_Stack_Code        : constant String := "6 ";
-   Reduce_Stack_Code         : constant String := "7 ";
-   Recover_Code              : constant String := "8 ";
+   Begin_Parallel_Parse_Code : constant String := "4 ";
+   End_Parallel_Parse_Code   : constant String := "5 ";
+   Error_Code                : constant String := "6 ";
+   Discard_Lookahead_Code    : constant String := "7 ";
+   Discard_Stack_Code        : constant String := "8 ";
+   Reduce_Stack_Code         : constant String := "9 ";
+   Recover_Code              : constant String := "10 ";
 
    function To_Code (ID : in Token_ID) return String
    is begin
@@ -141,6 +143,22 @@ package body WisiToken.Token_Emacs_Process is
    begin
       Ada.Text_IO.Put_Line ("[" & Push_Current_Code & To_Code (ID) & "]");
    end Push_Current;
+
+   overriding
+   procedure Begin_Parallel_Parse (State : access State_Type)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Begin_Parallel_Parse_Code & "]");
+   end Begin_Parallel_Parse;
+
+   overriding
+   procedure End_Parallel_Parse (State : access State_Type)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & End_Parallel_Parse_Code & "]");
+   end End_Parallel_Parse;
 
    overriding
    procedure Error
