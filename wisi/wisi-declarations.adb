@@ -34,22 +34,22 @@ is
 
    use Standard.Ada.Strings.Fixed;
 
-   Conflict_Str               : constant String := "%conflict";
-   First_Parser_Label_Str     : constant String := "%first_parser_label";
-   First_State_Index_Str      : constant String := "%first_state_index";
-   Interface_Str              : constant String := "%interface";
-   Keyword_Str                : constant String := "%keyword";
-   Lexer_Str                  : constant String := "%lexer";
-   McKenzie_Cost_Default_Str  : constant String := "%mckenzie_cost_default";
-   McKenzie_Cost_Delete_Str   : constant String := "%mckenzie_cost_delete";
-   McKenzie_Cost_Insert_Str   : constant String := "%mckenzie_cost_insert";
-   McKenzie_Enqueue_Limit_Str : constant String := "%mckenzie_enqueue_limit";
-   McKenzie_Check_Limit_Str   : constant String := "%mckenzie_check_limit";
-   Output_Language_Str        : constant String := "%output_language";
-   Parser_Algorithm_Str       : constant String := "%parser_algorithm";
-   Recover_Pattern_1_Str      : constant String := "%recover_pattern_1";
-   Start_Str                  : constant String := "%start";
-   Token_Str                  : constant String := "%token";
+   Conflict_Str              : constant String := "%conflict";
+   First_Parser_Label_Str    : constant String := "%first_parser_label";
+   First_State_Index_Str     : constant String := "%first_state_index";
+   Interface_Str             : constant String := "%interface";
+   Keyword_Str               : constant String := "%keyword";
+   Lexer_Str                 : constant String := "%lexer";
+   McKenzie_Check_Limit_Str  : constant String := "%mckenzie_check_limit";
+   McKenzie_Cost_Default_Str : constant String := "%mckenzie_cost_default";
+   McKenzie_Cost_Delete_Str  : constant String := "%mckenzie_cost_delete";
+   McKenzie_Cost_Insert_Str  : constant String := "%mckenzie_cost_insert";
+   McKenzie_Cost_Limit_Str   : constant String := "%mckenzie_cost_limit";
+   Output_Language_Str       : constant String := "%output_language";
+   Parser_Algorithm_Str      : constant String := "%parser_algorithm";
+   Recover_Pattern_1_Str     : constant String := "%recover_pattern_1";
+   Start_Str                 : constant String := "%start";
+   Token_Str                 : constant String := "%token";
 
    function Index_Blank (Source : in String; From : in Positive) return Natural
    is begin
@@ -143,6 +143,9 @@ begin
                end;
             end if;
 
+         elsif Match (McKenzie_Check_Limit_Str) then
+            McKenzie_Recover.Check_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
+
          elsif Match (McKenzie_Cost_Default_Str) then
             declare
                Insert_First      : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
@@ -150,9 +153,9 @@ begin
                Delete_Term_First : constant Integer := Index_Non_Blank (Line, Insert_Last + 1);
                Delete_Term_Last  : constant Integer := -1 + Index_Blank (Line, Delete_Term_First);
             begin
-               McKenzie_Recover.Default_Insert := Float'Value (Line (Insert_First .. Insert_Last));
-               McKenzie_Recover.Default_Delete_Terminal := Float'Value (Line (Delete_Term_First .. Delete_Term_Last));
-               McKenzie_Recover.Default_Delete_Nonterminal := Float'Value (Line (Delete_Term_Last + 1 .. Line'Last));
+               McKenzie_Recover.Default_Insert := Natural'Value (Line (Insert_First .. Insert_Last));
+               McKenzie_Recover.Default_Delete_Terminal := Natural'Value (Line (Delete_Term_First .. Delete_Term_Last));
+               McKenzie_Recover.Default_Delete_Nonterminal := Natural'Value (Line (Delete_Term_Last + 1 .. Line'Last));
             end;
 
          elsif Match (McKenzie_Cost_Delete_Str) then
@@ -175,11 +178,8 @@ begin
                    Value => +Line (Keyword_Last + 1 .. Line'Last)));
             end;
 
-         elsif Match (McKenzie_Enqueue_Limit_Str) then
-            McKenzie_Recover.Enqueue_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
-
-         elsif Match (McKenzie_Check_Limit_Str) then
-            McKenzie_Recover.Check_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
+         elsif Match (McKenzie_Cost_Limit_Str) then
+            McKenzie_Recover.Cost_Limit := Integer'Value (Line (Key_Last + 1 .. Line'Last));
 
          elsif Match (Output_Language_Str) then
             if Generate_Params.Output_Language = None then

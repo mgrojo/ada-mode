@@ -542,27 +542,28 @@ package body Wisi.Gen_Generate_Utils is
    is
       use Standard.Ada.Strings.Unbounded;
 
-      Result : WisiToken.Parser.LR.McKenzie_Param_Type
+      Result : WisiToken.Parser.LR.McKenzie_Param_Type :=
+        --  We use an aggregate, and overwrite some below, so the compiler
+        --  reminds us to change this when we modify McKenzie_Param_Type.
         (LR1_Descriptor.First_Terminal,
          LR1_Descriptor.Last_Terminal,
          LR1_Descriptor.First_Nonterminal,
-         LR1_Descriptor.Last_Nonterminal);
+         LR1_Descriptor.Last_Nonterminal,
+         Insert      => (others => Item.Default_Insert),
+         Delete      => (others => Item.Default_Delete_Terminal),
+         Cost_Limit  => Item.Cost_Limit,
+         Check_Limit => Item.Check_Limit,
+         Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
    begin
-      Result.Insert := (others => Item.Default_Insert);
-
-      Result.Delete (Result.First_Terminal .. Result.Last_Terminal) := (others => Item.Default_Delete_Terminal);
-
       Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
         (others => Item.Default_Delete_Nonterminal);
 
       for Pair of Item.Delete loop
-         Result.Delete (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
+         Result.Delete (Find_Token_ID (-Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
       for Pair of Item.Insert loop
-         Result.Insert (Find_Token_ID (-Pair.Name)) := Float'Value (-Pair.Value);
+         Result.Insert (Find_Token_ID (-Pair.Name)) := Natural'Value (-Pair.Value);
       end loop;
-      Result.Enqueue_Limit := Item.Enqueue_Limit;
-      Result.Check_Limit   := Item.Check_Limit;
 
       for Pattern of Item.Patterns loop
          if Pattern in Wisi.Recover_Pattern_1'Class then

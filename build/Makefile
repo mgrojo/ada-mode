@@ -29,9 +29,14 @@ t_all : test_all_harness.run
 one-clean :
 	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
+#one : export Standard_Common_Build := Debug
 #one : one-clean
 one :
 	./wisi-generate.exe -v 2 --output_language Ada_Emacs --lexer Elisp --interface process ../wisi/test/conflict_name.wy
+
+two : RUN_ARGS ?= 2 1 -1
+two : ada_lite_yylex.adb run_ada_lite_parser.exe
+	./run_ada_lite_parser.exe $(RUN_ARGS) ../wisi/test/debug.adb
 
 some-clean :
 	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))
@@ -39,7 +44,7 @@ some : export Standard_Common_Build := Debug
 some : some-clean
 #some : RUN_ARGS := -v 4
 # some : aflex.exe
-some : wisi-generate.exe
+# some : wisi-generate.exe
 # some : SOME_CLEAN_FILE += case_expression
 # some : case_expression_yylex.adb
 # some : case_expression-parse.diff
@@ -74,6 +79,8 @@ some : wisi-generate.exe
 # some : SOME_CLEAN_FILE += identifier_list_name_conflict
 # some : identifier_list_name_conflict_yylex.adb
 # some : identifier_list_name_conflict-parse.diff
+# some : SOME_CLEAN_FILE += subprograms-process
+# some : subprograms-process.el.diff
 
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html
@@ -84,12 +91,12 @@ tag :
 	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
 
 trace :
-	addr2line -e test_all_harness.exe 0x5e5247 0x76f5fe6f 0x76f5fe41 0x76f605bd 0x46e15f 0x403271 0x4034f2 0x4013db 0x759e7c02 0x76f7ab8d 0x76f7ab58
+	addr2line -e test_one_harness.exe 0x58e767 0x76fdff3f 0x76fdff11 0x76fe068d 0x4016e5 0x4028c1 0x4013db 0x76a97c02 0x76ffad2d 0x76ffacf8
 
 include ../../org.stephe_leake.makerules/texinfo_rules.make
 include rules.make
 
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
-# end:
+# End:
 # end of file

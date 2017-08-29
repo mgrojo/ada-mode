@@ -22,7 +22,7 @@ pragma License (GPL);
 with AUnit.Test_Cases;
 package Dragon_4_45_LALR_Test is
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

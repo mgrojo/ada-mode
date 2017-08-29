@@ -40,7 +40,7 @@ package body Test_McKenzie_Recover is
      (WisiToken.LALR,
       Text_Feeder => String_Feeder'Access);
 
-   Orig_Enqueue_Limit : Integer;
+   Orig_Cost_Limit : Integer;
    Orig_Check_Limit   : Integer;
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
@@ -118,7 +118,10 @@ package body Test_McKenzie_Recover is
       --                1        |10       |20       |30       |40
       --  Missing "if" in "end if;"
       --
-      --  error 1 at ';' 39. Inserts 'if', succeeds.
+      --  This not a likely error, so the pattern rule for the likely error
+      --  (missing 'end if;') matches, but then immediately fails.
+      --
+      --  error 1 at ';' 39, expecting 'if'. Inserts 'if', succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
    exception
@@ -136,19 +139,24 @@ package body Test_McKenzie_Recover is
       use all type WisiToken.Region_Lists.Cursor;
    begin
       Parse_Text
-        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end Proc_1; ", Test.Debug);
-      --  |1       |10       |20       |30       |40       |50       |60       |70
-      --  Missing "begin" in Block_2, but McKenzie won't find that.
+        ("procedure Proc is begin Block_1: begin end; if A = 2 then end Block_2; end if; end Proc_1; ", Test.Debug);
+      --  |1       |10       |20       |30       |40       |50       |60       |70       |80       |90
+      --  Missing "begin" for Block_2, but McKenzie won't find that.
       --
-      --  error 1 at 'Block_2' 63, expecting 'if'.
-      --  Inserts 'if ;', leaving  "Block_2;" as a procedure call; succeeds.
+      --  error 1 at 'Block_2' 63, expecting 'if'. Pops 'end' 59, inserts
+      --  'else', leaving "Block_2;" as a procedure call in the else branch;
+      --  succeeds.
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
       Check ("errors.length", Ada_Lite.State.Errors.Length, 1);
-      Check ("errors.invalid_region 1",
-             WisiToken.Token_Region.Error_Data_Lists.Element (Ada_Lite.State.Errors.First).Invalid_Region,
-             WisiToken.Null_Buffer_Region);
+
+      declare
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Ada_Lite.State.Errors.First;
+      begin
+         Check ("errors.invalid_region 1", Element (Cursor).Invalid_Region, (59, 61));
+      end;
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
@@ -221,8 +229,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
       Parse_Text ("procedure Debug_1 is begin B; elsif then else end if; end; ", Test.Debug);
       --  Deleted "if then" (to move it elsewhere).
       --
@@ -267,17 +273,24 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
-      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
-
       Parse_Text
         ("procedure Debug is begin procedure Put_Top_10 is begin end Put_Top_10; begin end Debug; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80
          Test.Debug);
-      --  Added 'begin' at end, intending to delete first 'begin'
+      --  Added 'begin' 72, intending to delete 'begin' 20
       --
-      --  Pop 'begin 20', reduced declarative_part_opt. Continue to EOF.
+      --  There are no special rules to help with this.
+      --
+      --  Error recovery is entered and exited with parallel parsers active.
+      --
+      --  While checking the prefered solution, there are conflicts that
+      --  must be handled.
+      --
+      --  The desired solution is pop 'begin 20' and reduced
+      --  declarative_part_opt, leaving 'is' 17 on the parse stack. That has
+      --  cost 2 due to grammar cost settings. That allows parsing to
+      --  continue to EOF.
+
       Check ("errors.length", State.Errors.Length, 1);
       declare
          use WisiToken.AUnit;
@@ -304,7 +317,7 @@ package body Test_McKenzie_Recover is
              Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +NEW_ID, +RETURN_ID,
                  +IDENTIFIER_ID)),
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
@@ -312,14 +325,14 @@ package body Test_McKenzie_Recover is
                   (((29, +IS_ID), (14, +aspect_specification_opt_ID), (11, +subprogram_specification_ID),
                     (0, WisiToken.Invalid_Token_ID))),
                 Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
-                Shared_Lookahead_Index => 1,
+                Shared_Lookahead_Index => 2,
                 Local_Lookahead        => WisiToken.Empty_Token_Array,
                 Local_Lookahead_Index  => 0,
                 Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
                 Popped                 => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
                 Inserted               => WisiToken.Empty_Token_Array,
                 Deleted                => WisiToken.Empty_Token_Array,
-                Cost                   => 2.0)),
+                Cost                   => 2)),
             Check_Recover_Data         => WisiToken.Parser.LR.McKenzie_Recover.AUnit.Check'Access);
       end;
 
@@ -335,8 +348,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 100;
-
       begin
          Parse_Text
            ("procedure Check_1 is end begin end Check_1;",
@@ -398,8 +409,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
-
       Parse_Text
         ("function Find_Path return Path is begin return Result : Path (1 .. Result_Length) end Find_Path; ",
          --        |10       |20       |30       |40       |50       |60       |70       |80
@@ -424,10 +433,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
-      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
-
       begin
          Parse_Text
            ("procedure Check is type begin end Check; ",
@@ -456,8 +461,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 120; -- needed for this test
-
       begin
          Parse_Text
            ("procedure McKenzie_Recover is function Check (Data : McKenzie_Data) is begin end Check; begin end; ",
@@ -486,8 +489,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 100; -- needed for this test
-
       begin
          Parse_Text
            ("procedure Foo is begin for I in 1 To Result_Length loop end loop; end;",
@@ -514,7 +515,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Enqueue_Limit := 2; -- show that matching the pattern reduces enqueues
+      Parser.Table.McKenzie.Cost_Limit := 1; -- show that matching the pattern reduces cost
 
       --  Test 'recover_pattern_1' for CASE
       begin
@@ -532,7 +533,7 @@ package body Test_McKenzie_Recover is
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       --  FIXME: recover finds "insert 'case; end'"; need another pattern
-      Parser.Table.McKenzie.Enqueue_Limit := 31; -- no pattern matching here
+      Parser.Table.McKenzie.Cost_Limit := 10; -- no pattern matching here
       begin
          Parse_Text
            ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;",
@@ -548,7 +549,7 @@ package body Test_McKenzie_Recover is
          Assert (False, "1 exception: got Syntax_Error");
       end;
 
-      Parser.Table.McKenzie.Enqueue_Limit := 2; -- show that matching the pattern reduces enqueues
+      Parser.Table.McKenzie.Cost_Limit := 2; -- show that matching the pattern reduces enqueues
 
       --  Test 'recover_pattern_1' for IF
       begin
@@ -580,6 +581,38 @@ package body Test_McKenzie_Recover is
 
    end Pattern_1;
 
+   procedure Revive_Zombie_Parser (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+   begin
+      Parse_Text
+        ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);",
+         --        |10       |20       |30       |40       |50       |60       |70       |80
+         Test.Debug);
+      --  A generic instantiation, but missing 'new'.
+      --
+      --  Spawns a second parser on 'is'; one for procedure body, one for
+      --  generic instantiation. Generic instantiation parser errors on
+      --  'ada', expecting 'new'. Procedure body keeps going, thinking it's
+      --  the start of an object declaration; errors on '.'.
+      --
+      --  The simplest solution is to insert 'new', but the procedure body
+      --  parser will never find that (it manages to convert the text into
+      --  an object declaration and an empty procedure body). So we keep the
+      --  generic instantiation body around for McKenzie.check_token_limit
+      --  tokens after it errors, and it participates in error recovery,
+      --  finding 'insert new'.
+
+      Check ("1 errors.length", State.Errors.Length, 1);
+      exception
+      when WisiToken.Syntax_Error =>
+         Assert (False, "1 exception: got Syntax_Error");
+
+   end Revive_Zombie_Parser;
+
    ----------
    --  Public subprograms
 
@@ -594,33 +627,28 @@ package body Test_McKenzie_Recover is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug > 1 then
-         Register_Routine (T, No_Error'Access, "debug");
-      else
-         Register_Routine (T, No_Error'Access, "No_Error");
-         Register_Routine (T, Error_1'Access, "Error_1");
-         Register_Routine (T, Error_2'Access, "Error_2");
-         Register_Routine (T, Error_3'Access, "Error_3");
-         Register_Routine (T, Error_4'Access, "Error_4");
-         Register_Routine (T, Error_5'Access, "Error_5");
-         Register_Routine (T, Check_Accept'Access, "Check_Accept");
-         Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
-         Register_Routine (T, Conflict_1'Access, "Conflict_1");
-         Register_Routine (T, Conflict_2'Access, "Conflict_2");
-         Register_Routine (T, Started_Type'Access, "Started_Type");
-         Register_Routine (T, Missing_Return'Access, "Missing_Return");
-         Register_Routine (T, Loop_Bounds'Access, "Loop_Bounds");
-         Register_Routine (T, Pattern_1'Access, "Pattern_1");
-      end if;
+      Register_Routine (T, No_Error'Access, "No_Error");
+      Register_Routine (T, Error_1'Access, "Error_1");
+      Register_Routine (T, Error_2'Access, "Error_2");
+      Register_Routine (T, Error_3'Access, "Error_3");
+      Register_Routine (T, Error_4'Access, "Error_4");
+      Register_Routine (T, Error_5'Access, "Error_5");
+      Register_Routine (T, Check_Accept'Access, "Check_Accept");
+      Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
+      Register_Routine (T, Conflict_1'Access, "Conflict_1");
+      Register_Routine (T, Conflict_2'Access, "Conflict_2");
+      Register_Routine (T, Started_Type'Access, "Started_Type");
+      Register_Routine (T, Missing_Return'Access, "Missing_Return");
+      Register_Routine (T, Loop_Bounds'Access, "Loop_Bounds");
+      Register_Routine (T, Pattern_1'Access, "Pattern_1");
+      Register_Routine (T, Revive_Zombie_Parser'Access, "Revive_Zombie_Parser");
    end Register_Tests;
 
    overriding procedure Set_Up (T : in out Test_Case)
-   is
-      pragma Unreferenced (T);
-   begin
+   is begin
       --  Run before each test
-      Parser.Table.McKenzie.Enqueue_Limit := Orig_Enqueue_Limit;
-      Parser.Table.McKenzie.Check_Limit   := Orig_Check_Limit;
+      Parser.Table.McKenzie.Cost_Limit  := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
+      Parser.Table.McKenzie.Check_Limit := Orig_Check_Limit;
    end Set_Up;
 
    overriding procedure Tear_Down_Case (T : in out Test_Case)
@@ -628,14 +656,14 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run after all tests registered in Register_Tests
-      Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
-      Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
+      Orig_Cost_Limit  := Parser.Table.McKenzie.Cost_Limit;
+      Orig_Check_Limit := Parser.Table.McKenzie.Check_Limit;
    end Tear_Down_Case;
 
 begin
    --  Doing this here instead of in Set_Up_Case makes this
    --  independent of all other tests in test_all_harness.
-   Orig_Enqueue_Limit := Parser.Table.McKenzie.Enqueue_Limit;
-   Orig_Check_Limit   := Parser.Table.McKenzie.Check_Limit;
+   Orig_Cost_Limit  := Parser.Table.McKenzie.Cost_Limit;
+   Orig_Check_Limit := Parser.Table.McKenzie.Check_Limit;
 
 end Test_McKenzie_Recover;

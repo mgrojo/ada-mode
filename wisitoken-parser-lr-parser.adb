@@ -78,12 +78,13 @@ package body WisiToken.Parser.LR.Parser is
       Current_Token  : in Token_ID;
       Parser         : in Instance)
    is
+      use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Trace        : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
    begin
-      if Trace_Parse > 1 then
+      if Trace_Parse > 0 then
          Trace.Put
            (Integer'Image (Current_Parser.Label) & ": " &
               State_Image (Parser_State.Stack.Peek.State) & ": " &
@@ -114,7 +115,7 @@ package body WisiToken.Parser.LR.Parser is
                 ID    => Action.LHS),
              ID       => Action.LHS));
 
-         if Trace_Parse > 1 then
+         if Trace_Parse > 0 then
             Trace.Put_Line (" ... goto state " & State_Image (Parser_State.Stack.Peek.State));
          end if;
 
@@ -127,6 +128,8 @@ package body WisiToken.Parser.LR.Parser is
       when Error =>
          Current_Parser.Save_Verb; -- For error recovery
 
+         Parser_State.Zombie_Token_Count := 1;
+
       end case;
 
       Current_Parser.Set_Verb (Action.Verb);
@@ -136,28 +139,24 @@ package body WisiToken.Parser.LR.Parser is
    --
    --  Accept : all Parsers.Verb return Accept - done parsing.
    --
-   --  Shift : all Parsers.Verb return Accept, Shift, or Error. All
-   --  parsers have the same lookahead (or none). Get a token from
-   --  Parsers.Lookahead or Lexer.Find_Next, execute Shift parsers,
-   --  terminate Error parsers.
+   --  Shift : some Parsers.Verb return Shift, all with the same current
+   --  token in Parsers.Shared_Lookahead.
    --
-   --  Shift_Local_Lookahead : some Parsers.Verb return Shift, but
-   --  have different active lookaheads. Get a token from the
-   --  appropriate Lookahead, execute Shift. This can happen only
-   --  after an error recovery with multiple parsers, that return
-   --  different error recover actions.
+   --  Shift_Local_Lookahead : some Parsers.Verb return Shift, but have
+   --  different current tokens (either local or shared). Or there is
+   --  only one parser, but it has active local lookahead. This can
+   --  happen only after error recovery.
    --
-   --  Reduce : some Parsers.Verb return Reduce - no new token,
-   --  execute Reduce parsers.
+   --  Reduce : some Parsers.Verb return Reduce.
    --
-   --  Error : all Parsers.Verb return Error; attempt recovery or
-   --  terminate parse.
-   function Parse_Verb
-     (Parser  : in out LR.Instance'Class;
-      Parsers : in out Parser_Lists.List)
-     return All_Parse_Action_Verbs
+   --  Error : all Parsers.Verb return Error.
+   procedure Parse_Verb
+     (Parser                     : in out LR.Instance'Class;
+      Parsers                    : in out Parser_Lists.List;
+      Verb                       :    out All_Parse_Action_Verbs;
+      Max_Shared_Lookahead_Index :    out SAL.Peek_Type;
+      Zombie_Count               :    out Ada.Containers.Count_Type)
    is
-      --  WORKAROUND: Parsers could be 'in', but GNAT GPL 2016 requires 'in out'
       use Ada.Containers;
       use all type SAL.Base_Peek_Type;
 
@@ -165,9 +164,10 @@ package body WisiToken.Parser.LR.Parser is
       Shift_Local_Count : Count_Type := 0;
       Accept_Count      : Count_Type := 0;
       Error_Count       : Count_Type := 0;
-
-      Max_Shared_Lookahead_Index : SAL.Base_Peek_Type := SAL.Base_Peek_Type'First;
    begin
+      Max_Shared_Lookahead_Index := SAL.Peek_Type'First;
+      Zombie_Count               := 0;
+
       for Parser_State of Parsers loop
          Max_Shared_Lookahead_Index := SAL.Base_Peek_Type'Max
            (Max_Shared_Lookahead_Index, Parser_State.Shared_Lookahead_Index);
@@ -176,14 +176,11 @@ package body WisiToken.Parser.LR.Parser is
       for Parser_State of Parsers loop
          case Parser_State.Verb is
          when Shift | Shift_Local_Lookahead =>
-            if Parser_State.Local_Lookahead.Length > 0 then
+            if Parser_State.Local_Lookahead.Length > 0 or Parser_State.Current_Token_Is_Virtual then
                Shift_Local_Count := Shift_Local_Count + 1;
                Parser_State.Set_Verb (Shift_Local_Lookahead);
 
-            elsif Parser.Lookahead.Count > 0 and
-              Max_Shared_Lookahead_Index /= SAL.Base_Peek_Type'First and
-              Max_Shared_Lookahead_Index /= Parser_State.Shared_Lookahead_Index
-            then
+            elsif Max_Shared_Lookahead_Index /= Parser_State.Shared_Lookahead_Index then
                Shift_Local_Count := Shift_Local_Count + 1;
                Parser_State.Set_Verb (Shift_Local_Lookahead);
 
@@ -192,22 +189,29 @@ package body WisiToken.Parser.LR.Parser is
             end if;
 
          when Reduce =>
-            return Reduce;
+            Verb := Reduce;
+            return;
 
          when Accept_It =>
             Accept_Count := Accept_Count + 1;
 
          when Error =>
-            Error_Count := Error_Count + 1;
+            if Parser.Enable_McKenzie_Recover then
+               --  This parser is waiting for others to error; they can continue
+               --  parsing.
+               Zombie_Count := Zombie_Count + 1;
+            else
+               Error_Count := Error_Count + 1;
+            end if;
          end case;
       end loop;
 
-      if Shift_Local_Count = 0 and Parser.Lookahead.Length > 0 then
-         --  All parsers are at the same lookahead. Parse will fetch
-         --  current token from Lookahead (1). Semantic state has
-         --  already handled the lookaheads we are dropping here.
+      if Shift_Local_Count = 0 and Zombie_Count = 0 then
+         --  All parsers are at the same current token. Drop preceding ones
+         --  from Parser.Lookahead. Semantic state has already handled the
+         --  lookaheads we are dropping here. Main loop will drop one more.
          for I in 1 .. Max_Shared_Lookahead_Index - 1 loop
-            Parser.Lookahead.Drop;
+            Parser.Shared_Lookahead.Drop;
          end loop;
 
          for Parser_State of Parsers loop
@@ -215,14 +219,18 @@ package body WisiToken.Parser.LR.Parser is
          end loop;
       end if;
 
-      if Parsers.Count = Accept_Count then
-         return Accept_It;
-      elsif Parsers.Count = Error_Count then
-         return Error;
+      if Accept_Count > 0 and Parsers.Count = Accept_Count + Zombie_Count then
+         Verb := Accept_It;
+
+      elsif Parsers.Count = Error_Count + Zombie_Count then
+         Verb := Error;
+
       elsif Shift_Local_Count > 0 then
-         return Shift_Local_Lookahead;
+         Verb := Shift_Local_Lookahead;
+
       elsif Shift_Count > 0 then
-         return Shift;
+         Verb := Shift;
+
       else
          raise Programmer_Error;
       end if;
@@ -247,20 +255,23 @@ package body WisiToken.Parser.LR.Parser is
    end Duplicate_State;
 
    procedure Execute_Pending
-     (Parser         : in     Instance;
-      Current_Parser : in     Parser_Lists.Cursor;
-      Semantic_State : access WisiToken.Token.Semantic_State'Class)
+     (Parser         : in Instance;
+      Current_Parser : in Parser_Lists.Cursor)
    is
-      Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Item         : Parser_Lists.Pend_Item;
+      Semantic_State : access WisiToken.Token.Semantic_State'Class renames Parser.Semantic_State;
+      Parser_State   : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+      Item           : Parser_Lists.Pend_Item;
    begin
-      if Trace_Parse > 1 then
+      if Trace_Parse > 0 then
          Semantic_State.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": execute pending");
       end if;
-      if Trace_Parse > 3 then
+
+      Parser.Semantic_State.End_Parallel_Parse;
+
+      if Trace_Parse > 2 then
          WisiToken.Token.Put (Semantic_State);
          Semantic_State.Trace.Put ("shared lookahead: ");
-         Put (Semantic_State.Trace.all, Parser.Lookahead);
+         Put (Semantic_State.Trace.all, Parser.Shared_Lookahead);
          Semantic_State.Trace.New_Line;
       end if;
       loop
@@ -306,72 +317,165 @@ package body WisiToken.Parser.LR.Parser is
         (First_State_Index  => Parser.Table.State_First,
          First_Parser_Label => Parser.First_Parser_Label);
       Current_Verb         : All_Parse_Action_Verbs;
-      Shared_Current_Token : Token_ID;
       Current_Parser       : Parser_Lists.Cursor;
       Action               : Parse_Action_Node_Ptr;
 
-      function Get_Current_Token (Current_Parser : in Parser_Lists.Parser_State) return Token_ID
-      is
-         --  For use after recover only.
-      begin
-         if Current_Parser.Local_Lookahead.Length > 0 then
-            return Current_Parser.Local_Lookahead.Peek;
-         else
-            return Parser.Lookahead.Peek (Current_Parser.Shared_Lookahead_Index);
-         end if;
-      end Get_Current_Token;
+      First_Token                : Boolean := True;
+      Max_Shared_Lookahead_Index : SAL.Peek_Type;
+      Zombie_Count               : Ada.Containers.Count_Type;
    begin
       WisiToken.Token.Reset (Parser.Semantic_State);
-      Parser.Lookahead.Clear;
+      Parser.Shared_Lookahead.Clear;
 
       loop
          --  exit on Accept_It action or syntax error.
 
-         Current_Verb := Parse_Verb (Parser, Parsers);
+         Parse_Verb
+           (Parser, Parsers, Current_Verb, Max_Shared_Lookahead_Index, Zombie_Count);
 
+         --  When parsing in the absense of errors, the current token for all
+         --  parsers is at Parser.Shared_Lookahead(1).
+         --
+         --  When there are zombie parsers (ie, parsers that have encountered
+         --  an error, but are not terminated yet), the current token for each
+         --  parser is at
+         --  Parser.Shared_Lookahead(Parsers(*).Shared_Lookahead_Index).
+         --
+         --  When resuming after error recovery, the shift verb is
+         --  Shift_Local_Lookahead; the current token is at either
+         --  Parsers(*).Local_Lookahead(1) (inserted during error recovery), or
+         --  Parser.Shared_Lookahead(Parsers(*).Shared_Lookahead_Index) (read
+         --  ahead from Lexer during error recovery). 'resuming' is finished
+         --  when all parsers are at the same current token.
+         --
+         --  Error recovery should ensure that the resume parsing can complete
+         --  without error, so we cannot have zombie parsers while resuming.
          case Current_Verb is
-         when Shift_Local_Lookahead =>
-            --  Handled in parser loop below
-            null;
-
          when Shift =>
-            --  When Parser_Count > 1, we don't pend
-            --  lookahead_to_current here, because we might enter
-            --  error recovery, which expects ?. FIXME:
-            --  test_mckenzie_recover Conflict_2? We pend
-            --  lookahead_to_current in Do_Action, just before pending
-            --  push_current.
-            --
-            --  However, if the new Shared_Current_Token causes an
-            --  error that reduces the parser count to 1, we need to
-            --  call lookahead_to_current at the end of
-            --  Execute_Pending. So we set Semantic_Lookahead_Active.
 
-            if Parser.Lookahead.Length > 0 then
-               --  Lexer_To_Lookahead was called for these when read from
-               --  Lexer during error recover.
-               Shared_Current_Token := Parser.Lookahead.Get;
-            else
-               Shared_Current_Token := Parser.Lexer.Find_Next;
-               Parser.Semantic_State.Lexer_To_Lookahead (Shared_Current_Token, Parser.Lexer);
+            --  Set Parsers(*).Current_Token to a copy of
+            --  Parser.Shared_Lookahead(Parsers(*).Shared_Lookahead_Index).
+
+            --  We just pushed the current token on the stack, so we are done with
+            --  it, unless a zombie still needs it. We don't do this in Do_Shift,
+            --  because we don't know Zombie_Count then.
+            if Zombie_Count = 0 and not First_Token then
+               Parser.Shared_Lookahead.Drop;
+            end if;
+            First_Token := False;
+
+            for Parser_State of Parsers loop
+               if Parser_State.Verb = Error then
+                  Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
+                  if Trace_Parse > 0 then
+                     Trace.Put_Line
+                       (Integer'Image (Parser_State.Label) & ": zombie (" &
+                          Int_Image
+                            (Parser.Table.McKenzie.Check_Limit - Parser_State.Zombie_Token_Count) &
+                          " tokens remaining)");
+                  end if;
+               else
+                  if Zombie_Count = 0 then
+                     Parser_State.Shared_Lookahead_Index := 1;
+                  else
+                     Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
+                  end if;
+
+                  if Parser_State.Shared_Lookahead_Index > Parser.Shared_Lookahead.Length then
+                     declare
+                        ID : constant Token_ID := Parser.Lexer.Find_Next;
+                     begin
+                        Parser.Shared_Lookahead.Put (ID);
+                        Parser.Semantic_State.Lexer_To_Lookahead (ID, Parser.Lexer);
+                     end;
+                  end if;
+
+                  Parser_State.Current_Token := Parser.Shared_Lookahead.Peek (Parser_State.Shared_Lookahead_Index);
+                  Parser_State.Current_Token_Is_Virtual := False;
+               end if;
+            end loop;
+
+         when Shift_Local_Lookahead =>
+            --  Set Parsers(*).Current_Token
+
+            --  Note that there cannot be any zombie parsers here.
+            if Zombie_Count > 0 then
+               raise Programmer_Error;
+            end if;
+
+            if Trace_Parse > 2 then
+               Trace.Put ("shared lookahead: ");
+               Put (Trace, Parser.Shared_Lookahead);
+               Trace.New_Line;
             end if;
 
             for Parser_State of Parsers loop
-               Parser_State.Current_Token := Shared_Current_Token;
+               if Parser_State.Verb = Shift_Local_Lookahead then
+                  if Trace_Parse > 2 then
+                     Trace.Put (Integer'Image (Parser_State.Label) & " lookahead: ");
+                     Put (Trace, Parser_State.Local_Lookahead);
+                     Trace.Put (SAL.Base_Peek_Type'Image (Parser_State.Shared_Lookahead_Index));
+                     Trace.New_Line;
+                     Parser.Semantic_State.Put;
+                  end if;
+
+                  if Parser_State.Local_Lookahead.Length > 0 then
+                     --  These were inserted during error recovery.
+
+                     Parser_State.Current_Token            := Parser_State.Local_Lookahead.Get;
+                     Parser_State.Current_Token_Is_Virtual := True; -- in case we transition to normal parsing.
+
+                     if Parsers.Count > 1 then
+                        Parser_State.Pend ((Parser_Lists.Virtual_To_Lookahead, Parser_State.Current_Token), Trace);
+                     else
+                        Parser.Semantic_State.Virtual_To_Lookahead (Parser_State.Current_Token);
+                     end if;
+
+                  elsif Parser.Shared_Lookahead.Length >= Parser_State.Shared_Lookahead_Index then
+                     --  These where read from Lexer during error recovery.
+
+                     if not Parser_State.Current_Token_Is_Virtual then
+                        Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
+                     end if;
+
+                     Parser_State.Current_Token          := Parser.Shared_Lookahead.Peek
+                       (Parser_State.Shared_Lookahead_Index);
+
+                     Parser_State.Current_Token_Is_Virtual := False; -- in case we transition to normal parsing.
+
+                  else
+                     --  Done with all lookaheads; waiting for other parsers to finish with
+                     --  lookaheads, so do nothing this cycle.
+                     Parser_State.Set_Verb (Shift);
+                  end if;
+               end if;
             end loop;
 
          when Accept_It =>
             declare
                Count : constant Ada.Containers.Count_Type := Parsers.Count;
             begin
-               if Count > 1 then
+               if Count = 1 then
+                  --  Nothing more to do
+                  return;
+
+               elsif Zombie_Count + 1 = Count then
+                  --  All but one are zombies
+                  Current_Parser := Parsers.First;
+                  loop
+                     if Current_Parser.Verb = Accept_It then
+                        Execute_Pending (Parser, Current_Parser);
+                        return;
+                     end if;
+                     Current_Parser.Next;
+                  end loop;
+               else
                   --  Error recovery does not help with this.
                   raise Parse_Error with Error_Message
                     ("", Parser.Lexer.Line, Parser.Lexer.Column,
                      "Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.");
                end if;
             end;
-            return;
 
          when Reduce =>
             null;
@@ -389,12 +493,15 @@ package body WisiToken.Parser.LR.Parser is
 
                Parser.Semantic_State.Error (Expecting);
 
-               --  Recover algorithms expect current token on
-               --  Parser.Lookahead, will update Parser.Lookahead
-               --  or Parsers (*).Local_Lookahead with new input
-               --  tokens, and set Parsers (*).Current_Token and
-               --  Parsers (*).Verb.
-               Parser.Lookahead.Add_To_Head (Shared_Current_Token);
+               if Trace_Parse > 0 then
+                  Put (Trace, "expecting: " & Image (Trace.Descriptor.all, Expecting));
+                  Trace.New_Line;
+               end if;
+
+               --  Recover algorithms expect current token at
+               --  Parsers(*).Current_Token, will update Parser.Shared_Lookahead and/or
+               --  Parsers(*).Local_Lookahead with new input tokens, and set
+               --  Parsers(*).Current_Token and Parsers(*).Verb.
 
                if Parser.Enable_McKenzie_Recover then
                   Keep_Going := McKenzie_Recover.Recover (Parser, Parsers);
@@ -405,37 +512,27 @@ package body WisiToken.Parser.LR.Parser is
                      if Parsers.Count > 1 then
                         Trace.Put_Line
                           ("recover: succeed, parser count" & Ada. Containers.Count_Type'Image (Parsers.Count));
-                        if Trace_Parse > 1 then
-                           Trace.Put ("shared lookahead: ");
-                           Put (Trace, Parser.Lookahead);
-                           Trace.New_Line;
+                        Trace.Put ("shared lookahead: ");
+                        Put (Trace, Parser.Shared_Lookahead);
+                        Trace.New_Line;
 
-                           for Parser_State of Parsers loop
-                              Trace.Put (Integer'Image (Parser_State.Label) & " lookahead: ");
-                              Put (Trace, Parser_State.Local_Lookahead);
-                              Trace.Put (SAL.Base_Peek_Type'Image (Parser_State.Shared_Lookahead_Index));
-                              Trace.New_Line;
-                           end loop;
-                        else
-                           for Parser_State of Parsers loop
-                              Trace.Put_Line
-                                (Integer'Image (Parser_State.Label) & ": current_token " &
-                                   Image (Descriptor, Get_Current_Token (Parser_State)) &
-                                   " lookahead count " & SAL.Base_Peek_Type'Image
-                                     (Parser.Lookahead.Length + Parser_State.Local_Lookahead.Length));
-                           end loop;
-                        end if;
+                        for Parser_State of Parsers loop
+                           Trace.Put (Integer'Image (Parser_State.Label) & ": lookahead: ");
+                           Put (Trace, Parser_State.Local_Lookahead);
+                           Trace.Put (SAL.Base_Peek_Type'Image (Parser_State.Shared_Lookahead_Index));
+                           Trace.New_Line;
+                           Trace.Put_Line
+                             (Integer'Image (Parser_State.Label) & ": current_token: " &
+                                Image (Descriptor, Parser_State.Current_Token) &
+                                (if Parser_State.Current_Token_Is_Virtual then " virtual" else ""));
+                        end loop;
                      else
                         --  single parser
-                        if Trace_Parse > 1 then
-                           Trace.Put ("recover: succeed, lookahead ");
-                           Put (Trace, Parsers.First.State_Ref.Local_Lookahead);
-                           Put (Trace, Parser.Lookahead);
-                           Trace.New_Line;
-                        else
-                           Trace.Put_Line
-                             ("recover: succeed lookahead count " & SAL.Base_Peek_Type'Image (Parser.Lookahead.Length));
-                        end if;
+                        Trace.Put ("recover: succeed, lookahead ");
+                        Put (Trace, Parsers.First.State_Ref.Local_Lookahead);
+                        Put (Trace, Parser.Shared_Lookahead);
+                        Trace.New_Line;
+                        Trace.Put_Line ("current_token: " & Image (Descriptor, Parsers.First.State_Ref.Current_Token));
                      end if;
                   else
                      if Parsers.Count > 1 then
@@ -449,16 +546,15 @@ package body WisiToken.Parser.LR.Parser is
                end if;
 
                if Keep_Going then
-                  Shared_Current_Token := Invalid_Token_ID;
-
                   declare
                      Shift_Local_Count : Integer := 0;
                   begin
-
                      for Parser_State of Parsers loop
                         case Parser_State.Verb is
                         when Shift_Local_Lookahead =>
                            Shift_Local_Count := Shift_Local_Count + 1;
+
+                           Parser_State.Zombie_Token_Count := 0;
 
                         when Reduce =>
                            Current_Verb := Reduce;
@@ -466,8 +562,13 @@ package body WisiToken.Parser.LR.Parser is
                               Trace.Put_Line ("new current_verb: " & All_Parse_Action_Verbs'Image (Current_Verb));
                            end if;
 
+                           Parser_State.Zombie_Token_Count := 0;
+
                         when Error =>
-                           null;
+                           --  Force this parser to be terminated.
+                           if Parser.Enable_McKenzie_Recover then
+                              Parser_State.Zombie_Token_Count := Parser.Table.McKenzie.Check_Limit + 1;
+                           end if;
 
                         when Shift | Accept_It =>
                            raise Programmer_Error;
@@ -476,7 +577,7 @@ package body WisiToken.Parser.LR.Parser is
 
                      if Shift_Local_Count > 0 then
                         Current_Verb := Shift_Local_Lookahead;
-                        --  Skips processing below
+
                         if Trace_Parse > 2 then
                            Trace.Put_Line ("new current_verb: " & All_Parse_Action_Verbs'Image (Current_Verb));
                         end if;
@@ -499,130 +600,108 @@ package body WisiToken.Parser.LR.Parser is
          loop
             exit when Current_Parser.Is_Done;
 
-            --  All parsers reduce as much as possible, then shift
-            --  Current_Token, then wait until all parsers have
-            --  shifted it.
+            if Trace_Parse > 2 then
+               Trace.Put_Line
+                 ("current_verb: " & Parse_Action_Verbs'Image (Current_Verb) &
+                    "," & Integer'Image (Current_Parser.Label) &
+                    ".verb: " & Parse_Action_Verbs'Image (Current_Parser.Verb));
+            end if;
+
+            --  Each branch of the following 'if' calls either Current_Parser.Free
+            --  (which advances to the next parser) or Current_Parser.Next.
 
             if Current_Parser.Verb = Error then
-               --  This parser errored on last input, some other
-               --  parser can continue (else we would have handled
-               --  this above). This is how grammar conflicts are
-               --  resolved when the input text is valid, so just
-               --  terminate this parser.
+               --  This parser errored on last input, and some other parser can
+               --  continue (else we would have handled this above). This is how
+               --  grammar conflicts are resolved when the input text is valid, in
+               --  which case we should just terminate this parser. However, this may
+               --  be due to invalid input text, so we keep the parser alive but
+               --  suspended for a few tokens, to see if the other parsers also
+               --  error, in which case they all participate in error recovery.
 
-               if Trace_Parse > 0 then
-                  Trace.Put_Line
-                    (Integer'Image (Current_Parser.Label) & ": terminate (" &
-                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
-               end if;
-               Current_Parser.Free;
-
-               if Parsers.Count = 1 then
-                  Execute_Pending (Parser, Parsers.First, Parser.Semantic_State);
-               end if;
-
-            else
-               if Current_Verb = Shift_Local_Lookahead and Current_Parser.Verb = Shift_Local_Lookahead then
-                  declare
-                     State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-                  begin
-                     if Trace_Parse > 2 then
-                        Trace.Put ("shared lookahead: ");
-                        Put (Trace, Parser.Lookahead);
-                        Trace.New_Line;
-                        Trace.Put (Integer'Image (State.Label) & " lookahead: ");
-                        Put (Trace, State.Local_Lookahead);
-                        Trace.Put (SAL.Base_Peek_Type'Image (State.Shared_Lookahead_Index));
-                        Trace.New_Line;
-                        Parser.Semantic_State.Put;
-                        Trace.New_Line;
-                     end if;
-
-                     if State.Local_Lookahead.Length > 0 then
-                        --  These were inserted by special rules at
-                        --  start of error recover.
-
-                        State.Current_Token := State.Local_Lookahead.Get;
-
-                        if Parsers.Count > 1 then
-                           State.Pend ((Parser_Lists.Virtual_To_Lookahead, State.Current_Token), Trace);
-                        else
-                           Parser.Semantic_State.Virtual_To_Lookahead (State.Current_Token);
-                        end if;
-
-                     elsif Parser.Lookahead.Length >= State.Shared_Lookahead_Index then
-                        --  These where read from Lexer during error
-                        --  recover.
-
-                        State.Current_Token          := Parser.Lookahead.Peek (State.Shared_Lookahead_Index);
-                        State.Shared_Lookahead_Index := State.Shared_Lookahead_Index + 1;
-
-                     else
-                        --  waiting for other parsers to finish with lookaheads.
-                        State.Set_Verb (Shift);
-                     end if;
-                  end;
-               end if;
-
-               if Trace_Parse > 2 then
-                  Parser_Lists.Put_Top_10 (Trace, Current_Parser);
-               end if;
-
-               if Parser.Terminate_Same_State and then
-                 (Current_Verb in Shift | Shift_Local_Lookahead and Duplicate_State (Parsers, Current_Parser))
+               if Parser.Enable_McKenzie_Recover and then
+                 Current_Parser.State_Ref.Zombie_Token_Count <= Parser.Table.McKenzie.Check_Limit
                then
                   if Trace_Parse > 0 then
+                     Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");
+                  end if;
+                  Current_Parser.Next;
+               else
+                  if Trace_Parse > 0 then
                      Trace.Put_Line
-                       (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
+                       (Integer'Image (Current_Parser.Label) & ": terminate (" &
                           Int_Image (Integer (Parsers.Count) - 1) & " active)");
                   end if;
                   Current_Parser.Free;
 
                   if Parsers.Count = 1 then
-                     Execute_Pending (Parser, Parsers.First, Parser.Semantic_State);
+                     Execute_Pending (Parser, Parsers.First);
                   end if;
-
-               elsif Current_Parser.Verb = Current_Verb
-               then
-                  declare
-                     State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-                  begin
-                     Action := Action_For
-                       (Table => Parser.Table.all,
-                        State => State.Stack.Peek.State,
-                        ID    => State.Current_Token);
-                  end;
-
-                  if Action.Next /= null then
-                     --  conflict; spawn a new parser
-                     if Parsers.Count = Parser.Max_Parallel then
-                        raise Parse_Error with Error_Message
-                          ("", Parser.Lexer.Line, Parser.Lexer.Column,
-                           ": too many parallel parsers required in grammar state" &
-                             State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
-                             "; simplify grammar, or increase max-parallel (" &
-                             Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")");
-
-                     else
-                        if Trace_Parse > 0 then
-                           Trace.Put_Line
-                             ("spawn parser from " & Int_Image (Current_Parser.Label) &
-                                " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)");
-                        end if;
-
-                        Parsers.Prepend_Copy (Current_Parser);
-                        Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
-                     end if;
-                  end if;
-
-                  --  Must spawn new parser before modifying current parser stack.
-                  Do_Action (Action.Item, Current_Parser, Current_Parser.State_Ref.Current_Token, Parser);
-
-                  Current_Parser.Next;
-               else
-                  --  Current parser is waiting for others to catch up
-                  Current_Parser.Next;
                end if;
+
+            elsif Parser.Terminate_Same_State and then
+              (Current_Verb in Shift | Shift_Local_Lookahead and Duplicate_State (Parsers, Current_Parser))
+            then
+               if Trace_Parse > 0 then
+                  Trace.Put_Line
+                    (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
+                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
+               end if;
+               Current_Parser.Free;
+
+               if Parsers.Count = 1 then
+                  Execute_Pending (Parser, Parsers.First);
+               end if;
+
+            elsif Current_Parser.Verb = Current_Verb then
+               if Trace_Parse > 1 then
+                  Parser_Lists.Put_Top_10 (Trace, Current_Parser);
+               end if;
+
+               declare
+                  State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
+               begin
+                  Action := Action_For
+                    (Table => Parser.Table.all,
+                     State => State.Stack.Peek.State,
+                     ID    => State.Current_Token);
+               end;
+
+               if Action.Next /= null then
+                  --  Conflict; spawn a new parser (before modifying Current_Parser
+                  --  stack).
+
+                  if Parsers.Count = Parser.Max_Parallel then
+                     raise Parse_Error with Error_Message
+                       ("", Parser.Lexer.Line, Parser.Lexer.Column,
+                        ": too many parallel parsers required in grammar state" &
+                          State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
+                          "; simplify grammar, or increase max-parallel (" &
+                          Ada.Containers.Count_Type'Image (Parser.Max_Parallel) & ")");
+
+                  else
+                     if Trace_Parse > 0 then
+                        Trace.Put_Line
+                          ("spawn parser from " & Int_Image (Current_Parser.Label) &
+                             " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)");
+                     end if;
+
+                     if Parsers.Count = 1 then
+                        Parser.Semantic_State.Begin_Parallel_Parse;
+                     end if;
+
+                     Parsers.Prepend_Copy (Current_Parser);
+                     Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
+                     --  We don't need to check for error, here
+                  end if;
+               end if;
+
+               Do_Action (Action.Item, Current_Parser, Current_Parser.State_Ref.Current_Token, Parser);
+
+               Current_Parser.Next;
+            else
+               --  Current parser is waiting for others to catch up
+               Current_Parser.Next;
             end if;
          end loop;
       end loop;
@@ -638,7 +717,7 @@ package body WisiToken.Parser.LR.Parser is
    is begin
       return
         (Lexer, Table, Semantic_State'Access,
-         Lookahead               => Token_Queues.Empty_Queue,
+         Shared_Lookahead        => Token_Queues.Empty_Queue,
          Enable_McKenzie_Recover => False,
          Max_Parallel            => Max_Parallel,
          First_Parser_Label      => First_Parser_Label,

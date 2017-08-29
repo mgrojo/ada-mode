@@ -201,7 +201,7 @@ package body Trivial_Productions_Test is
             First_Parser_Label);
 
          Feeder.Set (Text);
-         WisiToken.Trace_Parse := (if Test.Debug then 1 else 0);
+         WisiToken.Trace_Parse := Test.Debug;
          Parser.Parse;
 
       end Test_One;

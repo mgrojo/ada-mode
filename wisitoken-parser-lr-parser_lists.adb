@@ -45,16 +45,18 @@ package body WisiToken.Parser.LR.Parser_Lists is
          Result.Parser_Label := First_Parser_Label;
 
          Result.Elements.Append
-           ((Current_Token          => Invalid_Token_ID,
-             Stack                  => Stack,
-             Pend_Items             => Pend_Items_Queues.Empty_Queue,
-             Recover                => null,
-             Local_Lookahead        => Token_Queues.Empty_Queue,
-             Shared_Lookahead_Index => SAL.Invalid_Peek_Index,
-             Label                  => First_Parser_Label,
-             Verb                   => Parse_Action_Verbs'First,
-             Prev_Verb              => Parse_Action_Verbs'First,
-             Pre_Reduce_Item        => Default_Parser_Stack_Item));
+           ((Current_Token            => Invalid_Token_ID,
+             Current_Token_Is_Virtual => False,
+             Stack                    => Stack,
+             Pend_Items               => Pend_Items_Queues.Empty_Queue,
+             Recover                  => null,
+             Local_Lookahead          => Token_Queues.Empty_Queue,
+             Shared_Lookahead_Index   => SAL.Peek_Type'First,
+             Zombie_Token_Count       => 0,
+             Label                    => First_Parser_Label,
+             Verb                     => Shift,
+             Prev_Verb                => Parse_Action_Verbs'First,
+             Pre_Reduce_Item          => Default_Parser_Stack_Item));
       end return;
    end New_List;
 
@@ -147,16 +149,18 @@ package body WisiToken.Parser.LR.Parser_Lists is
          --  that would be tampering with cursors.
       begin
          New_Item :=
-           (Current_Token          => Item.Current_Token,
-            Stack                  => Item.Stack,
-            Pend_Items             => Item.Pend_Items,
-            Recover                => null,
-            Local_Lookahead        => Item.Local_Lookahead,
-            Shared_Lookahead_Index => Item.Shared_Lookahead_Index,
-            Label                  => List.Parser_Label,
-            Verb                   => Item.Verb,
-            Prev_Verb              => Item.Prev_Verb,
-            Pre_Reduce_Item        => Item.Pre_Reduce_Item);
+           (Current_Token            => Item.Current_Token,
+            Current_Token_Is_Virtual => False,
+            Stack                    => Item.Stack,
+            Pend_Items               => Item.Pend_Items,
+            Recover                  => null,
+            Local_Lookahead          => Item.Local_Lookahead,
+            Shared_Lookahead_Index   => Item.Shared_Lookahead_Index,
+            Zombie_Token_Count       => 0,
+            Label                    => List.Parser_Label,
+            Verb                     => Item.Verb,
+            Prev_Verb                => Item.Prev_Verb,
+            Pre_Reduce_Item          => Item.Pre_Reduce_Item);
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;

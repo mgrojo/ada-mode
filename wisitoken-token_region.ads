@@ -78,6 +78,11 @@ package WisiToken.Token_Region is
 
       Errors : Error_Data_Lists.List;
       --  Error is called whether the error is recovered or not.
+
+      Error_Index : SAL.Base_Peek_Type;
+      --  If SAL.Base_Peek_Type'First, parallel parsing is not active; error
+      --  token needed by Error is Lookahead_Queue (1). Otherwise it is at
+      --  Lookahead_Queue (Error_Index).
    end record;
 
    overriding
@@ -102,7 +107,14 @@ package WisiToken.Token_Region is
      (State : access State_Type;
       ID    : in     Token_ID);
 
-   overriding procedure Error
+   overriding
+   procedure Begin_Parallel_Parse (State : access State_Type);
+
+   overriding
+   procedure End_Parallel_Parse (State : access State_Type);
+
+   overriding
+   procedure Error
      (State     : access State_Type;
       Expecting : in     Token_ID_Set);
 

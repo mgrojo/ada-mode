@@ -39,9 +39,12 @@ package WisiToken.Parser.LR.McKenzie_Recover is
 
    --  Visible for unit test, sending to Emacs process.
    type Configuration is new WisiToken.Token.Recover_Data with record
-      Stack                  : Parser_Stacks.Stack_Type;
+      Stack : Parser_Stacks.Stack_Type;
+      --  This is the stack after the operations below have been done;
+      --  suitable for the next operation.
+
       Verb                   : All_Parse_Action_Verbs;
-      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into shared parser.lookahead for next input token
+      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
 
       Local_Lookahead        : Token_Arrays.Vector;
       Local_Lookahead_Index  : Ada.Containers.Count_Type;
@@ -53,22 +56,10 @@ package WisiToken.Parser.LR.McKenzie_Recover is
       Pushed   : Parser_Stacks.Stack_Type;
       Inserted : Token_Arrays.Vector;
       Deleted  : Token_Arrays.Vector;
-      Cost     : Float := 0.0;
+      Cost     : Natural := 0;
    end record;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
    --  Put Config to Ada.Text_IO.Current_Output
-
-   Default_Configuration : constant Configuration :=
-     (Stack                  => Parser_Stacks.Empty_Stack,
-      Verb                   => Shift_Local_Lookahead,
-      Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
-      Local_Lookahead        => Token_Arrays.Empty_Vector,
-      Local_Lookahead_Index  => Token_Arrays.No_Index,
-      Popped                 => Token_Arrays.Empty_Vector,
-      Pushed                 => Parser_Stacks.Empty_Stack,
-      Inserted               => Token_Arrays.Empty_Vector,
-      Deleted                => Token_Arrays.Empty_Vector,
-      Cost                   => 0.0);
 
 end WisiToken.Parser.LR.McKenzie_Recover;

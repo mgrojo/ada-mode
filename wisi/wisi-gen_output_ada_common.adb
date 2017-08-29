@@ -435,11 +435,11 @@ package body Wisi.Gen_Output_Ada_Common is
          end case;
 
          Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
-         Indent_Line ("   Lookahead => WisiToken.Token_Queues.Empty_Queue,");
+         Indent_Line ("   Shared_Lookahead        => WisiToken.Token_Queues.Empty_Queue,");
          Indent_Line ("   Enable_McKenzie_Recover => True,");
-         Indent_Line ("   Max_Parallel => 15, First_Parser_Label => " &
-                        WisiToken.Int_Image (First_Parser_Label) & ",");
-         Indent_Line ("   Terminate_Same_State => True);");
+         Indent_Line ("   Max_Parallel            => 15,");
+         Indent_Line ("   First_Parser_Label      => " & WisiToken.Int_Image (First_Parser_Label) & ",");
+         Indent_Line ("   Terminate_Same_State    => True);");
 
       when Module =>
          Indent_Line ("  (Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
@@ -461,17 +461,17 @@ package body Wisi.Gen_Output_Ada_Common is
 
       Paren_Done      : Boolean  := False;
       Count           : Integer;
-      Floats_Per_Line : constant := 8;
+      Items_Per_Line : constant := 8;
 
-      function Float_Image (Item : in Float) return String
+      function Natural_Image (Item : in Natural) return String
       is
          use Standard.Ada.Strings;
          use Standard.Ada.Strings.Fixed;
       begin
-         return Trim (Float'Image (Item), Both);
-      end Float_Image;
+         return Trim (Natural'Image (Item), Both);
+      end Natural_Image;
 
-      procedure Put (Label : in String; Item : in WisiToken.Token_Array_Float)
+      procedure Put (Label : in String; Item : in WisiToken.Token_Array_Natural)
       is begin
          Indent_Line (Label & " =>");
          Indent_Start ("  (");
@@ -479,12 +479,12 @@ package body Wisi.Gen_Output_Ada_Common is
          Count := 0;
          for I in Item'Range loop
             Count := Count + 1;
-            Put (Float_Image (Item (I)));
+            Put (Natural_Image (Item (I)));
 
             if I = Item'Last then
                Put_Line ("),");
 
-            elsif Count = Floats_Per_Line then
+            elsif Count = Items_Per_Line then
                Count := 0;
                Put_Line (",");
                Indent_Start ("");
@@ -508,9 +508,9 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Nonterminal) & ",");
          Put ("Insert", Table.McKenzie.Insert);
          Put ("Delete", Table.McKenzie.Delete);
-         Indent_Line ("Enqueue_Limit =>" & Integer'Image (Table.McKenzie.Enqueue_Limit) & ",");
-         Indent_Line ("Check_Limit   =>" & Integer'Image (Table.McKenzie.Check_Limit) & ",");
-         Indent_Line ("Patterns      => WisiToken.Parser.LR.Patterns.Empty_List);");
+         Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie.Cost_Limit) & ",");
+         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie.Check_Limit) & ",");
+         Indent_Line ("Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);");
          Indent := Indent - 3;
          New_Line;
 

@@ -202,13 +202,34 @@ package WisiToken.Token is
    --  remove the corresponding token from the front of the State
    --  lookahead queue, push it on the State stack.
 
+   procedure Begin_Parallel_Parse (State : access Semantic_State) is abstract;
+   --  The parser has started parallel parsers; semantic state operations
+   --  will be kept on a pending queue for each parser until all but one
+   --  error out. Then they will be executed. The only exception is
+   --  Lexer_To_Lookahead; that is called immediately, so the lexer
+   --  information is valid.
+   --
+   --  If Error is called during parallel parse, the State lookahead
+   --  queue is out of sync with the parser's notion of current token.
+   --  Therefore State must record the lookahead count when
+   --  Start_Parallel_Parse is called, and count the calls to Lexer_To_Lookahead, and use that in Error to get the
+   --  right token.
+
+   procedure End_Parallel_Parse (State : access Semantic_State) is abstract;
+   --  Parser has finished parallel parsing (see Start_Parallel_Parse).
+
    procedure Error
      (State     : access Semantic_State;
       Expecting : in     Token_ID_Set)
    is abstract;
-   --  The parser has detected an error with the current token.
-   --  Expecting is the set of tokens expected by the parser. Save
-   --  information useful for an error message.
+   --  The parser has detected an error with the current token, which is
+   --  on the State lookahead queue at the location described in the
+   --  description of Start_Parallel_Parse, or at the front of the queue
+   --  if parallel parsing is not active.
+   --
+   --  Expecting is the set of tokens expected by the parser.
+   --
+   --  Save information useful for an error message.
    --
    --  Error recover has started; mark the start of an invalid buffer
    --  region.

@@ -103,13 +103,13 @@ package Wisi is
    end record;
 
    type McKenzie_Recover_Param_Type is record
-      Default_Insert             : Float   := 0.0;
-      Default_Delete_Terminal    : Float   := 0.0;
-      Default_Delete_Nonterminal : Float   := 0.0;
+      Default_Insert             : Natural := 0;
+      Default_Delete_Terminal    : Natural := 0;
+      Default_Delete_Nonterminal : Natural := 0;
       Delete                     : String_Pair_Lists.List;
       Insert                     : String_Pair_Lists.List;
-      Enqueue_Limit              : Integer := Integer'Last;
-      Check_Limit                : Integer := Integer'Last;
+      Cost_Limit                 : Natural := Integer'Last;
+      Check_Limit                : Natural := Integer'Last;
 
       --  For special rules
       Patterns : Wisi.Patterns.List;

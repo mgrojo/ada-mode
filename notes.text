@@ -5,16 +5,31 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
+test_mckenzie_recover
+    some failing
+
+run all tests
+
 new test cases:
-     package Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
-        missing 'new'
-        wisi/test/debug.adb
 
-        error on '.' it thinks "Ada" is starting an object declaration in a procedure
+    ----------
+    if Trace_Parse > 1 then
+      if Keep_going -- missing 'then'; inserts '(' (needs check_limit 5)
+         Trace.Put_Line ("check :" & Integer'Image (Check_Count - 1) & " conflicts: success"; -- missing )
 
-        when a spawned parser dies, keep it around for mckenzie.check_limit tokens, include in error recovery.
+    ----------
+    type Item_Type is record
 
-        in Check, treat 'name' as one token
+    ---------------
+    if foo then
+    declare
+    ...
+    begin
+    ...
+    end;
+        missing 'end if' because adding 'if' around block.
+
+        add pattern for "if then ... end IDENTIFIER;"
 
     ---------------
      if and
@@ -30,7 +45,7 @@ new test cases:
          if Item (I) then
             Result := Result + 1;
          end if;
-            start typing from begining, parse after each word
+            start typing from begining, parse after each line
 
     ------------------
     'if **'

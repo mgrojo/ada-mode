@@ -279,7 +279,7 @@ package body Dragon_4_45_LALR_Test is
       end Execute_Command;
 
    begin
-      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := Test.Debug;
 
       Execute_Command ("cdcd");
    end Test_Parse;
@@ -298,7 +298,7 @@ package body Dragon_4_45_LALR_Test is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug then
+      if T.Debug > 0 then
          Register_Routine (T, Test_LALR_Kernels'Access, "debug");
       else
          Register_Routine (T, Test_First'Access, "Test_First");

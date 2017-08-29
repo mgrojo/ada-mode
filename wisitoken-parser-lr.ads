@@ -199,12 +199,12 @@ package WisiToken.Parser.LR is
       First_Nonterminal : Token_ID;
       Last_Nonterminal  : Token_ID)
    is record
-      Insert : Token_Array_Float (First_Terminal .. Last_Terminal);
-      Delete : Token_Array_Float (First_Terminal .. Last_Nonterminal);
+      Insert : Token_Array_Natural (First_Terminal .. Last_Terminal);
+      Delete : Token_Array_Natural (First_Terminal .. Last_Nonterminal);
       --  Delete includes nonterms popped off the parse stack
 
-      Enqueue_Limit : Integer; -- max configurations to look at
-      Check_Limit   : Integer; -- max tokens to parse ahead when checking a configuration.
+      Cost_Limit  : Natural; -- max cost of configurations to look at
+      Check_Limit : Natural; -- max tokens to parse ahead when checking a configuration.
 
       --  For special rules
       Patterns : LR.Patterns.List;
@@ -215,10 +215,10 @@ package WisiToken.Parser.LR is
       Last_Terminal     => Token_ID'First,
       First_Nonterminal => Token_ID'Last,
       Last_Nonterminal  => Token_ID'First,
-      Insert            => (others => 0.0),
-      Delete            => (others => 0.0),
-      Enqueue_Limit     => Integer'Last,
-      Check_Limit       => 1,
+      Insert            => (others => 0),
+      Delete            => (others => 0),
+      Cost_Limit        => Natural'Last,
+      Check_Limit       => Natural'Last,
       Patterns          => LR.Patterns.Empty_List);
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in McKenzie_Param_Type);
@@ -282,11 +282,9 @@ package WisiToken.Parser.LR is
    --  Put image of top 10 stack items to Trace.
 
    type Instance is abstract new WisiToken.Parser.Instance with record
-      Table          : Parse_Table_Ptr;
-      Semantic_State : access WisiToken.Token.Semantic_State'Class;
-      Lookahead      : Token_Queues.Queue_Type;
-      --  Filled by recover algorithms; use before calling Lexer.Find_Next
-
+      Table                   : Parse_Table_Ptr;
+      Semantic_State          : access WisiToken.Token.Semantic_State'Class;
+      Shared_Lookahead        : Token_Queues.Queue_Type;
       Enable_McKenzie_Recover : Boolean;
    end record;
 

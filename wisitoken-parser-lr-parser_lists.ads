@@ -51,12 +51,16 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    type Base_Parser_State is tagged record
       --  Visible components for direct access
-      Current_Token          : Token_ID;
-      Stack                  : Parser_Stacks.Stack_Type;
-      Pend_Items             : Pend_Items_Queues.Queue_Type;
-      Recover                : Recover_Data_Access;
-      Local_Lookahead        : Token_Queues.Queue_Type; -- Filled only by error recovery
-      Shared_Lookahead_Index : SAL.Base_Peek_Type;
+      Current_Token            : Token_ID;
+      Current_Token_Is_Virtual : Boolean;
+      Stack                    : Parser_Stacks.Stack_Type;
+      Pend_Items               : Pend_Items_Queues.Queue_Type;
+      Recover                  : Recover_Data_Access;
+      Local_Lookahead          : Token_Queues.Queue_Type; -- Holds error recovery insertions.
+      Shared_Lookahead_Index   : SAL.Peek_Type;
+      Zombie_Token_Count       : Integer;
+      --  If Zombie_Token_Count > 0, this parser has errored, but is
+      --  waiting to see if other parsers do also.
    end record;
 
    type Parser_State is new Base_Parser_State with private;

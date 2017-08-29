@@ -20,7 +20,7 @@
 with AUnit.Test_Cases;
 package Test_Accept_State is
 
-   type Test_Case (Debug : Boolean) is new AUnit.Test_Cases.Test_Case with null record;
+   type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;
 
    type Test_Case_Access is access all Test_Case;
 

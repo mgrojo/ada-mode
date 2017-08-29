@@ -119,7 +119,7 @@ package body WisiToken.Gen_Token_Enum is
       Enum_Nonterm     : constant Token_Enum_ID         := -Nonterm;
       Augmented_Tokens : constant Augmented_Token_Array := To_Augmented (Tokens);
    begin
-      if Trace_Parse > 1 then
+      if Trace_Parse > 0 then
          Put (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
       end if;
       if Action /= null then

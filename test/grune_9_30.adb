@@ -166,7 +166,7 @@ package body Grune_9_30 is
       end Execute_Command;
 
    begin
-      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := Test.Debug;
 
       Execute_Command ("abc");
       Execute_Command ("ac");
@@ -186,7 +186,7 @@ package body Grune_9_30 is
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug then
+      if T.Debug > 0 then
          Register_Routine (T, Test_Parse'Access, "Debug");
       else
          Register_Routine (T, Test_Item_Sets'Access, "Test_Item_Sets");

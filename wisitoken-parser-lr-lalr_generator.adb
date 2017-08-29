@@ -127,7 +127,7 @@ package body WisiToken.Parser.LR.LALR_Generator is
    begin
       Put_Line ("LALR Parse Table:");
 
-      if Table.McKenzie.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit then
+      if Table.McKenzie.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie:");
          Put (Descriptor, Table.McKenzie);
          New_Line;
@@ -727,9 +727,9 @@ package body WisiToken.Parser.LR.LALR_Generator is
             Last_Terminal     => Descriptor.Last_Terminal,
             First_Nonterminal => Descriptor.First_Nonterminal,
             Last_Nonterminal  => Descriptor.Last_Nonterminal,
-            Insert            => (others => 0.0),
-            Delete            => (others => 0.0),
-            Enqueue_Limit     => Default_McKenzie_Param.Enqueue_Limit,
+            Insert            => (others => 0),
+            Delete            => (others => 00),
+            Cost_Limit        => Default_McKenzie_Param.Cost_Limit,
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
             Patterns          => LR.Patterns.Empty_List);
       else

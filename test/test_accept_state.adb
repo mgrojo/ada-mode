@@ -107,7 +107,7 @@ package body Test_Accept_State is
          State,
          First_Parser_Label);
 
-      WisiToken.Trace_Parse := (if Test.Debug then 2 else 0);
+      WisiToken.Trace_Parse := Test.Debug;
 
       String_Feeder.Set ("set A = 2");
 

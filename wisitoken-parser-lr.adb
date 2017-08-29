@@ -50,7 +50,7 @@ package body WisiToken.Parser.LR is
    begin
       Put_Line ("(Insert =>");
       for I in Item.Insert'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Float'Image (Item.Insert (I)));
+         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
          if I = Item.Insert'Last then
             Put_Line (")");
          else
@@ -59,14 +59,14 @@ package body WisiToken.Parser.LR is
       end loop;
       Put_Line ("(Delete =>");
       for I in Item.Delete'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Float'Image (Item.Delete (I)));
+         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
          if I = Item.Delete'Last then
             Put_Line (")");
          else
             Put_Line (",");
          end if;
       end loop;
-      Put_Line ("Enqueue_Limit =>" & Integer'Image (Item.Enqueue_Limit));
+      Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
       New_Line;
    end Put;
 
@@ -492,7 +492,7 @@ package body WisiToken.Parser.LR is
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
 
-      if Table.McKenzie.Enqueue_Limit /= Default_McKenzie_Param.Enqueue_Limit then
+      if Table.McKenzie.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie:");
          Put (Descriptor, Table.McKenzie);
          New_Line;
