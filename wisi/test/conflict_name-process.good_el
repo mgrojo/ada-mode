@@ -21,26 +21,20 @@
 (require 'semantic/lex)
 (require 'wisi-process-parse)
 
-(defconst conflict_name-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("(" . LEFT_PAREN)
-     (")" . RIGHT_PAREN)
-     )
-   nil))
-
-(defconst conflict_name-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (TICK . "'")
-      )
-     ("symbol"
-      (IDENTIFIER . [a-zA-Z][0-9a-zA-Z_]*)
-      )
-     )
-   nil))
-
+(defconst conflict_name-elisp-keyword-table-raw
+  '(
+   ("(" . LEFT_PAREN)
+   (")" . RIGHT_PAREN)
+   ))
+(defconst conflict_name-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (TICK . "'")
+    )
+   ("symbol"
+    (IDENTIFIER . [a-zA-Z][0-9a-zA-Z_]*)
+    )
+   ))
 (defconst conflict_name-process-token-table
   (wisi-process-compile-tokens
    [WHITESPACE

@@ -7,31 +7,25 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst identifier_list_name_conflict-lalr-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("(" . LEFT_PAREN)
-     (")" . RIGHT_PAREN)
-     )
-   nil))
+(defconst identifier_list_name_conflict-lalr-elisp-keyword-table-raw
+  '(
+   ("(" . LEFT_PAREN)
+   (")" . RIGHT_PAREN)
+   ))
 
-
-(defconst identifier_list_name_conflict-lalr-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (COMMA . ",")
-      (EQUAL_GREATER . "=>")
-      )
-     ("string-double"
-      (STRING_LITERAL . "\"[^\"]*\"")
-      )
-     ("symbol"
-      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     )
-   nil))
-
+(defconst identifier_list_name_conflict-lalr-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (COMMA . ",")
+    (EQUAL_GREATER . "=>")
+    )
+   ("string-double"
+    (STRING_LITERAL . "\"[^\"]*\"")
+    )
+   ("symbol"
+    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ))
 
 (defconst identifier_list_name_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
@@ -115,5 +109,4 @@
   "Parser table.")
 
 (provide 'identifier_list_name_conflict-lalr-elisp)
-
 ;; end of file

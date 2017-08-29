@@ -21,32 +21,26 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst case_expression-lr1-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("range" . RANGE)
-     ("when" . WHEN)
-     )
-   nil))
+(defconst case_expression-lr1-elisp-keyword-table-raw
+  '(
+   ("range" . RANGE)
+   ("when" . WHEN)
+   ))
 
-
-(defconst case_expression-lr1-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (DOT_DOT . "..")
-      (EQUAL_GREATER . "=>")
-      (TICK . "'")
-      )
-     ("number"
-      (NUMBER_LITERAL ada-wisi-number-p)
-      )
-     ("symbol"
-      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     )
-   nil))
-
+(defconst case_expression-lr1-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (DOT_DOT . "..")
+    (EQUAL_GREATER . "=>")
+    (TICK . "'")
+    )
+   ("number"
+    (NUMBER_LITERAL ada-wisi-number-p)
+    )
+   ("symbol"
+    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ))
 
 (defconst case_expression-lr1-elisp-parse-table
    (wisi-compile-grammar
@@ -115,5 +109,4 @@
   "Parser table.")
 
 (provide 'case_expression-lr1-elisp)
-
 ;; end of file

@@ -21,33 +21,27 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst body_instantiation_conflict-lalr-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("begin" . BEGIN)
-     ("end" . END)
-     ("is" . IS)
-     ("(" . LEFT_PAREN)
-     ("new" . NEW)
-     ("null" . NULL)
-     ("procedure" . PROCEDURE)
-     (")" . RIGHT_PAREN)
-     )
-   nil))
+(defconst body_instantiation_conflict-lalr-elisp-keyword-table-raw
+  '(
+   ("begin" . BEGIN)
+   ("end" . END)
+   ("is" . IS)
+   ("(" . LEFT_PAREN)
+   ("new" . NEW)
+   ("null" . NULL)
+   ("procedure" . PROCEDURE)
+   (")" . RIGHT_PAREN)
+   ))
 
-
-(defconst body_instantiation_conflict-lalr-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (SEMICOLON . ";")
-      )
-     ("symbol"
-      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     )
-   nil))
-
+(defconst body_instantiation_conflict-lalr-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (SEMICOLON . ";")
+    )
+   ("symbol"
+    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ))
 
 (defconst body_instantiation_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
@@ -122,5 +116,4 @@
   "Parser table.")
 
 (provide 'body_instantiation_conflict-lalr-elisp)
-
 ;; end of file

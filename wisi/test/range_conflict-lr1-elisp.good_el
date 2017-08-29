@@ -21,33 +21,27 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst range_conflict-lr1-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("in" . IN)
-     ("(" . LEFT_PAREN)
-     ("range" . RANGE)
-     (")" . RIGHT_PAREN)
-     )
-   nil))
+(defconst range_conflict-lr1-elisp-keyword-table-raw
+  '(
+   ("in" . IN)
+   ("(" . LEFT_PAREN)
+   ("range" . RANGE)
+   (")" . RIGHT_PAREN)
+   ))
 
-
-(defconst range_conflict-lr1-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("punctuation"
-      (DOT_DOT . "..")
-      (TICK . "'")
-      )
-     ("symbol"
-      (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     ("string"
-      (STRING_LITERAL . "\"[^\"]*")
-      )
-     )
-   nil))
-
+(defconst range_conflict-lr1-elisp-token-table-raw
+  '(
+   ("punctuation"
+    (DOT_DOT . "..")
+    (TICK . "'")
+    )
+   ("symbol"
+    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ("string"
+    (STRING_LITERAL . "\"[^\"]*")
+    )
+   ))
 
 (defconst range_conflict-lr1-elisp-parse-table
    (wisi-compile-grammar
@@ -207,5 +201,4 @@
   "Parser table.")
 
 (provide 'range_conflict-lr1-elisp)
-
 ;; end of file

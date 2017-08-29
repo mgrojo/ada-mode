@@ -49,7 +49,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
         Image (Descriptor, Config.Pushed) & ", " &
         Image (Descriptor, Config.Inserted) & ", " &
         Image  (Descriptor, Config.Deleted) & ", " &
-        Float'Image (Config.Cost) & ")";
+        Natural'Image (Config.Cost) & ")";
    end Image;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration)

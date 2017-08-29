@@ -89,7 +89,7 @@ clean :: test-clean
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
 test-clean : wisi-clean aflex-clean
-	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *-wy.el
+	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *.wy
 
 source-clean ::
 	-find $(SOURCE_ROOT) -name "*~" -print | xargs rm -v
