@@ -133,7 +133,6 @@ is
         (-Elisp_Package_1, Tokens, Keywords, Rules, Parser, Generate_Utils.LR1_Descriptor);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
-      New_Line;
       Put_Line (";; end of file");
       Close (File);
 

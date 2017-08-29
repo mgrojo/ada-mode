@@ -128,6 +128,8 @@ package WisiToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array) return String;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array);
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set);
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);

@@ -56,8 +56,12 @@ package WisiToken.Parser.LR.McKenzie_Recover is
       Cost     : Float := 0.0;
    end record;
 
+   overriding
+   function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String;
+   --  Aggregate syntax, for sending to Emacs.
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
-   --  Put Config to Ada.Text_IO.Current_Output
+   --  Put Config to Ada.Text_IO.Current_Output, for debug
 
    Default_Configuration : constant Configuration :=
      (Stack                  => Parser_Stacks.Empty_Stack,

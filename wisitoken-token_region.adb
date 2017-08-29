@@ -146,8 +146,7 @@ package body WisiToken.Token_Region is
          end if;
 
          if Item.Recover /= null then
-            null;
-            --  FIXME: Image (recover)
+            Put_Line ("   recover: " & Item.Recover.Image (Descriptor));
          end if;
       end loop;
    end Put;

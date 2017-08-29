@@ -163,6 +163,9 @@ package WisiToken.Token is
    --  For storing error recovery information, for reuse in subsequent
    --  parse. Compare to WisiToken.Parser.LR.Recover_Data.
 
+   function Image (Data : in Recover_Data; Descriptor : in WisiToken.Descriptor'Class) return String is abstract;
+   --  Human readable (for extended error messages), with token string images.
+
    type Recover_Data_Access is access all Recover_Data'Class;
    --  For storing Recover_Data in a Parser_Lists.Pend_Item.
 

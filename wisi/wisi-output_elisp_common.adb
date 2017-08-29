@@ -46,18 +46,14 @@ package body Wisi.Output_Elisp_Common is
    is
       use Standard.Ada.Text_IO;
    begin
-      Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-keyword-table");
-      Indent_Line ("  (semantic-lex-make-keyword-table");
-      Indent_Line ("   '(");
-      Indent := Indent + 5;
+      Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-keyword-table-raw");
+      Indent_Line ("  '(");
+      Indent := Indent + 3;
       for Pair of Keywords loop
          Indent_Line ("(" & (-Pair.Value) & " . " & Image (Pair.Name) & ")");
       end loop;
-      Indent_Line (")");
-      Indent := Indent - 2;
-      Indent_Line ("nil))");
+      Indent_Line ("))");
       Indent := Indent - 3;
-      New_Line;
    end Indent_Keyword_Table;
 
    procedure Indent_Token_Table
@@ -69,10 +65,9 @@ package body Wisi.Output_Elisp_Common is
       use Standard.Ada.Strings.Unbounded;
       use Standard.Ada.Text_IO;
    begin
-      Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-token-table");
-      Indent_Line ("  (semantic-lex-make-type-table");
-      Indent_Line ("   '(");
-      Indent := Indent + 5;
+      Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-token-table-raw");
+      Indent_Line ("  '(");
+      Indent := Indent + 3;
       for Kind of Tokens loop
          if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
             Indent_Line ("(" & (-Kind.Kind));
@@ -93,11 +88,8 @@ package body Wisi.Output_Elisp_Common is
             Indent := Indent - 1;
          end if;
       end loop;
-      Indent_Line (")");
-      Indent := Indent - 2;
-      Indent_Line ("nil))");
+      Indent_Line ("))");
       Indent := Indent - 3;
-      New_Line;
    end Indent_Token_Table;
 
    procedure Indent_Names

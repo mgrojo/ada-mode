@@ -27,6 +27,11 @@ package body WisiToken.Parser.LR.Panic_Mode is
    end record;
 
    type Panic_Recover_Data is new WisiToken.Token.Recover_Data with null record;
+
+   overriding
+   function Image (Item : in Panic_Recover_Data; Descriptor : in WisiToken.Descriptor'Class) return String
+     is ("");
+
    Null_Panic_Recover_Data : Panic_Recover_Data;
 
    Default_Panic : constant Panic_Data :=
