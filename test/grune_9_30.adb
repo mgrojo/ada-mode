@@ -106,7 +106,7 @@ package body Grune_9_30 is
       use WisiToken.Parser.LR.LR1_Items;
 
       Computed : Item_Set_List := WisiToken.Parser.LR.LR1_Generator.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug);
+        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug > 0);
 
       Expected : Item_Set_List :=
         --  Item sets from [Grune] fig 9.31 a. States are numbered as in
@@ -130,7 +130,7 @@ package body Grune_9_30 is
       --  no gotos from state 4
       Add_Gotos (Expected, 5, +(+Lower_C_ID, Get_Set (6, Expected)));
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          Put_Line ("computed:");
          Put (LR1_Descriptor, Computed);
          Put_Line ("expected:");
@@ -149,7 +149,8 @@ package body Grune_9_30 is
 
       Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         WisiToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LR1_Generator.Generate
+           (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
          First_Parser_Label);
 

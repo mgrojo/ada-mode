@@ -51,17 +51,17 @@ begin
    Add_Test (Suite, new Association_Grammar_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Compare_Goto_Transitions.Test_Case (Debug => False));
    Add_Test (Suite, new Counted_GNAT_OS_Lib_Test.Test_Case);
-   Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => False));
-   Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug => False));
-   Add_Test (Suite, new Grune_9_30.Test_Case (Debug => False));
+   Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => 0));
+   Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug => 0));
+   Add_Test (Suite, new Grune_9_30.Test_Case (Debug => 0));
    Add_Test (Suite, new Name_Grammar_Test.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Accept_State.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_Character_Literal.Test_Case (Debug => 0));
    Add_Test (Suite, new Test_Follow.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => False));
-   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Debug => 0));
-   Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => False));
-   Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_LR_Expecting.Test_Case (Debug => 0));
+   Add_Test (Suite, new Test_McKenzie_Recover.Test_Case (Debug => 0, Cost_Limit => Natural'Last));
+   Add_Test (Suite, new Test_Statement_Actions.Test_Case (Debug => 0));
+   Add_Test (Suite, new Trivial_Productions_Test.Test_Case (Debug => 0));
 
    --  end test cases
 

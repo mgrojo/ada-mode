@@ -12,7 +12,7 @@ begin;
  1: 1: IS : shift and goto state 2
  1 stack:  2 : IS,  1 : 
  1: 2: BEGIN : reduce 0 tokens to declarative_part
-(declarative_part) <= ((IS 43 . 44))
+(declarative_part) <= ()
  ... goto state 7
  1 stack:  7 : declarative_part,  2 : IS,  1 : 
  1: 7: BEGIN : shift and goto state 8
@@ -32,7 +32,7 @@ body_0: (body 43 . 51) <= ((IS 43 . 44), (declarative_part), (BEGIN 46 . 50), (S
  1: 2: IS : shift and goto state 2
  1 stack:  2 : IS,  2 : IS,  3 : declarations,  1 : 
  1: 2: BEGIN : reduce 0 tokens to declarative_part
-(declarative_part) <= ((declarations 43 . 51), (IS 105 . 106), (IS 112 . 113))
+(declarative_part) <= ()
  ... goto state 7
  1 stack:  7 : declarative_part,  2 : IS,  2 : IS,  3 : declarations,  1 : 
  1: 7: BEGIN : shift and goto state 8
@@ -84,7 +84,7 @@ begin;
  1: 1: IS : shift and goto state 2
  1 stack:  2 : IS,  1 : 
  1: 2: BEGIN : reduce 0 tokens to declarative_part
-(declarative_part) <= ((IS 43 . 44))
+(declarative_part) <= ()
  ... goto state 9
  1 stack:  9 : declarative_part,  2 : IS,  1 : 
  1: 9: BEGIN : shift and goto state 11
@@ -104,7 +104,7 @@ body_0: (body 43 . 51) <= ((IS 43 . 44), (declarative_part), (BEGIN 46 . 50), (S
  1: 2: IS : shift and goto state 7
  1 stack:  7 : IS,  2 : IS,  3 : declarations,  1 : 
  1: 7: BEGIN : reduce 0 tokens to declarative_part
-(declarative_part) <= ((declarations 43 . 51), (IS 105 . 106), (IS 112 . 113))
+(declarative_part) <= ()
  ... goto state 13
  1 stack:  13 : declarative_part,  7 : IS,  2 : IS,  3 : declarations,  1 : 
  1: 13: BEGIN : shift and goto state 14

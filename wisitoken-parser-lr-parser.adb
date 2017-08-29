@@ -366,13 +366,15 @@ package body WisiToken.Parser.LR.Parser is
 
             for Parser_State of Parsers loop
                if Parser_State.Verb = Error then
-                  Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
-                  if Trace_Parse > 0 then
-                     Trace.Put_Line
-                       (Integer'Image (Parser_State.Label) & ": zombie (" &
-                          Int_Image
-                            (Parser.Table.McKenzie.Check_Limit - Parser_State.Zombie_Token_Count) &
-                          " tokens remaining)");
+                  if Parser.Enable_McKenzie_Recover then
+                     Parser_State.Zombie_Token_Count := Parser_State.Zombie_Token_Count + 1;
+                     if Trace_Parse > 0 then
+                        Trace.Put_Line
+                          (Integer'Image (Parser_State.Label) & ": zombie (" &
+                             Int_Image
+                               (Parser.Table.McKenzie.Check_Limit - Parser_State.Zombie_Token_Count) &
+                             " tokens remaining)");
+                     end if;
                   end if;
                else
                   if Zombie_Count = 0 then

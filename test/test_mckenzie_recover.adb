@@ -433,25 +433,24 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
+      Parse_Text
+        ("procedure Check is type begin end Check; ",
+         --        |10       |20       |30       |40
+         Test.Debug);
+      --  'type' 20 with no type definition.
+      --
+      --  error 1 at 'begin' 25; expecting IDENTIFIER. pops 'type' 20, continues to EOF
+
+      Check ("1 errors.length", State.Errors.Length, 1);
+      declare
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Ada_Lite.State.Errors.First;
       begin
-         Parse_Text
-           ("procedure Check is type begin end Check; ",
-            --        |10       |20       |30       |40       |50       |60       |70       |80
-            Test.Debug);
-         --  'type' 20 with no type definition.
-         --
-         --  error 1 at 'begin' 25; expecting IDENTIFIER. deletes 'begin end', continues to ';' 40
-         --  error 2 at ';' 40; expecting type definition. pops IDENTIFIER, TYPE, IS, succeeds
-         --
-         --  FIXME: better would be to check ahead one more token so
-         --  first solution is rejected.
-
-         Check ("1 errors.length", State.Errors.Length, 2);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
+         Check ("errors.invalid_region 1", Element (Cursor).Invalid_Region, (20, 23));
       end;
-
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Started_Type;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)

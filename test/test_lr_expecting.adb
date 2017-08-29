@@ -148,8 +148,8 @@ package body Test_LR_Expecting is
            (Grammar,
             LALR_Descriptor,
             First_State_Index,
-            Trace           => Test.Debug,
-            Put_Parse_Table => Test.Debug),
+            Trace           => Test.Debug > 0,
+            Put_Parse_Table => Test.Debug > 0),
          State,
          First_Parser_Label);
 

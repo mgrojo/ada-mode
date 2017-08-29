@@ -11,11 +11,11 @@ Monitor constant := ;
  1: 1: IDENTIFIER : shift and goto state 2
  1 stack:  2 : IDENTIFIER,  1 : 
  1: 2: SEMICOLON : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ((IDENTIFIER 1 . 7))
+(aliased_opt) <= ()
  ... goto state 8
  1 stack:  8 : aliased_opt,  2 : IDENTIFIER,  1 : 
  1: 8: SEMICOLON : reduce 0 tokens to constant_opt
-(constant_opt) <= ((IDENTIFIER 1 . 7), (aliased_opt))
+(constant_opt) <= ()
  ... goto state 11
  1 stack:  11 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  1 : 
  1: 11: SEMICOLON : shift and goto state 12
@@ -32,34 +32,26 @@ object_declaration_0: (object_declaration 1 . 8) <= ((IDENTIFIER 1 . 7), (aliase
  1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 1 (2 active)
  2: 2: CONSTANT : reduce 0 tokens to aliased_opt
- 2: pending REDUCE_STACK aliased_opt_0: aliased_opt <= 
  ... goto state 8
  1: 2: CONSTANT : shift and goto state 7
- 1: pending PUSH_CURRENT CONSTANT
  2 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 8: CONSTANT : shift and goto state 7
- 2: pending PUSH_CURRENT CONSTANT
- 1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2 stack:  7 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 7: SEMICOLON : reduce 1 tokens to constant_opt
- 2: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 11
  1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  1: 7: SEMICOLON : reduce 1 tokens to constant_opt
- 1: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 9
  2 stack:  11 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 11: SEMICOLON : shift and goto state 12
- 2: pending PUSH_CURRENT SEMICOLON
  1 stack:  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  1: 9: SEMICOLON : ERROR
  2 stack:  12 : SEMICOLON,  11 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 12: IDENTIFIER : reduce 4 tokens to object_declaration
- 2: pending REDUCE_STACK object_declaration_0: object_declaration <= IDENTIFIER, aliased_opt, constant_opt, SEMICOLON
  ... goto state 5
  1: terminate (1 active)
-2: execute pending
-(aliased_opt) <= ((object_declaration_list 1 . 8), (IDENTIFIER 10 . 16))
+ 2: execute pending
+(aliased_opt) <= ()
 (constant_opt 18 . 25) <= ((CONSTANT 18 . 25))
 object_declaration_0: (object_declaration 10 . 26) <= ((IDENTIFIER 10 . 16), (aliased_opt), (constant_opt 18 . 25), (SEMICOLON 26 . 26))
  2 stack:  5 : object_declaration,  3 : object_declaration_list,  1 : 
@@ -76,7 +68,7 @@ object_declaration_list_1: (object_declaration_list 1 . 26) <= ((object_declarat
  ... goto state 8
  2 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 8: SEMICOLON : reduce 0 tokens to constant_opt
-(constant_opt) <= ((object_declaration_list 1 . 26), (IDENTIFIER 28 . 34), (aliased_opt 36 . 42))
+(constant_opt) <= ()
  ... goto state 11
  2 stack:  11 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 11: SEMICOLON : shift and goto state 12
@@ -116,7 +108,7 @@ object_declaration_list_1: (object_declaration_list 1 . 69) <= ((object_declarat
  2: 3: IDENTIFIER : shift and goto state 2
  2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: COLON_EQUAL : reduce 0 tokens to constant_opt
-(constant_opt) <= ((object_declaration_list 1 . 69), (IDENTIFIER 71 . 77))
+(constant_opt) <= ()
  ... goto state 9
  2 stack:  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 9: COLON_EQUAL : shift and goto state 10
@@ -135,29 +127,22 @@ object_declaration_list_1: (object_declaration_list 1 . 82) <= ((object_declarat
  2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 2 (2 active)
  3: 2: CONSTANT : reduce 0 tokens to aliased_opt
- 3: pending REDUCE_STACK aliased_opt_0: aliased_opt <= 
  ... goto state 8
  2: 2: CONSTANT : shift and goto state 7
- 2: pending PUSH_CURRENT CONSTANT
  3 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 8: CONSTANT : shift and goto state 7
- 3: pending PUSH_CURRENT CONSTANT
- 2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3 stack:  7 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 7: COLON_EQUAL : reduce 1 tokens to constant_opt
- 3: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 11
  2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 7: COLON_EQUAL : reduce 1 tokens to constant_opt
- 2: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 9
  3 stack:  11 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 11: COLON_EQUAL : ERROR
  2 stack:  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 9: COLON_EQUAL : shift and goto state 10
- 2: pending PUSH_CURRENT COLON_EQUAL
  3: terminate (1 active)
-2: execute pending
+ 2: execute pending
 (constant_opt 92 . 99) <= ((CONSTANT 92 . 99))
  2 stack:  10 : COLON_EQUAL,  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 10: SEMICOLON : shift and goto state 13
@@ -186,11 +171,11 @@ Monitor constant := ;
  1: 1: IDENTIFIER : shift and goto state 2
  1 stack:  2 : IDENTIFIER,  1 : 
  1: 2: SEMICOLON : reduce 0 tokens to aliased_opt
-(aliased_opt) <= ((IDENTIFIER 1 . 7))
+(aliased_opt) <= ()
  ... goto state 8
  1 stack:  8 : aliased_opt,  2 : IDENTIFIER,  1 : 
  1: 8: SEMICOLON : reduce 0 tokens to constant_opt
-(constant_opt) <= ((IDENTIFIER 1 . 7), (aliased_opt))
+(constant_opt) <= ()
  ... goto state 12
  1 stack:  12 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  1 : 
  1: 12: SEMICOLON : shift and goto state 13
@@ -207,26 +192,20 @@ object_declaration_0: (object_declaration 1 . 8) <= ((IDENTIFIER 1 . 7), (aliase
  1 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 1 (2 active)
  2: 2: CONSTANT : reduce 0 tokens to aliased_opt
- 2: pending REDUCE_STACK aliased_opt_0: aliased_opt <= 
  ... goto state 8
  1: 2: CONSTANT : shift and goto state 7
- 1: pending PUSH_CURRENT CONSTANT
  2 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 8: CONSTANT : shift and goto state 11
- 2: pending PUSH_CURRENT CONSTANT
- 1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2 stack:  11 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 11: SEMICOLON : reduce 1 tokens to constant_opt
- 2: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 12
  1 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  1: 7: SEMICOLON : ERROR
  2 stack:  12 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 12: SEMICOLON : shift and goto state 13
- 2: pending PUSH_CURRENT SEMICOLON
  1: terminate (1 active)
-2: execute pending
-(aliased_opt) <= ((object_declaration_list 1 . 8), (IDENTIFIER 10 . 16))
+ 2: execute pending
+(aliased_opt) <= ()
 (constant_opt 18 . 25) <= ((CONSTANT 18 . 25))
  2 stack:  13 : SEMICOLON,  12 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 13: IDENTIFIER : reduce 4 tokens to object_declaration
@@ -246,7 +225,7 @@ object_declaration_list_1: (object_declaration_list 1 . 26) <= ((object_declarat
  ... goto state 8
  2 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 8: SEMICOLON : reduce 0 tokens to constant_opt
-(constant_opt) <= ((object_declaration_list 1 . 26), (IDENTIFIER 28 . 34), (aliased_opt 36 . 42))
+(constant_opt) <= ()
  ... goto state 12
  2 stack:  12 : constant_opt,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 12: SEMICOLON : shift and goto state 13
@@ -286,7 +265,7 @@ object_declaration_list_1: (object_declaration_list 1 . 69) <= ((object_declarat
  2: 3: IDENTIFIER : shift and goto state 2
  2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 2: COLON_EQUAL : reduce 0 tokens to constant_opt
-(constant_opt) <= ((object_declaration_list 1 . 69), (IDENTIFIER 71 . 77))
+(constant_opt) <= ()
  ... goto state 9
  2 stack:  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 9: COLON_EQUAL : shift and goto state 10
@@ -305,22 +284,17 @@ object_declaration_list_1: (object_declaration_list 1 . 82) <= ((object_declarat
  2 stack:  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
 spawn parser from 2 (2 active)
  3: 2: CONSTANT : reduce 0 tokens to aliased_opt
- 3: pending REDUCE_STACK aliased_opt_0: aliased_opt <= 
  ... goto state 8
  2: 2: CONSTANT : shift and goto state 7
- 2: pending PUSH_CURRENT CONSTANT
  3 stack:  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 8: CONSTANT : shift and goto state 11
- 3: pending PUSH_CURRENT CONSTANT
- 2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3 stack:  11 : CONSTANT,  8 : aliased_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  3: 11: COLON_EQUAL : ERROR
  2 stack:  7 : CONSTANT,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 7: COLON_EQUAL : reduce 1 tokens to constant_opt
- 2: pending REDUCE_STACK constant_opt_1: constant_opt <= CONSTANT
  ... goto state 9
  3: terminate (1 active)
-2: execute pending
+ 2: execute pending
 (constant_opt 92 . 99) <= ((CONSTANT 92 . 99))
  2 stack:  9 : constant_opt,  2 : IDENTIFIER,  3 : object_declaration_list,  1 : 
  2: 9: COLON_EQUAL : shift and goto state 10

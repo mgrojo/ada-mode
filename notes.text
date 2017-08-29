@@ -5,10 +5,7 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-test_mckenzie_recover
-    some failing
-
-run all tests
+propagate
 
 new test cases:
 

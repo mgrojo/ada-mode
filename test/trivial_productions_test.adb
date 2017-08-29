@@ -94,7 +94,7 @@ package body Trivial_Productions_Test is
          Parser := WisiToken.Parser.LR.Parser.New_Parser
            (Lexer.New_Lexer (Trace'Access, Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
             WisiToken.Parser.LR.LALR_Generator.Generate
-              (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug),
+              (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
             State,
             First_Parser_Label);
 
@@ -195,8 +195,8 @@ package body Trivial_Productions_Test is
               (Grammar,
                LALR_Descriptor,
                First_State_Index,
-               Trace           => Test.Debug,
-               Put_Parse_Table => Test.Debug),
+               Trace           => Test.Debug > 0,
+               Put_Parse_Table => Test.Debug > 0),
             State,
             First_Parser_Label);
 

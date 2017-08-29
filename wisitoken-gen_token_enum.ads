@@ -114,6 +114,10 @@ package WisiToken.Gen_Token_Enum is
       Token : in     Token_ID)
      is null;
 
+   overriding procedure Begin_Parallel_Parse (State : access State_Type) is null;
+
+   overriding procedure End_Parallel_Parse (State : access State_Type) is null;
+
    overriding procedure Error
      (State     : access State_Type;
       Expecting : in     Token_ID_Set);

@@ -137,7 +137,7 @@ package body Dragon_4_43_LR1_Test is
       Check ("0", Has_Empty_Production, WisiToken.Token_ID_Set'(+Accept_ID .. +Upper_C_ID => False));
       Check ("1", First, Expected_First);
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          Ada.Text_IO.Put_Line ("Follow:");
          WisiToken.Put (LR1_Descriptor, Computed_Follow);
       end if;
@@ -152,7 +152,7 @@ package body Dragon_4_43_LR1_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Item_Set_List := WisiToken.Parser.LR.LR1_Generator.LR1_Item_Sets
-        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug);
+        (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug > 0);
 
       Expected : constant Item_Set_List :=
         --  [dragon] fig 4.39 pg 235 shows the item sets and gotos. We
@@ -215,7 +215,7 @@ package body Dragon_4_43_LR1_Test is
            (+Lower_D_ID, Get_Set (Map (7), Expected)) &
            (+Upper_C_ID, Get_Set (Map (9), Expected)));
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          Ada.Text_IO.Put_Line ("computed:");
          Put (LR1_Descriptor, Computed);
          Ada.Text_IO.New_Line;
@@ -233,7 +233,7 @@ package body Dragon_4_43_LR1_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Parse_Table_Ptr := WisiToken.Parser.LR.LR1_Generator.Generate
-        (Grammar, LR1_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug);
+        (Grammar, LR1_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug > 0);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -293,7 +293,7 @@ package body Dragon_4_43_LR1_Test is
       Add_Action (Expected.States (Map (9)), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
       Add_Error (Expected.States (Map (9)));
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          --  computed output above during generate
          Ada.Text_IO.New_Line (2);
          Ada.Text_IO.Put_Line ("expected:");
@@ -309,7 +309,8 @@ package body Dragon_4_43_LR1_Test is
 
       Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         WisiToken.Parser.LR.LR1_Generator.Generate (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LR1_Generator.Generate
+           (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
          First_Parser_Label);
 

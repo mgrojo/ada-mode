@@ -41,11 +41,12 @@ OK test_mckenzie_recover.adb : Started_Type
 OK test_mckenzie_recover.adb : Missing_Return
 OK test_mckenzie_recover.adb : Loop_Bounds
 OK test_mckenzie_recover.adb : Pattern_1
+OK test_mckenzie_recover.adb : Revive_Zombie_Parser
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
 
-Total Tests Run:   44
-Successful Tests:  44
+Total Tests Run:   45
+Successful Tests:  45
 Failed Assertions: 0
 Unexpected Errors: 0

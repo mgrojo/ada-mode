@@ -436,7 +436,8 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
          Indent_Line ("   Shared_Lookahead        => WisiToken.Token_Queues.Empty_Queue,");
-         Indent_Line ("   Enable_McKenzie_Recover => True,");
+         Indent_Line ("   Enable_McKenzie_Recover =>");
+         Indent_Line ("     Table.McKenzie.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit,");
          Indent_Line ("   Max_Parallel            => 15,");
          Indent_Line ("   First_Parser_Label      => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State    => True);");

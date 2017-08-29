@@ -145,7 +145,7 @@ package body Test_Statement_Actions is
       Parser := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
          WisiToken.Parser.LR.LALR_Generator.Generate
-           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
+           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
          First_Parser_Label);
 

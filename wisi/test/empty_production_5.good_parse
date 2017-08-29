@@ -37,7 +37,7 @@ accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name 8 . 13),
  ... goto state 7
  1 stack:  7 : name,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 7: SEMICOLON : reduce 0 tokens to parameter_profile
-(parameter_profile) <= ((accept_statement 1 . 20), (ACCEPT 22 . 27), (name 29 . 34))
+(parameter_profile) <= ()
  ... goto state 9
  1 stack:  9 : parameter_profile,  7 : name,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 9: SEMICOLON : shift and goto state 10
@@ -92,7 +92,7 @@ accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name 8 . 13),
  ... goto state 11
  1 stack:  11 : name,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 11: SEMICOLON : reduce 0 tokens to parameter_profile
-(parameter_profile) <= ((accept_statement 1 . 20), (ACCEPT 22 . 27), (name 29 . 34))
+(parameter_profile) <= ()
  ... goto state 12
  1 stack:  12 : parameter_profile,  11 : name,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 12: SEMICOLON : shift and goto state 16

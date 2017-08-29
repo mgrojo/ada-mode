@@ -26,7 +26,7 @@ Bar Another_Type
  1: 4: IDENTIFIER : shift and goto state 2
  1 stack:  2 : IDENTIFIER,  4 : parameter_specification,  1 : 
  1: 2: IDENTIFIER : reduce 0 tokens to mode
-(mode) <= ((parameter_specification 1 . 13), (IDENTIFIER 15 . 17))
+(mode) <= ()
  ... goto state 7
  1 stack:  7 : mode,  2 : IDENTIFIER,  4 : parameter_specification,  1 : 
  1: 7: IDENTIFIER : shift and goto state 8
@@ -74,7 +74,7 @@ Bar Another_Type
  1: 4: IDENTIFIER : shift and goto state 5
  1 stack:  5 : IDENTIFIER,  4 : parameter_specification,  1 : 
  1: 5: IDENTIFIER : reduce 0 tokens to mode
-(mode) <= ((parameter_specification 1 . 13), (IDENTIFIER 15 . 17))
+(mode) <= ()
  ... goto state 11
  1 stack:  11 : mode,  5 : IDENTIFIER,  4 : parameter_specification,  1 : 
  1: 11: IDENTIFIER : shift and goto state 12

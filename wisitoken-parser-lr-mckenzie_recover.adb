@@ -255,16 +255,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          then Action_For (Data.Parser.Table.all, Check_Config.Stack.Peek.State, Check_Token)
          else Item.Action);
 
-      New_State  : Unknown_State_Index;
-      Keep_Going : Boolean := True;
+      New_State          : Unknown_State_Index;
+      Last_Token_Virtual : Boolean := False;
+      Keep_Going         : Boolean := True;
    begin
       if Trace_Parse > 1 then
          Put ("check  ", Data.Parser, Check_Config);
-         Put_Line (Trace, "   action " & Image (Descriptor, Action.Item));
+         if Trace_Parse > 2 then
+            Put_Line (Trace, "   action " & Image (Descriptor, Action.Item));
+         end if;
       end if;
 
       loop
-         if Trace_Parse > 1 then
+         if Trace_Parse > 2 then
             Trace.Put_Line
               ("checking :" & State_Index'Image (Check_Config.Stack.Peek.State) &
                  " : " & Image (Descriptor, Check_Token) &
@@ -291,8 +294,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                --  These don't count towards Check_Limit
                Check_Config.Local_Lookahead_Index := Check_Config.Local_Lookahead_Index + 1;
                Check_Token := Check_Config.Local_Lookahead (Check_Config.Local_Lookahead_Index);
+               Last_Token_Virtual := True;
             else
-               Check_Config.Shared_Lookahead_Index := Check_Config.Shared_Lookahead_Index + 1;
+               if not Last_Token_Virtual then
+                  Check_Config.Shared_Lookahead_Index := Check_Config.Shared_Lookahead_Index + 1;
+               end if;
+               Last_Token_Virtual := False;
+
                if Check_Config.Shared_Lookahead_Index > Data.Parser.Shared_Lookahead.Count then
                   Check_Token := Data.Parser.Lexer.Find_Next;
                   Data.Parser.Shared_Lookahead.Put (Check_Token);
@@ -495,7 +503,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   Config.Local_Lookahead.Prepend (Sequence (I));
                end loop;
                Config.Local_Lookahead_Index  := 1;
-               Config.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index - 1;
+               Config.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index;
 
                Enqueue (Data, Config);
             end;

@@ -132,7 +132,7 @@ package body Dragon_4_45_LALR_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Item_Set_List := WisiToken.Parser.LR.LALR_Generator.LALR_Kernels
-        (Grammar, First, First_State_Index, LALR_Descriptor, Trace => Test.Debug);
+        (Grammar, First, First_State_Index, LALR_Descriptor, Trace => Test.Debug > 0);
 
       Null_Lookaheads : constant WisiToken.Token_ID_Set :=
         --  + 1 for propagate
@@ -176,7 +176,7 @@ package body Dragon_4_45_LALR_Test is
            (+Lower_D_ID, Get_Set (S47, Expected)) &
            (+Upper_C_ID, Get_Set (S89, Expected)));
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          Ada.Text_IO.Put_Line ("computed:");
          Put (LALR_Descriptor, Computed);
          Ada.Text_IO.New_Line;
@@ -194,7 +194,7 @@ package body Dragon_4_45_LALR_Test is
       Test : Test_Case renames Test_Case (T);
 
       Computed : constant Parse_Table_Ptr := LALR_Generator.Generate
-        (Grammar, LALR_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug);
+        (Grammar, LALR_Descriptor, First_State_Index, Put_Parse_Table => Test.Debug > 0);
 
       Expected : Parse_Table
         (State_First       => 0,
@@ -244,7 +244,7 @@ package body Dragon_4_45_LALR_Test is
       Add_Action (Expected.States (S89), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
       Add_Error (Expected.States (S89));
 
-      if Test.Debug then
+      if Test.Debug > 0 then
          --  computed output above
          Ada.Text_IO.New_Line (2);
          Ada.Text_IO.Put_Line ("expected:");
@@ -260,7 +260,8 @@ package body Dragon_4_45_LALR_Test is
 
       Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
         (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
-         WisiToken.Parser.LR.LALR_Generator.Generate (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug),
+         WisiToken.Parser.LR.LALR_Generator.Generate
+           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
          First_Parser_Label);
 
