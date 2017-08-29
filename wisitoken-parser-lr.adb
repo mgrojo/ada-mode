@@ -70,6 +70,16 @@ package body WisiToken.Parser.LR is
       New_Line;
    end Put;
 
+   function Extract_IDs (Stack : in Parser_Stacks.Stack_Type) return Token_Array
+   is begin
+      return Result : Token_Array do
+         Result.Reserve_Capacity (Ada.Containers.Count_Type (Stack.Depth));
+         for I in reverse 1 .. Stack.Depth loop
+            Result.Append (Stack.Peek (I).ID);
+         end loop;
+      end return;
+   end Extract_IDs;
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
    is
       use all type SAL.Base_Peek_Type;

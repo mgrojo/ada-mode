@@ -278,6 +278,10 @@ package WisiToken.Parser.LR is
    package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parser_Stack_Item);
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item, Parser_Stack_Interfaces);
 
+   function Extract_IDs (Stack : in Parser_Stacks.Stack_Type) return Token_Array;
+   --  Items in result are in order they would appear in the text
+   --  buffer.
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type);
    --  Put image of top 10 stack items to Trace.
 

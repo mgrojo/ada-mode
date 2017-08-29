@@ -196,6 +196,22 @@ package body WisiToken is
       Trace.Put (Image (Trace.Descriptor.all, Item));
    end Put;
 
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array) return String
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("(");
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         Result := Result & Image (Descriptor, Item (I));
+         if I /= Item.Last_Index then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return To_String (Result);
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array)
    is
       use all type Ada.Containers.Count_Type;
