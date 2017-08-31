@@ -32,8 +32,11 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
-      when Virtual_To_Lookahead .. Discard_Stack =>
+      when Virtual_To_Lookahead .. Push_Current =>
          ID : Token_ID;
+
+      when Discard_Lookahead .. Discard_Stack =>
+         Discard_ID : Token_ID;
 
       when Reduce_Stack =>
          Action : Reduce_Action_Rec;
@@ -78,7 +81,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function New_List
      (First_State_Index  : in State_Index;
-      First_Parser_Label : in Integer)
+      First_Parser_Label : in Natural)
      return List;
 
    function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type;
@@ -91,7 +94,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
-   function Label (Cursor : in Parser_Lists.Cursor) return Integer;
+   function Label (Cursor : in Parser_Lists.Cursor) return Natural;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs);
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs;
@@ -179,7 +182,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    --  Access to some private Parser_State components
 
-   function Label (Iterator : in Parser_State) return Integer;
+   function Label (Iterator : in Parser_State) return Natural;
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
@@ -195,7 +198,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 private
 
    type Parser_State is new Base_Parser_State with record
-      Label           : Integer;                -- for debugging/verbosity
+      Label           : Natural;                -- for debugging/verbosity
       Verb            : All_Parse_Action_Verbs; -- current action to perform
       Prev_Verb       : All_Parse_Action_Verbs; -- previous action performed
       Pre_Reduce_Item : Parser_Stack_Item := Default_Parser_Stack_Item;
@@ -205,7 +208,7 @@ private
 
    type List is tagged record
       Elements     : aliased Parser_State_Lists.List;
-      Parser_Label : Integer; -- label of last added parser.
+      Parser_Label : Natural; -- label of last added parser.
    end record;
 
    type Cursor is tagged record

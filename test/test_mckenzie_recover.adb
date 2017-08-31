@@ -149,12 +149,14 @@ package body Test_McKenzie_Recover is
 
       Check ("action_count", Action_Count (+subprogram_body_ID), 1);
 
-      Check ("errors.length", Ada_Lite.State.Errors.Length, 1);
-
       declare
+         use WisiToken.Token_Region;
          use WisiToken.Token_Region.Error_Data_Lists;
-         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Ada_Lite.State.Errors.First;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Error_List.First;
       begin
+         Check ("errors.length", Error_List.Length, 1);
+
          Check ("errors.invalid_region 1", Element (Cursor).Invalid_Region, (59, 61));
       end;
    exception
@@ -178,14 +180,15 @@ package body Test_McKenzie_Recover is
       --  This used to insert lots of stuff finishing all the blocks;
       --  now it uses recover_pattern_1 for 'if'.
 
-      Check ("errors.length", State.Errors.Length, 1);
       declare
          use WisiToken.AUnit;
          use WisiToken.Token_Region;
          use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region.Error_Data_Lists;
-         Cursor : constant Error_Data_Lists.Cursor := State.Errors.First;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
+         Check ("errors.length", Error_List.Length, 1);
          Check
            ("1", Element (Cursor),
             (First_Terminal    => Descriptor.First_Terminal,
@@ -219,7 +222,7 @@ package body Test_McKenzie_Recover is
       Assert (False, "1.exception: did not get Syntax_Error");
    exception
    when WisiToken.Syntax_Error =>
-      Check ("error.length", State.Errors.Length, 1);
+      Check ("error.length", State.Active_Error_List.Length, 1);
    end Error_4;
 
    procedure Error_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -234,12 +237,12 @@ package body Test_McKenzie_Recover is
       --
       --  Matches special rule Terminal_Sequence 'if .. then', succeeds
 
-      Check ("1 error.length", State.Errors.Length, 1);
+      Check ("1 error.length", State.Active_Error_List.Length, 1);
 
       Parse_Text ("procedure Debug_2 is begin elsif then else end if; end; ", Test.Debug);
       --  Same, no 'B;'
 
-      Check ("2 error.length", State.Errors.Length, 1);
+      Check ("2 error.length", State.Active_Error_List.Length, 1);
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "exception: got Syntax_Error");
@@ -259,7 +262,7 @@ package body Test_McKenzie_Recover is
       --
       --  Inserts 'loop', continues to EOF, inserts 'end;', succeeds
       --  Test hitting EOF and Accept_It in error recovery
-      Check ("errors.length", State.Errors.Length, 1);
+      Check ("errors.length", State.Active_Error_List.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
@@ -291,13 +294,15 @@ package body Test_McKenzie_Recover is
       --  cost 2 due to grammar cost settings. That allows parsing to
       --  continue to EOF.
 
-      Check ("errors.length", State.Errors.Length, 1);
+      Check ("errors.length", State.Active_Error_List.Length, 1);
       declare
          use WisiToken.AUnit;
          use WisiToken.Parser.LR.AUnit;
+         use WisiToken.Token_Region;
          use WisiToken.Token_Region.AUnit;
          use WisiToken.Token_Region.Error_Data_Lists;
-         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := State.Errors.First;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
 
          if WisiToken.Trace_Parse > 0 then
@@ -317,7 +322,7 @@ package body Test_McKenzie_Recover is
              Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +NEW_ID, +RETURN_ID,
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
                  +IDENTIFIER_ID)),
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
@@ -355,12 +360,18 @@ package body Test_McKenzie_Recover is
             Test.Debug);
          --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
          --
-         --  parser 1 state 12 subprogram_body (should succeed): delete 'end' 22.
+         --  parser 1 for subprogram_body (should succeed): delete 'end' 22, cost 1.
          --  Continue to EOF, succeed.
          --
-         --  parser 0 state 25 generic_instantiation (should fail):
-         --  finds: insert 'new', delete 'end begin end' cost 8.0, succeed => ambiguous parse
-         --  better: Pop 'is' 19, insert 'is' state 12, delete 'end 20' cost 9.0 => identical stacks, terminate one
+         --  parser 0 for generic_instantiation (should fail):
+         --  finds: insert 'new', delete 'end begin end' cost 6, succeed => ambiguous parse
+         --
+         --  This is an example of error recovery defeating conflict
+         --  resolution. In real programs it should not happen often; the
+         --  incorrect parser will not find a viable error resolution. However,
+         --  that means it will be slow, since error resolution only fails by
+         --  hitting the cost limit after trying hundreds of possible
+         --  solutions.
 
          Assert (False, "1 did not get exception");
 
@@ -380,19 +391,25 @@ package body Test_McKenzie_Recover is
 
       --  Symmetric case where generic_instantiation is desired
       begin
+
+         Parser.Table.McKenzie.Cost_Limit := 8;
+
          Parse_Text
            ("procedure Check_2 is end new Check_2;",
             --        |10       |20       |30       |40       |50       |60       |70       |80
             Test.Debug);
-         --  Syntax error (extra 'end' 22) while two parsers are sorting out a conflict
+         --  Syntax error (extra 'end' 22) while two parsers are sorting out a
+         --  conflict.
          --
-         --  parser 1 state 12 subprogram_body (should fail): insert 'begin'.
-         --  Continue to error at 'new 23', terminate.
+         --  parser 1 for subprogram_body (should fail): hits cost limit, fails.
          --
-         --  parser 0 state 25 generic_instantiation (should succeed):
-         --  finds: delete 'end'. Continue to eof, accept
+         --  parser 0 for generic_instantiation (should succeed):
+         --  finds: delete 'end', cost 1. Continue to eof, accept
+         --
+         --  This is an example of adjusting the cost limit to allow conflict
+         --  resolution.
 
-         Check ("2 errors.length", State.Errors.Length, 1); -- error from two parsers is merged into one report.
+         Check ("2 errors.length", State.Active_Error_List.Length, 1); -- error from surviving parser
 
       exception
       when WisiToken.Syntax_Error =>
@@ -420,38 +437,11 @@ package body Test_McKenzie_Recover is
       --  lookahead queue.
       --
       --  both insert semicolon, which leads to identical stacks.
-      Check ("1 errors.length", State.Errors.Length, 1);
+      Check ("1 errors.length", State.Active_Error_List.Length, 1);
    exception
    when WisiToken.Syntax_Error =>
       Assert (False, "1 exception: got Syntax_Error");
    end Conflict_2;
-
-   procedure Started_Type (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      Test : Test_Case renames Test_Case (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-   begin
-      Parse_Text
-        ("procedure Check is type begin end Check; ",
-         --        |10       |20       |30       |40
-         Test.Debug);
-      --  'type' 20 with no type definition.
-      --
-      --  error 1 at 'begin' 25; expecting IDENTIFIER. pops 'type' 20, continues to EOF
-
-      Check ("1 errors.length", State.Errors.Length, 1);
-      declare
-         use WisiToken.Token_Region.Error_Data_Lists;
-         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Ada_Lite.State.Errors.First;
-      begin
-         Check ("errors.invalid_region 1", Element (Cursor).Invalid_Region, (20, 23));
-      end;
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "1 exception: got Syntax_Error");
-   end Started_Type;
 
    procedure Missing_Return (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
@@ -472,7 +462,7 @@ package body Test_McKenzie_Recover is
          --  terminates 1 at 'begin' 75, shared lookahead not finished. Used to get queue empty error here.
          --  continues to eof, succeeds.
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -499,7 +489,7 @@ package body Test_McKenzie_Recover is
          --  with Check_Token_Limit = 3, pops "1", deletes To, leaving Result_Length as subtype
          --  continues to eof, succeeds.
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -524,7 +514,7 @@ package body Test_McKenzie_Recover is
             Test.Debug);
          --  Missing 'end case;'
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -542,7 +532,7 @@ package body Test_McKenzie_Recover is
          --
          --  error 1 at ';' 56; expecting 'case'.
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -558,7 +548,7 @@ package body Test_McKenzie_Recover is
             Test.Debug);
          --  Missing 'end if;'
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -572,7 +562,7 @@ package body Test_McKenzie_Recover is
             Test.Debug);
          --  Missing 'end loop;'
 
-         Check ("1 errors.length", State.Errors.Length, 1);
+         Check ("1 errors.length", State.Active_Error_List.Length, 1);
       exception
       when WisiToken.Syntax_Error =>
          Assert (False, "1 exception: got Syntax_Error");
@@ -586,31 +576,84 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
       use AUnit.Assertions;
       use AUnit.Checks;
+      use WisiToken.Token_Region.AUnit;
    begin
       Parse_Text
         ("procedure Patterns is Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern);",
          --        |10       |20       |30       |40       |50       |60       |70       |80
          Test.Debug);
-      --  A generic instantiation, but missing 'new'.
+      --  A generic instantiation, but missing 'new' after 'is' 20.
       --
       --  Spawns a second parser on 'is'; one for procedure body, one for
-      --  generic instantiation. Generic instantiation parser errors on
-      --  'ada', expecting 'new'. Procedure body keeps going, thinking it's
-      --  the start of an object declaration; errors on '.'.
+      --  generic instantiation.
       --
-      --  The simplest solution is to insert 'new', but the procedure body
-      --  parser will never find that (it manages to convert the text into
-      --  an object declaration and an empty procedure body). So we keep the
-      --  generic instantiation body around for McKenzie.check_token_limit
-      --  tokens after it errors, and it participates in error recovery,
-      --  finding 'insert new'.
+      --  parser 0 for generic_instantiation errors at 'Ada' 23, expecting
+      --  'new'. It inserts 'new' cost 3. Continues to EOF, succeeds.
+      --
+      --  parser 1 for subprogram_body parser keeps going, thinking it's the
+      --  start of an object declaration; errors at '.' 26. It inserts ':
+      --  IDENTIFIER' cost 7. Continues to EOF, becomes a zombie.
+      --
+      --  parser 0 is a zombie until parser 1 errors at '.'; both participate in
+      --  error recovery, and find a solution.
+      --
+      --  Parser 1 becomes a zombie again at EOF, but parser 0 accepts, so
+      --  no error recovery is attempted.
+      --
+      --  The two parsers have different error tokens; make sure the correct
+      --  one (from the successful parser 0) is reported.
 
-      Check ("1 errors.length", State.Errors.Length, 1);
-      exception
-      when WisiToken.Syntax_Error =>
-         Assert (False, "1 exception: got Syntax_Error");
+      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      declare
+         use WisiToken.Token_Region;
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+      begin
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, 0, 0, (23, 25)));
+      end;
 
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
    end Revive_Zombie_Parser;
+
+   procedure Error_Token_When_Parallel (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use WisiToken.Token_Region.AUnit;
+   begin
+      --  Test that the correct error token is reported when the error occurs
+      --  during parallel parsing (a previous version got this wrong).
+
+      Parse_Text
+        ("procedure One is begin if  and B then C; end if; end;",
+         --        |10       |20       |30       |40       |50
+         Test.Debug);
+      --  Missing and expression between 'if' and 'and'.
+      --
+      --  Spawns a second parser on 'is'; one for procedure body, one for
+      --  generic instantiation. Both are still around when the error is
+      --  encountered at 'and' 28. Error recovery for the procedure body
+      --  inserts IDENTIFIER; the other fails.
+
+      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+      declare
+         use WisiToken.Token_Region;
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
+      begin
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, 0, 0, (28, 30)));
+      end;
+
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
+   end Error_Token_When_Parallel;
 
    ----------
    --  Public subprograms
@@ -636,11 +679,11 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
       Register_Routine (T, Conflict_1'Access, "Conflict_1");
       Register_Routine (T, Conflict_2'Access, "Conflict_2");
-      Register_Routine (T, Started_Type'Access, "Started_Type");
       Register_Routine (T, Missing_Return'Access, "Missing_Return");
       Register_Routine (T, Loop_Bounds'Access, "Loop_Bounds");
       Register_Routine (T, Pattern_1'Access, "Pattern_1");
       Register_Routine (T, Revive_Zombie_Parser'Access, "Revive_Zombie_Parser");
+      Register_Routine (T, Error_Token_When_Parallel'Access, "Error_Token_When_Parallel");
    end Register_Tests;
 
    overriding procedure Set_Up (T : in out Test_Case)

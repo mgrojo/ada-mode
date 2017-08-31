@@ -444,8 +444,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       declare
          Current_Token : constant Token_ID := Parser.Shared_Lookahead.Peek (Parser_State.Shared_Lookahead_Index);
 
-         --  FIXME: Hard code a terminal sequence from Ada_Lite for now; need to
-         --  generate from grammar, put in Parser.Table.
+         --  FIXME: Hard code a terminal sequence from Ada_Lite for now; need
+         --  to implement grammar graft search as in Kim-Choe.
          Terminal_Sequences : array (1 .. 1) of Token_Array;
 
          Sequence  : Token_Array;
@@ -548,7 +548,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             --  recover?
             Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
             Expecting  : constant WisiToken.Token_ID_Set := LR.Expecting
-              (Descriptor, Parser.Table.all, Parser_State.Stack.Peek.State);
+              (Parser.Table.all, Parser_State.Stack.Peek.State);
          begin
             if Expecting (Pattern.Expecting) and Count (Expecting) = 1 then
                if Trace_Parse > 0 then
@@ -867,7 +867,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
                   for ID of Data.Result.Popped loop
                      Parser_State.Stack.Pop;
-                     Parser.Semantic_State.Discard_Stack (ID);
+                     Parser.Semantic_State.Discard_Stack (Parser_State.Label, ID);
                   end loop;
 
                   for I in 1 .. Data.Result.Pushed.Depth loop
@@ -883,11 +883,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   for ID of Data.Result.Deleted loop
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
 
-                     if Parsers.Count > 1 then
-                        Pend (Parser_State, (Discard_Lookahead, ID), Trace);
-                     else
-                        Parser.Semantic_State.Discard_Lookahead (ID);
-                     end if;
+                     Parser.Semantic_State.Discard_Lookahead (Parser_State.Label, ID);
                   end loop;
 
                   --  We use Parser_State.Local_Lookahead even when there is only one
@@ -900,7 +896,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  Parser.Semantic_State.Recover (Data.Result);
+                  Parser.Semantic_State.Recover (Parser_State.Label, Data.Result);
                end if;
 
                Parser_State.Set_Verb (Data.Result.Verb);

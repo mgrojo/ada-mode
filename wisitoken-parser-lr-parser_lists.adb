@@ -33,7 +33,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function New_List
      (First_State_Index  : in State_Index;
-      First_Parser_Label : in Integer)
+      First_Parser_Label : in Natural)
      return List
    is
       Stack : Parser_Stacks.Stack_Type;
@@ -87,7 +87,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Cursor.Elements.Length;
    end Active_Parser_Count;
 
-   function Label (Cursor : in Parser_Lists.Cursor) return Integer
+   function Label (Cursor : in Parser_Lists.Cursor) return Natural
    is begin
       return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Label;
    end Label;
@@ -125,7 +125,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr);
       Stack : Parser_Stacks.Stack_Type renames Item.Stack;
    begin
-      Trace.Put (Integer'Image (Item.Label) & " stack: ");
+      Trace.Put (Natural'Image (Item.Label) & " stack: ");
       Put_Top_10 (Trace, Stack);
    end Put_Top_10;
 
@@ -234,7 +234,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return Parser_State_Lists.Has_Element (Iterator.Ptr);
    end Has_Element;
 
-   function Label (Iterator : in Parser_State) return Integer
+   function Label (Iterator : in Parser_State) return Natural
    is begin
       return Iterator.Label;
    end Label;
@@ -261,7 +261,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class)
    is begin
-      Trace.Put (Integer'Image (Iterator.Label) & " stack: ");
+      Trace.Put (Natural'Image (Iterator.Label) & " stack: ");
       Put_Top_10 (Trace, Iterator.Stack);
    end Put_Top_10;
 

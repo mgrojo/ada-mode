@@ -5,7 +5,15 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-propagate
+run all tests
+
+update ada mode
+
+propagate to o.w.s-1
+
+some tokens don't count towards check_limit, because we should always check the next token:
+    END, DOT, IDENTIFIER
+    covers 'end if/loop/case/return/name', name.name
 
 new test cases:
 
@@ -230,6 +238,9 @@ speed up
     check_reduce does not need to copy stack
         just keep track of current top separately, pointer into reduced top
 
+    during parallel error recovery, if one parser finds a solution, limit cost of others to solution cost + 2?
+        doesn't help if first parser fails
+
 automatically augment grammar with empty productions
     anything not a keyword is optional
     may create too many conflicts
@@ -237,9 +248,6 @@ automatically augment grammar with empty productions
 wisi-generate accept two output languages
     a lot is shared
     only need ada_output, but it doesn't hurt
-
-move output_ada_emacs, output_elisp to ada-mode source tree?
-    extendable dispatch?
 
 wisi-generate lr1 way too slow for Ada
     time lalr generating Ada
@@ -323,9 +331,8 @@ some .wy in wisi_wy_test.adb, some in rules.make
 ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
 
-    read state transitions from text file?
+    read tables from text file?
         action subprogram names as integer index into array of subprogram pointers.
-    -> .exe is independent of language
 
 need better lexer for wisitoken
     handle tick character literal

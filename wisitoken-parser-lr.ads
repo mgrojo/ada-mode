@@ -256,11 +256,7 @@ package WisiToken.Parser.LR is
      return Parse_Action_Node_Ptr;
    --  Return the action for State, terminal ID.
 
-   function Expecting
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Table      : in Parse_Table;
-      State      : in State_Index)
-     return Token_ID_Set;
+   function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
    type Recover_Data is tagged null record;
    --  Stored with parser state during recovery.

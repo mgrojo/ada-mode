@@ -127,6 +127,33 @@ package body WisiToken.Token_Region is
    ----------
    --  Public subprograms
 
+   function Active_Error_List (State : not null access State_Type) return Error_List_Arrays.Constant_Reference_Type
+   is
+      use all type Ada.Containers.Count_Type;
+      use Error_List_Arrays;
+      Cursor : Error_List_Arrays.Cursor := State.Errors.First;
+
+      Active_Count : Integer := 0;
+      Active_Index : Natural;
+   begin
+      loop
+         exit when Cursor = No_Element;
+         if Has_Element (Cursor)  and then
+           Element (Cursor).Length > 0
+         then
+            Active_Count := Active_Count + 1;
+            Active_Index := To_Index (Cursor);
+         end if;
+         Next (Cursor);
+      end loop;
+
+      if Active_Count = 1 then
+         return Constant_Reference (State.Errors, Active_Index);
+      else
+         raise Programmer_Error;
+      end if;
+   end Active_Error_List;
+
    procedure Put
      (File_Name  : in String;
       List       : in Error_Data_Lists.List;
@@ -158,7 +185,7 @@ package body WisiToken.Token_Region is
    end Put;
 
    overriding
-   procedure Put (State : access State_Type)
+   procedure Put (State : not null access State_Type)
    is
    begin
       State.Trace.Put ("semantic state: stack: ");
@@ -171,16 +198,22 @@ package body WisiToken.Token_Region is
    end Put;
 
    overriding
-   procedure Reset (State : access State_Type)
+   procedure Reset (State : not null access State_Type)
    is begin
       State.Stack.Clear;
       State.Lookahead_Queue.Clear;
+
+      --  Just state.errors.clear leaves some info in state.errors(0) that
+      --  comes back when we do Set_Length 2.
+      for List of State.Errors loop
+         List.Clear;
+      end loop;
       State.Errors.Clear;
    end Reset;
 
    overriding
    procedure Lexer_To_Lookahead
-     (State : access          State_Type;
+     (State : not null access State_Type;
       ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'class)
    is
@@ -189,10 +222,6 @@ package body WisiToken.Token_Region is
    begin
       State.Lookahead_Queue.Put (Temp);
 
-      if State.Error_Index > 0 then
-         State.Error_Index := State.Error_Index + 1;
-      end if;
-
       if Trace_Parse > 2 then
          State.Trace.Put_Line
            ("lexer_to_lookahead: " & Image (State.Trace.Descriptor.all, Temp, ID_Only => False));
@@ -200,8 +229,67 @@ package body WisiToken.Token_Region is
    end Lexer_To_Lookahead;
 
    overriding
+   procedure Error
+     (State     : not null access State_Type;
+      Parser_ID : in     Natural;
+      Expecting : in     Token_ID_Set)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if Parser_ID > State.Errors.Last_Index then
+         State.Errors.Set_Length (Ada.Containers.Count_Type (Parser_ID + 1)); -- Parser_ID is 0 indexed.
+         State.Errors.Replace_Element (Parser_ID, Error_Data_Lists.Empty_List);
+      end if;
+
+      declare
+         Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
+      begin
+         Error_List.Append
+           ((First_Terminal => State.Trace.Descriptor.First_Terminal,
+             Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
+             Error_Token    => State.Lookahead_Queue.Peek (State.Lookahead_Queue.Count),
+             Expecting      => Expecting,
+
+             --  The following are set in Recover
+             Invalid_Region => Null_Buffer_Region,
+             Recover        => null));
+      end;
+   end Error;
+
+   overriding
+   procedure Spawn
+     (State     : not null access State_Type;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      if New_Parser_ID > State.Errors.Last_Index then
+         State.Errors.Set_Length (Ada.Containers.Count_Type (New_Parser_ID + 1)); -- Parser_ID is 0 indexed.
+         State.Errors.Replace_Element (New_Parser_ID, Error_Data_Lists.Empty_List);
+      end if;
+
+      declare
+         Old_Error_List : Error_Data_Lists.List renames State.Errors.Reference (Old_Parser_ID).Element.all;
+         New_Error_List : Error_Data_Lists.List renames State.Errors.Reference (New_Parser_ID).Element.all;
+      begin
+         New_Error_List := Old_Error_List;
+      end;
+   end Spawn;
+
+   overriding
+   procedure Terminate_Parser
+     (State     : not null access State_Type;
+      Parser_ID : in     Natural)
+   is begin
+      --  We don't use Delete because that slides element above Parser_ID,
+      --  changing there indices.
+      State.Errors (Parser_ID).Clear;
+   end Terminate_Parser;
+
+   overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
+     (State : not null access State_Type;
       ID    : in     Token_ID)
    is
       Temp : constant Token := (ID, Line => 0, Col => 0, Region => Null_Buffer_Region);
@@ -216,7 +304,7 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Push_Current
-     (State : access State_Type;
+     (State : not null access State_Type;
       ID    : in     Token_ID)
    is
       Temp : constant Token := State.Lookahead_Queue.Get;
@@ -236,76 +324,8 @@ package body WisiToken.Token_Region is
    end Push_Current;
 
    overriding
-   procedure Begin_Parallel_Parse (State : access State_Type)
-   is begin
-      State.Error_Index := 1;
-   end Begin_Parallel_Parse;
-
-   overriding
-   procedure End_Parallel_Parse (State : access State_Type)
-   is begin
-      State.Error_Index := 0;
-   end End_Parallel_Parse;
-
-   overriding
-   procedure Error
-     (State           : access State_Type;
-      Expecting       : in     Token_ID_Set)
-   is
-      use all type SAL.Base_Peek_Type;
-   begin
-      State.Errors.Append
-        ((First_Terminal => State.Trace.Descriptor.First_Terminal,
-          Last_Terminal  => State.Trace.Descriptor.Last_Terminal,
-          Error_Token    => State.Lookahead_Queue.Peek
-            ((if State.Error_Index = 0 then 1 else State.Error_Index)),
-          Expecting      => Expecting,
-
-          --  The following are set in Recover
-          Invalid_Region => Null_Buffer_Region,
-          Recover        => null));
-
-      State.Invalid_Region := Null_Buffer_Region;
-   end Error;
-
-   overriding
-   procedure Discard_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is
-      Token : constant Token_Region.Token := State.Lookahead_Queue.Get;
-   begin
-      if ID /= Token.ID then
-         raise Programmer_Error with "token_region.discard_lookahead: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
-           ", Token " & Image (State.Trace.Descriptor.all, Token, ID_Only => False);
-      end if;
-      State.Invalid_Region := State.Invalid_Region and Token.Region;
-      if Trace_Parse > 2 then
-         State.Trace.Put_Line ("discard_lookahead: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
-      end if;
-   end Discard_Lookahead;
-
-   overriding
-   procedure Discard_Stack
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is
-      Token : constant Token_Region.Token := Token_Region.Token (Augmented_Token_Arrays.Element (State.Stack.Last));
-   begin
-      State.Stack.Delete_Last;
-      if ID /= Token.ID then
-         raise Programmer_Error;
-      end if;
-      State.Invalid_Region := State.Invalid_Region and Token.Region;
-      if Trace_Parse > 2 then
-         State.Trace.Put_Line ("discard_stack: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
-      end if;
-   end Discard_Stack;
-
-   overriding
    procedure Reduce_Stack
-     (State   : access State_Type;
+     (State   : not null access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
       IDs     : in     WisiToken.Token.List.Instance;
@@ -375,17 +395,63 @@ package body WisiToken.Token_Region is
    end Reduce_Stack;
 
    overriding
-   procedure Recover
-     (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class)
+   procedure Discard_Lookahead
+     (State     : not null access State_Type;
+      Parser_ID : in     Natural;
+      ID        : in     Token_ID)
    is
-      Error : Error_Data renames State.Errors.Reference (State.Errors.Last);
+      Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
+      Error      : Error_Data renames Error_List.Reference (Error_List.Last);
+      Token      : constant Token_Region.Token := State.Lookahead_Queue.Get;
    begin
-      Error.Invalid_Region := State.Invalid_Region;
-      Error.Recover        := new WisiToken.Token.Recover_Data'Class'(Recover);
+      if ID /= Token.ID then
+         raise Programmer_Error with "token_region.discard_lookahead: ID " &
+           Image (State.Trace.Descriptor.all, ID) &
+           ", Token " & Image (State.Trace.Descriptor.all, Token, ID_Only => False);
+      end if;
+
+      Error.Invalid_Region := Error.Invalid_Region and Token.Region;
+
+      if Trace_Parse > 2 then
+         State.Trace.Put_Line ("discard_lookahead: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
+      end if;
+   end Discard_Lookahead;
+
+   overriding
+   procedure Discard_Stack
+     (State     : not null access State_Type;
+      Parser_ID : in     Natural;
+      ID        : in     Token_ID)
+   is
+      Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
+      Error      : Error_Data renames Error_List.Reference (Error_List.Last);
+      Token      : constant Token_Region.Token := Token_Region.Token
+        (Augmented_Token_Arrays.Element (State.Stack.Last));
+   begin
+      State.Stack.Delete_Last;
+
+      if ID /= Token.ID then
+         raise Programmer_Error;
+      end if;
+      Error.Invalid_Region := Error.Invalid_Region and Token.Region;
+      if Trace_Parse > 2 then
+         State.Trace.Put_Line ("discard_stack: " & Image (State.Trace.Descriptor.all, Token, ID_Only => False));
+      end if;
+   end Discard_Stack;
+
+   overriding
+   procedure Recover
+     (State     : not null access State_Type;
+      Parser_ID : in     Natural;
+      Recover   : in     WisiToken.Token.Recover_Data'Class)
+   is
+      Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
+      Error      : Error_Data renames Error_List.Reference (Error_List.Last);
+   begin
+      Error.Recover := new WisiToken.Token.Recover_Data'Class'(Recover);
       if Trace_Parse > 2 then
          State.Trace.Put_Line
-           ("recover: invalid_region " & Image (Error.Invalid_Region));
+           (Natural'Image (Parser_ID) & ": recover: invalid_region " & Image (Error.Invalid_Region));
       end if;
    end Recover;
 

@@ -21,6 +21,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
+with Ada.Containers.Vectors;
 with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
@@ -58,6 +59,8 @@ package WisiToken.Token_Region is
 
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
 
+   package Error_List_Arrays is new Ada.Containers.Vectors (Natural, Error_Data_Lists.List, Error_Data_Lists."=");
+
    procedure Put
      (File_Name  : in String;
       List       : in Error_Data_Lists.List;
@@ -72,73 +75,77 @@ package WisiToken.Token_Region is
 
       Lookahead_Queue : Token_Queues.Queue_Type;
 
-      Invalid_Region : Buffer_Region := Null_Buffer_Region;
-      --  Temporary storage during recovery; Discard_Token increases
-      --  this, Update_Invalid_Region resets it.
-
-      Errors : Error_Data_Lists.List;
-      --  Error is called whether the error is recovered or not.
-
-      Error_Index : SAL.Base_Peek_Type;
-      --  If SAL.Base_Peek_Type'First, parallel parsing is not active; error
-      --  token needed by Error is Lookahead_Queue (1). Otherwise it is at
-      --  Lookahead_Queue (Error_Index).
+      Errors : Error_List_Arrays.Vector;
+      --  Indexed by Parser_ID.
    end record;
 
-   overriding
-   procedure Put (State : access State_Type);
+   function Active_Error_List (State : not null access State_Type) return Error_List_Arrays.Constant_Reference_Type;
+   --  Return a reference to the single active error list.
+   --  If more than one is active, raise Programmer_Error.
 
    overriding
-   procedure Reset (State : access State_Type);
+   procedure Put (State : not null access State_Type);
+
+   overriding
+   procedure Reset (State : not null access State_Type);
 
    overriding
    procedure Lexer_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID;
+     (State : not null access State_Type;
+      ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
+   procedure Error
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set);
+
+   overriding
+   procedure Spawn
+     (State         : not null access State_Type;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural);
+
+   overriding
+   procedure Terminate_Parser
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural);
+
+   overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Push_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Begin_Parallel_Parse (State : access State_Type);
-
-   overriding
-   procedure End_Parallel_Parse (State : access State_Type);
-
-   overriding
-   procedure Error
-     (State     : access State_Type;
-      Expecting : in     Token_ID_Set);
-
-   overriding
-   procedure Discard_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Discard_Stack
-     (State : access State_Type;
-      ID    : in     Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Reduce_Stack
-     (State   : access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      IDs     : in     WisiToken.Token.List.Instance;
-      Action  : in     Semantic_Action);
+     (State   : not null access State_Type;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      IDs     : in              WisiToken.Token.List.Instance;
+      Action  : in              Semantic_Action);
+
+   overriding
+   procedure Discard_Lookahead
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID);
+
+   overriding
+   procedure Discard_Stack
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID);
 
    overriding
    procedure Recover
-     (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class);
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Recover   : in              WisiToken.Token.Recover_Data'Class);
 
 end WisiToken.Token_Region;

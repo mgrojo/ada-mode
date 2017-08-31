@@ -32,22 +32,6 @@ with WisiToken.Parser.LR.McKenzie_Recover;
 with WisiToken.Parser.LR.Parser_Lists;
 package body WisiToken.Parser.LR.Parser is
 
-   procedure Expecting
-     (Table  : in     Parse_Table_Ptr;
-      State  : in     State_Index;
-      Result : in out WisiToken.Token_ID_Set)
-   is
-      Action : Action_Node_Ptr := Table.States (State).Action_List;
-   begin
-      loop
-         --  Last action is error; don't include it.
-         exit when Action.Next = null;
-
-         Result (Action.Symbol) := True;
-         Action := Action.Next;
-      end loop;
-   end Expecting;
-
    procedure Reduce_Stack
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
@@ -130,6 +114,20 @@ package body WisiToken.Parser.LR.Parser is
 
          Parser_State.Zombie_Token_Count := 1;
 
+         declare
+            Expecting : constant Token_ID_Set := LR.Expecting
+              (Parser.Table.all, Current_Parser.State_Ref.Stack.Peek.State);
+         begin
+            Parser.Semantic_State.Error (Current_Parser.Label, Expecting);
+
+            if Trace_Parse > 0 then
+               Put
+                 (Trace,
+                  Integer'Image (Current_Parser.Label) & ": expecting: " &
+                    Image (Trace.Descriptor.all, Expecting));
+               Trace.New_Line;
+            end if;
+         end;
       end case;
 
       Current_Parser.Set_Verb (Action.Verb);
@@ -266,8 +264,6 @@ package body WisiToken.Parser.LR.Parser is
          Semantic_State.Trace.Put_Line (Integer'Image (Parser_State.Label) & ": execute pending");
       end if;
 
-      Parser.Semantic_State.End_Parallel_Parse;
-
       if Trace_Parse > 2 then
          WisiToken.Token.Put (Semantic_State);
          Semantic_State.Trace.Put ("shared lookahead: ");
@@ -286,10 +282,10 @@ package body WisiToken.Parser.LR.Parser is
             Semantic_State.Push_Current (Item.ID);
 
          when Parser_Lists.Discard_Stack =>
-            Semantic_State.Discard_Stack (Item.ID);
+            Semantic_State.Discard_Stack (Parser_State.Label, Item.Discard_ID);
 
          when Parser_Lists.Discard_Lookahead =>
-            Semantic_State.Discard_Lookahead (Item.ID);
+            Semantic_State.Discard_Lookahead (Parser_State.Label, Item.Discard_ID);
 
          when Parser_Lists.Reduce_Stack =>
             Semantic_State.Reduce_Stack
@@ -298,7 +294,7 @@ package body WisiToken.Parser.LR.Parser is
             Token.List.Clean (Item.Tokens);
 
          when Parser_Lists.Recover =>
-            Semantic_State.Recover (Item.Recover.all);
+            Semantic_State.Recover (Parser_State.Label, Item.Recover.all);
             WisiToken.Token.Free (Item.Recover);
 
          end case;
@@ -467,10 +463,16 @@ package body WisiToken.Parser.LR.Parser is
                   loop
                      if Current_Parser.Verb = Accept_It then
                         Execute_Pending (Parser, Current_Parser);
-                        return;
+                     else
+                        --  We called Semantic_State.Error earlier, now we need to call Terminate_Parser.
+                        Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
                      end if;
                      Current_Parser.Next;
+                     exit when Current_Parser.Is_Done;
                   end loop;
+
+                  return;
+
                else
                   --  Error recovery does not help with this.
                   raise Parse_Error with Error_Message
@@ -485,21 +487,8 @@ package body WisiToken.Parser.LR.Parser is
          when Error =>
             --  All parsers errored; attempt recovery
             declare
-               use Parser_Lists;
-               Expecting  : WisiToken.Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
                Keep_Going : Boolean := False;
             begin
-               for Parser_State of Parsers loop
-                  LR.Parser.Expecting (Parser.Table, Parser_State.Stack.Peek.State, Expecting);
-               end loop;
-
-               Parser.Semantic_State.Error (Expecting);
-
-               if Trace_Parse > 0 then
-                  Put (Trace, "expecting: " & Image (Trace.Descriptor.all, Expecting));
-                  Trace.New_Line;
-               end if;
-
                --  Recover algorithms expect current token at
                --  Parsers(*).Current_Token, will update Parser.Shared_Lookahead and/or
                --  Parsers(*).Local_Lookahead with new input tokens, and set
@@ -613,7 +602,7 @@ package body WisiToken.Parser.LR.Parser is
             --  (which advances to the next parser) or Current_Parser.Next.
 
             if Current_Parser.Verb = Error then
-               --  This parser errored on last input, and some other parser can
+               --  This parser errored on last input, and some other parser(s) can
                --  continue (else we would have handled this above). This is how
                --  grammar conflicts are resolved when the input text is valid, in
                --  which case we should just terminate this parser. However, this may
@@ -627,6 +616,7 @@ package body WisiToken.Parser.LR.Parser is
                   if Trace_Parse > 0 then
                      Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");
                   end if;
+
                   Current_Parser.Next;
                else
                   if Trace_Parse > 0 then
@@ -634,6 +624,9 @@ package body WisiToken.Parser.LR.Parser is
                        (Integer'Image (Current_Parser.Label) & ": terminate (" &
                           Int_Image (Integer (Parsers.Count) - 1) & " active)");
                   end if;
+
+                  Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
+
                   Current_Parser.Free;
 
                   if Parsers.Count = 1 then
@@ -649,6 +642,9 @@ package body WisiToken.Parser.LR.Parser is
                     (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
                        Int_Image (Integer (Parsers.Count) - 1) & " active)");
                end if;
+
+               Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
+
                Current_Parser.Free;
 
                if Parsers.Count = 1 then
@@ -688,11 +684,8 @@ package body WisiToken.Parser.LR.Parser is
                              " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)");
                      end if;
 
-                     if Parsers.Count = 1 then
-                        Parser.Semantic_State.Begin_Parallel_Parse;
-                     end if;
-
                      Parsers.Prepend_Copy (Current_Parser);
+                     Parser.Semantic_State.Spawn (Current_Parser.Label, Parsers.First.Label);
                      Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
                      --  We don't need to check for error, here
                   end if;

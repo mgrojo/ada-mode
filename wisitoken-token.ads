@@ -141,23 +141,25 @@ package WisiToken.Token is
    --
    --  During normal parser operation, whether single or parallel, all
    --  parsers have the same current token. However, during parallel
-   --  parsing, all semantic operations are pended, so tokens read
-   --  from the lexer during parallel parsing are put on
-   --  Semantic_State.Lookahead_Queue.
+   --  parsing, most semantic operations are pended, so the semantic
+   --  state notion of current token is not in sync with the parser
+   --  notion. Tokens read from the lexer during parallel parsing are put
+   --  on Semantic_State.Lookahead_Queue; the front of that queue is the
+   --  semantic state current token, and the back of the queue is the
+   --  lexer current token.
    --
-   --  Similarly, during error recovery, tokens may be read from Lexer
-   --  for lookahead (error recovery is speculative parallel parsing).
-   --  Note that error recovery can occur when parallel parsers are
-   --  operating.
-   --
-   --  In order to simplify transitions between normal parsing,
-   --  parallel parsing, and error recovery, we define the front of
-   --  Semantic_State.Lookahead_Queue as the current token.
+   --  During error recovery, parallel parsers are not in sync as to
+   --  the current token, and tokens may be read from Lexer for lookahead
+   --  (error recovery is speculative parallel parsing). However, the
+   --  error recovery algorithms ensure that a second error will not be
+   --  encountered until the parallel parsers are back in sync (if they
+   --  cannot ensure that, error recovery fails, the parse fails, and the
+   --  error is reported immediately).
    --
    --  Error recovery may also insert virtual tokens, not read from
-   --  the Lexer. Those are managed internal to the parser and/or
+   --  the Lexer. Those are managed internal to the parser and
    --  error recovery algorithm; when the parser retrieves them as the
-   --  current token, it calls Virtual_To_Current.
+   --  current token, it calls Virtual_To_Lookahead.
 
    type Recover_Data is abstract tagged null record;
    --  For storing error recovery information, for reuse in subsequent
@@ -171,15 +173,18 @@ package WisiToken.Token is
 
    procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
 
-   procedure Put (State : access Semantic_State) is abstract;
+   procedure Put (State : not null access Semantic_State) is abstract;
    --  Put a trace of State to State.Trace. Detail depends on
    --  WisiToken.Trace_Parse.
 
-   procedure Reset (State : access Semantic_State) is abstract;
+   ----------
+   --  Operations that are not pended
+
+   procedure Reset (State : not null access Semantic_State) is abstract;
    --  Reset State to start a new parse.
 
    procedure Lexer_To_Lookahead
-     (State : access          Semantic_State;
+     (State : not null access Semantic_State;
       ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
      is abstract;
@@ -188,9 +193,42 @@ package WisiToken.Token is
    --  lookahead. Add augmented data from Lexer, and add it to the
    --  back of the State lookahead queue.
 
+   procedure Error
+     (State     : not null access Semantic_State;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set)
+   is abstract;
+   --  A parser Parser_ID has detected an error with the current token,
+   --  which is at the back of the State lookahead queue (the token most
+   --  recently fetched from the lexer)..
+   --
+   --  Expecting is the set of tokens expected by the parser.
+   --
+   --  Save information useful for an error message.
+   --
+   --  Error recover may start; mark the start of an invalid buffer
+   --  region.
+
+   procedure Spawn
+     (State         : not null access Semantic_State;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural)
+   is abstract;
+   --  A new parser was spawned; copy saved error information.
+
+   procedure Terminate_Parser
+     (State     : not null access Semantic_State;
+      Parser_ID : in              Natural)
+   is abstract;
+   --  A parser Parser_ID has been terminated; discard any saved error
+   --  information.
+
+   ----------
+   --  Operations that are pended during parallel parsing
+
    procedure Virtual_To_Lookahead
-     (State : access Semantic_State;
-      ID    : in     Token_ID)
+     (State : not null access Semantic_State;
+      ID    : in              Token_ID)
      is abstract;
    --  The parser just retrieved ID from an error recover solution
    --  during parallel parsing; it is now the current token. Add
@@ -198,79 +236,51 @@ package WisiToken.Token is
    --  queue.
 
    procedure Push_Current
-     (State : access Semantic_State;
-      ID    : in     Token_ID)
+     (State : not null access Semantic_State;
+      ID    : in              Token_ID)
      is abstract;
    --  Parser just pushed the current token (ID) on the parse stack;
    --  remove the corresponding token from the front of the State
    --  lookahead queue, push it on the State stack.
 
-   procedure Begin_Parallel_Parse (State : access Semantic_State) is abstract;
-   --  The parser has started parallel parsers; semantic state operations
-   --  will be kept on a pending queue for each parser until all but one
-   --  error out. Then they will be executed. The only exception is
-   --  Lexer_To_Lookahead; that is called immediately, so the lexer
-   --  information is valid.
-   --
-   --  If Error is called during parallel parse, the State lookahead
-   --  queue is out of sync with the parser's notion of current token.
-   --  Therefore State must record the lookahead count when
-   --  Start_Parallel_Parse is called, and count the calls to Lexer_To_Lookahead, and use that in Error to get the
-   --  right token.
-
-   procedure End_Parallel_Parse (State : access Semantic_State) is abstract;
-   --  Parser has finished parallel parsing (see Start_Parallel_Parse).
-
-   procedure Error
-     (State     : access Semantic_State;
-      Expecting : in     Token_ID_Set)
-   is abstract;
-   --  The parser has detected an error with the current token, which is
-   --  on the State lookahead queue at the location described in the
-   --  description of Start_Parallel_Parse, or at the front of the queue
-   --  if parallel parsing is not active.
-   --
-   --  Expecting is the set of tokens expected by the parser.
-   --
-   --  Save information useful for an error message.
-   --
-   --  Error recover has started; mark the start of an invalid buffer
-   --  region.
-
    procedure Discard_Lookahead
-     (State : access Semantic_State;
-      ID    : in     Token_ID)
+     (State     : not null access Semantic_State;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
      is abstract;
-   --  ID was discarded from lookahead in an error recover
-   --  operation; discard the corresponding augmented token from the
-   --  front of the State lookahead queue, and add the token's buffer
-   --  region to the current invalid region.
+   --  ID was discarded from lookahead in an error recover operation for
+   --  parser Parser_ID; discard the corresponding augmented token from
+   --  the front of the State lookahead queue, and add the token's buffer
+   --  region to the parser's invalid region.
 
    procedure Discard_Stack
-     (State : access Semantic_State;
-      ID    : in     Token_ID)
+     (State     : not null access Semantic_State;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
      is abstract;
    --  ID was discarded from the top of the parser parse stack in an
-   --  error recover operation; discard the corresponding augmented
-   --  token from the top of the State stack, and add the token's
-   --  buffer region to the current invalid region.
+   --  error recover operation for parser Parser_ID; discard the
+   --  corresponding augmented token from the top of the State stack, and
+   --  add the token's buffer region to the parser's invalid region.
+
+   procedure Recover
+     (State     : not null access Semantic_State;
+      Parser_ID : in              Natural;
+      Recover   : in              Recover_Data'Class)
+     is abstract;
+   --  Parser Parser_ID has finished error recovery and found a solution
+   --  described by Recover; save the current invalid region and recover
+   --  information.
 
    procedure Reduce_Stack
-     (State   : access Semantic_State;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      IDs     : in     List.Instance;
-      Action  : in     Semantic_Action)
+     (State   : not null access Semantic_State;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      IDs     : in              List.Instance;
+      Action  : in              Semantic_Action)
    is abstract;
    --  Parser reduced IDs to Nonterm; perform same operations on State
    --  stack, call Action. Index identifies the production for Nonterm
    --  used.
-
-   procedure Recover
-     (State   : access Semantic_State;
-      Recover : in     Recover_Data'Class)
-     is abstract;
-   --  An error recover algorithm finished; save the current invalid
-   --  region and recover information.
 
 end WisiToken.Token;
