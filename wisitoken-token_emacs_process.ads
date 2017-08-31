@@ -36,62 +36,71 @@ package WisiToken.Token_Emacs_Process is
    --  operations.
 
    overriding
-   procedure Put (State : access State_Type) is null;
+   procedure Put (State : not null access State_Type) is null;
    --  Only used for debugging.
 
    overriding
-   procedure Reset (State : access State_Type) is null;
+   procedure Reset (State : not null access State_Type) is null;
    --  Elisp tells the parser to reset, so it has already reset the
    --  state.
 
    overriding
    procedure Lexer_To_Lookahead
-     (State : access          State_Type;
+     (State : not null access State_Type;
       ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
+   procedure Error
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set);
+
+   overriding
+   procedure Spawn
+     (State         : not null access State_Type;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural);
+
+   overriding
+   procedure Terminate_Parser
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural);
+
+   overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Push_Current
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Begin_Parallel_Parse (State : access State_Type);
-
-   overriding
-   procedure End_Parallel_Parse (State : access State_Type);
-
-   overriding
-   procedure Error
-     (State     : access State_Type;
-      Expecting : in     Token_ID_Set);
-
-   overriding
-   procedure Discard_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID);
-
-   overriding
-   procedure Discard_Stack
-     (State : access State_Type;
-      ID    : in     Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Reduce_Stack
-     (State   : access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      IDs     : in     Token.List.Instance;
-      Action  : in     Semantic_Action);
+     (State   : not null access State_Type;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      IDs     : in              Token.List.Instance;
+      Action  : in              Semantic_Action);
+
+   overriding
+   procedure Discard_Lookahead
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID);
+
+   overriding
+   procedure Discard_Stack
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID);
 
    overriding
    procedure Recover
-     (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class);
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Recover   : in              WisiToken.Token.Recover_Data'Class);
 
 end WisiToken.Token_Emacs_Process;

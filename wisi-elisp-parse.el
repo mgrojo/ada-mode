@@ -29,11 +29,6 @@
 (require 'cl-lib)
 (require 'wisi-parse-common)
 
-(defvar wisi-elisp-parse-max-parallel 15
-  "Maximum number of parallel parsers for acceptable performance.
-If a file needs more than this, it's probably an indication that
-the grammar is excessively redundant.")
-
 (defvar wisi-elisp-parse-max-parallel-current (cons 0 0)
   "Cons (count . point); Maximum number of parallel parsers used in most recent parse,
 point at which that max was spawned.")
@@ -127,7 +122,7 @@ point at which that max was spawned.")
 		 (result (wisi-elisp-parse-1 token parser-state (> active-parser-count 1) actions gotos)))
 	    (when result
 	      ;; spawn a new parser
-	      (when (= active-parser-count wisi-elisp-parse-max-parallel)
+	      (when (= active-parser-count wisi-parse-max-parallel)
 		(let* ((state (aref (wisi-elisp-parser-state-stack parser-state)
 				    (wisi-elisp-parser-state-sp parser-state)))
 		       (msg (wisi-error-msg (concat "too many parallel parsers required in grammar state %d;"

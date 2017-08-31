@@ -27,14 +27,14 @@ package body WisiToken.Token_Emacs_Process is
 
    --  See [1]
    Lexer_To_Lookahead_Code   : constant String := "1 ";
-   Virtual_To_Lookahead_Code : constant String := "2 ";
-   Push_Current_Code         : constant String := "3 ";
-   Begin_Parallel_Parse_Code : constant String := "4 ";
-   End_Parallel_Parse_Code   : constant String := "5 ";
-   Error_Code                : constant String := "6 ";
-   Discard_Lookahead_Code    : constant String := "7 ";
-   Discard_Stack_Code        : constant String := "8 ";
-   Reduce_Stack_Code         : constant String := "9 ";
+   Error_Code                : constant String := "2 ";
+   Spawn_Code                : constant String := "3 ";
+   Terminate_Parser_Code     : constant String := "4 ";
+   Virtual_To_Lookahead_Code : constant String := "5 ";
+   Push_Current_Code         : constant String := "6 ";
+   Reduce_Stack_Code         : constant String := "7 ";
+   Discard_Lookahead_Code    : constant String := "8 ";
+   Discard_Stack_Code        : constant String := "9 ";
    Recover_Code              : constant String := "10 ";
 
    function To_Code (ID : in Token_ID) return String
@@ -111,8 +111,8 @@ package body WisiToken.Token_Emacs_Process is
 
    overriding
    procedure Lexer_To_Lookahead
-     (State : access State_Type;
-      ID : in     Token_ID;
+     (State : not null access State_Type;
+      ID    : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
    is
       pragma Unreferenced (Lexer);
@@ -124,9 +124,41 @@ package body WisiToken.Token_Emacs_Process is
    end Lexer_To_Lookahead;
 
    overriding
+   procedure Error
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Error_Code & Integer'Image (Parser_ID) & To_Codes (Expecting) & "]");
+   end Error;
+
+   overriding
+   procedure Spawn
+     (State         : not null access State_Type;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Spawn_Code & Integer'Image (Old_Parser_ID) & Integer'Image (New_Parser_ID) & "]");
+   end Spawn;
+
+   overriding
+   procedure Terminate_Parser
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Terminate_Parser_Code & Integer'Image (Parser_ID) & "]");
+   end Terminate_Parser;
+
+   overriding
    procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
+     (State : not null access State_Type;
+      ID    : in              Token_ID)
    is begin
       if Trace_Parse > 3 then
          Put (State.Trace.all, ID);
@@ -136,8 +168,8 @@ package body WisiToken.Token_Emacs_Process is
 
    overriding
    procedure Push_Current
-     (State : access State_Type;
-      ID : in     Token_ID)
+     (State : not null access State_Type;
+      ID    : in              Token_ID)
    is
       pragma Unreferenced (State);
    begin
@@ -145,58 +177,12 @@ package body WisiToken.Token_Emacs_Process is
    end Push_Current;
 
    overriding
-   procedure Begin_Parallel_Parse (State : access State_Type)
-   is
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line ("[" & Begin_Parallel_Parse_Code & "]");
-   end Begin_Parallel_Parse;
-
-   overriding
-   procedure End_Parallel_Parse (State : access State_Type)
-   is
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line ("[" & End_Parallel_Parse_Code & "]");
-   end End_Parallel_Parse;
-
-   overriding
-   procedure Error
-     (State     : access State_Type;
-      Expecting : in     Token_ID_Set)
-   is
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line ("[" & Error_Code & To_Codes (Expecting) & "]");
-   end Error;
-
-   overriding
-   procedure Discard_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & To_Code (ID) & "]");
-   end Discard_Lookahead;
-
-   overriding
-   procedure Discard_Stack
-     (State : access State_Type;
-      ID    : in     Token_ID)
-   is
-      pragma Unreferenced (State);
-   begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & To_Code (ID) & "]");
-   end Discard_Stack;
-
-   overriding
    procedure Reduce_Stack
-     (State   : access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      IDs  : in     Token.List.Instance;
-      Action  : in     Semantic_Action)
+     (State   : not null access State_Type;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      IDs     : in              Token.List.Instance;
+      Action  : in              Semantic_Action)
    is
       pragma Unreferenced (State, Action);
    begin
@@ -205,9 +191,32 @@ package body WisiToken.Token_Emacs_Process is
    end Reduce_Stack;
 
    overriding
+   procedure Discard_Lookahead
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & Integer'Image (Parser_ID) & To_Code (ID) & "]");
+   end Discard_Lookahead;
+
+   overriding
+   procedure Discard_Stack
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
+   is
+      pragma Unreferenced (State);
+   begin
+      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & Integer'Image (Parser_ID) & To_Code (ID) & "]");
+   end Discard_Stack;
+
+   overriding
    procedure Recover
-     (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class)
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Recover   : in              WisiToken.Token.Recover_Data'Class)
    is
       pragma Unreferenced (State);
       use WisiToken.Parser.LR.McKenzie_Recover;
@@ -218,10 +227,11 @@ package body WisiToken.Token_Emacs_Process is
             Config : Configuration renames Configuration (Recover);
             Pushed : constant Token_Array := WisiToken.Parser.LR.Extract_IDs (Config.Pushed);
          begin
-            Ada.Text_IO.Put_Line ("[" & Recover_Code & To_Codes (Pushed & Config.Inserted) & "]");
+            Ada.Text_IO.Put_Line
+              ("[" & Recover_Code & Integer'Image (Parser_ID) & To_Codes (Pushed & Config.Inserted) & "]");
          end;
       else
-         Ada.Text_IO.Put_Line ("[" & Recover_Code & "[]]");
+         Ada.Text_IO.Put_Line ("[" & Recover_Code & Integer'Image (Parser_ID) & "[]]");
       end if;
    end Recover;
 

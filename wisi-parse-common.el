@@ -1,4 +1,4 @@
-;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
+n;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
 ;;
 ;; Copyright (C) 2014, 2015, 2017  Free Software Foundation, Inc.
 ;;
@@ -79,6 +79,11 @@ If nil, uses value from grammar file."
   :group 'wisi
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-mckenzie-cost-limit)
+
+(defvar wisi-parse-max-parallel 15
+  "Maximum number of parallel parsers for acceptable performance.
+If a file needs more than this, it's probably an indication that
+the grammar is excessively redundant.")
 
 (defvar wisi-parse-max-stack-size 500
   "Maximum parse stack size")

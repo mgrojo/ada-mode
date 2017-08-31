@@ -40,8 +40,8 @@ docs : info html
 # without running the tests.
 update-elisp : ../ada_grammar-elisp.el
 update-elisp : ../gpr-grammar-elisp.el
-update-elisp : byte-compile
 update-elisp : install_ada_mode_wisi_parse
+update-elisp : byte-compile
 
 # This updates everything after any source change, without running the
 # tests or publishing to elpa
@@ -100,7 +100,7 @@ test-wisi :: subprograms.wisi-process-test
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-interactive_wisi.adb
+ONE_TEST_FILES += ada_mode-recover_repair_1.adb
 #ONE_TEST_FILES += debug.adb
 one : RUNTEST := run-indent-test-process-gpr_query.el
 # one : update
@@ -109,9 +109,11 @@ one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
 # run_ada_parser args: <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>
+two : TRACE ?= 2
+run_ada_parser.exe : export Standard_Common_Build := Debug
 two : run_ada_parser.exe
-	../run_ada_parser.exe 2 0 1 -1 ../test/debug.adb
-# c:/Projects/org.stephe_leake.sal/source/sal-gen_graphs.adb
+two :
+	../run_ada_parser.exe $(TRACE) 1 -1 ../test/ada_mode-recover_repair_1.adb
 
 
 # WISI_WISITOKEN is correct for Stephe's development machines;

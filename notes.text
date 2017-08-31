@@ -41,7 +41,7 @@ run test from emacs -Q using source:
 emacs hangs occasionally
     killing ada_mode_wisi_parse.exe recovers
         race condition in wisi-process-parse, called from font-lock?
-        try disable face
+        try disable face; still happens, when parse triggered.
 
     with face disabled, got error message "wisi--run-parse: Writing to process"
         *Ada_wisi_parse* had:

@@ -187,13 +187,21 @@
 
 ;; Prefer inserting important/common keywords over identifiers and
 ;; operators to take advantage of empty expressions.
+;;
+;; LEFT_PAREN is _not_ here, because inserting that turns a missing
+;; 'then' into a function call; not a likely error. COMMA is here, to
+;; avoid inserting LEFT_PAREN when either is possible.
+;;
+;; IDENTIFIER is here, so if we are inserting an expression, it is
+;; prefered over "null".
 %mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
+%mckenzie_cost_insert COMMA 3
 %mckenzie_cost_insert DECLARE 3
 %mckenzie_cost_insert ELSE 3
 %mckenzie_cost_insert EXIT 3
+%mckenzie_cost_insert IDENTIFIER 3
 %mckenzie_cost_insert IS 3
-%mckenzie_cost_insert LEFT_PAREN 3
 %mckenzie_cost_insert RETURN 3
 %mckenzie_cost_insert THEN 3
 %mckenzie_cost_insert WHEN 3

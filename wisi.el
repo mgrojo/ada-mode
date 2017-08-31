@@ -877,6 +877,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  (newline)
 	  (dolist (err errs)
 	    (insert (wisi--error-message err))
+	    (put-text-property (line-beginning-position) (1+ (line-beginning-position)) 'wisi-error-data err)
 	    (newline)
 	    (newline))
 	  (compilation--flush-parse (point-min) (point-max))
@@ -2363,16 +2364,10 @@ Called with BEGIN END.")
     (when to-indent (back-to-indentation))
     ))
 
-(defun wisi-repair-error-1 (data beg end)
-  "Repair error reported in DATA (a ’wisi-error’).
-If non-nil, only repair errors in BEG END region."
+(defun wisi-repair-error-1 (data)
+  "Repair error reported in DATA (a ’wisi-error’)"
   (let ((wisi--parse-action 'navigate) ;; tell wisi-forward-token not to compute indent stuff.
 	tok-2)
-    (when (or (null beg)
-	      (and (wisi--error-pos data)
-		   (<= beg (wisi--error-pos data))
-		   (<= (wisi--error-pos data) end)))
-
       (goto-char (wisi--error-pos data))
       (dolist (tok-1 (wisi--error-popped data))
 	(setq tok-2 (wisi-backward-token))
@@ -2389,6 +2384,22 @@ If non-nil, only repair errors in BEG END region."
       (dolist (id (wisi--error-inserted data))
 	(insert (cdr (assoc id (wisi-lex-id-alist wisi--lexer))))
 	(insert " "))
+      ))
+
+(defun wisi-repair-error ()
+  "Repair the current error."
+  (interactive)
+  (if (= 1 (length (wisi-parser-errors wisi--parser)))
+      (progn
+	(wisi-goto-error)
+	(wisi-repair-error-1 (car (wisi-parser-errors wisi--parser))))
+    (if (buffer-live-p wisi-error-buffer)
+	(let ((err
+	       (with-current-buffer wisi-error-buffer
+		 ;; FIXME: ensure at beginning of error message line.
+		 (get-text-property (point) 'wisi-error-data))))
+	  (wisi-repair-error-1 err))
+      (error "no current error found")
       )))
 
 (defun wisi-repair-errors (&optional beg end)
@@ -2396,7 +2407,11 @@ If non-nil, only repair errors in BEG END region."
 If non-nil, only repair errors in BEG END region."
   (interactive)
   (dolist (data (wisi-parser-errors wisi--parser))
-    (wisi-repair-error-1 data beg end)))
+    (when (or (null beg)
+	      (and (wisi--error-pos data)
+		   (<= beg (wisi--error-pos data))
+		   (<= (wisi--error-pos data) end)))
+      (wisi-repair-error-1 data))))
 
 ;;;; debugging
 
