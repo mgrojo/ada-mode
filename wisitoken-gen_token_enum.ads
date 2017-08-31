@@ -94,59 +94,70 @@ package WisiToken.Gen_Token_Enum is
       Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
    end record;
 
-   overriding procedure Put (State : access State_Type) is null;
+   overriding procedure Put (State : not null access State_Type) is null;
 
-   overriding procedure Reset (State : access State_Type) is null;
+   overriding procedure Reset (State : not null access State_Type) is null;
 
    overriding procedure Lexer_To_Lookahead
-     (State : access State_Type;
-      Token : in     Token_ID;
+     (State : not null access State_Type;
+      Token : in              Token_ID;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
      is null;
 
+   overriding procedure Error
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set);
+   --  Save Expecting for unit test/error message
+
+   overriding procedure Spawn
+     (State         : not null access State_Type;
+      Old_Parser_ID : in              Natural;
+      New_Parser_ID : in              Natural)
+   is null;
+
+   overriding procedure Terminate_Parser
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural)
+   is null;
+
    overriding procedure Virtual_To_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
+     (State : not null access State_Type;
+      ID    : in              Token_ID)
    is null;
 
    overriding procedure Push_Current
-     (State : access State_Type;
-      Token : in     Token_ID)
+     (State : not null access State_Type;
+      Token : in              Token_ID)
      is null;
-
-   overriding procedure Begin_Parallel_Parse (State : access State_Type) is null;
-
-   overriding procedure End_Parallel_Parse (State : access State_Type) is null;
-
-   overriding procedure Error
-     (State     : access State_Type;
-      Expecting : in     Token_ID_Set);
-   --  Save Expecting for unit test/error message
 
    overriding
    procedure Discard_Lookahead
-     (State : access State_Type;
-      ID    : in     Token_ID)
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
    is null;
 
    overriding
    procedure Discard_Stack
-     (State : access State_Type;
-      ID    : in     Token_ID)
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      ID        : in              Token_ID)
    is null;
 
    overriding procedure Reduce_Stack
-     (State   : access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action);
+     (State   : not null access State_Type;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      Tokens  : in              Token.List.Instance;
+      Action  : in              Semantic_Action);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.
 
    overriding procedure Recover
-     (State   : access State_Type;
-      Recover : in     WisiToken.Token.Recover_Data'Class)
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Recover   : in              WisiToken.Token.Recover_Data'Class)
      is null;
 
    ----------

@@ -37,11 +37,11 @@ OK test_mckenzie_recover.adb : Check_Accept
 OK test_mckenzie_recover.adb : Extra_Begin
 OK test_mckenzie_recover.adb : Conflict_1
 OK test_mckenzie_recover.adb : Conflict_2
-OK test_mckenzie_recover.adb : Started_Type
 OK test_mckenzie_recover.adb : Missing_Return
 OK test_mckenzie_recover.adb : Loop_Bounds
 OK test_mckenzie_recover.adb : Pattern_1
 OK test_mckenzie_recover.adb : Revive_Zombie_Parser
+OK test_mckenzie_recover.adb : Error_Token_When_Parallel
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms

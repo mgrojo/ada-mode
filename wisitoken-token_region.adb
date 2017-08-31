@@ -156,30 +156,37 @@ package body WisiToken.Token_Region is
 
    procedure Put
      (File_Name  : in String;
-      List       : in Error_Data_Lists.List;
+      Errors     : in Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
    is
+      use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
    begin
-      for Item of List loop
-         if Item.Error_Token.Line = 0 then
-            Put_Line
-              (File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
-                 ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => False) & "'");
-         else
-            Put_Line
-              (Error_Message
-                 (File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
-                  "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
-                 ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => True) & "'"));
-         end if;
+      for I in Errors.First_Index .. Errors.Last_Index loop
+         if Errors (I).Length > 0 then
+            Put_Line ("parser" & Integer'Image (I) & " errors:");
+            for Item of Errors (I) loop
+               if Item.Error_Token.Line = 0 then
+                  Put_Line
+                    (File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                       ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => False) & "'");
+               else
+                  Put_Line
+                    (Error_Message
+                       (File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
+                        "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                          ", found '" & Image (Descriptor, Item.Error_Token, ID_Only => True) & "'"));
+               end if;
 
-         if Item.Invalid_Region /= Null_Buffer_Region then
-            Put_Line ("   invalid_region: " & Image (Item.Invalid_Region));
-         end if;
+               if Item.Invalid_Region /= Null_Buffer_Region then
+                  Put_Line ("   invalid_region: " & Image (Item.Invalid_Region));
+               end if;
 
-         if Item.Recover /= null then
-            Put_Line ("   recover: " & Item.Recover.Image (Descriptor));
+               if Item.Recover /= null then
+                  Put_Line ("   recover: " & Item.Recover.Image (Descriptor));
+               end if;
+            end loop;
+            New_Line;
          end if;
       end loop;
    end Put;

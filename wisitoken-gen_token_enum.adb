@@ -88,18 +88,22 @@ package body WisiToken.Gen_Token_Enum is
    end Put;
 
    overriding procedure Error
-     (State     : access State_Type;
-      Expecting : in     Token_ID_Set)
-   is begin
+     (State     : not null access State_Type;
+      Parser_ID : in              Natural;
+      Expecting : in              Token_ID_Set)
+   is
+      pragma Unreferenced (Parser_ID);
+   begin
+      --  Good enough for current unit tests.
       State.Expecting := Expecting;
    end Error;
 
    overriding procedure Reduce_Stack
-     (State   : access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      Tokens  : in     Token.List.Instance;
-      Action  : in     Semantic_Action)
+     (State   : not null access State_Type;
+      Nonterm : in              Token_ID;
+      Index   : in              Natural;
+      Tokens  : in              Token.List.Instance;
+      Action  : in              Semantic_Action)
    is
       function To_Augmented (Item : in Token.List.Instance) return Augmented_Token_Array
       is

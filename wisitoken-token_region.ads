@@ -63,7 +63,7 @@ package WisiToken.Token_Region is
 
    procedure Put
      (File_Name  : in String;
-      List       : in Error_Data_Lists.List;
+      Errors     : in Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
