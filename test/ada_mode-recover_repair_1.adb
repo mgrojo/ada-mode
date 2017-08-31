@@ -5,6 +5,7 @@
 --
 --  Does not compile.
 
+--EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 
 procedure Apply_Pattern

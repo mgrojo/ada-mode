@@ -37,6 +37,10 @@ run test from emacs -Q using source:
   (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (run-test "subprograms"))
 
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
+  (xmtn . "c:/Projects/org.wisitoken/")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
 emacs hangs occasionally
     killing ada_mode_wisi_parse.exe recovers

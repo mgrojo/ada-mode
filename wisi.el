@@ -1148,50 +1148,56 @@ grammar action as:
 with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
   (when (eq wisi--parse-action 'navigate)
-    (let* ((containing-region (wisi-tok-region (aref wisi-tokens (1- containing-token))))
-	   (contained-region (wisi-tok-region (aref wisi-tokens (1- contained-token)))))
+    (let* ((containing-tok (aref wisi-tokens (1- containing-token)))
+	   (containing-region (wisi-tok-region containing-tok))
+	   (contained-tok (aref wisi-tokens (1- contained-token)))
+	   (contained-region (wisi-tok-region contained-tok)))
 
-      (unless containing-region ;;
+      (unless (or containing-region (wisi-tok-virtual containing-tok))
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
 		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
       (unless (or (not contained-region) ;; contained-token is empty
+		  (wisi-tok-virtual contained-tok)
+		  (wisi-tok-virtual containing-tok)
 		  (wisi-get-cache (car containing-region)))
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
 		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-      (while (not containing-region)
-	;; containing-token is empty; use next
-	(setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
+      (when (not (or (wisi-tok-virtual containing-tok)
+		     (wisi-tok-virtual contained-tok)))
+	(while (not containing-region)
+	  ;; containing-token is empty; use next
+	  (setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
 
-      (when contained-region
-	;; nil when empty production, may not contain any caches
-	(save-excursion
-	  (goto-char (cdr contained-region))
-	  (let ((cache (wisi-backward-cache))
-		(mark (copy-marker (1+ (car containing-region)))))
-	    (while cache
+	(when contained-region
+	  ;; nil when empty production, may not contain any caches
+	  (save-excursion
+	    (goto-char (cdr contained-region))
+	    (let ((cache (wisi-backward-cache))
+		  (mark (copy-marker (1+ (car containing-region)))))
+	      (while cache
 
-	      ;; skip blocks that are already marked
-	      (while (and (>= (point) (car contained-region))
-			  (markerp (wisi-cache-containing cache)))
-		(goto-char (1- (wisi-cache-containing cache)))
-		(setq cache (wisi-get-cache (point))))
+		;; skip blocks that are already marked
+		(while (and (>= (point) (car contained-region))
+			    (markerp (wisi-cache-containing cache)))
+		  (goto-char (1- (wisi-cache-containing cache)))
+		  (setq cache (wisi-get-cache (point))))
 
-	      (if (or (and (= (car containing-region) (car contained-region))
-			   (<= (point) (car contained-region)))
-		      (< (point) (car contained-region)))
-		  ;; done
-		  (setq cache nil)
+		(if (or (and (= (car containing-region) (car contained-region))
+			     (<= (point) (car contained-region)))
+			(< (point) (car contained-region)))
+		    ;; done
+		    (setq cache nil)
 
-		;; else set mark, loop
-		(setf (wisi-cache-containing cache) mark)
-		(setq cache (wisi-backward-cache)))
-	      )))))))
+		  ;; else set mark, loop
+		  (setf (wisi-cache-containing cache) mark)
+		  (setq cache (wisi-backward-cache)))
+		))))))))
 
 (defun wisi--match-token (cache tokens start)
   "Return t if CACHE has id from TOKENS and is at START or has containing equal to START.

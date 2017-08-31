@@ -53,7 +53,7 @@ package body WisiToken.Token_Emacs_Process is
         (Max => 2 + Integer (Tokens'Length) * Chars_Per_Token);
       use Bounded;
 
-      Token_Line : Bounded_String := To_Bounded_String ("[");
+      Token_Line : Bounded_String := To_Bounded_String (" [");
    begin
       for I in Tokens'Range loop
          if Tokens (I) then
@@ -198,7 +198,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & Integer'Image (Parser_ID) & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & Integer'Image (Parser_ID) & " " & To_Code (ID) & "]");
    end Discard_Lookahead;
 
    overriding
@@ -209,7 +209,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & Integer'Image (Parser_ID) & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & Integer'Image (Parser_ID) &  " " & To_Code (ID) & "]");
    end Discard_Stack;
 
    overriding

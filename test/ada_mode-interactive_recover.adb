@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test syntax error recovery
+--  Test indent and navigate parse with syntax error recovery
 
 --EMACS_SKIP_UNLESS:(eq ada-parser 'process)
 --EMACSCMD:(setq wisi-indent-region-fallback nil)
@@ -19,13 +19,10 @@ is begin
             if B then
             end if;
             exit when C;
-         end; -- error 1 reported on ';' - inserts 'if'
-      end
-      loop  -- error 2 reported on 'loop'; inserts ';' for 'begin'
-         ; -- error 3 reported on ';'; inserts 'end loop'
-      end Ada_Mode.  -- error 4 reported on '.'; inserts '; IDENTIFIER'
-        Interactive_Recover; -- error 5 reported on eof, expecting 'end loop; end;'; inserts that, succeeds.
--- FIXME: improve recover algorithm to reduce required enqueue limit
--- Local Variables:
--- wisi-mckenzie-enqueue-limit: 1400
--- End:
+         end; -- error reported here
+   end
+   loop
+   ;
+end Ada_Mode.
+  Interactive_Recover;
+-- end of file
