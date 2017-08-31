@@ -56,6 +56,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       --  Visible components for direct access
       Current_Token            : Token_ID;
       Current_Token_Is_Virtual : Boolean;
+      Last_Shift_Was_Virtual   : Boolean;
       Stack                    : Parser_Stacks.Stack_Type;
       Pend_Items               : Pend_Items_Queues.Queue_Type;
       Recover                  : Recover_Data_Access;

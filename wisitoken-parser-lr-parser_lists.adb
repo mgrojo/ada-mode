@@ -47,6 +47,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
          Result.Elements.Append
            ((Current_Token            => Invalid_Token_ID,
              Current_Token_Is_Virtual => False,
+             Last_Shift_Was_Virtual   => False,
              Stack                    => Stack,
              Pend_Items               => Pend_Items_Queues.Empty_Queue,
              Recover                  => null,
@@ -150,7 +151,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
       begin
          New_Item :=
            (Current_Token            => Item.Current_Token,
-            Current_Token_Is_Virtual => False,
+            Current_Token_Is_Virtual => Item.Current_Token_Is_Virtual,
+            Last_Shift_Was_Virtual   => Item.Last_Shift_Was_Virtual,
             Stack                    => Item.Stack,
             Pend_Items               => Item.Pend_Items,
             Recover                  => null,

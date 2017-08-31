@@ -225,29 +225,6 @@ package body Test_McKenzie_Recover is
       Check ("error.length", State.Active_Error_List.Length, 1);
    end Error_4;
 
-   procedure Error_5 (T : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      Test : Test_Case renames Test_Case (T);
-      use Ada_Lite;
-      use AUnit.Assertions;
-      use AUnit.Checks;
-   begin
-      Parse_Text ("procedure Debug_1 is begin B; elsif then else end if; end; ", Test.Debug);
-      --  Deleted "if then" (to move it elsewhere).
-      --
-      --  Matches special rule Terminal_Sequence 'if .. then', succeeds
-
-      Check ("1 error.length", State.Active_Error_List.Length, 1);
-
-      Parse_Text ("procedure Debug_2 is begin elsif then else end if; end; ", Test.Debug);
-      --  Same, no 'B;'
-
-      Check ("2 error.length", State.Active_Error_List.Length, 1);
-   exception
-   when WisiToken.Syntax_Error =>
-      Assert (False, "exception: got Syntax_Error");
-   end Error_5;
-
    procedure Check_Accept (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
       Test : Test_Case renames Test_Case (T);
@@ -322,8 +299,8 @@ package body Test_McKenzie_Recover is
              Expecting                 => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID, +RETURN_ID,
-                 +IDENTIFIER_ID)),
+                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXCEPTION_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID,
+                 +RETURN_ID, +IDENTIFIER_ID)),
              Invalid_Region            => (20, 24),
              Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
                (Stack                  => To_State_Stack
@@ -655,6 +632,55 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error");
    end Error_Token_When_Parallel;
 
+   procedure If_In_Handler (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use WisiToken.Token_Region.AUnit;
+   begin
+      --  Test that the correct error token is reported when the error occurs
+      --  during parallel parsing (a previous version got this wrong).
+
+      Parse_Text
+        ("procedure Journal_To_TSV is procedure Process_Text_File is begin " &
+         --        |10       |20       |30       |40       |50       |60
+           "exception if then end if; end Process_Text_File; begin begin end; end Journal_To_TSV;",
+         --   |67         |80       |90       |100      |110      |120      |130      |140
+         Test.Debug);
+      --  Mistakenly pasted 'if then end if' in exception handler 66 .. 91.
+      --
+      --  This used to cause a token ID mismatch in
+      --  Semantic_State.Push_Current for 'begin' 121.
+      --
+      --  Enters error recovery at 'if' 76, with two parsers active; one for
+      --  subprogram_body, the other for subprogram_body_stub.
+      --
+      --  The subprogram_body parser inserts 'end; begin', terminating
+      --  Process_Text_File and starting the sequence_of_statements for
+      --  Journal_To_TSV. The subprogram_body_stub fails error recovery.
+      --
+      --  The subprogram_body parser proceeds to 'begin' 115, expecting EOF.
+      --  It inserts 'procedure IDENTIFIER is' and continues.
+
+      Check ("1 errors.length", State.Active_Error_List.Length, 2);
+      declare
+         use WisiToken.Token_Region;
+         use WisiToken.Token_Region.Error_Data_Lists;
+         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
+         Cursor : Error_Data_Lists.Cursor := Error_List.First;
+      begin
+         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, 0, 0, (76, 77)));
+         Next (Cursor);
+         Check ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, 0, 0, (115, 119)));
+      end;
+
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
+   end If_In_Handler;
+
    ----------
    --  Public subprograms
 
@@ -674,7 +700,6 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Error_2'Access, "Error_2");
       Register_Routine (T, Error_3'Access, "Error_3");
       Register_Routine (T, Error_4'Access, "Error_4");
-      Register_Routine (T, Error_5'Access, "Error_5");
       Register_Routine (T, Check_Accept'Access, "Check_Accept");
       Register_Routine (T, Extra_Begin'Access, "Extra_Begin");
       Register_Routine (T, Conflict_1'Access, "Conflict_1");
@@ -684,6 +709,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Pattern_1'Access, "Pattern_1");
       Register_Routine (T, Revive_Zombie_Parser'Access, "Revive_Zombie_Parser");
       Register_Routine (T, Error_Token_When_Parallel'Access, "Error_Token_When_Parallel");
+      Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
    end Register_Tests;
 
    overriding procedure Set_Up (T : in out Test_Case)

@@ -5,12 +5,10 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-run all tests
+new test cases:
 
-update ada mode
 
-propagate to o.w.s-1
-
+----------
 some tokens don't count towards check_limit, because we should always check the next token:
     END, DOT, IDENTIFIER
     covers 'end if/loop/case/return/name', name.name

@@ -87,6 +87,8 @@ package body WisiToken.Parser.LR.Parser is
             Parser.Semantic_State.Push_Current (Current_Token);
          end if;
 
+         Parser_State.Last_Shift_Was_Virtual := Parser_State.Current_Token_Is_Virtual;
+
       when Reduce =>
          Current_Parser.Pre_Reduce_Stack_Save;
 
@@ -375,7 +377,7 @@ package body WisiToken.Parser.LR.Parser is
                else
                   if Zombie_Count = 0 then
                      Parser_State.Shared_Lookahead_Index := 1;
-                  else
+                  elsif not Parser_State.Last_Shift_Was_Virtual then
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
                   end if;
 
@@ -436,7 +438,7 @@ package body WisiToken.Parser.LR.Parser is
                         Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
                      end if;
 
-                     Parser_State.Current_Token          := Parser.Shared_Lookahead.Peek
+                     Parser_State.Current_Token := Parser.Shared_Lookahead.Peek
                        (Parser_State.Shared_Lookahead_Index);
 
                      Parser_State.Current_Token_Is_Virtual := False; -- in case we transition to normal parsing.

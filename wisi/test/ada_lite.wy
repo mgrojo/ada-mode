@@ -39,6 +39,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword ELSIF "elsif"
 %keyword END "end"
 %keyword EXIT "exit"
+%keyword EXCEPTION "exception"
 %keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword IF "if"
@@ -275,6 +276,22 @@ enumeration_type_definition
   : LEFT_PAREN enumeration_literal_list RIGHT_PAREN
   ;
 
+exception_choice : name ;
+
+exception_handler
+  : WHEN exception_choice EQUAL_GREATER sequence_of_statements_opt
+  ;
+
+exception_handler_list
+  : exception_handler
+  | exception_handler_list exception_handler
+  ;
+
+exception_handler_list_opt
+  : ;; empty for user friendly
+  | exception_handler_list
+  ;
+
 exit_statement
   : EXIT identifier_opt WHEN expression_opt SEMICOLON
   | EXIT identifier_opt SEMICOLON
@@ -325,7 +342,8 @@ generic_instantiation
   ;
 
 handled_sequence_of_statements
-  : sequence_of_statements_opt
+  : sequence_of_statements_opt EXCEPTION exception_handler_list_opt
+  | sequence_of_statements_opt
   ;
 
 identifier_opt
