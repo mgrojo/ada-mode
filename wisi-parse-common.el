@@ -1,4 +1,4 @@
-n;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
+;;; wisi-parse-common.el --- declarations used by wisi-parse.el, wisi-ada-parse.el, and wisi.el
 ;;
 ;; Copyright (C) 2014, 2015, 2017  Free Software Foundation, Inc.
 ;;

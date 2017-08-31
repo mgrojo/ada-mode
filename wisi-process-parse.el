@@ -238,12 +238,12 @@ from TOKEN-TABLE."
     ))
 
 (defun wisi-process-parse--Error (parser sexp)
-  ;; sexp is [Error [expected_id ...]]
+  ;; sexp is [Error parser_id [expected_id ...]]
   ;; see ‘wisi-process-parse--execute’
   ;; so far, we don’t need to track the invalid region
   (let* ((token-table (wisi-process--parser-token-table parser))
-	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 1)))
-	 (pos (car (wisi-tok-region (queue-first (wisi-process--parser-lookahead-queue parser))))))
+	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 2)))
+	 (pos (car (wisi-tok-region (queue-last (wisi-process--parser-lookahead-queue parser))))))
 
     (goto-char pos)
 
@@ -255,23 +255,21 @@ from TOKEN-TABLE."
 		   (line-number-at-pos (point))
 		   (current-column)
 		   elisp-ids))
-	  (wisi-parser-errors parser))
+	  (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)))
     ))
 
 (defun wisi-process-parse--Spawn (parser sexp)
   ;; sexp is [Spawn old_parser_id new_parser_id]
   ;; see ‘wisi-process-parse--execute’
-  (let* ((old-errors (aref (wisi-process--parser-errors parser) (aref sexp 1)))
-	 (new-errors (aref (wisi-process--parser-errors parser) (aref sexp 2))))
+  (let* ((old-errors (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)))
+	 (new-errors (aref (wisi-process--parser-parser-errors parser) (aref sexp 2))))
     (setf new-errors (cl-copy-seq old-errors))
     ))
 
 (defun wisi-process-parse--Terminate_Parser (parser sexp)
   ;; sexp is [Spawn parser_id]
   ;; see ‘wisi-process-parse--execute’
-  (let* ((errors (aref (wisi-process--parser-errors parser) (aref sexp 1))))
-    (setf errors nil)
-    ))
+  (setf (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)) nil))
 
 (defun wisi-process-parse--Virtual_To_Lookahead (parser sexp)
   ;; sexp is  [Virtual_To_Lookahead id]
@@ -373,7 +371,7 @@ from TOKEN-TABLE."
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (queue-dequeue (wisi-process--parser-lookahead-queue parser))))
     (wisi-process-parse--check-id "Discard_Lookahead" (wisi-process--parser-token-table parser) tok (aref sexp 2))
-    (let ((data (car (aref (wisi-process--parser-errors parser) (aref sexp 1)))))
+    (let ((data (car (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)))))
       (setf (wisi--error-deleted data) (append (wisi--error-deleted data) (list tok))))
     (when (> wisi-debug 1)
       (message "Discard_Lookahead/ %s" (wisi-tok-debug-image tok)))
@@ -384,7 +382,7 @@ from TOKEN-TABLE."
   ;; see ‘wisi-process-parse--execute’
   (let ((tok (wisi-process-parse--pop-stack parser)))
     (wisi-process-parse--check-id "Discard_Stack" (wisi-process--parser-token-table parser) tok (aref sexp 2))
-    (let ((data (car (aref (wisi-process--parser-errors parser) (aref sexp 1)))))
+    (let ((data (car (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)))))
       (setf (wisi--error-popped data) (append (wisi--error-popped data) (list tok))))
     (when (> wisi-debug 1)
       (message "Discard_Stack %s" (wisi-tok-debug-image tok)))
@@ -397,7 +395,7 @@ from TOKEN-TABLE."
   ;; popped, deleted are set in --Discard_Lookahead, --Discard_Stack above.
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (elisp-ids (mapcar (lambda (id) (aref token-table (1- id))) (aref sexp 2)))
-	 (data (car (aref (wisi-process--parser-errors parser) (aref sexp 1)))))
+	 (data (car (aref (wisi-process--parser-parser-errors parser) (aref sexp 1)))))
     (setf (wisi--error-inserted data) elisp-ids)
     ))
 
@@ -540,11 +538,10 @@ from TOKEN-TABLE."
 
 	  ;; reset parser
 	  (setf (wisi-parser-errors parser) nil)
+	  (setf (wisi-process--parser-parser-errors parser) (make-vector wisi-parse-max-parallel nil))
 	  (queue-clear (wisi-process--parser-lexer-queue parser))
 	  (queue-clear (wisi-process--parser-lookahead-queue parser))
 	  (queue-clear (wisi-process--parser-parse-stack parser))
-	  (setf (wisi-process--parser-parser-errors parser) (make-vector wisi-parse-max-parallel nil))
-	  (setf (wisi-parser-errors parser) nil)
 
 	  (wisi-process-parse--send-parse parser)
 
@@ -630,8 +627,14 @@ from TOKEN-TABLE."
 	    );; while not done
 
 	  ;; got command prompt
-	  (setf (wisi-parser-errors parser)
-		(mapcar #'identity (wisi-process--parser-errors parser)))
+	  (let ((i 0))
+	    (while (< i wisi-parse-max-parallel)
+	      (when (aref (wisi-process--parser-parser-errors parser) i)
+		(setf (wisi-parser-errors parser)
+		      (append (wisi-parser-errors parser)
+			      (aref (wisi-process--parser-parser-errors parser) i)))
+		)
+	      (setq i (1+ i))))
 
 	  (unless (process-live-p process)
 	    (wisi-process-parse-show-buffer parser)

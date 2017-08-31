@@ -431,6 +431,13 @@ For `wisi-indent-calculate-functions'.
       (cons begin end)
     )))
 
+(defun ada-wisi-fix-error (_msg source-buffer _source-window)
+  "For ’ada-fix-error-hook’. Calls ’wisi-repair-error’ if appropriate."
+  (when (equal compilation-last-buffer wisi-error-buffer)
+    (set-buffer source-buffer)
+    (wisi-repair-error)
+    t))
+
 (defun ada-wisi-on-context-clause ()
   "For `ada-on-context-clause'."
   (let (cache)
@@ -935,6 +942,8 @@ TOKEN-TEXT; move point to just past token."
 	  :string-quote-escape-doubled t
 	  :string-quote-escape nil))
 	 )
+
+    (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
     (setq wisi-mckenzie-enable t)
 
