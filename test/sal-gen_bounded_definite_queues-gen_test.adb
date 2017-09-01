@@ -16,7 +16,7 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-package body SAL.Gen_Definite_Queues.Gen_Test is
+package body SAL.Gen_Bounded_Definite_Queues.Gen_Test is
 
    function Get_Head (Queue : in Queue_Type) return Integer is
    begin
@@ -28,4 +28,4 @@ package body SAL.Gen_Definite_Queues.Gen_Test is
       return Queue.Tail;
    end Get_Tail;
 
-end SAL.Gen_Definite_Queues.Gen_Test;
+end SAL.Gen_Bounded_Definite_Queues.Gen_Test;

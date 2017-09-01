@@ -19,10 +19,10 @@
 pragma License (GPL);
 
 generic
-package SAL.Gen_Definite_Queues.Gen_Test is
+package SAL.Gen_Bounded_Definite_Queues.Gen_Test is
    pragma Pure;
 
    function Get_Head (Queue : in Queue_Type) return Integer;
    function Get_Tail (Queue : in Queue_Type) return Integer;
 
-end SAL.Gen_Definite_Queues.Gen_Test;
+end SAL.Gen_Bounded_Definite_Queues.Gen_Test;

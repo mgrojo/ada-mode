@@ -2,7 +2,7 @@
 --
 --  See spec
 --
---  Copyright (C) 2001, 2004 - 2009, 2011 - 2013, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2001, 2004 - 2009, 2011 - 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -29,8 +29,8 @@ with SAL.Time_Conversions.AUnit;
 package body SAL.Time_Conversions.Test is
 
    --  File_Name is relative to build directory.
-   Leap_Table_File_Name     : constant String := "../../test/test_time_conversions-history.txt";
-   Bad_Leap_Table_File_Name : constant String := "../../test/bad_history.txt";
+   Leap_Table_File_Name     : constant String := "../test/test_time_conversions-history.txt";
+   Bad_Leap_Table_File_Name : constant String := "../test/bad_history.txt";
 
    ----------
    --  Test procedures
@@ -794,7 +794,7 @@ package body SAL.Time_Conversions.Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../../Source_Common/Test/" & GNAT.Source_Info.File);
+      return new String'(GNAT.Source_Info.File);
    end Name;
 
 end SAL.Time_Conversions.Test;

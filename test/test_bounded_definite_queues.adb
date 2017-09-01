@@ -18,10 +18,10 @@
 
 with AUnit.Assertions;
 with AUnit.Checks;
-with SAL.Gen_Definite_Queues.Gen_Test;
-package body Test_Definite_Queues
+with SAL.Gen_Bounded_Definite_Queues.Gen_Test;
+package body Test_Bounded_Definite_Queues
 is
-   package Integer_Queues is new SAL.Gen_Definite_Queues (Integer);
+   package Integer_Queues is new SAL.Gen_Bounded_Definite_Queues (Integer);
    package Integer_Queues_Test is new Integer_Queues.Gen_Test;
    use Integer_Queues;
 
@@ -175,4 +175,4 @@ is
       Register_Routine (T, Overwrite'Access, "Overwrite");
    end Register_Tests;
 
-end Test_Definite_Queues;
+end Test_Bounded_Definite_Queues;

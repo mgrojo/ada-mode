@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -19,12 +19,12 @@
 pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
-with Ada.Containers;
+with SAL.AUnit;
 with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Stacks;
 package body Test_Stacks is
 
-   type Integer_Array_Type is array (Positive range <>) of Integer;
+   type Integer_Array_Type is array (SAL.Peek_Type range <>) of Integer;
 
    package Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Integer);
 
@@ -32,25 +32,16 @@ package body Test_Stacks is
 
    procedure Check
      (Label    : in String;
-      Computed : in Ada.Containers.Count_Type;
-      Expected : in Integer)
-   is
-      use AUnit.Checks;
-   begin
-      Check (Label, Integer (Computed), Expected);
-   end Check;
-
-   procedure Check
-     (Label    : in String;
       Computed : in Unbounded_Definite_Stacks.Stack_Type;
       Expected : in Integer_Array_Type)
    is
       use AUnit.Checks;
+      use SAL.AUnit;
    begin
       Check (Label & " count", Computed.Depth, Expected'Length);
 
       for I in Expected'Range loop
-         Check (Label & Integer'Image (I), Computed.Peek (I), Expected (I));
+         Check (Label & SAL.Base_Peek_Type'Image (I), Computed.Peek (I), Expected (I));
       end loop;
    end Check;
 
@@ -63,6 +54,7 @@ package body Test_Stacks is
 
       use AUnit.Assertions;
       use AUnit.Checks;
+      use SAL.AUnit;
 
       Stack : Unbounded_Definite_Stacks.Stack_Type;
    begin

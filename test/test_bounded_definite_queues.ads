@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Test SAL.Gen_Definite_Queues.
+--  Test SAL.Gen_Bounded_Definite_Queues.
 --
 --  Copyright (C) 2004, 2009, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Definite_Queues is
+package Test_Bounded_Definite_Queues is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Definite_Queues is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Definite_Queues;
+end Test_Bounded_Definite_Queues;
