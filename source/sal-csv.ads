@@ -3,7 +3,7 @@
 --  Support for reading CSV (comma separated value) files. Also
 --  supports other delimiters, including spaces.
 --
---  Copyright (C) 2008 - 2013, 2016 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2013, 2016 - 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -82,6 +82,8 @@ package SAL.CSV is
    --
    --  Raises Initialization_Error if new row is longer than
    --  Max_Line_Size specified in Open.
+
+   procedure Next (File : in out File_Type) renames Next_Row;
 
    procedure Skip_Lines
      (File : in out File_Type;

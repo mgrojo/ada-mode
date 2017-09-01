@@ -42,14 +42,14 @@ package SAL.Gen_Queue_Interfaces is
    --  Returns true if Queue is full.
 
    function Remove (Queue : in out Queue_Type) return Element_Type is abstract;
-   --  Remove head item from Queue, return it.
+   --  Remove head/front item from Queue, return it.
    --
    --  Raises Container_Empty if Is_Empty.
 
    function Get (Queue : in out Queue_Type) return Element_Type renames Remove;
 
    procedure Drop (Queue : in out Queue_Type) is abstract;
-   --  Remove head item from Queue, discard it.
+   --  Remove head/front item from Queue, discard it.
    --
    --  Raises Container_Empty if Is_Empty.
 
@@ -60,14 +60,14 @@ package SAL.Gen_Queue_Interfaces is
    --  Raises Parameter_Error if N > Count
 
    procedure Add (Queue : in out Queue_Type; Element : in Element_Type) is abstract;
-   --  Add Element to the tail of Queue.
+   --  Add Element to the tail/back of Queue.
 
    procedure Put (Queue : in out Queue_Type; Element : in Element_Type) renames Add;
 
    type Order_Type is access function (A, B : in Element_Type) return Boolean;
 
    procedure Add_To_Head (Queue : in out Queue_Type; Element : in Element_Type) is abstract;
-   --  Add Element to the head of Queue.
+   --  Add Element to the head/front of Queue.
 
    procedure Add (Queue : in out Queue_Type; Element : in Element_Type; Order : in Order_Type) is abstract;
    --  Add in sort position given by Order, which must implement either ">" or "<".

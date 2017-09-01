@@ -19,9 +19,9 @@ project Sal_Test is
 
       when "Normal" =>
          for Default_Switches ("Ada") use
-           Common.Compiler.Release_Switches &
-           Common.Compiler.Style_Checks &
-           Common.Compiler'Default_Switches ("Ada");
+           Standard_Common.Compiler.Release_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler'Default_Switches ("Ada");
 
       end case;
    end Compiler;

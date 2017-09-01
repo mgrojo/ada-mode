@@ -1,11 +1,10 @@
---  For use by other projects
-with "aunit";
-with "aunit_sal_ext";
+--  For use by other projects. Use sal_devel.gpr for writing tests.
 with "standard_common";
 project SAL is
 
    for Source_Dirs use
-     ("../source");
+     ("../source",
+      "../src_x86_gnat"); -- sal.endianness
 
    for Object_Dir use "objects";
    for Exec_Dir use ".";

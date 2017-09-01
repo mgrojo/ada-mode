@@ -4,8 +4,8 @@
 
 all : tests
 
-#../../test/test_all_harness.adb
-#../../test/test_one_harness.adb
+#../test/test_all_harness.adb
+#../test/test_one_harness.adb
 t_one : export Standard_Common_Build := Debug
 t_one : test_one_harness.run
 
@@ -19,8 +19,7 @@ GNAT_PROJECT := sal_test.gpr
 include rules.make
 
 #
-#Local Variables:
-#eval: (ada-parse-prj-file "sal.prj")
-#eval: (ada-select-prj-file "sal.prj")
-#End:
+# Local Variables:
+# eval: (unless dvc-doing-ediff-p (load-file "prj.el"))
+# End:
 # end of file
