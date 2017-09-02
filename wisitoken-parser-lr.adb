@@ -160,6 +160,51 @@ package body WisiToken.Parser.LR is
       return List.Next;
    end Next;
 
+   function First_Action (State : in Parse_State) return Action_List_Iterator
+   is begin
+      return Iter : Action_List_Iterator := (Node => State.Action_List, Item => null) do
+         loop
+            exit when Iter.Node = null;
+            Iter.Item := Iter.Node.Action;
+            exit when Iter.Item /= null;
+            Iter.Node := Iter.Node.Next;
+         end loop;
+      end return;
+   end First_Action;
+
+   function Is_Done (Iter : in Action_List_Iterator) return Boolean
+   is begin
+      return Iter.Node = null;
+   end Is_Done;
+
+   procedure Next (Iter : in out Action_List_Iterator)
+   is begin
+      if Iter.Node = null then
+         return;
+      end if;
+
+      if Iter.Item.Next = null then
+         loop
+            Iter.Node := Iter.Node.Next;
+            exit when Iter.Node = null;
+            Iter.Item := Iter.Node.Action;
+            exit when Iter.Item /= null;
+         end loop;
+      else
+         Iter.Item := Iter.Item.Next;
+      end if;
+   end Next;
+
+   function Symbol (Iter : in Action_List_Iterator) return Token_ID
+   is begin
+      return Iter.Node.Symbol;
+   end Symbol;
+
+   function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec
+   is begin
+      return Iter.Item.Item;
+   end Action;
+
    function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String
    is
    begin

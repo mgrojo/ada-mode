@@ -6,17 +6,17 @@ org.wisitoken.stephe-1 - development
 
  current work
 improve mckenzie
-    time ./run_ada_lite_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
-
-    use iterator on action_for, not loop on all terminals.
-        see debug_kim_choe_2.adb
-
-    compress identical reduce into token_id_set
-
     ada_mode-recover_indent_3.parse:
         correct solution costs 8.
-        ada_lite finds that after enqueue  9318, check  1382;  4.4 seconds
-        Full Ada finds that after enqueue 27655, check  2118; 48 seconds (compiled with debug)
+        ada_lite finds that after enqueue  9318, check  1382;  4.4 seconds (compiled with debug)
+        Full Ada finds that after enqueue 27655, check  2118; 48 seconds
+
+    time ./run_ada_lite_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
+        2.768 seconds, 2.761s,  2.904s (/ (+ 2.768 2.761  2.904) 3) = 2.811
+
+    use iterator on action_for, not loop on all terminals.
+        (/ (+ 2.676 2.834 2.621) 3) = 2.71
+
     get profile info
         (info "(gnat_ugn) Profiling an Ada Program with gprof")
 
@@ -24,7 +24,14 @@ improve mckenzie
         binary heap
         Fibonacci heap
 
+    run mckenzie in parallel, take first success, kill other parsers
+        maybe keep going for check_limit
+        helps conflict resolve, but not ada_mode-recover_indent_3
 
+    compress identical reduce into token_id_set
+        doesn't help mckenzie enqueue_count; still have to shift them all eventually
+            could be small gain in doing the reductions only once
+            see if that's a bottleneck
 
 
 new test cases:

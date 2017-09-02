@@ -477,7 +477,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Trace  : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
       EOF_ID : Token_ID renames Trace.Descriptor.EOF_ID;
 
-      Action : Parse_Action_Node_Ptr;
+      Action_I : Action_List_Iterator;
    begin
       if Trace_Parse > 0 then
          Trace.New_Line;
@@ -558,14 +558,15 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
             if Config.Deleted = Empty_Token_Array then
                --  Find insertions to try
-               --  FIXME: iterate on action_for
-               --  IMPROVEME: if there is only one possible action for this config, decrease cost?
-               for ID in Data.Parser.Table.First_Terminal .. Data.Parser.Table.Last_Terminal loop
-                  if ID /= EOF_ID then
-                     Action := Action_For (Data.Parser.Table.all, Config.Stack.Peek.State, ID);
-                     loop
-                        exit when Action = null;
-                        case Action.Item.Verb is
+               Action_I := First_Action (Data.Parser.Table.States (Config.Stack.Peek.State));
+               loop
+                  exit when Action_I.Is_Done;
+                  declare
+                     ID     : constant Token_ID := Action_I.Symbol;
+                     Action : Parse_Action_Rec renames Action_I.Action;
+                  begin
+                     if ID /= EOF_ID then
+                        case Action.Verb is
                         when Shift =>
                            if Trace_Parse > 2 then
                               Trace.Put ("insert ");
@@ -574,7 +575,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                            end if;
 
                            New_Config := Config;
-                           Do_Shift (Data, New_Config, Action.Item, ID);
+                           Do_Shift (Data, New_Config, Action, ID);
 
                         when Reduce =>
                            if Trace_Parse > 2 then
@@ -582,14 +583,14 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                               Trace.Put (ID);
                               Trace.New_Line;
                            end if;
-                           Do_Reduce (Data, Config, Action.Item, ID);
+                           Do_Reduce (Data, Config, Action, ID);
 
                         when Accept_It | Error =>
                            null;
                         end case;
-                        Action := Action.Next;
-                     end loop;
-                  end if;
+                     end if;
+                  end;
+                  Action_I.Next;
                end loop;
             end if;
 

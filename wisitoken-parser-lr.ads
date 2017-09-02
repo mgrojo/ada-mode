@@ -119,6 +119,14 @@ package WisiToken.Parser.LR is
       Goto_List   : Goto_Node_Ptr;
    end record;
 
+   type Action_List_Iterator is tagged private;
+   function First_Action (State : in Parse_State) return Action_List_Iterator;
+   function Is_Done (Iter : in Action_List_Iterator) return Boolean;
+   procedure Next (Iter : in out Action_List_Iterator);
+
+   function Symbol (Iter : in Action_List_Iterator) return Token_ID;
+   function Action (Iter : in Action_List_Iterator) return Parse_Action_Rec;
+
    ----------
    --  Run-time parse table construction subprograms:
 
@@ -323,5 +331,10 @@ private
       Symbol : in     Token_ID;
       Action : in     Parse_Action_Rec);
    --  Add action to List, sorted on ascending Symbol.
+
+   type Action_List_Iterator is tagged record
+      Node : Action_Node_Ptr;
+      Item : Parse_Action_Node_Ptr;
+   end record;
 
 end WisiToken.Parser.LR;
