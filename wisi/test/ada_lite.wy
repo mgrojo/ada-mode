@@ -107,7 +107,6 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
-%mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
 %mckenzie_cost_insert DECLARE 3
 %mckenzie_cost_insert ELSE 3
@@ -135,7 +134,9 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %mckenzie_cost_delete declarative_part_opt 1
 %mckenzie_cost_delete END 1
 
-;; Prefer insert 'end', ';' over everything
+;; Prefer insert 'end', ';' over everything; lets us finish a
+;; subprogram body.
+%mckenzie_cost_insert BEGIN 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 

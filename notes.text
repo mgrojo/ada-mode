@@ -5,55 +5,53 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-run all tests
+propagate from o.w
 
-update ada mode
+debug_kim_choe
+    paper does _not_ actually build graph; searches it implicitly
+    uses only reduction edges
+        that's what Definition 3.5 for Lookback says
+    implies token_id_set Can_Contain (term) for each nonterm
+    not clear how it goes back and inserts terminals when find path
+        guided McKenzie process?
 
-propagate to o.w.s-1
+improve mckenzie
+    ada_mode-recover_indent_3.parse:
+        correct solution costs 8.
+        ada_lite finds that after enqueue  9318, check  1382;  4.4 seconds
+        Full Ada finds that after enqueue 27655, check  2118; 48 seconds (compiled with debug)
+    get profile info
+        (info "(gnat_ugn) Profiling an Ada Program with gprof")
 
-some tokens don't count towards check_limit, because we should always check the next token:
-    END, DOT, IDENTIFIER
-    covers 'end if/loop/case/return/name', name.name
+    config_queue:
+        binary heap
+        Fibonacci heap
+
+
+
 
 new test cases:
 
-    ----------
-    if Trace_Parse > 1 then
-      if Keep_going -- missing 'then'; inserts '(' (needs check_limit 5)
-         Trace.Put_Line ("check :" & Integer'Image (Check_Count - 1) & " conflicts: success"; -- missing )
 
     ----------
-    type Item_Type is record
+    test/ada_mode-recover_indent_3.adb
+        missing 'end;' in nested subprogram =>
+        needs to insert 7 terminals; need kim-choe
 
-    ---------------
-    if foo then
-    declare
-    ...
-    begin
-    ...
-    end;
-        missing 'end if' because adding 'if' around block.
+    ----------
+   procedure Process_Text_File (File_Name ; in String);
+   is
+   begin
+   end Process_Text_File;
+   deadly slow: mckenzie (max cost 10) enqueue 22712, check  1759; fail
+   fast enough: mckenzie (max cost 7) enqueue 2451, check  176; fail
+   significant delay: mckenzie (max cost 8) enqueue 8362, check  613; fail
+   need kim-choe
+----------
 
-        add pattern for "if then ... end IDENTIFIER;"
-
-    ---------------
-     if and
-        Expecting (Pattern.Expecting) and
-        Count (Expecting) = 1
-     then
-            missing 'expr'; invoked forward-sexp from 'if'
-                not expr_opt to avoid conflicts?
-                need insert nonterm!
-                or delete 'and' :)
-
-    ---------------------
-         if Item (I) then
-            Result := Result + 1;
-         end if;
-            start typing from begining, parse after each line
-
-    ------------------
-    'if **'
+some tokens don't count towards check_limit, because we should always check the next token:
+    END, DOT
+    covers 'end if/loop/case/return/name', name.name
 
 want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle it
     so can't use run_ada_parser to debug indent/parse issues
@@ -81,6 +79,22 @@ want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle
             needs libiconv
 
     emacs lexer can't handle Π π either?
+
+don't need special rule terminal_sequence
+    if foo then
+    declare
+    ...
+    begin
+    ...
+    end;
+    end Foo;
+        missing 'end if' because adding 'if' around block.
+
+        Ada: enqueue 64, check 9 without terminal semicolon pattern; same with/without name at end
+            no noticable delay in debug.adb; fast enough!
+
+  don't need kim-choe?
+    keep terminal_sequence until try kim-choe
 
 if hit enqueue_limit, use config that has highest check_token_count
     save in config
