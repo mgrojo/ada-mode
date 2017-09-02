@@ -48,7 +48,7 @@ begin
    Parser.Enable_McKenzie_Recover   := Argument (2) /= "0";
 
    if Argument (3) /= "-1" then
-      Parser.Table.McKenzie.Enqueue_Limit := Integer'Value (Argument (3));
+      Parser.Table.McKenzie.Cost_Limit := Integer'Value (Argument (3));
    end if;
 
    Parser.Parse;
