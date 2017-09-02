@@ -369,7 +369,7 @@ package body Test_McKenzie_Recover is
       --  Symmetric case where generic_instantiation is desired
       begin
 
-         Parser.Table.McKenzie.Cost_Limit := 8;
+         Parser.Table.McKenzie.Cost_Limit := 6;
 
          Parse_Text
            ("procedure Check_2 is end new Check_2;",

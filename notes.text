@@ -5,15 +5,14 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-debug_kim_choe
-    paper does _not_ actually build graph; searches it implicitly
-    uses only reduction edges
-        that's what Definition 3.5 for Lookback says
-    implies token_id_set Can_Contain (term) for each nonterm
-    not clear how it goes back and inserts terminals when find path
-        guided McKenzie process?
-
 improve mckenzie
+    time ./run_ada_lite_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
+
+    use iterator on action_for, not loop on all terminals.
+        see debug_kim_choe_2.adb
+
+    compress identical reduce into token_id_set
+
     ada_mode-recover_indent_3.parse:
         correct solution costs 8.
         ada_lite finds that after enqueue  9318, check  1382;  4.4 seconds
@@ -81,10 +80,30 @@ want to use Π in sal.gen_graphs (because reference does) but Aflex can't handle
 if hit enqueue_limit, use config that has highest check_token_count
     save in config
 
-use iterator on action_for, not loop on all terminals.
+debug_kim_choe
+    paper does _not_ actually build graph; searches it implicitly
+        with a breadth-first search.
+        it's not clear how it determines it has reached the goal
+        not clear how to go back and insert terminals when find path
+        we use a graph to store the multiple paths, since the goal is a token, not a state
 
-add iterator on goto_for
-    poor man's kim-choe graph search
+    uses only reduction edges?
+        that's what Definition 3.5 for Lookback, 3.14 for 'right context graph' says
+        but there are states with no reduction edges
+
+    uses kernels to compute edges
+        in my output, some kernels have no gotos (added later)
+        all kernel gotos are equivalent to table gotos/actions
+
+    advantages over mckenzie:
+        it can insert nonterms?
+            not much help when most can be empty.
+
+        it only follows least cost edge
+            so does mckenzie
+
+        more efficient storage managment?
+            totally up to me
 
 debug_kim_choe.adb
     use sal.gen_graph

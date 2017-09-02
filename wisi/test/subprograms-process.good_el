@@ -6,25 +6,19 @@
 (require 'semantic/lex)
 (require 'wisi-process-parse)
 
-(defconst subprograms-elisp-keyword-table
-  (semantic-lex-make-keyword-table
-   '(
-     ("function" . FUNCTION)
-     ("(" . LEFT_PAREN)
-     ("procedure" . PROCEDURE)
-     (")" . RIGHT_PAREN)
-     )
-   nil))
-
-(defconst subprograms-elisp-token-table
-  (semantic-lex-make-type-table
-   '(
-     ("symbol"
-      (SYMBOL . "[a-zA-Z][0-9a-zA-Z_]*")
-      )
-     )
-   nil))
-
+(defconst subprograms-elisp-keyword-table-raw
+  '(
+   ("function" . FUNCTION)
+   ("(" . LEFT_PAREN)
+   ("procedure" . PROCEDURE)
+   (")" . RIGHT_PAREN)
+   ))
+(defconst subprograms-elisp-token-table-raw
+  '(
+   ("symbol"
+    (SYMBOL . "[a-zA-Z][0-9a-zA-Z_]*")
+    )
+   ))
 (defconst subprograms-process-token-table
   (wisi-process-compile-tokens
    [FUNCTION
