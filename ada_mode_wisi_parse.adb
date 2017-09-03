@@ -57,12 +57,11 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-        ("NNparse ""<buffer-name>"" <verbosity> <mckenzie_enable> <mckenzie_cost_limit> <tokens>");
+        ("NNparse ""<buffer-name>"" <verbosity> <mckenzie_cost_limit> <mckenzie_check_limit> <tokens>");
       Put_Line ("  NN excludes <tokens>");
       Put_Line ("  <buffer-name> used in error messages");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
-      Put_Line ("  <*_enable> is {0 | 1}; enable error recovery algorithm");
-      Put_Line ("  <mckenzie_cost_limit> is an integer; if -1, use value from grammar file.");
+      Put_Line ("  <*_limit> is integer; -1 means use default");
       Put_Line ("  outputs: elisp vectors for parser actions or elisp forms for errors.");
       Put_Line ("  See wisi-process-parse-execute for details.");
       New_Line;
@@ -200,7 +199,7 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <buffer_name> <verbosity> <mckenzie_enable> <mckenzie_cost_limit>
+            --  Args: <buffer_name> <verbosity> <mckenzie_cost_limit> <mckenzie_check_limit>
             --  Input: <token id>...
             --  Response:
             --  [parse action elisp vector]...
@@ -209,13 +208,18 @@ begin
             declare
                Buffer_Name : constant String := Get_String (Command_Line, Last);
                pragma Unreferenced (Buffer_Name); --  FIXME: delete arg.
-               Cost_Limit : Integer;
+               Cost_Limit  : Integer;
+               Check_Limit : Integer;
             begin
-               WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);
-               Parser.Enable_McKenzie_Recover := 1 = Get_Integer (Command_Line, Last);
-               Cost_Limit                  := Get_Integer (Command_Line, Last);
+               WisiToken.Trace_Parse := Get_Integer (Command_Line, Last);
+               Cost_Limit            := Get_Integer (Command_Line, Last);
+               Check_Limit           := Get_Integer (Command_Line, Last);
+
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
+               end if;
+               if Check_Limit > 0 then
+                  Parser.Table.McKenzie.Check_Limit := Check_Limit;
                end if;
                Parser.Lexer.Reset;
                Parser.Parse;

@@ -194,7 +194,6 @@
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
-%mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
 %mckenzie_cost_insert COMMA 3
 %mckenzie_cost_insert DECLARE 3
@@ -221,14 +220,18 @@
 ;; Most common paren error is missing closing paren.
 %mckenzie_cost_insert RIGHT_PAREN 1
 
-;; Prefer inserting 'end', ';' over everything
+;; Prefer inserting these over everything; lets us finish a
+;; subprogram body.
+%mckenzie_cost_insert BEGIN 1
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
-%mckenzie_cost_limit 10
+%mckenzie_cost_limit 12
 
 ;; 4 causes test/ada_mode-recover_align_1.adb to fail; two errors
 ;; close together.
+;;
+;; 3 causes 'procedure Process_Text_File (File_Name ; in String); is' to fail
 %mckenzie_check_limit 3
 
 ;; known conflicts that are resolved by generalized LALR parser

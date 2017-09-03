@@ -163,8 +163,8 @@ buffer.  Does not wait for command to complete."
   (let* ((cmd (format "parse \"%s\" %d %d %d"
 		      (buffer-name)
 		      (1- wisi-debug)
-		      (if wisi-mckenzie-enable 1 0)
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
+		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
 		      ))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser))
@@ -524,12 +524,13 @@ from TOKEN-TABLE."
   ;; throw an error either; there is no syntax error.
   (if (wisi-process--parser-busy parser)
       (progn
-	(push
-	 (make-wisi--error
-	  :pos 0
-	  :message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
-			   (file-name-nondirectory (buffer-file-name)) 1 1))
-	 (wisi-parser-errors parser))
+	(setf (wisi-parser-errors parser)
+	      (list
+	       (make-wisi--error
+		:pos 0
+		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
+				 (file-name-nondirectory (buffer-file-name)) 1 1))
+	       ))
 	(message "%s parse abandoned; parser busy" wisi--parse-action)
 	(goto-char (point-min))
 	;; Leaving point at point-min sets wisi-cache-max to
@@ -612,15 +613,19 @@ from TOKEN-TABLE."
 					(cdr item))))
 			;; Parser detected a syntax error, and recovery failed, so signal it.
 			(signal 'wisi-parse-error
-				(wisi--error-message
-				 (car (cdr (car (wisi-process--parser-errors parser)))))))
+				(wisi--error-message (car (wisi-parser-errors parser)))))
 
 		       (t
 			;; Some other error
 			(eval action)))
 
 		    ;; encoded parser action
-		    (wisi-process-parse--execute parser action))
+		    (condition-case-unless-debug err
+			(wisi-process-parse--execute parser action)
+		      (wisi-parse-error
+		       ;; From an action; missing statement-action in grammar, etc.
+		       (push (make-wisi--error :pos (point) :message (cdr err)) (wisi-parser-errors parser))
+		       (signal (car err) (cdr err)))))
 
 		  (set-buffer action-buffer)
 		  ))
@@ -672,10 +677,10 @@ from TOKEN-TABLE."
 	  ;; buffer as the elisp parser does.
 	  (goto-char (point-max))
 	  )
+
       (wisi-parse-error
-       ;; From an action; missing statement-action in grammar, etc.
        (setf (wisi-process--parser-busy parser) nil)
-       (push (make-wisi--error :pos (point) :message (cdr err)) (wisi-parser-errors parser)))
+       (signal (car err) (cdr err)))
 
       (error
        (setf (wisi-process--parser-busy parser) nil)

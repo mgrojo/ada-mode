@@ -2,7 +2,7 @@
 ^.*\.exe$
 ^ada-mode\.html$
 ^ada-mode\.info$
-^ada_grammar.*output$
+^ada_grammar.*_parse_table$
 ^ada_mode_gps_indent$
 ^autoloads\.el$
 ^build/.*\.ali$
@@ -15,7 +15,6 @@
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
 ^build/ada_grammar.*
-^build/ada_grammar\.ada_output$
 ^build/ada_grammar\.l$
 ^build/ada_grammar_dfa\.ada$
 ^build/ada_grammar_io\.ada$
@@ -27,6 +26,7 @@
 ^build/test\.casing$
 ^dir-ada-mode$
 ^gpr-grammar.*output$
+^gpr-grammar\.elisp_parse_table$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
 ^gpr_query$
@@ -49,4 +49,5 @@
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.elisp_output$
+^test/wisi/.*\.elisp_parse_table$
 ^test/wisi/.*\.wisi-test$

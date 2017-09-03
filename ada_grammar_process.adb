@@ -48,7 +48,7 @@ package body Ada_Grammar_Process is
          Last_Nonterminal  => 340,
          Insert =>
            (4, 4, 4, 4, 4, 4, 4, 4,
-            4, 4, 3, 4, 3, 4, 3, 4,
+            4, 4, 1, 4, 3, 4, 3, 4,
             4, 4, 4, 3, 4, 1, 4, 4,
             3, 4, 4, 4, 4, 2, 4, 4,
             3, 4, 4, 2, 4, 4, 4, 4,
@@ -104,7 +104,7 @@ package body Ada_Grammar_Process is
             8, 8, 8, 8, 8, 8, 8, 8,
             8, 8, 8, 8, 8, 8, 8, 8,
             8, 8),
-         Cost_Limit  => 10,
+         Cost_Limit  => 12,
          Check_Limit => 3,
          Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
 

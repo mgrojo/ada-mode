@@ -42,6 +42,10 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
+
+face bug:
+   for C in Graph.Vertices (U_Index).Edges.Iterate loop
+
 emacs hangs occasionally
     killing ada_mode_wisi_parse.exe recovers
         race condition in wisi-process-parse, called from font-lock?
@@ -66,12 +70,6 @@ parser gets bad commands
 
 navigation bug:
 
-   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
-   is begin
-      return (if Lexer.Enable_Line_Numbers then Ada.Text_IO.Count (YY_Begin_Line) - 1 else 0);
-   end Line;
-      operator not visible for ") - 1"; invoke fix => already at outermost containing
-
     still losing case | when | end case sometimes
 
     add loop | exit | end loop
@@ -95,26 +93,7 @@ use process sentinel to avoid race condition?
 
 add mode to log all recover failures for later analysis
 
-testing mckenzie recover
-   function Recover
-     (Parser        : in out LR.Instance'Class;
-      Cursor        : in     Parser_Lists.Cursor;
-      Current_Token : in     Token_ID)
-     return Configuration
-      --  Raises Recover_Fail or returns recover Config
-   is
-      Data : McKenzie_Data renames McKenzie_Data (Cursor.Recover_Ref);
-   begin
-      Clear_Queue (Data);
-      Enqueue (Data, (Copy_Stack (Cursor), Token_Lists.Empty_Vector, Token_Lists.Empty_Vector, 0.0));
-      loop
-         exit when Data.Queue.Is_Empty;
-         declare
-      end loop;
-      raise Recover_Fail;
-   end Recover;
-
-    expand 'declare' => mckenzie fails on 'end recover' with enqueue_limit = 800
+need mckenzie in gpr
 
 fix release
     version 5.3.1

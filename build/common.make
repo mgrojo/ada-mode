@@ -158,7 +158,7 @@ gpr-skel.gpr.tmp :
 
 # -v 1 dumps grammar
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).elisp_output
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).elisp_parse_table
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else
@@ -167,11 +167,11 @@ else
 endif
 
 ../%_process.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_output
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
 %.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer Aflex $< > $(*F).ada_output
+	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer Aflex $< > $(*F).ada_parse_table
 	dos2unix $(*F).ads $(*F).adb
 
 %_yylex.ada : %.l

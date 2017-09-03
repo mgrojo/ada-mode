@@ -1003,7 +1003,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
       (wisi--run-parse)
 
-      (when (and error-on-fail (not (>= (wisi-cache-max) pos)))
+      (when (and error-on-fail wisi-parse-failed)
 	(error "parse %s failed" parse-action))
       )))
 
@@ -1342,7 +1342,7 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
 	   cache)
 
-      (when first-region
+      (when (and first-region last-region) ;; can be nil when error correction is present.
 	(setq cache (get-text-property (car first-region) 'wisi-face))
 	(setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
 	)

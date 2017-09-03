@@ -16,8 +16,8 @@ is
    procedure Put_Usage
    is begin
       Put_Line
-        ("run_ada_parser <verbosity> <enable_mckenzie> <mckenzie_cost_limit> <file_name>");
-      Put_Line ("<enable_*>: 0 or 1");
+        ("run_ada_parser <verbosity> <mckenzie_cost_limit> <mckenzie_check_limit> <file_name>");
+      Put_Line ("<*_limit>: -1 = use default");
    end Put_Usage;
 
    File_Name : Unbounded_String;
@@ -45,10 +45,13 @@ begin
    end if;
 
    Parser.Lexer.Enable_Line_Numbers := True;
-   Parser.Enable_McKenzie_Recover   := Argument (2) /= "0";
+
+   if Argument (2) /= "-1" then
+      Parser.Table.McKenzie.Cost_Limit := Integer'Value (Argument (2));
+   end if;
 
    if Argument (3) /= "-1" then
-      Parser.Table.McKenzie.Cost_Limit := Integer'Value (Argument (3));
+      Parser.Table.McKenzie.Check_Limit := Integer'Value (Argument (3));
    end if;
 
    Parser.Parse;
