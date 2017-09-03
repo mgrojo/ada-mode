@@ -20,6 +20,7 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
+with SAL.Gen_Unbounded_Definite_Min_Heaps;
 package body WisiToken.Parser.LR.McKenzie_Recover is
 
    Default_Configuration : constant Configuration :=
@@ -110,20 +111,25 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    ----------
    --  Core code
 
-   function Order_Config (A, B : in Configuration) return Boolean
+   function Key (A : in Configuration) return Integer
    is begin
-      --  Remove lowest cost first.
-      return A.Cost < B.Cost;
-   end Order_Config;
+      return A.Cost;
+   end Key;
 
-   package Config_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Configuration);
-   package Config_Queues is new SAL.Gen_Unbounded_Definite_Queues
-     (Element_Type     => Configuration,
-      Queue_Interfaces => Config_Queue_Interfaces);
+   procedure Set_Key (Item : in out Configuration; Key : in Integer)
+   is begin
+      Item.Cost := Key;
+   end Set_Key;
+
+   package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps
+     (Element_Type => Configuration,
+      Key_Type     => Integer,
+      Key          => Key,
+      Set_Key      => Set_Key);
 
    type McKenzie_Data (Parser : access LR.Instance'Class) is new LR.Recover_Data with
    record
-      Config_Queue  : Config_Queues.Queue_Type;
+      Config_Heap   : Config_Heaps.Heap_Type;
       Enqueue_Count : Integer := 0;
       Check_Count   : Integer := 0;
       Result        : Configuration;
@@ -132,7 +138,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    procedure Clear_Queue (Data : in out McKenzie_Data)
    is begin
-      Data.Config_Queue.Clear;
+      Data.Config_Heap.Clear;
    end Clear_Queue;
 
    procedure Enqueue (Data : in out McKenzie_Data; Config : in Configuration)
@@ -141,19 +147,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       if Trace_Parse > 1 then
          Put ("enqueue", Data.Parser, Config);
       end if;
-      Data.Config_Queue.Add (Config, Order_Config'Access);
+      Data.Config_Heap.Add (Config);
       Data.Enqueue_Count := Data.Enqueue_Count + 1;
    end Enqueue;
-
-   function Min_Cost (Data : in McKenzie_Data) return Integer
-   is begin
-      return Data.Config_Queue.Peek.Cost;
-   end Min_Cost;
-
-   function Delete_Min_Cost (Data : in out McKenzie_Data) return Configuration
-   is begin
-      return Data.Config_Queue.Remove;
-   end Delete_Min_Cost;
 
    function Get_Current_Input (Data : in McKenzie_Data; Config : in Configuration) return Token_ID
    is
@@ -509,12 +505,13 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       Check_Configs :
       loop
-         exit Check_Configs when Data.Config_Queue.Is_Empty or Min_Cost (Data) > Data.Parser.Table.McKenzie.Cost_Limit;
+         exit Check_Configs when Data.Config_Heap.Count = 0 or
+           Data.Config_Heap.Min_Key > Data.Parser.Table.McKenzie.Cost_Limit;
 
          declare
             use all type Token_Array;
 
-            Config     : constant Configuration := Delete_Min_Cost (Data);
+            Config     : constant Configuration := Data.Config_Heap.Remove;
             New_Config : Configuration;
 
             Current_Input : constant Token_ID := Get_Current_Input (Data, Config);

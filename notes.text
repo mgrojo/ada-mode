@@ -12,13 +12,30 @@ improve mckenzie
         Full Ada finds that after enqueue 27655, check  2118; 48 seconds
 
     time ./run_ada_lite_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
+        fails because default cost is 7
         2.768 seconds, 2.761s,  2.904s (/ (+ 2.768 2.761  2.904) 3) = 2.811
 
     use iterator on action_for, not loop on all terminals.
         (/ (+ 2.676 2.834 2.621) 3) = 2.71
 
+    config_queue:
+        binary heap
+        (/ (+ 0.072 0.071 0.072) 3) = 0.072
+
+        (/ 2.71 0.072) = 37.6 times faster
+
+        propagate to ada-mode, rebase
+
     get profile info
         (info "(gnat_ugn) Profiling an Ada Program with gprof")
+
+        added -pg to Builder, Linker options in project file
+            gives link errors on "mcount"
+
+
+        gnatmake -f -pg -P wisitoken_test.gpr run_ada_lite_parser
+            => gprbuild: illegal option "-pg" on the command line
+
 
     config_queue:
         binary heap
@@ -35,6 +52,23 @@ improve mckenzie
 
 
 new test cases:
+
+    ----------
+    type Element_Type is record
+    Data : Float;
+        have not typed "end record" yet
+
+    ----------
+    A :  renames Heap.Data;
+    left out type name
+
+    ----------
+    type Heap_Type is new Ada.Finalization. tagged private;
+       half-way thru adding "ada.finalization" to a tagged type.
+
+
+    ----------
+    type Element_Array is array (Natural range <>);
 
 
     ----------
