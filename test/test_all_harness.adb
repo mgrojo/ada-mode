@@ -27,6 +27,7 @@ with SAL.Time_Conversions.Test;
 with Test.Config_Files.All_Suite;
 with Test_Bounded_Definite_Queues;
 with Test_Gen_Images;
+with Test_Min_Heap;
 with Test_Network_Order;
 with Test_Randomize_Lists;
 with Test_Stacks;
@@ -48,6 +49,7 @@ begin
    Add_Test (Suite, new SAL.Time_Conversions.Test.Test_Case);
    Add_Test (Suite, new Test_Gen_Images.Test_Case);
    Add_Test (Suite, new Test_Bounded_Definite_Queues.Test_Case);
+   Add_Test (Suite, new Test_Min_Heap.Test_Case);
    Add_Test (Suite, new Test_Network_Order.Test_Case);
    Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
    Add_Test (Suite, new Test_Stacks.Test_Case);

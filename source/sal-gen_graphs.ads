@@ -23,6 +23,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 generic
    type Edge_Data is private;
    Default_Edge_Data : in Edge_Data;
@@ -45,27 +46,16 @@ package SAL.Gen_Graphs is
 
    type Path is array (Positive range <>) of Path_Item;
 
-   type Find_Label is (Edge, Vertex);
-   type Find_Target (Label : Find_Label) is record
-      case Label is
-      when Edge =>
-         Data : Edge_Data;
+   package Path_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Path);
 
-      when Vertex =>
-         Vertex : Vertex_Index;
-      end case;
-   end record;
-
-   function Find_Path (Graph : in out Gen_Graphs.Graph; From : in Vertex_Index; To : in Find_Target) return Path;
-   --  First entry in result is From, with first edge.
-   --
-   --  If To.Label is:
-   --
-   --  - Edge, last entry in result contains edge data for To, leaving
-   --  last vertex.
-   --
-   --  - Vertex, last entry in result contains To, with default edge
-   --  data.
+   function Find_Paths
+     (Graph : in out Gen_Graphs.Graph;
+      From  : in     Vertex_Index;
+      To    : in     Edge_Data)
+     return Path_Lists.List;
+   --  Return all non-cyclic paths starting From that lead to a To edge.
+   --  First entry in each item in result is From, with first edge. Last
+   --  entry in result contains edge data for To, leaving last vertex.
 
 private
    type Edge_Node is record
