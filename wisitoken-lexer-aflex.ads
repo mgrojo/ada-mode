@@ -35,7 +35,7 @@ with WisiToken.Text_Feeder;
 generic
    Feeder : in out WisiToken.Text_Feeder.Text_Feeder_Ptr;
    --  Must represent line end as ASCII.LF (that's what aflex uses).
-   --  Initialize sets this to a copy of Lexer.Feeder
+   --  New_Lexer sets this to a copy of Lexer.Feeder
 
    with function YYLex return Token_ID;
    --  Read tokens from Feeder

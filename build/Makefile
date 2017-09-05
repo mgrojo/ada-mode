@@ -24,19 +24,25 @@ t_all : ada_lite_yylex.adb
 t_all : character_literal_yylex.adb
 t_all : test_all_harness.run
 
-# from ../common.make
-# ../../wisi/test/body_instantiation_conflict.wy
 one-clean :
 	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-#one : export Standard_Common_Build := Debug
+one : export Standard_Common_Build := Debug
 #one : one-clean
 one :
 	./wisi-generate.exe -v 2 --output_language Ada_Emacs --lexer Elisp --interface process ../wisi/test/conflict_name.wy
 
-two : RUN_ARGS ?= 2 1 -1
+two : RUN_ARGS ?= --verbosity 2
 two : ada_lite_yylex.adb run_ada_lite_parser.exe
-	./run_ada_lite_parser.exe $(RUN_ARGS) ../wisi/test/debug.adb
+	./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb $(RUN_ARGS)
+
+profile: exec_pro/run_ada_lite_parser.exe
+	exec_pro/run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 10
+	gprof --demangle=gnat exec_pro/run_ada_lite_parser.exe > ada_lite.profile
+
+# WORKAROUND: -largs -pg works here; the Linker package in .gpr does not
+exec_pro/run_ada_lite_parser.exe : force
+	gprbuild -XProfile=On -p -P wisitoken_test.gpr run_ada_lite_parser -largs -pg
 
 some-clean :
 	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))

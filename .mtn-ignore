@@ -18,9 +18,11 @@
 ^build/.*\.parse_table$
 ^build/.*\.wy$
 ^build/.*\.zip$
+^build/exec_pro$
 ^build/gpr_query\.db$
 ^build/gpr_query\.db-shm$
 ^build/gpr_query\.db-wal$
 ^build/obj$
+^build/obj_pro$
 ^wisi/test/.*-wy\.el$
 ^wisi/test/wisent\.output$

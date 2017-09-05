@@ -6,85 +6,58 @@ org.wisitoken.stephe-1 - development
 
  current work
 improve mckenzie
-    ada_mode-recover_indent_3.parse:
+    time ./run_ada_lite_parser.exe 0 1 8 ../test/ada_mode-recover_indent_3.adb
+    time run_ada_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
         correct solution costs 8.
-        ada_lite finds that after enqueue  9318, check  1382;  4.4 seconds (compiled with debug)
-        Full Ada finds that after enqueue 27655, check  2118; 48 seconds
+        ada_lite finds that after enqueue 4734, check  679;  0.072 seconds
+        Full Ada finds that after enqueue 14164, check  1084; 0.129 s
 
-    time ./run_ada_lite_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
-        fails because default cost is 7
-        2.768 seconds, 2.761s,  2.904s (/ (+ 2.768 2.761  2.904) 3) = 2.811
+    ada_lite.profile
+        use separate obj_dir
+            also in sal
 
-    use iterator on action_for, not loop on all terminals.
-        (/ (+ 2.676 2.834 2.621) 3) = 2.71
+        need to put parse in a loop to get better stats
+        top total time functions:
+            wisitoken.token_arrays.finalize
+            wisitoken.token_arrays.adjust
+            wisitoken.parser.lr.mckenzie_recover.configuration.Finalize
+            wisitoken.parser.lr.mckenzie_recover.":=" (for configuration, presumably)
+            wisitoken.parser.lr.mckenzie_recover.config_heaps.exchange
 
-    config_queue:
-        binary heap
-        (/ (+ 0.072 0.071 0.072) 3) = 0.072
+    try Ada.Containers.Bounded_Vectors (first_terminal .. last_nonterminal) for token_arrays
+        = 337 for Ada
 
-        (/ 2.71 0.072) = 37.6 times faster
-
-        propagate to ada-mode, rebase
-
-    get profile info
-        (info "(gnat_ugn) Profiling an Ada Program with gprof")
-
-        added -pg to Builder, Linker options in project file
-            gives link errors on "mcount"
-
-
-        gnatmake -f -pg -P wisitoken_test.gpr run_ada_lite_parser
-            => gprbuild: illegal option "-pg" on the command line
-
+    try lr1 ada_lite
+        slow but tolerable wisi-generate time
+            83 rules, 1 actions, 2612 states, 20615 table entries
+            0 accept/reduce conflicts, 3 shift/reduce conflicts, 6 reduce/reduce conflicts
+        gcc gives up; gnat1.exe: out of memory allocating 4072 bytes
+            need to read table from file.
 
     config_queue:
-        binary heap
         Fibonacci heap
 
     run mckenzie in parallel, take first success, kill other parsers
-        maybe keep going for check_limit
+        for i in 1 .. cost_limit
+            do each parser (i)
+        end loop
+
         helps conflict resolve, but not ada_mode-recover_indent_3
-
-    compress identical reduce into token_id_set
-        doesn't help mckenzie enqueue_count; still have to shift them all eventually
-            could be small gain in doing the reductions only once
-            see if that's a bottleneck
-
 
 new test cases:
 
-    ----------
-    type Element_Type is record
-    Data : Float;
-        have not typed "end record" yet
-
-    ----------
-    A :  renames Heap.Data;
-    left out type name
-
-    ----------
-    type Heap_Type is new Ada.Finalization. tagged private;
-       half-way thru adding "ada.finalization" to a tagged type.
-
-
-    ----------
-    type Element_Array is array (Natural range <>);
-
-
-    ----------
-    test/ada_mode-recover_indent_3.adb
-        missing 'end;' in nested subprogram =>
-        needs to insert 7 terminals; need kim-choe
 
     ----------
    procedure Process_Text_File (File_Name ; in String);
    is
    begin
    end Process_Text_File;
-   deadly slow: mckenzie (max cost 10) enqueue 22712, check  1759; fail
-   fast enough: mckenzie (max cost 7) enqueue 2451, check  176; fail
-   significant delay: mckenzie (max cost 8) enqueue 8362, check  613; fail
-   need kim-choe
+   noticeable delay: mckenzie (max cost 12) enqueue 138756, check  10931; fail
+    correct solution is delete ';', insert ':' - cost 8, then later delete ;
+    two errors too close together
+    check_limit = 2 fixes it; set that in projects.text
+
+
 ----------
 
 some tokens don't count towards check_limit, because we should always check the next token:
@@ -366,16 +339,15 @@ wisi-generate lr1 way too slow for Ada
     lalr_kernels needs:
         same as lr1_item_sets
 
+    lalr calls closure on each kernel more than once!
+        save the closure the first time?
+
     need more warm-fuzzy
     command line option
     dots for "adding state n", n every 100
     dots for "lookaheads state n", n every 100?
     dynamically monitor how long things take, keep dot time period constant
         everything slows down as more states added
-
-    rename to opentoken7
-        _not_ "fast" :(
-        or speed it up
 
 integrate with emacs module
     split out ada_grammar from ada_grammar_process, _module
@@ -401,9 +373,6 @@ need case insensitive flag in .wy
     pass to lexers
 
 Test case gathering - wisi fallback email first use each day.
-
-lalr calls closure on each kernel more than once!
-    save the closure the first time?
 
 need to_token_wy_name
     for reporting conflicts

@@ -86,6 +86,7 @@ library:
 
 clean :: test-clean
 	rm -rf obj *.exe
+	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
 test-clean : wisi-clean aflex-clean
