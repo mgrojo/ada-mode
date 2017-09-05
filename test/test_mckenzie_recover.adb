@@ -26,8 +26,6 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
-with WisiToken.Parser.LR.AUnit;
-with WisiToken.Parser.LR.McKenzie_Recover.AUnit;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_Feeder.String;
 with WisiToken.Text_Feeder.Text_IO;
@@ -272,51 +270,6 @@ package body Test_McKenzie_Recover is
       --  continue to EOF.
 
       Check ("errors.length", State.Active_Error_List.Length, 1);
-      declare
-         use WisiToken.AUnit;
-         use WisiToken.Parser.LR.AUnit;
-         use WisiToken.Token_Region;
-         use WisiToken.Token_Region.AUnit;
-         use WisiToken.Token_Region.Error_Data_Lists;
-         Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
-      begin
-
-         if WisiToken.Trace_Parse > 0 then
-            Ada.Text_IO.Put ("Config: ");
-            WisiToken.Parser.LR.McKenzie_Recover.Put
-              (State.Trace.Descriptor.all,
-               WisiToken.Parser.LR.McKenzie_Recover.Configuration (Element (Cursor).Recover.all));
-            Ada.Text_IO.New_Line;
-         end if;
-
-         Check
-           ("errors.1",
-            Element (Cursor),
-            (First_Terminal            => Descriptor.First_Terminal,
-             Last_Terminal             => Descriptor.Last_Terminal,
-             Error_Token               => (+PROCEDURE_ID, 0, 0, (26, 34)),
-             Expecting                 => To_Token_ID_Set
-               (Descriptor.First_Terminal,
-                Descriptor.Last_Terminal,
-                (+BEGIN_ID, +CASE_ID, +DECLARE_ID, +END_ID, +EXCEPTION_ID, +EXIT_ID, +FOR_ID, +IF_ID, +LOOP_ID,
-                 +RETURN_ID, +IDENTIFIER_ID)),
-             Invalid_Region            => (20, 24),
-             Recover                   => new WisiToken.Parser.LR.McKenzie_Recover.Configuration'
-               (Stack                  => To_State_Stack
-                  (((29, +IS_ID), (14, +aspect_specification_opt_ID), (11, +subprogram_specification_ID),
-                    (0, WisiToken.Invalid_Token_ID))),
-                Verb                   => WisiToken.Parser.LR.Shift_Local_Lookahead,
-                Shared_Lookahead_Index => 2,
-                Local_Lookahead        => WisiToken.Empty_Token_Array,
-                Local_Lookahead_Index  => 0,
-                Pushed                 => WisiToken.Parser.LR.Parser_Stacks.Empty_Stack,
-                Popped                 => To_Token_Array ((+BEGIN_ID, +declarative_part_opt_ID)),
-                Inserted               => WisiToken.Empty_Token_Array,
-                Deleted                => WisiToken.Empty_Token_Array,
-                Cost                   => 2)),
-            Check_Recover_Data         => WisiToken.Parser.LR.McKenzie_Recover.AUnit.Check'Access);
-      end;
 
    exception
    when WisiToken.Syntax_Error =>
@@ -681,6 +634,39 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error");
    end If_In_Handler;
 
+   procedure Zombie_In_Resume (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use WisiToken.Token_Region.AUnit;
+   begin
+      --  Test that the correct error token is reported when the error occurs
+      --  during parallel parsing (a previous version got this wrong).
+
+      Parse_Text
+        ("package body Ada_Mode.Loop_face",
+         --        |10       |20
+         Test.Debug);
+      --  Just started typing a package
+      --
+      --  This used to raise a Programmer_Error because of a zombie parser
+      --  during resume.
+      --
+      --  Enters error recovery at Wisi_EOF, inserts 'is end;'
+      --
+      --  A second parser is spawned on 'is', and errors on 'end'. Resume is
+      --  still active, so the parser does not become a zombie, but is
+      --  terminated immediately. The first parser continues thru EOF.
+
+      Check ("1 errors.length", State.Active_Error_List.Length, 1);
+
+   exception
+   when WisiToken.Syntax_Error =>
+      Assert (False, "1 exception: got Syntax_Error");
+   end Zombie_In_Resume;
+
    ----------
    --  Public subprograms
 
@@ -710,6 +696,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Revive_Zombie_Parser'Access, "Revive_Zombie_Parser");
       Register_Routine (T, Error_Token_When_Parallel'Access, "Error_Token_When_Parallel");
       Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
+      Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
    end Register_Tests;
 
    overriding procedure Set_Up (T : in out Test_Case)
