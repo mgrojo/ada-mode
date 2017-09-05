@@ -114,8 +114,8 @@
 		 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
 		 `wisi-forward-token)
 	:lexer (wisi-make-elisp-lexer
-		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:token-table-raw (symbol-value (intern-soft (concat filename "-elisp-token-table-raw")))
+		:keyword-table-raw (symbol-value (intern-soft (concat filename "-elisp-keyword-table-raw")))
 		:string-quote-escape-doubled nil
 		:string-quote-escape nil)))
 
@@ -134,8 +134,8 @@
 		 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
 		 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
 	:lexer (wisi-make-elisp-lexer
-		:token-table (symbol-value (intern-soft (concat filename "-elisp-token-table")))
-		:keyword-table (symbol-value (intern-soft (concat filename "-elisp-keyword-table")))
+		:token-table-raw (symbol-value (intern-soft (concat filename "-elisp-token-table-raw")))
+		:keyword-table-raw (symbol-value (intern-soft (concat filename "-elisp-keyword-table-raw")))
 		:string-quote-escape-doubled nil
 		:string-quote-escape nil)))
       )

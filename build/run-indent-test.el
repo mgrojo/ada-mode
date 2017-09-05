@@ -112,6 +112,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
+	  (when debug-on-error (debug))
 	  (setq error-count (1+ error-count))
 	  (message
 	   (concat

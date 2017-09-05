@@ -1,6 +1,6 @@
 -- This is to test the indentation of declarations in generics package declarations
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
@@ -64,7 +64,10 @@ generic
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "not" font-lock-keyword-face)
    --EMACSCMD:(test-face "null" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Ada" font-lock-type-face)
+   --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Strings" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Unbounded" font-lock-function-name-face)
+   --EMACSCMD:(test-face "String_Access" font-lock-type-face)
    P : in not null Ada.Strings.Unbounded.String_Access;
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "out" font-lock-keyword-face)
@@ -104,24 +107,24 @@ generic
 
    -- Packages
 
-   --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Ada" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Text_IO" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Integer_IO" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Num" nil)
+   --EMACSCMD:(test-face "=>" nil)
+   --EMACSCMD:(test-face "Formal_Signed_Integer_Type" nil)
    with package A_Package_1 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_2 is new Ada.Text_IO.Integer_IO (Num =>
                                                              Formal_Signed_Integer_Type);
    with package A_Package_3 is new Ada.Text_IO.Integer_IO (
                                                            Num => Formal_Signed_Integer_Type);
 
-   --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
    with package A_Package_4 is new Ada.Text_IO.Integer_IO
      (Num => Formal_Signed_Integer_Type);
    with package A_Package_5 is new Ada.Text_IO.
      Integer_IO (Num => Formal_Signed_Integer_Type);
 
    with package A_Package_6 is new
-     --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
-     --EMACSCMD:(test-face "Num" nil)
-     --EMACSCMD:(test-face "=>" nil)
-     --EMACSCMD:(test-face "Formal_Signed_Integer_Type" nil)
      Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with package A_Package_7 is
      new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
@@ -130,14 +133,15 @@ generic
 
    with package
      --EMACSCMD:(test-face "A_Package_9" 'font-lock-function-name-face)
-     --EMACSCMD:(test-face "Ada.Text_IO.Integer_IO" 'font-lock-function-name-face)
      A_Package_9 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    with
      package A_Package_10 is new Ada.Text_IO.Integer_IO (Num => Formal_Signed_Integer_Type);
    pragma Unreferenced (A_Package_10);
 
-   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 package Ada_Mode.Generic_Package is
    -- See ada_mode-generic_parent.ads for generic subprograms
-   --EMACSCMD:(test-face "Ada_Mode.Generic_Package" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Ada_Mode" 'font-lock-function-name-face)
+   --EMACSCMD:(test-face "Generic_Package" 'font-lock-function-name-face)
 end Ada_Mode.Generic_Package;

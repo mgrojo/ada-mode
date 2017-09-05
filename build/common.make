@@ -69,6 +69,13 @@ SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_task_body.adb
 COMPILE_FILES := $(filter-out ada_mode-spec.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-spec.ads
 
+# not worth making these compile
+COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
+
 # This has illegal code; used for testing skeleton expansion
 COMPILE_FILES := $(filter-out ada_skel.adb, $(COMPILE_FILES))
 
@@ -144,7 +151,7 @@ gpr-skel.gpr.tmp :
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
 %.wisi-process-test : %_wisi_parse.exe
-	$(EMACS_EXE) -Q -batch -L .. $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
+	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
 %_wisi_parse.exe : %_wisi_parse.adb %-process.el force
 	gprbuild -p wisi_parse.gpr $<

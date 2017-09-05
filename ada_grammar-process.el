@@ -500,18 +500,18 @@
        (wisi-containing-action 1 4)
        (wisi-containing-action 1 6)
        (wisi-motion-action [1 5 [6 EXCEPTION WHEN] 9])
-       (wisi-face-apply-action [2 font-lock-function-name-face 8 font-lock-function-name-face])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0 0])))
       ("accept_statement:1"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
        (wisi-containing-action 1 4)
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      (("access_definition:0"
        (progn
-       (wisi-face-apply-action [4 font-lock-type-face])
+       (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])))
       ("access_definition:1"
        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
@@ -718,12 +718,12 @@
       )
      (("derived_type_definition:0"
        (progn
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
        [ada-indent-broken ada-indent-record-rel-type] 0])))
       ("derived_type_definition:1"
        (progn
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken])))
       )
      nil
@@ -758,7 +758,7 @@
        (wisi-containing-action 1 7)
        (wisi-containing-action 1 9)
        (wisi-motion-action [1 4 6 8 12])
-       (wisi-face-apply-action [2 font-lock-function-name-face 11 font-lock-function-name-face ])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face 11 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored% 4 ada-indent-broken)
        0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0 0])))
       )
@@ -772,14 +772,14 @@
        (progn
        (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
        (wisi-containing-action 2 7)
-       (wisi-face-apply-action [3 font-lock-function-name-face])
+       (wisi-face-apply-action [3 nil font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)
        ada-indent-broken 0 0])))
       ("entry_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 2 motion 6 statement-end])
        (wisi-containing-action 2 4)
-       (wisi-face-apply-action [3 font-lock-function-name-face])
+       (wisi-face-apply-action [3 nil font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      nil
@@ -787,7 +787,7 @@
      (("enumeration_representation_clause:0"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      (("enumeration_type_definition:0"
@@ -845,13 +845,13 @@
      (("formal_object_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 9 statement-end])
-       (wisi-face-apply-action [5 font-lock-type-face])
+       (wisi-face-apply-action [5 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
        (wisi-anchored% 6 ada-indent-broken) ada-indent-broken 0])))
       ("formal_object_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [5 font-lock-type-face])
+       (wisi-face-apply-action [5 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("formal_object_declaration:2"
        (progn
@@ -889,29 +889,30 @@
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
        (wisi-containing-action 1 5)
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("formal_type_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("formal_type_declaration:2"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      nil
      (("formal_derived_type_definition:0"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       ("formal_derived_type_definition:1"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       )
      (("formal_package_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 9 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 6 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       6 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      nil
@@ -919,7 +920,7 @@
        (progn
        (wisi-statement-action [1 statement-start 2 name 7 statement-end])
        (wisi-containing-action 1 5)
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken [ada-indent-broken ada-indent-broken] 0 0 0])))
       nil
       nil
@@ -928,7 +929,7 @@
        (progn
        (wisi-statement-action [1 statement-start 2 name])
        (wisi-containing-action 1 3)
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken])))
       )
      nil
@@ -945,17 +946,20 @@
      (("generic_instantiation:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [2 font-lock-function-name-face 5 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
+       5 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("generic_instantiation:1"
        (progn
        (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 6 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       6 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("generic_instantiation:2"
        (progn
        (wisi-statement-action [1 statement-start 2 motion 8 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 6 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       6 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken 0 ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      (("generic_package_declaration:0"
@@ -967,17 +971,20 @@
      (("generic_renaming_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       5 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("generic_renaming_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start  7 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       5 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0])))
       ("generic_renaming_declaration:2"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face 5 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       5 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0])))
       )
      (("generic_subprogram_declaration:0"
@@ -986,7 +993,7 @@
        (wisi-motion-action [1 2 4])))
       )
      (("goto_label:0"
-       (wisi-face-apply-action [2 font-lock-constant-face]))
+       (wisi-face-apply-action [2 nil font-lock-constant-face]))
       )
      (("handled_sequence_of_statements:0"
        (progn
@@ -1064,12 +1071,12 @@
      (("incomplete_type_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 6 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("incomplete_type_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0])))
       )
      (("index_constraint:0"
@@ -1078,9 +1085,9 @@
      nil
      nil
      (("interface_list:0"
-       (wisi-face-apply-action [1 font-lock-type-face]))
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))
       ("interface_list:1"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       )
      nil
      (("iteration_scheme:0"
@@ -1088,7 +1095,15 @@
       ("iteration_scheme:1"
        (wisi-indent-action [0 [ada-indent-broken ada-indent-broken]]))
       )
-     nil
+     (("iterator_specification:0"
+       (wisi-face-remove-action [4]))
+      ("iterator_specification:1"
+       (wisi-face-remove-action [3]))
+      nil
+      nil
+      nil
+      nil
+      )
      nil
      (("label:0"
        (wisi-indent-action [[ada-indent-label 0]]))
@@ -1142,13 +1157,13 @@
      nil
      nil
      (("null_exclusion_opt_name_type:0"
-       (wisi-face-apply-action [1 font-lock-type-face]))
+       (wisi-face-apply-action [1 nil font-lock-type-face]))
       ("null_exclusion_opt_name_type:1"
-       (wisi-face-apply-action [1 font-lock-type-face]))
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))
       ("null_exclusion_opt_name_type:2"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 nil font-lock-type-face]))
       ("null_exclusion_opt_name_type:3"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       )
      (("null_procedure_declaration:0"
        (progn
@@ -1193,7 +1208,7 @@
      (("object_renaming_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 8 statement-end])
-       (wisi-face-apply-action [4 font-lock-type-face])
+       (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       ("object_renaming_declaration:1"
        (progn
@@ -1217,7 +1232,8 @@
        (wisi-containing-action 1 6)
        (wisi-containing-action 1 8)
        (wisi-motion-action [1 5 7 [8 EXCEPTION WHEN] 11])
-       (wisi-face-apply-action [3 font-lock-function-name-face 10 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       10 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 0 [ada-indent ada-indent]
        0 [ada-indent ada-indent] 0 ada-indent-broken 0])))
       ("package_body:1"
@@ -1225,13 +1241,14 @@
        (wisi-statement-action [1 statement-start 3 name 5 motion 9 statement-end])
        (wisi-containing-action 1 6)
        (wisi-motion-action [1 5 9])
-       (wisi-face-apply-action [3 font-lock-function-name-face 8 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
+       8 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0 0])))
       )
      (("package_body_stub:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [3 font-lock-function-name-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent-broken 0])))
       )
      (("package_declaration:0"
@@ -1242,7 +1259,8 @@
      (("package_renaming_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 6 statement-end])
-       (wisi-face-apply-action [2 font-lock-function-name-face 4 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
+       4 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      (("package_specification:0"
@@ -1252,7 +1270,8 @@
        (wisi-containing-action 4 5)
        (wisi-containing-action 1 7)
        (wisi-motion-action [1 4 6])
-       (wisi-face-apply-action [2 font-lock-function-name-face 9 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
+       9 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken 0 0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0])))
       ("package_specification:1"
        (progn
@@ -1260,7 +1279,8 @@
        (wisi-containing-action 1 4)
        (wisi-containing-action 4 5)
        (wisi-motion-action [1 4])
-       (wisi-face-apply-action [2 font-lock-function-name-face 7 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
+       7 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0])))
       )
      (("parameter_and_result_profile:0"
@@ -1271,12 +1291,12 @@
      (nil
       ("parameter_specification:1"
        (progn
-       (wisi-face-apply-action [6 font-lock-type-face])
+       (wisi-face-apply-action [6 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
        ada-indent-broken ada-indent-broken (wisi-anchored% 7 ada-indent-broken)])))
       ("parameter_specification:2"
        (progn
-       (wisi-face-apply-action [6 font-lock-type-face])
+       (wisi-face-apply-action [6 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
        ada-indent-broken])))
       ("parameter_specification:3"
@@ -1302,39 +1322,39 @@
      (("pragma_g:0"
        (progn
        (wisi-statement-action [1 statement-start 6 statement-end])
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (wisi-anchored 3 1) (wisi-anchored 3 0) 0])))
       ("pragma_g:1"
        (progn
        (wisi-statement-action [1 statement-start 6 statement-end])
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (wisi-anchored 3 1) (wisi-anchored 3 0) 0])))
       ("pragma_g:2"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 nil font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken 0])))
       )
      (("primary:0"
-       (wisi-face-apply-action [1 font-lock-constant-face]))
+       (wisi-face-apply-action [1 nil font-lock-constant-face]))
       nil
       ("primary:2"
        (wisi-indent-action [(ada-indent-aggregate)]))
       nil
       ("primary:4"
-       (wisi-face-apply-action [2 font-lock-type-face]))
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face]))
       )
      (("private_extension_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 12 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
        ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       )
      (("private_type_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 8 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 ada-indent-broken ada-indent-broken 0 0])))
       )
      (("procedure_call_statement:0"
@@ -1346,7 +1366,7 @@
        (progn
        (wisi-statement-action [1 statement-start 2 name])
        (wisi-containing-action 1 3)
-       (wisi-face-apply-action [2 font-lock-function-name-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken])))
       )
      nil
@@ -1355,23 +1375,23 @@
        (wisi-statement-action [1 statement-start 3 name 5 motion 9 statement-end])
        (wisi-containing-action 1 6)
        (wisi-motion-action [1 5 9])
-       (wisi-face-apply-action [3 font-lock-type-face 8 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face 8 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 0 ada-indent 0 0 0])))
       )
      (("protected_body_stub:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
       )
      (("protected_definition:0"
        (progn
        (wisi-statement-action [2 motion])
-       (wisi-face-apply-action [5 font-lock-type-face])
+       (wisi-face-apply-action [5 nil font-lock-type-face])
        (wisi-indent-action [[ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0])))
       ("protected_definition:1"
        (progn
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [[ada-indent ada-indent] 0 0])))
       )
      nil
@@ -1383,7 +1403,7 @@
        (wisi-statement-action [1 statement-start 3 name 6 motion 9 motion 11 statement-end])
        (wisi-containing-action 1 10)
        (wisi-motion-action [1 6 [10 PRIVATE] 11])
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0
        ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       ("protected_type_declaration:1"
@@ -1391,12 +1411,12 @@
        (wisi-statement-action [1 statement-start 3 name 6 motion 8 statement-end])
        (wisi-containing-action 1 7)
        (wisi-motion-action [1 6 [7 PRIVATE] 8])
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [0 ada-indent] 0 0])))
       )
      (("qualified_expression:0"
        (progn
-       (wisi-face-apply-action [1 font-lock-type-face])
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 0 (if ada-indent-hanging-rel-exp
        (wisi-anchored 1 ada-indent-broken)
        (wisi-anchored% 1 ada-indent-broken))])))
@@ -1439,7 +1459,7 @@
      (("record_representation_clause:0"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken
        (ada-indent-record 1 4 0)
        (ada-indent-record 1 4 ada-indent)
@@ -1462,7 +1482,7 @@
       )
      (("result_profile:0"
        (progn
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action* 1
        [0
        (wisi-anchored* 1 ada-indent-broken)
@@ -1533,7 +1553,7 @@
       ("simple_statement:3"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
-       (wisi-face-apply-action [2 font-lock-constant-face])))
+       (wisi-face-apply-action [2 nil font-lock-constant-face])))
       nil
       nil
       nil
@@ -1548,14 +1568,14 @@
        (wisi-statement-action [1 statement-start 2 name 4 motion 7 motion 9 statement-end])
        (wisi-containing-action 1 8)
        (wisi-motion-action [1 4 7 [8 PRIVATE] 9])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       ("single_protected_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 2 name 4 motion 6 statement-end])
        (wisi-containing-action 1 5)
        (wisi-motion-action [1 4 [5 PRIVATE] 6])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken 0 [0 ada-indent] 0 0])))
       )
      (("single_task_declaration:0"
@@ -1563,21 +1583,19 @@
        (wisi-statement-action [1 statement-start 4 motion 7 motion 11 statement-end])
        (wisi-containing-action 1 8)
        (wisi-motion-action [1 4 [8 PRIVATE] 11])
-       (wisi-face-apply-action [2 font-lock-type-face])
-       (wisi-face-apply-action [9 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face 9 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0 0 0])))
       ("single_task_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 4 motion 8 statement-end])
        (wisi-containing-action 1 5)
        (wisi-motion-action [1 4 [5 PRIVATE] 8])
-       (wisi-face-apply-action [2 font-lock-type-face])
-       (wisi-face-apply-action [6 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face 6 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken 0 [0 ada-indent] 0 0 0 0])))
       ("single_task_declaration:2"
        (progn
        (wisi-statement-action [1 statement-start 4 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken 0 0])))
       )
      nil
@@ -1588,7 +1606,7 @@
        (wisi-containing-action 4 5)
        (wisi-containing-action 2 7)
        (wisi-motion-action [1 [2 FUNCTION PROCEDURE] 4 6 10])
-       (wisi-face-apply-action [9 font-lock-function-name-face])
+       (wisi-face-apply-action [9 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 [0 ada-indent] 0 0 [ada-indent ada-indent]
        0 [ada-indent ada-indent] 0 ada-indent-broken 0])))
       )
@@ -1601,31 +1619,31 @@
        (wisi-statement-action [1 statement-start 2 statement-override 4 statement-end]))
       )
      (("subprogram_default:0"
-       (wisi-face-apply-action [1 font-lock-function-name-face]))
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-function-name-face]))
       nil
       nil
       )
      (("subprogram_renaming_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 2 statement-override 6 statement-end])
-       (wisi-face-apply-action [4 font-lock-function-name-face])
+       (wisi-face-apply-action [4 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 0 (ada-indent-renames 2) ada-indent-broken ada-indent-broken 0])))
       )
      nil
      (("subtype_declaration:0"
        (progn
        (wisi-statement-action [1 statement-start 6 statement-end])
-       (wisi-face-apply-action [2 font-lock-type-face])
+       (wisi-face-apply-action [2 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       )
      (("subtype_indication:0"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       ("subtype_indication:1"
-       (wisi-face-apply-action [3 font-lock-type-face]))
+       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-type-face]))
       ("subtype_indication:2"
-       (wisi-face-apply-action [1 font-lock-type-face]))
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))
       ("subtype_indication:3"
-       (wisi-face-apply-action [1 font-lock-type-face]))
+       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face]))
       )
      (("subunit:0"
        (progn
@@ -1638,14 +1656,14 @@
        (wisi-containing-action 1 6)
        (wisi-containing-action 1 8)
        (wisi-motion-action [1 5 7 11])
-       (wisi-face-apply-action [3 font-lock-type-face 10 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face 10 nil font-lock-type-face])
        (wisi-indent-action [0 0 ada-indent-broken 0 0 [ada-indent ada-indent]
        0 [ada-indent ada-indent] 0 0 0])))
       )
      (("task_body_stub:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 0 ada-indent-broken 0 ada-indent-broken ada-indent-broken 0])))
       )
      (("task_definition:0"
@@ -1661,22 +1679,20 @@
        (wisi-statement-action [1 statement-start 3 name 6 motion 9 motion 13 statement-end])
        (wisi-containing-action 1 10)
        (wisi-motion-action [1 6 9 [10 PRIVATE] 13])
-       (wisi-face-apply-action [3 font-lock-type-face])
-       (wisi-face-apply-action [12 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face 12 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0
        ada-indent-broken ada-indent-broken ada-indent-broken 0 0 0 0])))
       ("task_type_declaration:1"
        (progn
        (wisi-statement-action [1 statement-start 3 name 6 motion 10 statement-end])
        (wisi-containing-action 1 7)
-       (wisi-face-apply-action [3 font-lock-type-face])
-       (wisi-face-apply-action [9 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face 9 nil font-lock-type-face])
        (wisi-motion-action [1 6 [7 PRIVATE] 10])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [0 ada-indent] 0 0 0 0])))
       ("task_type_declaration:2"
        (progn
        (wisi-statement-action [1 statement-start 3 name 6 statement-end])
-       (wisi-face-apply-action [3 font-lock-type-face])
+       (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       )
      nil
@@ -1723,38 +1739,38 @@
      (("use_clause:0"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
-       (wisi-face-apply-list-action [2 font-lock-function-name-face])
+       (wisi-face-apply-list-action [2 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-use 0])))
       ("use_clause:1"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
-       (wisi-face-apply-list-action [4 font-lock-type-face])
+       (wisi-face-apply-list-action [4 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-use 0])))
       ("use_clause:2"
        (progn
        (wisi-statement-action [1 statement-start 4 statement-end])
-       (wisi-face-apply-list-action [3 font-lock-type-face])
+       (wisi-face-apply-list-action [3 font-lock-function-name-face font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-use 0])))
       )
      (("with_clause:0"
        (progn
        (wisi-statement-action [1 statement-start 5 statement-end])
-       (wisi-face-apply-list-action [4 font-lock-function-name-face])
+       (wisi-face-apply-list-action [4 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-with 0])))
       ("with_clause:1"
        (progn
        (wisi-statement-action [1 statement-start 4 statement-end])
-       (wisi-face-apply-list-action [3 font-lock-function-name-face])
+       (wisi-face-apply-list-action [3 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-with 0])))
       ("with_clause:2"
        (progn
        (wisi-statement-action [1 statement-start 4 statement-end])
-       (wisi-face-apply-list-action [3 font-lock-function-name-face])
+       (wisi-face-apply-list-action [3 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-with 0])))
       ("with_clause:3"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
-       (wisi-face-apply-list-action [2 font-lock-function-name-face])
+       (wisi-face-apply-list-action [2 font-lock-function-name-face font-lock-function-name-face])
        (wisi-indent-action [0 ada-indent-with 0])))
       )
      )))

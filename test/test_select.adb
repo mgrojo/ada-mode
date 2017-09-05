@@ -2,7 +2,7 @@
 --  We test the select statement in this package, with the different
 --  possible constructions
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 procedure Test_Select is
 
    subtype Entry_Range is Integer range 1 .. 10;

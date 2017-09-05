@@ -74,9 +74,9 @@ is
    end Func_1;
 
    -- Properly highlight keyword next to type identifier when insert/delete separating space
-   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(jit-lock-fontify-now))
+   --EMACSCMD:(progn (end-of-line 6)(backward-word 1)(backward-delete-char 1)(font-lock-ensure))
    --EMACSCMD:(test-face "accessString" 'font-lock-type-face)
-   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(jit-lock-fontify-now))
+   --EMACSCMD:(progn (end-of-line 4)(backward-char 7)(execute-kbd-macro " ")(font-lock-ensure))
    --EMACSCMD:(test-face "access" 'font-lock-keyword-face)
    --EMACSCMD:(test-face "String" 'font-lock-type-face)
    Obj_1 : access String;

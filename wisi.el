@@ -1308,6 +1308,20 @@ vector [number token_id token_id ...]:
 	    ))
 	))))
 
+(defun wisi--face-put-cache (region class)
+  "Put a ’wisi-face’ cache with class CLASS on REGION."
+  (when (> wisi-debug 1)
+    (message "face: put cache %s:%s" region class))
+  (with-silent-modifications
+    (put-text-property
+     (car region)
+     (1+ (car region))
+     'wisi-face
+     (wisi-cache-create
+      :last (- (cdr region) (car region))
+      :class class)
+     )))
+
 (defun wisi-face-mark-action (tokens)
   "Cache face information in text properties of tokens.
 Intended as a grammar action.
@@ -1324,33 +1338,95 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 
 	  (when region
 	    ;; region can be null on an optional token
-	    (with-silent-modifications
-	      (put-text-property
-	       (car region)
-	       (1+ (car region))
-	       'wisi-face
-	       (wisi-cache-create
-		:last (- (cdr region) (car region)))
-	       ))
+	    (wisi--face-put-cache region 'suffix)
  	    )))
       )))
 
 (defun wisi-face-extend-action (first last)
-  "Extend text of cache at token FIRST to cover all tokens thru LAST."
+  "If token FIRST has ’wisi-face’ cache(s) covering all of the token,
+apply another ’wisi-face’ cache on token(s) LAST.
+Set cache-class of FIRST to PREFIX, LAST to SUFFIX."
   (when (eq wisi--parse-action 'face)
-    (let* ((first-region (wisi-tok-region (aref wisi-tokens (1- first))))
+    (let* ((first-tok (aref wisi-tokens (1- first)))
+	   (first-region (wisi-tok-region first-tok))
+	   (first-length (- (cdr (wisi-tok-region first-tok)) (car (wisi-tok-region first-tok))))
 	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
-	   cache)
+	   first-face-1 first-face-2 face-2-beg)
+
+      ;; When extending a selected name, token first may already have
+      ;; a prefix and suffix face; replace that suffix with the
+      ;; prefix, apply the suffix to token last. The separating dot
+      ;; has no face.
+      ;;
+      ;; test/ada_mode-loop_face.adb Package_Name.Child_Package_Name.Type_Name
 
       (when (and first-region last-region) ;; can be nil when error correction is present.
-	(setq cache (get-text-property (car first-region) 'wisi-face))
-	(setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
-	)
+	(setq first-face-1 (get-text-property (car first-region) 'wisi-face))
+
+	(when first-face-1
+	  (cond
+	   ((= first-length (wisi-cache-last first-face-1))
+	    (when (> wisi-debug 1)
+	      (message "face: set class %s:%s" (wisi-cache-region first-face-1 (car first-region)) 'prefix))
+	    (setf (wisi-cache-class first-face-1) 'prefix)
+	    (wisi--face-put-cache last-region 'suffix))
+
+	   ((progn
+	      (setq face-2-beg (+ 1 (car first-region) (wisi-cache-last first-face-1)))
+	      (setq first-face-2 (get-text-property face-2-beg 'wisi-face)))
+	    (when (> wisi-debug 1)
+	      (message "face: remove cache %s" (cons face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg)))))
+	    (with-silent-modifications
+	      (remove-text-properties face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg))
+				      '(wisi-face nil)))
+	    (setf (wisi-cache-last first-face-1) first-length)
+	    (wisi--face-put-cache last-region 'suffix))
+
+	   (t
+	    nil)
+	   )))
       )))
+
+(defun wisi-face-remove-action (tokens)
+  "Remove face caches and faces in TOKENS.
+Intended as a grammar action.
+
+TOKENS is a vector of token numbers."
+  (when (eq wisi--parse-action 'face)
+    (let ((i 0))
+      (while (< i (length tokens))
+	(let* ((number (1- (aref tokens i)))
+	       (region (wisi-tok-region (aref wisi-tokens number)))
+	       face-cache)
+
+	  (setq i (1+ i))
+
+	  (when region
+	    (let ((pos (car region)))
+	      (while (< pos (cdr region))
+		(when (setq face-cache (get-text-property pos 'wisi-face))
+		  (when (> wisi-debug 1)
+		    (message "face: remove face %s" (cons pos (+ pos (wisi-cache-last face-cache)))))
+		  (with-silent-modifications
+		    (remove-text-properties
+		     pos (+ pos (wisi-cache-last face-cache))
+		     (list
+		      'wisi-face nil
+		      'font-lock-face nil
+		      'fontified t))))
+		(setq pos (next-single-property-change
+			   (+ pos (or (and face-cache
+					   (wisi-cache-last face-cache))
+				      0))
+			   'wisi-face nil (cdr region)))
+		)))
+	  )))))
 
 (defun wisi--face-action-1 (face region)
   "Apply FACE to REGION."
   (when region
+    (when (> wisi-debug 1)
+      (message "face: add face %s:%s" region face))
     (with-silent-modifications
       (add-text-properties
        (car region) (cdr region)
@@ -1359,68 +1435,107 @@ TOKEN-NUMBER is a (1 indexed) token number in the production."
 	'fontified t)))
     ))
 
-(defun wisi-face-apply-action (pairs)
+(defun wisi-face-apply-action (triples)
   "Set face information in `wisi-face' text properties of tokens.
 Intended as a grammar non-terminal action.
 
-PAIRS is a vector of the form [token-number face token-number face ...]
+TRIPLES is a vector of the form [TOKEN-NUMBER PREFIX-FACE SUFFIX-FACE ...]
 
-Apply face to the first token in the wisi-tokens[token-number]
-region marked with text property `wisi-face', or to all of the
-region if there is no cache."
+In the first ’wisi-face’ cache in each token region, apply
+PREFIX-FACE to class PREFIX, SUFFIX-FACE to class SUFFIX, or
+SUFFIX-FACE to all of the token region if there is no ’wisi-face’
+cache."
   (when (eq wisi--parse-action 'face)
-    (let (number region face cache (i 0))
-      (while (< i (length pairs))
-	(setq number (aref pairs i))
-	(setq face (aref pairs (setq i (1+ i))))
+    (let (number prefix-face suffix-face (i 0))
+      (while (< i (length triples))
+	(setq number (aref triples i))
+	(setq prefix-face (aref triples (setq i (1+ i))))
+	(setq suffix-face (aref triples (setq i (1+ i))))
 	(cond
 	 ((integerp number)
-	  (setq region (wisi-tok-region (aref wisi-tokens (1- number))))
-	  (when region
-	    ;; region can be null for an optional token
-	    (setq cache (get-text-property (car region) 'wisi-face))
-	    (when cache
-	      ;; cache is null when applying a face to a token
-	      ;; directly, without first calling
-	      ;; wisi-face-mark-action.
-	      (setq region (wisi-cache-region cache (car region))))
-	    (wisi--face-action-1 face region)))
+	  (let* ((token-region (wisi-tok-region (aref wisi-tokens (1- number))))
+		 (pos (car token-region))
+		 (j 0)
+		 (some-cache nil)
+		 cache)
+	    (when token-region
+	      ;; region can be null for an optional or virtual token
+	      (while (< j 2)
+		(setq cache (get-text-property pos 'wisi-face))
+		(cond
+		 ((and (not some-cache)
+		       (null cache))
+		  ;; cache is null when applying a face to a token
+		  ;; directly, without first calling
+		  ;; wisi-face-mark-action. Or when there is a
+		  ;; previously applied face in a lower level token,
+		  ;; such as a numeric literal.
+		  (wisi--face-action-1 suffix-face token-region))
+
+		 ((and cache
+		       (eq 'prefix (wisi-cache-class cache)))
+		  (setq some-cache t)
+		  (wisi--face-action-1 prefix-face (wisi-cache-region cache pos)))
+
+		 ((and cache
+		       (eq 'suffix (wisi-cache-class cache)))
+		  (setq some-cache t)
+		  (wisi--face-action-1 suffix-face (wisi-cache-region cache pos)))
+
+		 (t
+		  ;; don’t apply a face
+		  nil)
+		 )
+
+		(setq j (1+ j))
+		(if suffix-face
+		    (setq pos (next-single-property-change (+ 2 pos) 'wisi-face nil (cdr token-region)))
+		  (setq j 2))
+		))))
 
 	 (t
 	  ;; catch conversion errors from previous grammar syntax
-	  (error "wisi-face-action with non-integer token number"))
+	  (error "wisi-face-apply-action with non-integer token number"))
 	 )
 	(setq i (1+ i))
 	))))
 
-(defun wisi-face-apply-list-action (pairs)
-  "Set face information in `wisi-face' text properties of tokens.
-Intended as a grammar non-terminal action.
-
-PAIRS is a vector of the form [token-number face token-number face ...]
-
-Apply face to all tokens marked with `wisi-face' text property in
-the wisi-tokens[token-number] region."
+(defun wisi-face-apply-list-action (triples)
+  "Similar to ’wisi-face-apply-action’, but applies faces to all
+tokens a `wisi-face' cache in the wisi-tokens[token-number]
+region."
   (when (eq wisi--parse-action 'face)
-    (let (number token-region face-region face cache (i 0) pos)
-      (while (< i (length pairs))
-	(setq number (aref pairs i))
-	(setq face (aref pairs (setq i (1+ i))))
-	(setq token-region (wisi-tok-region (aref wisi-tokens (1- number))))
-	(when token-region
-	  ;; region can be null for an optional token
-	  (setq pos (car token-region))
-	  (save-excursion
+    (let (number token-region face-region prefix-face suffix-face cache (i 0) pos)
+      (while (< i (length triples))
+	(setq number (aref triples i))
+	(setq prefix-face (aref triples (setq i (1+ i))))
+	(setq suffix-face (aref triples (setq i (1+ i))))
+	(cond
+	 ((integerp number)
+	  (setq token-region (wisi-tok-region (aref wisi-tokens (1- number))))
+	  (when token-region
+	    ;; region can be null for an optional token
+	    (setq pos (car token-region))
 	    (while (and pos
 			(< pos (cdr token-region)))
-	      (goto-char pos)
-	      (setq cache (get-text-property (point) 'wisi-face))
-	      (setq face-region (wisi-cache-region cache))
-	      (wisi--face-action-1 face face-region)
-	      (forward-char 1);; move past current 'wisi-face property
-	      (setq pos (next-single-property-change (point) 'wisi-face))
-	      ;; pos is nil at eob
+	      (setq cache (get-text-property pos 'wisi-face))
+	      (setq face-region (wisi-cache-region cache pos))
+	      (cond
+	       ((or (null (wisi-cache-class cache))
+		    (eq 'prefix (wisi-cache-class cache)))
+		(wisi--face-action-1 prefix-face face-region))
+	       ((eq 'suffix (wisi-cache-class cache))
+		(wisi--face-action-1 suffix-face face-region))
+
+	       (t
+		(error "wisi-face-apply-list-action: face cache class is not prefix or suffix")))
+
+	      (setq pos (next-single-property-change (1+ pos) 'wisi-face nil (cdr token-region)))
 	      )))
+	 (t
+	  ;; catch conversion errors from previous grammar syntax
+	  (error "wisi-face-apply-list-action with non-integer token number"))
+	 )
 	(setq i (1+ i))
 	))))
 
@@ -2437,13 +2552,23 @@ If non-nil, only repair errors in BEG END region."
   (move-marker (wisi-cache-max parse-action) (point-max));; force delete caches
   (wisi-invalidate-cache parse-action (point-min))
 
-  (cond
-   ((memq parse-action '(face navigate))
-    (wisi-validate-cache (point-max) t parse-action))
+  (cl-ecase parse-action
+    (face
+     (with-silent-modifications
+       (remove-text-properties
+	(point-min) (point-max)
+	(list
+	 'font-lock-face nil
+	 'fontified nil)))
+     (wisi-validate-cache (point-max) t parse-action)
+     (font-lock-ensure))
 
-   (t
-    (wisi-indent-region (point-min) (point-max)))
-   ))
+    (navigate
+     (wisi-validate-cache (point-max) t parse-action))
+
+    (indent
+     (wisi-indent-region (point-min) (point-max)))
+    ))
 
 (defun wisi-time (func count)
   "call FUNC COUNT times, show total time"
@@ -2509,10 +2634,9 @@ If non-nil, only repair errors in BEG END region."
   (message "%s" (get-text-property (1- (line-beginning-position)) 'wisi-indent)))
 
 (defun wisi-show-cache ()
-  "Show navigation cache at point."
+  "Show navigation and face caches at point."
   (interactive)
-  (message "%s" (or (wisi-get-cache (point))
-		    (get-text-property (point) 'wisi-face))))
+  (message "%s:%s" (wisi-get-cache (point)) (get-text-property (point) 'wisi-face)))
 
 (defun wisi-show-token ()
   "Move forward across one keyword, show token."
@@ -2569,12 +2693,19 @@ If non-nil, only repair errors in BEG END region."
   (add-hook 'after-change-functions #'wisi-after-change nil t)
   (setq wisi--change-end (copy-marker (point-min) t))
 
-  (unless wisi-disable-face
-    (jit-lock-register #'wisi-fontify-region))
-
   ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
+
+  (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
   )
+
+(defun wisi-post-local-vars ()
+  "See wisi-setup."
+  (setq hack-local-variables-hook (delq 'wisi-post-local-vars hack-local-variables-hook))
+
+  (unless wisi-disable-face
+    (jit-lock-register #'wisi-fontify-region)))
+
 
 (provide 'wisi)
 ;;; wisi.el ends here

@@ -2,14 +2,24 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 
 
 * Ada mode 6.0.0
-** use wisi 2.0; indentation computed directly in parser actions.
 
-** support wisitoken generated Ada code parser, with error correction.
+** Use wisi 2.0; indentation computed directly in parser actions. This
+   has a few user visible changes in indention, makeing it more
+   consistent. It also makes it faster, so larger files are handled
+   more smoothly.
 
-** ada-fix-compiler-error now fixes errors reported by the wisi parser.
+** Support wisitoken generated Ada code parser, with error correction.
+   The parser runs in a background process.
 
-** ada-format-paramlist repairs error in buffer text before scanning.
+** ada-fix-compiler-error can now fix errors reported by the
+   background process parser.
 
+** ada-format-paramlist repairs syntax errors in buffer text before scanning.
+
+** Colorization of type and package names is somewhat improved, but
+   requires full name resolution to get fully correct.
+
+** Color
 * Ada mode 5.3.1
 
 ** Ada mode 5.2.2 should have been numbered 5.3.0, since it introduced

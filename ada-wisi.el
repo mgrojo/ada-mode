@@ -955,10 +955,18 @@ TOKEN-TEXT; move point to just past token."
      :lexer lexer)
     )
 
-  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   (setq wisi-indent-hanging-function #'ada-indent-hanging)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+
+  (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
+  )
+
+(defun ada-wisi-post-local-vars ()
+  "See wisi-setup."
+  (setq hack-local-variables-hook (delq 'ada-wisi-post-local-vars hack-local-variables-hook))
+
+  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)

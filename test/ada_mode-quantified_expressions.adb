@@ -1,4 +1,4 @@
---EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 with Ada.Containers.Vectors;
 procedure Ada_Mode.Quantified_Expressions is

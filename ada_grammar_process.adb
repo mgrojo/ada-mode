@@ -15546,8 +15546,8 @@ package body Ada_Grammar_Process is
       Add_Goto (Table.States (725), 329, 188);
       Add_Goto (Table.States (725), 330, 189);
       Add_Goto (Table.States (725), 338, 190);
-      Add_Action (Table.States (726), 38, Reduce, 235, 1,  3, null);
-      Add_Action (Table.States (726), 87, Reduce, 235, 1,  3, null);
+      Add_Action (Table.States (726), 38, Reduce, 235, 1,  3, Elisp_Action'Access);
+      Add_Action (Table.States (726), 87, Reduce, 235, 1,  3, Elisp_Action'Access);
       Add_Error (Table.States (726));
       Add_Action (Table.States (727), 10, Reduce, 267, 3,  1, null);
       Add_Action (Table.States (727), 33, Reduce, 267, 3,  1, null);
@@ -17366,8 +17366,8 @@ package body Ada_Grammar_Process is
       Add_Goto (Table.States (889), 329, 188);
       Add_Goto (Table.States (889), 330, 189);
       Add_Goto (Table.States (889), 338, 190);
-      Add_Action (Table.States (890), 38, Reduce, 235, 0,  4, null);
-      Add_Action (Table.States (890), 87, Reduce, 235, 0,  4, null);
+      Add_Action (Table.States (890), 38, Reduce, 235, 0,  4, Elisp_Action'Access);
+      Add_Action (Table.States (890), 87, Reduce, 235, 0,  4, Elisp_Action'Access);
       Add_Error (Table.States (890));
       Add_Action (Table.States (891), 39, Reduce, 267, 1,  1, null);
       Add_Action (Table.States (891), 56, Reduce, 267, 1,  1, null);

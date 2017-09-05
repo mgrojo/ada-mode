@@ -18,7 +18,7 @@
 -- statements comment syntax.
 --EMACSCMD:(when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
---EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 procedure Gnatprep is
 

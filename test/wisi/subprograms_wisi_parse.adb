@@ -198,15 +198,20 @@ begin
             --  prompt
             declare
                Buffer_Name : constant String := Get_String (Command_Line, Last);
-               Enqueue_Limit : Integer;
+               Cost_Limit  : Integer;
+               Check_Limit : Integer;
             begin
                WisiToken.Trace_Parse               := Get_Integer (Command_Line, Last);
-               Parser.Enable_Panic_Recover         := 1 = Get_Integer (Command_Line, Last);
-               Parser.Enable_McKenzie_Recover      := 1 = Get_Integer (Command_Line, Last);
-               Enqueue_Limit := Get_Integer (Command_Line, Last);
-               if Enqueue_Limit > 0 then
-                  Parser.Table.McKenzie.Enqueue_Limit := Enqueue_Limit;
+               Cost_Limit            := Get_Integer (Command_Line, Last);
+               Check_Limit           := Get_Integer (Command_Line, Last);
+
+               if Cost_Limit > 0 then
+                  Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
                end if;
+               if Check_Limit > 0 then
+                  Parser.Table.McKenzie.Check_Limit := Check_Limit;
+               end if;
+
                Parser.Lexer.Reset;
                Parser.Parse;
             exception

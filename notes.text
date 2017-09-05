@@ -3,9 +3,9 @@ General notes on Emacs Ada mode
 build/Makefile
 
 o.e.a.stephe-1: dead
-o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar
+o.e.a.stephe-2 (from o.e.a): available
 o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2, cherry pick from -1): syntax error handling in external process wisitoken parser
+o.e.a.stephe-4 (from o.e.a): compute indent via indent-action deltas in grammar, syntax error handling in external process wisitoken parser
 o.e.a.stephe-5 (from o.e.a): available
 
 run test from emacs -Q using source:
@@ -43,8 +43,10 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
 
-face bug:
+very slow:
+   for A in Foo loop
    for C in Graph.Vertices (U_Index).Edges.Iterate loop
+   end loop;
 
 emacs hangs occasionally
     killing ada_mode_wisi_parse.exe recovers
