@@ -21,6 +21,7 @@ pragma License (GPL);
 with Ada.Command_Line;      use Ada.Command_Line;
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
@@ -60,6 +61,8 @@ is
    Repeat_Count : Integer := 1;
 
    Arg : Integer := 2;
+
+   Start  : Ada.Real_Time.Time;
 begin
    if Argument_Count < 1 then
       Put_Usage;
@@ -97,9 +100,23 @@ begin
       aflex_debug := True;
    end if;
 
+   if Repeat_Count > 1 then
+      Start := Ada.Real_Time.Clock;
+   end if;
+
    for I in 1 .. Repeat_Count loop
       Parser.Parse;
    end loop;
+
+   if Repeat_Count > 1 then
+      declare
+         use Ada.Real_Time;
+         Finish : constant Time := Clock;
+      begin
+         Put_Line ("Total time:" & Duration'Image (To_Duration (Finish - Start)));
+         Put_Line ("per iteration:" & Duration'Image (To_Duration ((Finish - Start) / Repeat_Count)));
+      end;
+   end if;
 
    WisiToken.Text_Feeder.Text_IO.Instance (Parser.Lexer.Feeder.all).Close;
    if Errors.Length > 0 then

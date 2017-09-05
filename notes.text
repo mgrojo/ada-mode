@@ -6,17 +6,13 @@ org.wisitoken.stephe-1 - development
 
  current work
 improve mckenzie
-    time ./run_ada_lite_parser.exe 0 1 8 ../test/ada_mode-recover_indent_3.adb
-    time run_ada_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb
+    ./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 1000
+    run_ada_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb --repeat_count 10
         correct solution costs 8.
-        ada_lite finds that after enqueue 4734, check  679;  0.072 seconds
+        ada_lite finds that after enqueue 4734, check  679;  0.000_231_979 seconds
         Full Ada finds that after enqueue 14164, check  1084; 0.129 s
 
     ada_lite.profile
-        use separate obj_dir
-            also in sal
-
-        need to put parse in a loop to get better stats
         top total time functions:
             wisitoken.token_arrays.finalize
             wisitoken.token_arrays.adjust
