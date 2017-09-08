@@ -3,7 +3,9 @@
 ^build/.*\.diff$
 ^build/.*\.exe$
 ^build/.*\.out$
+^build/exec_pro$
 ^build/gpr_query\.db$
 ^build/gpr_query\.db-shm$
 ^build/gpr_query\.db-wal$
+^build/obj_pro$
 ^build/objects$

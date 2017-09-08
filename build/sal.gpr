@@ -6,7 +6,16 @@ project SAL is
      ("../source",
       "../src_x86_gnat"); -- sal.endianness
 
-   for Object_Dir use "objects";
+   case Standard_Common.Profile is
+   when "On" =>
+      for Object_Dir use "obj_pro";
+      for Exec_Dir use "exec_pro";
+
+   when "Off" =>
+      for Object_Dir use "objects";
+      for Exec_Dir use ".";
+   end case;
+
    for Exec_Dir use ".";
 
    package Compiler is

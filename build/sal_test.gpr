@@ -6,8 +6,15 @@ project Sal_Test is
    for Source_Dirs use
      ("../test");
 
-   for Object_Dir use "objects";
-   for Exec_Dir use ".";
+   case Standard_Common.Profile is
+   when "On" =>
+      for Object_Dir use "obj_pro";
+      for Exec_Dir use "exec_pro";
+
+   when "Off" =>
+      for Object_Dir use "objects";
+      for Exec_Dir use ".";
+   end case;
 
    package Compiler is
       case Standard_Common.Build is
@@ -30,4 +37,13 @@ project Sal_Test is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    end Binder;
 
+   package Linker is
+      case Standard_Common.Profile is
+      when "On" =>
+         --  -lgmem for gnatmem for checking dynamic memory use
+         for Default_Switches ("Ada") use ("-lgmem", "-pg");
+      when "Off" =>
+         null;
+      end case;
+   end Linker;
 end Sal_Test;

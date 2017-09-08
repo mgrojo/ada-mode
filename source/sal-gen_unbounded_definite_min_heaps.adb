@@ -125,7 +125,7 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps is
 
    procedure Clear (Heap : in out Heap_Type)
    is begin
-      Free (Heap.Data);
+      --  User can call Finalize if they want to free memory.
       Heap.Count := 0;
    end Clear;
 
@@ -149,6 +149,11 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps is
          Heapify (Heap, 1);
       end return;
    end Remove;
+
+   function Min_Key (Heap : in out Heap_Type) return Key_Type
+   is begin
+      return Key (Heap.Data (1));
+   end Min_Key;
 
    procedure Drop (Heap : in out Heap_Type)
    is

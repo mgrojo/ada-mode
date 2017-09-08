@@ -18,6 +18,10 @@ GNAT_PROJECT := sal_test.gpr
 
 include rules.make
 
+one_mem : exec_pro/exercise_min_heap.exe
+	$< $(RUN_ARGS)
+	gnatmem $<
+
 #
 # Local Variables:
 # eval: (unless dvc-doing-ediff-p (load-file "prj.el"))

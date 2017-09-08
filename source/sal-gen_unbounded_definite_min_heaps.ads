@@ -57,7 +57,10 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps is
    --  Return count of elements in Heap.
 
    function Remove (Heap : in out Heap_Type) return Element_Type;
-   --  Remove minimum element in Heap, return it,
+   --  Remove minimum element in Heap, return it.
+
+   function Min_Key (Heap : in out Heap_Type) return Key_Type;
+   --  Return a copy of the minimum key value.
 
    function Get (Heap : in out Heap_Type) return Element_Type renames Remove;
 

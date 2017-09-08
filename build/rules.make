@@ -16,4 +16,7 @@ vpath %.good_out ../test
 test-clean ::
 	rm -f *.config
 
+profile-clean ::
+	rm -rf exec_pro
+	rm -rf obj_pro
 # end of file
