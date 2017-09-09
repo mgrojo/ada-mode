@@ -31,12 +31,12 @@ tests : test_all_harness.diff
 
 # from ../wisi/test
 #
-# to parse .wy, build %_yylex.adb, and run the parser, we'd like to do:
+# to parse .wy, build %_lexer.c, and run the parser, we'd like to do:
 #
-# %_run.exe : %_run.adb %_yylex.adb; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*_run
+# %_run.exe : %_run.adb %_lexer.c; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*_run
 #
 # but that gets overridden by the simpler .exe rule for other things.
-# So we must list %_yylex.adb explicitly in tests.
+# So we must list %_lexer.c explicitly in tests.
 #
 # Testing with an Emacs module calling the elisp wisi lexer and wisi
 # actions is done from the ada-mode development tree, not here.
@@ -44,29 +44,32 @@ tests : test_all_harness.diff
 # some also or only run from ../wisi/test/test_wisi_suite.adb We only
 # diff %-process.el on a couple tests, because it doesn't depend on
 # the grammar much
+#
+# FIXME: keep at least one aflex test, or delete aflex support
+
 #tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
-tests : case_expression_yylex.adb
+tests : case_expression_lexer.c
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
-tests : conflict_name_yylex.adb
+tests : conflict_name_lexer.c
 tests : conflict_name-parse.diff
-tests : empty_production_1_yylex.adb
+tests : empty_production_1_lexer.c
 tests : empty_production_1-parse.diff
-tests : empty_production_2_yylex.adb
+tests : empty_production_2_lexer.c
 tests : empty_production_2-parse.diff
-tests : empty_production_3_yylex.adb
+tests : empty_production_3_lexer.c
 tests : empty_production_3-parse.diff
-tests : empty_production_4_yylex.adb
+tests : empty_production_4_lexer.c
 tests : empty_production_4-parse.diff
-tests : empty_production_5_yylex.adb
+tests : empty_production_5_lexer.c
 tests : empty_production_5-parse.diff
-tests : empty_production_6_yylex.adb
+tests : empty_production_6_lexer.c
 tests : empty_production_6-parse.diff
-tests : empty_production_7_yylex.adb
+tests : empty_production_7_lexer.c
 tests : empty_production_7-parse.diff
-tests : empty_production_8_yylex.adb
+tests : empty_production_8_lexer.c
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_yylex.adb
+tests : identifier_list_name_conflict_lexer.c
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
 
@@ -89,7 +92,7 @@ clean :: test-clean
 	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
-test-clean : wisi-clean aflex-clean
+test-clean : wisi-clean aflex-clean quex-clean
 	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *.wy
 
 source-clean ::
@@ -118,7 +121,6 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
-# This runs wisi-generate with lexer Elisp; -process.l uses lexer Aflex
 %-process.el : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
@@ -129,7 +131,8 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-%.l : %.wy wisi-generate.exe
+# we assume lexer Aflex or Quex is specified in the .wy file
+%.qx %.l : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table
 	dos2unix $*.parse_table
 
@@ -139,7 +142,7 @@ DIFF_OPT := -u -w
 # delete files created by wisi-generate
 # don't delete prj.el
 wisi-clean :
-	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l
+	rm -f *-elisp.el *-process.el *.parse_table *.ads *.adb  *.l *.qx
 
 # -v 2 gives stack trace
 %.parse : %.input %_run.exe
@@ -148,15 +151,22 @@ wisi-clean :
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
 
+# Aflex rules; wisi-generate outputs %.l
 %_yylex.ada : %.l
 	aflex -i -s -E -D../wisi/wisitoken_aflex_dfa.adb.template -O../wisi/wisitoken_aflex_io.adb.template $(AFLEX_ARGS) $<
 
 %_yylex.adb : %_yylex.ada
 	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
 
-# delete files created by aflex
 aflex-clean :
-	rm -f *.a *_dfa.ad? *_io.ad? *_yylex.adb
+	rm -f *.ada *_dfa.ad? *_io.ad? *_yylex.adb
+
+# Quex rules; wisi-generate outputs %.qx
+%_lexer.c : %.qx
+	$(QUEX_PATH)/quex-exe.py --language C -i $< -o $*_lexer
+
+quex-clean :
+	rm -f *.h *.c
 
 source-clean ::
 	-find ../ -name "*~" -delete
@@ -176,7 +186,7 @@ zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
 	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %.qx %-wy.el
 
 vpath %-wy.good_el  ../wisi/test
 vpath %.good_parse  ../wisi/test

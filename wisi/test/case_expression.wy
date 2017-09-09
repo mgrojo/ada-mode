@@ -45,7 +45,7 @@
 
 %parser_algorithm LALR_LR1
 %output_language Ada
-%lexer Aflex
+%lexer Quex
 
 %%
 

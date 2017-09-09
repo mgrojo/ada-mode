@@ -26,6 +26,8 @@ project WisiToken_Test is
       "../wisi/test"
      );
 
+   for Languages use ("Ada", "C");
+
    case Standard_Common.Profile is
    when "On" =>
       for Object_Dir use "obj_pro";
@@ -41,6 +43,11 @@ project WisiToken_Test is
       for Default_Switches ("Ada") use
         WisiToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
+      for Default_Switches ("C") use -- for compiling generated Quex code
+        ("-I" & external ("QUEX_PATH"),
+         "-DQUEX_OPTION_TOKEN_STAMPING_WITH_LINE_AND_COLUMN",
+         "-DQUEX_OPTION_COUNTER_LINE",
+         "-DQUEX_OPTION_COUNTER_COLUMN");
    end Compiler;
 
    package Builder is

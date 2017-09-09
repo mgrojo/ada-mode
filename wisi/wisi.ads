@@ -57,15 +57,16 @@ package Wisi is
    subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
    subtype Ada_Output_Language is Output_Language_Type range Ada .. Ada_Emacs;
 
-   type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer);
-   subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Regexp_Lexer;
+   type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer, Quex_Lexer);
+   subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Quex_Lexer;
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
    Lexer_Names : constant array (Valid_Lexer) of access constant String :=
      (Aflex_Lexer  => new String'("aflex"),
       Elisp_Lexer  => new String'("elisp"),
-      Regexp_Lexer => new String'("regexp"));
+      Regexp_Lexer => new String'("regexp"),
+      Quex_Lexer   => new String'("quex"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
    --  Raises User_Error for invalid Item
@@ -86,7 +87,7 @@ package Wisi is
    end record;
 
    type String_Pair_Type is record
-      Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Name  : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
       Value : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
@@ -157,7 +158,7 @@ package Wisi is
    package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 
    type Rule_Type is record
-      Left_Hand_Side   : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Left_Hand_Side   : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
       Source_Line      : Standard.Ada.Text_IO.Positive_Count;
    end record;

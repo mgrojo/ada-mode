@@ -30,6 +30,7 @@ generic
    with procedure Put_Ada_Prologue_Context_Clause;
    with procedure Put_Ada_Prologue_Declarations;
    with procedure Put_Aflex_Prologue;
+   with procedure Put_Quex_Prologue;
 package Wisi.Gen_Output_Ada_Common is
 
    EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
@@ -42,8 +43,6 @@ package Wisi.Gen_Output_Ada_Common is
    function To_Token_Ada_Name (Item : in String) return String;
    function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
 
-   --  FIXME: to_token_out_image should be token_id'image; we don't
-   --  need to store the images.
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Ada_Name);
 
@@ -103,6 +102,10 @@ package Wisi.Gen_Output_Ada_Common is
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr);
 
    procedure Create_Aflex
+     (Input_File_Name       : in String;
+      Output_File_Name_Root : in String);
+
+   procedure Create_Quex
      (Input_File_Name       : in String;
       Output_File_Name_Root : in String);
 

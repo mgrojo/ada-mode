@@ -1,4 +1,5 @@
 --  For using WisiToken in other projects, and building WisiToken
+with "gnatcoll_iconv";
 with "sal";
 with "standard_common";
 project WisiToken is

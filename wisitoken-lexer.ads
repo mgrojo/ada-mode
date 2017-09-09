@@ -28,12 +28,10 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
-with WisiToken.Text_Feeder;
 package WisiToken.Lexer is
 
-   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged
+   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited
    record
-      Feeder              : WisiToken.Text_Feeder.Text_Feeder_Ptr;
       Enable_Line_Numbers : Boolean;
    end record;
 
@@ -41,12 +39,11 @@ package WisiToken.Lexer is
 
    type Handle is access all Class;
 
-   procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer := 1024) is abstract;
-   --  Reset Lexer, to start finding tokens. Reallocate input
-   --  buffer to Buffer_Size.
+   procedure Reset (Lexer : in out Instance; Input : in String) is abstract;
+   --  Reset Lexer to start a new parse, reading Input.
    --
-   --  This is appropriate when the Feeder text has been
-   --  changed.
+   --  Input is converted to 32 bit Unicode before
+   --  passing to Quex.
 
    function Lexeme (Lexer : in Instance) return String is abstract;
    --  Return the actual text of the last token that was matched.
@@ -73,7 +70,7 @@ package WisiToken.Lexer is
    --  'line', returns buffer offset in underlying buffer.
 
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
-   --  Return the next token.
+   --  Return the next token, getting more text from Feeder as needed.
    --
    --  Raises Syntax_Error with an appropriate message if no token
    --  is found.

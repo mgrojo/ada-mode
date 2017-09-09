@@ -2,6 +2,9 @@ gpr_project_path=../../org.stephe_leake.aunit_ext/build
 gpr_project_path=../../org.stephe_leake.sal/build
 gpr_project_path=../../org.stephe_leake.makerules
 
+-- Quex not in gpr project. FIXME: add it!
+src_dir=$QUEX_PATH/quex/code_base
+
 gpr_file=wisitoken_test.gpr
 
 gnat_stub_opts=-P wisitoken_test.gpr

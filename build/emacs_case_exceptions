@@ -1,3 +1,7 @@
+GNAT
+GNATCOLL
+WisiToken
+YYLex
 *1D
 *2D
 *CR
@@ -23,6 +27,3 @@
 *RHS
 *WY
 *YY
-GNAT
-WisiToken
-YYLex

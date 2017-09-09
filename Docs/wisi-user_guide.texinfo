@@ -64,6 +64,33 @@ then be used by wisi-parse.
 Alternately, wisi-generate can output Ada code, for use with the
 WisiToken parser run-time.
 
+@node Install
+WisiToken is available as source code only.
+
+To use the Ada runtime, you will also need to install a
+lexer. WisiToken supports Aflex and Quex, and other lexers can be
+added.
+
+Aflex is available as source from the same location as WisiToken.
+
+Quex is available from
+@url{https://sourceforge.net/projects/quex/}. It requires 32 bit
+characters as input; we use @code{GNATCOLL.Iconv} to convert from
+other formats. That requires the @code{libiconv} library. On Linux,
+use the package manager to install the appropriate development
+package. On Windows, one way to get @code{libiconv} is to install
+MingW32 (http://www.msys2.org/), use its package manger to install
+@code{libiconv}, then copy the @code{libiconv} files to the GNAT
+installation:
+
+@example
+cp d:/msys64/mingw32/include/iconv.h d:/Apps/GNAT-gpl_2016/include/
+cp d:/msys64/mingw32/lib/libiconv.a  d:/Apps/GNAT-gpl_2016/lib/gcc/i686-pc-mingw32/4.9.4/
+@end example
+
+In some future version, GNAT will probably include @code{libiconv} in
+the Windows install, since some of their tools require it.
+
 @node Common grammar problems
 @chapter Common grammar problems
 

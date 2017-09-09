@@ -19,6 +19,7 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Iterator_Interfaces;
 with WisiToken.Parser.LR.Generator_Utils;
 with WisiToken.Production;
 generic
@@ -66,6 +67,7 @@ package Wisi.Gen_Generate_Utils is
    function Set_Token_Images return Token_Array_String;
 
    Token_Output_Image : constant Token_Array_String := Set_Token_Images;
+   --  FIXME: duplicates Descriptor.image
 
    function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
    function Token_Out_Image (ID : in Token_ID) return String is (Token_Output_Image (ID).all);
@@ -73,18 +75,75 @@ package Wisi.Gen_Generate_Utils is
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 
    function Find_Token_ID (Token : in String) return Token_ID;
+   --  FIXME: use ID (Token_Cursor) instead.
 
-   type Token_Cursor is tagged private;
-   --  Iterate thru Tokens in a canonical order.
+   type Token_Container is tagged record
+      Bogus_Content : Integer; -- need a component to declare an object
+   end record
+   with
+     Constant_Indexing => Constant_Reference,
+     Default_Iterator  => Iterate,
+     Iterator_Element  => Standard.Ada.Strings.Unbounded.Unbounded_String;
+   --  We need a container type to define an iterator; the actual data is
+   --  in generic parameters Keywords, Tokens, and Rules. The
+   --  Iterator_Element is given by Token_Name below.
 
-   function First return Token_Cursor;
-   procedure Next (Cursor : in out Token_Cursor);
-   function Is_Done (Cursor : in out Token_Cursor) return Boolean;
-   function Token_Name (Cursor : in out Token_Cursor) return Standard.Ada.Strings.Unbounded.Unbounded_String;
+   type Token_Constant_Reference_Type
+     (Element : not null access constant Standard.Ada.Strings.Unbounded.Unbounded_String)
+     is null record
+   with Implicit_Dereference => Element;
+
+   type Token_Cursor is private;
+   --  Iterate thru Keywords, Tokens, Rules in a canonical order:
+   --
+   --  1. Non-reporting tokens from Tokens
+   --  2. Keywords
+   --  3. Other kinds from Tokens
+   --  4. EOI
+   --  5. Accept
+   --  6. Nonterminals
+   --
+   --  Within each group, tokens occur in the order they were declared in
+   --  the grammar file.
+
+   function Constant_Reference
+     (Container : aliased in Token_Container'Class;
+      Cursor    :         in Token_Cursor)
+     return Token_Constant_Reference_Type;
+
+   function Is_Done (Cursor : in Token_Cursor) return Boolean;
+   function Has_Element (Cursor : in Token_Cursor) return Boolean is (not Is_Done (Cursor));
+   package Iterator_Interfaces is new Standard.Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
+   function Iterate
+     (Container     : aliased    Token_Container;
+      Non_Reporting :         in Boolean := True;
+      Other_Tokens  :         in Boolean := True)
+     return Iterator_Interfaces.Forward_Iterator'Class;
+
+   function First (Non_Reporting : in Boolean) return Token_Cursor;
+   procedure Next (Cursor : in out Token_Cursor; Other_Tokens : in Boolean);
+
+   function ID (Cursor : in Token_Cursor) return Token_ID;
+
+   function Name (Cursor : in Token_Cursor) return String;
    --  Return the token name from the .wy file:
-   --  token: Tokens.name
-   --  keyword: Keywords.name
-   --  nonterminal: Rules.Left_Hand_Side
+   --  Keywords: Keywords (i).name
+   --  Tokens  : Tokens (i).Tokens (j).name
+   --  Rules   : Rules (i).Left_Hand_Side
+
+   function Kind (Cursor : in Token_Cursor) return String;
+   --  Return the token kind from the .wy file:
+   --  Keywords: "keyword"
+   --  Tokens  : Tokens (i).Kind
+   --  Rules   : "nonterminal"
+
+   function Value (Cursor : in Token_Cursor) return String;
+   --  Return the token value from the .wy file:
+   --  Keywords: Keywords (i).value
+   --  Tokens  : Tokens (i).Tokens (j).Value
+   --  Rules   : "" - they have no Value
+
+   All_Tokens : constant Token_Container := (Bogus_Content => 1);
 
    procedure Put_Tokens;
    --  Put user readable token list to Standard_Output
@@ -111,8 +170,9 @@ private
    type Token_Cursor_State is
      (Non_Reporting, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
-   type Token_Cursor is tagged record
-      State       : Token_Cursor_State;
+   type Token_Cursor is record
+      State       : Token_Cursor_State; --  FIXME: rename to Kind. use separate list for Non_Reporting
+      ID          : Token_ID;
       Token_Kind  : Wisi.Token_Lists.Cursor;
       Token_Item  : String_Pair_Lists.Cursor;
       Keyword     : String_Pair_Lists.Cursor;

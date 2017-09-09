@@ -76,9 +76,20 @@ is
       end loop;
    end Put_Aflex_Prologue;
 
+   procedure Put_Quex_Prologue
+   is begin
+      for Line of Prologue_Context_Clause loop
+         if Line'Last >= 2 and then Line (1 .. 2) = "--" then
+            Put_Line ("//" & Line (2 .. Line'Last));
+         else
+            return;
+         end if;
+      end loop;
+   end Put_Quex_Prologue;
+
    package Common is new Wisi.Gen_Output_Ada_Common
      (Keywords, Tokens, Conflicts, Rules, Params, Put_Ada_Prologue_Context_Clause,
-      Put_Ada_Prologue_Declarations, Put_Aflex_Prologue);
+      Put_Ada_Prologue_Declarations, Put_Aflex_Prologue, Put_Quex_Prologue);
    use Common;
 
    procedure Create_Ada_Body
@@ -144,6 +155,10 @@ is
          Put_Line ("with " & Lower_Package_Name_Root & "_dfa;");
          Put_Line ("with " & Lower_Package_Name_Root & "_io;");
 
+      when Quex_Lexer =>
+         Put_Line ("with WisiToken.Lexer.Quex;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_quex_c;");
+
       when Elisp_Lexer | Regexp_Lexer =>
          --  could support regexp_lexer
          raise Programmer_Error;
@@ -169,6 +184,17 @@ is
          Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
          Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init);");
          Indent := Indent - 3;
+         New_Line;
+
+      when Quex_Lexer =>
+         Indent_Line ("pragma Linker_Options");
+         Indent_Line ("  (""" & Lower_Package_Name_Root & "_quex.o " &
+                        Lower_Package_Name_Root & "_lexer.o -liconv"");");
+
+         Indent_Line ("package Lexer is new WisiToken.Lexer.Quex");
+         Indent_Line ("  (" & Lower_Package_Name_Root & "_quex_c.New_Lexer_From_Buffer,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Free_Lexer,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Next_Token);");
          New_Line;
 
       when Elisp_Lexer | Regexp_Lexer =>
@@ -298,7 +324,7 @@ begin
    Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => False);
 
    case Data.Lexer is
-   when Aflex_Lexer | Regexp_Lexer =>
+   when Aflex_Lexer | Regexp_Lexer | Quex_Lexer =>
       null;
 
    when Elisp_Lexer  =>
@@ -324,6 +350,9 @@ begin
    case Data.Lexer is
    when Aflex_Lexer =>
       Create_Aflex (Input_File_Name, Output_File_Name_Root);
+
+   when Quex_Lexer =>
+      Create_Quex (Input_File_Name, Output_File_Name_Root);
 
    when Elisp_Lexer | Regexp_Lexer =>
       --  could support regexp_lexer
