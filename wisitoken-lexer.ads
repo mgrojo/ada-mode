@@ -52,8 +52,10 @@ package WisiToken.Lexer is
    --  Returns the position of the start and end of the last token
    --  that was matched, in the internal buffer.
    --
-   --  Most useful when the internal buffer holds the entire input
-   --  text, as it will for editor parsers.
+   --  Most useful when the internal buffer holds the entire input text
+   --  (as it will for editor parsers), and when there is a simple
+   --  position mapping between the character encoding used in the editor
+   --  and lexer.
 
    function Line (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
    --  Returns the current text line number in which the most recent

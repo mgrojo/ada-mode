@@ -106,7 +106,7 @@ begin
             return;
          end if;
 
-         Gen_Parser_Run_GNATCOLL_Mmap.File_Name := +Argument (1);
+         Gen_Parser_Run_GNATCOLL_Mmap.File_Name := +Argument (3);
 
       when others =>
          Set_Exit_Status (Failure);

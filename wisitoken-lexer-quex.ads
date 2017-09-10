@@ -33,11 +33,12 @@ generic
    --  These subprograms are provided by generated source code.
 
    with function New_Lexer_From_Buffer
-     (Buffer        : in System.Address;
-      Length_32_Bit : in Interfaces.C.size_t)
+     (Buffer       : in System.Address;
+      Length_8_Bit : in Interfaces.C.size_t)
      return Quex_Aux.Lexer_Type;
    --  Create the Quex lexer object, passing it the full text to process.
-   --  Length_32_Bit is count of 32 bit Unicode characters.
+   --  Length_8_Bit is buffer length in 8 bit bytes (as required by Quex
+   --  'from_memory').
 
    with procedure Free_Lexer (Lexer : in Quex_Aux.Lexer_Type);
    --  Destruct the Quex lexer object
@@ -45,8 +46,6 @@ generic
    with procedure Next_Token
      (Lexer : in     Quex_Aux.Lexer_Type;
       Token :    out Quex_Aux.Token_Type);
-   --  FIXME: liblang passes Token as 'out Quex_Aux.Token_Access', which
-   --  should be C 'struct token**'.
 
 package WisiToken.Lexer.Quex is
 

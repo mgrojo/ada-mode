@@ -27,9 +27,12 @@ package WisiToken.Lexer.Quex_Aux is
    type Token_Type is record
       --  Must match token type defined in .qx file output by wisi-generate;
       --  see Quex output *-token.h.
+      --
+      --  We don't return the character position in the Quex buffer, because
+      --  there is no simple mapping back to the user encoding character
+      --  position. Line, Column, Length do map.
       ID     : Interfaces.Unsigned_16;
-      Offset : Interfaces.Unsigned_32;
-      Length : Interfaces.C.size_t;
+      Length : Interfaces.C.size_t; -- in characters
       Line   : Interfaces.Unsigned_32;
       Column : Interfaces.Unsigned_16;
    end record

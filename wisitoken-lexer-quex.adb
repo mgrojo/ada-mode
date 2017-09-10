@@ -184,6 +184,7 @@ package body WisiToken.Lexer.Quex is
          return Result (1 .. Result_Index);
       end case;
    end Encode;
+   pragma Unreferenced (Encode); -- only used for Lexeme; see FIXME: there
 
    ----------
    --  Visible subprograms
@@ -213,7 +214,7 @@ package body WisiToken.Lexer.Quex is
       Decode_Buffer (Input, Lexer.Managed.Decoded_Buffer, First_8_Bit, Last_8_Bit);
       Lexer.Managed.Lexer := New_Lexer_From_Buffer
         (Lexer.Managed.Decoded_Buffer.all'Address,
-         Length_32_Bit => 4 * Interfaces.C.size_t (Last_8_Bit - First_8_Bit + 1));
+         Length_8_Bit => Interfaces.C.size_t (Last_8_Bit - First_8_Bit + 1));
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
@@ -240,11 +241,12 @@ package body WisiToken.Lexer.Quex is
    end Column;
 
    overriding function Lexeme (Lexer : in Instance) return String
-   is begin
-      return Encode
-        (Lexer.Managed.Iconv_State,
-         Lexer.Managed.Decoded_Buffer
-           (Integer (Lexer.Token.Offset) .. Integer (Lexer.Token.Offset) + Integer (Lexer.Token.Length) - 1));
+   is
+      pragma Unreferenced (Lexer);
+   begin
+      --  FIXME: add C function to use token char pointer, length to fetch
+      --  lexeme. Or figure out a portable way to return Offset.
+      return "";
    end Lexeme;
 
    overriding function Bounds (Lexer : in Instance) return Buffer_Region
@@ -255,8 +257,9 @@ package body WisiToken.Lexer.Quex is
       --  the two.
       --
       --  Except in the case where the input buffer is 8 bit text, so we
-      --  simply assume that here.
-      return (Integer (Lexer.Token.Offset), Integer (Lexer.Token.Offset) + Integer (Lexer.Token.Length) - 1);
+      --  simply assume that here. We only need this value in unit tests,
+      --  when Column is good enough.
+      return (Integer (Lexer.Token.Column), Integer (Lexer.Token.Column) + Integer (Lexer.Token.Length) - 1);
    end Bounds;
 
    overriding procedure Finalize (Object : in out Managed_Lexer)

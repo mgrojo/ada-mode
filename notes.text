@@ -80,12 +80,32 @@ use Quex lexer (recommended by AdaCore/langkit)
             C compiler args
 
     add Quex to wisi lexer options, use instead of Aflex
+        links! getting runtime assert fail
+Program: C:\Projects\org.wisitoken.stephe-1\build\case_expression_run.exe
+File: d:/Apps/quex/quex-0.67.5/quex/code_base/token/TokenQueue.i, Line 139
+
+Expression: quex_case_expression_lexer_TokenQueue_begin(me) != 0x0
+            trace in debugger
+
+
+
         *.qx take_text uses Quex internal data names to compute offset; changed with version
+            deleted for now
+
+            we know address of start of buffer! lexer.buffer!
+                do pointer arithmetic in ada, via address_to_access_conversion or something
+
+            needed for Lexeme
+                or provide C function to return string; also problematic
             check latest AdaCore source for fix
-                if not there, send them email
+                not there; not definitive, they could have a version check
+                install new quex version
+                send them email
             post on Quex mailing list
-            on the other hand, offset is not useful in general, since can't map back to encoded offset
-            line, column, length do map back; delete bounds.
+
+
+
+        verify quex version in rules.make
 
         review quex token_id mapping
 

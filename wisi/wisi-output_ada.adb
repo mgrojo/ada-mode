@@ -187,10 +187,6 @@ is
          New_Line;
 
       when Quex_Lexer =>
-         Indent_Line ("pragma Linker_Options");
-         Indent_Line ("  (""" & Lower_Package_Name_Root & "_quex.o " &
-                        Lower_Package_Name_Root & "_lexer.o -liconv"");");
-
          Indent_Line ("package Lexer is new WisiToken.Lexer.Quex");
          Indent_Line ("  (" & Lower_Package_Name_Root & "_quex_c.New_Lexer_From_Buffer,");
          Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Free_Lexer,");

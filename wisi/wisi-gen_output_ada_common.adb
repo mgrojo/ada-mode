@@ -378,7 +378,6 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("distinct");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("offset : uint32_t;");
       Indent_Line ("length : size_t;");
       Indent := Indent - 3;
       Indent_Line ("}");
@@ -389,17 +388,13 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("if (Begin != LexemeNull)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      --  FIXME: This uses the Quex internal data structure; need a portable way
-      Indent_Line ("self.offset = (uint32_t)(Begin - me->buffer._memory._front);");
       Indent_Line ("self.length = (size_t)(End - Begin);");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Line ("else");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("self.text = LexemeNull;");
-      Indent_Line ("self.len = 0;");
-      Indent_Line ("self.offset = 0;");
+      Indent_Line ("self.length = 0;");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Line ("return false;");
@@ -502,6 +497,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("#include ""case_expression_lexer-token.h""");
       New_Line;
 
+      --  This code is valid for Quex 0.67.5; changed since 0.64, probably
+      --  will change again.
       Indent_Line ("typedef struct Lexer");
       Indent_Line ("{");
       Indent := Indent + 3;
@@ -512,31 +509,25 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("} Lexer;");
       New_Line;
 
-      Indent_Line ("static void");
-      Indent_Line ("init_lexer(Lexer *lexer)");
-      Indent_Line ("{");
-      Indent := Indent + 3;
-      Indent_Line ("QUEX_NAME(token_p_set)(&lexer->quex_lexer, &lexer->buffer);");
-      Indent_Line ("memset (&lexer->buffer, 0, sizeof (lexer->buffer));");
-      Indent := Indent - 3;
-      Indent_Line ("}");
-      New_Line;
-
       Indent_Line ("Lexer*");
-      Indent_Line ("gpr_lexer_from_buffer(uint32_t *buffer, size_t length)");
+      Indent_Line (Output_File_Name_Root & "_lexer_from_buffer(uint8_t *buffer, size_t length)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("Lexer* lexer = malloc(sizeof (Lexer));");
-      Indent_Line ("QUEX_NAME(construct_memory)");
-      Indent_Line ("(&lexer->quex_lexer, buffer + 1, 0, buffer + length + 2, NULL, false);");
-      Indent_Line ("init_lexer(lexer);");
+      Indent_Line ("QUEX_NAME(from_memory)");
+      Indent_Line ("(&lexer->quex_lexer, // me");
+      Indent_Line ("buffer,             // Memory");
+      Indent_Line ("length,             // MemorySize");
+      Indent_Line ("buffer + length     // EndOfFileP");
+      Indent_Line (");");
+
       Indent_Line ("return lexer;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
 
       Indent_Line ("void");
-      Indent_Line ("gpr_free_lexer(Lexer* lexer)");
+      Indent_Line (Output_File_Name_Root & "_free_lexer(Lexer* lexer)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("QUEX_NAME(destruct)(&lexer->quex_lexer);");
@@ -546,7 +537,7 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       Indent_Line ("void");
-      Indent_Line ("gpr_next_token(Lexer* lexer, quex_Token* tok)");
+      Indent_Line (Output_File_Name_Root & "_next_token(Lexer* lexer, quex_Token* tok)");
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("QUEX_NAME(receive)(&lexer->quex_lexer, &tok);");
@@ -578,8 +569,8 @@ package body Wisi.Gen_Output_Ada_Common is
          Put_Line ("package " & Ada_Name & " is");
          Indent := Indent + 3;
          Indent_Line ("function New_Lexer_From_Buffer");
-         Indent_Line ("  (Buffer : in System.Address;");
-         Indent_Line ("   Length : in Interfaces.C.size_t)");
+         Indent_Line ("  (Buffer       : in System.Address;");
+         Indent_Line ("   Length_8_Bit : in Interfaces.C.size_t)");
          Indent_Line ("  return WisiToken.Lexer.Quex_Aux.Lexer_Type");
          Indent_Line ("   with Import        => True,");
          Indent_Line ("        Convention    => C,");
