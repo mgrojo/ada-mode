@@ -32,12 +32,12 @@ with Ada.Strings.Unbounded;
 with GNAT.Byte_Order_Mark;
 package body WisiToken.Lexer.Quex is
 
-   Quex_Leading_Characters  : constant := 2;
-   Quex_Trailing_Characters : constant := 1;
-   Quex_Extra_Characters    : constant :=
-     Quex_Leading_Characters + Quex_Trailing_Characters;
+   Quex_Leading_Bytes  : constant := 1;
+   Quex_Trailing_Bytes : constant := 1;
+   Quex_Extra_Bytes    : constant :=
+     Quex_Leading_Bytes + Quex_Trailing_Bytes;
    --  Quex requires its input buffer to have two leading reserved
-   --  32 bit characters and one trailing.
+   --  8 bit bytes and one trailing.
 
    procedure Decode_Buffer
      (Buffer         : in     String;
@@ -54,19 +54,13 @@ package body WisiToken.Lexer.Quex is
       Status : Iconv_Result;
       BOM    : BOM_Kind := Unknown;
 
-      Input_Index  : Positive;
-      Output_Index : Positive;
-
-      First_Output_Index : constant Positive :=
-         1 + Quex_Leading_Characters * 4;
-      --  Index of the first byte in Result at which Iconv must decode Buffer
-
+      Input_Index : Positive;
    begin
-      --  In the worst case, we have one character per input byte, so the
-      --  following is supposed to be big enough.
+      --  In the worst case, the input text has 8 bit characters that each
+      --  expand to two utf8 bytes.
 
-      Decoded_Buffer := new Byte_Sequence (1 .. 4 * (Buffer'Length + Quex_Extra_Characters));
-      First_8_Bit   := Decoded_Buffer'First + 4 * Quex_Leading_Characters;
+      Decoded_Buffer := new Byte_Sequence (1 .. 2 * Buffer'Length + Quex_Extra_Bytes);
+      First_8_Bit    := Decoded_Buffer'First + Quex_Leading_Bytes;
 
       --  GNATCOLL.Iconv raises a Constraint_Error for empty strings: handle
       --  them here.
@@ -93,10 +87,7 @@ package body WisiToken.Lexer.Quex is
       declare
          use System;
 
-         To_Code : constant String :=
-           (if Default_Bit_Order = Low_Order_First
-            then UTF32LE
-            else UTF32BE);
+         To_Code : constant String := UTF8;
 
          BOM_Kind_To_Charset : constant array (UTF8_All .. UTF32_BE) of Ada.Strings.Unbounded.String_Access :=
            (UTF8_All => UTF8'Unrestricted_Access,
@@ -119,12 +110,11 @@ package body WisiToken.Lexer.Quex is
 
       --  Perform the conversion itself
 
-      Output_Index := First_Output_Index;
+      Last_8_Bit := First_8_Bit;
       Iconv (State,
              Buffer, Input_Index,
-             Decoded_Buffer (Output_Index .. Decoded_Buffer'Last), Output_Index,
+             Decoded_Buffer (Last_8_Bit .. Decoded_Buffer'Last - Quex_Trailing_Bytes), Last_8_Bit,
              Status);
-      Last_8_Bit := (Output_Index - 1 - Decoded_Buffer'First) + Decoded_Buffer'First;
 
       case Status is
       when Invalid_Multibyte_Sequence | Incomplete_Multibyte_Sequence =>
@@ -147,44 +137,12 @@ package body WisiToken.Lexer.Quex is
       declare
          Nul : constant Character := Character'Val (0);
       begin
-         Decoded_Buffer (1 .. 8) := (others => Nul);
-         Decoded_Buffer (Decoded_Buffer'Last - 3 .. Decoded_Buffer'Last) := (others => Nul);
+         Decoded_Buffer (1 .. Quex_Leading_Bytes) := (others => Nul);
+         Decoded_Buffer (Last_8_Bit + 1) := Nul;
       end;
 
       Iconv_Close (State);
    end Decode_Buffer;
-
-   function Encode
-     (State        : in GNATCOLL.Iconv.Iconv_T;
-      Input_32_Bit : in GNATCOLL.Iconv.Byte_Sequence)
-     return String
-   is
-      --  Return UTF-8 encoding
-
-      use GNATCOLL.Iconv;
-      use System;
-
-      Status       : Iconv_Result;
-      Input_Index  : Integer := Input_32_Bit'First;
-      Result       : String (1 .. Input_32_Bit'Length);
-      Result_Index : Integer := Result'First;
-   begin
-      if Input_32_Bit'Length = 0 then
-         return "";
-      end if;
-
-      Reset (State);
-      Iconv (State, Input_32_Bit, Input_Index, Result, Result_Index, Status);
-
-      case Status is
-      when Invalid_Multibyte_Sequence | Incomplete_Multibyte_Sequence | Full_Buffer =>
-         raise Programmer_Error;
-
-      when Success =>
-         return Result (1 .. Result_Index);
-      end case;
-   end Encode;
-   pragma Unreferenced (Encode); -- only used for Lexeme; see FIXME: there
 
    ----------
    --  Visible subprograms
@@ -194,34 +152,55 @@ package body WisiToken.Lexer.Quex is
       use System;
       New_Lexer : constant access Instance := new Instance (Trace);
    begin
-      New_Lexer.Managed.Iconv_State := GNATCOLL.Iconv.Iconv_Open
-        (To_Code   => GNATCOLL.Iconv.UTF8,
-         From_Code =>
-           (if Default_Bit_Order = Low_Order_First
-            then GNATCOLL.Iconv.UTF32LE
-            else GNATCOLL.Iconv.UTF32BE));
-
       return Handle (New_Lexer);
    end New_Lexer;
 
    overriding procedure Reset (Lexer : in out Instance; Input : in String)
    is
+      use all type Quex_Aux.Error_Codes;
       use all type Interfaces.C.size_t;
       First_8_Bit : Positive;
       Last_8_Bit  : Natural;
+      Status      : Quex_Aux.Error_Codes;
    begin
       Free (Lexer.Managed.Decoded_Buffer);
       Decode_Buffer (Input, Lexer.Managed.Decoded_Buffer, First_8_Bit, Last_8_Bit);
+
+      --  We are telling Quex the buffer is smaller than it actually is, but
+      --  that should not matter.
       Lexer.Managed.Lexer := New_Lexer_From_Buffer
         (Lexer.Managed.Decoded_Buffer.all'Address,
-         Length_8_Bit => Interfaces.C.size_t (Last_8_Bit - First_8_Bit + 1));
+         Length_8_Bit => Interfaces.C.size_t (Last_8_Bit - First_8_Bit + 1 + Quex_Extra_Bytes));
+
+      Status := Quex_Aux.Error_Codes'Val (Error_Code (Lexer.Managed.Lexer));
+      if Status /= Quex_Aux.E_Error_None then
+         raise Programmer_Error with "Quex from_memory returned error code " &
+           Quex_Aux.Error_Codes'Image (Status);
+      end if;
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
-   is begin
+   is
+      use all type Interfaces.Unsigned_16;
+      use all type Quex_Aux.Token_Access;
+   begin
       Next_Token (Lexer.Managed.Lexer, Lexer.Token);
-      return Token_ID (Lexer.Token.ID);
+      if Lexer.Token = null then
+         --  Quex screwed up, or programmer screwed up parameter passing.
+         raise Programmer_Error with "lexer find_next returned null token pointer";
+
+      elsif Lexer.Token.ID = 0 then
+         --  Quex reporting an error
+         raise Syntax_Error with "Quex reported error code " &
+           Quex_Aux.Error_Codes'Image (Quex_Aux.Error_Codes'Val (Error_Code (Lexer.Managed.Lexer)));
+
+      else
+         return Token_ID (Lexer.Token.ID);
+      end if;
    exception
+   when Syntax_Error  =>
+      raise;
+
    when E : others =>
       raise Syntax_Error with
          Error_Message
@@ -245,26 +224,29 @@ package body WisiToken.Lexer.Quex is
       pragma Unreferenced (Lexer);
    begin
       --  FIXME: add C function to use token char pointer, length to fetch
-      --  lexeme. Or figure out a portable way to return Offset.
+      --  lexeme. Or figure out a portable way to return Offset. Or return
+      --  char pointer, do pointer math here; we know the buffer address.
       return "";
    end Lexeme;
 
    overriding function Bounds (Lexer : in Instance) return Buffer_Region
-   is begin
+   is
+      pragma Unreferenced (Lexer);
+   begin
       --  The result is supposed to be the location in the original input
       --  buffer; Lexer.Token.Offset is the location in the decoded buffer
-      --  (of 32 bit characters), and there is no simple relation between
+      --  (of utf8 characters), and there is no simple relation between
       --  the two.
       --
-      --  Except in the case where the input buffer is 8 bit text, so we
-      --  simply assume that here. We only need this value in unit tests,
-      --  when Column is good enough.
-      return (Integer (Lexer.Token.Column), Integer (Lexer.Token.Column) + Integer (Lexer.Token.Length) - 1);
+      --  Except in the case where the input buffer is also utf8, which is
+      --  most of the time, so we simply assume that here.
+      --
+      --  FIXME: Offset is not available yet, and Token.Length is not set properly
+      return (0, 0);
    end Bounds;
 
    overriding procedure Finalize (Object : in out Managed_Lexer)
    is begin
-      GNATCOLL.Iconv.Iconv_Close (Object.Iconv_State);
       Free_Lexer (Object.Lexer);
       Free (Object.Decoded_Buffer);
    end Finalize;

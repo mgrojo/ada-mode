@@ -45,7 +45,13 @@ generic
 
    with procedure Next_Token
      (Lexer : in     Quex_Aux.Lexer_Type;
-      Token :    out Quex_Aux.Token_Type);
+      Token :    out Quex_Aux.Token_Access);
+   --  Yes, Quex returns a pointer to a token.
+   --
+   --  If the pointer is null, some programmer screwed up.
+   --  If the token id is 0, there's an error; check Error_Code.
+
+   with function Error_Code (Lexer : in Quex_Aux.Lexer_Type) return Interfaces.Unsigned_16;
 
 package WisiToken.Lexer.Quex is
 
@@ -82,15 +88,14 @@ private
       Lexer          : Quex_Aux.Lexer_Type;
       Decoded_Buffer : Byte_Sequence_Access;
       Decoded_Last   : Integer;
-      Iconv_State    : GNATCOLL.Iconv.Iconv_T; -- For Encoding text in Lexeme
    end record;
 
    overriding procedure Finalize (Object : in out Managed_Lexer);
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      Managed     : Managed_Lexer;
-      Token       : aliased Quex_Aux.Token_Type; -- Last token read by find_next
+      Managed : Managed_Lexer;
+      Token   : aliased Quex_Aux.Token_Access; -- Last token read by find_next
    end record;
 
 end WisiToken.Lexer.Quex;

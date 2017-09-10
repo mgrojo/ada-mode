@@ -163,7 +163,7 @@ aflex-clean :
 
 # Quex rules; wisi-generate outputs %.qx
 %_lexer.c : %.qx
-	$(QUEX_PATH)/quex-exe.py --language C -i $< -o $*_lexer
+	$(QUEX_PATH)/quex-exe.py --language C --encoding utf8 -i $< -o $*_lexer
 
 quex-clean :
 	rm -f *.h *.c

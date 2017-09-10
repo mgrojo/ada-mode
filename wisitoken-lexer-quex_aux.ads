@@ -38,4 +38,37 @@ package WisiToken.Lexer.Quex_Aux is
    end record
       with Convention => C;
 
+   type Token_Access is access all Token_Type;
+
+   --  Copied from quex-0.67.5/quex/code_base/definitions QUEX_TYPE_DEFINITIONS_E_ERROR
+   type Error_Codes is
+     (E_Error_Allocation_BufferMemory_Failed,
+      E_Error_Allocation_ByteLoader_Failed,
+      E_Error_Allocation_LexatomLoader_Failed,
+      E_Error_Buffer_CannotAbsorbMoreContent,
+      E_Error_Constructor_Accumulator_Failed,
+      E_Error_Constructor_Counter_Failed,
+      E_Error_Constructor_PostCategorizer_Failed,
+      E_Error_IncludePopOnEmptyStack,
+      E_Error_IncludePush_OnError,
+      E_Error_InputName_Set_Failed,
+      E_Error_NoHandler_OnBadLexatom,
+      E_Error_NoHandler_OnEndOfStream,
+      E_Error_NoHandler_OnFailure,
+      E_Error_NoHandler_OnIndentationBad,
+      E_Error_NoHandler_OnLoadFailure,
+      E_Error_NoHandler_OnOverflow,
+      E_Error_NoHandler_OnSkipRangeOpen,
+      E_Error_None,
+      E_Error_ProvidedExternal_Memory_Corrupt,
+      E_Error_Reset_OnError,
+      E_Error_TokenRepetitionNSetButNotSupportedByGeneratedCode,
+      E_Error_TokenQueueNoMoreTokensAvailable,
+      E_Error_Uninitialized,
+      E_Error_UnitTest_Termination,
+      E_Error_UserConstructor_Failed,
+      E_Error_UserMementoPack_Failed,
+      E_Error_Userreset_Failed)
+   with Convention => C;
+
 end WisiToken.Lexer.Quex_Aux;

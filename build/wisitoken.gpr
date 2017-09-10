@@ -51,7 +51,7 @@ project WisiToken is
    package Linker is
       case Standard_Common.Profile is
       when "On" =>
-         for Default_Switches ("Ada") use ("-pg");
+         for Linker_Options use ("-pg", "-Lgmem");
 
       when "Off" =>
          null;

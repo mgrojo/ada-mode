@@ -516,9 +516,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Lexer* lexer = malloc(sizeof (Lexer));");
       Indent_Line ("QUEX_NAME(from_memory)");
       Indent_Line ("(&lexer->quex_lexer, // me");
-      Indent_Line ("buffer,             // Memory");
-      Indent_Line ("length,             // MemorySize");
-      Indent_Line ("buffer + length     // EndOfFileP");
+      Indent_Line (" buffer,             // Memory");
+      Indent_Line (" length,             // MemorySize");
+      Indent_Line (" buffer + length - 1 // EndOfFileP");
       Indent_Line (");");
 
       Indent_Line ("return lexer;");
@@ -537,10 +537,19 @@ package body Wisi.Gen_Output_Ada_Common is
       New_Line;
 
       Indent_Line ("void");
-      Indent_Line (Output_File_Name_Root & "_next_token(Lexer* lexer, quex_Token* tok)");
+      Indent_Line (Output_File_Name_Root & "_next_token(Lexer* lexer, quex_Token** tok)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("QUEX_NAME(receive)(&lexer->quex_lexer, &tok);");
+      Indent_Line ("QUEX_NAME(receive)(&lexer->quex_lexer, tok);");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      New_Line;
+
+      Indent_Line ("uint16_t");
+      Indent_Line (Output_File_Name_Root & "_error_code(Lexer* lexer)");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("return lexer->quex_lexer.error_code;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
@@ -568,6 +577,8 @@ package body Wisi.Gen_Output_Ada_Common is
          Put_Line ("with System;");
          Put_Line ("package " & Ada_Name & " is");
          Indent := Indent + 3;
+         New_Line;
+
          Indent_Line ("function New_Lexer_From_Buffer");
          Indent_Line ("  (Buffer       : in System.Address;");
          Indent_Line ("   Length_8_Bit : in Interfaces.C.size_t)");
@@ -583,13 +594,23 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("        External_Name => """ & Output_File_Name_Root & "_free_lexer"";");
          Indent_Line ("--  Destruct the Quex lexer object");
          New_Line;
+
          Indent_Line ("procedure Next_Token");
          Indent_Line ("  (Lexer : in     WisiToken.Lexer.Quex_Aux.Lexer_Type;");
-         Indent_Line ("   Token :    out WisiToken.Lexer.Quex_Aux.Token_Type)");
+         Indent_Line ("   Token :    out WisiToken.Lexer.Quex_Aux.Token_Access)");
          Indent_Line ("   with Import        => True,");
          Indent_Line ("        Convention    => C,");
          Indent_Line ("        External_Name => """ & Output_File_Name_Root & "_next_token"";");
          New_Line;
+
+         Indent_Line ("function Error_Code");
+         Indent_Line ("  (Lexer : in WisiToken.Lexer.Quex_Aux.Lexer_Type)");
+         Indent_Line ("   return Interfaces.Unsigned_16");
+         Indent_Line ("   with Import        => True,");
+         Indent_Line ("        Convention    => C,");
+         Indent_Line ("        External_Name => """ & Output_File_Name_Root & "_error_code"";");
+         New_Line;
+
          Indent := Indent - 3;
          Put_Line ("end " & Ada_Name & ";");
          Set_Output (Standard_Output);

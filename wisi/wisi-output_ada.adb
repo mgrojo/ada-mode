@@ -190,7 +190,8 @@ is
          Indent_Line ("package Lexer is new WisiToken.Lexer.Quex");
          Indent_Line ("  (" & Lower_Package_Name_Root & "_quex_c.New_Lexer_From_Buffer,");
          Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Free_Lexer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Next_Token);");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Next_Token,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Error_Code);");
          New_Line;
 
       when Elisp_Lexer | Regexp_Lexer =>

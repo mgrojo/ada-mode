@@ -43,11 +43,30 @@ project WisiToken_Test is
       for Default_Switches ("Ada") use
         WisiToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
-      for Default_Switches ("C") use -- for compiling generated Quex code
+      -- For compiling generated Quex code, we have to relax from
+      -- Standard_Common.Compiler.*_Switches_C
+      Quex_Common_Switches :=
         ("-I" & external ("QUEX_PATH"),
          "-DQUEX_OPTION_TOKEN_STAMPING_WITH_LINE_AND_COLUMN",
          "-DQUEX_OPTION_COUNTER_LINE",
-         "-DQUEX_OPTION_COUNTER_COLUMN");
+         "-DQUEX_OPTION_COUNTER_COLUMN",
+         "-DQUEX_SETTING_BUFFER_MIN_FALLBACK_N=0", -- avoid a buffer size check; we don't do pushback.
+         "-Wall", "-Werror", "-g", "-funwind-tables");
+
+      Quex_Debug_Switches :=
+        ("-O0"
+        -- , "-DQUEX_OPTION_DEBUG_SHOW" -- show quex debug messages, on stderr
+        );
+      Quex_Release_Switches := ("-O2", "-DQUEX_OPTION_ASSERTS_DISABLED");
+
+      case Standard_Common.Build is
+      when "Debug" =>
+         for Default_Switches ("C") use Quex_Debug_Switches & Quex_Common_Switches;
+
+      when "Normal" =>
+         for Default_Switches ("C") use Quex_Release_Switches & Quex_Common_Switches;
+      end case;
+
    end Compiler;
 
    package Builder is
@@ -66,7 +85,7 @@ project WisiToken_Test is
    package Linker is
       case Standard_Common.Profile is
       when "On" =>
-         for Default_Switches ("Ada") use ("-pg");
+         for Linker_Options use ("-pg", "-lgmem");
 
       when "Off" =>
          null;
