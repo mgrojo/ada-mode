@@ -648,10 +648,13 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("unsigned char* buffer;      // input text, in utf-8 encoding");
       Indent_Line ("unsigned char* buffer_last; // last byte in buffer");
-      Indent_Line ("unsigned char* cursor;      // current character");
-      Indent_Line ("unsigned char* token_start; // cursor at start of current token");
-      Indent_Line ("unsigned char* marker;      // used by lexer");
-      Indent_Line ("unsigned char* context;     // used by lexer");
+      Indent_Line ("unsigned char* cursor;      // current byte");
+      Indent_Line ("size_t         char_pos;    // character position of current character");
+      Indent_Line ("size_t         token_start; // character position at start of current token");
+      Indent_Line ("unsigned char* marker;      // saved cursor");
+      Indent_Line ("size_t         marker_pos;  // saved character position");
+      Indent_Line ("unsigned char* context;     // saved cursor");
+      Indent_Line ("size_t         context_pos; // saved character position");
       Indent_Line ("int            verbosity;");
       New_Line;
       Indent := Indent - 3;
@@ -681,6 +684,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("result->buffer      = input;");
       Indent_Line ("result->buffer_last = input + length - 1;");
       Indent_Line ("result->cursor      = input;");
+      Indent_Line ("result->char_pos    = 0;");
       Indent_Line ("result->verbosity   = verbosity;");
       Indent_Line ("return result;");
       Indent_Line ("}");
@@ -700,7 +704,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line (Output_File_Name_Root & "_reset_lexer(wisi_lexer* lexer)");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("lexer->cursor = lexer->buffer;");
+      Indent_Line ("lexer->cursor   = lexer->buffer;");
+      Indent_Line ("lexer->char_pos = 0;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
@@ -725,13 +730,22 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      Indent_Start ("#define YYSKIP() if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor");
+      Indent_Line ("static void skip(wisi_lexer* lexer)");
+      Indent_Line ("{");
+      Indent := Indent + 3;
+      Indent_Line ("if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;");
+      Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
+      --  Don't count UTF-8 continuation bytes
+      Indent_Line ("   if ((*lexer->cursor & 0xC0) != 0xC0) ++lexer->char_pos;");
+      Indent := Indent - 3;
+      Indent_Line ("}");
+      Indent_Start ("#define YYSKIP() skip(lexer)");
       New_Line;
 
-      Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor");
-      Indent_Line ("#define YYRESTORE() lexer->cursor = lexer->marker");
-      Indent_Line ("#define YYBACKUPCTX() lexer->context = lexer->cursor");
-      Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context");
+      Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos");
+      Indent_Line ("#define YYRESTORE() lexer->cursor = lexer->marker; lexer->char_pos = lexer->marker_pos");
+      Indent_Line ("#define YYBACKUPCTX() lexer->context = lexer->cursor; lexer->context_pos = lexer->char_pos");
+      Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context; lexer->char_pos = lexer->context_pos");
       New_Line;
 
       ----------
@@ -755,7 +769,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("}");
       New_Line;
 
-      Indent_Line ("lexer->token_start = lexer->cursor;");
+      Indent_Line ("lexer->token_start = lexer->char_pos;");
       New_Line;
 
       Indent_Line ("while (*id == 0 && status == 0)");
@@ -787,7 +801,7 @@ package body Wisi.Gen_Output_Ada_Common is
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
 
          if Kind (I) = """whitespace""" or  Kind (I) = """line_comment""" then
-            Indent_Line (Name (I) & " { lexer->token_start = lexer->cursor; continue; }");
+            Indent_Line (Name (I) & " { lexer->token_start = lexer->char_pos; continue; }");
 
          elsif 0 /= Index (Source => Value (I), Pattern => "/") then
             Indent_Line (Value (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
@@ -808,10 +822,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("}");
       Indent := Indent - 3;
 
-      --  FIXME: this is wrong for utf-8, unless all characters are 8 bit.
-      --  Need to count characters. Better than nothing for now.
-      Indent_Line ("*position = lexer->token_start - lexer->buffer;");
-      Indent_Line ("*length = lexer->cursor - lexer->token_start + 1;");
+      Indent_Line ("*position = lexer->token_start;");
+      Indent_Line ("*length = lexer->char_pos - lexer->token_start;");
       Indent_Line ("return status;");
       Indent_Line ("}");
       Indent := Indent - 3;

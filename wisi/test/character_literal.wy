@@ -18,9 +18,9 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 %%
-Character_Literal_Count     : Integer := 0;
-Bad_Character_Literal_Count : Integer := 0;
-String_Literal_Count        : Integer := 0;
+Character_Literal_Count : Integer := 0;
+String_Literal_Count    : Integer := 0;
+Bounds                  : WisiToken.Buffer_Region;
 %}
 
 ;; wisi-generate requires some keywords
@@ -64,7 +64,7 @@ String_Literal_Count        : Integer := 0;
 %%
 
 compilation_unit
-  : FOO statement_list
+  : statement_list
   ;
 
 statement_list
@@ -85,12 +85,16 @@ statement
    (Character_Literal_Count :=
      Character_Literal_Count + 1;)
 
- ;; A different use of TICK; attribute reference
+ ;; A different use of TICK; attribute reference. Action tests character counting.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
+    (Bounds := WisiToken.Token_Region.Token (Source.Element (3)).Region;)
 
  ;; Here the input is Ada strings, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
-   (String_Literal_Count := String_Literal_Count + 1;)
+    (String_Literal_Count := String_Literal_Count + 1;)
+
+ ;; a use of FOO
+  | FOO SEMICOLON
   ;
 
 tick

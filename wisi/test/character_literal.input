@@ -1,4 +1,4 @@
-foo
+foo;
 
 -- These should all yield the same token sequence
 
@@ -6,14 +6,15 @@ Character'('a');
 Character'( 'b' );
 Character '('c');
 Character ' ( 'd' );
+Character ' ( 'π' );
 
 -- a character literal '
 Character'('''');
 
 -- attribute reference
-object'attribute;
+objectπ'attribute;
 
-"a string";
+"a string with Greek letters αΣΘΠπ";
 
 -- This is one string with two embedded quotes, not three strings with no whitespace
 " an ""other"" string";

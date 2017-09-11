@@ -20,10 +20,9 @@ use re2c lexer generator
 
     in ~/develop.el: define RE2C_HOME
 
-    test with test_character_literal from t_one
-        passes!
+    add above to .texi
 
-    add non-ascii to that test
+    modify all wisi tests
 
 leaking memory
     see org.wisitoken notes

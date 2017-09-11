@@ -23,8 +23,11 @@ with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Character_Literal;
+with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
 package body Test_Character_Literal is
+
+   Parser : WisiToken.Parser.LR.Parser.Instance := Character_Literal.Create_Parser (WisiToken.LALR);
 
    ----------
    --  Test procedures
@@ -36,16 +39,14 @@ package body Test_Character_Literal is
       use AUnit.Checks;
       use Character_Literal;
 
-      File_Name : constant String                     := "../wisi/test/character_literal.input";
-      Parser    : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
+      File_Name : constant String := "../wisi/test/character_literal.input";
    begin
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
 
-      Check ("character_literal_count", Character_Literal_Count, 5);
-      Check ("bad_character_literal_count", Bad_Character_Literal_Count, 0);
+      Check ("character_literal_count", Character_Literal_Count, 6);
       Check ("string_literal_count", String_Literal_Count, 2);
    exception
    when AUnit.Assertions.Assertion_Error =>
@@ -58,6 +59,34 @@ package body Test_Character_Literal is
    when E : others =>
       AUnit.Assertions.Assert (False, "parser raised exception: " & Exception_Name (E) & ": " & Exception_Message (E));
    end Nominal;
+
+   procedure Character_Position (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Tst : Test_Case renames Test_Case (T);
+      use WisiToken.AUnit;
+
+      procedure Test (Label : in String; Input : in String; Expected_Bounds : in WisiToken.Buffer_Region)
+      is begin
+         Parser.Lexer.Reset_With_String (Input);
+         Parser.Parse;
+
+         Check (Label, Character_Literal.Bounds, Expected_Bounds);
+      end Test;
+
+   begin
+      WisiToken.Trace_Parse := Tst.Debug;
+
+      Test ("1", "object'attribute;", (8, 16));
+            --    |1       |10       |20
+
+      Test ("2", "objectΠ'attributeΕ;", (9, 18));
+            --    |1        |10       |20
+
+   exception
+   when E : WisiToken.Syntax_Error =>
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
+      AUnit.Assertions.Assert (False, "syntax error");
+   end Character_Position;
 
    ----------
    --  Public subprograms
@@ -74,6 +103,7 @@ package body Test_Character_Literal is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Character_Position'Access, "Character_Position");
    end Register_Tests;
 
 end Test_Character_Literal;

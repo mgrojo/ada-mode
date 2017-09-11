@@ -578,9 +578,8 @@ package body WisiToken.Parser.LR.Parser is
                   end;
 
                else
-                  --  Terminate with error. Semantic_State has all the
-                  --  required info (recorded by Error, above), so we
-                  --  just raise the exception.
+                  --  Terminate with error. Semantic_State has all the required info
+                  --  (recorded by Error in Do_Action), so we just raise the exception.
                   raise Syntax_Error;
                end if;
             end;
