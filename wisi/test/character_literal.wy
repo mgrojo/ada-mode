@@ -1,5 +1,6 @@
 ;; Test regular expressions vs Ada tick, character literal, string,
-;; demonstrating a problem with regular expression lexers.
+;; demonstrating a problem with regular expression lexers, fixed by
+;; re2c lookahead.
 
 %{
 --  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
@@ -25,25 +26,34 @@ String_Literal_Count        : Integer := 0;
 ;; wisi-generate requires some keywords
 %keyword FOO "foo"
 
-%token <line_comment> COMMENT "\-\-[^\n]*\n"
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 %token <punctuation> SEMICOLON ";"
+
+;; re2c lookahead regular expression; ' not followed by .'; this is
+;; not a character literal.
+;;
+;; FIXME: re2c does not allow / in named definitions (sigh). Add
+;; special handling in wisi-generate %token <punctuation> TICK "'"/."'"
 %token <punctuation> TICK "'"
+
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
-%token <punctuation> CHARACTER_LITERAL "'[^']'|''''"
 
-%token <whitespace> WHITESPACE "[ \t\n]"
+%token <punctuation> CHARACTER_LITERAL "'"[^']"'"|"''''"
 
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <whitespace> WHITESPACE [ \t\n]
 
-%token <string-double> STRING_LITERAL "(\"[^\"]*\")+"
+;; full Unicode range, starting with non-control, non-digit
+%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
+
+%token <string-double> STRING_LITERAL (["][^"]*["])+
 
 %start compilation_unit
 %first_state_index 1
 %first_parser_label 1
 %parser_algorithm LR1
 %output_language Ada
-%lexer Quex
+%lexer re2c
 
 %%
 

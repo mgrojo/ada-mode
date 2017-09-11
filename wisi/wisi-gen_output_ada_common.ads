@@ -30,7 +30,7 @@ generic
    with procedure Put_Ada_Prologue_Context_Clause;
    with procedure Put_Ada_Prologue_Declarations;
    with procedure Put_Aflex_Prologue;
-   with procedure Put_Quex_Prologue;
+   with procedure Put_C_Prologue;
 package Wisi.Gen_Output_Ada_Common is
 
    EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
@@ -106,6 +106,10 @@ package Wisi.Gen_Output_Ada_Common is
       Output_File_Name_Root : in String);
 
    procedure Create_Quex
+     (Input_File_Name       : in String;
+      Output_File_Name_Root : in String);
+
+   procedure Create_re2c
      (Input_File_Name       : in String;
       Output_File_Name_Root : in String);
 

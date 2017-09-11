@@ -76,7 +76,7 @@ is
       end loop;
    end Put_Aflex_Prologue;
 
-   procedure Put_Quex_Prologue
+   procedure Put_C_Prologue
    is begin
       for Line of Prologue_Context_Clause loop
          if Line'Last >= 2 and then Line (1 .. 2) = "--" then
@@ -85,11 +85,11 @@ is
             return;
          end if;
       end loop;
-   end Put_Quex_Prologue;
+   end Put_C_Prologue;
 
    package Common is new Wisi.Gen_Output_Ada_Common
      (Keywords, Tokens, Conflicts, Rules, Params, Put_Ada_Prologue_Context_Clause,
-      Put_Ada_Prologue_Declarations, Put_Aflex_Prologue, Put_Quex_Prologue);
+      Put_Ada_Prologue_Declarations, Put_Aflex_Prologue, Put_C_Prologue);
    use Common;
 
    procedure Create_Ada_Body
@@ -159,6 +159,10 @@ is
          Put_Line ("with WisiToken.Lexer.Quex;");
          Put_Line ("with " & Lower_Package_Name_Root & "_quex_c;");
 
+      when re2c_Lexer =>
+         Put_Line ("with WisiToken.Lexer.re2c;");
+         Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
+
       when Elisp_Lexer | Regexp_Lexer =>
          --  could support regexp_lexer
          raise Programmer_Error;
@@ -192,6 +196,14 @@ is
          Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Free_Lexer,");
          Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Next_Token,");
          Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Error_Code);");
+         New_Line;
+
+      when re2c_Lexer =>
+         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+         Indent_Line ("  (" & Lower_Package_Name_Root & "_re2c_c.New_Lexer,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Free_Lexer,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Reset_Lexer,");
+         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Next_Token);");
          New_Line;
 
       when Elisp_Lexer | Regexp_Lexer =>
@@ -321,12 +333,12 @@ begin
    Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => False);
 
    case Data.Lexer is
-   when Aflex_Lexer | Regexp_Lexer | Quex_Lexer =>
+   when Aflex_Lexer  | Quex_Lexer | re2c_Lexer =>
       null;
 
-   when Elisp_Lexer  =>
+   when Elisp_Lexer | Regexp_Lexer =>
       raise User_Error with Wisi.Utils.Error_String
-        (Input_File_Name, 1, "Ada output language does not support Elisp lexer");
+        (Input_File_Name, 1, "Ada output language does not support " & Lexer_Names (Data.Lexer).all & " lexer");
    end case;
 
    case Params.Interface_Kind is
@@ -350,6 +362,9 @@ begin
 
    when Quex_Lexer =>
       Create_Quex (Input_File_Name, Output_File_Name_Root);
+
+   when re2c_Lexer =>
+      Create_re2c (Input_File_Name, Output_File_Name_Root);
 
    when Elisp_Lexer | Regexp_Lexer =>
       --  could support regexp_lexer

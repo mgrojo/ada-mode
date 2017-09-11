@@ -41,9 +41,10 @@ tests : test_all_harness.diff
 # Testing with an Emacs module calling the elisp wisi lexer and wisi
 # actions is done from the ada-mode development tree, not here.
 #
-# some also or only run from ../wisi/test/test_wisi_suite.adb We only
-# diff %-process.el on a couple tests, because it doesn't depend on
-# the grammar much
+# some also or only run from ../wisi/test/test_wisi_suite.adb.
+#
+# We only diff %-process.el on a couple tests, because it doesn't
+# depend on the grammar much
 #
 # FIXME: keep at least one aflex test, or delete aflex support
 
@@ -92,7 +93,7 @@ clean :: test-clean
 	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
-test-clean : wisi-clean aflex-clean quex-clean
+test-clean : wisi-clean aflex-clean quex-clean re2c-clean
 	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *.wy
 
 source-clean ::
@@ -131,8 +132,8 @@ DIFF_OPT := -u -w
 
 %.run : %.exe ;	./$(*F).exe $(RUN_ARGS)
 
-# we assume lexer Aflex or Quex is specified in the .wy file
-%.qx %.l : %.wy wisi-generate.exe
+# We assume lexer is specified in the .wy file. wisi-generate also generates other files.
+%.re2c %.qx %.l : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 $< > $*.parse_table
 	dos2unix $*.parse_table
 
@@ -168,6 +169,14 @@ aflex-clean :
 quex-clean :
 	rm -f *.h *.c
 
+# Re2c rules; wisi-generate outputs %.qx
+%_re2c.c : %.re2c
+	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+
+re2c-clean :
+	rm -f *.c *.re2c
+
+# clean rules
 source-clean ::
 	-find ../ -name "*~" -delete
 	-find ../ -name ".#*" -delete
@@ -186,7 +195,7 @@ zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
 	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %.qx %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %.qx %.re2c %-wy.el
 
 vpath %-wy.good_el  ../wisi/test
 vpath %.good_parse  ../wisi/test

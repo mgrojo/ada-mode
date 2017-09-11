@@ -24,8 +24,6 @@ with Ada.Exceptions;
 with Ada.Text_IO;
 with Character_Literal;
 with WisiToken.Parser.LR.Parser;
-with WisiToken.Text_Feeder.Text_IO;
-with character_literal_dfa;
 package body Test_Character_Literal is
 
    ----------
@@ -38,21 +36,16 @@ package body Test_Character_Literal is
       use AUnit.Checks;
       use Character_Literal;
 
-      File_Name : constant String := "../wisi/test/character_literal.input";
-      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser
-        (WisiToken.LALR,
-         Text_Feeder => WisiToken.Text_Feeder.Text_IO.Create (File_Name));
+      File_Name : constant String                     := "../wisi/test/character_literal.input";
+      Parser    : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
    begin
-      character_literal_dfa.aflex_debug := Test.Debug > 0; -- keep for future debugging
-      WisiToken.Trace_Parse             := Test.Debug;
+      WisiToken.Trace_Parse := Test.Debug;
 
+      Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
 
-      --  Pure greedy regular expression lexers cannot handle this mix
-      --  of Ada tick and character literal, so we accept the non-zero
-      --  bad_character_literal_count.
-      Check ("character_literal_count", Character_Literal_Count, 2);
-      Check ("bad_character_literal_count", Bad_Character_Literal_Count, 2);
+      Check ("character_literal_count", Character_Literal_Count, 4);
+      Check ("bad_character_literal_count", Bad_Character_Literal_Count, 0);
       Check ("string_literal_count", String_Literal_Count, 2);
    exception
    when AUnit.Assertions.Assertion_Error =>
@@ -73,18 +66,14 @@ package body Test_Character_Literal is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/test_character_literal.adb");
+      return new String'("test_character_literal.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)
    is
       use AUnit.Test_Cases.Registration;
    begin
-      if T.Debug > 0 then
-         Register_Routine (T, Nominal'Access, "debug");
-      else
-         Register_Routine (T, Nominal'Access, "Nominal");
-      end if;
+      Register_Routine (T, Nominal'Access, "Nominal");
    end Register_Tests;
 
 end Test_Character_Literal;

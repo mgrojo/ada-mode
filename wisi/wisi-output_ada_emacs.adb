@@ -79,11 +79,11 @@ is
       Put_Prologue ("--", Prologue_Context_Clause);
    end Put_Ada_Prologue_Context_Clause;
 
-   procedure Put_Quex_Prologue
+   procedure Put_C_Prologue
    is begin
       --  FIXME: we never use Quex or Aflex with Ada_Emacs; just raise Programmer_Error!
       Put_Prologue ("//", Prologue_Context_Clause);
-   end Put_Quex_Prologue;
+   end Put_C_Prologue;
 
    procedure Put_Ada_Prologue_Declarations
    is begin
@@ -95,7 +95,7 @@ is
       Put_Ada_Prologue_Context_Clause,
       Put_Ada_Prologue_Declarations,
       Put_Aflex_Prologue => Put_Ada_Prologue_Context_Clause,
-      Put_Quex_Prologue => Put_Quex_Prologue);
+      Put_C_Prologue     => Put_C_Prologue);
    use Common;
 
    Elisp_Action_Names : Nonterminal_Array_Action_Names;

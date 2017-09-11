@@ -39,11 +39,14 @@ package WisiToken.Lexer is
 
    type Handle is access all Class;
 
-   procedure Reset (Lexer : in out Instance; Input : in String) is abstract;
-   --  Reset Lexer to start a new parse, reading Input.
-   --
-   --  Input is converted to 32 bit Unicode before
-   --  passing to Quex.
+   procedure Reset_With_String (Lexer : in out Instance; Input : in String) is abstract;
+   --  Reset Lexer to start a new parse, reading from Input.
+
+   procedure Reset_With_File (Lexer : in out Instance; File_Name : in String) is abstract;
+   --  Reset Lexer to start a new parse, reading from File_Name.
+
+   procedure Reset (Lexer : in out Instance) is abstract;
+   --  Reset Lexer, read from previous source.
 
    function Lexeme (Lexer : in Instance) return String is abstract;
    --  Return the actual text of the last token that was matched.

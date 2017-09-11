@@ -10,7 +10,20 @@ put back mckenzie-enable in wisi-process-parse
 
 use re2c lexer generator
     download from https://sourceforge.net/projects/re2c/?source=typ_redirect
-    saved to d:/Archives/misc
+    saved to d:/Archive/Misc
+    unpacked to d:/Apps/re2c-1.0.1
+
+    in msys64 shell:
+        ./configure --prefix=/d/Apps/re2c-1.0.1
+        make
+        make install
+
+    in ~/develop.el: define RE2C_HOME
+
+    test with test_character_literal from t_one
+        mostly working, but getting unrecognized character
+
+    add non-ascii to that test
 
 leaking memory
     see org.wisitoken notes

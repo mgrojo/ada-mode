@@ -3,6 +3,9 @@
 --  Test Ada style character and string literals. Also tests Ada
 --  actions in .wy files.
 --
+--  Run here, rather than directly from rules.make, because we need to
+--  test the result of the actions, which count which rules match.
+--
 --  Copyright (C) 2017 Stephen Leake. All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or

@@ -57,16 +57,17 @@ package Wisi is
    subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
    subtype Ada_Output_Language is Output_Language_Type range Ada .. Ada_Emacs;
 
-   type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Regexp_Lexer, Quex_Lexer);
-   subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Quex_Lexer;
+   type Lexer_Type is (None, Aflex_Lexer, Elisp_Lexer, Quex_Lexer, Regexp_Lexer, re2c_Lexer);
+   subtype Valid_Lexer is Lexer_Type range Aflex_Lexer .. Lexer_Type'Last;
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
    Lexer_Names : constant array (Valid_Lexer) of access constant String :=
      (Aflex_Lexer  => new String'("aflex"),
       Elisp_Lexer  => new String'("elisp"),
+      Quex_Lexer   => new String'("quex"),
       Regexp_Lexer => new String'("regexp"),
-      Quex_Lexer   => new String'("quex"));
+      re2c_Lexer   => new String'("re2c"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
    --  Raises User_Error for invalid Item
