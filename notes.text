@@ -21,7 +21,7 @@ use re2c lexer generator
     in ~/develop.el: define RE2C_HOME
 
     test with test_character_literal from t_one
-        mostly working, but getting unrecognized character
+        passes!
 
     add non-ascii to that test
 

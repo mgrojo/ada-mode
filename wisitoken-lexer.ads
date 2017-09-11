@@ -53,7 +53,7 @@ package WisiToken.Lexer is
 
    function Bounds (Lexer : in Instance) return Buffer_Region is abstract;
    --  Returns the position of the start and end of the last token
-   --  that was matched, in the internal buffer.
+   --  that was matched, in the internal buffer, 1-indexed.
    --
    --  Most useful when the internal buffer holds the entire input text
    --  (as it will for editor parsers), and when there is a simple

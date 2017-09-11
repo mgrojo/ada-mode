@@ -44,7 +44,7 @@ package body Test_Character_Literal is
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
 
-      Check ("character_literal_count", Character_Literal_Count, 4);
+      Check ("character_literal_count", Character_Literal_Count, 5);
       Check ("bad_character_literal_count", Bad_Character_Literal_Count, 0);
       Check ("string_literal_count", String_Literal_Count, 2);
    exception

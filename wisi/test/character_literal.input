@@ -2,10 +2,16 @@ foo
 
 -- These should all yield the same token sequence
 
-Character'('C');
-Character'( 'C' );
-Character '('C');
-Character ' ( 'C' );
+Character'('a');
+Character'( 'b' );
+Character '('c');
+Character ' ( 'd' );
+
+-- a character literal '
+Character'('''');
+
+-- attribute reference
+object'attribute;
 
 "a string";
 

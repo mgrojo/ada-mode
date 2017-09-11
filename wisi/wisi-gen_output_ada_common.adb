@@ -623,6 +623,7 @@ package body Wisi.Gen_Output_Ada_Common is
      (Input_File_Name       : in String;
       Output_File_Name_Root : in String)
    is
+      use Standard.Ada.Strings.Fixed;
       use Generate_Utils;
       use Wisi.Utils;
       File : File_Type;
@@ -650,6 +651,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("unsigned char* cursor;      // current character");
       Indent_Line ("unsigned char* token_start; // cursor at start of current token");
       Indent_Line ("unsigned char* marker;      // used by lexer");
+      Indent_Line ("unsigned char* context;     // used by lexer");
       Indent_Line ("int            verbosity;");
       New_Line;
       Indent := Indent - 3;
@@ -660,8 +662,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       --  Status values:
       Indent_Line ("#define NO_ERROR 0");
-      Indent_Line ("#define ERROR_end_of_buffer 1");
-      Indent_Line ("#define ERROR_unrecognized_character 2");
+      Indent_Line ("#define ERROR_unrecognized_character 1");
 
       ----------
       --  new_lexer, free_lexer, reset_lexer
@@ -669,7 +670,8 @@ package body Wisi.Gen_Output_Ada_Common is
       --  It's normal to increment lexer->cursor one past the end of input,
       --  but not to read that character. To support memory mapped files, we
       --  enforce this strictly; YYPEEK returns EOT (end of text) when
-      --  reading past end of buffer.
+      --  reading past end of buffer; that's how we recognize the end of
+      --  text token.
 
       Indent_Line ("wisi_lexer* " & Output_File_Name_Root & "_new_lexer");
       Indent_Line ("   (unsigned char* input, size_t length, int verbosity)");
@@ -714,18 +716,22 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Line ("#define YYDEBUG(state, ch) debug(lexer, state, ch)");
-      Indent_Line ("#define YYCURSOR lexer->cursor"); -- used in calls of YYDEBUG
+
+      --  YYCURSOR is only used in calls of YYDEBUG; we can't define it as
+      --  YYPEEK because it is used as '*YYCURSOR'.
+      Indent_Line ("#define YYCURSOR lexer->cursor");
       New_Line;
 
       Indent_Line ("#define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4");
       New_Line;
 
-      Indent_Start ("#define YYSKIP() if (lexer->cursor > lexer->buffer_last)");
-      Put_Line (" status=ERROR_end_of_buffer; else ++lexer->cursor");
+      Indent_Start ("#define YYSKIP() if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor");
       New_Line;
 
       Indent_Line ("#define YYBACKUP() lexer->marker = lexer->cursor");
       Indent_Line ("#define YYRESTORE() lexer->cursor = lexer->marker");
+      Indent_Line ("#define YYBACKUPCTX() lexer->context = lexer->cursor");
+      Indent_Line ("#define YYRESTORECTX() lexer->cursor = lexer->context");
       New_Line;
 
       ----------
@@ -766,6 +772,10 @@ package body Wisi.Gen_Output_Ada_Common is
          if Kind (I) = """number""" and Value (I) = "ada-wisi-number-p" then
             Indent_Line (Name (I) & " = ([0-9]+#)?[0-9][0-9a-fA-F._]*(#)?;");
 
+         elsif 0 /= Index (Source => Value (I), Pattern => "/") then
+            --  trailing context syntax; forbidden in definitions
+            null;
+
          else
             --  Other kinds have values that are regular expressions, in re2c syntax
             Indent_Line (Name (I) & " = " & Value (I) & ";");
@@ -773,12 +783,14 @@ package body Wisi.Gen_Output_Ada_Common is
       end loop;
       New_Line;
 
-      --  actions
+      --  rules
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
-         if Kind (I) = """line_comment""" or
-           Kind (I) = """whitespace"""
-         then
-            Indent_Line (Name (I) & " { continue;}");
+
+         if Kind (I) = """whitespace""" or  Kind (I) = """line_comment""" then
+            Indent_Line (Name (I) & " { lexer->token_start = lexer->cursor; continue; }");
+
+         elsif 0 /= Index (Source => Value (I), Pattern => "/") then
+            Indent_Line (Value (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
 
          else
             Indent_Line (Name (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");

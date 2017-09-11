@@ -29,24 +29,30 @@ String_Literal_Count        : Integer := 0;
 %token <line_comment> COMMENT "--"[^\n]*[\n]
 %token <punctuation> SEMICOLON ";"
 
-;; re2c lookahead regular expression; ' not followed by .'; this is
-;; not a character literal.
+;; re2c lookahead regular expression; this is not a character literal.
+;; re2c does not allow combining | with /, so we need three tokens for
+;; this (sigh).
 ;;
-;; FIXME: re2c does not allow / in named definitions (sigh). Add
-;; special handling in wisi-generate %token <punctuation> TICK "'"/."'"
-%token <punctuation> TICK "'"
+;; In this simple grammar, we could take advantage of the fact that
+;; TICK is always followed by LEFT_PAREN, but we want to find a
+;; solution that works for full Ada, where that is not true. All of
+;; the ambiguous cases for full Ada are given in
+;; character_literal.input; this set of regexps sorts them out.
+%token <punctuation> TICK_1 "'"
+%token <punctuation> TICK_2 "'" / "('"[\x20-\x26\x28-\U0010FFFF]"')"
+%token <punctuation> TICK_3 "'" / "('''')"
 
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
 
-%token <punctuation> CHARACTER_LITERAL "'"[^']"'"|"''''"
+%token <punctuation> CHARACTER_LITERAL ("'"[\x20-\x26\x28-\U0010FFFF]"'")|("''''")
 
 %token <whitespace> WHITESPACE [ \t\n]
 
 ;; full Unicode range, starting with non-control, non-digit
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
 
-%token <string-double> STRING_LITERAL (["][^"]*["])+
+%token <string-double> STRING_LITERAL (["][\x20-\U0010FFFF]*["])+
 
 %start compilation_unit
 %first_state_index 1
@@ -70,27 +76,27 @@ statement_list
 ;;
 ;; Character'('C');
 ;;
-;; with whitespace in different places. That should match this rule
+;; with whitespace in different places. That should match this rule, a
+;; qualified expression.
 ;;
 ;; Action spans two lines to test wisi-rules.adb
 statement
-  : IDENTIFIER TICK LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
+  : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
    (Character_Literal_Count :=
      Character_Literal_Count + 1;)
 
-;; Some of them actually match this rule, because the regular
-;; expression always matches the longest possible string.
-;;
-;; The Emacs lexer does two passes; first marking syntax properties on
-;; various parts of the text. The check for character literal in the
-;; first pass includes the text preceding the character literal; the
-;; Aflex and Regexp lexers cannot do that.
-  | IDENTIFIER CHARACTER_LITERAL IDENTIFIER TICK RIGHT_PAREN SEMICOLON
-   (Bad_Character_Literal_Count := Bad_Character_Literal_Count + 1;)
+ ;; A different use of TICK; attribute reference
+  | IDENTIFIER tick IDENTIFIER SEMICOLON
 
-;; Here the input is Ada strings, with and without embedded quotes.
+ ;; Here the input is Ada strings, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
    (String_Literal_Count := String_Literal_Count + 1;)
+  ;
+
+tick
+  : TICK_1
+  | TICK_2
+  | TICK_3
   ;
 %%
 

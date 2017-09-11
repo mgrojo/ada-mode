@@ -54,8 +54,7 @@ generic
    --  Result values: (see wisi-gen_output_ada_common.adb create_re2c)
    --
    --  0 - no error
-   --  1 - lexer attempted to read past the end of the buffer
-   --  2 - there is an unrecognized character at Position.
+   --  1 - there is an unrecognized character at Position.
 
 package WisiToken.Lexer.re2c is
 

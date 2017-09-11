@@ -88,12 +88,10 @@ package body WisiToken.Lexer.re2c is
       when 0 =>
          return Lexer.ID;
       when 1 =>
-         raise Syntax_Error with "lexer attempted to read past end of buffer";
-      when 2 =>
-         raise Syntax_Error with "unrecognized character at " & Natural'Image (Lexer.Position);
+         raise Syntax_Error with " unrecognized character at " & Natural'Image (Lexer.Position + 1);
 
       when others =>
-         raise Syntax_Error with "lexer returned unrecognized status code" & int'Image (Status);
+         raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
       end case;
    exception
    when Syntax_Error  =>
@@ -130,19 +128,9 @@ package body WisiToken.Lexer.re2c is
    end Lexeme;
 
    overriding function Bounds (Lexer : in Instance) return Buffer_Region
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      --  The result is supposed to be the location in the original input
-      --  buffer; Lexer.Token.Offset is the location in the decoded buffer
-      --  (of utf8 characters), and there is no simple relation between
-      --  the two.
-      --
-      --  Except in the case where the input buffer is also utf8, which is
-      --  most of the time, so we simply assume that here.
-      --
-      --  FIXME: Offset is not available yet, and Token.Length is not set properly
-      return (0, 0);
+   is begin
+      --  Position is 0-indexed, Bounds is 1-indexed.
+      return (Lexer.Position + 1, Lexer.Position + Lexer.Length);
    end Bounds;
 
    overriding procedure Finalize (Object : in out Managed_Lexer)
