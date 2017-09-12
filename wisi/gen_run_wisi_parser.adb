@@ -124,11 +124,16 @@ begin
       Put_Line ("Errors:");
       WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
    end if;
+
 exception
 when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
    New_Line;
-   --  Exception message starts with ":<line>:<column>: "
-   Put_Line (To_String (File_Name) & Ada.Exceptions.Exception_Message (E));
+   Put_Line (To_String (File_Name) & " " & Ada.Exceptions.Exception_Message (E));
+   if Errors.Length > 0 then
+      New_Line;
+      Put_Line ("Errors:");
+      WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
+   end if;
 
 when E : others =>
    New_Line;

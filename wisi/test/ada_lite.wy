@@ -33,6 +33,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 
 %keyword AND "and"
 %keyword BEGIN "begin"
+%keyword BODY "body"
 %keyword CASE "case"
 %keyword DECLARE "declare"
 %keyword ELSE "else"
@@ -50,6 +51,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %keyword NEW "new"
 %keyword NOT "not"
 %keyword OR "or"
+%keyword PACKAGE "package"
 %keyword PROCEDURE "procedure"
 %keyword RANGE "range"
 %keyword RETURN "return"
@@ -158,6 +160,7 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt  on token IS
+%conflict SHIFT/REDUCE in state package_body, aspect_specification_opt  on token IS
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
 %conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt  on token IS
 
@@ -196,7 +199,7 @@ block_statement
   | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
   ;
 
-body : proper_body | body_stub;
+body_g : proper_body | body_stub;
 
 body_stub : subprogram_body_stub;
 
@@ -240,7 +243,7 @@ constraint
   ;
 
 declaration
-  : body
+  : body_g
   | object_declaration
   | subprogram_declaration
   | type_declaration
@@ -336,9 +339,8 @@ function_specification
   ;
 
 generic_instantiation
- ;; name generic_actual_part is included in name as a function call
- ;; present to force a conflict with procedure_specification
-  : PROCEDURE name IS NEW name SEMICOLON
+  : PACKAGE name IS NEW name SEMICOLON
+  | PROCEDURE name IS NEW name SEMICOLON
   ;
 
 handled_sequence_of_statements
@@ -371,7 +373,8 @@ label
   ;
 
 library_item
-  : subprogram_declaration
+  : package_body
+  | subprogram_declaration
   | subprogram_body
   | generic_instantiation
   ;
@@ -400,6 +403,10 @@ object_declaration
   | IDENTIFIER COLON subtype_indication SEMICOLON
   ;
 
+package_body
+  : PACKAGE BODY name aspect_specification_opt IS declarative_part_opt BEGIN handled_sequence_of_statements END name_opt SEMICOLON
+  | PACKAGE BODY name IS declarative_part_opt END name_opt SEMICOLON
+  ;
 
 parameter_and_result_profile
   : formal_part RETURN IDENTIFIER
@@ -441,7 +448,8 @@ procedure_specification
   ;
 
 proper_body
-  : subprogram_body
+  : package_body
+  | subprogram_body
   ;
 
 range_g

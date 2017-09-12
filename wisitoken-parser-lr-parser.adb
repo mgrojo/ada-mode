@@ -321,6 +321,7 @@ package body WisiToken.Parser.LR.Parser is
       First_Token                : Boolean := True;
       Max_Shared_Lookahead_Index : SAL.Peek_Type;
       Zombie_Count               : Ada.Containers.Count_Type;
+      Resume_Active              : Boolean := False;
    begin
       WisiToken.Token.Reset (Parser.Semantic_State);
       Parser.Shared_Lookahead.Clear;
@@ -350,6 +351,7 @@ package body WisiToken.Parser.LR.Parser is
          --  without error, so we cannot have zombie parsers while resuming.
          case Current_Verb is
          when Shift =>
+            Resume_Active := False;
 
             --  Set Parsers(*).Current_Token to a copy of
             --  Parser.Shared_Lookahead(Parsers(*).Shared_Lookahead_Index).
@@ -539,6 +541,8 @@ package body WisiToken.Parser.LR.Parser is
                end if;
 
                if Keep_Going then
+                  Resume_Active := True;
+
                   declare
                      Shift_Local_Count : Integer := 0;
                   begin
@@ -611,8 +615,10 @@ package body WisiToken.Parser.LR.Parser is
                --  suspended for a few tokens, to see if the other parsers also
                --  error, in which case they all participate in error recovery.
 
+               --  We cannot create zombie parsers during resume.
                if Parser.Enable_McKenzie_Recover and then
-                 Current_Parser.State_Ref.Zombie_Token_Count <= Parser.Table.McKenzie.Check_Limit
+                 (Current_Parser.State_Ref.Zombie_Token_Count <= Parser.Table.McKenzie.Check_Limit and
+                    not Resume_Active)
                then
                   if Trace_Parse > 0 then
                      Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");

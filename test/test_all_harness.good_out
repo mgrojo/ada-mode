@@ -43,6 +43,7 @@ OK test_mckenzie_recover.adb : Pattern_1
 OK test_mckenzie_recover.adb : Revive_Zombie_Parser
 OK test_mckenzie_recover.adb : Error_Token_When_Parallel
 OK test_mckenzie_recover.adb : If_In_Handler
+OK test_mckenzie_recover.adb : Zombie_In_Resume
 OK ../Test/test_statement_actions.adb : Nominal
 OK ../Test/trivial_productions_test.adb : Expression
 OK ../Test/trivial_productions_test.adb : Subprograms
