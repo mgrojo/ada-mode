@@ -32,7 +32,7 @@
     (TICK . "'")
     )
    ("symbol"
-    (IDENTIFIER . [a-zA-Z][0-9a-zA-Z_]*)
+    (IDENTIFIER . "")
     )
    ))
 (defconst conflict_name-process-token-table

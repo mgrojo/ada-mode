@@ -79,7 +79,7 @@ package body Wisi_Wy_Test is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("wisi/test/wisi_wy_test.adb " & T.Root_Name.all);
+      return new String'("wisi_wy_test.adb " & T.Root_Name.all);
    end Name;
 
 end Wisi_Wy_Test;

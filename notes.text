@@ -5,6 +5,16 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
+need 'if' in .wy for elisp/re2c diffs
+    %keyword shared
+    %token <punctuation> shared
+        except TICK vs TICK_1, _2, _3
+        actually not a problem; elisp will only every see TICK_1
+
+    whitespace ignored by elisp
+    line_comment ignored by elisp
+    symbol, string-* value ignored by wisi-make-elisp-lexer; should be ignored in wisi-output_elisp_common
+
 leaking memory
     ada_mode_wisi_parse.exe memory grows with each parse
         mostly during parses that take a long time
