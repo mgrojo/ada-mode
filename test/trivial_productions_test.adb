@@ -26,11 +26,8 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.Parser;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Trivial_Productions_Test is
-
-   Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
    ----------
    --  Test procedures
@@ -92,13 +89,13 @@ package body Trivial_Productions_Test is
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
          Parser := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax, Feeder'Access, Buffer_Size => Text'Length + 1),
+           (Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
             State,
             First_Parser_Label);
 
-         Feeder.Set (Text);
+         Parser.Lexer.Reset_With_String (Text);
 
          Parser.Parse;
 
@@ -187,10 +184,7 @@ package body Trivial_Productions_Test is
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
          Parser := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer
-              (Trace'Access,
-               Syntax, Feeder'Access,
-               Buffer_Size     => Text'Length + 1),
+           (Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Grammar,
                LALR_Descriptor,
@@ -200,7 +194,7 @@ package body Trivial_Productions_Test is
             State,
             First_Parser_Label);
 
-         Feeder.Set (Text);
+         Parser.Lexer.Reset_With_String (Text);
          WisiToken.Trace_Parse := Test.Debug;
          Parser.Parse;
 

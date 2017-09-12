@@ -1,12 +1,4 @@
 LALR_Parser parse:
-read 105
-Monitor;
-Monitor constant;
-Monitor aliased;
-Monitor aliased constant;
-Monitor := ;
-Monitor constant := ;
-
  1 stack:  1 : 
  1: 1: IDENTIFIER : shift and goto state 2
  1 stack:  2 : IDENTIFIER,  1 : 
@@ -159,16 +151,7 @@ object_declaration_list_1: (object_declaration_list 1 . 104) <= ((object_declara
  2 stack:  3 : object_declaration_list,  1 : 
  2: 3: Wisi_EOI : accept it
 (wisitoken_accept 1 . 104) <= ((object_declaration_list 1 . 104))
-
 LR1_Parser parse:
-read 105
-Monitor;
-Monitor constant;
-Monitor aliased;
-Monitor aliased constant;
-Monitor := ;
-Monitor constant := ;
-
  1 stack:  1 : 
  1: 1: IDENTIFIER : shift and goto state 2
  1 stack:  2 : IDENTIFIER,  1 : 

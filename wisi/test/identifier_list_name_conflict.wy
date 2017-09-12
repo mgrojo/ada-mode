@@ -15,18 +15,18 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
-%token <string-double> STRING_LITERAL "\"[^\"]*\""
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <string-double> STRING_LITERAL '"'[^"]*'"'
+;; "
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-;; need whitespace for Aflex lexer
-%token <whitespace> WHITESPACE "[ \t\n]"
-%token <line_comment> COMMENT "\-\-[^\n]*\n"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
 ;; not first nonterminal
 %start compilation
 %parser_algorithm LALR_LR1
 %output_language Ada
-%lexer Aflex
+%lexer re2c
 
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN

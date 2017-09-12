@@ -25,9 +25,7 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with GNATCOLL.Mmap;
-with System;
-procedure Gen_Parser_Run_GNATCOLL_Mmap
+procedure Gen_Parser_Run
 is
    procedure Put_Usage
    is begin
@@ -46,42 +44,23 @@ is
    LALR_Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
    LR1_Parser  : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LR1);
 
-   File   : GNATCOLL.Mmap.Mapped_File;
-   Region : GNATCOLL.Mmap.Mapped_Region;
-
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
-   is
-      use GNATCOLL.Mmap;
-   begin
-      File   := Open_Read (-File_Name);
-      Region := Read (File);
+   is begin
+      case Algorithm is
+      when WisiToken.LALR =>
+         Put_Line ("LALR_Parser parse:");
+         LALR_Parser.Lexer.Reset_With_File (-File_Name);
+         LALR_Parser.Parse;
 
-      declare
-         Buffer_Addr : constant System.Address := Data (Region).all'Address;
-         Buffer      : String (1 .. Last (Region));
-         for Buffer'Address use Buffer_Addr;
-      begin
-         case Algorithm is
-         when WisiToken.LALR =>
-            Put_Line ("LALR_Parser parse:");
-            LALR_Parser.Lexer.Reset (Buffer);
-            LALR_Parser.Parse;
-
-         when WisiToken.LR1 =>
-            Put_Line ("LR1_Parser parse:");
-            LR1_Parser.Lexer.Reset (Buffer);
-            LR1_Parser.Parse;
-         end case;
-      end;
-
-      Free (Region);
-      Close (File);
+      when WisiToken.LR1 =>
+         Put_Line ("LR1_Parser parse:");
+         LR1_Parser.Lexer.Reset_With_File (-File_Name);
+         LR1_Parser.Parse;
+      end case;
 
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));
-      Free (Region);
-      Close (File);
 
    when Name_Error =>
       Put_Line (-File_Name & " cannot be opened");
@@ -94,7 +73,7 @@ begin
    begin
       case Argument_Count is
       when 1 =>
-         Gen_Parser_Run_GNATCOLL_Mmap.File_Name := +Argument (1);
+         File_Name := +Argument (1);
 
       when 3 =>
          if Argument (1) = "-v" then
@@ -106,7 +85,7 @@ begin
             return;
          end if;
 
-         Gen_Parser_Run_GNATCOLL_Mmap.File_Name := +Argument (3);
+         File_Name := +Argument (3);
 
       when others =>
          Set_Exit_Status (Failure);
@@ -128,4 +107,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Parser_Run_GNATCOLL_Mmap;
+end Gen_Parser_Run;

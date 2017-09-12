@@ -1,12 +1,4 @@
 LALR_Parser parse:
-read 80
-overriding other procedure proc_1;
-
-other procedure proc_2;
-
-procedure proc_3;
-
-
  1 stack:  1 : 
  1: 1: OVERRIDING : shift and goto state 2
  1 stack:  2 : OVERRIDING,  1 : 
@@ -74,16 +66,7 @@ subprogram_declaration_0: (subprogram_declaration 62 . 78) <= ((overriding_indic
  1 stack:  4 : compilation_unit,  1 : 
  1: 4: Wisi_EOI : accept it
 (wisitoken_accept 1 . 78) <= ((compilation_unit 1 . 78))
-
 LR1_Parser parse:
-read 80
-overriding other procedure proc_1;
-
-other procedure proc_2;
-
-procedure proc_3;
-
-
  1 stack:  1 : 
  1: 1: OVERRIDING : shift and goto state 2
  1 stack:  2 : OVERRIDING,  1 : 

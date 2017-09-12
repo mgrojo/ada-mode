@@ -26,7 +26,6 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Test_Statement_Actions is
 
@@ -118,14 +117,11 @@ package body Test_Statement_Actions is
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
-   Parser        : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Execute_Command (Command : in String)
    is begin
-      WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
-
-      Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+      Parser.Lexer.Reset_With_String (Command);
 
       Parser.Parse;
    exception
@@ -143,7 +139,7 @@ package body Test_Statement_Actions is
       use AUnit.Checks;
    begin
       Parser := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,

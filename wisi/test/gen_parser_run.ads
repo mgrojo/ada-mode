@@ -1,7 +1,6 @@
 --  Abstract:
 --
---  Main program to run a parser, using gnatcoll.mmap to read the
---  input file.
+--  Main program to run a parser.
 --
 --  Copyright (C) 2015, 2017 Stephe Leake
 --
@@ -27,4 +26,4 @@ generic
      (Algorithm : in WisiToken.Parser_Algorithm_Type)
      return WisiToken.Parser.LR.Parser.Instance;
 
-procedure Gen_Parser_Run_GNATCOLL_Mmap;
+procedure Gen_Parser_Run;

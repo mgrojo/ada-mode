@@ -28,7 +28,6 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Name_Grammar_Test is
 
@@ -73,8 +72,6 @@ package body Name_Grammar_Test is
        Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
        EOF_ID         => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
-
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
@@ -126,9 +123,7 @@ package body Name_Grammar_Test is
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
 
-      String_Feeder.Set (Command);
-
-      Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+      Parser.Lexer.Reset_With_String (Command);
 
       Parser.Parse;
 
@@ -170,7 +165,7 @@ package body Name_Grammar_Test is
       Put_Line ("Simple Parser");
       declare
          Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Simple_Grammar,
                LALR_Descriptor,
@@ -189,7 +184,7 @@ package body Name_Grammar_Test is
       Put_Line ("Medium Parser");
       declare
          Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Medium_Grammar,
                LALR_Descriptor,
@@ -208,7 +203,7 @@ package body Name_Grammar_Test is
       Put_Line ("Full Parser");
       declare
          Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+           (Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Full_Grammar,
                LALR_Descriptor,

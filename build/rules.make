@@ -25,8 +25,8 @@ else
 endif
 
 tests : wisi-generate.exe
-tests : ada_lite_yylex.adb
-tests : character_literal_yylex.adb
+tests : ada_lite_re2c.c
+tests : character_literal_re2c.c
 tests : test_all_harness.diff
 
 # from ../wisi/test
@@ -49,28 +49,28 @@ tests : test_all_harness.diff
 # FIXME: keep at least one aflex test, or delete aflex support
 
 #tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
-tests : case_expression_lexer.c
+tests : case_expression_re2c.c
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
-tests : conflict_name_lexer.c
+tests : conflict_name_yylex.adb
 tests : conflict_name-parse.diff
-tests : empty_production_1_lexer.c
+tests : empty_production_1_re2c.c
 tests : empty_production_1-parse.diff
-tests : empty_production_2_lexer.c
+tests : empty_production_2_re2c.c
 tests : empty_production_2-parse.diff
-tests : empty_production_3_lexer.c
+tests : empty_production_3_re2c.c
 tests : empty_production_3-parse.diff
-tests : empty_production_4_lexer.c
+tests : empty_production_4_re2c.c
 tests : empty_production_4-parse.diff
-tests : empty_production_5_lexer.c
+tests : empty_production_5_re2c.c
 tests : empty_production_5-parse.diff
-tests : empty_production_6_lexer.c
+tests : empty_production_6_re2c.c
 tests : empty_production_6-parse.diff
-tests : empty_production_7_lexer.c
+tests : empty_production_7_re2c.c
 tests : empty_production_7-parse.diff
-tests : empty_production_8_lexer.c
+tests : empty_production_8_re2c.c
 tests : empty_production_8-parse.diff
-tests : identifier_list_name_conflict_lexer.c
+tests : identifier_list_name_conflict_re2c.c
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
 

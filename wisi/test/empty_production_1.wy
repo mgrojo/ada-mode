@@ -27,15 +27,15 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%token <whitespace> WHITESPACE "[ \t\n]"
-%token <line_comment> COMMENT "\-\-[^\n]*\n"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
 %start declarative_part
 %first_state_index 1
 %first_parser_label 1
 %parser_algorithm LALR_LR1
 %output_language Ada
-%lexer Aflex
+%lexer re2c
 
 %%
 

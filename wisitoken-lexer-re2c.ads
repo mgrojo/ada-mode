@@ -24,8 +24,6 @@ pragma Warnings (Off, "license of withed unit ""GNATCOLL.Mmap"" may be inconsist
 
 pragma Warnings (On);
 with Ada.Finalization;
-with Ada.Strings.Unbounded;
-with GNATCOLL.Mmap;
 with Interfaces.C;
 with System;
 generic
@@ -90,25 +88,11 @@ package WisiToken.Lexer.re2c is
 
 private
 
-   type Source_Labels is (String_Label, File_Label);
-
-   type Source (Label : Source_Labels := Source_Labels'First) is record
-      case Label is
-      when String_Label =>
-         Buffer : Ada.Strings.Unbounded.String_Access;
-         --  Buffer is allocated copy of input string; must be deallocated.
-
-      when File_Label =>
-         --  Input is memory mapped from the following, which must be closed:
-         File   : GNATCOLL.Mmap.Mapped_File;
-         Region : GNATCOLL.Mmap.Mapped_Region;
-      end case;
-   end record;
-
+   --  FIXME: Instance is now controlled
    type Managed_Lexer is new Ada.Finalization.Limited_Controlled with
    record
       Lexer  : System.Address;
-      Source : re2c.Source;
+      Source : WisiToken.Lexer.Source;
    end record;
 
    overriding procedure Finalize (Object : in out Managed_Lexer);

@@ -28,6 +28,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Exceptions;
+with Ada.Strings.Unbounded;
+with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
 
    function New_Lexer (Trace : not null access WisiToken.Trace'Class) return Handle

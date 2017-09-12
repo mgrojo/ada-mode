@@ -1,13 +1,4 @@
 LALR_Parser parse:
-read 179
--- grammar requires three statements
-
-Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
-
-"+", Name_2 -- name_list
-
-(selector_1 => name_1, "=" => "=") -- association_list
-
  0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
  0 stack:  3 : IDENTIFIER,  0 : 
@@ -154,17 +145,7 @@ compilation_0: (compilation 39 . 158) <= ((compilation_unit 39 . 63), (compilati
  0 stack:  4 : compilation,  0 : 
  0: 4: Wisi_EOI : accept it
 (wisitoken_accept 39 . 158) <= ((compilation 39 . 158))
-
 LR1_Parser parse:
-read 179
--- grammar requires three statements
-
-Ident_1, Ident_2, Ident_3 -- identifier_list, or name_list
-
-"+", Name_2 -- name_list
-
-(selector_1 => name_1, "=" => "=") -- association_list
-
  0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
  0 stack:  3 : IDENTIFIER,  0 : 

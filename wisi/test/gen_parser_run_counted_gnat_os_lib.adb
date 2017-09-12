@@ -47,19 +47,20 @@ is
    LALR_Parser : WisiToken.Parser.LR.Parser.Instance;
    LR1_Parser  : WisiToken.Parser.LR.Parser.Instance;
 
+   Feeder : WisiToken.Text_Feeder.Text_Feeder_Ptr;
+
    procedure Use_File (File_Name : in String)
    is
       use GNAT.OS_Lib;
+      File : File_Descriptor;
    begin
       Gen_Parser_Run_Counted_GNAT_OS_Lib.File_Name := +File_Name;
 
+      File := Open_Read (File_Name, Text);
+      --  Mode Text normalizes CR/LF to LF
+      Feeder := WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
+
       declare
-         File : constant File_Descriptor := Open_Read (File_Name, Text);
-         --  Mode Text normalizes CR/LF to LF
-
-         Feeder : constant WisiToken.Text_Feeder.Text_Feeder_Ptr :=
-           WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Create (File);
-
          Counted_Feeder : WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
            WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
 
@@ -119,11 +120,11 @@ begin
       use GNAT.OS_Lib;
 
       Counted_Feeder : WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance renames
-        WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (LR1_Parser.Lexer.Feeder.all);
+        WisiToken.Text_Feeder.Counted_GNAT_OS_Lib.Instance (Feeder.all);
    begin
       Counted_Feeder.Reset (File_Length);
    end;
-   LR1_Parser.Lexer.Reset (1024);
+   LR1_Parser.Lexer.Reset;
    New_Line;
 
    begin

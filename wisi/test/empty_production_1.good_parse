@@ -1,13 +1,4 @@
 LALR_Parser parse:
-read 128
--- a simple body, with empty declarations
-is begin;
-
--- one declaration; a body with empty declarations
-is
-    is begin;
-begin;
-
  1 stack:  1 : 
  1: 1: IS : shift and goto state 2
  1 stack:  2 : IS,  1 : 
@@ -69,17 +60,7 @@ body_0: (body 105 . 127) <= ((IS 105 . 106), (declarative_part 112 . 120), (BEGI
  1 stack:  4 : declarative_part,  1 : 
  1: 4: Wisi_EOI : accept it
 (wisitoken_accept 43 . 127) <= ((declarative_part 43 . 127))
-
 LR1_Parser parse:
-read 128
--- a simple body, with empty declarations
-is begin;
-
--- one declaration; a body with empty declarations
-is
-    is begin;
-begin;
-
  1 stack:  1 : 
  1: 1: IS : shift and goto state 2
  1 stack:  2 : IS,  1 : 

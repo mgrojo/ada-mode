@@ -23,8 +23,8 @@
 %}
 
 ;; non-reporting
-%token <whitespace> WHITESPACE "[ \t\n]"
-%token <line_comment> COMMENT "\-\-[^\n]*\n"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
@@ -32,7 +32,7 @@
 %token <punctuation> TICK "'"
 
 %token <number> NUMBER_LITERAL ada-wisi-number-p
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
 %keyword RANGE "range"
 %keyword WHEN "when"
@@ -45,7 +45,7 @@
 
 %parser_algorithm LALR_LR1
 %output_language Ada
-%lexer Quex
+%lexer re2c
 
 %%
 

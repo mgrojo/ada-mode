@@ -28,7 +28,6 @@ with WisiToken.Lexer.Regexp;
 with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 package body Association_Grammar_Test is
 
@@ -74,8 +73,6 @@ package body Association_Grammar_Test is
        EOF_ID           => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
 
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
-
    use type WisiToken.Production.List.Instance;   --  "and"
    use type WisiToken.Production.Right_Hand_Side; --  "+"
 
@@ -107,9 +104,7 @@ package body Association_Grammar_Test is
    is begin
       Trace.Put_Line ("'" & Command & "'");
 
-      WisiToken.Text_Feeder.String.Set (String_Feeder, Command);
-
-      Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+      Parser.Lexer.Reset_With_String (Command);
 
       Parser.Parse;
 
@@ -147,7 +142,7 @@ package body Association_Grammar_Test is
       Trace.Set_File (Trace_File'Access);
 
       Parser := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,

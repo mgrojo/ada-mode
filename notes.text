@@ -9,20 +9,10 @@ put back mckenzie-enable in wisi-process-parse
     so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
 use re2c lexer generator
-    download from https://sourceforge.net/projects/re2c/?source=typ_redirect
-    saved to d:/Archive/Misc
-    unpacked to d:/Apps/re2c-1.0.1
+    add re2c option to report errors in gnu format
+        clone from sourceforge; c:/Projects/re2c-code-git
 
-    in msys64 shell:
-        ./configure --prefix=/d/Apps/re2c-1.0.1
-        make
-        make install
-
-    in ~/develop.el: define RE2C_HOME
-
-    add above to .texi
-
-    modify all wisi tests
+    propagate to o.w, use in o.e.a.s-4
 
 leaking memory
     see org.wisitoken notes

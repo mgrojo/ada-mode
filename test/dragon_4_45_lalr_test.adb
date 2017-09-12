@@ -28,7 +28,6 @@ with WisiToken.Parser.LR.LALR_Generator;
 with WisiToken.Parser.LR.LR1_Items;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 with WisiToken.AUnit;
 with WisiToken_AUnit; use WisiToken_AUnit;
@@ -95,7 +94,6 @@ package body Dragon_4_45_LALR_Test is
        EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
      ));
 
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
    Has_Empty_Production : constant WisiToken.Token_ID_Set :=
      WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
@@ -259,7 +257,7 @@ package body Dragon_4_45_LALR_Test is
       Test : Test_Case renames Test_Case (T);
 
       Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
@@ -269,9 +267,7 @@ package body Dragon_4_45_LALR_Test is
       is
          use Ada.Exceptions;
       begin
-         String_Feeder.Set (Command);
-
-         Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+         Parser.Lexer.Reset_With_String (Command);
 
          Parser.Parse;
       exception

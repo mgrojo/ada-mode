@@ -1,9 +1,4 @@
 LALR_Parser parse:
-read 44
--- Just parse successfully
-when A => 123.4
-
-
  0 stack:  0 : 
  0: 0: WHEN : shift and goto state 1
  0 stack:  1 : WHEN,  0 : 
@@ -43,13 +38,7 @@ when A => 123.4
  0 stack:  2 : case_expression,  0 : 
  0: 2: Wisi_EOI : accept it
 (wisitoken_accept 28 . 42) <= ((case_expression 28 . 42))
-
 LR1_Parser parse:
-read 44
--- Just parse successfully
-when A => 123.4
-
-
  0 stack:  0 : 
  0: 0: WHEN : shift and goto state 1
  0 stack:  1 : WHEN,  0 : 

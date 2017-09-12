@@ -27,7 +27,6 @@ with WisiToken.Parser.LR.LR1_Generator;
 with WisiToken.Parser.LR.LR1_Items;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
-with WisiToken.Text_Feeder.String;
 with WisiToken.Text_IO_Trace;
 with WisiToken_AUnit;
 package body Grune_9_30 is
@@ -83,8 +82,6 @@ package body Grune_9_30 is
        Lower_C_ID => Lexer.Get ("c"),
        EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
       ));
-
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
 
    Has_Empty_Production : constant WisiToken.Token_ID_Set :=
      WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
@@ -148,7 +145,7 @@ package body Grune_9_30 is
       Test : Test_Case renames Test_Case (T);
 
       Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax, String_Feeder'Access),
+        (Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State,
@@ -156,9 +153,7 @@ package body Grune_9_30 is
 
       procedure Execute_Command (Command : in String)
       is begin
-         String_Feeder.Set (Command);
-
-         Parser.Lexer.Reset (Buffer_Size => Command'Length + 1); -- +1 for EOF
+         Parser.Lexer.Reset_With_String (Command);
 
          Parser.Parse;
       exception

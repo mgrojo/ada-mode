@@ -27,11 +27,16 @@
 
 pragma License (Modified_GPL);
 
+pragma Warnings (Off, "license of withed unit ""GNATCOLL.Mmap"" may be inconsistent");
+
+with Ada.Finalization;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
-   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited
-   record
+   type Instance (Trace : not null access WisiToken.Trace'Class) is abstract new Ada.Finalization.Limited_Controlled
+   with record
       Enable_Line_Numbers : Boolean;
    end record;
 
@@ -61,23 +66,38 @@ package WisiToken.Lexer is
    --  and lexer.
 
    function Line (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
-   --  Returns the current text line number in which the most recent
-   --  token was found.
+   --  Returns the line number in which the most recent token started.
    --
    --  If the underlying text feeder does not support the notion of
    --  'line', or if Lexer.Enable_Line_Numbers is False, returns 0.
 
    function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
-   --  Return the current text column number of the start of the most
-   --  recent token..
+   --  Return the column number of the start of the most recent token..
    --
    --  If the underlying text feeder does not support the notion of
-   --  'line', returns buffer offset in underlying buffer.
+   --  'line', returns buffer position in internal buffer.
 
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
-   --  Return the next token, getting more text from Feeder as needed.
+   --  Return the next token.
    --
    --  Raises Syntax_Error with an appropriate message if no token
    --  is found.
+
+private
+
+   type Source_Labels is (String_Label, File_Label);
+
+   type Source (Label : Source_Labels := Source_Labels'First) is record
+      case Label is
+      when String_Label =>
+         Buffer : Ada.Strings.Unbounded.String_Access;
+         --  Buffer is an allocated copy of the input string; it must be deallocated.
+
+      when File_Label =>
+         --  The input is memory mapped from the following, which must be closed:
+         File   : GNATCOLL.Mmap.Mapped_File;
+         Region : GNATCOLL.Mmap.Mapped_Region;
+      end case;
+   end record;
 
 end WisiToken.Lexer;

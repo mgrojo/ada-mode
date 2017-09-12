@@ -29,19 +29,14 @@ with WisiToken.AUnit;
 with WisiToken.Parser.LR.AUnit;
 with WisiToken.Parser.LR.McKenzie_Recover.AUnit;
 with WisiToken.Parser.LR.Parser;
-with WisiToken.Text_Feeder.String;
-with WisiToken.Text_Feeder.Text_IO;
 with WisiToken.Token_Region.AUnit;
 with ada_lite_dfa;
 package body Test_McKenzie_Recover is
 
-   String_Feeder : aliased WisiToken.Text_Feeder.String.Instance;
-   Parser        : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser
-     (WisiToken.LALR,
-      Text_Feeder => String_Feeder'Access);
+   Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser (WisiToken.LALR);
 
-   Orig_Cost_Limit : Integer;
-   Orig_Check_Limit   : Integer;
+   Orig_Cost_Limit  : Integer;
+   Orig_Check_Limit : Integer;
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
@@ -57,11 +52,10 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
-      String_Feeder.Set (Text & "   ");
+      Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
 
-      Parser.Lexer.Reset (Buffer_Size => Text'Length);
       Parser.Parse;
    end Parse_Text;
 
@@ -89,22 +83,19 @@ package body Test_McKenzie_Recover is
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
 
-      Feeder : constant WisiToken.Text_Feeder.Text_Feeder_Ptr := WisiToken.Text_Feeder.Text_IO.Create (File_Name);
-
-      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR, Text_Feeder => Feeder);
+      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
    begin
       --  The test is that there is no exception.
 
       ada_lite_dfa.aflex_debug := False; -- keep for future debugging
       WisiToken.Trace_Parse := Test.Debug;
 
+      Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
-      WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
    exception
    when E : WisiToken.Syntax_Error =>
       Ada.Text_IO.Put_Line (File_Name & ":" & Exception_Message (E));
       AUnit.Assertions.Assert (False, "syntax error");
-      WisiToken.Text_Feeder.Text_IO.Instance (Feeder.all).Close;
    end No_Error;
 
    procedure Error_1 (T : in out AUnit.Test_Cases.Test_Case'Class)

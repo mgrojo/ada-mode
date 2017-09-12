@@ -68,8 +68,8 @@ WisiToken parser run-time.
 WisiToken is available as source code only.
 
 To use the Ada runtime, you will also need to install a
-lexer. WisiToken supports Aflex and Quex, and other lexers can be
-added.
+lexer. WisiToken supports Aflex, Quex, and re2c, and other lexers can
+be added.
 
 Aflex is available as source from the same location as WisiToken.
 
@@ -90,6 +90,10 @@ cp d:/msys64/mingw32/lib/libiconv.a  d:/Apps/GNAT-gpl_2016/lib/gcc/i686-pc-mingw
 
 In some future version, GNAT will probably include @code{libiconv} in
 the Windows install, since some of their tools require it.
+
+re2c is avaialble from
+@url{https://sourceforge.net/projects/re2c/}. WisiToken uses the
+environment variable @var{RE2C_HOME} to locate re2c.
 
 @node Common grammar problems
 @chapter Common grammar problems

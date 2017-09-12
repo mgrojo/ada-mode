@@ -50,11 +50,21 @@ package body WisiToken.Lexer.Aflex is
       return Handle (New_Lexer);
    end New_Lexer;
 
-   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
+   is begin
+      raise SAL.Not_Implemented;
+   end Reset_With_String;
+
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
+   is begin
+      raise SAL.Not_Implemented;
+   end Reset_With_File;
+
+   overriding procedure Reset (Lexer : in out Instance)
    is begin
       --  yyrestart is not visible in yylex.adb; it does this
       YY_Init := True;
-      Set_Buffer_Size (Buffer_Size + 2); -- +2 for EOL EOF
+      Set_Buffer_Size (1024 + 2); -- +2 for EOL EOF
 
       --  Feeder is not reset here; user resets it. But we do copy
       --  Lexer.Feeder to Aflex.Feeder, since the user only knows

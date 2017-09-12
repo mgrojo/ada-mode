@@ -33,7 +33,6 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with WisiToken.Regexp;
-with WisiToken.Text_Feeder;
 package WisiToken.Lexer.Regexp is
 
    type Syntax_Item is record
@@ -56,13 +55,14 @@ package WisiToken.Lexer.Regexp is
      is new WisiToken.Lexer.Instance with private;
 
    function New_Lexer
-     (Trace       : not null access WisiToken.Trace'Class;
-      Syntax      : in              WisiToken.Lexer.Regexp.Syntax;
-      Feeder      : in              WisiToken.Text_Feeder.Text_Feeder_Ptr;
-      Buffer_Size : in              Integer := 1024)
+     (Trace  : not null access WisiToken.Trace'Class;
+      Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle;
 
-   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
+   overriding procedure Finalize (Object : in out Instance);
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
+   overriding procedure Reset (Lexer : in out Instance);
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
@@ -84,14 +84,12 @@ private
    type Instance
      (Trace         : not null access WisiToken.Trace'Class;
       Last_Terminal : Token_ID)
-     is new WisiToken.Lexer.Instance (Trace => Trace)
-     with
+     is new WisiToken.Lexer.Instance (Trace => Trace) with
    record
       ID          : Token_ID; --  last token read by find_next
       Syntax      : WisiToken.Lexer.Regexp.Syntax (Token_ID'First .. Last_Terminal);
-      Buffer      : String_Access;
+      Source      : Lexer.Source;
       Buffer_Head : Integer;
-      Buffer_Tail : Integer;
       Lexeme_Head : Integer;
       Lexeme_Tail : Integer;
    end record;

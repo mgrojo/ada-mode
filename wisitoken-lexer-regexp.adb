@@ -29,27 +29,10 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Lexer.Regexp is
 
-   procedure Get_More_Text (Lexer : in out Instance; Current_Char : in out Integer)
-   is
-      New_Tail : constant Integer := Lexer.Buffer'First + Lexer.Buffer_Tail - Lexer.Buffer_Head;
-   begin
-      --  Slide current text to start of buffer, get more; adjust
-      --  Current_Char to match.
-
-      Current_Char := Lexer.Buffer'First + Current_Char - Lexer.Buffer_Head;
-
-      Lexer.Buffer (Lexer.Buffer'First .. New_Tail) := Lexer.Buffer (Lexer.Buffer_Head .. Lexer.Buffer_Tail);
-
-      Lexer.Feeder.Get
-        (New_Text => Lexer.Buffer (Lexer.Buffer_Tail + 1 .. Lexer.Buffer'Last),
-         Text_End => Lexer.Buffer_Tail);
-   end Get_More_Text;
-
    function Find_Best_Match (Lexer : in out Instance) return Boolean
    is
-      --  Find the longest matching character sequence in the buffer
-      --  that matches a token. If the buffer tail is reached, more
-      --  will be fetched from the text feeder.
+      --  Find the longest matching character sequence in the buffer that
+      --  matches a token.
       --
       --  Return True if a token is matched, False if not.
 
@@ -63,8 +46,11 @@ package body WisiToken.Lexer.Regexp is
       Best_Match_Length    : Natural := 0;
       Still_Matching       : Boolean := False;
    begin
-      if Current_Char > Lexer.Buffer_Tail and Lexer.Feeder.End_Of_Text then
-         return False;
+      --  We only support Reset_With_String.
+
+      if Current_Char > Lexer.Source.Buffer'Last then
+         Lexer.ID := Lexer.Trace.Descriptor.EOF_ID;
+         return True;
       end if;
 
       for I in Lexer.Syntax'Range loop
@@ -74,17 +60,11 @@ package body WisiToken.Lexer.Regexp is
       loop
          Still_Matching := False;
 
-         if Current_Char > Lexer.Buffer_Tail then
-            if not Lexer.Feeder.End_Of_Text then
-               Get_More_Text (Lexer, Current_Char);
-            end if;
-         end if;
-
          for I in Lexer.Syntax'Range loop
             if State (Lexer.Syntax (I).Regexp) /= Error then
                Current_State := Match
                  (Lexer.Syntax (I).Regexp,
-                  Lexer.Buffer (Lexer.Buffer_Head .. Lexer.Buffer_Tail),
+                  Lexer.Source.Buffer (Lexer.Buffer_Head .. Lexer.Source.Buffer'Last),
                   Current_Char);
 
                case Current_State is
@@ -107,12 +87,11 @@ package body WisiToken.Lexer.Regexp is
             end if;
          end loop;
 
-         exit when (not Still_Matching) or else
-           (Current_Char = Lexer.Buffer_Tail and then Lexer.Feeder.End_Of_Text);
+         exit when (not Still_Matching) or else (Current_Char = Lexer.Source.Buffer'Last);
 
-         if Best_Match_Length = Lexer.Buffer'Length then
+         if Best_Match_Length = Lexer.Source.Buffer'Length then
             raise Programmer_Error with
-              "token larger than buffer size of" & Integer'Image (Lexer.Buffer'Length);
+              "token larger than buffer size of" & Integer'Image (Lexer.Source.Buffer'Length);
          end if;
 
          Current_Char := Current_Char + 1;
@@ -123,13 +102,21 @@ package body WisiToken.Lexer.Regexp is
          Lexer.Lexeme_Tail := Lexer.Buffer_Head + Best_Match_Length - 1;
          Lexer.ID          := Best_Match_ID;
 
-         if Lexer.Lexeme_Head = Lexer.Buffer_Tail and then Lexer.Buffer (Lexer.Lexeme_Head) = EOF_Character then
+         if Lexer.Lexeme_Head = Lexer.Source.Buffer'Last and
+           Lexer.Source.Buffer (Lexer.Lexeme_Head) = EOF_Character
+         then
             --  matched EOF; repeat that next time
             null;
          else
             Lexer.Buffer_Head := Lexer.Lexeme_Tail + 1;
          end if;
          return True;
+
+      elsif Current_Char = Lexer.Source.Buffer'Last then
+         Lexer.ID := Lexer.Trace.Descriptor.EOF_ID;
+         Lexer.Buffer_Head := Lexer.Buffer_Head + 1;
+         return True;
+
       else
          return False;
       end if;
@@ -145,45 +132,61 @@ package body WisiToken.Lexer.Regexp is
       Report         : in Boolean := True)
       return Syntax_Item
    is begin
-      return
-        (WisiToken.Regexp.Compile (Regexp, Case_Sensitive),
-         Report);
+      return (WisiToken.Regexp.Compile (Regexp, Case_Sensitive), Report);
    end Get;
 
    function New_Lexer
-     (Trace       : not null access WisiToken.Trace'Class;
-      Syntax      : in              WisiToken.Lexer.Regexp.Syntax;
-      Feeder      : in              WisiToken.Text_Feeder.Text_Feeder_Ptr;
-      Buffer_Size : in              Integer := 1024)
+     (Trace  : not null access WisiToken.Trace'Class;
+      Syntax : in              WisiToken.Lexer.Regexp.Syntax)
      return WisiToken.Lexer.Handle
    is
       use type Token_ID;
       New_Lexer : constant access Instance := new Instance (Trace, Syntax'Last);
    begin
       New_Lexer.Syntax := Syntax;
-      New_Lexer.Feeder := Feeder;
-
-      Reset (New_Lexer.all, Buffer_Size);
 
       return Handle (New_Lexer);
    end New_Lexer;
 
-   overriding procedure Reset
-     (Lexer       : in out Instance;
-      Buffer_Size : in     Integer)
+   overriding procedure Finalize (Object : in out Instance)
    is begin
-      if Lexer.Buffer = null then
-         Lexer.Buffer := new String (1 .. Buffer_Size);
-      elsif Lexer.Buffer'Size /= Buffer_Size then
-         Free (Lexer.Buffer);
-         Lexer.Buffer := new String (1 .. Buffer_Size);
-      end if;
+      case Object.Source.Label is
+      when String_Label =>
+         Ada.Strings.Unbounded.Free (Object.Source.Buffer);
 
-      Lexer.Lexeme_Head := Lexer.Buffer'First;
-      Lexer.Lexeme_Tail := Lexer.Buffer'First - 1;
-      Lexer.ID          := Token_ID'First;
-      Lexer.Buffer_Head := Lexer.Buffer'First;
-      Lexer.Buffer_Tail := Lexer.Buffer'First - 1;
+      when File_Label =>
+         GNATCOLL.Mmap.Free (Object.Source.Region);
+         GNATCOLL.Mmap.Close (Object.Source.File);
+      end case;
+   end Finalize;
+
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
+   is begin
+      Finalize (Lexer);
+
+      Lexer.Source :=
+        (Label  => String_Label,
+         Buffer => new String'(Input));
+
+      Reset (Lexer);
+   end Reset_With_String;
+
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
+   is
+      pragma Unreferenced (File_Name);
+   begin
+      Finalize (Lexer);
+
+      raise SAL.Not_Implemented;
+   end Reset_With_File;
+
+   overriding procedure Reset
+     (Lexer : in out Instance)
+   is begin
+      Lexer.Lexeme_Head := Lexer.Source.Buffer'First;
+      Lexer.Lexeme_Tail := Lexer.Source.Buffer'First - 1;
+      Lexer.ID          := Invalid_Token_ID;
+      Lexer.Buffer_Head := Lexer.Source.Buffer'First;
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
@@ -192,10 +195,10 @@ package body WisiToken.Lexer.Regexp is
    begin
       loop
          if not Find_Best_Match (Lexer) then
-            if Lexer.Buffer_Head > Lexer.Buffer'Last then
+            if Lexer.Buffer_Head > Lexer.Source.Buffer'Last then
                raise Syntax_Error with "Unrecognized EOF";
             else
-               raise Syntax_Error with "Unrecognized character '" & Lexer.Buffer (Lexer.Buffer_Head) & "'";
+               raise Syntax_Error with "Unrecognized character '" & Lexer.Source.Buffer (Lexer.Buffer_Head) & "'";
             end if;
          end if;
 
@@ -210,19 +213,17 @@ package body WisiToken.Lexer.Regexp is
    is
       pragma Unreferenced (Lexer);
    begin
-      --  Match current unit tests
-      return 1;
+      return 0;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
-      --  Useful for unit tests
       return Ada.Text_IO.Count (Lexer.Lexeme_Head);
    end Column;
 
    overriding function Lexeme (Lexer : in Instance) return String
    is begin
-      return Lexer.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
+      return Lexer.Source.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
    end Lexeme;
 
    overriding function Bounds (Lexer : in Instance) return Buffer_Region

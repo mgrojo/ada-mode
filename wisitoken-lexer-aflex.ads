@@ -70,7 +70,11 @@ package WisiToken.Lexer.Aflex is
       Enable_Line_Numbers : in              Boolean                               := False)
      return WisiToken.Lexer.Handle;
 
-   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
+   --  Both raise Not_Implemented
+
+   overriding procedure Reset (Lexer : in out Instance);
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
@@ -88,7 +92,8 @@ private
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      Token : Token_ID; --  last token read by find_next
+      Feeder : WisiToken.Text_Feeder.Text_Feeder_Ptr;
+      Token  : Token_ID; --  last token read by find_next
    end record;
 
 end WisiToken.Lexer.Aflex;

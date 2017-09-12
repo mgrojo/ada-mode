@@ -19,6 +19,7 @@
 ^build/.*\.parse$
 ^build/.*\.parse_table$
 ^build/.*\.qx$
+^build/.*\.re2c$
 ^build/.*\.wy$
 ^build/.*\.zip$
 ^build/exec_pro$

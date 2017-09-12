@@ -784,7 +784,7 @@ package body Wisi.Gen_Output_Ada_Common is
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
 
          if Kind (I) = """number""" and Value (I) = "ada-wisi-number-p" then
-            Indent_Line (Name (I) & " = ([0-9]+#)?[0-9][0-9a-fA-F._]*(#)?;");
+            Indent_Line (Name (I) & " = ([0-9]+""#"")?[0-9][0-9a-fA-F._]*(""#"")?;");
 
          elsif 0 /= Index (Source => Value (I), Pattern => "/") then
             --  trailing context syntax; forbidden in definitions
