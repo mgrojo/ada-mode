@@ -28,7 +28,6 @@ with Ada_Lite;
 with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
 with WisiToken.Token_Region.AUnit;
-with ada_lite_dfa;
 package body Test_McKenzie_Recover is
 
    Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser (WisiToken.LALR);
@@ -40,8 +39,7 @@ package body Test_McKenzie_Recover is
    is begin
       Parser.Enable_McKenzie_Recover := True;
 
-      ada_lite_dfa.aflex_debug := Debug > 3;
-      WisiToken.Trace_Parse    := Debug;
+      WisiToken.Trace_Parse := Debug;
 
       Ada_Lite.Action_Count := (others => 0);
 
@@ -85,7 +83,6 @@ package body Test_McKenzie_Recover is
    begin
       --  The test is that there is no exception.
 
-      ada_lite_dfa.aflex_debug := False; -- keep for future debugging
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_File (File_Name);
