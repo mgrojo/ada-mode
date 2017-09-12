@@ -5,6 +5,67 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
+leaking memory
+    ada_mode_wisi_parse.exe memory grows with each parse
+        mostly during parses that take a long time
+            mckenzie, or lots of parsers?
+
+    two_mem runs gnatmem on run_ada_lite_parser ada_mode-recover_indent_3
+        only suspicious result is:
+Allocation Root # 3
+-------------------
+ Number of non freed allocations    : 797
+ Final Water Mark (non freed mem)   : 17.17 Kilobytes
+ High Water Mark                    : 1.85 Megabytes
+ Backtrace                          :
+   s-pooglo.adb:0 ??
+
+    add gnat.debug_pool to sal-gen_min_heap
+        debug_pools.dump_gnatmem outputs the same information as gnatmem; nothing new!
+        add print_info_stdout; lots of confusing numbers, not helpful
+
+    run on a similar file with no errors: ada_mode-recover_indent_3_fixed.adb
+        suspicious result not changed much; 795, everything else the same
+        => not mckenzie
+
+    parsers used:
+        broken: 0 .. 3
+        fixed : same
+
+    does it scale with repeat?
+        goes up by 2 with each repeat
+
+    double code length
+        gnatmem_test2.adb
+        uses parsers 0 .. 5
+        795 allocations
+
+    run on full ada, on code that causes memory growth in task manager
+
+can't parse wisi/test/gnatcoll-xref.adb:
+    run_ada_parser.exe wisi/test/gnatcoll-xref.adb  --verbosity 1 > gnatcoll-xref.parse
+    error on character literal
+
+    error not reported properly:
+        line numbers wrong, State.Errors empty
+            because recover not called? need recover(fail)?
+ 486: 189: EQUAL : reduce 1 tokens to simple_expression
+(simple_expression 2344:13) <= ((term_list 2344:13))
+ ... goto state 376
+ 486: 376: EQUAL : shift and goto state 337
+ 486: 337: TICK : ERROR
+ 486: expecting: ABS, LEFT_PAREN, NEW, NOT, NULL, MINUS, PLUS, NUMERIC_LITERAL, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL
+
+ McKenzie error recovery
+
+parser 486:
+mckenzie (max cost 12) enqueue 45638, check  3426; fail
+recover: fail
+
+
+wisi/test/gnatcoll-xref.adb wisitoken-parser-lr-parser.adb:588
+
+
 improve mckenzie
     ./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 1000
     run_ada_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb --repeat_count 10
