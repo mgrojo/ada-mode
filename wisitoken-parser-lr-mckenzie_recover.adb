@@ -20,38 +20,8 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
-with SAL.Gen_Unbounded_Definite_Min_Heaps;
+with WisiToken.Token;
 package body WisiToken.Parser.LR.McKenzie_Recover is
-
-   Default_Configuration : constant Configuration :=
-     (Stack                  => Parser_Stacks.Empty_Stack,
-      Verb                   => Shift_Local_Lookahead,
-      Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
-      Local_Lookahead        => Token_Arrays.Empty_Vector,
-      Local_Lookahead_Index  => Token_Arrays.No_Index,
-      Popped                 => Token_Arrays.Empty_Vector,
-      Pushed                 => Parser_Stacks.Empty_Stack,
-      Inserted               => Token_Arrays.Empty_Vector,
-      Deleted                => Token_Arrays.Empty_Vector,
-      Cost                   => 0);
-
-   overriding
-   function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String
-   is
-      use Ada.Containers;
-   begin
-      return
-        "(" & Image (Descriptor, Config.Stack) & ", " &
-        All_Parse_Action_Verbs'Image (Config.Verb) &
-        SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Local_Lookahead) & ", " &
-        Count_Type'Image (Config.Local_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Popped) & ", " &
-        Image (Descriptor, Config.Pushed) & ", " &
-        Image (Descriptor, Config.Inserted) & ", " &
-        Image  (Descriptor, Config.Deleted) & ", " &
-        Natural'Image (Config.Cost) & ")";
-   end Image;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration)
    is
@@ -110,31 +80,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    ----------
    --  Core code
-
-   function Key (A : in Configuration) return Integer
-   is begin
-      return A.Cost;
-   end Key;
-
-   procedure Set_Key (Item : in out Configuration; Key : in Integer)
-   is begin
-      Item.Cost := Key;
-   end Set_Key;
-
-   package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps
-     (Element_Type => Configuration,
-      Key_Type     => Integer,
-      Key          => Key,
-      Set_Key      => Set_Key);
-
-   type McKenzie_Data (Parser : access LR.Instance'Class) is new LR.Recover_Data with
-   record
-      Config_Heap   : Config_Heaps.Heap_Type;
-      Enqueue_Count : Integer := 0;
-      Check_Count   : Integer := 0;
-      Result        : Configuration;
-      Success       : Boolean := False;
-   end record;
 
    procedure Clear_Queue (Data : in out McKenzie_Data)
    is begin
@@ -469,7 +414,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
 
-      Data   : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
+      Data   : McKenzie_Data renames Parser_State.Recover;
       Trace  : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
       EOF_ID : Token_ID renames Trace.Descriptor.EOF_ID;
 
@@ -663,11 +608,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end if;
 
       for Parser_State of Parsers loop
-         Free (Parser_State.Recover);
-         Parser_State.Recover := new McKenzie_Data (Parser'Unchecked_Access);
-
          declare
-            Data : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
+            Data : McKenzie_Data renames Parser_State.Recover;
          begin
             Recover (Parser, Parser_State);
 
@@ -690,7 +632,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
             use Parser_Lists;
             use all type SAL.Base_Peek_Type;
             use all type Ada.Containers.Count_Type;
-            Data : McKenzie_Data renames McKenzie_Data (Parser_State.Recover.all);
+            Data : McKenzie_Data renames Parser_State.Recover;
          begin
             if Data.Success then
                if Parsers.Count > 1 then

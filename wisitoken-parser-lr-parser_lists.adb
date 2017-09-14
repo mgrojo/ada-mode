@@ -32,8 +32,9 @@ package body WisiToken.Parser.LR.Parser_Lists is
    end Pend;
 
    function New_List
-     (First_State_Index  : in State_Index;
-      First_Parser_Label : in Natural)
+     (Parser             : access LR.Instance'Class;
+      First_State_Index  : in     State_Index;
+      First_Parser_Label : in     Natural)
      return List
    is
       Stack : Parser_Stacks.Stack_Type;
@@ -50,7 +51,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
              Last_Shift_Was_Virtual   => False,
              Stack                    => Stack,
              Pend_Items               => Pend_Items_Queues.Empty_Queue,
-             Recover                  => null,
+             Recover                  => Default_McKenzie,
              Local_Lookahead          => Token_Queues.Empty_Queue,
              Shared_Lookahead_Index   => SAL.Peek_Type'First,
              Zombie_Token_Count       => 0,
@@ -58,6 +59,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
              Verb                     => Shift,
              Prev_Verb                => Parse_Action_Verbs'First,
              Pre_Reduce_Item          => Default_Parser_Stack_Item));
+
+         Result.First.State_Ref.Recover.Parser := Parser;
       end return;
    end New_List;
 
@@ -155,7 +158,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
             Last_Shift_Was_Virtual   => Item.Last_Shift_Was_Virtual,
             Stack                    => Item.Stack,
             Pend_Items               => Item.Pend_Items,
-            Recover                  => null,
+            Recover                  => Default_McKenzie,
             Local_Lookahead          => Item.Local_Lookahead,
             Shared_Lookahead_Index   => Item.Shared_Lookahead_Index,
             Zombie_Token_Count       => 0,
@@ -163,6 +166,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
             Verb                     => Item.Verb,
             Prev_Verb                => Item.Prev_Verb,
             Pre_Reduce_Item          => Item.Pre_Reduce_Item);
+
+         New_Item.Recover.Parser := Item.Recover.Parser;
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;

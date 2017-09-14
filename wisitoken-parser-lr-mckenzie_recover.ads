@@ -27,7 +27,6 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Parser.LR.Parser_Lists;
-with WisiToken.Token;
 package WisiToken.Parser.LR.McKenzie_Recover is
 
    function Recover
@@ -36,32 +35,6 @@ package WisiToken.Parser.LR.McKenzie_Recover is
      return Boolean;
    --  Attempt to modify Parsers state and Parser.Lookahead to allow
    --  recovering from an error state. Return True if successful.
-
-   --  Visible for unit test, sending to Emacs process.
-   type Configuration is new WisiToken.Token.Recover_Data with record
-      Stack : Parser_Stacks.Stack_Type;
-      --  This is the stack after the operations below have been done;
-      --  suitable for the next operation.
-
-      Verb                   : All_Parse_Action_Verbs;
-      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
-
-      Local_Lookahead        : Token_Arrays.Vector;
-      Local_Lookahead_Index  : Ada.Containers.Count_Type;
-      --  Local_Lookahead contains tokens inserted by special rules.
-      --  It is not a queue type, because we always access it via
-      --  Local_Lookahead_Index
-
-      Popped   : Token_Arrays.Vector;
-      Pushed   : Parser_Stacks.Stack_Type;
-      Inserted : Token_Arrays.Vector;
-      Deleted  : Token_Arrays.Vector;
-      Cost     : Natural := 0;
-   end record;
-
-   overriding
-   function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String;
-   --  Aggregate syntax, for sending to Emacs.
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
    --  Put Config to Ada.Text_IO.Current_Output, for debug

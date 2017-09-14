@@ -59,7 +59,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       Last_Shift_Was_Virtual   : Boolean;
       Stack                    : Parser_Stacks.Stack_Type;
       Pend_Items               : Pend_Items_Queues.Queue_Type;
-      Recover                  : Recover_Data_Access;
+      Recover                  : LR.McKenzie_Data;
       Local_Lookahead          : Token_Queues.Queue_Type; -- Holds error recovery insertions.
       Shared_Lookahead_Index   : SAL.Peek_Type;
       Zombie_Token_Count       : Integer;
@@ -81,8 +81,9 @@ package WisiToken.Parser.LR.Parser_Lists is
      Iterator_Element  => Parser_State;
 
    function New_List
-     (First_State_Index  : in State_Index;
-      First_Parser_Label : in Natural)
+     (Parser             : access LR.Instance'Class;
+      First_State_Index  : in     State_Index;
+      First_Parser_Label : in     Natural)
      return List;
 
    function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type;

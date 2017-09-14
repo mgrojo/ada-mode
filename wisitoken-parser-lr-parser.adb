@@ -311,12 +311,13 @@ package body WisiToken.Parser.LR.Parser is
       Trace      : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
 
-      Parsers              : Parser_Lists.List := Parser_Lists.New_List
-        (First_State_Index  => Parser.Table.State_First,
+      Parsers        : Parser_Lists.List := Parser_Lists.New_List
+        (Parser             => Parser'Unchecked_Access, --  Parsers will not be around longer than Parser
+         First_State_Index  => Parser.Table.State_First,
          First_Parser_Label => Parser.First_Parser_Label);
-      Current_Verb         : All_Parse_Action_Verbs;
-      Current_Parser       : Parser_Lists.Cursor;
-      Action               : Parse_Action_Node_Ptr;
+      Current_Verb   : All_Parse_Action_Verbs;
+      Current_Parser : Parser_Lists.Cursor;
+      Action         : Parse_Action_Node_Ptr;
 
       First_Token                : Boolean := True;
       Max_Shared_Lookahead_Index : SAL.Peek_Type;

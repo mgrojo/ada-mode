@@ -42,35 +42,12 @@ Allocation Root # 3
 
     run on full ada, on code that causes memory growth in task manager
 
-can't parse wisi/test/gnatcoll-xref.adb:
-    run_ada_parser.exe wisi/test/gnatcoll-xref.adb  --verbosity 1 > gnatcoll-xref.parse
-    error on character literal
-
-    error not reported properly:
-        line numbers wrong, State.Errors empty
-            because recover not called? need recover(fail)?
- 486: 189: EQUAL : reduce 1 tokens to simple_expression
-(simple_expression 2344:13) <= ((term_list 2344:13))
- ... goto state 376
- 486: 376: EQUAL : shift and goto state 337
- 486: 337: TICK : ERROR
- 486: expecting: ABS, LEFT_PAREN, NEW, NOT, NULL, MINUS, PLUS, NUMERIC_LITERAL, IDENTIFIER, STRING_LITERAL, CHARACTER_LITERAL
-
- McKenzie error recovery
-
-parser 486:
-mckenzie (max cost 12) enqueue 45638, check  3426; fail
-recover: fail
-
-
-wisi/test/gnatcoll-xref.adb wisitoken-parser-lr-parser.adb:588
-
-
 put back mckenzie-enable in wisi-process-parse
     so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
 leaking memory
-    see org.wisitoken notes
+    check finalize parser_state on Free (cursor)
+
     if Linker_Options works in .gpr, post on comp.lang.ada "link errors with GNAT GPL 2016 and gprof"
     test/gnatmem_test_3.adb
         task manager memory usage +0.1 MB per parse
@@ -83,6 +60,14 @@ leaking memory
         task manager memory usage > +100 MB per parse
             even with mckenzie_cost_limit = 2
             must be due to dying parsers?
+            37 parsers
+
+        in command line parser, +5MB/parse
+            disable_recover => < 0.1MB/parse (but not zero)
+            maybe Free (Recover) is not working?
+                set breakpoint in heap finalize, parser_stack finalize (ie containers.vectors.finalize)
+                vector finalize called from parser_stacks.new_list
+                heap finalize called on program termination
 
     report memory use during parse
         https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
@@ -124,6 +109,8 @@ improve mckenzie
             wisitoken.parser.lr.mckenzie_recover.configuration.Finalize
             wisitoken.parser.lr.mckenzie_recover.":=" (for configuration, presumably)
             wisitoken.parser.lr.mckenzie_recover.config_heaps.exchange
+
+    Derive token_array, add discriminant that sets initial size
 
     try Ada.Containers.Bounded_Vectors (first_terminal .. last_nonterminal) for token_arrays
         = 337 for Ada

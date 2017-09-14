@@ -41,6 +41,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Stack_Interfaces;
+with SAL.Gen_Unbounded_Definite_Min_Heaps;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Token;
 package WisiToken.Parser.LR is
@@ -266,12 +267,6 @@ package WisiToken.Parser.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
-   type Recover_Data is tagged null record;
-   --  Stored with parser state during recovery.
-
-   type Recover_Data_Access is access Recover_Data'Class;
-   procedure Free is new Ada.Unchecked_Deallocation (Recover_Data'Class, Recover_Data_Access);
-
    --  Parser stack type. Visible here for error recover info.
    type Parser_Stack_Item is record
       State : Unknown_State_Index;
@@ -316,6 +311,65 @@ package WisiToken.Parser.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table);
 
+   --  For McKenzie_Recover: Parser_Lists needs these; mckenzie needs parser_lists
+
+   type Configuration is new WisiToken.Token.Recover_Data with record
+      Stack : Parser_Stacks.Stack_Type;
+      --  This is the stack after the operations below have been done;
+      --  suitable for the next operation.
+
+      Verb                   : All_Parse_Action_Verbs;
+      Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
+
+      Local_Lookahead        : Token_Arrays.Vector;
+      Local_Lookahead_Index  : Ada.Containers.Count_Type;
+      --  Local_Lookahead contains tokens inserted by special rules.
+      --  It is not a queue type, because we always access it via
+      --  Local_Lookahead_Index
+
+      Popped   : Token_Arrays.Vector;
+      Pushed   : Parser_Stacks.Stack_Type;
+      Inserted : Token_Arrays.Vector;
+      Deleted  : Token_Arrays.Vector;
+      Cost     : Natural := 0;
+   end record;
+
+   overriding
+   function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String;
+   --  Aggregate syntax, for sending to Emacs.
+
+   function Key (A : in Configuration) return Integer is (A.Cost);
+
+   procedure Set_Key (Item : in out Configuration; Key : in Integer);
+
+   Default_Configuration : constant Configuration :=
+     (Stack                  => Parser_Stacks.Empty_Stack,
+      Verb                   => Shift_Local_Lookahead,
+      Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
+      Local_Lookahead        => Token_Arrays.Empty_Vector,
+      Local_Lookahead_Index  => Token_Arrays.No_Index,
+      Popped                 => Token_Arrays.Empty_Vector,
+      Pushed                 => Parser_Stacks.Empty_Stack,
+      Inserted               => Token_Arrays.Empty_Vector,
+      Deleted                => Token_Arrays.Empty_Vector,
+      Cost                   => 0);
+
+   package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps
+     (Element_Type => Configuration,
+      Key_Type     => Integer,
+      Key          => Key,
+      Set_Key      => Set_Key);
+
+   type McKenzie_Data is tagged record
+      Parser        : access Instance'Class;
+      Config_Heap   : Config_Heaps.Heap_Type;
+      Enqueue_Count : Integer := 0;
+      Check_Count   : Integer := 0;
+      Result        : Configuration := Default_Configuration;
+      Success       : Boolean := False;
+   end record;
+
+   Default_McKenzie : constant McKenzie_Data := (others => <>);
 private
 
    --  Private to enforce use of Add; doesn't succeed, since only
