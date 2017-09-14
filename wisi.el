@@ -394,7 +394,7 @@ If at end of buffer, return `wisi-eoi-term'."
 
     (forward-comment (point-max))
 
-    (when (and (not (eobp))
+    (when (and (not (eq token-id wisi-eoi-term))
 	       (eq wisi--parse-action 'indent))
       ;; parsing for indent; track line numbers
 
@@ -857,7 +857,14 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (interactive)
   (cond
    ((wisi-parser-errors wisi--parser)
-    (if (= 1 (length (wisi-parser-errors wisi--parser)))
+    (if (and (= 1 (length (wisi-parser-errors wisi--parser)))
+	     (not
+	      (or (wisi--error-popped (car (wisi-parser-errors wisi--parser)))
+		  (wisi--error-inserted (car (wisi-parser-errors wisi--parser)))
+		  (wisi--error-deleted (car (wisi-parser-errors wisi--parser))))))
+	;; If there is error correction information, use a
+	;; ’compilation’ buffer, so *-fix-compiler-error will call
+	;; wisi-fix-error.
 	(progn
 	  (wisi-goto-error)
 	  (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
@@ -884,9 +891,9 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 	  (compilation--ensure-parse (point-max))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min)))
-	;; FIXME: specify display parameters to limit buffer height,
-	;; while still allowing other-frame-window
-	(display-buffer wisi-error-buffer)
+	(display-buffer wisi-error-buffer
+			(cons #'display-buffer-at-bottom
+			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
 	(next-error))
       ))
 
@@ -1830,15 +1837,17 @@ containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line."
 	 ;; tok is a nonterminal; this function makes no sense for terminals
 	 (anchor-tok (aref wisi-tokens (1- token-number))))
 
-    (wisi-anchored-2
-     (wisi-tok-line anchor-tok)
+    (when (not (or (wisi-tok-virtual indent-tok)
+		   (wisi-tok-virtual anchor-tok)))
+      (wisi-anchored-2
+       (wisi-tok-line anchor-tok)
 
-     (if wisi-indent-comment
-	 (wisi-tok-comment-end indent-tok)
-       (cdr (wisi-tok-region indent-tok))) ;; end
+       (if wisi-indent-comment
+	   (wisi-tok-comment-end indent-tok)
+	 (cdr (wisi-tok-region indent-tok))) ;; end
 
-     (wisi--paren-in-anchor-line anchor-tok offset)
-     no-accumulate)
+       (wisi--paren-in-anchor-line anchor-tok offset)
+       no-accumulate))
     ))
 
 (defun wisi-anchored%- (token-number offset)

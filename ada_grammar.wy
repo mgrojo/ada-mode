@@ -157,28 +157,34 @@
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 %token <punctuation> STAR_STAR "**"
-%token <punctuation> TICK "'"
+
+;; re2c lookahead regular expression; this is not a character literal.
+;; re2c does not allow combining | with /, so we need three tokens for
+;; this (sigh).
+%token <punctuation> TICK_1 "'"
+
+%if lexer = re2c
+%token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
+%end if
 
 ;; We don't need numeric_literal for indentation, but we do need it for face.
-;; Must be before IDENTIFIER; otherwise recognized as an identifier
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
-%token <whitespace> WHITESPACE "[ \t\n]"
-%token <line_comment> COMMENT "\-\-[^\n]*\n"
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
-%token <string-double> STRING_LITERAL "(\"[^\"]*\")+"
+%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 
-;; This does not handle:
-;; Character'('C');
-;; but it can be worked around by adding a space:
-;; Character'( 'C');
-%token <string-single> CHARACTER_LITERAL "'[^']'|''''"
+%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
+
+%token <string-single> CHARACTER_LITERAL "'"[\x20-\U0010FFFF]"'"
 
 %start compilation_unit_list
 %parser_algorithm LALR
-%output_language Elisp
+
+;; output_language and lexer are set on the command line; this file is
+;; used to generate elisp, Ada_Emacs, and Ada parsers.
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
@@ -257,7 +263,6 @@
 %conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
-%conflict SHIFT/REDUCE in state attribute_reference, attribute_designator on token TICK
 %conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
@@ -281,6 +286,10 @@
 %conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
 %conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
 %conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state tick, attribute_designator  on token TICK_1
+%if lexer = re2c
+%conflict SHIFT/REDUCE in state tick, attribute_designator  on token TICK_2
+%end if
 
 %%
 ;;;; grammar rules
@@ -507,7 +516,7 @@ at_clause
     (wisi-statement-action [1 statement-start 6 statement-end])
   ;
 
-attribute_reference : name TICK attribute_designator ;
+attribute_reference : name tick attribute_designator ;
 
 attribute_designator
 ;; IDENTIFIER LEFT_PAREN expression RIGHT_PAREN is redundant with name
@@ -2015,7 +2024,7 @@ protected_type_declaration
 ;; protected_operation_declaration merged into declaration
 
 qualified_expression
-  : name TICK aggregate
+  : name tick aggregate
     (progn
       (wisi-face-apply-action [1 font-lock-function-name-face font-lock-type-face])
       (wisi-indent-action [0 0 (if ada-indent-hanging-rel-exp
@@ -2059,9 +2068,9 @@ raise_statement
   ;
 
 range_g
-  : name TICK RANGE LEFT_PAREN expression_opt RIGHT_PAREN ;; range_attribute_reference
+  : name tick RANGE LEFT_PAREN expression_opt RIGHT_PAREN ;; range_attribute_reference
     (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored 4 1) (wisi-anchored 4 0)])
-  | name TICK RANGE ;; range_attribute_reference
+  | name tick RANGE ;; range_attribute_reference
   | simple_expression DOT_DOT simple_expression
   ;
 
@@ -2495,6 +2504,13 @@ term
 term_list
   : term
   | term_list binary_adding_operator term
+  ;
+
+tick
+  : TICK_1
+%if lexer = re2c
+  | TICK_2
+%end if
   ;
 
 timed_entry_call

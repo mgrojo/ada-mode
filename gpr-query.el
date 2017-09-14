@@ -136,7 +136,7 @@ See comment in ‘gpr-queyr--start-process’."
 
 (defun gpr-query-cached-session ()
   "Return a session for the current project file, creating it if necessary."
-  (let* ((session (cdr (assoc ada-prj-current-file gpr-query--sessions))))
+  (let ((session (cdr (assoc ada-prj-current-file gpr-query--sessions))))
     (if session
 	(progn
 	  (unless (process-live-p (gpr-query--session-process session))
@@ -661,6 +661,7 @@ FILE must be non-nil; line, col can be nil."
   )
 
 (defun ada-gpr-query-select-prj ()
+  ;; We wait until the session is actually required to create it.
   (setq ada-file-name-from-ada-name 'ada-gnat-file-name-from-ada-name)
   (setq ada-ada-name-from-file-name 'ada-gnat-ada-name-from-file-name)
   (setq ada-make-package-body       'ada-gnat-make-package-body)
@@ -678,6 +679,8 @@ FILE must be non-nil; line, col can be nil."
   )
 
 (defun ada-gpr-query-deselect-prj ()
+  ;; We don’t kill the session here; user may switch back to this
+  ;; project.
   (setq ada-file-name-from-ada-name nil)
   (setq ada-ada-name-from-file-name nil)
   (setq ada-make-package-body       nil)

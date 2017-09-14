@@ -41,25 +41,25 @@
 
 ;;; Prologue
 %{
-;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
 ;; Declarations
 
-;; token declarations
+;;  (info "(gnat_ugn)Project File Reference")
 
 ;; punctuation
 %token <punctuation> AMPERSAND "&"
@@ -72,7 +72,7 @@
 %token <punctuation> SEMICOLON ";"
 %token <punctuation> VERTICAL_BAR "|"
 
-;; gpr keywords (info "(gnat_ugn)Project File Reference")
+;; gpr keywords
 
 %keyword ABSTRACT "abstract"
 %keyword AGGREGATE "aggregate"
@@ -98,6 +98,10 @@
 %keyword WHEN "when"
 %keyword WITH "with"
 
+;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
+
 %token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 %token <string-double> STRING_LITERAL "\"[^\"]*\""
 
@@ -105,13 +109,17 @@
 %parser_algorithm LALR
 %output_language Elisp
 
+%mckenzie_cost_default 4 4 8
+%mckenzie_cost_limit 12
+%mckenzie_check_limit 3
+
 %conflict SHIFT/REDUCE in state term, identifier_opt on token RIGHT_PAREN
 %conflict SHIFT/REDUCE in state case_item, case_items on token WHEN
 
 %%
 ;; grammar rules, non-terminal alphabetical order
 
-aggregate
+aggregate_g
   : LEFT_PAREN string_list RIGHT_PAREN
     (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])
   ;
@@ -218,8 +226,8 @@ expression
   ;
 
 external_value
-  : EXTERNAL aggregate
-  | EXTERNAL_AS_LIST aggregate
+  : EXTERNAL aggregate_g
+  | EXTERNAL_AS_LIST aggregate_g
   ;
 
 identifier_opt
@@ -335,11 +343,11 @@ string_list
 term
   : string_primary
   | LEFT_PAREN RIGHT_PAREN
-  | aggregate
+  | aggregate_g
   ;
 
 typed_string_declaration
-  : TYPE IDENTIFIER IS aggregate SEMICOLON
+  : TYPE IDENTIFIER IS aggregate_g SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 5 statement-end])
       (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken 0]))

@@ -20,16 +20,21 @@ with "wisitoken";
 with "standard_common";
 project Ada_Mode_Wisi_Parse is
 
-   for Main use ("ada_mode_wisi_parse.adb");
+   for Main use
+     ("ada_mode_wisi_parse.ads",
+      "run_ada_parser.ads",
+      "gpr_mode_wisi_parse.ads",
+      "run_gpr_parser.ads"
+     );
 
    for Source_Dirs use (".", "build");
-   --  "build" holds run_ada_parser.adb, used for debugging
+   --  "build" holds some generated files
 
    for Object_Dir use "obj";
 
    for Exec_Dir use ".";
 
-   for Languages use ("Ada");
+   for Languages use ("Ada", "C");
 
    package Compiler is
       --  FIXME: use Standard_Common vars
@@ -72,6 +77,8 @@ project Ada_Mode_Wisi_Parse is
          for Switches ("ada_grammar_process_io.adb")  use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
          for Switches ("ada_grammar_process_yylex.adb") use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
 
+         for Switches ("gpr_grammar_process.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
+         for Switches ("gpr_grammar.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
       end case;
 
    end Compiler;

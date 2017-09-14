@@ -124,19 +124,19 @@
     (SLASH_EQUAL . "/=")
     (STAR . "*")
     (STAR_STAR . "**")
-    (TICK . "'")
+    (TICK_1 . "'")
     )
    ("number"
     (NUMERIC_LITERAL ada-wisi-number-p)
     )
    ("symbol"
-    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    (IDENTIFIER . "")
     )
    ("string-double"
-    (STRING_LITERAL . "(\"[^\"]*\")+")
+    (STRING_LITERAL . "")
     )
    ("string-single"
-    (CHARACTER_LITERAL . "'[^']'|''''")
+    (CHARACTER_LITERAL . "")
     )
    ))
 (defconst ada_grammar-process-token-table
@@ -241,7 +241,7 @@
     SLASH_EQUAL
     STAR
     STAR_STAR
-    TICK
+    TICK_1
     NUMERIC_LITERAL
     IDENTIFIER
     STRING_LITERAL
@@ -471,6 +471,7 @@
     task_type_declaration
     term
     term_list
+    tick
     timed_entry_call
     triggering_alternative
     type_declaration
@@ -1695,6 +1696,7 @@
        (wisi-face-apply-action [3 nil font-lock-type-face])
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0])))
       )
+     nil
      nil
      nil
      (("timed_entry_call:0"

@@ -48,10 +48,18 @@ package body WisiToken.Lexer.Elisp_Process is
       return Handle (New_Lexer);
    end New_Lexer;
 
-   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer)
-   is
-      pragma Unreferenced (Buffer_Size);
-   begin
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
+   is begin
+      raise SAL.Not_Implemented;
+   end Reset_With_String;
+
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
+   is begin
+      raise SAL.Not_Implemented;
+   end Reset_With_File;
+
+   overriding procedure Reset (Lexer : in out Instance)
+   is begin
       Initialize (Lexer, Lexer.EOF_ID);
    end Reset;
 

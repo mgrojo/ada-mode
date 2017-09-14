@@ -42,11 +42,9 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
+send redundant token_ids only in debug mode
 
-very slow:
-   for A in Foo loop
-   for C in Graph.Vertices (U_Index).Edges.Iterate loop
-   end loop;
+background process leaking memory
 
 emacs hangs occasionally
     killing ada_mode_wisi_parse.exe recovers
@@ -90,12 +88,7 @@ ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
 use process sentinel to avoid race condition?
     document it first
 
-    delete wisi-process--parser-new-session?
-        was a workaround for font-lock interrupting foreground parse
-
 add mode to log all recover failures for later analysis
-
-need mckenzie in gpr
 
 fix release
     version 5.3.1
@@ -155,6 +148,19 @@ more error handling
                     they will be overwritten?
 
  speed issues
+14 Sept 2017:
+    command line run_ada_parser with re2c lexer, memory mapped file
+        run_ada_parser.exe gnatcoll-xref.adb --repeat_count 10
+            Total time: 2.616570654
+            per iteration: 0.261657065
+
+    process parser with elisp lexer, warm process
+        (time-it (lambda () (wisi-invalidate-cache 'navigate 0) (wisi-validate-cache (point-max) t 'navigate)) 1)
+        6.422402 seconds, 10 gcs
+
+    eliminate redundant tokens on process interface
+
+    need Emacs module!
 
 in parse table, many states have only two actions; reduce and error
     compress all the reduce actions into one

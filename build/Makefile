@@ -40,7 +40,7 @@ docs : info html
 # without running the tests.
 update-elisp : ../ada_grammar-elisp.el
 update-elisp : ../gpr-grammar-elisp.el
-update-elisp : install_ada_mode_wisi_parse
+update-elisp : install_ada_executables
 update-elisp : byte-compile
 
 # This updates everything after any source change, without running the
@@ -100,7 +100,7 @@ test-wisi :: subprograms.wisi-process-test
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-recover_repair_1.adb
+ONE_TEST_FILES += ada_mode-options.adb
 #ONE_TEST_FILES += debug.adb
 one : RUNTEST := run-indent-test-process-gpr_query.el
 # one : update
@@ -109,11 +109,11 @@ one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
 # run_ada_parser args: <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>
-two : TRACE ?= 2
-run_ada_parser.exe : export Standard_Common_Build := Debug
-two : run_ada_parser.exe
+two : RUN_ARGS ?= --verbosity 2
+# run_ada_parser.exe : export Standard_Common_Build := Debug
+two : build_ada_executables
 two :
-	../run_ada_parser.exe $(TRACE) 1 -1 ../test/ada_mode-recover_repair_1.adb
+	../run_ada_parser.exe ../test/debug.adb $(RUN_ARGS)
 
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
@@ -341,15 +341,21 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-#ada_mode_wisi_parse.exe : export Standard_Common_Build := Debug
-../ada_mode_wisi_parse.exe : ../ada_grammar_process.ads force
+build_ada_executables : gpr_grammar.ads gpr_grammar_re2c.c gpr_grammar_process.ads  force
+build_ada_executables : ada_grammar.ads ada_grammar_re2c.c ada_grammar_process.ads force
 	gprbuild -p ../ada_mode_wisi_parse.gpr
 
-run_ada_parser.exe : ada_grammar.ads ada_grammar_yylex.adb force
-	gprbuild -p ada_mode_wisi_parse.gpr run_ada_parser.adb
+install_ada_executables : build_ada_executables
+	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse
 
-install_ada_mode_wisi_parse : ../ada_mode_wisi_parse.exe
-	strip -o $(INSTALL_BIN)$(^F) $^
+$(INSTALL_BIN)run_ada_mode_parser$(EXE_EXT) install_run_ada_mode_parser : run_ada_mode_parser$(EXE_EXT)
+	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_ada_mode_parser
+
+$(INSTALL_BIN)gpr_mode_wisi_parse$(EXE_EXT) install_gpr_mode_wisi_parse : gpr_mode_wisi_parse$(EXE_EXT)
+	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=gpr_mode_wisi_parse
+
+$(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gpr_mode_parser$(EXE_EXT)
+	gprinstall -f -p -P ../run_ada_mode_parser.gpr --install-name=run_gpr_mode_parser
 
 # eval: (setenv "GPS_ROOT" "d:/Apps/GNAT-gpl_2016/gps-gpl-2016-src")
 

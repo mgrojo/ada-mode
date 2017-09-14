@@ -1,16 +1,6 @@
 --  Abstract :
 --
---  Emacs background process for Ada mode; parse token stream, return
---  parser actions.
---
---  References :
---
---  [1] On the elisp side, the inter-process protocol is defined in
---  wisi-process-parse.el, functions wisi-process-parse--send-parse
---  and wisi-process-parse--execute.
---
---  [2] On the Ada side, it is defined here, and in
---  wisitoken-token_emacs_process.adb
+--  See spec.
 --
 --  Copyright (C) 2014, 2017 All Rights Reserved.
 --
@@ -31,12 +21,11 @@ with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada_Grammar_Process;
 with WisiToken.Lexer.Elisp_Process;
 with WisiToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
 with System.Storage_Elements;
-procedure Ada_Mode_Wisi_Parse
+procedure Gen_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
    Version          : constant String := "0.0";
@@ -48,7 +37,7 @@ is
    procedure Usage
    is
    begin
-      Put_Line ("usage: ada_mode_wisi_parse");
+      Put_Line ("usage: " & Name & "_wisi_parse");
       Put_Line ("enters a loop waiting for commands:");
       Put_Line ("Prompt is '" & Prompt & "'");
       Put_Line ("commands are case sensitive");
@@ -70,8 +59,7 @@ is
 
    Programmer_Error : exception;
 
-   Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Grammar_Process.Create_Parser
-     (Algorithm => WisiToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (Algorithm => WisiToken.LALR);
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -129,7 +117,7 @@ is
          From    => First + 1);
 
       if First = 0 or Last = 0 then
-         raise Protocol_Error with "ada_mode_wisi_parse: no '""' found for string";
+         raise Protocol_Error with Name & "_wisi_parse: no '""' found for string";
       end if;
 
       return Source (First + 1 .. Last - 1);
@@ -176,7 +164,7 @@ begin
       end case;
    end;
 
-   Put_Line ("ada_mode_wisi_parse " & Version & ", protocol version " & Protocol_Version);
+   Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and tokens from standard_input via GNAT.OS_Lib,
    --  send results to standard_output.
@@ -248,4 +236,4 @@ when E : others =>
    Put_Line
      ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E) & """)");
-end Ada_Mode_Wisi_Parse;
+end Gen_Wisi_Parse;

@@ -39,7 +39,9 @@ package WisiToken.Lexer.Elisp_Process is
       Trace  : not null access WisiToken.Trace'Class)
      return WisiToken.Lexer.Handle;
 
-   overriding procedure Reset (Lexer : in out Instance; Buffer_Size : in Integer);
+   overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
+   overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
+   overriding procedure Reset (Lexer : in out Instance);
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 

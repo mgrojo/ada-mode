@@ -512,6 +512,9 @@ from TOKEN-TABLE."
 (cl-defmethod wisi-parse-kill ((parser wisi-process--parser))
   (when (process-live-p (wisi-process--parser-process parser))
     (process-send-string (wisi-process--parser-process parser) wisi-process-parse-quit-cmd)
+    (sit-for 1.0)
+    (when (process-live-p (wisi-process--parser-process parser))
+      (kill-process (wisi-process--parser-process parser)))
     ))
 
 (cl-defmethod wisi-parse-current ((parser wisi-process--parser))
@@ -614,6 +617,14 @@ from TOKEN-TABLE."
 			;; Parser detected a syntax error, and recovery failed, so signal it.
 			(signal 'wisi-parse-error
 				(wisi--error-message (car (wisi-parser-errors parser)))))
+
+		       ((and (eq 'error (car action))
+			     (string-prefix-p "bad command:" (cadr action)))
+			;; Parser dropped bytes, is treating token ids
+			;; as commands. Kill the process to kill the
+			;; pipes; there is no other way to flush them.
+			(kill-process (wisi-process--parser-process parser))
+			(signal 'wisi-parse-error "parser lost sync; killed"))
 
 		       (t
 			;; Some other error

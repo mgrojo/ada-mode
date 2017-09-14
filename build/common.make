@@ -165,7 +165,7 @@ gpr-skel.gpr.tmp :
 
 # -v 1 dumps grammar
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 $(<F) > $(*F).elisp_parse_table
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp $(<F) > $(*F).elisp_parse_table
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else
@@ -173,19 +173,16 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
-../%_process.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+%_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
 
-%.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer Aflex $< > $(*F).ada_parse_table
+%.re2c %.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer re2c $< > $(*F).ada_parse_table
 	dos2unix $(*F).ads $(*F).adb
 
-%_yylex.ada : %.l
-	aflex -i -s -E -D$(WISI_WISITOKEN)/../wisi/wisitoken_aflex_dfa.adb.template -O$(WISI_WISITOKEN)/../wisi/wisitoken_aflex_io.adb.template $(AFLEX_ARGS) $<
-
-%_yylex.adb : %_yylex.ada
-	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
+%_re2c.c : %.re2c
+	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
@@ -234,7 +231,7 @@ GPRBUILD := gprbuild
 	makeinfo --html --no-split $< -o ../$@
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-ada-test-clean test-clean doc-clean
+clean :: compile-ada-test-clean build-ada-exec-clean test-clean doc-clean
 	find ../ -name "*~" -delete
 	rm -rf ../obj
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
@@ -253,6 +250,12 @@ compile-ada-test-clean :
 	rm -f ../test/*.ali ../test/subdir/*.ali
 	rm -f ../test/*.o ../test/subdir/*.o
 	rm -f ../test/gpr_query.db*
+
+# delete all files created by wisi-generate
+build-ada-exec-clean : PATTERNS := *.*_output *.*_parse_table *.re2c *_re2c.c *.exe
+build-ada-exec-clean :
+	rm -f $(PATTERNS) *.ad?
+	cd ..; rm -f $(PATTERNS) *_grammar-elisp.el *_grammar-process.el *_grammar.*_parse_table *_grammar_process.ad?
 
 test-clean ::
 	rm -f *.diff *.tmp

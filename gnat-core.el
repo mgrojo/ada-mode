@@ -109,8 +109,17 @@ See also `gnat-parse-emacs-final'."
 
 (defun gnat-prj-parse-emacs-final (project)
   "Final processing of gnat-specific Emacs Ada project file settings."
-  (when (buffer-live-p (get-buffer (gnat-run-buffer-name)))
-    (kill-buffer (gnat-run-buffer-name))); things may have changed, force re-create
+  ;; things may have changed, force re-create gnat or gpr-query sessions.
+  (cl-ecase (ada-prj-get 'xref_tool project)
+    (gnat
+     (when (buffer-live-p (get-buffer (gnat-run-buffer-name)))
+       (kill-buffer (gnat-run-buffer-name))))
+
+    (gpr_query
+     (let ((session (cdr (assoc ada-prj-current-file gpr-query--sessions))))
+       (when session
+	 (gpr-query-kill-session session))))
+     )
 
   (if (ada-prj-get 'gpr_file project)
       (setq project (gnat-parse-gpr (ada-prj-get 'gpr_file project) project))
@@ -427,6 +436,7 @@ list."
     ("a-string" . "Ada.Strings")
     ("a-strmap" . "Ada.Strings.Maps")
     ("a-strunb" . "Ada.Strings.Unbounded")
+    ("a-stwiun" . "Ada.Strings.Wide_Unbounded")
     ("g-comlin" . "GNAT.Command_Line")
     ("g-dirope" . "GNAT.Directory_Operations")
     ("g-socket" . "GNAT.Sockets")
