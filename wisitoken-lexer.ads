@@ -95,9 +95,16 @@ private
 
       when File_Label =>
          --  The input is memory mapped from the following, which must be closed:
-         File   : GNATCOLL.Mmap.Mapped_File;
-         Region : GNATCOLL.Mmap.Mapped_Region;
+         File        : GNATCOLL.Mmap.Mapped_File;
+         Region      : GNATCOLL.Mmap.Mapped_Region;
+         Buffer_Last : Positive;
       end case;
    end record;
+
+   function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
+   --  The bounds on the result are not present; 'First, 'Last are not
+   --  reliable. If Source_Label is String_label, actual bounds are
+   --  Source.Buffer'First, 'Last. Otherwise, actual bounds are 1 ..
+   --  Source.Buffer_Last. Indexing is reliable.
 
 end WisiToken.Lexer;

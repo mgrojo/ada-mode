@@ -293,7 +293,7 @@ There are two types of tokens; keywords and other:
 ``Keywords'' are reserved words in the target language; the Emacs wisi
 and WisiToken lexers recognize them by the given string.
 
-In the Emacs wisi lexer, ``Tokens'' are recognized by Emacs syntax
+In the Emacs wisi lexer, the other token types are recognized by Emacs syntax
 properties. These are the predefined token classes:
 
 @table @code
@@ -332,16 +332,16 @@ source file for the recognizer (included via @code{require}).
 
 @item <whitespace>
 @verbatim
-%token <whitespace> WHITESPACE ""
+%token <whitespace> WHITESPACE [ \t\n]
 @end verbatim
-Not used by the wisi lexer; required by the Ada lexer. The third argument is ignored.
+Not used by the wisi lexer; required by the Ada lexer.
 
 @item <line_comment>
 @verbatim
-%token <line_comment> COMMENT "--"
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 @end verbatim
 Not used by the wisi lexer; required by the Ada lexer. The third
-argument is the comment start syntax.
+argument is the regular expression to recognize the entire comment.
 
 @end table
 
@@ -475,5 +475,24 @@ tokens (both terminal and non-terminal); optional productions are
 separated by ``|''. Each list of tokens is followed by an ``action'',
 which is output-language code enclosed in parens, that will be
 executed when the production is reduced.
+
+@node Conditional code
+@section Conditional code
+
+The elisp and Ada lexers support different regular expression syntax,
+so it is sometimes necessary to include or exclude some declarations
+and portions of rules based on the lexer. That is done with @code{%if
+... %end if}:
+@verbatim
+%if lexer = elisp
+...
+%end if
+@end verbatim
+
+The lines between @code{%if} and @code{%end if} are ignored if
+the current lexer is not the one specified in the @code{%if}
+condition.
+
+@code{%if ... %end if} cannot be nested.
 
 @bye

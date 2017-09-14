@@ -184,7 +184,7 @@ begin
 
    Wisi.Prologue (Input_File, Prologue_Context_Clause, Prologue_Declarations);
    Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, McKenzie_Recover);
-   Wisi.Rules (Input_File, Generate_Params.Output_Language, Rules, Rule_Count, Action_Count);
+   Wisi.Rules (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Rules, Rule_Count, Action_Count);
 
    --  FIXME: use run-time factory, dispatching instead of this case
    --  statement; allow moving output_elisp, output_ada_emacs to

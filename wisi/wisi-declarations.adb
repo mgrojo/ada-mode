@@ -35,8 +35,10 @@ is
    use Standard.Ada.Strings.Fixed;
 
    Conflict_Str              : constant String := "%conflict";
+   End_If_Str                : constant String := "%end if";
    First_Parser_Label_Str    : constant String := "%first_parser_label";
    First_State_Index_Str     : constant String := "%first_state_index";
+   If_Str                    : constant String := "%if lexer =";
    Interface_Str             : constant String := "%interface";
    Keyword_Str               : constant String := "%keyword";
    Lexer_Str                 : constant String := "%lexer";
@@ -50,6 +52,9 @@ is
    Recover_Pattern_1_Str     : constant String := "%recover_pattern_1";
    Start_Str                 : constant String := "%start";
    Token_Str                 : constant String := "%token";
+
+   If_Active : Boolean := False;
+   --  If true, ignore all declarations except End_If_Str.
 
    function Index_Blank (Source : in String; From : in Positive) return Natural
    is begin
@@ -71,7 +76,12 @@ begin
       begin
          exit when Line = "%%";
 
-         if Match (Conflict_Str) then
+         if If_Active then
+            if Match (End_If_Str) then
+               If_Active := False;
+            end if;
+
+         elsif Match (Conflict_Str) then
             declare
                Action_A_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
                Action_A_Last  : constant Integer := -1 +
@@ -100,6 +110,10 @@ begin
                    +Line (Token_First .. Token_Last)));
             end;
 
+         elsif Match (End_If_Str) then
+            --  matching if specified current lexer.
+            null;
+
          elsif Match (First_Parser_Label_Str) then
             declare
                Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
@@ -113,6 +127,14 @@ begin
             begin
                Generate_Params.First_State_Index := Integer'Value (Line (Value_First .. Line'Last));
             end;
+
+         elsif Match (If_Str) then
+            declare
+               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+            begin
+               If_Active := Generate_Params.Lexer /= To_Lexer (Line (Value_First .. Line'Last));
+            end;
+
 
          elsif Match (Interface_Str) then
             if Generate_Params.Interface_Kind = None then

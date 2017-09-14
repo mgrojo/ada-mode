@@ -23,7 +23,6 @@ pragma License (GPL); -- GNATCOLL.Mmap
 pragma Warnings (Off, "license of withed unit ""GNATCOLL.Mmap"" may be inconsistent");
 
 pragma Warnings (On);
-with Ada.Finalization;
 with Interfaces.C;
 with System;
 generic
@@ -44,11 +43,16 @@ generic
    --  Restart lexing, with previous input buffer.
 
    with function Next_Token
-     (Lexer    : in     System.Address;
-      ID       :    out Token_ID;
-      Position :    out Interfaces.C.size_t;
-      Length   :    out Interfaces.C.size_t)
+     (Lexer              : in     System.Address;
+      ID                 :    out Token_ID;
+      Byte_Position      :    out Interfaces.C.size_t;
+      Byte_Length        :    out Interfaces.C.size_t;
+      Character_Position :    out Interfaces.C.size_t;
+      Character_Length   :    out Interfaces.C.size_t)
      return Interfaces.C.int;
+   --  *_Position and *_Length give the position and length in bytes and
+   --  characters of the token from the start of the buffer, 0 indexed.
+   --
    --  Result values: (see wisi-gen_output_ada_common.adb create_re2c)
    --
    --  0 - no error
@@ -59,6 +63,8 @@ package WisiToken.Lexer.re2c is
    Invalid_Input : exception;
 
    type Instance is new WisiToken.Lexer.Instance with private;
+
+   overriding procedure Finalize (Object : in out Instance);
 
    function New_Lexer
      (Trace : not null access WisiToken.Trace'Class)
@@ -88,21 +94,17 @@ package WisiToken.Lexer.re2c is
 
 private
 
-   --  FIXME: Instance is now controlled
-   type Managed_Lexer is new Ada.Finalization.Limited_Controlled with
+   type Instance is new WisiToken.Lexer.Instance with
    record
       Lexer  : System.Address;
       Source : WisiToken.Lexer.Source;
-   end record;
-
-   overriding procedure Finalize (Object : in out Managed_Lexer);
-
-   type Instance is new WisiToken.Lexer.Instance with
-   record
-      Managed  : Managed_Lexer;
       ID       : Token_ID; --  Last token read by find_next
-      Position : Natural;  --  Position in characters of last token from start of Managed.Buffer
-      Length   : Natural;
+      Byte_Position      : Natural;
+      Byte_Length        : Natural;
+      Character_Position : Natural;
+      Character_Length   : Natural;
+      --  Position and length in bytes and characters of last token from
+      --  start of Managed.Buffer, 0 indexed.
    end record;
 
 end WisiToken.Lexer.re2c;

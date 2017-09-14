@@ -23,6 +23,10 @@ String_Literal_Count    : Integer := 0;
 Bounds                  : WisiToken.Buffer_Region;
 %}
 
+%parser_algorithm LR1
+%output_language Ada
+%lexer re2c
+
 ;; wisi-generate requires some keywords
 %keyword FOO "foo"
 
@@ -38,9 +42,14 @@ Bounds                  : WisiToken.Buffer_Region;
 ;; solution that works for full Ada, where that is not true. All of
 ;; the ambiguous cases for full Ada are given in
 ;; character_literal.input; this set of regexps sorts them out.
+;;
+;; TICK_2 is not needed by elisp, and is not valid a elisp
+;; regular expression. So we exclude it when lexer is elisp.
 %token <punctuation> TICK_1 "'"
+
+%if lexer = re2c
 %token <punctuation> TICK_2 "'" / "('"[\x20-\x26\x28-\U0010FFFF]"')"
-%token <punctuation> TICK_3 "'" / "('''')"
+%end if
 
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
@@ -52,14 +61,11 @@ Bounds                  : WisiToken.Buffer_Region;
 ;; full Unicode range, starting with non-control, non-digit
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
 
-%token <string-double> STRING_LITERAL (["][\x20-\U0010FFFF]*["])+
+%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 
 %start compilation_unit
 %first_state_index 1
 %first_parser_label 1
-%parser_algorithm LR1
-%output_language Ada
-%lexer re2c
 
 %%
 
@@ -99,8 +105,9 @@ statement
 
 tick
   : TICK_1
+%if lexer = re2c
   | TICK_2
-  | TICK_3
+%end if
   ;
 %%
 

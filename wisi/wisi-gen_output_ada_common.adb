@@ -646,15 +646,16 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("typedef struct wisi_lexer");
       Indent_Line ("{");
       Indent := Indent + 3;
-      Indent_Line ("unsigned char* buffer;      // input text, in utf-8 encoding");
-      Indent_Line ("unsigned char* buffer_last; // last byte in buffer");
-      Indent_Line ("unsigned char* cursor;      // current byte");
-      Indent_Line ("size_t         char_pos;    // character position of current character");
-      Indent_Line ("size_t         token_start; // character position at start of current token");
-      Indent_Line ("unsigned char* marker;      // saved cursor");
-      Indent_Line ("size_t         marker_pos;  // saved character position");
-      Indent_Line ("unsigned char* context;     // saved cursor");
-      Indent_Line ("size_t         context_pos; // saved character position");
+      Indent_Line ("unsigned char* buffer;           // input text, in utf-8 encoding");
+      Indent_Line ("unsigned char* buffer_last;      // last byte in buffer");
+      Indent_Line ("unsigned char* cursor;           // current byte");
+      Indent_Line ("unsigned char* byte_token_start; // byte position at start of current token");
+      Indent_Line ("size_t         char_pos;         // character position of current character");
+      Indent_Line ("size_t         char_token_start; // character position at start of current token");
+      Indent_Line ("unsigned char* marker;           // saved cursor");
+      Indent_Line ("size_t         marker_pos;       // saved character position");
+      Indent_Line ("unsigned char* context;          // saved cursor");
+      Indent_Line ("size_t         context_pos;      // saved character position");
       Indent_Line ("int            verbosity;");
       New_Line;
       Indent := Indent - 3;
@@ -751,7 +752,12 @@ package body Wisi.Gen_Output_Ada_Common is
       ----------
       --  next_token
       Indent_Line ("int " & Output_File_Name_Root & "_next_token");
-      Indent_Line ("  (wisi_lexer* lexer, int* id, size_t* position, size_t* length)");
+      Indent_Line ("  (wisi_lexer* lexer,");
+      Indent_Line ("   int* id,");
+      Indent_Line ("   size_t* byte_position,");
+      Indent_Line ("   size_t* byte_length,");
+      Indent_Line ("   size_t* char_position,");
+      Indent_Line ("   size_t* char_length)");
       Indent_Line ("{");
       Indent := Indent + 3;
 
@@ -762,14 +768,17 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("*id       = " & WisiToken.Token_ID'Image (LR1_Descriptor.EOF_ID) & ";");
-      Indent_Line ("*position = lexer->buffer_last - lexer->buffer;");
-      Indent_Line ("*length   = 0;");
+      Indent_Line ("*byte_position = lexer->buffer_last - lexer->buffer;");
+      Indent_Line ("*byte_length   = 0;");
+      Indent_Line ("*char_position = lexer->char_token_start;");
+      Indent_Line ("*char_length   = 0;");
       Indent_Line ("return status;");
       Indent := Indent - 3;
       Indent_Line ("}");
       New_Line;
 
-      Indent_Line ("lexer->token_start = lexer->char_pos;");
+      Indent_Line ("lexer->byte_token_start = lexer->cursor;");
+      Indent_Line ("lexer->char_token_start = lexer->char_pos;");
       New_Line;
 
       Indent_Line ("while (*id == 0 && status == 0)");
@@ -801,7 +810,8 @@ package body Wisi.Gen_Output_Ada_Common is
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
 
          if Kind (I) = """whitespace""" or  Kind (I) = """line_comment""" then
-            Indent_Line (Name (I) & " { lexer->token_start = lexer->char_pos; continue; }");
+            Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
+            Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
 
          elsif 0 /= Index (Source => Value (I), Pattern => "/") then
             Indent_Line (Value (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
@@ -822,8 +832,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("}");
       Indent := Indent - 3;
 
-      Indent_Line ("*position = lexer->token_start;");
-      Indent_Line ("*length = lexer->char_pos - lexer->token_start;");
+      Indent_Line ("*byte_position = lexer->byte_token_start - lexer->buffer;");
+      Indent_Line ("*byte_length   = lexer->cursor - lexer->byte_token_start;");
+      Indent_Line ("*char_position = lexer->char_token_start;");
+      Indent_Line ("*char_length   = lexer->char_pos - lexer->char_token_start;");
       Indent_Line ("return status;");
       Indent_Line ("}");
       Indent := Indent - 3;
@@ -875,10 +887,12 @@ package body Wisi.Gen_Output_Ada_Common is
          New_Line;
 
          Indent_Line ("function Next_Token");
-         Indent_Line ("  (Lexer    : in System.Address;");
-         Indent_Line ("   ID       :    out  WisiToken.Token_ID;");
-         Indent_Line ("   Position :    out Interfaces.C.size_t;");
-         Indent_Line ("   Length   :    out Interfaces.C.size_t)");
+         Indent_Line ("  (Lexer         : in     System.Address;");
+         Indent_Line ("   ID            :    out WisiToken.Token_ID;");
+         Indent_Line ("   Byte_Position :    out Interfaces.C.size_t;");
+         Indent_Line ("   Byte_Length   :    out Interfaces.C.size_t;");
+         Indent_Line ("   Char_Position :    out Interfaces.C.size_t;");
+         Indent_Line ("   Char_Length   :    out Interfaces.C.size_t)");
          Indent_Line ("  return Interfaces.C.int");
          Indent_Line ("with Import        => True,");
          Indent_Line ("     Convention    => C,");

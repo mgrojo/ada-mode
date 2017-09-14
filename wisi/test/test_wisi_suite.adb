@@ -34,6 +34,7 @@ begin
    --  elisp grammar generate tests; grammar file name order
    Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict")));
    Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/case_expression")));
+   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/character_literal")));
    Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict")));
    Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/range_conflict")));
 

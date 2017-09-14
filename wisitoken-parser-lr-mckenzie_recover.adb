@@ -99,7 +99,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Trace.Put (":");
          Put (Trace, Int_Image (Integer (Config.Local_Lookahead_Index)));
       end if;
-         Trace.Put (" ");
+      Trace.Put (" ");
       Put (Trace, Config.Popped);
       Trace.Put (" ");
       Put (Trace, Config.Inserted);

@@ -11,11 +11,9 @@ all : test-clean tests library
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb
 t_one : export Standard_Common_Build := Debug
-# t_one : aflex.exe
-#t_one : one-clean
-t_one : ada_lite_yylex.adb
+t_one : one-clean
+t_one : character_literal_re2c.c
 #t_one : RUN_ARGS := 3
-# %_process.l : PARSER_ALG := LALR
 t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
@@ -25,30 +23,37 @@ t_all : character_literal_yylex.adb
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf character_literal*
+	rm -rf character_literal.*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
 one : export Standard_Common_Build := Debug
 #one : one-clean
-one :
-	./wisi-generate.exe -v 2 --output_language Ada_Emacs --lexer Elisp --interface process ../wisi/test/conflict_name.wy
+one : empty_production_6_yylex.adb
+one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
+one : empty_production_6_run.run
 
-two : RUN_ARGS ?= --verbosity 2
+two : RUN_ARGS ?= --verbosity 1
 two : ada_lite_yylex.adb run_ada_lite_parser.exe
-	./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb $(RUN_ARGS)
+	./run_ada_lite_parser.exe ../test/gnatmem_test_2.adb $(RUN_ARGS) > gnatmem_test_2.parse
 
-profile: exec_pro/run_ada_lite_parser.exe
+two_mem : RUN_ARGS ?= --repeat_count 1
+two_mem : ada_lite_yylex.adb exec_pro/run_ada_lite_parser.exe
+	exec_pro/run_ada_lite_parser.exe  ../test/gnatmem_test_2.adb $(RUN_ARGS)
+	gnatmem exec_pro/run_ada_lite_parser.exe > gnatmem_test_2_1.gnatmem
+
+two_pro: ada_lite_yylex.adb exec_pro/run_ada_lite_parser.exe
 	exec_pro/run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 10
 	gprof --demangle=gnat exec_pro/run_ada_lite_parser.exe > ada_lite.profile
 
-# WORKAROUND: -largs -pg works here; the Linker package in .gpr does not
+# rule copied from gprbuild_rules.make; that rule gets overridden by
+# %.exe rules in rules.make
 exec_pro/run_ada_lite_parser.exe : force
-	gprbuild -XProfile=On -p -P wisitoken_test.gpr run_ada_lite_parser -largs -pg
+	gprbuild -XStandard_Common_Profile=On -p -P wisitoken_test.gpr run_ada_lite_parser -largs -pg -lgmem
 
 some-clean :
 	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))
 some : export Standard_Common_Build := Debug
 some : some-clean
-#some : RUN_ARGS := -v 4
+# some : RUN_ARGS := -v 4
 # some : aflex.exe
 # some : wisi-generate.exe
 # some : SOME_CLEAN_FILE += case_expression

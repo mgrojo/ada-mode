@@ -26,6 +26,7 @@ with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Rules
   (Input_File      : in     Standard.Ada.Text_IO.File_Type;
    Output_Language : in     Valid_Output_Language;
+   Lexer           : in     Lexer_Type;
    Rule_List       : in out Rule_Lists.List;
    Rule_Count      :    out Integer;
    Action_Count    :    out Integer)
@@ -33,6 +34,10 @@ is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
    use Standard.Ada.Strings.Unbounded;
+
+   If_Str     : constant String := "%if lexer =";
+   End_If_Str : constant String := "%end if";
+   If_Active  : Boolean         := False;
 
    type State_Type is (Left_Hand_Side, Production, Action);
    State : State_Type := Left_Hand_Side;
@@ -64,7 +69,10 @@ is
                First := I;
             end if;
 
-         when ' ' | ']' | ')' =>
+         when ' ' | ']' | ')' | ';' =>
+            --  We include ';' here because we have one unit test that has Ada
+            --  syntax actions but tests output_language Emacs.
+
             if First > 0 then
                Number := Integer'Value (Line (First .. I - 1));
                if Number > Token_Count then
@@ -147,6 +155,23 @@ begin
             when Production =>
 
                case Line (Cursor) is
+               when '%' =>
+                  Need_New_Line := True;
+
+                  if Line'Length > If_Str'Length and then Line (Cursor .. Cursor + If_Str'Length - 1) = If_Str then
+                     declare
+                        Value_First : constant Integer := Index_Non_Blank (Line, If_Str'Length + 1);
+                     begin
+                        If_Active := Lexer /= To_Lexer (Line (Value_First .. Line'Last));
+                     end;
+                  elsif Line'Length = End_If_Str'Length and then
+                    Line (Cursor .. Cursor + End_If_Str'Length - 1) = End_If_Str
+                  then
+                     If_Active := False;
+                  else
+                     raise Syntax_Error with "invalid directive";
+                  end if;
+
                when '(' =>
                   State         := Action;
                   Need_New_Line := True;
@@ -250,11 +275,14 @@ begin
 
       begin
          exit when Line = "%%";
-
-         loop
-            Parse_State;
-            exit when Need_New_Line;
-         end loop;
+         if If_Active then
+            If_Active := Line /= End_If_Str;
+         else
+            loop
+               Parse_State;
+               exit when Need_New_Line;
+            end loop;
+         end if;
       exception
       when E : Syntax_Error =>
          Error := True;
