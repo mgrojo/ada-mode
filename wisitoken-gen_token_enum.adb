@@ -70,7 +70,7 @@ package body WisiToken.Gen_Token_Enum is
      (Trace        : in out WisiToken.Trace'Class;
       Nonterm      : in     Token_ID;
       Index        : in     Natural;
-      Tokens       : in     Token.List.Instance;
+      Tokens       : in     WisiToken.Token_Array;
       Include_Name : in     Boolean)
    is
       use Ada.Characters.Handling;
@@ -102,20 +102,17 @@ package body WisiToken.Gen_Token_Enum is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      Tokens  : in              Token.List.Instance;
+      Tokens  : in              WisiToken.Token_Array;
       Action  : in              Semantic_Action)
    is
-      function To_Augmented (Item : in Token.List.Instance) return Augmented_Token_Array
+      function To_Augmented (Item : in WisiToken.Token_Array) return Augmented_Token_Array
       is
          use Token.List;
 
          Result : Augmented_Token_Array;
-         I      : List_Iterator := Item.First;
       begin
-         loop
-            exit when Is_Null (I);
-            Result.Append (Augmented_Token'(ID => ID (I), Enum_ID => -ID (I)));
-            Next (I);
+         for ID of Item loop
+            Result.Append (Augmented_Token'(ID => ID, Enum_ID => -ID));
          end loop;
          return Result;
       end To_Augmented;

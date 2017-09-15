@@ -40,7 +40,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
       when Reduce_Stack =>
          Action : Reduce_Action_Rec;
-         Tokens : Token.List.Instance;
+         Tokens : Token_Array;
 
       when Recover =>
          Recover : WisiToken.Token.Recover_Data_Access;

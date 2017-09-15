@@ -104,7 +104,7 @@ source-clean ::
 # the test executables are only in the test project file, which requires AUnit
 # Override the project file for wisi-generate.exe, for use with Emacs Ada mode without AUnit
 wisi-generate.exe : force
-	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate
+	gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken.gpr $(GPRBUILD_ARGS) wisi-generate $(GPRBUILD_LINK_ARGS)
 
 %.check : %.adb force; gnatmake -p -k -gnatc -Pwisitoken_test.gpr $(GNATMAKE_ARGS) $*
 

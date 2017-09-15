@@ -231,14 +231,12 @@ package body WisiToken is
    is
       use all type Ada.Containers.Count_Type;
    begin
-      Trace.Put ("(");
       for I in Item.First_Index .. Item.Last_Index loop
          Put (Trace, Item (I));
          if I /= Item.Last_Index then
             Put (Trace, ", ");
          end if;
       end loop;
-      Put (Trace, ")");
    end Put;
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Queues.Queue_Type)

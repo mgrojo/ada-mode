@@ -9,7 +9,7 @@ Character ' ( 'd' );
 Character ' ( 'π' );
 
 -- a character literal '
-Character'('''');
+Character'(''');
 
 -- attribute reference
 objectπ'attribute;

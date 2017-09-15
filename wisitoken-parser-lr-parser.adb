@@ -40,10 +40,11 @@ package body WisiToken.Parser.LR.Parser is
       use all type Ada.Containers.Count_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Tokens       : Token.List.Instance;
+      Tokens       : Token_Array;
    begin
-      for I in 1 .. Action.Token_Count loop
-         Token.List.Prepend (Tokens, Parser_State.Stack.Pop.ID);
+      Tokens.Set_Length (Action.Token_Count);
+      for I in reverse 1 .. Action.Token_Count loop
+         Tokens.Replace_Element (I, Parser_State.Stack.Pop.ID);
       end loop;
 
       if Current_Parser.Active_Parser_Count > 1 then
@@ -51,8 +52,6 @@ package body WisiToken.Parser.LR.Parser is
       else
          Semantic_State.Reduce_Stack (Action.LHS, Action.Index, Tokens, Action.Action);
          --  Reduce_Stack puts a trace, with extra token info
-
-         Token.List.Clean (Tokens);
       end if;
    end Reduce_Stack;
 
@@ -292,8 +291,6 @@ package body WisiToken.Parser.LR.Parser is
          when Parser_Lists.Reduce_Stack =>
             Semantic_State.Reduce_Stack
               (Item.Action.LHS, Item.Action.Index, Item.Tokens, Item.Action.Action);
-
-            Token.List.Clean (Item.Tokens);
 
          when Parser_Lists.Recover =>
             Semantic_State.Recover (Parser_State.Label, Item.Recover.all);

@@ -21,7 +21,7 @@ pragma License (GPL);
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Test_Generate_Errors;
 with Wisi_Rules_Test;
-with Wisi_Wy_Test;
+with Wisi_WY_Test;
 function Test_Wisi_Suite return Access_Test_Suite
 is
    Suite : constant Access_Test_Suite := new Test_Suite;
@@ -32,11 +32,11 @@ begin
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/case_expression")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/character_literal")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict")));
-   Add_Test (Suite, new Wisi_Wy_Test.Test_Case (new String'("../wisi/test/range_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/case_expression")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/character_literal")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict")));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/range_conflict")));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.

@@ -276,7 +276,7 @@ package WisiToken.Token is
      (State   : not null access Semantic_State;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      IDs     : in              List.Instance;
+      IDs     : in              Token_Array;
       Action  : in              Semantic_Action)
    is abstract;
    --  Parser reduced IDs to Nonterm; perform same operations on State

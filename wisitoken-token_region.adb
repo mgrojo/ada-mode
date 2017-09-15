@@ -335,14 +335,11 @@ package body WisiToken.Token_Region is
      (State   : not null access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      IDs     : in     WisiToken.Token.List.Instance;
+      IDs     : in     WisiToken.Token_Array;
       Action  : in     Semantic_Action)
    is
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
-      use all type WisiToken.Token.List.List_Iterator;
-
-      ID_I : WisiToken.Token.List.List_Iterator := IDs.First;
 
       Aug_Nonterm : Token                         := Default_Token;
       Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
@@ -350,11 +347,10 @@ package body WisiToken.Token_Region is
    begin
       Aug_Nonterm.ID := Nonterm;
 
-      loop
-         exit when Is_Null (ID_I);
+      for I in IDs.First_Index .. IDs.Last_Index loop
          declare
             use all type Ada.Text_IO.Count;
-            ID    : Token_ID renames Current (ID_I);
+            ID    : Token_ID renames IDs.Element (I);
             Token : Token_Region.Token renames Token_Region.Token (State.Stack (Stack_I).Element.all);
          begin
             if ID /= State.Stack (Stack_I).ID then
@@ -379,7 +375,6 @@ package body WisiToken.Token_Region is
             end if;
          end;
 
-         Next (ID_I);
          Next (Stack_I);
       end loop;
 

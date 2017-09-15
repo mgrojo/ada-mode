@@ -33,7 +33,7 @@
     (TICK_1 . "'")
     (LEFT_PAREN . "(")
     (RIGHT_PAREN . ")")
-    (CHARACTER_LITERAL . ("'"[\x20-\x26\x28-\U0010FFFF]"'")|("''''"))
+    (CHARACTER_LITERAL . "'"[\x20-\U0010FFFF]"'")
     )
    ("symbol"
     (IDENTIFIER . "")
@@ -102,4 +102,3 @@
 
 (provide 'character_literal-lr1-elisp)
 ;; end of file
-

@@ -48,13 +48,13 @@ Bounds                  : WisiToken.Buffer_Region;
 %token <punctuation> TICK_1 "'"
 
 %if lexer = re2c
-%token <punctuation> TICK_2 "'" / "('"[\x20-\x26\x28-\U0010FFFF]"')"
+%token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
 %end if
 
 %token <punctuation> LEFT_PAREN "("
 %token <punctuation> RIGHT_PAREN ")"
 
-%token <punctuation> CHARACTER_LITERAL ("'"[\x20-\x26\x28-\U0010FFFF]"'")|("''''")
+%token <punctuation> CHARACTER_LITERAL "'"[\x20-\U0010FFFF]"'"
 
 %token <whitespace> WHITESPACE [ \t\n]
 
