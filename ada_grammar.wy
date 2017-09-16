@@ -2051,7 +2051,7 @@ raise_statement
     (wisi-statement-action [1 statement-start 2 statement-end])
   | RAISE name WITH expression_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-statement-action [1 statement-start 4 motion 5 statement-end])
       (wisi-containing-action 1 4)
       ;; test/ada_mode-nominal.adb
       ;; raise Constraint_Error with

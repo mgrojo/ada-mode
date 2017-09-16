@@ -2124,6 +2124,16 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with nonterm %s not found" nonterm)))
     cache))
 
+(defun wisi-forward-find-cache-token (id limit)
+  "Search forward for a cache with token ID.
+Return cache, or nil if at LIMIT or end of buffer."
+  (let ((cache (wisi-forward-cache)))
+    (while (and (< (point) limit)
+		(not (eobp))
+		(not (eq (wisi-cache-token cache) id)))
+      (setq cache (wisi-forward-cache)))
+    cache))
+
 (defun wisi-goto-cache-next (cache)
   (goto-char (1- (wisi-cache-next cache)))
   (wisi-get-cache (point))
