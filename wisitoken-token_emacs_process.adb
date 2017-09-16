@@ -37,11 +37,6 @@ package body WisiToken.Token_Emacs_Process is
    Discard_Stack_Code        : constant String := "9 ";
    Recover_Code              : constant String := "10 ";
 
-   function To_Code (ID : in Token_ID) return String
-   is begin
-      return Int_Image (ID);
-   end To_Code;
-
    function To_Codes (Tokens : in Token_ID_Set) return String
    is
       --  A token image consists of:
@@ -75,9 +70,14 @@ package body WisiToken.Token_Emacs_Process is
       use Bounded;
 
       Token_Line : Bounded_String := To_Bounded_String ("[");
+      First : Boolean := True;
    begin
       for ID of Tokens loop
-         Token_Line := Token_Line & Integer'Image (Token_ID'Pos (ID));
+         Token_Line := Token_Line &
+           (if First
+            then Int_Image (Integer'(Token_ID'Pos (ID)))
+            else Integer'Image (Token_ID'Pos (ID)));
+         First := False;
       end loop;
       return To_String (Token_Line & "]");
    end To_Codes;
@@ -96,7 +96,7 @@ package body WisiToken.Token_Emacs_Process is
       if Trace_Parse > 3 then
          Put (State.Trace.all, ID);
       end if;
-      Ada.Text_IO.Put_Line ("[" & Lexer_To_Lookahead_Code & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Lexer_To_Lookahead_Code & Int_Image (ID) & "]");
    end Lexer_To_Lookahead;
 
    overriding
@@ -107,7 +107,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Error_Code & Integer'Image (Parser_ID) & To_Codes (Expecting) & "]");
+      Ada.Text_IO.Put_Line ("[" & Error_Code & Int_Image (Parser_ID) & To_Codes (Expecting) & "]");
    end Error;
 
    overriding
@@ -118,7 +118,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Spawn_Code & Integer'Image (Old_Parser_ID) & Integer'Image (New_Parser_ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Spawn_Code & Int_Image (Old_Parser_ID) & Integer'Image (New_Parser_ID) & "]");
    end Spawn;
 
    overriding
@@ -128,7 +128,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Terminate_Parser_Code & Integer'Image (Parser_ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Terminate_Parser_Code & Int_Image (Parser_ID) & "]");
    end Terminate_Parser;
 
    overriding
@@ -139,7 +139,7 @@ package body WisiToken.Token_Emacs_Process is
       if Trace_Parse > 3 then
          Put (State.Trace.all, ID);
       end if;
-      Ada.Text_IO.Put_Line ("[" & Virtual_To_Lookahead_Code & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Virtual_To_Lookahead_Code & Int_Image (ID) & "]");
    end Virtual_To_Lookahead;
 
    overriding
@@ -149,7 +149,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Push_Current_Code & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Push_Current_Code & Int_Image (ID) & "]");
    end Push_Current;
 
    overriding
@@ -162,8 +162,14 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State, Action);
    begin
-      Ada.Text_IO.Put_Line
-        ("[" & Reduce_Stack_Code & To_Code (Nonterm) & To_Codes (IDs) & Integer'Image (Index) & "]");
+      if Trace_Parse > 0 then
+         Ada.Text_IO.Put_Line
+           ("[" & Reduce_Stack_Code & Int_Image (Nonterm) & To_Codes (IDs) & Int_Image (Index) & "]");
+      else
+         Ada.Text_IO.Put_Line
+           ("[" & Reduce_Stack_Code & Int_Image (Nonterm) & Integer'Image (Integer (IDs.Length)) &
+              Integer'Image (Index) & "]");
+      end if;
    end Reduce_Stack;
 
    overriding
@@ -174,7 +180,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & Integer'Image (Parser_ID) & " " & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Discard_Lookahead_Code & Int_Image (Parser_ID) & " " & Int_Image (ID) & "]");
    end Discard_Lookahead;
 
    overriding
@@ -185,7 +191,7 @@ package body WisiToken.Token_Emacs_Process is
    is
       pragma Unreferenced (State);
    begin
-      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & Integer'Image (Parser_ID) &  " " & To_Code (ID) & "]");
+      Ada.Text_IO.Put_Line ("[" & Discard_Stack_Code & Int_Image (Parser_ID) &  " " & Int_Image (ID) & "]");
    end Discard_Stack;
 
    overriding
@@ -204,10 +210,10 @@ package body WisiToken.Token_Emacs_Process is
             Pushed : constant Token_Array := WisiToken.Parser.LR.Extract_IDs (Config.Pushed);
          begin
             Ada.Text_IO.Put_Line
-              ("[" & Recover_Code & Integer'Image (Parser_ID) & To_Codes (Pushed & Config.Inserted) & "]");
+              ("[" & Recover_Code & Int_Image (Parser_ID) & To_Codes (Pushed & Config.Inserted) & "]");
          end;
       else
-         Ada.Text_IO.Put_Line ("[" & Recover_Code & Integer'Image (Parser_ID) & "[]]");
+         Ada.Text_IO.Put_Line ("[" & Recover_Code & Int_Image (Parser_ID) & "[]]");
       end if;
    end Recover;
 

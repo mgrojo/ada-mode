@@ -344,14 +344,19 @@ from TOKEN-TABLE."
     ))
 
 (defun wisi-process-parse--Reduce_Stack (parser sexp)
-  ;; sexp is  [Reduce_Stack nonterm [token token ...] production_index]
+  ;; if wisi-debug > 0 then
+  ;;    sexp is [Reduce_Stack nonterm [token token ...] production_index]
+  ;; else
+  ;;    sexp is  [Reduce_Stack nonterm token-count production_index]
+  ;; end if;
   ;; see ‘wisi-process-parse--execute’
   (let* ((token-table (wisi-process--parser-token-table parser))
 	 (action-table (wisi-process--parser-action-table parser))
 	 (first-nonterm (+ 1 (length token-table) (- (length action-table))))
 	 ;; includes translation from ada 1 index to elisp 0 index
 	 ;; FIXME: move to wisi-process--parser?
-	 (tokens-1 (aref sexp 2)) ;; token ids from process
+	 (tokens-1 (when (> wisi-debug 0) (aref sexp 2))) ;; token ids from process
+	 (token-count (if (> wisi-debug 0) (length tokens-1) (aref sexp 2)))
 	 nonterm
 	 nonterm-region
 	 nonterm-line
@@ -361,13 +366,14 @@ from TOKEN-TABLE."
 	 (virtual-count 0)
 	 (empty-count 0)
 	 (comment-set nil)
-	 (tokens-2 (make-vector (length (aref sexp 2)) nil)) ;; wisi-tok, for wisi-tokens
+	 (tokens-2 (make-vector token-count nil)) ;; wisi-tok, for wisi-tokens
 	 tok i action)
 
-    (setq i (1- (length tokens-1)))
+    (setq i (1- token-count))
     (while (>= i 0)
       (setq tok (wisi-process-parse--pop-stack parser))
-      (wisi-process-parse--check-id "Reduce_Stack" token-table tok (aref tokens-1 i))
+      (when (> 0 wisi-debug)
+	(wisi-process-parse--check-id "Reduce_Stack" token-table tok (aref tokens-1 i)))
       (setq nonterm-region (wisi-and-regions nonterm-region (wisi-tok-region tok)))
       (when (wisi-tok-virtual tok) (setq virtual-count (1+ virtual-count)))
       (when (and (not (wisi-tok-virtual tok))
@@ -500,7 +506,8 @@ from TOKEN-TABLE."
   ;;    the current token from front of the elisp lookahead queue,
   ;;    push it on the elisp augmented token parse stack.
   ;;
-  ;; [Reduce_Stack nonterm_id [id ...] production_index]
+  ;; [Reduce_Stack nonterm_id token-count production_index] wisi-debug = 0
+  ;; [Reduce_Stack nonterm_id [id ...] production_index] wisi-debug > 0
   ;;    Parser reduced [id ...] tokens on the parser parse stack to
   ;;    nonterm_id, using production production_index in the current
   ;;    state (on top of the parser parse stack before the

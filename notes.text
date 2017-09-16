@@ -42,9 +42,6 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
-send redundant token_ids only in debug mode
-    also eliminate any extra spaces (ie after [ ])
-
 navigation bug:
 
     still losing case | when | end case sometimes
@@ -162,8 +159,6 @@ parse face
         process parser, elisp lexer 1.021952 seconds, 2 gcs
 
 indent
-    don't send right-hand-side tokens for reduce
-
     use module instead of process
         can pass actions from module to elisp in binary, to avoid scan-sexps
         try mingw64 gnat on Windows
@@ -229,6 +224,9 @@ indent
                    also eliminate any extra spaces (ie after [ ])
 
             smm-server.adb:     0.303128 seconds 1 gcs
+
+            don't send right-hand-side tokens for reduce
+                gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
 
 parse navigate
     wisi-motion-action
