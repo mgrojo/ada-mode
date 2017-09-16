@@ -617,8 +617,27 @@ wisi-forward-token, but only sets token-id and region."
 	;; This is copied from ‘wisi-goto-statement-start’; we can’t
 	;; call that because it would call ‘wisi-validate-cache’,
 	;; which would call ‘wisi-invalidate-cache’; infinite loop.
-	(wisi-goto-start (or (wisi-get-cache (point))
-			     (wisi-backward-cache)))
+	;; If this needed a navigate parse to succeed, we would not
+	;; get here.
+	(let ((cache (or (wisi-get-cache (point))
+			 (wisi-backward-cache))))
+	  (cond
+	   ((null cache)
+	    ;; at bob
+	    nil)
+
+	   ((eq 'statement-end (wisi-cache-class cache))
+	    ;; If the change did affect part of a structure statement,
+	    ;; this is a lower level statement. Otherwise, we are
+	    ;; invalidating more than necessary; not a problem.
+	    (wisi-goto-start cache)
+	    (setq cache (wisi-backward-cache))
+	    (when cache ;; else bob
+	      (wisi-goto-start cache)))
+
+	   (t
+	    (wisi-goto-start cache))
+	   ))
 
 	(setq after (point)))
       (wisi--delete-navigate-cache after))
@@ -804,17 +823,6 @@ Used to ignore whitespace changes in before/after change hooks.")
 	(wisi-set-parse-try t 'face)
 	(wisi-set-parse-try t 'navigate)
 	(wisi-set-parse-try t 'indent)
-
-	;; Always invalidate from a statement start, to ensure
-	;; next/prev motion caches are properly updated. But don’t
-	;; force a parse for this.
-	(when (< begin (wisi-cache-max 'navigate))
-	  (let ((cache (wisi-get-cache begin)))
-	    (unless cache
-	      (goto-char begin)
-	      (setq cache (wisi-backward-cache)))
-	    (wisi-goto-start cache)
-	    (setq begin (point))))
 
 	(wisi-invalidate-cache 'face begin)
 	(wisi-invalidate-cache 'navigate begin)

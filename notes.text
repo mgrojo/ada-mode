@@ -42,14 +42,6 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
-navigation bug:
-
-    still losing case | when | end case sometimes
-
-    add loop | exit | end loop
-
-    write interactive test
-
 stricter "changed" check for 'face parse: edit affected a region with 'face property
     to handle new text that should have that property, compute face during indent
         => wait until finish line to apply face
