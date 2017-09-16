@@ -31,8 +31,8 @@ COMPILE_FILES := $(filter-out ada_mode-ada2012.ads, $(COMPILE_FILES))# font-lock
 COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPILE_FILES))
 
 # These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
+COMPILE_FILES := $(filter-out ada_mode-interactive_case_statement.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_recover.adb, $(COMPILE_FILES))
@@ -153,7 +153,7 @@ gpr-skel.gpr.tmp :
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
-%_wisi_parse.exe : %_wisi_parse.adb %-process.el force
+%_wisi_parse.exe : %_wisi_parse.ads %-process.el force
 	gprbuild -p wisi_parse.gpr $<
 
 %-process.el : force

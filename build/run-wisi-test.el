@@ -120,7 +120,7 @@
 		:string-quote-escape nil)))
 
       (process
-       (require 'wisi-elisp-parse)
+       (require 'wisi-process-parse)
        (require (intern (concat filename "-process")))
        (add-to-list 'exec-path default-directory)
        (wisi-setup

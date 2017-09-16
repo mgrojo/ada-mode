@@ -21,7 +21,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/wisi/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (run-test "../../test/ada_mode-interactive_recover.adb")
   (wisi-debug-keys))
 
@@ -31,10 +31,10 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
   (load "run-wisi-process-test.el")
-  ; (setq debug-on-error t)
+  (setq debug-on-error t)
   (setq wisi-disable-face t)
-  (setq wisi-process-parse-exec-opts '("-v" "4"))
-  (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  ; (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (run-test "subprograms"))
 
 (dvc-state-multiple
@@ -42,14 +42,7 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
  current work
-stricter "changed" check for 'face parse: edit affected a region with 'face property
-    to handle new text that should have that property, compute face during indent
-        => wait until finish line to apply face
-
-delete production name <= LEFT_PAREN range_list RIGHT_PAREN ?
-    redundant with subtype indication?
-    conflict is resolved via identical stacks
-    see test_mckenzie_recover conflict_2, test/ada_mode-recover_indent_2.adb
+propagate to o.e.a.s-2
 
 ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
     detect that, exit

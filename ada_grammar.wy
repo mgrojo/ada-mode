@@ -308,7 +308,7 @@
 ;; just "name".
 ;;
 ;; The EBNF in LRM Annex P is not LALR(1), so we use a generalized
-;; LALR(1) parser (see wisi-parse, wisi-compile).
+;; LALR(1) parser (see wisi-elisp-parse, wisi-compile).
 ;;
 ;; Annex P overloads several keywords as grammar elements; 'body',
 ;; 'pragma', some others. That matters in the generated Ada code. We
@@ -1595,9 +1595,10 @@ name
  ;; | indexed_component
 
  ;; ARM has name ( discrete_subtype_definition ) here, but that's
- ;; partly redundant with name actual_parameter_part; this is the
- ;; part that is not redundant.
+ ;; partly redundant with name actual_parameter_part, and partly with
+ ;; subtype_indication; this is the part that is not redundant.
   | name LEFT_PAREN range_list RIGHT_PAREN ;; slice or constraint
+ ;; test/ada_mode_nominal.ads Access_Unconstrained_Array_Type_1
  ;; test/ada_mode-parens.adb
  ;; Slice_1
  ;;   (1,

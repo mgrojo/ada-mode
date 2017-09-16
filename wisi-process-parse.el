@@ -355,8 +355,8 @@ from TOKEN-TABLE."
 	 (first-nonterm (+ 1 (length token-table) (- (length action-table))))
 	 ;; includes translation from ada 1 index to elisp 0 index
 	 ;; FIXME: move to wisi-process--parser?
-	 (tokens-1 (when (> wisi-debug 0) (aref sexp 2))) ;; token ids from process
-	 (token-count (if (> wisi-debug 0) (length tokens-1) (aref sexp 2)))
+	 (tokens-1 (when (> wisi-debug 1) (aref sexp 2))) ;; token ids from process
+	 (token-count (if (> wisi-debug 1) (length tokens-1) (aref sexp 2)))
 	 nonterm
 	 nonterm-region
 	 nonterm-line
@@ -601,7 +601,6 @@ from TOKEN-TABLE."
 	       (wait-count 0)
 	       (need-more nil)
 	       (done nil)
-	       (start-time (float-time))
 	       start-wait-time)
 
 	  (setf (wisi-process--parser-busy parser) t)
