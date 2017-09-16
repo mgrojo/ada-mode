@@ -602,7 +602,7 @@ Prompt user if more than one."
 ;;;;; setup
 
 (defun ada-gnat-compile-select-prj ()
-  (setq ada-fix-error-hook 'ada-gnat-fix-error-hook)
+  (add-to-list 'ada-fix-error-hook #'ada-gnat-fix-error)
   (setq ada-prj-show-prj-path 'gnat-prj-show-prj-path)
   (add-to-list 'completion-ignored-extensions ".ali") ;; gnat library files
   (add-hook 'ada-syntax-propertize-hook 'ada-gnat-syntax-propertize)
@@ -639,7 +639,7 @@ Prompt user if more than one."
   )
 
 (defun ada-gnat-compile-deselect-prj ()
-  (setq ada-fix-error-hook nil)
+  (setq ada-fix-error-hook (delete #'ada-gnat-fix-error ada-fix-error-hook))
   (setq completion-ignored-extensions (delete ".ali" completion-ignored-extensions))
   (setq ada-syntax-propertize-hook (delq 'gnatprep-syntax-propertize ada-syntax-propertize-hook))
   (setq ada-syntax-propertize-hook (delq 'ada-gnat-syntax-propertize ada-syntax-propertize-hook))
@@ -666,9 +666,7 @@ Prompt user if more than one."
 
   (font-lock-add-keywords 'ada-mode
    ;; gnatprep preprocessor line
-   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t))))
-
-  (add-hook 'ada-gnat-fix-error-hook 'ada-gnat-fix-error))
+   (list (list "^[ \t]*\\(#.*\n\\)"  '(1 font-lock-preprocessor-face t)))))
 
 (provide 'ada-gnat-compile)
 (provide 'ada-compiler)

@@ -24,12 +24,10 @@
 ;; This is an example of a user-added indentation rule.
 ;;
 ;; In each file that declares OpenToken grammars, enable
-;; ada-indent-opentoken minor mode by adding this near the end of the
-;; file:
+;; ada-indent-opentoken minor mode by adding this to the file Local
+;; Variables list:
 ;;
-;; Local Variables:
 ;; eval: (ada-indent-opentoken-mode)
-;; End:
 
 ;;; Code:
 

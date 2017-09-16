@@ -6,7 +6,7 @@
 --
 --  Also enable wisi-parser-based syntax highlighting.
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(jit-lock-fontify-now))
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 with Ada.Strings.Unbounded;

@@ -1,13 +1,27 @@
-;; grammar has a shift/reduce conflict
+;; Small Ada-like grammar illustrating the shift/reduce conflict
 ;; between a procedure body and a generic procedure instantiation.
 ;; Conflict is handled by generalized parser
 ;;
-;; (ediff "body_instantiation_conflict.wy" "../../../org.opentoken.stephe/wisi/test/body_instantiation_conflict.wy")
+;; Also tests wisi rules parser
+;;
+;; (ediff "body_instantiation_conflict.wy" "../../../org.fasttoken/wisi/test/body_instantiation_conflict.wy")
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+  (defvar wisi-test-success) ;; let-bound in run-wisi-test.el
 %}
 
 %keyword BEGIN "begin"
@@ -20,9 +34,11 @@
 %keyword RIGHT_PAREN ")"
 
 %token <punctuation> SEMICOLON ";"
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state generic_instantiation, parameter_list on token IS
 
@@ -33,7 +49,8 @@ compilation_unit
     (setq wisi-test-success t)
   ;
 
-library_item : subprogram_body | generic_instantiation  ;
+;; all on one line, no spaces before '|' ';'
+library_item : subprogram_body|generic_instantiation;
 
 subprogram_body
  ;; comment before : line

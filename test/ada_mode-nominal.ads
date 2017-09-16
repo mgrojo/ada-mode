@@ -1,6 +1,5 @@
---EMACSCMD:(jit-lock-fontify-now)
-
---EMACSCMD:(progn (forward-line 2)(test-face "Ada.Text_IO" font-lock-function-name-face))
+--EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Text_IO" font-lock-function-name-face)
 with
   Ada.Text_IO;
 
@@ -33,25 +32,31 @@ with Ada.Strings.Unbounded; -- end 1
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada.Streams" font-lock-function-name-face)
+--EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Streams" font-lock-function-name-face)
 limited private with Ada.Streams,
-  --EMACSCMD:(test-face "Ada.Containers" font-lock-function-name-face)
+  --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+  --EMACSCMD:(test-face "Containers" font-lock-function-name-face)
   Ada.Containers;
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
--- WORKAROUND: GNAT GPL 2016 'gnat list' does not include run-time directory
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
---EMACSCMD:(test-face "Ada.Containers.Vectors" font-lock-function-name-face)
---EMACSCMD:(test-face "Ada.Containers.Bounded_Doubly_Linked_Lists" font-lock-function-name-face)
---EMACSCMD:(progn  (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
-private with Ada.Containers.Vectors,
-  Ada.Containers.Bounded_Doubly_Linked_Lists;
+--EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+--EMACSCMD:(test-face "Containers" font-lock-function-name-face)
+--EMACSCMD:(test-face "Vectors" font-lock-function-name-face)
+--EMACSCMD:(progn  (forward-line 2)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
 --EMACSRESULT:t
+private with Ada.Containers.Vectors,
+  --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
+  --EMACSCMD:(test-face "Containers" font-lock-function-name-face)
+  --EMACSCMD:(test-face "Bounded_Doubly_Linked_Lists" font-lock-function-name-face)
+  Ada.Containers.Bounded_Doubly_Linked_Lists;
+
 -- test ada-find-other-file on 'with subprogram-body'
 --EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
@@ -209,13 +214,16 @@ is -- target 0
    --EMACSCMD:(test-face "in" font-lock-keyword-face)
    --EMACSCMD:(test-face "Float" font-lock-type-face)
    --EMACSCMD:(test-face "return" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
+   --EMACSCMD:(test-face-1 "return" "Standard" font-lock-function-name-face)
+   --EMACSCMD:(test-face-1 "return" "Float" font-lock-type-face)
    type Function_Access_Type_1a is access protected function (A_Param : in Float) return Standard.Float;
    --EMACSCMD:(test-face-1 "is" "access" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
+   --EMACSCMD:(test-face "Standard" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Float" font-lock-type-face)
    type Function_Access_Type_1b is access protected function (A_Param : in Float) return access Standard.Float;
    --EMACSCMD:(test-face-1 "is" "constant" font-lock-keyword-face)
-   --EMACSCMD:(test-face "Standard.Float" font-lock-type-face)
+   --EMACSCMD:(test-face "Standard" font-lock-function-name-face)
+   --EMACSCMD:(test-face "Float" font-lock-type-face)
    type Function_Access_Type_1d is access protected function (A_Param : in Float) return access constant Standard.Float;
 
    -- no 'protected' to test that font-lock case
@@ -360,12 +368,16 @@ is -- target 0
 
    --EMACSCMD:(progn (ada-goto-end)(looking-back "end record"))
    --EMACSRESULT:t
-   --EMACSCMD:(test-face-1 "access" "Standard.Integer" font-lock-type-face)
+   --EMACSCMD:(test-face-1 "access" "Standard" font-lock-function-name-face)
+   --EMACSCMD:(test-face-1 "access" "Integer" font-lock-type-face)
    type Record_Type_3
      (Discriminant_1 : access Standard.Integer;
-      --EMACSCMD:(test-face "Standard.Integer" font-lock-type-face)
+      --EMACSCMD:(test-face "Standard" font-lock-function-name-face)
+      --EMACSCMD:(test-face "Integer" font-lock-type-face)
       Discriminant_2 : Standard.Integer;
-      --EMACSCMD:(test-face "Ada_Mode.Nominal.Object_Access_Type_0a" font-lock-type-face)
+      --EMACSCMD:(test-face "Ada_Mode" font-lock-function-name-face)
+      --EMACSCMD:(test-face "Nominal" font-lock-function-name-face)
+      --EMACSCMD:(test-face "Object_Access_Type_0a" font-lock-type-face)
       Discriminant_3 : not null Ada_Mode.Nominal.Object_Access_Type_0a)
       is tagged record
          --EMACSCMD:(progn (ada-goto-end)(looking-at "; -- end 2"))
@@ -604,8 +616,10 @@ is -- target 0
       Parent_Element_3 : Boolean;
    end record;
 
-   -- test that comment prefix is properly fontified
-   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(jit-lock-fontify-now)(ada-fill-comment-paragraph)(forward-char 4)(syntax-class (syntax-after (point))))
+   -- test that comment prefix is properly fontified, and that fill
+   -- paragraph doesn't cause problems
+   --
+   --EMACSCMD:(progn (end-of-line 4)(delete-forward-char 6)(ada-fill-comment-paragraph)(font-lock-ensure)(forward-char 4)(syntax-class (syntax-after (point))))
    --EMACSRESULT: 11
 
    -- a filled comment. Now is the time for all good parsers to come

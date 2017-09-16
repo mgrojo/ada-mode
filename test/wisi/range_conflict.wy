@@ -1,10 +1,20 @@
 ;; grammar has a reduce-reduce conflict
-;; (ediff "range_conflict.wy" "../../../org.opentoken.stephe/wisi/test/range_conflict.wy")
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
 %keyword IN "in"
@@ -15,10 +25,12 @@
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER
-%token <string> STRING_LITERAL
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <string-double> STRING_LITERAL ""
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict SHIFT/REDUCE in state range, range on token LEFT_PAREN
 %%

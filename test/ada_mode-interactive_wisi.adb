@@ -39,7 +39,7 @@ is
    -- indent after syntax fixed should indent entire statement.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
-   --EMACSRESULT:5
+   --EMACSRESULT:(if (eq ada-parser 'elisp) 5 3)
    --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1

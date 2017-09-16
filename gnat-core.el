@@ -436,6 +436,7 @@ list."
     ("a-string" . "Ada.Strings")
     ("a-strmap" . "Ada.Strings.Maps")
     ("a-strunb" . "Ada.Strings.Unbounded")
+    ("a-stwiun" . "Ada.Strings.Wide_Unbounded")
     ("g-comlin" . "GNAT.Command_Line")
     ("g-dirope" . "GNAT.Directory_Operations")
     ("g-socket" . "GNAT.Sockets")

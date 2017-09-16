@@ -38,6 +38,15 @@
 (require 'ada-mode)
 (require 'cl-lib)
 
+(defgroup gpr nil
+  "Major mode for editing gpr (Gnat Project File) source code in Emacs."
+  :group 'languages)
+
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse"
+  "Name of executable to use for external process gpr parser,"
+  :type 'string
+  :group 'gpr)
+
 (defvar gpr-mode-map
   (let ((map (make-sparse-keymap)))
     ;; C-c <letter> are reserved for users
@@ -78,7 +87,7 @@
     ["Select project ..."          ada-prj-select                   t]
     ["Parse and select current file" gpr-set-as-project             t]
     ["Show current project"        ada-prj-show                     t]
-    ["Show project search path"    ada-prj-show-path                t]
+    ["Show project search path"    ada-prj-show-prj-path            t]
     ["Next compilation error"      next-error                       t]
     ["Show secondary error"        ada-show-secondary-error         t]
     ["Show last parse error"       gpr-show-parse-error             t]
@@ -285,10 +294,29 @@ In particular, character constants are set to have string syntax."
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
+(put 'gpr-mode 'custom-mode-group 'gpr)
+
+(defvar gpr-parser nil
+  "Indicate parser and lexer to use for gpr buffers:
+
+elisp : wisi parser and lexer implemented in elisp.
+
+process : wisi elisp lexer, external process parser specified
+  by ‘gpr-process-parse-exec ’.
+")
+
 (provide 'gpr-mode)
 
-(unless (featurep 'gpr-indent-engine)
-  (require 'gpr-wisi))
+(require 'gpr-wisi)
+
+(cl-case gpr-parser
+  (elisp nil)
+  (process nil)
+  (t
+   (if (locate-file gpr-process-parse-exec exec-path '("" ".exe"))
+       (setq gpr-parser 'process)
+     (setq gpr-parser 'elisp)))
+  )
 
 (unless (featurep 'gpr-skeletons)
   (require 'gpr-skel))

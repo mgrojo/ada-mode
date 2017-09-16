@@ -21,17 +21,9 @@
 ;;
 ;;; History: first version Jan 2013
 ;;
-;;; code style
-;;
-;; I don't use 'pcase', because it gives _really_ confusing errors
-;; when I forget a ')' somewhere. Even worse, the error message is
-;; given when you use edebug on a defun, not when you eval it. This
-;; code is hard enough to debug!
-;;
 ;;;;
 
 (require 'gpr-indent-user-options)
-(require 'gpr-grammar-wy)
 (require 'gpr-mode)
 (require 'wisi)
 
@@ -69,14 +61,43 @@
   )
 
 ;;;;
+
+(defvar gpr_grammar-elisp-parse-table nil) ;; gpr_grammar-elisp.el
+(defvar gpr_grammar-elisp-token-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
+(defvar gpr_grammar-elisp-keyword-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
+(defvar gpr_grammar-process-action-table nil) ;; gpr_grammar-process.el
+(defvar gpr_grammar-process-token-table nil) ;;gpr_grammar-process.el
+
 (defun gpr-wisi-setup ()
-  "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '()
-	      nil
-	      gpr-wisi-class-list
-	      gpr-grammar-wy--keyword-table
-	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+  "Set up a buffer for parsing gpr files with wisi."
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :class-list gpr-wisi-class-list
+   :parser
+   (cond
+    ((or (null gpr-parser)
+	 (eq 'elisp gpr-parser))
+     (require 'gpr_grammar-elisp)
+     (wisi-make-elisp-parser
+      gpr_grammar-elisp-parse-table
+      #'wisi-forward-token))
+
+    ((eq 'process gpr-parser)
+     (require 'gpr_grammar-process)
+     (wisi-make-process-parser
+      :label "gpr"
+      :exec gpr-process-parse-exec
+      :token-table (nth 0 gpr_grammar-process-token-table)
+      :action-table (nth 0 gpr_grammar-process-action-table)
+      :terminal-hashtable (nth 1 gpr_grammar-process-token-table)))
+    )
+
+   :lexer (wisi-make-elisp-lexer
+	   :token-table-raw gpr_grammar-elisp-token-table-raw
+	   :keyword-table-raw gpr_grammar-elisp-keyword-table-raw
+	   :string-quote-escape-doubled nil
+	   :string-quote-escape nil))
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
@@ -89,6 +110,5 @@
 (setq gpr-show-parse-error 'wisi-show-parse-error)
 
 (provide 'gpr-wisi)
-(provide 'gpr-indent-engine)
 
 ;; end of file

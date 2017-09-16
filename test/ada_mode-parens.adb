@@ -4,7 +4,7 @@
 -- Since we are editing with ada-align, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 with Ada.Strings.Maps;
 package body Ada_Mode.Parens is
@@ -224,7 +224,7 @@ package body Ada_Mode.Parens is
         2.0;
    end Function_3;
 
-   --EMACSCMD:(jit-lock-fontify-now)
+   --EMACSCMD:(font-lock-ensure)
 
    --EMACSCMD:(test-face "Boolean" font-lock-type-face)
    --EMACSCMD:(progn (forward-line 4)(test-face "Boolean" font-lock-type-face))
@@ -368,7 +368,7 @@ package body Ada_Mode.Parens is
       return A;
    end;
 
-   --EMACSCMD:(jit-lock-fontify-now)
+   --EMACSCMD:(font-lock-ensure)
 
    --EMACSCMD:(progn (forward-line 9)(test-face "protected" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 8)(test-face "procedure" 'font-lock-keyword-face))

@@ -4,7 +4,7 @@
 -- We are editing things in ada-align; don't abort for temporary bad syntax
 --EMACSCMD:(setq wisi-debug 0)
 
---EMACSCMD:(jit-lock-fontify-now)
+--EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
 package body Format_Paramlist is
 
@@ -47,7 +47,7 @@ package body Format_Paramlist is
    --EMACSCMD:(progn (forward-line 18)(forward-word 1)(insert "   ") (ada-align))
    --EMACSCMD:(progn (forward-line 16)(test-face "aliased" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 15)(test-face "in" 'font-lock-keyword-face))
-   --EMACSCMD:(progn (forward-line 14)(jit-lock-fontify-now)(test-face "Z" 'font-lock-type-face))
+   --EMACSCMD:(progn (forward-line 14)(font-lock-ensure)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 14)(test-face "out" 'font-lock-keyword-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "Z" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 13)(test-face "aliased" 'font-lock-keyword-face))
@@ -79,7 +79,7 @@ package body Format_Paramlist is
 
    --  Handle 'not null' without 'access'
    --EMACSCMD:(progn (forward-line 8)(forward-word 1)(insert "   ") (ada-align))
-   --EMACSCMD:(jit-lock-fontify-now)
+   --EMACSCMD:(font-lock-ensure)
 
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))
    --EMACSCMD:(progn (forward-line 4)(test-face "Z_Access" 'font-lock-type-face))

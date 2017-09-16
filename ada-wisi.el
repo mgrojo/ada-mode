@@ -21,14 +21,9 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 ;;
-;;; History:
-;;
-;; implementation started Jan 2013
-;;
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada-grammar-wy)
 (require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
@@ -56,10 +51,10 @@
   ;;
   ;; `ada-indent-aggregate' is used in only one place in the grammar,
   ;; in 'primary'.
-  (let ((prev-token (wisi-tok-token (wisi-parse-prev-token 1))))
+  (let ((prev-token (wisi-tok-token (wisi-parse-prev-token wisi--parser 1))))
     (cl-case prev-token
       (ELSE ;; in if_expression or boolean shortcut "or else"
-       (cl-case (wisi-tok-token (wisi-parse-prev-token 2))
+       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
 	 (OR
 	  ;; boolean shortcut
 	  ;;
@@ -76,7 +71,7 @@
 
       (EQUAL_GREATER
        ;; in association_opt or case_expression_alternative
-       (cl-case (wisi-tok-token (wisi-parse-prev-token 3))
+       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 3))
 	 (WHEN
 	  ;; case_expression_alternative
 	  ;;
@@ -96,7 +91,7 @@
 	 ))
 
       (THEN
-       (cl-case (wisi-tok-token (wisi-parse-prev-token 2))
+       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
 	 (AND
 	  ;; boolean shortcut
 	  ;;
@@ -120,8 +115,8 @@
   ;; ada-indent-hanging-rel-exp.
   (cond
    ((and (eq (wisi-tok-token tok) 'expression_opt)
-	 (let ((prev-1 (wisi-parse-prev-token 1))
-	       (prev-3 (wisi-parse-prev-token 3)))
+	 (let ((prev-1 (wisi-parse-prev-token wisi--parser 1))
+	       (prev-3 (wisi-parse-prev-token wisi--parser 3)))
 	   (or
 	    ;; test/aspects.ads
 	    ;; with Pre => X > 10 and
@@ -176,7 +171,7 @@ For use in grammar action."
 	  ((integerp anchor-token)
 	   (aref wisi-tokens (1- anchor-token)))
 	  ((symbolp anchor-token)
-	   (wisi-parse-find-token anchor-token))
+	   (wisi-parse-find-token wisi--parser anchor-token))
 	  )))
     (cond
      ((and (= wisi-token-index (1- record-token))
@@ -259,7 +254,7 @@ TOKEN-NUMBER is the formal_part token."
 
 	 (t
 	  ;; relative to 'function'
-	  (wisi-anchored-1 (wisi-parse-find-token 'FUNCTION) (+ offset ada-indent-return)))
+	  (wisi-anchored-1 (wisi-parse-find-token wisi--parser 'FUNCTION) (+ offset ada-indent-return)))
 	 )
 
       ;; 'return' not first on line
@@ -421,7 +416,7 @@ For `wisi-indent-calculate-functions'.
       (while (not end)
 	(setq cache (wisi-forward-cache))
 	(cl-case (wisi-cache-nonterm cache)
-	  (pragma (wisi-goto-end-1 cache))
+	  (pragma_g (wisi-goto-end-1 cache))
 	  (use_clause (wisi-goto-end-1 cache))
 	  (with_clause
 	   (when (not begin)
@@ -435,6 +430,13 @@ For `wisi-indent-calculate-functions'.
 	  ))
       (cons begin end)
     )))
+
+(defun ada-wisi-fix-error (_msg source-buffer _source-window)
+  "For ’ada-fix-error-hook’. Calls ’wisi-repair-error’ if appropriate."
+  (when (equal compilation-last-buffer wisi-error-buffer)
+    (set-buffer source-buffer)
+    (wisi-repair-error)
+    t))
 
 (defun ada-wisi-on-context-clause ()
   "For `ada-on-context-clause'."
@@ -645,7 +647,9 @@ Also return cache at start."
 
 (defun ada-wisi-scan-paramlist (begin end)
   "For `ada-scan-paramlist'."
+  ;; IMPROVEME: define mini grammar that does this
   (wisi-validate-cache end t 'navigate)
+  (wisi-repair-errors begin end)
 
   (goto-char begin)
   (let (tok
@@ -815,15 +819,6 @@ Also return cache at start."
 	result))
     ))
 
-;;;; debugging
-(defun ada-wisi-debug-keys ()
-  "Add debug key definitions to `ada-mode-map'."
-  (interactive)
-  (define-key ada-mode-map "\M-h" 'wisi-show-containing-or-previous-cache)
-  (define-key ada-mode-map "\M-i" 'wisi-show-indent)
-  (define-key ada-mode-map "\M-j" 'wisi-show-cache)
-  )
-
 (defun ada-wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
 syntax for a numeric literal; otherwise nil. point is after
@@ -909,22 +904,69 @@ TOKEN-TEXT; move point to just past token."
        ))
     ))
 
+(defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
+(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
+(defvar ada_grammar-elisp-token-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-keyword-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
+(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
+(defvar ada_grammar-process-action-table nil) ;; ada_grammar-process.el
+(defvar ada_grammar-process-token-table nil) ;;ada_grammar-process.el
+
+(declare-function wisi-make-elisp-parser "wisi-elisp-parse") ;; autoloaded
+(declare-function wisi-make-process-parser "wisi-process-parse") ;; autoloaded
+
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(ada-wisi-comment)
-	      'ada-wisi-post-parse-fail
-	      ada-wisi-class-list
-	      ada-grammar-wy--keyword-table
-	      ada-grammar-wy--token-table
-	      ada-grammar-wy--parse-table)
+  (let ((parser
+	 (cond
+	  ((or (null ada-parser)
+	       (eq 'elisp ada-parser))
+	   (require 'ada_grammar-elisp)
+	   (wisi-make-elisp-parser
+	    ada_grammar-elisp-parse-table
+	    #'wisi-forward-token))
 
-  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
+	  ((eq 'process ada-parser)
+	   (require 'ada_grammar-process)
+	   (wisi-make-process-parser
+	    :label "Ada"
+	    :exec ada-process-parse-exec
+	    :token-table (nth 0 ada_grammar-process-token-table)
+	    :action-table (nth 0 ada_grammar-process-action-table)
+	    :terminal-hashtable (nth 1 ada_grammar-process-token-table)))))
+
+	(lexer
+	 (wisi-make-elisp-lexer
+	  :token-table-raw ada_grammar-elisp-token-table-raw
+	  :keyword-table-raw ada_grammar-elisp-keyword-table-raw
+	  :string-quote-escape-doubled t
+	  :string-quote-escape nil))
+	 )
+
+    (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
+
+    (setq wisi-mckenzie-enable t)
+
+    (wisi-setup
+     :indent-calculate '(ada-wisi-comment)
+     :post-indent-fail 'ada-wisi-post-parse-fail
+     :class-list ada-wisi-class-list
+     :parser parser
+     :lexer lexer)
+    )
+
   (setq wisi-indent-hanging-function #'ada-indent-hanging)
 
-  ;; Handle escaped quotes in strings
-  (setf (wisi-lex-string-quote-escape-doubled wisi--lexer) t)
-
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
+
+  (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
+  )
+
+(defun ada-wisi-post-local-vars ()
+  "See wisi-setup."
+  (setq hack-local-variables-hook (delq 'ada-wisi-post-local-vars hack-local-variables-hook))
+
+  (setq wisi-indent-comment-col-0 ada-indent-comment-col-0)
   )
 
 (add-hook 'ada-mode-hook 'ada-wisi-setup)
