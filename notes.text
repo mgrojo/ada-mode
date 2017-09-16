@@ -28,28 +28,25 @@ run test from emacs -Q using source:
 (progn
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
   (setq debug-on-error t)
   (load "autoloads.el")
+  (require 'ada-mode)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/")
   (load "run-indent-test-wisi-gpr_query")
   (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/gnatprep.adb")
-  (ada-wisi-debug-keys))
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
+  (ada-wisi-debug-keys)
+  (run-test-here)
+  )
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  ; (setq debug-on-error t)
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
   (load "autoloads.el")
   (require 'ada-mode)
-  (setq default-directory "/Projects/org.emacs.ada-mode/")
-  (load "run-indent-test-gps")
-  (find-file "/Projects/org.emacs.ada-mode/test/ada-gps/ada_gps_bug_005.adb")
+  (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/gnatprep.adb")
   )
 
 install packages in -Q:
@@ -89,6 +86,130 @@ Ada 2020 features:
     delta aggregates (partial aggregate notation)
     http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.10
     wait for wisi-2.0
+
+font error
+    for Current_Parser in Parsers loop
+        'parsers' is in type font; actually an object
+
+parse face is slow
+    compare to o.e.a
+
+    noticeable delay when typing code
+
+    fasttoken-parser-lr-lalr_generator.adb
+    per iteration 0.278141, 0.281266
+
+    parse-action nil: 0.256851
+        set jit-lock-defer-time for now
+        lr1 parser will be faster? not likely
+        module will be faster
+        maybe process with elisp lexer
+
+indent is slow
+
+    wisi-anchored-2, wisi--indent-token-1
+        don't apply anchor if all lines already anchored
+        don't loop thru lines more than once?
+
+    indent compute only lines needed
+        skip nonterms that don't overlap indent region
+        significantly complicates cache valid, wisi-cache-try algorithm
+
+    delete 'end' processing, use next-statement-keyword to look for 'end'?
+
+
+    (time-it (lambda () (wisi-invalidate-cache) (wisi-validate-cache (point-max) t 'navigate)) 1)
+            gnatcoll-xref.adb: 2.220942 seconds
+            smm-server.adb: 0.111099
+
+    (time-it (lambda () (wisi-invalidate-cache) (wisi-indent-region (point-min) (point-max))) 1)
+        gnatcoll-xref.adb: 5.173755 seconds
+        smm-server.adb: 0.124231
+
+    (time-it 'ada-align 1)
+        smm-server.adb: 0.241679 ~ (+ 0.124231 0.111099) 340 lines, ~13k char
+        5.2.1 smm-server.adb: 0.009062 (parse done by font-lock in idle time)
+
+    (time-it (lambda() (let ((wisi--parse-action nil)) (wisi--run-parse))) 1)
+        smm-server.adb:
+
+time indent
+    (setq ada-gps-size-threshold most-positive-fixnum)
+    gnatcoll-xref.adb  (copy to avoid messing up original)
+
+    ada-mode 5.2
+        indent whole buffer:
+            (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+
+        gps: per iteration 4.463700
+        wisi: per iteration 8.331166
+
+        indent one line
+
+    ada-mode 6.x
+        indent whole buffer:
+            (time-it 'wisi-parse-buffer 1)
+
+        indent first line: (time-it (lambda() (goto-line 1) (indent-for-tab-command)) 1)
+        indent middle line: (time-it (lambda() (goto-line 3500) (indent-for-tab-command)) 1)
+        indent last line: (time-it (lambda() (goto-line 7251) (indent-for-tab-command)) 1)
+
+        march 8 2017; sort of working
+            wisi whole buffer: per iteration 2.484650
+
+        april 16 2017; all Ada tests pass
+            wisi whole buffer: per iteration 3.516
+            wisi first line: per iteration 2.594025, 2.562731, 2.578430
+            wisi middle line: per iteration 2.562810, 2.791537, 2.750257
+            wisi last line: per iteration 2.750262, 2.750256
+
+        apr 17 add byte-compile in wisi-semantic-action
+            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
+
+        apr 23 add indent cache
+            indent second line cold cache: (wisi-time-indent-line-cold-cache 2)
+            indent second line warm cache: (wisi-time-indent-line-warm-cache 2 100)
+            middle line: 3500
+            last line:   7251
+
+            second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
+
+time wisi-forward-token use structs
+    (setq ada-gps-size-threshold most-positive-fixnum)
+    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
+            7252 lines, 256857 chars
+    (time-it 'wisi-lex-buffer 10)
+
+    non-struct:                        Total 2.102593 seconds; per iteration 0.210259
+    structs:                           Total 2.454529 seconds; per iteration 0.245453
+    count lines in forward-token:      Total 3.411111 seconds; per iteration 0.341111
+    line-begin array in forward-token: Total 3.070206 seconds; per iteration 0.307021
+
+
+http://langserver.org/
+    open protocol for IDE/compiler communication
+
+ada_mode_gps_indent bug #12: comment align with hanging code.
+    bug in GPS
+
+ada-indent-hanging-rel-exp
+    see FIXME: in ada-wisi.el
+    need input from ludovic
+
+    add to NEWS
+    add to .texi
+
+    not relevant for gps?
+
+    more cases:
+
+    if FTFX.Main_CASA_Result.Suspension.Status /= Previous_Suspension_Info.Status
+      or FTFX.Main_CASA_Result.Suspension.Delay_Threshold_Exceeded_Reg
+        /= Previous_Suspension_Info.Delay_Threshold_Exceeded_Reg
+    wisi aligns "/=" with "or"
+
+ wisi work
 
 upgrade to gnat gpl 2017
     copy libiconv from mingw32; see wisi-user_guide install
@@ -331,23 +452,6 @@ emacs 25 compile.el supports HYPERLINK in compilation regexp; use for secondary 
 
 implement packrat in fasttoken, generate elisp
 
-Use adacore langkit to generate parser, run as module
-    too hard to design AST types for grammar, since don't need them for ada-mode; maybe ok if that's already done
-
-parser speed dominated by set-text-properties
-    compute indent directly in parser actions
-        indent-action takes list of delta_indent, one per token
-    only set text properties for other things
-
-convert OpenToken to generate tables for LR1 parser
-    add error handling
-
-wisi-generate write defun for grammar actions
-    so they can be byte compiled
-    faster?
-
-speed up by not binding wisi-tokens for null action
-
 skip blocks of text unless needed for current user command
 
     two grammars
@@ -475,8 +579,6 @@ move stuff out of ada-mode-keys.el
     ada-make-package-spec
         skel default to (ada-name-from-file-name (buffer-file-name))?
 
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-
 C-c C-d on +Normalize_Pathname
     includes + in identifier
 
@@ -495,9 +597,6 @@ ada-next-statement-keyword skip matched parens if on paren
 
 emacs-ada-prj-mode
     or emacs-gnat-prj-mode?
-
-./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
-    need tests for wisi-before/after-change vs comments, strings
 
 test on debian testing?
 

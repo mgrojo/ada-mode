@@ -75,14 +75,13 @@ test-wisi :: subprograms.wisi-test
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += access_in_record.ads
+ONE_TEST_FILES += ada_mode-nominal.adb
 #ONE_TEST_FILES += ada_mode-nominal.ads
 one : RUNTEST := run-indent-test-wisi-gpr_query.el
 # one : update
 one : one-clean $(addsuffix .diff, $(ONE_TEST_FILES))
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
-
 # These are correct paths for Stephe's development machines;
 # WISI_OPENTOKEN can be overridden on the 'make' command line or by an
 # external environment variable.
@@ -125,7 +124,7 @@ test-ada-gps.stamp : force
 	$(MAKE) test-ada-gps
 	touch $@
 
-test-gpr : RUNTEST := run-indent-test-gpr.el
+test-gpr : RUNTEST := run-indent-test.el
 test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
 test-gpr.stamp : force

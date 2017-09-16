@@ -192,30 +192,6 @@ indentation column, or nil if function does not know how to
 indent that line. Run after parser indentation, so other lines
 are indented correctly.")
 
-(defun ada-gps-indent-compute ()
-  "For `wisi-indent-fallback'; compute indent for current line."
-
-  ;; always send indent parameters - we don't track what buffer we are in
-  (ada-gps-send-params)
-
-  (save-excursion
-    ;; send complete current line
-    (end-of-line)
-    (ada-gps-session-send
-     (format "compute_indent %d %d" (line-number-at-pos) (1- (position-bytes (point)))) nil t)
-    (ada-gps-session-send (buffer-substring-no-properties (point-min) (point)) t nil)
-    )
-  (with-current-buffer (ada-gps--session-buffer ada-gps-session)
-    (goto-char (point-min))
-    (if (looking-at ada-gps-output-regexp)
-	(string-to-number (match-string 2))
-
-      ;; gps did not compute indent for some reason
-      (when (> ada-gps-debug 0)
-	(message "ada-gps returned '%s'" (buffer-substring-no-properties (point-min) (point-max))))
-      0)
-    ))
-
 (defun ada-gps-indent-line ()
   "For `indent-line-function'; indent current line using the ada-gps indentation engine."
   (let ((savep (copy-marker (point)))
@@ -316,10 +292,10 @@ are indented correctly.")
   ;; test/ada-gps/ada_gps_bug_007.adb
   (let (cache)
     (end-of-line)
-    (wisi-validate-cache (point))
+    (wisi-validate-cache (point) nil 'navigate)
     (wisi-backward-token)
     (setq cache (wisi-get-cache (point)))
-    (when (and cache
+    (when (and cache ;; parse might have failed
 	       (eq 'statement-end (wisi-cache-class cache)))
       (wisi-goto-start cache))))
 
@@ -451,8 +427,7 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
 	(ada-gps-setup))
 
     (ada-wisi-setup)
-    (set (make-local-variable 'indent-region-function) nil)
-    (setq wisi-indent-fallback 'ada-gps-indent-compute)
+    (setq wisi-indent-region-fallback 'ada-gps-indent-region)
     ))
 
 (provide 'ada-gps)

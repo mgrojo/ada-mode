@@ -7,6 +7,9 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 'wisi' in the subject. If possible, use M-x report-emacs-bug.
 
 
+* wisi 2.0.0
+** change indentation engine to compute indent directly in parser actions
+
 * wisi 1.1.5
 9 Jul 2017
 

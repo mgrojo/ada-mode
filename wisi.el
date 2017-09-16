@@ -31,147 +31,85 @@
 
 ;;;; History: see NEWS-wisi.text
 ;;
-;;;; indentation algorithm overview
+;;;; Design:
 ;;
-;; This design is inspired in part by experience writing a SMIE
-;; indentation engine for Ada, and the wisent parser.
+;; 'wisi' was originally short for "wisent indentation engine", but
+;; now is just a name. wisi was developed to support Emacs ada-mode
+;; 5.0 indentation, font-lock, and navigation, which are parser based.
 ;;
-;; The general approach to indenting a given token is to find the
-;; start of the statement it is part of, or some other relevant point
-;; in the statement, and indent relative to that.  So we need a parser
-;; that lets us find statement indent points from arbitrary places in
-;; the code.
+;; The approach to indenting a given token is to parse the buffer,
+;; computing a delta indent at each parse action.
 ;;
-;; For example, the grammar for Ada as represented by the EBNF in LRM
-;; Annex P is not LALR(1), so we use a generalized LALR(1) parser (see
-;; wisi-parse, wisi-compile).
+;; The parser actions also cache face and navigation information
+;; as text properties on tokens in statements.
 ;;
-;; The parser actions cache indentation and other information as text
-;; properties of tokens in statements.
-;;
-;; An indentation engine moves text in the buffer, as does user
-;; editing, so we can't rely on character positions remaining
-;; constant.  So the parser actions use markers to store
-;; positions.  Text properties also move with the text.
-;;
-;; The stored information includes a marker at each statement indent
-;; point.  Thus, the indentation algorithm is: find the previous token
-;; with cached information, and either indent from it, or fetch from
-;; it the marker for a previous statement indent point, and indent
-;; relative to that.
+;; The three reasons to run the parser (indent, face, navigate) occur
+;; at different times (user indent, font-lock, user navigate), so only
+;; the relevant parser actions are run.
 ;;
 ;; Since we have a cache (the text properties), we need to consider
-;; when to invalidate it.  Ideally, we invalidate only when a change to
-;; the buffer would change the result of a parse that crosses that
+;; when to invalidate it.  Ideally, we invalidate only when a change
+;; to the buffer would change the result of a parse that crosses that
 ;; change, or starts after that change.  Changes in whitespace
 ;; (indentation and newlines) do not affect an Ada parse.  Other
 ;; languages are sensitive to newlines (Bash for example) or
 ;; indentation (Python).  Adding comments does not change a parse,
-;; unless code is commented out.  For now we invalidate the cache after
-;; the edit point if the change involves anything other than
-;; whitespace.
+;; unless code is commented out.
 ;;
-;;; Handling parse errors:
+;; For font-lock and navigate, keeping track of the point after which
+;; caches have been deleted is sufficent (see `wisi-cache-max').
 ;;
-;; When a parse fails, the cache information before the failure point
-;; is only partly correct, and there is no cache informaiton after the
-;; failure point.
+;; For indenting, we cache the indent for each line in a text property
+;; on the newline char preceding the line. `wisi-indent-region' sets
+;; the cache on all the lines computed (normally the whole buffer),
+;; but performs the indent only on the lines in the indent
+;; region. Subsequent calls to `wisi-indent-region' apply the cached
+;; indents. Non-whitespace edits to the buffer invalidate the indent
+;; caches in the edited region and after.
 ;;
-;; However, in the case where a parse previously succeeded, and the
-;; current parse fails due to editing, we keep the preceding cache
-;; information by setting wisi-cache-max to the edit point in
-;; wisi-before change; the parser does not apply actions before that
-;; point.
+;; See `wisi--post-change' for the details of what we check for
+;; invalidating.
 ;;
-;; This allows navigation and indentation in the text preceding the
-;; edit point, and saves some time.
+;;;; Choice of grammar compiler and parser
 ;;
-;;;; comparison to the SMIE parser
+;; There are two other parsing engines available in Emacs:
 ;;
-;; The central problem to be solved in building the SMIE parser is
-;; grammar precedence conflicts; the general solution is refining
-;; keywords so that each new keyword can be assigned a unique
-;; precedence.  This means ad hoc code must be written to determine the
-;; correct refinement for each language keyword from the surrounding
-;; tokens.  In effect, for a complex language like Ada, the knowledge
-;; of the language grammar is mostly embedded in the refinement code;
-;; only a small amount is in the refined grammar.  Implementing a SMIE
-;; parser for a new language involves the same amount of work as the
-;; first language.
+;; - SMIE
 ;;
-;; Using a generalized LALR parser avoids that particular problem;
-;; assuming the language is already defined by a grammar, it is only a
-;; matter of a format change to teach the wisi parser the
-;; language.  The problem in a wisi indentation engine is caching the
-;; output of the parser in a useful way, since we can't start the
-;; parser from arbitrary places in the code (as we can with the SMIE
-;; parser). A second problem is determining when to invalidate the
-;; cache.  But these problems are independent of the language being
-;; parsed, so once we have one wisi indentation engine working,
-;; adapting it to new languages should be quite simple.
+;;   We don't use this because it is designed to parse small snippets
+;;   of code. For Ada indentation, we always need to parse the entire
+;;   buffer.
 ;;
-;; The SMIE parser does not find the start of each statement, only the
-;; first language keyword in each statement; additional code must be
-;; written to find the statement start and indent points.  The wisi
-;; parser finds the statement start and indent points directly.
+;; - semantic
 ;;
-;; In SMIE, it is best if each grammar rule is a complete statement,
-;; so forward-sexp will traverse the entire statement.  If nested
-;; non-terminals are used, forward-sexp may stop inside one of the
-;; nested non-terminals.  This problem does not occur with the wisi
-;; parser.
+;;   The Ada grammar as given in the Ada language reference manual is
+;;   not LALR(1). So we use a generalized parser. In addition, the
+;;   semantic lexer is more complex, and gives different information
+;;   than we need.
 ;;
-;; A downside of the wisi parser is conflicts in the grammar; they can
-;; be much more difficult to resolve than in the SMIE parser.  The
-;; generalized parser helps by handling conflicts, but it does so by
-;; running multiple parsers in parallel, persuing each choice in the
-;; conflict.  If the conflict is due to a genuine ambiguity, both paths
-;; will succeed, which causes the parse to fail, since it is not clear
-;; which set of text properties to store.  Even if one branch
-;; ultimately fails, running parallel parsers over large sections of
-;; code is slow.  Finally, this approach can lead to exponential growth
-;; in the number of parsers.  So grammar conflicts must still be
-;; analyzed and minimized.
+;; We use OpenToken wisi-generate to compile BNF to Elisp source, and
+;; wisi-compile-grammar to compile that to the parser table. See
+;; ada-mode info for more information on the developer tools used for
+;; ada-mode and wisi.
 ;;
-;; In addition, the complete grammar must be specified; in smie, it is
-;; often possible to specify a subset of the grammar.
+;;;; syntax-propertize
 ;;
-;;;; grammar compiler and parser
+;; `wisi-forward-token' relies on syntax properties, so
+;; `syntax-propertize' must be called on the text to be lexed before
+;; wisi-forward-token is called.
 ;;
-;; Since we are using a generalized LALR(1) parser, we cannot use any
-;; of the wisent grammar functions.  We use OpenToken wisi-generate
-;; to compile BNF to Elisp source (similar to
-;; semantic-grammar-create-package), and wisi-compile-grammar to
-;; compile that to the parser table.
+;; Emacs >= 25 calls syntax-propertize transparently in the low-level
+;; lexer functions.
 ;;
-;; Semantic provides a complex lexer, more complicated than we need
-;; for indentation.  So we use the elisp lexer, which consists of
-;; `forward-comment', `skip-syntax-forward', and `scan-sexp'.  We wrap
-;; that in functions that return tokens in the form wisi-parse
-;; expects.
-;;
-;;;; lexer
-;;
-;; The lexer is `wisi-forward-token'. It relies on syntax properties,
-;; so syntax-propertize must be called on the text to be lexed before
-;; wisi-forward-token is called. In general, it is hard to determine
-;; an appropriate end-point for syntax-propertize, other than
-;; point-max. So we call (syntax-propertize point-max) in wisi-setup,
-;; and also call syntax-propertize in wisi-after-change.
-;; FIXME: no longer needed in Emacs 25? (email from Stefan Monnier)
-;;
-;;;; code style
-;;
-;; 'wisi' was originally short for "wisent indentation engine", but
-;; now is just a name.
-;;
-;; not using lexical-binding because we support Emacs 23
+;; In Emacs < 25, we call syntax-propertize in wisi-setup, and in
+;; `wisi--post-change'.
 ;;
 ;;;;;
 
 ;;; Code:
 
 (require 'cl-lib)
+(require 'seq)
 (require 'wisi-parse)
 
 ;; WORKAROUND: for some reason, this condition doesn't work in batch mode!
@@ -187,21 +125,86 @@
   :safe 'integerp)
 (make-variable-buffer-local 'wisi-size-threshold)
 
+(defvar wisi-indent-comment-col-0 nil
+  "If non-nil, comments currently starting in column 0 are left in column 0.
+Otherwise, they are indented with previous comments or code.
+Normally set from a language-specific option.")
+(make-variable-buffer-local 'wisi-indent-comment-col-0)
+
+(defvar wisi-indent-hanging-function nil
+  "Language-specific implementation of `wisi-hanging', `wisi-hanging%'.
+A function taking four args TOK DELTA1 DELTA2 OPTION,
+and returning a list either (DELTA1 DELTA2) or (DELTA).
+TOK is a `wisi-tok' struct for the token being indented.
+DELTA1, DELTA2 are the indents of the first and following lines
+within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
+point is at start of TOK, and may be moved.")
+(make-variable-buffer-local 'wisi-indent-comment-col-0)
+
+(defvar wisi-inhibit-parse nil
+  "When non-nil, don't run the parser.
+Language code can set this non-nil when syntax is known to be
+invalid temporarily, or when making lots of changes.")
+
+(defvar wisi-disable-face nil
+  "When non-nil, `wisi-setup' does not enable use of parser for font-lock.
+Useful when debugging parser or parser actions.")
+
 ;;;; lexer
 
-(defvar-local wisi-class-list nil)
-(defvar-local wisi-keyword-table nil)
-(defvar-local wisi-punctuation-table nil)
-(defvar-local wisi-punctuation-table-max-length 0)
-(defvar-local wisi-string-double-term nil);; string delimited by double quotes
-(defvar-local wisi-string-quote-escape-doubled nil
-  "Non-nil if a string delimiter is escaped by doubling it (as in Ada).")
-(defvar-local wisi-string-quote-escape nil
-  "Cons (delim . character) where `character' escapes quotes in strings delimited by `delim'.")
-(defvar-local wisi-string-single-term nil) ;; string delimited by single quotes
-(defvar-local wisi-symbol-term nil)
-(defvar-local wisi-number-term nil)
-(defvar-local wisi-number-p nil)
+(cl-defstruct wisi-lex
+  keyword-table ;; obarray holding keyword tokens
+  punctuation-table ;; obarray holding punctuation tokens
+  punctuation-table-max-length ;; max string length in punctuation-table
+  string-double-term ;; non-nil if strings delimited by double quotes
+  string-quote-escape-doubled ;; Non-nil if a string delimiter is escaped by doubling it
+  string-quote-escape
+  ;; Cons (delim . character) where `character' escapes quotes in strings delimited by `delim'.
+  string-single-term ;; non-nil if strings delimited by single quotes
+  symbol-term ;; symbol for a terminal symbol token
+  number-term ;; symbol for a terminal number literal token
+  number-p ;; function that determines if argument is a number literal
+  )
+
+(defconst wisi-eoi-term '$EOI
+  "End Of Input token.")
+
+(defvar-local wisi--lexer nil
+  "A `wisi-lex' struct defining the lexer for the current buffer.")
+
+(cl-defstruct wisi-ind
+  ;; data used while running parser for indent.
+  indent
+  ;; vector of indentation for all lines in buffer
+  ;; each element can be one of:
+  ;; - integer : indent
+  ;;
+  ;; - list ('anchor (start-id ...) indent)  :
+  ;; indent for current line, base indent for following 'anchored
+  ;; lines. Start-id is list of ids anchored at this line. For parens
+  ;; and other uses.
+  ;;
+  ;; - list ('anchored id delta) :
+  ;; indent = delta + 'anchor id line indent; for lines indented
+  ;; relative to anchor.
+  ;;
+  ;; - list ('anchor (start-id ...) ('anchored NEST delta))
+  ;; for nested anchors
+
+  line-begin ;; vector of beginning-of-line positions in buffer
+  last-line ;; index into line-begin of line containing last lexed token
+  )
+
+(defvar wisi--indent
+  ;; not buffer-local; only let-bound in wisi-indent-region
+  "A `wisi-ind' struct holding current indent information.")
+
+;; struct wisi-tok defined in wisi-parse.el
+
+(defvar wisi--parse-action nil
+  ;; not buffer-local; only let-bound in wisi-indent-region, wisi-validate-cache
+  "Reason current parse is begin run; one of
+{indent, face, navigate}.")
 
 (defun wisi-number-p (token-text)
   "Return t if TOKEN-TEXT plus text after point matches the
@@ -225,26 +228,21 @@ TOKEN-TEXT; move point to just past token."
     ))
 
 (defun wisi-forward-token ()
-  "Move point forward across one token, skipping leading whitespace and comments.
-Return the corresponding token, in format: (token start . end) where:
-
-`token' is a token symbol (not string) from `wisi-punctuation-table',
-`wisi-keyword-table', `wisi-string-double-term', `wisi-string-double-term' or `wisi-symbol-term'.
-
-`start, end' are the character positions in the buffer of the start
-and end of the token text.
-
-If at end of buffer, returns `wisent-eoi-term'."
-  (forward-comment (point-max))
-  ;; skips leading whitespace, comment, trailing whitespace.
-
+  "Move point forward across one token, then skip whitespace and comments.
+Return the corresponding token as a `wisi-tok'.
+If at whitespace or comment, throw an error.
+If at end of buffer, return `wisi-eoi-term'."
   (let ((start (point))
 	;; (info "(elisp)Syntax Table Internals" "*info elisp syntax*")
+	end
 	(syntax (syntax-class (syntax-after (point))))
-	token-id token-text)
+	(first nil)
+	(comment-line nil)
+	(comment-end nil)
+	token-id token-text line)
     (cond
      ((eobp)
-      (setq token-id wisent-eoi-term))
+      (setq token-id wisi-eoi-term))
 
      ((eq syntax 1)
       ;; punctuation. Find the longest matching string in wisi-punctuation-table
@@ -253,13 +251,13 @@ If at end of buffer, returns `wisent-eoi-term'."
 	    temp-text temp-id done)
 	(while (not done)
 	  (setq temp-text (buffer-substring-no-properties start (point)))
-	  (setq temp-id (car (rassoc temp-text wisi-punctuation-table)))
+	  (setq temp-id (car (rassoc temp-text (wisi-lex-punctuation-table wisi--lexer))))
 	  (when temp-id
 	    (setq token-id temp-id
 		  next-point (point)))
 	  (if (or
 	       (eobp)
-	       (= (- (point) start) wisi-punctuation-table-max-length))
+	       (= (- (point) start) (wisi-lex-punctuation-table-max-length wisi--lexer)))
 	      (setq done t)
 	    (forward-char 1))
 	  )
@@ -268,7 +266,7 @@ If at end of buffer, returns `wisent-eoi-term'."
      ((memq syntax '(4 5)) ;; open, close parenthesis
       (forward-char 1)
       (setq token-text (buffer-substring-no-properties start (point)))
-      (setq token-id (symbol-value (intern-soft token-text wisi-keyword-table))))
+      (setq token-id (symbol-value (intern-soft token-text (wisi-lex-keyword-table wisi--lexer)))))
 
      ((eq syntax 7)
       ;; string quote, either single or double. we assume point is
@@ -281,42 +279,94 @@ If at end of buffer, returns `wisent-eoi-term'."
 
 	      ;; point is now after the end quote; check for an escaped quote
 	      (while (or
-		      (and wisi-string-quote-escape-doubled
+		      (and (wisi-lex-string-quote-escape-doubled wisi--lexer)
 			   (eq (char-after (point)) delim))
-		      (and (eq delim (car wisi-string-quote-escape))
-			   (eq (char-before (1- (point))) (cdr wisi-string-quote-escape))))
+		      (and (eq delim (car (wisi-lex-string-quote-escape wisi--lexer)))
+			   (eq (char-before (1- (point))) (cdr (wisi-lex-string-quote-escape wisi--lexer)))))
 		(forward-sexp))
-	      (setq token-id (if (= delim ?\") wisi-string-double-term wisi-string-single-term)))
+	      (setq token-id (if (= delim ?\")
+				 (wisi-lex-string-double-term wisi--lexer)
+			       (wisi-lex-string-single-term wisi--lexer))))
 	  (scan-error
 	   ;; Something screwed up; we should not get here if
 	   ;; syntax-propertize works properly.
 	   (signal 'wisi-parse-error (format "wisi-forward-token: forward-sexp failed %s" err))
 	   ))))
 
-     (t ;; assuming word or symbol syntax; includes numbers
+     ((memq syntax '(2 3 6)) ;; word, symbolm expression prefix (includes numbers)
       (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id
-	    (or (symbol-value (intern-soft (downcase token-text) wisi-keyword-table))
-		(and (functionp wisi-number-p)
-		     (funcall wisi-number-p token-text)
+	    (or (symbol-value (intern-soft (downcase token-text) (wisi-lex-keyword-table wisi--lexer)))
+		(and (functionp (wisi-lex-number-p wisi--lexer))
+		     (funcall (wisi-lex-number-p wisi--lexer) token-text)
 		     (setq token-text (buffer-substring-no-properties start (point)))
-		     wisi-number-term)
-		wisi-symbol-term))
+		     (wisi-lex-number-term wisi--lexer))
+		(wisi-lex-symbol-term wisi--lexer)))
       )
+
+     (t
+      (signal 'wisi-parse-error (format "wisi-forward-token: unsupported syntax %s" syntax)))
+
      );; cond
 
     (unless token-id
       (signal 'wisi-parse-error
 	      (wisi-error-msg "unrecognized token '%s'" (buffer-substring-no-properties start (point)))))
 
-    (cons token-id (cons start (point)))
+    (setq end (point))
+
+    (forward-comment (point-max))
+
+    (when (and (not (eobp))
+	       (eq wisi--parse-action 'indent))
+      ;; parsing for indent; track line numbers
+
+      (if (wisi-ind-last-line wisi--indent)
+	  (progn
+	    (setq line (wisi-ind-last-line wisi--indent))
+	    (when (>= start (aref (wisi-ind-line-begin wisi--indent) line))
+	      ;; first token on next non-blank line
+	      (setq line (1+ line))
+	      (setq first t))
+	    ;; else other token on line
+	    )
+
+	;; First token on first non-comment line
+	(setq line (line-number-at-pos start))
+	(setq first t)
+	)
+      (setf (wisi-ind-last-line wisi--indent) line)
+
+      ;; set comment-line, comment-end
+      (when (and (< (1+ (wisi-ind-last-line wisi--indent)) (length (wisi-ind-line-begin wisi--indent)))
+		 (>= (point) (aref (wisi-ind-line-begin wisi--indent)
+				 (1+ (wisi-ind-last-line wisi--indent)))))
+	(setq comment-line (1+ (wisi-ind-last-line wisi--indent)))
+	(setf (wisi-ind-last-line wisi--indent) comment-line)
+	(setq comment-end (line-end-position 0)))
+
+      ;; count blank or comment lines following token
+      (when comment-end
+	(while (and (< (1+ (wisi-ind-last-line wisi--indent)) (length (wisi-ind-line-begin wisi--indent)))
+		    (>= comment-end (aref (wisi-ind-line-begin wisi--indent) (wisi-ind-last-line wisi--indent))))
+	  (setf (wisi-ind-last-line wisi--indent) (1+ (wisi-ind-last-line wisi--indent))))
+
+      ))
+
+    (make-wisi-tok
+     :token token-id
+     :region (cons start end)
+     :line line
+     :first first
+     :comment-end comment-end
+     :comment-line comment-line)
     ))
 
 (defun wisi-backward-token ()
   "Move point backward across one token, skipping whitespace and comments.
-Does _not_ handle numbers with wisi-number-p; just sees lower-level syntax.
-Return (nil start . end) - same structure as
+Does _not_ handle numbers with wisi-number-p; just sees
+lower-level syntax.  Return a `wisi-tok' - same structure as
 wisi-forward-token, but does not look up symbol."
   (forward-comment (- (point)))
   ;; skips leading whitespace, comment, trailing whitespace.
@@ -334,11 +384,11 @@ wisi-forward-token, but does not look up symbol."
 	    temp-text done)
 	(while (not done)
 	  (setq temp-text (buffer-substring-no-properties (point) end))
-	  (when (car (rassoc temp-text wisi-punctuation-table))
+	  (when (car (rassoc temp-text (wisi-lex-punctuation-table wisi--lexer)))
 	    (setq next-point (point)))
 	  (if (or
 	       (bobp)
-	       (= (- end (point)) wisi-punctuation-table-max-length))
+	       (= (- end (point)) (wisi-lex-punctuation-table-max-length wisi--lexer)))
 	      (setq done t)
 	    (backward-char 1))
 	  )
@@ -357,7 +407,10 @@ wisi-forward-token, but does not look up symbol."
       (if (zerop (skip-syntax-backward "."))
 	  (skip-syntax-backward "w_'")))
      )
-    (cons nil (cons (point) end))
+
+    (make-wisi-tok
+     :token nil
+     :region (cons (point) end))
     ))
 
 ;;;; token info cache
@@ -382,21 +435,16 @@ wisi-forward-token, but does not look up symbol."
   ;; arbitrary lisp symbol, used for indentation and navigation.
   ;; some classes are defined by wisi:
   ;;
-  ;; 'block-middle - a block keyword (ie: if then else end), not at the start of a statement
-  ;;
-  ;; 'block-start - a block keyword at the start of a statement
-  ;;
   ;; 'statement-start - the start of a statement
   ;;
-  ;; 'open-paren
+  ;; 'statement-end - the end of a statement
+  ;;
+  ;; 'motion - a statement keyword
   ;;
   ;; others are language-specific
 
   containing
-  ;; Marker at the containing keyword for this token.
-  ;; A containing keyword is an indent point; the start of a
-  ;; statement, or 'begin', 'then' or 'else' for a block of
-  ;; statements, etc.
+  ;; Marker at the start of the containing statement for this token.
   ;; nil only for first token in buffer
 
   prev ;; marker at previous motion token in statement; nil if none
@@ -409,146 +457,169 @@ wisi-forward-token, but does not look up symbol."
 (defvar-local wisi-parse-failed nil
   "Non-nil when a recent parse has failed - cleared when parse succeeds.")
 
-(defvar-local wisi-parse-try nil
+(defvar-local wisi--parse-try
+  (list
+   (cons 'face t)
+   (cons 'navigate t)
+   (cons 'indent t))
   "Non-nil when parse is needed - cleared when parse succeeds.")
 
-(defvar-local wisi-change-need-invalidate nil
-  "When non-nil, buffer position to invalidate from.
-Used in before/after change functions.")
+(defun wisi-parse-try (&optional parse-action)
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--parse-try)))
+
+(defun wisi-set-parse-try (value &optional parse-action)
+  (setcdr (assoc (or parse-action wisi--parse-action) wisi--parse-try) value))
+
+(defvar-local wisi--cache-max
+  (list
+   (cons 'face nil)
+   (cons 'navigate nil)
+   (cons 'indent nil))
+  "Alist of maximimum position in buffer where parser text properties are valid.")
+
+(defun wisi-cache-max (&optional parse-action)
+  ;; Don't need 'wisi-set-cache-max; (move-marker (wisi-cache-max) foo) works
+  (cdr (assoc (or parse-action wisi--parse-action) wisi--cache-max)))
 
 (defvar-local wisi-end-caches nil
   "List of buffer positions of caches in current statement that need wisi-cache-end set.")
 
-(defun wisi-delete-cache (after)
+(defun wisi--delete-face-cache (after)
   (with-silent-modifications
-    (remove-text-properties after (point-max) '(wisi-cache nil))
-    ;; We don't remove 'font-lock-face; that's annoying to the user,
-    ;; since they won't be restored until a parse for some other
-    ;; reason, and they are likely to be right anyway.
+    (remove-text-properties after (point-max) '(wisi-face nil 'font-lock-face nil))
     ))
 
-(defun wisi-invalidate-cache(&optional after)
-  "Invalidate parsing caches for the current buffer from AFTER to end of buffer."
-  (interactive)
-  (if (not after)
-      (setq after (point-min))
-    (setq after
-	(save-excursion
-	  (goto-char after)
-	  (line-beginning-position))))
-  (when (> wisi-debug 0) (message "wisi-invalidate %s:%d" (current-buffer) after))
-  (setq wisi-cache-max after)
-  (setq wisi-parse-try t)
-  (syntax-ppss-flush-cache after)
-  (wisi-delete-cache after)
-  )
+(defun wisi--delete-navigate-cache (after)
+  (with-silent-modifications
+    ;; This text property is 'wisi-cache', not 'wisi-navigate', for
+    ;; historical reasons.
+    (remove-text-properties after (point-max) '(wisi-cache nil))
+    ))
 
-;; To see the effects of wisi-before-change, wisi-after-change, you need:
+(defun wisi--delete-indent-cache (after)
+  (with-silent-modifications
+    (remove-text-properties after (point-max) '(wisi-indent nil))
+    ))
+
+(defun wisi-invalidate-cache (action after)
+  "Invalidate ACTION caches for the current buffer from AFTER to end of buffer."
+  (when (< after (wisi-cache-max action))
+    (when (> wisi-debug 0) (message "wisi-invalidate-cache %s:%s:%d" action (current-buffer) after))
+    (cond
+     ((eq 'face action)
+      (wisi--delete-face-cache after))
+
+     ((eq 'navigate action)
+      ;; We goto statement start to ensure that motion within nested
+      ;; structures is properly done (ie prev/next on ’elsif’ is not
+      ;; set by wisi-motion-action if already set by a lower level
+      ;; statement). We don’t do it for ’face or ’indent, because that
+      ;; might require a parse, and they don’t care about nested
+      ;; structures.
+      (save-excursion
+	(goto-char after)
+
+	;; This is copied from ‘wisi-goto-statement-start’; we can’t
+	;; call that because it would call ‘wisi-validate-cache’,
+	;; which would call ‘wisi-invalidate-cache’; infinite loop.
+	(wisi-goto-start (or (wisi-get-cache (point))
+			     (wisi-backward-cache)))
+
+	(setq after (point)))
+      (wisi--delete-navigate-cache after))
+
+     ((eq 'indent action)
+      ;; indent cache is stored on newline before line being indented.
+      (setq after
+	    (save-excursion
+	      (goto-char after)
+	      (line-beginning-position)))
+      (wisi--delete-indent-cache (max 1 (1- after))))
+     )
+    (move-marker (wisi-cache-max action) after)
+    ))
+
+;; wisi--change-* keep track of buffer modifications.
+;; If wisi--change-end comes before wisi--change-beg, it means there were
+;; no modifications.
+(defvar-local wisi--change-beg most-positive-fixnum
+  "First position where a change may have taken place.")
+
+(defvar-local wisi--change-end nil
+  "Marker pointing to the last position where a change may have taken place.")
+
+(defvar-local wisi--deleted-syntax nil
+  "Worst syntax class of characters deleted in changes.
+One of:
+nil - no deletions since reset
+0   - only whitespace or comment deleted
+2   - some other syntax deleted
+
+Set by `wisi-before-change', used and reset by `wisi--post-change'.")
+
+(defvar-local wisi-indenting nil
+  "Non-nil when `wisi-indent-region' is actively indenting.
+Used to ignore whitespace changes in before/after change hooks.")
+
+;; To see the effect of wisi-before-change, you need:
 ;; (global-font-lock-mode 0)
 ;; (setq jit-lock-functions nil)
 ;;
-;; otherwise jit-lock runs and overrides them
+;; otherwise jit-lock runs and overrides it
 
 (defun wisi-before-change (begin end)
   "For `before-change-functions'."
-  ;; begin . end is range of text being deleted
+  ;; begin . (1- end) is range of text being deleted
+  (unless wisi-indenting
+    ;; We set wisi--change-beg, -end even if only inserting, so we
+    ;; don't have to do it again in wisi-after-change.
+    (setq wisi--change-beg (min wisi--change-beg begin))
+    (when (> end wisi--change-end)
+      ;; `buffer-base-buffer' deals with edits in indirect buffers
+      ;; created by ediff-regions-*
+      (move-marker wisi--change-end end (buffer-base-buffer)))
 
-  ;; If jit-lock-after-change is before wisi-after-change in
-  ;; after-change-functions, it might use any invalid caches in the
-  ;; inserted text.
+    (unless (= begin end)
+      (cond
+       ((or (null wisi--deleted-syntax)
+	    (= 0 wisi--deleted-syntax))
+	(save-excursion
+	  (if (or (nth 4 (syntax-ppss begin)) ; in comment, moves point to begin
+		  (= end (skip-syntax-forward " " end)));; whitespace
+	      (setq wisi--deleted-syntax 0)
+	    (setq wisi--deleted-syntax 2))))
+
+       (t
+	;; wisi--deleted-syntax is 2; no change.
+	)
+       ))))
+
+(defun wisi-after-change (begin end _length)
+  "For `after-change-functions'"
+  ;; begin . end is range of text being inserted (empty if equal);
+  ;; length is the size of the deleted text.
   ;;
-  ;; So we check for that here, and ensure it is after
-  ;; wisi-after-change, which deletes the invalid caches
-  (when (boundp 'jit-lock-mode)
-    (when (memq 'wisi-after-change (memq 'jit-lock-after-change after-change-functions))
-      (setq after-change-functions (delete 'wisi-after-change after-change-functions))
-      (add-hook 'after-change-functions 'wisi-after-change nil t))
-    )
-
-  (setq wisi-change-need-invalidate nil)
-
-  (when (> end begin)
+  ;; This change might be changing to/from a keyword; trigger
+  ;; font-lock. See test/ada_mode-interactive_common.adb Obj_1.
+  (unless wisi-indenting
     (save-excursion
-      ;; (info "(elisp)Parser State")
-      (let* ((begin-state (syntax-ppss begin))
-	     (end-state (syntax-ppss end))
-	     ;; syntax-ppss has moved point to "end".
-	     (word-end (progn (skip-syntax-forward "w_")(point))))
-
-	;; Remove grammar face from word(s) containing change region;
-	;; might be changing to/from a keyword. See
-	;; test/ada_mode-interactive_common.adb Obj_1
+      (let (word-end)
+	(goto-char end)
+	(skip-syntax-forward "w_")
+	(setq word-end (point))
 	(goto-char begin)
 	(skip-syntax-backward "w_")
 	(with-silent-modifications
 	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil)))
+	)
+      )))
 
-	(if (<= wisi-cache-max begin)
-	    ;; Change is in unvalidated region; either the parse was
-	    ;; failing, or there is more than one top-level grammar
-	    ;; symbol in buffer.
-	    (when wisi-parse-failed
-	      ;; The parse was failing, probably due to bad syntax; this
-	      ;; change may have fixed it, so try reparse.
-	      (setq wisi-parse-try t))
-
-	  ;; else change is in validated region
-	  ;;
-	  ;; don't invalidate parse for whitespace, string, or comment changes
-	  (cond
-	   ((and
-	     (nth 3 begin-state); in string
-	     (nth 3 end-state)))
-	   ;; no easy way to tell if there is intervening non-string
-
-	   ((and
-	     (nth 4 begin-state); in comment
-	     (nth 4 end-state))
-	    ;; too hard to detect case where there is intervening
-	    ;; code; no easy way to go to end of comment if not
-	    ;; newline
-	    )
-
-	   ;; Deleting whitespace generally does not require parse, but
-	   ;; deleting all whitespace between two words does; check that
-	   ;; there is whitespace on at least one side of the deleted
-	   ;; text.
-	   ;;
-	   ;; We are not in a comment (checked above), so treat
-	   ;; comment end as whitespace in case it is newline, except
-	   ;; deleting a comment end at begin means commenting the
-	   ;; current line; requires parse.
-	   ((and
-	     (eq (car (syntax-after begin)) 0) ; whitespace
-	     (memq (car (syntax-after (1- end))) '(0 12)) ; whitespace, comment end
-	     (or
-	      (memq (car (syntax-after (1- begin))) '(0 12))
-	      (memq (car (syntax-after end)) '(0 12)))
-	     (progn
-	       (goto-char begin)
-	       (skip-syntax-forward " >" end)
-	       (eq (point) end))))
-
-	   (t
-	    (setq wisi-change-need-invalidate
-		  (progn
-		    (goto-char begin)
-		    ;; note that because of the checks above, this never
-		    ;; triggers a parse, so it's fast
-		    (wisi-goto-statement-start)
-		    (point))))
-	   )))
-      ))
-  )
-
-(defun wisi-after-change (begin end length)
-  "For `after-change-functions'."
-  ;; begin . end is range of text being inserted (empty if equal);
-  ;; length is the size of the deleted text.
-
+(defun wisi--post-change (begin end)
+  "Update wisi text properties for changes in region BEG END."
   ;; (syntax-ppss-flush-cache begin) is in before-change-functions
 
-  (syntax-propertize end) ;; see comments above on "lexer" re syntax-propertize
+  ;; see comments above on syntax-propertize
+  (when (< emacs-major-version 25) (syntax-propertize end))
 
   ;; Remove caches on inserted text, which could have caches from
   ;; before the failed parse (or another buffer), and are in any case
@@ -558,91 +629,91 @@ Used in before/after change functions.")
   (with-silent-modifications
     (remove-text-properties begin end '(wisi-cache nil font-lock-face nil)))
 
-  ;; Also remove grammar face from word(s) containing change region;
-  ;; might be changing to/from a keyword. See
-  ;; test/ada_mode-interactive_common.adb Obj_1
   (save-excursion
-    ;; (info "(elisp)Parser State")
-    (let ((need-invalidate wisi-change-need-invalidate)
-	  begin-state end-state word-end)
-      (when (> end begin)
-	(setq begin-state (syntax-ppss begin))
-	(setq end-state (syntax-ppss end))
-	;; syntax-ppss has moved point to "end".
+    (let ((need-invalidate t)
+	  (done nil)
+	  ;; non-nil if require a parse because the syntax may have
+	  ;; changed.
 
-	;; extend fontification over new text,
-	(skip-syntax-forward "w_")
-	(setq word-end (point))
-	(goto-char begin)
-	(skip-syntax-backward "w_")
-	(with-silent-modifications
-	  (remove-text-properties (point) word-end '(font-lock-face nil fontified nil))))
+	  (begin-state (syntax-ppss begin))
+	  (end-state (syntax-ppss end)))
+	  ;; (info "(elisp)Parser State")
+	  ;; syntax-ppss has moved point to "end"; might be eob.
 
-      (if (<= wisi-cache-max begin)
-	  ;; Change is in unvalidated region
-	  (when wisi-parse-failed
-	    ;; The parse was failing, probably due to bad syntax; this
-	    ;; change may have fixed it, so try reparse.
-	    (setq wisi-parse-try t))
+      ;; consider deletion
+      (cond
+       ((null wisi--deleted-syntax)
+	;; no deletions
+	)
 
-	;; Change is in validated region
-	(cond
-	 (wisi-change-need-invalidate
-	  ;; wisi-before change determined the removed text alters the
-	  ;; parse
-	  )
-
-	 ((= end begin)
-	  (setq need-invalidate nil))
-
-	 ((and
-	   (nth 3 begin-state); in string
-	   (nth 3 end-state))
-	  ;; no easy way to tell if there is intervening non-string
-	  (setq need-invalidate nil))
-
-	 ((and
-	   (nth 4 begin-state)
-	   (nth 4 end-state)); in comment
-	  ;; no easy way to detect intervening code
+       ((= 0 wisi--deleted-syntax)
+	;; Only deleted whitespace; may have joined two words
+	(when
+	    (and (= begin end) ;; no insertions
+		 (or
+		  (= (point-min) begin)
+		  (= 0 (syntax-class (syntax-after (1- begin))))
+		  (= (point-max) end)
+		  (= 0 (syntax-class (syntax-after end)))))
+	  ;; More whitespace on at least one side of deletion; did not
+	  ;; join two words.
 	  (setq need-invalidate nil)
-	  ;; no caches to remove
-	  )
+	  (setq done t)
+	  ))
 
-	 ;; Adding whitespace generally does not require parse, but in
-	 ;; the middle of word it does; check that there was
-	 ;; whitespace on at least one side of the inserted text.
-	 ;;
-	 ;; We are not in a comment (checked above), so treat
-	 ;; comment end as whitespace in case it is newline
+       (t
+	;; wisi--deleted-syntax is 2; need invalidate and parse for all
+	;; parse actions
+	(setq done t)
+	))
+
+      (setq wisi--deleted-syntax nil)
+
+      (unless done
+	;; consider insertion
+	(cond
+	 ((= begin end)
+	  ;; no insertions
+	  nil)
+
+	 ((and
+	   (nth 3 begin-state);; in string
+	   (nth 3 end-state)
+	   (= (nth 8 begin-state) (nth 8 end-state)));; no intervening non-string
+	  (setq need-invalidate nil))
+
+	 ((and
+	   (nth 4 begin-state) ; in comment
+	   (nth 4 end-state)
+	   (= (nth 8 begin-state) (nth 8 end-state))) ;; no intervening non-comment
+	  (setq need-invalidate nil))
+
 	 ((and
 	   (or
-	    (memq (car (syntax-after (1- begin))) '(0 12)); whitespace, comment end
-	    (memq (car (syntax-after end)) '(0 12)))
+	    (= (point-min) begin)
+	    (= 0 (syntax-class (syntax-after (1- begin)))); whitespace
+	    (= (point-max) end)
+	    (= 0 (syntax-class (syntax-after end))))
 	   (progn
-	    (goto-char begin)
-	    (skip-syntax-forward " >" end)
-	    (eq (point) end)))
+	     (goto-char begin)
+	     (= (- end begin) (skip-syntax-forward " " end))
+	     ))
+	  ;; Inserted only whitespace, there is more whitespace on at
+	  ;; least one side, and we are not in a comment or string
+	  ;; (checked above).  This may affect indentation, but not
+	  ;; the indentation cache.
 	  (setq need-invalidate nil))
+	 ))
 
-	 (t
-	  (setq need-invalidate
-		(progn
-		  (goto-char begin)
-		  ;; note that because of the checks above, this never
-		  ;; triggers a parse, so it's fast
-		  (wisi-goto-statement-start)
-		  (point))))
-	 )
+      (when need-invalidate
+	(wisi-set-parse-try t 'face)
+	(wisi-set-parse-try t 'navigate)
+	(wisi-set-parse-try t 'indent)
 
-	(if need-invalidate
-	    (wisi-invalidate-cache need-invalidate)
-
-	  ;; else move cache-max by the net change length.
-	  (setq wisi-cache-max
-		(+ wisi-cache-max (- end begin length))) )
-	))
-    ))
+	(wisi-invalidate-cache 'face begin)
+	(wisi-invalidate-cache 'navigate begin)
+	(wisi-invalidate-cache 'indent begin))
+      )))
 
 (defun wisi-get-cache (pos)
   "Return `wisi-cache' struct from the `wisi-cache' text property at POS.
@@ -670,75 +741,106 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
     (wisi-goto-error)
     (message wisi-parse-error-msg))
 
-   (wisi-parse-try
+   ((wisi-parse-try wisi--last-parse-action)
     (message "need parse"))
 
    (t
     (message "parse succeeded"))
    ))
 
-(defvar wisi-post-parse-succeed-hook nil
-  "Hook run after parse succeeds.")
+(defvar-local wisi-class-list nil
+  "list of valid token classes; checked in wisi-statement-action.")
 
-(defun wisi-validate-cache (pos &optional error-on-fail)
-  "Ensure cached data is valid at least up to POS in current buffer."
-  (let ((msg (when (> wisi-debug 0) (format "wisi: parsing %s:%d ..." (buffer-name) (line-number-at-pos pos)))))
-    ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
-    (when (and wisi-parse-try
-	       (<= wisi-cache-max pos))
+(defun wisi--run-parse ()
+  "Run the parser."
+  (let ((msg (when (> wisi-debug 0)
+	       (format "wisi: parsing %s %s:%d ..."
+		       wisi--parse-action
+		       (buffer-name)
+		       (line-number-at-pos (point))))))
+    (when (> wisi-debug 0)
+      (message msg))
+
+    (setq wisi-parse-error-msg nil)
+
+    (condition-case-unless-debug err
+	(save-excursion
+	  (wisi-parse wisi-parse-table #'wisi-forward-token)
+	  (setq wisi-parse-failed nil)
+	  (when (memq wisi--parse-action '(face navigate))
+	    ;; indent parse does not set caches; they are set in `wisi-indent-region'
+	    (move-marker (wisi-cache-max) (point)))
+	  )
+      (wisi-parse-error
+       (cl-ecase wisi--parse-action
+	 (face
+	  ;; caches set by failed parse are ok
+	  (wisi--delete-face-cache (wisi-cache-max)))
+
+	 (navigate
+	  ;; parse partially resets caches before and after wisi-cache-max
+	  (move-marker (wisi-cache-max) (point-min))
+	  (wisi--delete-navigate-cache (point-min)))
+
+	 (indent
+	  ;; parse does not set caches; see `wisi-indent-region'
+	  nil))
+       (setq wisi-parse-failed t)
+       (setq wisi-parse-error-msg (cdr err)))
+      )
+
+    (if wisi-parse-error-msg
+	;; error
+	(when (> wisi-debug 0)
+	  (message "%s error" msg)
+	  (wisi-goto-error)
+	  (error wisi-parse-error-msg)))
+
+      ;; no error
       (when (> wisi-debug 0)
-	(message msg))
+	(message "%s done" msg))
+      ))
+
+(defvar-local wisi--last-parse-action nil
+  "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
+
+(defun wisi--check-change ()
+  "Process `wisi--change-beg', `wisi--change-end'.
+`wisi--parse-action' must be bound."
+  (when (<= wisi--change-beg wisi--change-end)
+    (wisi--post-change wisi--change-beg (marker-position wisi--change-end))
+    (setq wisi--change-beg most-positive-fixnum)
+    (move-marker wisi--change-end (point-min))
+    ))
+
+(defun wisi-validate-cache (pos error-on-fail parse-action)
+  "Ensure cached data for PARSE-ACTION is valid at least up to POS in current buffer."
+  (let ((wisi--parse-action parse-action))
+    (wisi--check-change)
+
+    ;; Now we can rely on wisi-cache-max.
+
+    ;; If wisi-cache-max = pos, then there is no cache at pos; need parse
+    (when (and (not wisi-inhibit-parse)
+	       (wisi-parse-try)
+	       (<= (wisi-cache-max) pos))
 
       ;; Don't keep retrying failed parse until text changes again.
-      (setq wisi-parse-try nil)
+      (wisi-set-parse-try nil)
+      (setq wisi--last-parse-action wisi--parse-action)
 
-      (setq wisi-parse-error-msg nil)
-      (setq wisi-end-caches nil)
+      (setq wisi-end-caches nil);; only used by navigate
 
-      (if (> wisi-debug 1)
-	  ;; let debugger stop in wisi-parse
-	  (progn
-	    (save-excursion
-	      (wisi-parse wisi-parse-table 'wisi-forward-token)
-	      (setq wisi-cache-max (point))
-	      (setq wisi-parse-failed nil))
-	    (run-hooks 'wisi-post-parse-succeed-hook))
+      (wisi--run-parse)
 
-	;; else capture errors from bad syntax, so higher level
-	;; functions can try to continue and/or we don't bother the
-	;; user.
-	(condition-case err
-	    (progn
-	      (save-excursion
-		(wisi-parse wisi-parse-table 'wisi-forward-token)
-		(setq wisi-cache-max (point))
-		(setq wisi-parse-failed nil))
-	      (run-hooks 'wisi-post-parse-succeed-hook))
-	  (wisi-parse-error
-	   ;; delete caches past wisi-cache-max added by failed parse
-	   (wisi-delete-cache wisi-cache-max)
-	   (setq wisi-parse-failed t)
-	   (setq wisi-parse-error-msg (cdr err)))
-	  ))
-      (if wisi-parse-error-msg
-	  ;; error
-	  (cond
-	   ((> wisi-debug 0)
-	    (message "%s error" msg)
-	    (wisi-goto-error)
-	    (error wisi-parse-error-msg)))
-	;; no msg; success
-	(when (> wisi-debug 0)
-	  (message "%s done" msg)))
-      )
-    (when (and error-on-fail (not (>= wisi-cache-max pos)))
-      (error "parse failed"))
-    ))
+      (when (and error-on-fail (not (>= (wisi-cache-max) pos)))
+	(error "parse %s failed" parse-action))
+      )))
 
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
   (when (< (point-max) wisi-size-threshold)
-    (wisi-validate-cache end)))
+    (wisi-validate-cache end nil 'face)))
 
 (defun wisi-get-containing-cache (cache)
   "Return cache from (wisi-cache-containing CACHE)."
@@ -747,10 +849,10 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
       (and containing
 	   (wisi-get-cache (1- containing))))))
 
-(defun wisi-cache-region (cache)
-  "Return region designated by cache.
-Point must be at cache."
-  (cons (point) (+ (point) (wisi-cache-last cache))))
+(defun wisi-cache-region (cache &optional start)
+  "Return region designated by START (default point) to cache last."
+  (unless start (setq start (point)))
+  (cons start (+ start (wisi-cache-last cache))))
 
 (defun wisi-cache-text (cache)
   "Return property-less buffer substring designated by cache.
@@ -759,7 +861,7 @@ Point must be at cache."
 
 ;;;; parse actions
 
-(defun wisi-set-end (start-mark end-mark)
+(defun wisi--set-end (start-mark end-mark)
   "Set END-MARK on all caches in `wisi-end-caches' in range START-MARK END-MARK,
 delete from `wisi-end-caches'."
   (let ((i 0)
@@ -779,13 +881,12 @@ delete from `wisi-end-caches'."
       )))
 
 (defvar wisi-tokens nil)
-(defvar $nterm nil)
-;; keep byte-compiler happy; `wisi-tokens' and `$nterm' are bound in
+(defvar wisi-nterm nil)
+;; keep byte-compiler happy; `wisi-tokens' and `wisi-nterm' are bound in
 ;; action created by wisi-semantic-action, and in module parser.
-;; FIXME: $nterm should have wisi- prefix
 
 (defun wisi-statement-action (pairs)
-  "Cache information in text properties of tokens.
+  "Cache navigation information in text properties of tokens.
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [TOKEN-NUMBER CLASS TOKEN-NUMBER
@@ -793,171 +894,154 @@ CLASS ...] where TOKEN-NUMBER is the (1 indexed) token number in
 the production, CLASS is the wisi class of that token. Use in a
 grammar action as:
   (wisi-statement-action [1 \\='statement-start 7 \\='statement-end])"
-  (save-excursion
-    (let ((first-item t)
-	  first-keyword-mark
-	  (override-start nil)
-	  (i 0))
-      (while (< i (length pairs))
-	(let* ((number (1- (aref pairs i)))
-	       (region (cdr (aref wisi-tokens number)));; wisi-tokens is let-bound in wisi-parse-reduce
-	       (token (car (aref wisi-tokens number)))
-	       (class (aref pairs (setq i (1+ i))))
-	       (mark
-		;; Marker one char into token, so indent-line-to
-		;; inserts space before the mark, not after
-		(when region (copy-marker (1+ (car region)))))
-	       cache)
+  (when (eq wisi--parse-action 'navigate)
+    (save-excursion
+      (let ((first-item t)
+	    first-keyword-mark
+	    (override-start nil)
+	    (i 0))
+	(while (< i (length pairs))
+	  (let* ((number (1- (aref pairs i)))
+		 (region (wisi-tok-region (aref wisi-tokens number)))
+		 (token (wisi-tok-token (aref wisi-tokens number)))
+		 (class (aref pairs (setq i (1+ i))))
+		 (mark
+		  ;; Marker one char into token, so indent-line-to
+		  ;; inserts space before the mark, not after
+		  (when region (copy-marker (1+ (car region)))))
+		 cache)
 
-	  (setq i (1+ i))
+	    (setq i (1+ i))
 
-	  (unless (memq class wisi-class-list)
-	    (error "%s not in wisi-class-list" class))
+	    (unless (memq class wisi-class-list)
+	      (error "%s not in wisi-class-list" class))
 
-	  (if region
-	      (progn
-		(if (setq cache (wisi-get-cache (car region)))
-		    ;; We are processing a previously set non-terminal; ie generic_formal_part in
-		    ;;
-		    ;; generic_package_declaration : generic_formal_part package_specification SEMICOLON
-		    ;;    (wisi-statement-action 1 'block-start 2 'block-middle 3 'statement-end)
-		    ;;
-		    ;; or simple_statement in
-		    ;;
-		    ;; statement : label_opt simple_statement
-		    ;;
-		    ;; override nonterm, class, containing
-		    ;; set end only if not set yet (due to failed parse)
-		    (progn
-		      (cl-case (wisi-cache-class cache)
-			(block-start
-			 (setf (wisi-cache-class cache)
-			       (cond
-				 ((eq override-start nil)
-				  (cond
-				   ((memq class '(block-start statement-start)) 'block-start)
-				   (t 'block-middle)))
-
-				 ((memq override-start '(block-start statement-start)) 'block-start)
-
-				 (t (error "unexpected override-start"))
-				 )))
-			(t
-			 (setf (wisi-cache-class cache) (or override-start class)))
-			)
-		      (setf (wisi-cache-nonterm cache) $nterm)
-		      (setf (wisi-cache-containing cache) first-keyword-mark)
-		      (unless (wisi-cache-end cache)
+	    (if region
+		(progn
+		  (if (setq cache (wisi-get-cache (car region)))
+		      ;; We are processing a previously set non-terminal; ie simple_statement in
+		      ;;
+		      ;; statement : label_opt simple_statement
+		      ;;
+		      ;; override nonterm, class, containing
+		      (progn
+			(setf (wisi-cache-class cache) (or override-start class))
+			(setf (wisi-cache-nonterm cache) wisi-nterm)
+			(setf (wisi-cache-containing cache) first-keyword-mark)
 			(if wisi-end-caches
 			    (push (car region) wisi-end-caches)
 			  (setq wisi-end-caches (list (car region)))
 			  ))
-		      )
 
-		  ;; else create new cache
-		  (with-silent-modifications
-		    (put-text-property
-		     (car region)
-		     (1+ (car region))
-		     'wisi-cache
-		     (wisi-cache-create
-		      :nonterm    $nterm
-		      :token      token
-		      :last       (- (cdr region) (car region))
-		      :class      (or override-start class)
-		      :containing first-keyword-mark)
-		     ))
-		  (if wisi-end-caches
-		      (push (car region) wisi-end-caches)
-		    (setq wisi-end-caches (list (car region)))
-		    ))
+		    ;; else create new cache
+		    (with-silent-modifications
+		      (put-text-property
+		       (car region)
+		       (1+ (car region))
+		       'wisi-cache
+		       (wisi-cache-create
+			:nonterm    wisi-nterm
+			:token      token
+			:last       (- (cdr region) (car region))
+			:class      (or override-start class)
+			:containing first-keyword-mark)
+		       ))
+		    (if wisi-end-caches
+			(push (car region) wisi-end-caches)
+		      (setq wisi-end-caches (list (car region)))
+		      ))
 
-		(when first-item
-		  (setq first-item nil)
-		  (when (or override-start
-			    (memq class '(block-start statement-start)))
-		    (setq override-start nil)
-		    (setq first-keyword-mark mark)))
+		  (when first-item
+		    (setq first-item nil)
+		    (when (or override-start
+			      (eq class 'statement-start))
+		      (setq override-start nil)
+		      (setq first-keyword-mark mark)))
 
-		(when (eq class 'statement-end)
-		  (wisi-set-end (1- first-keyword-mark) (copy-marker (1+ (car region)))))
-		)
+		  (when (eq class 'statement-end)
+		    (wisi--set-end (1- first-keyword-mark) (copy-marker (1+ (car region)))))
+		  )
 
-	    ;; region is nil when a production is empty; if the first
-	    ;; token is a start, override the class on the next token.
-	    (when (and first-item
-		       (memq class '(block-middle block-start statement-start)))
-	      (setq override-start class)))
-	))
-      )))
+	      ;; region is nil when a production is empty; if the first
+	      ;; token is a start, override the class on the next token.
+	      (when (and first-item
+			 (eq class 'statement-start))
+		(setq override-start class)))
+	    ))
+	))))
 
 (defun wisi-containing-action (containing-token contained-token)
-  "Set containing marks in all tokens in CONTAINED-TOKEN with null containing mark to marker pointing to CONTAINING-TOKEN.
+  "Set containing marks in all tokens in CONTAINED-TOKEN
+with null containing mark to marker pointing to CONTAINING-TOKEN.
 If CONTAINING-TOKEN is empty, the next token number is used."
-  ;; wisi-tokens is is bound in action created by wisi-semantic-action
-  (let* ((containing-region (cdr (aref wisi-tokens (1- containing-token))))
-	 (contained-region (cdr (aref wisi-tokens (1- contained-token)))))
+  (when (eq wisi--parse-action 'navigate)
+    (let* ((containing-region (wisi-tok-region (aref wisi-tokens (1- containing-token))))
+	   (contained-region (wisi-tok-region (aref wisi-tokens (1- contained-token)))))
 
-    (unless containing-region ;;
-      (signal 'wisi-parse-error
-	      (wisi-error-msg
-	       "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+      (unless containing-region ;;
+	(signal 'wisi-parse-error
+		(wisi-error-msg
+		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
+		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-    (unless (or (not contained-region) ;; contained-token is empty
-		(wisi-get-cache (car containing-region)))
-      (signal 'wisi-parse-error
-	      (wisi-error-msg
-	       "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
-	       (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+      (unless (or (not contained-region) ;; contained-token is empty
+		  (wisi-get-cache (car containing-region)))
+	(signal 'wisi-parse-error
+		(wisi-error-msg
+		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
+		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-    (while (not containing-region)
-      ;; containing-token is empty; use next
-      (setq containing-region (cdr (aref wisi-tokens containing-token))))
+      (while (not containing-region)
+	;; containing-token is empty; use next
+	(setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
 
-    (when contained-region
-      ;; nil when empty production, may not contain any caches
-      (save-excursion
-	(goto-char (cdr contained-region))
-	(let ((cache (wisi-backward-cache))
-	      (mark (copy-marker (1+ (car containing-region)))))
-	  (while cache
+      (when contained-region
+	;; nil when empty production, may not contain any caches
+	(save-excursion
+	  (goto-char (cdr contained-region))
+	  (let ((cache (wisi-backward-cache))
+		(mark (copy-marker (1+ (car containing-region)))))
+	    (while cache
 
-	    ;; skip blocks that are already marked
-	    (while (and (>= (point) (car contained-region))
-			(markerp (wisi-cache-containing cache)))
-	      (goto-char (1- (wisi-cache-containing cache)))
-	      (setq cache (wisi-get-cache (point))))
+	      ;; skip blocks that are already marked
+	      (while (and (>= (point) (car contained-region))
+			  (markerp (wisi-cache-containing cache)))
+		(goto-char (1- (wisi-cache-containing cache)))
+		(setq cache (wisi-get-cache (point))))
 
-	    (if (or (and (= (car containing-region) (car contained-region))
-			 (<= (point) (car contained-region)))
-		    (< (point) (car contained-region)))
-		;; done
-		(setq cache nil)
+	      (if (or (and (= (car containing-region) (car contained-region))
+			   (<= (point) (car contained-region)))
+		      (< (point) (car contained-region)))
+		  ;; done
+		  (setq cache nil)
 
-	      ;; else set mark, loop
-	      (setf (wisi-cache-containing cache) mark)
-	      (setq cache (wisi-backward-cache)))
-	    ))))))
+		;; else set mark, loop
+		(setf (wisi-cache-containing cache) mark)
+		(setq cache (wisi-backward-cache)))
+	      )))))))
 
-(defun wisi-match-class-token (cache class-tokens)
-  "Return t if CACHE matches CLASS-TOKENS.
-CLASS-TOKENS is a vector [number class token_id class token_id ...].
+(defun wisi--match-token (cache tokens start)
+  "Return t if CACHE has id from TOKENS and is at START or has containing equal to START.
+point must be at cache token start.
+TOKENS is a vector [number token_id token_id ...].
 number is ignored."
   (let ((i 1)
 	(done nil)
 	(result nil)
-	class token)
-    (while (and (not done)
-		(< i (length class-tokens)))
-      (setq class (aref class-tokens i))
-      (setq token (aref class-tokens (setq i (1+ i))))
-      (setq i (1+ i))
-      (when (and (eq class (wisi-cache-class cache))
-		 (eq token (wisi-cache-token cache)))
-	(setq result t
-	      done t))
-      )
+	token)
+    (when (or (= start (point))
+	      (and (wisi-cache-containing cache)
+		   ;; containing points to cache, which is stored one
+		   ;; char after token start.
+		   (= (1+ start) (wisi-cache-containing cache))))
+      (while (and (not done)
+		  (< i (length tokens)))
+	(setq token (aref tokens i))
+	(if (eq token (wisi-cache-token cache))
+	    (setq result t
+		  done t)
+	  (setq i (1+ i)))
+	))
     result))
 
 (defun wisi-motion-action (token-numbers)
@@ -966,104 +1050,125 @@ TOKEN-NUMBERS is a vector with each element one of:
 
 number: the token number; mark that token
 
-vector [number class token_id]:
-vector [number class token_id class token_id ...]:
-   mark all tokens in number nonterminal matching (class token_id) with nil prev/next."
-  (save-excursion
-    (let (prev-keyword-mark
-	  prev-cache
-	  cache
-	  mark
-	  (i 0))
-      (while (< i (length token-numbers))
-	(let ((token-number (aref token-numbers i))
-	      region)
-	  (setq i (1+ i))
-	  (cond
-	   ((numberp token-number)
-	    (setq region (cdr (aref wisi-tokens (1- token-number))))
-	    (when region
-	      (setq cache (wisi-get-cache (car region)))
-	      (setq mark (copy-marker (1+ (car region))))
+vector [number token_id]:
+vector [number token_id token_id ...]:
+   mark all tokens in number nonterminal matching token_id with nil prev/next."
+  (when (eq wisi--parse-action 'navigate)
+    (save-excursion
+      (let (prev-keyword-mark
+	    prev-cache
+	    token
+	    start
+	    cache
+	    mark
+	    (i 0))
+	(while (< i (length token-numbers))
+	  (let ((token-number (aref token-numbers i))
+		region)
+	    (setq i (1+ i))
+	    (cond
+	     ((numberp token-number)
+	      (setq token (aref wisi-tokens (1- token-number)))
+	      (setq region (wisi-tok-region token))
+	      (when region
+		(unless start (setq start (car region)))
+		(setq cache (wisi-get-cache (car region)))
+		(setq mark (copy-marker (1+ (car region))))
 
-	      (when (and prev-keyword-mark
-			 cache
-			 (null (wisi-cache-prev cache)))
-		(setf (wisi-cache-prev cache) prev-keyword-mark)
-		(setf (wisi-cache-next prev-cache) mark))
+		(if prev-keyword-mark
+		    (progn
+		      (setf (wisi-cache-prev cache) prev-keyword-mark)
+		      (setf (wisi-cache-next prev-cache) mark)
+		      (setq prev-keyword-mark mark)
+		      (setq prev-cache cache))
 
-	      (setq prev-keyword-mark mark)
-	      (setq prev-cache cache)
-	      ))
+		  ;; else first token; save as prev
+		  (setq prev-keyword-mark mark)
+		  (setq prev-cache cache))
+		))
 
-	   ((vectorp token-number)
-	    ;; token-number may contain 0, 1, or more 'class token_id' pairs
-	    ;; the corresponding region may be empty
-	    ;; there must have been a prev keyword
-	    (setq region (cdr (aref wisi-tokens (1- (aref token-number 0)))))
-	    (when region ;; not an empty token
-	      ;; We must search for all targets at the same time, to
-	      ;; get the motion order right.
-	      (goto-char (car region))
-	      (setq cache (or (wisi-get-cache (point))
-			      (wisi-forward-cache)))
-	      (while (< (point) (cdr region))
-		(when (wisi-match-class-token cache token-number)
-		  (when (null (wisi-cache-prev cache))
-		    (setf (wisi-cache-prev cache) prev-keyword-mark))
-		  (when (null (wisi-cache-next cache))
+	     ((vectorp token-number)
+	      ;; token-number may contain 1 or more token_ids
+	      ;; the corresponding region may be empty
+	      ;; there may not have been a prev keyword
+	      (setq region (wisi-tok-region (aref wisi-tokens (1- (aref token-number 0)))))
+	      (when region ;; not an empty token
+		;; We must search for all targets at the same time, to
+		;; get the motion order right.
+		(unless start (setq start (car region)))
+		(goto-char (car region))
+		(setq cache (wisi-get-cache (point)))
+		(while (< (point) (cdr region))
+		  (when (wisi--match-token cache token-number start)
 		    (setq mark (copy-marker (1+ (point))))
-		    (setf (wisi-cache-next prev-cache) mark)
-		    (setq prev-keyword-mark mark)
-		    (setq prev-cache cache)))
 
-		(setq cache (wisi-forward-cache))
-	      )))
+		    (if prev-keyword-mark
+			;; Don't include this token if prev/next already
+			;; set by a lower level statement
+			(when (and (null (wisi-cache-prev cache))
+				   (null (wisi-cache-next prev-cache)))
+			  (setf (wisi-cache-prev cache) prev-keyword-mark)
+			  (setf (wisi-cache-next prev-cache) mark)
+			  (setq prev-keyword-mark mark)
+			  (setq prev-cache cache))
 
-	   (t
-	    (error "unexpected token-number %s" token-number))
-	   )
+		      ;; else first token; save as prev
+		      (setq prev-keyword-mark mark)
+		      (setq prev-cache cache)))
 
-	  ))
+		  (setq cache (wisi-forward-cache))
+		  )))
+
+	     (t
+	      (error "unexpected token-number %s" token-number))
+	     )
+
+	    ))
+	))))
+
+(defun wisi-face-mark-action (tokens)
+  "Cache face information in text properties of tokens.
+Intended as a grammar action.
+
+TOKENS is a vector of the form [TOKEN-NUMBER ...] where
+TOKEN-NUMBER is a (1 indexed) token number in the production."
+  (when (eq wisi--parse-action 'face)
+    (let ((i 0))
+      (while (< i (length tokens))
+	(let* ((number (1- (aref tokens i)))
+	       (region (wisi-tok-region (aref wisi-tokens number))))
+
+	  (setq i (1+ i))
+
+	  (when region
+	    ;; region can be null on an optional token
+	    (with-silent-modifications
+	      (put-text-property
+	       (car region)
+	       (1+ (car region))
+	       'wisi-face
+	       (wisi-cache-create
+		:last (- (cdr region) (car region)))
+	       ))
+ 	    )))
       )))
 
-(defun wisi-extend-action (first last)
+(defun wisi-face-extend-action (first last)
   "Extend text of cache at token FIRST to cover all tokens thru LAST."
-  (let* ((first-region (cdr (aref wisi-tokens (1- first))));; wisi-tokens is let-bound in wisi-parse-reduce
-	 (last-region (cdr (aref wisi-tokens (1- last))))
-	cache)
+  (when (eq wisi--parse-action 'face)
+    (let* ((first-region (wisi-tok-region (aref wisi-tokens (1- first))))
+	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
+	   cache)
 
-    (when first-region
-      (setq cache (wisi-get-cache (car first-region)))
-      (setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
-      )
-    ))
+      (when first-region
+	(setq cache (get-text-property (car first-region) 'wisi-face))
+	(setf (wisi-cache-last cache) (- (cdr last-region) (car first-region)))
+	)
+      )))
 
-(defun wisi-face-action-1 (face region &optional override-no-error)
-  "Apply FACE to REGION.
-If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existing face."
+(defun wisi--face-action-1 (face region)
+  "Apply FACE to REGION."
   (when region
-    ;; We allow overriding a face property, because we don't want to
-    ;; delete them in wisi-invalidate (see comments there). On the
-    ;; other hand, it can be an error, so keep this debug
-    ;; code. However, to validly report errors, note that
-    ;; font-lock-face properties must be removed first, or the buffer
-    ;; must be fresh (never parsed), and wisi-debug must be > 1.
-    ;;
-    ;; Grammar sets override-no-error when a higher-level production might
-    ;; override a face in a lower-level production.
-    (when (> wisi-debug 1)
-      (let ((cur-face (get-text-property (car region) 'font-lock-face)))
-	(when cur-face
-	  (unless override-no-error
-	    (message "%s:%d overriding face %s with %s on '%s'"
-		     (buffer-file-name)
-		     (line-number-at-pos (car region))
-		     face
-		     cur-face
-		     (buffer-substring-no-properties (car region) (cdr region))))
-
-	  )))
     (with-silent-modifications
       (add-text-properties
        (car region) (cdr region)
@@ -1072,88 +1177,531 @@ If OVERRIDE-NO-ERROR is non-nil, don't report an error for overriding an existin
 	'fontified t)))
     ))
 
-(defun wisi-face-action (pairs &optional no-override)
-  "Cache face information in text properties of tokens.
+(defun wisi-face-apply-action (pairs)
+  "Set face information in `wisi-face' text properties of tokens.
 Intended as a grammar non-terminal action.
 
 PAIRS is a vector of the form [token-number face token-number face ...]
-token-number may be an integer, or a vector [integer token_id token_id ...]
 
-For an integer token-number, apply face to the first cached token
-in the range covered by wisi-tokens[token-number]. If there are
-no cached tokens, apply face to entire wisi-tokens[token-number]
-region.
-
-For a vector token-number, apply face to the first cached token
-in the range matching one of token_id covered by
-wisi-tokens[token-number].
-
-If NO-OVERRIDE is non-nil, don't override existing face."
-  (let (number region face (tokens nil) cache (i 0) (j 1))
-    (while (< i (length pairs))
-      (setq number (aref pairs i))
-      (setq face (aref pairs (setq i (1+ i))))
-      (cond
-       ((integerp number)
-	(setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
-	(when region
-	  (save-excursion
-	    (goto-char (car region))
-	    (setq cache (or (wisi-get-cache (point))
-			    (wisi-forward-cache)))
-	    (if (< (point) (cdr region))
-		(when cache
-		  (wisi-face-action-1 face (wisi-cache-region cache) no-override))
-
-	      ;; no caches in region; just apply face to region
-	      (wisi-face-action-1 face region no-override))
-	    )))
-
-       ((vectorp number)
-	(setq region (cdr (aref wisi-tokens (1- (aref number 0)))))
-	(when region
-	  (while (< j (length number))
-	    (setq tokens (cons (aref number j) tokens))
-	    (setq j (1+ j)))
-	  (save-excursion
-	    (goto-char (car region))
-	    (setq cache (wisi-forward-find-token tokens (cdr region) t))
-	    ;; might be looking for IDENTIFIER in name, but only have "*".
+Apply face to the first token in the wisi-tokens[token-number]
+region marked with text property `wisi-face', or to all of the
+region if there is no cache."
+  (when (eq wisi--parse-action 'face)
+    (let (number region face cache (i 0))
+      (while (< i (length pairs))
+	(setq number (aref pairs i))
+	(setq face (aref pairs (setq i (1+ i))))
+	(cond
+	 ((integerp number)
+	  (setq region (wisi-tok-region (aref wisi-tokens (1- number))))
+	  (when region
+	    ;; region can be null for an optional token
+	    (setq cache (get-text-property (car region) 'wisi-face))
 	    (when cache
-	      (wisi-face-action-1 face (wisi-cache-region cache) no-override))
-	    )))
-       )
-      (setq i (1+ i))
+	      ;; cache is null when applying a face to a token
+	      ;; directly, without first calling
+	      ;; wisi-face-mark-action.
+	      (setq region (wisi-cache-region cache (car region))))
+	    (wisi--face-action-1 face region)))
 
+	 (t
+	  ;; catch conversion errors from previous grammar syntax
+	  (error "wisi-face-action with non-integer token number"))
+	 )
+	(setq i (1+ i))
+	))))
+
+(defun wisi-face-apply-list-action (pairs)
+  "Set face information in `wisi-face' text properties of tokens.
+Intended as a grammar non-terminal action.
+
+PAIRS is a vector of the form [token-number face token-number face ...]
+
+Apply face to all tokens marked with `wisi-face' text property in
+the wisi-tokens[token-number] region."
+  (when (eq wisi--parse-action 'face)
+    (let (number token-region face-region face cache (i 0) pos)
+      (while (< i (length pairs))
+	(setq number (aref pairs i))
+	(setq face (aref pairs (setq i (1+ i))))
+	(setq token-region (wisi-tok-region (aref wisi-tokens (1- number))))
+	(when token-region
+	  ;; region can be null for an optional token
+	  (setq pos (car token-region))
+	  (save-excursion
+	    (while (and pos
+			(< pos (cdr token-region)))
+	      (goto-char pos)
+	      (setq cache (get-text-property (point) 'wisi-face))
+	      (setq face-region (wisi-cache-region cache))
+	      (wisi--face-action-1 face face-region)
+	      (forward-char 1);; move past current 'wisi-face property
+	      (setq pos (next-single-property-change (point) 'wisi-face))
+	      ;; pos is nil at eob
+	      )))
+	(setq i (1+ i))
+	))))
+
+;;;; indent action
+
+(defvar wisi-token-index nil
+  "Index of current token in `wisi-tokens'.
+Let-bound in `wisi-indent-action', for grammar actions.")
+
+(defvar wisi-indent-comment nil
+  "Non-nil if computing indent for comment.
+Let-bound in `wisi-indent-action', for grammar actions.")
+
+(defun wisi-indent-zero-p (indent)
+  (cond
+   ((integerp indent)
+    (= indent 0))
+
+   (t ;; 'anchor
+    (integerp (nth 2 indent)))
+   ))
+
+(defun wisi--apply-int (i delta)
+  "Add DELTA (an integer) to the indent at index I."
+  (let ((indent (aref (wisi-ind-indent wisi--indent) i))) ;; reference if list
+
+    (cond
+     ((integerp indent)
+      (aset (wisi-ind-indent wisi--indent) i (+ delta indent)))
+
+     ((listp indent)
+      (cond
+       ((eq 'anchor (car indent))
+	(when (integerp (nth 2 indent))
+	  (setf (nth 2 indent) (+ delta (nth 2 indent)))
+	  ;; else anchored; not affected by this delta
+	  ))
+
+       ((eq 'anchored (car indent))
+	;; not affected by this delta
+	)))
+
+     (t
+      (error "wisi--apply-int: invalid form in wisi-ind-indent: %s" indent))
+     )))
+
+(defun wisi--apply-anchored (delta i)
+  "Apply DELTA (an anchored indent) to indent I."
+  ;; delta is from wisi-anchored; ('anchored 1 delta no-accumulate)
+  (let ((indent (aref (wisi-ind-indent wisi--indent) i))
+	(accumulate (not (nth 3 delta))))
+
+    (cond
+     ((integerp indent)
+      (when (or accumulate
+		(= indent 0))
+	(let ((temp (seq-take delta 3)))
+    	  (setf (nth 2 temp) (+ indent (nth 2 temp)))
+	  (aset (wisi-ind-indent wisi--indent) i temp))))
+
+     ((and (listp indent)
+	   (eq 'anchor (car indent))
+	   (integerp (nth 2 indent)))
+      (when (or accumulate
+		(= (nth 2 indent) 0))
+	(let ((temp (seq-take delta 3)))
+	  (setf (nth 2 temp) (+ (nth 2 indent) (nth 2 temp)))
+	  (setf (nth 2 indent) temp))))
+     )))
+
+(defun wisi--indent-token-1 (line end delta)
+  "Apply indent DELTA to all lines from LINE (a line number) thru END (a buffer position)."
+  (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
+	(paren-first (when (and (listp delta)
+				(eq 'hanging (car delta)))
+		       (nth 2 delta))))
+
+    (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
+      (unless
+	  (and ;; no check for called from wisi--indent-comment;
+	       ;; comments within tokens are indented by
+	       ;; wisi--indent-token
+	       wisi-indent-comment-col-0
+	       (= 11 (syntax-class (syntax-after (aref (wisi-ind-line-begin wisi--indent) i)))))
+	(cond
+	 ((integerp delta)
+	  (wisi--apply-int i delta))
+
+	 ((listp delta)
+	  (cond
+	   ((eq 'anchored (car delta))
+	    (wisi--apply-anchored delta i))
+
+	   ((eq 'hanging (car delta))
+	    ;; from wisi-hanging; delta is ('hanging first-line nest delta1 delta2 no-accumulate)
+	    ;; delta1, delta2 may be anchored
+	    (when (or (not (nth 5 delta))
+		      (wisi-indent-zero-p (aref (wisi-ind-indent wisi--indent) i)))
+	      (if (= i (1- (nth 1 delta)))
+		  ;; apply delta1
+		  (let ((delta1 (nth 3 delta)))
+		    (cond
+		     ((integerp delta1)
+		      (wisi--apply-int i delta1))
+
+		     (t ;; anchored
+		      (wisi--apply-anchored delta1 i))
+		     ))
+
+		;; don't apply hanging indent in nested parens.
+		;; test/ada_mode-parens.adb
+		;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+		;;   Ada.Strings.Maps."or"
+		;;     (Ada.Strings.Maps.To_Set (' '),
+		(when (= paren-first
+			 (nth 0 (save-excursion (syntax-ppss (aref (wisi-ind-line-begin wisi--indent) i)))))
+		  (let ((delta2 (nth 4 delta)))
+		    (cond
+		     ((integerp delta2)
+		      (wisi--apply-int i delta2))
+
+		     (t ;; anchored
+		      (wisi--apply-anchored delta2 i))
+		     )))
+		)))
+
+	   (t
+	    (error "wisi--indent-token-1: invalid delta: %s" delta))
+	   )) ;; listp delta
+
+	 (t
+	  (error "wisi--indent-token-1: invalid delta: %s" delta))
+	 ))
+      (setq i (1+ i))
       )))
 
-(defun wisi-face-list-action (pairs &optional no-override)
-  "Cache face information in text properties of tokens.
-Intended as a grammar non-terminal action.
+(defun wisi--indent-token (tok token-delta)
+  "Add TOKEN-DELTA to all indents in TOK region,"
+  (let ((line (if (wisi-tok-nonterminal tok)
+		  (wisi-tok-first tok)
+		(when (wisi-tok-first tok) (wisi-tok-line tok))))
+	(end (cdr (wisi-tok-region tok))))
+    (when (and line end token-delta)
+      (wisi--indent-token-1 line end token-delta))))
 
-PAIRS is a vector of the form [token-number face token-number face ...]
-token-number is an integer. Apply face to all cached tokens
-in the range covered by wisi-tokens[token-number].
+(defun wisi--indent-comment (tok comment-delta)
+  "Add COMMENT-DELTA to all indents in comment region following TOK."
+  (let ((line (wisi-tok-comment-line tok))
+	(end (wisi-tok-comment-end tok)))
+    (when (and line end comment-delta)
+      (wisi--indent-token-1 line end comment-delta))))
 
-If NO-OVERRIDE is non-nil, don't override existing face."
-  (let (number region face cache (i 0))
-    (while (< i (length pairs))
-      (setq number (aref pairs i))
-      (setq face (aref pairs (setq i (1+ i))))
-      (setq region (cdr (aref wisi-tokens (1- number))));; wisi-tokens is let-bound in wisi-parse-reduce
-      (when region
-	(save-excursion
-	  (goto-char (car region))
-	  (setq cache (or (wisi-get-cache (point))
-			  (wisi-forward-cache)))
-	  (while (<= (point) (cdr region))
-	    (when cache
-	      (wisi-face-action-1 face (wisi-cache-region cache) no-override))
-	    (setq cache (wisi-forward-cache))
-	    )))
+(defun wisi-anchored-1 (tok offset &optional no-accumulate)
+  "Return offset of TOK relative to current indentation + OFFSET.
+For use in grammar indent actions."
+  (let ((pos (car (wisi-tok-region tok)))
+	delta)
 
-      (setq i (1+ i))
+    (goto-char pos)
+    (setq delta (+ offset (- (current-column) (current-indentation))))
+    (wisi-anchored-2
+     (wisi-tok-line tok) ;; anchor-line
+     (if wisi-indent-comment
+	 (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
+       (cdr (wisi-tok-region (aref wisi-tokens wisi-token-index))));; end
+     delta
+     no-accumulate)
+    ))
 
+(defun wisi--max-anchor (begin-line end)
+  (let ((i (1- begin-line))
+	(result 0))
+    (while (<= (aref (wisi-ind-line-begin wisi--indent) i) end)
+      (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
+	(when (listp indent)
+	  (cond
+	   ((eq 'anchor (car indent))
+	    (setq result (max result (car (nth 1 indent))))
+	    (when (listp (nth 2 indent))
+	      (setq result (max result (nth 1 (nth 2 indent))))
+	      ))
+	   (t ;; anchored
+	    (setq result (max result (nth 1 indent))))
+	   )))
+      (setq i (1+ i)))
+    result
+    ))
+
+(defun wisi-anchored-2 (anchor-line end delta no-accumulate)
+  "Set ANCHOR-LINE as anchor, increment anchors thru END, return anchored delta."
+  ;; Typically, we use anchored to indent relative to a token buried in a line:
+  ;;
+  ;; test/ada_mode-parens.adb
+  ;; Local_2 : Integer := (1 + 2 +
+  ;;                         3);
+  ;; line starting with '3' is anchored to '('
+  ;;
+  ;; If the anchor is a nonterminal, and the first token in the anchor
+  ;; is also first on a line, we don't need anchored to compute the
+  ;; delta:
+  ;;
+  ;; test/ada_mode-parens.adb
+  ;; Local_5 : Integer :=
+  ;;   (1 + 2 +
+  ;;      3);
+  ;; delta for line starting with '3' can just be '3'.
+  ;;
+  ;; However, in some places we need anchored to prevent later
+  ;; deltas from accumulating:
+  ;;
+  ;; test/ada_mode-parens.adb
+  ;; No_Conditional_Set : constant Ada.Strings.Maps.Character_Set :=
+  ;;   Ada.Strings.Maps."or"
+  ;;     (Ada.Strings.Maps.To_Set (' '),
+  ;;
+  ;; here the function call actual parameter part is indented first
+  ;; by 'name' and by 'expression'; we use anchored to keep the
+  ;; 'name' indent and ignore the later addition.
+  ;;
+  ;; So we apply anchored whether the anchor token is first or not.
+
+  (let* ((i (1- anchor-line))
+	 (indent (aref (wisi-ind-indent wisi--indent) i)) ;; reference if list
+	 (anchor-id (1+ (wisi--max-anchor anchor-line end))))
+
+    ;; Set anchor
+    (cond
+     ((integerp indent)
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list anchor-id) indent)))
+
+     ((and (listp indent)
+	   (eq 'anchor (car indent)))
+      (push anchor-id (nth 1 indent)))
+
+     ((and (listp indent)
+	   (eq 'anchored (car indent)))
+      (aset (wisi-ind-indent wisi--indent) i (list 'anchor (list anchor-id) (copy-sequence indent))))
+
+     (t
+      (error "wisi-anchored-delta: invalid form in indent: %s" indent)))
+
+    (list 'anchored anchor-id delta no-accumulate)
+    ))
+
+(defun wisi-anchored (token-number offset &optional no-accumulate)
+  "Return offset of token TOKEN-NUMBER in `wisi-tokens'.relative to current indentation + OFFSET.
+For use in grammar indent actions."
+  (wisi-anchored-1 (aref wisi-tokens (1- token-number)) offset no-accumulate))
+
+(defun wisi-anchored* (token-number offset)
+  "If TOKEN-NUMBER token in `wisi-tokens' is first on a line,
+anchor the current token to it at OFFSET.
+Otherwise return 0."
+  (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
+      (wisi-anchored token-number offset)
+    0))
+
+(defun wisi-anchored*- (token-number offset)
+  "If existing indent is zero, and TOKEN-NUMBER token in `wisi-tokens' is first on a line,
+anchor the current token to it at OFFSET.
+Otherwise return 0."
+  (if (wisi-tok-first (aref wisi-tokens (1- token-number)))
+      (wisi-anchored token-number offset t)
+    0))
+
+(defun wisi--paren-in-anchor-line (anchor-tok offset)
+  "If there is an opening paren containing ANCHOR-TOK in the same line as ANCHOR-TOK,
+return OFFSET plus the delta from the line begin to the paren
+position. Otherwise return OFFSET."
+  (let* ((tok-syntax (syntax-ppss (car (wisi-tok-region anchor-tok))))
+	 (paren-pos (nth 1 tok-syntax))
+	 (anchor-line (wisi-tok-line anchor-tok)))
+
+    (when (and paren-pos ;; in paren
+	      (< paren-pos (aref (wisi-ind-line-begin wisi--indent) (1- anchor-line))))
+      ;; paren not in anchor line
+      (setq paren-pos nil))
+
+    (if paren-pos
+	(progn
+	  (goto-char paren-pos)
+	  (+ 1 (- (current-column) (current-indentation)) offset))
+      offset)
+    ))
+
+(defun wisi-anchored% (token-number offset &optional no-accumulate)
+  "Anchor the current token at OFFSET from either the first token on the line
+containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line."
+  (let* ((indent-tok (aref wisi-tokens wisi-token-index))
+	 ;; tok is a nonterminal; this function makes no sense for terminals
+	 (anchor-tok (aref wisi-tokens (1- token-number))))
+
+    (wisi-anchored-2
+     (wisi-tok-line anchor-tok)
+
+     (if wisi-indent-comment
+	 (wisi-tok-comment-end indent-tok)
+       (cdr (wisi-tok-region indent-tok))) ;; end
+
+     (wisi--paren-in-anchor-line anchor-tok offset)
+     no-accumulate)
+    ))
+
+(defun wisi-anchored%- (token-number offset)
+  "If existing indent is zero, anchor the current token at OFFSET
+from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'."
+  (wisi-anchored% token-number offset t))
+
+(defun wisi-hanging-1 (delta1 delta2 option no-accumulate)
+  "If OPTION is nil, implement `wisi-hanging'; otherwis `wisi-hanging%'."
+  (if wisi-indent-comment
+      delta1
+
+    (let* ((tok (aref wisi-tokens wisi-token-index))
+	   (tok-syntax (syntax-ppss (car (wisi-tok-region tok)))))
+      ;; tok is a nonterminal; this function makes no sense for terminals
+      ;; syntax-ppss moves point to start of tok
+
+      (cond
+       ((functionp wisi-indent-hanging-function)
+	(let ((indent-hanging (funcall wisi-indent-hanging-function tok delta1 delta2 option)))
+	  (list 'hanging
+		(wisi-tok-line tok) ;; first line of token
+		(nth 0 tok-syntax) ;; paren nest level at tok
+		(nth 0 indent-hanging)
+		(if (or (not option)
+			(= 2 (length indent-hanging)))
+		    (nth 1 indent-hanging)
+		  (nth 0 indent-hanging)) ;; simplest way to implement no-accumulate
+		no-accumulate)))
+
+      (t
+       (list 'hanging
+	     (wisi-tok-line tok) ;; first line of token
+	     (nth 0 tok-syntax) ;; paren nest level at tok
+	     delta1
+	     (if (or (not option)
+		     (= (wisi-tok-line tok) (wisi-tok-first tok))) ;; first token in tok is first on line
+		 delta2
+	       delta1)
+	     no-accumulate))
+       ))
+    ))
+
+(defun wisi-hanging (delta1 delta2)
+  "Use DETLA1 for first line, DELTA2 for following lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 nil nil))
+
+(defun wisi-hanging% (delta1 delta2)
+  "If first token is first in line, use DETLA1 for first line, DELTA2 for following lines.
+Otherwise use DELTA1 for all lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 t nil))
+
+(defun wisi-hanging%- (delta1 delta2)
+  "If existing indent is non-zero, do nothing.
+Else if first token is first in line, use DETLA1 for first line,
+DELTA2 for following lines.  Otherwise use DELTA1 for all lines.
+For use in grammar indent actions."
+  (wisi-hanging-1 delta1 delta2 t t))
+
+(defun wisi--indent-compute-delta (delta tok)
+  "Return evaluation of DELTA."
+  (cond
+   ((integerp delta)
+    delta)
+
+   ((symbolp delta)
+    (symbol-value delta))
+
+   ((vectorp delta)
+    ;; [token comment]
+    ;; if wisi-indent-comment, we are indenting the comments of the
+    ;; previous token; they should align with the 'token' delta.
+    (wisi--indent-compute-delta (aref delta 0) tok))
+
+   (t ;; form
+    (save-excursion
+      (goto-char (car (wisi-tok-region tok)))
+      (eval delta)))
+   ))
+
+(defun wisi-indent-action (deltas)
+  "Accumulate `wisi--indents' from DELTAS.
+DELTAS is a vector; each element can be:
+- an integer
+- a symbol
+- a lisp form
+- a vector.
+
+The first three are evaluated to give the delta. A vector must
+have two elements, giving the code and following comment
+deltas. Otherwise the comment delta is the following delta in
+DELTAS."
+  (when (eq wisi--parse-action 'indent)
+    (dotimes (wisi-token-index (length wisi-tokens))
+      (let* ((tok (aref wisi-tokens wisi-token-index))
+	     (token-delta (aref deltas wisi-token-index))
+	     (comment-delta
+	      (cond
+	       ((vectorp token-delta)
+		(aref token-delta 1))
+
+	       ((< wisi-token-index (1- (length wisi-tokens)))
+		(aref deltas (1+ wisi-token-index)))
+	       )))
+	(when (wisi-tok-region tok)
+	  ;; region is null when optional nonterminal is empty
+	  (let ((wisi-indent-comment nil))
+	    (setq token-delta
+		  (when (and token-delta
+			     (wisi-tok-first tok))
+		    (wisi--indent-compute-delta token-delta tok)))
+
+	    (when (and token-delta
+		       (or (consp token-delta)
+			   (not (= 0 token-delta))))
+	      (wisi--indent-token tok token-delta))
+
+	    (setq wisi-indent-comment t)
+	    (setq comment-delta
+		  (when (and comment-delta
+			     (wisi-tok-comment-line tok))
+		    (wisi--indent-compute-delta comment-delta tok)))
+
+	    (when (and comment-delta
+		       (or (consp comment-delta)
+			   (not (= 0 comment-delta))))
+	      (wisi--indent-comment tok comment-delta))
+	    )
+	  )))))
+
+(defun wisi-indent-action* (n deltas)
+  "If any of the first N tokens in `wisi-tokens' is first on a line,
+call `wisi-indent-action' with DETLAS.  Otherwise do nothing."
+  (when (eq wisi--parse-action 'indent)
+    (let ((done nil)
+	  (i 0)
+	  tok)
+      (while (and (not done)
+		  (< i n))
+	(setq tok (aref wisi-tokens i))
+	(setq i (1+ i))
+	(when (and (wisi-tok-region tok)
+		   (wisi-tok-first tok))
+	  (setq done t)
+	  (wisi-indent-action deltas))
+	))))
+
+(defun wisi--indent-leading-comments ()
+  "Set `wisi-ind-indent to 0 for comment lines before first token in buffer.
+Leave point at first token (or eob)."
+  (save-excursion
+    (goto-char (point-min))
+    (forward-comment (point-max))
+    (let ((end (point))
+	  (i 0)
+	  (max-i (length (wisi-ind-line-begin wisi--indent))))
+      (while (< (aref (wisi-ind-line-begin wisi--indent) i) end)
+	(when (< i max-i)
+	  (aset (wisi-ind-indent wisi--indent) i 0))
+	(setq i (1+ i)))
       )))
 
 ;;;; motion
@@ -1212,10 +1760,11 @@ Returns cache, or nil if at end of buffer."
     ))
 
 (defun wisi-forward-find-class (class limit)
-  "Search forward for a token that has a cache with CLASS.
+  "Search at point or forward for a token that has a cache with CLASS.
 Return cache, or nil if at end of buffer.
 If LIMIT (a buffer position) is reached, throw an error."
-  (let ((cache (wisi-forward-cache)))
+  (let ((cache (or (wisi-get-cache (point))
+		   (wisi-forward-cache))))
     (while (not (eq class (wisi-cache-class cache)))
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
@@ -1223,28 +1772,26 @@ If LIMIT (a buffer position) is reached, throw an error."
     cache))
 
 (defun wisi-forward-find-token (token limit &optional noerror)
-  "Search forward for a token that has a cache with TOKEN.
-If point is at a matching token, return that token.
-TOKEN may be a list; stop on any cache that has a member of the list.
-Return cache, or nil if at end of buffer.
-If LIMIT (a buffer position) is reached, then if NOERROR is nil, throw an
-error, if non-nil, return nil."
+  "Search forward for TOKEN.
+If point is at a matching token, return that token.  TOKEN may be
+a list; stop on any member of the list.  Return `wisi-tok'
+struct, or if LIMIT (a buffer position) is reached, then if
+NOERROR is nil, throw an error, if non-nil, return nil."
   (let ((token-list (cond
 		     ((listp token) token)
 		     (t (list token))))
-	(cache (wisi-get-cache (point)))
+	(tok (wisi-forward-token))
 	(done nil))
     (while (not (or done
-		    (and cache
-			 (memq (wisi-cache-token cache) token-list))))
-      (setq cache (wisi-forward-cache))
-      (when (>= (point) limit)
+		    (memq (wisi-tok-token tok) token-list)))
+      (setq tok (wisi-forward-token))
+      (when (or (>= (point) limit)
+		(eobp))
+	(goto-char limit)
 	(if noerror
-	    (progn
-	      (setq done t)
-	      (setq cache nil))
-	  (error "cache with token %s not found" token))))
-    cache))
+	    (setq done t)
+	  (error "token %s not found" token))))
+    tok))
 
 (defun wisi-forward-find-nonterm (nonterm limit)
   "Search forward for a token that has a cache with NONTERM.
@@ -1271,7 +1818,7 @@ If LIMIT (a buffer position) is reached, throw an error."
 cache. Otherwise move to cache-next, or cache-end, or next cache
 if both nil.  Return cache found."
   (unless (eobp)
-    (wisi-validate-cache (point-max) t) ;; ensure there is a next cache to move to
+    (wisi-validate-cache (point-max) t 'navigate) ;; ensure there is a next cache to move to
     (let ((cache (wisi-get-cache (point))))
       (if (and cache
 	       (not (eq (wisi-cache-class cache) 'statement-end)))
@@ -1289,13 +1836,16 @@ if both nil.  Return cache found."
 (defun wisi-backward-statement-keyword ()
   "If not at a cached token, move backward to prev
 cache. Otherwise move to cache-prev, or prev cache if nil."
-  (wisi-validate-cache (point) t)
-  (let ((cache (wisi-get-cache (point))))
-    (if cache
-	(let ((prev (wisi-cache-prev cache)))
-	  (if prev
-	      (goto-char (1- prev))
-	    (wisi-backward-cache)))
+  (wisi-validate-cache (point) t 'navigate)
+  (let ((cache (wisi-get-cache (point)))
+	prev)
+    (when cache
+      (setq prev (wisi-cache-prev cache))
+      (unless prev
+	(unless (eq 'statement-start (wisi-cache-class cache))
+	  (setq prev (wisi-cache-containing cache)))))
+    (if prev
+	(goto-char (1- prev))
       (wisi-backward-cache))
   ))
 
@@ -1350,12 +1900,12 @@ Return cache for paren, or nil if no containing paren."
   cache)
 
 (defun wisi-goto-start (cache)
-  "Move point to containing ancestor of CACHE that has class block-start or statement-start.
+  "Move point to containing ancestor of CACHE that has class statement-start.
 Return start cache."
   (when
     ;; cache nil at bob, or on cache in partially parsed statement
     (while (and cache
-		(not (memq (wisi-cache-class cache) '(block-start statement-start))))
+		(not (eq (wisi-cache-class cache) 'statement-start)))
       (setq cache (wisi-goto-containing cache)))
     )
   cache)
@@ -1367,16 +1917,14 @@ Return start cache."
   "Move point to token at start of statement point is in or after.
 Return start cache."
   (interactive)
-  (wisi-validate-cache (point) t)
-  (let ((cache (wisi-get-cache (point))))
-    (unless cache
-      (setq cache (wisi-backward-cache)))
-    (wisi-goto-start cache)))
+  (wisi-validate-cache (point) t 'navigate)
+  (wisi-goto-start (or (wisi-get-cache (point))
+		       (wisi-backward-cache))))
 
 (defun wisi-goto-statement-end ()
   "Move point to token at end of statement point is in or before."
   (interactive)
-  (wisi-validate-cache (point) t)
+  (wisi-validate-cache (point) t 'navigate)
   (let ((cache (or (wisi-get-cache (point))
 		   (wisi-forward-cache))))
     (when (wisi-cache-end cache)
@@ -1432,26 +1980,9 @@ the comment on the previous line."
        comment-column))
    ))
 
-(defun wisi-indent-current (offset)
-  "Return indentation OFFSET relative to indentation of current line."
-  (+ (current-indentation) offset)
-  )
-
-(defun wisi-indent-paren (offset)
-  "Return indentation OFFSET relative to preceding open paren."
-  (save-excursion
-    (goto-char (nth 1 (syntax-ppss)))
-    (+ (current-column) offset)))
-
-(defun wisi-indent-start (offset cache)
-  "Return indentation of OFFSET relative to containing ancestor
-of CACHE with class statement-start or block-start."
-  (wisi-goto-start cache)
-  (+ (current-indentation) offset))
-
 (defun wisi-indent-statement ()
-  "Indent region given by `wisi-goto-start' on cache at or before point, then wisi-cache-end."
-  (wisi-validate-cache (point) t)
+  "Indent region given by `wisi-goto-start', `wisi-cache-end'."
+  (wisi-validate-cache (point) t 'navigate)
 
   (save-excursion
     (let ((cache (or (wisi-get-cache (point))
@@ -1460,105 +1991,294 @@ of CACHE with class statement-start or block-start."
 	;; can be nil if in header comment
 	(let ((start (progn (wisi-goto-start cache) (point)))
 	      (end (progn
-		     (when (wisi-cache-end cache)
-		       ;; nil when cache is statement-end
-		       (goto-char (1- (wisi-cache-end cache))))
-		     (point))))
+		     (if (wisi-cache-end cache)
+			 ;; nil when cache is statement-end
+			 (1- (wisi-cache-end cache))
+		       (point)))))
 	  (indent-region start end)
 	  ))
       )))
 
 (defvar-local wisi-indent-calculate-functions nil
-  "Functions to calculate indentation. Each called with point
-  before a token at the beginning of a line (at current
-  indentation); return indentation column for that token, or
-  nil. May move point. Calling stops when first function returns
-  non-nil.")
+  "Functions to compute indentation special cases.
+Called with point at current indentation of a line; return
+indentation column, or nil if function does not know how to
+indent that line. Run after parser indentation, so other lines
+are indented correctly.")
 
-(defvar-local wisi-post-parse-fail-hook
+(defvar-local wisi-post-indent-fail-hook
   "Function to reindent portion of buffer.
-Called from `wisi-indent-line' when a parse succeeds after
+Called from `wisi-indent-region' when a parse succeeds after
 failing; assumes user was editing code that is now syntactically
 correct. Must leave point at indentation of current line.")
 
 (defvar-local wisi-indent-failed nil
-  "Non-nil when wisi-indent-line fails due to parse failing; cleared when indent succeeds.")
+  "Non-nil when wisi-indent-region fails due to parse failing; cleared when indent succeeds.")
 
-(defvar-local wisi-indent-fallback 'wisi-indent-fallback-default
-  "Function to compute indent for current line when wisi parse fails.")
+(defvar-local wisi-indent-region-fallback 'wisi-indent-region-fallback-default
+  "Function to compute indent for lines in region when wisi parse fails.
+Called with BEGIN END.")
 
-(defun wisi-indent-fallback-default ()
+(defun wisi-indent-region-fallback-default (begin end)
   ;; no indent info at point. Assume user is
-  ;; editing; indent to previous line, fix it
+  ;; editing; indent to previous lines, fix it
   ;; after parse succeeds
+  (goto-char begin)
   (forward-line -1);; safe at bob
   (back-to-indentation)
-  (current-column))
+  (let ((col (current-column)))
+    (while (and (not (eobp))
+		(< (point) end))
+      (forward-line 1)
+      (indent-line-to col))))
+
+(defun wisi--set-line-begin ()
+  "Set line-begin field of `wisi--indent'."
+  (save-excursion
+    (goto-char (point-min))
+
+    (dotimes (i (length (wisi-ind-line-begin wisi--indent)))
+      (aset (wisi-ind-line-begin wisi--indent) i (point))
+      (forward-line 1))))
+
+(defconst wisi-indent-max-anchor-depth 20)
+
+(defun wisi-indent-region (begin end)
+  "For `indent-region-function', using the wisi indentation engine."
+  (let ((wisi--parse-action 'indent)
+	(parse-required nil))
+
+    (wisi--check-change)
+
+    ;; Always indent the line containing begin.
+    (setq begin (save-excursion (goto-char begin) (line-beginning-position)))
+
+    (let* ((end-mark (copy-marker end))
+	   (begin-line (count-lines (point-min) begin))
+	   (i (max begin-line 1))
+	   pos
+	   (line-count (+ 1 begin-line (count-lines begin (point-max))))
+	   (wisi--indent
+	    (make-wisi-ind
+	     :line-begin (make-vector line-count 0)
+	     :indent (make-vector line-count 0)
+	     :last-line nil))
+	   (anchor-indent (make-vector wisi-indent-max-anchor-depth 0)))
+
+      (wisi--set-line-begin)
+
+      (while (and (< i line-count)
+		  (<= (setq pos (aref (wisi-ind-line-begin wisi--indent) i)) end))
+	(unless (get-text-property (1- pos) 'wisi-indent)
+	  (setq parse-required t))
+	(setq i (1+ i)))
+
+      ;; A parse either succeeds and sets the indent cache on all
+      ;; lines in the buffer, or fails and leaves valid caches
+      ;; untouched.
+      (when (and parse-required
+		 (wisi-parse-try))
+
+	(setq wisi--last-parse-action wisi--parse-action)
+	(wisi-set-parse-try nil)
+	(wisi--indent-leading-comments)
+	(wisi--run-parse)
+
+	(when (not wisi-parse-failed)
+	  (setq parse-required nil)
+	  (move-marker (wisi-cache-max 'indent) (point-max))
+
+	  ;; cache indent action results
+	  (dotimes (i (length (wisi-ind-indent wisi--indent)))
+	    (let ((indent (aref (wisi-ind-indent wisi--indent) i)))
+
+	      (cond
+	       ((integerp indent))
+
+	       ((listp indent)
+		(let ((anchor-ids (nth 1 indent))
+		      (indent2 (nth 2 indent)))
+		  (cond
+		   ((eq 'anchor (car indent))
+		    (cond
+		     ((integerp indent2)
+		      (dotimes (i (length anchor-ids))
+			(aset anchor-indent (nth i anchor-ids) indent2))
+		      (setq indent indent2))
+
+		     ((listp indent2) ;; 'anchored
+		      (setq indent (+ (aref anchor-indent (nth 1 indent2)) (nth 2 indent2)))
+
+		      (dotimes (i (length anchor-ids))
+			(aset anchor-indent (nth i anchor-ids) indent)))
+
+		     (t
+		      (error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+		     ));; 'anchor
+
+		   ((eq 'anchored (car indent))
+		    (setq indent (+ (aref anchor-indent (nth 1 indent)) indent2)))
+
+		   (t
+		    (error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+		   )));; listp indent
+
+	       (t
+		(error "wisi-indent-region: invalid form in wisi-ind-indent %s" indent))
+	       );; cond indent
+
+	      (when (> i 0)
+		(setq pos (aref (wisi-ind-line-begin wisi--indent) i))
+		(with-silent-modifications
+		  (put-text-property (1- pos) pos 'wisi-indent indent)))
+	      )) ;; dotimes lines
+
+	  )) ;; parse succeeded
+
+      (if parse-required
+	  (progn
+	    ;; primary indent failed
+	    (setq wisi-indent-failed t)
+	    (when (functionp wisi-indent-region-fallback)
+	      (funcall wisi-indent-region-fallback begin end)))
+
+	;; Apply cached indents. Inserting or deleting spaces causes
+	;; wisi-ind-line-begin to be wrong, so we can't use it in
+	;; the loop.
+	(save-excursion
+	  (goto-char (aref (wisi-ind-line-begin wisi--indent) begin-line))
+	  (let ((wisi-indenting t))
+	    (while (and (not (eobp))
+			(<= (point) end-mark)) ;; end-mark can be at the start of an empty line
+	      (indent-line-to (if (bobp) 0 (get-text-property (1- (point)) 'wisi-indent)))
+	      (forward-line 1)))
+
+	  ;; run wisi-indent-calculate-functions
+	  (when wisi-indent-calculate-functions
+	    (goto-char begin)
+	    (while (and (not (eobp))
+			(< (point) end-mark))
+	      (back-to-indentation)
+	      (let ((indent
+		     (run-hook-with-args-until-success 'wisi-indent-calculate-functions)))
+		(when indent
+		  (indent-line-to indent)))
+
+	      (forward-line 1)))
+
+	  (when wisi-indent-failed
+	    ;; previous parse failed
+	    (setq wisi-indent-failed nil)
+	    (goto-char end)
+	    (run-hooks 'wisi-post-indent-fail-hook))
+	  ))
+      )))
 
 (defun wisi-indent-line ()
-  "Indent current line using the wisi indentation engine."
-  (interactive)
+  "For `indent-line-function'."
+  (let ((savep (copy-marker (point)))
+	(to-indent nil))
+    (back-to-indentation)
+    (when (>= (point) savep)
+      (setq to-indent t))
 
-  (let ((savep (point))
-	indent)
-    (save-excursion
-      (back-to-indentation)
-      (when (>= (point) savep) (setq savep nil))
+    (wisi-indent-region (line-beginning-position) (line-end-position))
 
-      (when (>= (point) wisi-cache-max)
-	(wisi-validate-cache (line-end-position))) ;; include at lease the first token on this line
-
-      (if (> (point) wisi-cache-max)
-	  (progn
-	      (setq wisi-indent-failed t)
-	      (setq indent (funcall wisi-indent-fallback)))
-
-	;; parse succeeded
-	(when wisi-indent-failed
-	  ;; previous parse failed
-	  (setq wisi-indent-failed nil)
-	  (run-hooks 'wisi-post-parse-fail-hook))
-
-	(when (> (point) wisi-cache-max)
-	  (error "wisi-post-parse-fail-hook invalidated parse."))
-
-	(setq indent
-	      (with-demoted-errors
-		  (or (run-hook-with-args-until-success 'wisi-indent-calculate-functions) 0))
-	      )
-	))
-
-    (if savep
-	;; point was inside line text; leave it there
-	(save-excursion (indent-line-to indent))
-      ;; point was before line text; move to start of text
-      (indent-line-to indent))
+    (goto-char savep)
+    (when to-indent (back-to-indentation))
     ))
 
 ;;;; debug
-(defun wisi-parse-buffer ()
+(defun wisi-parse-buffer (&optional parse-action)
   (interactive)
-  (syntax-propertize (point-max))
-  (wisi-invalidate-cache)
-  (wisi-validate-cache (point-max)) t)
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
+  (unless parse-action (setq parse-action 'indent))
+  (wisi-set-parse-try t parse-action)
+  (move-marker (wisi-cache-max parse-action) (point-max));; force delete caches
+  (wisi-invalidate-cache parse-action (point-min))
+
+  (cond
+   ((memq parse-action '(face navigate))
+    (wisi-validate-cache (point-max) t parse-action))
+
+   (t
+    (wisi-indent-region (point-min) (point-max)))
+   ))
+
+(defun wisi-time (func count)
+  "call FUNC COUNT times, show total time"
+  (interactive "afunction \nncount ")
+
+  (let ((start-time (float-time))
+	(start-gcs gcs-done)
+        (i 0)
+        diff-time
+	diff-gcs)
+    (while (not (eq (1+ count) (setq i (1+ i))))
+      (save-excursion
+        (funcall func)))
+    (setq diff-time (- (float-time) start-time))
+    (setq diff-gcs (- gcs-done start-gcs))
+    (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"
+	     diff-time
+	     diff-gcs
+	     (/ diff-time count)
+	     (/ (float diff-gcs) count))
+    ))
+
+(defun wisi-time-indent-line-cold-cache (line)
+  (wisi-set-parse-try t 'indent)
+  (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
+  (wisi-invalidate-cache 'indent (point-min))
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (wisi-time #'wisi-indent-line 1))
+
+(defun wisi-time-indent-line-warm-cache (line count)
+  (wisi-set-parse-try t 'indent)
+  (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
+  (wisi-invalidate-cache 'indent (point-min))
+  (goto-char (point-min))
+  (forward-line (1- line))
+  (wisi-indent-line)
+  (wisi-time #'wisi-indent-line count))
 
 (defun wisi-lex-buffer ()
+  ;; for timing the lexer; set indent so we get the slowest time
   (interactive)
-  (syntax-propertize (point-max))
-  (goto-char (point-min))
-  (while (not (eq wisent-eoi-term (car (wisi-forward-token)))))
-  )
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
+
+  (let* ((wisi--parse-action 'indent)
+	 (line-count (1+ (count-lines (point-min) (point-max))))
+	 (wisi--indent
+	  (make-wisi-ind
+	   :line-begin (make-vector line-count 0)
+	   :indent (make-vector line-count 0)
+	   :last-line nil)))
+
+    (wisi--set-line-begin)
+
+    (goto-char (point-min))
+    (while (not (eq wisi-eoi-term (wisi-tok-token (wisi-forward-token)))))
+    ))
+
+(defun wisi-show-indent ()
+  "Show indent cache for current line."
+  (interactive)
+  (message "%s" (get-text-property (1- (line-beginning-position)) 'wisi-indent)))
 
 (defun wisi-show-cache ()
-  "Show cache at point."
+  "Show navigation cache at point."
   (interactive)
-  (message "%s" (wisi-get-cache (point))))
+  (message "%s" (or (wisi-get-cache (point))
+		    (get-text-property (point) 'wisi-face))))
 
 (defun wisi-show-token ()
-  "Move forward across one keyword, show token_id."
+  "Move forward across one keyword, show token."
   (interactive)
-  (let ((token (wisi-forward-token)))
-    (message "%s" (car token))))
+  (let* ((wisi--parse-action nil)
+	 (token (wisi-forward-token)))
+    (message "%s" token)))
 
 (defun wisi-show-containing-or-previous-cache ()
   (interactive)
@@ -1568,28 +2288,33 @@ correct. Must leave point at indentation of current line.")
       (message "previous %s" (wisi-backward-cache)))
     ))
 
-(defun wisi-show-cache-max ()
-  (interactive)
+(defun wisi-show-cache-max (action)
   (push-mark)
-  (goto-char wisi-cache-max))
+  (goto-char (wisi-cache-max action)))
 
 ;;;;; setup
 
-(defun wisi-setup (indent-calculate post-parse-fail class-list keyword-table token-table parse-table)
+(defun wisi-setup (indent-calculate post-indent-fail class-list keyword-table token-table parse-table)
   "Set up a buffer for parsing files with wisi."
   (setq wisi-class-list class-list)
-  (setq wisi-string-double-term (car (symbol-value (intern-soft "string-double" token-table))))
-  (setq wisi-string-single-term (car (symbol-value (intern-soft "string-single" token-table))))
-  (setq wisi-symbol-term (car (symbol-value (intern-soft "symbol" token-table))))
 
   (let ((numbers (cadr (symbol-value (intern-soft "number" token-table)))))
-    (setq wisi-number-term (car numbers))
-    (setq wisi-number-p (cdr numbers)))
+    (setq wisi--lexer
+	  (make-wisi-lex
+	   :keyword-table keyword-table
+	   :punctuation-table (symbol-value (intern-soft "punctuation" token-table))
+	   :punctuation-table-max-length 0
+	   :string-double-term (car (symbol-value (intern-soft "string-double" token-table)))
+	   :string-quote-escape-doubled nil
+	   :string-quote-escape nil
+	   :string-single-term (car (symbol-value (intern-soft "string-single" token-table)))
+	   :symbol-term (car (symbol-value (intern-soft "symbol" token-table)))
+	   :number-term (car numbers)
+	   :number-p (cdr numbers)
+	   )))
 
-  (setq wisi-punctuation-table (symbol-value (intern-soft "punctuation" token-table)))
-  (setq wisi-punctuation-table-max-length 0)
   (let (fail)
-    (dolist (item wisi-punctuation-table)
+    (dolist (item (wisi-lex-punctuation-table wisi--lexer))
       (when item ;; default matcher can be nil
 
 	;; check that all chars used in punctuation tokens have punctuation syntax
@@ -1600,32 +2325,45 @@ correct. Must leave point at indentation of current line.")
 			   (car item) char)))
 	      (cdr item))
 
-	(when (< wisi-punctuation-table-max-length (length (cdr item)))
-	  (setq wisi-punctuation-table-max-length (length (cdr item)))))
+	(when (< (wisi-lex-punctuation-table-max-length wisi--lexer) (length (cdr item)))
+	  (setf (wisi-lex-punctuation-table-max-length wisi--lexer) (length (cdr item)))))
       )
     (when fail
       (error "aborting due to punctuation errors")))
 
-  (setq wisi-keyword-table keyword-table)
   (setq wisi-parse-table parse-table)
+
+  (setq wisi--cache-max
+	(list
+	 (cons 'face (copy-marker (point-min)))
+	 (cons 'navigate (copy-marker (point-min)))
+	 (cons 'indent (copy-marker (point-min)))))
+
+  (setq wisi--parse-try
+	(list
+	 (cons 'face t)
+	 (cons 'navigate t)
+	 (cons 'indent t)))
 
   ;; file local variables may have added opentoken, gnatprep
   (setq wisi-indent-calculate-functions (append wisi-indent-calculate-functions indent-calculate))
-  (set (make-local-variable 'indent-line-function) 'wisi-indent-line)
+  (set (make-local-variable 'indent-line-function) #'wisi-indent-line)
+  (set (make-local-variable 'indent-region-function) #'wisi-indent-region)
   (set (make-local-variable 'forward-sexp-function) #'wisi-forward-sexp)
 
-  (setq wisi-post-parse-fail-hook post-parse-fail)
+
+  (setq wisi-post-indent-fail-hook post-indent-fail)
   (setq wisi-indent-failed nil)
 
-  (add-hook 'before-change-functions 'wisi-before-change nil t)
-  (add-hook 'after-change-functions 'wisi-after-change nil t)
+  (add-hook 'before-change-functions #'wisi-before-change 'append t)
+  (add-hook 'after-change-functions #'wisi-after-change nil t)
+  (setq wisi--change-end (copy-marker (point-min) t))
 
-  (jit-lock-register 'wisi-fontify-region)
+  (unless wisi-disable-face
+    (jit-lock-register 'wisi-fontify-region))
 
-  ;; see comments on "lexer" above re syntax-propertize
-  (syntax-propertize (point-max))
-
-  (wisi-invalidate-cache)
+  ;; See comments above on syntax-propertize.
+  (when (< emacs-major-version 25) (syntax-propertize (point-max)))
   )
 
 (provide 'wisi)
