@@ -19,7 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Bounded;
 with Ada.Text_IO;
-with WisiToken.Parser.LR.McKenzie_Recover;
+with WisiToken.Parser.LR;
 package body WisiToken.Token_Emacs_Process is
 
    ----------
@@ -59,30 +59,6 @@ package body WisiToken.Token_Emacs_Process is
          if Tokens (I) then
             Token_Line := Token_Line & Token_ID'Image (I);
          end if;
-      end loop;
-      return To_String (Token_Line & "]");
-   end To_Codes;
-
-   function To_Codes (Tokens : in Token.List.Instance) return String
-   is
-      use Ada.Text_IO; -- Count
-      use Token.List;
-      --  A token image consists of:
-      --
-      --  ID - int
-      Chars_Per_Token : constant Integer := Integer'Width;
-
-      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
-        (Max => 2 + Integer (Tokens.Length) * Chars_Per_Token);
-      use Bounded;
-
-      I          : List_Iterator  := Tokens.First;
-      Token_Line : Bounded_String := To_Bounded_String ("[");
-   begin
-      loop
-         exit when I = Null_Iterator;
-         Token_Line := Token_Line & Integer'Image (Token_ID'Pos (ID (I)));
-         Next (I);
       end loop;
       return To_String (Token_Line & "]");
    end To_Codes;
@@ -181,7 +157,7 @@ package body WisiToken.Token_Emacs_Process is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      IDs     : in              Token.List.Instance;
+      IDs     : in              Token_Array;
       Action  : in              Semantic_Action)
    is
       pragma Unreferenced (State, Action);
@@ -219,7 +195,7 @@ package body WisiToken.Token_Emacs_Process is
       Recover   : in              WisiToken.Token.Recover_Data'Class)
    is
       pragma Unreferenced (State);
-      use WisiToken.Parser.LR.McKenzie_Recover;
+      use WisiToken.Parser.LR;
       use all type Token_Arrays.Vector;
    begin
       if Recover in Configuration'Class then

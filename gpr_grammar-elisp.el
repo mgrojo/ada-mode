@@ -1,26 +1,26 @@
-;;; gpr-grammar-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe -v 1 gpr-grammar.wy
+;;; gpr_grammar-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp gpr_grammar.wy
 
-;; Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
+;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst gpr-grammar-elisp-keyword-table-raw
+(defconst gpr_grammar-elisp-keyword-table-raw
   '(
    ("abstract" . ABSTRACT)
    ("aggregate" . AGGREGATE)
@@ -47,7 +47,7 @@
    ("with" . WITH)
    ))
 
-(defconst gpr-grammar-elisp-token-table-raw
+(defconst gpr_grammar-elisp-token-table-raw
   '(
    ("punctuation"
     (AMPERSAND . "&")
@@ -61,17 +61,17 @@
     (VERTICAL_BAR . "|")
     )
    ("symbol"
-    (IDENTIFIER . "[a-zA-Z][0-9a-zA-Z_]*")
+    (IDENTIFIER . "")
     )
    ("string-double"
-    (STRING_LITERAL . "\"[^\"]*\"")
+    (STRING_LITERAL . "")
     )
    ))
 
-(defconst gpr-grammar-elisp-parse-table
+(defconst gpr_grammar-elisp-parse-table
    (wisi-compile-grammar
    '((AMPERSAND COLON COLON_EQUALS COMMA DOT EQUAL_GREATER QUOTE SEMICOLON VERTICAL_BAR IDENTIFIER STRING_LITERAL ABSTRACT AGGREGATE CASE CONFIGURATION END EXTENDS EXTERNAL EXTERNAL_AS_LIST FOR IS LEFT_PAREN LIBRARY NULL OTHERS PACKAGE PROJECT RENAMES RIGHT_PAREN STANDARD TYPE USE WHEN WITH )
-     ((aggregate
+     ((aggregate_g
        ((LEFT_PAREN string_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
       (attribute_declaration
@@ -140,8 +140,8 @@
        ((term ))
        ((expression AMPERSAND term )))
       (external_value
-       ((EXTERNAL aggregate ))
-       ((EXTERNAL_AS_LIST aggregate )))
+       ((EXTERNAL aggregate_g ))
+       ((EXTERNAL_AS_LIST aggregate_g )))
       (identifier_opt
        (())
        ((IDENTIFIER )))
@@ -221,9 +221,9 @@
       (term
        ((string_primary ))
        ((LEFT_PAREN RIGHT_PAREN ))
-       ((aggregate )))
+       ((aggregate_g )))
       (typed_string_declaration
-       ((TYPE IDENTIFIER IS aggregate SEMICOLON )
+       ((TYPE IDENTIFIER IS aggregate_g SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 5 statement-end])
         (wisi-indent-action [0 gpr-indent-broken gpr-indent-broken gpr-indent-broken 0]))))
@@ -276,7 +276,7 @@
       ((default . error) (RIGHT_PAREN . (external_value . 1)) (AMPERSAND . (external_value . 1)) (COMMA . (external_value . 1)) (SEMICOLON . (external_value . 1)))
       ((default . error) (RIGHT_PAREN . (external_value . 0)) (AMPERSAND . (external_value . 0)) (COMMA . (external_value . 0)) (SEMICOLON . (external_value . 0)))
       ((default . error) (Wisi_EOI . (compilation_unit . 0)))
-      ((default . error) (RIGHT_PAREN . (aggregate . 0)) (AMPERSAND . (aggregate . 0)) (COMMA . (aggregate . 0)) (SEMICOLON . (aggregate . 0)))
+      ((default . error) (RIGHT_PAREN . (aggregate_g . 0)) (AMPERSAND . (aggregate_g . 0)) (COMMA . (aggregate_g . 0)) (SEMICOLON . (aggregate_g . 0)))
       ((default . error) (LEFT_PAREN .  81) (RIGHT_PAREN . (attribute_reference . 0)) (AMPERSAND . (attribute_reference . 0)) (COMMA . (attribute_reference . 0)) (SEMICOLON . (attribute_reference . 0)))
       ((default . error) (RIGHT_PAREN . (expression . 1)) (AMPERSAND . (expression . 1)) (COMMA . (expression . 1)) (SEMICOLON . (expression . 1)))
       ((default . error) (IS . (name . 1)) (RIGHT_PAREN . (name . 1)) (AMPERSAND . (name . 1)) (COMMA . (name . 1)) (DOT . (name . 1)) (QUOTE . (name . 1)) (SEMICOLON . (name . 1)))
@@ -381,7 +381,7 @@
       nil
       ((identifier_opt . 32))
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 30)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 30)(term . 31))
       nil
       ((with_clause . 15))
       ((project_qualifier_opt . 14))
@@ -390,9 +390,9 @@
       nil
       ((project_declaration_opt . 46)(project_extension . 11)(simple_project_declaration . 12))
       nil
-      ((aggregate . 45))
-      ((aggregate . 44))
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 42)(term . 31))
+      ((aggregate_g . 45))
+      ((aggregate_g . 44))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 42)(term . 31))
       nil
       nil
       nil
@@ -410,14 +410,14 @@
       nil
       nil
       ((attribute_declaration . 58)(case_statement . 59)(declarative_item . 60)(declarative_items . 61)(declarative_items_opt . 62)(package_declaration . 63)(package_spec . 64)(package_extension . 65)(package_renaming . 66)(simple_declarative_item . 67)(typed_string_declaration . 68))
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 51)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 51)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
       nil
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 49))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 49))
       nil
       nil
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 42)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 25)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(string_list . 42)(term . 31))
       nil
       nil
       nil
@@ -448,7 +448,7 @@
       ((identifier_opt . 93))
       nil
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 91)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 91)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
       nil
       nil
       nil
@@ -459,19 +459,19 @@
       nil
       ((case_item . 109)(case_items . 110))
       ((discrete_choice . 107))
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 104)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 104)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
       nil
       ((identifier_opt . 27)(name . 102))
       ((attribute_declaration . 58)(case_statement . 59)(declarative_item . 60)(declarative_items . 61)(declarative_items_opt . 101)(package_declaration . 63)(package_spec . 64)(package_extension . 65)(package_renaming . 66)(simple_declarative_item . 67)(typed_string_declaration . 68))
       ((identifier_opt . 27)(name . 100))
-      ((aggregate . 99))
+      ((aggregate_g . 99))
       nil
       nil
       nil
       nil
       ((identifier_opt . 124))
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 123)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 123)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
       nil
       nil
       nil
@@ -503,8 +503,8 @@
       nil
       nil
       nil
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 138)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
-      ((aggregate . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 137)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 138)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
+      ((aggregate_g . 22)(attribute_prefix . 23)(attribute_reference . 24)(expression . 137)(external_value . 26)(identifier_opt . 27)(name . 28)(string_primary . 29)(term . 31))
       ((attribute_declaration . 58)(case_statement . 59)(declarative_item . 60)(declarative_items . 61)(declarative_items_opt . 136)(package_declaration . 63)(package_spec . 64)(package_extension . 65)(package_renaming . 66)(simple_declarative_item . 67)(typed_string_declaration . 68))
       ((discrete_choice . 135))
       nil
@@ -521,5 +521,5 @@
       nil]))
   "Parser table.")
 
-(provide 'gpr-grammar-elisp)
+(provide 'gpr_grammar-elisp)
 ;; end of file

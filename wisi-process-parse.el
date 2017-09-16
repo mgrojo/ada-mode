@@ -54,6 +54,9 @@
   (process nil) 	       ;; running ada_mode_wisi_parse
   (buffer nil) 		       ;; receives output of ada_mode_wisi_parse
   (parser-errors nil)          ;; alist of error lists, indexed by parser id.
+  (total-wait-time 0.0)        ;; total time during last parse spent waiting for subprocess output.
+  (token-count 0)              ;; tokens sent to subprocess during last parse; for profiling.
+  (action-count 0)             ;; actions received from subprocess during last parse; for profiling.
   )
 
 (defvar wisi-process--alist nil
@@ -170,6 +173,43 @@ buffer.  Does not wait for command to complete."
 	 (process (wisi-process--parser-process parser))
 	 (term-hash (wisi-process--parser-term-hash parser))
 	 (done nil)
+	 (token-count 0)
+	 token term)
+    (when (> wisi-process-parse-debug 0)
+      (message msg))
+    (with-current-buffer (wisi-process--parser-buffer parser)
+      (erase-buffer))
+
+    (process-send-string process msg)
+
+    (goto-char (point-min))
+    (forward-comment (point-max))
+    (condition-case-unless-debug err
+	(while (not done)
+	  (setq token (wisi-forward-token))
+	  (setq token-count (1+ token-count))
+	  (setq term (wisi-tok-token token))
+	  (queue-enqueue (wisi-process--parser-lexer-queue parser) token)
+	  (process-send-string process (format "%d " (gethash term term-hash)))
+	  (setq done (eq wisi-eoi-term term))
+	  )
+      (wisi-parse-error
+       ;; Tell ext process we’re quiting
+       (process-send-string process (format "%d " (gethash wisi-eoi-term term-hash)))
+       (signal 'wisi-parse-error (cdr err))) ;; tell higher level code about error.
+      )
+    (setf (wisi-process--parser-token-count parser) token-count)
+    ))
+
+(defun wisi-process-parse--send-noop (parser)
+  "Send a noop command to PARSER external process, followed by
+the tokens returned by ‘wisi-forward-token’ in the current
+buffer.  Does not wait for command to complete."
+  (let* ((cmd "noop ")
+	 (msg (format "%02d%s" (length cmd) cmd))
+	 (process (wisi-process--parser-process parser))
+	 (term-hash (wisi-process--parser-term-hash parser))
+	 (done nil)
 	 token term)
     (when (> wisi-process-parse-debug 0)
       (message msg))
@@ -184,7 +224,6 @@ buffer.  Does not wait for command to complete."
 	(while (not done)
 	  (setq token (wisi-forward-token))
 	  (setq term (wisi-tok-token token))
-	  (queue-enqueue (wisi-process--parser-lexer-queue parser) token)
 	  (process-send-string process (format "%d " (gethash term term-hash)))
 	  (setq done (eq wisi-eoi-term term))
 	  )
@@ -559,6 +598,7 @@ from TOKEN-TABLE."
 	       start-wait-time)
 
 	  (setf (wisi-process--parser-busy parser) t)
+	  (setf (wisi-process--parser-total-wait-time parser) 0.0)
 
 	  ;; reset parser
 	  (setf (wisi-parser-errors parser) nil)
@@ -631,12 +671,13 @@ from TOKEN-TABLE."
 			(eval action)))
 
 		    ;; encoded parser action
-		    (condition-case-unless-debug err
-			(wisi-process-parse--execute parser action)
-		      (wisi-parse-error
-		       ;; From an action; missing statement-action in grammar, etc.
-		       (push (make-wisi--error :pos (point) :message (cdr err)) (wisi-parser-errors parser))
-		       (signal (car err) (cdr err)))))
+		    (unless wisi-action-disable
+		      (condition-case-unless-debug err
+			  (wisi-process-parse--execute parser action)
+			(wisi-parse-error
+			 ;; From an action; missing statement-action in grammar, etc.
+			 (push (make-wisi--error :pos (point) :message (cdr err)) (wisi-parser-errors parser))
+			 (signal (car err) (cdr err))))))
 
 		  (set-buffer action-buffer)
 		  ))
@@ -661,9 +702,16 @@ from TOKEN-TABLE."
 	      ;; "blocking call with quit inhibited", when this is
 	      ;; called by font-lock from the display engine.
 	      ;;
+	      ;; Specifying just-this-one t prevents C-q from
+	      ;; interrupting this.
+	      ;;
 	      ;; FIXME: but now we have a race condition between
 	      ;; reading the output and waiting for it?
-	      (accept-process-output process 1.0 nil t)
+	      (accept-process-output process 1.0 nil nil)
+
+	      (setf (wisi-process--parser-total-wait-time parser)
+		    (+ (wisi-process--parser-total-wait-time parser)
+		       (- (float-time) start-wait-time)))
 
 	      (setq need-more nil))
 	    );; while not done
@@ -678,9 +726,7 @@ from TOKEN-TABLE."
 	    (wisi-process-parse-show-buffer parser)
 	    (error "wisi-process-parse process died"))
 
-	  (when (> wisi-process-parse-debug 0)
-	    (message "total time: %f" (- (float-time) start-time))
-	    (message "action-count: %d" action-count))
+	  (setf (wisi-process--parser-action-count parser) action-count)
 
 	  (setf (wisi-process--parser-busy parser) nil)
 	  (set-buffer source-buffer)
@@ -697,6 +743,52 @@ from TOKEN-TABLE."
        (setf (wisi-process--parser-busy parser) nil)
        (signal (car err) (cdr err))
        ))))
+
+(defun wisi-process-send-tokens-noop ()
+  "Run lexer, send tokens to subprocess; otherwise no operation.
+For use with ’wisi-time’."
+  (wisi-process-parse--require-process wisi--parser)
+  (if (wisi-process--parser-busy wisi--parser)
+      (error "%s parser busy" wisi--parse-action)
+
+    ;; not busy
+    (let* ((source-buffer (current-buffer))
+	   (action-buffer (wisi-process--parser-buffer wisi--parser))
+	   (process (wisi-process--parser-process wisi--parser))
+	   (sexp-start (point-min))
+	   (need-more nil)
+	   (done nil))
+
+      (setf (wisi-process--parser-busy wisi--parser) t)
+      (wisi-process-parse--send-noop wisi--parser)
+      (set-buffer action-buffer)
+      (while (and (process-live-p process)
+		  (not done))
+	(goto-char sexp-start)
+	(cond
+	 ((eobp)
+	  (setq need-more t))
+
+	 ((looking-at wisi-process-parse-prompt)
+	  (setq done t))
+
+	 (t
+	  (forward-line 1)
+	  (setq sexp-start (point)))
+	 )
+
+	(unless done
+	  ;; end of buffer, or process died
+	  (unless (process-live-p process)
+	    (wisi-process-parse-show-buffer wisi--parser)
+	    (error "wisi-process-parse process died"))
+
+	  (accept-process-output process 1.0 nil nil)
+	  (setq need-more nil))
+	)
+      (set-buffer source-buffer)
+      (setf (wisi-process--parser-busy wisi--parser) nil)
+      )))
 
 (defun wisi-process-compile-tokens (tokens)
   "Compile terminals from TOKENS into a hash-table.

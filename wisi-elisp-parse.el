@@ -374,13 +374,14 @@ nil, `shift', or `accept'."
   "Execute action if TOKENS not null."
   ;; `tokens' is null when all tokens in a grammar statement are
   ;; optional and not present.
-  (if (< 0 (length tokens))
-      (when wisi--parse-action
-	(funcall func nonterm tokens))
+  (unless wisi-action-disable
+    (if (< 0 (length tokens))
+	(when wisi--parse-action
+	  (funcall func nonterm tokens))
 
-    (when (> wisi-debug 1)
-      (message "... action skipped; no tokens"))
-    ))
+      (when (> wisi-debug 1)
+	(message "... action skipped; no tokens"))
+      )))
 
 (defvar wisi-elisp-parser-state nil
   "Let-bound in `wisi-elisp-parse-reduce', used in `wisi-parse-find-token'.")

@@ -82,7 +82,7 @@ package WisiToken.Token_Emacs_Process is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      IDs     : in              Token.List.Instance;
+      IDs     : in              Token_Array;
       Action  : in              Semantic_Action);
 
    overriding

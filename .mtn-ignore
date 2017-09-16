@@ -25,6 +25,7 @@
 ^build/subprograms_process\.ads$
 ^build/test\.casing$
 ^dir-ada-mode$
+^exec_pro$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
 ^gpr_query$
@@ -32,6 +33,7 @@
 ^gpr_query\.db$
 ^gpr_query\.gpr$
 ^obj$
+^obj_pro$
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/.*\.o$

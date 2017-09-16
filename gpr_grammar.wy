@@ -102,8 +102,8 @@
 %token <whitespace> WHITESPACE [ \t\n]
 %token <line_comment> COMMENT "--"[^\n]*[\n]
 
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
-%token <string-double> STRING_LITERAL "\"[^\"]*\""
+%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
+%token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 
 %start compilation_unit
 %parser_algorithm LALR

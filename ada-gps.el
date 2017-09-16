@@ -395,6 +395,12 @@ For `ada-gps-indent-functions'.
 	 ))
       )))
 
+(defun ada-gps-noop-send ()
+  "Just send buffer text to gps process.
+For use with ’wisi-time’."
+  (ada-gps-session-send (format "noop %d" (1- (position-bytes (point-max)))) nil t)
+  (ada-gps-session-send (buffer-substring-no-properties (point-min) (point-max)) t nil))
+
 ;;;;; setup
 
 (defun ada-gps-setup ()

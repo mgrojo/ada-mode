@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Generic procedure to run a Wisi-generated parser.
+--  Generic procedure to run a standalone Wisi-generated parser.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -51,13 +51,17 @@ is
                   Integer'Image (Parser.Table.McKenzie.Cost_Limit));
       Put_Line ("--check_limit n  : set error recover token check limit; default" &
                   Integer'Image (Parser.Table.McKenzie.Check_Limit));
+      Put_Line ("--disable_recover : disable error recovery; default enabled");
+      Put_Line ("--lexer_only : only run lexer, for profiling");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
+      Put_Line ("--pause : when repeating, prompt for <enter> after each parse; allows seeing memory leaks");
       New_Line;
    end Put_Usage;
 
-   File_Name : Unbounded_String;
-
+   File_Name    : Unbounded_String;
+   Lexer_Only   : Boolean := False;
    Repeat_Count : Integer := 1;
+   Pause        : Boolean := False;
 
    Arg : Integer := 2;
 
@@ -72,7 +76,7 @@ begin
    File_Name := To_Unbounded_String (Argument (1));
 
    loop
-      exit when Arg + 1 > Argument_Count;
+      exit when Arg > Argument_Count;
 
       if Argument (Arg) = "--verbosity" then
          WisiToken.Trace_Parse := Integer'Value (Argument (Arg + 1));
@@ -86,9 +90,26 @@ begin
          Parser.Table.McKenzie.Check_Limit := Integer'Value (Argument (Arg + 1));
          Arg := Arg + 2;
 
+      elsif Argument (Arg) = "--disable_recover" then
+         Parser.Enable_McKenzie_Recover := False;
+         Arg := Arg + 1;
+
+      elsif Argument (Arg) = "--lexer_only" then
+         Lexer_Only := True;
+         Arg := Arg + 1;
+
+      elsif Argument (Arg) = "--pause" then
+         Pause := True;
+         Arg := Arg + 1;
+
       elsif Argument (Arg) = "--repeat_count" then
          Repeat_Count := Integer'Value (Argument (Arg + 1));
          Arg := Arg + 2;
+
+      else
+         Put_Line ("unrecognized option: '" & Argument (Arg) & "'");
+         Put_Usage;
+         return;
       end if;
    end loop;
 
@@ -101,8 +122,44 @@ begin
    end if;
 
    for I in 1 .. Repeat_Count loop
-      Parser.Lexer.Reset;
-      Parser.Parse;
+      begin
+         Parser.Lexer.Reset;
+         if Lexer_Only then
+            declare
+               use WisiToken;
+               ID : Token_ID := Invalid_Token_ID;
+            begin
+               Parser.Lexer.Reset;
+               loop
+                  exit when ID = Parser.Semantic_State.Trace.Descriptor.EOF_ID;
+                  ID := Parser.Lexer.Find_Next;
+               end loop;
+            end;
+         else
+            Parser.Parse;
+         end if;
+      exception
+      when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+         New_Line;
+         if I = 1 then
+            Put_Line (To_String (File_Name) & ": exception Syntax_Error");
+            if Errors.Length > 0 then
+               New_Line;
+               Put_Line ("Errors:");
+               WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
+            end if;
+         end if;
+      end;
+      if Pause then
+         Put_Line ("Enter to continue:");
+         Flush (Standard_Output);
+         declare
+            Junk : constant String := Get_Line;
+            pragma Unreferenced (Junk);
+         begin
+            null;
+         end;
+      end if;
    end loop;
 
    if Repeat_Count > 1 then
@@ -117,20 +174,11 @@ begin
 
    if Errors.Length > 0 then
       New_Line;
-      Put_Line ("Errors:");
+      Put_Line ("Corrected Errors:");
       WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
    end if;
 
 exception
-when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-   New_Line;
-   Put_Line (To_String (File_Name) & ": Syntax_Error" & Ada.Exceptions.Exception_Message (E));
-   if Errors.Length > 0 then
-      New_Line;
-      Put_Line ("Errors:");
-      WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
-   end if;
-
 when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));

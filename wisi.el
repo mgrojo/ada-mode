@@ -2579,41 +2579,64 @@ If non-nil, only repair errors in BEG END region."
      (wisi-indent-region (point-min) (point-max)))
     ))
 
-(defun wisi-time (func count)
+(defun wisi-time (func count &optional report-wait-time)
   "call FUNC COUNT times, show total time"
   (interactive "afunction \nncount ")
 
   (let ((start-time (float-time))
 	(start-gcs gcs-done)
+	(cum-wait-time 0.0)
         (i 0)
         diff-time
 	diff-gcs)
     (while (not (eq (1+ count) (setq i (1+ i))))
       (save-excursion
-        (funcall func)))
+        (funcall func))
+      (when report-wait-time
+	(setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi--parser)))))
     (setq diff-time (- (float-time) start-time))
     (setq diff-gcs (- gcs-done start-gcs))
-    (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"
-	     diff-time
-	     diff-gcs
-	     (/ diff-time count)
-	     (/ (float diff-gcs) count))
+    (if report-wait-time
+	(progn
+	  (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs %d tokens %d actions %f wait"
+		   diff-time
+		   diff-gcs
+		   (/ diff-time count)
+		   (/ (float diff-gcs) count)
+		   (wisi-process--parser-token-count wisi--parser)
+		   (wisi-process--parser-action-count wisi--parser)
+		   (/ cum-wait-time count)))
+
+      (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"
+	       diff-time
+	       diff-gcs
+	       (/ diff-time count)
+	       (/ (float diff-gcs) count))
+      ))
+  nil)
+
+(defun wisi-time-indent-middle-line-cold-cache (count &optional report-wait-time)
+  (goto-char (point-min))
+  (forward-line (1- (/ (count-lines (point-min) (point-max)) 2)))
+  (let ((cum-wait-time 0.0))
+    (wisi-time
+     (lambda ()
+       (wisi-set-parse-try t 'indent)
+       (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
+       (wisi-invalidate-cache 'indent (point-min))
+       (wisi-indent-line)
+       (when (wisi-process--parser-p wisi--parser)
+	 (setq cum-wait-time (+ cum-wait-time (wisi-process--parser-total-wait-time wisi--parser)))))
+     count
+     report-wait-time)
     ))
 
-(defun wisi-time-indent-line-cold-cache (line)
+(defun wisi-time-indent-middle-line-warm-cache (count)
   (wisi-set-parse-try t 'indent)
   (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
   (wisi-invalidate-cache 'indent (point-min))
   (goto-char (point-min))
-  (forward-line (1- line))
-  (wisi-time #'wisi-indent-line 1))
-
-(defun wisi-time-indent-line-warm-cache (line count)
-  (wisi-set-parse-try t 'indent)
-  (move-marker (wisi-cache-max 'indent) (point-max));; force delete caches
-  (wisi-invalidate-cache 'indent (point-min))
-  (goto-char (point-min))
-  (forward-line (1- line))
+  (forward-line (/ (count-lines (point-min) (point-max)) 2))
   (wisi-indent-line)
   (wisi-time #'wisi-indent-line count))
 

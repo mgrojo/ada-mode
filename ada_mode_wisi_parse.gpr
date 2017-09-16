@@ -30,9 +30,15 @@ project Ada_Mode_Wisi_Parse is
    for Source_Dirs use (".", "build");
    --  "build" holds some generated files
 
-   for Object_Dir use "obj";
+   case Standard_Common.Profile is
+   when "On" =>
+      for Object_Dir use "obj_pro";
+      for Exec_Dir use "exec_pro";
 
-   for Exec_Dir use ".";
+   when "Off" =>
+      for Object_Dir use "obj";
+      for Exec_Dir use ".";
+   end case;
 
    for Languages use ("Ada", "C");
 
@@ -41,8 +47,6 @@ project Ada_Mode_Wisi_Parse is
 
       Standard_Style := "-gnaty3abcefhiklnOprtx";
       Line_Length := "-gnatyM120";
-
-      Aflex_Style := ("-gnatyfikM120Op", "-gnatwKUR");
 
       Common_Switches :=
         ("-g",
@@ -61,9 +65,6 @@ project Ada_Mode_Wisi_Parse is
 
          for Switches ("ada_grammar_process.adb") use Common_Switches & Standard_Style & ("-O0");
          for Switches ("ada_grammar.adb") use Common_Switches & Standard_Style & ("-O0");
-         for Switches ("ada_grammar_dfa.adb") use Common_Switches & Aflex_Style & ("-O0");
-         for Switches ("ada_grammar_io.adb")  use Common_Switches & Aflex_Style & ("-O0");
-         for Switches ("ada_grammar_yylex.adb")  use Common_Switches & Aflex_Style & ("-O0");
 
       when "Normal" =>
          for Default_Switches ("Ada") use Common_Switches & Standard_Style & Line_Length & ("-O2", "-gnatn");
@@ -73,10 +74,6 @@ project Ada_Mode_Wisi_Parse is
             -- With GNAT GPL 2016: gnatn hangs; 01 slow; 02 out of memory
             -- -fvar-tracking-assignments gives up (only needed for debug)
 
-         for Switches ("ada_gramar_process_dfa.adb") use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
-         for Switches ("ada_grammar_process_io.adb")  use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
-         for Switches ("ada_grammar_process_yylex.adb") use Common_Switches & Aflex_Style & ("-O2", "-gnatn");
-
          for Switches ("gpr_grammar_process.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
          for Switches ("gpr_grammar.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
       end case;
@@ -84,12 +81,30 @@ project Ada_Mode_Wisi_Parse is
    end Compiler;
 
    package Builder is
-         --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
+      case Standard_Common.Profile is
+      when "On" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada") & ("-pg");
+
+      when "Off" =>
+         for Default_Switches ("Ada") use Standard_Common.Builder'Default_Switches ("Ada");
+      end case;
+
+      --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";
    end Builder;
 
    package Binder is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;
+
+   package Linker is
+      case Standard_Common.Profile is
+      when "On" =>
+         for Linker_Options use ("-pg", "-lgmem");
+
+      when "Off" =>
+         null;
+      end case;
+   end Linker;
 
 end Ada_Mode_Wisi_Parse;

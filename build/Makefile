@@ -39,7 +39,7 @@ docs : info html
 # this updates elisp and related executables after any source change,
 # without running the tests.
 update-elisp : ../ada_grammar-elisp.el
-update-elisp : ../gpr-grammar-elisp.el
+update-elisp : ../gpr_grammar-elisp.el
 update-elisp : install_ada_executables
 update-elisp : byte-compile
 
@@ -108,13 +108,15 @@ one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
 
-# run_ada_parser args: <verbosity> <enable_panic_mode> <enable_mckenzie> <mckenzie_enqueue_limit> <file_name>
 two : RUN_ARGS ?= --verbosity 2
 # run_ada_parser.exe : export Standard_Common_Build := Debug
 two : build_ada_executables
 two :
 	../run_ada_parser.exe ../test/debug.adb $(RUN_ARGS)
 
+two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
+two_mem : export Standard_Common_Profile := On
+two_mem : build_ada_executables
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an
@@ -333,7 +335,7 @@ debug_gps_indent$(EXE_EXT) : force
 	gprbuild -p ../ada_mode_gps_indent.gpr debug_gps_indent
 
 trace :
-	addr2line -e ../ada_mode_gps_indent.exe 0x96c9bd 0x96b1f6 0x96b24a 0x401cb6 0x989036 0x4013db 0x759e7c02 0x7708ab8d 0x7708ab58
+	addr2line -e ../exec_pro/run_ada_parser.exe 0x79c027 0x7715ff3f 0x7715ff11 0x7716068d 0x758a42 0x402903 0x7afce0 0x4013db 0x74927c02 0x7717ad2d 0x7717acf8
 
 $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 	gprinstall -f -p -P ../gpr_query.gpr --install-name=gpr_query
@@ -343,7 +345,7 @@ $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mo
 
 build_ada_executables : gpr_grammar.ads gpr_grammar_re2c.c gpr_grammar_process.ads  force
 build_ada_executables : ada_grammar.ads ada_grammar_re2c.c ada_grammar_process.ads force
-	gprbuild -p ../ada_mode_wisi_parse.gpr
+	gprbuild -p ../ada_mode_wisi_parse.gpr $(GPRBUILD_LINK_ARGS)
 
 install_ada_executables : build_ada_executables
 	gprinstall -f -p -P ../ada_mode_wisi_parse.gpr --install-name=ada_mode_wisi_parse

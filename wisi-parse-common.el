@@ -65,6 +65,10 @@ For use in grammar actions.")
 3 : also show top 10 items of parser stack.")
 
 ;; The following parameters are easily changeable for debugging.
+(defvar wisi-action-disable nil
+  "If non-nil, disable all elisp actions during parsing.
+Allows timing parse separate from actions.")
+
 (defvar-local wisi-panic-enable nil
   "If non-nil, enable panic mode error recovery.")
 

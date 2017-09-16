@@ -54,6 +54,9 @@ is
       Put_Line ("  outputs: elisp vectors for parser actions or elisp forms for errors.");
       Put_Line ("  See wisi-process-parse-execute for details.");
       New_Line;
+      Put_Line ("NNnoop <tokens>");
+      Put_Line ("  Just receive tokens; otherwise no operation. NN excludes <tokens>");
+      New_Line;
       Put_Line ("04quit");
    end Usage;
 
@@ -215,6 +218,24 @@ begin
             when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
                Put_Line ("(parse_error)"); -- elisp adds more info
+            end;
+
+         elsif Match ("noop") then
+            --  Input: <token id>...
+            --  Response:
+            --  prompt
+            declare
+               use WisiToken;
+               ID : Token_ID := Invalid_Token_ID;
+            begin
+               Parser.Lexer.Reset;
+               loop
+                  exit when ID = Parser.Semantic_State.Trace.Descriptor.EOF_ID;
+                  ID := Parser.Lexer.Find_Next;
+               end loop;
+            exception
+            when WisiToken.Syntax_Error =>
+               WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
             end;
 
          elsif Match ("quit") then
