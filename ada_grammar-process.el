@@ -427,6 +427,7 @@
     raise_expression
     raise_statement
     range_g
+    range_list
     real_range_specification_opt
     record_definition
     record_representation_clause
@@ -1136,9 +1137,15 @@
      (("name:0"
        (wisi-face-mark-action [1]))
       nil
+      ("name:2"
+       (wisi-indent-action [0
+       (wisi-anchored% 1 ada-indent-broken)
+       (wisi-hanging (wisi-anchored 2 1)
+       (wisi-anchored 2 (1+ ada-indent-broken)))
+       (wisi-anchored 2 0)]))
       nil
       nil
-      ("name:4"
+      ("name:5"
        (progn
        (wisi-statement-action [1 misc])
        (wisi-containing-action 1 2)
@@ -1440,6 +1447,7 @@
       nil
       nil
       )
+     nil
      nil
      (("record_definition:0"
        (wisi-indent-action [(ada-indent-record 'TYPE 1 0)
