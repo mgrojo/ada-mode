@@ -3,10 +3,10 @@ General notes on Emacs Ada mode
 build/Makefile
 build/wisi/Makefile
 
-o.e.a.stephe-1 (from o.e.a): external process opentoken parser
-o.e.a.stephe-2 (from o.e.a): compute indent via indent-action deltas in grammar; working
-o.e.a.stephe-3 (from o.e.a.s-1): FFI parser
-o.e.a.stephe-4 (from o.e.a.s-2, cherry pick from -1): syntax error handling in external process wisitoken parser
+o.e.a.stephe-1 (from o.e.a): dead
+o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser
+o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
+o.e.a.stephe-4 (from o.e.a.s-2, with o.w.s-1): Ada compute indent
 o.e.a.stephe-5 (from o.e.a): available
 
 (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
@@ -59,6 +59,12 @@ install packages in -Q:
  (list-packages))
 
  current work
+help-do-xref respect other-frame-window
+    find the code that sets the 'help-function attribute, change it to use display-buffer
+
+build completion table for local gpr-query using navigation parser results
+    all names in declarations
+
 fix release
     version 5.3.1
     gpr_query section in .info: menu structure wrong
@@ -85,6 +91,8 @@ Ada 2020 features:
     wait for wisi-2.0
 
 upgrade to gnat gpl 2017
+    copy libiconv from mingw32; see wisi-user_guide install
+
     gpr_query installed
         crashes in test/ada_mode-child_procedure.adb
         and under main emacs

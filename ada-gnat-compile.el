@@ -613,10 +613,19 @@ Prompt user if more than one."
   ;;
   ;; find error locations in .gpr files
   (setq compilation-search-path (append compilation-search-path (ada-prj-get 'prj_dir)))
-  (setq compilation-environment
-	(list
-	 (let ((process-environment (cl-copy-list (ada-prj-get 'proc_env))))
-	   (concat "GPR_PROJECT_PATH=" (getenv "GPR_PROJECT_PATH")))))
+
+  ;; ‘compilation-environment’ is buffer-local, but the user might
+  ;; delete that buffer. So set both global and local.
+  (let* ((process-environment (ada-prj-get 'proc_env))
+	 (gpr-path (getenv "GPR_PROJECT_PATH"))
+	 (comp-env (list (concat "GPR_PROJECT_PATH=" gpr-path)))
+	 (comp-buf (get-buffer "*compilation*")))
+    (when (buffer-live-p comp-buf)
+      (with-current-buffer comp-buf
+	(setenv "GPR_PROJECT_PATH" gpr-path)
+	(setq compilation-environment comp-env)))
+    (set-default 'compilation-environment comp-env)
+    )
 
   ;; must be after indentation engine setup, because that resets the
   ;; indent function list.

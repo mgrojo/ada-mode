@@ -9,6 +9,10 @@ GNU Emacs Ada mode NEWS -- history of user-visible changes.
 ** `ada-add-log-for-current-function' (for a revision control commit)
    will return a type name. However, `ada-which-function' will not.
 
+** New option `ada-fill-comment-adaptive', if non-nil, causes all
+   comments to be filled to the same width, rather than to the same
+   column. This looks better in deeply nested code.
+
 * Ada mode 5.2.2
 9 Jul 2017
 
