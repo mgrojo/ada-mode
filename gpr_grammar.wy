@@ -74,6 +74,8 @@
 
 ;; gpr keywords
 
+%keywords_case_insensitive
+
 %keyword ABSTRACT "abstract"
 %keyword AGGREGATE "aggregate"
 %keyword CASE "case"
