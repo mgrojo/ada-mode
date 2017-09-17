@@ -195,7 +195,7 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
       --  terminal tokens
       Put ("   '((");
       for Kind of Tokens loop
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
+         if not (-Kind.Kind = "line_comment" or -Kind.Kind = "whitespace") then
             for Pair of Kind.Tokens loop
                Put (-Pair.Name & " ");
             end loop;

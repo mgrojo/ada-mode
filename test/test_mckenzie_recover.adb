@@ -218,8 +218,6 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
       Parse_Text ("procedure Debug is begin A; ", Test.Debug);
       --  Missing "end;"
       --

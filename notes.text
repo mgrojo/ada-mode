@@ -5,12 +5,7 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-./Test/test_mckenzie_recover.adb:221:      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
-
-re2c supports case insensitive
-    ' ' quotes; not compatible with elisp
-    %keyword_case_insentive (no value)
-    => convert " to ' in create_re2c
+propagate to o.w
 
 add line, comment info compute to re2c lexer
     in org.wisitoken.stephe-1

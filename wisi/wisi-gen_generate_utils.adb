@@ -30,9 +30,9 @@ package body Wisi.Gen_Generate_Utils is
    function Non_Reporting (Kind : in String) return Boolean
    is begin
       return
-        Kind = """line_comment""" or
-        Kind = """line_end""" or
-        Kind = """whitespace""";
+        Kind = "line_comment" or
+        Kind = "line_end" or
+        Kind = "whitespace";
    end Non_Reporting;
 
    function Count_Non_Reporting return Integer

@@ -27,7 +27,8 @@ Bounds                  : WisiToken.Buffer_Region;
 %output_language Ada
 %lexer re2c
 
-;; wisi-generate requires some keywords
+;; wisi-generate requires some keywords; test case insensitive
+%keywords_case_insensitive
 %keyword FOO "foo"
 
 %token <line_comment> COMMENT "--"[^\n]*[\n]

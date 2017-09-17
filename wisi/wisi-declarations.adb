@@ -34,24 +34,25 @@ is
 
    use Standard.Ada.Strings.Fixed;
 
-   Conflict_Str              : constant String := "%conflict";
-   End_If_Str                : constant String := "%end if";
-   First_Parser_Label_Str    : constant String := "%first_parser_label";
-   First_State_Index_Str     : constant String := "%first_state_index";
-   If_Str                    : constant String := "%if lexer =";
-   Interface_Str             : constant String := "%interface";
-   Keyword_Str               : constant String := "%keyword";
-   Lexer_Str                 : constant String := "%lexer";
-   McKenzie_Check_Limit_Str  : constant String := "%mckenzie_check_limit";
-   McKenzie_Cost_Default_Str : constant String := "%mckenzie_cost_default";
-   McKenzie_Cost_Delete_Str  : constant String := "%mckenzie_cost_delete";
-   McKenzie_Cost_Insert_Str  : constant String := "%mckenzie_cost_insert";
-   McKenzie_Cost_Limit_Str   : constant String := "%mckenzie_cost_limit";
-   Output_Language_Str       : constant String := "%output_language";
-   Parser_Algorithm_Str      : constant String := "%parser_algorithm";
-   Recover_Pattern_1_Str     : constant String := "%recover_pattern_1";
-   Start_Str                 : constant String := "%start";
-   Token_Str                 : constant String := "%token";
+   Conflict_Str                  : constant String := "%conflict";
+   End_If_Str                    : constant String := "%end if";
+   First_Parser_Label_Str        : constant String := "%first_parser_label";
+   First_State_Index_Str         : constant String := "%first_state_index";
+   If_Str                        : constant String := "%if lexer =";
+   Interface_Str                 : constant String := "%interface";
+   Keyword_Str                   : constant String := "%keyword";
+   Keywords_Case_Insensitive_Str : constant String := "%keywords_case_insensitive";
+   Lexer_Str                     : constant String := "%lexer";
+   McKenzie_Check_Limit_Str      : constant String := "%mckenzie_check_limit";
+   McKenzie_Cost_Default_Str     : constant String := "%mckenzie_cost_default";
+   McKenzie_Cost_Delete_Str      : constant String := "%mckenzie_cost_delete";
+   McKenzie_Cost_Insert_Str      : constant String := "%mckenzie_cost_insert";
+   McKenzie_Cost_Limit_Str       : constant String := "%mckenzie_cost_limit";
+   Output_Language_Str           : constant String := "%output_language";
+   Parser_Algorithm_Str          : constant String := "%parser_algorithm";
+   Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
+   Start_Str                     : constant String := "%start";
+   Token_Str                     : constant String := "%token";
 
    If_Active : Boolean := False;
    --  If true, ignore all declarations except End_If_Str.
@@ -70,7 +71,8 @@ begin
          function Match (ID : in String) return Boolean
          is begin
             Key_Last := ID'Length;
-            return ID'Length <= Line'Last and then ID = Line (1 .. ID'Length);
+            return (ID'Length < Line'Last and then (ID = Line (1 .. ID'Length) and ' ' = Line (ID'Length + 1))) or else
+              (ID'Length = Line'Last and then ID = Line);
          end Match;
 
       begin
@@ -155,6 +157,9 @@ begin
             begin
                Keywords.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
+
+         elsif Match (Keywords_Case_Insensitive_Str) then
+            Generate_Params.Keywords_Case_Insensitive := True;
 
          elsif Match (Lexer_Str) then
             if Generate_Params.Lexer = None then
@@ -265,13 +270,13 @@ begin
                if Value_First = 0 then
                   Add_Token
                     (Tokens,
-                     Kind  => """" & Line (Kind_First .. Kind_Last) & """",
+                     Kind  => Line (Kind_First .. Kind_Last),
                      Name  => Line (Name_First .. Line'Last),
                      Value => "");
                else
                   Add_Token
                     (Tokens,
-                     """" & Line (Kind_First .. Kind_Last) & """",
+                     Line (Kind_First .. Kind_Last),
                      Line (Name_First .. Name_Last),
                      Line (Value_First .. Line'Last));
                end if;

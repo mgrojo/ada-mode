@@ -412,7 +412,10 @@ The interface between the parser and Emacs; one of @code{Module |
 Process}.
 
 @item %lexer
-The lexer; one of @code{aflex | elisp | regexp}.
+The lexer; one of @code{elisp | regexp | re2c}.
+
+@item %keywords_case_insensitive
+If present, keywords are case insensitive in the lexer.
 
 @item %output_language
 The generator output language; one of:

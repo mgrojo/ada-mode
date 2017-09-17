@@ -1,6 +1,8 @@
+-- case insensitive keyword
+Foo;
 foo;
 
--- These should all yield the same token sequence
+-- These all yield the same token sequence
 
 Character'('a');
 Character'( 'b' );

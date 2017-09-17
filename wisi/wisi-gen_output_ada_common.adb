@@ -377,7 +377,10 @@ package body Wisi.Gen_Output_Ada_Common is
       --  definitions
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
 
-         if Kind (I) = """number""" and Value (I) = "ada-wisi-number-p" then
+         if Kind (I) = "keyword" and Params.Keywords_Case_Insensitive then
+            Indent_Line (Name (I) & " = '" & Strip_Quotes (Value (I)) & "';");
+
+         elsif Kind (I) = "number" and Value (I) = "ada-wisi-number-p" then
             Indent_Line (Name (I) & " = ([0-9]+""#"")?[0-9][0-9a-fA-F._]*(""#"")?;");
 
          elsif 0 /= Index (Source => Value (I), Pattern => "/") then
@@ -394,7 +397,7 @@ package body Wisi.Gen_Output_Ada_Common is
       --  rules
       for I in All_Tokens.Iterate (Non_Reporting => True, Other_Tokens => False) loop
 
-         if Kind (I) = """whitespace""" or  Kind (I) = """line_comment""" then
+         if Kind (I) = "whitespace" or  Kind (I) = "line_comment" then
             Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
             Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
 

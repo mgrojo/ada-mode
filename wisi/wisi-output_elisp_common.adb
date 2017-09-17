@@ -71,19 +71,19 @@ package body Wisi.Output_Elisp_Common is
       for Kind of Tokens loop
          --  We don't use All_Tokens.Iterate here, because we need the
          --  Kind/token nested list structure, and the order is not important.
-         if not (-Kind.Kind = """line_comment""" or -Kind.Kind = """whitespace""") then
-            Indent_Line ("(" & (-Kind.Kind));
+         if not (-Kind.Kind = "line_comment" or -Kind.Kind = "whitespace") then
+            Indent_Line ("(""" & (-Kind.Kind) & """");
             Indent := Indent + 1;
             for Token of Kind.Tokens loop
                if 0 = Length (Token.Value) then
                   Indent_Line ("(" & Image (Token.Name) & ")");
                else
-                  if -Kind.Kind = """number""" then
+                  if -Kind.Kind = "number" then
                      --  allow for (<token> <number-p> <require>)
                      Indent_Line ("(" & Image (Token.Name) & " " & (-Token.Value) & ")");
-                  elsif -Kind.Kind = """symbol""" or
-                    -Kind.Kind = """string-double""" or
-                    -Kind.Kind = """string-single"""
+                  elsif -Kind.Kind = "symbol" or
+                    -Kind.Kind = "string-double" or
+                    -Kind.Kind = "string-single"
                   then
                      --  value not used by elisp
                      Indent_Line ("(" & Image (Token.Name) & " . """")");
