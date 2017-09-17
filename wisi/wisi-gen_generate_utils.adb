@@ -60,67 +60,15 @@ package body Wisi.Gen_Generate_Utils is
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
-   function Set_Token_Images return Token_Array_String
-   is
-      ID        : Token_ID := Token_ID'First;
-      Out_Image : Token_Array_String (Token_ID'First .. LR1_Descriptor.Last_Nonterminal);
-   begin
-      --  Same order as find_token_id above, cursor below. FIXME: use Cursor or doc why not
+   function Name_1 (Cursor : in Token_Cursor) return String;
 
+   procedure Set_Token_Images
+   is begin
       LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width := 0;
 
-      --  non-reporting
-      for Kind of Tokens loop
-         if Non_Reporting (-Kind.Kind) then
-            for Pair of Kind.Tokens loop
-               LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
-               Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
-
-               ID := ID + 1;
-            end loop;
-         end if;
-      end loop;
-
-      for Pair of Keywords loop
-         LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
-         Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
-
-         ID := ID + 1;
-      end loop;
-
-      for Kind of Tokens loop
-         if not Non_Reporting (-Kind.Kind) then
-            for Pair of Kind.Tokens loop
-               LR1_Descriptor.Image (ID) := new String'(-Pair.Name);
-               Out_Image (ID)            := new String'(To_Token_Out_Image (Pair.Name));
-
-               ID := ID + 1;
-            end loop;
-         end if;
-      end loop;
-
-      if ID /= EOF_ID then raise Programmer_Error; end if;
-
-      LR1_Descriptor.Image (ID) := new String'(-EOI_Name);
-      Out_Image (ID)            := new String'(To_Token_Out_Image (EOI_Name));
-
-      ID := ID + 1;
-
-      if ID /= LR1_Descriptor.Accept_ID then raise Programmer_Error; end if;
-
-      LR1_Descriptor.Image (ID) := new String'(-WisiToken_Accept_Name);
-      Out_Image (ID)            := new String'(To_Token_Out_Image (WisiToken_Accept_Name));
-
-      ID := ID + 1;
-
-      for Rule of Rules loop
-         LR1_Descriptor.Image (ID) := new String'(-Rule.Left_Hand_Side);
-         Out_Image (ID)            := new String'(To_Token_Out_Image (Rule.Left_Hand_Side));
-
-         if ID /= Invalid_Token_ID then
-            ID := ID + 1;
-         end if;
+      for Cursor in All_Tokens.Iterate loop
+         LR1_Descriptor.Image (ID (Cursor)) := new String'(Name_1 (Cursor));
       end loop;
 
       for ID in LR1_Descriptor.Image'Range loop
@@ -138,22 +86,7 @@ package body Wisi.Gen_Generate_Utils is
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
-
-      return Out_Image;
    end Set_Token_Images;
-
-   function Non_Reporting (Cursor : in Token_Cursor) return Boolean
-   is
-      --  FIXME: use ID (Cursor) < descriptor.first_terminal
-      use Standard.Ada.Strings.Unbounded;
-      --  WORKAROUND: in GNAT GPL_2014, using single statement here gives constraint error
-      Token_Ref : constant Wisi.Token_Lists.Constant_Reference_Type := Wisi.Token_Lists.Constant_Reference
-        (Tokens, Cursor.Token_Kind);
-
-      Kind : constant String := To_String (Token_Ref.Element.Kind);
-   begin
-      return Non_Reporting (Kind);
-   end Non_Reporting;
 
    function First_Token_Item (Cursor : in Token_Cursor) return String_Pair_Lists.Cursor
    is
@@ -256,7 +189,7 @@ package body Wisi.Gen_Generate_Utils is
       if Non_Reporting then
          loop
             exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
-            if Gen_Generate_Utils.Non_Reporting (Cursor) then
+            if Gen_Generate_Utils.Non_Reporting (-Wisi.Token_Lists.Element (Cursor.Token_Kind).Kind) then
                Cursor.Token_Item := First_Token_Item (Cursor);
                if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                   exit;
@@ -300,7 +233,7 @@ package body Wisi.Gen_Generate_Utils is
                Wisi.Token_Lists.Next (Cursor.Token_Kind);
                exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
 
-               if Non_Reporting (Cursor) then
+               if Non_Reporting (-Wisi.Token_Lists.Element (Cursor.Token_Kind).Kind) then
                   Cursor.Token_Item := First_Token_Item (Cursor);
                   if String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                      return;
@@ -341,7 +274,7 @@ package body Wisi.Gen_Generate_Utils is
          loop
             exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
 
-            if not Non_Reporting (Cursor) then
+            if not Non_Reporting (-Wisi.Token_Lists.Element (Cursor.Token_Kind).Kind) then
                Cursor.Token_Item := First_Token_Item (Cursor);
                return;
             end if;
@@ -366,7 +299,7 @@ package body Wisi.Gen_Generate_Utils is
             loop
                Wisi.Token_Lists.Next (Cursor.Token_Kind);
                exit when not Wisi.Token_Lists.Has_Element (Cursor.Token_Kind);
-               if not Non_Reporting (Cursor) then
+               if not Non_Reporting (-Wisi.Token_Lists.Element (Cursor.Token_Kind).Kind) then
                   Cursor.Token_Item := First_Token_Item (Cursor);
                   if Wisi.String_Pair_Lists.Has_Element (Cursor.Token_Item) then
                      return;
@@ -434,9 +367,9 @@ package body Wisi.Gen_Generate_Utils is
       return Cursor.ID;
    end ID;
 
-   function Name (Cursor : in Token_Cursor) return String
+   function Name_1 (Cursor : in Token_Cursor) return String
    is begin
-      --  FIXME: use ID, descriptor.image.
+      --   This function is used to compute LR1_descriptor.Image
       case Cursor.State is
       when Non_Reporting | Terminals_Others =>
          declare
@@ -474,6 +407,11 @@ package body Wisi.Gen_Generate_Utils is
       when Done =>
          raise Programmer_Error with "token cursor is done";
       end case;
+   end Name_1;
+
+   function Name (Cursor : in Token_Cursor) return String
+   is begin
+      return LR1_Descriptor.Image (Cursor.ID).all;
    end Name;
 
    function Kind (Cursor : in Token_Cursor) return String
@@ -694,6 +632,8 @@ package body Wisi.Gen_Generate_Utils is
    end To_McKenzie_Param;
 
 begin
+   Set_Token_Images;
+
    if Verbosity > 0 then
       Put_Tokens;
    end if;

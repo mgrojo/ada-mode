@@ -43,14 +43,13 @@ is
 
    WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
-   function To_Token_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
+   function To_Token_Image (Item : in String) return String
    is begin
-      return -Item;
+      return Item;
    end To_Token_Image;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name,
-      To_Token_Out_Image => To_Token_Image);
+     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Image);
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;

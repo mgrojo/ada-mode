@@ -5,14 +5,7 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-need case insensitive flag in .wy
-    use for keywords
-    pass to lexers
-
 review all FIXME:
-./wisi/wisi-gen_generate_utils.adb:58:      --  Same order as set_token_images, cursor below.
-    replaced with cursor; run all tests
-
 
 ./Test/test_mckenzie_recover.adb:221:      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
 

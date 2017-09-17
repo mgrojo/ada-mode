@@ -10,7 +10,7 @@ OK wisi_wy_test.adb ../wisi/test/case_expression : Run_Test
 OK wisi_wy_test.adb ../wisi/test/character_literal : Run_Test
 OK wisi_wy_test.adb ../wisi/test/identifier_list_name_conflict : Run_Test
 OK wisi_wy_test.adb ../wisi/test/range_conflict : Run_Test
-OK ../Test/association_grammar_test.adb : Nominal
+OK association_grammar_test.adb : Nominal
 OK ../Test/compare_goto_transitions.adb : Subprograms
 OK ../Test/counted_gnat_os_lib_test.adb : Discard
 OK ../Test/dragon_4_43_lr1_test.adb : Test_First_Follow

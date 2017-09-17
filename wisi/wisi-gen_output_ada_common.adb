@@ -901,9 +901,4 @@ package body Wisi.Gen_Output_Ada_Common is
       return Image & "_ID";
    end To_Token_Ada_Name;
 
-   function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-   is begin
-      return To_Token_Ada_Name (-Item);
-   end To_Token_Ada_Name;
-
 end Wisi.Gen_Output_Ada_Common;

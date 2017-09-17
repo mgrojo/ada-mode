@@ -30,7 +30,7 @@ generic
    EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
    WisiToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
 
-   with function To_Token_Out_Image (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
+   with function To_Token_Out_Image (Item : in String) return String;
    --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
    use WisiToken;
@@ -62,15 +62,8 @@ package Wisi.Gen_Generate_Utils is
 
    subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
 
-   Token_Output_Image_Width : Integer := 0; -- set by Set_Token_Images
-
-   function Set_Token_Images return Token_Array_String;
-
-   Token_Output_Image : constant Token_Array_String := Set_Token_Images;
-   --  FIXME: duplicates Descriptor.image
-
    function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
-   function Token_Out_Image (ID : in Token_ID) return String is (Token_Output_Image (ID).all);
+   function Token_Out_Image (ID : in Token_ID) return String is (To_Token_Out_Image (LR1_Descriptor.Image (ID).all));
 
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 

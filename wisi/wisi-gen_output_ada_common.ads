@@ -40,7 +40,6 @@ package Wisi.Gen_Output_Ada_Common is
    WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
    function To_Token_Ada_Name (Item : in String) return String;
-   function To_Token_Ada_Name (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
      (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Ada_Name);
