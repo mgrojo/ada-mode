@@ -22,8 +22,6 @@ with WisiToken.Parser.LR.LR1_Items;
 with WisiToken.Production;
 package WisiToken_AUnit is
 
-   --  FIXME: move these to appropriate .AUnit
-
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Production.Instance;

@@ -16,7 +16,7 @@
 
 %start compilation_unit
 %output_language Ada
-%lexer Aflex
+%lexer re2c
 
 %%
 

@@ -96,7 +96,7 @@ package body Test_Generate_Errors is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
    is begin
-      return new String'("../wisi/test/" & GNAT.Source_Info.File & " " & T.Root_Name.all);
+      return new String'(GNAT.Source_Info.File & " " & T.Root_Name.all);
    end Name;
 
 end Test_Generate_Errors;

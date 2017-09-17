@@ -81,7 +81,6 @@ is
 
    procedure Put_C_Prologue
    is begin
-      --  FIXME: we never use Quex or Aflex with Ada_Emacs; just raise Programmer_Error!
       Put_Prologue ("//", Prologue_Context_Clause);
    end Put_C_Prologue;
 
@@ -94,8 +93,7 @@ is
      (Keywords, Tokens, Conflicts, Rules, Params,
       Put_Ada_Prologue_Context_Clause,
       Put_Ada_Prologue_Declarations,
-      Put_Aflex_Prologue => Put_Ada_Prologue_Context_Clause,
-      Put_C_Prologue     => Put_C_Prologue);
+      Put_C_Prologue => Put_C_Prologue);
    use Common;
 
    Elisp_Action_Names : Nonterminal_Array_Action_Names;
@@ -192,7 +190,7 @@ is
 
       else
          --  Populate Ada_Action_Names, Elisp_Action_Names
-         for Rule of Rules loop
+         for Rule of Rules loop -- FIXME: use token_Cursor
             declare
                LHS_ID : constant Generate_Utils.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 

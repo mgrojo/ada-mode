@@ -33,7 +33,7 @@
 %output_language Ada
 %lexer re2c
 
-%conflict ACCEPT_IT/REDUCE in state fasttoken_accept, declaration on token Wisi_EOI
+%conflict ACCEPT_IT/REDUCE in state wisitoken_accept, declaration on token Wisi_EOI
 %conflict SHIFT/REDUCE in state body, declaration on token BEGIN
 %conflict SHIFT/REDUCE in state body, declaration on token IS
 

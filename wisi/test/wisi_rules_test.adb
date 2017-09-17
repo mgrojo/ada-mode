@@ -164,7 +164,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Wisi.Elisp_Lexer, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -219,7 +219,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Wisi.Ada, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Ada, Wisi.re2c_Lexer, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -260,7 +260,7 @@ package body Wisi_Rules_Test is
       Close (File);
 
       Open (File, In_File, File_Name);
-      Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
+      Wisi.Rules (File, Wisi.Elisp, Wisi.Elisp_Lexer, Computed, Rule_Count, Action_Count);
       Close (File);
 
       Wisi.Rule_Lists.Append
@@ -322,7 +322,7 @@ package body Wisi_Rules_Test is
 
       Open (File, In_File, File_Name);
       begin
-         Wisi.Rules (File, Wisi.Elisp, Computed, Rule_Count, Action_Count);
+         Wisi.Rules (File, Wisi.Elisp, Wisi.Elisp_Lexer, Computed, Rule_Count, Action_Count);
          AUnit.Assertions.Assert (False, "1 did not get exception");
       exception
       when Syntax_Error =>

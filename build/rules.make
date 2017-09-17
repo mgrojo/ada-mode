@@ -45,14 +45,12 @@ tests : test_all_harness.diff
 #
 # We only diff %-process.el on a couple tests, because it doesn't
 # depend on the grammar much
-#
-# FIXME: keep at least one aflex test, or delete aflex support
 
 #tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
 tests : case_expression_re2c.c
 tests : case_expression-parse.diff
 tests : conflict_name-process.el.diff
-tests : conflict_name_yylex.adb
+tests : conflict_name_re2c.c
 tests : conflict_name-parse.diff
 tests : empty_production_1_re2c.c
 tests : empty_production_1-parse.diff
@@ -93,7 +91,7 @@ clean :: test-clean
 	rm -rf obj_pro exec_pro
 	rm -rf libzcx libsjlj libobjzcx libobjsjlj
 
-test-clean : wisi-clean aflex-clean quex-clean re2c-clean
+test-clean : wisi-clean re2c-clean
 	rm -f *.diff *.in *_run.exe *-run.exe *test.exe *.out *.parse *.txt *.wy
 
 source-clean ::
@@ -137,9 +135,6 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe -v 1 $< > $*.parse_table
 	dos2unix $*.parse_table
 
-~/bin/aflex.exe : force
-	make -C /Projects/edu.uci.aflex/build install
-
 # delete files created by wisi-generate
 # don't delete prj.el
 wisi-clean :
@@ -151,23 +146,6 @@ wisi-clean :
 	dos2unix $*.parse
 
 %.exe : force; gprbuild -p --autoconf=obj/auto.cgpr --target=$(GPRBUILD_TARGET) -P wisitoken_test.gpr $(GPRBUILD_ARGS) $*
-
-# Aflex rules; wisi-generate outputs %.l
-%_yylex.ada : %.l
-	aflex -i -s -E -D../wisi/wisitoken_aflex_dfa.adb.template -O../wisi/wisitoken_aflex_io.adb.template $(AFLEX_ARGS) $<
-
-%_yylex.adb : %_yylex.ada
-	gnatchop -w $*_yylex.ada $*_dfa.ada $*_io.ada
-
-aflex-clean :
-	rm -f *.ada *_dfa.ad? *_io.ad? *_yylex.adb
-
-# Quex rules; wisi-generate outputs %.qx
-%_lexer.c : %.qx
-	$(QUEX_PATH)/quex-exe.py --language C --encoding utf8 -i $< -o $*_lexer
-
-quex-clean :
-	rm -f *.h *.c
 
 # Re2c rules; wisi-generate outputs %.qx
 %_re2c.c : %.re2c

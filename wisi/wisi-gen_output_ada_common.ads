@@ -29,7 +29,6 @@ generic
 
    with procedure Put_Ada_Prologue_Context_Clause;
    with procedure Put_Ada_Prologue_Declarations;
-   with procedure Put_Aflex_Prologue;
    with procedure Put_C_Prologue;
 package Wisi.Gen_Output_Ada_Common is
 
@@ -100,14 +99,6 @@ package Wisi.Gen_Output_Ada_Common is
       First_Parser_Label : in Integer);
 
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr);
-
-   procedure Create_Aflex
-     (Input_File_Name       : in String;
-      Output_File_Name_Root : in String);
-
-   procedure Create_Quex
-     (Input_File_Name       : in String;
-      Output_File_Name_Root : in String);
 
    procedure Create_re2c
      (Input_File_Name       : in String;

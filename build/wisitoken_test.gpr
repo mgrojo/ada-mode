@@ -43,24 +43,6 @@ project WisiToken_Test is
       for Default_Switches ("Ada") use
         WisiToken.Compiler'Default_Switches ("Ada") & ("-fno-strict-aliasing");
 
-      -- For compiling generated Quex code, we have to relax from
-      -- Standard_Common.Compiler.*_Switches_C.
-      --
-      -- FIXME: need a way to get correct switches for lexer.
-      Quex_Common_Switches :=
-        ("-I" & external ("QUEX_PATH"),
-         "-DQUEX_OPTION_TOKEN_STAMPING_WITH_LINE_AND_COLUMN",
-         "-DQUEX_OPTION_COUNTER_LINE",
-         "-DQUEX_OPTION_COUNTER_COLUMN",
-         "-DQUEX_SETTING_BUFFER_MIN_FALLBACK_N=0", -- avoid a buffer size check; we don't do pushback.
-         "-Wall", "-Werror", "-g", "-funwind-tables");
-
-      Quex_Debug_Switches :=
-        ("-O0"
-        -- , "-DQUEX_OPTION_DEBUG_SHOW" -- show quex debug messages, on stderr
-        );
-      Quex_Release_Switches := ("-O2", "-DQUEX_OPTION_ASSERTS_DISABLED");
-
       case Standard_Common.Build is
       when "Debug" =>
          for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C_Non_Pedantic;

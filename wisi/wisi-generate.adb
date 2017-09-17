@@ -50,7 +50,7 @@ is
       Put_Line ("%parser_algorithm {LALR | LR1 | LALR_LR1}");
       Put_Line ("   LALR_LR1 generates both parsers; choice is made at parser run-time.");
       Put_Line ("%output_language' {Ada | Ada_Emacs | Elisp}");
-      Put_Line ("%lexer {Aflex | Elisp | Regexp}");
+      Put_Line ("%lexer {re2c | Elisp | Regexp}");
       Put_Line ("%interface {Process | Module}");
       New_Line;
       Put_Line ("Interface is only valid with Ada_Emacs:");
@@ -186,9 +186,6 @@ begin
    Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, McKenzie_Recover);
    Wisi.Rules (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Rules, Rule_Count, Action_Count);
 
-   --  FIXME: use run-time factory, dispatching instead of this case
-   --  statement; allow moving output_elisp, output_ada_emacs to
-   --  ada-mode source repository.
    case Generate_Params.Output_Language is
    when None =>
       raise Programmer_Error; -- checked in wisi.declarations

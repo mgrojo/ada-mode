@@ -51,61 +51,12 @@ package body Wisi.Gen_Generate_Utils is
    end Count_Non_Reporting;
 
    function Find_Token_ID (Token : in String) return Token_ID
-   is
-      use type Standard.Ada.Strings.Unbounded.Unbounded_String;
-      Result : Token_ID := Token_ID'First;
-   begin
-      --  Same order as set_token_images, cursor below. FIXME: use Cursor, or delete, just use ID(cursor)
-      for Kind of Tokens loop
-         if Non_Reporting (-Kind.Kind) then
-            for Pair of Kind.Tokens loop
-               if Pair.Name = Token then
-                  return Result;
-               end if;
-               Result := Result + 1;
-            end loop;
+   is begin
+      for Cursor in All_Tokens.Iterate loop
+         if Name (Cursor) = Token then
+            return ID (Cursor);
          end if;
       end loop;
-
-      for Pair of Keywords loop
-         if Pair.Name = Token then
-            return Result;
-         end if;
-         Result := Result + 1;
-      end loop;
-
-      for Kind of Tokens loop
-         if not Non_Reporting (-Kind.Kind) then
-            for Pair of Kind.Tokens loop
-               if Pair.Name = Token then
-                  return Result;
-               end if;
-               Result := Result + 1;
-            end loop;
-         end if;
-      end loop;
-
-      if Token = EOI_Name or
-        Token = "EOI" -- used in conflicts FIXME: should not be
-      then
-         return Result;
-      end if;
-      Result := Result + 1;
-
-      if Token = WisiToken_Accept_Name or
-        Token = "fasttoken_accept" -- FIXME: should not need this
-      then
-         return Result;
-      end if;
-      Result := Result + 1;
-
-      for Rule of Rules loop
-         if Rule.Left_Hand_Side = Token then
-            return Result;
-         end if;
-         Result := Result + 1;
-      end loop;
-
       raise Not_Found with "token '" & Token & "' not found";
    end Find_Token_ID;
 
@@ -689,7 +640,6 @@ package body Wisi.Gen_Generate_Utils is
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set
    is
-      use all type Standard.Ada.Containers.Count_Type;
       Result : Token_ID_Set := (LR1_Descriptor.First_Nonterminal .. LR1_Descriptor.Last_Nonterminal => False);
    begin
       for Token of Item loop

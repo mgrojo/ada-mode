@@ -75,7 +75,6 @@ package Wisi.Gen_Generate_Utils is
    First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
 
    function Find_Token_ID (Token : in String) return Token_ID;
-   --  FIXME: use ID (Token_Cursor) instead.
 
    type Token_Container is tagged record
       Bogus_Content : Integer; -- need a component to declare an object

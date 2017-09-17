@@ -18,18 +18,19 @@ t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
 t_all : ./wisi-generate.exe
-t_all : ada_lite_yylex.adb
-t_all : character_literal_yylex.adb
+t_all : ada_lite_
+t_all : character_literal_
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf character_literal.*
+	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-one : export Standard_Common_Build := Debug
-#one : one-clean
-one : empty_production_6_yylex.adb
-one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-one : empty_production_6_run.run
+#one : export Standard_Common_Build := Debug
+one : one-clean
+one : character_literal_re2c.c
+#one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
+one : wisi-generate.exe
+	./wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp  ../wisi/test/identifier_list_name_conflict.wy
 
 two : RUN_ARGS ?= --verbosity 1
 two : ada_lite_yylex.adb run_ada_lite_parser.exe
@@ -53,42 +54,42 @@ some-clean :
 	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))
 some : export Standard_Common_Build := Debug
 some : some-clean
-# some : RUN_ARGS := -v 4
-# some : aflex.exe
+#some : RUN_ARGS := -v 4
+#some : GPRBUILD_ARGS := -v
 # some : wisi-generate.exe
 # some : SOME_CLEAN_FILE += case_expression
-# some : case_expression_yylex.adb
+# some : case_expression_re2c.c
 # some : case_expression-parse.diff
 # some : SOME_CLEAN_FILE += conflict_name
 # some : conflict_name-process.el.diff
 # some : conflict_name_yylex.adb
 # some : conflict_name-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_1
-# some : empty_production_1_yylex.adb
+# some : empty_production_1_re2c.c
 # some : empty_production_1-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_2
-# some : empty_production_2_yylex.adb
+# some : empty_production_2_re2c.c
 # some : empty_production_2-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_3
-# some : empty_production_3_yylex.adb
+# some : empty_production_3_re2c.c
 # some : empty_production_3-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_4
-# some : empty_production_4_yylex.adb
+# some : empty_production_4_re2c.c
 # some : empty_production_4-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_5
-# some : empty_production_5_yylex.adb
+# some : empty_production_5_re2c.c
 # some : empty_production_5-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_6
-# some : empty_production_6_yylex.adb
+# some : empty_production_6_re2c.c
 # some : empty_production_6-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_7
-# some : empty_production_7_yylex.adb
+# some : empty_production_7_re2c.c
 # some : empty_production_7-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_8
-# some : empty_production_8_yylex.adb
+# some : empty_production_8_re2c.c
 # some : empty_production_8-parse.diff
 # some : SOME_CLEAN_FILE += identifier_list_name_conflict
-# some : identifier_list_name_conflict_yylex.adb
+# some : identifier_list_name_conflict_re2c.c
 # some : identifier_list_name_conflict-parse.diff
 # some : SOME_CLEAN_FILE += subprograms-process
 # some : subprograms-process.el.diff

@@ -65,17 +65,6 @@ is
       end loop;
    end Put_Ada_Prologue_Declarations;
 
-   procedure Put_Aflex_Prologue
-   is begin
-      for Line of Prologue_Context_Clause loop
-         if Line'Last >= 2 and then Line (1 .. 2) = "--" then
-            Put_Line (Line);
-         else
-            return;
-         end if;
-      end loop;
-   end Put_Aflex_Prologue;
-
    procedure Put_C_Prologue
    is begin
       for Line of Prologue_Context_Clause loop
@@ -89,7 +78,7 @@ is
 
    package Common is new Wisi.Gen_Output_Ada_Common
      (Keywords, Tokens, Conflicts, Rules, Params, Put_Ada_Prologue_Context_Clause,
-      Put_Ada_Prologue_Declarations, Put_Aflex_Prologue, Put_C_Prologue);
+      Put_Ada_Prologue_Declarations, Put_C_Prologue);
    use Common;
 
    procedure Create_Ada_Body
@@ -149,16 +138,6 @@ is
       New_Line;
 
       case Data.Lexer is
-      when Aflex_Lexer =>
-         Put_Line ("with WisiToken.Lexer.Aflex;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_YYLex;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_dfa;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_io;");
-
-      when Quex_Lexer =>
-         Put_Line ("with WisiToken.Lexer.Quex;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_quex_c;");
-
       when re2c_Lexer =>
          Put_Line ("with WisiToken.Lexer.re2c;");
          Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
@@ -175,29 +154,6 @@ is
       New_Line;
 
       case Data.Lexer is
-      when Aflex_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.Aflex");
-         Indent_Line ("  (" & Lower_Package_Name_Root & "_io.Feeder,");
-         Indent := Indent + 3;
-         Indent_Line (Lower_Package_Name_Root & "_YYLex,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.YYText,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.yytext_ptr,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.YYLength,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.Set_Buffer_Size,");
-         Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Line,");
-         Indent_Line (Lower_Package_Name_Root & "_io.Tok_Begin_Col,");
-         Indent_Line (Lower_Package_Name_Root & "_dfa.yy_init);");
-         Indent := Indent - 3;
-         New_Line;
-
-      when Quex_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.Quex");
-         Indent_Line ("  (" & Lower_Package_Name_Root & "_quex_c.New_Lexer_From_Buffer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Free_Lexer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Next_Token,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_quex_c.Error_Code);");
-         New_Line;
-
       when re2c_Lexer =>
          Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
          Indent_Line ("  (" & Lower_Package_Name_Root & "_re2c_c.New_Lexer,");
@@ -222,7 +178,7 @@ is
             Indent_Line ("Action_Counts : array (fasttoken_accept_ID .. Token_ID'Last) of Integer := (others => 0);");
          end if;
 
-         for Rule of Rules loop
+         for Rule of Rules loop --  FIXME: use token_cursor
             declare
                use all type Standard.Ada.Containers.Count_Type;
 
@@ -333,7 +289,7 @@ begin
    Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => False);
 
    case Data.Lexer is
-   when Aflex_Lexer  | Quex_Lexer | re2c_Lexer =>
+   when re2c_Lexer =>
       null;
 
    when Elisp_Lexer | Regexp_Lexer =>
@@ -357,12 +313,6 @@ begin
    Create_Ada_Body;
 
    case Data.Lexer is
-   when Aflex_Lexer =>
-      Create_Aflex (Input_File_Name, Output_File_Name_Root);
-
-   when Quex_Lexer =>
-      Create_Quex (Input_File_Name, Output_File_Name_Root);
-
    when re2c_Lexer =>
       Create_re2c (Input_File_Name, Output_File_Name_Root);
 

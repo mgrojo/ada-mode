@@ -5,84 +5,32 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-leaking memory
-    ada_mode_wisi_parse.exe memory grows with each parse
-        mostly during parses that take a long time
-            mckenzie, or lots of parsers?
+need case insensitive flag in .wy
+    use for keywords
+    pass to lexers
 
-    two_mem runs gnatmem on run_ada_lite_parser ada_mode-recover_indent_3
-        only suspicious result is:
-Allocation Root # 3
--------------------
- Number of non freed allocations    : 797
- Final Water Mark (non freed mem)   : 17.17 Kilobytes
- High Water Mark                    : 1.85 Megabytes
- Backtrace                          :
-   s-pooglo.adb:0 ??
+delete all aflex, queux
+    done wisi.ads
 
-    add gnat.debug_pool to sal-gen_min_heap
-        debug_pools.dump_gnatmem outputs the same information as gnatmem; nothing new!
-        add print_info_stdout; lots of confusing numbers, not helpful
+review all FIXME:
+./wisi/wisi-gen_generate_utils.adb:58:      --  Same order as set_token_images, cursor below.
+    replaced with cursor; run all tests
 
-    run on a similar file with no errors: ada_mode-recover_indent_3_fixed.adb
-        suspicious result not changed much; 795, everything else the same
-        => not mckenzie
 
-    parsers used:
-        broken: 0 .. 3
-        fixed : same
+./Test/test_mckenzie_recover.adb:221:      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
 
-    does it scale with repeat?
-        goes up by 2 with each repeat
-
-    double code length
-        gnatmem_test2.adb
-        uses parsers 0 .. 5
-        795 allocations
-
-    run on full ada, on code that causes memory growth in task manager
+add line, comment info compute to re2c lexer
+    in org.wisitoken.stephe-1
+    re2c_simple, re2c_line_comment; subtype re2c_lexer is lexer range ...
+    two classes of token; grammar and non-grammar
+    both returned to parser
+    both passed to semantic_state
+    semantic_state stores non-grammar as list in preceding token
+        wisitoken-token_line_comment
+    otherwise parser ignores non-grammar
 
 put back mckenzie-enable in wisi-process-parse
     so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
-
-leaking memory
-    check finalize parser_state on Free (cursor)
-
-    if Linker_Options works in .gpr, post on comp.lang.ada "link errors with GNAT GPL 2016 and gprof"
-    test/gnatmem_test_3.adb
-        task manager memory usage +0.1 MB per parse
-        < 0.1 MB per parse when errors fixed
-
-    test/gnatmem_test_4.adb
-        task manager memory usage +0.7 MB per parse
-
-    test/gnatmem_test_5.adb
-        task manager memory usage > +100 MB per parse
-            even with mckenzie_cost_limit = 2
-            must be due to dying parsers?
-            37 parsers
-
-        in command line parser, +5MB/parse
-            disable_recover => < 0.1MB/parse (but not zero)
-            maybe Free (Recover) is not working?
-                set breakpoint in heap finalize, parser_stack finalize (ie containers.vectors.finalize)
-                vector finalize called from parser_stacks.new_list
-                heap finalize called on program termination
-
-    report memory use during parse
-        https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
-        ada.tasking?
-        ada.processor_info?
-
-token_cursor iterator definition
-    use rosen trick to store writeable info in the iterator object (not the cursor object)
-    both are specific to one loop.
-    or not; all of state is just a fancy pointer, which belongs in Cursor, and should be copied.
-
-delete Wisi.Gen_Generate_Utils gen param to_token_out_image; should be token_id'image?
-    see FIXME: in wisi-gen_output_ada_common.ads
-
-review all FIXME:
 
 Use indentation as hint?
     to solve missing 'end';
@@ -99,8 +47,7 @@ improve mckenzie
         ada_lite finds that after enqueue 4734, check  679;  0.000_231_979 seconds
         Full Ada finds that after enqueue 14164, check  1084; 0.010_793_146 seconds
 
-    run_ada_parser.exe 0 1 -1 ../wisi/test/gnatcoll-xref.adb --repeat_count 10
-        requires better lexer
+    ./Test/test_mckenzie_recover.adb:442:      --  FIXME: recover finds "insert 'case; end'"; need another pattern
 
     ada_lite.profile
         top total time functions:
@@ -424,43 +371,12 @@ wisi-generate lr1 way too slow for Ada
         everything slows down as more states added
 
 integrate with emacs module
-    split out ada_grammar from ada_grammar_process, _module
-
-some .wy in wisi_wy_test.adb, some in rules.make
-    be more consistent
-        easier to update in rules.make
 
 ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
 
     read tables from text file?
         action subprogram names as integer index into array of subprogram pointers.
-
-need better lexer for wisitoken
-    handle tick character literal
-    handle utf-8
-
-    lexer used by libadalang?
-
-need case insensitive flag in .wy
-    use for keywords
-    pass to lexers
-
-Test case gathering - wisi fallback email first use each day.
-
-need to_token_wy_name
-    for reporting conflicts
-
-Ada lexer
-    number:
-        add _
-        add leading integer to distinguish 16 from identifier
-
-    identifier: add leading letter
-
-review FIXME
-    ./fasttoken-parser-lalr-parser.adb:346:            --  FIXME: free everything
-        add Controlled to stuff
 
 change dragon examples
     lexer.regexp; should be easy
