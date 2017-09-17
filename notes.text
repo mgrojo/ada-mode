@@ -9,9 +9,6 @@ need case insensitive flag in .wy
     use for keywords
     pass to lexers
 
-delete all aflex, queux
-    done wisi.ads
-
 review all FIXME:
 ./wisi/wisi-gen_generate_utils.adb:58:      --  Same order as set_token_images, cursor below.
     replaced with cursor; run all tests
@@ -28,9 +25,6 @@ add line, comment info compute to re2c lexer
     semantic_state stores non-grammar as list in preceding token
         wisitoken-token_line_comment
     otherwise parser ignores non-grammar
-
-put back mckenzie-enable in wisi-process-parse
-    so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
 Use indentation as hint?
     to solve missing 'end';

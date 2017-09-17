@@ -130,7 +130,7 @@ package WisiToken.Token_Region is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      IDs     : in              WisiToken.Token.List.Instance;
+      IDs     : in              WisiToken.Token_Array;
       Action  : in              Semantic_Action);
 
    overriding

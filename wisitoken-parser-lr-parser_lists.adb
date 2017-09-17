@@ -293,7 +293,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
          begin
             Trace.Put
               (Action_Name & ": " & Image (Trace.Descriptor.all, Pend_Item.Action.LHS) & " <= ");
-            Token.List.Put (Trace, Pend_Item.Tokens);
+            Put (Trace, Pend_Item.Tokens);
          end;
 
       when Recover =>

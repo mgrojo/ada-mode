@@ -183,7 +183,7 @@ package body Association_Grammar_Test is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("../Test/association_grammar_test.adb");
+      return new String'("association_grammar_test.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

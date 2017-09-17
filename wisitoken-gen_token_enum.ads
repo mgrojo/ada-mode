@@ -149,7 +149,7 @@ package WisiToken.Gen_Token_Enum is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      Tokens  : in              Token.List.Instance;
+      Tokens  : in              WisiToken.Token_Array;
       Action  : in              Semantic_Action);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.
