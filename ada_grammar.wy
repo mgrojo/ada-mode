@@ -57,6 +57,8 @@
 
 ;; Ada keywords (ARM 2.9) and operators (info "(aarm2012)2.9" "*info AARM*")
 
+%keywords_case_insensitive
+
 %keyword ABS "abs"
 %keyword ACCEPT "accept"
 %keyword ABORT "abort"

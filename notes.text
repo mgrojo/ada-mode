@@ -2,7 +2,7 @@ General notes on Emacs Ada mode
 
 build/Makefile
 
-o.e.a.stephe-1 (from o.e.a): dead
+o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
 o.e.a.stephe-4 (from o.e.a.s-2, with o.w.s-1): Ada compute indent
@@ -39,8 +39,10 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
   (xmtn . "c:/Projects/org.wisitoken/")
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
+
  current work
 ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
     detect that, exit
@@ -121,14 +123,7 @@ plain parse, no actions:
 
         repeat timing in Debian
 
-    eliminate redundant tokens in process
-
     need emacs module, run lexer in Ada
-
-    in parse table, many states have only two actions; reduce and error
-        compress all the reduce actions into one
-            specify terminal token set instead of single token
-        find a reference for this
 
 parse face
     compare to o.e.a
@@ -137,7 +132,7 @@ parse face
         jit-lock-defer-time 1.5 helps
 
     wisitoken-parser-lr-lalr_generator.adb
-    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5)
+    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
 
     15 Sep 2017
         o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
@@ -150,7 +145,7 @@ indent
         try mingw64 gnat on Windows
             use 32 bit gprbuild to run 64 bit tools
 
-    compute indent in Ada?
+    compute indent in Ada
         also lex
         add line info compute to lexer
         compatible with AdaCore libadalang indent
@@ -205,9 +200,6 @@ indent
                 5 Virtual_To_Lookahead 0 - no actual errors
                 6 Push_Current       (- 62469 33008) 29461 = token count
                 7 Reduce_Stack       (- 149928 62469) 87459
-
-                => significant savings from eliminate duplicate tokens
-                   also eliminate any extra spaces (ie after [ ])
 
             smm-server.adb:     0.303128 seconds 1 gcs
 
