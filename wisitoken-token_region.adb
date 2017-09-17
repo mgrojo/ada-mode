@@ -201,7 +201,6 @@ package body WisiToken.Token_Region is
       State.Trace.Put ("semantic state: lookahead queue: ");
       Put (State.Trace.all, State.Lookahead_Queue);
       State.Trace.New_Line;
-      --  FIXME: invalid_regions?
    end Put;
 
    overriding

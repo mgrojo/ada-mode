@@ -88,7 +88,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
    procedure Enqueue (Data : in out McKenzie_Data; Config : in Configuration)
    is begin
-      --  FIXME: prune duplicate/higher cost configs?
+      --  [1] has a check for duplicate configs here; that only happens with
+      --  higher costs, which takes to long for our application.
       if Trace_Parse > 1 then
          Put ("enqueue", Data.Parser, Config);
       end if;
@@ -356,9 +357,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
         Error_ID = Pattern.Error
       then
          declare
-            --  Don't compute Expecting unless we need it. FIXME: main
-            --  loop already computed this for error msg, pass it to
-            --  recover?
+            --  Don't compute Expecting unless we need it.
             Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
             Expecting  : constant WisiToken.Token_ID_Set := LR.Expecting
               (Parser.Table.all, Parser_State.Stack.Peek.State);

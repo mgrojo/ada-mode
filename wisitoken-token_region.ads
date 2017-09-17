@@ -74,7 +74,6 @@ package WisiToken.Token_Region is
       Stack : Augmented_Token_Array;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
       --  Tokens are added by Push_Token, removed by Merge_Tokens.
-      --  FIXME: change to SAL.stack?
 
       Lookahead_Queue : Token_Queues.Queue_Type;
 

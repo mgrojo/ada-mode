@@ -25,7 +25,6 @@ with AUnit.Test_Results;
 with AUnit.Test_Suites; use AUnit.Test_Suites;
 with Association_Grammar_Test;
 with Compare_Goto_Transitions;
-with Counted_GNAT_OS_Lib_Test;
 with Dragon_4_43_LR1_Test;
 with Dragon_4_45_LALR_Test;
 with GNAT.Traceback.Symbolic;
@@ -50,7 +49,6 @@ begin
 
    Add_Test (Suite, new Association_Grammar_Test.Test_Case (Debug => False));
    Add_Test (Suite, new Compare_Goto_Transitions.Test_Case (Debug => False));
-   Add_Test (Suite, new Counted_GNAT_OS_Lib_Test.Test_Case);
    Add_Test (Suite, new Dragon_4_43_LR1_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new Dragon_4_45_LALR_Test.Test_Case (Debug => 0));
    Add_Test (Suite, new Grune_9_30.Test_Case (Debug => 0));

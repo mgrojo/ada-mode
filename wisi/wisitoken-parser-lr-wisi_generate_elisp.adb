@@ -24,7 +24,6 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Action_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
    is begin
-      --  FIXME: add panic_recover to elisp parser
       Put ("     [");
       for State in Table.States'Range loop
          if State = Table.States'First then

@@ -5,9 +5,12 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-review all FIXME:
-
 ./Test/test_mckenzie_recover.adb:221:      Parser.Table.McKenzie.Check_Limit := 1; -- FIXME:
+
+re2c supports case insensitive
+    ' ' quotes; not compatible with elisp
+    %keyword_case_insentive (no value)
+    => convert " to ' in create_re2c
 
 add line, comment info compute to re2c lexer
     in org.wisitoken.stephe-1
@@ -18,6 +21,11 @@ add line, comment info compute to re2c lexer
     semantic_state stores non-grammar as list in preceding token
         wisitoken-token_line_comment
     otherwise parser ignores non-grammar
+
+    ./wisi/wisi-gen_generate_utils.ads:174:      State       : Token_Cursor_State; --  FIXME: rename to Kind. use separate list for Non_Reporting
+        in .wy - %non_grammar instead of %token
+
+    ./wisitoken-lexer-re2c.adb:161:      --  FIXME: add C function to use token char pointer, length to fetch
 
 Use indentation as hint?
     to solve missing 'end';
@@ -66,6 +74,9 @@ improve mckenzie
         end loop
 
         helps conflict resolve, but not ada_mode-recover_indent_3
+
+    prune duplicate/higher cost configs?
+        only needed for higher cost levels
 
 new test cases:
 

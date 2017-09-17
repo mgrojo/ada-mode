@@ -478,8 +478,6 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      --  FIXME: output action names
-
       Indent_Line
         ("(cl-defstruct (" & Lower_Package_Name_Root &
            "-wisi-module-parser (:include wisi-parser)))");
@@ -537,7 +535,6 @@ is
       Indent_Line ("library project " & Package_Name_Root & "_Wisi_Module_Parse is");
       New_Line;
       Indent := Indent + 3;
-      --  FIXME: compile wrapper.c here?
       Indent_Line ("for Languages use (""Ada"");");
       Indent_Line ("for Source_Dirs use (""../.."", ""."");");
       New_Line;
@@ -653,8 +650,6 @@ begin
    when others =>
       raise Programmer_Error with "output language Ada_Emacs requires Elisp lexer";
    end case;
-
-   --  FIXME: don't include non-reporting in Token_IDs
 
    Create_Ada_Spec
      (Input_File_Name,
