@@ -221,14 +221,19 @@ package body WisiToken.Lexer.Regexp is
       return Ada.Text_IO.Count (Lexer.Lexeme_Head);
    end Column;
 
-   overriding function Lexeme (Lexer : in Instance) return String
-   is begin
-      return Lexer.Source.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
-   end Lexeme;
-
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
       return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
-   end Bounds;
+   end Char_Region;
+
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
+   is begin
+      return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
+   end Byte_Region;
+
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
+   is begin
+      return Lexer.Source.Buffer (Byte_Region.First .. Byte_Region.Last);
+   end Buffer_Text;
 
 end WisiToken.Lexer.Regexp;

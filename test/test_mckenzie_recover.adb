@@ -33,7 +33,6 @@ package body Test_McKenzie_Recover is
    Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser (WisiToken.LALR);
 
    Orig_Cost_Limit  : Integer;
-   Orig_Check_Limit : Integer;
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
@@ -56,17 +55,6 @@ package body Test_McKenzie_Recover is
    end Parse_Text;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Ada.Containers.Count_Type);
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Buffer_Region;
-      Expected : in WisiToken.Buffer_Region)
-   is
-      use AUnit.Checks;
-   begin
-      Check (Label & ".Begin_Pos", Computed.Begin_Pos, Expected.Begin_Pos);
-      Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
-   end Check;
 
    ----------
    --  Test procedures
@@ -137,13 +125,9 @@ package body Test_McKenzie_Recover is
 
       declare
          use WisiToken.Token_Region;
-         use WisiToken.Token_Region.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : constant WisiToken.Token_Region.Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check ("errors.length", Error_List.Length, 1);
-
-         Check ("errors.invalid_region 1", Element (Cursor).Invalid_Region, (59, 61));
       end;
    exception
    when WisiToken.Syntax_Error =>
@@ -179,12 +163,11 @@ package body Test_McKenzie_Recover is
            ("1", Element (Cursor),
             (First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       => (+SEMICOLON_ID, 0, 0, (84, 84)),
+             Error_Token       => (+SEMICOLON_ID, 0, 83, (84, 84), (84, 84)),
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
                 (1 => +IF_ID)),
-             Invalid_Region    => WisiToken.Null_Buffer_Region,
              Recover           => null),
             Check_Recover_Data => null);
 
@@ -526,7 +509,7 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, 0, 0, (23, 25)));
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, 0, 22, (23, 25), (23, 25)));
       end;
 
    exception
@@ -563,7 +546,7 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, 0, 0, (28, 30)));
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, 0, 27, (28, 30), (28, 30)));
       end;
 
    exception
@@ -610,9 +593,9 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, 0, 0, (76, 77)));
+         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, 0, 75, (76, 77), (76, 77)));
          Next (Cursor);
-         Check ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, 0, 0, (115, 119)));
+         Check ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, 0, 114, (115, 119), (115, 119)));
       end;
 
    exception
@@ -685,26 +668,18 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
    end Register_Tests;
 
-   overriding procedure Set_Up (T : in out Test_Case)
-   is begin
-      --  Run before each test
-      Parser.Table.McKenzie.Cost_Limit  := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
-      Parser.Table.McKenzie.Check_Limit := Orig_Check_Limit;
-   end Set_Up;
-
-   overriding procedure Tear_Down_Case (T : in out Test_Case)
+   overriding procedure Set_Up_Case (T : in out Test_Case)
    is
       pragma Unreferenced (T);
    begin
-      --  Run after all tests registered in Register_Tests
-      Orig_Cost_Limit  := Parser.Table.McKenzie.Cost_Limit;
-      Orig_Check_Limit := Parser.Table.McKenzie.Check_Limit;
-   end Tear_Down_Case;
+      --  Run before all tests in register
+      Orig_Cost_Limit := Parser.Table.McKenzie.Cost_Limit;
+   end Set_Up_Case;
 
-begin
-   --  Doing this here instead of in Set_Up_Case makes this
-   --  independent of all other tests in test_all_harness.
-   Orig_Cost_Limit  := Parser.Table.McKenzie.Cost_Limit;
-   Orig_Check_Limit := Parser.Table.McKenzie.Check_Limit;
+   overriding procedure Set_Up (T : in out Test_Case)
+   is begin
+      --  Run before each test
+      Parser.Table.McKenzie.Cost_Limit := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
+   end Set_Up;
 
 end Test_McKenzie_Recover;

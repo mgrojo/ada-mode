@@ -33,8 +33,14 @@ with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
 
    overriding procedure Finalize (Object : in out Instance)
-   is begin
-      Free_Lexer (Object.Lexer);
+   is
+      use all type System.Address;
+   begin
+      if Object.Lexer /= System.Null_Address then
+         Free_Lexer (Object.Lexer);
+         Object.Lexer := System.Null_Address;
+      end if;
+
       case Object.Source.Label is
       when String_Label =>
          Ada.Strings.Unbounded.Free (Object.Source.Buffer);
@@ -161,7 +167,11 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
-      return Lexer.Line;
+      if Lexer.New_Line_ID = Invalid_Token_ID then
+         return 0;
+      else
+         return Lexer.Line;
+      end if;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count

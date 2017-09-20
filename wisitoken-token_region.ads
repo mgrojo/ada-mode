@@ -40,7 +40,6 @@ package WisiToken.Token_Region is
       Descriptor : in WisiToken.Descriptor'Class;
       ID_Only    : in Boolean)
      return String;
-   --  Return a string for debug/test messages
 
    type Error_Data
      (First_Terminal : Token_ID;

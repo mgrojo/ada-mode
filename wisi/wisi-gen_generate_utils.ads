@@ -35,8 +35,8 @@ package Wisi.Gen_Generate_Utils is
      (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + 1;
 
    LR1_Descriptor : WisiToken.Descriptor
-     (First_Terminal    => (if Tokens.Non_Grammar.Length > 0
-                            then Token_ID (Tokens.Non_Grammar.Length) + Token_ID'First
+     (First_Terminal    => (if Count (Tokens.Non_Grammar) > 0
+                            then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
                             else Token_ID'First),
       Last_Terminal     => EOF_ID,
       EOF_ID            => EOF_ID,

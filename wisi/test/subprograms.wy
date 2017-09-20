@@ -1,6 +1,9 @@
 ;; Grammar has no conflicts; test wisi cache actions in Emacs
 
 %{
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword FUNCTION "function"

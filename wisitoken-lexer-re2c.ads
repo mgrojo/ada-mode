@@ -103,7 +103,7 @@ private
    type Instance is new WisiToken.Lexer.Instance with
    record
       New_Line_ID   : Token_ID;
-      Lexer         : System.Address;
+      Lexer         : System.Address := System.Null_Address;
       Source        : WisiToken.Lexer.Source;
       ID            : Token_ID; --  Last token read by find_next
       Byte_Position : Natural;

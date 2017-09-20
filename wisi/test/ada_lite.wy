@@ -26,9 +26,10 @@
 ;; along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 %{
-
+with WisiToken.Token_Region;
 %%
-Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+   Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}
 
 %keyword AND "and"
@@ -82,11 +83,11 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %token <punctuation> SLASH_EQUAL "/="
 %token <punctuation> STAR "*"
 
-%token <whitespace> WHITESPACE [ \t\n]
-
-%token <line_comment> COMMENT "--"[^\n]*[\n]
 %token <number> NUMERIC_LITERAL [0-9]+
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
 
 %start compilation_unit_list
 %parser_algorithm LALR

@@ -111,8 +111,12 @@ package Wisi is
    --  Comment_Syntax.
    --
    --  If Comment_Only is True, or if the comment syntax used in Prologue
-   --  does not equal Comment_Syntax, only output comment lines,
-   --  otherwise output all lines.
+   --  does not equal Comment_Syntax, only output comment lines.
+   --
+   --  If Comment_Syntax is Elisp_Comment, only output lines that are
+   --  valid elisp comments or forms (ie start with ';;' or '(').
+   --
+   --  Otherwise output all lines.
    --
    --  Comments in prologues usually give a copyright and license, which
    --  should be present in all output files. However, any code is only
@@ -157,6 +161,7 @@ package Wisi is
    package Token_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Token_Kind_Type);
 
    function Count (Tokens : in Token_Lists.List) return Integer;
+   --  Count of all leaves.
 
    procedure Add_Token
      (Tokens : in out Token_Lists.List;

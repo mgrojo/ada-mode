@@ -58,6 +58,27 @@ package body WisiToken.Token_Line_Comment is
    end Lexer_To_Lookahead;
 
    overriding
+   procedure Virtual_To_Lookahead
+     (State : not null access State_Type;
+      ID    : in     Token_ID)
+   is
+      Temp : constant Token :=
+        (ID,
+         Line        => 0,
+         Col         => 0,
+         Char_Region => Null_Buffer_Region,
+         Byte_Region => Null_Buffer_Region,
+         Non_Grammar => WisiToken.Augmented_Token_Arrays.Empty_Vector);
+   begin
+      State.Lookahead_Queue.Add_To_Head (Temp);
+
+      if Trace_Parse > 2 then
+         State.Trace.Put_Line
+           ("virtual_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+      end if;
+   end Virtual_To_Lookahead;
+
+   overriding
    procedure Reduce_Stack
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;

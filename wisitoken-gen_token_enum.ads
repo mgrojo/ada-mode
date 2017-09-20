@@ -86,6 +86,13 @@ package WisiToken.Gen_Token_Enum is
       Enum_ID : Token_Enum_ID;
    end record;
 
+   overriding
+   function Image
+     (Item       : in Augmented_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean)
+     return String;
+
    type State_Type
      (Trace : not null access WisiToken.Trace'Class;
       First_Terminal : Token_ID;
@@ -133,16 +140,14 @@ package WisiToken.Gen_Token_Enum is
 
    overriding
    procedure Discard_Lookahead
-     (State     : not null access State_Type;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID)
+     (State : not null access State_Type;
+      ID    : in              Token_ID)
    is null;
 
    overriding
    procedure Discard_Stack
-     (State     : not null access State_Type;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID)
+     (State : not null access State_Type;
+      ID    : in              Token_ID)
    is null;
 
    overriding procedure Reduce_Stack

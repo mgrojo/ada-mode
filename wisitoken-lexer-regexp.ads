@@ -72,9 +72,10 @@ package WisiToken.Lexer.Regexp is
    overriding
    function Column (Lexer : in Instance) return Ada.Text_IO.Count;
 
-   overriding function Lexeme (Lexer : in Instance) return String;
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region;
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
 
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region;
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
 
 private
 

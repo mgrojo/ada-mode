@@ -42,7 +42,7 @@ package body Wisi is
    begin
       for Line of Prologue loop
          if Line'Length >= 2 and then
-           ((Line (Line'First) = Line (Line'First + 1) and
+           ((Line (Line'First) = Line (Line'First + 1)) and
               Line (Line'First) /= ' ')
          then
             --  The line is a comment.
@@ -50,9 +50,8 @@ package body Wisi is
 
             Put_Line (Comment_Syntax & Line (Line'First + 2 .. Line'Last));
 
-            --  FIXME: why check for '('?
-            --  elsif (Line'Length > 0 and then Line (Line'First) = '(') then
-            --     null;
+         elsif Comment_Syntax = Elisp_Comment and (Line'Length > 0 and then Line (Line'First) /= '(') then
+            null;
 
          elsif not Comment_Only then
             Put_Line (Line);

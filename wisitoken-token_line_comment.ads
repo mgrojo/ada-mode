@@ -45,6 +45,11 @@ package WisiToken.Token_Line_Comment is
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
+   procedure Virtual_To_Lookahead
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
+
+   overriding
    procedure Reduce_Stack
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;

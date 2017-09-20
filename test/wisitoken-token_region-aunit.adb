@@ -20,6 +20,7 @@
 
 pragma License (Modified_GPL);
 
+with AUnit.Checks.Text_IO;
 with WisiToken.AUnit;
 package body WisiToken.Token_Region.AUnit is
 
@@ -29,9 +30,13 @@ package body WisiToken.Token_Region.AUnit is
       Expected : in Token)
    is
       use WisiToken.AUnit;
+      use Standard.AUnit.Checks.Text_IO;
    begin
       Check (Label & ".ID", Computed.ID, Expected.ID);
-      Check (Label & ".Region", Computed.Region, Expected.Region);
+      Check (Label & ".Line", Computed.Line, Expected.Line);
+      Check (Label & ".Col", Computed.Col, Expected.Col);
+      Check (Label & ".Char_Region", Computed.Char_Region, Expected.Char_Region);
+      Check (Label & ".Byte_Region", Computed.Byte_Region, Expected.Byte_Region);
    end Check;
 
    procedure Check
@@ -45,7 +50,6 @@ package body WisiToken.Token_Region.AUnit is
    begin
       Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
       Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);
-      Check (Label & ".Invalid_Region", Computed.Invalid_Region, Expected.Invalid_Region);
       Check (Label & ".Recover", Computed.Recover, Expected.Recover, Check_Recover_Data);
    end Check;
 

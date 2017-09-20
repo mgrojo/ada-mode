@@ -9,9 +9,6 @@ org.wisitoken.stephe-1 - development, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
-add line, comment info compute to re2c lexer
-    run all tests
-
 Use indentation as hint?
     to solve missing 'end';
     at current edit point, if indent does not match:
