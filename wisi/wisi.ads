@@ -57,15 +57,14 @@ package Wisi is
    subtype Valid_Output_Language is Output_Language_Type range Ada .. Elisp;
    subtype Ada_Output_Language is Output_Language_Type range Ada .. Ada_Emacs;
 
-   type Lexer_Type is (None, Elisp_Lexer, Regexp_Lexer, re2c_Lexer);
+   type Lexer_Type is (None, Elisp_Lexer, re2c_Lexer);
    subtype Valid_Lexer is Lexer_Type range Elisp_Lexer .. Lexer_Type'Last;
    --  We append "_Lexer" to these names to avoid colliding with the
    --  similarly-named WisiToken packages. In the grammar file, they
    --  are named by:
    Lexer_Names : constant array (Valid_Lexer) of access constant String :=
-     (Elisp_Lexer  => new String'("elisp"),
-      Regexp_Lexer => new String'("regexp"),
-      re2c_Lexer   => new String'("re2c"));
+     (Elisp_Lexer => new String'("elisp"),
+      re2c_Lexer  => new String'("re2c"));
 
    function To_Lexer (Item : in String) return Lexer_Type;
    --  Raises User_Error for invalid Item
@@ -85,6 +84,40 @@ package Wisi is
       Keywords_Case_Insensitive : Boolean               := False;
       Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
+
+   package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
+
+   type Prologues is record
+      Spec_Context_Clause : String_Lists.List;
+      Spec_Declarations   : String_Lists.List;
+      Body_Context_Clause : String_Lists.List;
+      Body_Declarations   : String_Lists.List;
+   end record;
+
+   subtype String_2 is String (1 .. 2);
+
+   Ada_Comment   : constant String_2 := "--";
+   C_Comment     : constant String_2 := "//";
+   Elisp_Comment : constant String_2 := ";;";
+
+   procedure Put_Prologue
+     (Comment_Syntax : in String_2;
+      Prologue       : in String_Lists.List;
+      Comment_Only   : in Boolean := False);
+   --  Output Prologue to Ada.Text_IO.Current_Output.
+   --
+   --  If first two characters of a line are the same and not ' ', it is
+   --  assumed to be a comment; ensure the output line has
+   --  Comment_Syntax.
+   --
+   --  If Comment_Only is True, or if the comment syntax used in Prologue
+   --  does not equal Comment_Syntax, only output comment lines,
+   --  otherwise output all lines.
+   --
+   --  Comments in prologues usually give a copyright and license, which
+   --  should be present in all output files. However, any code is only
+   --  intended for the primary output files (implementing the parser),
+   --  not auxiliary files (implement the lexer or other utilities).
 
    type String_Pair_Type is record
       Name  : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -149,8 +182,6 @@ package Wisi is
 
    package Conflict_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Conflict);
 
-   package String_Lists is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (String);
-
    type RHS_Type is record
       Production : String_Lists.List; -- Tokens
       Action     : String_Lists.List; -- one string per line
@@ -164,6 +195,15 @@ package Wisi is
    end record;
 
    package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);
+
+   type Tokens is record
+      Non_Grammar : Token_Lists.List;
+      Keywords    : String_Pair_Lists.List;
+      Tokens      : Token_Lists.List;
+      Rules       : Rule_Lists.List;
+      --  Rules included here because they define the nonterminal tokens, as
+      --  well as the productions.
+   end record;
 
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
      renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;

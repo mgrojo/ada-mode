@@ -29,9 +29,9 @@ generic
    --  These subprograms are provided by generated source code.
 
    with function New_Lexer
-     (Buffer    : in System.Address;
-      Length    : in Interfaces.C.size_t;
-      Verbosity : in Interfaces.C.int)
+     (Buffer      : in System.Address;
+      Length      : in Interfaces.C.size_t;
+      Verbosity   : in Interfaces.C.int)
      return System.Address;
    --  Create the re2c lexer object, passing it the full text to process.
    --  Length is buffer length in 8 bit bytes.
@@ -43,15 +43,19 @@ generic
    --  Restart lexing, with previous input buffer.
 
    with function Next_Token
-     (Lexer              : in     System.Address;
-      ID                 :    out Token_ID;
-      Byte_Position      :    out Interfaces.C.size_t;
-      Byte_Length        :    out Interfaces.C.size_t;
-      Character_Position :    out Interfaces.C.size_t;
-      Character_Length   :    out Interfaces.C.size_t)
+     (Lexer         : in     System.Address;
+      ID            :    out Token_ID;
+      Byte_Position :    out Interfaces.C.size_t;
+      Byte_Length   :    out Interfaces.C.size_t;
+      Char_Position :    out Interfaces.C.size_t;
+      Char_Length   :    out Interfaces.C.size_t)
      return Interfaces.C.int;
    --  *_Position and *_Length give the position and length in bytes and
    --  characters of the token from the start of the buffer, 0 indexed.
+   --
+   --  Line gives the line number in the source file that the token is
+   --  in, 1 indexed. Char_Line_Start gives the character position of the
+   --  line start relative to the file start.
    --
    --  Result values: (see wisi-gen_output_ada_common.adb create_re2c)
    --
@@ -67,8 +71,11 @@ package WisiToken.Lexer.re2c is
    overriding procedure Finalize (Object : in out Instance);
 
    function New_Lexer
-     (Trace : not null access WisiToken.Trace'Class)
+     (Trace       : not null access WisiToken.Trace'Class;
+      New_Line_ID : in              Token_ID)
      return WisiToken.Lexer.Handle;
+   --  If the tokens do not include a reporting New_Line token, set
+   --  New_Line_ID to Invalid_Token_ID.
 
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
    --  Copies Input to internal buffer.
@@ -86,25 +93,28 @@ package WisiToken.Lexer.re2c is
    overriding
    function Column (Lexer : in Instance) return Ada.Text_IO.Count;
 
-   overriding function Lexeme (Lexer : in Instance) return String;
-   --  Return UTF-8 encoded text.
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region;
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
 
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region;
-   --  Only correct for 8 bit input text.
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
 
 private
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      Lexer  : System.Address;
-      Source : WisiToken.Lexer.Source;
-      ID       : Token_ID; --  Last token read by find_next
-      Byte_Position      : Natural;
-      Byte_Length        : Natural;
-      Character_Position : Natural;
-      Character_Length   : Natural;
+      New_Line_ID   : Token_ID;
+      Lexer         : System.Address;
+      Source        : WisiToken.Lexer.Source;
+      ID            : Token_ID; --  Last token read by find_next
+      Byte_Position : Natural;
+      Byte_Length   : Natural;
+      Char_Position : Natural;
+      Char_Length   : Natural;
       --  Position and length in bytes and characters of last token from
-      --  start of Managed.Buffer, 0 indexed.
+      --  start of Managed.Buffer, 1 indexed.
+
+      Line            : Ada.Text_IO.Count; -- 1 indexed, after last New_Line token
+      Char_Line_Start : Natural;           -- Character position after last New_Line token
    end record;
 
 end WisiToken.Lexer.re2c;

@@ -1,10 +1,11 @@
 --  Abstract :
 --
---  Test Ada style character and string literals. Also tests Ada
---  actions in .wy files.
+--  Run various tests using the Character_Literal grammar and input
+--  files.
 --
 --  Run here, rather than directly from rules.make, because we need to
---  test the result of the actions, which count which rules match.
+--  run part of the tests in the Ada code for the actions, and check
+--  the results after parsing.
 --
 --  Copyright (C) 2017 Stephen Leake. All Rights Reserved.
 --
@@ -23,6 +24,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
+with WisiToken;
 package Test_Character_Literal is
 
    type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;

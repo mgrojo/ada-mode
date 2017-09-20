@@ -29,11 +29,9 @@ procedure Wisi.Output_Elisp
   (Input_File_Name : in String;
    Elisp_Package   : in String;
    Params          : in Generate_Param_Type;
-   Prologue        : in String_Lists.List;
-   Keywords        : in String_Pair_Lists.List;
-   Tokens          : in Token_Lists.List;
+   Prologues       : in Wisi.Prologues;
+   Tokens          : in Wisi.Tokens;
    Conflicts       : in Conflict_Lists.List;
-   Rules           : in Rule_Lists.List;
    Rule_Count      : in Integer;
    Action_Count    : in Integer)
 is
@@ -43,13 +41,7 @@ is
 
    WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
-   function To_Token_Image (Item : in String) return String
-   is begin
-      return Item;
-   end To_Token_Image;
-
-   package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Image);
+   package Generate_Utils is new Wisi.Gen_Generate_Utils (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
 
    Accept_Reduce_Conflict_Count : Integer;
    Shift_Reduce_Conflict_Count  : Integer;
@@ -59,16 +51,6 @@ is
      (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
    Parser : WisiToken.Parser.LR.Parse_Table_Ptr;
-
-   procedure Header (Elisp_Package : in String; Prologue : in String_Lists.List)
-   is begin
-      Put_Line (";;; " & Elisp_Package & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
-      Put_Command_Line (";;; ");
-      New_Line;
-      for Line of Prologue loop
-         Put_Line (Line);
-      end loop;
-   end Header;
 
    procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
    is
@@ -118,18 +100,22 @@ is
 
       Create (File, Out_File, -Elisp_Package_1 & "-elisp.el");
       Set_Output (File);
-      Header (-Elisp_Package_1, Prologue);
+
+      Put_Line (";;; " & (-Elisp_Package_1) & "-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-");
+      Put_Command_Line (";;; ");
       New_Line;
+      Put_Prologue (Elisp_Comment, Prologues.Spec_Context_Clause);
+      New_Line;
+
       Put_Line ("(require 'wisi)");
       Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-compile)");
       New_Line;
-      Output_Elisp_Common.Indent_Keyword_Table (-Elisp_Package_1, "elisp", Keywords, To_String'Access);
+      Output_Elisp_Common.Indent_Keyword_Table (-Elisp_Package_1, "elisp", Tokens.Keywords, To_String'Access);
       New_Line;
-      Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens, To_String'Access);
+      Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens.Tokens, To_String'Access);
       New_Line;
-      WisiToken.Parser.LR.Wisi_Generate_Elisp.Output
-        (-Elisp_Package_1, Tokens, Keywords, Rules, Parser, Generate_Utils.LR1_Descriptor);
+      WisiToken.Parser.LR.Wisi_Generate_Elisp.Output (-Elisp_Package_1, Tokens, Parser, Generate_Utils.LR1_Descriptor);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
       Put_Line (";; end of file");

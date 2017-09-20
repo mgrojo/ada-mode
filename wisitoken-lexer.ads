@@ -53,17 +53,20 @@ package WisiToken.Lexer is
    procedure Reset (Lexer : in out Instance) is abstract;
    --  Reset Lexer, read from previous source.
 
-   function Lexeme (Lexer : in Instance) return String is abstract;
-   --  Return the actual text of the last token that was matched.
-
-   function Bounds (Lexer : in Instance) return Buffer_Region is abstract;
-   --  Returns the position of the start and end of the last token
-   --  that was matched, in the internal buffer, 1-indexed.
+   function Char_Region (Lexer : in Instance) return Buffer_Region is abstract;
+   function Byte_Region (Lexer : in Instance) return Buffer_Region is abstract;
+   --  Returns the position of the start and end of the last token that
+   --  was matched, in the internal buffer, 1-indexed; Char_Region in
+   --  character position, Byte_Region in byte position.
+   --
+   --  Char_Region and Byte_Region differ when text is UTF-8 or other
+   --  multi-byte encoding.
    --
    --  Most useful when the internal buffer holds the entire input text
-   --  (as it will for editor parsers), and when there is a simple
-   --  position mapping between the character encoding used in the editor
-   --  and lexer.
+   --  (as it will for editor parsers).
+
+   function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
+   --  Return text from internal buffer, given region in byte position.
 
    function Line (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
    --  Returns the line number in which the most recent token started.

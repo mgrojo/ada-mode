@@ -21,15 +21,11 @@ with WisiToken.Parser.LR;
 with WisiToken.Production;
 with Wisi.Gen_Generate_Utils;
 generic
-   Keywords  : in Wisi.String_Pair_Lists.List;
-   Tokens    : in Wisi.Token_Lists.List;
+   Prologues : in Wisi.Prologues;
+   Tokens    : in Wisi.Tokens;
    Conflicts : in Wisi.Conflict_Lists.List;
-   Rules     : in Wisi.Rule_Lists.List;
    Params    : in Wisi.Generate_Param_Type;
 
-   with procedure Put_Ada_Prologue_Context_Clause;
-   with procedure Put_Ada_Prologue_Declarations;
-   with procedure Put_C_Prologue;
 package Wisi.Gen_Output_Ada_Common is
 
    EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";
@@ -39,10 +35,10 @@ package Wisi.Gen_Output_Ada_Common is
 
    WisiToken_Accept_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"wisitoken_accept";
 
-   function To_Token_Ada_Name (Item : in String) return String;
+   function To_Token_Ada_Name (WY_Name : in String) return String;
 
    package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Keywords, Tokens, Conflicts, Rules, EOI_Name, WisiToken_Accept_Name, To_Token_Ada_Name);
+     (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
 
    type Data_Type is record
       Parser_Algorithm : Valid_Parser_Algorithm;
@@ -95,7 +91,10 @@ package Wisi.Gen_Output_Ada_Common is
       Lexer              : in Valid_Lexer;
       Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
-      First_Parser_Label : in Integer);
+      First_Parser_Label : in Integer;
+      New_Line_ID        : in WisiToken.Token_ID);
+   --  If the tokens do not include a reporting New_Line token, set
+   --  New_Line_ID to Invalid_Token_ID.
 
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr);
 

@@ -283,10 +283,10 @@ package body WisiToken.Parser.LR.Parser is
             Semantic_State.Push_Current (Item.ID);
 
          when Parser_Lists.Discard_Stack =>
-            Semantic_State.Discard_Stack (Parser_State.Label, Item.Discard_ID);
+            Semantic_State.Discard_Stack (Item.Discard_ID);
 
          when Parser_Lists.Discard_Lookahead =>
-            Semantic_State.Discard_Lookahead (Parser_State.Label, Item.Discard_ID);
+            Semantic_State.Discard_Lookahead (Item.Discard_ID);
 
          when Parser_Lists.Reduce_Stack =>
             Semantic_State.Reduce_Stack
@@ -382,12 +382,7 @@ package body WisiToken.Parser.LR.Parser is
                   end if;
 
                   if Parser_State.Shared_Lookahead_Index > Parser.Shared_Lookahead.Length then
-                     declare
-                        ID : constant Token_ID := Parser.Lexer.Find_Next;
-                     begin
-                        Parser.Shared_Lookahead.Put (ID);
-                        Parser.Semantic_State.Lexer_To_Lookahead (ID, Parser.Lexer);
-                     end;
+                     Parser.Shared_Lookahead.Put (Next_Grammar_Token (Parser.Lexer, Parser.Semantic_State));
                   end if;
 
                   Parser_State.Current_Token := Parser.Shared_Lookahead.Peek (Parser_State.Shared_Lookahead_Index);

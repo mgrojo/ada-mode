@@ -253,6 +253,25 @@ package body WisiToken is
       Trace.Put (")");
    end Put;
 
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class)
+   is begin
+      Put (Trace, Item.Image (Trace.Descriptor.all, ID_Only => False));
+   end Put;
+
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      Trace.Put ("(");
+      for I in 1 .. Item.Count loop
+         Put (Trace, Item.Peek (I));
+         if I < Item.Count then
+            Put (Trace, ", ");
+         end if;
+      end loop;
+      Trace.Put (")");
+   end Put;
+
    function Int_Image (Item : in Integer) return String
    is
       use Ada.Strings;
@@ -317,12 +336,12 @@ package body WisiToken is
 
    function Image (Item : in Buffer_Region) return String
    is begin
-      return "(" & Int_Image (Item.Begin_Pos) & " . " & Int_Image (Item.End_Pos) & ")";
+      return "(" & Int_Image (Item.First) & " . " & Int_Image (Item.Last) & ")";
    end Image;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region
    is begin
-      return (Integer'Min (Left.Begin_Pos, Right.Begin_Pos), Integer'Max (Left.End_Pos, Right.End_Pos));
+      return (Integer'Min (Left.First, Right.First), Integer'Max (Left.Last, Right.Last));
    end "and";
 
 end WisiToken;

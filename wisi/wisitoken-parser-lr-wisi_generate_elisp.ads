@@ -23,9 +23,7 @@ package WisiToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Output
      (Elisp_Package : in String;
-      Tokens        : in Wisi.Token_Lists.List;
-      Keywords      : in Wisi.String_Pair_Lists.List;
-      Rules         : in Wisi.Rule_Lists.List;
+      Tokens        : in Wisi.Tokens;
       Parser        : in Parse_Table_Ptr;
       Descriptor    : in WisiToken.Descriptor'Class);
 

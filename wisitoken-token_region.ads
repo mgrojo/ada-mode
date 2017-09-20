@@ -23,38 +23,32 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Text_IO;
-with SAL.Gen_Queue_Interfaces;
-with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Lexer;
 with WisiToken.Token;
 package WisiToken.Token_Region is
 
    type Token is new WisiToken.Augmented_Token with record
-      Line   : Ada.Text_IO.Count;
-      Col    : Ada.Text_IO.Count; -- valid if Line > 0
-      Region : Buffer_Region;     -- valid if Line = 0
+      Line        : Ada.Text_IO.Count := 0;
+      Col         : Ada.Text_IO.Count := 0;
+      Byte_Region : Buffer_Region     := Null_Buffer_Region;
+      Char_Region : Buffer_Region     := Null_Buffer_Region;
    end record;
 
+   overriding
    function Image
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Item       : in Token;
+     (Item       : in Token;
+      Descriptor : in WisiToken.Descriptor'Class;
       ID_Only    : in Boolean)
      return String;
    --  Return a string for debug/test messages
-
-   Default_Token : constant Token := (Invalid_Token_ID, 0, 0, Null_Buffer_Region);
-
-   package Token_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Token);
-   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token, Token_Queue_Interfaces);
 
    type Error_Data
      (First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
    is record
-      Error_Token    : Token;
-      Expecting      : Token_ID_Set (First_Terminal .. Last_Terminal);
-      Invalid_Region : Buffer_Region;
-      Recover        : access WisiToken.Token.Recover_Data'Class;
+      Error_Token : Token;
+      Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
+      Recover     : access WisiToken.Token.Recover_Data'Class;
    end record;
 
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
@@ -73,9 +67,9 @@ package WisiToken.Token_Region is
    type State_Type is new WisiToken.Token.Semantic_State with record
       Stack : Augmented_Token_Array;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
-      --  Tokens are added by Push_Token, removed by Merge_Tokens.
+      --  Tokens are added by Push_Current, removed by Reduce_Stack.
 
-      Lookahead_Queue : Token_Queues.Queue_Type;
+      Lookahead_Queue : Augmented_Token_Queues.Queue_Type;
 
       Errors : Error_List_Arrays.Vector;
       --  Indexed by Parser_ID.
@@ -134,20 +128,29 @@ package WisiToken.Token_Region is
 
    overriding
    procedure Discard_Lookahead
-     (State     : not null access State_Type;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Discard_Stack
-     (State     : not null access State_Type;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID);
+     (State : not null access State_Type;
+      ID    : in              Token_ID);
 
    overriding
    procedure Recover
      (State     : not null access State_Type;
       Parser_ID : in              Natural;
       Recover   : in              WisiToken.Token.Recover_Data'Class);
+
+   ----------
+   --  Visible for derived types
+
+   procedure Put
+     (Trace               : in out WisiToken.Trace'Class;
+      Nonterm             : in     Token'Class;
+      Index               : in     Natural;
+      Stack               : in     Augmented_Token_Array;
+      Tokens_Length       : in     Ada.Containers.Count_Type;
+      Include_Action_Name : in     Boolean);
 
 end WisiToken.Token_Region;

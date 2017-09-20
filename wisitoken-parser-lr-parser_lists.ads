@@ -22,7 +22,6 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Iterator_Interfaces;
-with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
@@ -49,8 +48,7 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    Null_Pend_Item : constant Pend_Item := (Push_Current, Invalid_Token_ID);
 
-   package Pend_Items_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Pend_Item);
-   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item, Pend_Items_Queue_Interfaces);
+   package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item);
 
    type Base_Parser_State is tagged record
       --  Visible components for direct access
@@ -160,7 +158,10 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function To_Cursor (Ptr : in Parser_Node_Access) return Cursor;
 
-   type Constant_Reference_Type (Element : not null access constant Parser_State) is null record
+   type Constant_Reference_Type (Element : not null access constant Parser_State) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record
    with Implicit_Dereference => Element;
 
    function Constant_Reference

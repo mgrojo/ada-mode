@@ -205,9 +205,6 @@ package WisiToken.Token is
    --  Expecting is the set of tokens expected by the parser.
    --
    --  Save information useful for an error message.
-   --
-   --  Error recover may start; mark the start of an invalid buffer
-   --  region.
 
    procedure Spawn
      (State         : not null access Semantic_State;
@@ -244,24 +241,20 @@ package WisiToken.Token is
    --  lookahead queue, push it on the State stack.
 
    procedure Discard_Lookahead
-     (State     : not null access Semantic_State;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID)
+     (State : not null access Semantic_State;
+      ID    : in              Token_ID)
      is abstract;
-   --  ID was discarded from lookahead in an error recover operation for
-   --  parser Parser_ID; discard the corresponding augmented token from
-   --  the front of the State lookahead queue, and add the token's buffer
-   --  region to the parser's invalid region.
+   --  ID was discarded from lookahead in an error recover operation;
+   --  discard the corresponding augmented token from the front of the
+   --  State lookahead queue.
 
    procedure Discard_Stack
-     (State     : not null access Semantic_State;
-      Parser_ID : in              Natural;
-      ID        : in              Token_ID)
+     (State : not null access Semantic_State;
+      ID    : in              Token_ID)
      is abstract;
    --  ID was discarded from the top of the parser parse stack in an
-   --  error recover operation for parser Parser_ID; discard the
-   --  corresponding augmented token from the top of the State stack, and
-   --  add the token's buffer region to the parser's invalid region.
+   --  error recover operation; discard the corresponding augmented token
+   --  from the top of the State stack.
 
    procedure Recover
      (State     : not null access Semantic_State;
@@ -269,8 +262,7 @@ package WisiToken.Token is
       Recover   : in              Recover_Data'Class)
      is abstract;
    --  Parser Parser_ID has finished error recovery and found a solution
-   --  described by Recover; save the current invalid region and recover
-   --  information.
+   --  described by Recover; save the recover information.
 
    procedure Reduce_Stack
      (State   : not null access Semantic_State;

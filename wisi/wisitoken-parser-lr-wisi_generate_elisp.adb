@@ -172,16 +172,14 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
 
    procedure Output
      (Elisp_Package : in String;
-      Tokens        : in Wisi.Token_Lists.List;
-      Keywords      : in Wisi.String_Pair_Lists.List;
-      Rules         : in Wisi.Rule_Lists.List;
+      Tokens        : in Wisi.Tokens;
       Parser        : in Parse_Table_Ptr;
       Descriptor    : in WisiToken.Descriptor'Class)
    is
       use Ada.Containers; -- count_type
       use Wisi; -- "-" unbounded_string
 
-      Rule_Length : constant Count_Type := Rules.Length;
+      Rule_Length : constant Count_Type := Tokens.Rules.Length;
       Rule_Count  : Count_Type := 1;
 
       RHS_Length : Count_Type;
@@ -194,21 +192,21 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
       Put_Line ("   (wisi-compile-grammar");
       --  terminal tokens
       Put ("   '((");
-      for Kind of Tokens loop
+      for Kind of Tokens.Tokens loop
          if not (-Kind.Kind = "line_comment" or -Kind.Kind = "whitespace") then
             for Pair of Kind.Tokens loop
                Put (-Pair.Name & " ");
             end loop;
          end if;
       end loop;
-      for Pair of Keywords loop
+      for Pair of Tokens.Keywords loop
          Put (-Pair.Name & " ");
       end loop;
       Put_Line (")");
 
       --  nonterminal productions
       Put ("     (");
-      for Rule of Rules loop
+      for Rule of Tokens.Rules loop
          if Rule_Count = 1 then
             Put ("(");
          else

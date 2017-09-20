@@ -48,8 +48,8 @@ package body WisiToken.AUnit is
    is
       use Standard.AUnit.Checks;
    begin
-      Check (Label & ".Begin_Pos", Computed.Begin_Pos, Expected.Begin_Pos);
-      Check (Label & ".End_Pos", Computed.End_Pos, Expected.End_Pos);
+      Check (Label & ".First", Computed.First, Expected.First);
+      Check (Label & ".Last", Computed.Last, Expected.Last);
    end Check;
 
 end WisiToken.AUnit;

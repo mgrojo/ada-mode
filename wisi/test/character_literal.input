@@ -20,3 +20,5 @@ objectπ'attribute;
 
 -- This is one string with two embedded quotes, not three strings with no whitespace
 " an ""other"" string";
+
+-- comment before EOF.

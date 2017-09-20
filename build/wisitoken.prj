@@ -1,5 +1,5 @@
 gpr_project_path=../../org.stephe_leake.aunit_ext/build
-gpr_project_path=../../org.stephe_leake.sal/build
+gpr_project_path=../../org.stephe_leake.sal.stephe-1/build
 gpr_project_path=../../org.stephe_leake.makerules
 
 gpr_file=wisitoken_test.gpr

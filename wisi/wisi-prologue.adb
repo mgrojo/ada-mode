@@ -21,9 +21,8 @@ pragma License (Modified_GPL);
 with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Prologue
-  (Input_File     : in     Standard.Ada.Text_IO.File_Type;
-   Context_Clause :    out String_Lists.List;
-   Declarations   :    out String_Lists.List)
+  (Input_File : in     Standard.Ada.Text_IO.File_Type;
+   Prologues  :    out Wisi.Prologues)
 is
    Done : Boolean := False;
 begin
@@ -42,7 +41,7 @@ begin
             exit;
          end if;
          exit when Line = "%%";
-         Context_Clause.Append (Line);
+         Prologues.Spec_Context_Clause.Append (Line);
       end;
    end loop;
 
@@ -51,8 +50,38 @@ begin
          declare
             Line : constant String := Get_Line (Input_File);
          begin
+            if Line = "%}" then
+               Done := True;
+               exit;
+            end if;
+            exit when Line = "%%";
+            Prologues.Spec_Declarations.Append (Line);
+         end;
+      end loop;
+   end if;
+
+   if not Done then
+      loop
+         declare
+            Line : constant String := Get_Line (Input_File);
+         begin
+            if Line = "%}" then
+               Done := True;
+               exit;
+            end if;
+            exit when Line = "%%";
+            Prologues.Body_Context_Clause.Append (Line);
+         end;
+      end loop;
+   end if;
+
+   if not Done then
+      loop
+         declare
+            Line : constant String := Get_Line (Input_File);
+         begin
             exit when Line = "%}";
-            Declarations.Append (Line);
+            Prologues.Body_Declarations.Append (Line);
          end;
       end loop;
    end if;

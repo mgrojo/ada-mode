@@ -1,26 +1,16 @@
 build/Makefile
 
 branches:
-org.wisitoken          - working, used by o.e.a.s-4
-org.wisitoken.stephe-1 - development
+org.wisitoken          - working, used by o.e.a.s-2
+org.wisitoken.stephe-1 - development, used by o.e.a.s-4
+
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
-propagate to o.w
-
 add line, comment info compute to re2c lexer
-    in org.wisitoken.stephe-1
-    re2c_simple, re2c_line_comment; subtype re2c_lexer is lexer range ...
-    two classes of token; grammar and non-grammar
-    both returned to parser
-    both passed to semantic_state
-    semantic_state stores non-grammar as list in preceding token
-        wisitoken-token_line_comment
-    otherwise parser ignores non-grammar
-
-    ./wisi/wisi-gen_generate_utils.ads:174:      State       : Token_Cursor_State; --  FIXME: rename to Kind. use separate list for Non_Reporting
-        in .wy - %non_grammar instead of %token
-
-    ./wisitoken-lexer-re2c.adb:161:      --  FIXME: add C function to use token char pointer, length to fetch
+    run all tests
 
 Use indentation as hint?
     to solve missing 'end';

@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Parse the declarations from Input_File, add to List.
+--  Parse the declarations from Input_File, add to various lists.
 --
 --  Copyright (C) 2012 - 2014, 2017 Stephen Leake.  All Rights Reserved.
 --
@@ -25,8 +25,7 @@ with Wisi.Utils;  use Wisi.Utils;
 procedure Wisi.Declarations
   (Input_File       : in     Standard.Ada.Text_IO.File_Type;
    Generate_Params  : in out Generate_Param_Type;
-   Keywords         :    out String_Pair_Lists.List;
-   Tokens           :    out Token_Lists.List;
+   Tokens           :    out Wisi.Tokens;
    Conflicts        :    out Conflict_Lists.List;
    McKenzie_Recover : in out McKenzie_Recover_Param_Type)
 is
@@ -49,6 +48,7 @@ is
    McKenzie_Cost_Insert_Str      : constant String := "%mckenzie_cost_insert";
    McKenzie_Cost_Limit_Str       : constant String := "%mckenzie_cost_limit";
    Output_Language_Str           : constant String := "%output_language";
+   Non_Grammar_Str               : constant String := "%non_grammar";
    Parser_Algorithm_Str          : constant String := "%parser_algorithm";
    Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
    Start_Str                     : constant String := "%start";
@@ -75,6 +75,39 @@ begin
               (ID'Length = Line'Last and then ID = Line);
          end Match;
 
+         procedure Parse_Kind_Value (List : in out Token_Lists.List)
+         is
+            use Standard.Ada.Strings.Unbounded;
+
+            --  kind has syntax <name>; strip < >.
+
+            Kind_First : constant Integer := 1 + Index_Non_Blank (Line, Key_Last + 1);
+
+            Kind_Last : constant Integer := -2 +
+              Index (Pattern => " ", Source => Line, From => Kind_First);
+
+            Name_First : constant Integer := Index_Non_Blank (Line, Kind_Last + 2);
+
+            Name_Last : constant Integer := -1 + Index (Pattern => " ", Source => Line, From => Name_First);
+
+            Value_First : constant Integer :=
+              (if Name_Last = -1 then 0
+               else Index_Non_Blank (Line, Name_Last + 1));
+         begin
+            if Value_First = 0 then
+               Add_Token
+                 (List,
+                  Kind  => Line (Kind_First .. Kind_Last),
+                  Name  => Line (Name_First .. Line'Last),
+                  Value => "");
+            else
+               Add_Token
+                 (List,
+                  Line (Kind_First .. Kind_Last),
+                  Line (Name_First .. Name_Last),
+                  Line (Value_First .. Line'Last));
+            end if;
+         end Parse_Kind_Value;
       begin
          exit when Line = "%%";
 
@@ -155,7 +188,7 @@ begin
 
                Value_First : constant Integer := Index_Non_Blank (Line, Name_Last + 1);
             begin
-               Keywords.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
+               Tokens.Keywords.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
 
          elsif Match (Keywords_Case_Insensitive_Str) then
@@ -217,6 +250,10 @@ begin
                end;
             end if;
 
+         elsif Match (Non_Grammar_Str) then
+            --  Same syntax as Token_Str
+            Parse_Kind_Value (Tokens.Non_Grammar);
+
          elsif Match (Parser_Algorithm_Str) then
             if Generate_Params.Parser_Algorithm = None then
                declare
@@ -249,38 +286,7 @@ begin
             end;
 
          elsif Match (Token_Str) then
-            declare
-               use Standard.Ada.Strings.Unbounded;
-
-               --  kind has syntax <name>; strip < >.
-
-               Kind_First : constant Integer := 1 + Index_Non_Blank (Line, Key_Last + 1);
-
-               Kind_Last : constant Integer := -2 +
-                 Index (Pattern => " ", Source => Line, From => Kind_First);
-
-               Name_First : constant Integer := Index_Non_Blank (Line, Kind_Last + 2);
-
-               Name_Last : constant Integer := -1 + Index (Pattern => " ", Source => Line, From => Name_First);
-
-               Value_First : constant Integer :=
-                 (if Name_Last = -1 then 0
-                  else Index_Non_Blank (Line, Name_Last + 1));
-            begin
-               if Value_First = 0 then
-                  Add_Token
-                    (Tokens,
-                     Kind  => Line (Kind_First .. Kind_Last),
-                     Name  => Line (Name_First .. Line'Last),
-                     Value => "");
-               else
-                  Add_Token
-                    (Tokens,
-                     Line (Kind_First .. Kind_Last),
-                     Line (Name_First .. Name_Last),
-                     Line (Value_First .. Line'Last));
-               end if;
-            end;
+            Parse_Kind_Value (Tokens.Tokens);
 
          else
             Put_Error (Input_File, "unexpected syntax");

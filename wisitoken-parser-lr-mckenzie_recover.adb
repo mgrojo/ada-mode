@@ -18,7 +18,6 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO;
-with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
 with WisiToken.Token;
 package body WisiToken.Parser.LR.McKenzie_Recover is
@@ -187,10 +186,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Current_Token : Token_ID;
    end record;
 
-   package Check_Item_Queue_Interfaces is new SAL.Gen_Queue_Interfaces (Check_Item);
-   package Check_Item_Queues is new SAL.Gen_Unbounded_Definite_Queues
-     (Element_Type     => Check_Item,
-      Queue_Interfaces => Check_Item_Queue_Interfaces);
+   package Check_Item_Queues is new SAL.Gen_Unbounded_Definite_Queues (Check_Item);
 
    function Check_One_Item
      (Data                  : in     McKenzie_Data;
@@ -261,9 +257,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                Last_Token_Virtual := False;
 
                if Check_Config.Shared_Lookahead_Index > Data.Parser.Shared_Lookahead.Count then
-                  Check_Token := Data.Parser.Lexer.Find_Next;
+                  Check_Token := Next_Grammar_Token (Data.Parser.Lexer, Data.Parser.Semantic_State);
                   Data.Parser.Shared_Lookahead.Put (Check_Token);
-                  Data.Parser.Semantic_State.Lexer_To_Lookahead (Check_Token, Data.Parser.Lexer);
                else
                   Check_Token := Data.Parser.Shared_Lookahead.Peek (Check_Config.Shared_Lookahead_Index);
                end if;
@@ -556,14 +551,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      end if;
 
                      if New_Config.Shared_Lookahead_Index = Parser.Shared_Lookahead.Count then
-                        declare
-                           ID : constant Token_ID := Parser.Lexer.Find_Next;
-                        begin
-                           Parser.Shared_Lookahead.Put (ID);
-                           --  We must call Lexer_To_Lookahead here, while the lexer data is
-                           --  valid.
-                           Parser.Semantic_State.Lexer_To_Lookahead (ID, Parser.Lexer);
-                        end;
+                        Parser.Shared_Lookahead.Put (Next_Grammar_Token (Parser.Lexer, Parser.Semantic_State));
 
                         --  else some other parser already fetched the next token; just use
                         --  it.
@@ -677,7 +665,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
                   for ID of Data.Result.Popped loop
                      Parser_State.Stack.Pop;
-                     Parser.Semantic_State.Discard_Stack (Parser_State.Label, ID);
+                     Parser.Semantic_State.Discard_Stack (ID);
                   end loop;
 
                   for I in 1 .. Data.Result.Pushed.Depth loop
@@ -693,7 +681,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                   for ID of Data.Result.Deleted loop
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
 
-                     Parser.Semantic_State.Discard_Lookahead (Parser_State.Label, ID);
+                     Parser.Semantic_State.Discard_Lookahead (ID);
                   end loop;
 
                   --  We use Parser_State.Local_Lookahead even when there is only one
