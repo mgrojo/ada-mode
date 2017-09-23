@@ -1,0 +1,49 @@
+;; Wisent grammar with syntax errors, to test syntax error reporting
+
+%{
+(require 'wisi)
+%}
+
+%keyword FUNCTION "function"
+%keyword LEFT_PAREN "("
+%keyword PROCEDURE "procedure"
+%keyword RIGHT_PAREN ")"
+
+%token <symbol> SYMBOL
+
+%start compilation_unit
+%output_language Elisp
+%lexer Elisp
+
+%%
+
+compilation_unit
+  : declarations
+  ;
+
+;; typical copy & paste error; second ':' instead of '|';
+declarations
+  : declaration
+  : declarations declaration
+  ;
+
+declaration
+  : subprogram
+  ;
+
+;; valid token numbers in action
+subprogram
+  : FUNCTION parameter_list SYMBOL
+    (wisi-statement-action [1 start 2 name 3 other])
+  | PROCEDURE parameter_list
+  ;
+
+;; invalid token number in action
+parameter_list
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
+    (wisi-statement-action [ 1 paren-open 4 paren-close])
+  ;
+
+%%
+
+;; end of file

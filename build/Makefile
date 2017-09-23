@@ -11,26 +11,26 @@ all : test-clean tests library
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb
 t_one : export Standard_Common_Build := Debug
-t_one : one-clean
-t_one : character_literal_re2c.c
+#t_one : one-clean
+t_one : wisi-generate.exe
 #t_one : RUN_ARGS := 3
 t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
 t_all : ./wisi-generate.exe
-t_all : ada_lite_
-t_all : character_literal_
+t_all : ada_lite_re2c.c
+t_all : character_literal_re2c.c
 t_all : test_all_harness.run
 
 one-clean :
 	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
 #one : export Standard_Common_Build := Debug
-one : one-clean
-one : character_literal_re2c.c
+#one : one-clean
+#one : character_literal_re2c.c
 #one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
 one : wisi-generate.exe
-	./wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp  ../wisi/test/identifier_list_name_conflict.wy
+	./wisi-generate.exe --parser_algorithm LALR ../wisi/test/rules_errors.wy
 
 two : RUN_ARGS ?= --verbosity 1
 two : ada_lite_yylex.adb run_ada_lite_parser.exe

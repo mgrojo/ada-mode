@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Common utilities for LR parser table generators
+--  See spec.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -178,7 +178,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
            --  it the default. The various Put routines replace
            --  this with 'default'.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -198,11 +198,16 @@ package body WisiToken.Parser.LR.Generator_Utils is
             --
             --  without 'declarations <= declaration'.
             --
-            raise Programmer_Error with
-              "Generating parser: state" & State_Index'Image (State) &
-              " has no actions; bad grammar, or " &
-              "first production in grammar must be the only start symbol production, " &
-              "and it must must have an explicit EOF.";
+            --  We continue generating the grammar, in order to help the user
+            --  debug this issue.
+            Error := True;
+
+            Ada.Text_IO.Put_Line
+              ("Error: Generating parser: state" & State_Index'Image (State) &
+                 " has no actions; bad grammar, or " &
+                 "first production in grammar must be the only start symbol production, " &
+                 "and it must must have an explicit EOF.");
+            Ada.Text_IO.New_Line;
          else
             while Last_Action.Next /= null loop
                Last_Action := Last_Action.Next;

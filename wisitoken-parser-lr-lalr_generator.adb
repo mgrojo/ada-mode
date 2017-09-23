@@ -689,6 +689,8 @@ package body WisiToken.Parser.LR.LALR_Generator is
       Known_Conflicts_Edit : Conflict_Lists.List := Known_Conflicts;
 
    begin
+      Generator_Utils.Error := False; -- necessary in unit tests; some previous test might have encountered an error.
+
       Used_Tokens (First_Production.LHS) := True;
 
       Fill_In_Lookaheads (Grammar, Has_Empty_Production, First, Kernels, Used_Tokens, Trace, Descriptor);
@@ -702,7 +704,9 @@ package body WisiToken.Parser.LR.LALR_Generator is
             Ada.Text_IO.Put_Line (Image (Descriptor, I));
          end if;
       end loop;
+
       if Unused_Tokens then
+         Generator_Utils.Error := not Ignore_Unused_Tokens;
          Ada.Text_IO.New_Line;
       end if;
 
@@ -750,21 +754,17 @@ package body WisiToken.Parser.LR.LALR_Generator is
       if Unknown_Conflicts.Length > 0 then
          Ada.Text_IO.Put_Line ("unknown conflicts:");
          Put (Descriptor, Unknown_Conflicts);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "unknown conflicts; aborting";
-         end if;
+         Generator_Utils.Error := not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
          Ada.Text_IO.Put_Line ("excess known conflicts:");
          Put (Descriptor, Known_Conflicts_Edit);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "excess known conflicts; aborting";
-         end if;
+         Generator_Utils.Error := not Ignore_Unknown_Conflicts;
       end if;
 
-      if Unused_Tokens and not (Trace or Ignore_Unused_Tokens) then
-         raise Grammar_Error with "unused tokens; aborting";
+      if Generator_Utils.Error then
+         raise Grammar_Error with "errors: aborting";
       end if;
 
       return Table;

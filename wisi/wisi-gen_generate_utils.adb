@@ -537,6 +537,7 @@ package body Wisi.Gen_Generate_Utils is
       use Token.List;
 
       Grammar : Production.List.Instance;
+      Error   : Boolean := False;
    begin
       begin
          Grammar := Production.List.Only
@@ -545,7 +546,7 @@ package body Wisi.Gen_Generate_Utils is
       when Not_Found =>
          Wisi.Utils.Put_Error
            (Source_File_Name, First_Rule_Line, "start token '" & (Start_Token) & "' not found; need %start?");
-         raise Syntax_Error;
+         Error := True;
       end;
 
       for Rule of Rules loop
@@ -566,14 +567,18 @@ package body Wisi.Gen_Generate_Utils is
                when E : Not_Found =>
                   Wisi.Utils.Put_Error
                     (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-                  raise Syntax_Error;
+                  Error := True;
                end;
                Index := Index + 1;
             end loop;
          end;
       end loop;
 
-      return Grammar;
+      if Error then
+         raise Syntax_Error;
+      else
+         return Grammar;
+      end if;
    end To_Grammar;
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set

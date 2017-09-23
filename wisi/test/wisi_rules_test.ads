@@ -1,8 +1,8 @@
 --  Abstract :
 --
---  Test Wisi.Rules
+--  Test Wisi.Rules. Tests of reported errors are done via Test_Generate_Errors.
 --
---  Copyright (C) 2013 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as

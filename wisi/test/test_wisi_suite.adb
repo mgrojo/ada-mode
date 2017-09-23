@@ -28,7 +28,8 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens")));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens"), LR1 => True));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/rules_errors"), LR1 => False));
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order

@@ -5,7 +5,11 @@ org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - development
 
  current work
-propagate to o.w
+delete -liconv, -lpsapi?
+
+still losing memory
+    possibly Augmented_Token_Array
+        deallocation thru root class type
 
 add line, comment info compute to re2c lexer
     in org.wisitoken.stephe-1

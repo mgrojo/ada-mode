@@ -20,7 +20,6 @@
 
 pragma License (GPL);
 
-with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Ada.Directories;
@@ -291,49 +290,6 @@ package body Wisi_Rules_Test is
 
    end Single_Line;
 
-   procedure Token_Number_Range (Test : in out AUnit.Test_Cases.Test_Case'Class)
-   is
-      pragma Unreferenced (Test);
-      use Wisi;
-      use AUnit.Checks;
-
-      File_Name : constant String := "wisi_rules_test-number_range.wy";
-
-      Computed   : Wisi.Rule_Lists.List;
-      Rule_Count : Integer;
-      pragma Unreferenced (Rule_Count);
-      Action_Count : Integer;
-      pragma Unreferenced (Action_Count);
-   begin
-      --  Verify that token numbers are properly checked for range
-      Delete (File_Name);
-      Create (File, Out_File, File_Name);
-      Put_Line (File, "subprogram_specification");
-      Put_Line (File, "  : PROCEDURE IDENTIFIER parameter_list");
-      Put_Line (File, "  (wisi-statement-action [1 start 2 name 3 other])"); -- no error
-      Put_Line (File, "  ;");
-      New_Line (File);
-      Put_Line (File, "parameter_list");
-      Put_Line (File, ": LEFT_PAREN IDENTIFIER RIGHT_PAREN");
-      Put_Line (File, " (wisi-statement-action [ 1 paren-open 4 paren-close])"); -- error
-      Put_Line (File, "  ;");
-      Put_Line (File, "%%");
-      Close (File);
-
-      Open (File, In_File, File_Name);
-      begin
-         Wisi.Rules (File, Wisi.Elisp, Wisi.Elisp_Lexer, Computed, Rule_Count, Action_Count);
-         AUnit.Assertions.Assert (False, "1 did not get exception");
-      exception
-      when Syntax_Error =>
-         --  Error message "wisi_rules_test.wy:7:0: token number 4  out of range 1 .. 3"
-         --  in standard_output; checked in diff
-         null;
-      end;
-      Close (File);
-
-   end Token_Number_Range;
-
    ----------
    --  Public subprograms
 
@@ -347,7 +303,6 @@ package body Wisi_Rules_Test is
          Register_Routine (T, Nominal_Elisp'Access, "Nominal_Elisp");
          Register_Routine (T, Nominal_Ada'Access, "Nominal_Ada");
          Register_Routine (T, Single_Line'Access, "Single_Line");
-         Register_Routine (T, Token_Number_Range'Access, "Token_Number_Range");
       end if;
    end Register_Tests;
 
