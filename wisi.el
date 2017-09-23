@@ -1246,6 +1246,16 @@ error, if non-nil, return nil."
 	  (error "cache with token %s not found" token))))
     cache))
 
+(defun wisi-forward-find-cache-token (id limit)
+  "Search forward for a cache with token ID.
+Return cache, or nil if at LIMIT or end of buffer."
+  (let ((cache (wisi-forward-cache)))
+    (while (and (< (point) limit)
+		(not (eobp))
+		(not (eq (wisi-cache-token cache) id)))
+      (setq cache (wisi-forward-cache)))
+    cache))
+
 (defun wisi-forward-find-nonterm (nonterm limit)
   "Search forward for a token that has a cache with NONTERM.
 NONTERM may be a list; stop on any cache that has a member of the list.

@@ -62,9 +62,33 @@
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
-  ;; IMPROVEME: implement gpr or asis backend
-  ;; returning nil allows entering identifier without completion.
-   nil)
+  (wisi-validate-cache (point-max) t 'navigate)
+  (save-excursion
+    (let ((table nil)
+	  cache)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(setq cache (wisi-forward-find-cache-token 'name (point-max)))
+	(cond
+	 ((null cache)
+	  ;; eob
+	  )
+
+	 ((memq (wisi-cache-nonterm cache)
+		'(abstract_subprogram_declaration
+		  exception_declaration
+		  function_specification
+		  generic_declaration
+		  generic_instantiation
+		  null_procedure_declaration
+		  object_declaration
+		  procedure_specification
+		  package-specification
+		  subtype_declaration
+		  type_declaration))
+	  (push (wisi-cache-text cache) table))
+	 ))
+      table)))
 
 (define-minor-mode xref-ada-mode ()
   "Use xref-ada functions."

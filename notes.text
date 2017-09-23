@@ -62,9 +62,6 @@ install packages in -Q:
 help-do-xref respect other-frame-window
     find the code that sets the 'help-function attribute, change it to use display-buffer
 
-build completion table for local gpr-query using navigation parser results
-    all names in declarations
-
 fix release
     version 5.3.1
     gpr_query section in .info: menu structure wrong
