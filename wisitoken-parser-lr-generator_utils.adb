@@ -26,6 +26,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
@@ -61,8 +62,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
                New_Conflict : constant Conflict :=
                  (Action_A    => Action_A.Verb,
                   Action_B    => Action_B.Verb,
-                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production, Descriptor),
-                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production, Descriptor),
+                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production, First, Descriptor),
+                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production, First, Descriptor),
                   State_Index => Closure.State,
                   On          => Symbol);
             begin
@@ -96,6 +97,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
@@ -116,7 +118,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace, Descriptor);
+              (Item, Table.States (State).Action_List,
+               Has_Empty_Production, First, Conflicts, Closure, Trace, Descriptor);
 
          elsif Token.List.ID (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
@@ -132,29 +135,19 @@ package body WisiToken.Parser.LR.Generator_Utils is
                if Dot_ID = Descriptor.EOF_ID then
                   --  This is the start symbol production with dot before EOF.
                   Add_Action
-                    (Symbol               => Dot_ID,
-                     Action               =>
-                       (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
+                    (Dot_ID,
+                     (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
                         RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
-                     Action_List          => Table.States (State).Action_List,
-                     Closure              => Closure,
-                     Has_Empty_Production => Has_Empty_Production,
-                     Conflicts            => Conflicts,
-                     Trace                => Trace,
-                     Descriptor           => Descriptor);
+                     Table.States (State).Action_List,
+                     Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                else
                   if Goto_Set /= null then
                      Add_Action
-                       (Symbol               => Dot_ID,
-                        Action               =>
-                          (Verb              => Shift,
+                       (Dot_ID,
+                        (Verb              => Shift,
                            State             => Goto_Set.State),
-                        Action_List          => Table.States (State).Action_List,
-                        Closure              => Closure,
-                        Has_Empty_Production => Has_Empty_Production,
-                        Conflicts            => Conflicts,
-                        Trace                => Trace,
-                        Descriptor           => Descriptor);
+                        Table.States (State).Action_List,
+                        Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end if;
                end if;
             end;
@@ -235,6 +228,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean;
@@ -258,14 +252,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
                null;
             else
                Add_Action
-                 (Symbol               => Lookahead,
-                  Action               => Action,
-                  Action_List          => Action_List,
-                  Closure              => Closure,
-                  Has_Empty_Production => Has_Empty_Production,
-                  Conflicts            => Conflicts,
-                  Trace                => Trace,
-                  Descriptor           => Descriptor);
+                 (Lookahead, Action, Action_List, Closure,
+                  Has_Empty_Production, First, Conflicts, Trace, Descriptor);
             end if;
          end if;
       end loop;
@@ -330,6 +318,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
@@ -340,37 +329,57 @@ package body WisiToken.Parser.LR.Generator_Utils is
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
+      ID_I    : Token.List.List_Iterator;
    begin
+      if Action.Verb = Reduce then
+         --  Check for prefered name first
+         loop
+            Item := Current.Set;
+            loop
+               exit when Item = null;
+               if In_Kernel (Descriptor, Item) and
+                 Action.LHS = LHS (Item)
+               then
+                  return Action.LHS;
+               end if;
+               Item := Next (Item);
+            end loop;
+            exit when Current.Next = null;
+            Current := Current.Next.all;
+         end loop;
+      end if;
+
       loop
          Item := Current.Set;
          loop
             exit when Item = null;
-            case Action.Verb is
-            when Shift =>
-               if Dot (Item) /= Null_Iterator and then
-                 ID (Dot (Item)) = Lookahead
-               then
-                  return LHS (Item);
-               end if;
-            when Reduce =>
-               if LHS (Item) = Action.LHS and
-                 (Dot (Item) = Null_Iterator or else
-                    (Next (Dot (Item)) = Null_Iterator and
-                       (ID (Dot (Item)) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal and then
-                          Has_Empty_Production (ID (Dot (Item))))))
-               then
-                  return Action.LHS;
-               end if;
-            when Accept_It =>
-               if LHS (Item) = Action.LHS and
-                 (Dot (Item) /= Null_Iterator and then
-                    ID (Dot (Item)) = Descriptor.EOF_ID)
-               then
-                  return Action.LHS;
-               end if;
-            when others =>
-               raise Programmer_Error;
-            end case;
+            if In_Kernel (Descriptor, Item) then
+               ID_I := Dot (Item);
+               loop
+                  if ID_I = Null_Iterator then
+                     if Lookaheads (Item) (Lookahead) then
+                        return LHS (Item);
+                     end if;
+                  else
+                     declare
+                        Dot_ID : Token_ID renames ID (ID_I);
+                     begin
+                        if Dot_ID = Lookahead or
+                          (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             First (Dot_ID, Lookahead))
+                        then
+                           return LHS (Item);
+                        end if;
+
+                        exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             not Has_Empty_Production (Dot_ID);
+                     end;
+                  end if;
+
+                  exit when ID_I = Null_Iterator;
+                  Next (ID_I);
+               end loop;
+            end if;
             Item := Next (Item);
          end loop;
          exit when Current.Next = null;
@@ -384,7 +393,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
             when Reduce | Accept_It => " " & Image (Descriptor, Action.LHS),
             when others => "") & ", " &
            Image (Descriptor, Lookahead) & " not found in");
-      LR1_Items.Put (Descriptor, Closure);
+      LR1_Items.Put (Descriptor, Closure, Kernel_Only => True);
       raise Programmer_Error;
    end Find;
 

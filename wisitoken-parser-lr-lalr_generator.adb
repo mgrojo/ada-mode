@@ -644,7 +644,7 @@ package body WisiToken.Parser.LR.LALR_Generator is
          Closure := LR1_Items.Closure
            (Kernel.all, Has_Empty_Production, First, Grammar, Descriptor, Trace => False);
 
-         Add_Actions (Closure, Table, Has_Empty_Production, Conflicts, Trace, Descriptor);
+         Add_Actions (Closure, Table, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
          Kernel := Kernel.Next;
 
          LR1_Items.Free (Closure);
@@ -754,12 +754,14 @@ package body WisiToken.Parser.LR.LALR_Generator is
       if Unknown_Conflicts.Length > 0 then
          Ada.Text_IO.Put_Line ("unknown conflicts:");
          Put (Descriptor, Unknown_Conflicts);
+         Ada.Text_IO.New_Line;
          Generator_Utils.Error := not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
          Ada.Text_IO.Put_Line ("excess known conflicts:");
          Put (Descriptor, Known_Conflicts_Edit);
+         Ada.Text_IO.New_Line;
          Generator_Utils.Error := not Ignore_Unknown_Conflicts;
       end if;
 

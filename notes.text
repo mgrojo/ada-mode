@@ -2,7 +2,8 @@ build/Makefile
 
 branches:
 org.wisitoken          - working, used by o.e.a.s-4
-org.wisitoken.stephe-1 - development
+org.wisitoken.stephe-1 - translate elisp actions to Ada
+org.wisitoken.stephe-1 - more than two branches in conflicts
 
  current work
 delete -liconv, -lpsapi?

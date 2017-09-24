@@ -184,6 +184,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
    procedure Add_Actions
      (Item_Sets            : in     LR1_Items.Item_Set_List;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Conflicts            :    out Conflict_Lists.List;
       Table                : in out Parse_Table;
       Trace                : in     Boolean;
@@ -195,7 +196,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
       use type LR1_Items.Item_Set_Ptr;
    begin
       while Item_Set /= null loop
-         Add_Actions (Item_Set.all, Table, Has_Empty_Production, Conflicts, Trace, Descriptor);
+         Add_Actions (Item_Set.all, Table, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
          Item_Set := Item_Set.Next;
       end loop;
 
@@ -339,7 +340,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
 
       Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);
 
-      Add_Actions (Item_Sets, Has_Empty_Production, Unknown_Conflicts, Table.all, Trace, Descriptor);
+      Add_Actions (Item_Sets, Has_Empty_Production, First, Unknown_Conflicts, Table.all, Trace, Descriptor);
 
       if Put_Parse_Table then
          LR1_Generator.Put_Parse_Table (Table, Item_Sets, Descriptor);
