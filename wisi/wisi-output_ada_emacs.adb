@@ -129,7 +129,8 @@ is
             LALR_Descriptor,
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
-              (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+              (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
+               Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,
@@ -145,7 +146,8 @@ is
             LR1_Descriptor,
             WisiToken.Parser.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
-              (Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count, Data.Reduce_Reduce_Conflict_Count),
+              (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
+               Data.Reduce_Reduce_Conflict_Count),
             Generate_Utils.To_McKenzie_Param (McKenzie_Recover),
             Trace                    => Verbosity > 1,
             Put_Parse_Table          => Verbosity > 0,

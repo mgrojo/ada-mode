@@ -81,6 +81,17 @@ package body WisiToken.Parser.LR.Generator_Utils is
                   end if;
                end if;
 
+               --  More than two actions can occur; see triple_conflict.wy. We make
+               --  that an error, since the grammar will be better off without them.
+               --  But keep going; the full parse table output will be needed to fix
+               --  the excess conflict.
+               if Matching_Action.Action.Next /= null then
+                  Put_Error
+                    ("More than two actions on " & Image (Descriptor, Symbol) &
+                       " in state" & State_Index'Image (Closure.State));
+                  Error := True;
+               end if;
+
                if Action.Verb = Shift then
                   Matching_Action.Action := new Parse_Action_Node'(Action, Matching_Action.Action);
                else

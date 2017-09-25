@@ -141,9 +141,10 @@ package Wisi.Gen_Generate_Utils is
    --  Put user readable token list to Standard_Output
 
    function To_Conflicts
-     (Accept_Reduce_Conflict_Count : out Integer;
-      Shift_Reduce_Conflict_Count  : out Integer;
-      Reduce_Reduce_Conflict_Count : out Integer)
+     (Source_File_Name             : in     String;
+      Accept_Reduce_Conflict_Count :    out Integer;
+      Shift_Reduce_Conflict_Count  :    out Integer;
+      Reduce_Reduce_Conflict_Count :    out Integer)
      return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
 
    function To_Grammar

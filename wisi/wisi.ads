@@ -140,6 +140,7 @@ package Wisi is
      return Boolean;
 
    type Conflict is record
+      Source_Line : Standard.Ada.Text_IO.Count;
       Action_A    : Standard.Ada.Strings.Unbounded.Unbounded_String;
       LHS_A       : Standard.Ada.Strings.Unbounded.Unbounded_String;
       Action_B    : Standard.Ada.Strings.Unbounded.Unbounded_String;
