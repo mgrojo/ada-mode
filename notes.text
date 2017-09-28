@@ -44,8 +44,46 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+navigate bug:
+       LR1_Descriptor : WisiToken.Descriptor
+     (First_Terminal    => (if Non_Grammar.Length > 0
+                            then Token_ID (Non_Grammar.Length) + Token_ID'First
+                            else Token_ID'First),
+      Last_Terminal     => EOF_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => EOF_ID + 1,
+      First_Nonterminal => EOF_ID + 1,
+      Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
+
+        on > 0, invoke "add-use-clause"; already at outermost containing token
+
+ada-which-function bug:
+   type Generate_Param_Type is record
+      --  Set by grammar file declarations. Error recover parameters
+      --  are elsewhere.
+      Output_Language           : Output_Language_Type  := None;
+      Parser_Algorithm          : Parser_Algorithm_Type := None;
+      Lexer                     : Lexer_Type            := None;
+      Interface_Kind            : Interface_Type        := None;
+      First_State_Index         : Integer               := 0;
+      First_Parser_Label        : Integer               := 0;
+      Keywords_Case_Insensitive : Boolean               := False;
+      Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+    (ada-which-function t) is fine
+    add-log not setting include-type t?
+
 ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
     detect that, exit
+    debug ada_mode_gps_indent; not much help, stuck in read_file
+
+    gnat.os_lib.read probably returns 0
+        which gives infinite loop in Read_Input
+            raise input_closed exception for that
+
+put back mckenzie-enable in wisi-process-parse
+    so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
 help-do-xref respect other-frame-window
     find the code that sets the 'help-function attribute, change it to use display-buffer

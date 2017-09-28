@@ -1541,8 +1541,6 @@
      nil
      nil
      (("simple_return_statement:0"
-       (wisi-statement-action [1 statement-start 2 statement-end]))
-      ("simple_return_statement:1"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
        (wisi-indent-action [0 ada-indent-broken 0])))

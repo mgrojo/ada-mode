@@ -50,7 +50,7 @@ update-all : install
 update-all : docs
 
 install : install_gpr_query
-install : install_ada_mode_wisi_parse
+install : install_ada_executables
 ifeq ($(GNAT_VERSION),GPL_2016)
 # GPS source code copied from GPS GPL 2016; not compatible with gnatcoll GPL 2017
 install : install_ada_mode_gps_indent

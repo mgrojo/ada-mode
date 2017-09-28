@@ -2055,7 +2055,7 @@ other file.")
 
 (defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
-  (interactive)
+  (interactive "P")
   (when ada-which-function
     (funcall ada-which-function include-type)))
 

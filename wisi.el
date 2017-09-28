@@ -930,61 +930,62 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
 (defun wisi--run-parse ()
   "Run the parser."
-  (let ((msg (when (> wisi-debug 0)
-	       (format "wisi: parsing %s %s:%d ..."
-		       wisi--parse-action
-		       (buffer-name)
-		       (line-number-at-pos (point))))))
-    (when (> wisi-debug 0)
-      (message msg))
+  (unless (buffer-narrowed-p)
+    (let ((msg (when (> wisi-debug 0)
+		 (format "wisi: parsing %s %s:%d ..."
+			 wisi--parse-action
+			 (buffer-name)
+			 (line-number-at-pos (point))))))
+      (when (> wisi-debug 0)
+	(message msg))
 
-    (unless (eq wisi--parse-action 'face)
-      (when (buffer-live-p wisi-error-buffer)
-	(with-current-buffer wisi-error-buffer
-	  (setq buffer-read-only nil)
-	  (erase-buffer)
-	  (setq buffer-read-only t))))
+      (unless (eq wisi--parse-action 'face)
+	(when (buffer-live-p wisi-error-buffer)
+	  (with-current-buffer wisi-error-buffer
+	    (setq buffer-read-only nil)
+	    (erase-buffer)
+	    (setq buffer-read-only t))))
 
-    (condition-case-unless-debug err
-	(save-excursion
-	  (wisi-parse-current wisi--parser)
- 	  (setq wisi-parse-failed nil)
-	  (when (memq wisi--parse-action '(face navigate))
-	    ;; indent parse does not set caches; they are set in `wisi-indent-region'
-	    (move-marker (wisi-cache-max) (point)))
-	  )
-      (wisi-parse-error
-       (cl-ecase wisi--parse-action
-	 (face
-	  ;; caches set by failed parse are ok
-	  (wisi--delete-face-cache (wisi-cache-max)))
+      (condition-case-unless-debug err
+	  (save-excursion
+	    (wisi-parse-current wisi--parser)
+	    (setq wisi-parse-failed nil)
+	    (when (memq wisi--parse-action '(face navigate))
+	      ;; indent parse does not set caches; they are set in `wisi-indent-region'
+	      (move-marker (wisi-cache-max) (point)))
+	    )
+	(wisi-parse-error
+	 (cl-ecase wisi--parse-action
+	   (face
+	    ;; caches set by failed parse are ok
+	    (wisi--delete-face-cache (wisi-cache-max)))
 
-	 (navigate
-	  ;; parse partially resets caches before and after wisi-cache-max
-	  (move-marker (wisi-cache-max) (point-min))
-	  (wisi--delete-navigate-cache (point-min)))
+	   (navigate
+	    ;; parse partially resets caches before and after wisi-cache-max
+	    (move-marker (wisi-cache-max) (point-min))
+	    (wisi--delete-navigate-cache (point-min)))
 
-	 (indent
-	  ;; parse does not set caches; see `wisi-indent-region'
-	  nil))
-       (setq wisi-parse-failed t)
-       ;; parser should have stored this error message in parser-error-msgs
-       )
-      (error
-       ;; parser failed for other reason
-       (error (cadr err))))
+	   (indent
+	    ;; parse does not set caches; see `wisi-indent-region'
+	    nil))
+	 (setq wisi-parse-failed t)
+	 ;; parser should have stored this error message in parser-error-msgs
+	 )
+	(error
+	 ;; parser failed for other reason
+	 (error (cadr err))))
 
-    (when (> wisi-debug 0)
-      (if (wisi-parser-errors wisi--parser)
-	  ;; error
-	  (progn
-	    (message "%s error" msg)
-	    (wisi-goto-error)
-	    (error (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
+      (when (> wisi-debug 0)
+	(if (wisi-parser-errors wisi--parser)
+	    ;; error
+	    (progn
+	      (message "%s error" msg)
+	      (wisi-goto-error)
+	      (error (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
 
-	;; no error
-	(message "%s done" msg))
-      )))
+	  ;; no error
+	  (message "%s done" msg))
+	))))
 
 (defvar-local wisi--last-parse-action nil
   "Last value of `wisi--parse-action' when `wisi-validate-cache' was run.")
@@ -1018,9 +1019,13 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
 
       (wisi--run-parse)
 
-      (when (and error-on-fail wisi-parse-failed)
-	(error "parse %s failed" parse-action))
-      )))
+      )
+
+    ;; We want this error even if we did not try to parse; it means
+    ;; the parse results are not valid.
+    (when (and error-on-fail wisi-parse-failed)
+      (error "parse %s failed" parse-action))
+    ))
 
 (defun wisi-fontify-region (_begin end)
   "For `jit-lock-functions'."
@@ -2124,13 +2129,13 @@ If LIMIT (a buffer position) is reached, throw an error."
 	(error "cache with nonterm %s not found" nonterm)))
     cache))
 
-(defun wisi-forward-find-cache-token (id limit)
-  "Search forward for a cache with token ID.
+(defun wisi-forward-find-cache-token (ids limit)
+  "Search forward for a cache with token in IDS (a list of token ids).
 Return cache, or nil if at LIMIT or end of buffer."
   (let ((cache (wisi-forward-cache)))
     (while (and (< (point) limit)
 		(not (eobp))
-		(not (eq (wisi-cache-token cache) id)))
+		(not (memq (wisi-cache-token cache) ids)))
       (setq cache (wisi-forward-cache)))
     cache))
 

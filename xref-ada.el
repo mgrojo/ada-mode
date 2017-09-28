@@ -68,7 +68,7 @@
 	  cache)
       (goto-char (point-min))
       (while (not (eobp))
-	(setq cache (wisi-forward-find-cache-token 'name (point-max)))
+	(setq cache (wisi-forward-find-cache-token '(IDENTIFIER name) (point-max)))
 	(cond
 	 ((null cache)
 	  ;; eob
@@ -78,12 +78,13 @@
 		'(abstract_subprogram_declaration
 		  exception_declaration
 		  function_specification
+		  full_type_declaration
 		  generic_declaration
 		  generic_instantiation
 		  null_procedure_declaration
 		  object_declaration
 		  procedure_specification
-		  package-specification
+		  package_specification
 		  subtype_declaration
 		  type_declaration))
 	  (push (wisi-cache-text cache) table))
