@@ -59,6 +59,10 @@ install packages in -Q:
  (list-packages))
 
  current work
+refactor {ada|gpr|java}-skel-expand
+    (defun skel-expand
+    use buffer-local skel-token-alist
+
 help-do-xref respect other-frame-window
     find the code that sets the 'help-function attribute, change it to use display-buffer
 

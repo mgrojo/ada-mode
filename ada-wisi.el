@@ -1801,6 +1801,4 @@ TOKEN-TEXT; move point to just past token."
 (setq ada-which-function 'ada-wisi-which-function)
 
 (provide 'ada-wisi)
-(provide 'ada-indent-engine)
-
 ;; end of file
