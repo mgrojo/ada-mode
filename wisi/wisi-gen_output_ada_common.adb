@@ -164,15 +164,9 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent_Line ("Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);");
          Indent_Line ("State : aliased WisiToken.Token_Region.State_Type (Trace'Access);");
          New_Line;
-         Indent_Line ("function Create_Parser");
-         case Data.Lexer is
-         when Elisp_Lexer | re2c_Lexer =>
-            Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");
-
-         when Regexp_Lexer =>
-            raise Programmer_Error;
-         end case;
-         Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
+         Indent_Line ("procedure Create_Parser");
+         Indent_Line ("  (Parser    :    out WisiToken.Parser.LR.Parser.Instance;");
+         Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type);");
          New_Line;
 
       when Ada_Emacs =>
@@ -181,9 +175,9 @@ package body Wisi.Gen_Output_Ada_Common is
             Indent_Line ("Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);");
             Indent_Line ("State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);");
             New_Line;
-            Indent_Line ("function Create_Parser");
-            Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");
-            Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance;");
+            Indent_Line ("procedure Create_Parser");
+            Indent_Line ("  (Parser    :    out WisiToken.Parser.LR.Parser.Instance;");
+            Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type);");
             New_Line;
 
          when Module =>
@@ -505,22 +499,16 @@ package body Wisi.Gen_Output_Ada_Common is
       use Wisi.Utils;
       use all type WisiToken.Parser.LR.Unknown_State_Index;
    begin
-      Indent_Line ("function Create_Parser");
+      Indent_Line ("procedure Create_Parser");
+      Indent_Line ("  (Parser    : out    WisiToken.Parser.LR.Parser.Instance;");
       case Interface_Kind is
       when None | Process =>
-         case Data.Lexer is
-         when Elisp_Lexer | re2c_Lexer =>
-            Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");
-
-         when Regexp_Lexer =>
-            raise Programmer_Error;
-         end case;
+         Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type)");
       when Module =>
-         Indent_Line ("  (Env                 : in Emacs_Env_Access;");
+         Indent_Line ("   Env                 : in Emacs_Env_Access;");
          Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value)");
       end case;
 
-      Indent_Line ("  return WisiToken.Parser.LR.Parser.Instance");
       Indent_Line ("is");
       Indent := Indent + 3;
 
@@ -581,31 +569,30 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
       New_Line;
 
-      Indent_Line ("return");
+      Indent_Line ("WisiToken.Parser.LR.Parser.New_Parser");
+      Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
          case Lexer is
          when re2c_Lexer =>
-            Indent_Line ("  (Lexer.New_Lexer (Trace'Access),");
+            Indent_Line ("   Lexer.New_Lexer (Trace'Access),");
 
          when Elisp_Lexer =>
-            Indent_Line ("  (WisiToken.Lexer.Elisp_Process.New_Lexer (" & WisiToken.Int_Image (EOF_ID) &
+            Indent_Line ("   WisiToken.Lexer.Elisp_Process.New_Lexer (" & WisiToken.Int_Image (EOF_ID) &
                            ", Trace'Access),");
 
          when Regexp_Lexer =>
             raise Programmer_Error;
          end case;
 
-         Indent_Line ("   Table, WisiToken.Token.Semantic_State'Class (State)'Access,");
-         Indent_Line ("   Shared_Lookahead        => WisiToken.Token_Queues.Empty_Queue,");
-         Indent_Line ("   Enable_McKenzie_Recover =>");
-         Indent_Line ("     Table.McKenzie.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit,");
+         Indent_Line ("   Table,");
+         Indent_Line ("   WisiToken.Token.Semantic_State'Class (State)'Access,");
          Indent_Line ("   Max_Parallel            => 15,");
          Indent_Line ("   First_Parser_Label      => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State    => True);");
 
       when Module =>
-         Indent_Line ("  (Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
+         Indent_Line ("   Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
          Indent_Line ("   Table, Max_Parallel => 15, Terminate_Same_State => True);");
 
       end case;

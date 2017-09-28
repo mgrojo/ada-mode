@@ -102,7 +102,7 @@ package body Dragon_4_45_LALR_Test is
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    ----------
    --  Test procedures
@@ -256,12 +256,7 @@ package body Dragon_4_45_LALR_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : WisiToken.Parser.LR.Parser.Instance := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
-           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
-         State,
-         First_Parser_Label);
+      Parser : WisiToken.Parser.LR.Parser.Instance;
 
       procedure Execute_Command (Command : in String)
       is
@@ -276,6 +271,14 @@ package body Dragon_4_45_LALR_Test is
       end Execute_Command;
 
    begin
+      WisiToken.Parser.LR.Parser.New_Parser
+        (Parser,
+         Lexer.New_Lexer (Trace'Access, Syntax),
+         WisiToken.Parser.LR.LALR_Generator.Generate
+           (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
+         State'Access,
+         First_Parser_Label);
+
       WisiToken.Trace_Parse := Test.Debug;
 
       Execute_Command ("cdcd");

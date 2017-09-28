@@ -95,6 +95,50 @@ package body WisiToken.Parser.LR is
       Trace.New_Line;
    end Put_Top_10;
 
+   overriding
+   procedure Finalize (Object : in out Instance)
+   is
+      Action : Action_Node_Ptr;
+      Temp_Action : Action_Node_Ptr;
+      Parse_Action : Parse_Action_Node_Ptr;
+      Temp_Parse_Action : Parse_Action_Node_Ptr;
+
+      Got : Goto_Node_Ptr;
+      Temp_Got : Goto_Node_Ptr;
+   begin
+      if Object.Table = null then
+         return;
+      end if;
+
+      for State of Object.Table.States loop
+         Action := State.Action_List;
+         loop
+            exit when Action = null;
+            Parse_Action := Action.Action;
+            loop
+               exit when Parse_Action = null;
+               Temp_Parse_Action := Parse_Action;
+               Parse_Action := Parse_Action.Next;
+               Free (Temp_Parse_Action);
+            end loop;
+
+            Temp_Action := Action;
+            Action := Action.Next;
+            Free (Temp_Action);
+         end loop;
+
+         Got := State.Goto_List;
+         loop
+            exit when Got = null;
+            Temp_Got := Got;
+            Got := Got.Next;
+            Free (Temp_Got);
+         end loop;
+      end loop;
+
+      Free (Object.Table);
+   end Finalize;
+
    function State_Image (Item : in Unknown_State_Index) return String
    is
       use Ada.Strings;

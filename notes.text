@@ -9,7 +9,12 @@ delete -liconv, -lpsapi?
 
 still losing memory
     possibly Augmented_Token_Array
-        deallocation thru root class type
+        deallocation thru root class type?
+
+    run_ada_lite_parser wisi/test/ada_lite.input with gnatmem
+        no change in leaks from repeat count 1 to repeat count 2
+
+    run ada on gnatcoll-xref
 
 add line, comment info compute to re2c lexer
     in org.wisitoken.stephe-1

@@ -30,7 +30,7 @@ with WisiToken.Parser.LR.Parser;
 with WisiToken.Token_Region.AUnit;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser (WisiToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
    Orig_Cost_Limit  : Integer;
    Orig_Check_Limit : Integer;
@@ -79,10 +79,11 @@ package body Test_McKenzie_Recover is
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
 
-      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
+      Parser : WisiToken.Parser.LR.Parser.Instance;
    begin
       --  The test is that there is no exception.
 
+      Create_Parser (Parser, WisiToken.LALR);
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_File (File_Name);
@@ -702,6 +703,8 @@ package body Test_McKenzie_Recover is
    end Tear_Down_Case;
 
 begin
+   Ada_Lite.Create_Parser (Parser, WisiToken.LALR);
+
    --  Doing this here instead of in Set_Up_Case makes this
    --  independent of all other tests in test_all_harness.
    Orig_Cost_Limit  := Parser.Table.McKenzie.Cost_Limit;

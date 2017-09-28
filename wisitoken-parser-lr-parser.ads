@@ -30,13 +30,14 @@ package WisiToken.Parser.LR.Parser is
       Terminate_Same_State : Boolean;
    end record;
 
-   function New_Parser
-     (Lexer              :         in     WisiToken.Lexer.Handle;
-      Table              :         in     Parse_Table_Ptr;
-      Semantic_State     : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel       :         in     Ada.Containers.Count_Type := 15;
-      First_Parser_Label :         in     Integer := 1)
-     return Instance;
+   procedure New_Parser
+     (Parser               :    out Instance;
+      Lexer                : in     WisiToken.Lexer.Handle;
+      Table                : in     Parse_Table_Ptr;
+      Semantic_State       : in     WisiToken.Token.Semantic_State_Access;
+      Max_Parallel         : in     Ada.Containers.Count_Type := 15;
+      First_Parser_Label   : in     Integer                   := 1;
+      Terminate_Same_State : in     Boolean                   := True);
 
    overriding procedure Parse (Parser : in out Instance);
    --  Trace_Parse settings:

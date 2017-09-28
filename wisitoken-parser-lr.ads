@@ -98,6 +98,7 @@ package WisiToken.Parser.LR is
       Item : Parse_Action_Rec;
       Next : Parse_Action_Node_Ptr; -- non-null only for conflicts
    end record;
+   procedure Free is new Ada.Unchecked_Deallocation (Parse_Action_Node, Parse_Action_Node_Ptr);
 
    type Action_Node;
    type Action_Node_Ptr is access Action_Node;
@@ -107,6 +108,7 @@ package WisiToken.Parser.LR is
       Action : Parse_Action_Node_Ptr;
       Next   : Action_Node_Ptr;
    end record;
+   procedure Free is new Ada.Unchecked_Deallocation (Action_Node, Action_Node_Ptr);
 
    type Goto_Node is private;
    type Goto_Node_Ptr is access Goto_Node;
@@ -286,10 +288,13 @@ package WisiToken.Parser.LR is
 
    type Instance is abstract new WisiToken.Parser.Instance with record
       Table                   : Parse_Table_Ptr;
-      Semantic_State          : access WisiToken.Token.Semantic_State'Class;
+      Semantic_State          : WisiToken.Token.Semantic_State_Access;
       Shared_Lookahead        : Token_Queues.Queue_Type;
       Enable_McKenzie_Recover : Boolean;
    end record;
+
+   overriding procedure Finalize (Object : in out Instance);
+   --  Deep free Object.Table.
 
    ----------
    --  Useful text output
@@ -379,6 +384,7 @@ private
       State  : State_Index;
       Next   : Goto_Node_Ptr;
    end record;
+   procedure Free is new Ada.Unchecked_Deallocation (Goto_Node, Goto_Node_Ptr);
 
    procedure Add
      (List   : in out Action_Node_Ptr;

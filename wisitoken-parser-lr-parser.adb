@@ -257,7 +257,7 @@ package body WisiToken.Parser.LR.Parser is
      (Parser         : in Instance;
       Current_Parser : in Parser_Lists.Cursor)
    is
-      Semantic_State : access WisiToken.Token.Semantic_State'Class renames Parser.Semantic_State;
+      Semantic_State : WisiToken.Token.Semantic_State_Access renames Parser.Semantic_State;
       Parser_State   : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Item           : Parser_Lists.Pend_Item;
    begin
@@ -707,21 +707,24 @@ package body WisiToken.Parser.LR.Parser is
       end loop;
    end Parse;
 
-   function New_Parser
-     (Lexer              :         in     WisiToken.Lexer.Handle;
-      Table              :         in     Parse_Table_Ptr;
-      Semantic_State     : aliased in out WisiToken.Token.Semantic_State'Class;
-      Max_Parallel       :         in     Ada.Containers.Count_Type := 15;
-      First_Parser_Label :         in     Integer                   := 1)
-     return Instance
+   procedure New_Parser
+     (Parser               :    out Instance;
+      Lexer                : in     WisiToken.Lexer.Handle;
+      Table                : in     Parse_Table_Ptr;
+      Semantic_State       : in     WisiToken.Token.Semantic_State_Access;
+      Max_Parallel         : in     Ada.Containers.Count_Type := 15;
+      First_Parser_Label   : in     Integer                   := 1;
+      Terminate_Same_State : in     Boolean                   := True)
    is begin
-      return
-        (Lexer, Table, Semantic_State'Access,
-         Shared_Lookahead        => Token_Queues.Empty_Queue,
-         Enable_McKenzie_Recover => False,
-         Max_Parallel            => Max_Parallel,
-         First_Parser_Label      => First_Parser_Label,
-         Terminate_Same_State    => True);
+      Parser.Lexer                   := Lexer;
+      Parser.Table                   := Table;
+      Parser.Semantic_State          := Semantic_State;
+      Parser.Shared_Lookahead        := Token_Queues.Empty_Queue;
+      Parser.Enable_McKenzie_Recover :=
+        Table.McKenzie.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit;
+      Parser.Max_Parallel            := Max_Parallel;
+      Parser.First_Parser_Label      := First_Parser_Label;
+      Parser.Terminate_Same_State    := Terminate_Same_State;
    end New_Parser;
 
 end WisiToken.Parser.LR.Parser;

@@ -40,24 +40,22 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
-   LALR_Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
-   LR1_Parser  : WisiToken.Parser.LR.Parser.Instance;
-
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
-   is begin
+   is
+      Parser : WisiToken.Parser.LR.Parser.Instance;
+   begin
       case Algorithm is
       when WisiToken.LALR =>
+         Create_Parser (Parser, WisiToken.LALR);
          Put_Line ("LALR_Parser parse:");
-         LALR_Parser.Lexer.Reset_With_File (-File_Name);
-         LALR_Parser.Parse;
 
       when WisiToken.LR1 =>
-         LR1_Parser := Create_Parser (WisiToken.LR1);
+         Create_Parser (Parser, WisiToken.LR1);
          Put_Line ("LR1_Parser parse:");
-         LR1_Parser.Lexer.Reset_With_File (-File_Name);
-         LR1_Parser.Parse;
       end case;
 
+      Parser.Lexer.Reset_With_File (-File_Name);
+      Parser.Parse;
    exception
    when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
       Put_Line (Ada.Directories.Simple_Name (-File_Name) & ":" & Ada.Exceptions.Exception_Message (E));

@@ -22,9 +22,9 @@ pragma License (GPL);
 
 with WisiToken.Parser.LR.Parser;
 generic
-   with function Create_Parser
-     (Algorithm : in WisiToken.Parser_Algorithm_Type)
-     return WisiToken.Parser.LR.Parser.Instance;
+   with procedure  Create_Parser
+     (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type);
 
    LR1 : in Boolean;
 procedure Gen_Parser_Run;

@@ -28,10 +28,11 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Finalization;
 with WisiToken.Lexer;
 package WisiToken.Parser is
 
-   type Instance is abstract tagged record
+   type Instance is abstract new Ada.Finalization.Limited_Controlled with record
       Lexer : WisiToken.Lexer.Handle;
    end record;
 
