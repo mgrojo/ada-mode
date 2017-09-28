@@ -87,7 +87,7 @@ package WisiToken.Parser.LR is
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec := (Reduce, Token_ID'First, Null_Action, 0, 0);
 
    function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String;
-   --  Ada aggregate syntax, leaving out tokens in reduce.
+   --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
 

@@ -20,11 +20,14 @@
 %start compilation_unit
 %first_state_index 1
 %first_parser_label 1
-%parser_algorithm LALR_LR1
+
+;; LR1 gives different conflict names
+%parser_algorithm LALR
 %output_language Ada
 %lexer re2c
 
-%conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
+%conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state sequence_of_statements, sequence_of_statements  on token IDENTIFIER
 
 %%
 

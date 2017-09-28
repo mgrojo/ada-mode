@@ -26,4 +26,5 @@ generic
      (Algorithm : in WisiToken.Parser_Algorithm_Type)
      return WisiToken.Parser.LR.Parser.Instance;
 
+   LR1 : in Boolean;
 procedure Gen_Parser_Run;

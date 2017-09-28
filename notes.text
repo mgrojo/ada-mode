@@ -3,13 +3,8 @@ build/Makefile
 branches:
 org.wisitoken          - working, used by o.e.a.s-4
 org.wisitoken.stephe-1 - translate elisp actions to Ada
-org.wisitoken.stephe-1 - more than two branches in conflicts
 
  current work
-triple_conflict.wy
-    at least detect the triple conflict; report as error for now
-    see how easy it is to eliminate in java-wisi.wy
-
 delete -liconv, -lpsapi?
 
 still losing memory
@@ -376,6 +371,9 @@ integrate with emacs module
 
 ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
+
+    build parse table without actions in one file, add actions in another
+        -> smaller files
 
     read tables from text file?
         action subprogram names as integer index into array of subprogram pointers.

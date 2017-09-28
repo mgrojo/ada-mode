@@ -32,7 +32,6 @@ is
       Put_Line ("usage: *_run [-v <integer>] filename");
       Put_Line ("  parse input file, executing grammar actions");
       Put_Line ("  -v : output trace of states while parsing");
-      --  Always run both LALR and LR1 parses.
    end Put_Usage;
 
    File_Name : Ada.Strings.Unbounded.Unbounded_String;
@@ -42,7 +41,7 @@ is
      renames Ada.Strings.Unbounded.To_String;
 
    LALR_Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
-   LR1_Parser  : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LR1);
+   LR1_Parser  : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is begin
@@ -53,6 +52,7 @@ is
          LALR_Parser.Parse;
 
       when WisiToken.LR1 =>
+         LR1_Parser := Create_Parser (WisiToken.LR1);
          Put_Line ("LR1_Parser parse:");
          LR1_Parser.Lexer.Reset_With_File (-File_Name);
          LR1_Parser.Parse;
@@ -100,7 +100,10 @@ begin
    end;
 
    Parse (WisiToken.LALR);
-   Parse (WisiToken.LR1);
+
+   if LR1 then
+      Parse (WisiToken.LR1);
+   end if;
 
 exception
 when E : others =>

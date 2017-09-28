@@ -41,8 +41,10 @@ package body Wisi_WY_Test is
 
       WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
 
-      Computed_LALR_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr-elisp.el";
-      Expected_LALR_El_File : constant String := Test.Root_Name.all & "-lalr-elisp.good_el";
+      Computed_LALR_El_File : constant String := Simple_Name (Test.Root_Name.all) &
+        (if Test.LR1 then "-lalr-elisp.el" else "-elisp.el");
+      Expected_LALR_El_File : constant String := Test.Root_Name.all &
+        (if Test.LR1 then "-lalr-elisp.good_el" else "-elisp.good_el");
 
       Computed_LR1_El_File : constant String := Simple_Name (Test.Root_Name.all) & "-lr1-elisp.el";
       Expected_LR1_El_File : constant String := Test.Root_Name.all & "-lr1-elisp.good_el";
@@ -51,7 +53,7 @@ package body Wisi_WY_Test is
         (Program_Name => Exe.all,
          Args         =>
            (1         => new String'("--parser_algorithm"),
-            2         => new String'("LALR_LR1"),
+            2         => new String'((if Test.LR1 then "LALR_LR1" else "LALR")),
             3         => new String'("--output_language"),
             4         => new String'("Elisp"),
             5         => new String'("--lexer"),
@@ -64,7 +66,9 @@ package body Wisi_WY_Test is
          "spawn or execution of 'wisi-generate.exe' " & WY_File.all & "' failed");
 
       AUnit.Checks.Text_IO.Check_Files ("LALR", Computed_LALR_El_File, Expected_LALR_El_File);
-      AUnit.Checks.Text_IO.Check_Files ("LR1", Computed_LR1_El_File, Expected_LR1_El_File);
+      if Test.LR1 then
+         AUnit.Checks.Text_IO.Check_Files ("LR1", Computed_LR1_El_File, Expected_LR1_El_File);
+      end if;
    end Run_Test;
 
    ----------

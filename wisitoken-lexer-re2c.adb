@@ -33,8 +33,14 @@ with GNATCOLL.Mmap;
 package body WisiToken.Lexer.re2c is
 
    overriding procedure Finalize (Object : in out Instance)
-   is begin
-      Free_Lexer (Object.Lexer);
+   is
+      use all type System.Address;
+   begin
+      if Object.Lexer /= System.Null_Address then
+         Free_Lexer (Object.Lexer);
+         Object.Lexer := System.Null_Address;
+      end if;
+
       case Object.Source.Label is
       when String_Label =>
          Ada.Strings.Unbounded.Free (Object.Source.Buffer);

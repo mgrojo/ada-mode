@@ -153,16 +153,13 @@ Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nontermina
 %recover_pattern_1 END SEMICOLON IF
 %recover_pattern_1 END SEMICOLON LOOP
 
-%conflict REDUCE/REDUCE in state association_opt, expression_opt  on token IS
-%conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
-%conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
+%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state discrete_subtype_definition, range_list  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication  on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt  on token IS
-%conflict SHIFT/REDUCE in state package_body, aspect_specification_opt  on token IS
-%conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
-%conflict SHIFT/REDUCE in state subprogram_body_stub, aspect_specification_opt  on token IS
+%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
+%conflict SHIFT/REDUCE in state package_body, package_body  on token IS
+%conflict SHIFT/REDUCE in state simple_return_statement, simple_return_statement  on token SEMICOLON
+%conflict SHIFT/REDUCE in state subprogram_body, subprogram_body  on token IS
 
 %%
 ;;;; grammar rules
@@ -184,7 +181,7 @@ assignment_statement
 association_opt
   : ;; empty
   | IDENTIFIER EQUAL_GREATER expression_opt
-  | expression_opt
+  | expression
   ;
 
 association_list
