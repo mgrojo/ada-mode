@@ -6,6 +6,8 @@
 ;; Default includes mtn, among others, which is broken in Emacs 22.2, 24.3
 (setq vc-handled-backends '(CVS))
 
+(package-initialize) ;; for queue
+
 (require 'cl);; assert
 (require 'ada-mode)
 

@@ -318,6 +318,11 @@ nil, only the file name."
   :type 'string
   :group 'ada-indentation)
 
+(defcustom ada-process-parse-exec "ada_mode_wisi_parse"
+  "Name of executable to use for external process Ada parser,"
+  :type 'string
+  :group 'ada-indentation)
+
 ;;;;; end of user variables
 
 (defconst ada-symbol-end
@@ -702,8 +707,10 @@ Function is called with one optional argument; syntax-ppss result.")
   (funcall indent-line-function); so new list is indented properly
 
   (let* ((begin (point))
-	 (delend (progn (forward-sexp) (point))); just after matching closing paren
-	 (end (progn (backward-char) (forward-comment (- (point))) (point))); end of last parameter-declaration
+	 ;; We use markers here, in case eror correction moves ‘end’.
+	 (delend (copy-marker (progn (forward-sexp) (point)))); just after matching closing paren
+	 (end (copy-marker
+	       (progn (backward-char) (forward-comment (- (point))) (point)))); end of last parameter-declaration
 	 (multi-line (> end (save-excursion (goto-char begin) (line-end-position))))
 	 (paramlist (ada-scan-paramlist (1+ begin) end)))
 
@@ -2048,7 +2055,7 @@ other file.")
 
 (defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
-  (interactive)
+  (interactive "P")
   (when ada-which-function
     (funcall ada-which-function include-type)))
 
@@ -2700,6 +2707,8 @@ package body file, containing skeleton code that will compile.")
 
 ;;;; fill-comment
 
+(defvar wisi-inhibit-parse nil);; in wisi.el; so far that's the only parser we use.
+
 (defun ada-fill-comment-paragraph (&optional justify postfix)
   "Fill the current comment paragraph.
 If JUSTIFY is non-nil, each line is justified as well.
@@ -2714,14 +2723,8 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph leaves comment text exposed (without
   ;; comment prefix) when inserting a newline; don't trigger a parse
   ;; because of that (in particular, jit-lock requires a parse; other
-  ;; hooks may as well). In general, we don't need to trigger a parse
-  ;; for comment changes.
-  ;;
-  ;; FIXME: add ada-inibit-parse instead; let other change hooks run.
-  ;; FIXME: wisi-after-change still needs to adjust wisi-cache-max
-  ;; FIXME: even better, consider patch suggested by Stefan Monnier to
-  ;; move almost all code out of the change hooks (see email).
-  (let* ((inhibit-modification-hooks t)
+  ;; hooks may as well).
+  (let* ((wisi-inhibit-parse t)
 	 indent from to
 	 (opos (point-marker))
 	 ;; we bind `fill-prefix' here rather than in ada-mode because
@@ -2792,12 +2795,7 @@ The paragraph is indented on the first line."
 	    (forward-line))
 	  ))
 
-    (goto-char opos)
-
-    ;; we disabled modification hooks, so font-lock will not run to
-    ;; re-fontify the comment prefix; do that here.
-    ;; FIXME: Use actual original size instead of 0!
-    (run-hook-with-args 'after-change-functions from to 0)))
+    (goto-char opos)))
 
 ;;;; support for font-lock.el
 
@@ -2989,15 +2987,45 @@ The paragraph is indented on the first line."
 
 (put 'ada-mode 'custom-mode-group 'ada)
 
+(defvar ada-parser nil
+  "Indicate parser and lexer to use for Ada buffers:
+
+elisp : wisi parser and lexer implemented in elisp.
+
+process : wisi elisp lexer, external process parser specified
+  by ‘ada-process-parse-exec ’.
+")
+
+(defvar ada-fallback nil
+  "Indicate fallback indentation engine for Ada buffers.
+
+simple: indent to previous line.
+
+gps: gps external parser.")
+
 (provide 'ada-mode)
 
 ;;;;; Global initializations
 
 (require 'ada-build)
 
-(if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
-    (require 'ada-gps)
-  (require 'ada-wisi))
+(cl-case ada-fallback
+  (simple
+   (require 'ada-wisi))
+  (t
+   (if (locate-file ada-gps-indent-exec exec-path '("" ".exe"))
+       (require 'ada-gps)
+     (require 'ada-wisi)))
+  )
+
+(cl-case ada-parser
+  (elisp nil)
+  (process nil)
+  (t
+   (if (locate-file ada-process-parse-exec exec-path '("" ".exe"))
+       (setq ada-parser 'process)
+     (setq ada-parser 'elisp)))
+  )
 
 (cl-case ada-xref-tool
   (gnat (require 'ada-gnat-xref))

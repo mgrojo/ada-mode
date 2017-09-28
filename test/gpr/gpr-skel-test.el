@@ -7,6 +7,8 @@
 ;; in gpr buffer: (setq skeleton-end-hook nil)
 ;; (setq wisi-debug 1)
 
+(package-initialize) ;; for queue
+
 (require 'gpr-mode)
 
 (defun skeleton-expand-all (skel-token-alist exclude)
@@ -50,6 +52,7 @@ Preserves text after point."
       (skeleton-expand "Project_1") ;; project
       (skeleton-expand-all gpr-skel-token-alist '("header""project"))
       (indent-region (point-min) (point-max))
+      (delete-trailing-whitespace (point-min) (point-max))
       (let ((buffer-file-coding-system 'undecided-unix))
 	(write-file filename))
       )))

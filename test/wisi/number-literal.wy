@@ -1,15 +1,14 @@
 ;; test number-literal lexer
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 %keyword NUMBER "number"
 
 %token <number> NUMERIC_LITERAL wisi-number-p
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
 %%
 

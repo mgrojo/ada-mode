@@ -29,9 +29,9 @@ project Standard_Common is
          "-gnatVa",
          "-gnatwaBeLP",
          "-fstack-check"
-         --    ,
-         --  "-msse2",
-         --  "-mfpmath=sse"
+        --    ,
+        --  "-msse2",
+        --  "-mfpmath=sse"
         );
 
       --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
@@ -48,9 +48,9 @@ project Standard_Common is
          "-gnatfnoqQ",
          "-gnatwaBeL",
          "-fstack-check"
-         --    ,
-         --  "-msse2",
-         --  "-mfpmath=sse"
+        --    ,
+        --  "-msse2",
+        --  "-mfpmath=sse"
         );
 
       Debug_Switches_C := ("-Wall", "-Wstrict-prototypes", "-ansi", "-pedantic", "-Werror", "-g", "-O0", "-funwind-tables");
@@ -117,5 +117,5 @@ project Standard_Common is
 
 end Standard_Common;
 -- Local Variables:
--- ada-indent-when: 0
+-- gpr-indent-when: 0
 -- End:

@@ -1,4 +1,4 @@
---  Explores all issues around indenting within parens
+--  Explores many issues around indenting within parens
 
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
@@ -12,21 +12,21 @@ package Ada_Mode.Parens is
    -- non-pathological; compare to T3
    type T1 (A : Integer;
             B : Integer)
-     is limited record
-        V : Character;
-        C : Integer;
-     end record;
+      is limited record
+         V : Character;
+         C : Integer;
+      end record;
 
    --EMACSCMD:(progn (end-of-line 3)(ada-in-paramlist-p))
    --EMACSRESULT:nil
    type T3 (A : Integer;
             B : Integer) is limited record
-               V : Character;
-               -- ada-mode 4.01 had this at ada-indent relative to
-               -- type. But this is a pathological case; user should
-               -- put 'is limited record' on next line!
-               C : Integer;
-            end record;
+         V : Character;
+         -- ada-mode 4.01 had this at ada-indent relative to
+         -- type. But this is a pathological case; user should
+         -- put 'is limited record' on next line!
+         C : Integer;
+      end record;
 
    --  A pathological subprogram declaration. We don't expect ada-format-paramlist to preserve these newlines.
    --EMACSCMD:(progn (end-of-line 4)(ada-in-paramlist-p))

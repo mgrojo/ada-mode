@@ -31,10 +31,11 @@ COMPILE_FILES := $(filter-out ada_mode-ada2012.ads, $(COMPILE_FILES))# font-lock
 COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPILE_FILES))
 
 # These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
+COMPILE_FILES := $(filter-out ada_mode-interactive_case_statement.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_smie.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_recover.adb, $(COMPILE_FILES))
 
 # This has incomplete code; tests a former bug in syntax-ppss
 COMPILE_FILES := $(filter-out ada_mode-long_paren.adb, $(COMPILE_FILES))
@@ -67,6 +68,13 @@ COMPILE_FILES := $(filter-out ada_mode-separate_task_body.adb, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-separate_task_body.adb
 COMPILE_FILES := $(filter-out ada_mode-spec.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-spec.ads
+
+# not worth making these compile
+COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
 
 # This has illegal code; used for testing skeleton expansion
 COMPILE_FILES := $(filter-out ada_skel.adb, $(COMPILE_FILES))
@@ -113,11 +121,11 @@ ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
 .PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp
 
-.PHONY : all force nominal one test test-clean
+.PHONY : all force one test test-clean
 
-vpath %.adb ../test ../test/subdir ../test/ada-gps
-vpath %.ads ../test ../test/subdir ../test/ada-gps
-vpath %.el ../ .
+vpath %.adb ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.ads ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.el ../ ../test/wisi
 vpath %.gpr ../test/gpr
 vpath %.wy ../ ../test/wisi
 
@@ -139,12 +147,25 @@ gpr-skel.gpr.tmp :
 %.diff-run : % %.tmp
 	-diff -u $< $*.tmp
 
-%.wisi-test : %-wy.el
-	$(EMACS_EXE) -Q -batch $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
+%.wisi-test : %-elisp.el
+	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
-# -v 1 dumps grammar; useful for debugging parse errors
-%-wy.el : %.wy $(WISI_OPENTOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_OPENTOKEN)/wisi-generate.exe -v 1 $(<F) Elisp > $(*F).output
+%.wisi-process-test : %_wisi_parse.exe
+	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
+
+%_wisi_parse.exe : %_wisi_parse.ads %-process.el force
+	gprbuild -p wisi_parse.gpr $<
+
+%-process.el : force
+	make -C $(WISI_WISITOKEN) $*-process.el
+	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
+	cp $(WISI_WISITOKEN)/$*_process.ad? .
+
+.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
+
+# -v 1 dumps grammar
+%-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp $(<F) > $(*F).elisp_parse_table
 ifeq ($(shell uname),Linux)
 else ifeq ($(shell uname),Darwin)
 else
@@ -152,21 +173,33 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
+%_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
+	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
+
+%.re2c %.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer re2c $< > $(*F).ada_parse_table
+	dos2unix $(*F).ads $(*F).adb
+
+%_re2c.c : %.re2c
+	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
 
 # load path rationale:
 #    .. for run-*.el
-#    ADA_MODE_DIR = "-L ../.. -l "autoloads.el"" for developing ada-mode
+#    ADA_MODE_DIR = "-L .. -l "autoloads.el"" for developing ada-mode
 #    ADA_MODE_DIR = "-f package-initialize" for testing installed ELPA package
 ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 
-# All gpr-query functions run "gpr_query" in a background process to
-# save startup time. That fails in batch mode; batch mode does not
-# support background processes. So we don't run tests in batch mode.
-# We can't use -nw here because the standard input is not a tty (at
-# least on Windows). We don't include any other dependencies, because
-# the complete list is complex, and we sometimes want to ignore it.
+# All gpr-query functions run "gpr_query" in a background process.
+# That fails in batch mode; batch mode does not support background
+# processes. FIXME: not true in Emacs 25? So we don't run tests in
+# batch mode. We can't use -nw here because the standard input is not
+# a tty (at least on Windows). We don't include any other
+# dependencies, because the complete list is complex, and we sometimes
+# want to ignore it.
 %.tmp : %
 	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
@@ -198,8 +231,13 @@ GPRBUILD := gprbuild
 	makeinfo --html --no-split $< -o ../$@
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-ada-test-clean test-clean doc-clean
+clean :: compile-ada-test-clean build-ada-exec-clean test-clean doc-clean
 	find ../ -name "*~" -delete
+	rm -rf ../obj
+	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
+	rm -rf ../gpr_query-process_refresh.adb
+	rm -rf ../ada_mode_gps_indent$(EXE_EXT)
+	rm -rf ../ada_mode_wisi_parse$(EXE_EXT)
 
 doc-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
@@ -213,14 +251,19 @@ compile-ada-test-clean :
 	rm -f ../test/*.o ../test/subdir/*.o
 	rm -f ../test/gpr_query.db*
 
+# delete all files created by wisi-generate
+build-ada-exec-clean : PATTERNS := *.*_output *.*_parse_table *.re2c *_re2c.c *.exe
+build-ada-exec-clean :
+	rm -f $(PATTERNS) *.ad?
+	cd ..; rm -f $(PATTERNS) *_grammar-elisp.el *_grammar-process.el *_grammar.*_parse_table *_grammar_process.ad?
+
 test-clean ::
 	rm -f *.diff *.tmp
 # ada_mode-spec.adb is a temporary, generated by
 # ada-make-package-body.
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
-	cd ../test/wisi/; rm -f *-wy.el *.output
-
+	cd ../test/wisi/; rm -f *.elisp-el *.output
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete
