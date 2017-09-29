@@ -9,6 +9,9 @@
 # We don't include -k here; that would run script tests even if building the .exe fails.
 %.exe : %.adb force; gprbuild -p --autoconf=objects/auto.cgpr -P$(GNAT_PROJECT) $(GPRBUILD_ARGS) $*.adb
 
+exec_pro/%.exe : %.adb force
+	gprbuild -p --autoconf=objects/auto.cgpr -XStandard_Common_Profile=On -P$(GNAT_PROJECT) $(GPRBUILD_ARGS) $*
+
 # Ada syntax check only; much faster when things are changing.
 %.check : %.adb force; gnatmake -p -k -gnatc -P$(GNAT_PROJECT) $(GNATMAKE_ARGS) $*
 

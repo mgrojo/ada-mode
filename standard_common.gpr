@@ -5,6 +5,9 @@ project Standard_Common is
    type Build_Type is ("Debug", "Normal");
    Build : Build_Type := External ("Standard_Common_Build", "Normal");
 
+   type Profile_Type is ("On", "Off");
+   Profile : Profile_Type := External ("Standard_Common_Profile", "Off");
+
    package Compiler is
       -- Switches for gcc
 
@@ -55,9 +58,8 @@ project Standard_Common is
    --  In project files, normally use this:
    --  package Compiler is
    --  for Default_Switches ("Ada") use
-   --     Standard_Common.Compiler.Base_Release_Switches &
-   --     Standard_Common.Compiler.Style_Checks &
-   --     Standard_Common.Compiler'Default_Switches ("Ada"); -- must be last for "-gnatwJ"
+   --     Standard_Common.Compiler.Release_Switches &
+   --     Standard_Common.Compiler.Style_Checks;
    --  end Compiler;
 
    package Builder is
@@ -82,4 +84,15 @@ project Standard_Common is
    --     for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");
    --  end Binder;
 
+   package Linker is
+      case Profile is
+      when "On" =>
+         for Linker_Options use ("-pg", "-lgmem");
+
+      when "Off" =>
+         null;
+      end case;
+   end Linker;
+
+   --  In project files, no linker package is needed.
 end Standard_Common;
