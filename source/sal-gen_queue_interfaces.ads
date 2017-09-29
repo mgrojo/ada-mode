@@ -64,13 +64,7 @@ package SAL.Gen_Queue_Interfaces is
 
    procedure Put (Queue : in out Queue_Type; Element : in Element_Type) renames Add;
 
-   type Order_Type is access function (A, B : in Element_Type) return Boolean;
-
    procedure Add_To_Head (Queue : in out Queue_Type; Element : in Element_Type) is abstract;
    --  Add Element to the head/front of Queue.
-
-   procedure Add (Queue : in out Queue_Type; Element : in Element_Type; Order : in Order_Type) is abstract;
-   --  Add in sort position given by Order, which must implement either ">" or "<".
-   --  If ">", Remove removes greatest item.
 
 end SAL.Gen_Queue_Interfaces;

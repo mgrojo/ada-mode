@@ -77,46 +77,4 @@ package body SAL.Gen_Unbounded_Definite_Queues is
       Queue.Data.Prepend (Item);
    end Add_To_Head;
 
-   overriding procedure Add
-     (Queue   : in out Queue_Type;
-      Element : in     Element_Type;
-      Order   : in     Queue_Interfaces.Order_Type)
-   is
-      use Element_Lists;
-
-      function ">" (A, B : in Element_Type) return Boolean renames Order.all;
-      --  Could also be "<"
-      --
-      --  Remove removes First, so if Order is ">", then a typical list is (6, 5, 4).
-      --  If Order is "<", (1, 2, 3).
-
-      I : Cursor := Queue.Data.First;
-   begin
-      if I = No_Element then
-         Queue.Data.Append (Element);
-
-      elsif Element > Queue.Data (I) then
-         --  example >: insert 7 into (6, 5, 4)
-         --  example <: insert 1 into (2, 3, 4)
-         Queue.Data.Prepend (Element);
-
-      else
-         loop
-            Next (I);
-            exit when I = No_Element;
-            exit when Element > Queue.Data (I);
-         end loop;
-
-         if I = No_Element then
-            --  example >: insert 3 into (6, 5, 4)
-            --  example <: insert 3 into (0, 1, 2)
-            Queue.Data.Append (Element);
-         else
-            --  example >: insert 5 into (3, 4, 6)
-            --  example <: insert 1 into (2, 0)
-            Queue.Data.Insert (Before => I, New_Item => Element);
-         end if;
-      end if;
-   end Add;
-
 end SAL.Gen_Unbounded_Definite_Queues;

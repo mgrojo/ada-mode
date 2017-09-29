@@ -40,10 +40,6 @@ package SAL.Gen_Unbounded_Definite_Queues is
    overriding procedure Add (Queue : in out Queue_Type; Item : in Element_Type);
    overriding procedure Put (Queue : in out Queue_Type; Item : in Element_Type) renames Add;
    overriding procedure Add_To_Head (Queue : in out Queue_Type; Item : in Element_Type);
-   overriding procedure Add
-     (Queue   : in out Queue_Type;
-      Element : in     Element_Type;
-      Order   : in     Queue_Interfaces.Order_Type);
 
 private
 

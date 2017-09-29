@@ -2,7 +2,7 @@
 --
 --  see spec
 --
---  Copyright (C) 2008 - 2016 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2008 - 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -127,7 +127,7 @@ package body SAL.CSV is
                      exception
                      when Constraint_Error =>
                         --  too many commas in this line
-                        raise Constraint_Error with File.Line (1 .. File.Last);
+                        raise Constraint_Error with "too many commas: '" & File.Line (1 .. File.Last) & "'";
                      end;
 
                      --  FIXME: handle combine_delimiters here
