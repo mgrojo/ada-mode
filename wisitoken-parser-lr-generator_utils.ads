@@ -23,6 +23,9 @@ with Ada.Containers.Doubly_Linked_Lists;
 with WisiToken.Parser.LR.LR1_Items;
 package WisiToken.Parser.LR.Generator_Utils is
 
+   Error : Boolean := False;
+   --  Set True by errors during grammar generation
+
    subtype Conflict_Parse_Actions is Parse_Action_Verbs range Shift .. Accept_It;
    type Conflict is record
       --  A typical conflict is:
@@ -53,6 +56,7 @@ package WisiToken.Parser.LR.Generator_Utils is
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class);
@@ -64,16 +68,18 @@ package WisiToken.Parser.LR.Generator_Utils is
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class);
-   --  Add actions for Closure to Table. Has_Empty_Production,
+   --  Add actions for Closure to Table. Has_Empty_Production, First,
    --  Conflicts used for conflict reporting.
 
    procedure Add_Lookahead_Actions
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean;
@@ -97,9 +103,11 @@ package WisiToken.Parser.LR.Generator_Utils is
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID;
-   --  Return the LHS of a production involved in Action, for a Conflict object.
+   --  Return the LHS of a production in kernel of Closure, for an Action
+   --  conflict on Lookahead; for naming a Conflict object.
 
    function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict) return String;
 

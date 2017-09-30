@@ -29,9 +29,9 @@ generic
    --  These subprograms are provided by generated source code.
 
    with function New_Lexer
-     (Buffer      : in System.Address;
-      Length      : in Interfaces.C.size_t;
-      Verbosity   : in Interfaces.C.int)
+     (Buffer    : in System.Address;
+      Length    : in Interfaces.C.size_t;
+      Verbosity : in Interfaces.C.int)
      return System.Address;
    --  Create the re2c lexer object, passing it the full text to process.
    --  Length is buffer length in 8 bit bytes.

@@ -83,7 +83,7 @@ package body Test_Accept_State is
    Parser : WisiToken.Parser.LR.Parser.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    ----------
    --  Test procedures
@@ -94,15 +94,16 @@ package body Test_Accept_State is
    begin
       --  The test is that there are no exceptions.
 
-      Parser := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax),
+      WisiToken.Parser.LR.Parser.New_Parser
+        (Parser,
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
             First_State_Index,
             Trace           => Test.Debug > 0,
             Put_Parse_Table => Test.Debug > 0),
-         State,
+         State'Access,
          First_Parser_Label);
 
       WisiToken.Trace_Parse := Test.Debug;

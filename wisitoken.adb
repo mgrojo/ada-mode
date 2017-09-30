@@ -334,6 +334,11 @@ package body WisiToken is
         Message;
    end Error_Message;
 
+   procedure Put_Error (Message : in String)
+   is begin
+      Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Message);
+   end Put_Error;
+
    function Image (Item : in Buffer_Region) return String
    is begin
       return "(" & Int_Image (Item.First) & " . " & Int_Image (Item.Last) & ")";

@@ -98,7 +98,7 @@ package body Association_Grammar_Test is
    Parser : WisiToken.Parser.LR.Parser.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
-   State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
+   State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
    procedure Parse_Command (Command : in String)
    is begin
@@ -141,15 +141,16 @@ package body Association_Grammar_Test is
       Create (Trace_File, Out_File, Trace_File_Name);
       Trace.Set_File (Trace_File'Access);
 
-      Parser := WisiToken.Parser.LR.Parser.New_Parser
-        (Lexer.New_Lexer (Trace'Access, Syntax),
+      WisiToken.Parser.LR.Parser.New_Parser
+        (Parser,
+         Lexer.New_Lexer (Trace'Access, Syntax),
          WisiToken.Parser.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1,
             Put_Parse_Table => Test.Debug,
             Trace           => Test.Debug),
-         State,
+         State'Access,
          First_Parser_Label);
 
       WisiToken.Trace_Parse := 1;

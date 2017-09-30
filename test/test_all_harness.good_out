@@ -1,10 +1,9 @@
-wisi_rules_test-number_range.wy:8:0: token number 4 out of range 1 .. 3
 
 OK test_generate_errors.adb ../wisi/test/unused_tokens : Run_Test
+OK test_generate_errors.adb ../wisi/test/rules_errors : Run_Test
 OK ../wisi/test/wisi_rules_test.adb : Nominal_Elisp
 OK ../wisi/test/wisi_rules_test.adb : Nominal_Ada
 OK ../wisi/test/wisi_rules_test.adb : Single_Line
-OK ../wisi/test/wisi_rules_test.adb : Token_Number_Range
 OK wisi_wy_test.adb ../wisi/test/body_instantiation_conflict : Run_Test
 OK wisi_wy_test.adb ../wisi/test/case_expression : Run_Test
 OK wisi_wy_test.adb ../wisi/test/character_literal : Run_Test
@@ -22,7 +21,7 @@ OK ../Test/dragon_4_45_lalr_test.adb : Parser_Table
 OK ../Test/dragon_4_45_lalr_test.adb : Test_Parse
 OK ../Test/grune_9_30.adb : Test_Item_Sets
 OK ../Test/grune_9_30.adb : Test_Parse
-OK ../Test/name_grammar_test.adb : Nominal
+OK name_grammar_test.adb : Nominal
 OK ../Test/test_accept_state.adb : Nominal
 OK test_character_literal.adb : Nominal
 OK test_character_literal.adb : Character_Position

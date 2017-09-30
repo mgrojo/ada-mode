@@ -253,6 +253,9 @@ package WisiToken is
      return String;
    --  Return Gnu-formatted error message.
 
+   procedure Put_Error (Message : in String);
+   --  Put Message to Standard_Error.
+
    type Parser_Algorithm_Type is (LALR, LR1);
 
    type Buffer_Region is record

@@ -1,5 +1,5 @@
-;;; body_instantiation_conflict-lalr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
+;;; body_instantiation_conflict-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe --parser_algorithm LALR --output_language Elisp --lexer Elisp
 ;;; ../wisi/test/body_instantiation_conflict.wy
 
 ;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
@@ -21,7 +21,7 @@
 (require 'semantic/lex)
 (require 'wisi-compile)
 
-(defconst body_instantiation_conflict-lalr-elisp-keyword-table-raw
+(defconst body_instantiation_conflict-elisp-keyword-table-raw
   '(
    ("begin" . BEGIN)
    ("end" . END)
@@ -33,7 +33,7 @@
    (")" . RIGHT_PAREN)
    ))
 
-(defconst body_instantiation_conflict-lalr-elisp-token-table-raw
+(defconst body_instantiation_conflict-elisp-token-table-raw
   '(
    ("punctuation"
     (SEMICOLON . ";")
@@ -43,7 +43,7 @@
     )
    ))
 
-(defconst body_instantiation_conflict-lalr-elisp-parse-table
+(defconst body_instantiation_conflict-elisp-parse-table
    (wisi-compile-grammar
    '((SEMICOLON IDENTIFIER BEGIN END IS LEFT_PAREN NEW NULL PROCEDURE RIGHT_PAREN )
      ((compilation_unit
@@ -115,5 +115,5 @@
       nil]))
   "Parser table.")
 
-(provide 'body_instantiation_conflict-lalr-elisp)
+(provide 'body_instantiation_conflict-elisp)
 ;; end of file

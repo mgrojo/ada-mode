@@ -57,6 +57,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+      State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
       procedure Test_One (Test : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -80,19 +81,18 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
-
          Parser : WisiToken.Parser.LR.Parser.Instance;
 
          Text : constant String := "symbol";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         Parser := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax),
+         WisiToken.Parser.LR.Parser.New_Parser
+           (Parser,
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
-            State,
+            State'Access,
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);
@@ -139,6 +139,7 @@ package body Trivial_Productions_Test is
       use Token_Enum;
 
       Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
+      State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
       procedure Test_One (T : in out AUnit.Test_Cases.Test_Case'Class)
       is
@@ -175,23 +176,22 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         State : State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
-
          Parser : WisiToken.Parser.LR.Parser.Instance;
 
          Text : constant String := "function (symbol) symbol procedure";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         Parser := WisiToken.Parser.LR.Parser.New_Parser
-           (Lexer.New_Lexer (Trace'Access, Syntax),
+         WisiToken.Parser.LR.Parser.New_Parser
+           (Parser,
+            Lexer.New_Lexer (Trace'Access, Syntax),
             WisiToken.Parser.LR.LALR_Generator.Generate
               (Grammar,
                LALR_Descriptor,
                First_State_Index,
                Trace           => Test.Debug > 0,
                Put_Parse_Table => Test.Debug > 0),
-            State,
+            State'Access,
             First_Parser_Label);
 
          Parser.Lexer.Reset_With_String (Text);

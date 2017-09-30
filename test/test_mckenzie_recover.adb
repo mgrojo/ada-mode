@@ -30,7 +30,7 @@ with WisiToken.Parser.LR.Parser;
 with WisiToken.Token_Region.AUnit;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.Parser.LR.Parser.Instance := Ada_Lite.Create_Parser (WisiToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
    Orig_Cost_Limit  : Integer;
 
@@ -66,11 +66,10 @@ package body Test_McKenzie_Recover is
       use Ada_Lite;
 
       File_Name : constant String := "../wisi/test/ada_lite.input";
-
-      Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (WisiToken.LALR);
    begin
       --  The test is that there is no exception.
 
+      Create_Parser (Parser, WisiToken.LALR);
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_File (File_Name);

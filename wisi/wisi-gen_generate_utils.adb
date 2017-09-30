@@ -475,9 +475,10 @@ package body Wisi.Gen_Generate_Utils is
    end Put_Tokens;
 
    function To_Conflicts
-     (Accept_Reduce_Conflict_Count : out Integer;
-      Shift_Reduce_Conflict_Count  : out Integer;
-      Reduce_Reduce_Conflict_Count : out Integer)
+     (Source_File_Name             : in     String;
+      Accept_Reduce_Conflict_Count :    out Integer;
+      Shift_Reduce_Conflict_Count  :    out Integer;
+      Reduce_Reduce_Conflict_Count :    out Integer)
      return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List
    is
       use WisiToken.Parser.LR.Generator_Utils;
@@ -485,35 +486,42 @@ package body Wisi.Gen_Generate_Utils is
       use all type WisiToken.Parser.LR.Parse_Action_Verbs;
       Result   : WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
       Conflict : WisiToken.Parser.LR.Generator_Utils.Conflict;
+      Error    : Boolean := False;
    begin
       Accept_Reduce_Conflict_Count := 0;
       Shift_Reduce_Conflict_Count  := 0;
       Reduce_Reduce_Conflict_Count := 0;
 
       for Item of Conflicts loop
-         Conflict :=
-           (Conflict_Parse_Actions'Value (-Item.Action_A),
-            Find_Token_ID (-Item.LHS_A),
-            Conflict_Parse_Actions'Value (-Item.Action_B),
-            Find_Token_ID (-Item.LHS_B),
-            -1,
-            Find_Token_ID (-Item.On));
+         begin
+            Conflict :=
+              (Conflict_Parse_Actions'Value (-Item.Action_A),
+               Find_Token_ID (-Item.LHS_A),
+               Conflict_Parse_Actions'Value (-Item.Action_B),
+               Find_Token_ID (-Item.LHS_B),
+               -1,
+               Find_Token_ID (-Item.On));
 
-         case Conflict.Action_A is
-         when Shift =>
-            Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
-         when Reduce =>
-            Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
-         when Accept_It =>
-            Accept_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
-         end case;
+            case Conflict.Action_A is
+            when Shift =>
+               Shift_Reduce_Conflict_Count := Shift_Reduce_Conflict_Count + 1;
+            when Reduce =>
+               Reduce_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+            when Accept_It =>
+               Accept_Reduce_Conflict_Count := Reduce_Reduce_Conflict_Count + 1;
+            end case;
 
-         Result.Append (Conflict);
+            Result.Append (Conflict);
+         exception
+         when E : Not_Found =>
+            Wisi.Utils.Put_Error (Source_File_Name, Item.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Error := True;
+         end;
       end loop;
+      if Error then
+         raise WisiToken.Grammar_Error with "known conflicts: tokens not found, aborting";
+      end if;
       return Result;
-   exception
-   when E : Not_Found =>
-      raise WisiToken.Grammar_Error with "known conflicts: " & Standard.Ada.Exceptions.Exception_Message (E);
    end To_Conflicts;
 
    function "&" (Tokens : in Token.List.Instance; Token : in String) return WisiToken.Token.List.Instance
@@ -533,6 +541,7 @@ package body Wisi.Gen_Generate_Utils is
       use Token.List;
 
       Grammar : Production.List.Instance;
+      Error   : Boolean := False;
    begin
       begin
          Grammar := Production.List.Only
@@ -541,7 +550,7 @@ package body Wisi.Gen_Generate_Utils is
       when Not_Found =>
          Wisi.Utils.Put_Error
            (Source_File_Name, 1, "start token '" & (Start_Token) & "' not found; need %start?");
-         raise Syntax_Error;
+         Error := True;
       end;
 
       for Rule of Tokens.Rules loop
@@ -562,14 +571,18 @@ package body Wisi.Gen_Generate_Utils is
                when E : Not_Found =>
                   Wisi.Utils.Put_Error
                     (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
-                  raise Syntax_Error;
+                  Error := True;
                end;
                Index := Index + 1;
             end loop;
          end;
       end loop;
 
-      return Grammar;
+      if Error then
+         raise Syntax_Error;
+      else
+         return Grammar;
+      end if;
    end To_Grammar;
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set

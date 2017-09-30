@@ -141,7 +141,8 @@ begin
                Token_Last     : constant Integer := Line'Last;
             begin
                Conflicts.Append
-                 ((+Line (Action_A_First .. Action_A_Last),
+                 ((Standard.Ada.Text_IO.Line (Input_File) - 1,
+                   +Line (Action_A_First .. Action_A_Last),
                    +Line (LHS_A_First .. LHS_A_Last),
                    +Line (Action_B_First .. Action_B_Last),
                    +Line (LHS_B_First .. LHS_B_Last),

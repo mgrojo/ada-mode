@@ -2,7 +2,7 @@ build/Makefile
 
 branches:
 org.wisitoken          - working, used by o.e.a.s-2
-org.wisitoken.stephe-1 - development, used by o.e.a.s-4
+org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.wisitoken.stephe-1")
@@ -13,6 +13,46 @@ for Ada_Emacs Ada body, translate wisi actions to Ada:
     /Projects/org.emacs.ada-mode.stephe-4/wisitoken-wisi_runtime.ads
     /Projects/org.wisitoken.stephe-1/wisi/wisi-output_ada_emacs.adb
     testing in o.e.a.s-4
+
+delete -liconv, -lpsapi?
+
+still losing memory
+    possibly Augmented_Token_Array
+        deallocation thru root class type?
+
+    run_ada_lite_parser wisi/test/ada_lite.input with gnatmem
+        no change in leaks from repeat count 1 to repeat count 2
+
+    run ada on gnatcoll-xref
+        allocation root 1 increased by (- 167.88 165.12) = 2.76 kilobytes
+
+    run ada_mode_wisi_parse on test/gnatcoll-xref.adb
+        (setq ada-process-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-2/exec_pro/ada_mode_wisi_parse.exe")
+        (setq wisi-process--alist nil)
+        (setq ada-process-parse-exec "ada_mode_wisi_parse")
+        doesn't create gmem.out; using wrong exec!
+            need to rerun ada-mode, not just parse
+            still wrong! using cached parser wisi-process--alist on label Ada
+            still no gmem.out
+
+        running wisi-parse-buffer and watching task manager shows no memory increase. sigh.
+        watch memory while editing other files
+        wait for compute indent in ada
+
+add line, comment info compute to re2c lexer
+    in org.wisitoken.stephe-1
+    re2c_simple, re2c_line_comment; subtype re2c_lexer is lexer range ...
+    two classes of token; grammar and non-grammar
+    both returned to parser
+    both passed to semantic_state
+    semantic_state stores non-grammar as list in preceding token
+        wisitoken-token_line_comment
+    otherwise parser ignores non-grammar
+
+    ./wisi/wisi-gen_generate_utils.ads:174:      State       : Token_Cursor_State; --  FIXME: rename to Kind. use separate list for Non_Reporting
+        in .wy - %non_grammar instead of %token
+
+    ./wisitoken-lexer-re2c.adb:161:      --  FIXME: add C function to use token char pointer, length to fetch
 
 Use indentation as hint?
     to solve missing 'end';
@@ -365,6 +405,9 @@ integrate with emacs module
 
 ada_grammar.adb very slow to compile
     eliminating all but one action subprograms; not much help
+
+    build parse table without actions in one file, add actions in another
+        -> smaller files
 
     read tables from text file?
         action subprogram names as integer index into array of subprogram pointers.

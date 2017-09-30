@@ -130,6 +130,7 @@ package WisiToken.Token is
    --  Semantic state
 
    type Semantic_State (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited null record;
+   type Semantic_State_Access is access all Semantic_State'Class;
    --  For storing augmented tokens and other semantic information.
    --  This allows separating the parser notion of "token" (which is
    --  just an ID) from the semantic notion of "token" (which can

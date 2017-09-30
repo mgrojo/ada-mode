@@ -41,8 +41,11 @@ package body Test_Generate_Errors is
 
       WY_File : constant String_Access := new String'(Test.Root_Name.all & ".wy");
 
-      Computed_LALR_File : constant String := Simple_Name (Test.Root_Name.all) & "-lalr.out";
-      Expected_LALR_File : constant String := Test.Root_Name.all & "-lalr.good_out";
+      Computed_LALR_File : constant String := Simple_Name (Test.Root_Name.all) &
+        (if Test.LR1 then "-lalr.out" else ".out");
+
+      Expected_LALR_File : constant String := Test.Root_Name.all &
+        (if Test.LR1 then "-lalr.good_out" else ".good_out");
 
       --  LALR reports terminals that are only used in unused
       --  productions as unused; lr1 is not that smart.
@@ -66,22 +69,23 @@ package body Test_Generate_Errors is
 
       AUnit.Checks.Text_IO.Check_Files ("1", Computed_LALR_File, Expected_LALR_File);
 
-      Spawn
-        (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
-         Args         =>
-           (1         => new String'("--parser_algorithm"),
-            2         => new String'("LR1"),
-            3         => WY_File),
-         Output_File  => Computed_LR1_File,
-         Return_Code  => Return_Code,
-         Success      => Success);
+      if Test.LR1 then
+         Spawn
+           (Program_Name => Locate_Exec_On_Path ("./wisi-generate.exe").all,
+            Args         =>
+              (1         => new String'("--parser_algorithm"),
+               2         => new String'("LR1"),
+               3         => WY_File),
+            Output_File  => Computed_LR1_File,
+            Return_Code  => Return_Code,
+            Success      => Success);
 
-      AUnit.Assertions.Assert
-        (Success,
-         "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
+         AUnit.Assertions.Assert
+           (Success,
+            "spawn or execution of 'wisi-generate.exe' LR1 " & WY_File.all & "' failed");
 
-      AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_LR1_File);
-
+         AUnit.Checks.Text_IO.Check_Files ("1", Computed_LR1_File, Expected_LR1_File);
+      end if;
    end Run_Test;
 
    ----------

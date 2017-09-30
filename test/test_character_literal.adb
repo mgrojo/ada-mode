@@ -29,7 +29,7 @@ with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
 package body Test_Character_Literal is
 
-   Parser : WisiToken.Parser.LR.Parser.Instance := Character_Literal.Create_Parser (WisiToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
    ----------
    --  Test procedures
@@ -116,4 +116,6 @@ package body Test_Character_Literal is
       Register_Routine (T, Character_Position'Access, "Character_Position");
    end Register_Tests;
 
+begin
+   Character_Literal.Create_Parser (Parser, WisiToken.LALR);
 end Test_Character_Literal;

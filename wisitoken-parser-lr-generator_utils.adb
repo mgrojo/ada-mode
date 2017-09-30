@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Common utilities for LR parser table generators
+--  See spec.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -26,6 +26,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Action_List          : in out Action_Node_Ptr;
       Closure              : in     LR1_Items.Item_Set;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
@@ -61,8 +62,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
                New_Conflict : constant Conflict :=
                  (Action_A    => Action_A.Verb,
                   Action_B    => Action_B.Verb,
-                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production, Descriptor),
-                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production, Descriptor),
+                  LHS_A       => Find (Closure, Action_A, Symbol, Has_Empty_Production, First, Descriptor),
+                  LHS_B       => Find (Closure, Action_B, Symbol, Has_Empty_Production, First, Descriptor),
                   State_Index => Closure.State,
                   On          => Symbol);
             begin
@@ -80,10 +81,27 @@ package body WisiToken.Parser.LR.Generator_Utils is
                   end if;
                end if;
 
+               --  More than two actions can occur; see triple_conflict.wy. We make
+               --  that an error, since the grammar will be better off without them.
+               --  But keep going; the full parse table output will be needed to fix
+               --  the excess conflict.
+               if Matching_Action.Action.Next /= null then
+                  if Matching_Action.Action.Item = Action or Matching_Action.Action.Next.Item = Action then
+                     if Trace then
+                        Ada.Text_IO.Put_Line (" - conflict duplicate");
+                     end if;
+                  else
+                     Put_Error
+                       ("More than two actions on " & Image (Descriptor, Symbol) &
+                          " in state" & State_Index'Image (Closure.State));
+                     Error := True;
+                  end if;
+               end if;
+
                if Action.Verb = Shift then
                   Matching_Action.Action := new Parse_Action_Node'(Action, Matching_Action.Action);
                else
-                  Matching_Action.Action.Next := new Parse_Action_Node'(Action, null);
+                  Matching_Action.Action.Next := new Parse_Action_Node'(Action, Matching_Action.Action.Next);
                end if;
             end;
          end if;
@@ -96,6 +114,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
      (Closure              : in     LR1_Items.Item_Set;
       Table                : in out Parse_Table;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
@@ -116,7 +135,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
-              (Item, Table.States (State).Action_List, Has_Empty_Production, Conflicts, Closure, Trace, Descriptor);
+              (Item, Table.States (State).Action_List,
+               Has_Empty_Production, First, Conflicts, Closure, Trace, Descriptor);
 
          elsif Token.List.ID (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
@@ -132,29 +152,19 @@ package body WisiToken.Parser.LR.Generator_Utils is
                if Dot_ID = Descriptor.EOF_ID then
                   --  This is the start symbol production with dot before EOF.
                   Add_Action
-                    (Symbol               => Dot_ID,
-                     Action               =>
-                       (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
+                    (Dot_ID,
+                     (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
                         RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
-                     Action_List          => Table.States (State).Action_List,
-                     Closure              => Closure,
-                     Has_Empty_Production => Has_Empty_Production,
-                     Conflicts            => Conflicts,
-                     Trace                => Trace,
-                     Descriptor           => Descriptor);
+                     Table.States (State).Action_List,
+                     Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                else
                   if Goto_Set /= null then
                      Add_Action
-                       (Symbol               => Dot_ID,
-                        Action               =>
-                          (Verb              => Shift,
+                       (Dot_ID,
+                        (Verb              => Shift,
                            State             => Goto_Set.State),
-                        Action_List          => Table.States (State).Action_List,
-                        Closure              => Closure,
-                        Has_Empty_Production => Has_Empty_Production,
-                        Conflicts            => Conflicts,
-                        Trace                => Trace,
-                        Descriptor           => Descriptor);
+                        Table.States (State).Action_List,
+                        Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
                   end if;
                end if;
             end;
@@ -178,7 +188,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
            --  it the default. The various Put routines replace
            --  this with 'default'.
            (Symbol => Invalid_Token_ID,
-            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => Error), null),
+            Action => new Parse_Action_Node'(Parse_Action_Rec'(Verb => LR.Error), null),
             Next   => null);
 
          Last_Action : Action_Node_Ptr := Table.States (State).Action_List;
@@ -198,11 +208,16 @@ package body WisiToken.Parser.LR.Generator_Utils is
             --
             --  without 'declarations <= declaration'.
             --
-            raise Programmer_Error with
-              "Generating parser: state" & State_Index'Image (State) &
-              " has no actions; bad grammar, or " &
-              "first production in grammar must be the only start symbol production, " &
-              "and it must must have an explicit EOF.";
+            --  We continue generating the grammar, in order to help the user
+            --  debug this issue.
+            Error := True;
+
+            Ada.Text_IO.Put_Line
+              ("Error: Generating parser: state" & State_Index'Image (State) &
+                 " has no actions; bad grammar, or " &
+                 "first production in grammar must be the only start symbol production, " &
+                 "and it must must have an explicit EOF.");
+            Ada.Text_IO.New_Line;
          else
             while Last_Action.Next /= null loop
                Last_Action := Last_Action.Next;
@@ -230,6 +245,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
      (Item                 : in     LR1_Items.Item_Ptr;
       Action_List          : in out Action_Node_Ptr;
       Has_Empty_Production : in     Token_ID_Set;
+      First                : in     Token_Array_Token_Set;
       Conflicts            : in out Conflict_Lists.List;
       Closure              : in     LR1_Items.Item_Set;
       Trace                : in     Boolean;
@@ -253,14 +269,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
                null;
             else
                Add_Action
-                 (Symbol               => Lookahead,
-                  Action               => Action,
-                  Action_List          => Action_List,
-                  Closure              => Closure,
-                  Has_Empty_Production => Has_Empty_Production,
-                  Conflicts            => Conflicts,
-                  Trace                => Trace,
-                  Descriptor           => Descriptor);
+                 (Lookahead, Action, Action_List, Closure,
+                  Has_Empty_Production, First, Conflicts, Trace, Descriptor);
             end if;
          end if;
       end loop;
@@ -325,6 +335,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Action               : in Parse_Action_Rec;
       Lookahead            : in Token_ID;
       Has_Empty_Production : in Token_ID_Set;
+      First                : in Token_Array_Token_Set;
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
@@ -335,51 +346,102 @@ package body WisiToken.Parser.LR.Generator_Utils is
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
+      ID_I    : Token.List.List_Iterator;
    begin
-      loop
-         Item := Current.Set;
+      case Action.Verb is
+      when Reduce | Accept_It =>
+         --  Check for prefered name first
          loop
-            exit when Item = null;
-            case Action.Verb is
-            when Shift =>
-               if Dot (Item) /= Null_Iterator and then
-                 ID (Dot (Item)) = Lookahead
-               then
-                  return LHS (Item);
-               end if;
-            when Reduce =>
-               if LHS (Item) = Action.LHS and
-                 (Dot (Item) = Null_Iterator or else
-                    (Next (Dot (Item)) = Null_Iterator and
-                       (ID (Dot (Item)) in Descriptor.Last_Terminal + 1 .. Descriptor.Last_Nonterminal and then
-                          Has_Empty_Production (ID (Dot (Item))))))
+            Item := Current.Set;
+            loop
+               exit when Item = null;
+               if In_Kernel (Descriptor, Item) and
+                 Action.LHS = LHS (Item)
                then
                   return Action.LHS;
                end if;
-            when Accept_It =>
-               if LHS (Item) = Action.LHS and
-                 (Dot (Item) /= Null_Iterator and then
-                    ID (Dot (Item)) = Descriptor.EOF_ID)
-               then
-                  return Action.LHS;
-               end if;
-            when others =>
-               raise Programmer_Error;
-            end case;
-            Item := Next (Item);
+               Item := Next (Item);
+            end loop;
+            exit when Current.Next = null;
+            Current := Current.Next.all;
          end loop;
-         exit when Current.Next = null;
-         Current := Current.Next.all;
-      end loop;
+
+         Current := Closure;
+         loop
+            Item := Current.Set;
+            loop
+               exit when Item = null;
+               if In_Kernel (Descriptor, Item) then
+                  ID_I := Dot (Item);
+                  loop
+                     if ID_I = Null_Iterator then
+                        if Lookaheads (Item) (Lookahead) then
+                           return LHS (Item);
+                        end if;
+                     else
+                        declare
+                           Dot_ID : Token_ID renames ID (ID_I);
+                        begin
+                           if Dot_ID = Lookahead or
+                             (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                                First (Dot_ID, Lookahead))
+                           then
+                              return LHS (Item);
+                           end if;
+                           exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             not Has_Empty_Production (Dot_ID);
+                        end;
+                     end if;
+
+                     exit when ID_I = Null_Iterator;
+                     Next (ID_I);
+                  end loop;
+               end if;
+               Item := Next (Item);
+            end loop;
+            exit when Current.Next = null;
+            Current := Current.Next.all;
+         end loop;
+
+      when Shift =>
+         loop
+            Item := Current.Set;
+            loop
+               exit when Item = null;
+               if In_Kernel (Descriptor, Item) then
+                  ID_I := Dot (Item);
+                  loop
+                     exit when ID_I = Null_Iterator;
+                     declare
+                        Dot_ID : Token_ID renames ID (ID_I);
+                     begin
+                        if Dot_ID = Lookahead or
+                          (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                             First (Dot_ID, Lookahead))
+                        then
+                           return LHS (Item);
+                        end if;
+
+                        exit when Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
+                          not Has_Empty_Production (Dot_ID);
+                     end;
+
+                     Next (ID_I);
+                  end loop;
+               end if;
+               Item := Next (Item);
+            end loop;
+            exit when Current.Next = null;
+            Current := Current.Next.all;
+         end loop;
+
+      when LR.Error =>
+         raise Programmer_Error;
+      end case;
 
       Ada.Text_IO.Put_Line
-        ("item for " & Parse_Action_Verbs'Image (Action.Verb) &
-           (case Action.Verb is
-            when Shift => State_Index'Image (Action.State),
-            when Reduce | Accept_It => " " & Image (Descriptor, Action.LHS),
-            when others => "") & ", " &
-           Image (Descriptor, Lookahead) & " not found in");
-      LR1_Items.Put (Descriptor, Closure);
+        ("item for " & Image (Descriptor, Action) & " on " & Image (Descriptor, Lookahead) & " not found in");
+      LR1_Items.Put (Descriptor, Closure, Kernel_Only => True);
       raise Programmer_Error;
    end Find;
 

@@ -1,0 +1,91 @@
+;;; Wisi grammar for Java
+;;
+;; Copyright (C) 2017 Free Software Foundation, Inc.
+;;
+;; Author: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephe-leake@stephe-leake.org>
+;; Created: Sept 2017
+;; Keywords: syntax
+;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;
+;;; Commentary:
+;;
+;; Derived from:
+;;
+;; https://docs.oracle.com/javase/specs/jls/se7/html/jls-18.html  - syntax
+;; https://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.10 - literals
+;;
+;; We have sorted the grammar rules in alphabetical order, and
+;; eliminated some trivial productions (like Identifier : IDENTIFIER).
+
+%{
+;; Copyright (C) 2017 Free Software Foundation, Inc.
+
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+%}
+
+%keyword CLASS "class"
+
+%token <punctuation> DOT "."
+%token <punctuation> LEFT_SQUARE_BRACKET "["
+%token <punctuation> RIGHT_SQUARE_BRACKET "]"
+%token <punctuation> SEMICOLON ";"
+
+%token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
+
+%start ClassDeclaration
+%parser_algorithm LALR
+%output_language Ada
+%lexer re2c
+
+
+%%
+
+ClassDeclaration
+  : CLASS Primary SEMICOLON
+  ;
+
+Primary
+  : QualifiedIdentifier Square_Brackets_opt DOT CLASS
+  | IDENTIFIER Square_Brackets_opt DOT CLASS
+  ;
+
+QualifiedIdentifier
+  : IDENTIFIER
+  | QualifiedIdentifier DOT IDENTIFIER
+  ;
+
+Square_Brackets_opt
+  : ;; empty
+  | LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  | Square_Brackets_opt LEFT_SQUARE_BRACKET RIGHT_SQUARE_BRACKET
+  ;
+
+%%
+
+;; end of file

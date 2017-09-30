@@ -134,7 +134,9 @@ begin
          end Parse_Production;
 
          procedure Parse_State
-         is begin
+         is
+            use all type Standard.Ada.Containers.Count_Type;
+         begin
             case State is
             when Left_Hand_Side =>
                Rule_Count := Rule_Count + 1;
@@ -196,7 +198,11 @@ begin
 
                when ';' =>
                   Rule.Right_Hand_Sides.Append (RHS);
+                  RHS.Production.Clear;
+                  RHS.Action.Clear;
                   Rule_List.Append (Rule);
+                  Rule.Right_Hand_Sides.Clear;
+
                   State         := Left_Hand_Side;
                   Need_New_Line := True;
 
@@ -205,15 +211,19 @@ begin
                   RHS.Production.Clear;
                   RHS.Action.Clear;
 
-                  Token_Count   := 0;
+                  Token_Count := 0;
 
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
 
                when ':' =>
-                  Rule.Right_Hand_Sides.Clear;
-                  RHS.Production.Clear;
-                  RHS.Action.Clear;
+                  if Rule.Right_Hand_Sides.Length > 0 or
+                    RHS.Production.Length > 0
+                  then
+                     raise Syntax_Error with "extra ':'; should be '|'?";
+                  end if;
+
+                  Token_Count := 0;
 
                   Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                   Need_New_Line := Cursor = 0;
@@ -230,7 +240,11 @@ begin
                   case Line (Cursor) is
                   when ';' =>
                      Rule.Right_Hand_Sides.Append (RHS);
+                     RHS.Production.Clear;
+                     RHS.Action.Clear;
                      Rule_List.Append (Rule);
+                     Rule.Right_Hand_Sides.Clear;
+
                      State         := Left_Hand_Side;
                      Need_New_Line := True;
 
@@ -290,18 +304,17 @@ begin
             use Standard.Ada.Exceptions;
          begin
             Put_Error (Input_File, Exception_Message (E));
+            --  Keep going to find more errors
          end;
-      when E : others =>
-         declare
-            use Standard.Ada.Exceptions;
-         begin
-            Put_Error (Input_File, "unhandled exception " & Exception_Name (E));
-         end;
-         raise Syntax_Error;
+      when Standard.Ada.Text_IO.End_Error =>
+         Put_Error (Input_File, "unexpected end of file");
+         Error := True;
       end;
    end loop;
 
    if Error then
+      Standard.Ada.Text_IO.New_Line (Standard.Ada.Text_IO.Standard_Error);
+      Standard.Ada.Text_IO.Put_Line (Standard.Ada.Text_IO.Standard_Error, "Errors; aborting");
       raise Syntax_Error;
    end if;
 end Wisi.Rules;

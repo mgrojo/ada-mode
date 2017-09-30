@@ -28,15 +28,20 @@ is
 begin
    --  Test cases; test package alphabetical order, unless otherwise noted.
 
-   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens")));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/unused_tokens"), LR1 => True));
+   Add_Test (Suite, new Test_Generate_Errors.Test_Case (new String'("../wisi/test/rules_errors"), LR1 => False));
    Add_Test (Suite, new Wisi_Rules_Test.Test_Case (Debug => False));
 
    --  elisp grammar generate tests; grammar file name order
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/case_expression")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/character_literal")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict")));
-   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/range_conflict")));
+
+   --  In body_instantiation_conflict, LALR and LR1 generate different
+   --  names for the conflict. In the other files, the conflict names are
+   --  the same.
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/body_instantiation_conflict"), False));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/case_expression"), True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/character_literal"), True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/identifier_list_name_conflict"), True));
+   Add_Test (Suite, new Wisi_WY_Test.Test_Case (new String'("../wisi/test/range_conflict"), True));
 
    --  other *.wy files in ../wisi/test are used in Ada parser
    --  generator/parse tests, not run from here.
