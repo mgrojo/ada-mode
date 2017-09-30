@@ -254,7 +254,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
-      Ada, Generate_Utils.LR1_Descriptor, Process, Params.Lexer);
+      Ada, Generate_Utils.LR1_Descriptor, Process);
 
    Create_Ada_Body;
 

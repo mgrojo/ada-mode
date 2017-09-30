@@ -26,13 +26,12 @@ package body Wisi.Gen_Output_Ada_Common is
    --  Public subprograms in alphabetical order
 
    procedure Create_Ada_Spec
-     (Input_File_Name    : in String;
-      Output_File_Name   : in String;
-      Package_Name       : in String;
-      Output_Language    : in Ada_Output_Language;
-      Descriptor         : in WisiToken.Descriptor'Class;
-      Interface_Kind     : in Valid_Interface;
-      Lexer              : in Valid_Lexer)
+     (Input_File_Name  : in String;
+      Output_File_Name : in String;
+      Package_Name     : in String;
+      Output_Language  : in Ada_Output_Language;
+      Descriptor       : in WisiToken.Descriptor'Class;
+      Interface_Kind   : in Valid_Interface)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -60,7 +59,6 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Put_Line ("with WisiToken.Text_IO_Trace;");
-            Put_Line ("with WisiToken.Token_Emacs_Process;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
@@ -137,15 +135,8 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("Terminal_Image_Width =>" & Integer'Image (Descriptor.Terminal_Image_Width) & ",");
          Indent_Line ("Image_Width          =>" & Integer'Image (Descriptor.Image_Width) & ");");
-         New_Line;
       end;
       Indent := Indent - 3;
-      New_Line;
-
-      case Lexer is
-      when Elisp_Lexer | re2c_Lexer =>
-         null;
-      end case;
       New_Line;
 
       case Output_Language is
@@ -161,7 +152,6 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Indent_Line ("Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);");
-            Indent_Line ("State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);");
             New_Line;
             Indent_Line ("function Create_Parser");
             Indent_Line ("  (Algorithm : in WisiToken.Parser_Algorithm_Type)");

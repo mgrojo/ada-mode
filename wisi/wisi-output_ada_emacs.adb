@@ -955,16 +955,15 @@ begin
       Output_File_Name => Output_File_Name_Root &
         (case Data.Interface_Kind is
          when Process => "_process",
-         when Module => "_module") &
+         when Module  => "_module") &
         ".ads",
       Package_Name => -Data.Package_Name_Root &
         (case Data.Interface_Kind is
          when Process => "_Process",
-         when Module     => "_Module"),
-      Output_Language    => Ada_Emacs,
-      Descriptor         => Generate_Utils.LALR_Descriptor,
-      Interface_Kind     => Params.Interface_Kind,
-      Lexer              => Params.Lexer);
+         when Module  => "_Module"),
+      Output_Language => Ada_Emacs,
+      Descriptor      => Generate_Utils.LALR_Descriptor,
+      Interface_Kind  => Params.Interface_Kind);
 
    Create_Ada_Body;
 

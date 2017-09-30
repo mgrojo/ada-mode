@@ -11,26 +11,25 @@ all : test-clean tests library
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb
 t_one : export Standard_Common_Build := Debug
-t_one : one-clean
+# t_one : one-clean
 t_one : character_literal_re2c.c
 #t_one : RUN_ARGS := 3
 t_one : test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
 t_all : ./wisi-generate.exe
-t_all : ada_lite_
-t_all : character_literal_
+t_all : ada_lite_re2c.c
+t_all : character_literal_re2c.c
 t_all : test_all_harness.run
 
 one-clean :
 	rm -rf character_literal*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
-#one : export Standard_Common_Build := Debug
-one : one-clean
-one : character_literal_re2c.c
+one : export Standard_Common_Build := Debug
+#one : one-clean
+#one : character_literal_re2c.c
 #one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-one : wisi-generate.exe
-	./wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp  ../wisi/test/identifier_list_name_conflict.wy
+one : subprograms_process.adb.diff
 
 two : RUN_ARGS ?= --verbosity 1
 two : ada_lite_yylex.adb run_ada_lite_parser.exe
@@ -103,7 +102,7 @@ tag :
 	mtn tag h:org.fasttoken fasttoken-$(ZIP_VERSION)
 
 trace :
-	addr2line -e test_one_harness.exe 0x58e767 0x76fdff3f 0x76fdff11 0x76fe068d 0x4016e5 0x4028c1 0x4013db 0x76a97c02 0x76ffad2d 0x76ffacf8
+	addr2line -e test_all_harness.exe 0x6eb427 0x7728ff3f 0x7728ff11 0x7729068d
 
 include ../../org.stephe_leake.makerules/texinfo_rules.make
 include rules.make
