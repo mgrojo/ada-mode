@@ -1,5 +1,5 @@
 --  For using WisiToken in other projects, and building WisiToken
-with "gnatcoll_iconv";
+with "gnatcoll";
 with "sal";
 with "standard_common";
 project WisiToken is
@@ -47,16 +47,6 @@ project WisiToken is
       --  We use ".exe" extension even on non-Windows, to simplify the makefiles.
       for Executable_Suffix use ".exe";
    end Builder;
-
-   package Linker is
-      case Standard_Common.Profile is
-      when "On" =>
-         for Linker_Options use ("-pg", "-lgmem");
-
-      when "Off" =>
-         null;
-      end case;
-   end Linker;
 
    package Binder is
       for Default_Switches ("Ada") use Standard_Common.Binder'Default_Switches ("Ada");

@@ -15,6 +15,20 @@ still losing memory
         no change in leaks from repeat count 1 to repeat count 2
 
     run ada on gnatcoll-xref
+        allocation root 1 increased by (- 167.88 165.12) = 2.76 kilobytes
+
+    run ada_mode_wisi_parse on test/gnatcoll-xref.adb
+        (setq ada-process-parse-exec "c:/Projects/org.emacs.ada-mode.stephe-2/exec_pro/ada_mode_wisi_parse.exe")
+        (setq wisi-process--alist nil)
+        (setq ada-process-parse-exec "ada_mode_wisi_parse")
+        doesn't create gmem.out; using wrong exec!
+            need to rerun ada-mode, not just parse
+            still wrong! using cached parser wisi-process--alist on label Ada
+            still no gmem.out
+
+        running wisi-parse-buffer and watching task manager shows no memory increase. sigh.
+        watch memory while editing other files
+        wait for compute indent in ada
 
 add line, comment info compute to re2c lexer
     in org.wisitoken.stephe-1
