@@ -507,9 +507,9 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("use WisiToken.Parser.LR;");
       Indent_Line ("use all type WisiToken.Parser_Algorithm_Type;");
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
-      Indent_Line  ("  (State_First   =>" & Integer'Image (First_State_Index) & ",");
+      Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;
-      Indent_Start ("State_Last       => ");
+      Indent_Start ("State_Last        => ");
 
       case Parser_Algorithm is
       when LALR =>
@@ -734,6 +734,8 @@ package body Wisi.Gen_Output_Ada_Common is
             end Append;
 
          begin
+            Data.Table_Entry_Count := 0;
+
             loop
                exit when Node = null;
                Data.Table_Entry_Count := Data.Table_Entry_Count + 1;
@@ -765,7 +767,7 @@ package body Wisi.Gen_Output_Ada_Common is
                          elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                          else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
 
-                  when Error =>
+                  when WisiToken.Parser.LR.Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
                   end case;
 

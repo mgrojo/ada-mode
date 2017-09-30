@@ -25,7 +25,6 @@ generic
    Tokens    : in Wisi.Tokens;
    Conflicts : in Wisi.Conflict_Lists.List;
    Params    : in Wisi.Generate_Param_Type;
-
 package Wisi.Gen_Output_Ada_Common is
 
    EOI_Name : constant Standard.Ada.Strings.Unbounded.Unbounded_String := +"Wisi_EOI";

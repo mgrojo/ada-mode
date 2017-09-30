@@ -60,8 +60,6 @@ package Wisi.Gen_Generate_Utils is
    function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
    --  The token name as given in the grammar (.wy) file.
 
-   First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Tokens.Rules.First_Element.Source_Line;
-
    function Find_Token_ID (Token : in String) return Token_ID;
 
    function Find_Kind (Target_Kind : in String) return Token_ID;

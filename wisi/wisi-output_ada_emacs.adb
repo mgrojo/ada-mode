@@ -28,12 +28,15 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Exceptions;
+with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.LR1_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
 with Wisi.Utils;
+with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.Parser.LR.LR1_Generator;
 procedure Wisi.Output_Ada_Emacs
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
@@ -51,18 +54,430 @@ is
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
    use Common;
 
-   Elisp_Action_Names : Nonterminal_Array_Action_Names;
+   procedure Create_Ada_Action
+     (Name        : in String;
+      Action      : in String_Lists.List;
+      Source_Line : in Standard.Ada.Text_IO.Positive_Count)
+   is
+      use Standard.Ada.Strings.Fixed;
+      use Standard.Ada.Strings.Unbounded;
+      use Wisi.Utils;
+
+      Temp : Unbounded_String;
+
+      Paren_State           : Integer := 0;
+      Translate_Paren_State : Integer := 0;
+
+      Navigate_Lines     : String_Lists.List;
+      Face_Line          : Unbounded_String;
+      Indent_Action_Line : Unbounded_String;
+
+      Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ])");
+
+      procedure Count_Parens
+      is
+         Line : String renames To_String (Temp);
+      begin
+         for I in Line'First .. Line'Last loop
+            case Line (I) is
+            when '(' =>
+               Paren_State := Paren_State + 1;
+            when ')' =>
+               Paren_State := Paren_State - 1;
+            when others =>
+               null;
+            end case;
+         end loop;
+      end Count_Parens;
+
+      function Statement_Params (Params : in String) return String
+      is
+         --  Input looks like: [1 function 2 other ...]
+         Last       : Integer          := Params'First; -- skip [
+         First      : Integer;
+         Second     : Integer;
+         Need_Comma : Boolean          := False;
+         Result     : Unbounded_String := +" (Nonterm, Source, (";
+      begin
+         loop
+            First  := Last + 1;
+            Second := Index (Params, " ", First);
+            exit when Second < Params'First;
+
+            Last := Index (Params, Space_Paren_Set, Second + 1);
+
+            Result := Result & (if Need_Comma then ", " else "") &
+              "(" & Params (First .. Second - 1) & "," &
+              Integer'Image (Find_Class_ID (Params (Second + 1 .. Last - 1))) & ")";
+
+            Need_Comma := True;
+         end loop;
+         Result := Result & "))";
+         return -Result;
+      end Statement_Params;
+
+      function Containing_Params (Params : in String) return String
+      is
+         --  Input looks like: 1 2)
+         First  : constant Integer := Params'First;
+         Second : constant Integer := Index (Params, " ", First);
+      begin
+         return " (Nonterm, Source, " & Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
+      end Containing_Params;
+
+      function Motion_Params (Params : in String) return String
+      is
+         --  Input looks like: [1 [2 EXCEPTION WHEN] 3 ...]
+         --  Result: Motion_Param_Array'((0, 1, Empty_IDs), (2, 2, (3, 8)), (0, 3, Empty_IDs))
+         use Generate_Utils;
+         use Standard.Ada.Strings.Maps;
+         use WisiToken;
+
+         Delim : constant Character_Set := To_Set (" ]");
+
+         Last   : Integer          := Params'First; -- skip [
+         First  : Integer;
+         Vector : Boolean;
+         Result : Unbounded_String := +" (Nonterm, Source, (";
+
+         Index_First  : Integer;
+         Index_Last   : Integer;
+         IDs          : Unbounded_String;
+         IDs_Count    : Integer;
+         Need_Comma_1 : Boolean := False;
+         Need_Comma_2 : Boolean := False;
+      begin
+         loop
+            Last := Index_Non_Blank (Params, Integer'Min (Params'Last, Last + 1));
+
+            exit when Params (Last) = ']' or Params (Last) = ')';
+
+            Vector := Params (Last) = '[';
+            if Vector then
+               Index_First  := Last + 1;
+               Last         := Index (Params, Delim, Index_First);
+               Index_Last   := Last - 1;
+               IDs_Count    := 0;
+               IDs          := Null_Unbounded_String;
+               Need_Comma_2 := False;
+               loop
+                  exit when Params (Last) = ']';
+                  First     := Last + 1;
+                  Last      := Index (Params, Delim, First);
+                  IDs_Count := IDs_Count + 1;
+                  begin
+                     IDs := IDs & (if Need_Comma_2 then ", " else "") &
+                       Int_Image (Find_Token_ID (Params (First .. Last - 1)));
+                     Need_Comma_2 := True;
+                  exception
+                  when E : Not_Found =>
+                     Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+                  end;
+               end loop;
+
+               Result := Result & (if Need_Comma_1 then ", " else "") & "(" & Int_Image (IDs_Count) & ", " &
+                 Params (Index_First .. Index_Last) & ", (" &
+                 (-IDs) & "))";
+            else
+               First  := Index_Non_Blank (Params, Last);
+               Last   := Index (Params, Delim, First);
+               Result := Result & (if Need_Comma_1 then ", " else "") &
+                 "(0, " & Params (First .. Last - 1) & ", Empty_IDs)";
+            end if;
+            Need_Comma_1 := True;
+         end loop;
+         return -(Result & ')');
+      end Motion_Params;
+
+      function Face_Apply_Params (Params : in String) return String
+      is
+         --  Params is a vector of triples: [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face ...]
+         --  Result: ((1, 3, 1), (3, 3, 2), ...)
+         use Standard.Ada.Strings.Maps;
+         Delim : constant Character_Set := To_Set (" ]");
+
+         Last       : Integer          := Params'First; -- skip [
+         First      : Integer;
+         Result     : Unbounded_String;
+         Need_Comma : Boolean          := False;
+         Count      : Integer          := 0;
+      begin
+         loop
+            Last := Index_Non_Blank (Params, Last + 1);
+
+            exit when Params (Last) = ']' or Params (Last) = ')';
+
+            Count  := Count + 1;
+            First  := Last;
+            Last   := Index (Params, Delim, First);
+            Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
+
+            if Params (Last) = ']' then
+               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-apply argument");
+               exit;
+            end if;
+
+            First  := Index_Non_Blank (Params, Last + 1);
+            Last   := Index (Params, Delim, First);
+            Result := Result & ',' & Integer'Image (Find_Face_ID (Params (First .. Last - 1)));
+
+            if Params (Last) = ']' then
+               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-apply argument");
+               exit;
+            end if;
+
+            First  := Index_Non_Blank (Params, Last + 1);
+            Last   := Index (Params, Delim, First);
+            Result := Result & ',' & Integer'Image (Find_Face_ID (Params (First .. Last - 1))) & ")";
+
+            Need_Comma := True;
+         end loop;
+         if Count = 1 then
+            return " (Nonterm, Source, (1 => " & (-Result) & "))";
+         else
+            return " (Nonterm, Source, (" & (-Result) & "))";
+         end if;
+      end Face_Apply_Params;
+
+      function Indent_Params (Params : in String) return String
+      is
+         --  Params is a vector, one item for each token in Source. Each item is one of:
+         --
+         --  - an integer; copy to output
+         --
+         --  - a symbol; lookup in elisp_names.indents
+         --
+         --  - a lisp function call with 2 args (wisi-anchored% 3 ada-indent-broken)
+         --    first arg is token id, second is indent (integer or symbol)
+         --
+         --  - a vector with two elements [code_indent comment_indent].
+
+         use Standard.Ada.Strings.Maps;
+         Delim : constant Character_Set := To_Set (" ])");
+
+         subtype Digit is Character range '0' .. '9';
+
+         Last       : Integer          := Params'First; -- skip [
+         First      : Integer;
+         Result     : Unbounded_String := +" (Nonterm, Source, (";
+         Need_Comma : Boolean          := False;
+
+         function Int_Or_Symbol (First : in Integer) return String
+         is begin
+            Last := Index (Params, Delim, First);
+            if Params (First) in Digit then
+               return Params (First .. Last - 1);
+
+            else
+               return Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0);
+            end if;
+         exception
+         when E : Not_Found =>
+            Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            return "";
+         end Int_Or_Symbol;
+
+         function Indent_Function (Elisp_Name : in String) return String
+         is begin
+            if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
+            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_0";
+            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_1";
+            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_2";
+            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_3";
+            else
+               Put_Error (Input_File_Name, Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
+               return "";
+            end if;
+         end Indent_Function;
+
+      begin
+         loop
+            Last := Index_Non_Blank (Params, Last + 1);
+
+            exit when Params (Last) = ']';
+
+            if Need_Comma then
+               Result := Result & ", ";
+            else
+               Need_Comma := True;
+            end if;
+
+            case Params (Last) is
+            when '(' =>
+               --  lisp function call
+               First := Last + 1;
+               Last  := Index (Params, Delim, First);
+               if Params (Last) /= ' ' then
+                  Put_Error (Input_File_Name, Source_Line, "invalid indent function call");
+               end if;
+
+               Result := Result & "(False, " & Indent_Function (Params (First .. Last - 1)) & " (";
+
+               First := Last + 1;
+               Last  := Index (Params, Delim, First);
+               if Params (Last) /= ' ' then
+                  Put_Error (Input_File_Name, Source_Line, "invalid indent function call");
+               end if;
+
+               Result := Result & Params (First .. Last - 1);
+
+               Result := Result & ", " & Int_Or_Symbol (Last + 1) & "))";
+
+               if Params (Last) /= ')' then
+                  Put_Error (Input_File_Name, Source_Line, "invalid indent syntax");
+               end if;
+
+            when '[' =>
+               --  vector
+               Result := Result & "(True, " & Int_Or_Symbol (Last + 1);
+               Result := Result & ", " & Int_Or_Symbol (Last + 1) & ')';
+               if Params (Last) /= ']' then
+                  Put_Error (Input_File_Name, Source_Line, "invalid indent syntax");
+               end if;
+
+            when others =>
+               --  integer or symbol
+               Result := Result & "(False, " & Int_Or_Symbol (Last) & ')';
+
+            end case;
+         end loop;
+         return -(Result & "))");
+      end Indent_Params;
+
+      procedure Translate_Line (Line : in String)
+      is
+         Last       : constant Integer := Index (Line, " ");
+         Elisp_Name : constant String  := Line (Line'First + 1 .. Last - 1);
+      begin
+         if Elisp_Name = "wisi-statement-action" then
+            Navigate_Lines.Append
+              (Elisp_Name_To_Ada (Elisp_Name, False, 5) &
+                 Statement_Params (Line (Last + 1 .. Line'Last)) & ";");
+
+         elsif Elisp_Name = "wisi-containing-action" then
+            Navigate_Lines.Append
+              (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Containing_Params (Line (Last + 1 .. Line'Last)) & ";");
+
+         elsif Elisp_Name = "wisi-motion-action" then
+            Navigate_Lines.Append
+              (Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Motion_Params (Line (Last + 1 .. Line'Last)) & ";");
+
+         elsif Elisp_Name = "wisi-face-apply-action" then
+            if Length (Face_Line) = 0 then
+               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            else
+               Put_Error (Input_File_Name, Source_Line, "multiple face actions");
+            end if;
+
+         elsif Elisp_Name = "wisi-indent-action" then
+            if Length (Indent_Action_Line) = 0 then
+               Indent_Action_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
+            else
+               Put_Error (Input_File_Name, Source_Line, "multiple indent actions");
+            end if;
+         else
+            Put_Error (Input_File_Name, Source_Line, "unrecognized elisp action: " & Elisp_Name);
+         end if;
+      end Translate_Line;
+
+   begin
+      Indent_Line ("procedure " & Name);
+      Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
+      Indent_Line ("  Index   : in Natural;");
+      Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
+      Indent_Line ("is");
+      Indent_Line ("   pragma Unreferenced (Index);");
+      Indent_Line ("begin");
+      Indent := Indent + 3;
+
+      for Line of Action loop
+         begin
+            if Translate_Paren_State = 0 and Length (Temp) = 0 then
+               if Line = "(progn" then
+                  Translate_Paren_State := 1;
+                  Paren_State := 1;
+               elsif String_Lists.Length (Action) = 1 then
+                  Translate_Paren_State := 0;
+                  Temp := +Line;
+                  Count_Parens;
+                  if Paren_State = 0 then
+                     Translate_Line (-Temp);
+                     Temp := +"";
+                  end if;
+               else
+                  Put_Error (Input_File_Name, Source_Line, "invalid action syntax");
+                  return;
+               end if;
+            else
+               if Length (Temp) = 0 then
+                  Temp := +Line;
+               else
+                  Temp := Temp & ' ' & Line;
+               end if;
+
+               Count_Parens;
+               if Paren_State = Translate_Paren_State then
+                  Translate_Line (-Temp);
+                  Temp := +"";
+               elsif Translate_Paren_State = 1 and Paren_State = 0 then
+                  --  last line of a 'progn'
+                  Translate_Line (Slice (Temp, 1, Length (Temp) - 1));
+                  Temp := +"";
+               end if;
+            end if;
+         exception
+         when E : Not_Found =>
+            Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Temp := +"";
+         end;
+      end loop;
+
+      Indent_Line ("case Wisi.Runtime.Parse_Action is");
+      Indent_Line ("when Navigate =>");
+      if Navigate_Lines.Length > 0 then
+         Indent := Indent + 3;
+         for Line of Navigate_Lines loop
+            Indent_Line (Line);
+         end loop;
+         Indent := Indent - 3;
+      else
+         Indent_Line ("   null;");
+      end if;
+
+      Indent_Line ("when Face =>");
+      if Length (Face_Line) > 0 then
+         Indent := Indent + 3;
+         Indent_Line (-Face_Line);
+         Indent := Indent - 3;
+      else
+         Indent_Line ("   null;");
+      end if;
+
+      Indent_Line ("when Indent =>");
+      if Length (Indent_Action_Line) > 0 then
+         Indent := Indent + 3;
+         Indent_Line (-Indent_Action_Line);
+         Indent := Indent - 3;
+      else
+         Indent_Line ("   null;");
+      end if;
+      Indent_Line ("end case;");
+
+      Indent := Indent - 3;
+      Indent_Line ("end " & Name & ";");
+      New_Line;
+
+   end Create_Ada_Action;
 
    procedure Create_Ada_Body
    is
       use all type WisiToken.Parser.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
-
-      Elisp_Action : constant access String := new String'("Elisp_Action'Access");
-      --  There is only one Ada semantic action subprogram -
-      --  Elisp_Action. It encodes and sends wisi-nterm, wisi-tokens,
-      --  and the name of the elisp action function.
 
       File_Name : constant String := Output_File_Name_Root &
         (case Data.Interface_Kind is
@@ -115,16 +530,18 @@ is
       Create (Body_File, Out_File, File_Name);
       Set_Output (Body_File);
       Indent := 1;
-      Data.Table_Entry_Count := 0;
       Put_Line ("--  generated by WisiToken Wisi from " & Input_File_Name);
       Put_Command_Line  ("--  ");
       Put_Line ("--");
       Put_Prologue (Ada_Comment, Prologues.Body_Context_Clause);
 
+      Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with WisiToken.Wisi_Runtime;");
+      Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
+
       case Data.Interface_Kind is
       when Process =>
-         Put_Line ("with WisiToken.Lexer.Elisp_Process;");
-         Put_Line ("with WisiToken.Token;");
+         null;
 
       when Module =>
          Put_Line ("with Emacs_Module_Aux; use Emacs_Module_Aux;");
@@ -136,51 +553,46 @@ is
       Indent := Indent + 3;
       New_Line;
 
-      if Profile then
-         Indent_Line ("Action_Counts : array (Nonterminal_ID) of Integer := (others => 0);");
-      end if;
-
-      if Action_Count = 0 then
-         null;
-
-      else
-         --  Populate Ada_Action_Names, Elisp_Action_Names
-         for Rule of Tokens.Rules loop
-            --  No need for a Token_Cursor here, since we only need the Rules.
-            declare
-               LHS_ID : constant Generate_Utils.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-
-               Index      : Integer := 0; -- Semantic_Action defines Index as zero-origin
-               All_Empty  : Boolean := True;
-               Temp_Ada   : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-               Temp_Elisp : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            begin
-               for RHS of Rule.Right_Hand_Sides loop
-                  if RHS.Action.Length > 0 then
-                     All_Empty := False;
-                     Temp_Elisp (Index) := new String'(-Rule.Left_Hand_Side & ':' & WisiToken.Int_Image (Index));
-                     Temp_Ada (Index)   := Elisp_Action;
-                  end if;
-                  Index := Index + 1;
-               end loop;
-
-               if not All_Empty then
-                  Ada_Action_Names (LHS_ID)   := new Action_Name_List'(Temp_Ada);
-                  Elisp_Action_Names (LHS_ID) := new Action_Name_List'(Temp_Elisp);
-               end if;
-            end;
-         end loop;
-      end if;
-
-      --  Elisp_Action is just a placeholder; need something to put
-      --  in Action. All work is done by
-      --  token_wisi_process.merge_tokens.
-      Indent_Line ("procedure Elisp_Action");
-      Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
-      Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
-      Indent_Line ("is null;");
+      Indent_Line ("use WisiToken.Wisi_Runtime;");
       New_Line;
+
+      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+      Indent_Line ("  (" & Output_File_Name_Root & "_re2c_c.New_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Free_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Reset_Lexer,");
+      Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
+      New_Line;
+
+      --  generate Action subprograms, populate Action_Names, Elisp_Names
+      --  (for non-indent actions).
+
+      for Rule of Tokens.Rules loop
+         --  No need for a Token_Cursor here, since we only need the nonterminals.
+         declare
+            LHS_ID : constant Generate_Utils.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+
+            Prod_Index : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            All_Empty  : Boolean := True;
+            Temp_Ada   : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+         begin
+            for RHS of Rule.Right_Hand_Sides loop
+               if RHS.Action.Length > 0 then
+                  All_Empty := False;
+                  declare
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+                  begin
+                     Temp_Ada (Prod_Index) := new String'(Name & "'Access");
+                     Create_Ada_Action (Name, RHS.Action, RHS.Source_Line);
+                  end;
+               end if;
+               Prod_Index := Prod_Index + 1;
+            end loop;
+
+            if not All_Empty then
+               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp_Ada);
+            end if;
+         end;
+      end loop;
 
       Create_Create_Parser
         (Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label,
@@ -275,9 +687,6 @@ is
 
       File         : File_Type;
       Paren_1_Done : Boolean := False;
-      Paren_2_Done : Boolean := False;
-      Rule_I       : Rule_Lists.Cursor;
-      RHS_I        : RHS_Lists.Cursor;
    begin
       Create (File, Out_File, Output_File_Name_Root & "-process.el");
       Set_Output (File);
@@ -295,6 +704,7 @@ is
       Output_Elisp_Common.Indent_Keyword_Table (Output_File_Name_Root, "elisp", Tokens.Keywords, To_String'Access);
       Output_Elisp_Common.Indent_Token_Table (Output_File_Name_Root, "elisp", Tokens.Tokens, To_String'Access);
 
+      --  FIXME: Used for error messages?
       Indent_Line  ("(defconst " & Output_File_Name_Root & "-process-token-table");
       Indent_Line  ("  (wisi-process-compile-tokens");
       Indent_Start ("   [");
@@ -310,70 +720,6 @@ is
       end loop;
       Indent_Line ("]))");
       Indent := Indent - 4;
-      New_Line;
-
-      Indent_Line ("(defconst " & Output_File_Name_Root & "-process-action-table");
-      Indent_Line ("  (wisi-process-compile-actions");
-      Indent_Start ("   '(");
-      Indent := Indent + 5;
-      Rule_I := Tokens.Rules.First;
-
-      --  First nonterm is fasttoken_accept, which is not in rules
-      Put_Line ("nil");
-      Paren_1_Done := True;
-
-      for I in Elisp_Action_Names'First + 1 .. Elisp_Action_Names'Last loop
-         if Elisp_Action_Names (I) = null then
-            if Paren_1_Done then
-               Indent_Line ("nil");
-            else
-               Paren_1_Done := True;
-               Put_Line ("nil");
-            end if;
-         else
-            RHS_I := Constant_Reference (Tokens.Rules, Rule_I).Right_Hand_Sides.First;
-
-            if Paren_1_Done then
-               Indent_Start ("(");
-            else
-               Paren_1_Done := True;
-               Put ("(");
-            end if;
-            Paren_2_Done := False;
-            Indent       := Indent + 1;
-
-            for J in Elisp_Action_Names (I).all'Range loop
-               if Elisp_Action_Names (I) (J) = null then
-                  if Paren_2_Done then
-                     Indent_Line ("nil");
-                  else
-                     Paren_2_Done := True;
-                     Put ("nil");
-                  end if;
-               else
-                  if Paren_2_Done then
-                     Indent_Start ("(""" & Elisp_Action_Names (I) (J).all & """");
-                  else
-                     Paren_2_Done := True;
-                     Put ("(""" & Elisp_Action_Names (I) (J).all & """");
-                  end if;
-                  Indent := Indent + 1;
-                  for Line of Element (RHS_I).Action loop
-                     New_Line;
-                     Indent_Start (Line);
-                  end loop;
-                  Put_Line (")");
-                  Indent := Indent - 1;
-               end if;
-               Next (RHS_I);
-            end loop;
-            Indent_Line (")");
-            Indent := Indent - 1;
-         end if;
-         Next (Rule_I);
-      end loop;
-      Indent_Line (")))");
-      Indent := Indent - 5;
       New_Line;
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
@@ -594,13 +940,14 @@ is
 
 begin
    Common.Initialize (Input_File_Name, Output_File_Name_Root, Check_Interface => True);
+   Wisi.Utils.Error := False;
 
    case Data.Lexer is
-   when Elisp_Lexer =>
+   when re2c_Lexer =>
       null;
 
-   when others =>
-      raise Programmer_Error with "output language Ada_Emacs requires Elisp lexer";
+   when Elisp_Lexer =>
+      raise Programmer_Error;
    end case;
 
    Create_Ada_Spec
@@ -630,6 +977,11 @@ begin
          Create_Module_Elisp;
          Create_Module_Aux;
       end case;
+   end if;
+
+   if Wisi.Utils.Error then
+      Wisi.Utils.Put_Error (Input_File_Name, 1, "Errors: aborting");
+      raise Syntax_Error;
    end if;
 exception
 when others =>

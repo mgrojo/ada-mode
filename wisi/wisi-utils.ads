@@ -21,6 +21,8 @@ pragma License (Modified_GPL);
 with Ada.Text_IO;
 package Wisi.Utils is
 
+   Error : Boolean := False;
+
    function Skip_Comments (File : in Standard.Ada.Text_IO.File_Type) return String;
    --  Return next line that is not a comment, and strip leading
    --  whitespace and trailing comment from line.
@@ -35,10 +37,10 @@ package Wisi.Utils is
      (File_Name : in String;
       File_Line : in Standard.Ada.Text_IO.Positive_Count;
       Message   : in String);
-   --  Output error message on Standard_Error
+   --  Set Error True, output to Standard_Error
 
    procedure Put_Error (File : in Standard.Ada.Text_IO.File_Type; Message : in String);
-   --  Output error message for File on Standard_Error
+   --  Set Error True, output error to Standard_Error
 
    --  code generation
    Indent : Standard.Ada.Text_IO.Positive_Count := 1;

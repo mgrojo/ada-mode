@@ -25,13 +25,14 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
+with Wisi.Output_Elisp_Common;
 with Wisi.Prologue;
 with Wisi.Rules;
+with WisiToken;
 procedure Wisi.Generate
 is
    procedure Put_Usage
@@ -180,7 +181,8 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologues);
-   Wisi.Declarations (Input_File, Generate_Params, Tokens, Conflicts, McKenzie_Recover);
+   Wisi.Declarations
+     (Input_File, Generate_Params, Tokens, Wisi.Output_Elisp_Common.Elisp_Names, Conflicts, McKenzie_Recover);
    Wisi.Rules
      (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules, Rule_Count, Action_Count);
 
@@ -223,7 +225,7 @@ when E : User_Error =>
 
 when E : WisiToken.Grammar_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
-   Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
+   Standard.Ada.Text_IO.Put_Line (Standard.Ada.Text_IO.Standard_Error, Standard.Ada.Exceptions.Exception_Message (E));
 
 when E :  others =>
    --  IMPROVEME: for some exceptions, Error message already output via wisi.utils.Put_Error
@@ -232,8 +234,8 @@ when E :  others =>
       use Standard.Ada.Exceptions;
       use Standard.Ada.Command_Line;
    begin
-      Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-      Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      Put_Line (Standard_Error, Exception_Name (E) & ": " & Exception_Message (E));
+      Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       Set_Exit_Status (Failure);
    end;
 

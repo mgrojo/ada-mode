@@ -188,15 +188,15 @@ package Wisi is
    package Conflict_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Conflict);
 
    type RHS_Type is record
-      Production : String_Lists.List; -- Tokens
-      Action     : String_Lists.List; -- one string per line
+      Production  : String_Lists.List; -- Tokens
+      Action      : String_Lists.List; -- one string per line
+      Source_Line : Standard.Ada.Text_IO.Positive_Count;
    end record;
    package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");
 
    type Rule_Type is record
       Left_Hand_Side   : aliased Standard.Ada.Strings.Unbounded.Unbounded_String;
       Right_Hand_Sides : RHS_Lists.List;
-      Source_Line      : Standard.Ada.Text_IO.Positive_Count;
    end record;
 
    package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);
@@ -208,6 +208,12 @@ package Wisi is
       Rules       : Rule_Lists.List;
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
+   end record;
+
+   type Elisp_Names is record
+      --  specified in grammar file declarations
+      Classes : String_Lists.List;
+      Faces   : String_Lists.List;
    end record;
 
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String

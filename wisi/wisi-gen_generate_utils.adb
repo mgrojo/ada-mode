@@ -540,7 +540,7 @@ package body Wisi.Gen_Generate_Utils is
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
-           (Source_File_Name, First_Rule_Line, "start token '" & (Start_Token) & "' not found; need %start?");
+           (Source_File_Name, 1, "start token '" & (Start_Token) & "' not found; need %start?");
          raise Syntax_Error;
       end;
 
@@ -561,7 +561,7 @@ package body Wisi.Gen_Generate_Utils is
                exception
                when E : Not_Found =>
                   Wisi.Utils.Put_Error
-                    (Source_File_Name, Rule.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+                    (Source_File_Name, Right_Hand_Side.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                   raise Syntax_Error;
                end;
                Index := Index + 1;

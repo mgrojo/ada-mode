@@ -106,128 +106,110 @@ is
          raise Programmer_Error;
       end case;
 
-      Put_Line ("with WisiToken.Token;");
-
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
 
       Put_Prologue (Ada_Comment, Prologues.Body_Declarations);
 
-      case Data.Lexer is
-      when re2c_Lexer =>
-         Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
-         Indent_Line ("  (" & Lower_Package_Name_Root & "_re2c_c.New_Lexer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Free_Lexer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Reset_Lexer,");
-         Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Next_Token);");
-         New_Line;
+      Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
+      Indent_Line ("  (" & Lower_Package_Name_Root & "_re2c_c.New_Lexer,");
+      Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Free_Lexer,");
+      Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Reset_Lexer,");
+      Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Next_Token);");
+      New_Line;
 
-      when Elisp_Lexer =>
-         raise Programmer_Error;
-      end case;
+      --  generate Action subprograms, populate Action_Names.
 
-      if Action_Count = 0 then
-         null;
+      for Rule of Tokens.Rules loop
+         --  No need for a Token_Cursor here, since we only need the
+         --  nonterminals.
 
-      else
-         --  generate Action subprograms, populate Action_Names.
+         declare
+            use all type Standard.Ada.Containers.Count_Type;
 
-         if Profile then
-            Indent_Line
-              ("Action_Counts : array (fasttoken_accept_ID .. Descriptor.Token_ID_Last) of Integer := (others => 0);");
-         end if;
+            LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+            Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            Temp       : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            All_Empty  : Boolean                     := True;
 
-         for Rule of Tokens.Rules loop
-            --  No need for Token_Cursor here; we are only dealing with
-            --  nonterminals.
-
-            declare
-               use all type Standard.Ada.Containers.Count_Type;
-
-               LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-               Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
-               Temp       : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-               All_Empty  : Boolean                     := True;
-
-               function Is_Elisp (Action : in String_Lists.List) return Boolean
-               is
-                  Line : constant String := String_Lists.Element (Action.First);
-               begin
-                  return Line'Length >= 5 and then
-                    (Line (Line'First .. Line'First + 4) = "progn" or
-                       Line (Line'First .. Line'First + 4) = "wisi-");
-               end Is_Elisp;
-
+            function Is_Elisp (Action : in String_Lists.List) return Boolean
+            is
+               Line : constant String := String_Lists.Element (Action.First);
             begin
-               for RHS of Rule.Right_Hand_Sides loop
-                  if RHS.Action.Length > 0 and then not Is_Elisp (RHS.Action) then
-                     declare
-                        use Standard.Ada.Strings.Fixed;
+               return Line'Length >= 5 and then
+                 (Line (Line'First .. Line'First + 4) = "progn" or
+                    Line (Line'First .. Line'First + 4) = "wisi-");
+            end Is_Elisp;
 
-                        Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+         begin
+            for RHS of Rule.Right_Hand_Sides loop
+               if RHS.Action.Length > 0 and then not Is_Elisp (RHS.Action) then
+                  declare
+                     use Standard.Ada.Strings.Fixed;
 
-                        Unref_Nonterm : Boolean := True;
-                        Unref_Index   : Boolean := True;
-                        Unref_Source  : Boolean := True;
-                     begin
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+
+                     Unref_Nonterm : Boolean := True;
+                     Unref_Index   : Boolean := True;
+                     Unref_Source  : Boolean := True;
+                  begin
+                     for Line of RHS.Action loop
+                        if 0 < Index (Line, "Nonterm") then
+                           Unref_Nonterm := False;
+                        end if;
+                        if 0 < Index (Line, "Index") then
+                           Unref_Index := False;
+                        end if;
+                        if 0 < Index (Line, "Source") then
+                           Unref_Source := False;
+                        end if;
+                     end loop;
+
+                     All_Empty := False;
+
+                     Temp (Prod_Index) := new String'(Name & "'Access");
+                     Indent_Line ("procedure " & Name);
+                     Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
+                     Indent_Line ("  Index   : in Natural;");
+                     Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
+                     Indent_Line ("is");
+
+                     if Profile or Unref_Nonterm then
+                        Indent_Line ("   pragma Unreferenced (Nonterm);");
+                     end if;
+                     if Profile or Unref_Index then
+                        Indent_Line ("   pragma Unreferenced (Index);");
+                     end if;
+                     if Profile or Unref_Source then
+                        Indent_Line ("   pragma Unreferenced (Source);");
+                     end if;
+
+                     Indent_Line ("begin");
+                     Indent := Indent + 3;
+
+                     if Profile then
+                        Indent_Line ("Action_Counts (Nonterm) := Action_Counts (Nonterm) + 1;");
+
+                     else
                         for Line of RHS.Action loop
-                           if 0 < Index (Line, "Nonterm") then
-                              Unref_Nonterm := False;
-                           end if;
-                           if 0 < Index (Line, "Index") then
-                              Unref_Index := False;
-                           end if;
-                           if 0 < Index (Line, "Source") then
-                              Unref_Source := False;
-                           end if;
+                           Indent_Line (Line);
                         end loop;
-
-                        All_Empty := False;
-
-                        Temp (Prod_Index) := new String'(Name & "'Access");
-                        Indent_Line ("procedure " & Name);
-                        Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
-                        Indent_Line ("  Index   : in Natural;");
-                        Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
-                        Indent_Line ("is");
-
-                        if Profile or Unref_Nonterm then
-                           Indent_Line ("   pragma Unreferenced (Nonterm);");
-                        end if;
-                        if Profile or Unref_Index then
-                           Indent_Line ("   pragma Unreferenced (Index);");
-                        end if;
-                        if Profile or Unref_Source then
-                           Indent_Line ("   pragma Unreferenced (Source);");
-                        end if;
-
-                        Indent_Line ("begin");
-                        Indent := Indent + 3;
-
-                        if Profile then
-                           Indent_Line ("Action_Counts (Nonterm) := Action_Counts (Nonterm) + 1;");
-
-                        else
-                           for Line of RHS.Action loop
-                              Indent_Line (Line);
-                           end loop;
-                        end if;
-                        Indent := Indent - 3;
-                        Indent_Line ("end " & Name & ";");
-                        New_Line;
-                     end;
-                  end if;
-
-                  Prod_Index := Prod_Index + 1;
-               end loop;
-
-               if not All_Empty then
-                  Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp);
+                     end if;
+                     Indent := Indent - 3;
+                     Indent_Line ("end " & Name & ";");
+                     New_Line;
+                  end;
                end if;
-            end;
-         end loop;
-      end if;
+
+               Prod_Index := Prod_Index + 1;
+            end loop;
+
+            if not All_Empty then
+               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp);
+            end if;
+         end;
+      end loop;
 
       Create_Create_Parser
         (Data.Parser_Algorithm, Data.Lexer, None, Params.First_State_Index, Params.First_Parser_Label,

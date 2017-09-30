@@ -71,6 +71,7 @@ tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_re2c.c
 tests : identifier_list_name_conflict-parse.diff
 tests : subprograms-process.el.diff
+tests : subprograms_process.adb.diff
 
 # we don't run subprograms-parse because subprograms is used in a real
 # Emacs Ada mode test, so it has real elisp syntax.
@@ -115,15 +116,23 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
+%_process.adb.diff : %_process.adb.good %_process.adb ; diff $(DIFF_OPT) $^ > $@
+
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
+# FIXME: still need this?
 %-process.el : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix $*-process.el
+
+%_process.adb : %.wy wisi-generate.exe
+	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $< > $*.parse_table
+	dos2unix $*.parse_table
+	dos2unix $*_process.adb
 
 %-process.el.diff : %-process.good_el %-process.el
 	diff $(DIFF_OPT) $< $*-process.el > $@
