@@ -41,14 +41,7 @@ package body WisiToken.Lexer.re2c is
          Object.Lexer := System.Null_Address;
       end if;
 
-      case Object.Source.Label is
-      when String_Label =>
-         Ada.Strings.Unbounded.Free (Object.Source.Buffer);
-
-      when File_Label =>
-         GNATCOLL.Mmap.Free (Object.Source.Region);
-         GNATCOLL.Mmap.Close (Object.Source.File);
-      end case;
+      Finalize (Object.Source);
    end Finalize;
 
    function New_Lexer
@@ -69,17 +62,37 @@ package body WisiToken.Lexer.re2c is
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
-        (Label  => String_Label,
-         Buffer => new String'(Input));
+        (Label       => String_Label,
+         Buffer      => new String'(Input),
+         User_Buffer => False);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
          Length    => Interfaces.C.size_t (Input'Length),
          Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
 
-      Lexer.Line            := 1;
-      Lexer.Char_Line_Start := 1;
+      Reset (Lexer);
    end Reset_With_String;
+
+   overriding procedure Reset_With_String_Access
+     (Lexer : in out Instance;
+      Input : in     Ada.Strings.Unbounded.String_Access)
+   is begin
+      Finalize (Lexer);
+
+      --  We assume Input is in UTF-8 encoding
+      Lexer.Source :=
+        (Label       => String_Label,
+         Buffer      => Input,
+         User_Buffer => True);
+
+      Lexer.Lexer := New_Lexer
+        (Buffer    => Lexer.Source.Buffer.all'Address,
+         Length    => Interfaces.C.size_t (Input'Length),
+         Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
+
+      Reset (Lexer);
+   end Reset_With_String_Access;
 
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
    is
@@ -103,8 +116,7 @@ package body WisiToken.Lexer.re2c is
          Length    => Interfaces.C.size_t (Last (Lexer.Source.Region)),
          Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
 
-      Lexer.Line            := 1;
-      Lexer.Char_Line_Start := 1;
+      Reset (Lexer);
    end Reset_With_File;
 
    overriding procedure Reset (Lexer : in out Instance)

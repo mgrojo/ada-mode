@@ -99,15 +99,9 @@ is
       Put_Prologue (Ada_Comment, Prologues.Body_Context_Clause);
       New_Line;
 
-      case Data.Lexer is
-      when re2c_Lexer =>
-         Put_Line ("with WisiToken.Lexer.re2c;");
-         Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
-
-      when Elisp_Lexer =>
-         raise Programmer_Error;
-      end case;
-
+      Put_Line ("with WisiToken.Token;");
+      Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;

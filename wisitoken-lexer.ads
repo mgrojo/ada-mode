@@ -47,6 +47,12 @@ package WisiToken.Lexer is
    procedure Reset_With_String (Lexer : in out Instance; Input : in String) is abstract;
    --  Reset Lexer to start a new parse, reading from Input.
 
+   procedure Reset_With_String_Access
+     (Lexer : in out Instance;
+      Input : in     Ada.Strings.Unbounded.String_Access)
+     is abstract;
+   --  Reset Lexer to start a new parse, reading from Input.
+
    procedure Reset_With_File (Lexer : in out Instance; File_Name : in String) is abstract;
    --  Reset Lexer to start a new parse, reading from File_Name.
 
@@ -93,8 +99,10 @@ private
    type Source (Label : Source_Labels := Source_Labels'First) is record
       case Label is
       when String_Label =>
-         Buffer : Ada.Strings.Unbounded.String_Access;
-         --  Buffer is an allocated copy of the input string; it must be deallocated.
+         Buffer      : Ada.Strings.Unbounded.String_Access;
+         User_Buffer : Boolean;
+         --  If User_Buffer is True, user provided buffer and will deallocate
+         --  it. Otherwise we must deallocate it.
 
       when File_Label =>
          --  The input is memory mapped from the following, which must be closed:
@@ -103,6 +111,8 @@ private
          Buffer_Last : Positive;
       end case;
    end record;
+
+   procedure Finalize (Object : in out Source);
 
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access;
    --  The bounds on the result are not present; 'First, 'Last are not

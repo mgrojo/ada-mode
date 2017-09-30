@@ -36,7 +36,8 @@ with WisiToken.Token_Region;
 %token <symbol> SYMBOL "[a-zA-Z][0-9a-zA-Z_]*"
 
 %non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*[\n]
 
 %start compilation_unit
 %parser_algorithm LALR

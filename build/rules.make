@@ -49,7 +49,6 @@ tests : test_all_harness.diff
 #tests : case_expression-elisp.el.diff done in wisi_wy_test.adb
 tests : case_expression_re2c.c
 tests : case_expression-parse.diff
-tests : conflict_name-process.el.diff
 tests : conflict_name_re2c.c
 tests : conflict_name-parse.diff
 tests : empty_production_1_re2c.c
@@ -70,7 +69,6 @@ tests : empty_production_8_re2c.c
 tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_re2c.c
 tests : identifier_list_name_conflict-parse.diff
-tests : subprograms-process.el.diff
 tests : subprograms_process.adb.diff
 
 # we don't run subprograms-parse because subprograms is used in a real
@@ -116,7 +114,9 @@ DIFF_OPT := -u -w
 
 %.diff : %.good_el %.el ; diff $(DIFF_OPT) $^ > $@
 
-%_process.adb.diff : %_process.adb.good %_process.adb ; diff $(DIFF_OPT) $^ > $@
+%_process.adb.diff : %_process.adb.good %_process.adb
+	diff $(DIFF_OPT) $^ > $@
+	diff $(DIFF_OPT) %*-process.el $*-process.good_el >> $@
 
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse

@@ -482,7 +482,7 @@ package body Wisi.Gen_Output_Ada_Common is
       use all type WisiToken.Parser.LR.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser    : out    WisiToken.Parser.LR.Parser.Instance;");
+      Indent_Line ("  (Parser    :    out WisiToken.Parser.LR.Parser.Instance;");
       case Interface_Kind is
       when None | Process =>
          Indent_Line ("   Algorithm : in     WisiToken.Parser_Algorithm_Type)");
@@ -696,6 +696,8 @@ package body Wisi.Gen_Output_Ada_Common is
       end if;
       New_Line;
 
+      Data.Table_Entry_Count := 0;
+
       for State_Index in Table.States'Range loop
          Actions :
          declare
@@ -723,8 +725,6 @@ package body Wisi.Gen_Output_Ada_Common is
             end Append;
 
          begin
-            Data.Table_Entry_Count := 0;
-
             loop
                exit when Node = null;
                Data.Table_Entry_Count := Data.Table_Entry_Count + 1;

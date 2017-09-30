@@ -69,7 +69,6 @@ package body Test_McKenzie_Recover is
    begin
       --  The test is that there is no exception.
 
-      Create_Parser (Parser, WisiToken.LALR);
       WisiToken.Trace_Parse := Test.Debug;
 
       Parser.Lexer.Reset_With_File (File_Name);
@@ -672,6 +671,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
+      Ada_Lite.Create_Parser (Parser, WisiToken.LALR);
       Orig_Cost_Limit := Parser.Table.McKenzie.Cost_Limit;
    end Set_Up_Case;
 
