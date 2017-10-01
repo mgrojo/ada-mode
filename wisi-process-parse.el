@@ -294,7 +294,8 @@ from TOKEN-TABLE."
 	   :pos (copy-marker pos)
 	   :message
 	   (format "%s:%d:%d: syntax error; expecting one of '%s'"
-		   (file-name-nondirectory (buffer-file-name))
+		   (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		   ;; file-name can be nil during vc-resolve-conflict
 		   (line-number-at-pos (point))
 		   (current-column)
 		   elisp-ids)))
@@ -578,7 +579,7 @@ from TOKEN-TABLE."
 	       (make-wisi--error
 		:pos 0
 		:message (format "%s:%d:%d: parser busy (try ’wisi-kill-parser’)"
-				 (file-name-nondirectory (buffer-file-name)) 1 1))
+				 (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "") 1 1))
 	       ))
 	(message "%s parse abandoned; parser busy" wisi--parse-action)
 	(goto-char (point-min))

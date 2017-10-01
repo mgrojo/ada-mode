@@ -115,8 +115,8 @@
 %mckenzie_cost_limit 12
 %mckenzie_check_limit 3
 
-%conflict SHIFT/REDUCE in state term, identifier_opt on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state case_item, case_items on token WHEN
+%conflict SHIFT/REDUCE in state term, term  on token RIGHT_PAREN
+%conflict SHIFT/REDUCE in state case_statement, case_statement  on token WHEN
 
 %%
 ;; grammar rules, non-terminal alphabetical order

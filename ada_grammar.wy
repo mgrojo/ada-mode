@@ -243,53 +243,50 @@
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
-%conflict REDUCE/REDUCE in state association_opt, expression_opt on token COMMA
+%conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state association_opt, expression_opt on token RIGHT_PAREN
-%conflict REDUCE/REDUCE in state association_opt, expression_opt on token IS
-%conflict REDUCE/REDUCE in state association_opt, parameter_specification on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state choice_relation, relation on token AND
 %conflict REDUCE/REDUCE in state choice_relation, relation on token OR
 %conflict REDUCE/REDUCE in state choice_relation, relation on token XOR
-%conflict REDUCE/REDUCE in state constraint_opt, and_interface_list_opt on token WITH
-%conflict REDUCE/REDUCE in state expression_opt, association_opt on token SEMICOLON
+%conflict REDUCE/REDUCE in state derived_type_definition, derived_type_definition  on token WITH
+%conflict REDUCE/REDUCE in state full_type_declaration, full_type_declaration  on token NEW
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state name, direct_name on token USE
+%conflict REDUCE/REDUCE in state paren_expression, paren_expression  on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token COMMA
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token EQUAL_GREATER
 %conflict REDUCE/REDUCE in state primary, subtype_indication on token RIGHT_PAREN
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token COMMA
 %conflict REDUCE/REDUCE in state range_list, discrete_subtype_definition on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state abstract_subprogram_declaration, aspect_specification_opt on token IS
-%conflict SHIFT/REDUCE in state actual_parameter_part, actual_parameter_part_opt on token LEFT_PAREN
-%conflict SHIFT/REDUCE in state actual_parameter_part, attribute_designator on token LEFT_PAREN
+%conflict SHIFT/REDUCE in state abstract_subprogram_declaration, abstract_subprogram_declaration  on token IS
+%conflict SHIFT/REDUCE in state accept_statement, accept_statement  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
-%conflict SHIFT/REDUCE in state declaration, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_1
+%conflict SHIFT/REDUCE in state declaration, declaration  on token CONSTANT
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict SHIFT/REDUCE in state generic_instantiation, aspect_specification_opt on token IS
-%conflict SHIFT/REDUCE in state generic_instantiation, parameter_profile_opt on token IS
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token FUNCTION
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PACKAGE
-%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part on token PROCEDURE
-%conflict SHIFT/REDUCE in state null_exclusion_opt, mode_opt on token NOT
+%conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PROCEDURE
+%conflict SHIFT/REDUCE in state name, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
-%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list on token COLON
-%conflict SHIFT/REDUCE in state package_body_stub, aspect_specification_opt on token IS
-%conflict SHIFT/REDUCE in state paren_expression, association_opt on token RIGHT_PAREN
-%conflict SHIFT/REDUCE in state protected_body_stub, aspect_specification_opt on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list  on token COLON
+%conflict SHIFT/REDUCE in state package_body, package_body  on token IS
+%conflict SHIFT/REDUCE in state parameter_specification, parameter_specification  on token NOT
+%conflict SHIFT/REDUCE in state protected_body, protected_body  on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
-%conflict SHIFT/REDUCE in state relation_and_list, expression on token AND
-%conflict SHIFT/REDUCE in state relation_and_then_list, expression on token AND
-%conflict SHIFT/REDUCE in state relation_or_else_list, expression on token OR
-%conflict SHIFT/REDUCE in state relation_or_list, expression on token OR
-%conflict SHIFT/REDUCE in state relation_xor_list, expression on token XOR
-%conflict SHIFT/REDUCE in state selected_component, attribute_designator on token DOT
-%conflict SHIFT/REDUCE in state simple_return_statement, expression_opt on token SEMICOLON
-%conflict SHIFT/REDUCE in state task_body_stub, aspect_specification_opt on token IS
-%conflict SHIFT/REDUCE in state tick, attribute_designator  on token TICK_1
+%conflict SHIFT/REDUCE in state relation_and_list, expression  on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression  on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression  on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression  on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator  on token DOT
+%conflict SHIFT/REDUCE in state task_body, task_body  on token IS
+
 %if lexer = re2c
-%conflict SHIFT/REDUCE in state tick, attribute_designator  on token TICK_2
+%conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_2
 %end if
 
 %%
@@ -490,7 +487,7 @@ association_opt
                                          (wisi-anchored% 2 (* 2 ada-indent-broken)))])
   | discrete_choice_list EQUAL_GREATER BOX
     (wisi-indent-action [(wisi-hanging 0 ada-indent-broken) ada-indent-broken 0])
-  | expression_opt
+  | expression
  ;; test/adacore_9907_010.adb
  ;; Put_Line ("hello " &
  ;;             "world" &
@@ -2052,7 +2049,7 @@ raise_statement
     (wisi-statement-action [1 statement-start 2 statement-end])
   | RAISE name WITH expression_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 5 statement-end])
+      (wisi-statement-action [1 statement-start 4 motion 5 statement-end])
       (wisi-containing-action 1 4)
       ;; test/ada_mode-nominal.adb
       ;; raise Constraint_Error with
@@ -2283,9 +2280,7 @@ simple_expression
   ;
 
 simple_return_statement
-  : RETURN SEMICOLON
-    (wisi-statement-action [1 statement-start 2 statement-end])
-  | RETURN expression_opt SEMICOLON
+  : RETURN expression_opt SEMICOLON
  ;; test/ada_mode-parens.adb Function_3
  ;; return
  ;;   1.0 +
@@ -2561,6 +2556,7 @@ variant_part
   : CASE direct_name_opt IS variant_list END CASE SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-containing-action 1 4) ;; for goto-declaration-start
       (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when 0 0 0]))
   ;
 

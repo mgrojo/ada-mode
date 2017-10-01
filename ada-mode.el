@@ -415,6 +415,7 @@ Values defined by cross reference packages.")
      ["Show project"                  ada-prj-show                     t]
      ["Show project file search path" ada-prj-show-prj-path            t]
      ["Show source file search path"  ada-prj-show-src-path            t]
+     ["Delete project ..."            ada-prj-delete                   t]
     )
     ("Build"
      ["Next compilation error"     next-error                t]
@@ -1769,6 +1770,14 @@ Indexed by project variable xref_tool.")
   (ada-select-prj-file (completing-read "project: " ada-prj-alist nil t))
   )
 
+(defun ada-prj-delete ()
+  "Delete a project file from the list of currently available project files."
+  (interactive)
+  (let* ((prj-file (completing-read "project: " ada-prj-alist nil t))
+	 (prj-entry (assoc prj-file ada-prj-alist)))
+    (setq ada-prj-alist (delete prj-entry ada-prj-alist))
+    ))
+
 (defun ada-prj-show ()
   "Show current Emacs Ada mode project file."
   (interactive)
@@ -2046,7 +2055,7 @@ other file.")
 
 (defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
-  (interactive)
+  (interactive "P")
   (when ada-which-function
     (funcall ada-which-function include-type)))
 

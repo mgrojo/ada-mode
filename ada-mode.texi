@@ -491,7 +491,7 @@ in an Ada comment:
 
 @example
 --  Local Variables:
---  jit-lock-defer-time: 0.5
+--  jit-lock-defer-time: 1.5
 --  End:
 @end example
 

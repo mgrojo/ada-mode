@@ -26,7 +26,7 @@ with WisiToken.Lexer;
 with WisiToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
 with System.Storage_Elements;
-procedure Gen_Wisi_Parse
+procedure Gen_Emacs_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
    Version          : constant String := "0.0";
@@ -62,7 +62,7 @@ is
       Put_Line ("04quit");
    end Usage;
 
-   Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (Algorithm => WisiToken.LALR);
+   Parser : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -167,6 +167,8 @@ begin
       end case;
    end;
 
+   Create_Parser (Parser, WisiToken.LALR);
+
    Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
    --  Read commands and tokens from standard_input via GNAT.OS_Lib,
@@ -266,4 +268,4 @@ when E : others =>
    Put_Line
      ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E) & """)");
-end Gen_Wisi_Parse;
+end Gen_Emacs_Wisi_Parse;

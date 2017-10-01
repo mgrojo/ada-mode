@@ -34,4 +34,4 @@ generic
    with procedure Create_Parser
      (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
       Algorithm : in     WisiToken.Parser_Algorithm_Type);
-procedure Gen_Wisi_Parse;
+procedure Gen_Emacs_Wisi_Parse;

@@ -1434,7 +1434,7 @@
        (wisi-statement-action [1 statement-start 2 statement-end]))
       ("raise_statement:1"
        (progn
-       (wisi-statement-action [1 statement-start 5 statement-end])
+       (wisi-statement-action [1 statement-start 4 motion 5 statement-end])
        (wisi-containing-action 1 4)
        (wisi-indent-action [0 ada-indent-broken ada-indent-broken (wisi-anchored% 3 ada-indent-broken) 0])))
       ("raise_statement:2"
@@ -1541,8 +1541,6 @@
      nil
      nil
      (("simple_return_statement:0"
-       (wisi-statement-action [1 statement-start 2 statement-end]))
-      ("simple_return_statement:1"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
        (wisi-indent-action [0 ada-indent-broken 0])))
@@ -1729,6 +1727,7 @@
      (("variant_part:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
+       (wisi-containing-action 1 4)
        (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when 0 0 0])))
       )
      nil
