@@ -188,8 +188,8 @@ package Gpr_Grammar_Process is
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State : aliased WisiToken.Token_Emacs_Process.State_Type (Trace'Access);
 
-   function Create_Parser
-     (Algorithm : in WisiToken.Parser_Algorithm_Type)
-     return WisiToken.Parser.LR.Parser.Instance;
+   procedure Create_Parser
+     (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type);
 
 end Gpr_Grammar_Process;

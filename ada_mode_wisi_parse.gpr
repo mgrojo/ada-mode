@@ -43,7 +43,7 @@ project Ada_Mode_Wisi_Parse is
    for Languages use ("Ada", "C");
 
    package Compiler is
-      --  FIXME: use Standard_Common vars
+      --  FIXME: use Standard_Common vars, publish standard_common
 
       Standard_Style := "-gnaty3abcefhiklnOprtx";
       Line_Length := "-gnatyM120";
@@ -96,15 +96,5 @@ project Ada_Mode_Wisi_Parse is
    package Binder is
       for default_switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;
-
-   package Linker is
-      case Standard_Common.Profile is
-      when "On" =>
-         for Linker_Options use ("-pg", "-lgmem");
-
-      when "Off" =>
-         null;
-      end case;
-   end Linker;
 
 end Ada_Mode_Wisi_Parse;

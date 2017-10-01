@@ -18,8 +18,8 @@
 
 pragma License (GPL);
 
-with Gen_Wisi_Parse;
+with Gen_Emacs_Wisi_Parse;
 with Gpr_Grammar_Process;
-procedure Gpr_Mode_Wisi_Parse is new Gen_Wisi_Parse
+procedure Gpr_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
   (Name          => "gpr_mode",
    Create_Parser => Gpr_Grammar_Process.Create_Parser);

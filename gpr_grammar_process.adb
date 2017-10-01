@@ -26,9 +26,9 @@ package body Gpr_Grammar_Process is
      Source  : in WisiToken.Augmented_Token_Array)
    is null;
 
-   function Create_Parser
-     (Algorithm : in WisiToken.Parser_Algorithm_Type)
-     return WisiToken.Parser.LR.Parser.Instance
+   procedure Create_Parser
+     (Parser    : out    WisiToken.Parser.LR.Parser.Instance;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type)
    is
       use WisiToken.Parser.LR;
       use all type WisiToken.Parser_Algorithm_Type;
@@ -1229,12 +1229,11 @@ package body Gpr_Grammar_Process is
       Add_Action (Table.States (144), 35, Reduce, 60, 0,  9, Elisp_Action'Access);
       Add_Error (Table.States (144));
 
-      return
-        (WisiToken.Lexer.Elisp_Process.New_Lexer (37, Trace'Access),
-         Table, WisiToken.Token.Semantic_State'Class (State)'Access,
-         Shared_Lookahead        => WisiToken.Token_Queues.Empty_Queue,
-         Enable_McKenzie_Recover =>
-           Table.McKenzie.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit,
+      WisiToken.Parser.LR.Parser.New_Parser
+        (Parser,
+         WisiToken.Lexer.Elisp_Process.New_Lexer (37, Trace'Access),
+         Table,
+         WisiToken.Token.Semantic_State'Class (State)'Access,
          Max_Parallel            => 15,
          First_Parser_Label      => 0,
          Terminate_Same_State    => True);

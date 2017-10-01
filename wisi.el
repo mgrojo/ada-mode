@@ -2115,13 +2115,13 @@ NOERROR is nil, throw an error, if non-nil, return nil."
 	  (error "token %s not found" token))))
     tok))
 
-(defun wisi-forward-find-cache-token (id limit)
-  "Search forward for a cache with token ID.
+(defun wisi-forward-find-cache-token (ids limit)
+  "Search forward for a cache with token in IDS (a list of token ids).
 Return cache, or nil if at LIMIT or end of buffer."
   (let ((cache (wisi-forward-cache)))
     (while (and (< (point) limit)
 		(not (eobp))
-		(not (eq (wisi-cache-token cache) id)))
+		(not (memq (wisi-cache-token cache) ids)))
       (setq cache (wisi-forward-cache)))
     cache))
 
@@ -2138,16 +2138,6 @@ If LIMIT (a buffer position) is reached, throw an error."
       (setq cache (wisi-forward-cache))
       (when (>= (point) limit)
 	(error "cache with nonterm %s not found" nonterm)))
-    cache))
-
-(defun wisi-forward-find-cache-token (ids limit)
-  "Search forward for a cache with token in IDS (a list of token ids).
-Return cache, or nil if at LIMIT or end of buffer."
-  (let ((cache (wisi-forward-cache)))
-    (while (and (< (point) limit)
-		(not (eobp))
-		(not (memq (wisi-cache-token cache) ids)))
-      (setq cache (wisi-forward-cache)))
     cache))
 
 (defun wisi-goto-cache-next (cache)

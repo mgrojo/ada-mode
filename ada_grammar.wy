@@ -263,25 +263,27 @@
 %conflict SHIFT/REDUCE in state accept_statement, accept_statement  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state aspect_clause, name on token USE
 %conflict SHIFT/REDUCE in state association_opt, name on token EQUAL_GREATER
-%conflict SHIFT/REDUCE in state attribute_designator, attribute_designator  on token DOT
-%conflict SHIFT/REDUCE in state attribute_designator, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state attribute_reference, attribute_designator  on token TICK_1
 %conflict SHIFT/REDUCE in state declaration, declaration  on token CONSTANT
-%conflict SHIFT/REDUCE in state expression, expression  on token AND
-%conflict SHIFT/REDUCE in state expression, expression  on token OR
-%conflict SHIFT/REDUCE in state expression, expression  on token XOR
 %conflict SHIFT/REDUCE in state expression_function_declaration, subprogram_specification on token IS
 %conflict SHIFT/REDUCE in state formal_derived_type_definition, formal_derived_type_definition on token WITH
-%conflict SHIFT/REDUCE in state generic_formal_part, generic_formal_part  on token FUNCTION
-%conflict SHIFT/REDUCE in state generic_formal_part, generic_formal_part  on token PACKAGE
-%conflict SHIFT/REDUCE in state generic_formal_part, generic_formal_part  on token PROCEDURE
 %conflict SHIFT/REDUCE in state generic_instantiation, generic_instantiation  on token IS
-%conflict SHIFT/REDUCE in state identifier_list, identifier_list  on token COLON
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token FUNCTION
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PACKAGE
+%conflict SHIFT/REDUCE in state generic_renaming_declaration, generic_formal_part  on token PROCEDURE
+%conflict SHIFT/REDUCE in state name, attribute_designator  on token LEFT_PAREN
 %conflict SHIFT/REDUCE in state null_procedure_declaration, subprogram_specification on token IS
+%conflict SHIFT/REDUCE in state object_renaming_declaration, identifier_list  on token COLON
 %conflict SHIFT/REDUCE in state package_body, package_body  on token IS
 %conflict SHIFT/REDUCE in state parameter_specification, parameter_specification  on token NOT
 %conflict SHIFT/REDUCE in state protected_body, protected_body  on token IS
 %conflict SHIFT/REDUCE in state raise_expression, raise_expression on token WITH
+%conflict SHIFT/REDUCE in state relation_and_list, expression  on token AND
+%conflict SHIFT/REDUCE in state relation_and_then_list, expression  on token AND
+%conflict SHIFT/REDUCE in state relation_or_else_list, expression  on token OR
+%conflict SHIFT/REDUCE in state relation_or_list, expression  on token OR
+%conflict SHIFT/REDUCE in state relation_xor_list, expression  on token XOR
+%conflict SHIFT/REDUCE in state selected_component, attribute_designator  on token DOT
 %conflict SHIFT/REDUCE in state task_body, task_body  on token IS
 
 %if lexer = re2c
@@ -2555,6 +2557,7 @@ variant_part
   : CASE direct_name_opt IS variant_list END CASE SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-containing-action 1 4) ;; for goto-declaration-start
       (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when 0 0 0]))
   ;
 

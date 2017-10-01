@@ -18,8 +18,8 @@
 
 pragma License (GPL);
 
-with Gen_Wisi_Parse;
+with Gen_Emacs_Wisi_Parse;
 with Ada_Grammar_Process;
-procedure Ada_Mode_Wisi_Parse is new Gen_Wisi_Parse
+procedure Ada_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
   (Name          => "Ada_mode",
    Create_Parser => Ada_Grammar_Process.Create_Parser);

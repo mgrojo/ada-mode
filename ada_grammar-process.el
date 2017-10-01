@@ -1727,6 +1727,7 @@
      (("variant_part:0"
        (progn
        (wisi-statement-action [1 statement-start 7 statement-end])
+       (wisi-containing-action 1 4)
        (wisi-indent-action [0 ada-indent-broken 0 ada-indent-when 0 0 0])))
       )
      nil
