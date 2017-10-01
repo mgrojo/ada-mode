@@ -20,8 +20,9 @@ pragma License (GPL);
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Lexer.Elisp_Process;
+with WisiToken.Lexer;
 with WisiToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
 with System.Storage_Elements;
@@ -32,7 +33,8 @@ is
 
    Prompt : constant String := ";;> ";
 
-   Protocol_Error : exception;
+   Protocol_Error   : exception;
+   Programmer_Error : exception;
 
    procedure Usage
    is
@@ -60,8 +62,6 @@ is
       Put_Line ("04quit");
    end Usage;
 
-   Programmer_Error : exception;
-
    Parser : WisiToken.Parser.LR.Parser.Instance := Create_Parser (Algorithm => WisiToken.LALR);
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -76,14 +76,14 @@ is
       --  under Emacs nicely; GNAT Text_IO does not return text until
       --  some fairly large buffer is filled.
       --
-      --  With GNAT GPL 2016, GNAT.OS_Lib.Read does _not_ wait for all
-      --  N bytes or EOF; it returns as soon as it gets some bytes.
-      --  WisiToken.Lexer.Elisp_Process handles this for the tokens.
-      --
-      --  Note that with this loop we cannot detect EOF; that's ok for
-      --  this application.
-      loop
+      --  With GNAT GPL 2016, GNAT.OS_Lib.Read does _not_ wait for all N
+      --  bytes or EOF; it returns as soon as it gets some bytes.
+       loop
          Read := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, B, Remaining);
+         if Read = 0 then
+            --  Pipe closed; probably parent Emacs crashed. Force exit.
+            raise Programmer_Error with "input pipe closed";
+         end if;
          Remaining := Remaining - Read;
          exit when Remaining <= 0;
          B := B + Storage_Offset (Read);
@@ -190,21 +190,23 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <buffer_name> <verbosity> <mckenzie_cost_limit> <mckenzie_check_limit>
-            --  Input: <token id>...
+            --  Args: <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit> <source byte count>
+            --  Input: <source text>
             --  Response:
-            --  [parse action elisp vector]...
+            --  [set-text-properties elisp vector]...
             --  [elisp error form]...
             --  prompt
             declare
-               Buffer_Name : constant String := Get_String (Command_Line, Last);
-               pragma Unreferenced (Buffer_Name); --  FIXME: delete arg.
                Cost_Limit  : Integer;
                Check_Limit : Integer;
+               Byte_Count  : Integer;
+               Buffer      : Ada.Strings.Unbounded.String_Access;
             begin
-               WisiToken.Trace_Parse := Get_Integer (Command_Line, Last);
-               Cost_Limit            := Get_Integer (Command_Line, Last);
-               Check_Limit           := Get_Integer (Command_Line, Last);
+               WisiToken.Trace_Parse         := Get_Integer (Command_Line, Last);
+               Parser.Table.McKenzie_Enabled := 1 = Get_Integer (Command_Line, Last);
+               Cost_Limit                    := Get_Integer (Command_Line, Last);
+               Check_Limit                   := Get_Integer (Command_Line, Last);
+               Byte_Count                    := Get_Integer (Command_Line, Last);
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
@@ -212,18 +214,25 @@ begin
                if Check_Limit > 0 then
                   Parser.Table.McKenzie.Check_Limit := Check_Limit;
                end if;
-               Parser.Lexer.Reset;
+
+               Buffer := new String (1 .. Byte_Count);
+               Read_Input (Buffer (1)'Address, Byte_Count);
+
+               Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
+               Ada.Strings.Unbounded.Free (Buffer);
+
             exception
             when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-               WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
-               Put_Line ("(parse_error)"); -- elisp adds more info
+               WisiToken.Lexer.Discard_Rest_Of_Input;
+               Put_Line ("(parse_error)"); -- FIXME: elisp adds more info?
             end;
 
          elsif Match ("noop") then
-            --  Input: <token id>...
+            --  Input: <source text>
             --  Response:
             --  prompt
+            --  FIXME: not edited for new API
             declare
                use WisiToken;
                ID : Token_ID := Invalid_Token_ID;

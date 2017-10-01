@@ -169,7 +169,6 @@
 %token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
 %end if
 
-;; We don't need numeric_literal for indentation, but we do need it for face.
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer

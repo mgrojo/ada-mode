@@ -31,7 +31,7 @@ pragma License (GPL);
 with WisiToken.Parser.LR.Parser;
 generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
-   with function Create_Parser
-     (Algorithm : in WisiToken.Parser_Algorithm_Type)
-     return WisiToken.Parser.LR.Parser.Instance;
+   with procedure Create_Parser
+     (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm : in     WisiToken.Parser_Algorithm_Type);
 procedure Gen_Wisi_Parse;
