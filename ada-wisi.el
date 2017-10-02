@@ -562,8 +562,8 @@ Also return cache at start."
 	(cl-case (wisi-cache-class cache)
 	  ((motion statement-end)
 	   (goto-char
-	    (1- (or (wisi-cache-prev cache)
-		    (wisi-cache-containing cache))))
+	    (or (wisi-cache-prev cache)
+		(wisi-cache-containing cache)))
 	   (setq cache (wisi-get-cache (point))))
 
 	  (statement-start
@@ -627,7 +627,7 @@ Also return cache at start."
   (wisi-validate-cache (point-max) t 'navigate)
 
   (let* ((begin (point))
-	 (end (1- (wisi-cache-end (wisi-get-cache (point)))))
+	 (end (wisi-cache-end (wisi-get-cache (point))))
 	 (cache (wisi-forward-find-class 'name end))
 	 (name (buffer-substring-no-properties
 		(point)

@@ -831,8 +831,7 @@ Used to ignore whitespace changes in before/after change hooks.")
       )))
 
 (defun wisi-get-cache (pos)
-  "Return `wisi-cache' struct from the `wisi-cache' text property at POS.
-If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS must be (1- mark)."
+  "Return `wisi-cache' struct from the `wisi-cache' text property at POS."
   (get-text-property pos 'wisi-cache))
 
 (defun wisi-goto-error ()
@@ -1038,7 +1037,7 @@ If accessing cache at a marker for a token as set by `wisi-cache-tokens', POS mu
   (when cache
     (let ((containing (wisi-cache-containing cache)))
       (and containing
-	   (wisi-get-cache (1- containing))))))
+	   (wisi-get-cache containing)))))
 
 (defun wisi-cache-region (cache &optional start)
   "Return region designated by START (default point) to cache last."
@@ -1099,10 +1098,7 @@ grammar action as:
 		 (region (wisi-tok-region (aref wisi-tokens number)))
 		 (token (wisi-tok-token (aref wisi-tokens number)))
 		 (class (aref pairs (setq i (1+ i))))
-		 (mark
-		  ;; Marker one char into token, so indent-line-to
-		  ;; inserts space before the mark, not after
-		  (when region (copy-marker (1+ (car region)))))
+		 (mark (when region (copy-marker (car region) t)))
 		 cache)
 
 	    (setq i (1+ i))
@@ -1153,7 +1149,7 @@ grammar action as:
 		      (setq first-keyword-mark mark)))
 
 		  (when (eq class 'statement-end)
-		    (wisi--set-end (1- first-keyword-mark) (copy-marker (1+ (car region)))))
+		    (wisi--set-end first-keyword-mark (copy-marker (car region) t)))
 		  )
 
 	      ;; region is nil when a production is empty; if the first
@@ -1200,13 +1196,13 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	  (save-excursion
 	    (goto-char (cdr contained-region))
 	    (let ((cache (wisi-backward-cache))
-		  (mark (copy-marker (1+ (car containing-region)))))
+		  (mark (copy-marker (car containing-region) t)))
 	      (while cache
 
 		;; skip blocks that are already marked
 		(while (and (>= (point) (car contained-region))
 			    (markerp (wisi-cache-containing cache)))
-		  (goto-char (1- (wisi-cache-containing cache)))
+		  (goto-char (wisi-cache-containing cache))
 		  (setq cache (wisi-get-cache (point))))
 
 		(if (or (and (= (car containing-region) (car contained-region))
@@ -1231,9 +1227,7 @@ number is ignored."
 	token)
     (when (or (= start (point))
 	      (and (wisi-cache-containing cache)
-		   ;; containing points to cache, which is stored one
-		   ;; char after token start.
-		   (= (1+ start) (wisi-cache-containing cache))))
+		   (= start (wisi-cache-containing cache))))
       (while (and (not done)
 		  (< i (length tokens)))
 	(setq token (aref tokens i))
@@ -1274,7 +1268,7 @@ vector [number token_id token_id ...]:
 		(unless start (setq start (car region)))
 		(setq cache (wisi-get-cache (car region)))
 		(unless cache (error "no cache on token %d; add to statement-action" token-number))
-		(setq mark (copy-marker (1+ (car region))))
+		(setq mark (copy-marker (car region) t))
 
 		(if prev-keyword-mark
 		    (progn
@@ -1302,7 +1296,7 @@ vector [number token_id token_id ...]:
 		(unless cache (error "no cache at %d; add to statement-action" (car region)))
 		(while (< (point) (cdr region))
 		  (when (wisi--match-token cache token-number start)
-		    (setq mark (copy-marker (1+ (point))))
+		    (setq mark (copy-marker (point) t))
 
 		    (if prev-keyword-mark
 			;; Don't include this token if prev/next
@@ -2141,7 +2135,7 @@ If LIMIT (a buffer position) is reached, throw an error."
     cache))
 
 (defun wisi-goto-cache-next (cache)
-  (goto-char (1- (wisi-cache-next cache)))
+  (goto-char (wisi-cache-next cache))
   (wisi-get-cache (point))
   )
 
@@ -2157,7 +2151,7 @@ if both nil.  Return cache found."
 	  (let ((next (or (wisi-cache-next cache)
 			  (wisi-cache-end cache))))
 	    (if next
-		(goto-char (1- next))
+		(goto-char next)
 	      (wisi-forward-token)
 	      (wisi-forward-cache)))
 	(wisi-forward-cache))
@@ -2177,7 +2171,7 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
 	(unless (eq 'statement-start (wisi-cache-class cache))
 	  (setq prev (wisi-cache-containing cache)))))
     (if prev
-	(goto-char (1- prev))
+	(goto-char prev)
       (wisi-backward-cache))
   ))
 
@@ -2214,7 +2208,7 @@ cache. Otherwise move to cache-prev, or prev cache if nil."
 If ERROR, throw error when CACHE has no container; else return nil."
   (cond
    ((markerp (wisi-cache-containing cache))
-    (goto-char (1- (wisi-cache-containing cache)))
+    (goto-char (wisi-cache-containing cache))
     (wisi-get-cache (point)))
    (t
     (when error
@@ -2241,7 +2235,7 @@ Return start cache."
   cache)
 
 (defun wisi-goto-end-1 (cache)
-  (goto-char (1- (wisi-cache-end cache))))
+  (goto-char (wisi-cache-end cache)))
 
 (defun wisi-goto-statement-start ()
   "Move point to token at start of statement point is in or after.
@@ -2266,14 +2260,14 @@ Return start cache."
   "Move point to CACHE-next, return cache; error if nil."
   (when (not (markerp (wisi-cache-next cache)))
     (error "no next statement cache"))
-  (goto-char (1- (wisi-cache-next cache)))
+  (goto-char (wisi-cache-next cache))
   (wisi-get-cache (point)))
 
 (defun wisi-prev-statement-cache (cache)
   "Move point to CACHE-prev, return cache; error if nil."
   (when (not (markerp (wisi-cache-prev cache)))
     (error "no prev statement cache"))
-  (goto-char (1- (wisi-cache-prev cache)))
+  (goto-char (wisi-cache-prev cache))
   (wisi-get-cache (point)))
 
 ;;;; indentation
@@ -2320,11 +2314,10 @@ the comment on the previous line."
       (when cache
 	;; can be nil if in header comment
 	(let ((start (progn (wisi-goto-start cache) (point)))
-	      (end (progn
-		     (if (wisi-cache-end cache)
+	      (end (if (wisi-cache-end cache)
 			 ;; nil when cache is statement-end
-			 (1- (wisi-cache-end cache))
-		       (point)))))
+			 (wisi-cache-end cache)
+		       (point))))
 	  (indent-region start end)
 	  ))
       )))
