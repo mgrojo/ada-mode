@@ -150,14 +150,15 @@ gpr-skel.gpr.tmp :
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
+# FIXME: delete?
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
-%_wisi_parse.exe : %_wisi_parse.ads %-process.el force
+%_wisi_parse.exe : %_wisi_parse.ads %_process.adb force
 	gprbuild -p wisi_parse.gpr $<
 
-%-process.el : force
-	make -C $(WISI_WISITOKEN) $*-process.el
+%_process.adb : force
+	make -C $(WISI_WISITOKEN) $*_process.adb
 	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
 	cp $(WISI_WISITOKEN)/$*_process.ad? .
 

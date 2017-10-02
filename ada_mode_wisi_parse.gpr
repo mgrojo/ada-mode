@@ -27,8 +27,9 @@ project Ada_Mode_Wisi_Parse is
       "run_gpr_parser.ads"
      );
 
-   for Source_Dirs use (".", "build");
+   for Source_Dirs use (".", "build", "test/wisi");
    --  "build" holds some generated files
+   --  "test/wisi" holds a test
 
    case Standard_Common.Profile is
    when "On" =>
