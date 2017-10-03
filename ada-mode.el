@@ -6,8 +6,8 @@
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
-;; Version: 5.2.2
-;; package-requires: ((wisi "1.1.5") (cl-lib "0.4") (emacs "24.3"))
+;; Version: 5.3.1
+;; package-requires: ((wisi "1.1.6") (cl-lib "0.4") (emacs "24.3"))
 ;; url: http://www.nongnu.org/ada-mode/
 ;;
 ;; (Gnu ELPA requires single digits between dots in versions)
@@ -168,7 +168,7 @@
 (defun ada-mode-version ()
   "Return Ada mode version."
   (interactive)
-  (let ((version-string "5.2.2"))
+  (let ((version-string "5.3.1"))
     ;; must match:
     ;; ada-mode.texi
     ;; README-ada-mode

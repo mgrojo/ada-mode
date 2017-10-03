@@ -5,16 +5,12 @@
 
 (package-initialize)
 
-(setq ada-mode-version "5.2.1")
+(setq ada-mode-version "5.3.1")
 (setq ada-ref-man-version "2012.3")
-(setq wisi-version "1.1.4")
+(setq wisi-version "1.1.6")
 
 (cond
  ;; package handler details change between emacs versions
- ((string-equal emacs-version "24.2.1")
-  (package-install 'cl-lib)
-  (load-file "install-elpa-24.3.el"))
-
  ((string-equal emacs-version "24.3.1")
   (load-file "install-elpa-24.3.el"))
 

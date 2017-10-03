@@ -7,8 +7,8 @@
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 1.1.5
-;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
+;; Version: 1.1.6
+;; package-requires: ((cl-lib "0.4") (emacs "24.3"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.

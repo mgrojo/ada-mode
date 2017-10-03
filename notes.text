@@ -1,7 +1,6 @@
 General notes on Emacs Ada mode
 
 build/Makefile
-build/wisi/Makefile
 
 o.e.a.stephe-1 (from o.e.a): dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser
@@ -59,14 +58,11 @@ install packages in -Q:
  (list-packages))
 
  current work
-preserve point in *gnatfind* buffer on C-u C-c C-r
+migrate to savannah git
+    maintain dual git/mtn for as long as possible
+    either via mtn export, or dual commits
 
-do release
-    version 5.3.1
-
-    test install with MSYS, Cygwin, Linux
-
-    see below
+add missing features to gpr_query; see fixmes.
 
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand
@@ -838,12 +834,12 @@ check emacs buglist
 
 bump versions
     bump if _any_ changes other than autoloads, so ELPA package handler knows to update
+        bump third digit for bug fixes, minor features
         bump second digit for major features
-        bump minor digit for bug fixes, minor features
             - GPS indentation engine
         bump first digit for really major or user-incompatible changes
             - 5 use parser
-            - 6 compute indentation in grammar actions
+            - 6 compute indentation in grammar actions, external parser with error correction
 
     build stuff to compare with previous release in elpa:
         build/Makefile docs pub-ada pub-ada-ref-man pub-wisi
@@ -853,7 +849,7 @@ bump versions
     change versions in compares below to match installed versions.
 
     compare:
-        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.4" "/Projects/elpa/packages/wisi" nil)
+        (ediff-directories "~/.emacs.d/elpa/wisi-1.1.5" "/Projects/elpa/packages/wisi" nil)
             NEWS-wisi.text
                 add release date
                 add new features
@@ -861,7 +857,7 @@ bump versions
             wisi.el
                 Version:
 
-        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.1" "/Projects/elpa/packages/ada-mode" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-mode-5.2.2" "/Projects/elpa/packages/ada-mode" nil)
             NEWS-ada-mode.text
                 add release date
                 add new features
@@ -873,7 +869,7 @@ bump versions
 
             more below
 
-        (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.0" "/Projects/elpa/packages/ada-ref-man" nil)
+        (ediff-directories "~/.emacs.d/elpa/ada-ref-man-2012.3" "/Projects/elpa/packages/ada-ref-man" nil)
             ada-ref-man.el
                 Version:
 
@@ -891,6 +887,10 @@ bump versions
         ADA_MODE_VERSION
         ADA_REF_MAN_VERSION
         WISI_VERSION
+    build/install-elpa.el
+        ada-mode-version
+        ada-ref-man-version
+        wisi-version
 
     (find-file "d:/Web/savannah/ada-mode/index.html")
         ada-mode find-replace i.j.k
@@ -914,22 +914,27 @@ verify other metadata
 check for latest Emacs release
     http://ftp.gnu.org/gnu/emacs/windows/
 
-Emacs 25.1, gnat 2016:
-    build/wisi/Makefile all byte-compile-clean
+Emacs 25.3, gnat 2017:
+run all tests:
+    build/Makefile elisp
 
 prep for other version tests:
-    build/Makefile all
-    # pushes to elpa workspace, builds archive, uninstalls
+    build/Makefile byte-compile-clean pub
+    # pushes to elpa workspace, builds archive
 
-Emacs 24.5, gnat 2015, installed elpa (Eurocontrol)
-    (gnat-2015)
+Emacs 24.5, gnat 2016, installed elpa (Eurocontrol)
+    (gnat-2016)
     (setenv "ADA_MODE_DIR" "-f package-initialize")
-    org.opentoken/build/release/Makefile clean
+    ../org.opentoken/build/release/Makefile clean
+    build/Makefile exe-clean
     build/Makefile install-elpa
-    build/wisi/Makefile all
+    cd ~/.emacs.d/elpa/ada-mode-5.3.1; ./build.sh
+    build/Makefile byte-compile-clean compile-ada-test-clean update-elisp
+    # ignore byte-compile errors in parse_table-mode.el, xref-ada.el due to lack of xref
+    build/Makefile compile-ada-test autoloads test-clean test
     build/Makefile uninstall-elpa
 
-Emacs 24.4, gnat 2016 (sal-standard), installed ada-mode:
+Emacs 24.4, gnat 2016, installed ada-mode:
     (setenv "ADA_MODE_DIR" "-f package-initialize")
     build/Makefile install-elpa
     build/wisi/Makefile all
@@ -1008,8 +1013,6 @@ not under emacs:
 
 (cvs-examine "d:/Web/savannah/ada-mode/" nil)
     mark all, commit
-
-FIXME: wisi-generate.exe to savannah?
 
 after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup:
 

@@ -26,6 +26,9 @@
 (require 'cl-lib)
 (require 'ada-mode) ;; for ada-prj-* etc; will be refactored sometime
 
+(defvar gpr-query--sessions nil) ;; gpr-query.el
+(declare-function gpr-query-kill-session "gpr-query.el" (session) )
+
 ;;;;; code
 
 (defcustom ada-gnat-debug-run nil
