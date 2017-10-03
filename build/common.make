@@ -173,6 +173,10 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
+elisp-clean :
+	rm -f ../*.output ../autoloads.el
+	rm -f ../*-wy.el ../*.elc
+
 %_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
@@ -231,24 +235,18 @@ GPRBUILD := gprbuild
 	makeinfo --html --no-split $< -o ../$@
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-ada-test-clean build-ada-exec-clean test-clean doc-clean
-	find ../ -name "*~" -delete
-	rm -rf ../obj
-	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
-	rm -rf ../gpr_query-process_refresh.adb
-	rm -rf ../ada_mode_gps_indent$(EXE_EXT)
-	rm -rf ../ada_mode_wisi_parse$(EXE_EXT)
+
+clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean
 
 doc-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
-	cd ..; rm -f *-wy.el *.elc
-	rm -f *-wy.el *.elc
 
 # delete the gpr_query database, to be sure it is rebuilt accurately
 # for the current compiler version.
 compile-ada-test-clean :
 	rm -f ../test/*.ali ../test/subdir/*.ali
 	rm -f ../test/*.o ../test/subdir/*.o
+	rm -f ../test/*.std* ../test/subdir/*.std*
 	rm -f ../test/gpr_query.db*
 
 # delete all files created by wisi-generate

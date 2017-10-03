@@ -2,12 +2,12 @@
 ;;
 ;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
-;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
-;; Version: 1.1.5
+;; Version: 1.1.6
 ;; package-requires: ((cl-lib "0.4") (emacs "24.2") (queue "0.1.1"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;

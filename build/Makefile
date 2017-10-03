@@ -19,9 +19,9 @@
 # but currently the code is not that clean; gpr-mode and gpr-query
 # require ada-mode. And it's not worth making gnat-core a package.
 
-export ADA_MODE_VERSION    := 5.2.2
+export ADA_MODE_VERSION    := 5.3.1
 export ADA_REF_MAN_VERSION := 2012.3
-export WISI_VERSION        := 1.1.5
+export WISI_VERSION        := 1.1.6
 
 ELPA_ROOT ?= $(shell cd ../../elpa; pwd)
 
@@ -31,8 +31,7 @@ ADA_MODE_DIR ?= -L .. -l autoloads.el
 
 elisp : byte-compile-clean compile-ada-test-clean update-elisp compile-ada-test autoloads test-clean test
 
-pub : docs pub-ada pub-wisi build-elpa uninstall-elpa
-pub : pub-ada-ref-man
+pub : docs pub-ada pub-wisi pub-ada-ref-man build-elpa uninstall-elpa
 
 docs : info html
 
@@ -230,6 +229,7 @@ pub-ada : force
 	rm -rf $(ELPA_ROOT)/packages/ada-mode/*
 	cp ../ada*.el ../ada-*.texi ../ada-*.info ../ada_license.text $(ELPA_ROOT)/packages/ada-mode
 	rm $(ELPA_ROOT)/packages/ada-mode/ada-ref-man.el
+	cp ../build.sh $(ELPA_ROOT)/packages/ada-mode/
 	cp ../dir-ada-mode $(ELPA_ROOT)/packages/ada-mode/dir
 	cp ../NEWS-ada-mode.text $(ELPA_ROOT)/packages/ada-mode/NEWS
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
@@ -237,8 +237,8 @@ pub-ada : force
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
-	rm $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
-	rm $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
+	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
+	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
@@ -264,6 +264,7 @@ pub-wisi : force
 	cp ../README-wisi $(ELPA_ROOT)/packages/wisi/README
 	cp ../NEWS-wisi.text $(ELPA_ROOT)/packages/wisi/NEWS
 	cp ../wisi*.el $(ELPA_ROOT)/packages/wisi
+	cp ../parse_table-mode.el $(ELPA_ROOT)/packages/wisi
 
 # 'make -C elpa all-in-place' does not build archive-contents, just *.elc
 #
@@ -301,8 +302,6 @@ EXE_EXT :=
 GNAT_EXE    := $(shell which gnat)
 INSTALL_BIN := $(dir $(GNAT_EXE))
 
-# export GPS_ROOT ?= /Projects/gps-gpl-2016-src/
-
 else ifeq ($(shell uname),Darwin)
 EXE_EXT :=
 
@@ -325,17 +324,30 @@ endif
 #export Ada_Mode_GPS_Indent_Build := Debug
 #export BUILD := Debug
 
+# In December 2016, GNATCOLL changed its Xref interface. First, the
+# GPR was split out; and second, one of the subprogram
+# interfaces.changed.
+
+# Determine whether the split-out gnatcoll_xref.gpr is available.
+Makefile.conf : create_makefile_conf.sh
+	./create_makefile_conf.sh
+
+include Makefile.conf
+
 ../gpr_query-process_refresh.adb : ../gpr_query-process_refresh.adb.gp
-	gnatprep -DGNAT_VERSION=$(GNAT_VERSION) $< $@
+	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
 
 ../gpr_query.gpr : ../gpr_query.gpr.gp
-	gnatprep -DGNAT_VERSION=$(GNAT_VERSION) $< $@
+	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
+
+../ada_mode_gps_indent.gpr : ../ada_mode_gps_indent.gpr.gp
+	gnatprep -DHAVE_GNATCOLL_XREF=$(HAVE_GNATCOLL_XREF) $< $@
 
 gpr_query$(EXE_EXT) : gpr_query-process_refresh.adb ../gpr_query.gpr force
 	gprbuild -p ../gpr_query.gpr
 
 # (setq ada-gps-exec (concat default-directory "ada_mode_gps_indent"))
-ada_mode_gps_indent$(EXE_EXT) : force
+ada_mode_gps_indent$(EXE_EXT) : ../ada_mode_gps_indent.gpr force
 	gprbuild -p ../ada_mode_gps_indent.gpr
 
 debug_gps_indent$(EXE_EXT) : force

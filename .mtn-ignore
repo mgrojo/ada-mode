@@ -18,12 +18,15 @@
 ^build/.*\.tar\.gz$
 ^build/.*\.tmp$
 ^build/.*\.wisi-test$
+^build/Makefile\.conf$
+^build/check_xref\.gpr$
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$
 ^build/subprograms_process\.adb$
 ^build/subprograms_process\.ads$
 ^build/test\.casing$
+^check_xref\.gpr$
 ^dir-ada-mode$
 ^exec_pro$
 ^gpr-mode\.html$
@@ -37,6 +40,8 @@
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/.*\.o$
+^test/.*\.stderr$
+^test/.*\.stdout$
 ^test/Example_1/.*\.o$
 ^test/Example_2/hello\.o$
 ^test/Example_4/Gnat_Project/hello_pkg\.o$

@@ -68,7 +68,7 @@
 	  cache)
       (goto-char (point-min))
       (while (not (eobp))
-	(setq cache (wisi-forward-find-cache-token '(IDENTIFIER name) (point-max)))
+	(setq cache (wisi-forward-find-cache-token '(IDENTIFIER name )(point-max)))
 	(cond
 	 ((null cache)
 	  ;; eob
