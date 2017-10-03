@@ -59,6 +59,15 @@ install packages in -Q:
  (list-packages))
 
  current work
+preserve point in *gnatfind* buffer on C-u C-c C-r
+
+do release
+    version 5.3.1
+
+    test install with MSYS, Cygwin, Linux
+
+    see below
+
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand
     use buffer-local skel-token-alist
@@ -66,50 +75,10 @@ refactor {ada|gpr|java}-skel-expand
 help-do-xref respect other-frame-window
     find the code that sets the 'help-function attribute, change it to use display-buffer
 
-fix release
-    version 5.3.1
-    gpr_query section in .info: menu structure wrong
-    can't build gpr_query from elpa install; need to run gnatprep
-        gcc run gnatprep, but not on gpr files
-        teach gprbuild to do it; provide an xml file
-        or use sh
-
-        check for gnatcoll_xref.gpr existence, not gnat version
-            see .sjw branch
-
-    test install with MSYS, Cygwin, Linux
-
-    ada_mode_gps_indent.gpr also needs gnatprep for 2017
-
-    test gnat gpl 2017 on linux
-        change NEWS statement; only not supported on Windows?
-
-    see below
-
 Ada 2020 features:
     delta aggregates (partial aggregate notation)
     http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.10
     wait for wisi-2.0
-
-upgrade to gnat gpl 2017
-    copy libiconv from mingw32; see wisi-user_guide install
-
-    gpr_query installed
-        crashes in test/ada_mode-child_procedure.adb
-        and under main emacs
-        run in gdb; in Tree.Load
-        need debug enabled in gnatcoll; reinstall with Gnatcoll_Build=Debug
-        crashes in gnatcoll-projects.adb Load call to Internal_Load
-        in call to Set_Path_From_Gnatls_Attribute
-            due to missing 'with' (should not be any!?)
-        in call to Process_gnatlist (default_gnatlist)
-        'catch exception' lands in gnatcoll_utils.Get_Command_Output call to Expect
-            exception process_died
-            handled right there, but never gets to the handler
-                spawn process is just broken?
-                try small example
-
-    try reinstall gnatcoll?
 
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent

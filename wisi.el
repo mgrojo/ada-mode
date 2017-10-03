@@ -2,8 +2,8 @@
 ;;
 ;; Copyright (C) 2012 - 2017  Free Software Foundation, Inc.
 ;;
-;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: parser
 ;;  indentation
 ;;  navigation
@@ -1246,13 +1246,13 @@ error, if non-nil, return nil."
 	  (error "cache with token %s not found" token))))
     cache))
 
-(defun wisi-forward-find-cache-token (id limit)
-  "Search forward for a cache with token ID.
+(defun wisi-forward-find-cache-token (ids limit)
+  "Search forward for a cache with token in IDS (a list of token ids).
 Return cache, or nil if at LIMIT or end of buffer."
   (let ((cache (wisi-forward-cache)))
     (while (and (< (point) limit)
 		(not (eobp))
-		(not (eq (wisi-cache-token cache) id)))
+		(not (memq (wisi-cache-token cache) ids)))
       (setq cache (wisi-forward-cache)))
     cache))
 

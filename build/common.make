@@ -152,6 +152,10 @@ else
 	cd ./$(<D); dos2unix $(@F)
 endif
 
+elisp-clean :
+	rm -f ../*.output ../autoloads.el
+	rm -f ../*-wy.el ../*.elc
+
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
 
@@ -198,19 +202,17 @@ GPRBUILD := gprbuild
 	makeinfo --html --no-split $< -o ../$@
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
-clean :: compile-ada-test-clean test-clean doc-clean
-	find ../ -name "*~" -delete
+clean :: compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean
 
 doc-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
-	cd ..; rm -f *-wy.el *.elc
-	rm -f *-wy.el *.elc
 
 # delete the gpr_query database, to be sure it is rebuilt accurately
 # for the current compiler version.
 compile-ada-test-clean :
 	rm -f ../test/*.ali ../test/subdir/*.ali
 	rm -f ../test/*.o ../test/subdir/*.o
+	rm -f ../test/*.std* ../test/subdir/*.std*
 	rm -f ../test/gpr_query.db*
 
 test-clean ::
@@ -220,7 +222,6 @@ test-clean ::
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../test/wisi/; rm -f *-wy.el *.output
-
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

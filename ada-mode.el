@@ -2,8 +2,8 @@
 ;;
 ;; Copyright (C) 1994, 1995, 1997 - 2017  Free Software Foundation, Inc.
 ;;
-;; Author: Stephen Leake <stephen_leake@member.fsf.org>
-;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
+;; Author: Stephen Leake <stephen_leake@stephe-leake.org>
+;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages
 ;;  ada
 ;; Version: 5.2.2
@@ -2048,7 +2048,7 @@ other file.")
 
 (defun ada-which-function (&optional include-type)
   "See `ada-which-function' variable."
-  (interactive)
+  (interactive "P")
   (when ada-which-function
     (funcall ada-which-function include-type)))
 
