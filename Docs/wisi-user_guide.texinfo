@@ -79,7 +79,7 @@ characters as input; we use @code{GNATCOLL.Iconv} to convert from
 other formats. That requires the @code{libiconv} library. On Linux,
 use the package manager to install the appropriate development
 package. On Windows, one way to get @code{libiconv} is to install
-MingW32 (http://www.msys2.org/), use its package manger to install
+MingW32 (@url{http://www.msys2.org/}), use its package manger to install
 @code{libiconv}, then copy the @code{libiconv} files to the GNAT
 installation:
 

@@ -26,7 +26,7 @@ package body WisiToken.Lexer is
    begin
       case Source.Label is
       when String_Label =>
-         return To_Str_Access (GNAT.Strings.String_Access (Source.Buffer));
+         return Short.To_Str_Access (GNAT.Strings.String_Access (Source.Buffer));
 
       when File_Label =>
          return Data (Source.Region);
