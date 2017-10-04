@@ -47,7 +47,7 @@ compute indent in Ada
     subprograms.wisi-process-test
 
     implement all actions in Ada
-        wisi.runtime.indent
+        wisitoken-wisi_runtime.adb
 
     accumulate text_properties
         for indent, store in array indexed by line number; elisp pass in max line number

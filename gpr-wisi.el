@@ -27,13 +27,6 @@
 (require 'gpr-mode)
 (require 'wisi)
 
-(defconst gpr-wisi-class-list
-  '(
-    motion
-    statement-end
-    statement-start
-    ))
-
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
   (wisi-validate-cache (point) nil 'navigate)
@@ -73,7 +66,6 @@
   (wisi-setup
    :indent-calculate nil
    :post-indent-fail nil
-   :class-list gpr-wisi-class-list
    :parser
    (cond
     ((or (null gpr-parser)

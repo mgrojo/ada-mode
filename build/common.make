@@ -119,13 +119,14 @@ SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp
+.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp %_process.adb
 
 .PHONY : all force one test test-clean
 
 vpath %.adb ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.ads ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.el ../ ../test/wisi
+vpath %.input ../test/wisi
 vpath %.gpr ../test/gpr
 vpath %.wy ../ ../test/wisi
 
@@ -161,6 +162,7 @@ gpr-skel.gpr.tmp :
 	make -C $(WISI_WISITOKEN) $*_process.adb
 	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
 	cp $(WISI_WISITOKEN)/$*_process.ad? .
+	cp $(WISI_WISITOKEN)/$**re2c* .
 
 .PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
 

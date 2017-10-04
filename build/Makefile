@@ -102,11 +102,15 @@ summarize :
 
 ONE_TEST_FILES += ada_mode-options.adb
 #ONE_TEST_FILES += debug.adb
-one : RUNTEST := run-indent-test-process-gpr_query.el
-# one : update
-one : one-clean $(addsuffix .diff-run, $(ONE_TEST_FILES))
+#one : build_ada_executables
+one : subprograms_wisi_parse.exe
+one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+one : RUNTEST := run-indent-test-process-gpr_query.el
+one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
+# one : RUNTEST := run-indent-test-process-gpr_query.el
+# one : $(addsuffix .wisi-process-test, $(ONE_TEST_FILES))
 
 two : RUN_ARGS ?= --verbosity 2
 # run_ada_parser.exe : export Standard_Common_Build := Debug
@@ -134,7 +138,7 @@ export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
-export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
+export WISI_WISITOKEN ?= /Projects/org.wisitoken.stephe-1/build
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
@@ -370,7 +374,7 @@ $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gp
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
-# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken/build"))
+# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken.stephe-1/build"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
 # end:

@@ -204,11 +204,11 @@ begin
                Byte_Count  : Integer;
                Buffer      : Ada.Strings.Unbounded.String_Access;
             begin
-               WisiToken.Trace_Parse         := Get_Integer (Command_Line, Last);
-               Parser.Table.McKenzie_Enabled := 1 = Get_Integer (Command_Line, Last);
-               Cost_Limit                    := Get_Integer (Command_Line, Last);
-               Check_Limit                   := Get_Integer (Command_Line, Last);
-               Byte_Count                    := Get_Integer (Command_Line, Last);
+               WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);
+               Parser.Enable_McKenzie_Recover := 1 = Get_Integer (Command_Line, Last);
+               Cost_Limit                     := Get_Integer (Command_Line, Last);
+               Check_Limit                    := Get_Integer (Command_Line, Last);
+               Byte_Count                     := Get_Integer (Command_Line, Last);
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
@@ -226,7 +226,7 @@ begin
 
             exception
             when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
-               WisiToken.Lexer.Discard_Rest_Of_Input;
+               Parser.Lexer.Discard_Rest_Of_Input;
                Put_Line ("(parse_error)"); -- FIXME: elisp adds more info?
             end;
 
@@ -246,7 +246,7 @@ begin
                end loop;
             exception
             when WisiToken.Syntax_Error =>
-               WisiToken.Lexer.Elisp_Process.Instance (Parser.Lexer.all).Discard_Rest_Of_Input;
+               Parser.Lexer.Discard_Rest_Of_Input;
             end;
 
          elsif Match ("quit") then

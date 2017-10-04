@@ -32,8 +32,6 @@ project Wisi_Parse is
       Standard_Style := "-gnaty3abcefhiklnOprtx";
       Line_Length := "-gnatyM120";
 
-      Aflex_Style := ("-gnatyfikM120Op", "-gnatwKUR");
-
       Common_Switches :=
         ("-g",
          "-gnata",  -- assertions
@@ -45,8 +43,9 @@ project Wisi_Parse is
          "-fstack-check",
          "-gnat12");
 
-      for Default_Switches ("Ada") use Common_Switches & Aflex_Style & ("-O0");
-
+      --  Lines in subprograms_process.adb can exceed 120 char;
+      --  we leave out line_length check for all files; it's simpler
+      for Default_Switches ("Ada") use Common_Switches & Standard_Style & ("-O0");
 
    end Compiler;
 
