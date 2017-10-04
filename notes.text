@@ -81,9 +81,6 @@ disable or use electric-indent-post-self-insert-function
     on post-self-insert-hook
         use that for ada-mode capitalization
 
-show list of projects in ada | Project | select
-    see prj_select for code
-
 Smart edit - delete if/then/endif, leaving content
 
 Try antlr error recovery on Ada. Add elisp target.
@@ -120,10 +117,6 @@ gps vs wisi
     aspect continuation
 
     anonymous access function return type
-
-ada_mode_gps_indent.gpr use gps.gpr?
-    reduce source installed?
-    or doc why not
 
 https://www.emacswiki.org/emacs/AdaMode
 
