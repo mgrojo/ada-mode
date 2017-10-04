@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  See spec.
+--  see spec
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Unbounded_Definite_Queues is
+package body SAL.Gen_Unbounded_Indefinite_Queues is
 
    procedure Clear (Queue : in out Queue_Type)
    is begin
@@ -67,6 +67,23 @@ package body SAL.Gen_Unbounded_Definite_Queues is
       return (Element => Element_Lists.Constant_Reference (Queue.Data, I).Element, Dummy => 1);
    end Peek;
 
+   function Variable_Peek (Queue : in out Queue_Type; N : Peek_Type := 1) return Variable_Reference_Type
+   is
+      use Ada.Containers;
+      use Element_Lists;
+      I : Cursor := Queue.Data.First;
+   begin
+      if Count_Type (N) > Queue.Data.Length then
+         raise Parameter_Error;
+      end if;
+
+      for K in 2 .. N loop
+         Next (I);
+      end loop;
+
+      return (Element => Element_Lists.Reference (Queue.Data, I).Element, Dummy => 1);
+   end Variable_Peek;
+
    procedure Add (Queue : in out Queue_Type; Item : in Element_Type)
    is begin
       Queue.Data.Append (Item);
@@ -77,4 +94,4 @@ package body SAL.Gen_Unbounded_Definite_Queues is
       Queue.Data.Prepend (Item);
    end Add_To_Head;
 
-end SAL.Gen_Unbounded_Definite_Queues;
+end SAL.Gen_Unbounded_Indefinite_Queues;

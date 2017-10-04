@@ -1,6 +1,6 @@
 --  Abstract:
 --
---  An unbounded queue of definite non-limited elements.
+--  An unbounded queue of indefinite non-limited elements.
 --
 --  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
 --
@@ -17,10 +17,10 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 generic
-   type Element_Type is private;
-package SAL.Gen_Unbounded_Definite_Queues is
+   type Element_Type (<>) is private;
+package SAL.Gen_Unbounded_Indefinite_Queues is
 
    type Queue_Type is tagged private;
 
@@ -43,7 +43,7 @@ package SAL.Gen_Unbounded_Definite_Queues is
    function Remove (Queue : in out Queue_Type) return Element_Type;
    --  Remove head/front item from Queue, return it.
    --
-   --  Raise Container_Empty if Is_Empty.
+   --  Raises Container_Empty if Is_Empty.
 
    function Get (Queue : in out Queue_Type) return Element_Type renames Remove;
 
@@ -53,14 +53,22 @@ package SAL.Gen_Unbounded_Definite_Queues is
    --  Raise Container_Empty if Is_Empty.
 
    type Constant_Reference_Type (Element : not null access constant Element_Type) is private
-   with
-      Implicit_Dereference => Element;
+   with Implicit_Dereference => Element;
 
    function Peek (Queue : in Queue_Type; N : Peek_Type := 1) return Constant_Reference_Type;
    --  Return a constant reference to a queue item. N = 1 is the queue
    --  head.
    --
-   --  Raise Parameter_Error if N > Count
+   --  Raises Parameter_Error if N > Count
+
+   type Variable_Reference_Type (Element : not null access Element_Type) is private
+   with Implicit_Dereference => Element;
+
+   function Variable_Peek (Queue : in out Queue_Type; N : Peek_Type := 1) return Variable_Reference_Type;
+   --  Return a variable reference to a queue item. N = 1 is the queue
+   --  head.
+   --
+   --  Raises Parameter_Error if N > Count
 
    procedure Add (Queue : in out Queue_Type; Item : in Element_Type);
    --  Add Element to the tail/back of Queue.
@@ -72,10 +80,13 @@ package SAL.Gen_Unbounded_Definite_Queues is
 
 private
 
-   package Element_Lists is new Ada.Containers.Doubly_Linked_Lists (Element_Type);
+   package Element_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Element_Type);
 
-   --  We don't provide cursors or write access to queue elements, so we
-   --  don't need any tampering checks.
+   --  We don't provide cursors, so we don't need any tampering checks.
+   --
+   --  It is possible for two tasks to be doing a variable Peek on the
+   --  same element; this container is not task safe anyway (two tasks
+   --  can do put/get).
 
    type Queue_Type is tagged record
       Data : Element_Lists.List;
@@ -87,6 +98,11 @@ private
       Dummy : Integer := raise Program_Error with "uninitialized reference";
    end record;
 
+   type Variable_Reference_Type (Element : not null access Element_Type) is
+   record
+      Dummy : Integer := raise Program_Error with "uninitialized reference";
+   end record;
+
    Empty_Queue : constant Queue_Type := (Data => Element_Lists.Empty_List);
 
-end SAL.Gen_Unbounded_Definite_Queues;
+end SAL.Gen_Unbounded_Indefinite_Queues;
