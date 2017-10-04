@@ -515,7 +515,7 @@ Prompt user if more than one."
 	     (insert "pragma Unreferenced (" param ");"))
 	   t)
 
-	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced$"))
+	  ((looking-at (concat "warning: unit " ada-gnat-quoted-name-regexp " is not referenced"))
 	   ;; just delete the 'with'; assume it's on a line by itself.
 	   (pop-to-buffer source-buffer)
 	   (beginning-of-line)

@@ -99,7 +99,7 @@ test-wisi :: subprograms.wisi-process-test
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += ada_mode-options.adb
+ONE_TEST_FILES += ada_mode-recover_virtual.adb
 #ONE_TEST_FILES += debug.adb
 one : RUNTEST := run-indent-test-process-gpr_query.el
 # one : update
@@ -235,6 +235,7 @@ pub-ada : force
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb

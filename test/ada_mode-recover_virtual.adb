@@ -14,18 +14,18 @@
 -- The test is that parsing signals no errors, and the syntax errors
 -- are reported properly.
 
---EMACSCMD:(wisi-parse-buffer 'navigate)
+--EMACSCMD:(wisi-validate-cache (point-max) nil 'navigate)
 --EMACSCMD:(length (wisi-parser-errors wisi--parser))
 --EMACSRESULT:2
 
---EMACSCMD:(wisi-parse-buffer 'face)
+--EMACSCMD:(wisi-validate-cache (point-max) nil 'face)
 
---EMACSCMD:(wisi-parse-buffer 'indent)
+--EMACSCMD:(wisi-indent-region (point-min) (point-max))
 procedure Journal_To_TSV
 is
    procedure Process_Text_File
    is begin
-   exception
+exception
    if then end if;
 end Process_Text_File;
 begin

@@ -19,7 +19,8 @@
 %parser_algorithm LALR
 %output_language Elisp
 
-%conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
+%conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state sequence_of_statements, sequence_of_statements  on token IDENTIFIER
 
 %%
 

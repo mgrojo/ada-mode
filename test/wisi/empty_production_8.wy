@@ -18,7 +18,7 @@
 %parser_algorithm LALR
 %output_language Elisp
 
-%conflict SHIFT/REDUCE in state constant_opt, aliased_opt on token CONSTANT
+%conflict SHIFT/REDUCE in state object_declaration, object_declaration  on token CONSTANT
 
 %%
 

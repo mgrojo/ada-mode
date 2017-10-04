@@ -1,9 +1,9 @@
-;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;; test a former WisiToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
 ;; also test number-literal
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression
 ;;
-;; (ediff "case_expression.wy" "../../../org.opentoken.stephe/wisi/test/case_expression.wy")
+;; (ediff "case_expression.wy" "../../../org.wisitoken/wisi/test/case_expression.wy")
 
 %{
 ;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
@@ -25,8 +25,8 @@
 %}
 
 ;; non-reporting
-;; whitespace added by wisi-generate
-%token <line_comment> COMMENT "--"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
@@ -34,12 +34,14 @@
 %token <punctuation> TICK "'"
 
 %token <number> NUMBER_LITERAL wisi-number-p
-%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
 %keyword RANGE "range"
 %keyword WHEN "when"
 
 %start case_expression
+%first_state_index 0
+%first_parser_label 0
 %parser_algorithm LALR
 %output_language Elisp
 %%
@@ -78,8 +80,4 @@ range_nt
   ;
 
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

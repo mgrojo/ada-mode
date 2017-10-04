@@ -39,17 +39,53 @@
   (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
   (when (> (wisi-cache-max 'navigate) (point))
-    (let ((cache (wisi-backward-cache)))
-      (while (and cache
-		  (not (and
-			(memq (wisi-cache-nonterm cache) '(package_spec simple_project_declaration))
-			(eq (wisi-cache-class cache) 'statement-start))))
+    (let ((cache (wisi-backward-cache))
+	  done
+	  project-pos
+	  package-pos
+	  decl-pos)
+      (while (and cache (not done))
+	;; find attribute_declaration and package containing point (if any)
+	(cond
+	 ((not (eq (wisi-cache-class cache) 'statement-start))
+	  nil)
+
+	 ((eq (wisi-cache-nonterm cache) 'attribute_declaration)
+	  (setq decl-pos (point)))
+
+	 ((eq (wisi-cache-nonterm cache) 'package_spec)
+	  (setq package-pos (point))
+	  (setq done t))
+
+	 ((eq (wisi-cache-nonterm cache) 'simple_project_declaration)
+	  (setq project-pos (point))
+	  (setq done t))
+	 )
+
 	(setq cache (wisi-goto-containing cache)))
-      (when cache
-	(wisi-forward-token); package | project
-	(wisi-token-text (wisi-forward-token)); name
-	))
-    ))
+
+      (cond
+       (package-pos
+	(goto-char package-pos)
+	(setq done t))
+
+       (decl-pos
+	(goto-char decl-pos)
+	(setq done t))
+
+       (project-pos
+	(goto-char project-pos)
+	(setq done t))
+
+       (t ;; before project
+	(setq done nil))
+       )
+
+      (when done
+	(wisi-forward-token); keyword
+	(wisi-token-text (wisi-forward-token))); name
+
+      )))
 
 ;;; debugging
 (defun gpr-wisi-debug-keys ()

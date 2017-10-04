@@ -414,7 +414,7 @@ from TOKEN-TABLE."
 	   :token (aref token-table (1- (aref sexp 1)))
 	   :region nonterm-region
 	   :virtual (and (< 0 virtual-count)
-			 (= (length tokens-1) (+ virtual-count empty-count)))
+			 (= token-count (+ virtual-count empty-count)))
 	   :nonterminal t
 	   :line nonterm-line
 	   :first nonterm-first

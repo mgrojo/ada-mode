@@ -249,8 +249,18 @@ compile-ada-test-clean :
 	rm -f ../test/*.std* ../test/subdir/*.std*
 	rm -f ../test/gpr_query.db*
 
+exe-clean ::
+	rm -rf ../obj Makefile.conf
+	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
+	rm -rf ../gpr_query-process_refresh.adb
+	rm -rf ../ada_mode_gps_indent$(EXE_EXT) ../ada_mode_gps_indent.gpr
+	rm -rf ../ada_mode_wisi_parse$(EXE_EXT)
+	rm -rf ../gpr_mode_wisi_parse$(EXE_EXT)
+	rm -rf ../run_ada_parser$(EXE_EXT)
+	rm -rf ../run_gpr_parser$(EXE_EXT)
+
 # delete all files created by wisi-generate
-build-ada-exec-clean : PATTERNS := *.*_output *.*_parse_table *.re2c *_re2c.c *.exe
+build-ada-exec-clean : PATTERNS := *.*_output *.*_parse_table *.re2c *_re2c.c
 build-ada-exec-clean :
 	rm -f $(PATTERNS) *.ad?
 	cd ..; rm -f $(PATTERNS) *_grammar-elisp.el *_grammar-process.el *_grammar.*_parse_table *_grammar_process.ad?

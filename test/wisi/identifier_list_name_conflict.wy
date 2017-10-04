@@ -45,7 +45,7 @@
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
 %conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
-%conflict REDUCE/REDUCE in state identifier_list, name on token EOI
+%conflict REDUCE/REDUCE in state identifier_list, name on token Wisi_EOI
 
 %%
 
