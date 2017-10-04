@@ -2,20 +2,23 @@
 ;;; with command line: wisi-generate.exe --parser_algorithm LALR_LR1 --output_language Elisp --lexer Elisp
 ;;; ../wisi/test/character_literal.wy
 
---  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
---
---  This program is free software; you can redistribute it and/or
---  modify it under the terms of the GNU General Public License as
---  published by the Free Software Foundation; either version 3, or (at
---  your option) any later version.
---
---  This software is distributed in the hope that it will be useful,
---  but WITHOUT ANY WARRANTY; without even the implied warranty of
---  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
---  General Public License for more details.
---
---  You should have received a copy of the GNU General Public License
---  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+;;  spec context clause
+;;  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+;;
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
+;;
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
+;;
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+
 
 (require 'wisi)
 (require 'semantic/lex)
@@ -49,16 +52,19 @@
      ((compilation_unit
        ((statement_list )))
       (statement_list
-       ((statement ))
+       ((statement )
+        (Test_Statement_List_0 (Nonterm);))
        ((statement_list statement )))
       (statement
        ((IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON )
         (Character_Literal_Count :=
-        Character_Literal_Count + 1;))
+        Character_Literal_Count + 1;
+        Test_Statement_0 (Source);))
        ((IDENTIFIER tick IDENTIFIER SEMICOLON )
-        (Bounds := WisiToken.Token_Region.Token (Source.Element (3)).Region;))
+        (Char_Region := WisiToken.Token_Line_Comment.Token (Source.Element (3)).Char_Region;))
        ((STRING_LITERAL SEMICOLON )
-        (String_Literal_Count := String_Literal_Count + 1;))
+        (String_Literal_Count := String_Literal_Count + 1;
+        Test_Statement_2 (Source);))
        ((FOO SEMICOLON )))
       (tick
        ((TICK_1 ))))

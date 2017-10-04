@@ -150,14 +150,7 @@ package body WisiToken.Lexer.Regexp is
 
    overriding procedure Finalize (Object : in out Instance)
    is begin
-      case Object.Source.Label is
-      when String_Label =>
-         Ada.Strings.Unbounded.Free (Object.Source.Buffer);
-
-      when File_Label =>
-         GNATCOLL.Mmap.Free (Object.Source.Region);
-         GNATCOLL.Mmap.Close (Object.Source.File);
-      end case;
+      Finalize (Object.Source);
    end Finalize;
 
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String)
@@ -165,11 +158,26 @@ package body WisiToken.Lexer.Regexp is
       Finalize (Lexer);
 
       Lexer.Source :=
-        (Label  => String_Label,
-         Buffer => new String'(Input));
+        (Label       => String_Label,
+         Buffer      => new String'(Input),
+         User_Buffer => False);
 
       Reset (Lexer);
    end Reset_With_String;
+
+   overriding procedure Reset_With_String_Access
+     (Lexer : in out Instance;
+      Input : in     Ada.Strings.Unbounded.String_Access)
+   is begin
+      Finalize (Lexer);
+
+      Lexer.Source :=
+        (Label       => String_Label,
+         Buffer      => Input,
+         User_Buffer => True);
+
+      Reset (Lexer);
+   end Reset_With_String_Access;
 
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
    is
@@ -221,14 +229,19 @@ package body WisiToken.Lexer.Regexp is
       return Ada.Text_IO.Count (Lexer.Lexeme_Head);
    end Column;
 
-   overriding function Lexeme (Lexer : in Instance) return String
-   is begin
-      return Lexer.Source.Buffer (Lexer.Lexeme_Head .. Lexer.Lexeme_Tail);
-   end Lexeme;
-
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
       return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
-   end Bounds;
+   end Char_Region;
+
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
+   is begin
+      return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
+   end Byte_Region;
+
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
+   is begin
+      return Lexer.Source.Buffer (Byte_Region.First .. Byte_Region.Last);
+   end Buffer_Text;
 
 end WisiToken.Lexer.Regexp;

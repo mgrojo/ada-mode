@@ -2,13 +2,16 @@
 ;;; production, where first can be empty, were handled wrong.
 
 %{
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword IN "in"
 
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]+
 
-%token <whitespace> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
 
 %start compilation_unit
 %first_state_index 1

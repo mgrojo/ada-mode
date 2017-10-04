@@ -1,6 +1,9 @@
 ;;; finding bug in parse table generator; 2 nonterms at start of production can be empty
 
 %{
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %token <punctuation> SEMICOLON ";"
@@ -11,7 +14,7 @@
 
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-%token <whitespace> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
 
 %start compilation_unit
 %first_state_index 1

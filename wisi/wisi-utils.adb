@@ -70,6 +70,7 @@ package body Wisi.Utils is
    is
       use Standard.Ada.Text_IO;
    begin
+      Error := True;
       Put_Line (Standard_Error, Error_String (File_Name, File_Line, Message));
    end Put_Error;
 
@@ -77,6 +78,7 @@ package body Wisi.Utils is
    is
       use Standard.Ada.Text_IO;
    begin
+      Error := True;
       Put_Error (Name (File), Line (File) - 1, Message);
    end Put_Error;
 

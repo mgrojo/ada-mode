@@ -16,6 +16,9 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 
 %}
 %keyword LEFT_PAREN "("
@@ -25,7 +28,7 @@
 
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-%token <whitespace> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
 
 %start name
 %first_state_index 1

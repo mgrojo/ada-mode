@@ -193,7 +193,9 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Position  :         in Parser_Node_Access)
      return Constant_Reference_Type
    is begin
-      return (Element => Parser_State_Lists.Constant_Reference (Container.Elements, Position.Ptr).Element);
+      return
+        (Element => Parser_State_Lists.Constant_Reference (Container.Elements, Position.Ptr).Element,
+         Dummy   => 1);
    end Constant_Reference;
 
    function Reference

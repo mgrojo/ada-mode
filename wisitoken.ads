@@ -40,8 +40,8 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
 with Ada.Text_IO;
-with SAL.Gen_Queue_Interfaces;
 with SAL.Gen_Unbounded_Definite_Queues;
+with SAL.Gen_Unbounded_Indefinite_Queues;
 package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -74,8 +74,7 @@ package WisiToken is
 
    Invalid_Token_ID : constant Token_ID := Token_ID'Last;
 
-   package Token_Interfaces is new SAL.Gen_Queue_Interfaces (Token_ID);
-   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_ID, Token_Interfaces);
+   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_ID);
 
    type Token_Array_String is array (Token_ID range <>) of access constant String;
    type Token_Array_Float is array (Token_ID range <>) of Float;
@@ -172,30 +171,6 @@ package WisiToken is
    function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String;
 
    ----------
-   --  Augmented tokens, semantic actions
-
-   type Augmented_Token is tagged record
-      ID : Token_ID;
-      --  Derived types add various lexical information.
-   end record;
-
-   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
-
-   subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
-
-   type Semantic_Action is access procedure
-     (Nonterm : in Augmented_Token'Class;
-      Index   : in Natural;
-      Source  : in Augmented_Token_Array);
-   --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production for
-   --  Nonterm (0 origin); Source is the right hand side tokens.
-   --
-   --  Nonterm is classwide to avoid freezing rules.
-
-   Null_Action : constant Semantic_Action := null;
-
-   ----------
    --  Trace
 
    Trace_Parse : Integer := 0;
@@ -228,6 +203,44 @@ package WisiToken is
    --  Accumulate Item in the trace buffer.
 
    ----------
+   --  Augmented tokens, semantic actions
+
+   type Augmented_Token is abstract tagged record
+      ID : Token_ID := Invalid_Token_ID;
+      --  Derived types add various lexical information.
+   end record;
+
+   function Image
+     (Item       : in Augmented_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean)
+     return String is abstract;
+   --  Return a string for debug/test messages
+
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class);
+   --  Put Image to Trace.
+
+   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
+
+   subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
+
+   package Augmented_Token_Queues is new SAL.Gen_Unbounded_Indefinite_Queues (Augmented_Token'Class);
+
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type);
+
+   type Semantic_Action is access procedure
+     (Nonterm : in Augmented_Token'Class;
+      Index   : in Natural;
+      Source  : in Augmented_Token_Array);
+   --  Routines of this type are called by the parser when it reduces
+   --  a production to Nonterm. Index indicates which production for
+   --  Nonterm (0 origin); Source is the right hand side tokens.
+   --
+   --  Nonterm is classwide to avoid freezing rules.
+
+   Null_Action : constant Semantic_Action := null;
+
+   ----------
    --  Misc
 
    function Int_Image (Item : in Integer) return String;
@@ -246,8 +259,8 @@ package WisiToken is
    type Parser_Algorithm_Type is (LALR, LR1);
 
    type Buffer_Region is record
-      Begin_Pos : Natural;
-      End_Pos   : Natural;
+      First : Natural;
+      Last  : Natural;
    end record;
 
    Null_Buffer_Region : constant Buffer_Region := (Natural'Last, Natural'First);

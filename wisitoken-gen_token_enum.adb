@@ -87,6 +87,18 @@ package body WisiToken.Gen_Token_Enum is
       Trace.New_Line;
    end Put;
 
+   overriding
+   function Image
+     (Item       : in Augmented_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean)
+     return String
+   is
+      pragma Unreferenced (Descriptor, ID_Only);
+   begin
+      return Token_Enum_ID'Image (Item.Enum_ID);
+   end Image;
+
    overriding procedure Error
      (State     : not null access State_Type;
       Parser_ID : in              Natural;

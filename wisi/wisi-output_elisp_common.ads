@@ -20,7 +20,18 @@ pragma License (Modified_GPL);
 
 package Wisi.Output_Elisp_Common is
 
-   function Elisp_Name_To_Ada (Elisp_Name : in String) return String;
+   Elisp_Names : Wisi.Elisp_Names;
+
+   function Find_Class_ID (Class : in String) return Integer;
+
+   function Find_Face_ID (Face : in String) return Integer;
+
+   function Elisp_Name_To_Ada
+     (Elisp_Name : in String;
+      Append_ID  : in Boolean;
+      Trim       : in Integer)
+     return String;
+   --  Drop Trim chars from begining of Elisp_Name
 
    procedure Indent_Keyword_Table
      (Output_File_Root : in     String;

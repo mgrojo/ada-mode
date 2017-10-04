@@ -61,6 +61,9 @@ package WisiToken.Lexer.Regexp is
 
    overriding procedure Finalize (Object : in out Instance);
    overriding procedure Reset_With_String (Lexer : in out Instance; Input : in String);
+   overriding procedure Reset_With_String_Access
+     (Lexer : in out Instance;
+      Input : in     Ada.Strings.Unbounded.String_Access);
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
    overriding procedure Reset (Lexer : in out Instance);
 
@@ -72,9 +75,10 @@ package WisiToken.Lexer.Regexp is
    overriding
    function Column (Lexer : in Instance) return Ada.Text_IO.Count;
 
-   overriding function Lexeme (Lexer : in Instance) return String;
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region;
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
 
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region;
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
 
 private
 

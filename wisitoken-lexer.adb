@@ -20,6 +20,20 @@ pragma License (Modified_GPL);
 with GNAT.Strings;
 package body WisiToken.Lexer is
 
+   procedure Finalize (Object : in out Source)
+   is begin
+      case Object.Label is
+      when String_Label =>
+         if not Object.User_Buffer then
+            Ada.Strings.Unbounded.Free (Object.Buffer);
+         end if;
+
+      when File_Label =>
+         GNATCOLL.Mmap.Free (Object.Region);
+         GNATCOLL.Mmap.Close (Object.File);
+      end case;
+   end Finalize;
+
    function Buffer (Source : in Lexer.Source) return GNATCOLL.Mmap.Str_Access
    is
       use GNATCOLL.Mmap;

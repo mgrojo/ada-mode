@@ -1,10 +1,19 @@
 build/Makefile
 
 branches:
-org.wisitoken          - working, used by o.e.a.s-4
-org.wisitoken.stephe-1 - translate elisp actions to Ada
+org.wisitoken          - working, used by o.e.a.s-2
+org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
+
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
+for Ada_Emacs Ada body, translate wisi actions to Ada:
+    /Projects/org.emacs.ada-mode.stephe-4/wisitoken-wisi_runtime.ads
+    /Projects/org.wisitoken.stephe-1/wisi/wisi-output_ada_emacs.adb
+    testing in o.e.a.s-4
+
 still losing memory
     possibly Augmented_Token_Array
         deallocation thru root class type?
@@ -35,6 +44,7 @@ Use indentation as hint?
         enter error recovery for just it,
         insert end ... to match, or fail.
 
+Start document with algorithm design.
 
 improve mckenzie
     ./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 1000
@@ -68,6 +78,11 @@ improve mckenzie
 
     config_queue:
         Fibonacci heap
+
+    for each state, pre-compute shortest list of tokens (term/nonterm) to finish each nonterm
+        maybe this is what kim-choe means?
+        queue those (build graph?).
+        If any contain next token, queue that fragment.
 
     run mckenzie in parallel, take first success, kill other parsers
         for i in 1 .. cost_limit

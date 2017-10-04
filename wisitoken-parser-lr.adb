@@ -623,4 +623,20 @@ package body WisiToken.Parser.LR is
       Item.Cost := Key;
    end Set_Key;
 
+   function Next_Grammar_Token
+     (Lexer          : not null access WisiToken.Lexer.Instance'Class;
+      Semantic_State : not null access WisiToken.Token.Semantic_State'Class)
+     return Token_ID
+   is
+      ID : Token_ID;
+   begin
+      loop
+         ID := Lexer.Find_Next;
+         Semantic_State.Lexer_To_Lookahead (ID, Lexer);
+
+         exit when ID >= Semantic_State.Trace.Descriptor.First_Terminal;
+      end loop;
+      return ID;
+   end Next_Grammar_Token;
+
 end WisiToken.Parser.LR;

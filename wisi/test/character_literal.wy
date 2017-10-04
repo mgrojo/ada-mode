@@ -3,6 +3,7 @@
 ;; re2c lookahead.
 
 %{
+--  spec context clause
 --  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
@@ -17,10 +18,45 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Token_Line_Comment;
+
 %%
-Character_Literal_Count : Integer := 0;
-String_Literal_Count    : Integer := 0;
-Bounds                  : WisiToken.Buffer_Region;
+--  spec declarations, at end of spec.
+
+   State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
+
+--  These could be in test_Character_Literal, but we are testing that
+--  declaring them here works.
+
+   Character_Literal_Count : Integer := 0;
+   String_Literal_Count    : Integer := 0;
+   Char_Region             : WisiToken.Buffer_Region;
+
+%%
+--  Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+--
+--  This program is free software; you can redistribute it and/or
+--  modify it under the terms of the GNU General Public License as
+--  published by the Free Software Foundation; either version 3, or (at
+--  your option) any later version.
+--
+--  This software is distributed in the hope that it will be useful,
+--  but WITHOUT ANY WARRANTY; without even the implied warranty of
+--  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+--  General Public License for more details.
+--
+--  You should have received a copy of the GNU General Public License
+--  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+--  body context clause
+
+with Test_Character_Literal_Aux;
+%%
+--  Body declarations, at start of body
+
+   use Test_Character_Literal_Aux;
+
 %}
 
 %parser_algorithm LR1
@@ -31,7 +67,6 @@ Bounds                  : WisiToken.Buffer_Region;
 %keywords_case_insensitive
 %keyword FOO "foo"
 
-%token <line_comment> COMMENT "--"[^\n]*[\n]
 %token <punctuation> SEMICOLON ";"
 
 ;; re2c lookahead regular expression; this is not a character literal.
@@ -57,7 +92,9 @@ Bounds                  : WisiToken.Buffer_Region;
 
 %token <punctuation> CHARACTER_LITERAL "'"[\x20-\U0010FFFF]"'"
 
-%token <whitespace> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*
 
 ;; full Unicode range, starting with non-control, non-digit
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
@@ -76,6 +113,7 @@ compilation_unit
 
 statement_list
   : statement
+    (Test_Statement_List_0 (Nonterm);)
   | statement_list statement
   ;
 
@@ -90,15 +128,17 @@ statement_list
 statement
   : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
    (Character_Literal_Count :=
-     Character_Literal_Count + 1;)
+    Character_Literal_Count + 1;
+    Test_Statement_0 (Source);)
 
  ;; A different use of TICK; attribute reference. Action tests character counting.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
-    (Bounds := WisiToken.Token_Region.Token (Source.Element (3)).Region;)
+    (Char_Region := WisiToken.Token_Line_Comment.Token (Source.Element (3)).Char_Region;)
 
  ;; Here the input is Ada strings, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
-    (String_Literal_Count := String_Literal_Count + 1;)
+    (String_Literal_Count := String_Literal_Count + 1;
+     Test_Statement_2 (Source);)
 
  ;; a use of FOO
   | FOO SEMICOLON

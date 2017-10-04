@@ -23,31 +23,26 @@ with Ada.Iterator_Interfaces;
 with WisiToken.Parser.LR.Generator_Utils;
 with WisiToken.Production;
 generic
-   Keywords              : in Wisi.String_Pair_Lists.List;
-   Tokens                : in Wisi.Token_Lists.List;
+   Tokens                : in Wisi.Tokens;
    Conflicts             : in Wisi.Conflict_Lists.List;
-   Rules                 : in Wisi.Rule_Lists.List;
    EOI_Name              : in Standard.Ada.Strings.Unbounded.Unbounded_String; -- without trailing _ID
    WisiToken_Accept_Name : in Standard.Ada.Strings.Unbounded.Unbounded_String;
-
-   with function To_Token_Out_Image (Item : in String) return String;
-   --  Name of token in output file
 package Wisi.Gen_Generate_Utils is
    use WisiToken;
+   use all type Standard.Ada.Containers.Count_Type;
 
-   function Count_Non_Reporting return Integer;
-
-   EOF_ID : constant Token_ID := Token_ID (Count (Tokens)) + Token_ID (Keywords.Length) + 1;
+   EOF_ID : constant Token_ID := Token_ID
+     (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + 1;
 
    LR1_Descriptor : WisiToken.Descriptor
-     (First_Terminal    => (if Count_Non_Reporting > 0
-                            then Token_ID (Count_Non_Reporting) + Token_ID'First
+     (First_Terminal    => (if Count (Tokens.Non_Grammar) > 0
+                            then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
                             else Token_ID'First),
       Last_Terminal     => EOF_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => EOF_ID + 1,
       First_Nonterminal => EOF_ID + 1,
-      Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
+      Last_Nonterminal  => EOF_ID + 1 + Token_ID (Tokens.Rules.Length));
    --  Image, Image_Width set by Set_Token_Images
 
    LALR_Descriptor : WisiToken.LALR_Descriptor
@@ -63,11 +58,12 @@ package Wisi.Gen_Generate_Utils is
    subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
 
    function Token_WY_Image (ID : in Token_ID) return String is (LR1_Descriptor.Image (ID).all);
-   function Token_Out_Image (ID : in Token_ID) return String is (To_Token_Out_Image (LR1_Descriptor.Image (ID).all));
-
-   First_Rule_Line : constant Standard.Ada.Text_IO.Positive_Count := Rules.First_Element.Source_Line;
+   --  The token name as given in the grammar (.wy) file.
 
    function Find_Token_ID (Token : in String) return Token_ID;
+
+   function Find_Kind (Target_Kind : in String) return Token_ID;
+   --  Returns Invalid_Token_ID if not found.
 
    type Token_Container is tagged record
       Bogus_Content : Integer; -- need a component to declare an object
@@ -77,7 +73,7 @@ package Wisi.Gen_Generate_Utils is
      Default_Iterator  => Iterate,
      Iterator_Element  => Standard.Ada.Strings.Unbounded.Unbounded_String;
    --  We need a container type to define an iterator; the actual data is
-   --  in generic parameters Keywords, Tokens, and Rules. The
+   --  in generic parameters Keywords, Non_Grammar, Tokens, and Rules. The
    --  Iterator_Element is given by Token_Name below.
 
    type Token_Constant_Reference_Type
@@ -88,9 +84,9 @@ package Wisi.Gen_Generate_Utils is
    type Token_Cursor is private;
    --  Iterate thru Keywords, Tokens, Rules in a canonical order:
    --
-   --  1. Non-reporting tokens from Tokens
+   --  1. Non_Grammar
    --  2. Keywords
-   --  3. Other kinds from Tokens
+   --  3. Tokens
    --  4. EOI
    --  5. Accept
    --  6. Nonterminals
@@ -107,12 +103,12 @@ package Wisi.Gen_Generate_Utils is
    function Has_Element (Cursor : in Token_Cursor) return Boolean is (not Is_Done (Cursor));
    package Iterator_Interfaces is new Standard.Ada.Iterator_Interfaces (Token_Cursor, Has_Element);
    function Iterate
-     (Container     : aliased    Token_Container;
-      Non_Reporting :         in Boolean := True;
-      Other_Tokens  :         in Boolean := True)
+     (Container    : aliased    Token_Container;
+      Non_Grammar  :         in Boolean := True;
+      Other_Tokens :         in Boolean := True)
      return Iterator_Interfaces.Forward_Iterator'Class;
 
-   function First (Non_Reporting : in Boolean) return Token_Cursor;
+   function First (Non_Grammar : in Boolean) return Token_Cursor;
    procedure Next (Cursor : in out Token_Cursor; Other_Tokens : in Boolean);
 
    function ID (Cursor : in Token_Cursor) return Token_ID;
@@ -160,13 +156,13 @@ package Wisi.Gen_Generate_Utils is
 
 private
 
-   type Token_Cursor_State is
-     (Non_Reporting, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
+   type Token_Cursor_Kind is
+     (Non_Grammar_Kind, Terminals_Keywords, Terminals_Others, EOI, WisiToken_Accept, Nonterminal, Done);
 
    type Token_Cursor is record
-      State       : Token_Cursor_State; --  FIXME: rename to Kind. use separate list for Non_Reporting
+      Kind        : Token_Cursor_Kind;
       ID          : Token_ID;
-      Token_Kind  : Wisi.Token_Lists.Cursor;
+      Token_Kind  : Wisi.Token_Lists.Cursor; -- Non_Grammar or Tokens, depending on Kind
       Token_Item  : String_Pair_Lists.Cursor;
       Keyword     : String_Pair_Lists.Cursor;
       Nonterminal : Rule_Lists.Cursor;

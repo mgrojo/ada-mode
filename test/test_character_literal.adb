@@ -19,10 +19,12 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with AUnit.Checks.Containers;
 with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with Character_Literal;
+with Test_Character_Literal_Aux;
 with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
 package body Test_Character_Literal is
@@ -37,14 +39,19 @@ package body Test_Character_Literal is
       Test : Test_Case renames Test_Case (T);
       use Ada.Exceptions;
       use AUnit.Checks;
+      use AUnit.Checks.Containers;
       use Character_Literal;
 
       File_Name : constant String := "../wisi/test/character_literal.input";
    begin
-      WisiToken.Trace_Parse := Test.Debug;
+      WisiToken.Trace_Parse             := Test.Debug;
+      Test_Character_Literal_Aux.Enable := True;
+      Test_Character_Literal_Aux.Lexer  := Parser.Lexer;
 
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
+
+      Check ("initial_non_grammar.length", State.Initial_Non_Grammar.Length, 2); -- comment, new_line
 
       Check ("character_literal_count", Character_Literal_Count, 6);
       Check ("string_literal_count", String_Literal_Count, 2);
@@ -65,22 +72,25 @@ package body Test_Character_Literal is
       Tst : Test_Case renames Test_Case (T);
       use WisiToken.AUnit;
 
-      procedure Test (Label : in String; Input : in String; Expected_Bounds : in WisiToken.Buffer_Region)
+      procedure Test (Label : in String; Input : in String; Expected_Char_Region : in WisiToken.Buffer_Region)
       is begin
          Parser.Lexer.Reset_With_String (Input);
          Parser.Parse;
 
-         Check (Label, Character_Literal.Bounds, Expected_Bounds);
+         Check (Label, Character_Literal.Char_Region, Expected_Char_Region);
       end Test;
 
    begin
-      WisiToken.Trace_Parse := Tst.Debug;
+      WisiToken.Trace_Parse             := Tst.Debug;
+      Test_Character_Literal_Aux.Enable := False;
+      Test_Character_Literal_Aux.Lexer  := Parser.Lexer;
 
+      --  Expected region is for 3rd token.
       Test ("1", "object'attribute;", (8, 16));
             --    |1       |10       |20
 
       Test ("2", "objectΠ'attributeΕ;", (9, 18));
-            --    |1        |10       |20
+            --    |1       |10       |20
 
    exception
    when E : WisiToken.Syntax_Error =>

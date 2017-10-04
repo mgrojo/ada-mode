@@ -145,7 +145,6 @@ begin
                if Cursor = -1 then Cursor := Line'Last; end if;
 
                Rule.Left_Hand_Side := +Line (Line'First .. Cursor);
-               Rule.Source_Line    := Standard.Ada.Text_IO.Line (Input_File) - 1;
 
                Token_Count := 0;
 
@@ -175,10 +174,11 @@ begin
                   end if;
 
                when '(' =>
-                  State         := Action;
-                  Need_New_Line := True;
-                  Paren_Count   := 0;
-                  Bracket_Count := 0;
+                  State           := Action;
+                  RHS.Source_Line := Standard.Ada.Text_IO.Line (Input_File) - 1;
+                  Need_New_Line   := True;
+                  Paren_Count     := 0;
+                  Bracket_Count   := 0;
 
                   Check_Numbers (Line);
                   Update_Paren_Count (Line);

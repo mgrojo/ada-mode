@@ -25,13 +25,14 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
-with WisiToken;
 with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
+with Wisi.Output_Elisp_Common;
 with Wisi.Prologue;
 with Wisi.Rules;
+with WisiToken;
 procedure Wisi.Generate
 is
    procedure Put_Usage
@@ -70,20 +71,17 @@ is
 
    Generate_Params : Generate_Param_Type;
 
-   Input_File_Name         : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Input_File              : Standard.Ada.Text_IO.File_Type;
-   Output_File_Root        : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Suffix                  : Standard.Ada.Strings.Unbounded.Unbounded_String;
-   Prologue_Context_Clause : String_Lists.List;
-   Prologue_Declarations   : String_Lists.List;
-   Keywords                : String_Pair_Lists.List;
-   Tokens                  : Token_Lists.List;
-   Conflicts               : Conflict_Lists.List;
-   McKenzie_Recover        : McKenzie_Recover_Param_Type;
-   Rules                   : Rule_Lists.List;
-   Rule_Count              : Integer;
-   Action_Count            : Integer;
-   Profile                 : Boolean := False;
+   Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Input_File       : Standard.Ada.Text_IO.File_Type;
+   Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Prologues        : Wisi.Prologues;
+   Tokens           : Wisi.Tokens;
+   Conflicts        : Conflict_Lists.List;
+   McKenzie_Recover : McKenzie_Recover_Param_Type;
+   Rule_Count       : Integer;
+   Action_Count     : Integer;
+   Profile          : Boolean := False;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -182,9 +180,11 @@ begin
       end if;
    end;
 
-   Wisi.Prologue (Input_File, Prologue_Context_Clause, Prologue_Declarations);
-   Wisi.Declarations (Input_File, Generate_Params, Keywords, Tokens, Conflicts, McKenzie_Recover);
-   Wisi.Rules (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Rules, Rule_Count, Action_Count);
+   Wisi.Prologue (Input_File, Prologues);
+   Wisi.Declarations
+     (Input_File, Generate_Params, Tokens, Wisi.Output_Elisp_Common.Elisp_Names, Conflicts, McKenzie_Recover);
+   Wisi.Rules
+     (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules, Rule_Count, Action_Count);
 
    case Generate_Params.Output_Language is
    when None =>
@@ -192,19 +192,18 @@ begin
 
    when Ada =>
       Wisi.Output_Ada
-        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
+        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
+         Rule_Count, Action_Count, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
-        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Prologue_Declarations,
-         Keywords, Tokens, Conflicts, McKenzie_Recover, Rules, Rule_Count, Action_Count, Profile);
+        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
+         Rule_Count, Action_Count);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms
       Wisi.Output_Elisp
-        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologue_Context_Clause, Keywords, Tokens, Conflicts,
-         Rules, Rule_Count, Action_Count);
+        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, Rule_Count, Action_Count);
 
    end case;
 
@@ -226,7 +225,7 @@ when E : User_Error =>
 
 when E : WisiToken.Grammar_Error =>
    Standard.Ada.Command_Line.Set_Exit_Status (Standard.Ada.Command_Line.Failure);
-   Standard.Ada.Text_IO.Put_Line (Standard.Ada.Exceptions.Exception_Message (E));
+   Standard.Ada.Text_IO.Put_Line (Standard.Ada.Text_IO.Standard_Error, Standard.Ada.Exceptions.Exception_Message (E));
 
 when E :  others =>
    --  IMPROVEME: for some exceptions, Error message already output via wisi.utils.Put_Error
@@ -235,8 +234,8 @@ when E :  others =>
       use Standard.Ada.Exceptions;
       use Standard.Ada.Command_Line;
    begin
-      Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
-      Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
+      Put_Line (Standard_Error, Exception_Name (E) & ": " & Exception_Message (E));
+      Put_Line (Standard_Error, GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
       Set_Exit_Status (Failure);
    end;
 

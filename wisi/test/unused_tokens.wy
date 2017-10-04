@@ -1,7 +1,9 @@
 ;; Wisent grammar with unused tokens, to test unused token reporting
 
 %{
-(require 'wisi)
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword FUNCTION "function"

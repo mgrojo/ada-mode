@@ -32,6 +32,33 @@ package body Wisi is
       raise User_Error with "invalid lexer name: '" & Item & "'";
    end To_Lexer;
 
+   procedure Put_Prologue
+     (Comment_Syntax : in String_2;
+      Prologue       : in String_Lists.List;
+      Comment_Only   : in Boolean := False)
+   is
+      use Standard.Ada.Text_IO;
+      Real_Comment_Only : Boolean := Comment_Only;
+   begin
+      for Line of Prologue loop
+         if Line'Length >= 2 and then
+           ((Line (Line'First) = Line (Line'First + 1)) and
+              Line (Line'First) /= ' ')
+         then
+            --  The line is a comment.
+            Real_Comment_Only := Real_Comment_Only or Line (Line'First .. Line'First + 1) /= Comment_Syntax;
+
+            Put_Line (Comment_Syntax & Line (Line'First + 2 .. Line'Last));
+
+         elsif Comment_Syntax = Elisp_Comment and (Line'Length > 0 and then Line (Line'First) /= '(') then
+            null;
+
+         elsif not Comment_Only then
+            Put_Line (Line);
+         end if;
+      end loop;
+   end Put_Prologue;
+
    function Count (Tokens : in Token_Lists.List) return Integer
    is
       Result : Integer := 0;

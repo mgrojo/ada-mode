@@ -20,11 +20,14 @@
 --
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+with WisiToken.Token_Region;
+%%
+   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
-;; non-reporting
-%token <whitespace> WHITESPACE [ \t\n]
-%token <line_comment> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."

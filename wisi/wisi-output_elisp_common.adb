@@ -22,9 +22,36 @@ with Ada.Text_IO;
 with Wisi.Utils; use Wisi.Utils;
 package body Wisi.Output_Elisp_Common is
 
-   function Elisp_Name_To_Ada (Elisp_Name : in String) return String
+   function Find_Elisp_ID (List : in String_Lists.List; Elisp_Name : in String) return Integer
    is
-      Result : String := Elisp_Name;
+      I : Integer := 1;
+   begin
+      for Name of List loop
+         if Name = Elisp_Name then
+            return I;
+         end if;
+         I := I + 1;
+      end loop;
+      raise Not_Found with "elisp name '" & Elisp_Name & "' not found";
+   end Find_Elisp_ID;
+
+   function Find_Class_ID (Class : in String) return Integer
+   is begin
+      return Find_Elisp_ID (Elisp_Names.Classes, Class);
+   end Find_Class_ID;
+
+   function Find_Face_ID (Face : in String) return Integer
+   is begin
+      return Find_Elisp_ID (Elisp_Names.Faces, Face);
+   end Find_Face_ID;
+
+   function Elisp_Name_To_Ada
+     (Elisp_Name : in String;
+      Append_ID  : in Boolean;
+      Trim       : in Integer)
+     return String
+   is
+      Result : String := Elisp_Name (Elisp_Name'First + Trim .. Elisp_Name'Last);
    begin
       Result (Result'First) := To_Upper (Result (Result'First));
       for I in Result'Range loop
@@ -35,7 +62,11 @@ package body Wisi.Output_Elisp_Common is
             Result (I + 1) := To_Upper (Result (I + 1));
          end if;
       end loop;
-      return Result & "_ID"; -- Some elisp names may be Ada reserved words;
+      if Append_ID then
+         return Result & "_ID"; -- Some elisp names may be Ada reserved words;
+      else
+         return Result;
+      end if;
    end Elisp_Name_To_Ada;
 
    procedure Indent_Keyword_Table

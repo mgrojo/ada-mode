@@ -166,26 +166,23 @@ package body Wisi_Rules_Test is
       Wisi.Rules (File, Wisi.Elisp, Wisi.Elisp_Lexer, Computed, Rule_Count, Action_Count);
       Close (File);
 
-      Wisi.Rule_Lists.Append
-        (Expected,
-         (Left_Hand_Side   => +"declarations",
+      Expected.Append
+        ((Left_Hand_Side   => +"declarations",
           Right_Hand_Sides =>
             +(Production   => +"declaration",
-              Action       => String_Lists.Empty_List) +
-            (+"declarations" + "declaration",
-             String_Lists.Empty_List),
-          Source_Line => 1));
+              Action       => String_Lists.Empty_List,
+              Source_Line  => 1) +
+              (+"declarations" + "declaration",
+               String_Lists.Empty_List, 2)));
 
-      Wisi.Rule_Lists.Append
-        (Expected,
-         (+"subprogram",
+      Expected.Append
+        ((+"subprogram",
           +(+"FUNCTION" + "parameter_list" + "SYMBOL",
-            +"(wisi-statement-action [1 function 2 other])") +
+            +"(wisi-statement-action [1 function 2 other])", 1) +
             (+"PROCEDURE" + "parameter_list" + "SYMBOL",
              +"(wisi-cache-action" +
                "1 'procedure" +
-               "2 'other)"),
-          Source_Line => 1));
+               "2 'other)", 2)));
 
       Check ("1", Computed, Expected);
 
@@ -225,10 +222,9 @@ package body Wisi_Rules_Test is
         (Expected,
          (Left_Hand_Side   => +"parameter_list",
           Right_Hand_Sides =>
-            +(+"LEFT_PAREN" + "RIGHT_PAREN", +"c_null_params :=" + "c_null_params + 1;") +
-            (String_Lists.Empty_List, +"ada_null_params := c_null_params + 1;") +
-            (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List),
-          Source_Line => 1));
+            +(+"LEFT_PAREN" + "RIGHT_PAREN", +"c_null_params :=" + "c_null_params + 1;", 1) +
+            (String_Lists.Empty_List, +"ada_null_params := c_null_params + 1;", 2) +
+            (+"LEFT_PAREN" + "SYMBOL" + "RIGHT_PAREN", String_Lists.Empty_List, 3)));
 
       Check ("1", Computed, Expected);
 
@@ -267,24 +263,23 @@ package body Wisi_Rules_Test is
          (Left_Hand_Side   => +"library_item",
           Right_Hand_Sides =>
             +(Production   => +"subprogram_body",
-              Action       => String_Lists.Empty_List) +
-            (+"generic_instantiation",
-              String_Lists.Empty_List),
-          Source_Line => 1));
+              Action       => String_Lists.Empty_List,
+              Source_Line  => 1) +
+              (+"generic_instantiation",
+               String_Lists.Empty_List,
+               2)));
 
       Wisi.Rule_Lists.Append
         (Expected,
          (+"subprogram_specification",
-          +(+"PROCEDURE" + "IDENTIFIER" + "parameter_list", String_Lists.Empty_List),
-          Source_Line => 1));
+          +(+"PROCEDURE" + "IDENTIFIER" + "parameter_list", String_Lists.Empty_List, 1)));
 
       Wisi.Rule_Lists.Append
         (Expected,
          (Left_Hand_Side   => +"parameter_list",
           Right_Hand_Sides =>
-            +(String_Lists.Empty_List, String_Lists.Empty_List) +
-            (+"LEFT_PAREN" + "IDENTIFIER" + "RIGHT_PAREN", String_Lists.Empty_List),
-          Source_Line => 1));
+            +(String_Lists.Empty_List, String_Lists.Empty_List, 1) +
+            (+"LEFT_PAREN" + "IDENTIFIER" + "RIGHT_PAREN", String_Lists.Empty_List, 2)));
 
       Check ("1", Computed, Expected);
 

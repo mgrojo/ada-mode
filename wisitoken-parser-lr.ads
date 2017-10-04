@@ -397,4 +397,11 @@ private
       Item : Parse_Action_Node_Ptr;
    end record;
 
+   function Next_Grammar_Token
+     (Lexer          : not null access WisiToken.Lexer.Instance'Class;
+      Semantic_State : not null access WisiToken.Token.Semantic_State'Class)
+     return Token_ID;
+   --  Get next token from Lexer, call Semantic_State.Lexer_To_Lookahead.
+   --  If it is a grammar token, return it. Otherwise, repeat.
+
 end WisiToken.Parser.LR;

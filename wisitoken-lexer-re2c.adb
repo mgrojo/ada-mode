@@ -41,21 +41,18 @@ package body WisiToken.Lexer.re2c is
          Object.Lexer := System.Null_Address;
       end if;
 
-      case Object.Source.Label is
-      when String_Label =>
-         Ada.Strings.Unbounded.Free (Object.Source.Buffer);
-
-      when File_Label =>
-         GNATCOLL.Mmap.Free (Object.Source.Region);
-         GNATCOLL.Mmap.Close (Object.Source.File);
-      end case;
+      Finalize (Object.Source);
    end Finalize;
 
-   function New_Lexer (Trace : not null access WisiToken.Trace'Class) return Handle
+   function New_Lexer
+     (Trace       : not null access WisiToken.Trace'Class;
+      New_Line_ID : in              Token_ID)
+     return Handle
    is
       use System;
       New_Lexer : constant access Instance := new Instance (Trace);
    begin
+      New_Lexer.New_Line_ID := New_Line_ID;
       return Handle (New_Lexer);
    end New_Lexer;
 
@@ -65,15 +62,37 @@ package body WisiToken.Lexer.re2c is
 
       --  We assume Input is in UTF-8 encoding
       Lexer.Source :=
-        (Label  => String_Label,
-         Buffer => new String'(Input));
+        (Label       => String_Label,
+         Buffer      => new String'(Input),
+         User_Buffer => False);
 
       Lexer.Lexer := New_Lexer
         (Buffer    => Lexer.Source.Buffer.all'Address,
          Length    => Interfaces.C.size_t (Input'Length),
          Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
 
+      Reset (Lexer);
    end Reset_With_String;
+
+   overriding procedure Reset_With_String_Access
+     (Lexer : in out Instance;
+      Input : in     Ada.Strings.Unbounded.String_Access)
+   is begin
+      Finalize (Lexer);
+
+      --  We assume Input is in UTF-8 encoding
+      Lexer.Source :=
+        (Label       => String_Label,
+         Buffer      => Input,
+         User_Buffer => True);
+
+      Lexer.Lexer := New_Lexer
+        (Buffer    => Lexer.Source.Buffer.all'Address,
+         Length    => Interfaces.C.size_t (Input'Length),
+         Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
+
+      Reset (Lexer);
+   end Reset_With_String_Access;
 
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String)
    is
@@ -97,27 +116,37 @@ package body WisiToken.Lexer.re2c is
          Length    => Interfaces.C.size_t (Last (Lexer.Source.Region)),
          Verbosity => Interfaces.C.int (if Trace_Parse > 3 then Trace_Parse - 3 else 0));
 
+      Reset (Lexer);
    end Reset_With_File;
 
    overriding procedure Reset (Lexer : in out Instance)
    is begin
       Reset_Lexer (Lexer.Lexer);
+      Lexer.Line            := 1;
+      Lexer.Char_Line_Start := 1;
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
    is
+      use all type Ada.Text_IO.Count;
       use Interfaces.C;
-
       Status : constant int := Next_Token
         (Lexer.Lexer, Lexer.ID,
-         Byte_Position      => Interfaces.C.size_t (Lexer.Byte_Position),
-         Byte_Length        => Interfaces.C.size_t (Lexer.Byte_Length),
-         Character_Position => Interfaces.C.size_t (Lexer.Character_Position),
-         Character_Length   => Interfaces.C.size_t (Lexer.Character_Length));
+         Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
+         Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
+         Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
+         Char_Length   => Interfaces.C.size_t (Lexer.Char_Length));
    begin
       case Status is
       when 0 =>
+         if Lexer.New_Line_ID /= Invalid_Token_ID and then
+           Lexer.ID = Lexer.New_Line_ID
+         then
+            Lexer.Line            := Lexer.Line + 1;
+            Lexer.Char_Line_Start := Lexer.Char_Position + 1;
+         end if;
          return Lexer.ID;
+
       when 1 =>
          declare
             use GNATCOLL.Mmap;
@@ -129,7 +158,7 @@ package body WisiToken.Lexer.re2c is
               (Buffer (Context_First .. Context_Last));
          begin
             raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position + 1) &
-              "' at character position" & Natural'Image (Lexer.Character_Position + 1) &
+              "' at character position" & Natural'Image (Lexer.Char_Position + 1) &
               " in context '" & Context & "'";
          end;
 
@@ -149,31 +178,38 @@ package body WisiToken.Lexer.re2c is
    end Find_Next;
 
    overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      return 0;
+   is begin
+      if Lexer.New_Line_ID = Invalid_Token_ID then
+         return 0;
+      else
+         return Lexer.Line;
+      end if;
    end Line;
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
-      return Ada.Text_IO.Count (Lexer.Character_Position);
+      if Lexer.ID = Lexer.New_Line_ID or
+        Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
+      then
+         return 0;
+      else
+         return Ada.Text_IO.Count (Lexer.Char_Position - Lexer.Char_Line_Start);
+      end if;
    end Column;
 
-   overriding function Lexeme (Lexer : in Instance) return String
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      --  FIXME: add C function to use token char pointer, length to fetch
-      --  lexeme. Or figure out a portable way to return Offset. Or return
-      --  char pointer, do pointer math here; we know the buffer address.
-      return "";
-   end Lexeme;
-
-   overriding function Bounds (Lexer : in Instance) return Buffer_Region
+   overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      --  Position is 0-indexed, Bounds is 1-indexed.
-      return (Lexer.Character_Position + 1, Lexer.Character_Position + Lexer.Character_Length);
-   end Bounds;
+      return (Lexer.Char_Position, Lexer.Char_Position + Lexer.Char_Length - 1);
+   end Char_Region;
+
+   overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
+   is begin
+      return (Lexer.Byte_Position, Lexer.Byte_Position + Lexer.Byte_Length - 1);
+   end Byte_Region;
+
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
+   is begin
+      return String (Buffer (Lexer.Source) (Byte_Bounds.First .. Byte_Bounds.Last));
+   end Buffer_Text;
 
 end WisiToken.Lexer.re2c;
