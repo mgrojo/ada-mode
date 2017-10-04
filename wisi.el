@@ -527,17 +527,7 @@ wisi-forward-token, but only sets token-id and region."
 
   last ;; pos of last char in token, relative to first (0 indexed)
 
-  class
-  ;; arbitrary lisp symbol, used for indentation and navigation.
-  ;; some classes are defined by wisi:
-  ;;
-  ;; 'statement-start - the start of a statement
-  ;;
-  ;; 'statement-end - the end of a statement
-  ;;
-  ;; 'motion - a statement keyword
-  ;;
-  ;; others are language-specific
+  class ;; one of wisi-clast-list
 
   containing
   ;; Marker at the start of the containing statement for this token.
@@ -912,7 +902,14 @@ Used to ignore whitespace changes in before/after change hooks.")
     (message "parse succeeded"))
    ))
 
-(defvar-local wisi-class-list nil
+(defconst wisi-class-list
+  '(motion ;; motion-action
+    name ;; for which-function
+    statement-end
+    statement-override
+    statement-start
+    misc ;; other stuff
+    )
   "list of valid token classes; checked in wisi-statement-action.")
 
 (defvar-local wisi--parser nil
@@ -1086,7 +1083,7 @@ PAIRS is a vector of the form [TOKEN-NUMBER CLASS TOKEN-NUMBER
 CLASS ...] where TOKEN-NUMBER is the (1 indexed) token number in
 the production, CLASS is the wisi class of that token. Use in a
 grammar action as:
-  (wisi-statement-action [1 \\='statement-start 7 \\='statement-end])"
+  (wisi-statement-action [1 statement-start 7 statement-end])"
   (when (eq wisi--parse-action 'navigate)
     (save-excursion
       (let ((first-item t)
@@ -2712,12 +2709,11 @@ If non-nil, only repair errors in BEG END region."
 
 ;;;;; setup
 
-(cl-defun wisi-setup (&key indent-calculate post-indent-fail class-list parser lexer)
+(cl-defun wisi-setup (&key indent-calculate post-indent-fail parser lexer)
   "Set up a buffer for parsing files with wisi."
   (when wisi--parser
     (wisi-kill-parser))
 
-  (setq wisi-class-list class-list)
   (setq wisi--parser parser)
   (setq wisi--lexer lexer)
 

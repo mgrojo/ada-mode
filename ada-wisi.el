@@ -28,15 +28,6 @@
 (require 'cl-lib)
 (require 'wisi)
 
-(defconst ada-wisi-class-list
-  '(motion ;; motion-action
-    name ;; for ada-wisi-which-function
-    statement-end
-    statement-override ;; see NOT OVERRIDING
-    statement-start
-    misc ;; other stuff
-    ))
-
 ;;;; indentation
 
 (defun ada-indent-aggregate ()
@@ -950,7 +941,6 @@ TOKEN-TEXT; move point to just past token."
     (wisi-setup
      :indent-calculate '(ada-wisi-comment)
      :post-indent-fail 'ada-wisi-post-parse-fail
-     :class-list ada-wisi-class-list
      :parser parser
      :lexer lexer)
     )

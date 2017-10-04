@@ -13,37 +13,51 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
   (load "autoloads.el")
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (run-test "../../test/ada_mode-interactive_recover.adb")
   (wisi-debug-keys))
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
   (load "run-wisi-process-test.el")
   (setq debug-on-error t)
   (setq wisi-disable-face t)
-  ; (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/wisi/subprograms.input")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  ; (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (run-test "subprograms"))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
-  (xmtn . "c:/Projects/org.wisitoken/")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
+'((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
+compute indent in Ada
+    subprograms.wisi-process-test
+
+    implement all actions in Ada
+        wisitoken-wisi_runtime.adb
+
+    accumulate text_properties
+        for indent, store in array indexed by line number; elisp pass in max line number
+        add a list of text properties to that
+        store start pos in each line, use binary search to find the right line for a position.
+
+        when parse finished, send all to elisp
+
+    do more optimization later
+
 navigate bug:
        LR1_Descriptor : WisiToken.Descriptor
      (First_Terminal    => (if Non_Grammar.Length > 0
@@ -82,8 +96,7 @@ ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
         which gives infinite loop in Read_Input
             raise input_closed exception for that
 
-put back mckenzie-enable in wisi-process-parse
-    so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
+    edited; testing (ie waiting for emacs crash)
 
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand

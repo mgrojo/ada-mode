@@ -119,13 +119,14 @@ SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp
+.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp %_process.adb
 
 .PHONY : all force one test test-clean
 
 vpath %.adb ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.ads ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.el ../ ../test/wisi
+vpath %.input ../test/wisi
 vpath %.gpr ../test/gpr
 vpath %.wy ../ ../test/wisi
 
@@ -150,16 +151,18 @@ gpr-skel.gpr.tmp :
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
+# FIXME: delete?
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
-%_wisi_parse.exe : %_wisi_parse.ads %-process.el force
+%_wisi_parse.exe : %_wisi_parse.ads %_process.adb force
 	gprbuild -p wisi_parse.gpr $<
 
-%-process.el : force
-	make -C $(WISI_WISITOKEN) $*-process.el
+%_process.adb : force
+	make -C $(WISI_WISITOKEN) $*_process.adb
 	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
 	cp $(WISI_WISITOKEN)/$*_process.ad? .
+	cp $(WISI_WISITOKEN)/$**re2c* .
 
 .PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
 
