@@ -185,7 +185,7 @@ source_scribe_%.stamp :
 source_scribe_%.clean :
 	rm -f source_scribe_$*.stamp
 
-# These sources do not match teh correpsonding CVS tag, although they are close.
+# These sources do not match the correpsonding CVS tag, although they are close.
 ARM_SRC.ZIP ARM_FORM.ZIP ARM_FSRC.ZIP 2005-SRC.zip 2012-SRC.zip :
 	wget http://www.ada-auth.org/arm-files/$@
 
