@@ -2,7 +2,7 @@
 #
 # See ../source/sal.html for complete installation instructions
 
-all : tests
+all : t_all
 
 #../test/test_all_harness.adb
 #../test/test_one_harness.adb

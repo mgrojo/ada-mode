@@ -45,24 +45,17 @@ procedure Exercise_Min_Heap is
    pragma Unreferenced (Junk);
 begin
 
-   Min_Heap.Insert ((5.0, 5));
-   Min_Heap.Insert ((4.0, 4));
-   Min_Heap.Insert ((3.0, 3));
-   Min_Heap.Insert ((2.0, 2));
-   Min_Heap.Insert ((1.0, 1));
-   --               1
-   --             2    4
-   --           5   3    ?
+   --  Insert more than Initial_size, to force grow.
+   for I in 1 .. 10 loop
+      Min_Heap.Insert ((5.0, 5));
+      Min_Heap.Insert ((4.0, 4));
+      Min_Heap.Insert ((3.0, 3));
+      Min_Heap.Insert ((2.0, 2));
+      Min_Heap.Insert ((1.0, 1));
+   end loop;
 
-   Junk := Min_Heap.Get;
-
-   Min_Heap.Add ((6.0, 6));
-   --               2
-   --             3    4
-   --           5   6    ?
-
-   for I in reverse 1 .. 3 loop
-      Min_Heap.Insert ((Float (I), I));
+   for I in 1 .. 50 loop
+      Junk := Min_Heap.Get;
    end loop;
 
 end Exercise_Min_Heap;

@@ -120,7 +120,9 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps is
    overriding
    procedure Adjust (Object : in out Heap_Type)
    is begin
-      Object.Data := new Element_Array'(Object.Data.all);
+      if Object.Data /= null then
+         Object.Data := new Element_Array'(Object.Data.all);
+      end if;
    end Adjust;
 
    procedure Clear (Heap : in out Heap_Type)

@@ -30,8 +30,6 @@ with Ada.Float_Text_IO;
 with Ada.Integer_Text_IO;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
-with SAL.Generic_Decimal_Image;
-with SAL.Generic_Fixed_Image;
 package body SAL.Time_Conversions is
 
    Leap_Year_Month_Array : constant array (Month_Type) of Integer :=
@@ -258,9 +256,6 @@ package body SAL.Time_Conversions is
          return Leap_Year_Month_Array (In_Month);
       end if;
    end Day_Of_Year;
-
-   function Image is new SAL.Generic_Decimal_Image (Integer);
-   function Image is new SAL.Generic_Fixed_Image (Time_Type);
 
    function Floor (Item : in Time_Type) return Time_Type
    is
