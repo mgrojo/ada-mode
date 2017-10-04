@@ -23,13 +23,38 @@
 --  exception does not however invalidate any other reasons why the
 --  executable file  might be covered by the  GNU Public License.
 
-pragma License (GPL);
+--  As a special exception under Section 7 of GPL version 3, you are granted
+--  additional permissions described in the GCC Runtime Library Exception,
+--  version 3.1, as published by the Free Software Foundation.
+
+pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
+with Ada.Containers.Vectors;
 package AUnit.Checks.Containers is
 
    procedure Check is new Gen_Check_Discrete (Ada.Containers.Count_Type);
+
+   generic
+      type Index_Type is range <>;
+      type Element_Type is private;
+      with package Container_Pkg is new Ada.Containers.Vectors
+        (Index_Type   => Index_Type,
+         Element_Type => Element_Type);
+      with procedure Check_Index
+        (Label    : in String;
+         Computed : in Index_Type;
+         Expected : in Index_Type);
+      with procedure Check_Element
+        (Label    : in String;
+         Computed : in Element_Type;
+         Expected : in Element_Type);
+   procedure Gen_Check_Vector
+     (Label          : in String;
+      Computed       : in Container_Pkg.Vector;
+      Expected       : in Container_Pkg.Vector;
+      Strict_Indices : in Boolean := True);
 
    generic
       type Element_Type (<>) is private;

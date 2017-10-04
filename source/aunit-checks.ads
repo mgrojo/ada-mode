@@ -191,6 +191,12 @@ package AUnit.Checks is
 
    procedure Check
      (Label     : in String;
+      Computed  : in Float;
+      Expected  : in Float;
+      Tolerance : in Float := 0.0);
+
+   procedure Check
+     (Label     : in String;
       Computed  : in Long_Float;
       Expected  : in Long_Float;
       Tolerance : in Long_Float := 0.0);

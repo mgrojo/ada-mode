@@ -28,6 +28,29 @@ pragma License (GPL);
 with AUnit.Assertions;
 package body AUnit.Checks.Containers is
 
+   procedure Gen_Check_Vector
+     (Label          : in String;
+      Computed       : in Container_Pkg.Vector;
+      Expected       : in Container_Pkg.Vector;
+      Strict_Indices : in Boolean := True)
+   is
+      J : Index_Type := Expected.First_Index;
+   begin
+      if Strict_Indices then
+         Check_Index (Label & ".First", Computed.First_Index, Expected.First_Index);
+         Check_Index (Label & ".Last", Computed.Last_Index, Expected.Last_Index);
+      else
+         Check (Label & ".Length", Computed.Length, Expected.Length);
+      end if;
+
+      for I in Computed.First_Index .. Computed.Last_Index loop
+         Check_Element (Label & "." & Index_Type'Image (I), Computed (I), Expected (J));
+         if J /= Index_Type'Last then
+            J := Index_Type'Succ (J);
+         end if;
+      end loop;
+   end Gen_Check_Vector;
+
    procedure Gen_Check_Indefinite_Vector
      (Label          : in String;
       Computed       : in Container_Pkg.Vector;

@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2009, 2012, 2015 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2012, 2015, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -142,9 +142,9 @@ package body AUnit.Checks is
 
       for I in Computed'Range (1) loop
          for J in Computed'Range (2) loop
-            Check_Item 
+            Check_Item
               (Label & "(" & Index_1_Type'Image (I) & Index_2_Type'Image (J) & ")",
-               Computed (I, J), 
+               Computed (I, J),
                Expected (I, J));
          end loop;
       end loop;
@@ -235,6 +235,17 @@ package body AUnit.Checks is
       AUnit.Assertions.Assert
         (abs (Computed - Expected) <= Tolerance,
          Label & " got " & Duration'Image (Computed) & " expecting " & Duration'Image (Expected));
+   end Check;
+
+   procedure Check
+     (Label     : in String;
+      Computed  : in Float;
+      Expected  : in Float;
+      Tolerance : in Float := 0.0)
+   is begin
+      AUnit.Assertions.Assert
+        (abs (Computed - Expected) <= Tolerance,
+         Label & " got " & Float'Image (Computed) & " expecting " & Float'Image (Expected));
    end Check;
 
    procedure Check

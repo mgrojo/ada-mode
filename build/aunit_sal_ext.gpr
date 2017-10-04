@@ -17,10 +17,28 @@
 --  MA 02110-1335, USA.
 
 with "aunit";
+with "standard_common";
 project AUnit_SAL_Ext is
 
    for Source_Dirs use ("../source");
 
    for Object_Dir use "objects";
+
+   package Compiler is
+      case Standard_Common.Build is
+      when "Debug" =>
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Debug_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler'Default_Switches ("Ada");
+
+      when "Normal" =>
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Release_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler'Default_Switches ("Ada");
+      end case;
+
+   end Compiler;
 
 end AUnit_SAL_Ext;

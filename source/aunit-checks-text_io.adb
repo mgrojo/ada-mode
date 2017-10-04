@@ -2,7 +2,7 @@
 --
 --  See spec.
 --
---  Copyright (C) 2004 - 2008, 2015 - 2016 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2008, 2015 - 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -92,7 +92,7 @@ package body AUnit.Checks.Text_IO is
       end;
 
       begin
-         while not End_Of_File (Expected) loop
+         while not (End_Of_File (Expected) or End_Of_File (Computed)) loop
             declare
                Computed_Line : constant String := Get_Line (Computed);
                Expected_Line : constant String := Get_Line (Expected);
@@ -106,6 +106,7 @@ package body AUnit.Checks.Text_IO is
             end;
          end loop;
          Assert (End_Of_File (Computed), Label & " Computed file longer than Expected file");
+         Assert (End_Of_File (Expected), Label & " Expected file longer than Computed file");
 
          Close (Computed);
          Close (Expected);
@@ -123,7 +124,9 @@ package body AUnit.Checks.Text_IO is
       Computed : Integer := 0;
 
       procedure Process_Entry (Dir_Entry : Directory_Entry_Type)
-      is begin
+      is
+         pragma Unreferenced (Dir_Entry);
+      begin
          Computed := Computed + 1;
       end Process_Entry;
    begin

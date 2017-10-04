@@ -4,7 +4,7 @@
 --
 --  Separate from parent to allow parent to be Preelaborated.
 --
---  Copyright (C) 2004 - 2009, 2015, 2016 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004 - 2009, 2015 - 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -31,6 +31,8 @@ with Ada.Directories;
 with Ada.Text_IO;
 package AUnit.Checks.Text_IO is
    pragma Elaborate_Body; --  Ada.Text_IO
+
+   procedure Check is new Gen_Check_Discrete (Ada.Text_IO.Count);
 
    procedure Check (File : in Ada.Text_IO.File_Type; Expected : in String);
    --  Read a line from File, compare to Expected. Failure message
