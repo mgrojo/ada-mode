@@ -33,6 +33,8 @@
 with Ada.Calendar;
 with Ada.Real_Time;
 with Interfaces;
+with SAL.Generic_Decimal_Image;
+with SAL.Generic_Fixed_Image;
 with SAL.Interfaces_More;
 package SAL.Time_Conversions is
    pragma Elaborate_Body; --  Body depends on Ada.Exceptions
@@ -252,6 +254,11 @@ package SAL.Time_Conversions is
      return Time_Type;
    --  Time must be ASIST format or extended ASIST format. If
    --  absolute, result is seconds since TAI origin.
+
+   function Image is new SAL.Generic_Decimal_Image (Integer);
+   pragma Warnings (Off, "instance does not use primitive operation ""mod"" at line 97");
+   function Image is new SAL.Generic_Fixed_Image (Time_Type);
+   pragma Warnings (On);
 
    function To_ASIST_String (Time_TAI : in Time_Type) return ASIST_Time_String_Type;
 
