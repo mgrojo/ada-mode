@@ -198,7 +198,7 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
-         Rule_Count, Action_Count, Profile);
+         Rule_Count, Action_Count);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms

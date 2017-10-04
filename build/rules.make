@@ -116,7 +116,8 @@ DIFF_OPT := -u -w
 
 %_process.adb.diff : %_process.adb.good %_process.adb
 	diff $(DIFF_OPT) $^ > $@
-	diff $(DIFF_OPT) %*-process.el $*-process.good_el >> $@
+	diff $(DIFF_OPT) ../wisi/test/$*.good_re2c $*.re2c >> $@
+	diff $(DIFF_OPT) ../wisi/test/$*-process.good_el $*-process.el >> $@
 
 # the parse_table and the state trace of the parse is the known good output
 %-parse.diff : %.good_parse %.parse
@@ -133,6 +134,8 @@ DIFF_OPT := -u -w
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix $*_process.adb
+	dos2unix $*.re2c
+	dos2unix $*-process.el
 
 %-process.el.diff : %-process.good_el %-process.el
 	diff $(DIFF_OPT) $< $*-process.el > $@

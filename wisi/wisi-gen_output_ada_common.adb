@@ -58,7 +58,9 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada_Emacs =>
          case Interface_Kind is
          when Process =>
+            Put_Line ("with WisiToken.Runtime;");
             Put_Line ("with WisiToken.Text_IO_Trace;");
+            Put_Line ("with WisiToken.Token_Line_Comment;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
@@ -72,33 +74,38 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
       New_Line;
 
-      Indent_Line ("type Token_Enum_ID is");
-      Indent_Line ("  (");
-      Indent := Indent + 3;
+      case Output_Language is
+      when Ada =>
+         Indent_Line ("type Token_Enum_ID is");
+         Indent_Line ("  (");
+         Indent := Indent + 3;
 
-      Cursor := First (Non_Grammar => True);
-      loop
-         exit when Is_Done (Cursor);
-         Set_Col (Indent);
-         Put (To_Token_Ada_Name (Name (Cursor)));
+         Cursor := First (Non_Grammar => True);
+         loop
+            exit when Is_Done (Cursor);
+            Set_Col (Indent);
+            Put (To_Token_Ada_Name (Name (Cursor)));
 
-         Next (Cursor, Other_Tokens => True);
+            Next (Cursor, Other_Tokens => True);
 
-         if Is_Done (Cursor) then
-            Put_Line (");");
-         else
-            Put_Line (",");
-         end if;
-      end loop;
-      Indent := Indent - 3;
-      New_Line;
+            if Is_Done (Cursor) then
+               Put_Line (");");
+            else
+               Put_Line (",");
+            end if;
+         end loop;
+         Indent := Indent - 3;
+         New_Line;
 
-      Indent_Line ("function ""+"" (Item : in Token_Enum_ID) return WisiToken.Token_ID");
-      Indent_Line ("  is (WisiToken.""+"" (WisiToken.Token_ID'First, Token_Enum_ID'Pos (Item)));");
-      New_Line;
-      Indent_Line ("function ""-"" (Item : in WisiToken.Token_ID) return Token_Enum_ID");
-      Indent_Line ("  is (Token_Enum_ID'Val (WisiToken.""-"" (Item, WisiToken.Token_ID'First)));");
-      New_Line;
+         Indent_Line ("function ""+"" (Item : in Token_Enum_ID) return WisiToken.Token_ID");
+         Indent_Line ("  is (WisiToken.""+"" (WisiToken.Token_ID'First, Token_Enum_ID'Pos (Item)));");
+         New_Line;
+         Indent_Line ("function ""-"" (Item : in WisiToken.Token_ID) return Token_Enum_ID");
+         Indent_Line ("  is (Token_Enum_ID'Val (WisiToken.""-"" (Item, WisiToken.Token_ID'First)));");
+         New_Line;
+      when Ada_Emacs =>
+         null;
+      end case;
 
       Indent_Line ("Descriptor : aliased WisiToken.Descriptor :=");
       Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
@@ -152,6 +159,10 @@ package body Wisi.Gen_Output_Ada_Common is
          case Interface_Kind is
          when Process =>
             Indent_Line ("Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);");
+            Indent_Line ("State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);");
+            New_Line;
+            Indent_Line ("Buffer_Data : WisiToken.Runtime.Buffer_Data_Type;");
+
             New_Line;
             Indent_Line ("procedure Create_Parser");
             Indent_Line ("  (Parser    :    out WisiToken.Parser.LR.Parser.Instance;");

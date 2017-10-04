@@ -254,13 +254,7 @@ begin
 
    Create_Ada_Body;
 
-   case Data.Lexer is
-   when re2c_Lexer =>
-      Create_re2c (Input_File_Name, Output_File_Name_Root);
-
-   when Elisp_Lexer =>
-      raise Programmer_Error;
-   end case;
+   Create_re2c (Input_File_Name, Output_File_Name_Root);
 
 exception
 when others =>

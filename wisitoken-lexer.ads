@@ -59,6 +59,10 @@ package WisiToken.Lexer is
    procedure Reset (Lexer : in out Instance) is abstract;
    --  Reset Lexer, read from previous source.
 
+   procedure Discard_Rest_Of_Input (Lexer : in out Instance) is abstract;
+   --  If reading input from a stream or file, abort reading (or force it
+   --  to complete); Find_Next will not be called before another Reset.
+
    function Char_Region (Lexer : in Instance) return Buffer_Region is abstract;
    function Byte_Region (Lexer : in Instance) return Buffer_Region is abstract;
    --  Returns the position of the start and end of the last token that

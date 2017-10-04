@@ -36,7 +36,6 @@ is
 
    Conflict_Str                  : constant String := "%conflict";
    End_If_Str                    : constant String := "%end if";
-   Elisp_Class_Str               : constant String := "%elisp_class";
    Elisp_Face_Str                : constant String := "%elisp_face";
    First_Parser_Label_Str        : constant String := "%first_parser_label";
    First_State_Index_Str         : constant String := "%first_state_index";
@@ -152,13 +151,6 @@ begin
          elsif Match (End_If_Str) then
             --  matching if specified current lexer.
             null;
-
-         elsif Match (Elisp_Class_Str) then
-            declare
-               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
-            begin
-               Elisp_Names.Classes.Append (Line (Value_First .. Line'Last));
-            end;
 
          elsif Match (Elisp_Face_Str) then
             declare

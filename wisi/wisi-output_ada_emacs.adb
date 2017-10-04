@@ -46,8 +46,7 @@ procedure Wisi.Output_Ada_Emacs
    Conflicts             : in Conflict_Lists.List;
    McKenzie_Recover      : in McKenzie_Recover_Param_Type;
    Rule_Count            : in Integer;
-   Action_Count          : in Integer;
-   Profile               : in Boolean)
+   Action_Count          : in Integer)
 is
    use all type Standard.Ada.Containers.Count_Type;
 
@@ -97,7 +96,7 @@ is
          First      : Integer;
          Second     : Integer;
          Need_Comma : Boolean          := False;
-         Result     : Unbounded_String := +" (Nonterm, Source, (";
+         Result     : Unbounded_String := +" (Buffer_Data, Nonterm, Source, (";
       begin
          loop
             First  := Last + 1;
@@ -122,13 +121,14 @@ is
          First  : constant Integer := Params'First;
          Second : constant Integer := Index (Params, " ", First);
       begin
-         return " (Nonterm, Source, " & Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
+         return " (Buffer_Data, Nonterm, Source, " &
+           Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
       end Containing_Params;
 
       function Motion_Params (Params : in String) return String
       is
          --  Input looks like: [1 [2 EXCEPTION WHEN] 3 ...]
-         --  Result: Motion_Param_Array'((0, 1, Empty_IDs), (2, 2, (3, 8)), (0, 3, Empty_IDs))
+         --  Result: Motion_Param_Array'((0, 1, Empty_IDs) & (2, 2, (3, 8)) & (0, 3, Empty_IDs))
          use Generate_Utils;
          use Standard.Ada.Strings.Maps;
          use WisiToken;
@@ -138,7 +138,7 @@ is
          Last   : Integer          := Params'First; -- skip [
          First  : Integer;
          Vector : Boolean;
-         Result : Unbounded_String := +" (Nonterm, Source, (";
+         Result : Unbounded_String := +" (Buffer_Data, Nonterm, Source, (";
 
          Index_First  : Integer;
          Index_Last   : Integer;
@@ -175,18 +175,18 @@ is
                   end;
                end loop;
 
-               Result := Result & (if Need_Comma_1 then ", " else "") & "(" & Int_Image (IDs_Count) & ", " &
+               Result := Result & (if Need_Comma_1 then " & " else "") & "(" & Int_Image (IDs_Count) & ", " &
                  Params (Index_First .. Index_Last) & ", (" &
                  (-IDs) & "))";
             else
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
-               Result := Result & (if Need_Comma_1 then ", " else "") &
+               Result := Result & (if Need_Comma_1 then " & " else "") &
                  "(0, " & Params (First .. Last - 1) & ", Empty_IDs)";
             end if;
             Need_Comma_1 := True;
          end loop;
-         return -(Result & ')');
+         return -(Result & "))");
       end Motion_Params;
 
       function Face_Apply_Params (Params : in String) return String
@@ -233,9 +233,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Nonterm, Source, (1 => " & (-Result) & "))";
+            return " (Buffer_Data, Nonterm, Source, (1 => " & (-Result) & "))";
          else
-            return " (Nonterm, Source, (" & (-Result) & "))";
+            return " (Buffer_Data, Nonterm, Source, (" & (-Result) & "))";
          end if;
       end Face_Apply_Params;
 
@@ -259,7 +259,7 @@ is
 
          Last       : Integer          := Params'First; -- skip [
          First      : Integer;
-         Result     : Unbounded_String := +" (Nonterm, Source, (";
+         Result     : Unbounded_String := +" (Buffer_Data, Nonterm, Source, (";
          Need_Comma : Boolean          := False;
 
          function Int_Or_Symbol (First : in Integer) return String
@@ -436,7 +436,7 @@ is
          end;
       end loop;
 
-      Indent_Line ("case Wisi.Runtime.Parse_Action is");
+      Indent_Line ("case Parse_Action is");
       Indent_Line ("when Navigate =>");
       if Navigate_Lines.Length > 0 then
          Indent := Indent + 3;
@@ -538,7 +538,8 @@ is
       Put_Prologue (Ada_Comment, Prologues.Body_Context_Clause);
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.Wisi_Runtime;");
+      Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
+      Put_Line ("with WisiToken.Token;");
       Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
 
       case Data.Interface_Kind is
@@ -555,7 +556,7 @@ is
       Indent := Indent + 3;
       New_Line;
 
-      Indent_Line ("use WisiToken.Wisi_Runtime;");
+      Indent_Line ("use all type Motion_Param_Array;");
       New_Line;
 
       Indent_Line ("package Lexer is new WisiToken.Lexer.re2c");
@@ -683,12 +684,8 @@ is
       use Generate_Utils;
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
-      use all type WisiToken.Token_ID;
-      use all type RHS_Lists.Cursor;
-      use all type Rule_Lists.Cursor;
 
-      File         : File_Type;
-      Paren_1_Done : Boolean := False;
+      File : File_Type;
    begin
       Create (File, Out_File, Output_File_Name_Root & "-process.el");
       Set_Output (File);
@@ -699,30 +696,11 @@ is
       Put_Line (";;");
       Put_Prologue (Elisp_Comment, Prologues.Spec_Context_Clause);
       New_Line;
-      Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-process-parse)");
       New_Line;
 
-      Output_Elisp_Common.Indent_Keyword_Table (Output_File_Name_Root, "elisp", Tokens.Keywords, To_String'Access);
-      Output_Elisp_Common.Indent_Token_Table (Output_File_Name_Root, "elisp", Tokens.Tokens, To_String'Access);
-
-      --  FIXME: Used for error messages?
-      Indent_Line  ("(defconst " & Output_File_Name_Root & "-process-token-table");
-      Indent_Line  ("  (wisi-process-compile-tokens");
-      Indent_Start ("   [");
-      Indent := Indent + 4;
-      for Cursor in All_Tokens.Iterate loop
-         if Paren_1_Done then
-            Indent_Line (Name (Cursor));
-         else
-            Paren_1_Done := True;
-            Put_Line (Name (Cursor));
-         end if;
-
-      end loop;
-      Indent_Line ("]))");
-      Indent := Indent - 4;
-      New_Line;
+      Output_Elisp_Common.Indent_Names
+        (Output_File_Name_Root, "process-faces", Output_Elisp_Common.Elisp_Names.Faces);
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
@@ -969,16 +947,16 @@ begin
 
    Create_Ada_Body;
 
-   if not Profile then
-      case Data.Interface_Kind is
-      when Process =>
-         Create_Process_Elisp;
+   Create_re2c (Input_File_Name, Output_File_Name_Root);
 
-      when Module =>
-         Create_Module_Elisp;
-         Create_Module_Aux;
-      end case;
-   end if;
+   case Data.Interface_Kind is
+   when Process =>
+      Create_Process_Elisp;
+
+   when Module =>
+      Create_Module_Elisp;
+      Create_Module_Aux;
+   end case;
 
    if Wisi.Utils.Error then
       Wisi.Utils.Put_Error (Input_File_Name, 1, "Errors: aborting");

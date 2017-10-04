@@ -87,6 +87,8 @@ package WisiToken.Lexer.re2c is
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
    --  Uses memory mapped file; no copies.
 
+   overriding procedure Discard_Rest_Of_Input (Lexer : in out Instance) is null;
+
    overriding procedure Reset (Lexer : in out Instance);
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;

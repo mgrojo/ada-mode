@@ -213,7 +213,7 @@ package Wisi is
 
    type Elisp_Names is record
       --  specified in grammar file declarations
-      Classes : String_Lists.List;
+      --  FIXME: keep as record for now, in case we add more
       Faces   : String_Lists.List;
    end record;
 
