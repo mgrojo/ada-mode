@@ -24,22 +24,22 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
 
    function Root (Tree : in SAL.Gen_Unbounded_Definite_Red_Black_Trees.Tree) return Cursor
    is begin
-      return (Node => Tree.Root);
+      return (Tree.Root, False, False);
    end Root;
 
    function Parent (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Node => Cursor.Node.Parent);
+      return (Cursor.Node.Parent, False, False);
    end Parent;
 
    function Left (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Node => Cursor.Node.Left);
+      return (Cursor.Node.Left, False, False);
    end Left;
 
    function Right (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Node => Cursor.Node.Right);
+      return (Cursor.Node.Right, False, False);
    end Right;
 
    procedure Check_Null

@@ -18,6 +18,7 @@
 
 pragma License (GPL);
 
+with Ada.Containers;
 with AUnit.Checks;
 with AUnit.Checks.Containers;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
@@ -45,6 +46,7 @@ package body Test_Red_Black_Trees is
 
    Red   : constant Boolean := True;
    Black : constant Boolean := False;
+
    procedure Check
      (Label        : in String;
       Cursor       : in Trees.Cursor;
@@ -56,6 +58,29 @@ package body Test_Red_Black_Trees is
       Check (Label & ".pos", Tree.Constant_Reference (Cursor).Pos, Expected_Pos);
       Check_Color (Label & ".color", Cursor, Expect_Red);
    end Check;
+
+   type Integer_Array_Integer is array (Natural range <>) of Integer;
+
+   procedure Check_Sorted
+     (Label    : in String;
+      Computed : in Trees.Tree;
+      Expected : in Integer_Array_Integer)
+   is
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+      use all type Ada.Containers.Count_Type;
+
+      I     : Integer                   := Expected'First;
+      Count : Ada.Containers.Count_Type := 0;
+   begin
+      Check (Label & " sorted.length 1", Computed.Count, Expected'Length);
+      for Element of Computed loop
+         Check (Label & " sorted." & Integer'Image (I), Element.Pos, Expected (I));
+         I     := I + 1;
+         Count := Count + 1;
+      end loop;
+      Check (Label & " sorted.length 2", Count, Expected'Length);
+   end Check_Sorted;
 
    ----------
    --  Test procedures
@@ -71,12 +96,13 @@ package body Test_Red_Black_Trees is
       --  of the new node.
       Tree.Insert ((Pos => 3)); -- insert into null tree
       Tree.Insert ((Pos => 7)); -- insert to right
-      Tree.Insert ((Pos => 10)); -- insert to right, rebalance
+      Tree.Insert ((Pos => 10)); -- insert to right, fixup
 
       --              7 b
       --          3 r     10 r
       Check ("1.count", Tree.Count, 3);
       Validate ("1", Tree);
+      Check_Sorted ("1", Tree, (3, 7, 10));
       I := Root (Tree);
       Check ("1.bh", Black_Height (I), 0);
       Check ("1.0", I, 7, Black);
@@ -155,6 +181,7 @@ package body Test_Red_Black_Trees is
       --                  14r   16r
       Check ("5.count", Tree.Count, 7);
       Validate ("5", Tree);
+      Check_Sorted ("5", Tree, (3, 7, 10, 12, 14, 15, 16));
       I := Root (Tree);
       Check ("5.bh", Black_Height (I), 1);
       Check ("5.0", I, 7, Black);
@@ -229,6 +256,7 @@ package body Test_Red_Black_Trees is
       --    1r  3r 9r               17r
       Check ("9.count", Tree.Count, 11);
       Validate ("9", Tree);
+      Check_Sorted ("9", Tree, (1, 2, 3, 7, 9, 10, 12, 14, 15, 16, 17));
       I := Root (Tree);
       Check ("9.0", I, 12, Black);
       I := Left (I);
