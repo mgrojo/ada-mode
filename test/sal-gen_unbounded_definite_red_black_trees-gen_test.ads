@@ -19,6 +19,8 @@
 pragma License (GPL);
 
 generic
+   with function Image (Key : in Key_Type) return String;
+   --  Identify a node for error message
 package SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
 
    function Root (Tree : in SAL.Gen_Unbounded_Definite_Red_Black_Trees.Tree) return Cursor;
@@ -31,5 +33,15 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
    procedure Check_Null
      (Label  : in String;
       Cursor : in Pkg.Cursor);
+
+   procedure Check_Color
+     (Label      : in String;
+      Cursor     : in Pkg.Cursor;
+      Expect_Red : in Boolean);
+
+   function Black_Height (Cursor : in Pkg.Cursor) return Integer;
+
+   procedure Validate (Label : in String; Tree : in Pkg.Tree);
+   --  Check that Tree has all red-black properties
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test;
