@@ -85,6 +85,8 @@ ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
 put back mckenzie-enable in wisi-process-parse
     so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
+add missing features to gpr_query; see fixmes.
+
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand
     use buffer-local skel-token-alist
@@ -320,6 +322,8 @@ disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
     on post-self-insert-hook
         use that for ada-mode capitalization
+
+Smart edit - delete if/then/endif, leaving content
 
 Try antlr error recovery on Ada. Add elisp target.
 
@@ -849,7 +853,7 @@ commit elpa:
     (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
 
-test install from elpa
+after Gnu ELPA updated, test install from elpa
     5.1.8 crashed emacs for me
 
 (dvc-state-one ".")
@@ -858,7 +862,7 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.2 ../org.emacs.ada-mode-5.2.2
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.3.1 ../org.emacs.ada-mode-5.3.1
 
 build/Makefile zip
 
@@ -876,15 +880,15 @@ not under emacs:
 (cvs-examine "d:/Web/savannah/ada-mode/" nil)
     mark all, commit
 
-after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup:
+post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
-Ada mode 5.2.2 is now available in GNU ELPA. See the homepage
+Ada mode 5.3.1 is now available in GNU ELPA. See the homepage
 (http://www.nongnu.org/ada-mode/) for NEWS, or the project page
 (https://savannah.nongnu.org/projects/ada-mode) for tarball download.
 
-A major new feature in this release; the GPS indentation engine can be
-used as the primary or backup indentation engine. This makes indenting
-while editing faster on large files, and more friendly on all files.
+This is a bug fix release; the version number should have incremented
+from 5.2 to 5.3 in the previous release, for the the GPS indentation
+engine.
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode

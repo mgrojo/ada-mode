@@ -240,6 +240,7 @@ pub-ada : force
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
+	rm -f $(ELPA_ROOT)/packages/ada-mode/check_xref.gpr
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 

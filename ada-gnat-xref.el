@@ -171,9 +171,7 @@ elements of the result may be nil."
 
     (ada-goto-source (nth 0 result)
 		     (nth 1 result)
-		     (nth 2 result)
-		     nil ;; other-window
-		     )
+		     (nth 2 result))
     ))
 
 (defun ada-gnat-xref-all (identifier file line col local-only append)

@@ -373,7 +373,7 @@ with compilation-error-regexp-alist set to COMP-ERR."
    (current-column))
   )
 
-(defun gpr-query-overridden (other-window)
+(defun gpr-query-overridden ()
   "Move to the overridden declaration of the identifier around point.
 If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
 buffer in another window."
@@ -391,11 +391,10 @@ buffer in another window."
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
-		     (nth 2 target)
-		     other-window)
+		     (nth 2 target))
     ))
 
-(defun gpr-query-goto-declaration (other-window)
+(defun gpr-query-goto-declaration ()
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa. If at a
 reference, goto the declaration.
@@ -416,8 +415,7 @@ buffer in another window."
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
-		     (nth 2 target)
-		     other-window)
+		     (nth 2 target))
     ))
 
 (defvar gpr-query-map
