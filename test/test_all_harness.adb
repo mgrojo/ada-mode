@@ -30,6 +30,7 @@ with Test_Gen_Images;
 with Test_Min_Heap;
 with Test_Network_Order;
 with Test_Randomize_Lists;
+with Test_Red_Black_Trees;
 with Test_Stacks;
 with Test_Stats;
 procedure Test_All_Harness
@@ -52,6 +53,7 @@ begin
    Add_Test (Suite, new Test_Min_Heap.Test_Case);
    Add_Test (Suite, new Test_Network_Order.Test_Case);
    Add_Test (Suite, new Test_Randomize_Lists.Test_Case (Debug => False));
+   Add_Test (Suite, new Test_Red_Black_Trees.Test_Case);
    Add_Test (Suite, new Test_Stacks.Test_Case);
    Add_Test (Suite, new Test_Stats.Test_Case);
 
