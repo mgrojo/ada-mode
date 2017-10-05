@@ -62,7 +62,7 @@
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
-  (wisi-validate-cache (point-max) t 'navigate)
+  (wisi-validate-cache (point-max) t)
   (save-excursion
     (let ((table nil)
 	  cache)

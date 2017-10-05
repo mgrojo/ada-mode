@@ -2146,7 +2146,7 @@ set."
         (error "%s (opened) and %s (found in project) are two different files"
                file-name found-file)))))
 
-(defun ada-find-other-file (other-window)
+(defun ada-find-other-file ()
   "Move to the corresponding declaration in another file.
 
 - If region is active, assume it contains a package name;
@@ -2192,15 +2192,15 @@ buffer in another window."
      compilation-search-path
      (ada-file-name-from-ada-name ff-function-name)
      ada-spec-suffixes
-     other-window)
+     nil);; other-window
     (deactivate-mark))
 
    ((and (not (ada-on-context-clause))
 	 (ada-goto-subunit-name))
-    (ada-goto-declaration other-window))
+    (ada-goto-declaration))
 
    (t
-    (ff-find-other-file other-window)))
+    (ff-find-other-file)))
   )
 
 (defun ada-find-file (filename)
@@ -2289,7 +2289,7 @@ to go back to these positions.")
       (find-file (cadr pos))
       (goto-char (car pos)))))
 
-(defun ada-goto-source (file line column other-window)
+(defun ada-goto-source (file line column)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
 LINE, COLUMN are Emacs origin.
@@ -2308,25 +2308,13 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
-      (cond
-       ((null other-window)
-	(switch-to-buffer buffer))
-
-       (t (switch-to-buffer-other-window buffer))
-       ))
+      (display-buffer buffer))
 
      ((file-exists-p file)
-      (cond
-       ((null other-window)
-	(find-file file))
-
-       (t
-	(find-file-other-window file))
-       ))
+      (find-file file))
 
      (t
       (error "'%s' not found" file))))
-
 
   ;; move the cursor to the correct position
   (push-mark nil t)
@@ -2363,12 +2351,9 @@ FILE may be absolute, or on `compilation-search-path'.  If point is
 at the specification, the corresponding location is the body, and vice
 versa.")
 
-(defun ada-goto-declaration (other-window)
+(defun ada-goto-declaration ()
   "Move to the declaration or body of the identifier around point.
-If at the declaration, go to the body, and vice versa.
-
-If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window."
+If at the declaration, go to the body, and vice versa."
   (interactive "P")
   (ada-check-current-project (buffer-file-name))
 
@@ -2385,8 +2370,7 @@ buffer in another window."
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
-		     (nth 2 target)
-		     other-window)
+		     (nth 2 target))
     ))
 
 (defvar ada-xref-parent-function nil
@@ -2499,7 +2483,7 @@ Called with four arguments:
 Returns a list (FILE LINE COLUMN) giving the corresponding location.
 FILE may be absolute, or on `compilation-search-path'.")
 
-(defun ada-show-overridden (other-window)
+(defun ada-show-overridden ()
   "Show the overridden declaration of identifier at point."
   (interactive "P")
   (ada-check-current-project (buffer-file-name))
@@ -2516,9 +2500,7 @@ FILE may be absolute, or on `compilation-search-path'.")
 
     (ada-goto-source (nth 0 target)
 		     (nth 1 target)
-		     (nth 2 target)
-		     other-window)
-
+		     (nth 2 target))
   ))
 
 ;; This is autoloaded because it may be used in ~/.emacs
@@ -2552,14 +2534,11 @@ the file name."
     (speedbar-add-supported-extension body))
   )
 
-(defun ada-show-secondary-error (other-window)
+(defun ada-show-secondary-error ()
   "Show the next secondary file reference in the compilation buffer.
 A secondary file reference is defined by text having text
 property `ada-secondary-error'.  These can be set by
-compiler-specific compilation filters.
-
-If OTHER-WINDOW (set by interactive prefix) is non-nil, show the
-buffer in another window."
+compiler-specific compilation filters."
   (interactive "P")
 
   ;; preserving the current window works only if the frame
@@ -2592,7 +2571,7 @@ buffer in another window."
        file
        (nth 1 item); line
        (nth 2 item); column
-       other-window)
+       )
       (select-window start-window)
       )
     ))

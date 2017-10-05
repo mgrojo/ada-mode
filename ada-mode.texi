@@ -486,6 +486,10 @@ By default, the context menu is bound to @key{C-down-mouse-3},
 i.e. control-right-click. @key{down-mouse-3} is already bound in the
 global map; you can override that global binding in the
 @code{ada-mode-hook} (see below for code).
+@item other-frame-window-mode
+Ada mode does not provide any @code{other-frame} or
+@code{other-window} variants of user operations. Instead, it is
+recommended to use the Gnu ELPA package @code{other-frame-window}.
 @item delete-trailing-whitespace
 Deletes space, tab at end of line and blank lines at end of buffer.
 @item untabify

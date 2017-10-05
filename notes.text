@@ -58,10 +58,6 @@ install packages in -Q:
  (list-packages))
 
  current work
-migrate to savannah git
-    maintain dual git/mtn for as long as possible
-    either via mtn export, or dual commits
-
 add missing features to gpr_query; see fixmes.
 
 refactor {ada|gpr|java}-skel-expand
@@ -980,7 +976,7 @@ commit elpa:
     (dvc-sync-review "/Projects/elpa")
     # 24 hrs for web repository to update
 
-test install from elpa
+after Gnu ELPA updated, test install from elpa
     5.1.8 crashed emacs for me
 
 (dvc-state-one ".")
@@ -989,7 +985,7 @@ mtn tag h:org.emacs.ada-mode "org.emacs.ada-mode-<version>"
 (dvc-sync-run ".")
 (dvc-sync-review ".")
 
-mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.2.2 ../org.emacs.ada-mode-5.2.2
+mtn checkout -b org.emacs.ada-mode -r t:org.emacs.ada-mode-5.3.1 ../org.emacs.ada-mode-5.3.1
 
 build/Makefile zip
 
@@ -1007,21 +1003,20 @@ not under emacs:
 (cvs-examine "d:/Web/savannah/ada-mode/" nil)
     mark all, commit
 
-after Gnu ELPA updated, post on emacs-ada-mode mailing list, c.l.a newsgroup:
+post on emacs-ada-mode mailing list, c.l.a newsgroup:
 
-Ada mode 5.2.2 is now available in GNU ELPA. See the homepage
+Ada mode 5.3.1 is now available in GNU ELPA. See the homepage
 (http://www.nongnu.org/ada-mode/) for NEWS, or the project page
 (https://savannah.nongnu.org/projects/ada-mode) for tarball download.
 
-A major new feature in this release; the GPS indentation engine can be
-used as the primary or backup indentation engine. This makes indenting
-while editing faster on large files, and more friendly on all files.
+This is a bug fix release; the version number should have incremented
+from 5.2 to 5.3 in the previous release, for the the GPS indentation
+engine.
 
 mark fixed bugs
     http://debbugs.gnu.org/cgi/pkgreport.cgi?package=ada-mode
     http://debbugs.gnu.org/Developer.html
 
 check https://www.emacswiki.org/emacs/AdaMode
-
 
 -- end of file

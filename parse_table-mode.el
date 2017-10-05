@@ -50,6 +50,7 @@
     (search-forward-regexp (concat "^State " identifier ":$"))
     (list (xref-make identifier (xref-make-buffer-location (current-buffer) (match-beginning 0))))))
 
+;;;###autoload
 (define-minor-mode parse_table-mode
   "Provides navigation in wisi-generate parse table output."
   nil ":parse_table" nil
@@ -59,6 +60,13 @@
       (read-only-mode 0)
     (read-only-mode 1)
   ))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.parse_table\\'" . parse_table-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.ada_parse_table\\'" . parse_table-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.elisp_parse_table\\'" . parse_table-mode))
 
 (provide 'parse_table-mode)
 ;; end of file
