@@ -2,24 +2,20 @@
 ;; (ediff "subprograms.wy" "../../../org.wisitoken.stephe-1/wisi/test/subprograms.wy")
 
 %{
-;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+;;  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
+;;  This program is free software; you can redistribute it and/or
+;;  modify it under the terms of the GNU General Public License as
+;;  published by the Free Software Foundation; either version 3, or (at
+;;  your option) any later version.
 ;;
-;; This software is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
+;;  This software is distributed in the hope that it will be useful,
+;;  but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;  General Public License for more details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-with WisiToken.Token_Region;
-%%
-State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+;;  You should have received a copy of the GNU General Public License
+;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
 %keyword BEGIN "begin"
@@ -33,10 +29,11 @@ State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 
 %token <punctuation> SEMICOLON ";"
 
-%token <symbol> SYMBOL "[a-zA-Z][0-9a-zA-Z_]*"
+%token <symbol> SYMBOL [a-zA-Z][0-9a-zA-Z_]*
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*
 
 %start compilation_unit
 %parser_algorithm LALR
@@ -44,11 +41,6 @@ State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %lexer Elisp
 
 ;; elisp names in actions
-%elisp_class name
-%elisp_class misc
-%elisp_class open-paren
-%elisp_class close-paren
-
 %elisp_face font-lock-keyword-face
 %elisp_face font-lock-function-name-face
 %elisp_face nil
@@ -58,6 +50,7 @@ State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 block
   : BEGIN END
   | BEGIN EXCEPTION WHEN SYMBOL END
+    (wisi-indent-action [0 0 ada-indent 0 0 ])
 ;
 
 compilation_unit
@@ -77,27 +70,26 @@ subprogram
   : FUNCTION parameter_list SYMBOL block SEMICOLON
     (progn
       ;; an example of each supported action, with the most complex parameter syntax
-      (wisi-statement-action [1 name 2 misc])
+      (wisi-statement-action [1 statement-start 2 misc 3 name])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken
-                             [2 ada-indent-broken]])) ;; single action on two lines
+                             [2 ada-indent-broken] 0 0])) ;; single action on two lines
   | PROCEDURE parameter_list SYMBOL
     (progn
-      (wisi-statement-action [1 name 2 misc])
+      (wisi-statement-action [1 statement-start 2 misc 3 name])
       (wisi-face-apply-action [3 nil font-lock-function-name-face])
-      (wisi-indent-action [0 ada-indent-broken
-                             (wisi-anchored% 3 ada-indent-broken)]))
+      (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
   ;
 
 ;; not on one line, empty production with comment
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    (wisi-statement-action [1 open-paren 2 close-paren]) ;; single action; no progn
+    (wisi-statement-action [1 misc 2 misc]) ;; single action; no progn
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    (wisi-statement-action [1 open-paren 3 close-paren])
+    (wisi-indent-action [0 (wisi-anchored% 1 1) 0])
   ;
 
 %%

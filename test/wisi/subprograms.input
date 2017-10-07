@@ -1,28 +1,26 @@
---CACHE: 'function
+--EMACSCMD: (test-cache-class "function" 'statement-start)
+--EMACSCMD: (test-cache-class "(" 'misc)
+--EMACSCMD: (test-cache-class "Func_1" 'name)
+--EMACSCMD: (test-cache-containing "function" "(")
 function
---CACHE: nil
-Func_1
+  (a)
+  Func_1
+begin end;
 
---CACHE: 'procedure
+--EMACSCMD: (test-cache-class "function" 'name)
+--EMACSCMD: (test-cache-class "(" 'misc)
+--EMACSCMD: (test-cache-class "Proc_1" 'name)
+procedure Proc_1
+
+--FIXME: test motion caches
 procedure
---CACHE: nil
-Proc_1
+  (
+   a
+  ) Proc_1
 
---CACHE: 'function
-function
---CACHE: 'other
-(
---CACHE: 'close-paren
-)
---CACHE: nil
-Func_1
+function () Func_1
+begin
+exception
+   when Beep
+end;
 
---CACHE: 'procedure
-procedure
---CACHE: 'other
-(
-param_1
---CACHE: 'close-paren
-)
---CACHE: nil
-Func_1

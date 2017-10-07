@@ -48,16 +48,16 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-        ("NNparse ""<buffer-name>"" <verbosity> <mckenzie_cost_limit> <mckenzie_check_limit> <tokens>");
-      Put_Line ("  NN excludes <tokens>");
-      Put_Line ("  <buffer-name> used in error messages");
+      ("NNparse <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit> <source_byte_count>" &
+       "<source bytes>");
+      Put_Line ("  NN excludes <source bytes>");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
+      Put_Line ("  <mckenzie_enabled> is 0 | 1");
       Put_Line ("  <*_limit> is integer; -1 means use default");
-      Put_Line ("  outputs: elisp vectors for parser actions or elisp forms for errors.");
-      Put_Line ("  See wisi-process-parse-execute for details.");
+      Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
       New_Line;
-      Put_Line ("NNnoop <tokens>");
-      Put_Line ("  Just receive tokens; otherwise no operation. NN excludes <tokens>");
+      Put_Line ("NNnoop <source_byte_count> <source bytes>");
+      Put_Line ("  Just receive source; otherwise no operation. NN excludes <source bytes>");
       New_Line;
       Put_Line ("04quit");
    end Usage;
@@ -78,7 +78,7 @@ is
       --
       --  With GNAT GPL 2016, GNAT.OS_Lib.Read does _not_ wait for all N
       --  bytes or EOF; it returns as soon as it gets some bytes.
-       loop
+      loop
          Read := GNAT.OS_Lib.Read (GNAT.OS_Lib.Standin, B, Remaining);
          if Read = 0 then
             --  Pipe closed; probably parent Emacs crashed. Force exit.
@@ -101,30 +101,6 @@ is
       --  From Integer'Value
       raise Protocol_Error with "invalid command byte count; '" & Temp & "'";
    end Get_Command_Length;
-
-   function Get_String
-     (Source : in     String;
-      Last   : in out Integer)
-     return String
-   is
-      use Ada.Exceptions;
-      use Ada.Strings.Fixed;
-      First : constant Integer := Index
-        (Source  => Source,
-         Pattern => """",
-         From    => Last + 1);
-   begin
-      Last := Index
-        (Source  => Source,
-         Pattern => """",
-         From    => First + 1);
-
-      if First = 0 or Last = 0 then
-         raise Protocol_Error with Name & "_wisi_parse: no '""' found for string";
-      end if;
-
-      return Source (First + 1 .. Last - 1);
-   end Get_String;
 
    function Get_Integer
      (Source : in     String;

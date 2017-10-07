@@ -9,139 +9,18 @@
 ;; from Makefile:
 ;; M-x : (run-test "<filename>" t)
 
-(package-initialize)
-
 (require 'cl-lib)
 (require 'wisi)
-
-;; Default includes mtn, among others, which is broken in Emacs 24.3
-(setq vc-handled-backends '(CVS))
-
-(defvar wisi-test-parser 'elisp
-  "Set to ’process to test external process parser.")
-
-(defvar test-syntax-table
-  (let ((table (make-syntax-table)))
-    ;; make-syntax-table sets all alphanumeric to w, etc; so we only
-    ;; have to add test-specific things.
-
-    ;; operator symbols
-    (modify-syntax-entry ?&  "." table)
-    (modify-syntax-entry ?*  "." table)
-    (modify-syntax-entry ?+  "." table)
-    (modify-syntax-entry ?-  "." table)
-    (modify-syntax-entry ?/  "." table)
-    (modify-syntax-entry ?<  "." table)
-    (modify-syntax-entry ?=  "." table)
-    (modify-syntax-entry ?>  "." table)
-    (modify-syntax-entry ?|  "." table)
-
-    ;; \f and \n end a comment - see test-syntax-propertize for comment start
-    (modify-syntax-entry ?\f  ">   " table)
-    (modify-syntax-entry ?\n  ">   " table)
-    table
-    ))
-
-(defconst test-class-list
-  '(
-    block-start
-    close-paren
-    function
-    open-paren
-    other
-    procedure
-    statement-end
-    statement-other
-    statement-start
-    )
-  )
-
-(defun test-syntax-propertize (start end)
-  "Assign `syntax-table' properties in accessible part of buffer."
-  ;; (info "(elisp)Syntax Properties")
-  (let ((modified (buffer-modified-p))
-	(buffer-undo-list t)
-	(inhibit-read-only t)
-	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t))
-    (goto-char start)
-    (while (re-search-forward
-	     "\\(--\\)"; 1: comment start
-	    end t)
-      ;; The help for syntax-propertize-extend-region-functions
-      ;; implies that 'start end' will always include whole lines, in
-      ;; which case we don't need
-      ;; syntax-propertize-extend-region-functions
-      (cond
-       ((match-beginning 1)
-	(put-text-property
-	 (match-beginning 1) (match-end 1) 'syntax-table '(11 . nil)))
-       ))
-    (unless modified
-      (restore-buffer-modified-p nil))))
+(require 'wisi-tests)
 
 (defun run-test-here (filename)
   ;; split out from run-test for interactive debugging
   (interactive "Mgrammar filename root: ")
   (let ((wisi-test-success nil)
 	(expected-result t)
-	(wisi--cache-max
-	 (list
-	  (cons 'face (copy-marker (point-min)))
-	  (cons 'navigate (copy-marker (point-min)))
-	  (cons 'indent (copy-marker (point-min)))))
 	(wisi--parse-action 'navigate)) ;; for wisi-statement-action
 
-    ;; use Ada style comments in source
-    (set-syntax-table test-syntax-table)
-    (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
-    (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
-
-    (cl-ecase wisi-test-parser
-      (elisp
-       (require 'wisi-elisp-parse)
-       (let* ((grammar-file-root (concat filename "-elisp"))
-	      (grammar-file-name (concat grammar-file-root ".el"))
-	      (grammar-file-abs (locate-file grammar-file-name load-path)))
-	 (unless grammar-file-abs
-	   (error "can’t find ’%s’ on ’%s’" grammar-file-name load-path))
-	 (require (intern grammar-file-root)))
-       (wisi-setup
-	:indent-calculate nil
-	:post-indent-fail nil
-	:class-list test-class-list
-	:parser (wisi-make-elisp-parser
-		 (symbol-value (intern-soft (concat filename "-elisp-parse-table")))
-		 `wisi-forward-token)
-	:lexer (wisi-make-elisp-lexer
-		:token-table-raw (symbol-value (intern-soft (concat filename "-elisp-token-table-raw")))
-		:keyword-table-raw (symbol-value (intern-soft (concat filename "-elisp-keyword-table-raw")))
-		:string-quote-escape-doubled nil
-		:string-quote-escape nil)))
-
-      (process
-       (require 'wisi-process-parse)
-       (require (intern (concat filename "-process")))
-       (add-to-list 'exec-path default-directory)
-       (wisi-setup
-	:indent-calculate nil
-	:post-indent-fail nil
-	:class-list test-class-list
-	:parser (wisi-make-process-parser
-		 :label filename
-		 :exec (concat filename "_wisi_parse.exe")
-		 :token-table (nth 0 (symbol-value (intern-soft (concat filename "-process-token-table"))))
-		 :action-table (nth 0 (symbol-value (intern-soft (concat filename "-process-action-table"))))
-		 :terminal-hashtable (nth 1 (symbol-value (intern-soft (concat filename "-process-token-table")))))
-	:lexer (wisi-make-elisp-lexer
-		:token-table-raw (symbol-value (intern-soft (concat filename "-elisp-token-table-raw")))
-		:keyword-table-raw (symbol-value (intern-soft (concat filename "-elisp-keyword-table-raw")))
-		:string-quote-escape-doubled nil
-		:string-quote-escape nil)))
-      )
-
-    ;; Not clear why this is not being done automatically
-    (syntax-propertize (point-max))
+    (wisi-tests-setup filename)
 
     ;; Check for expected error result
     (goto-char (point-min))

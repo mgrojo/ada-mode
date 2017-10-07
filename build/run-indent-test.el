@@ -1,9 +1,6 @@
 ;; utils for automating indentation and casing tests
 
-;; Default includes mtn, among others, which is broken in Emacs 22.2
-(setq vc-handled-backends '(CVS))
-(setq eval-expression-debug-on-error nil)
-(package-initialize)
+(require 'wisi-tests)
 
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
@@ -58,6 +55,48 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     (search-forward search)
     (test-face token face)
     ))
+
+(defun test-cache-class (token class)
+  "Test if TOKEN in next code line has wisi-cache with class CLASS."
+  (save-excursion
+    (wisi-validate-cache (line-end-position 3) nil 'navigate)
+    (beginning-of-line); forward-comment doesn't move if inside a comment!
+    (forward-comment (point-max))
+    (condition-case err
+	(search-forward token (line-end-position 2))
+      (error
+       (error "can't find '%s'" token)))
+
+    (let ((cache (get-text-property (match-beginning 0) 'wisi-cache)))
+
+      (unless cache (error "no cache"))
+      (unless (eq (wisi-cache-class cache) class)
+	(error "expecting class %s, found '%s'" class (wisi-cache-class cache)))
+    )))
+
+(defun test-cache-containing (containing contained)
+  "Test if CONTAINING in next code line has wisi-cache with that contains CONTAINED."
+  (save-excursion
+    (wisi-validate-cache (line-end-position 3) nil 'navigate)
+    (beginning-of-line)
+    (forward-comment (point-max))
+    (let (containing-pos contained-cache)
+      (condition-case err
+	  (search-forward containing (line-end-position 2))
+	(error
+	 (error "can't find '%s'" containing)))
+      (setq containing-pos (point))
+
+      (condition-case err
+	  (search-forward contained (line-end-position 2))
+	(error
+	 (error "can't find '%s'" contained)))
+      (setq contained-cache (get-text-property (match-beginning 0) 'wisi-cache))
+
+      (unless contained-cache (error "no cache on %s" contained))
+      (unless (= containing-pos (wisi-cache-containing contained-cache))
+	(error "expecting %d, got $d" containing-pos (wisi-cache-containing contained-cache)))
+    )))
 
 (defun run-test-here ()
   "Run an indentation and casing test on the current buffer."
@@ -199,7 +238,12 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (setq font-lock-support-mode nil)
 
   (let ((dir default-directory))
-    (find-file file-name)
+    (find-file file-name) ;; sets default-directory
+
+    (when (eq major-mode 'fundamental-mode)
+      ;; Running a grammar in test/wisi
+      (add-to-list 'load-path (expand-file-name "."))
+      (wisi-tests-setup (file-name-sans-extension (file-name-nondirectory file-name))))
 
     (run-test-here)
 

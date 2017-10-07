@@ -155,14 +155,11 @@ gpr-skel.gpr.tmp :
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
-%_wisi_parse.exe : %_wisi_parse.ads %_process.adb force
+%_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
-%_process.adb : force
-	make -C $(WISI_WISITOKEN) $*_process.adb
-	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
-	cp $(WISI_WISITOKEN)/$*_process.ad? .
-	cp $(WISI_WISITOKEN)/$**re2c* .
+run_%_parser.exe : run_%_parser.ads %.ads force
+	gprbuild -p wisi_parse.gpr $<
 
 .PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
 
@@ -180,11 +177,11 @@ elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*-wy.el ../*.elc
 
-%_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
-	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
+%_process.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
-%.re2c %.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+%.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer re2c $< > $(*F).ada_parse_table
 	dos2unix $(*F).ads $(*F).adb
 
@@ -208,7 +205,7 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # dependencies, because the complete list is complex, and we sometimes
 # want to ignore it.
 %.tmp : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<"))(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

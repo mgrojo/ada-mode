@@ -17,6 +17,7 @@
 --  MA 02110-1335, USA.
 
 with "wisitoken";
+with "standard_common";
 project Wisi_Parse is
 
    for Source_Dirs use (".", "..", "../test/wisi");
@@ -25,27 +26,23 @@ project Wisi_Parse is
 
    for Exec_Dir use "../test/wisi";
 
-   for Languages use ("Ada");
+   for Languages use ("Ada", "C");
 
    package Compiler is
 
-      Standard_Style := "-gnaty3abcefhiklnOprtx";
-      Line_Length := "-gnatyM120";
-
-      Common_Switches :=
-        ("-g",
-         "-gnata",  -- assertions
-         "-gnatfoqQ",
-         "-gnatVa", -- validity checks
-         "-gnateE", -- extra info in exceptions
-         "-gnatwaBCeJL",
-         "-gnatw.d",
-         "-fstack-check",
-         "-gnat12");
-
       --  Lines in subprograms_process.adb can exceed 120 char;
       --  we leave out line_length check for all files; it's simpler
-      for Default_Switches ("Ada") use Common_Switches & Standard_Style & ("-O0");
+      case Standard_Common.Build is
+      when "Debug" =>
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Debug_Switches &
+           Standard_common.Compiler.Base_Style_Checks;
+
+      when "Normal" =>
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Release_Switches &
+           Standard_Common.Compiler.Base_Style_Checks;
+      end case;
 
    end Compiler;
 
@@ -55,7 +52,7 @@ project Wisi_Parse is
    end Builder;
 
    package Binder is
-      for default_switches ("Ada") use ("-E"); -- symbolic traceback
+      for Default_Switches ("Ada") use ("-E"); -- symbolic traceback
    end Binder;
 
 end Wisi_Parse;

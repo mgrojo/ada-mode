@@ -8,7 +8,7 @@
 ;;  indentation
 ;;  navigation
 ;; Version: 1.1.6
-;; package-requires: ((cl-lib "0.4") (emacs "24.2") (queue "0.1.1"))
+;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
@@ -862,7 +862,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 		  (wisi--error-deleted (car (wisi-parser-errors wisi--parser))))))
 	;; If there is error correction information, use a
 	;; ’compilation’ buffer, so *-fix-compiler-error will call
-	;; wisi-fix-error.
+	;; wisi-repair-error.
 	(progn
 	  (wisi-goto-error)
 	  (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
@@ -2616,13 +2616,12 @@ If non-nil, only repair errors in BEG END region."
     (setq diff-gcs (- gcs-done start-gcs))
     (if report-wait-time
 	(progn
-	  (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs %d tokens %d actions %f wait"
+	  (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs %d responses %f wait"
 		   diff-time
 		   diff-gcs
 		   (/ diff-time count)
 		   (/ (float diff-gcs) count)
-		   (wisi-process--parser-token-count wisi--parser)
-		   (wisi-process--parser-action-count wisi--parser)
+		   (wisi-process--parser-response-count wisi--parser)
 		   (/ cum-wait-time count)))
 
       (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"

@@ -45,9 +45,11 @@ run test from emacs -Q using source:
  current work
 compute indent in Ada
     subprograms.wisi-process-test
+        need to send text-properties to elisp
 
     implement all actions in Ada
         wisitoken-wisi_runtime.adb
+        statement-action done; testing
 
     accumulate text_properties
         for indent, store in array indexed by line number; elisp pass in max line number
@@ -55,6 +57,11 @@ compute indent in Ada
         store start pos in each line, use binary search to find the right line for a position.
 
         when parse finished, send all to elisp
+
+    need elisp lexer, token table for wisi-repair-error
+        later
+
+    add wisi-action-disable arg to process parse command?
 
     do more optimization later
 
