@@ -78,7 +78,15 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Ascending_Order (Tree : in Pkg.Tree) return Iterators.Forward_Iterator'Class;
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
+
+   function Find (Container : in Tree; Key : in Key_Type) return Cursor;
+   --  Has_Element is False if Key is not in Container.
+
+   function Present (Container : in Tree; Key : in Key_Type) return Boolean;
+
    procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type);
+   function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
+   --  Result points to newly inserted element.
 
 private
 
@@ -105,6 +113,10 @@ private
       Node       : Node_Access;
       Left_Done  : Boolean;
       Right_Done : Boolean;
+      --  FIXME: if don't need Next (Cursor), move *_Done into Iterator,
+      --  ignore Cursor in Next.
+      --
+      --  Or, if do need Next (Cursor), make Iterator, Next visible.
    end record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

@@ -282,12 +282,46 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end if;
    end Count;
 
-   procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type)
+   function Find (Container : in Tree; Key : in Key_Type) return Cursor
+   is
+      Node : Node_Access := Container.Root;
+   begin
+      while Node /= null loop
+         if Key = Pkg.Key (Node.Element) then
+            return (Node, True, False);
+         elsif Key < Pkg.Key (Node.Element) then
+            Node := Node.Left;
+         else
+            Node := Node.Right;
+         end if;
+      end loop;
+      return (null, False, False);
+   end Find;
+
+   function Present (Container : in Tree; Key : in Key_Type) return Boolean
+   is
+      Node : Node_Access := Container.Root;
+   begin
+      while Node /= null loop
+         if Key = Pkg.Key (Node.Element) then
+            return True;
+         elsif Key < Pkg.Key (Node.Element) then
+            Node := Node.Left;
+         else
+            Node := Node.Right;
+         end if;
+      end loop;
+      return False;
+   end Present;
+
+   function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor
    is
       --  [1] 13.3 RB-Insert (T, z)
       Z : Node_Access := new Node'(Element, null, null, null, Red);
       Y : Node_Access := null;
       X : Node_Access := Tree.Root;
+
+      Result : Node_Access;
    begin
       while X /= null loop
          Y := X;
@@ -307,11 +341,22 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          Y.Right := Z;
       end if;
 
+      Result := Z;
       if Z = Tree.Root then
          Z.Color := Black;
       else
          Fixup (Tree, Z);
       end if;
+
+      return (Node => Result, Left_Done => True, Right_Done => False);
+   end Insert;
+
+   procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type)
+   is
+      Temp : Cursor := Insert (Tree, Element);
+      pragma Unreferenced (Temp);
+   begin
+      null;
    end Insert;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

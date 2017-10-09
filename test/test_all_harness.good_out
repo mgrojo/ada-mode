@@ -79,10 +79,11 @@ OK test_definite_queues.adb : Overwrite
 OK test_min_heaps.adb : Nominal
 OK sal-network_order.adb : all data types
 OK ../../test/test_randomize_lists.adb : Randomize
+OK test_red_black_trees.adb : Nominal
 OK ../../test/test_stacks.adb : Nominal
 OK Test_Math_Float_Stats : Test_Stats
 
-Total Tests Run:   82
-Successful Tests:  82
+Total Tests Run:   83
+Successful Tests:  83
 Failed Assertions: 0
 Unexpected Errors: 0

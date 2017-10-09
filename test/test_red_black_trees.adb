@@ -96,7 +96,8 @@ package body Test_Red_Black_Trees is
       --  of the new node.
       Tree.Insert ((Pos => 3)); -- insert into null tree
       Tree.Insert ((Pos => 7)); -- insert to right
-      Tree.Insert ((Pos => 10)); -- insert to right, fixup
+      I := Tree.Insert ((Pos => 10)); -- insert to right, fixup
+      Check ("0", I, 10, Red);
 
       --              7 b
       --          3 r     10 r
@@ -266,6 +267,13 @@ package body Test_Red_Black_Trees is
       I := Left (I);
       Check ("9.3", I, 9, Red);
 
+      Check ("present 10", Tree.Present (10), True);
+      Check ("present 14", Tree.Present (14), True);
+      Check ("present 13", Tree.Present (13), False);
+
+      Check ("find 10", Tree.Find (10), 10, Black);
+      Check ("find 14", Tree.Find (14), 14, Black);
+      Check ("find 13", Trees.Has_Element (Tree.Find (13)), False);
    end Nominal;
 
    ----------
