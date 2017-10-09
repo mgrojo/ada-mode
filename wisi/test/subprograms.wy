@@ -29,11 +29,11 @@
 
 %token <punctuation> SEMICOLON ";"
 
-%token <symbol> SYMBOL "[a-zA-Z][0-9a-zA-Z_]*"
+%token <symbol> SYMBOL [a-zA-Z][0-9a-zA-Z_]*
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*
 
 %start compilation_unit
 %parser_algorithm LALR
@@ -41,11 +41,6 @@
 %lexer Elisp
 
 ;; elisp names in actions
-%elisp_class name
-%elisp_class misc
-%elisp_class open-paren
-%elisp_class close-paren
-
 %elisp_face font-lock-keyword-face
 %elisp_face font-lock-function-name-face
 %elisp_face nil
@@ -74,12 +69,12 @@ subprogram
   : FUNCTION parameter_list SYMBOL block SEMICOLON
     (progn
       ;; an example of each supported action, with the most complex parameter syntax
-      (wisi-statement-action [1 name 2 misc])
+      (wisi-statement-action [1 statement-start 2 misc 3 name])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken
-                             [2 ada-indent-broken]])) ;; single action on two lines
+                             [2 ada-indent-broken] 0 0])) ;; single action on two lines
   | PROCEDURE parameter_list SYMBOL
     (progn
       (wisi-statement-action [1 name 2 misc])
@@ -91,10 +86,9 @@ subprogram
 ;; not on one line, empty production with comment
 parameter_list
   : LEFT_PAREN RIGHT_PAREN ;; c-like no parameters
-    (wisi-statement-action [1 open-paren 2 close-paren]) ;; single action; no progn
+    (wisi-statement-action [1 misc 2 misc]) ;; single action; no progn
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    (wisi-statement-action [1 open-paren 3 close-paren])
   ;
 
 %%

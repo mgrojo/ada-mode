@@ -67,6 +67,8 @@ package WisiToken.Lexer.Regexp is
    overriding procedure Reset_With_File (Lexer : in out Instance; File_Name : in String);
    overriding procedure Reset (Lexer : in out Instance);
 
+   overriding procedure Discard_Rest_Of_Input (Lexer : in out Instance) is null;
+
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
    overriding

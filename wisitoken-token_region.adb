@@ -141,9 +141,9 @@ package body WisiToken.Token_Region is
    end Active_Error_List;
 
    procedure Put
-     (File_Name  : in String;
-      Errors     : in Error_List_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class)
+     (Source_File_Name : in String;
+      Errors           : in Error_List_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor'Class)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Text_IO;
@@ -154,12 +154,12 @@ package body WisiToken.Token_Region is
             for Item of Errors (I) loop
                if Item.Error_Token.Line = 0 then
                   Put_Line
-                    (File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                    (Source_File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
                        ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
                else
                   Put_Line
                     (Error_Message
-                       (File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
+                       (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
                         "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
                           ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
                end if;

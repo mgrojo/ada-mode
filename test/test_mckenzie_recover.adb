@@ -671,7 +671,7 @@ package body Test_McKenzie_Recover is
       pragma Unreferenced (T);
    begin
       --  Run before all tests in register
-      Ada_Lite.Create_Parser (Parser, WisiToken.LALR);
+      Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);
       Orig_Cost_Limit := Parser.Table.McKenzie.Cost_Limit;
    end Set_Up_Case;
 

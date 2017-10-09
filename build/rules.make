@@ -185,7 +185,7 @@ zipfile : ROOT := $(shell cd ..; basename `pwd`)
 zipfile : force
 	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
-.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %.qx %.re2c %-wy.el
+.PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %_process.adb %.qx %.re2c %-wy.el
 
 vpath %-wy.good_el  ../wisi/test
 vpath %.good_parse  ../wisi/test

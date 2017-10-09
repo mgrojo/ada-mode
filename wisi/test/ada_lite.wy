@@ -26,9 +26,12 @@
 ;; along with WisiToken.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 %{
+with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Region;
 %%
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}
 

@@ -35,11 +35,6 @@ package body Wisi.Output_Elisp_Common is
       raise Not_Found with "elisp name '" & Elisp_Name & "' not found";
    end Find_Elisp_ID;
 
-   function Find_Class_ID (Class : in String) return Integer
-   is begin
-      return Find_Elisp_ID (Elisp_Names.Classes, Class);
-   end Find_Class_ID;
-
    function Find_Face_ID (Face : in String) return Integer
    is begin
       return Find_Elisp_ID (Elisp_Names.Faces, Face);

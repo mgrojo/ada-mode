@@ -99,7 +99,6 @@ is
       Put_Prologue (Ada_Comment, Prologues.Body_Context_Clause);
       New_Line;
 
-      Put_Line ("with WisiToken.Token;");
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
@@ -250,7 +249,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
-      Ada, Generate_Utils.LR1_Descriptor, Process);
+      Ada, Generate_Utils.LR1_Descriptor, None);
 
    Create_Ada_Body;
 

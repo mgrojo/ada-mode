@@ -58,9 +58,9 @@ package WisiToken.Token_Region is
    --  map, or a vector with arbitrary first_index.
 
    procedure Put
-     (File_Name  : in String;
-      Errors     : in Error_List_Arrays.Vector;
-      Descriptor : in WisiToken.Descriptor'Class);
+     (Source_File_Name : in String;
+      Errors           : in Error_List_Arrays.Vector;
+      Descriptor       : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
    type State_Type is new WisiToken.Token.Semantic_State with record

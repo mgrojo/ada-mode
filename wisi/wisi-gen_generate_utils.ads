@@ -32,7 +32,7 @@ package Wisi.Gen_Generate_Utils is
    use all type Standard.Ada.Containers.Count_Type;
 
    EOF_ID : constant Token_ID := Token_ID
-     (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + 1;
+     (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + Token_ID'First;
 
    LR1_Descriptor : WisiToken.Descriptor
      (First_Terminal    => (if Count (Tokens.Non_Grammar) > 0

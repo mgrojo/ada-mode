@@ -21,19 +21,24 @@ pragma License (GPL);
 with Ada.Command_Line;      use Ada.Command_Line;
 with Ada.Containers;
 with Ada.Exceptions;
+with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Text_IO;           use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
 with WisiToken.Parser.LR.Parser;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region;
 procedure Gen_Run_Wisi_Parser
 is
    use all type Ada.Containers.Count_Type;
 
-   --  Create the parser first, so we can access the default error
-   --  correction parameters below.
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
    Parser : WisiToken.Parser.LR.Parser.Instance;
+
+   Errors_Output : Boolean := False;
 
    procedure Put_Usage
    is
@@ -47,10 +52,12 @@ is
       Put_Line ("   2 - add parse stack in each cycle, error recovery enqueue/check");
       Put_Line ("   3 - add pending semantic state operations, error recovery parse actions");
       Put_Line ("   4 - add lexer debug");
-      Put_Line ("--cost_limit n   : set error recover cost limit; default" &
-                  Integer'Image (Parser.Table.McKenzie.Cost_Limit));
-      Put_Line ("--check_limit n  : set error recover token check limit; default" &
-                  Integer'Image (Parser.Table.McKenzie.Check_Limit));
+      Put_Line ("--cost_limit n   : set error recover cost limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Integer'Image (Parser.Table.McKenzie.Cost_Limit)));
+      Put_Line ("--check_limit n  : set error recover token check limit" &
+                  (if Parser.Table = null then ""
+                   else "; default" & Integer'Image (Parser.Table.McKenzie.Check_Limit)));
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--lexer_only : only run lexer, for profiling");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
@@ -67,6 +74,9 @@ is
 
    Start  : Ada.Real_Time.Time;
 begin
+   --  Create parser first so Put_Usage has defaults from Parser.Table.
+   Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
+
    if Argument_Count < 1 then
       Put_Usage;
       Set_Exit_Status (Failure);
@@ -113,10 +123,15 @@ begin
       end if;
    end loop;
 
-   Create_Parser (Parser, WisiToken.LALR);
-
    --  Do this after setting Trace_Parse so lexer verbosity is set
-   Parser.Lexer.Reset_With_File (To_String (File_Name));
+   begin
+      Parser.Lexer.Reset_With_File (To_String (File_Name));
+   exception
+   when Ada.IO_Exceptions.Name_Error =>
+      Put_Line (Standard_Error, "'" & To_String (File_Name) & "' cannot be opened");
+      return;
+   end;
+
    Parser.Lexer.Enable_Line_Numbers := True;
 
    if Repeat_Count > 1 then
@@ -133,7 +148,7 @@ begin
             begin
                Parser.Lexer.Reset;
                loop
-                  exit when ID = Parser.Semantic_State.Trace.Descriptor.EOF_ID;
+                  exit when ID = Descriptor.EOF_ID;
                   ID := Parser.Lexer.Find_Next;
                end loop;
             end;
@@ -141,14 +156,17 @@ begin
             Parser.Parse;
          end if;
       exception
-      when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+      when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
          New_Line;
+         Errors_Output := True;
          if I = 1 then
             Put_Line (To_String (File_Name) & ": exception Syntax_Error");
-            if Errors.Length > 0 then
+            if State.Errors.Length > 0 then
                New_Line;
                Put_Line ("Errors:");
-               WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
+               WisiToken.Token_Region.Put (To_String (File_Name), State.Errors, Descriptor);
+            else
+               Put_Line (Ada.Exceptions.Exception_Message (E));
             end if;
          end if;
       end;
@@ -174,10 +192,10 @@ begin
       end;
    end if;
 
-   if Errors.Length > 0 then
+   if (not Errors_Output) and State.Errors.Length > 0 then
       New_Line;
       Put_Line ("Corrected Errors:");
-      WisiToken.Token_Region.Put (To_String (File_Name), Errors, Descriptor);
+      WisiToken.Token_Region.Put (To_String (File_Name), State.Errors, Descriptor);
    end if;
 
 exception

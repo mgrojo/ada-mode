@@ -19,11 +19,13 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 
 %%
 --  spec declarations, at end of spec.
 
+   Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
 
 --  These could be in test_Character_Literal, but we are testing that

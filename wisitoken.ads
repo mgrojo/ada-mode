@@ -65,7 +65,7 @@ package WisiToken is
    ----------
    --  Tokens
 
-   type Token_ID is range 1 .. Integer'Last;
+   type Token_ID is range 0 .. Integer'Last; -- 0 origin to match elisp array
 
    subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
    package Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
@@ -97,7 +97,7 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      Image : Token_Array_String (1 .. Last_Nonterminal);
+      Image : Token_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
 
       Terminal_Image_Width : Integer;
@@ -182,7 +182,7 @@ package WisiToken is
    --  3: add pending semantic state operations, error recovery parse actions
    --  4: add lexer debug
 
-   type Trace (Descriptor : not null access WisiToken.Descriptor'Class) is abstract tagged limited null record;
+   type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
    --  Derived types should support Ada.Text_IO for tests/debugging,
    --  and a protocol for inter-process communication for running a
    --  parser as a subprocess of an IDE.
@@ -264,6 +264,8 @@ package WisiToken is
    end record;
 
    Null_Buffer_Region : constant Buffer_Region := (Natural'Last, Natural'First);
+
+   function Length (Region : in Buffer_Region) return Natural is (Region.Last - Region.First + 1);
 
    function Image (Item : in Buffer_Region) return String;
 

@@ -24,8 +24,6 @@ with WisiToken.Lexer;
 with WisiToken.Token_Region;
 package WisiToken.Token_Line_Comment is
 
-   type Parse_Action_Type is (Navigate, Face, Indent);
-
    type Token is new WisiToken.Token_Region.Token with record
       Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens between this token and the next grammar one or
@@ -39,8 +37,6 @@ package WisiToken.Token_Line_Comment is
    type State_Type is new WisiToken.Token_Region.State_Type with record
       Initial_Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens before first grammar token.
-
-      Parse_Action : Parse_Action_Type;
    end record;
 
    overriding

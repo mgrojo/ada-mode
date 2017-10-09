@@ -3,11 +3,12 @@
 --  ../wisi/test/subprograms.wy
 --
 with WisiToken.Lexer.re2c;
-with WisiToken.Wisi_Runtime;
+with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
+with WisiToken.Token;
 with subprograms_re2c_c;
 package body Subprograms_Process is
 
-   use WisiToken.Wisi_Runtime;
+   use all type Motion_Param_Array;
 
    package Lexer is new WisiToken.Lexer.re2c
      (subprograms_re2c_c.New_Lexer,
@@ -22,15 +23,15 @@ package body Subprograms_Process is
    is
       pragma Unreferenced (Index);
    begin
-      case Wisi.Runtime.Parse_Action is
+      case Buffer_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Nonterm, Source, ((1, 1), (2, 2)));
-         Containing_Action (Nonterm, Source, 1, 2);
-         Motion_Action (Nonterm, Source, ((0, 1, Empty_IDs), (2, 4, (6, 11)), (0, 5, Empty_IDs));
+         Statement_Action (Buffer_Data, Nonterm, Source, ((1, Name), (2, Misc)));
+         Containing_Action (Buffer_Data, Nonterm, Source, 1, 2);
+         Motion_Action (Buffer_Data, Nonterm, Source, ((0, 1, Empty_IDs) & (2, 4, (6, 11)) & (0, 5, Empty_IDs)));
       when Face =>
-         Face_Apply_Action (Nonterm, Source, ((1, 3, 1), (3, 3, 2)));
+         Face_Apply_Action (Buffer_Data, Nonterm, Source, ((1, 3, 1), (3, 3, 2)));
       when Indent =>
-         Indent_Action (Nonterm, Source, ((False, 0), (False, Ada_Indent_Broken), (True, 2, Ada_Indent_Broken)));
+         Indent_Action (Buffer_Data, Nonterm, Source, ((False, 0), (False, Ada_Indent_Broken), (True, 2, Ada_Indent_Broken)));
       end case;
    end subprogram_0;
 
@@ -41,13 +42,13 @@ package body Subprograms_Process is
    is
       pragma Unreferenced (Index);
    begin
-      case Wisi.Runtime.Parse_Action is
+      case Buffer_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Nonterm, Source, ((1, 1), (2, 2)));
+         Statement_Action (Buffer_Data, Nonterm, Source, ((1, Name), (2, Misc)));
       when Face =>
-         Face_Apply_Action (Nonterm, Source, (1 => (3, 3, 2)));
+         Face_Apply_Action (Buffer_Data, Nonterm, Source, (1 => (3, 3, 2)));
       when Indent =>
-         Indent_Action (Nonterm, Source, ((False, 0), (False, Ada_Indent_Broken), (False, Anchored_0 (3, Ada_Indent_Broken))));
+         Indent_Action (Buffer_Data, Nonterm, Source, ((False, 0), (False, Ada_Indent_Broken), (False, Anchored_0 (3, Ada_Indent_Broken))));
       end case;
    end subprogram_1;
 
@@ -58,9 +59,9 @@ package body Subprograms_Process is
    is
       pragma Unreferenced (Index);
    begin
-      case Wisi.Runtime.Parse_Action is
+      case Buffer_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Nonterm, Source, ((1, 3), (2, 4)));
+         Statement_Action (Buffer_Data, Nonterm, Source, ((1, Open_Paren), (2, Close_Paren)));
       when Face =>
          null;
       when Indent =>
@@ -75,9 +76,9 @@ package body Subprograms_Process is
    is
       pragma Unreferenced (Index);
    begin
-      case Wisi.Runtime.Parse_Action is
+      case Buffer_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Nonterm, Source, ((1, 3), (3, 4)));
+         Statement_Action (Buffer_Data, Nonterm, Source, ((1, Open_Paren), (3, Close_Paren)));
       when Face =>
          null;
       when Indent =>

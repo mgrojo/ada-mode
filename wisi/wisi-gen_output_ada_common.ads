@@ -82,7 +82,7 @@ package Wisi.Gen_Output_Ada_Common is
       Package_Name     : in String;
       Output_Language  : in Ada_Output_Language;
       Descriptor       : in WisiToken.Descriptor'Class;
-      Interface_Kind   : in Valid_Interface);
+      Interface_Kind   : in Interface_Type);
 
    procedure Create_Create_Parser
      (Parser_Algorithm   : in Valid_Parser_Algorithm;

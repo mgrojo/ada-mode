@@ -19,15 +19,14 @@
 pragma License (GPL);
 
 with WisiToken.Parser.LR.Parser;
-with WisiToken.Token_Region;
+with WisiToken.Token;
 generic
    Name : in String; -- For Usage, error messages. "run_" will be prepended, "_parser" appended.
 
-   with procedure Create_Parser
-     (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
-      Algorithm : in     WisiToken.Parser_Algorithm_Type);
-
-   Errors     : in out WisiToken.Token_Region.Error_List_Arrays.Vector;
    Descriptor : in WisiToken.Descriptor'Class;
 
+   with procedure Create_Parser
+     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
+      Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 procedure Gen_Run_Wisi_Parser;

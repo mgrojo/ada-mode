@@ -117,5 +117,5 @@ package body Test_Character_Literal is
    end Register_Tests;
 
 begin
-   Character_Literal.Create_Parser (Parser, WisiToken.LALR);
+   Character_Literal.Create_Parser (Parser, WisiToken.LALR, Character_Literal.State'Access);
 end Test_Character_Literal;
