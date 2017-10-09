@@ -17,11 +17,115 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Strings.Bounded;
+with WisiToken.Parser.LR;
 with WisiToken.Token_Line_Comment;
 package body WisiToken.Wisi_Runtime is
 
+   --  body subprograms, alphabetical
+
+   Cache_Code   : constant String := "1 ";
+   Indent_Code  : constant String := "2 ";
+   Error_Code   : constant String := "3 ";
+   Recover_Code : constant String := "4 ";
+
+   Chars_Per_Int : constant Integer := Integer'Width;
+
+   procedure Put (Cache : in Cache_Type)
+   is
+      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 2 + 11 * Chars_Per_Int);
+      use Bounded;
+
+      Line : Bounded_String := To_Bounded_String ("[");
+
+      procedure Append (Item : in Nil_Natural)
+      is begin
+         if Item.Set then
+            Append (Line, Integer'Image (Item.Item));
+         else
+            Append (Line, " -1");
+         end if;
+      end Append;
+   begin
+      Append (Line, Cache_Code);
+      Append (Line, Integer'Image (Parse_Action_Type'Pos (Cache.Label)));
+      Append (Line, Integer'Image (Cache.Pos));
+      Append (Line, Token_ID'Image (Cache.Statement_ID));
+      Append (Line, Token_ID'Image (Cache.ID));
+      Append (Line, Integer'Image (Cache.Length));
+      Append (Line, Integer'Image (Class_Type'Pos (Cache.Class)));
+      Append (Cache.Containing_Pos);
+      Append (Cache.Prev_Pos);
+      Append (Cache.Next_Pos);
+      Append (Cache.End_Pos);
+      Append (Line, ']');
+      Ada.Text_IO.Put_Line (To_String (Line));
+   end Put;
+
+   procedure Put (Item : in Indent_Type)
+   is begin
+      --  All Anchors must be resolved at this point.
+      if Item.Label /= Int then
+         raise Programmer_Error with "Indent item has non-int label";
+      end if;
+
+      Ada.Text_IO.Put_Line ('[' & Indent_Code & Int_Image (Item.Begin_Pos) & Integer'Image (Item.Int_Indent) & ']');
+   end Put;
+
+   procedure Put (Item : in WisiToken.Parser.LR.Configuration; Descriptor : in WisiToken.Descriptor'Class)
+   is
+      use Ada.Containers;
+      subtype Bounded_Token_ID is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
+        (Max => 10 + Bounded_Token_ID'Width * Integer
+           (Item.Popped.Length + Count_Type (Item.Pushed.Depth) + Item.Inserted.Length + Item.Deleted.Length));
+      use Bounded;
+
+      Line : Bounded_String := To_Bounded_String ("[");
+
+      procedure To_Codes (Tokens : in Token_Arrays.Vector)
+      is
+         First : Boolean := True;
+      begin
+         for ID of Tokens loop
+            Append
+              (Line,
+               (if First
+                then Int_Image (ID)
+                else Token_ID'Image (ID)));
+            First := False;
+         end loop;
+      end To_Codes;
+
+      procedure To_Codes (Stack : in WisiToken.Parser.LR.Parser_Stacks.Stack_Type)
+      is
+         First : Boolean := True;
+      begin
+         for I in SAL.Peek_Type'First .. Stack.Depth loop
+            Append
+              (Line,
+               (if First
+                then Int_Image ((Stack.Peek (I).ID))
+                else Token_ID'Image (Stack.Peek (I).ID)));
+            First := False;
+         end loop;
+      end To_Codes;
+
+   begin
+      Append (Line, Recover_Code);
+      Append (Line, '[');
+      To_Codes (Item.Popped);
+      Append (Line, "][");
+      To_Codes (Item.Pushed);
+      To_Codes (Item.Inserted);
+      Append (Line, "][");
+      To_Codes (Item.Deleted);
+      Append (Line, "]]");
+      Ada.Text_IO.Put_Line (To_String (Line));
+   end Put;
+
    procedure Set_End
-     (Data           : in out Buffer_Data_Type;
+     (Data           : in out Parse_Data_Type;
       Containing_Pos : in     Natural;
       End_Pos        : in     Natural)
    is
@@ -52,7 +156,7 @@ package body WisiToken.Wisi_Runtime is
    --  public subprograms
 
    procedure Initialize
-     (Data         : in out Buffer_Data_Type;
+     (Data         : in out Parse_Data_Type;
       Parse_Action : in     Parse_Action_Type;
       Line_Count   : in     Ada.Containers.Count_Type := 0)
    is begin
@@ -64,17 +168,15 @@ package body WisiToken.Wisi_Runtime is
 
       when Indent =>
          Data.Parse_Action := Indent;
-         Data.Lines.Set_Length (Line_Count);
-         for Line of Data.Lines loop
-            Line :=
-              (Begin_Pos => 0,
-               Indent => 0);
+         Data.Indents.Set_Length (Line_Count);
+         for Item of Data.Indents loop
+            Item := (Int, 0, 0);
          end loop;
       end case;
    end Initialize;
 
    procedure Statement_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Statement_Param_Array)
@@ -142,7 +244,7 @@ package body WisiToken.Wisi_Runtime is
    end Statement_Action;
 
    procedure Containing_Action
-     (Data      : in out Buffer_Data_Type;
+     (Data      : in out Parse_Data_Type;
       Nonterm   : in     Augmented_Token'Class;
       Source    : in     Augmented_Token_Array;
       Container : in     Integer;
@@ -168,7 +270,7 @@ package body WisiToken.Wisi_Runtime is
    end "&";
 
    procedure Motion_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Motion_Param_Array)
@@ -178,7 +280,7 @@ package body WisiToken.Wisi_Runtime is
    end Motion_Action;
 
    procedure Face_Apply_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array)
@@ -188,7 +290,7 @@ package body WisiToken.Wisi_Runtime is
    end Face_Apply_Action;
 
    procedure Indent_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array)
@@ -198,7 +300,7 @@ package body WisiToken.Wisi_Runtime is
    end Indent_Action;
 
    function Anchored_0
-     (Data         : in out Buffer_Data_Type;
+     (Data         : in out Parse_Data_Type;
       Index        : in     Integer;
       Indent_Delta : in     Integer)
      return Integer
@@ -210,5 +312,41 @@ package body WisiToken.Wisi_Runtime is
       --  FIXME:
       return 0;
    end Anchored_0;
+
+   procedure Put (Data : in Parse_Data_Type)
+   is begin
+      for Cache of Data.Caches loop
+         Put (Cache);
+      end loop;
+
+      for Item of Data.Indents loop
+         Put (Item);
+      end loop;
+   end Put;
+
+   procedure Put
+     (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO;
+   begin
+      for I in Errors.First_Index .. Errors.Last_Index loop
+         if Errors (I).Length > 0 then
+            --  We don't include parser id here; not very useful.
+            for Item of Errors (I) loop
+               Put_Line
+                 ('[' & Error_Code & Integer'Image (Item.Error_Token.Char_Region.First) &
+                    """syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                    ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
+
+               if Item.Recover /= null then
+                  Put (WisiToken.Parser.LR.Configuration (Item.Recover.all), Descriptor);
+               end if;
+            end loop;
+         end if;
+      end loop;
+
+   end Put;
 
 end WisiToken.Wisi_Runtime;

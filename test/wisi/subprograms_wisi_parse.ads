@@ -21,5 +21,4 @@ pragma License (GPL);
 with Gen_Emacs_Wisi_Parse;
 with Subprograms_Process;
 procedure Subprograms_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  (Name          => "Subprograms",
-   Create_Parser => Subprograms_Process.Create_Parser);
+  ("Subprograms", Subprograms_Process.Descriptor, Subprograms_Process.Parse_Data, Subprograms_Process.Create_Parser);

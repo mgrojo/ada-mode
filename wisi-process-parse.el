@@ -28,6 +28,9 @@
 (defconst wisi-process-parse-quit-cmd "04quit\n"
   "Command to external process telling it to quit.")
 
+(defconst wisi-process-parse--text-properties [wisi-cache wisi-face wisi-indent]
+  "Text properties used to store parse results; array for decoding process output.")
+
 (defvar wisi-process-parse-debug 0)
 
 ;;;;; sessions
@@ -43,6 +46,7 @@
 (cl-defstruct (wisi-process--parser (:include wisi-parser))
   (label nil)             ;; string uniquely identifying parser
   (exec-file nil) 	  ;; absolute file name of executable
+  (token-table nil)       ;; vector of token symbols, indexed by integer
   (face-table nil) 	  ;; vector of face symbols, indexed by integer
   (busy nil)              ;; t while parser is active
   (process nil) 	  ;; running *_wisi_parse executable
@@ -55,7 +59,7 @@
   "Alist mapping string label to ‘wisi-process--session’ struct")
 
 ;;;###autoload
-(cl-defun wisi-make-process-parser (&key label exec face-table)
+(cl-defun wisi-make-process-parser (&key label exec face-table token-table)
   "Return a ‘wisi-process--parser’ object matching LABEL.
 If not found in ‘wisi-process--alist’, create using other parameters."
   (or (cdr (assoc label wisi-process--alist))
@@ -69,7 +73,8 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 	      (make-wisi-process--parser
 	       :label label
 	       :exec-file exec-file
-	       :face-table face-table))
+	       :face-table face-table
+	       :token-table token-table))
 
 	(push (cons label parser) wisi-process--alist)
 
@@ -184,11 +189,46 @@ complete."
     (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
     ))
 
+(defun wisi-process-parse--Cache (parser sexp)
+  ;; sexp is [Cache text-property pos statement_id id length class containing_pos prev_pos next_pos end_pos]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((pos (aref sexp 2)))
+    ;; FIXME: faster to check for & modify existing?
+    (with-silent-modifications
+      (put-text-property
+       pos
+       (1+ pos)
+       (aref wisi-process-parse--text-properties (aref sexp 1))
+       (wisi-cache-create
+	:nonterm    (aref (wisi-process--parser-token-table parser) (aref sexp 3))
+	:token      (aref (wisi-process--parser-token-table parser) (aref sexp 4))
+	:last       (aref sexp 5)
+	:class      (aref wisi-class-list (aref sexp 6))
+	:containing (aref sexp 7)
+	:prev       (aref sexp 8)
+	:next       (aref sexp 9)
+	:end        (aref sexp 10)
+	)))
+    ))
+
+(defun wisi-process-parse--Indent (parser sexp)
+  ;; sexp is [Indent char-pos indent]
+  ;; see ‘wisi-process-parse--execute’
+  (let ((pos (aref sexp 1)))
+    ;; FIXME: faster to check for & modify existing?
+    (with-silent-modifications
+      (put-text-property
+       (1- pos)
+       pos
+       'wisi-indent
+       (aref sexp 2)))
+    ))
+
 (defun wisi-process-parse--Error (parser sexp)
   ;; sexp is [Error char-position <string>]
   ;; see ‘wisi-process-parse--execute’
-  (let* ((pos (aref sexp 1))
-	 err)
+  (let ((pos (aref sexp 1))
+	err)
 
     (goto-char pos)
 
@@ -206,20 +246,35 @@ complete."
     (push err (wisi-parser-errors parser))
     ))
 
-;; (defun wisi-process-parse--Recover (parser sexp)
-;;   ;; sexp is [Recover [popped] [inserted] [deleted]]
-;;   ;; see ‘wisi-process-parse--execute’
-;;   (let* ((token-table (wisi-process--parser-token-table parser))
-;; 	 (elisp-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 2)))
-;; 	 (data (car (cdr (assq (aref sexp 1) (wisi-process--parser-parser-errors parser))))))
-;;     (setf (wisi--error-inserted data) elisp-ids)
-;;     ))
+(defun wisi-process-parse--Recover (parser sexp)
+  ;; sexp is [Recover [popped] [inserted] [deleted]]
+  ;; see ‘wisi-process-parse--execute’
+  (let* ((token-table (wisi-process--parser-token-table parser))
+	 (popped-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 1)))
+	 (inserted-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 2)))
+	 (deleted-ids (mapcar (lambda (id) (aref token-table id)) (aref sexp 3)))
+	 (data (car (wisi-process--parser-errors parser))))
+    (setf (wisi--error-popped data) popped-ids)
+    (setf (wisi--error-inserted data) inserted-ids)
+    (setf (wisi--error-deleted data) deleted-ids)
+    ))
 
 (defun wisi-process-parse--execute (parser sexp)
   "Execute encoded SEXP sent from external process."
   ;; sexp is [action arg ...]; an encoded instruction that we need to execute
   ;;
   ;; Actions:
+  ;;
+  ;; [Cache text-property pos statement_id id length class containing_pos prev_pos next_pos end_pos]
+  ;;    Set a text-property.
+  ;;    text-property : integer index into wisi-process-parse--text-properties (navigate or face)
+  ;;    *pos          : integer buffer position; -1 if nil (not set)
+  ;;    *id           : integer index into parser-token-table
+  ;;    length        : integer character count
+  ;;    class         : integer index into wisi-class-list
+  ;;
+  ;; [Indent char-position indent]
+  ;;    Set an indent text property, for line starting at char-position.
   ;;
   ;; [Error char-position <string>]
   ;;    The parser detected a syntax error, and is attempting
@@ -228,19 +283,26 @@ complete."
   ;;    If error recovery is successful, there can be more than one
   ;;    error reported during a parse.
   ;;
-  ;; [Recover [POPPED] [INSERTED] [DELETED]]
-  ;;    The parser finished a successful error recovery. Tokens popped
-  ;;    off the parse stack (deleted before error point) are in
-  ;;    POPPED, tokens deleted after error point in DELETED, virtual
-  ;;    tokens inserted before error point in INSERTED.  Args are
-  ;;    token ids; index into parser-token-table. Save the information
+  ;; [Recover [popped] [pushed] [inserted] [deleted]]
+  ;;    The parser finished a successful error recovery.
+  ;;
+  ;;    popped: Tokens popped off the parse stack (ie tokens deleted before error point)
+  ;;
+  ;;    inserted: Virtual tokens (terminal or non-terminal) inserted before error point.
+  ;;
+  ;;    deleted: Tokens deleted after error point.
+  ;;
+  ;;    Args are token ids; index into parser-token-table. Save the information
   ;;    for later use by ’wisi-repair-error’.
+  ;;
   ;;
   ;; Numeric action codes are given in the case expression below
 
   (cl-ecase (aref sexp 0)
-    (1  (wisi-process-parse--Error parser sexp))
-;;    (2  (wisi-process-parse--Recover parser sexp))
+    (1  (wisi-process-parse--Cache parser sexp))
+    (2  (wisi-process-parse--Indent parser sexp))
+    (3  (wisi-process-parse--Error parser sexp))
+    (4  (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main

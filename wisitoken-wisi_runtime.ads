@@ -6,7 +6,7 @@
 --
 --  [1] wisi.el - defines parse action functions.
 --
---  [2] ada-indent-user-options.el - defines user settable indent parameters.
+--  [2] wisi-process-parse.el - defines elisp/process API
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -25,6 +25,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Vectors;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Token_Region;
 package WisiToken.Wisi_Runtime is
 
    type Parse_Action_Type is (Navigate, Face, Indent);
@@ -33,10 +34,10 @@ package WisiToken.Wisi_Runtime is
       Parse_Action : Parse_Action_Type;
    end record;
 
-   type Buffer_Data_Type is new Base_Data_Type with private;
+   type Parse_Data_Type is new Base_Data_Type with private;
 
    procedure Initialize
-     (Data         : in out Buffer_Data_Type;
+     (Data         : in out Parse_Data_Type;
       Parse_Action : in     Parse_Action_Type;
       Line_Count   : in     Ada.Containers.Count_Type := 0);
    --  Line_Count only used for Indent
@@ -52,13 +53,13 @@ package WisiToken.Wisi_Runtime is
    type Statement_Param_Array is array (Natural range <>) of Index_Class;
 
    procedure Statement_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Statement_Param_Array);
 
    procedure Containing_Action
-     (Data      : in out Buffer_Data_Type;
+     (Data      : in out Parse_Data_Type;
       Nonterm   : in     Augmented_Token'Class;
       Source    : in     Augmented_Token_Array;
       Container : in     Integer;
@@ -81,7 +82,7 @@ package WisiToken.Wisi_Runtime is
    subtype Motion_Param_Array is Index_IDs_Vectors.Vector;
 
    procedure Motion_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Motion_Param_Array);
@@ -96,7 +97,7 @@ package WisiToken.Wisi_Runtime is
    type Face_Apply_Param_Array is array (Natural range <>) of Index_Faces;
 
    procedure Face_Apply_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
@@ -116,21 +117,29 @@ package WisiToken.Wisi_Runtime is
    type Indent_Param_Array is array (Natural range <>) of Indent_Pair;
 
    procedure Indent_Action
-     (Data    : in out Buffer_Data_Type;
+     (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [1] wisi-indent-action.
 
    function Anchored_0
-     (Data         : in out Buffer_Data_Type;
+     (Data         : in out Parse_Data_Type;
       Index        : in     Integer;
       Indent_Delta : in     Integer)
      return Integer;
    --  Implements [1] wisi-anchored.
 
-   --  Indent parameters from [2]
-   Ada_Indent_Broken : Integer;
+   procedure Put (Data : in Parse_Data_Type);
+   --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
+   --  set-text-property responses as defined in [2]
+   --  wisi-process-parse--execute.
+
+   procedure Put
+     (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class);
+   --  Put errors to Ada.Text_IO.Standard_Output, as encoded error
+   --  responses as defined in [2] wisi-process-parse--execute.
 
 private
 
@@ -163,18 +172,39 @@ private
 
    package Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Cache_Type, Natural);
 
-   type Line_Type is record
-      Begin_Pos : Natural;
-      Indent    : Natural;
+   type Indent_Labels is (Int, Anchor, Anchored, Nested_Anchor);
+
+   package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
+
+   type Indent_Type (Label : Indent_Labels := Indent_Labels'First) is record
+      --  [1] wisi-ind struct
+      Begin_Pos : Natural; -- in line-begin in [1]
+      case Label is
+      when Int =>
+         Int_Indent : Natural;
+
+      when Anchor =>
+         Anchor_IDs    : Int_Vectors.Vector;
+         Anchor_Indent : Natural;
+
+      when Anchored =>
+         Anchored_ID    : Natural;
+         Anchored_Delta : Integer;
+
+      when Nested_Anchor =>
+         Nested_Anchor_IDs     : Int_Vectors.Vector;
+         Nested_Anchored_ID    : Natural;
+         Nested_Anchored_Delta : Integer;
+      end case;
    end record;
 
-   package Line_Vectors is new Ada.Containers.Vectors (Natural, Line_Type);
+   package Indent_Vectors is new Ada.Containers.Vectors (Natural, Indent_Type);
    package Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists (Cache_Trees.Cursor, Cache_Trees."=");
 
-   type Buffer_Data_Type is new Base_Data_Type with record
-      Caches        : Cache_Trees.Tree;    -- Used for Navigate, Face.
-      End_Positions : Cursor_Lists.List;   -- Used for Navigate.
-      Lines         : Line_Vectors.Vector; -- Use for Indent.
+   type Parse_Data_Type is new Base_Data_Type with record
+      Caches        : Cache_Trees.Tree;      -- Used for Navigate, Face.
+      End_Positions : Cursor_Lists.List;     -- Used for Navigate.
+      Indents       : Indent_Vectors.Vector; -- Used for Indent.
    end record;
 
 end WisiToken.Wisi_Runtime;

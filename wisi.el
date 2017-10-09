@@ -270,7 +270,7 @@ Useful when debugging parser or parser actions."
   ;; indent = delta + 'anchor id line indent; for lines indented
   ;; relative to anchor.
   ;;
-  ;; - list ('anchor (start-id ...) ('anchored NEST delta))
+  ;; - list ('anchor (start-id ...) ('anchored id delta))
   ;; for nested anchors
 
   line-begin ;; vector of beginning-of-line positions in buffer
@@ -527,7 +527,7 @@ wisi-forward-token, but only sets token-id and region."
 
   last ;; pos of last char in token, relative to first (0 indexed)
 
-  class ;; one of wisi-clast-list
+  class ;; one of wisi-class-list
 
   containing
   ;; Marker at the start of the containing statement for this token.
@@ -889,6 +889,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (compilation--ensure-parse (point-max))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min)))
+
 	(display-buffer wisi-error-buffer
 			(cons #'display-buffer-at-bottom
 			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
@@ -903,14 +904,14 @@ Used to ignore whitespace changes in before/after change hooks.")
    ))
 
 (defconst wisi-class-list
-  '(motion ;; motion-action
-    name ;; for which-function
-    statement-end
-    statement-override
-    statement-start
-    misc ;; other stuff
-    )
-  "list of valid token classes; checked in wisi-statement-action.")
+  [motion ;; motion-action
+   name ;; for which-function
+   statement-end
+   statement-override
+   statement-start
+   misc ;; other stuff
+   ]
+  "array of valid token classes; checked in wisi-statement-action, used in wisi-process-parse.")
 
 (defvar-local wisi--parser nil
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")

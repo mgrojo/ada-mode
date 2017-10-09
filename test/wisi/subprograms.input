@@ -7,7 +7,7 @@ function
   Func_1
 begin end;
 
---EMACSCMD: (test-cache-class "function" 'name)
+--EMACSCMD: (test-cache-class "procedure" 'statement-start)
 --EMACSCMD: (test-cache-class "(" 'misc)
 --EMACSCMD: (test-cache-class "Proc_1" 'name)
 procedure Proc_1

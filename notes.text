@@ -45,7 +45,7 @@ run test from emacs -Q using source:
  current work
 compute indent in Ada
     subprograms.wisi-process-test
-        need to send text-properties to elisp
+        navigate cache test passing
 
     implement all actions in Ada
         wisitoken-wisi_runtime.adb
@@ -167,6 +167,16 @@ plain parse, no actions:
 
     need emacs module, run lexer in Ada
 
+consider doing all actions in one parse in process
+    not helpful if dominated by communications time
+
+parse navigate
+    wisi-motion-action
+        in [] token-numbers, skip statements with wisi-goto-end
+
+    wisi-process-parse--Cache
+        faster to check for & modify existing?
+
 parse face
     compare to o.e.a
 
@@ -181,7 +191,7 @@ parse face
 
         process parser, elisp lexer 1.021952 seconds, 2 gcs
 
-indent
+parse indent
     use module instead of process
         can pass actions from module to elisp in binary, to avoid scan-sexps
         try mingw64 gnat on Windows
@@ -189,8 +199,9 @@ indent
 
     compute indent in Ada
         also lex
-        add line info compute to lexer
         compatible with AdaCore libadalang indent
+
+        send more than one indent per output line, to reduce communication overhead
 
     take advantage of multicore:
         Process ext feedback while waiting to send more
@@ -247,10 +258,6 @@ indent
 
             don't send right-hand-side tokens for reduce
                 gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
-
-parse navigate
-    wisi-motion-action
-        in [] token-numbers, skip statements with wisi-goto-end
 
 history
     ada-mode 5.2

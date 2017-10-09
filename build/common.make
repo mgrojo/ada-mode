@@ -123,12 +123,13 @@ ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
 .PHONY : all force one test test-clean
 
-vpath %.adb ../test ../test/ada-gps ../test/subdir ../test/wisi
-vpath %.ads ../test ../test/ada-gps ../test/subdir ../test/wisi
-vpath %.el ../ ../test/wisi
+vpath %.adb   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.el    ../ ../test/wisi
+vpath %.gpr   ../test/gpr
 vpath %.input ../test/wisi
-vpath %.gpr ../test/gpr
-vpath %.wy ../ ../test/wisi
+vpath %.re2c  ../test/wisi
+vpath %.wy    ../ ../test/wisi
 
 # emacs to test with
 #
@@ -177,7 +178,9 @@ elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*-wy.el ../*.elc
 
-%_process.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+# We create the output files in the same directory as the .wy file, so
+# they can be saved in CM together.
+%_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
@@ -205,7 +208,7 @@ ADA_MODE_DIR ?= -l define_ADA_MODE_DIR
 # dependencies, because the complete list is complex, and we sometimes
 # want to ignore it.
 %.tmp : %
-	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<"))(kill-emacs))'
+	$(EMACS_EXE) -Q -L . $(ADA_MODE_DIR) -l $(RUNTEST) --eval '(progn (run-test "$<")(kill-emacs))'
 
 COMPILE_FILES := $(COMPILE_FILES:.adb=.ali)
 COMPILE_FILES := $(COMPILE_FILES:.ads=.ali)

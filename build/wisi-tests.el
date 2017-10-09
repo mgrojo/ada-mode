@@ -85,11 +85,6 @@
 	 (error "can’t find ’%s’ on ’%s’" grammar-file-name load-path))
        (require (intern grammar-file-root)))
 
-     ;; use Ada style comments in source
-     (set-syntax-table test-syntax-table)
-     (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
-     (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
-
      (wisi-setup
       :indent-calculate nil
       :post-indent-fail nil
@@ -110,16 +105,23 @@
       :indent-calculate nil
       :post-indent-fail nil
       :parser (wisi-make-process-parser
-		 :label grammar-name
-		 :exec (concat grammar-name "_wisi_parse.exe")
-		 :face-table (symbol-value (intern-soft (concat grammar-name "-process-faces-names"))))
+	       :label grammar-name
+	       :exec (concat grammar-name "_wisi_parse.exe")
+	       :face-table (symbol-value (intern-soft (concat grammar-name "-process-faces-names")))
+	       :token-table (symbol-value (intern-soft (concat grammar-name "-process-token-table")))
+	       )
       :lexer nil)
      (setq wisi-mckenzie-enable t)
      )
     )
 
-    ;; Not clear why this is not being done automatically
-    (syntax-propertize (point-max))
+  ;; use Ada style comments in source
+  (set-syntax-table test-syntax-table)
+  (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
+
+  ;; Not clear why this is not being done automatically
+  (syntax-propertize (point-max))
   )
 
 ;;; Initialization

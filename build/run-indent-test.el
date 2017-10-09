@@ -63,7 +63,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     (beginning-of-line); forward-comment doesn't move if inside a comment!
     (forward-comment (point-max))
     (condition-case err
-	(search-forward token (line-end-position 2))
+	(search-forward token (line-end-position 5))
       (error
        (error "can't find '%s'" token)))
 
@@ -85,7 +85,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	  (search-forward containing (line-end-position 2))
 	(error
 	 (error "can't find '%s'" containing)))
-      (setq containing-pos (point))
+      (setq containing-pos (match-beginning 0))
 
       (condition-case err
 	  (search-forward contained (line-end-position 2))
@@ -95,7 +95,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 
       (unless contained-cache (error "no cache on %s" contained))
       (unless (= containing-pos (wisi-cache-containing contained-cache))
-	(error "expecting %d, got $d" containing-pos (wisi-cache-containing contained-cache)))
+	(error "expecting %d, got %d" containing-pos (wisi-cache-containing contained-cache)))
     )))
 
 (defun run-test-here ()

@@ -50,7 +50,7 @@
 block
   : BEGIN END
   | BEGIN EXCEPTION WHEN SYMBOL END
-    (wisi-indent-action [0 0 ada-indent 0 0 ])
+    (wisi-indent-action [0 0 subp-indent 0 0 ])
 ;
 
 compilation_unit
@@ -74,13 +74,13 @@ subprogram
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
-      (wisi-indent-action [0 ada-indent-broken
-                             [2 ada-indent-broken] 0 0])) ;; single action on two lines
+      (wisi-indent-action [0 subp-indent-broken
+                             [2 subp-indent-broken] 0 0])) ;; single action on two lines
   | PROCEDURE parameter_list SYMBOL
     (progn
       (wisi-statement-action [1 statement-start 2 misc 3 name])
       (wisi-face-apply-action [3 nil font-lock-function-name-face])
-      (wisi-indent-action [0 ada-indent-broken ada-indent-broken]))
+      (wisi-indent-action [0 subp-indent-broken subp-indent-broken]))
   ;
 
 ;; not on one line, empty production with comment

@@ -17,15 +17,18 @@
 --  MA 02110-1335, USA.
 
 pragma License (GPL);
+
 with Ada.Command_Line;
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Lexer;
-with WisiToken.Parser.LR.Parser;
 with GNAT.OS_Lib;
 with System.Storage_Elements;
+with WisiToken.Lexer;
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Token_Line_Comment;
 procedure Gen_Emacs_Wisi_Parse
 is
    Protocol_Version : constant String := "1";
@@ -62,6 +65,8 @@ is
       Put_Line ("04quit");
    end Usage;
 
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
    Parser : WisiToken.Parser.LR.Parser.Instance;
 
    procedure Read_Input (A : System.Address; N : Integer)
@@ -143,7 +148,7 @@ begin
       end case;
    end;
 
-   Create_Parser (Parser, WisiToken.LALR);
+   Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
 
    Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
@@ -198,12 +203,19 @@ begin
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
+
+               WisiToken.Wisi_Runtime.Put (Parse_Data);
+               WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
+
                Ada.Strings.Unbounded.Free (Buffer);
 
             exception
             when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
-               Put_Line ("(parse_error)"); -- FIXME: elisp adds more info?
+               WisiToken.Wisi_Runtime.Put (Parse_Data);
+               WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
+               Ada.Strings.Unbounded.Free (Buffer);
+               Put_Line ("(parse_error)");
             end;
 
          elsif Match ("noop") then
