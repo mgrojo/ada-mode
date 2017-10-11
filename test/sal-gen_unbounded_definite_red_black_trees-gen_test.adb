@@ -24,22 +24,38 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
 
    function Root (Tree : in SAL.Gen_Unbounded_Definite_Red_Black_Trees.Tree) return Cursor
    is begin
-      return (Tree.Root, False, False);
+      return
+        (Node       => Tree.Root,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Root;
 
    function Parent (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Cursor.Node.Parent, False, False);
+      return
+        (Node       => Cursor.Node.Parent,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Parent;
 
    function Left (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Cursor.Node.Left, False, False);
+      return
+        (Node       => Cursor.Node.Left,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Left;
 
    function Right (Cursor : in Pkg.Cursor) return Pkg.Cursor
    is begin
-      return (Cursor.Node.Right, False, False);
+      return
+        (Node       => Cursor.Node.Right,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Right;
 
    procedure Check_Null
@@ -48,6 +64,13 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
    is begin
       AUnit.Assertions.Assert (Cursor.Node = null, Label & " expected null, got non-null");
    end Check_Null;
+
+   procedure Check_Non_Null
+     (Label  : in String;
+      Cursor : in Pkg.Cursor)
+   is begin
+      AUnit.Assertions.Assert (Cursor.Node /= null, Label & " expected not-null, got null");
+   end Check_Non_Null;
 
    procedure Check is new AUnit.Checks.Gen_Check_Discrete (Color);
 

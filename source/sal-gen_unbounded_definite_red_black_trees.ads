@@ -38,7 +38,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    with
      Constant_Indexing => Constant_Reference,
      Variable_Indexing => Variable_Reference,
-     Default_Iterator  => Ascending_Order,
+     Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
    overriding procedure Finalize (Object : in out Tree);
@@ -75,7 +75,19 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
-   function Ascending_Order (Tree : in Pkg.Tree) return Iterators.Forward_Iterator'Class;
+   type Iterator is new Iterators.Reversible_Iterator with private;
+
+   function Iterate (Tree : in Pkg.Tree'Class) return Iterator;
+
+   overriding function First (Iterator : in Pkg.Iterator) return Cursor;
+   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor;
+   overriding function Last (Iterator : in Pkg.Iterator) return Cursor;
+   overriding function Previous (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor;
+
+   function Previous (Iterator : in Pkg.Iterator; Key : in Key_Type) return Cursor;
+   --  Initialise Iterator to descending, starting at element with
+   --  largest key < Key. Has_Element (result) is False if there is no
+   --  such element.
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
 
@@ -109,14 +121,17 @@ private
       Root : Node_Access;
    end record;
 
+   type Direction_Type is (Ascending, Descending, Unknown);
    type Cursor is record
       Node       : Node_Access;
+      Direction  : Direction_Type; --  Set in First or Last, enforced in next/prev (cannot change direction).
       Left_Done  : Boolean;
       Right_Done : Boolean;
-      --  FIXME: if don't need Next (Cursor), move *_Done into Iterator,
-      --  ignore Cursor in Next.
-      --
-      --  Or, if do need Next (Cursor), make Iterator, Next visible.
+   end record;
+
+   type Iterator is new Iterators.Reversible_Iterator with
+   record
+      Root : Node_Access;
    end record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

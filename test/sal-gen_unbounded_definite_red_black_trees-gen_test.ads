@@ -34,6 +34,10 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees.Gen_Test is
      (Label  : in String;
       Cursor : in Pkg.Cursor);
 
+   procedure Check_Non_Null
+     (Label  : in String;
+      Cursor : in Pkg.Cursor);
+
    procedure Check_Color
      (Label      : in String;
       Cursor     : in Pkg.Cursor;

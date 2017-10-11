@@ -35,6 +35,22 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return Result + 1;
    end Count_Tree;
 
+   function Find (Container : in Tree; Key : in Key_Type) return Node_Access
+   is
+      Node : Node_Access := Container.Root;
+   begin
+      while Node /= null loop
+         if Key = Pkg.Key (Node.Element) then
+            return Node;
+         elsif Key < Pkg.Key (Node.Element) then
+            Node := Node.Left;
+         else
+            Node := Node.Right;
+         end if;
+      end loop;
+      return null;
+   end Find;
+
    procedure Left_Rotate (Tree : in out Pkg.Tree; X : in Node_Access);
    procedure Right_Rotate (Tree : in out Pkg.Tree; X : in Node_Access);
 
@@ -165,9 +181,14 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      (Container : aliased in Tree;
       Key       :         in Key_Type)
      return Constant_Reference_Type
-   is begin
-      raise Not_Implemented; -- FIXME: need Find
-      return (Element => Container.Root.Element'Access);
+   is
+      Node : constant Node_Access := Find (Container, Key);
+   begin
+      if Node = null then
+         raise Not_Found;
+      else
+         return (Element => Node.all.Element'Access);
+      end if;
    end Constant_Reference;
 
    function Variable_Reference
@@ -185,52 +206,67 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       Key       :         in Key_Type)
      return Variable_Reference_Type
    is begin
-      raise Not_Implemented; -- FIXME: need Find
+      raise Not_Implemented; -- FIXME: need test
       return (Element => Container.Root.Element'Access);
    end Variable_Reference;
 
-   type Ascending_Order_Iterator is new Iterators.Forward_Iterator with record
-      Root : Node_Access;
-   end record;
-
-   overriding function First (Iterator : in Ascending_Order_Iterator) return Cursor;
-   overriding function Next (Iterator : in Ascending_Order_Iterator; Position : in Cursor) return Cursor;
-
-   function Ascending_Order (Tree : in Pkg.Tree) return Iterators.Forward_Iterator'Class
+   function Iterate (Tree : in Pkg.Tree'Class) return Iterator
    is begin
-      return Ascending_Order_Iterator'(Root => Tree.Root);
-   end Ascending_Order;
+      return (Root => Tree.Root);
+   end Iterate;
 
-   overriding function First (Iterator : in Ascending_Order_Iterator) return Cursor
+   overriding function First (Iterator : in Pkg.Iterator) return Cursor
    is
       Node : Node_Access := Iterator.Root;
    begin
-      if Node /= null then
+      if Node = null then
+         return
+           (Node       => null,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
+      else
          loop
             exit when Node.Left = null;
             Node := Node.Left;
          end loop;
+
+         return
+           (Node       => Node,
+            Direction  => Ascending,
+            Left_Done  => True,
+            Right_Done => False);
       end if;
-      return
-        (Node       => Node,
-         Left_Done  => True,
-         Right_Done => False);
+
    end First;
 
-   overriding function Next (Iterator : in Ascending_Order_Iterator; Position : in Cursor) return Cursor
+   overriding function Next (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
    is begin
+      if Position.Direction /= Ascending then
+         raise Programmer_Error;
+      end if;
+
       if Position.Node = null then
-         return (null, True, True);
+         return
+           (Node       => null,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
 
       elsif Position.Left_Done or Position.Node.Left = null then
          if Position.Right_Done or Position.Node.Right = null then
             if Position.Node.Parent = null then
-               return (null, True, True);
+               return
+                 (Node       => null,
+                  Direction  => Unknown,
+                  Left_Done  => True,
+                  Right_Done => True);
             else
                declare
                   Node : constant Node_Access := Position.Node.Parent;
                   Temp : constant Cursor      :=
                     (Node       => Node,
+                     Direction  => Ascending,
                      Left_Done  => Node.Right = Position.Node or Node.Left = Position.Node,
                      Right_Done => Node.Right = Position.Node);
                begin
@@ -246,6 +282,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
                Node : constant Node_Access := Position.Node.Right;
                Temp : constant Cursor      :=
                  (Node       => Node,
+                  Direction  => Ascending,
                   Left_Done  => Node.Left = null,
                   Right_Done => False);
             begin
@@ -261,6 +298,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
             Node : constant Node_Access := Position.Node.Left;
             Temp : constant Cursor      :=
               (Node       => Node,
+               Direction  => Ascending,
                Left_Done  => Node.Left = null,
                Right_Done => False);
          begin
@@ -273,6 +311,134 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end if;
    end Next;
 
+   overriding function Last (Iterator : in Pkg.Iterator) return Cursor
+   is
+      Node : Node_Access := Iterator.Root;
+   begin
+      if Node = null then
+         return
+           (Node       => null,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
+      else
+         loop
+            exit when Node.Right = null;
+            Node := Node.Right;
+         end loop;
+         return
+           (Node       => Node,
+            Direction  => Descending,
+            Right_Done => True,
+            Left_Done  => False);
+      end if;
+   end Last;
+
+   overriding function Previous (Iterator : in Pkg.Iterator; Position : in Cursor) return Cursor
+   is begin
+      if Position.Direction /= Descending then
+         raise Programmer_Error;
+      end if;
+
+      if Position.Node = null then
+         return
+           (Node       => null,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
+
+      elsif Position.Right_Done or Position.Node.Right = null then
+         if Position.Left_Done or Position.Node.Left = null then
+            if Position.Node.Parent = null then
+               return
+                 (Node       => null,
+                  Direction  => Unknown,
+                  Left_Done  => True,
+                  Right_Done => True);
+            else
+               declare
+                  Node : constant Node_Access := Position.Node.Parent;
+                  Temp : constant Cursor      :=
+                    (Node       => Node,
+                     Direction  => Descending,
+                     Right_Done => Node.Left = Position.Node or Node.Right = Position.Node,
+                     Left_Done  => Node.Left = Position.Node);
+               begin
+                  if Temp.Left_Done then
+                     return Previous (Iterator, Temp);
+                  else
+                     return Temp;
+                  end if;
+               end;
+            end if;
+         else
+            declare
+               Node : constant Node_Access := Position.Node.Left;
+               Temp : constant Cursor      :=
+                 (Node       => Node,
+                  Direction  => Descending,
+                  Right_Done => Node.Right = null,
+                  Left_Done  => False);
+            begin
+               if Temp.Right_Done then
+                  return Temp;
+               else
+                  return Previous (Iterator, Temp);
+               end if;
+            end;
+         end if;
+      else
+         declare
+            Node : constant Node_Access := Position.Node.Right;
+            Temp : constant Cursor      :=
+              (Node       => Node,
+               Direction  => Descending,
+               Right_Done => Node.Right = null,
+               Left_Done  => False);
+         begin
+            if Temp.Right_Done then
+               return Temp;
+            else
+               return Previous (Iterator, Temp);
+            end if;
+         end;
+      end if;
+   end Previous;
+
+   function Previous (Iterator : in Pkg.Iterator; Key : in Key_Type) return Cursor
+   is
+      Node : Node_Access := Iterator.Root;
+   begin
+      while Node /= null loop
+         declare
+            Current_Key : Key_Type renames Pkg.Key (Node.Element);
+         begin
+            if Key = Current_Key then
+               return Previous (Iterator, (Node, Descending, Right_Done => True, Left_Done => False));
+
+            elsif Key < Current_Key then
+               if Node.Left = null then
+                  return Previous (Iterator, (Node, Descending, Right_Done => True, Left_Done => True));
+               else
+                  Node := Node.Left;
+               end if;
+            else
+               if Node.Right = null then
+                  return (Node, Descending, Right_Done => True, Left_Done => False);
+               else
+                  Node := Node.Right;
+               end if;
+            end if;
+         end;
+      end loop;
+
+      return
+        (Node       => null,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
+   end Previous;
+
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
    is begin
       if Tree.Root = null then
@@ -283,19 +449,12 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    end Count;
 
    function Find (Container : in Tree; Key : in Key_Type) return Cursor
-   is
-      Node : Node_Access := Container.Root;
-   begin
-      while Node /= null loop
-         if Key = Pkg.Key (Node.Element) then
-            return (Node, True, False);
-         elsif Key < Pkg.Key (Node.Element) then
-            Node := Node.Left;
-         else
-            Node := Node.Right;
-         end if;
-      end loop;
-      return (null, False, False);
+   is begin
+      return
+        (Node       => Find (Container, Key),
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Find;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean
@@ -348,7 +507,11 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          Fixup (Tree, Z);
       end if;
 
-      return (Node => Result, Left_Done => True, Right_Done => False);
+      return
+        (Node       => Result,
+         Direction  => Unknown,
+         Left_Done  => True,
+         Right_Done => True);
    end Insert;
 
    procedure Insert (Tree : in out Pkg.Tree; Element : in Element_Type)

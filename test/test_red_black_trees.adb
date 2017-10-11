@@ -19,6 +19,7 @@
 pragma License (GPL);
 
 with Ada.Containers;
+with AUnit.Assertions;
 with AUnit.Checks;
 with AUnit.Checks.Containers;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
@@ -48,6 +49,16 @@ package body Test_Red_Black_Trees is
    Black : constant Boolean := False;
 
    procedure Check
+     (Label    : in String;
+      Computed : in Cache_Type;
+      Expected : in Cache_Type)
+   is
+      use AUnit.Checks;
+   begin
+      Check (Label & ".pos", Computed.Pos, Expected.Pos);
+   end Check;
+
+   procedure Check
      (Label        : in String;
       Cursor       : in Trees.Cursor;
       Expected_Pos : in Integer;
@@ -55,6 +66,7 @@ package body Test_Red_Black_Trees is
    is
       use AUnit.Checks;
    begin
+      Check_Non_Null (Label & ".null", Cursor);
       Check (Label & ".pos", Tree.Constant_Reference (Cursor).Pos, Expected_Pos);
       Check_Color (Label & ".color", Cursor, Expect_Red);
    end Check;
@@ -62,10 +74,12 @@ package body Test_Red_Black_Trees is
    type Integer_Array_Integer is array (Natural range <>) of Integer;
 
    procedure Check_Sorted
-     (Label    : in String;
-      Computed : in Trees.Tree;
-      Expected : in Integer_Array_Integer)
+     (Label     : in String;
+      Computed  : in Trees.Tree;
+      Expected  : in Integer_Array_Integer;
+      Ascending : in Boolean)
    is
+      use AUnit.Assertions;
       use AUnit.Checks;
       use AUnit.Checks.Containers;
       use all type Ada.Containers.Count_Type;
@@ -74,12 +88,24 @@ package body Test_Red_Black_Trees is
       Count : Ada.Containers.Count_Type := 0;
    begin
       Check (Label & " sorted.length 1", Computed.Count, Expected'Length);
-      for Element of Computed loop
-         Check (Label & " sorted." & Integer'Image (I), Element.Pos, Expected (I));
-         I     := I + 1;
-         Count := Count + 1;
-      end loop;
-      Check (Label & " sorted.length 2", Count, Expected'Length);
+      if Ascending then
+         for Element of Computed loop
+            Assert (I <= Expected'Last, Label & " sorted ascending.iterator returning too many items");
+            Check (Label & " sorted ascending." & Integer'Image (I), Element.Pos, Expected (I));
+            I     := I + 1;
+            Count := Count + 1;
+         end loop;
+         Assert (Count = Expected'Length, Label & " sorted ascending iterator returning too few items");
+      else
+         for Element of reverse Computed loop
+            Assert (I <= Expected'Last, Label & " sorted ascending.iterator returning too many items");
+            Check (Label & " sorted descending." & Integer'Image (I), Element.Pos, Expected (I));
+            I     := I + 1;
+            Count := Count + 1;
+         end loop;
+         Assert (Count = Expected'Length, Label & " sorted descending iterator returning too few items");
+      end if;
+
    end Check_Sorted;
 
    ----------
@@ -103,7 +129,6 @@ package body Test_Red_Black_Trees is
       --          3 r     10 r
       Check ("1.count", Tree.Count, 3);
       Validate ("1", Tree);
-      Check_Sorted ("1", Tree, (3, 7, 10));
       I := Root (Tree);
       Check ("1.bh", Black_Height (I), 0);
       Check ("1.0", I, 7, Black);
@@ -112,6 +137,8 @@ package body Test_Red_Black_Trees is
       I := Parent (I);
       I := Right (I);
       Check ("1.2", I, 10, Red);
+
+      Check_Sorted ("1", Tree, (3, 7, 10), Ascending => True);
 
       Tree.Insert ((Pos => 12));
       --              7 b
@@ -182,7 +209,6 @@ package body Test_Red_Black_Trees is
       --                  14r   16r
       Check ("5.count", Tree.Count, 7);
       Validate ("5", Tree);
-      Check_Sorted ("5", Tree, (3, 7, 10, 12, 14, 15, 16));
       I := Root (Tree);
       Check ("5.bh", Black_Height (I), 1);
       Check ("5.0", I, 7, Black);
@@ -201,6 +227,8 @@ package body Test_Red_Black_Trees is
       I := Parent (I);
       I := Right (I);
       Check ("5.6", I, 16, Red);
+
+      Check_Sorted ("5", Tree, (3, 7, 10, 12, 14, 15, 16), Ascending => True);
 
       Tree.Insert ((Pos => 17));
       --              12b
@@ -257,7 +285,6 @@ package body Test_Red_Black_Trees is
       --    1r  3r 9r               17r
       Check ("9.count", Tree.Count, 11);
       Validate ("9", Tree);
-      Check_Sorted ("9", Tree, (1, 2, 3, 7, 9, 10, 12, 14, 15, 16, 17));
       I := Root (Tree);
       Check ("9.0", I, 12, Black);
       I := Left (I);
@@ -267,6 +294,9 @@ package body Test_Red_Black_Trees is
       I := Left (I);
       Check ("9.3", I, 9, Red);
 
+      Check_Sorted ("9a", Tree, (1, 2, 3, 7, 9, 10, 12, 14, 15, 16, 17), Ascending => True);
+      Check_Sorted ("9b", Tree, (17, 16, 15, 14, 12, 10, 9, 7, 3, 2, 1), Ascending => False);
+
       Check ("present 10", Tree.Present (10), True);
       Check ("present 14", Tree.Present (14), True);
       Check ("present 13", Tree.Present (13), False);
@@ -274,6 +304,17 @@ package body Test_Red_Black_Trees is
       Check ("find 10", Tree.Find (10), 10, Black);
       Check ("find 14", Tree.Find (14), 14, Black);
       Check ("find 13", Trees.Has_Element (Tree.Find (13)), False);
+
+      Check ("index 10", Tree (10).Element.all, (Pos => 10));
+
+      declare
+         Iter : Trees.Iterator renames Tree.Iterate;
+      begin
+         I := Trees.Previous (Iter, 11);
+         Check ("iter prev 11", I, 10, Black);
+         I := Trees.Previous (Iter, I);
+         Check ("cursor prev ", I, 9, Red);
+      end;
    end Nominal;
 
    ----------
