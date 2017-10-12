@@ -207,7 +207,7 @@ is
       end loop;
 
       Create_Create_Parser
-        (Data.Parser_Algorithm, Data.Lexer, None, Params.First_State_Index, Params.First_Parser_Label,
+        (Data.Parser_Algorithm, None, Params.First_State_Index, Params.First_Parser_Label,
          New_Line_ID => Generate_Utils.Find_Kind ("new-line"));
 
       Put_Line ("end " & Package_Name & ";");

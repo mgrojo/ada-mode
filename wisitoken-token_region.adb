@@ -45,7 +45,7 @@ package body WisiToken.Token_Region is
          --  For test result backward compatiblity, we don't call Image
          --  (Item.Region) here
          return "(" & Name &
-           Integer'Image (Item.Char_Region.First) & " ." & Integer'Image (Item.Char_Region.Last) & ")";
+           Buffer_Pos'Image (Item.Char_Region.First) & " ." & Buffer_Pos'Image (Item.Char_Region.Last) & ")";
       end if;
    end Image;
 
@@ -208,6 +208,7 @@ package body WisiToken.Token_Region is
       use all type SAL.Base_Peek_Type;
       Temp : constant Token :=
         (ID,
+         Virtual     => False,
          Line        => Lexer.Line,
          Col         => Lexer.Column,
          Char_Region => Lexer.Char_Region,
@@ -286,6 +287,7 @@ package body WisiToken.Token_Region is
    is
       Temp : constant Token :=
         (ID,
+         Virtual     => True,
          Line        => 0,
          Col         => 0,
          Char_Region => Null_Buffer_Region,

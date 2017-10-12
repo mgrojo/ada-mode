@@ -29,4 +29,4 @@ generic
      (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
-procedure Gen_Run_Wisi_Parser;
+procedure WisiToken.Gen_Run_Wisi_Parser;

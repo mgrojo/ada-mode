@@ -206,7 +206,8 @@ package WisiToken is
    --  Augmented tokens, semantic actions
 
    type Augmented_Token is abstract tagged record
-      ID : Token_ID := Invalid_Token_ID;
+      ID      : Token_ID := Invalid_Token_ID;
+      Virtual : Boolean;
       --  Derived types add various lexical information.
    end record;
 
@@ -258,14 +259,15 @@ package WisiToken is
 
    type Parser_Algorithm_Type is (LALR, LR1);
 
+   type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
    type Buffer_Region is record
-      First : Natural;
-      Last  : Natural;
+      First : Buffer_Pos;
+      Last  : Buffer_Pos;
    end record;
 
-   Null_Buffer_Region : constant Buffer_Region := (Natural'Last, Natural'First);
+   Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
 
-   function Length (Region : in Buffer_Region) return Natural is (Region.Last - Region.First + 1);
+   function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));
 
    function Image (Item : in Buffer_Region) return String;
 

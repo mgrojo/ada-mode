@@ -485,7 +485,6 @@ package body Wisi.Gen_Output_Ada_Common is
 
    procedure Create_Create_Parser
      (Parser_Algorithm   : in Valid_Parser_Algorithm;
-      Lexer              : in Valid_Lexer;
       Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
       First_Parser_Label : in Integer;
@@ -573,20 +572,14 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
-         case Lexer is
-         when re2c_Lexer =>
-            Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace," & WisiToken.Token_ID'Image (New_Line_ID) & "),");
-
-         when Elisp_Lexer =>
-            Indent_Line ("   WisiToken.Lexer.Elisp_Process.New_Lexer (" & WisiToken.Int_Image (EOF_ID) &
-                           ", Semantic_State.Trace),");
-         end case;
-
+         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace," & WisiToken.Token_ID'Image (New_Line_ID) & "),");
          Indent_Line ("   Table,");
          Indent_Line ("   Semantic_State,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
+         Indent_Line ("Parse_Data.Descriptor := Semantic_State.Trace.Descriptor;");
+         Indent_Line ("Parse_Data.Lexer      := Parser.Lexer;");
 
       when Module =>
          Indent_Line ("   Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");
@@ -595,7 +588,6 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
       Indent := Indent - 3;
       Indent_Line ("end Create_Parser;");
-      New_Line;
    end Create_Create_Parser;
 
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr)

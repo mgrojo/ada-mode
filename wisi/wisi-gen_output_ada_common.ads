@@ -86,7 +86,6 @@ package Wisi.Gen_Output_Ada_Common is
 
    procedure Create_Create_Parser
      (Parser_Algorithm   : in Valid_Parser_Algorithm;
-      Lexer              : in Valid_Lexer;
       Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
       First_Parser_Label : in Integer;

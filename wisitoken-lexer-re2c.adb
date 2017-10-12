@@ -199,17 +199,17 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      return (Lexer.Char_Position, Lexer.Char_Position + Lexer.Char_Length - 1);
+      return (Buffer_Pos (Lexer.Char_Position), Buffer_Pos (Lexer.Char_Position + Lexer.Char_Length - 1));
    end Char_Region;
 
    overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      return (Lexer.Byte_Position, Lexer.Byte_Position + Lexer.Byte_Length - 1);
+      return (Buffer_Pos (Lexer.Byte_Position), Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1));
    end Byte_Region;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
    is begin
-      return String (Buffer (Lexer.Source) (Byte_Bounds.First .. Byte_Bounds.Last));
+      return String (Buffer (Lexer.Source) (Integer (Byte_Bounds.First) .. Integer (Byte_Bounds.Last)));
    end Buffer_Text;
 
 end WisiToken.Lexer.re2c;

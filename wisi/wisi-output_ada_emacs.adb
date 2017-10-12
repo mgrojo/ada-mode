@@ -105,18 +105,20 @@ is
       function Statement_Params (Params : in String) return String
       is
          --  Input looks like: [1 function 2 other ...]
-         Last       : Integer          := Params'First; -- skip [
+         Last       : Integer := Params'First; -- skip [
          First      : Integer;
          Second     : Integer;
-         Need_Comma : Boolean          := False;
-         Result     : Unbounded_String := +" (Parse_Data, Nonterm, Source, (";
+         Need_Comma : Boolean := False;
+         Result     : Unbounded_String;
+         Count      : Integer := 0;
       begin
          loop
             First  := Last + 1;
             Second := Index (Params, " ", First);
             exit when Second < Params'First;
 
-            Last := Index (Params, Space_Paren_Set, Second + 1);
+            Count := Count + 1;
+            Last  := Index (Params, Space_Paren_Set, Second + 1);
 
             Result := Result & (if Need_Comma then ", " else "") &
               "(" & Params (First .. Second - 1) & ", " &
@@ -124,8 +126,11 @@ is
 
             Need_Comma := True;
          end loop;
-         Result := Result & "))";
-         return -Result;
+         if Count = 1 then
+            return " (Parse_Data, Nonterm, Source, (1 => " & (-Result) & "))";
+         else
+            return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
+         end if;
       end Statement_Params;
 
       function Containing_Params (Params : in String) return String
@@ -620,7 +625,7 @@ is
       end loop;
 
       Create_Create_Parser
-        (Data.Parser_Algorithm, Data.Lexer, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label,
+        (Data.Parser_Algorithm, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label,
          New_Line_ID => Generate_Utils.Find_Kind ("new-line"));
 
       case Data.Interface_Kind is

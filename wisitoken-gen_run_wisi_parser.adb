@@ -30,15 +30,13 @@ with WisiToken.Parser.LR.Parser;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region;
-procedure Gen_Run_Wisi_Parser
+procedure WisiToken.Gen_Run_Wisi_Parser
 is
    use all type Ada.Containers.Count_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
    Parser : WisiToken.Parser.LR.Parser.Instance;
-
-   Errors_Output : Boolean := False;
 
    procedure Put_Usage
    is
@@ -65,14 +63,13 @@ is
       New_Line;
    end Put_Usage;
 
-   File_Name    : Unbounded_String;
-   Lexer_Only   : Boolean := False;
-   Repeat_Count : Integer := 1;
-   Pause        : Boolean := False;
-
-   Arg : Integer := 2;
-
-   Start  : Ada.Real_Time.Time;
+   File_Name     : Unbounded_String;
+   Lexer_Only    : Boolean := False;
+   Repeat_Count  : Integer := 1;
+   Pause         : Boolean := False;
+   Errors_Output : Boolean := False;
+   Arg           : Integer := 2;
+   Start         : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
    Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
@@ -131,8 +128,6 @@ begin
       Put_Line (Standard_Error, "'" & To_String (File_Name) & "' cannot be opened");
       return;
    end;
-
-   Parser.Lexer.Enable_Line_Numbers := True;
 
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
@@ -203,4 +198,4 @@ when E : others =>
    New_Line;
    Put_Line (Ada.Exceptions.Exception_Name (E) & ": " & Ada.Exceptions.Exception_Message (E));
    Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
-end Gen_Run_Wisi_Parser;
+end WisiToken.Gen_Run_Wisi_Parser;

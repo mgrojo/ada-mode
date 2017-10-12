@@ -36,9 +36,7 @@ with GNATCOLL.Mmap;
 package WisiToken.Lexer is
 
    type Instance (Trace : not null access WisiToken.Trace'Class) is abstract new Ada.Finalization.Limited_Controlled
-   with record
-      Enable_Line_Numbers : Boolean;
-   end record;
+   with null record;
 
    subtype Class is Instance'Class;
 

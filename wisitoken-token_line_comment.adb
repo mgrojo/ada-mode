@@ -28,6 +28,7 @@ package body WisiToken.Token_Line_Comment is
       use all type SAL.Base_Peek_Type;
       Temp : constant Token :=
         (ID,
+         Virtual     => False,
          Line        => Lexer.Line,
          Col         => Lexer.Column,
          Char_Region => Lexer.Char_Region,
@@ -64,6 +65,7 @@ package body WisiToken.Token_Line_Comment is
    is
       Temp : constant Token :=
         (ID,
+         Virtual     => True,
          Line        => 0,
          Col         => 0,
          Char_Region => Null_Buffer_Region,
@@ -95,7 +97,8 @@ package body WisiToken.Token_Line_Comment is
       Stack_I    : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
       Aug_Tokens : Augmented_Token_Arrays.Vector;
    begin
-      Aug_Nonterm.ID := Nonterm;
+      Aug_Nonterm.ID      := Nonterm;
+      Aug_Nonterm.Virtual := False;
 
       for I in IDs.First_Index .. IDs.Last_Index loop
          declare

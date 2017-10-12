@@ -112,7 +112,7 @@ private
       Lexer         : System.Address := System.Null_Address;
       Source        : WisiToken.Lexer.Source;
       ID            : Token_ID; --  Last token read by find_next
-      Byte_Position : Natural;
+      Byte_Position : Natural; -- We don't use Buffer_Pos here, because Source.Buffer is indexed by Integer
       Byte_Length   : Natural;
       Char_Position : Natural;
       Char_Length   : Natural;

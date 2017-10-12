@@ -341,12 +341,12 @@ package body WisiToken is
 
    function Image (Item : in Buffer_Region) return String
    is begin
-      return "(" & Int_Image (Item.First) & " . " & Int_Image (Item.Last) & ")";
+      return "(" & Int_Image (Integer (Item.First)) & " ." & Buffer_Pos'Image (Item.Last) & ")";
    end Image;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region
    is begin
-      return (Integer'Min (Left.First, Right.First), Integer'Max (Left.Last, Right.Last));
+      return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
 
 end WisiToken;
