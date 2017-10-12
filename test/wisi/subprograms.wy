@@ -70,15 +70,16 @@ subprogram
   : FUNCTION parameter_list SYMBOL block SEMICOLON
     (progn
       ;; an example of each supported action, with the most complex parameter syntax
-      (wisi-statement-action [1 statement-start 2 misc 3 name])
+      (wisi-statement-action [1 statement-start 2 misc 3 name 5 statement-end])
       (wisi-containing-action 1 2)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken
                              [2 subp-indent-broken] 0 0])) ;; single action on two lines
-  | PROCEDURE parameter_list SYMBOL
+  | PROCEDURE parameter_list SYMBOL SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 misc 3 name])
+      (wisi-statement-action [1 statement-start 2 misc 3 name 4 statement-end])
+      (wisi-containing-action 1 2)
       (wisi-face-apply-action [3 nil font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken subp-indent-broken]))
   ;
@@ -89,7 +90,9 @@ parameter_list
     (wisi-statement-action [1 misc 2 misc]) ;; single action; no progn
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
-    (wisi-indent-action [0 (wisi-anchored% 1 1) 0])
+    (progn
+      (wisi-statement-action [2 misc]) ;; single pair
+      (wisi-indent-action [0 (wisi-anchored% 1 1) 0]))
   ;
 
 %%

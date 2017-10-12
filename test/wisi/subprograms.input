@@ -1,6 +1,7 @@
 --EMACSCMD: (test-cache-class "function" 'statement-start)
 --EMACSCMD: (test-cache-class "(" 'misc)
 --EMACSCMD: (test-cache-class "Func_1" 'name)
+--EMACSCMD: (test-cache-class ";" 'statement-end)
 --EMACSCMD: (test-cache-containing "function" "(")
 function
   (a)
@@ -8,19 +9,21 @@ function
 begin end;
 
 --EMACSCMD: (test-cache-class "procedure" 'statement-start)
---EMACSCMD: (test-cache-class "(" 'misc)
 --EMACSCMD: (test-cache-class "Proc_1" 'name)
-procedure Proc_1
+procedure Proc_1;
 
---FIXME: test motion caches
+--EMACSCMD: (test-cache-containing "procedure" "a")
 procedure
   (
    a
-  ) Proc_1
+  ) Proc_1;
 
+--EMACSCMD: (progn (forward-line 2)(forward-sexp)(looking-at "; -- target"))
+--EMACSRESULT:t
 function () Func_1
 begin
 exception
    when Beep
-end;
+end; -- target
 
+-- end of file

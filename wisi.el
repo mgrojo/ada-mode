@@ -8,7 +8,7 @@
 ;;  indentation
 ;;  navigation
 ;; Version: 1.1.6
-;; package-requires: ((cl-lib "0.4") (emacs "24.2"))
+;; package-requires: ((cl-lib "0.4") (emacs "24.3") (seq "2.3"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
@@ -114,6 +114,8 @@
 
 (require 'cl-lib)
 (require 'compile)
+(require 'seq)
+(require 'semantic/lex)
 (require 'wisi-parse-common)
 (require 'wisi-elisp-parse) ;; FIXME: don’t require these til needed
 (require 'wisi-process-parse)
@@ -1101,7 +1103,7 @@ grammar action as:
 
 	    (setq i (1+ i))
 
-	    (unless (memq class wisi-class-list)
+	    (unless (seq-contains wisi-class-list class)
 	      (error "%s not in wisi-class-list" class))
 
 	    (if region
@@ -1172,7 +1174,7 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+		 (wisi-tok-token containing-tok))))
 
       (unless (or (not contained-region) ;; contained-token is empty
 		  (wisi-tok-virtual contained-tok)
@@ -1183,13 +1185,9 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
 		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-      (when (not (or (wisi-tok-virtual containing-tok)
+      (when (and (not (or (wisi-tok-virtual containing-tok)
 		     (wisi-tok-virtual contained-tok)))
-	(while (not containing-region)
-	  ;; containing-token is empty; use next
-	  (setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
-
-	(when contained-region
+		 contained-region)
 	  ;; nil when empty production, may not contain any caches
 	  (save-excursion
 	    (goto-char (cdr contained-region))
@@ -1212,7 +1210,8 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		  ;; else set mark, loop
 		  (setf (wisi-cache-containing cache) mark)
 		  (setq cache (wisi-backward-cache)))
-		))))))))
+		))))
+      )))
 
 (defun wisi--match-token (cache tokens start)
   "Return t if CACHE has id from TOKENS and is at START or has containing equal to START.

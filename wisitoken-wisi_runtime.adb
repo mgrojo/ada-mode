@@ -38,10 +38,10 @@ package body WisiToken.Wisi_Runtime is
 
       Line : Bounded_String := To_Bounded_String ("[");
 
-      procedure Append (Item : in Nil_Natural)
+      procedure Append (Item : in Nil_Buffer_Pos)
       is begin
          if Item.Set then
-            Append (Line, Integer'Image (Item.Item));
+            Append (Line, Buffer_Pos'Image (Item.Item));
          else
             Append (Line, " -1");
          end if;
@@ -49,7 +49,7 @@ package body WisiToken.Wisi_Runtime is
    begin
       Append (Line, Cache_Code);
       Append (Line, Integer'Image (Parse_Action_Type'Pos (Cache.Label)));
-      Append (Line, Integer'Image (Cache.Pos));
+      Append (Line, Buffer_Pos'Image (Cache.Pos));
       Append (Line, Token_ID'Image (Cache.Statement_ID));
       Append (Line, Token_ID'Image (Cache.ID));
       Append (Line, Integer'Image (Cache.Length));
@@ -69,7 +69,8 @@ package body WisiToken.Wisi_Runtime is
          raise Programmer_Error with "Indent item has non-int label";
       end if;
 
-      Ada.Text_IO.Put_Line ('[' & Indent_Code & Int_Image (Item.Begin_Pos) & Integer'Image (Item.Int_Indent) & ']');
+      Ada.Text_IO.Put_Line
+        ('[' & Indent_Code & Int_Image (Integer (Item.Begin_Pos)) & Integer'Image (Item.Int_Indent) & ']');
    end Put;
 
    procedure Put (Item : in WisiToken.Parser.LR.Configuration; Descriptor : in WisiToken.Descriptor'Class)
@@ -126,16 +127,18 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Set_End
      (Data           : in out Parse_Data_Type;
-      Containing_Pos : in     Natural;
-      End_Pos        : in     Natural)
+      Containing_Pos : in     Buffer_Pos;
+      End_Pos        : in     Buffer_Pos)
    is
-      I            : Cursor_Lists.Cursor := Data.End_Positions.First;
+      use Cursor_Lists;
+      I            : Cursor := Data.End_Positions.First;
       Delete_Cache : Boolean;
+      Temp         : Cursor;
    begin
       loop
-         exit when not Cursor_Lists.Has_Element (I);
+         exit when not Has_Element (I);
          declare
-            Cache : Cache_Type renames Data.Caches (Cursor_Lists.Element (I));
+            Cache : Cache_Type renames Data.Caches (Element (I));
          begin
             if Cache.Pos in Containing_Pos .. End_Pos then
                Cache.End_Pos := (True, End_Pos);
@@ -145,10 +148,14 @@ package body WisiToken.Wisi_Runtime is
             end if;
          end;
          if Delete_Cache then
-            Cursor_Lists.Delete (Data.End_Positions, I);
+            Temp := Next (I);
+            Delete (Data.End_Positions, I);
+
+            I := Temp;
+         else
+            Cursor_Lists.Next (I);
          end if;
 
-         Cursor_Lists.Next (I);
       end loop;
    end Set_End;
 
@@ -170,7 +177,7 @@ package body WisiToken.Wisi_Runtime is
          Data.Parse_Action := Indent;
          Data.Indents.Set_Length (Line_Count);
          for Item of Data.Indents loop
-            Item := (Int, 0, 0);
+            Item := (Int, 1, 1);
          end loop;
       end case;
    end Initialize;
@@ -184,7 +191,7 @@ package body WisiToken.Wisi_Runtime is
       First_Item         : Boolean     := True;
       Override_Start_Set : Boolean     := False;
       Override_Start     : Class_Type;
-      Containing_Pos     : Nil_Natural := Nil; --  wisi first-keyword-pos
+      Containing_Pos     : Nil_Buffer_Pos := Nil; --  wisi first-keyword-pos
    begin
       for Pair of Params loop
          declare
@@ -193,7 +200,8 @@ package body WisiToken.Wisi_Runtime is
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                declare
-                  Cursor : Cache_Trees.Cursor := Data.Caches.Find (Token.Char_Region.First);
+                  Cursor : Cache_Trees.Cursor := Cache_Trees.Find
+                    (Data.Caches.Iterate, Cache_Trees.Unknown, Token.Char_Region.First);
                begin
                   if Cache_Trees.Has_Element (Cursor) then
                      declare
@@ -244,14 +252,68 @@ package body WisiToken.Wisi_Runtime is
    end Statement_Action;
 
    procedure Containing_Action
-     (Data      : in out Parse_Data_Type;
-      Nonterm   : in     Augmented_Token'Class;
-      Source    : in     Augmented_Token_Array;
-      Container : in     Integer;
-      Contained : in     Integer)
-   is begin
-      --  FIXME:
-      null;
+     (Data       : in out Parse_Data_Type;
+      Nonterm    : in     Augmented_Token'Class;
+      Source     : in     Augmented_Token_Array;
+      Containing : in     Positive_Index_Type;
+      Contained  : in     Positive_Index_Type)
+   is
+      pragma Unreferenced (Nonterm);
+
+      --  [1] wisi-containing-action
+      use Cache_Trees;
+      use WisiToken.Token_Line_Comment;
+      Containing_Tok    : Token renames Token (Source (Containing).Element.all);
+      Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
+      Contained_Tok     : Token renames Token (Source (Contained).Element.all);
+      Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
+      Iterator          : constant Cache_Trees.Iterator := Data.Caches.Iterate;
+      Cursor            : Cache_Trees.Cursor;
+      Mark              : constant Buffer_Pos           := Containing_Region.First;
+   begin
+      if not (Containing_Region /= Null_Buffer_Region or Containing_Tok.Virtual) then
+         raise Parse_Error with "wisi-containing-action: containing-region '" &
+           Image (Containing_Tok, Data.Descriptor.all, ID_Only => True) &
+           "' is empty. grammar error; bad action.";
+      end if;
+
+      if not (Contained_Tok.Char_Region = Null_Buffer_Region or
+                Containing_Tok.Virtual or
+                Contained_Tok.Virtual or
+                Data.Caches.Present (Containing_Region.First))
+      then
+         raise Parse_Error with "wisi-containing-action: containing token '" &
+           Data.Lexer.Buffer_Text (Containing_Tok.Byte_Region) &
+           "' has no cache. grammar error; missing action.";
+      end if;
+
+      if not (Containing_Tok.Virtual or Contained_Tok.Virtual)
+        and Contained_Tok.Char_Region /= Null_Buffer_Region
+      then
+         --  Contained region is nil when empty production.
+         Cursor := Previous (Iterator, Contained_Tok.Char_Region.Last);
+
+         while Has_Element (Cursor) loop
+            declare
+               Cache : Cache_Type renames Variable_Ref (Data.Caches, Cursor).Element.all;
+            begin
+
+               exit when Cache.Pos < Contained_Region.First or
+                 (Containing_Region.First = Contained_Region.First and
+                    Cache.Pos <= Contained_Region.First);
+
+               --  Skip blocks that are already marked.
+
+               if Cache.Containing_Pos.Set then
+                  Cursor := Find (Iterator, Descending, Cache.Containing_Pos.Item);
+               else
+                  Cache.Containing_Pos := (True, Mark);
+                  Cursor := Previous (Iterator, Cursor);
+               end if;
+
+            end;
+         end loop;
+      end if;
    end Containing_Action;
 
    function "&" (List : in Token_ID_Lists.List; Item : in Token_ID) return Token_ID_Lists.List
@@ -336,7 +398,7 @@ package body WisiToken.Wisi_Runtime is
             --  We don't include parser id here; not very useful.
             for Item of Errors (I) loop
                Put_Line
-                 ('[' & Error_Code & Integer'Image (Item.Error_Token.Char_Region.First) &
+                 ('[' & Error_Code & Buffer_Pos'Image (Item.Error_Token.Char_Region.First) &
                     """syntax error: expecting " & Image (Descriptor, Item.Expecting) &
                     ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'""]");
 
@@ -346,7 +408,6 @@ package body WisiToken.Wisi_Runtime is
             end loop;
          end if;
       end loop;
-
    end Put;
 
 end WisiToken.Wisi_Runtime;

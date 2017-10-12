@@ -159,10 +159,10 @@ gpr-skel.gpr.tmp :
 %_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
-run_%_parser.exe : run_%_parser.ads %.ads force
+run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
-.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
+.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads %_re2c.c
 
 # -v 1 dumps grammar
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
@@ -253,6 +253,7 @@ compile-ada-test-clean :
 	rm -f ../test/gpr_query.db*
 
 exe-clean ::
+	rm -rf obj
 	rm -rf ../obj Makefile.conf
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
@@ -275,6 +276,7 @@ test-clean ::
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../test/wisi/; rm -f *.elisp-el *.output
+	cd ../test/wisi/; rm -f subprograms-process.el subprograms.ada_parse_table subprograms.re2c subprograms_process.ad? subprograms_re2c_c.ads subprograms_wisi_parse.exe
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

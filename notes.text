@@ -47,6 +47,9 @@ compute indent in Ada
     subprograms.wisi-process-test
         navigate cache test passing
 
+        testing containing
+            only indent failing
+
     implement all actions in Ada
         wisitoken-wisi_runtime.adb
         statement-action done; testing

@@ -25,12 +25,15 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Vectors;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Lexer;
 with WisiToken.Token_Region;
 package WisiToken.Wisi_Runtime is
 
    type Parse_Action_Type is (Navigate, Face, Indent);
 
    type Base_Data_Type is tagged limited record
+      Descriptor   : access constant WisiToken.Descriptor'Class;
+      Lexer        : WisiToken.Lexer.Handle;
       Parse_Action : Parse_Action_Type;
    end record;
 
@@ -59,11 +62,11 @@ package WisiToken.Wisi_Runtime is
       Params  : in     Statement_Param_Array);
 
    procedure Containing_Action
-     (Data      : in out Parse_Data_Type;
-      Nonterm   : in     Augmented_Token'Class;
-      Source    : in     Augmented_Token_Array;
-      Container : in     Integer;
-      Contained : in     Integer);
+     (Data       : in out Parse_Data_Type;
+      Nonterm    : in     Augmented_Token'Class;
+      Source     : in     Augmented_Token_Array;
+      Containing : in     Positive_Index_Type;
+      Contained  : in     Positive_Index_Type);
 
    package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_ID);
 
@@ -73,7 +76,7 @@ package WisiToken.Wisi_Runtime is
    function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List;
 
    type Index_IDs is record
-      Index : Integer; -- into Source
+      Index : Positive_Index_Type; -- into Source
       IDs   : Token_ID_Lists.List;
    end record;
 
@@ -89,7 +92,7 @@ package WisiToken.Wisi_Runtime is
    --  Implements [1] wisi-motion-action.
 
    type Index_Faces is record
-      Index       : Integer; -- into Source
+      Index       : Positive_Index_Type; -- into Source
       Prefix_Face : Integer; -- into grammar.Face_List
       Suffix_Face : Integer; -- into grammar.Face_List
    end record;
@@ -143,34 +146,34 @@ package WisiToken.Wisi_Runtime is
 
 private
 
-   type Nil_Natural (Set : Boolean := False) is record
+   type Nil_Buffer_Pos (Set : Boolean := False) is record
       case Set is
       when True =>
-         Item : Natural;
+         Item : Buffer_Pos;
       when False =>
          null;
       end case;
    end record;
 
-   Nil : constant Nil_Natural := (Set => False);
+   Nil : constant Nil_Buffer_Pos := (Set => False);
 
    type Cache_Type is record
       Label : Parse_Action_Type; -- text-property
-      Pos   : Natural;           -- implicit in wisi-cache
+      Pos   : Buffer_Pos;           -- implicit in wisi-cache
 
       Statement_ID   : Token_ID;    -- wisi-cache-nonterm
       ID             : Token_ID;    -- wisi-cache-token
       Length         : Natural;     -- wisi-cache-last
       Class          : Class_Type;  -- wisi-cache-class
-      Containing_Pos : Nil_Natural; -- wisi-cache-containing
-      Prev_Pos       : Nil_Natural; -- wisi-cache-prev
-      Next_Pos       : Nil_Natural; -- wisi-cache-next
-      End_Pos        : Nil_Natural; -- wisi-cache-end
+      Containing_Pos : Nil_Buffer_Pos; -- wisi-cache-containing
+      Prev_Pos       : Nil_Buffer_Pos; -- wisi-cache-prev
+      Next_Pos       : Nil_Buffer_Pos; -- wisi-cache-next
+      End_Pos        : Nil_Buffer_Pos; -- wisi-cache-end
    end record;
 
-   function Key (Cache : in Cache_Type) return Natural is (Cache.Pos);
+   function Key (Cache : in Cache_Type) return Buffer_Pos is (Cache.Pos);
 
-   package Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Cache_Type, Natural);
+   package Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Cache_Type, Buffer_Pos);
 
    type Indent_Labels is (Int, Anchor, Anchored, Nested_Anchor);
 
@@ -178,7 +181,7 @@ private
 
    type Indent_Type (Label : Indent_Labels := Indent_Labels'First) is record
       --  [1] wisi-ind struct
-      Begin_Pos : Natural; -- in line-begin in [1]
+      Begin_Pos : Buffer_Pos; -- in line-begin in [1]
       case Label is
       when Int =>
          Int_Indent : Natural;
@@ -201,7 +204,8 @@ private
    package Indent_Vectors is new Ada.Containers.Vectors (Natural, Indent_Type);
    package Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists (Cache_Trees.Cursor, Cache_Trees."=");
 
-   type Parse_Data_Type is new Base_Data_Type with record
+   type Parse_Data_Type is new Base_Data_Type with
+   record
       Caches        : Cache_Trees.Tree;      -- Used for Navigate, Face.
       End_Positions : Cursor_Lists.List;     -- Used for Navigate.
       Indents       : Indent_Vectors.Vector; -- Used for Indent.

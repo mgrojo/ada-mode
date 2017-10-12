@@ -82,13 +82,13 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     (forward-comment (point-max))
     (let (containing-pos contained-cache)
       (condition-case err
-	  (search-forward containing (line-end-position 2))
+	  (search-forward containing (line-end-position 5))
 	(error
 	 (error "can't find '%s'" containing)))
       (setq containing-pos (match-beginning 0))
 
       (condition-case err
-	  (search-forward contained (line-end-position 2))
+	  (search-forward contained (line-end-position 5))
 	(error
 	 (error "can't find '%s'" contained)))
       (setq contained-cache (get-text-property (match-beginning 0) 'wisi-cache))

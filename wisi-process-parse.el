@@ -189,6 +189,9 @@ complete."
     (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
     ))
 
+(defun wisi-process-parse--pos-or-nil (item)
+  (if (= -1 item) nil item))
+
 (defun wisi-process-parse--Cache (parser sexp)
   ;; sexp is [Cache text-property pos statement_id id length class containing_pos prev_pos next_pos end_pos]
   ;; see ‘wisi-process-parse--execute’
@@ -204,10 +207,10 @@ complete."
 	:token      (aref (wisi-process--parser-token-table parser) (aref sexp 4))
 	:last       (aref sexp 5)
 	:class      (aref wisi-class-list (aref sexp 6))
-	:containing (aref sexp 7)
-	:prev       (aref sexp 8)
-	:next       (aref sexp 9)
-	:end        (aref sexp 10)
+	:containing (wisi-process-parse--pos-or-nil (aref sexp 7))
+	:prev       (wisi-process-parse--pos-or-nil (aref sexp 8))
+	:next       (wisi-process-parse--pos-or-nil (aref sexp 9))
+	:end        (wisi-process-parse--pos-or-nil (aref sexp 10))
 	)))
     ))
 
