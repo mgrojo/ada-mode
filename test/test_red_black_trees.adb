@@ -67,7 +67,7 @@ package body Test_Red_Black_Trees is
       use AUnit.Checks;
    begin
       Check_Non_Null (Label & ".null", Cursor);
-      Check (Label & ".pos", Tree.Constant_Reference (Cursor).Pos, Expected_Pos);
+      Check (Label & ".pos", Tree.Constant_Ref (Cursor).Pos, Expected_Pos);
       Check_Color (Label & ".color", Cursor, Expect_Red);
    end Check;
 
@@ -301,9 +301,9 @@ package body Test_Red_Black_Trees is
       Check ("present 14", Tree.Present (14), True);
       Check ("present 13", Tree.Present (13), False);
 
-      Check ("find 10", Tree.Find (10), 10, Black);
-      Check ("find 14", Tree.Find (14), 14, Black);
-      Check ("find 13", Trees.Has_Element (Tree.Find (13)), False);
+      Check ("find 10", Trees.Find (Tree.Iterate, Trees.Unknown, 10), 10, Black);
+      Check ("find 14", Trees.Find (Tree.Iterate, Trees.Unknown, 14), 14, Black);
+      Check ("find 13", Trees.Has_Element (Trees.Find (Tree.Iterate, Trees.Unknown, 13)), False);
 
       Check ("index 10", Tree (10).Element.all, (Pos => 10));
 

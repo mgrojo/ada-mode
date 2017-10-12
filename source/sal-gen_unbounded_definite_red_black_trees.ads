@@ -36,42 +36,48 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
 
    type Tree is new Ada.Finalization.Limited_Controlled with private
    with
-     Constant_Indexing => Constant_Reference,
-     Variable_Indexing => Variable_Reference,
+     Constant_Indexing => Constant_Ref,
+     Variable_Indexing => Variable_Ref,
      Default_Iterator  => Iterate,
      Iterator_Element  => Element_Type;
 
    overriding procedure Finalize (Object : in out Tree);
 
+   type Direction_Type is (Ascending, Descending, Unknown);
+   --  Direction of Iterators.
+   --  If Ascending, Next may be called.
+   --  If Descending, Previous may be called.
+   --  If Unknown, neither.
+
    type Cursor is private;
 
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
 
-   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
+   type Constant_Ref_Type (Element : not null access constant Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Constant_Reference_Type;
+     return Constant_Ref_Type;
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Constant_Reference_Type;
+     return Constant_Ref_Type;
 
-   type Variable_Reference_Type (Element : not null access Element_Type) is null record
+   type Variable_Ref_Type (Element : not null access Element_Type) is null record
    with Implicit_Dereference => Element;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Variable_Reference_Type;
+     return Variable_Ref_Type;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Variable_Reference_Type;
+     return Variable_Ref_Type;
 
    package Iterators is new Ada.Iterator_Interfaces (Cursor, Has_Element);
 
@@ -89,10 +95,10 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    --  largest key < Key. Has_Element (result) is False if there is no
    --  such element.
 
-   function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
-
-   function Find (Container : in Tree; Key : in Key_Type) return Cursor;
+   function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor;
    --  Has_Element is False if Key is not in Container.
+
+   function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean;
 
@@ -121,7 +127,6 @@ private
       Root : Node_Access;
    end record;
 
-   type Direction_Type is (Ascending, Descending, Unknown);
    type Cursor is record
       Node       : Node_Access;
       Direction  : Direction_Type; --  Set in First or Last, enforced in next/prev (cannot change direction).

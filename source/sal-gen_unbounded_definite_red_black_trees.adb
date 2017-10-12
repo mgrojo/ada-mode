@@ -35,9 +35,9 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return Result + 1;
    end Count_Tree;
 
-   function Find (Container : in Tree; Key : in Key_Type) return Node_Access
+   function Find (Root : in Node_Access; Key : in Key_Type) return Node_Access
    is
-      Node : Node_Access := Container.Root;
+      Node : Node_Access := Root;
    begin
       while Node /= null loop
          if Key = Pkg.Key (Node.Element) then
@@ -167,48 +167,48 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       return Cursor.Node /= null;
    end Has_Element;
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Constant_Reference_Type
+     return Constant_Ref_Type
    is
       pragma Unreferenced (Container);
    begin
       return (Element => Position.Node.all.Element'Access);
-   end Constant_Reference;
+   end Constant_Ref;
 
-   function Constant_Reference
+   function Constant_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Constant_Reference_Type
+     return Constant_Ref_Type
    is
-      Node : constant Node_Access := Find (Container, Key);
+      Node : constant Node_Access := Find (Container.Root, Key);
    begin
       if Node = null then
          raise Not_Found;
       else
          return (Element => Node.all.Element'Access);
       end if;
-   end Constant_Reference;
+   end Constant_Ref;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Position  :         in Cursor)
-     return Variable_Reference_Type
+     return Variable_Ref_Type
    is
       pragma Unreferenced (Container);
    begin
       return (Element => Position.Node.all.Element'Access);
-   end Variable_Reference;
+   end Variable_Ref;
 
-   function Variable_Reference
+   function Variable_Ref
      (Container : aliased in Tree;
       Key       :         in Key_Type)
-     return Variable_Reference_Type
+     return Variable_Ref_Type
    is begin
       raise Not_Implemented; -- FIXME: need test
       return (Element => Container.Root.Element'Access);
-   end Variable_Reference;
+   end Variable_Ref;
 
    function Iterate (Tree : in Pkg.Tree'Class) return Iterator
    is begin
@@ -439,6 +439,31 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          Right_Done => True);
    end Previous;
 
+   function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor
+   is
+      Node : constant Node_Access := Find (Iterator.Root, Key);
+   begin
+      if Node = null then
+         return
+           (Node       => null,
+            Direction  => Unknown,
+            Left_Done  => True,
+            Right_Done => True);
+      else
+         return
+           (Node       => Node,
+            Direction  => Direction,
+            Left_Done  =>
+              (case Direction is
+               when Ascending | Unknown => True,
+               when Descending => Node.Left = null),
+            Right_Done =>
+              (case Direction is
+               when Ascending => Node.Right = null,
+               when Descending | Unknown => True));
+      end if;
+   end Find;
+
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
    is begin
       if Tree.Root = null then
@@ -447,15 +472,6 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
          return Count_Tree (Tree.Root);
       end if;
    end Count;
-
-   function Find (Container : in Tree; Key : in Key_Type) return Cursor
-   is begin
-      return
-        (Node       => Find (Container, Key),
-         Direction  => Unknown,
-         Left_Done  => True,
-         Right_Done => True);
-   end Find;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean
    is
