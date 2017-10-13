@@ -128,10 +128,13 @@ private
    end record;
 
    type Cursor is record
-      Node       : Node_Access;
-      Direction  : Direction_Type; --  Set in First or Last, enforced in next/prev (cannot change direction).
-      Left_Done  : Boolean;
-      Right_Done : Boolean;
+      Node : Node_Access := null;
+
+      Direction  : Direction_Type := Unknown;
+      --  Set in First or Last, enforced in next/prev (cannot change direction).
+
+      Left_Done  : Boolean := True;
+      Right_Done : Boolean := True;
    end record;
 
    type Iterator is new Iterators.Reversible_Iterator with
