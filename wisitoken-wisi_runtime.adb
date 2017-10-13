@@ -272,9 +272,13 @@ package body WisiToken.Wisi_Runtime is
       Mark              : constant Buffer_Pos           := Containing_Region.First;
    begin
       if not (Containing_Region /= Null_Buffer_Region or Containing_Tok.Virtual) then
-         raise Parse_Error with "wisi-containing-action: containing-region '" &
-           Image (Containing_Tok, Data.Descriptor.all, ID_Only => True) &
-           "' is empty. grammar error; bad action.";
+         raise Parse_Error with Error_Message
+           (File_Name => -Data.Source_File_Name,
+            Line      => Containing_Tok.Line,
+            Col       => Containing_Tok.Col,
+            Message   => "wisi-containing-action: containing-region " &
+              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+              " is empty. grammar error; bad action.");
       end if;
 
       if not (Contained_Tok.Char_Region = Null_Buffer_Region or
@@ -282,9 +286,13 @@ package body WisiToken.Wisi_Runtime is
                 Contained_Tok.Virtual or
                 Data.Caches.Present (Containing_Region.First))
       then
-         raise Parse_Error with "wisi-containing-action: containing token '" &
-           Data.Lexer.Buffer_Text (Containing_Tok.Byte_Region) &
-           "' has no cache. grammar error; missing action.";
+         raise Parse_Error with Error_Message
+           (File_Name => -Data.Source_File_Name,
+            Line      => Containing_Tok.Line,
+            Col       => Containing_Tok.Col,
+            Message   => "wisi-containing-action: containing token " &
+              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+              " has no cache. grammar error; missing action.");
       end if;
 
       if not (Containing_Tok.Virtual or Contained_Tok.Virtual)
@@ -336,9 +344,95 @@ package body WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Motion_Param_Array)
-   is begin
-      --  FIXME:
-      null;
+   is
+      pragma Unreferenced (Nonterm);
+
+      --  [1] wisi-motion-action
+      use Cache_Trees;
+      use all type Ada.Containers.Count_Type;
+
+      Start             : Nil_Buffer_Pos := (Set => False);
+      Prev_Keyword_Mark : Nil_Buffer_Pos := (Set => False);
+      Iter              : constant Iterator := Data.Caches.Iterate;
+      Prev_Cache_Cur    : Cursor;
+      Cache_Cur         : Cursor;
+      Point             : Buffer_Pos;
+
+      function Match (IDs : in Token_ID_Lists.List) return Boolean
+      is
+         Cache : Cache_Type renames Constant_Ref (Data.Caches, Cache_Cur).Element.all;
+      begin
+         --  [1] wisi--match-token
+         if (Start.Set and then Point = Start.Item) or else
+           Cache.Containing_Pos = Start
+         then
+            for ID of IDs loop
+               if ID = Cache.ID then
+                  return True;
+               end if;
+            end loop;
+         end if;
+         return False;
+      end Match;
+
+   begin
+      for I in Params.First_Index .. Params.Last_Index loop
+         declare
+            Token  : Token_Line_Comment.Token renames Token_Line_Comment.Token (Source (Params (I).Index).Element.all);
+            Region : constant Buffer_Region := Token.Char_Region;
+         begin
+            if not Start.Set then
+               Start := (True, Region.First);
+            end if;
+
+            if Region /= Null_Buffer_Region then
+               Cache_Cur := Find (Iter, Ascending, Region.First);
+               if not Has_Element (Cache_Cur) then
+                  raise Parse_Error with Error_Message
+                    (File_Name => -Data.Source_File_Name,
+                     Line      => Token.Line,
+                     Col       => Token.Col,
+                     Message   => "wisi-motion-action: token " &
+                       Token.Image (Data.Descriptor.all, ID_Only => False) &
+                    " has no cache; add to statement-action.");
+               end if;
+
+               if Params (I).IDs.Length = 0 then
+                  if Prev_Keyword_Mark.Set then
+                     Variable_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
+                     Variable_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
+                  end if;
+
+                  Prev_Keyword_Mark := (True, Region.First);
+                  Prev_Cache_Cur    := Cache_Cur;
+
+               else
+                  Point := Region.First;
+                  loop
+                     exit when Point >= Region.Last;
+                     if Match (Params (I).IDs) then
+                        if Prev_Keyword_Mark.Set then
+                           if not Constant_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos.Set and
+                             not Constant_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos.Set
+                           then
+                              Variable_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
+                              Variable_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Point);
+                              Prev_Keyword_Mark := (True, Point);
+                              Prev_Cache_Cur    := Cache_Cur;
+                           end if;
+                        else
+                           Prev_Keyword_Mark := (True, Point);
+                           Prev_Cache_Cur    := Cache_Cur;
+                        end if;
+                     end if;
+
+                     Cache_Cur := Next (Iter, Cache_Cur);
+                     Point     := Constant_Ref (Data.Caches, Cache_Cur).Element.Pos;
+                  end loop;
+               end if;
+            end if;
+         end;
+      end loop;
    end Motion_Action;
 
    procedure Face_Apply_Action

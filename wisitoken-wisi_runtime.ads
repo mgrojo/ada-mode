@@ -24,6 +24,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with WisiToken.Lexer;
 with WisiToken.Token_Region;
@@ -32,9 +33,10 @@ package WisiToken.Wisi_Runtime is
    type Parse_Action_Type is (Navigate, Face, Indent);
 
    type Base_Data_Type is tagged limited record
-      Descriptor   : access constant WisiToken.Descriptor'Class;
-      Lexer        : WisiToken.Lexer.Handle;
-      Parse_Action : Parse_Action_Type;
+      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Lexer            : WisiToken.Lexer.Handle;
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      Parse_Action     : Parse_Action_Type;
    end record;
 
    type Parse_Data_Type is new Base_Data_Type with private;
@@ -80,7 +82,7 @@ package WisiToken.Wisi_Runtime is
       IDs   : Token_ID_Lists.List;
    end record;
 
-   package Index_IDs_Vectors is new Ada.Containers.Vectors (Natural, Index_IDs);
+   package Index_IDs_Vectors is new Ada.Containers.Vectors (Ada.Containers.Count_Type, Index_IDs);
 
    subtype Motion_Param_Array is Index_IDs_Vectors.Vector;
 

@@ -51,8 +51,8 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNparse <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit> <source_byte_count>" &
-       "<source bytes>");
+      ("NNparse <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>" &
+       " <source_byte_count> <source bytes>");
       Put_Line ("  NN excludes <source bytes>");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
       Put_Line ("  <mckenzie_enabled> is 0 | 1");
@@ -106,6 +106,30 @@ is
       --  From Integer'Value
       raise Protocol_Error with "invalid command byte count; '" & Temp & "'";
    end Get_Command_Length;
+
+   function Get_String
+     (Source : in     String;
+      Last   : in out Integer)
+     return String
+   is
+      use Ada.Exceptions;
+      use Ada.Strings.Fixed;
+      First : constant Integer := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => Last + 1);
+   begin
+      Last := Index
+        (Source  => Source,
+         Pattern => """",
+         From    => First + 1);
+
+      if First = 0 or Last = 0 then
+         raise Protocol_Error with Name & "_wisi_parse: no '""' found for string";
+      end if;
+
+      return Source (First + 1 .. Last - 1);
+   end Get_String;
 
    function Get_Integer
      (Source : in     String;
@@ -173,7 +197,8 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit> <source byte count>
+            --  Args: <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>
+            --        <source byte count>
             --  Input: <source text>
             --  Response:
             --  [set-text-properties elisp vector]...
@@ -185,6 +210,8 @@ begin
                Byte_Count  : Integer;
                Buffer      : Ada.Strings.Unbounded.String_Access;
             begin
+               Parse_Data.Source_File_Name    := Ada.Strings.Unbounded.To_Unbounded_String
+                 (Get_String (Command_Line, Last));
                WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);
                Parser.Enable_McKenzie_Recover := 1 = Get_Integer (Command_Line, Last);
                Cost_Limit                     := Get_Integer (Command_Line, Last);
@@ -210,8 +237,11 @@ begin
                Ada.Strings.Unbounded.Free (Buffer);
 
             exception
-            when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+            when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
+               if Ada.Exceptions.Exception_Message (E)'Length > 0 then
+                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+               end if;
                WisiToken.Wisi_Runtime.Put (Parse_Data);
                WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
                Ada.Strings.Unbounded.Free (Buffer);

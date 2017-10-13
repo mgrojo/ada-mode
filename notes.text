@@ -46,9 +46,10 @@ run test from emacs -Q using source:
 compute indent in Ada
     subprograms.wisi-process-test
         navigate cache test passing
+        motion_action test passing
 
-        testing containing
-            only indent failing
+        testing face tests
+            indent failing
 
     implement all actions in Ada
         wisitoken-wisi_runtime.adb

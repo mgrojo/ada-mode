@@ -152,7 +152,8 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 the content of the current buffer.  Does not wait for command to
 complete."
   ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse %d %d %d %d %d"
+  (let* ((cmd (format "parse \"%s\" %d %d %d %d %d"
+		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (1- wisi-debug)
 		      (if wisi-mckenzie-enable 1 0)
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)

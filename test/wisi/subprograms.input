@@ -18,7 +18,11 @@ procedure
    a
   ) Proc_1;
 
---EMACSCMD: (progn (forward-line 2)(forward-sexp)(looking-at "; -- target"))
+--EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))
+--EMACSRESULT:t
+--EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "when Beep"))
+--EMACSRESULT:t
+--EMACSCMD: (progn (forward-line 5)(back-to-indentation)(forward-sexp)(looking-at "; -- target"))
 --EMACSRESULT:t
 function () Func_1
 begin

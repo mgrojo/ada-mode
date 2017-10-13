@@ -50,7 +50,9 @@
 block
   : BEGIN END
   | BEGIN EXCEPTION WHEN SYMBOL END
-    (wisi-indent-action [0 0 subp-indent 0 0 ])
+    (progn
+      (wisi-statement-action [2 motion 3 motion])
+      (wisi-indent-action [0 0 subp-indent 0 0 ]))
 ;
 
 compilation_unit
@@ -70,8 +72,9 @@ subprogram
   : FUNCTION parameter_list SYMBOL block SEMICOLON
     (progn
       ;; an example of each supported action, with the most complex parameter syntax
-      (wisi-statement-action [1 statement-start 2 misc 3 name 5 statement-end])
+      (wisi-statement-action [1 statement-start 2 misc 3 name 4 motion 5 statement-end])
       (wisi-containing-action 1 2)
+      (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
       (wisi-indent-action [0 subp-indent-broken

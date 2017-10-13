@@ -69,7 +69,6 @@ is
       New_Line;
    end Put_Usage;
 
-   File_Name    : Ada.Strings.Unbounded.Unbounded_String;
    Lexer_Only   : Boolean := False;
    Repeat_Count : Integer := 1;
    Pause        : Boolean := False;
@@ -88,9 +87,9 @@ begin
          return;
       end if;
 
-      File_Name               := +Argument (1);
-      Parse_Data.Parse_Action := WisiToken.Wisi_Runtime.Parse_Action_Type'Value (Argument (2));
-      Arg                     := 3;
+      Parse_Data.Source_File_Name := +Argument (1);
+      Parse_Data.Parse_Action     := WisiToken.Wisi_Runtime.Parse_Action_Type'Value (Argument (2));
+      Arg                         := 3;
 
       loop
          exit when Arg > Argument_Count;
@@ -133,10 +132,10 @@ begin
 
    --  Do this after setting Trace_Parse so lexer verbosity is set
    begin
-      Parser.Lexer.Reset_With_File (-File_Name);
+      Parser.Lexer.Reset_With_File (-Parse_Data.Source_File_Name);
    exception
    when Ada.IO_Exceptions.Name_Error =>
-      Put_Line (Standard_Error, "'" & (-File_Name) & "' cannot be opened");
+      Put_Line (Standard_Error, "'" & (-Parse_Data.Source_File_Name) & "' cannot be opened");
       return;
    end;
 
@@ -166,8 +165,11 @@ begin
 
          end if;
       exception
-      when WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+      when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
          Parser.Lexer.Discard_Rest_Of_Input;
+         if Ada.Exceptions.Exception_Message (E)'Length > 0 then
+            Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
+         end if;
          WisiToken.Wisi_Runtime.Put (Parse_Data);
          WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
          Put_Line ("(parse_error)");
