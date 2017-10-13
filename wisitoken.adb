@@ -25,7 +25,6 @@
 -------------------------------------------------------------------------------
 
 with Ada.Strings.Fixed;
-with Ada.Strings.Unbounded;
 package body WisiToken is
 
    function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String

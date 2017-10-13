@@ -39,6 +39,7 @@ with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
+with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with SAL.Gen_Unbounded_Indefinite_Queues;
@@ -243,6 +244,12 @@ package WisiToken is
 
    ----------
    --  Misc
+
+   function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
+     renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;
+
+   function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
+     renames Standard.Ada.Strings.Unbounded.To_String;
 
    function Int_Image (Item : in Integer) return String;
    --  No leading space
