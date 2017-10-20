@@ -30,12 +30,12 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
-  (load "run-wisi-process-test.el")
+  (load "run-indent-test-process-gpr_query.el")
   (setq debug-on-error t)
   (setq wisi-disable-face t)
   ; (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
   (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
-  (run-test "subprograms"))
+  (run-test "../test/wisi/subprograms.input"))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
@@ -43,24 +43,22 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
+report/fix kill process
+    test in emacs not launched under Cygwin
+        => no help
+    test in emacs 26
+
 compute indent in Ada
     subprograms.wisi-process-test
         navigate cache test passing
         motion_action test passing
 
-        testing face tests
-            indent failing
+        testing face
+            add remove test
+            add apply-list test
+            add (- ...) test; Ada handled_sequence_of_statements
 
-    implement all actions in Ada
-        wisitoken-wisi_runtime.adb
-        statement-action done; testing
-
-    accumulate text_properties
-        for indent, store in array indexed by line number; elisp pass in max line number
-        add a list of text properties to that
-        store start pos in each line, use binary search to find the right line for a position.
-
-        when parse finished, send all to elisp
+        indent failing
 
     need elisp lexer, token table for wisi-repair-error
         later
@@ -194,6 +192,11 @@ parse face
         o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
 
         process parser, elisp lexer 1.021952 seconds, 2 gcs
+
+    marking _every_ identifer as possible face prefix
+        count face actions before/after delete that
+        to avoid marking contents of allocator aggregate
+        handle that case individually; find others
 
 parse indent
     use module instead of process

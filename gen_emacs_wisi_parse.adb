@@ -51,9 +51,10 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNparse <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>" &
+      ("NNparse <action> <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>" &
        " <source_byte_count> <source bytes>");
       Put_Line ("  NN excludes <source bytes>");
+      Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
       Put_Line ("  <mckenzie_enabled> is 0 | 1");
       Put_Line ("  <*_limit> is integer; -1 means use default");
@@ -197,11 +198,11 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>
+            --  Args: <action> <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>
             --        <source byte count>
             --  Input: <source text>
             --  Response:
-            --  [set-text-properties elisp vector]...
+            --  [response elisp vector]...
             --  [elisp error form]...
             --  prompt
             declare
@@ -210,6 +211,8 @@ begin
                Byte_Count  : Integer;
                Buffer      : Ada.Strings.Unbounded.String_Access;
             begin
+               --  FIXME: call Parse_Data.Initialize (...)
+               Parse_Data.Parse_Action        := WisiToken.Wisi_Runtime.Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
                Parse_Data.Source_File_Name    := Ada.Strings.Unbounded.To_Unbounded_String
                  (Get_String (Command_Line, Last));
                WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);

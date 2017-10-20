@@ -24,14 +24,15 @@ package body WisiToken.Wisi_Runtime is
 
    --  body subprograms, alphabetical
 
-   Cache_Code   : constant String := "1 ";
-   Indent_Code  : constant String := "2 ";
-   Error_Code   : constant String := "3 ";
-   Recover_Code : constant String := "4 ";
+   Navigate_Cache_Code : constant String := "1 ";
+   Face_Property_Code  : constant String := "2 ";
+   Indent_Code         : constant String := "3 ";
+   Error_Code          : constant String := "4 ";
+   Recover_Code        : constant String := "5 ";
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
-   procedure Put (Cache : in Cache_Type)
+   procedure Put (Cache : in Navigate_Cache_Type)
    is
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 2 + 11 * Chars_Per_Int);
       use Bounded;
@@ -47,17 +48,40 @@ package body WisiToken.Wisi_Runtime is
          end if;
       end Append;
    begin
-      Append (Line, Cache_Code);
-      Append (Line, Integer'Image (Parse_Action_Type'Pos (Cache.Label)));
+      Append (Line, Navigate_Cache_Code);
       Append (Line, Buffer_Pos'Image (Cache.Pos));
       Append (Line, Token_ID'Image (Cache.Statement_ID));
       Append (Line, Token_ID'Image (Cache.ID));
       Append (Line, Integer'Image (Cache.Length));
-      Append (Line, Integer'Image (Class_Type'Pos (Cache.Class)));
+      Append (Line, Integer'Image (Navigate_Class_Type'Pos (Cache.Class)));
       Append (Cache.Containing_Pos);
       Append (Cache.Prev_Pos);
       Append (Cache.Next_Pos);
       Append (Cache.End_Pos);
+      Append (Line, ']');
+      Ada.Text_IO.Put_Line (To_String (Line));
+   end Put;
+
+   procedure Put (Cache : in Face_Cache_Type)
+   is
+      package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length (Max => 2 + 4 * Chars_Per_Int);
+      use Bounded;
+
+      Line : Bounded_String := To_Bounded_String ("[");
+
+      procedure Append (Item : in Nil_Integer)
+      is begin
+         if Item.Set then
+            Append (Line, Integer'Image (Item.Item));
+         else
+            Append (Line, " -1");
+         end if;
+      end Append;
+   begin
+      Append (Line, Face_Property_Code);
+      Append (Line, Buffer_Pos'Image (Cache.Region.First));
+      Append (Line, Buffer_Pos'Image (Cache.Region.Last));
+      Append (Cache.Face);
       Append (Line, ']');
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
@@ -130,7 +154,7 @@ package body WisiToken.Wisi_Runtime is
       Containing_Pos : in     Buffer_Pos;
       End_Pos        : in     Buffer_Pos)
    is
-      use Cursor_Lists;
+      use Navigate_Cursor_Lists;
       I            : Cursor := Data.End_Positions.First;
       Delete_Cache : Boolean;
       Temp         : Cursor;
@@ -138,7 +162,7 @@ package body WisiToken.Wisi_Runtime is
       loop
          exit when not Has_Element (I);
          declare
-            Cache : Cache_Type renames Data.Caches (Element (I));
+            Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Element (I));
          begin
             if Cache.Pos in Containing_Pos .. End_Pos then
                Cache.End_Pos := (True, End_Pos);
@@ -153,7 +177,7 @@ package body WisiToken.Wisi_Runtime is
 
             I := Temp;
          else
-            Cursor_Lists.Next (I);
+            Next (I);
          end if;
 
       end loop;
@@ -167,14 +191,17 @@ package body WisiToken.Wisi_Runtime is
       Parse_Action : in     Parse_Action_Type;
       Line_Count   : in     Ada.Containers.Count_Type := 0)
    is begin
+      Data.Parse_Action := Parse_Action;
+
       case Parse_Action is
-      when Navigate | Face =>
-         Data.Parse_Action := Parse_Action;
-         Data.Caches.Finalize;
+      when Navigate =>
+         Data.Navigate_Caches.Finalize;
          Data.End_Positions.Clear;
 
+      when Face =>
+         Data.Face_Caches.Finalize;
+
       when Indent =>
-         Data.Parse_Action := Indent;
          Data.Indents.Set_Length (Line_Count);
          for Item of Data.Indents loop
             Item := (Int, 1, 1);
@@ -190,7 +217,7 @@ package body WisiToken.Wisi_Runtime is
    is
       First_Item         : Boolean     := True;
       Override_Start_Set : Boolean     := False;
-      Override_Start     : Class_Type;
+      Override_Start     : Navigate_Class_Type;
       Containing_Pos     : Nil_Buffer_Pos := Nil; --  wisi first-keyword-pos
    begin
       for Pair of Params loop
@@ -200,21 +227,20 @@ package body WisiToken.Wisi_Runtime is
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                declare
-                  Cursor : Cache_Trees.Cursor := Cache_Trees.Find
-                    (Data.Caches.Iterate, Cache_Trees.Unknown, Token.Char_Region.First);
+                  Cursor : Navigate_Cache_Trees.Cursor := Navigate_Cache_Trees.Find
+                    (Data.Navigate_Caches.Iterate, Navigate_Cache_Trees.Unknown, Token.Char_Region.First);
                begin
-                  if Cache_Trees.Has_Element (Cursor) then
+                  if Navigate_Cache_Trees.Has_Element (Cursor) then
                      declare
-                        Cache : Cache_Type renames Data.Caches (Cursor);
+                        Cache : Navigate_Cache_Type renames Data.Navigate_Caches (Cursor);
                      begin
                         Cache.Class          := (if Override_Start_Set then Override_Start else Pair.Class);
                         Cache.Statement_ID   := Nonterm.ID;
                         Cache.Containing_Pos := Containing_Pos;
                      end;
                   else
-                     Cursor := Data.Caches.Insert
-                       ((Label          => Navigate,
-                         Pos            => Token.Char_Region.First,
+                     Cursor := Data.Navigate_Caches.Insert
+                       ((Pos            => Token.Char_Region.First,
                          Statement_ID   => Nonterm.ID,
                          ID             => Token.ID,
                          Length         => Length (Token.Char_Region),
@@ -261,14 +287,14 @@ package body WisiToken.Wisi_Runtime is
       pragma Unreferenced (Nonterm);
 
       --  [1] wisi-containing-action
-      use Cache_Trees;
+      use Navigate_Cache_Trees;
       use WisiToken.Token_Line_Comment;
       Containing_Tok    : Token renames Token (Source (Containing).Element.all);
       Containing_Region : Buffer_Region renames Containing_Tok.Char_Region;
       Contained_Tok     : Token renames Token (Source (Contained).Element.all);
       Contained_Region  : Buffer_Region renames Contained_Tok.Char_Region;
-      Iterator          : constant Cache_Trees.Iterator := Data.Caches.Iterate;
-      Cursor            : Cache_Trees.Cursor;
+      Iterator          : constant Navigate_Cache_Trees.Iterator := Data.Navigate_Caches.Iterate;
+      Cursor            : Navigate_Cache_Trees.Cursor;
       Mark              : constant Buffer_Pos           := Containing_Region.First;
    begin
       if not (Containing_Region /= Null_Buffer_Region or Containing_Tok.Virtual) then
@@ -284,7 +310,7 @@ package body WisiToken.Wisi_Runtime is
       if not (Contained_Tok.Char_Region = Null_Buffer_Region or
                 Containing_Tok.Virtual or
                 Contained_Tok.Virtual or
-                Data.Caches.Present (Containing_Region.First))
+                Data.Navigate_Caches.Present (Containing_Region.First))
       then
          raise Parse_Error with Error_Message
            (File_Name => -Data.Source_File_Name,
@@ -303,7 +329,7 @@ package body WisiToken.Wisi_Runtime is
 
          while Has_Element (Cursor) loop
             declare
-               Cache : Cache_Type renames Variable_Ref (Data.Caches, Cursor).Element.all;
+               Cache : Navigate_Cache_Type renames Variable_Ref (Data.Navigate_Caches, Cursor).Element.all;
             begin
 
                exit when Cache.Pos < Contained_Region.First or
@@ -348,19 +374,19 @@ package body WisiToken.Wisi_Runtime is
       pragma Unreferenced (Nonterm);
 
       --  [1] wisi-motion-action
-      use Cache_Trees;
+      use Navigate_Cache_Trees;
       use all type Ada.Containers.Count_Type;
 
       Start             : Nil_Buffer_Pos := (Set => False);
       Prev_Keyword_Mark : Nil_Buffer_Pos := (Set => False);
-      Iter              : constant Iterator := Data.Caches.Iterate;
+      Iter              : constant Iterator := Data.Navigate_Caches.Iterate;
       Prev_Cache_Cur    : Cursor;
       Cache_Cur         : Cursor;
       Point             : Buffer_Pos;
 
       function Match (IDs : in Token_ID_Lists.List) return Boolean
       is
-         Cache : Cache_Type renames Constant_Ref (Data.Caches, Cache_Cur).Element.all;
+         Cache : Navigate_Cache_Type renames Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.all;
       begin
          --  [1] wisi--match-token
          if (Start.Set and then Point = Start.Item) or else
@@ -399,8 +425,8 @@ package body WisiToken.Wisi_Runtime is
 
                if Params (I).IDs.Length = 0 then
                   if Prev_Keyword_Mark.Set then
-                     Variable_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
-                     Variable_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
+                     Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
+                     Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
                   end if;
 
                   Prev_Keyword_Mark := (True, Region.First);
@@ -412,11 +438,11 @@ package body WisiToken.Wisi_Runtime is
                      exit when Point >= Region.Last;
                      if Match (Params (I).IDs) then
                         if Prev_Keyword_Mark.Set then
-                           if not Constant_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos.Set and
-                             not Constant_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos.Set
+                           if not Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos.Set and
+                             not Constant_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos.Set
                            then
-                              Variable_Ref (Data.Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
-                              Variable_Ref (Data.Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Point);
+                              Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
+                              Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Point);
                               Prev_Keyword_Mark := (True, Point);
                               Prev_Cache_Cur    := Cache_Cur;
                            end if;
@@ -427,7 +453,7 @@ package body WisiToken.Wisi_Runtime is
                      end if;
 
                      Cache_Cur := Next (Iter, Cache_Cur);
-                     Point     := Constant_Ref (Data.Caches, Cache_Cur).Element.Pos;
+                     Point     := Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Pos;
                   end loop;
                end if;
             end if;
@@ -440,10 +466,102 @@ package body WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Source  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array)
-   is begin
-      --  FIXME:
-      null;
+   is
+      pragma Unreferenced (Nonterm);
+
+      --  [1] wisi-face-apply-action
+      use Face_Cache_Trees;
+
+      Iter       : constant Iterator := Data.Face_Caches.Iterate;
+      Cache_Cur  : Cursor;
+      Suffix_Cur : Cursor;
+   begin
+      for Param of Params loop
+         declare
+            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+              (Source (Param.Index).Element.all);
+         begin
+            if Token.Char_Region /= Null_Buffer_Region then
+               Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
+               if Has_Element (Cache_Cur) then
+                  declare
+                     Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
+                  begin
+                     case Cache.Class is
+                     when Prefix =>
+                        Cache.Face := (True, Param.Prefix_Face);
+
+                        --  Check for suffix
+                        Suffix_Cur := Next (Iter, Cache_Cur);
+                        if Has_Element (Suffix_Cur) then
+                           declare
+                              Suf_Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Suffix_Cur).Element.all;
+                           begin
+                              if Suffix = Suf_Cache.Class and
+                                Inside (Suf_Cache.Region.First, Token.Char_Region)
+                              then
+                                 Suf_Cache.Face := (True, Param.Suffix_Face);
+                              end if;
+                           end;
+                        end if;
+
+                     when Suffix =>
+                        Cache.Face := (True, Param.Suffix_Face);
+                     end case;
+                  end;
+               else
+                  Data.Face_Caches.Insert ((Token.Char_Region, Suffix, (True, Param.Suffix_Face)));
+               end if;
+            end if;
+         end;
+      end loop;
    end Face_Apply_Action;
+
+   procedure Face_Mark_Action
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Source  : in     Augmented_Token_Array;
+      Params  : in     Face_Mark_Param_Array)
+   is
+      pragma Unreferenced (Nonterm);
+
+      --  [1] wisi-face-apply-action
+      use Face_Cache_Trees;
+
+      Iter      : constant Iterator := Data.Face_Caches.Iterate;
+      Cache_Cur : Cursor;
+   begin
+      for Param of Params loop
+         declare
+            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+              (Source (Param.Index).Element.all);
+         begin
+            if Token.Char_Region /= Null_Buffer_Region then
+               Cache_Cur := Find (Iter, Ascending, Token.Char_Region.First);
+               if Has_Element (Cache_Cur) then
+                  declare
+                     Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
+                     Other_Cur : Cursor := Find_In_Region (Iter, Ascending, Cache.Region.Last + 1, Token.Char_Region.Last);
+                     Temp : Cursor;
+                  begin
+                     loop
+                        exit when not Has_Element (Other_Cur) or else
+                          Constant_Ref (Data.Face_Caches, Other_Cur).Element.Region.First > Token.Char_Region.Last;
+                        Temp := Other_Cur;
+                        Other_Cur := Next (Iter, Other_Cur);
+                        Delete (Data.Face_Caches, Temp);
+                     end loop;
+
+                     Cache.Class       := Param.Class;
+                     Cache.Region.Last := Token.Char_Region.Last;
+                  end;
+               else
+                  Data.Face_Caches.Insert ((Token.Char_Region, Param.Class, (Set => False)));
+               end if;
+            end if;
+         end;
+      end loop;
+   end Face_Mark_Action;
 
    procedure Indent_Action
      (Data    : in out Parse_Data_Type;
@@ -471,7 +589,11 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Put (Data : in Parse_Data_Type)
    is begin
-      for Cache of Data.Caches loop
+      for Cache of Data.Navigate_Caches loop
+         Put (Cache);
+      end loop;
+
+      for Cache of Data.Face_Caches loop
          Put (Cache);
       end loop;
 

@@ -47,15 +47,15 @@ package WisiToken.Wisi_Runtime is
       Line_Count   : in     Ada.Containers.Count_Type := 0);
    --  Line_Count only used for Indent
 
-   type Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
+   type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
 
-   type Index_Class is record
+   type Index_Navigate_Class is record
       Index : Positive_Index_Type; -- into Source
-      Class : Class_Type;
+      Class : Navigate_Class_Type;
    end record;
 
-   type Statement_Param_Array is array (Natural range <>) of Index_Class;
+   type Statement_Param_Array is array (Natural range <>) of Index_Navigate_Class;
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
@@ -108,6 +108,23 @@ package WisiToken.Wisi_Runtime is
       Params  : in     Face_Apply_Param_Array);
    --  Implements [1] wisi-face-apply-action.
 
+   type Face_Class_Type is (Prefix, Suffix);
+   --  Matches wisi-cache-class values set in [1] wisi-face-apply-action.
+
+   type Index_Face_Class is record
+      Index : Positive_Index_Type; -- into Source
+      Class : Face_Class_Type;
+   end record;
+
+   type Face_Mark_Param_Array is array (Natural range <>) of Index_Face_Class;
+
+   procedure Face_Mark_Action
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Source  : in     Augmented_Token_Array;
+      Params  : in     Face_Mark_Param_Array);
+   --  Implements [1] wisi-face-mark-action.
+
    type Indent_Pair (Comment_Present : Boolean := False) is
    record
       Indent : Integer;
@@ -159,23 +176,40 @@ private
 
    Nil : constant Nil_Buffer_Pos := (Set => False);
 
-   type Cache_Type is record
-      Label : Parse_Action_Type; -- text-property
-      Pos   : Buffer_Pos;           -- implicit in wisi-cache
-
-      Statement_ID   : Token_ID;    -- wisi-cache-nonterm
-      ID             : Token_ID;    -- wisi-cache-token
-      Length         : Natural;     -- wisi-cache-last
-      Class          : Class_Type;  -- wisi-cache-class
-      Containing_Pos : Nil_Buffer_Pos; -- wisi-cache-containing
-      Prev_Pos       : Nil_Buffer_Pos; -- wisi-cache-prev
-      Next_Pos       : Nil_Buffer_Pos; -- wisi-cache-next
-      End_Pos        : Nil_Buffer_Pos; -- wisi-cache-end
+   type Navigate_Cache_Type is record
+      Pos            : Buffer_Pos;          -- implicit in wisi-cache
+      Statement_ID   : Token_ID;            -- wisi-cache-nonterm
+      ID             : Token_ID;            -- wisi-cache-token
+      Length         : Natural;             -- wisi-cache-last
+      Class          : Navigate_Class_Type; -- wisi-cache-class; one of wisi-class-list
+      Containing_Pos : Nil_Buffer_Pos;      -- wisi-cache-containing
+      Prev_Pos       : Nil_Buffer_Pos;      -- wisi-cache-prev
+      Next_Pos       : Nil_Buffer_Pos;      -- wisi-cache-next
+      End_Pos        : Nil_Buffer_Pos;      -- wisi-cache-end
    end record;
 
-   function Key (Cache : in Cache_Type) return Buffer_Pos is (Cache.Pos);
+   function Key (Cache : in Navigate_Cache_Type) return Buffer_Pos is (Cache.Pos);
 
-   package Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Cache_Type, Buffer_Pos);
+   package Navigate_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Navigate_Cache_Type, Buffer_Pos);
+
+   type Nil_Integer (Set : Boolean := False) is record
+      case Set is
+      when True =>
+         Item : Integer;
+      when False =>
+         null;
+      end case;
+   end record;
+
+   type Face_Cache_Type is record
+      Region : Buffer_Region;
+      Class  : Face_Class_Type; -- wisi-cache-class; one of {'prefix | 'suffix}
+      Face   : Nil_Integer;     -- not set, or index into *-process-faces-names
+   end record;
+
+   function Key (Cache : in Face_Cache_Type) return Buffer_Pos is (Cache.Region.First);
+
+   package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, Buffer_Pos);
 
    type Indent_Labels is (Int, Anchor, Anchored, Nested_Anchor);
 
@@ -204,13 +238,14 @@ private
    end record;
 
    package Indent_Vectors is new Ada.Containers.Vectors (Natural, Indent_Type);
-   package Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists (Cache_Trees.Cursor, Cache_Trees."=");
+   package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
    type Parse_Data_Type is new Base_Data_Type with
    record
-      Caches        : Cache_Trees.Tree;      -- Used for Navigate, Face.
-      End_Positions : Cursor_Lists.List;     -- Used for Navigate.
-      Indents       : Indent_Vectors.Vector; -- Used for Indent.
+      Navigate_Caches : Navigate_Cache_Trees.Tree; -- Used for Navigate.
+      Face_Caches     : Face_Cache_Trees.Tree;     -- Used for Face.
+      End_Positions   : Navigate_Cursor_Lists.List;         -- Used for Navigate.
+      Indents         : Indent_Vectors.Vector;     -- Used for Indent.
    end record;
 
 end WisiToken.Wisi_Runtime;

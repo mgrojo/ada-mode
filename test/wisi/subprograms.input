@@ -3,6 +3,7 @@
 --EMACSCMD: (test-cache-class "Func_1" 'name)
 --EMACSCMD: (test-cache-class ";" 'statement-end)
 --EMACSCMD: (test-cache-containing "function" "(")
+--EMACSCMD: (test-face "function" 'font-lock-keyword-face)
 function
   (a)
   Func_1
@@ -10,13 +11,17 @@ begin end;
 
 --EMACSCMD: (test-cache-class "procedure" 'statement-start)
 --EMACSCMD: (test-cache-class "Proc_1" 'name)
+--EMACSCMD: (test-face "procedure" 'font-lock-keyword-face)
+--EMACSCMD: (test-face "Proc_1" 'font-lock-function-name-face)
 procedure Proc_1;
 
 --EMACSCMD: (test-cache-containing "procedure" "a")
+--EMACSCMD: (test-face "Parent" 'font-lock-type-facev)
+--EMACSCMD: (test-face "Proc_1" 'font-lock-function-name-face)
 procedure
   (
    a
-  ) Proc_1;
+  ) Parent.Proc_1;
 
 --EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))
 --EMACSRESULT:t

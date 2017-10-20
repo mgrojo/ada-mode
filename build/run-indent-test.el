@@ -8,16 +8,19 @@
 (defvar skip-recase-test nil)
 (defvar skip-write nil)
 
+(defun test-in-comment-p ()
+  (nth 4 (syntax-ppss)))
+
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
     (wisi-validate-cache (line-end-position 3) nil 'face)
-    (when (ada-in-comment-p)
+    (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
     (condition-case err
-	(search-forward token (line-end-position 2))
+	(search-forward token (line-end-position 5))
       (error
        (error "can't find '%s'" token)))
 
@@ -49,7 +52,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 (defun test-face-1 (search token face)
   "Move to end of comment, search for SEARCH, call `test-face'."
   (save-excursion
-    (when (ada-in-comment-p)
+    (when (test-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
     (search-forward search)

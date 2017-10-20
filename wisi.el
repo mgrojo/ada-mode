@@ -1334,70 +1334,30 @@ vector [number token_id token_id ...]:
       :class class)
      )))
 
-(defun wisi-face-mark-action (tokens)
-  "Cache face information in text properties of tokens.
-Intended as a grammar action.
-
-TOKENS is a vector of the form [TOKEN-NUMBER ...] where
-TOKEN-NUMBER is a (1 indexed) token number in the production."
+(defun wisi-face-mark-action (pairs)
+  "PAIRS is a vector of TOKEN CLASS pairs; mark TOKEN (token number)
+as having face CLASS (prefix or suffix).
+Intended as a grammar action."
   (when (eq wisi--parse-action 'face)
     (let ((i 0))
-      (while (< i (length tokens))
-	(let* ((number (1- (aref tokens i)))
-	       (region (wisi-tok-region (aref wisi-tokens number))))
-
-	  (setq i (1+ i))
-
+      (while (< i (length pairs))
+	(let ((region (wisi-tok-region (aref wisi-tokens (1- (aref pairs i)))))
+	      (class (aref pairs (setq i (1+ i)))))
 	  (when region
-	    ;; region can be null on an optional token
-	    (wisi--face-put-cache region 'suffix)
- 	    )))
-      )))
+	    ;; region can be null on an optional or virtual token
+	    (let ((cache (get-text-property (car region) 'wisi-face)))
+	      (if cache
+		  ;; previously marked; extend this cache, delete any others
+		  (progn
+		    (with-silent-modifications
+		      (remove-text-properties (+ (car region) (wisi-cache-last cache)) (cdr region) '(wisi-face nil)))
+		    (setf (wisi-cache-class cache) class)
+		    (setf (wisi-cache-last cache) (- (cdr region) (car region))))
 
-(defun wisi-face-extend-action (first last)
-  "If token FIRST has ’wisi-face’ cache(s) covering all of the token,
-apply another ’wisi-face’ cache on token(s) LAST.
-Set cache-class of FIRST to PREFIX, LAST to SUFFIX."
-  (when (eq wisi--parse-action 'face)
-    (let* ((first-tok (aref wisi-tokens (1- first)))
-	   (first-region (wisi-tok-region first-tok))
-	   (first-length (- (cdr (wisi-tok-region first-tok)) (car (wisi-tok-region first-tok))))
-	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
-	   first-face-1 first-face-2 face-2-beg)
-
-      ;; When extending a selected name, token first may already have
-      ;; a prefix and suffix face; replace that suffix with the
-      ;; prefix, apply the suffix to token last. The separating dot
-      ;; has no face.
-      ;;
-      ;; test/ada_mode-loop_face.adb Package_Name.Child_Package_Name.Type_Name
-
-      (when (and first-region last-region) ;; can be nil when error correction is present.
-	(setq first-face-1 (get-text-property (car first-region) 'wisi-face))
-
-	(when first-face-1
-	  (cond
-	   ((= first-length (wisi-cache-last first-face-1))
-	    (when (> wisi-debug 1)
-	      (message "face: set class %s:%s" (wisi-cache-region first-face-1 (car first-region)) 'prefix))
-	    (setf (wisi-cache-class first-face-1) 'prefix)
-	    (wisi--face-put-cache last-region 'suffix))
-
-	   ((progn
-	      (setq face-2-beg (+ 1 (car first-region) (wisi-cache-last first-face-1)))
-	      (setq first-face-2 (get-text-property face-2-beg 'wisi-face)))
-	    (when (> wisi-debug 1)
-	      (message "face: remove cache %s" (cons face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg)))))
-	    (with-silent-modifications
-	      (remove-text-properties face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg))
-				      '(wisi-face nil)))
-	    (setf (wisi-cache-last first-face-1) first-length)
-	    (wisi--face-put-cache last-region 'suffix))
-
-	   (t
-	    nil)
-	   )))
-      )))
+		;; else not previously marked
+		(wisi--face-put-cache region class)))
+	    ))
+	))))
 
 (defun wisi-face-remove-action (tokens)
   "Remove face caches and faces in TOKENS.
@@ -2685,7 +2645,12 @@ If non-nil, only repair errors in BEG END region."
 (defun wisi-show-cache ()
   "Show navigation and face caches at point."
   (interactive)
-  (message "%s:%s" (wisi-get-cache (point)) (get-text-property (point) 'wisi-face)))
+  (message "%s:%s:%s:%s"
+	   (wisi-get-cache (point))
+	   (get-text-property (point) 'wisi-face)
+	   (get-text-property (point) 'face)
+	   (get-text-property (point) 'font-lock-face)
+	   ))
 
 (defun wisi-show-token ()
   "Move forward across one keyword, show token."

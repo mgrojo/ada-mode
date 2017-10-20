@@ -28,9 +28,6 @@
 (defconst wisi-process-parse-quit-cmd "04quit\n"
   "Command to external process telling it to quit.")
 
-(defconst wisi-process-parse--text-properties [wisi-cache wisi-face wisi-indent]
-  "Text properties used to store parse results; array for decoding process output.")
-
 (defvar wisi-process-parse-debug 0)
 
 ;;;;; sessions
@@ -152,7 +149,11 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 the content of the current buffer.  Does not wait for command to
 complete."
   ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse \"%s\" %d %d %d %d %d"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d"
+		      (cl-ecase wisi--parse-action
+			(navigate 0)
+			(face 1)
+			(indent 2))
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
 		      (1- wisi-debug)
 		      (if wisi-mckenzie-enable 1 0)
@@ -193,27 +194,40 @@ complete."
 (defun wisi-process-parse--pos-or-nil (item)
   (if (= -1 item) nil item))
 
-(defun wisi-process-parse--Cache (parser sexp)
-  ;; sexp is [Cache text-property pos statement_id id length class containing_pos prev_pos next_pos end_pos]
+(defun wisi-process-parse--Navigate_Cache (parser sexp)
+  ;; sexp is [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (aref sexp 2)))
+  (let ((pos (aref sexp 1)))
     ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
        pos
        (1+ pos)
-       (aref wisi-process-parse--text-properties (aref sexp 1))
+       'wisi-cache
        (wisi-cache-create
-	:nonterm    (aref (wisi-process--parser-token-table parser) (aref sexp 3))
-	:token      (aref (wisi-process--parser-token-table parser) (aref sexp 4))
-	:last       (aref sexp 5)
-	:class      (aref wisi-class-list (aref sexp 6))
-	:containing (wisi-process-parse--pos-or-nil (aref sexp 7))
-	:prev       (wisi-process-parse--pos-or-nil (aref sexp 8))
-	:next       (wisi-process-parse--pos-or-nil (aref sexp 9))
-	:end        (wisi-process-parse--pos-or-nil (aref sexp 10))
+	:nonterm    (aref (wisi-process--parser-token-table parser) (aref sexp 2))
+	:token      (aref (wisi-process--parser-token-table parser) (aref sexp 3))
+	:last       (aref sexp 4)
+	:class      (aref wisi-class-list (aref sexp 5))
+	:containing (wisi-process-parse--pos-or-nil (aref sexp 6))
+	:prev       (wisi-process-parse--pos-or-nil (aref sexp 7))
+	:next       (wisi-process-parse--pos-or-nil (aref sexp 8))
+	:end        (wisi-process-parse--pos-or-nil (aref sexp 9))
 	)))
     ))
+
+(defun wisi-process-parse--Face_Property (parser sexp)
+  ;; sexp is [Face_Property first-pos last-pos face-index]
+  ;; see ‘wisi-process-parse--execute’
+  ;; FIXME: faster to check for & modify existing?
+  ;; implements wisi--face-action-1
+  (with-silent-modifications
+    (add-text-properties
+     (aref sexp 1)
+     (1+ (aref sexp 2))
+     (list 'font-lock-face (aref (wisi-process--parser-face-table parser) (aref sexp 3))
+	   'fontified t)
+     )))
 
 (defun wisi-process-parse--Indent (parser sexp)
   ;; sexp is [Indent char-pos indent]
@@ -269,13 +283,16 @@ complete."
   ;;
   ;; Actions:
   ;;
-  ;; [Cache text-property pos statement_id id length class containing_pos prev_pos next_pos end_pos]
-  ;;    Set a text-property.
-  ;;    text-property : integer index into wisi-process-parse--text-properties (navigate or face)
+  ;; [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
+  ;;    Set a wisi-cache text-property.
   ;;    *pos          : integer buffer position; -1 if nil (not set)
   ;;    *id           : integer index into parser-token-table
   ;;    length        : integer character count
   ;;    class         : integer index into wisi-class-list
+  ;;
+  ;; [Face_Property first-pos last-pos face-index]
+  ;;    Set a font-lock-face text-property
+  ;;    face-index: integer index into parser-elisp-face-table
   ;;
   ;; [Indent char-position indent]
   ;;    Set an indent text property, for line starting at char-position.
@@ -303,10 +320,11 @@ complete."
   ;; Numeric action codes are given in the case expression below
 
   (cl-ecase (aref sexp 0)
-    (1  (wisi-process-parse--Cache parser sexp))
-    (2  (wisi-process-parse--Indent parser sexp))
-    (3  (wisi-process-parse--Error parser sexp))
-    (4  (wisi-process-parse--Recover parser sexp))
+    (1  (wisi-process-parse--Navigate_Cache parser sexp))
+    (2  (wisi-process-parse--Face_Property parser sexp))
+    (3  (wisi-process-parse--Indent parser sexp))
+    (4  (wisi-process-parse--Error parser sexp))
+    (5  (wisi-process-parse--Recover parser sexp))
     ))
 
 ;;;;; main
