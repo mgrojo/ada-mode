@@ -24,7 +24,7 @@ package body Wisi.Output_Elisp_Common is
 
    function Find_Elisp_ID (List : in String_Lists.List; Elisp_Name : in String) return Integer
    is
-      I : Integer := 1;
+      I : Integer := 0; -- match elisp array
    begin
       for Name of List loop
          if Name = Elisp_Name then

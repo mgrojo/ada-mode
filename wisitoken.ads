@@ -276,6 +276,9 @@ package WisiToken is
 
    function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));
 
+   function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
+     is (Region.First <= Pos and Pos <= Region.Last);
+
    function Image (Item : in Buffer_Region) return String;
 
    function "and" (Left, Right : in Buffer_Region) return Buffer_Region;

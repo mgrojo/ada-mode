@@ -698,10 +698,10 @@ package body WisiToken.Parser.LR.LALR_Generator is
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
             if not Unused_Tokens then
-               Ada.Text_IO.Put_Line ("Unused tokens:");
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, "Unused tokens:");
                Unused_Tokens := True;
             end if;
-            Ada.Text_IO.Put_Line (Image (Descriptor, I));
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Image (Descriptor, I));
          end if;
       end loop;
 

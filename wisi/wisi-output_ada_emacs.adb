@@ -254,7 +254,56 @@ is
          else
             return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
          end if;
+      exception
+      when E : others =>
+         Put_Error (Input_File_Name, Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+         return "";
       end Face_Apply_Params;
+
+      function Face_Mark_Params (Params : in String) return String
+      is
+         --  Params is a vector of pairs: [1 prefix 3 suffix ...]
+         --  Result: ((1, Prefix), (3, Suffix), ...)
+         use Standard.Ada.Strings.Maps;
+         Delim : constant Character_Set := To_Set (" ]");
+
+         Last       : Integer          := Params'First; -- skip [
+         First      : Integer;
+         Result     : Unbounded_String;
+         Need_Comma : Boolean          := False;
+         Count      : Integer          := 0;
+      begin
+         loop
+            Last := Index_Non_Blank (Params, Last + 1);
+
+            exit when Params (Last) = ']' or Params (Last) = ')';
+
+            Count  := Count + 1;
+            First  := Last;
+            Last   := Index (Params, Delim, First);
+            Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
+
+            if Params (Last) = ']' then
+               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-mark argument");
+               exit;
+            end if;
+
+            First  := Index_Non_Blank (Params, Last + 1);
+            Last   := Index (Params, Delim, First);
+            Result := Result & ", " & Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0) & ")";
+
+            Need_Comma := True;
+         end loop;
+         if Count = 1 then
+            return " (Parse_Data, Nonterm, Source, (1 => " & (-Result) & "))";
+         else
+            return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
+         end if;
+      exception
+      when E : others =>
+         Put_Error (Input_File_Name, Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+         return "";
+      end Face_Mark_Params;
 
       function Indent_Params (Params : in String) return String
       is
@@ -303,6 +352,7 @@ is
             elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_1";
             elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_2";
             elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_3";
+            elsif Elisp_Name = "wisi-hanging"    then return "Hanging";
             else
                Put_Error (Input_File_Name, Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
                return "";
@@ -394,6 +444,14 @@ is
                Put_Error (Input_File_Name, Source_Line, "multiple face actions");
             end if;
 
+         elsif Elisp_Name = "wisi-face-mark-action" then
+            if Length (Face_Line) = 0 then
+               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
+            else
+               Put_Error (Input_File_Name, Source_Line, "multiple face actions");
+            end if;
+
          elsif Elisp_Name = "wisi-indent-action" then
             if Length (Indent_Action_Line) = 0 then
                Indent_Action_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
@@ -423,7 +481,6 @@ is
                   Translate_Paren_State := 1;
                   Paren_State := 1;
                elsif String_Lists.Length (Action) = 1 then
-                  Translate_Paren_State := 0;
                   Temp := +Line;
                   Count_Parens;
                   if Paren_State = 0 then
@@ -431,8 +488,8 @@ is
                      Temp := +"";
                   end if;
                else
-                  Put_Error (Input_File_Name, Source_Line, "invalid action syntax");
-                  return;
+                  --  Single elisp form on two lines; combine them.
+                  Temp := +Line;
                end if;
             else
                if Length (Temp) = 0 then
@@ -447,6 +504,7 @@ is
                   Temp := +"";
                elsif Translate_Paren_State = 1 and Paren_State = 0 then
                   --  last line of a 'progn'
+                  Translate_Paren_State := 0;
                   Translate_Line (Slice (Temp, 1, Length (Temp) - 1));
                   Temp := +"";
                end if;
