@@ -42,14 +42,18 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
      Iterator_Element  => Element_Type;
 
    overriding procedure Finalize (Object : in out Tree);
+   overriding procedure Initialize (Object : in out Tree);
 
    type Direction_Type is (Ascending, Descending, Unknown);
+   subtype Known_Direction_Type is Direction_Type range Ascending .. Descending;
    --  Direction of Iterators.
    --  If Ascending, Next may be called.
    --  If Descending, Previous may be called.
    --  If Unknown, neither.
 
    type Cursor is private;
+
+   No_Element : constant Cursor;
 
    function Has_Element (Cursor : in Pkg.Cursor) return Boolean;
 
@@ -98,6 +102,17 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor;
    --  Has_Element is False if Key is not in Container.
 
+   function Find_In_Region
+     (Iterator    : in Pkg.Iterator;
+      Direction   : in Known_Direction_Type;
+      First, Last : in Key_Type)
+     return Cursor;
+   --  Find first element with Key greater than or equal to First, and
+   --  less than or equal to Last. If Direction is Ascending, start
+   --  search at First; if Descending, at Last.
+   --
+   --  Has_Element is False if there is no such Key.
+
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type;
 
    function Present (Container : in Tree; Key : in Key_Type) return Boolean;
@@ -106,6 +121,8 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Insert (Tree : in out Pkg.Tree; Element : in Element_Type) return Cursor;
    --  Result points to newly inserted element.
 
+   procedure Delete (Tree : in out Pkg.Tree; Position : in out Cursor);
+   --  Delete element at Position; set Position to point to no element.
 private
 
    type Node;
@@ -125,6 +142,12 @@ private
 
    type Tree is new Ada.Finalization.Limited_Controlled with record
       Root : Node_Access;
+      Nil  : Node_Access;
+      --  Nil is the node pointed to by all links that would otherwise be
+      --  'null'. This simplifies several algorithm (for example,
+      --  Node.Left.Color is always valid). Its parent, left, right links
+      --  are used as temp storage for some algorithms (especially Delete).
+      --  Nil.Color is Black.
    end record;
 
    type Cursor is record
@@ -137,9 +160,16 @@ private
       Right_Done : Boolean := True;
    end record;
 
+   No_Element : constant Cursor :=
+     (Node       => null,
+      Direction  => Unknown,
+      Left_Done  => True,
+      Right_Done => True);
+
    type Iterator is new Iterators.Reversible_Iterator with
    record
       Root : Node_Access;
+      Nil  : Node_Access;
    end record;
 
 end SAL.Gen_Unbounded_Definite_Red_Black_Trees;

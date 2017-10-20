@@ -52,14 +52,9 @@ package SAL is
    Iterator_Error                   : exception;
    Not_Found                        : exception;
    Not_Implemented                  : exception;
-   Non_Normalizable_Rot_Matrix      : exception;
-   Non_Normalizable_Trig_Pair       : exception;
-   Non_Normalizable_Unit_Vector     : exception;
-   Non_Normalizable_Unit_Quaternion : exception;
    Parameter_Error                  : exception;
    Programmer_Error                 : exception;
    Range_Error                      : exception;
-   Singular                         : exception;
 
    --------------
    --  General options

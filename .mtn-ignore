@@ -9,3 +9,4 @@
 ^build/gpr_query\.db-wal$
 ^build/obj_pro$
 ^build/objects$
+^test/debug\.adb$

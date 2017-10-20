@@ -116,7 +116,8 @@ package body Test_Red_Black_Trees is
       pragma Unreferenced (T);
       use AUnit.Checks.Containers;
       use AUnit.Checks;
-      I : Trees.Cursor;
+      use Trees;
+      I : Cursor;
    begin
       --  Build and check a tree, covering all cases of the insert position
       --  of the new node.
@@ -130,7 +131,7 @@ package body Test_Red_Black_Trees is
       Check ("1.count", Tree.Count, 3);
       Validate ("1", Tree);
       I := Root (Tree);
-      Check ("1.bh", Black_Height (I), 0);
+      Check ("1.bh", Black_Height (Tree, I), 0);
       Check ("1.0", I, 7, Black);
       I := Left (I);
       Check ("1.1", I, 3, Red);
@@ -147,7 +148,7 @@ package body Test_Red_Black_Trees is
       Check ("2.count", Tree.Count, 4);
       Validate ("2", Tree);
       I := Root (Tree);
-      Check ("2.bh", Black_Height (I), 1);
+      Check ("2.bh", Black_Height (Tree, I), 1);
       Check ("2.0", I, 7, Black);
       I := Left (I);
       Check ("2.1", I, 3, Black);
@@ -164,7 +165,7 @@ package body Test_Red_Black_Trees is
       Check ("3.count", Tree.Count, 5);
       Validate ("3", Tree);
       I := Root (Tree);
-      Check ("3.bh", Black_Height (I), 1);
+      Check ("3.bh", Black_Height (Tree, I), 1);
       Check ("3.0", I, 7, Black);
       I := Left (I);
       Check ("3.1", I, 3, Black);
@@ -185,9 +186,9 @@ package body Test_Red_Black_Trees is
       Check ("4.count", Tree.Count, 6);
       Validate ("4", Tree);
       I := Root (Tree);
-      Check ("4.bh", Black_Height (I), 1);
-      Check ("4.l.bh", Black_Height (Left (I)), 0);
-      Check ("4.r.bh", Black_Height (Right (I)), 1);
+      Check ("4.bh", Black_Height (Tree, I), 1);
+      Check ("4.l.bh", Black_Height (Tree, Left (I)), 0);
+      Check ("4.r.bh", Black_Height (Tree, Right (I)), 1);
       Check ("4.0", I, 7, Black);
       I := Left (I);
       Check ("4.1", I, 3, Black);
@@ -205,12 +206,12 @@ package body Test_Red_Black_Trees is
       Tree.Insert ((Pos => 15));
       --             7b
       --         3b      12r
-      --             10b     15b
+      --              10b    15b
       --                  14r   16r
       Check ("5.count", Tree.Count, 7);
       Validate ("5", Tree);
       I := Root (Tree);
-      Check ("5.bh", Black_Height (I), 1);
+      Check ("5.bh", Black_Height (Tree, I), 1);
       Check ("5.0", I, 7, Black);
       I := Left (I);
       Check ("5.1", I, 3, Black);
@@ -301,20 +302,76 @@ package body Test_Red_Black_Trees is
       Check ("present 14", Tree.Present (14), True);
       Check ("present 13", Tree.Present (13), False);
 
-      Check ("find 10", Trees.Find (Tree.Iterate, Trees.Unknown, 10), 10, Black);
-      Check ("find 14", Trees.Find (Tree.Iterate, Trees.Unknown, 14), 14, Black);
-      Check ("find 13", Trees.Has_Element (Trees.Find (Tree.Iterate, Trees.Unknown, 13)), False);
+      Check ("find 10", Find (Tree.Iterate, Unknown, 10), 10, Black);
+      Check ("find 14", Find (Tree.Iterate, Unknown, 14), 14, Black);
+      Check ("find 13", Has_Element (Find (Tree.Iterate, Unknown, 13)), False);
 
       Check ("index 10", Tree (10).Element.all, (Pos => 10));
 
-      declare
-         Iter : Trees.Iterator renames Tree.Iterate;
-      begin
-         I := Trees.Previous (Iter, 11);
-         Check ("iter prev 11", I, 10, Black);
-         I := Trees.Previous (Iter, I);
-         Check ("cursor prev ", I, 9, Red);
-      end;
+      I := Previous (Tree.Iterate, 11);
+      Check ("prev 11", I, 10, Black);
+      I := Previous (Tree.Iterate, I);
+      Check ("prev cursor", I, 9, Red);
+
+      Check ("in_region 1", Find_In_Region (Tree.Iterate, Ascending, 10, 15), 10, Black);
+      Check ("in_region 2", Find_In_Region (Tree.Iterate, Ascending, 11, 15), 12, Black);
+
+      Check ("in_region 3", Find_In_Region (Tree.Iterate, Descending, 10, 15), 15, Red);
+      Check ("in_region 4", Find_In_Region (Tree.Iterate, Descending, 10, 13), 12, Black);
+
+      Check_Null ("in_region not found", Find_In_Region (Tree.Iterate, Ascending, 4, 5));
+
+      I := Find (Tree.Iterate, Unknown, 10);
+      Tree.Delete (I);
+      Check_Null ("delete.i", I);
+      Check_Null ("delete.find", Find (Tree.Iterate, Unknown, 10));
+      --                12b
+      --          7r          15r
+      --      2b     9b    14b   16b
+      --    1r  3r                  17r
+      I := Root (Tree);
+      Check ("delete 10.0", I, 12, Black);
+      I := Left (I);
+      Check ("delete 10.1", I, 7, Red);
+      I := Right (I);
+      Check ("delete 10.2", I, 9, Black);
+      Validate ("delete 10", Tree);
+
+      I := Find (Tree.Iterate, Unknown, 7);
+      Tree.Delete (I);
+      --                12b
+      --          2r          15r
+      --      1b     9b    14b   16b
+      --           3r               17r
+      I := Root (Tree);
+      Check ("delete 7.0", I, 12, Black);
+      I := Left (I);
+      Check ("delete 7.1", I, 2, Red);
+      I := Right (I);
+      Check ("delete 7.2", I, 9, Black);
+      I := Left (I);
+      Check ("delete 7.3", I, 3, Red);
+      Validate ("delete 7", Tree);
+
+      I := Find (Tree.Iterate, Unknown, 17);
+      Tree.Delete (I);
+      --                12b
+      --          2r          15r
+      --      1b     9b    14b   16b
+      --           3r
+      Validate ("delete 17", Tree);
+
+      I := Find (Tree.Iterate, Unknown, 16);
+      Tree.Delete (I);
+      --                12b
+      --          2r          15r
+      --      1b     9b    14b        FIXME: wrong
+      --           3r
+      Validate ("delete 16", Tree);
+
+      I := Find (Tree.Iterate, Unknown, 15);
+      Tree.Delete (I);
+      Validate ("delete 15", Tree);
    end Nominal;
 
    ----------
