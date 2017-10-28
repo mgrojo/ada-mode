@@ -55,6 +55,8 @@ package WisiToken.AUnit is
         Check_Index_2 => WisiToken.AUnit.Check,
         Check_Item    => Standard.AUnit.Checks.Check);
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Buffer_Pos);
+
    procedure Check
      (Label    : in String;
       Computed : in WisiToken.Buffer_Region;

@@ -96,7 +96,7 @@ with Test_Character_Literal_Aux;
 
 %non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <reporting> COMMENT "--"[^\n]*
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 ;; full Unicode range, starting with non-control, non-digit
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]+
@@ -131,16 +131,17 @@ statement
   : IDENTIFIER tick LEFT_PAREN CHARACTER_LITERAL RIGHT_PAREN SEMICOLON
    (Character_Literal_Count :=
     Character_Literal_Count + 1;
-    Test_Statement_0 (Source);)
+    Test_Statement_0 (Tokens);)
 
  ;; A different use of TICK; attribute reference. Action tests character counting.
   | IDENTIFIER tick IDENTIFIER SEMICOLON
-    (Char_Region := WisiToken.Token_Line_Comment.Token (Source.Element (3)).Char_Region;)
+    (Char_Region := WisiToken.Token_Line_Comment.Token (Tokens.Element (3)).Char_Region;
+     Test_Statement_1 (Tokens);)
 
  ;; Here the input is Ada strings, with and without embedded quotes.
   | STRING_LITERAL SEMICOLON
     (String_Literal_Count := String_Literal_Count + 1;
-     Test_Statement_2 (Source);)
+     Test_Statement_2 (Tokens);)
 
  ;; a use of FOO
   | FOO SEMICOLON

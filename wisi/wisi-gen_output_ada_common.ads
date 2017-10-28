@@ -88,10 +88,7 @@ package Wisi.Gen_Output_Ada_Common is
      (Parser_Algorithm   : in Valid_Parser_Algorithm;
       Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
-      First_Parser_Label : in Integer;
-      New_Line_ID        : in WisiToken.Token_ID);
-   --  If the tokens do not include a reporting New_Line token, set
-   --  New_Line_ID to Invalid_Token_ID.
+      First_Parser_Label : in Integer);
 
    procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr);
 

@@ -42,7 +42,7 @@ package Wisi is
 
    User_Error : exception; -- error in command line options or parameters
 
-   Syntax_Error : exception; -- Error in user input file
+   Syntax_Error : exception; -- Error in grammar file
 
    Not_Found : exception;
    --  something not found; should be handled and converted to Syntax_ or Programmer_Error

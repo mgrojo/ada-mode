@@ -98,6 +98,11 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
+      New_Line_ID : Token_ID;
+      Comment_ID  : Token_ID;
+      --  If the tokens do not include a reporting New_Line or Comment
+      --  token, set New_Line_ID or Comment_ID to Invalid_Token_ID.
+
       Image : Token_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
 
@@ -233,10 +238,10 @@ package WisiToken is
    type Semantic_Action is access procedure
      (Nonterm : in Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in Augmented_Token_Array);
+      Tokens  : in Augmented_Token_Array);
    --  Routines of this type are called by the parser when it reduces
    --  a production to Nonterm. Index indicates which production for
-   --  Nonterm (0 origin); Source is the right hand side tokens.
+   --  Nonterm (0 origin); Tokens is the right hand side tokens.
    --
    --  Nonterm is classwide to avoid freezing rules.
 
@@ -254,9 +259,14 @@ package WisiToken is
    function Int_Image (Item : in Integer) return String;
    --  No leading space
 
+   type Line_Number_Type is range 1 .. Natural'Last; -- Match Emacs buffer line numbers.
+
+   Invalid_Line_Number : constant Line_Number_Type := Line_Number_Type'Last;
+
    function Error_Message
      (File_Name : in String;
-      Line, Col : in Ada.Text_IO.Count;
+      Line      : in Line_Number_Type;
+      Col       : in Ada.Text_IO.Count;
       Message   : in String)
      return String;
    --  Return Gnu-formatted error message.

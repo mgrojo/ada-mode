@@ -323,7 +323,8 @@ package body WisiToken is
 
    function Error_Message
      (File_Name : in String;
-      Line, Col : in Ada.Text_IO.Count;
+      Line      : in Line_Number_Type;
+      Col       : in Ada.Text_IO.Count;
       Message   : in String)
      return String
    is begin

@@ -118,6 +118,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
       Indent_Line ("EOF_ID            =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
       Indent_Line ("Accept_ID         =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
+      Indent_Line ("New_Line_ID       =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
+      Indent_Line ("Comment_ID        =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
       Indent_Line ("Image             =>");
       declare
          use Standard.Ada.Strings.Unbounded;
@@ -487,8 +489,7 @@ package body Wisi.Gen_Output_Ada_Common is
      (Parser_Algorithm   : in Valid_Parser_Algorithm;
       Interface_Kind     : in Interface_Type;
       First_State_Index  : in Integer;
-      First_Parser_Label : in Integer;
-      New_Line_ID        : in WisiToken.Token_ID)
+      First_Parser_Label : in Integer)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -572,14 +573,12 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
-         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace," & WisiToken.Token_ID'Image (New_Line_ID) & "),");
+         Indent_Line ("   Lexer.New_Lexer (Semantic_State.Trace),");
          Indent_Line ("   Table,");
          Indent_Line ("   Semantic_State,");
          Indent_Line ("   Max_Parallel         => 15,");
          Indent_Line ("   First_Parser_Label   => " & WisiToken.Int_Image (First_Parser_Label) & ",");
          Indent_Line ("   Terminate_Same_State => True);");
-         Indent_Line ("Parse_Data.Descriptor := Semantic_State.Trace.Descriptor;");
-         Indent_Line ("Parse_Data.Lexer      := Parser.Lexer;");
 
       when Module =>
          Indent_Line ("   Lexer.New_Lexer (Env, Lexer_Elisp_Symbols),");

@@ -16,6 +16,10 @@ Character'(''');
 -- attribute reference
 objectπ'attribute;
 
+-- two lines, to test First
+object
+  'attribute;
+
 "a string with Greek letters αΣΘΠπ";
 
 -- This is one string with two embedded quotes, not three strings with no whitespace

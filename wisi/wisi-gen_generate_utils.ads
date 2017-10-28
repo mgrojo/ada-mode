@@ -35,15 +35,16 @@ package Wisi.Gen_Generate_Utils is
      (Count (Tokens.Non_Grammar) + Count (Tokens.Tokens)) + Token_ID (Tokens.Keywords.Length) + Token_ID'First;
 
    LR1_Descriptor : WisiToken.Descriptor
-     (First_Terminal    => (if Count (Tokens.Non_Grammar) > 0
-                            then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
-                            else Token_ID'First),
+     (First_Terminal    =>
+        (if Count (Tokens.Non_Grammar) > 0
+         then Token_ID (Count (Tokens.Non_Grammar)) + Token_ID'First
+         else Token_ID'First),
       Last_Terminal     => EOF_ID,
       EOF_ID            => EOF_ID,
       Accept_ID         => EOF_ID + 1,
       First_Nonterminal => EOF_ID + 1,
       Last_Nonterminal  => EOF_ID + 1 + Token_ID (Tokens.Rules.Length));
-   --  Image, Image_Width set by Set_Token_Images
+   --  other components set by Set_Token_Images in the body
 
    LALR_Descriptor : WisiToken.LALR_Descriptor
      (First_Terminal    => LR1_Descriptor.First_Terminal,
@@ -53,7 +54,6 @@ package Wisi.Gen_Generate_Utils is
       EOF_ID            => LR1_Descriptor.EOF_ID,
       Accept_ID         => EOF_ID + 1,
       Propagate_ID      => EOF_ID + 1);
-   --  Image, Image_Width set by Set_Token_Images
 
    subtype Nonterminal_ID is Token_ID range LR1_Descriptor.Last_Terminal + 1 .. LR1_Descriptor.Last_Nonterminal;
 

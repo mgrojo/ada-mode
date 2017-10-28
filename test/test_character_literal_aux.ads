@@ -27,6 +27,7 @@ package Test_Character_Literal_Aux is
    Lexer : access WisiToken.Lexer.Instance'Class;
 
    procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Augmented_Token_Array);
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Augmented_Token_Array);
    procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array);
    procedure Test_Statement_List_0 (Nonterm : in WisiToken.Augmented_Token'Class);
 

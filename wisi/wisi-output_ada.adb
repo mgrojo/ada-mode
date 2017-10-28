@@ -147,7 +147,7 @@ is
 
                      Unref_Nonterm : Boolean := True;
                      Unref_Index   : Boolean := True;
-                     Unref_Source  : Boolean := True;
+                     Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Action loop
                         if 0 < Index (Line, "Nonterm") then
@@ -156,8 +156,8 @@ is
                         if 0 < Index (Line, "Index") then
                            Unref_Index := False;
                         end if;
-                        if 0 < Index (Line, "Source") then
-                           Unref_Source := False;
+                        if 0 < Index (Line, "Tokens") then
+                           Unref_Tokens := False;
                         end if;
                      end loop;
 
@@ -167,7 +167,7 @@ is
                      Indent_Line ("procedure " & Name);
                      Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
                      Indent_Line ("  Index   : in Natural;");
-                     Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
+                     Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
                      Indent_Line ("is");
 
                      if Profile or Unref_Nonterm then
@@ -176,8 +176,8 @@ is
                      if Profile or Unref_Index then
                         Indent_Line ("   pragma Unreferenced (Index);");
                      end if;
-                     if Profile or Unref_Source then
-                        Indent_Line ("   pragma Unreferenced (Source);");
+                     if Profile or Unref_Tokens then
+                        Indent_Line ("   pragma Unreferenced (Tokens);");
                      end if;
 
                      Indent_Line ("begin");
@@ -206,9 +206,7 @@ is
          end;
       end loop;
 
-      Create_Create_Parser
-        (Data.Parser_Algorithm, None, Params.First_State_Index, Params.First_Parser_Label,
-         New_Line_ID => Generate_Utils.Find_Kind ("new-line"));
+      Create_Create_Parser (Data.Parser_Algorithm, None, Params.First_State_Index, Params.First_Parser_Label);
 
       Put_Line ("end " & Package_Name & ";");
       Close (Body_File);

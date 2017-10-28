@@ -61,15 +61,14 @@ is
       Append_ID => False,
       Trim      => 0);
 
-   Language_Runtime_Package : constant String := "WisiToken." & Language_Name & "_Wisi_Runtime";
+   Language_Runtime_Package : constant String := Language_Name & "_Wisi_Runtime";
 
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
    use Common;
 
    procedure Create_Ada_Action
-     (Name        : in String;
-      Action      : in String_Lists.List;
-      Source_Line : in Standard.Ada.Text_IO.Positive_Count)
+     (Name : in String;
+      RHS  : in RHS_Type)
    is
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings.Unbounded;
@@ -127,9 +126,9 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Nonterm, Source, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       end Statement_Params;
 
@@ -139,7 +138,7 @@ is
          First  : constant Integer := Params'First;
          Second : constant Integer := Index (Params, " ", First);
       begin
-         return " (Parse_Data, Nonterm, Source, " &
+         return " (Parse_Data, Nonterm, Tokens, " &
            Params (First .. Second - 1) & ',' & Params (Second .. Params'Last);
       end Containing_Params;
 
@@ -156,7 +155,7 @@ is
          Last   : Integer          := Params'First; -- skip [
          First  : Integer;
          Vector : Boolean;
-         Result : Unbounded_String := +" (Parse_Data, Nonterm, Source, (";
+         Result : Unbounded_String := +" (Parse_Data, Nonterm, Tokens, (";
 
          Index_First  : Integer;
          Index_Last   : Integer;
@@ -189,7 +188,7 @@ is
                      Need_Comma_2 := True;
                   exception
                   when E : Not_Found =>
-                     Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+                     Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
                   end;
                end loop;
 
@@ -230,7 +229,7 @@ is
             Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-apply argument");
+               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
                exit;
             end if;
 
@@ -239,7 +238,7 @@ is
             Result := Result & ',' & Integer'Image (Find_Face_ID (Params (First .. Last - 1)));
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-apply argument");
+               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
                exit;
             end if;
 
@@ -250,13 +249,14 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Nonterm, Source, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
-         Put_Error (Input_File_Name, Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+         Put_Error
+           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
          return "";
       end Face_Apply_Params;
 
@@ -284,7 +284,7 @@ is
             Result := Result & (if Need_Comma then ", (" else "(") & Params (First .. Last - 1);
 
             if Params (Last) = ']' then
-               Put_Error (Input_File_Name, Source_Line, "invalid wisi-face-mark argument");
+               Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-mark argument");
                exit;
             end if;
 
@@ -295,45 +295,109 @@ is
             Need_Comma := True;
          end loop;
          if Count = 1 then
-            return " (Parse_Data, Nonterm, Source, (1 => " & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (1 => " & (-Result) & "))";
          else
-            return " (Parse_Data, Nonterm, Source, (" & (-Result) & "))";
+            return " (Parse_Data, Nonterm, Tokens, (" & (-Result) & "))";
          end if;
       exception
       when E : others =>
-         Put_Error (Input_File_Name, Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+         Put_Error
+           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
          return "";
       end Face_Mark_Params;
 
+      function Face_Remove_Params (Params : in String) return String
+      is
+         --  Params is a vector of token numbers: [1 3 ...]
+         --  Result: (1, 3, ...)
+         use Standard.Ada.Strings.Maps;
+         Delim : constant Character_Set := To_Set (" ]");
+
+         Last       : Integer          := Params'First; -- skip [
+         First      : Integer;
+         Result     : Unbounded_String;
+         Need_Comma : Boolean          := False;
+         Count      : Integer          := 0;
+      begin
+         loop
+            Last := Index_Non_Blank (Params, Last + 1);
+
+            exit when Params (Last) = ']' or Params (Last) = ')';
+
+            Count  := Count + 1;
+            First  := Last;
+            Last   := Index (Params, Delim, First);
+            Result := Result & (if Need_Comma then ", " else "") & Params (First .. Last - 1);
+
+            Need_Comma := True;
+         end loop;
+         if Count = 1 then
+            return " (Parse_Data, Nonterm, Tokens, (1 => " & (-Result) & "))";
+         else
+            return " (Parse_Data, Nonterm, Tokens, (" & (-Result) & "))";
+         end if;
+      exception
+      when E : others =>
+         Put_Error
+           (Input_File_Name, RHS.Source_Line, "invalid syntax: " & Standard.Ada.Exceptions.Exception_Message (E));
+         return "";
+      end Face_Remove_Params;
+
       function Indent_Params (Params : in String) return String
       is
-         --  Params is a vector, one item for each token in Source. Each item is one of:
+         --  Params is a vector, one item for each token in Tokens. Each item is one of:
          --
          --  - an integer; copy to output
          --
          --  - a symbol; lookup in elisp_names.indents
          --
          --  - a lisp function call with 2 args (wisi-anchored% 3 ada-indent-broken)
-         --    first arg is token id, second is indent (integer or symbol)
+         --    first arg is tokens index, second is indent (integer or symbol)
          --
          --  - a vector with two elements [code_indent comment_indent].
+         --
+         --  Translation is an array of Wisi.Wisi_Runtime.Delta_Type.
 
          use Standard.Ada.Strings.Maps;
+         use Standard.Ada.Containers;
+
          Delim : constant Character_Set := To_Set (" ])");
 
          subtype Digit is Character range '0' .. '9';
 
-         Last       : Integer          := Params'First; -- skip [
-         First      : Integer;
-         Result     : Unbounded_String := +" (Parse_Data, Nonterm, Source, (";
-         Need_Comma : Boolean          := False;
+         Last        : Integer          := Params'First; -- skip [
+         First       : Integer;
+         Result      : Unbounded_String := +" (Parse_Data, Nonterm, Tokens, (";
+         Need_Comma  : Boolean          := False;
+         Param_Count : Count_Type       := 0;
 
          function Int_Or_Symbol (First : in Integer) return String
-         is begin
+         is
+            --  Return an integer expression
+            --
+            --  Handles this syntax:
+            --  1 => 1
+            --  ada-indent => Ada_Indent
+            --  (- ada-indent) => -Ada_Indent
+            --  (- ada-indent-when ada-indent) => Ada_Indent_When - Ada_Indent
+            First_Last  : Integer;
+            Second      : Integer;
+         begin
             Last := Index (Params, Delim, First);
             if Params (First) in Digit then
                return Params (First .. Last - 1);
 
+            elsif Params (First .. First + 1) = "(-" then
+               First_Last := Index (Params, Delim, First + 3);
+               if Params (First_Last) = ')' then
+                  Last := First_Last;
+                  return '-' & Elisp_Name_To_Ada (Params (First + 3 .. First_Last - 1), False, 0);
+               else
+                  Second := Index_Non_Blank (Params, First_Last + 1);
+                  Last   := Index (Params, Delim, Second);
+                  return Elisp_Name_To_Ada (Params (First + 3 .. First_Last - 1), False, 0) & " - " &
+                    Elisp_Name_To_Ada (Params (Second .. Last - 1), False, 0);
+               end if;
             else
                --  Assume it is a language-specific indent option, like "ada-indent",
                --  declared in Language_Runtime_Package, which is use-visible.
@@ -341,20 +405,28 @@ is
             end if;
          exception
          when E : Not_Found =>
-            Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
             return "";
          end Int_Or_Symbol;
+
+         function Delta_Int_Or_Symbol (First : in Integer) return String
+         is begin
+            --  Return an aggregate for Delta_Type
+            return "(Int, " & -- Label
+              Int_Or_Symbol (First) &
+              ", False)"; -- Accumulate
+         end Delta_Int_Or_Symbol;
 
          function Indent_Function (Elisp_Name : in String) return String
          is begin
             if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
-            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_0";
-            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_1";
-            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_2";
-            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_3";
+            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
+            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_2";
+            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_3";
+            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_4";
             elsif Elisp_Name = "wisi-hanging"    then return "Hanging";
             else
-               Put_Error (Input_File_Name, Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
+               Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
                return "";
             end if;
          end Indent_Function;
@@ -375,44 +447,56 @@ is
 
             case Params (Last) is
             when '(' =>
-               --  lisp function call
-               First := Last + 1;
-               Last  := Index (Params, Delim, First);
-               if Params (Last) /= ' ' then
-                  Put_Error (Input_File_Name, Source_Line, "invalid indent function call");
+               if Params (Last + 1) = '-' then
+                  --  integer expression
+                  Result := Result & "(False, " & Delta_Int_Or_Symbol (Last) & ')';
+               else
+                  --  lisp function call
+                  First := Last + 1;
+                  Last  := Index (Params, Delim, First);
+                  if Params (Last) /= ' ' then
+                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
+                  end if;
+
+                  Result := Result & "(False, " & Indent_Function (Params (First .. Last - 1)) & " (Parse_Data, ";
+
+                  First := Last + 1;
+                  Last  := Index (Params, Delim, First);
+                  if Params (Last) /= ' ' then
+                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
+                  end if;
+
+                  Result := Result & Params (First .. Last - 1);
+
+                  Result := Result & ", " & Int_Or_Symbol (Last + 1) & "))";
+
+                  if Params (Last) /= ')' then
+                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent syntax");
+                  end if;
                end if;
-
-               Result := Result & "(False, " & Indent_Function (Params (First .. Last - 1)) & " (Parse_Data, ";
-
-               First := Last + 1;
-               Last  := Index (Params, Delim, First);
-               if Params (Last) /= ' ' then
-                  Put_Error (Input_File_Name, Source_Line, "invalid indent function call");
-               end if;
-
-               Result := Result & Params (First .. Last - 1);
-
-               Result := Result & ", " & Int_Or_Symbol (Last + 1) & "))";
-
-               if Params (Last) /= ')' then
-                  Put_Error (Input_File_Name, Source_Line, "invalid indent syntax");
-               end if;
-
             when '[' =>
                --  vector
-               Result := Result & "(True, " & Int_Or_Symbol (Last + 1);
-               Result := Result & ", " & Int_Or_Symbol (Last + 1) & ')';
+               Result := Result & "(True, " & Delta_Int_Or_Symbol (Last + 1);
+               Result := Result & ", " & Delta_Int_Or_Symbol (Last + 1) & ')';
                if Params (Last) /= ']' then
-                  Put_Error (Input_File_Name, Source_Line, "invalid indent syntax");
+                  Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent syntax");
                end if;
                Last := Last + 1;
 
             when others =>
                --  integer or symbol
-               Result := Result & "(False, " & Int_Or_Symbol (Last) & ')';
+               Result := Result & "(False, " & Delta_Int_Or_Symbol (Last) & ')';
 
             end case;
+            Param_Count := Param_Count + 1;
          end loop;
+
+         if Param_Count /= RHS.Production.Length then
+            Put_Error
+              (Input_File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image (Param_Count) &
+                 " /= production token count of" & Count_Type'Image (RHS.Production.Length));
+         end if;
+
          return -(Result & "))");
       end Indent_Params;
 
@@ -441,7 +525,15 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, Source_Line, "multiple face actions");
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+            end if;
+
+         elsif Elisp_Name = "wisi-face-apply-list-action" then
+            if Length (Face_Line) = 0 then
+               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Face_Apply_Params (Line (Last + 1 .. Line'Last)) & ";";
+            else
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-face-mark-action" then
@@ -449,7 +541,15 @@ is
                Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Face_Mark_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, Source_Line, "multiple face actions");
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
+            end if;
+
+         elsif Elisp_Name = "wisi-face-remove-action" then
+            if Length (Face_Line) = 0 then
+               Face_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Face_Remove_Params (Line (Last + 1 .. Line'Last)) & ";";
+            else
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple face actions");
             end if;
 
          elsif Elisp_Name = "wisi-indent-action" then
@@ -457,10 +557,10 @@ is
                Indent_Action_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
                  Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
-               Put_Error (Input_File_Name, Source_Line, "multiple indent actions");
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
          else
-            Put_Error (Input_File_Name, Source_Line, "unrecognized elisp action: " & Elisp_Name);
+            Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: " & Elisp_Name);
          end if;
       end Translate_Line;
 
@@ -468,19 +568,19 @@ is
       Indent_Line ("procedure " & Name);
       Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
       Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Source  : in WisiToken.Augmented_Token_Array)");
+      Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
       Indent_Line ("is");
       Indent_Line ("   pragma Unreferenced (Index);");
       Indent_Line ("begin");
       Indent := Indent + 3;
 
-      for Line of Action loop
+      for Line of RHS.Action loop
          begin
             if Translate_Paren_State = 0 and Length (Temp) = 0 then
                if Line = "(progn" then
                   Translate_Paren_State := 1;
                   Paren_State := 1;
-               elsif String_Lists.Length (Action) = 1 then
+               elsif String_Lists.Length (RHS.Action) = 1 then
                   Temp := +Line;
                   Count_Parens;
                   if Paren_State = 0 then
@@ -511,7 +611,7 @@ is
             end if;
          exception
          when E : Not_Found =>
-            Put_Error (Input_File_Name, Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
+            Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
             Temp := +"";
          end;
       end loop;
@@ -670,7 +770,7 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
                   begin
                      Temp_Ada (Prod_Index) := new String'(Name & "'Access");
-                     Create_Ada_Action (Name, RHS.Action, RHS.Source_Line);
+                     Create_Ada_Action (Name, RHS);
                   end;
                end if;
                Prod_Index := Prod_Index + 1;
@@ -683,8 +783,7 @@ is
       end loop;
 
       Create_Create_Parser
-        (Data.Parser_Algorithm, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label,
-         New_Line_ID => Generate_Utils.Find_Kind ("new-line"));
+        (Data.Parser_Algorithm, Data.Interface_Kind, Params.First_State_Index, Params.First_Parser_Label);
 
       case Data.Interface_Kind is
       when Process =>

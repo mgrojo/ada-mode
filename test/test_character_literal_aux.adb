@@ -16,6 +16,7 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
 with AUnit.Checks.Text_IO;
+with Ada.Containers;
 with Character_Literal;
 with WisiToken.AUnit;
 with WisiToken.Token_Line_Comment;
@@ -111,6 +112,67 @@ package body Test_Character_Literal_Aux is
          end case;
       end if;
    end Test_Statement_0;
+
+   Statement_1_Count : Integer := 0;
+
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   is
+      use AUnit.Checks;
+      use Ada.Containers;
+      use Character_Literal;
+      use WisiToken.AUnit;
+      use WisiToken;
+   begin
+      Statement_1_Count := Statement_1_Count + 1;
+      case Statement_1_Count is
+      when 1 =>
+         --  objectπ'attribute;
+         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+            declare
+               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+            begin
+               case I is
+               when 1 =>
+                  Check ("statement_1 1 1.First", Token.First, True);
+               when 2 =>
+                  Check ("statement_1 1 2.First", Token.First, False);
+               when 3 =>
+                  Check ("statement_1 1 3.First", Token.First, False);
+               when 4 =>
+                  Check ("statement_1 1 4.First", Token.First, False);
+               when others =>
+                  raise Programmer_Error;
+               end case;
+            end;
+         end loop;
+      when 2 =>
+         --  object
+         --    'attribute;
+         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+            declare
+               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+            begin
+               case I is
+               when 1 =>
+                  Check ("statement_1 2 1.First", Token.First, True);
+               when 2 =>
+                  Check ("statement_1 2 2.ID", Token.ID, +tick_ID);
+                  Check ("statement_1 2 2.First", Token.First, True);
+               when 3 =>
+                  Check ("statement_1 2 3.First", Token.First, False);
+               when 4 =>
+                  Check ("statement_1 2 4.First", Token.First, False);
+               when others =>
+                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+               end case;
+            end;
+         end loop;
+
+      when others =>
+         --  Not in Nominal
+         null;
+      end case;
+   end Test_Statement_1;
 
    procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
    is

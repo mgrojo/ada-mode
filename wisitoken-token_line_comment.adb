@@ -28,12 +28,17 @@ package body WisiToken.Token_Line_Comment is
       use all type SAL.Base_Peek_Type;
       Temp : constant Token :=
         (ID,
-         Virtual     => False,
-         Line        => Lexer.Line,
-         Col         => Lexer.Column,
-         Char_Region => Lexer.Char_Region,
-         Byte_Region => Lexer.Byte_Region,
-         Non_Grammar => WisiToken.Augmented_Token_Arrays.Empty_Vector);
+         Virtual                     => False,
+         Line                        => Lexer.Line,
+         Col                         => Lexer.Column,
+         Char_Region                 => Lexer.Char_Region,
+         Byte_Region                 => Lexer.Byte_Region,
+         First                       => Lexer.First,
+         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
+         First_Indent_Line           => Invalid_Line_Number,
+         Last_Indent_Line            => Invalid_Line_Number,
+         First_Trailing_Comment_Line => Invalid_Line_Number,
+         Last_Trailing_Comment_Line  => Invalid_Line_Number);
 
    begin
       if ID < State.Trace.Descriptor.First_Terminal then
@@ -65,12 +70,17 @@ package body WisiToken.Token_Line_Comment is
    is
       Temp : constant Token :=
         (ID,
-         Virtual     => True,
-         Line        => 0,
-         Col         => 0,
-         Char_Region => Null_Buffer_Region,
-         Byte_Region => Null_Buffer_Region,
-         Non_Grammar => WisiToken.Augmented_Token_Arrays.Empty_Vector);
+         Virtual                     => True,
+         Line                        => Invalid_Line_Number,
+         Col                         => 0,
+         Char_Region                 => Null_Buffer_Region,
+         Byte_Region                 => Null_Buffer_Region,
+         First                       => False,
+         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
+         First_Indent_Line           => Invalid_Line_Number,
+         Last_Indent_Line            => Invalid_Line_Number,
+         First_Trailing_Comment_Line => Invalid_Line_Number,
+         Last_Trailing_Comment_Line  => Invalid_Line_Number);
    begin
       State.Lookahead_Queue.Add_To_Head (Temp);
 
@@ -92,17 +102,23 @@ package body WisiToken.Token_Line_Comment is
       use all type Augmented_Token_Arrays.Cursor;
 
       Aug_Nonterm : Token :=
-        (WisiToken.Token_Region.Token with WisiToken.Augmented_Token_Arrays.Empty_Vector);
+        (WisiToken.Token_Region.Token with
+         First                       => False,
+         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
+         First_Indent_Line           => Invalid_Line_Number,
+         Last_Indent_Line            => Invalid_Line_Number,
+         First_Trailing_Comment_Line => Invalid_Line_Number,
+         Last_Trailing_Comment_Line  => Invalid_Line_Number);
 
       Stack_I    : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
       Aug_Tokens : Augmented_Token_Arrays.Vector;
+      First_Set  : Boolean                       := False;
    begin
       Aug_Nonterm.ID      := Nonterm;
       Aug_Nonterm.Virtual := False;
 
       for I in IDs.First_Index .. IDs.Last_Index loop
          declare
-            use all type Ada.Text_IO.Count;
             ID    : Token_ID renames IDs.Element (I);
             Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (State.Stack (Stack_I).Element.all);
          begin
@@ -110,11 +126,19 @@ package body WisiToken.Token_Line_Comment is
                raise Programmer_Error;
             end if;
 
+            if (not First_Set) and Token.First then
+               Aug_Nonterm.First             := True;
+               Aug_Nonterm.First_Indent_Line := Token.Line;
+               Aug_Nonterm.Last_Indent_Line  := Token.Line;
+
+               First_Set := True;
+            end if;
+
             if Action /= null then
                Aug_Tokens.Append (Token);
             end if;
 
-            if Aug_Nonterm.Line = 0 and Token.Line > 0 then
+            if Aug_Nonterm.Line = Invalid_Line_Number and Token.Line /= Invalid_Line_Number then
                Aug_Nonterm.Line := Token.Line;
                Aug_Nonterm.Col  := Token.Col;
             end if;
@@ -134,22 +158,55 @@ package body WisiToken.Token_Line_Comment is
             if Aug_Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
                Aug_Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
             end if;
-
-            if I = IDs.Last_Index then
-               if Token.Non_Grammar.Length > 0 then
-                  declare
-                     Last_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-                       (Token.Non_Grammar (Token.Non_Grammar.Last_Index).Element.all);
-                  begin
-                     Aug_Nonterm.Char_Region.Last := Last_Token.Char_Region.Last;
-                     Aug_Nonterm.Byte_Region.Last := Last_Token.Byte_Region.Last;
-                  end;
-               end if;
-            end if;
          end;
 
          Next (Stack_I);
       end loop;
+
+      --  Find the trailing non-empty token.
+      declare
+         Cursor : Augmented_Token_Arrays.Cursor := Aug_Tokens.Last;
+         use Augmented_Token_Arrays;
+         Done : Boolean := False;
+      begin
+         loop
+            exit when Cursor = No_Element or Done;
+            declare
+               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Constant_Reference (Aug_Tokens, Cursor).Element.all);
+               First_Comment_Set : Boolean := False;
+            begin
+               if Token.Char_Region /= Null_Buffer_Region then
+                  Done := True;
+
+                  if Token.Non_Grammar.Length > 0 then
+                     for Tok of Token.Non_Grammar loop
+                        declare
+                           Aug_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tok);
+                        begin
+                           if Aug_Tok.ID = State.Trace.Descriptor.Comment_ID then
+                              if not First_Comment_Set then
+                                 Aug_Nonterm.First_Trailing_Comment_Line := Aug_Tok.Line;
+                                 First_Comment_Set := True;
+                              end if;
+                              Aug_Nonterm.Last_Trailing_Comment_Line := Aug_Tok.Line;
+                           end if;
+                        end;
+                     end loop;
+
+                     declare
+                        Last_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                          (Token.Non_Grammar (Token.Non_Grammar.Last_Index).Element.all);
+                     begin
+                        Aug_Nonterm.Char_Region.Last := Last_Token.Char_Region.Last;
+                        Aug_Nonterm.Byte_Region.Last := Last_Token.Byte_Region.Last;
+                     end;
+                  end if;
+               end if;
+            end;
+            Cursor := Previous (Cursor);
+         end loop;
+      end;
 
       if Trace_Parse > 0 then
          --  We use the stack for the trace, not Aug_Tokens, because

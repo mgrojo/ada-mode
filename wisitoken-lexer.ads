@@ -78,17 +78,21 @@ package WisiToken.Lexer is
    function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String is abstract;
    --  Return text from internal buffer, given region in byte position.
 
-   function Line (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
+   function Line (Lexer : in Instance) return Line_Number_Type is abstract;
    --  Returns the line number in which the most recent token started.
    --
    --  If the underlying text feeder does not support the notion of
-   --  'line', or if Lexer.Enable_Line_Numbers is False, returns 0.
+   --  'line', or if Lexer.Enable_Line_Numbers is False, returns
+   --  Invalid_Line_Number.
 
    function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
    --  Return the column number of the start of the most recent token..
    --
    --  If the underlying text feeder does not support the notion of
    --  'line', returns buffer position in internal buffer.
+
+   function First (Lexer : in Instance) return Boolean is abstract;
+   --  True if most recent token is first on a line.
 
    function Find_Next (Lexer : in out Instance) return Token_ID is abstract;
    --  Return the next token.

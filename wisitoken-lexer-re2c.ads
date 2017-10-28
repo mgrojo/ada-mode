@@ -71,8 +71,7 @@ package WisiToken.Lexer.re2c is
    overriding procedure Finalize (Object : in out Instance);
 
    function New_Lexer
-     (Trace       : not null access WisiToken.Trace'Class;
-      New_Line_ID : in              Token_ID)
+     (Trace : not null access WisiToken.Trace'Class)
      return WisiToken.Lexer.Handle;
    --  If the tokens do not include a reporting New_Line token, set
    --  New_Line_ID to Invalid_Token_ID.
@@ -91,10 +90,10 @@ package WisiToken.Lexer.re2c is
 
    overriding procedure Reset (Lexer : in out Instance);
 
-   overriding function Find_Next (Lexer : in out Instance) return Token_ID;
+   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
 
    overriding
-   function Line (Lexer : in Instance) return Ada.Text_IO.Count;
+   function Line (Lexer : in Instance) return Line_Number_Type;
 
    overriding
    function Column (Lexer : in Instance) return Ada.Text_IO.Count;
@@ -102,13 +101,14 @@ package WisiToken.Lexer.re2c is
    overriding function Char_Region (Lexer : in Instance) return Buffer_Region;
    overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
 
-   overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String;
+   overriding function First (Lexer : in Instance) return Boolean;
+
+   overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
 private
 
    type Instance is new WisiToken.Lexer.Instance with
    record
-      New_Line_ID   : Token_ID;
       Lexer         : System.Address := System.Null_Address;
       Source        : WisiToken.Lexer.Source;
       ID            : Token_ID; --  Last token read by find_next
@@ -119,8 +119,9 @@ private
       --  Position and length in bytes and characters of last token from
       --  start of Managed.Buffer, 1 indexed.
 
-      Line            : Ada.Text_IO.Count; -- 1 indexed, after last New_Line token
-      Char_Line_Start : Natural;           -- Character position after last New_Line token
+      Line            : Line_Number_Type; -- after last New_Line token
+      Char_Line_Start : Natural;          -- Character position after last New_Line token
+      Prev_ID         : Token_ID;         -- previous token_id
    end record;
 
 end WisiToken.Lexer.re2c;

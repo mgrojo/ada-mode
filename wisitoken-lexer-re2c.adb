@@ -44,15 +44,10 @@ package body WisiToken.Lexer.re2c is
       Finalize (Object.Source);
    end Finalize;
 
-   function New_Lexer
-     (Trace       : not null access WisiToken.Trace'Class;
-      New_Line_ID : in              Token_ID)
-     return Handle
+   function New_Lexer (Trace : not null access WisiToken.Trace'Class) return Handle
    is
-      use System;
       New_Lexer : constant access Instance := new Instance (Trace);
    begin
-      New_Lexer.New_Line_ID := New_Line_ID;
       return Handle (New_Lexer);
    end New_Lexer;
 
@@ -124,63 +119,72 @@ package body WisiToken.Lexer.re2c is
       Reset_Lexer (Lexer.Lexer);
       Lexer.Line            := 1;
       Lexer.Char_Line_Start := 1;
+      Lexer.ID :=
+        --  First token is assumed to be first on a line.
+        (if Lexer.Trace.Descriptor.New_Line_ID = Invalid_Token_ID
+         then Invalid_Token_ID
+         else Lexer.Trace.Descriptor.New_Line_ID);
    end Reset;
 
    overriding function Find_Next (Lexer : in out Instance) return Token_ID
    is
       use all type Ada.Text_IO.Count;
       use Interfaces.C;
-      Status : constant int := Next_Token
-        (Lexer.Lexer, Lexer.ID,
-         Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
-         Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
-         Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
-         Char_Length   => Interfaces.C.size_t (Lexer.Char_Length));
    begin
-      case Status is
-      when 0 =>
-         if Lexer.New_Line_ID /= Invalid_Token_ID and then
-           Lexer.ID = Lexer.New_Line_ID
-         then
-            Lexer.Line            := Lexer.Line + 1;
-            Lexer.Char_Line_Start := Lexer.Char_Position + 1;
-         end if;
-         return Lexer.ID;
+      Lexer.Prev_ID := Lexer.ID;
+      declare
+         Status : constant int := Next_Token
+           (Lexer.Lexer, Lexer.ID,
+            Byte_Position => Interfaces.C.size_t (Lexer.Byte_Position),
+            Byte_Length   => Interfaces.C.size_t (Lexer.Byte_Length),
+            Char_Position => Interfaces.C.size_t (Lexer.Char_Position),
+            Char_Length   => Interfaces.C.size_t (Lexer.Char_Length));
+      begin
+         case Status is
+         when 0 =>
+            if Lexer.Trace.Descriptor.New_Line_ID /= Invalid_Token_ID and then
+              Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID
+            then
+               Lexer.Line            := Lexer.Line + 1;
+               Lexer.Char_Line_Start := Lexer.Char_Position + 1;
+            end if;
+            return Lexer.ID;
 
-      when 1 =>
-         declare
-            use GNATCOLL.Mmap;
-            Buffer        : constant Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
-            Context_First : constant Integer    := Integer'Max (1, Lexer.Byte_Position - 3);
-            Context_Last  : constant Integer    := Integer'Min (Lexer.Source.Buffer_Last, Lexer.Byte_Position + 3);
+         when 1 =>
+            declare
+               use GNATCOLL.Mmap;
+               Buffer        : constant Str_Access := WisiToken.Lexer.Buffer (Lexer.Source);
+               Context_First : constant Integer    := Integer'Max (1, Lexer.Byte_Position - 3);
+               Context_Last  : constant Integer    := Integer'Min (Lexer.Source.Buffer_Last, Lexer.Byte_Position + 3);
 
-            Context : constant String (Context_First .. Context_Last) := String
-              (Buffer (Context_First .. Context_Last));
-         begin
-            raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position + 1) &
-              "' at character position" & Natural'Image (Lexer.Char_Position + 1) &
-              " in context '" & Context & "'";
-         end;
+               Context : constant String (Context_First .. Context_Last) := String
+                 (Buffer (Context_First .. Context_Last));
+            begin
+               raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position + 1) &
+                 "' at character position" & Natural'Image (Lexer.Char_Position + 1) &
+                 " in context '" & Context & "'";
+            end;
 
-      when others =>
-         raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
-      end case;
+         when others =>
+            raise Syntax_Error with " lexer returned unrecognized status code" & int'Image (Status);
+         end case;
+      end;
    exception
    when Syntax_Error  =>
       raise;
 
    when E : others =>
       raise Syntax_Error with
-         Error_Message
-           ("", Lexer.Line, Lexer.Column,
-            "lexer find_next error: " & Ada.Exceptions.Exception_Name (E) &
-              " : " & Ada.Exceptions.Exception_Message (E));
+        Error_Message
+          ("", Lexer.Line, Lexer.Column,
+           "lexer find_next error: " & Ada.Exceptions.Exception_Name (E) &
+             " : " & Ada.Exceptions.Exception_Message (E));
    end Find_Next;
 
-   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
+   overriding function Line (Lexer : in Instance) return Line_Number_Type
    is begin
-      if Lexer.New_Line_ID = Invalid_Token_ID then
-         return 0;
+      if Lexer.Trace.Descriptor.New_Line_ID = Invalid_Token_ID then
+         return Invalid_Line_Number;
       else
          return Lexer.Line;
       end if;
@@ -188,7 +192,7 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
-      if Lexer.ID = Lexer.New_Line_ID or
+      if Lexer.ID = Lexer.Trace.Descriptor.New_Line_ID or
         Lexer.ID = Lexer.Trace.Descriptor.EOF_ID
       then
          return 0;
@@ -206,6 +210,12 @@ package body WisiToken.Lexer.re2c is
    is begin
       return (Buffer_Pos (Lexer.Byte_Position), Buffer_Pos (Lexer.Byte_Position + Lexer.Byte_Length - 1));
    end Byte_Region;
+
+   overriding function First (Lexer : in Instance) return Boolean
+   is begin
+      return Lexer.Trace.Descriptor.New_Line_ID /= Invalid_Token_ID and then
+           Lexer.Prev_ID = Lexer.Trace.Descriptor.New_Line_ID;
+   end First;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Bounds : in Buffer_Region) return String
    is begin

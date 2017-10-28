@@ -25,13 +25,23 @@ with WisiToken.Token_Region;
 package WisiToken.Token_Line_Comment is
 
    type Token is new WisiToken.Token_Region.Token with record
+      First : Boolean;
+      --  True if token is a terminal, and is first on a line.
+
       Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens between this token and the next grammar one or
       --  EOF.
       --
       --  Only set when State.Parse_Action is Indent, and only for terminal
-      --  tokens; for nonterminals, Region includes trailing Non_Grammar
-      --  tokens.
+      --  tokens; for nonterminals, trailing Non_Grammar tokens are stored
+      --  in last token, and Region includes them.
+
+      --  The following are only set for non-terminals.
+      --  First_, Last_Indent_Line include comments
+      First_Indent_Line           : Line_Number_Type;
+      Last_Indent_Line            : Line_Number_Type;
+      First_Trailing_Comment_Line : Line_Number_Type;
+      Last_Trailing_Comment_Line  : Line_Number_Type;
    end record;
 
    type State_Type is new WisiToken.Token_Region.State_Type with record

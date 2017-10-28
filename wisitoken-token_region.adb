@@ -34,9 +34,9 @@ package body WisiToken.Token_Region is
          --  No parens for consistency with previous unit test results.
          return Name;
 
-      elsif Item.Line > 0 then
+      elsif Item.Line /= Invalid_Line_Number then
          return "(" & Name &
-           Ada.Text_IO.Count'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
+           Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
          return "(" & Name & ")";
@@ -152,7 +152,7 @@ package body WisiToken.Token_Region is
          if Errors (I).Length > 0 then
             Put_Line ("parser" & Integer'Image (I) & " errors:");
             for Item of Errors (I) loop
-               if Item.Error_Token.Line = 0 then
+               if Item.Error_Token.Line = Invalid_Line_Number then
                   Put_Line
                     (Source_File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
                        ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
@@ -288,7 +288,7 @@ package body WisiToken.Token_Region is
       Temp : constant Token :=
         (ID,
          Virtual     => True,
-         Line        => 0,
+         Line        => Invalid_Line_Number,
          Col         => 0,
          Char_Region => Null_Buffer_Region,
          Byte_Region => Null_Buffer_Region);
@@ -353,7 +353,7 @@ package body WisiToken.Token_Region is
                Aug_Tokens.Append (Token);
             end if;
 
-            if Aug_Nonterm.Line = 0 and Token.Line > 0 then
+            if Aug_Nonterm.Line = Invalid_Line_Number and Token.Line /= Invalid_Line_Number then
                Aug_Nonterm.Line := Token.Line;
                Aug_Nonterm.Col  := Token.Col;
             end if;
