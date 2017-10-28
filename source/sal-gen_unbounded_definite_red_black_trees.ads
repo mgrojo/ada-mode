@@ -102,7 +102,7 @@ package SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    function Find (Iterator : in Pkg.Iterator; Direction : in Direction_Type; Key : in Key_Type) return Cursor;
    --  Has_Element is False if Key is not in Container.
 
-   function Find_In_Region
+   function Find_In_Range
      (Iterator    : in Pkg.Iterator;
       Direction   : in Known_Direction_Type;
       First, Last : in Key_Type)

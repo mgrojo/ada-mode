@@ -280,6 +280,8 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
    overriding procedure Finalize (Object : in out Tree)
    is begin
       if Object.Root /= null then
+         Object.Nil.Left  := null;
+         Object.Nil.Right := null;
          Free_Tree (Object.Root);
       end if;
    end Finalize;
@@ -601,7 +603,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end if;
    end Find;
 
-   function Find_In_Region
+   function Find_In_Range
      (Iterator    : in Pkg.Iterator;
       Direction   : in Known_Direction_Type;
       First, Last : in Key_Type)
@@ -686,7 +688,7 @@ package body SAL.Gen_Unbounded_Definite_Red_Black_Trees is
       end loop;
 
       return No_Element;
-   end Find_In_Region;
+   end Find_In_Range;
 
    function Count (Tree : in Pkg.Tree) return Ada.Containers.Count_Type
    is begin

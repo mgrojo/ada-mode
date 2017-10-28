@@ -313,13 +313,13 @@ package body Test_Red_Black_Trees is
       I := Previous (Tree.Iterate, I);
       Check ("prev cursor", I, 9, Red);
 
-      Check ("in_region 1", Find_In_Region (Tree.Iterate, Ascending, 10, 15), 10, Black);
-      Check ("in_region 2", Find_In_Region (Tree.Iterate, Ascending, 11, 15), 12, Black);
+      Check ("in_range 1", Find_In_Range (Tree.Iterate, Ascending, 10, 15), 10, Black);
+      Check ("in_range 2", Find_In_Range (Tree.Iterate, Ascending, 11, 15), 12, Black);
 
-      Check ("in_region 3", Find_In_Region (Tree.Iterate, Descending, 10, 15), 15, Red);
-      Check ("in_region 4", Find_In_Region (Tree.Iterate, Descending, 10, 13), 12, Black);
+      Check ("in_range 3", Find_In_Range (Tree.Iterate, Descending, 10, 15), 15, Red);
+      Check ("in_range 4", Find_In_Range (Tree.Iterate, Descending, 10, 13), 12, Black);
 
-      Check_Null ("in_region not found", Find_In_Region (Tree.Iterate, Ascending, 4, 5));
+      Check_Null ("in_range not found", Find_In_Range (Tree.Iterate, Ascending, 4, 5));
 
       I := Find (Tree.Iterate, Unknown, 10);
       Tree.Delete (I);
