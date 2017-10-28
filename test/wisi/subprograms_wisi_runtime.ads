@@ -17,9 +17,10 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.Subprograms_Wisi_Runtime is
+package Subprograms_Wisi_Runtime is
 
-   Subp_Indent        : Integer;
-   Subp_Indent_Broken : Integer;
+   --  FIXME: pass these values to process from Emacs
+   Subp_Indent        : Integer := 3;
+   Subp_Indent_Broken : Integer := 2;
 
-end WisiToken.Subprograms_Wisi_Runtime;
+end Subprograms_Wisi_Runtime;

@@ -31,13 +31,9 @@ with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
 is
+   use WisiToken; -- Token_ID, "+", "-" Unbounded_string
    use all type Ada.Containers.Count_Type;
-
-   function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String
-     renames Standard.Ada.Strings.Unbounded.To_Unbounded_String;
-
-   function "-" (Item : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String
-     renames Standard.Ada.Strings.Unbounded.To_String;
+   use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
@@ -69,9 +65,13 @@ is
       New_Line;
    end Put_Usage;
 
-   Lexer_Only   : Boolean := False;
-   Repeat_Count : Integer := 1;
-   Pause        : Boolean := False;
+   Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+   Parse_Action     : WisiToken.Wisi_Runtime.Parse_Action_Type;
+
+   Line_Count   : WisiToken.Line_Number_Type := 1;
+   Lexer_Only   : Boolean                    := False;
+   Repeat_Count : Integer                    := 1;
+   Pause        : Boolean                    := False;
    Arg          : Integer;
    Start        : Ada.Real_Time.Time;
 begin
@@ -87,9 +87,9 @@ begin
          return;
       end if;
 
-      Parse_Data.Source_File_Name := +Argument (1);
-      Parse_Data.Parse_Action     := WisiToken.Wisi_Runtime.Parse_Action_Type'Value (Argument (2));
-      Arg                         := 3;
+      Source_File_Name := +Ada.Command_Line.Argument (1);
+      Parse_Action     := WisiToken.Wisi_Runtime.Parse_Action_Type'Value (Ada.Command_Line.Argument (2));
+      Arg              := 3;
 
       loop
          exit when Arg > Argument_Count;
@@ -132,12 +132,28 @@ begin
 
    --  Do this after setting Trace_Parse so lexer verbosity is set
    begin
-      Parser.Lexer.Reset_With_File (-Parse_Data.Source_File_Name);
+      Parser.Lexer.Reset_With_File (-Source_File_Name);
    exception
    when Ada.IO_Exceptions.Name_Error =>
-      Put_Line (Standard_Error, "'" & (-Parse_Data.Source_File_Name) & "' cannot be opened");
+      Put_Line (Standard_Error, "'" & (-Source_File_Name) & "' cannot be opened");
       return;
    end;
+
+   if Parse_Action = WisiToken.Wisi_Runtime.Indent then
+      loop
+         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
+      end loop;
+      Line_Count := Parser.Lexer.Line;
+   end if;
+
+   Parse_Data.Initialize
+     (Descriptor       => Parser.Semantic_State.Trace.Descriptor,
+      Lexer            => Parser.Lexer,
+      Source_File_Name => -Source_File_Name,
+      Parse_Action     => Parse_Action,
+      Line_Count       => Line_Count);
+
+   Parser.Lexer.Reset;
 
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
@@ -148,7 +164,6 @@ begin
          Parser.Lexer.Reset;
          if Lexer_Only then
             declare
-               use WisiToken;
                ID : Token_ID := Invalid_Token_ID;
             begin
                Parser.Lexer.Reset;

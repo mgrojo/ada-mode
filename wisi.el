@@ -1474,8 +1474,8 @@ cache."
 
 (defun wisi-face-apply-list-action (triples)
   "Similar to ’wisi-face-apply-action’, but applies faces to all
-tokens a `wisi-face' cache in the wisi-tokens[token-number]
-region."
+tokens with a `wisi-face' cache in the wisi-tokens[token-number]
+region, and does not apply a face if there are no such caches."
   (when (eq wisi--parse-action 'face)
     (let (number token-region face-region prefix-face suffix-face cache (i 0) pos)
       (while (< i (length triples))
@@ -1907,7 +1907,7 @@ DELTAS is a vector; each element can be:
 - a lisp form
 - a vector.
 
-The first three are evaluated to give the delta. A vector must
+The first three are evaluated to give an integer delta. A vector must
 have two elements, giving the code and following comment
 deltas. Otherwise the comment delta is the following delta in
 DELTAS."
@@ -2342,6 +2342,8 @@ Called with BEGIN END.")
 	   (i (max begin-line 1))
 	   pos
 	   (line-count (+ 1 begin-line (count-lines begin (point-max))))
+
+	   ;; FIXME: don’t need wisi--indent if lexer /= elisp; dispatch to lexer init function?
 	   (wisi--indent
 	    (make-wisi-ind
 	     :line-begin (make-vector line-count 0)

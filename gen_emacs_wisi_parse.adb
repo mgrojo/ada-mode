@@ -211,15 +211,23 @@ begin
                Byte_Count  : Integer;
                Buffer      : Ada.Strings.Unbounded.String_Access;
             begin
-               --  FIXME: call Parse_Data.Initialize (...)
-               Parse_Data.Parse_Action        := WisiToken.Wisi_Runtime.Parse_Action_Type'Val (Get_Integer (Command_Line, Last));
-               Parse_Data.Source_File_Name    := Ada.Strings.Unbounded.To_Unbounded_String
-                 (Get_String (Command_Line, Last));
-               WisiToken.Trace_Parse          := Get_Integer (Command_Line, Last);
-               Parser.Enable_McKenzie_Recover := 1 = Get_Integer (Command_Line, Last);
-               Cost_Limit                     := Get_Integer (Command_Line, Last);
-               Check_Limit                    := Get_Integer (Command_Line, Last);
-               Byte_Count                     := Get_Integer (Command_Line, Last);
+               Parse_Data.Initialize
+                 (Descriptor       => Parser.Semantic_State.Trace.Descriptor,
+                  Lexer            => Parser.Lexer,
+                  Parse_Action     => WisiToken.Wisi_Runtime.Parse_Action_Type'Val (Get_Integer (Command_Line, Last)),
+                  Source_File_Name => Get_String (Command_Line, Last),
+                  Line_Count       => 0);
+
+               WisiToken.Trace_Parse := Get_Integer (Command_Line, Last);
+
+               --  Default Enable_McKenzie_Recover is False if there is no McKenzie
+               --  information; don't override that.
+               Parser.Enable_McKenzie_Recover := Parser.Enable_McKenzie_Recover and
+                 (1 = Get_Integer (Command_Line, Last));
+
+               Cost_Limit  := Get_Integer (Command_Line, Last);
+               Check_Limit := Get_Integer (Command_Line, Last);
+               Byte_Count  := Get_Integer (Command_Line, Last);
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
@@ -238,7 +246,6 @@ begin
                WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
 
                Ada.Strings.Unbounded.Free (Buffer);
-
             exception
             when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;

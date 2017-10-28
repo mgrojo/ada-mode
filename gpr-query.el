@@ -57,22 +57,6 @@
 ;; *xref* buffer.
 (defconst gpr-query-buffer-name-prefix "*gpr_query-")
 
-(defgroup gpr-query nil
-  "Options for gpr-query."
-  :group 'tools)
-
-(defcustom gpr-query-mingw64-bin nil
-  "Path to mingw64 bin directory.
-On Windows systems, this directory is deleted from exec-path when launching gpr-query.
-See comment in ‘gpr-queyr--start-process’."
-  :group 'gpr-query)
-
-(defcustom gpr-query-mingw32-bin nil
-  "Path to mingw32 bin directory.
-On Windows systems, this directory is added to exec-path when launching gpr-query.
-See comment in ‘gpr-queyr--start-process’."
-  :group 'gpr-query)
-
 (defun gpr-query--start-process (session)
   "Start the session process running gpr_query."
   (unless (buffer-live-p (gpr-query--session-buffer session))
@@ -88,17 +72,6 @@ See comment in ‘gpr-queyr--start-process’."
 	  ;; project files and used by gpr files.
 
 	  (project-file (file-name-nondirectory (ada-prj-get 'gpr_file))))
-      (when (and (eq system-type 'windows-nt)
-		 gpr-query-mingw64-bin
-		 gpr-query-mingw32-bin)
-	;; gpr_query is a 32 bit application (because Windows GNAT GPL
-	;; only supports 32 bit), and for gnat gpl 2017 requires the
-	;; libiconv mingw32 dll. On the other hand, Emacs is probably
-	;; a 64 bit application, and requires the png mingw64 dll. So
-	;; delete mingw64 from exec-path, and add mingw32.
-	(setq exec-path (delete gpr-query-mingw64-bin exec-path))
-	(push gpr-query-mingw32-bin exec-path)
-	)
 
       (erase-buffer); delete any previous messages, prompt
       (setf (gpr-query--session-process session)

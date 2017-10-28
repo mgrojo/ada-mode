@@ -100,20 +100,20 @@ summarize :
 	cat *.log
 
 ONE_TEST_FILES += subprograms
-#ONE_TEST_FILES += debug.adb
+#ONE_TEST_FILES += ada_mode-nominal.adb
 one : subprograms_wisi_parse.exe
 #one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+#one : RUNTEST := run-indent-test-elisp-gpr_query.el
+#one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
 one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
-# one : RUNTEST := run-indent-test-process-gpr_query.el
-# one : $(addsuffix .wisi-process-test, $(ONE_TEST_FILES))
 
 two : RUN_ARGS ?= --verbosity 2
 run_subprograms_parse.exe : export Standard_Common_Build := Debug
 two : run_subprograms_parse.exe
-	../test/wisi/run_subprograms_parse.exe ../test/wisi/subprograms.input Navigate $(RUN_ARGS)
+	../test/wisi/run_subprograms_parse.exe ../test/wisi/subprograms.input Indent $(RUN_ARGS)
 
 two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
 two_mem : export Standard_Common_Profile := On
@@ -126,7 +126,7 @@ two_mem : build_ada_executables
 # ADA_PROJECT_PATH is used by the ../test/*.ad? files to test Ada mode
 # interaction with gpr project files.
 ifeq ($(shell uname),Linux)
-export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
+export WISI_WISITOKEN ?= c:/Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else ifeq ($(shell uname),Darwin)
@@ -385,7 +385,7 @@ $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gp
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
-# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken.stephe-1/build"))
+# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken.stephe-1/build"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))

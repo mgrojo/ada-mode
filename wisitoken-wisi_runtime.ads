@@ -32,26 +32,25 @@ package WisiToken.Wisi_Runtime is
 
    type Parse_Action_Type is (Navigate, Face, Indent);
 
-   type Base_Data_Type is tagged limited record
-      Descriptor       : access constant WisiToken.Descriptor'Class;
-      Lexer            : WisiToken.Lexer.Handle;
-      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-      Parse_Action     : Parse_Action_Type;
-   end record;
-
-   type Parse_Data_Type is new Base_Data_Type with private;
+   type Parse_Data_Type is tagged limited private;
 
    procedure Initialize
-     (Data         : in out Parse_Data_Type;
-      Parse_Action : in     Parse_Action_Type;
-      Line_Count   : in     Ada.Containers.Count_Type := 0);
+     (Data             : in out Parse_Data_Type;
+      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Lexer            : in     WisiToken.Lexer.Handle;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type);
    --  Line_Count only used for Indent
+
+   function Source_File_Name (Data : in Parse_Data_Type) return String;
+   function Parse_Action (Data : in Parse_Data_Type) return Parse_Action_Type;
 
    type Navigate_Class_Type is (Motion, Name, Statement_End, Statement_Override, Statement_Start, Misc);
    --  Matches [1] wisi-class-list.
 
    type Index_Navigate_Class is record
-      Index : Positive_Index_Type; -- into Source
+      Index : Positive_Index_Type; -- into Tokens
       Class : Navigate_Class_Type;
    end record;
 
@@ -60,13 +59,13 @@ package WisiToken.Wisi_Runtime is
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
-      Source  : in     Augmented_Token_Array;
+      Tokens  : in     Augmented_Token_Array;
       Params  : in     Statement_Param_Array);
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
       Nonterm    : in     Augmented_Token'Class;
-      Source     : in     Augmented_Token_Array;
+      Tokens     : in     Augmented_Token_Array;
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type);
 
@@ -78,7 +77,7 @@ package WisiToken.Wisi_Runtime is
    function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List;
 
    type Index_IDs is record
-      Index : Positive_Index_Type; -- into Source
+      Index : Positive_Index_Type; -- into Tokens
       IDs   : Token_ID_Lists.List;
    end record;
 
@@ -89,12 +88,12 @@ package WisiToken.Wisi_Runtime is
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
-      Source  : in     Augmented_Token_Array;
+      Tokens  : in     Augmented_Token_Array;
       Params  : in     Motion_Param_Array);
    --  Implements [1] wisi-motion-action.
 
    type Index_Faces is record
-      Index       : Positive_Index_Type; -- into Source
+      Index       : Positive_Index_Type; -- into Tokens
       Prefix_Face : Integer; -- into grammar.Face_List
       Suffix_Face : Integer; -- into grammar.Face_List
    end record;
@@ -104,15 +103,22 @@ package WisiToken.Wisi_Runtime is
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
-      Source  : in     Augmented_Token_Array;
+      Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [1] wisi-face-apply-action.
+
+   procedure Face_Apply_List_Action
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Tokens  : in     Augmented_Token_Array;
+      Params  : in     Face_Apply_Param_Array);
+   --  Implements [1] wisi-face-apply-list-action.
 
    type Face_Class_Type is (Prefix, Suffix);
    --  Matches wisi-cache-class values set in [1] wisi-face-apply-action.
 
    type Index_Face_Class is record
-      Index : Positive_Index_Type; -- into Source
+      Index : Positive_Index_Type; -- into Tokens
       Class : Face_Class_Type;
    end record;
 
@@ -121,27 +127,54 @@ package WisiToken.Wisi_Runtime is
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
-      Source  : in     Augmented_Token_Array;
+      Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Mark_Param_Array);
    --  Implements [1] wisi-face-mark-action.
 
+   type Face_Remove_Param_Array is array (Natural range <>) of Positive_Index_Type;
+
+   procedure Face_Remove_Action
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Tokens  : in     Augmented_Token_Array;
+      Params  : in     Face_Remove_Param_Array);
+   --  Implements [1] wisi-face-remove-action.
+
+   type Delta_Labels is (Int, Anchored, Hanging);
+
+   type Delta_Type (Label : Delta_Labels := Int) is
+   record
+      Offset     : Integer;
+      Accumulate : Boolean; --  not used for Int
+      case Label is
+      when Int | Anchored =>
+         null;
+      when Hanging =>
+         First_Line : Natural;
+         Nest       : Natural;
+         Offset_2   : Integer;
+      end case;
+   end record;
+
+   Null_Delta : constant Delta_Type := (Int, 0, False);
+
    type Indent_Pair (Comment_Present : Boolean := False) is
    record
-      Indent : Integer;
+      Code_Delta : Delta_Type;
       case Comment_Present is
       when True =>
-         Comment_Indent : Integer;
+         Comment_Delta : Delta_Type;
       when False =>
          null;
       end case;
    end record;
 
-   type Indent_Param_Array is array (Natural range <>) of Indent_Pair;
+   type Indent_Param_Array is array (Positive_Index_Type range <>) of Indent_Pair;
 
    procedure Indent_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
-      Source  : in     Augmented_Token_Array;
+      Tokens  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [1] wisi-indent-action.
 
@@ -149,8 +182,13 @@ package WisiToken.Wisi_Runtime is
      (Data         : in out Parse_Data_Type;
       Index        : in     Integer;
       Indent_Delta : in     Integer)
-     return Integer;
-   --  Implements [1] wisi-anchored.
+     return Delta_Type;
+   function Anchored_1
+     (Data         : in out Parse_Data_Type;
+      Index        : in     Integer;
+      Indent_Delta : in     Integer)
+     return Delta_Type;
+   --  Implements [1] wisi-anchored variants.
 
    procedure Put (Data : in Parse_Data_Type);
    --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
@@ -160,8 +198,11 @@ package WisiToken.Wisi_Runtime is
    procedure Put
      (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class);
-   --  Put errors to Ada.Text_IO.Standard_Output, as encoded error
+   --  Put Errors to Ada.Text_IO.Standard_Output, as encoded error
    --  responses as defined in [2] wisi-process-parse--execute.
+
+   procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Message : in String);
+   --  Put an error elisp form to Ada.Text_IO.Standard_Output.
 
 private
 
@@ -211,41 +252,49 @@ private
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, Buffer_Pos);
 
-   type Indent_Labels is (Int, Anchor, Anchored, Nested_Anchor);
+   type Indent_Labels is (Not_Set, Int, Anchor, Anchored, Nested_Anchor);
 
    package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
 
-   type Indent_Type (Label : Indent_Labels := Indent_Labels'First) is record
-      --  [1] wisi-ind struct
-      Begin_Pos : Buffer_Pos; -- in line-begin in [1]
+   type Indent_Type (Label : Indent_Labels := Not_Set) is record
+      --  [1] wisi-ind struct. Indent values may be negative while indents
+      --  are being computed.
       case Label is
+      when Not_Set =>
+         null;
+
       when Int =>
-         Int_Indent : Natural;
+         Int_Indent : Integer;
 
       when Anchor =>
          Anchor_IDs    : Int_Vectors.Vector;
-         Anchor_Indent : Natural;
+         Anchor_Indent : Integer;
 
       when Anchored =>
          Anchored_ID    : Natural;
          Anchored_Delta : Integer;
 
       when Nested_Anchor =>
-         Nested_Anchor_IDs     : Int_Vectors.Vector;
-         Nested_Anchored_ID    : Natural;
-         Nested_Anchored_Delta : Integer;
+         Nested_Anchor_IDs    : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
+         Nested_Anchor_ID     : Natural;
+         Nested_Anchor_Indent : Integer;
       end case;
    end record;
 
-   package Indent_Vectors is new Ada.Containers.Vectors (Natural, Indent_Type);
-   package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
+   package Indent_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Indent_Type);
+   package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
+     (Navigate_Cache_Trees.Cursor, Navigate_Cache_Trees."=");
 
-   type Parse_Data_Type is new Base_Data_Type with
+   type Parse_Data_Type is tagged limited
    record
-      Navigate_Caches : Navigate_Cache_Trees.Tree; -- Used for Navigate.
-      Face_Caches     : Face_Cache_Trees.Tree;     -- Used for Face.
-      End_Positions   : Navigate_Cursor_Lists.List;         -- Used for Navigate.
-      Indents         : Indent_Vectors.Vector;     -- Used for Indent.
+      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Lexer            : WisiToken.Lexer.Handle;
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      Parse_Action     : Parse_Action_Type;
+      Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Used for Navigate.
+      Face_Caches      : Face_Cache_Trees.Tree;      -- Used for Face.
+      End_Positions    : Navigate_Cursor_Lists.List; -- Used for Navigate.
+      Indents          : Indent_Vectors.Vector;      -- Used for Indent.
    end record;
 
 end WisiToken.Wisi_Runtime;

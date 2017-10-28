@@ -48,6 +48,7 @@
   (busy nil)              ;; t while parser is active
   (process nil) 	  ;; running *_wisi_parse executable
   (buffer nil) 		  ;; receives output of executable
+  line-begin              ;; vector of beginning-of-line positions in buffer
   (total-wait-time 0.0)   ;; total time during last parse spent waiting for subprocess output.
   (response-count 0)      ;; responses received from subprocess during last parse; for profiling.
   )
@@ -230,9 +231,9 @@ complete."
      )))
 
 (defun wisi-process-parse--Indent (parser sexp)
-  ;; sexp is [Indent char-pos indent]
+  ;; sexp is [Indent line-number indent]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (aref sexp 1)))
+  (let ((pos (1- (aref (wisi--process-parser line-begin) (aref sexp 1)))))
     ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
@@ -294,8 +295,8 @@ complete."
   ;;    Set a font-lock-face text-property
   ;;    face-index: integer index into parser-elisp-face-table
   ;;
-  ;; [Indent char-position indent]
-  ;;    Set an indent text property, for line starting at char-position.
+  ;; [Indent line-number indent]
+  ;;    Set an indent text property
   ;;
   ;; [Error char-position <string>]
   ;;    The parser detected a syntax error, and is attempting
@@ -388,12 +389,10 @@ complete."
 	  (set-buffer response-buffer)
 
 	  ;; process responses until prompt received
-	  (while (and (process-live-p process)
-		      (not done))
+	  (while (not done)
 
 	    ;; process all complete responses currently in buffer
-	    (while (and (process-live-p process)
-			(not need-more)
+	    (while (and (not need-more)
 			(not done))
 
 	      (goto-char sexp-start)
@@ -444,14 +443,19 @@ complete."
 
 		       (t
 			;; Some other error
-			(eval response)))
+			(condition-case-unless-debug err
+			    (eval response)
+			  (error
+			   (push (make-wisi--error :pos (point) :message (cadr err)) (wisi-parser-errors parser))
+			   (signal (car err) (cdr err)))))
+		       )
 
-		    ;; encoded action
+		    ;; else encoded action
 		    (condition-case-unless-debug err
 			(wisi-process-parse--execute parser response)
 		      (wisi-parse-error
 		       ;; From an action
-		       (push (make-wisi--error :pos (point) :message (cdr err)) (wisi-parser-errors parser))
+		       (push (make-wisi--error :pos (point) :message (cadr err)) (wisi-parser-errors parser))
 		       (signal (car err) (cdr err)))))
 
 		  (set-buffer response-buffer)
