@@ -2687,9 +2687,14 @@ If non-nil, only repair errors in BEG END region."
   (message "%s" (get-text-property (1- (line-beginning-position)) 'wisi-indent)))
 
 (defun wisi-show-cache ()
-  "Show navigation and face caches at point."
+  "Show navigation and face caches, and applied faces, at point."
   (interactive)
-  (message "%s:%s" (wisi-get-cache (point)) (get-text-property (point) 'wisi-face)))
+  (message "%s:%s:%s:%s"
+	   (wisi-get-cache (point))
+	   (get-text-property (point) 'wisi-face)
+	   (get-text-property (point) 'face)
+	   (get-text-property (point) 'font-lock-face)
+	   ))
 
 (defun wisi-show-token ()
   "Move forward across one keyword, show token."

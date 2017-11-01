@@ -2185,7 +2185,7 @@ buffer in another window."
   ;;                       uses compiler-generated cross reference
   ;;                       information
 
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   ;; clear ff-function-name, so it either ff-special-constructs or
@@ -2299,9 +2299,7 @@ to go back to these positions.")
 (defun ada-goto-source (file line column)
   "Find and select FILE, at LINE and COLUMN.
 FILE may be absolute, or on `compilation-search-path'.
-LINE, COLUMN are Emacs origin.
-
-If OTHER-WINDOW is non-nil, show the buffer in another window."
+LINE, COLUMN are Emacs origin."
   (let ((file-1
 	 (if (file-name-absolute-p file) file
 	   (ff-get-file-name compilation-search-path file))))
@@ -2315,6 +2313,7 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
+      ;; use display-buffer, so package other-frame-window works.
       (display-buffer buffer))
 
      ((file-exists-p file)
@@ -2546,12 +2545,11 @@ the file name."
 A secondary file reference is defined by text having text
 property `ada-secondary-error'.  These can be set by
 compiler-specific compilation filters."
-  (interactive "P")
+  (interactive)
 
   ;; preserving the current window works only if the frame
   ;; doesn't change, at least on Windows.
   (let ((start-buffer (current-buffer))
-	(start-window (selected-window))
 	pos item file)
     ;; We use `pop-to-buffer', not `set-buffer', so `forward-line'
     ;; works. But that might eat an `other-frame-window-mode' prefix;
@@ -2578,9 +2576,7 @@ compiler-specific compilation filters."
        file
        (nth 1 item); line
        (nth 2 item); column
-       )
-      (select-window start-window)
-      )
+       ))
     ))
 
 (defvar ada-goto-declaration-start nil

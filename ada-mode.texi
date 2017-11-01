@@ -207,7 +207,7 @@ switch @code{-fdump-xref}. @code{-fdump-xref} is an AdaCore extension,
 not available in FSF GCC.
 
 @file{gpr_query} is an Ada program, which is distributed as source and
-must be built. Its source code is in the Gnu ELPA package.
+must be built. Its source code is in the @code{ada-mode} Gnu ELPA package.
 
 @file{gpr_query} requires the @code{GNATCOLL} library provided by
 AdaCore, distributed with GNAT GPL 2016 or 2017, and also available at
@@ -216,7 +216,7 @@ Github (@url{https://github.com/AdaCore/gnatcoll}). (The
 cleanly). The notes below assume that the compiler is installed at
 @file{$prefix}, e.g. @file{/usr/local/gnat-2017}, and that
 @file{$prefix/bin} is first on the @code{PATH}. If you are running
-Windows, use Cygwin @code{bash} to run these commands.
+Windows, use Cygwin or mingw64 @code{bash} to run these commands.
 
 In general, @file{gpr_query} should be compiled with the compiler
 version that is used to generate the user project @file{.ali} files;

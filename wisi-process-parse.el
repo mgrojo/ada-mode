@@ -114,7 +114,7 @@ If not found in ‘wisi-process--alist’, create using other parameters."
       (set-process-query-on-exit-flag (wisi-process--parser-process parser) nil)
       (setf (wisi-process--parser-busy parser) nil)
 
-      ;; FIXME: check protocol and version numbers
+      ;; IMPROVEME: check protocol and version numbers
       (wisi-process-parse--wait parser)
       )))
 
@@ -473,9 +473,6 @@ from TOKEN-TABLE."
   ;; where:
   ;; action - integer, index into action-table
   ;;
-  ;; FIXME: most don’t need Ada to send token ids. Keep for now so can
-  ;; double-check; change to send only if wisi-debug > 0.
-  ;;
   ;; Actions:
   ;;
   ;; [Lexer_To_Lookahead id]
@@ -710,11 +707,15 @@ from TOKEN-TABLE."
 	      ;; called by font-lock from the display engine.
 	      ;;
 	      ;; Specifying just-this-one t prevents C-q from
-	      ;; interrupting this.
+	      ;; interrupting this?
 	      ;;
 	      ;; FIXME: but now we have a race condition between
 	      ;; reading the output and waiting for it?
-	      (accept-process-output process 1.0 nil nil)
+	      (accept-process-output
+	       process
+	       1.0 ;; time-out
+	       nil ;; milliseconds
+	       1)  ;; just-this-one
 
 	      (setf (wisi-process--parser-total-wait-time parser)
 		    (+ (wisi-process--parser-total-wait-time parser)

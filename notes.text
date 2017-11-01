@@ -85,6 +85,8 @@ ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
 put back mckenzie-enable in wisi-process-parse
     so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
 
+newline not in a word should not cause parse retry after parse fail
+
 add missing features to gpr_query; see fixmes.
 
 refactor {ada|gpr|java}-skel-expand
