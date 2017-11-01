@@ -11,22 +11,31 @@ project Standard_Common is
    package Compiler is
       -- Switches for gcc
 
-      Style_Checks := "-gnaty3abcefhiklM120nOprtx";
+      Base_Style_Checks := "-gnaty3abcefhiklnOprtx";
+      Line_Length := "-gnatyM120";
 
-      --  -gnatVa causes some inline procedures to be non-inlineable;
-      --  suppress that warning with -gnatwP.
-      Debug_Switches :=
-        --  Switches we always use
+      Style_Checks := (Base_Style_Checks, Line_Length);
+
+      Common_Switches :=
         (
-         "-O0",
          "-fstack-check",
          "-g",
          "-gnat2012",
-         "-gnatVa",
-         "-gnateE", -- extra info in exceptions
+         "-gnata",  -- assertions
          "-gnatfoqQ",
-         "-gnatwaBeLP",
+         "-gnatw.d",
+         "-gnatwaBCeJL",
          "-gnatyO"
+        );
+
+      --  -gnatVa causes some inline procedures to be non-inlineable;
+      --  suppress that warning with -gnatwP.
+      Debug_Switches := Common_Switches &
+        (
+         "-O0",
+         "-gnatVa", -- validity checks
+         "-gnateE", -- extra info in exceptions
+         "-gnatwaP"
         );
 
       --  AdaCore recommends -O2 -gnatn instead of -O3; -O3 includes
@@ -35,15 +44,11 @@ project Standard_Common is
       --  processors are so fast.
       --  -fno-var-tracking-assignments speeds compiling of large
       --  files; var tracking is only useful for debugging.
-      Release_Switches :=
+      Release_Switches := Common_Switches &
         (
          "-O2",
          "-fno-var-tracking-assignments",
-         "-fstack-check",
-         "-g",
-         "-gnat2012",
-         "-gnatfnoqQ",
-         "-gnatwaBeL",
+         "-gnatn",
          "-gnatyO"
         );
 
