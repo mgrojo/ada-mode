@@ -146,11 +146,11 @@ BRANCH := $(notdir $(shell cd ..; pwd))
 
 ifeq ($(BRANCH),org.emacs.ada-mode)
   TAR_FILE := org.emacs.ada-mode-$(ADA_MODE_VERSION).tar.gz
-  TAR_DIR := ../
+  TAR_DIR := ../../
   TAR_PAT := org.emacs.ada-mode-$(ADA_MODE_VERSION)
 else
   TAR_FILE := $(BRANCH).tar.gz
-  TAR_DIR := ../
+  TAR_DIR := ../../
   TAR_PAT := $(BRANCH)
 endif
 
@@ -189,6 +189,7 @@ pub-ada : force
 	cp ../README-ada-mode $(ELPA_ROOT)/packages/ada-mode/README
 	cp ../gnat*.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../gpr*.el ../gpr-*.texi ../gpr-*.info $(ELPA_ROOT)/packages/ada-mode
+	cp ../xref-ada.el $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.adb ../*.gpr $(ELPA_ROOT)/packages/ada-mode
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
