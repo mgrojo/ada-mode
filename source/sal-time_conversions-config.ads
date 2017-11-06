@@ -2,7 +2,7 @@
 --
 --  Config file subprograms for parent.
 --
---  Copyright (C) 2004, 2009 Stephen Leake.  All Rights Reserved.
+--  Copyright (C) 2004, 2009, 2017 Stephen Leake.  All Rights Reserved.
 --
 --  This library is free software; you can redistribute it and/or
 --  modify it under terms of the GNU General Public License as
@@ -26,6 +26,7 @@
 with SAL.Config_Files;
 package SAL.Time_Conversions.Config is
    --  pragma Elaborate_Body; --  SAL.Config_Files is, but we have no body
+   pragma Warnings (Off, "instance does not use primitive operation ""mod""");
 
    function Read is new SAL.Config_Files.Read_Fixed (SAL.Time_Conversions.Time_Type);
    function Read is new SAL.Config_Files.Read_Iterator_Fixed (SAL.Time_Conversions.Time_Type);
