@@ -24,12 +24,13 @@
 %keyword FOR "for"
 %keyword FUNCTION "function"
 %keyword IN "in"
-%keyword LEFT_PAREN "("
 %keyword LOOP "loop"
 %keyword PROCEDURE "procedure"
-%keyword RIGHT_PAREN ")"
 %keyword WHEN "when"
 %keyword USE "use"
+
+%token <left-paren> LEFT_PAREN "("
+%token <right-paren> RIGHT_PAREN ")"
 
 %token <punctuation> COMMA ","
 %token <punctuation> DOT "."

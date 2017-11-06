@@ -27,6 +27,7 @@ with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
 with WisiToken.Lexer;
+with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region;
 package WisiToken.Wisi_Runtime is
 
@@ -36,7 +37,7 @@ package WisiToken.Wisi_Runtime is
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
       Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
@@ -140,30 +141,42 @@ package WisiToken.Wisi_Runtime is
       Params  : in     Face_Remove_Param_Array);
    --  Implements [1] wisi-face-remove-action.
 
-   type Delta_Labels is (Int, Anchored, Hanging);
+   type Indent_Param_Label is
+     (Int,
+      Anchored_0, -- wisi-anchored;   accumulate => False
+      Anchored_1, -- wisi-anchored%;  accumulate => False
+      Anchored_2, -- wisi-anchored%-; accumulate => True
+      Anchored_3, -- wisi-anchored*;  accumulate => False
+      Anchored_4, -- wisi-anchored*-; accumulate => True
+      Hanging     -- wisi-hanging
+     );
+   subtype Anchored_Label is Indent_Param_Label range Anchored_0 .. Anchored_4;
 
-   type Delta_Type (Label : Delta_Labels := Int) is
+   type Indent_Param_Type (Label : Indent_Param_Label := Int) is
    record
-      Offset     : Integer;
-      Accumulate : Boolean; --  not used for Int
       case Label is
-      when Int | Anchored =>
-         null;
+      when Int =>
+         Int_Delta : Integer;
+      when Anchored_Label =>
+         Anchored_Index : Positive_Index_Type;
+         Anchored_Delta : Integer;
       when Hanging =>
-         First_Line : Natural;
-         Nest       : Natural;
-         Offset_2   : Integer;
+         Hanging_Delta : Integer;
       end case;
    end record;
 
-   Null_Delta : constant Delta_Type := (Int, 0, False);
+   subtype Int_Indent_Param is Indent_Param_Type (Int);
+   subtype Anchored_Indent_Param is Indent_Param_Type
+   with Dynamic_Predicate => Anchored_Indent_Param.Label in Anchored_Label;
+
+   Null_Indent_Param : constant Indent_Param_Type := (Int, 0);
 
    type Indent_Pair (Comment_Present : Boolean := False) is
    record
-      Code_Delta : Delta_Type;
+      Code_Delta : Indent_Param_Type;
       case Comment_Present is
       when True =>
-         Comment_Delta : Delta_Type;
+         Comment_Delta : Indent_Param_Type;
       when False =>
          null;
       end case;
@@ -177,18 +190,6 @@ package WisiToken.Wisi_Runtime is
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [1] wisi-indent-action.
-
-   function Anchored_0
-     (Data         : in out Parse_Data_Type;
-      Index        : in     Integer;
-      Indent_Delta : in     Integer)
-     return Delta_Type;
-   function Anchored_1
-     (Data         : in out Parse_Data_Type;
-      Index        : in     Integer;
-      Indent_Delta : in     Integer)
-     return Delta_Type;
-   --  Implements [1] wisi-anchored variants.
 
    procedure Put (Data : in Parse_Data_Type);
    --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
@@ -252,11 +253,11 @@ private
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, Buffer_Pos);
 
-   type Indent_Labels is (Not_Set, Int, Anchor, Anchored, Nested_Anchor);
+   type Indent_Label is (Not_Set, Int, Anchor, Anchored, Nested_Anchor);
 
    package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
 
-   type Indent_Type (Label : Indent_Labels := Not_Set) is record
+   type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  [1] wisi-ind struct. Indent values may be negative while indents
       --  are being computed.
       case Label is
@@ -267,7 +268,7 @@ private
          Int_Indent : Integer;
 
       when Anchor =>
-         Anchor_IDs    : Int_Vectors.Vector;
+         Anchor_IDs    : Int_Vectors.Vector; --  Largest ID first.
          Anchor_Indent : Integer;
 
       when Anchored =>
@@ -275,11 +276,12 @@ private
          Anchored_Delta : Integer;
 
       when Nested_Anchor =>
-         Nested_Anchor_IDs    : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
-         Nested_Anchor_ID     : Natural;
-         Nested_Anchor_Indent : Integer;
+         Nested_Anchor_IDs   : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
+         Nested_Anchor_ID    : Natural;
+         Nested_Anchor_Delta : Integer;
       end case;
    end record;
+   First_Anchor_ID : constant Natural := 0;
 
    package Indent_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Indent_Type);
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
@@ -287,7 +289,7 @@ private
 
    type Parse_Data_Type is tagged limited
    record
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Semantic_State   : WisiToken.Token_Line_Comment.State_Access;
       Lexer            : WisiToken.Lexer.Handle;
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       Parse_Action     : Parse_Action_Type;

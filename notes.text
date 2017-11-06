@@ -57,8 +57,7 @@ compute indent in Ada
         indent failing
             implementing wisi-wisi_runtime.adb Indent_Action
             testing with run_wisi_parse subprogram.input, debug.input
-                lines 1 - 29 ok
-                line 30 not indented; need wisi-anchored%
+                resolve anchors before put results
 
             fix wisi-process-parse Indent to take line number
                 need to init parser-line-begin

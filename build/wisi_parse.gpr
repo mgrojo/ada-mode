@@ -30,19 +30,22 @@ project Wisi_Parse is
 
    package Compiler is
 
-      --  Lines in subprograms_process.adb can exceed 120 char;
-      --  we leave out line_length check for all files; it's simpler
       case Standard_Common.Build is
       when "Debug" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Debug_Switches &
-           Standard_common.Compiler.Base_Style_Checks;
+           Standard_common.Compiler.Style_Checks;
 
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &
-           Standard_Common.Compiler.Base_Style_Checks;
+           Standard_Common.Compiler.Style_Checks;
       end case;
+
+      --  Lines in subprograms_process.adb can exceed 120 char
+      for Switches ("subprograms_process.adb") use
+        Standard_Common.Compiler.Release_Switches &
+        Standard_Common.Compiler.Base_Style_Checks;
 
    end Compiler;
 

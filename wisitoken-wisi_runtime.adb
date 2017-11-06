@@ -19,10 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Bounded;
 with WisiToken.Parser.LR;
-with WisiToken.Token_Line_Comment;
 package body WisiToken.Wisi_Runtime is
-
-   --  body subprograms, alphabetical
 
    Navigate_Cache_Code : constant String := "1 ";
    Face_Property_Code  : constant String := "2 ";
@@ -31,6 +28,112 @@ package body WisiToken.Wisi_Runtime is
    Recover_Code        : constant String := "5 ";
 
    Chars_Per_Int : constant Integer := Integer'Width;
+
+   type Delta_Labels is (Int, Anchored, Hanging);
+
+   type Delta_Type (Label : Delta_Labels := Int) is
+   record
+      --  Matches DELTA input to wisi--indent-token-1
+
+      case Label is
+      when Int =>
+         Int_Delta : Integer;
+
+      when Anchored =>
+         Anchored_ID         : Natural;
+         Anchored_Delta      : Integer;
+         Anchored_Accumulate : Boolean;
+
+      when Hanging =>
+         Hanging_Delta_1    : Integer;
+         Hanging_Delta_2    : Integer;
+         Hanging_Accumulate : Boolean;
+         First_Line         : Natural;
+         Nest               : Natural;
+      end case;
+   end record;
+   subtype Anchored_Delta is Delta_Type (Anchored);
+
+   Null_Delta : constant Delta_Type := (Int, 0);
+
+   ----------
+   --  body subprogram specs (as needed), alphabetical
+
+   function Max_Anchor_ID
+     (Data       : in out Parse_Data_Type;
+      First_Line : in     Line_Number_Type;
+      Last_Line  : in     Line_Number_Type)
+     return Integer;
+
+   function Paren_In_Anchor_Line
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Token_Line_Comment.Token;
+      Offset       : in Integer)
+     return Integer;
+
+   -----------
+   --  body subprograms bodies, alphabetical
+
+   function Anchored_2
+     (Data         : in out Parse_Data_Type;
+      Anchor_Line  : in     Line_Number_Type;
+      Last_Line    : in     Line_Number_Type;
+      Indent_Delta : in     Integer;
+      Accumulate   : in     Boolean)
+     return Delta_Type
+   is
+      use Int_Vectors;
+      --  We can't use a Reference here, because the Element in reference
+      --  types is constrained (as are all allocated objects of access
+      --  types; AARM 4.8 (6/3)), and we may need to change the Label.
+      Indent    : Indent_Type      := Data.Indents (Anchor_Line);
+      Anchor_ID : constant Integer := Max_Anchor_ID (Data, Anchor_Line, Last_Line);
+   begin
+      --  [1] wisi--anchored-2
+      case Indent.Label is
+      when Not_Set =>
+         Indent := (Anchor, To_Vector (Anchor_ID, 1), 0);
+
+      when Int =>
+         Indent := (Anchor, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
+
+      when Anchor =>
+         Indent.Anchor_IDs := Anchor_ID & Indent.Anchor_IDs;
+
+      when Anchored =>
+         Indent := (Nested_Anchor, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
+
+      when Nested_Anchor =>
+         Indent.Nested_Anchor_IDs := Anchor_ID & Indent.Nested_Anchor_IDs;
+      end case;
+
+      Data.Indents.Replace_Element (Anchor_Line, Indent);
+
+      return (Anchored, Anchor_ID, Indent_Delta, Accumulate);
+   end Anchored_2;
+
+   procedure Indent_Apply_Anchored
+     (Delta_Indent : in     Anchored_Delta;
+      Indent       : in out Indent_Type)
+   is begin
+      --  [1] wisi--apply-anchored
+
+      case Indent.Label is
+      when Not_Set =>
+         Indent := (Anchored, First_Anchor_ID, Delta_Indent.Anchored_Delta);
+
+      when Int =>
+         if Indent.Int_Indent = 0 or Delta_Indent.Anchored_Accumulate then
+            Indent := (Anchored, First_Anchor_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
+         end if;
+
+      when Anchor =>
+         raise SAL.Not_Implemented;
+
+      when Anchored | Nested_Anchor =>
+         raise SAL.Not_Implemented;
+      end case;
+   end Indent_Apply_Anchored;
 
    procedure Indent_Apply_Int (Indent : in out Indent_Type; Offset : in Integer)
    is begin
@@ -62,19 +165,16 @@ package body WisiToken.Wisi_Runtime is
    begin
       for Line in First_Line .. Last_Line loop
          declare
-            --  We can't use a Reference here, because the Element in reference
-            --  types is constrained (as are all allocated objects of access
-            --  types; AARM 4.8 (6/3)), and we may need to change the Label.
-            --  FIXME: maybe not according to AARM 3.10 (26.d/2); these objects
-            --  are not actually allocated (unless the implementation of Vectors
-            --  does that?)
+            --  See note in Anchored_2 for why we can't use renames here.
             Indent : Indent_Type := Data.Indents (Line);
          begin
             case Delta_Indent.Label is
             when Int =>
-               Indent_Apply_Int (Indent, Delta_Indent.Offset);
+               Indent_Apply_Int (Indent, Delta_Indent.Int_Delta);
+
             when Anchored =>
-               raise SAL.Not_Implemented;
+               Indent_Apply_Anchored (Delta_Indent, Indent);
+
             when Hanging =>
                raise SAL.Not_Implemented;
             end case;
@@ -83,6 +183,144 @@ package body WisiToken.Wisi_Runtime is
          end;
       end loop;
    end Indent_1;
+
+   function Indent_Compute_Delta
+     (Data              : in out Parse_Data_Type;
+      Tokens            : in     Augmented_Token_Array;
+      Param             : in     Indent_Param_Type;
+      Token             : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean)
+     return Delta_Type
+   is begin
+      --  [1] wisi--indent-compute-delta, which evals wisi-anchored*, wisi-hanging.
+      case Param.Label is
+      when Int =>
+         return (Int, Param.Int_Delta);
+
+      when Anchored_0 =>
+         raise SAL.Not_Implemented;
+         return Null_Delta;
+
+      when Anchored_1 =>
+         --  [1] wisi-anchored%
+         declare
+            Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+              (Tokens (Param.Anchored_Index).Element.all);
+         begin
+            if Token.Virtual or Anchor_Token.Virtual then
+               return Null_Delta;
+            else
+               return Anchored_2
+                 (Data,
+                  Anchor_Line  => Anchor_Token.Line,
+                  Last_Line    =>
+                    (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                  Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Anchored_Delta),
+                  Accumulate   => False);
+            end if;
+         end;
+
+      when Anchored_2 =>
+         raise SAL.Not_Implemented;
+         return Null_Delta;
+
+      when Anchored_3 =>
+         raise SAL.Not_Implemented;
+         return Null_Delta;
+
+      when Anchored_4 =>
+         raise SAL.Not_Implemented;
+         return Null_Delta;
+
+      when Hanging =>
+         raise SAL.Not_Implemented;
+         return Null_Delta;
+
+      end case;
+   end Indent_Compute_Delta;
+
+   function Max_Anchor_ID
+     (Data       : in out Parse_Data_Type;
+      First_Line : in     Line_Number_Type;
+      Last_Line  : in     Line_Number_Type)
+     return Integer
+   is
+      Result : Integer := First_Anchor_ID;
+   begin
+      for Line in First_Line .. Last_Line loop
+         declare
+            Indent : Indent_Type renames Data.Indents (Line);
+         begin
+            case Indent.Label is
+            when Not_Set | Int =>
+               null;
+            when Anchor =>
+               Result := Integer'Max (Result, Indent.Anchor_IDs (Indent.Anchor_IDs.First_Index));
+            when Anchored =>
+               Result := Integer'Max (Result, Indent.Anchored_ID);
+            when Nested_Anchor =>
+               Result := Integer'Max (Result, Indent.Nested_Anchor_ID);
+            end case;
+         end;
+      end loop;
+      return Result;
+   end Max_Anchor_ID;
+
+   function Paren_In_Anchor_Line
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Token_Line_Comment.Token;
+      Offset       : in Integer)
+     return Integer
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
+      Left_Paren_ID  : Token_ID renames Descriptor.Left_Paren_ID;
+      Right_Paren_ID : Token_ID renames Descriptor.Right_Paren_ID;
+
+      I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+      Paren_Count : Integer := 0;
+      Paren_Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
+      Text_Begin_Pos : Buffer_Pos := Invalid_Buffer_Pos;
+   begin
+      --  [1] wisi--paren-in-anchor-line. That uses elisp syntax-ppss; here
+      --  we search the parser stack.
+      loop
+         exit when I < Data.Semantic_State.Stack.First_Index;
+         declare
+            Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+              (Data.Semantic_State.Stack (I).Element.all);
+         begin
+            exit when Stack_Token.Line /= Anchor_Token.Line;
+
+            if Stack_Token.ID = Left_Paren_ID then
+               Paren_Count := Paren_Count + 1;
+               if Paren_Count = 1 then
+                  Paren_Char_Pos := Stack_Token.Char_Region.First;
+               end if;
+
+            elsif Stack_Token.ID = Right_Paren_ID then
+               Paren_Count := Paren_Count - 1;
+
+            end if;
+
+            if Stack_Token.First or else
+              ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
+                 Stack_Token.First_Indent_Line = Stack_Token.Line)
+            then
+               Text_Begin_Pos := Stack_Token.Char_Region.First;
+               exit;
+            end if;
+         end;
+         I := I - 1;
+      end loop;
+
+      if Paren_Char_Pos /= Invalid_Buffer_Pos and Text_Begin_Pos /= Invalid_Buffer_Pos then
+         return Offset + Integer (Text_Begin_Pos - Paren_Char_Pos);
+      else
+         return Offset;
+      end if;
+   end Paren_In_Anchor_Line;
 
    procedure Put (Cache : in Navigate_Cache_Type)
    is
@@ -134,9 +372,8 @@ package body WisiToken.Wisi_Runtime is
    procedure Put (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Item : in Indent_Type)
    is begin
       --  All Anchors must be resolved at this point, but not all lines have
-      --  an indent computed. A negative indent is an error, either in the
-      --  grammar indent rules, or the algorithms in this package, so it is
-      --  a hard error.
+      --  an indent computed. A negative indent is an error in either the
+      --  grammar indent rules or the algorithms in this package.
       case Item.Label is
       when Not_Set =>
          null;
@@ -150,7 +387,7 @@ package body WisiToken.Wisi_Runtime is
          end if;
 
       when Anchor | Anchored | Nested_Anchor =>
-         raise Programmer_Error with "Indent item has non-int label";
+         raise Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
       end case;
    end Put;
 
@@ -245,13 +482,13 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Initialize
      (Data             : in out Parse_Data_Type;
-      Descriptor       : access constant WisiToken.Descriptor'Class;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
       Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type)
    is begin
-      Data.Descriptor       := Descriptor;
+      Data.Semantic_State   := Semantic_State;
       Data.Lexer            := Lexer;
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
@@ -375,7 +612,7 @@ package body WisiToken.Wisi_Runtime is
             Line      => Containing_Tok.Line,
             Col       => Containing_Tok.Col,
             Message   => "wisi-containing-action: containing-region " &
-              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+              Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
               " is empty. grammar error; bad action.");
       end if;
 
@@ -389,7 +626,7 @@ package body WisiToken.Wisi_Runtime is
             Line      => Containing_Tok.Line,
             Col       => Containing_Tok.Col,
             Message   => "wisi-containing-action: containing token " &
-              Containing_Tok.Image (Data.Descriptor.all, ID_Only => True) &
+              Containing_Tok.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => True) &
               " has no cache. grammar error; missing action.");
       end if;
 
@@ -491,7 +728,7 @@ package body WisiToken.Wisi_Runtime is
                      Line      => Token.Line,
                      Col       => Token.Col,
                      Message   => "wisi-motion-action: token " &
-                       Token.Image (Data.Descriptor.all, ID_Only => False) &
+                       Token.Image (Data.Semantic_State.Trace.Descriptor.all, ID_Only => False) &
                        " has no cache; add to statement-action.");
                end if;
 
@@ -567,7 +804,8 @@ package body WisiToken.Wisi_Runtime is
                         Suffix_Cur := Next (Iter, Cache_Cur);
                         if Has_Element (Suffix_Cur) then
                            declare
-                              Suf_Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Suffix_Cur).Element.all;
+                              Suf_Cache : Face_Cache_Type renames Variable_Ref
+                                (Data.Face_Caches, Suffix_Cur).Element.all;
                            begin
                               if Suffix = Suf_Cache.Class and
                                 Inside (Suf_Cache.Region.First, Token.Char_Region)
@@ -655,7 +893,8 @@ package body WisiToken.Wisi_Runtime is
                if Has_Element (Cache_Cur) then
                   declare
                      Cache : Face_Cache_Type renames Variable_Ref (Data.Face_Caches, Cache_Cur).Element.all;
-                     Other_Cur : Cursor := Find_In_Range (Iter, Ascending, Cache.Region.Last + 1, Token.Char_Region.Last);
+                     Other_Cur : Cursor := Find_In_Range
+                       (Iter, Ascending, Cache.Region.Last + 1, Token.Char_Region.Last);
                      Temp : Cursor;
                   begin
                      loop
@@ -700,7 +939,8 @@ package body WisiToken.Wisi_Runtime is
             if Token.Char_Region /= Null_Buffer_Region then
                Cache_Cur := Find_In_Range (Iter, Ascending, Token.Char_Region.First, Token.Char_Region.Last);
                loop
-                  exit when not Has_Element (Cache_Cur) or else Constant_Ref (Data.Face_Caches, Cache_Cur).Element.Region.First > Token.Char_Region.Last;
+                  exit when not Has_Element (Cache_Cur) or else
+                    Constant_Ref (Data.Face_Caches, Cache_Cur).Element.Region.First > Token.Char_Region.Last;
                   Temp := Cache_Cur;
                   Cache_Cur := Next (Iter, Cache_Cur);
                   Delete (Data.Face_Caches, Temp);
@@ -717,62 +957,60 @@ package body WisiToken.Wisi_Runtime is
       Params  : in     Indent_Param_Array)
    is
       pragma Unreferenced (Nonterm);
+      Descriptor : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
    begin
       --  [1] wisi-indent-action
       for I in Tokens.First_Index .. Tokens.Last_Index loop
          declare
             use all type Ada.Containers.Count_Type;
-            Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (I).Element.all);
-            Pair  : Indent_Pair renames Params (I);
+            Token             : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (I).Element.all);
+            Pair              : Indent_Pair renames Params (I);
+            Code_Delta        : Delta_Type;
+            Comment_Param     : Indent_Param_Type;
+            Comment_Param_Set : Boolean := False;
+            Comment_Delta     : Delta_Type;
          begin
-            if Token.Char_Region /= Null_Buffer_Region and Token.First then
-               if Pair.Code_Delta /= Null_Delta then
-                  if Token.ID in Data.Descriptor.First_Nonterminal .. Data.Descriptor.Last_Nonterminal then
-                     Indent_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Pair.Code_Delta);
-                  else
-                     Indent_1 (Data, Token.Line, Token.Line, Pair.Code_Delta);
+            if Token.Char_Region /= Null_Buffer_Region then
+               if Token.First then
+                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token, Indenting_Comment => False);
+
+                  if Code_Delta /= Null_Delta then
+                     if Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
+                        Indent_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
+                     else
+                        Indent_1 (Data, Token.Line, Token.Line, Code_Delta);
+                     end if;
                   end if;
                end if;
 
-               if Token.First_Trailing_Comment_Line /= Invalid_Line_Number and
-                 (Pair.Comment_Present and then
-                    Pair.Comment_Delta /= Null_Delta)
-               then
-                  Indent_1
-                    (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Pair.Comment_Delta);
+               if Token.First_Trailing_Comment_Line /= Invalid_Line_Number then
+                  if Pair.Comment_Present then
+                     Comment_Param     := Pair.Comment_Delta;
+                     Comment_Param_Set := True;
+
+                  elsif I < Tokens.Last_Index  then
+                     Comment_Param     := Params (I + 1).Code_Delta;
+                     Comment_Param_Set := True;
+                  end if;
+
+                  if Comment_Param_Set then
+                     Comment_Delta := Indent_Compute_Delta
+                       (Data, Tokens, Comment_Param, Token, Indenting_Comment => True);
+
+                     if Comment_Delta /= Null_Delta then
+                        if Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
+                           Indent_1
+                             (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Comment_Delta);
+                        else
+                           Indent_1 (Data, Token.Line, Token.Line, Comment_Delta);
+                        end if;
+                     end if;
+                  end if;
                end if;
             end if;
          end;
       end loop;
    end Indent_Action;
-
-   function Anchored_0
-     (Data         : in out Parse_Data_Type;
-      Index        : in     Integer;
-      Indent_Delta : in     Integer)
-     return Delta_Type
-   is
-      pragma Unreferenced (Indent_Delta);
-      pragma Unreferenced (Index);
-      pragma Unreferenced (Data);
-   begin
-      --  FIXME:
-      return Null_Delta;
-   end Anchored_0;
-
-   function Anchored_1
-     (Data         : in out Parse_Data_Type;
-      Index        : in     Integer;
-      Indent_Delta : in     Integer)
-     return Delta_Type
-   is
-      pragma Unreferenced (Indent_Delta);
-      pragma Unreferenced (Index);
-      pragma Unreferenced (Data);
-   begin
-      --  FIXME:
-      return Null_Delta;
-   end Anchored_1;
 
    procedure Put (Data : in Parse_Data_Type)
    is begin

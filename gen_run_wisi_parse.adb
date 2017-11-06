@@ -147,7 +147,7 @@ begin
    end if;
 
    Parse_Data.Initialize
-     (Descriptor       => Parser.Semantic_State.Trace.Descriptor,
+     (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
       Lexer            => Parser.Lexer,
       Source_File_Name => -Source_File_Name,
       Parse_Action     => Parse_Action,
