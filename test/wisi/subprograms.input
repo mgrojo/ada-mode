@@ -28,6 +28,7 @@ procedure Proc_1;
 procedure
   (
    a
+   --  See comment in ../ada_mode-parens.adb on hanging right paren.
   ) Parent.Proc_1;
 
 --EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))

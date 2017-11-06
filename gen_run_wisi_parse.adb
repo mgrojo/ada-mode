@@ -175,6 +175,7 @@ begin
          else
             Parser.Parse;
 
+            WisiToken.Wisi_Runtime.Resolve_Anchors (Parse_Data);
             WisiToken.Wisi_Runtime.Put (Parse_Data);
             WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
 
@@ -185,7 +186,6 @@ begin
          if Ada.Exceptions.Exception_Message (E)'Length > 0 then
             Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
          end if;
-         WisiToken.Wisi_Runtime.Put (Parse_Data);
          WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
          Put_Line ("(parse_error)");
       end;

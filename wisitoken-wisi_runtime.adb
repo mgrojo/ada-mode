@@ -87,9 +87,11 @@ package body WisiToken.Wisi_Runtime is
       --  types is constrained (as are all allocated objects of access
       --  types; AARM 4.8 (6/3)), and we may need to change the Label.
       Indent    : Indent_Type      := Data.Indents (Anchor_Line);
-      Anchor_ID : constant Integer := Max_Anchor_ID (Data, Anchor_Line, Last_Line);
+      Anchor_ID : constant Integer := 1 + Max_Anchor_ID (Data, Anchor_Line, Last_Line);
    begin
       --  [1] wisi--anchored-2
+      Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
+
       case Indent.Label is
       when Not_Set =>
          Indent := (Anchor, To_Vector (Anchor_ID, 1), 0);
@@ -101,10 +103,10 @@ package body WisiToken.Wisi_Runtime is
          Indent.Anchor_IDs := Anchor_ID & Indent.Anchor_IDs;
 
       when Anchored =>
-         Indent := (Nested_Anchor, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
+         Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
 
-      when Nested_Anchor =>
-         Indent.Nested_Anchor_IDs := Anchor_ID & Indent.Nested_Anchor_IDs;
+      when Anchor_Anchored =>
+         Indent.Anchor_Anchored_IDs := Anchor_ID & Indent.Anchor_Anchored_IDs;
       end case;
 
       Data.Indents.Replace_Element (Anchor_Line, Indent);
@@ -130,7 +132,7 @@ package body WisiToken.Wisi_Runtime is
       when Anchor =>
          raise SAL.Not_Implemented;
 
-      when Anchored | Nested_Anchor =>
+      when Anchored | Anchor_Anchored =>
          raise SAL.Not_Implemented;
       end case;
    end Indent_Apply_Anchored;
@@ -148,7 +150,7 @@ package body WisiToken.Wisi_Runtime is
       when Anchor =>
          Indent.Anchor_Indent := Indent.Anchor_Indent + Offset;
 
-      when Anchored | Nested_Anchor =>
+      when Anchored | Anchor_Anchored =>
          null;
       end case;
    end Indent_Apply_Int;
@@ -245,7 +247,7 @@ package body WisiToken.Wisi_Runtime is
       Last_Line  : in     Line_Number_Type)
      return Integer
    is
-      Result : Integer := First_Anchor_ID;
+      Result : Integer := First_Anchor_ID - 1;
    begin
       for Line in First_Line .. Last_Line loop
          declare
@@ -258,8 +260,8 @@ package body WisiToken.Wisi_Runtime is
                Result := Integer'Max (Result, Indent.Anchor_IDs (Indent.Anchor_IDs.First_Index));
             when Anchored =>
                Result := Integer'Max (Result, Indent.Anchored_ID);
-            when Nested_Anchor =>
-               Result := Integer'Max (Result, Indent.Nested_Anchor_ID);
+            when Anchor_Anchored =>
+               Result := Integer'Max (Result, Indent.Anchor_Anchored_ID);
             end case;
          end;
       end loop;
@@ -386,7 +388,7 @@ package body WisiToken.Wisi_Runtime is
               ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & Integer'Image (Item.Int_Indent) & ']');
          end if;
 
-      when Anchor | Anchored | Nested_Anchor =>
+      when Anchor | Anchored | Anchor_Anchored =>
          raise Programmer_Error with "Indent item has non-int label: " & Indent_Label'Image (Item.Label);
       end case;
    end Put;
@@ -1011,6 +1013,43 @@ package body WisiToken.Wisi_Runtime is
          end;
       end loop;
    end Indent_Action;
+
+   procedure Resolve_Anchors (Data : in out Parse_Data_Type)
+   is
+      Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
+   begin
+      if Data.Max_Anchor_ID >= First_Anchor_ID then
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            declare
+               Indent : constant Indent_Type := Data.Indents (I);
+            begin
+               case Indent.Label is
+               when Not_Set | Int =>
+                  null;
+
+               when Anchor =>
+                  for I of Indent.Anchor_IDs loop
+                     Anchor_Indent (I) := Indent.Anchor_Indent;
+                  end loop;
+                  Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent));
+
+               when Anchored =>
+                  Data.Indents.Replace_Element (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
+
+               when Anchor_Anchored =>
+                  declare
+                     Temp : constant Integer := Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta;
+                  begin
+                     for I of Indent.Anchor_Anchored_IDs loop
+                        Anchor_Indent (I) := Temp;
+                     end loop;
+                     Data.Indents.Replace_Element (I, (Int, Temp));
+                  end;
+               end case;
+            end;
+         end loop;
+      end if;
+   end Resolve_Anchors;
 
    procedure Put (Data : in Parse_Data_Type)
    is begin

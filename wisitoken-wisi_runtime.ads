@@ -191,6 +191,8 @@ package WisiToken.Wisi_Runtime is
       Params  : in     Indent_Param_Array);
    --  Implements [1] wisi-indent-action.
 
+   procedure Resolve_Anchors (Data : in out Parse_Data_Type);
+
    procedure Put (Data : in Parse_Data_Type);
    --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
    --  set-text-property responses as defined in [2]
@@ -253,7 +255,7 @@ private
 
    package Face_Cache_Trees is new SAL.Gen_Unbounded_Definite_Red_Black_Trees (Face_Cache_Type, Buffer_Pos);
 
-   type Indent_Label is (Not_Set, Int, Anchor, Anchored, Nested_Anchor);
+   type Indent_Label is (Not_Set, Int, Anchor, Anchored, Anchor_Anchored);
 
    package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
 
@@ -273,12 +275,12 @@ private
 
       when Anchored =>
          Anchored_ID    : Natural;
-         Anchored_Delta : Integer;
+         Anchored_Delta : Integer; -- added to Anchor_Indent of Anchor_ID
 
-      when Nested_Anchor =>
-         Nested_Anchor_IDs   : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
-         Nested_Anchor_ID    : Natural;
-         Nested_Anchor_Delta : Integer;
+      when Anchor_Anchored =>
+         Anchor_Anchored_IDs   : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
+         Anchor_Anchored_ID    : Natural;
+         Anchor_Anchored_Delta : Integer;
       end case;
    end record;
    First_Anchor_ID : constant Natural := 0;
@@ -297,6 +299,7 @@ private
       Face_Caches      : Face_Cache_Trees.Tree;      -- Used for Face.
       End_Positions    : Navigate_Cursor_Lists.List; -- Used for Navigate.
       Indents          : Indent_Vectors.Vector;      -- Used for Indent.
+      Max_Anchor_ID    : Integer := First_Anchor_ID - 1;
    end record;
 
 end WisiToken.Wisi_Runtime;

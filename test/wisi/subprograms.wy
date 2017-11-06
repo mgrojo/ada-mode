@@ -104,7 +104,7 @@ parameter_list
   | LEFT_PAREN SYMBOL RIGHT_PAREN
     (progn
       (wisi-statement-action [2 misc]) ;; single pair
-      (wisi-indent-action [0 (wisi-anchored% 1 1) 0]))
+      (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
   ;
 
 subprogram
