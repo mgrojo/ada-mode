@@ -1713,7 +1713,7 @@ For use in grammar indent actions."
 
       (goto-char pos)
       (setq delta (+ offset (- (current-column) (current-indentation))))
-      (wisi-anchored-2
+      (wisi--anchored-2
        (wisi-tok-line tok) ;; anchor-line
        (if wisi-indent-comment
 	   (wisi-tok-comment-end (aref wisi-tokens wisi-token-index))
@@ -1741,7 +1741,7 @@ For use in grammar indent actions."
     result
     ))
 
-(defun wisi-anchored-2 (anchor-line end delta no-accumulate)
+(defun wisi--anchored-2 (anchor-line end delta no-accumulate)
   "Set ANCHOR-LINE as anchor, increment anchors thru END, return anchored delta."
   ;; Typically, we use anchored to indent relative to a token buried in a line:
   ;;
@@ -1769,8 +1769,8 @@ For use in grammar indent actions."
   ;;     (Ada.Strings.Maps.To_Set (' '),
   ;;
   ;; here the function call actual parameter part is indented first
-  ;; by 'name' and by 'expression'; we use anchored to keep the
-  ;; 'name' indent and ignore the later addition.
+  ;; by 'name' and later by 'expression'; we use anchored to keep the
+  ;; 'name' delta and ignore the later delta.
   ;;
   ;; So we apply anchored whether the anchor token is first or not.
 
@@ -1820,8 +1820,8 @@ For use in grammar indent actions."
 
 (defun wisi--paren-in-anchor-line (anchor-tok offset)
   "If there is an opening paren containing ANCHOR-TOK in the same line as ANCHOR-TOK,
-call ’wisi-anchored’ with OFFSET plus the delta from the line
-begin to the paren position. Otherwise return OFFSET."
+return OFFSET plus the delta from the line indent to the paren
+position. Otherwise return OFFSET."
   (let* ((tok-syntax (syntax-ppss (car (wisi-tok-region anchor-tok))))
 	 (paren-pos (nth 1 tok-syntax))
 	 (anchor-line (wisi-tok-line anchor-tok)))
@@ -1849,7 +1849,7 @@ For use in grammar indent actions."
 
     (when (not (or (wisi-tok-virtual indent-tok)
 		   (wisi-tok-virtual anchor-tok)))
-      (wisi-anchored-2
+      (wisi--anchored-2
        (wisi-tok-line anchor-tok)
 
        (if wisi-indent-comment

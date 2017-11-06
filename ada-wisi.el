@@ -174,12 +174,16 @@ For use in grammar action."
 	   (wisi-parse-find-token wisi--parser anchor-token))
 	  )))
     (cond
+     ((or (wisi-tok-virtual record-tok)
+	  (wisi-tok-virtual anchor-tok))
+      0)
+
      ((and (= wisi-token-index (1- record-token))
 	   (= offset 0))
       ;; Indenting 'record'
       ;; offset is non-zero when indenting comments after record.
       ;; Anchor line.
-      (wisi-anchored-2 (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
+      (wisi--anchored-2 (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
 
      (t ;; indenting comment, component or 'end'
 
@@ -190,7 +194,7 @@ For use in grammar action."
 		     (eq 'anchor (car indent)))
 	  (setq
 	   delta
-	   (wisi-anchored-2
+	   (wisi--anchored-2
 	    (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
 	  (unless (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
 	    (wisi--indent-token-1 (wisi-tok-line record-tok) (cdr (wisi-tok-region record-tok)) delta))))
@@ -226,14 +230,14 @@ TOKEN-NUMBER is the subprogram_specification token."
 	(while (< (aref (wisi-ind-line-begin wisi--indent) paren-line) paren-pos)
 	  (setq paren-line (1+ paren-line)))
 
-	(wisi-anchored-2 paren-line (cdr (wisi-tok-region renames-tok)) delta nil))
+	(wisi--anchored-2 paren-line (cdr (wisi-tok-region renames-tok)) delta nil))
 
        (t
-	(wisi-anchored-2 subp-line (cdr (wisi-tok-region renames-tok)) ada-indent-renames nil))
+	(wisi--anchored-2 subp-line (cdr (wisi-tok-region renames-tok)) ada-indent-renames nil))
        ))
 
      (t
-      (wisi-anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
+      (wisi--anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
      )))
 
 (defun ada-indent-return (token-number offset)
