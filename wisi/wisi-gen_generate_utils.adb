@@ -51,8 +51,10 @@ package body Wisi.Gen_Generate_Utils is
 
    procedure Set_Token_Images
    is begin
-      LR1_Descriptor.New_Line_ID := Find_Kind ("new-line");
-      LR1_Descriptor.Comment_ID  := Find_Kind ("comment");
+      LR1_Descriptor.New_Line_ID   := Find_Kind ("new-line");
+      LR1_Descriptor.Comment_ID    := Find_Kind ("comment");
+      LR1_Descriptor.Left_Paren_ID := Find_Kind ("left-paren");
+      LR1_Descriptor.Left_Paren_ID := Find_Kind ("right-paren");
 
       LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width          := 0;
@@ -75,6 +77,8 @@ package body Wisi.Gen_Generate_Utils is
 
       LALR_Descriptor.New_Line_ID          := LR1_Descriptor.New_Line_ID;
       LALR_Descriptor.Comment_ID           := LR1_Descriptor.Comment_ID;
+      LALR_Descriptor.Left_Paren_ID        := LR1_Descriptor.Left_Paren_ID;
+      LALR_Descriptor.Right_Paren_ID       := LR1_Descriptor.Right_Paren_ID;
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;

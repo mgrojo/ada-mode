@@ -34,9 +34,9 @@ package WisiToken.Token_Line_Comment is
       --
       --  Only set when State.Parse_Action is Indent, and only for terminal
       --  tokens; for nonterminals, trailing Non_Grammar tokens are stored
-      --  in last token, and Region includes them.
+      --  in the last token in the nonterminal region, and *_Region includes
+      --  them.
 
-      --  The following are only set for non-terminals.
       --  First_, Last_Indent_Line include comments
       First_Indent_Line           : Line_Number_Type;
       Last_Indent_Line            : Line_Number_Type;
@@ -48,6 +48,7 @@ package WisiToken.Token_Line_Comment is
       Initial_Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens before first grammar token.
    end record;
+   type State_Access is access all State_Type;
 
    overriding
    procedure Lexer_To_Lookahead

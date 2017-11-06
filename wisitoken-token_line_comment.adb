@@ -35,8 +35,10 @@ package body WisiToken.Token_Line_Comment is
          Byte_Region                 => Lexer.Byte_Region,
          First                       => Lexer.First,
          Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
-         First_Indent_Line           => Invalid_Line_Number,
-         Last_Indent_Line            => Invalid_Line_Number,
+         First_Indent_Line           =>
+           (if Lexer.First then Lexer.Line else Invalid_Line_Number),
+         Last_Indent_Line            =>
+           (if Lexer.First then Lexer.Line else Invalid_Line_Number),
          First_Trailing_Comment_Line => Invalid_Line_Number,
          Last_Trailing_Comment_Line  => Invalid_Line_Number);
 
@@ -51,12 +53,23 @@ package body WisiToken.Token_Line_Comment is
                  (State.Stack.Reference (State.Stack.Length).Element.all);
             begin
                Prev_Token.Non_Grammar.Append (Temp);
+               if Temp.ID = State.Trace.Descriptor.Comment_ID then
+                  if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                     Prev_Token.First_Trailing_Comment_Line := Temp.Line;
+                  end if;
+                  Prev_Token.Last_Trailing_Comment_Line := Temp.Line;
+
+                  if Prev_Token.First_Indent_Line = Invalid_Line_Number then
+                     Prev_Token.First_Indent_Line := Temp.Line;
+                  end if;
+                  Prev_Token.Last_Indent_Line := Temp.Line;
+               end if;
             end;
          end if;
       else
          State.Lookahead_Queue.Put (Temp);
-
       end if;
+
       if Trace_Parse > 2 then
          State.Trace.Put_Line
            ("lexer_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));

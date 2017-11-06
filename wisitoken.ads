@@ -98,10 +98,12 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      New_Line_ID : Token_ID;
-      Comment_ID  : Token_ID;
-      --  If the tokens do not include a reporting New_Line or Comment
-      --  token, set New_Line_ID or Comment_ID to Invalid_Token_ID.
+      New_Line_ID    : Token_ID;
+      Comment_ID     : Token_ID;
+      Left_Paren_ID  : Token_ID;
+      Right_Paren_ID : Token_ID;
+      --  If the language does not define these tokens, set them to
+      --  Invalid_Token_ID.
 
       Image : Token_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
@@ -282,6 +284,7 @@ package WisiToken is
       Last  : Buffer_Pos;
    end record;
 
+   Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
    Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
 
    function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));

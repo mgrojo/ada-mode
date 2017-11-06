@@ -355,8 +355,6 @@ is
          --    first arg is tokens index, second is indent (integer or symbol)
          --
          --  - a vector with two elements [code_indent comment_indent].
-         --
-         --  Translation is an array of Wisi.Wisi_Runtime.Delta_Type.
 
          use Standard.Ada.Strings.Maps;
          use Standard.Ada.Containers;
@@ -411,13 +409,11 @@ is
 
          function Delta_Int_Or_Symbol (First : in Integer) return String
          is begin
-            --  Return an aggregate for Delta_Type
-            return "(Int, " & -- Label
-              Int_Or_Symbol (First) &
-              ", False)"; -- Accumulate
+            --  Return an aggregate for Indent_Param_Type
+            return "(Int, " & Int_Or_Symbol (First) & ")";
          end Delta_Int_Or_Symbol;
 
-         function Indent_Function (Elisp_Name : in String) return String
+         function Indent_Label (Elisp_Name : in String) return String
          is begin
             if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
             elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
@@ -429,7 +425,7 @@ is
                Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
                return "";
             end if;
-         end Indent_Function;
+         end Indent_Label;
 
       begin
          loop
@@ -458,7 +454,7 @@ is
                      Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
                   end if;
 
-                  Result := Result & "(False, " & Indent_Function (Params (First .. Last - 1)) & " (Parse_Data, ";
+                  Result := Result & "(False, (" & Indent_Label (Params (First .. Last - 1));
 
                   First := Last + 1;
                   Last  := Index (Params, Delim, First);
@@ -466,7 +462,7 @@ is
                      Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
                   end if;
 
-                  Result := Result & Params (First .. Last - 1);
+                  Result := Result & ", " & Params (First .. Last - 1);
 
                   Result := Result & ", " & Int_Or_Symbol (Last + 1) & "))";
 
