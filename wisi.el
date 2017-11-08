@@ -1839,12 +1839,11 @@ position. Otherwise return OFFSET."
     ))
 
 (defun wisi-anchored% (token-number offset &optional no-accumulate)
-  "Anchor the current token at OFFSET from either the first token on the line
-containing TOKEN-NUMBER in `wisi-tokens', or an enclosing paren on that line.
-Return the delta.
+  "Return either an anchor for the current token at OFFSET from an enclosing paren on
+the line containing TOKEN-NUMBER, or OFFSET.
 For use in grammar indent actions."
   (let* ((indent-tok (aref wisi-tokens wisi-token-index))
-	 ;; tok is a nonterminal; this function makes no sense for terminals
+	 ;; indent-tok is a nonterminal; this function makes no sense for terminals
 	 (anchor-tok (aref wisi-tokens (1- token-number))))
 
     (when (not (or (wisi-tok-virtual indent-tok)
