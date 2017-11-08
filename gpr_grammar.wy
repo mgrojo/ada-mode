@@ -100,9 +100,9 @@
 %keyword WHEN "when"
 %keyword WITH "with"
 
-;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
-%token <whitespace> WHITESPACE [ \t\n]
-%token <line_comment> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+

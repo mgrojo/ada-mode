@@ -29,7 +29,7 @@
 
 (cl-defstruct (wisi--error)
   ;; Includes information derived from compiler error recovery to edit
-  ;; text to fix one error.
+  ;; text to fix one error. Used by ’wisi-repair-error’ to edit buffer.
   pos      ;; position (integer or marker) in buffer where error was detected.
   popped   ;; list of wisi-tok tokens before pos that were deleted.
   inserted ;; list of token IDs that were inserted before pos

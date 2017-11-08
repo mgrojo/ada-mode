@@ -169,12 +169,12 @@
 %token <punctuation> TICK_2 "'" / "('"[\x20-\U0010FFFF]"')"
 %end if
 
-;; We don't need numeric_literal for indentation, but we do need it for face.
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
-%token <whitespace> WHITESPACE [ \t\n]
-%token <line_comment> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <reporting> COMMENT "--"[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 
@@ -187,6 +187,9 @@
 
 ;; output_language and lexer are set on the command line; this file is
 ;; used to generate elisp, Ada_Emacs, and Ada parsers.
+
+%elisp_face nil
+%elisp_face font-lock-function-name-face
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
@@ -1586,7 +1589,11 @@ name_list
 
 name
   : IDENTIFIER ;; from direct_name
-    (wisi-face-mark-action [1])
+ ;; marking this for possible later face-apply, to prevent applying
+ ;; face to the aggregate of an allocator, and other similar cases.
+ ;; test/ada_mode-nominal.adb
+ ;;    Object_3 : access Record_Type_3 := new Record_Type_3 (...)
+    (wisi-face-mark-action [1 suffix])
 
   | CHARACTER_LITERAL ;; only in an expression, so no type or function-name face
 
@@ -1731,6 +1738,7 @@ object_renaming_declaration
   | IDENTIFIER COLON EXCEPTION RENAMES name aspect_specification_opt SEMICOLON ;; exception_renaming_declaration
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
+      (wisi-face-apply-action [5 font-lock-function-name-face nil])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   ;
 
@@ -2185,21 +2193,16 @@ return_subtype_indication
 
 selected_component
   : name DOT IDENTIFIER
-    (wisi-face-extend-action 1 3)
+    (wisi-face-mark-action [1 prefix 3 suffix])
 
   | name DOT CHARACTER_LITERAL
+    (wisi-face-mark-action [1 prefix])
 
   | name DOT STRING_LITERAL
- ;; operator_symbol. STRING_LITERAL has text property 'face
- ;; 'font-lock-string-face set by something else (not
- ;; ada-mode-font-lock-keywords); this grammar gives it
- ;; 'font-lock-face 'font-lock-function-name-face. 'face wins, which
- ;; is the result we want.
+    (wisi-face-mark-action [1 prefix])
 
   | name DOT ALL
- ;; explicit_dereference. Similarly here; ada-mode-font-lock-keywords
- ;; gives ALL 'face 'font-lock-keyword-face, this grammar gives it
- ;; 'font-lock-function-name-face.
+    (wisi-face-mark-action [1 prefix])
   ;
 
 ;; selector_name - IDENTIFIER, STRING_LITERAL overlap name; CHARACTER_LITERAL used separately

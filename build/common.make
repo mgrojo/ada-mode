@@ -119,15 +119,17 @@ SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp
+.PRECIOUS : %-wy.el ../%-grammar-wy.el %.tmp %_process.adb
 
 .PHONY : all force one test test-clean
 
-vpath %.adb ../test ../test/ada-gps ../test/subdir ../test/wisi
-vpath %.ads ../test ../test/ada-gps ../test/subdir ../test/wisi
-vpath %.el ../ ../test/wisi
-vpath %.gpr ../test/gpr
-vpath %.wy ../ ../test/wisi
+vpath %.adb   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
+vpath %.el    ../ ../test/wisi
+vpath %.gpr   ../test/gpr
+vpath %.input ../test/wisi
+vpath %.re2c  ../test/wisi
+vpath %.wy    ../ ../test/wisi
 
 # emacs to test with
 #
@@ -150,18 +152,17 @@ gpr-skel.gpr.tmp :
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
 
+# FIXME: delete?
 %.wisi-process-test : %_wisi_parse.exe
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
-%_wisi_parse.exe : %_wisi_parse.ads %-process.el force
+%_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
 
-%-process.el : force
-	make -C $(WISI_WISITOKEN) $*-process.el
-	cp $(WISI_WISITOKEN)/$*-process.el ../test/wisi/$*-process.el
-	cp $(WISI_WISITOKEN)/$*_process.ad? .
+run_%_parse.exe : run_%_parse.ads %_process.ads %_re2c.c force
+	gprbuild -p wisi_parse.gpr $<
 
-.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads
+.PRECIOUS : %-elisp.el %-process.el ../%-grammar-elisp.el  %.ads %_re2c.c
 
 # -v 1 dumps grammar
 %-elisp.el : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
@@ -177,11 +178,13 @@ elisp-clean :
 	rm -f ../*.output ../autoloads.el
 	rm -f ../*-wy.el ../*.elc
 
+# We create the output files in the same directory as the .wy file, so
+# they can be saved in CM together.
 %_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $(<F) > $(*F).ada_parse_table
-	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
-%.re2c %.ads : ../%.wy $(WISI_WISITOKEN)/wisi-generate.exe
+%.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer re2c $< > $(*F).ada_parse_table
 	dos2unix $(*F).ads $(*F).adb
 
@@ -250,6 +253,7 @@ compile-ada-test-clean :
 	rm -f ../test/gpr_query.db*
 
 exe-clean ::
+	rm -rf obj
 	rm -rf ../obj Makefile.conf
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
@@ -272,6 +276,7 @@ test-clean ::
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../test/wisi/; rm -f *.elisp-el *.output
+	cd ../test/wisi/; rm -f subprograms-process.el subprograms.ada_parse_table subprograms.re2c subprograms_process.ad? subprograms_re2c_c.ads subprograms_wisi_parse.exe
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

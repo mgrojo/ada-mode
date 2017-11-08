@@ -4,6 +4,8 @@
 (setq ada-parser 'process)
 ;; ada_mode_wisi_parse.exe must be installed in PATH
 
+(setq wisi-test-parser 'process) ;; for non-Ada tests
+
 (require 'run-indent-test)
 
 ;; don’t report parse errors; recover from them!

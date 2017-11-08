@@ -55,4 +55,9 @@
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.elisp_output$
 ^test/wisi/.*\.elisp_parse_table$
+^test/wisi/.*\.re2c$
 ^test/wisi/.*\.wisi-test$
+^test/wisi/debug\.input$
+^test/wisi/subprograms_process\.adb$
+^test/wisi/subprograms_process\.ads$
+^test/wisi/subprograms_re2c_c\.ads$

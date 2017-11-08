@@ -13,37 +13,75 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
   (load "autoloads.el")
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (run-test "../../test/ada_mode-interactive_recover.adb")
   (wisi-debug-keys))
 
 (progn
   (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (load "autoloads.el")
-  (load "run-wisi-process-test.el")
+  (load "run-indent-test-process-gpr_query.el")
   (setq debug-on-error t)
   (setq wisi-disable-face t)
-  ; (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/wisi/subprograms.input")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
-  (run-test "subprograms"))
+  ; (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
+  (run-test "../test/wisi/subprograms.input"))
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
-  (xmtn . "c:/Projects/org.wisitoken/")
-  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
+'((xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
+refactor wisi.el
+    wisi-elisp-lexer.el - not used when wisi--lexer = nil
+    wisi-elisp-indent.el - not used when wisi--parser = process
+    wisi.el - independent of lexer, parser
+
+compute indent in Ada
+    keep line-begin map in elisp for now; Indent_Action uses line numbers.
+        need line-begin map to speed indent-region?
+
+    subprograms.wisi-process-test
+        navigate cache test passing
+        motion_action test passing
+        remove test passing
+        apply-list test passing
+        (- ...) test passing
+
+        indent failing
+            implementing wisi-wisi_runtime.adb Indent_Action
+            testing with run_wisi_parse subprogram.input, debug.input; works
+            testing with emacs_wisi_parse
+                fix wisi-process-parse Indent to take line number
+                    need to init parser-line-begin
+
+                fix wisi-indent-region to not resolve anchor
+
+            don't indent empty lines?
+
+    copy subprograms.wy to wisitoken, run all tests
+
+    need elisp lexer, token table for wisi-repair-error
+        later
+        ;; FIXME: don’t need wisi--indent if lexer /= elisp; dispatch to lexer init function?
+
+    pass language-specific indent options to process
+
+    add wisi-action-disable arg to process parse command, for profiling?
+
+    do more optimization later
+
 navigate bug:
        LR1_Descriptor : WisiToken.Descriptor
      (First_Terminal    => (if Non_Grammar.Length > 0
@@ -82,8 +120,7 @@ ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
         which gives infinite loop in Read_Input
             raise input_closed exception for that
 
-put back mckenzie-enable in wisi-process-parse
-    so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
+    edited; testing (ie waiting for emacs crash)
 
 newline not in a word should not cause parse retry after parse fail
 
@@ -151,6 +188,16 @@ plain parse, no actions:
 
     need emacs module, run lexer in Ada
 
+consider doing all actions in one parse in process
+    not helpful if dominated by communications time
+
+parse navigate
+    wisi-motion-action
+        in [] token-numbers, skip statements with wisi-goto-end
+
+    wisi-process-parse--Cache
+        faster to check for & modify existing?
+
 parse face
     compare to o.e.a
 
@@ -165,7 +212,12 @@ parse face
 
         process parser, elisp lexer 1.021952 seconds, 2 gcs
 
-indent
+    marking _every_ identifer as possible face prefix
+        count face actions before/after delete that
+        to avoid marking contents of allocator aggregate
+        handle that case individually; find others
+
+parse indent
     use module instead of process
         can pass actions from module to elisp in binary, to avoid scan-sexps
         try mingw64 gnat on Windows
@@ -173,8 +225,9 @@ indent
 
     compute indent in Ada
         also lex
-        add line info compute to lexer
         compatible with AdaCore libadalang indent
+
+        send more than one indent per output line, to reduce communication overhead
 
     take advantage of multicore:
         Process ext feedback while waiting to send more
@@ -231,10 +284,6 @@ indent
 
             don't send right-hand-side tokens for reduce
                 gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
-
-parse navigate
-    wisi-motion-action
-        in [] token-numbers, skip statements with wisi-goto-end
 
 history
     ada-mode 5.2

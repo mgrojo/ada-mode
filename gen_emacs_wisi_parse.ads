@@ -29,9 +29,16 @@
 pragma License (GPL);
 
 with WisiToken.Parser.LR.Parser;
+with WisiToken.Token;
+with WisiToken.Wisi_Runtime;
 generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
+
+   Descriptor : in WisiToken.Descriptor'Class;
+   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type;
+
    with procedure Create_Parser
-     (Parser    :    out WisiToken.Parser.LR.Parser.Instance;
-      Algorithm : in     WisiToken.Parser_Algorithm_Type);
+     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
+      Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 procedure Gen_Emacs_Wisi_Parse;

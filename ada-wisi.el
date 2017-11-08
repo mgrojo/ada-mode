@@ -28,15 +28,6 @@
 (require 'cl-lib)
 (require 'wisi)
 
-(defconst ada-wisi-class-list
-  '(motion ;; motion-action
-    name ;; for ada-wisi-which-function
-    statement-end
-    statement-override ;; see NOT OVERRIDING
-    statement-start
-    misc ;; other stuff
-    ))
-
 ;;;; indentation
 
 (defun ada-indent-aggregate ()
@@ -940,12 +931,18 @@ TOKEN-TEXT; move point to just past token."
 	    :terminal-hashtable (nth 1 ada_grammar-process-token-table)))))
 
 	(lexer
-	 (wisi-make-elisp-lexer
-	  :token-table-raw ada_grammar-elisp-token-table-raw
-	  :keyword-table-raw ada_grammar-elisp-keyword-table-raw
-	  :string-quote-escape-doubled t
-	  :string-quote-escape nil))
-	 )
+	 (cond
+	  ((or (null ada-parser)
+	       (eq 'elisp ada-parser))
+	   (wisi-make-elisp-lexer
+	    :token-table-raw ada_grammar-elisp-token-table-raw
+	    :keyword-table-raw ada_grammar-elisp-keyword-table-raw
+	    :string-quote-escape-doubled t
+	    :string-quote-escape nil))
+	  ((eq 'process ada-parser)
+	   ;; lexer is in parser process
+	   nil)
+	  )))
 
     (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
@@ -954,7 +951,6 @@ TOKEN-TEXT; move point to just past token."
     (wisi-setup
      :indent-calculate '(ada-wisi-comment)
      :post-indent-fail 'ada-wisi-post-parse-fail
-     :class-list ada-wisi-class-list
      :parser parser
      :lexer lexer)
     )

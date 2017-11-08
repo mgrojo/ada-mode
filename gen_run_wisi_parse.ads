@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  External process parser for subprograms wisi test
+--  Run an Emacs parser as a standalone executable, for debugging.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -18,7 +18,18 @@
 
 pragma License (GPL);
 
-with Gen_Emacs_Wisi_Parse;
-with Subprograms_Process;
-procedure Subprograms_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  ("Subprograms", Subprograms_Process.Descriptor, Subprograms_Process.Parse_Data, Subprograms_Process.Create_Parser);
+with WisiToken.Parser.LR.Parser;
+with WisiToken.Token;
+with WisiToken.Wisi_Runtime;
+generic
+   Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
+
+   Descriptor : in WisiToken.Descriptor'Class;
+   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type;
+
+   with procedure Create_Parser
+     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+      Algorithm      : in     WisiToken.Parser_Algorithm_Type;
+      Semantic_State : in     WisiToken.Token.Semantic_State_Access);
+
+procedure Gen_Run_Wisi_Parse;

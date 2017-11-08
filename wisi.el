@@ -8,7 +8,7 @@
 ;;  indentation
 ;;  navigation
 ;; Version: 1.1.6
-;; package-requires: ((cl-lib "0.4") (emacs "24.2") (queue "0.1.1"))
+;; package-requires: ((cl-lib "0.4") (emacs "24.3") (seq "2.3"))
 ;; URL: http://www.nongnu.org/ada-mode/wisi/wisi.html
 ;;
 ;; This file is part of GNU Emacs.
@@ -114,6 +114,8 @@
 
 (require 'cl-lib)
 (require 'compile)
+(require 'seq)
+(require 'semantic/lex)
 (require 'wisi-parse-common)
 (require 'wisi-elisp-parse) ;; FIXME: don’t require these til needed
 (require 'wisi-process-parse)
@@ -270,7 +272,7 @@ Useful when debugging parser or parser actions."
   ;; indent = delta + 'anchor id line indent; for lines indented
   ;; relative to anchor.
   ;;
-  ;; - list ('anchor (start-id ...) ('anchored NEST delta))
+  ;; - list ('anchor (start-id ...) ('anchored id delta))
   ;; for nested anchors
 
   line-begin ;; vector of beginning-of-line positions in buffer
@@ -527,17 +529,7 @@ wisi-forward-token, but only sets token-id and region."
 
   last ;; pos of last char in token, relative to first (0 indexed)
 
-  class
-  ;; arbitrary lisp symbol, used for indentation and navigation.
-  ;; some classes are defined by wisi:
-  ;;
-  ;; 'statement-start - the start of a statement
-  ;;
-  ;; 'statement-end - the end of a statement
-  ;;
-  ;; 'motion - a statement keyword
-  ;;
-  ;; others are language-specific
+  class ;; one of wisi-class-list
 
   containing
   ;; Marker at the start of the containing statement for this token.
@@ -872,7 +864,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 		  (wisi--error-deleted (car (wisi-parser-errors wisi--parser))))))
 	;; If there is error correction information, use a
 	;; ’compilation’ buffer, so *-fix-compiler-error will call
-	;; wisi-fix-error.
+	;; wisi-repair-error.
 	(progn
 	  (wisi-goto-error)
 	  (message (wisi--error-message (car (wisi-parser-errors wisi--parser)))))
@@ -899,6 +891,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 	  (compilation--ensure-parse (point-max))
 	  (setq buffer-read-only t)
 	  (goto-char (point-min)))
+
 	(display-buffer wisi-error-buffer
 			(cons #'display-buffer-at-bottom
 			      (list (cons 'window-height #'shrink-window-if-larger-than-buffer))))
@@ -912,8 +905,15 @@ Used to ignore whitespace changes in before/after change hooks.")
     (message "parse succeeded"))
    ))
 
-(defvar-local wisi-class-list nil
-  "list of valid token classes; checked in wisi-statement-action.")
+(defconst wisi-class-list
+  [motion ;; motion-action
+   name ;; for which-function
+   statement-end
+   statement-override
+   statement-start
+   misc ;; other stuff
+   ]
+  "array of valid token classes; checked in wisi-statement-action, used in wisi-process-parse.")
 
 (defvar-local wisi--parser nil
   "Choice of wisi parser implementation; a ‘wisi-parser’ object.")
@@ -1086,7 +1086,7 @@ PAIRS is a vector of the form [TOKEN-NUMBER CLASS TOKEN-NUMBER
 CLASS ...] where TOKEN-NUMBER is the (1 indexed) token number in
 the production, CLASS is the wisi class of that token. Use in a
 grammar action as:
-  (wisi-statement-action [1 \\='statement-start 7 \\='statement-end])"
+  (wisi-statement-action [1 statement-start 7 statement-end])"
   (when (eq wisi--parse-action 'navigate)
     (save-excursion
       (let ((first-item t)
@@ -1103,7 +1103,7 @@ grammar action as:
 
 	    (setq i (1+ i))
 
-	    (unless (memq class wisi-class-list)
+	    (unless (seq-contains wisi-class-list class)
 	      (error "%s not in wisi-class-list" class))
 
 	    (if region
@@ -1174,7 +1174,7 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 	(signal 'wisi-parse-error
 		(wisi-error-msg
 		 "wisi-containing-action: containing-region '%s' is empty. grammar error; bad action"
-		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
+		 (wisi-tok-token containing-tok))))
 
       (unless (or (not contained-region) ;; contained-token is empty
 		  (wisi-tok-virtual contained-tok)
@@ -1185,13 +1185,9 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		 "wisi-containing-action: containing-token '%s' has no cache. grammar error; missing action"
 		 (wisi-token-text (aref wisi-tokens (1- containing-token))))))
 
-      (when (not (or (wisi-tok-virtual containing-tok)
+      (when (and (not (or (wisi-tok-virtual containing-tok)
 		     (wisi-tok-virtual contained-tok)))
-	(while (not containing-region)
-	  ;; containing-token is empty; use next
-	  (setq containing-region (wisi-tok-region (aref wisi-tokens containing-token))))
-
-	(when contained-region
+		 contained-region)
 	  ;; nil when empty production, may not contain any caches
 	  (save-excursion
 	    (goto-char (cdr contained-region))
@@ -1214,7 +1210,8 @@ If CONTAINING-TOKEN is empty, the next token number is used."
 		  ;; else set mark, loop
 		  (setf (wisi-cache-containing cache) mark)
 		  (setq cache (wisi-backward-cache)))
-		))))))))
+		))))
+      )))
 
 (defun wisi--match-token (cache tokens start)
   "Return t if CACHE has id from TOKENS and is at START or has containing equal to START.
@@ -1337,70 +1334,30 @@ vector [number token_id token_id ...]:
       :class class)
      )))
 
-(defun wisi-face-mark-action (tokens)
-  "Cache face information in text properties of tokens.
-Intended as a grammar action.
-
-TOKENS is a vector of the form [TOKEN-NUMBER ...] where
-TOKEN-NUMBER is a (1 indexed) token number in the production."
+(defun wisi-face-mark-action (pairs)
+  "PAIRS is a vector of TOKEN CLASS pairs; mark TOKEN (token number)
+as having face CLASS (prefix or suffix).
+Intended as a grammar action."
   (when (eq wisi--parse-action 'face)
     (let ((i 0))
-      (while (< i (length tokens))
-	(let* ((number (1- (aref tokens i)))
-	       (region (wisi-tok-region (aref wisi-tokens number))))
-
-	  (setq i (1+ i))
-
+      (while (< i (length pairs))
+	(let ((region (wisi-tok-region (aref wisi-tokens (1- (aref pairs i)))))
+	      (class (aref pairs (setq i (1+ i)))))
 	  (when region
-	    ;; region can be null on an optional token
-	    (wisi--face-put-cache region 'suffix)
- 	    )))
-      )))
+	    ;; region can be null on an optional or virtual token
+	    (let ((cache (get-text-property (car region) 'wisi-face)))
+	      (if cache
+		  ;; previously marked; extend this cache, delete any others
+		  (progn
+		    (with-silent-modifications
+		      (remove-text-properties (+ (car region) (wisi-cache-last cache)) (cdr region) '(wisi-face nil)))
+		    (setf (wisi-cache-class cache) class)
+		    (setf (wisi-cache-last cache) (- (cdr region) (car region))))
 
-(defun wisi-face-extend-action (first last)
-  "If token FIRST has ’wisi-face’ cache(s) covering all of the token,
-apply another ’wisi-face’ cache on token(s) LAST.
-Set cache-class of FIRST to PREFIX, LAST to SUFFIX."
-  (when (eq wisi--parse-action 'face)
-    (let* ((first-tok (aref wisi-tokens (1- first)))
-	   (first-region (wisi-tok-region first-tok))
-	   (first-length (- (cdr (wisi-tok-region first-tok)) (car (wisi-tok-region first-tok))))
-	   (last-region (wisi-tok-region (aref wisi-tokens (1- last))))
-	   first-face-1 first-face-2 face-2-beg)
-
-      ;; When extending a selected name, token first may already have
-      ;; a prefix and suffix face; replace that suffix with the
-      ;; prefix, apply the suffix to token last. The separating dot
-      ;; has no face.
-      ;;
-      ;; test/ada_mode-loop_face.adb Package_Name.Child_Package_Name.Type_Name
-
-      (when (and first-region last-region) ;; can be nil when error correction is present.
-	(setq first-face-1 (get-text-property (car first-region) 'wisi-face))
-
-	(when first-face-1
-	  (cond
-	   ((= first-length (wisi-cache-last first-face-1))
-	    (when (> wisi-debug 1)
-	      (message "face: set class %s:%s" (wisi-cache-region first-face-1 (car first-region)) 'prefix))
-	    (setf (wisi-cache-class first-face-1) 'prefix)
-	    (wisi--face-put-cache last-region 'suffix))
-
-	   ((progn
-	      (setq face-2-beg (+ 1 (car first-region) (wisi-cache-last first-face-1)))
-	      (setq first-face-2 (get-text-property face-2-beg 'wisi-face)))
-	    (when (> wisi-debug 1)
-	      (message "face: remove cache %s" (cons face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg)))))
-	    (with-silent-modifications
-	      (remove-text-properties face-2-beg (cdr (wisi-cache-region first-face-2 face-2-beg))
-				      '(wisi-face nil)))
-	    (setf (wisi-cache-last first-face-1) first-length)
-	    (wisi--face-put-cache last-region 'suffix))
-
-	   (t
-	    nil)
-	   )))
-      )))
+		;; else not previously marked
+		(wisi--face-put-cache region class)))
+	    ))
+	))))
 
 (defun wisi-face-remove-action (tokens)
   "Remove face caches and faces in TOKENS.
@@ -1517,8 +1474,8 @@ cache."
 
 (defun wisi-face-apply-list-action (triples)
   "Similar to ’wisi-face-apply-action’, but applies faces to all
-tokens a `wisi-face' cache in the wisi-tokens[token-number]
-region."
+tokens with a `wisi-face' cache in the wisi-tokens[token-number]
+region, and does not apply a face if there are no such caches."
   (when (eq wisi--parse-action 'face)
     (let (number token-region face-region prefix-face suffix-face cache (i 0) pos)
       (while (< i (length triples))
@@ -1949,7 +1906,7 @@ DELTAS is a vector; each element can be:
 - a lisp form
 - a vector.
 
-The first three are evaluated to give the delta. A vector must
+The first three are evaluated to give an integer delta. A vector must
 have two elements, giving the code and following comment
 deltas. Otherwise the comment delta is the following delta in
 DELTAS."
@@ -2384,6 +2341,8 @@ Called with BEGIN END.")
 	   (i (max begin-line 1))
 	   pos
 	   (line-count (+ 1 begin-line (count-lines begin (point-max))))
+
+	   ;; FIXME: don’t need wisi--indent if lexer /= elisp; dispatch to lexer init function?
 	   (wisi--indent
 	    (make-wisi-ind
 	     :line-begin (make-vector line-count 0)
@@ -2618,13 +2577,12 @@ If non-nil, only repair errors in BEG END region."
     (setq diff-gcs (- gcs-done start-gcs))
     (if report-wait-time
 	(progn
-	  (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs %d tokens %d actions %f wait"
+	  (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs %d responses %f wait"
 		   diff-time
 		   diff-gcs
 		   (/ diff-time count)
 		   (/ (float diff-gcs) count)
-		   (wisi-process--parser-token-count wisi--parser)
-		   (wisi-process--parser-action-count wisi--parser)
+		   (wisi-process--parser-response-count wisi--parser)
 		   (/ cum-wait-time count)))
 
       (message "Total %f seconds, %d gcs; per iteration %f seconds %d gcs"
@@ -2716,12 +2674,11 @@ If non-nil, only repair errors in BEG END region."
 
 ;;;;; setup
 
-(cl-defun wisi-setup (&key indent-calculate post-indent-fail class-list parser lexer)
+(cl-defun wisi-setup (&key indent-calculate post-indent-fail parser lexer)
   "Set up a buffer for parsing files with wisi."
   (when wisi--parser
     (wisi-kill-parser))
 
-  (setq wisi-class-list class-list)
   (setq wisi--parser parser)
   (setq wisi--lexer lexer)
 

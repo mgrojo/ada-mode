@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  External process parser for subprograms wisi test
+--  Run the subprograms parser standalone. Useful for debugging grammar issues.
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -18,7 +18,10 @@
 
 pragma License (GPL);
 
-with Gen_Emacs_Wisi_Parse;
+with Gen_Run_Wisi_Parse;
 with Subprograms_Process;
-procedure Subprograms_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  ("Subprograms", Subprograms_Process.Descriptor, Subprograms_Process.Parse_Data, Subprograms_Process.Create_Parser);
+procedure Run_Subprograms_Parse is new Gen_Run_Wisi_Parse
+  (Name          => "subprograms",
+   Descriptor    => Subprograms_Process.Descriptor,
+   Parse_Data    => Subprograms_Process.Parse_Data,
+   Create_Parser => Subprograms_Process.Create_Parser);
