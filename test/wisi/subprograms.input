@@ -28,7 +28,7 @@ procedure Proc_1;
 procedure
   (
    a
-   --  See comment in ../ada_mode-parens.adb on hanging right paren.
+  --  See comment in ../ada_mode-parens.adb on hanging right paren.
   ) Parent.Proc_1;
 
 --EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))
@@ -38,14 +38,14 @@ begin
 --EMACSCMD: (test-face "Parent" nil)
 --EMACSCMD: (test-face "Child" nil)
 for I
-in
+    in
       Parent.Child
    loop;
 
---EMACSCMD: (progn (forward-line 4)(forward-sexp)(looking-at "when Beep"))
---EMACSRESULT:t
---EMACSCMD: (progn (forward-line 3)(back-to-indentation)(forward-sexp)(looking-at "; -- target"))
---EMACSRESULT:t
+   --EMACSCMD: (progn (forward-line 4)(forward-sexp)(looking-at "when Beep"))
+   --EMACSRESULT:t
+   --EMACSCMD: (progn (forward-line 3)(back-to-indentation)(forward-sexp)(looking-at "; -- target"))
+   --EMACSRESULT:t
 exception
    when Beep
 end; -- target

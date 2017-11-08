@@ -114,6 +114,53 @@ package body WisiToken.Wisi_Runtime is
       return (Anchored, Anchor_ID, Indent_Delta, Accumulate);
    end Anchored_2;
 
+   function Current_Indent_Offset
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Token_Line_Comment.Token;
+      Offset       : in Integer)
+     return Integer
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
+
+      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
+   begin
+      --  [1] compute delta in wisi-anchored-1.
+
+      if Anchor_Token.First or else
+        ((Anchor_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
+           Anchor_Token.First_Indent_Line = Anchor_Token.Line)
+      then
+         Text_Begin_Pos := Anchor_Token.Char_Region.First;
+      else
+         loop
+            exit when I < Data.Semantic_State.Stack.First_Index;
+            declare
+               Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Data.Semantic_State.Stack (I).Element.all);
+            begin
+               exit when Stack_Token.Line /= Anchor_Token.Line;
+
+               if Stack_Token.First or else
+                 ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
+                    Stack_Token.First_Indent_Line = Stack_Token.Line)
+               then
+                  Text_Begin_Pos := Stack_Token.Char_Region.First;
+                  exit;
+               end if;
+            end;
+            I := I - 1;
+         end loop;
+      end if;
+
+      if Text_Begin_Pos = Invalid_Buffer_Pos then
+         raise Programmer_Error;
+      end if;
+      return Offset + Integer (Anchor_Token.Char_Region.First - Text_Begin_Pos);
+   end Current_Indent_Offset;
+
    procedure Indent_Apply_Anchored
      (Delta_Indent : in     Anchored_Delta;
       Indent       : in out Indent_Type)
@@ -133,7 +180,8 @@ package body WisiToken.Wisi_Runtime is
          raise SAL.Not_Implemented;
 
       when Anchored | Anchor_Anchored =>
-         raise SAL.Not_Implemented;
+         --  already anchored
+         null;
       end case;
    end Indent_Apply_Anchored;
 
@@ -162,7 +210,6 @@ package body WisiToken.Wisi_Runtime is
       Delta_Indent : in     Delta_Type)
    is
       --  [1] wisi--indent-token-1
-      --  FIXME: implement 'hanging, 'anchored
       --  FIXME: implement wisi-indent-comment-col-0
    begin
       for Line in First_Line .. Last_Line loop
@@ -199,12 +246,7 @@ package body WisiToken.Wisi_Runtime is
       when Int =>
          return (Int, Param.Int_Delta);
 
-      when Anchored_0 =>
-         raise SAL.Not_Implemented;
-         return Null_Delta;
-
-      when Anchored_1 =>
-         --  [1] wisi-anchored%
+      when Anchored_Label =>
          declare
             Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
               (Tokens (Param.Anchored_Index).Element.all);
@@ -212,27 +254,41 @@ package body WisiToken.Wisi_Runtime is
             if Token.Virtual or Anchor_Token.Virtual then
                return Null_Delta;
             else
-               return Anchored_2
-                 (Data,
-                  Anchor_Line  => Anchor_Token.Line,
-                  Last_Line    =>
-                    (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
-                  Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Anchored_Delta),
-                  Accumulate   => False);
+               case Anchored_Label'(Param.Label) is
+               when Anchored_0 =>
+                  --  [1] wisi-anchored, wisi-anchored-1
+                  return Anchored_2
+                    (Data,
+                     Anchor_Line  => Anchor_Token.Line,
+                     Last_Line    =>
+                       (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                     Indent_Delta => Current_Indent_Offset (Data, Anchor_Token, Param.Anchored_Delta),
+                     Accumulate   => True);
+
+               when Anchored_1 =>
+                  --  [1] wisi-anchored%
+                  return Anchored_2
+                    (Data,
+                     Anchor_Line  => Anchor_Token.Line,
+                     Last_Line    =>
+                       (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                     Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Anchored_Delta),
+                     Accumulate   => True);
+
+               when Anchored_2 =>
+                  raise SAL.Not_Implemented;
+                  return Null_Delta;
+
+               when Anchored_3 =>
+                  raise SAL.Not_Implemented;
+                  return Null_Delta;
+
+               when Anchored_4 =>
+                  raise SAL.Not_Implemented;
+                  return Null_Delta;
+               end case;
             end if;
          end;
-
-      when Anchored_2 =>
-         raise SAL.Not_Implemented;
-         return Null_Delta;
-
-      when Anchored_3 =>
-         raise SAL.Not_Implemented;
-         return Null_Delta;
-
-      when Anchored_4 =>
-         raise SAL.Not_Implemented;
-         return Null_Delta;
 
       when Hanging =>
          raise SAL.Not_Implemented;
@@ -280,10 +336,10 @@ package body WisiToken.Wisi_Runtime is
       Left_Paren_ID  : Token_ID renames Descriptor.Left_Paren_ID;
       Right_Paren_ID : Token_ID renames Descriptor.Right_Paren_ID;
 
-      I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
-      Paren_Count : Integer := 0;
-      Paren_Char_Pos : Buffer_Pos := Invalid_Buffer_Pos;
-      Text_Begin_Pos : Buffer_Pos := Invalid_Buffer_Pos;
+      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+      Paren_Count    : Integer             := 0;
+      Paren_Char_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
+      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
       --  [1] wisi--paren-in-anchor-line. That uses elisp syntax-ppss; here
       --  we search the parser stack.
@@ -318,7 +374,7 @@ package body WisiToken.Wisi_Runtime is
       end loop;
 
       if Paren_Char_Pos /= Invalid_Buffer_Pos and Text_Begin_Pos /= Invalid_Buffer_Pos then
-         return Offset + Integer (Text_Begin_Pos - Paren_Char_Pos);
+         return Offset + Integer (Paren_Char_Pos - Text_Begin_Pos);
       else
          return Offset;
       end if;
@@ -383,6 +439,10 @@ package body WisiToken.Wisi_Runtime is
       when Int =>
          if Item.Int_Indent < 0 then
             Put_Error (Data, Line_Number, "indent " & Integer'Image (Item.Int_Indent) & " is < 0.");
+
+         elsif Item.Int_Indent = 0 then
+            null;
+
          else
             Ada.Text_IO.Put_Line
               ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & Integer'Image (Item.Int_Indent) & ']');
@@ -959,7 +1019,6 @@ package body WisiToken.Wisi_Runtime is
       Params  : in     Indent_Param_Array)
    is
       pragma Unreferenced (Nonterm);
-      Descriptor : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
    begin
       --  [1] wisi-indent-action
       for I in Tokens.First_Index .. Tokens.Last_Index loop
@@ -977,11 +1036,7 @@ package body WisiToken.Wisi_Runtime is
                   Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token, Indenting_Comment => False);
 
                   if Code_Delta /= Null_Delta then
-                     if Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
-                        Indent_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
-                     else
-                        Indent_1 (Data, Token.Line, Token.Line, Code_Delta);
-                     end if;
+                     Indent_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
                   end if;
                end if;
 
@@ -1000,12 +1055,8 @@ package body WisiToken.Wisi_Runtime is
                        (Data, Tokens, Comment_Param, Token, Indenting_Comment => True);
 
                      if Comment_Delta /= Null_Delta then
-                        if Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal then
-                           Indent_1
-                             (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Comment_Delta);
-                        else
-                           Indent_1 (Data, Token.Line, Token.Line, Comment_Delta);
-                        end if;
+                        Indent_1
+                          (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Comment_Delta);
                      end if;
                   end if;
                end if;

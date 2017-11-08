@@ -60,7 +60,7 @@ block
   | BEGIN loop_statement EXCEPTION WHEN name END
     (progn
       (wisi-statement-action [3 motion 4 motion])
-      (wisi-indent-action [0 subp-indent subp-indent 0 0 0]))
+      (wisi-indent-action [0 subp-indent 0 subp-indent 0 0]))
 ;
 
 compilation_unit

@@ -43,6 +43,11 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
+refactor wisi.el
+    wisi-elisp-lexer.el - not used when wisi--lexer = nil
+    wisi-elisp-indent.el - not used when wisi--parser = process
+    wisi.el - independent of lexer, parser
+
 compute indent in Ada
     keep line-begin map in elisp for now; Indent_Action uses line numbers.
         need line-begin map to speed indent-region?
@@ -56,11 +61,14 @@ compute indent in Ada
 
         indent failing
             implementing wisi-wisi_runtime.adb Indent_Action
-            testing with run_wisi_parse subprogram.input, debug.input
-                need wisi-anchored (did not need wisi-anchored%)
+            testing with run_wisi_parse subprogram.input, debug.input; works
+            testing with emacs_wisi_parse
+                fix wisi-process-parse Indent to take line number
+                    need to init parser-line-begin
 
-            fix wisi-process-parse Indent to take line number
-                need to init parser-line-begin
+                fix wisi-indent-region to not resolve anchor
+
+            don't indent empty lines?
 
     copy subprograms.wy to wisitoken, run all tests
 
