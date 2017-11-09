@@ -33,6 +33,7 @@
 
 (require 'ada-mode)
 (require 'wisi)
+(require 'wisi-elisp-lexer)
 
 (defun ada-wisi-opentoken ()
   "Return appropriate indentation (an integer column) for continuation lines in an OpenToken grammar statement."

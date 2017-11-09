@@ -26,6 +26,7 @@
 (require 'gpr-indent-user-options)
 (require 'gpr-mode)
 (require 'wisi)
+(require 'wisi-elisp-lexer)
 
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."

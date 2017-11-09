@@ -233,7 +233,7 @@ complete."
 (defun wisi-process-parse--Indent (parser sexp)
   ;; sexp is [Indent line-number indent]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (1- (aref (wisi--process-parser line-begin) (aref sexp 1)))))
+  (let ((pos (1- (aref (wisi-process--parser-line-begin parser) (aref sexp 1)))))
     ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
@@ -383,6 +383,10 @@ complete."
 	  (setf (wisi-process--parser-total-wait-time parser) 0.0)
 
 	  (setf (wisi-parser-errors parser) nil)
+
+	  (let ((line-count (1+ (count-lines (point-min) (point-max)))))
+	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin line-count))
+	    )
 
 	  (wisi-process-parse--send-parse parser)
 

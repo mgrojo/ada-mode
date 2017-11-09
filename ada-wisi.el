@@ -24,236 +24,9 @@
 ;;;;
 
 (require 'ada-fix-error)
-(require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
-
-;;;; indentation
-
-(defun ada-indent-aggregate ()
-  "Return indent for an aggregate (0 or -1)."
-  ;; In our grammar, 'aggregate' can be an Ada aggregate, or a
-  ;; parenthesized expression.
-  ;;
-  ;; We always want an 'aggregate' to be indented by
-  ;; ada-indent-broken. However, in some places in the grammar,
-  ;; 'aggregate' is indented by ada-indent. The following checks for
-  ;; those places, and returns a correction value.
-  ;;
-  ;; `ada-indent-aggregate' is used in only one place in the grammar,
-  ;; in 'primary'.
-  (let ((prev-token (wisi-tok-token (wisi-parse-prev-token wisi--parser 1))))
-    (cl-case prev-token
-      (ELSE ;; in if_expression or boolean shortcut "or else"
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
-	 (OR
-	  ;; boolean shortcut
-	  ;;
-	  ;; test/ada_mode-parens.adb
-	  ;; or else ((B.all
-	  ;;             and then C)
-	  ;;            or else
-	  ;;            (D
-	  0)
-
-	 (t ;; if_expression
-	  (- ada-indent-broken ada-indent))
-	 ))
-
-      (EQUAL_GREATER
-       ;; in association_opt or case_expression_alternative
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 3))
-	 (WHEN
-	  ;; case_expression_alternative
-	  ;;
-	  ;; test/ada_mode-conditional_expressions.adb
-	  ;; when 1  =>
-	  ;;
-	  ;;    (if J > 42
-	  (- ada-indent-broken ada-indent))
-
-	 (t
-	  ;; association_opt
-	  ;;
-	  ;; test/ada_mode-long_paren.adb
-	  ;; RX_Enable                     =>
-	  ;;   (RX_Torque_Subaddress |
-	  0)
-	 ))
-
-      (THEN
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
-	 (AND
-	  ;; boolean shortcut
-	  ;;
-	  ;; test/ada_mode-parens.adb
-	  ;;             and then
-	  ;;             (C)
-	  0)
-
-	 (t
-	  ;; in elsif_expression_item or if_expression
-	  (- ada-indent-broken ada-indent))))
-
-      (t
-       0))
-    ))
-
-(defun ada-indent-hanging (tok delta1 delta2 option)
-  "For `wisi-indent-hanging-function'. Determine indent style from context."
-  ;; ada-mode 5.2 used a special case for aspect specification
-  ;; expressions; we implement that here. Otherwise, implement
-  ;; ada-indent-hanging-rel-exp.
-  (cond
-   ((and (eq (wisi-tok-token tok) 'expression_opt)
-	 (let ((prev-1 (wisi-parse-prev-token wisi--parser 1))
-	       (prev-3 (wisi-parse-prev-token wisi--parser 3)))
-	   (or
-	    ;; test/aspects.ads
-	    ;; with Pre => X > 10 and
-	    ;;             X < 50 and
-	    ;;             F (X),
-	    (and prev-1
-		 (eq 'WITH (wisi-tok-token prev-1))
-		 (or (null prev-3)
-		     ;; FIXME: doc test case
-		     (not (eq 'LEFT_PAREN (wisi-tok-token prev-3))))) ;; not in extension aggregate
-
-	    ;; test/aspects.ads
-	    ;;   Post =>
-	    ;;     Y >= X and
-	    ;;     Some_Very_Verbose_Predicate (X, Y);
-	    (and prev-3
-		 (eq 'WITH (wisi-tok-token prev-3))))))
-    ;; in aspect_specification_opt
-    (list
-     delta1
-     (wisi-anchored-1 tok 0)))
-
-   (ada-indent-hanging-rel-exp
-    (if (or (not option)
-	    (= (wisi-tok-line tok) (wisi-tok-first tok)))
-	(list
-	 delta1
-	 (wisi-anchored-1 tok ada-indent-broken))
-      (list (wisi-anchored-1 tok ada-indent-broken))))
-
-   ((or (not option)
-	(= (wisi-tok-line tok) (wisi-tok-first tok)))
-    (list delta1 delta2))
-
-   (t
-    (list delta1))
-   ))
-
-(defun ada-indent-record (anchor-token record-token offset)
-  "Return delta to implement `ada-indent-record-rel-type'.
-
-ANCHOR-TOKEN is the token to anchor line containing 'record' to; it is one of:
-integer; token number in `wisi-tokens'
-symbol: token id to find in the parser stack.
-
-RECORD-TOKEN is the token number of 'record'.
-
-For use in grammar action."
-  (let ((record-tok (aref wisi-tokens (1- record-token)))
-	(anchor-tok
-	 (cond
-	  ((integerp anchor-token)
-	   (aref wisi-tokens (1- anchor-token)))
-	  ((symbolp anchor-token)
-	   (wisi-parse-find-token wisi--parser anchor-token))
-	  )))
-    (cond
-     ((or (wisi-tok-virtual record-tok)
-	  (wisi-tok-virtual anchor-tok))
-      0)
-
-     ((and (= wisi-token-index (1- record-token))
-	   (= offset 0))
-      ;; Indenting 'record'
-      ;; offset is non-zero when indenting comments after record.
-      ;; Anchor line.
-      (wisi--anchored-2 (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
-
-     (t ;; indenting comment, component or 'end'
-
-      ;; ensure 'record' line is anchored
-      (let ((indent (aref (wisi-ind-indent wisi--indent) (1- (wisi-tok-line record-tok))))
-	    delta)
-	(unless (and (listp indent)
-		     (eq 'anchor (car indent)))
-	  (setq
-	   delta
-	   (wisi--anchored-2
-	    (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
-	  (unless (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
-	    (wisi--indent-token-1 (wisi-tok-line record-tok) (cdr (wisi-tok-region record-tok)) delta))))
-
-      ;; anchor comment lines
-      (wisi-anchored-1
-       anchor-tok
-       (if (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
-	   offset
-	 (+ offset ada-indent-record-rel-type))
-       nil))
-     )))
-
-(defun ada-indent-renames (token-number)
-  "Implement `ada-indent-return' option in a subprogram renaming grammar action.
-TOKEN-NUMBER is the subprogram_specification token."
-  ;; wisi-token-index is the renames token.
-  (let* ((subp-tok (aref wisi-tokens (1- token-number)))
-	 (subp-line (wisi-tok-line subp-tok))
-	 (renames-tok (aref wisi-tokens wisi-token-index))
-	 (paren-pos
-	  (progn (goto-char (car (wisi-tok-region subp-tok)))
-		 (search-forward "(" (cdr (wisi-tok-region subp-tok)) t)))
-	 (paren-line subp-line)
-	 delta)
-
-    (cond
-     (paren-pos
-      (cond
-       ((>= 0 ada-indent-renames)
-	(setq delta (+ (abs ada-indent-renames) -1 (- (current-column) (current-indentation))))
-
-	(while (< (aref (wisi-ind-line-begin wisi--indent) paren-line) paren-pos)
-	  (setq paren-line (1+ paren-line)))
-
-	(wisi--anchored-2 paren-line (cdr (wisi-tok-region renames-tok)) delta nil))
-
-       (t
-	(wisi--anchored-2 subp-line (cdr (wisi-tok-region renames-tok)) ada-indent-renames nil))
-       ))
-
-     (t
-      (wisi--anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
-     )))
-
-(defun ada-indent-return (token-number offset)
-  "Implement `ada-indent-return' option in a grammar action.
-TOKEN-NUMBER is the formal_part token."
-  ;; wisi-token-index must be the return token, or a nonterminal
-  ;; starting with the return token.
-  ;;
-  ;; The grammar handles checking for no params; we know token-number
-  ;; is non-nil.
-  (let ((return-tok (aref wisi-tokens wisi-token-index)))
-    (if (= (wisi-tok-line return-tok) (wisi-tok-first return-tok))
-	;; return is first on a line; needs indenting
-	(cond
-	 ((>= 0 ada-indent-return)
-	  ;; realtive to paren
-	  (wisi-anchored token-number (+ offset (abs ada-indent-return))))
-
-	 (t
-	  ;; relative to 'function'
-	  (wisi-anchored-1 (wisi-parse-find-token wisi--parser 'FUNCTION) (+ offset ada-indent-return)))
-	 )
-
-      ;; 'return' not first on line
-      0)))
+(require 'wisi-elisp-lexer)
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
@@ -905,10 +678,13 @@ TOKEN-TEXT; move point to just past token."
 (defvar ada_grammar-elisp-keyword-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
 (defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
 (defvar ada_grammar-process-action-table nil) ;; ada_grammar-process.el
-(defvar ada_grammar-process-token-table nil) ;;ada_grammar-process.el
+(defvar ada_grammar-process-token-table nil) ;; ada_grammar-process.el
+
+(defvar wisi-elisp-parse-indent-hanging-function nil); wisi-elisp-parse.el
 
 (declare-function wisi-make-elisp-parser "wisi-elisp-parse") ;; autoloaded
 (declare-function wisi-make-process-parser "wisi-process-parse") ;; autoloaded
+(declare-function ada-wisi-elisp-parse--indent-hanging "ada-wisi-elisp-parse")
 
 (defun ada-wisi-setup ()
   "Set up a buffer for parsing Ada files with wisi."
@@ -916,10 +692,16 @@ TOKEN-TEXT; move point to just past token."
 	 (cond
 	  ((or (null ada-parser)
 	       (eq 'elisp ada-parser))
+
 	   (require 'ada_grammar-elisp)
+	   (require 'ada-wisi-elisp-parser)
+
 	   (wisi-make-elisp-parser
 	    ada_grammar-elisp-parse-table
-	    #'wisi-forward-token))
+	    #'wisi-forward-token)
+
+	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
+	   )
 
 	  ((eq 'process ada-parser)
 	   (require 'ada_grammar-process)
@@ -931,18 +713,15 @@ TOKEN-TEXT; move point to just past token."
 	    :terminal-hashtable (nth 1 ada_grammar-process-token-table)))))
 
 	(lexer
-	 (cond
-	  ((or (null ada-parser)
-	       (eq 'elisp ada-parser))
-	   (wisi-make-elisp-lexer
-	    :token-table-raw ada_grammar-elisp-token-table-raw
-	    :keyword-table-raw ada_grammar-elisp-keyword-table-raw
-	    :string-quote-escape-doubled t
-	    :string-quote-escape nil))
-	  ((eq 'process ada-parser)
-	   ;; lexer is in parser process
-	   nil)
-	  )))
+	 ;; The process parser has its own lexer, but we still need
+	 ;; the elisp lexer for ada-wisi-scan-paramlist,
+	 ;; ada-wisi-which-function, etc.
+	 (wisi-make-elisp-lexer
+	  :token-table-raw ada_grammar-elisp-token-table-raw
+	  :keyword-table-raw ada_grammar-elisp-keyword-table-raw
+	  :string-quote-escape-doubled t
+	  :string-quote-escape nil))
+	)
 
     (add-hook 'ada-fix-error-hook #'ada-wisi-fix-error)
 
@@ -954,8 +733,6 @@ TOKEN-TEXT; move point to just past token."
      :parser parser
      :lexer lexer)
     )
-
-  (setq wisi-indent-hanging-function #'ada-indent-hanging)
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 

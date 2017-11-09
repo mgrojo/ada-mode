@@ -10,10 +10,15 @@ Please send wisi bug reports to bug-gnu-emacs@gnu.org, with
 * wisi 2.0.0
 ** Change indentation engine to compute indent directly in parser actions.
 
+** Add error correcting external process parser.
+
+** Factor out wisi-elisp-lexer.el from wisi.el, and
+   ada-wisi-elisp-parse.el from ada-wisi.el. Move elisp grammar
+   actions from wisi.el to wisi-elisp-parse.el; they are not used with
+   the process parser.
+
 ** Add support for error corrections in parser; 'wisi-repair-error'
    can apply the corrections to the buffer text.
-
-** Add external parser.
 
 * wisi 1.1.6
 3 Oct 2017
