@@ -37,7 +37,9 @@ package WisiToken.Token_Line_Comment is
       --  in the last token in the nonterminal region, and *_Region includes
       --  them.
 
-      --  First_, Last_Indent_Line include comments
+      --  First_, Last_Indent_Line include comments between tokens, but
+      --  exclude trailing comments after the last token, so they can be
+      --  indented differently.
       First_Indent_Line           : Line_Number_Type;
       Last_Indent_Line            : Line_Number_Type;
       First_Trailing_Comment_Line : Line_Number_Type;

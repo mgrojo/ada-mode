@@ -58,11 +58,6 @@ package body WisiToken.Token_Line_Comment is
                      Prev_Token.First_Trailing_Comment_Line := Temp.Line;
                   end if;
                   Prev_Token.Last_Trailing_Comment_Line := Temp.Line;
-
-                  if Prev_Token.First_Indent_Line = Invalid_Line_Number then
-                     Prev_Token.First_Indent_Line := Temp.Line;
-                  end if;
-                  Prev_Token.Last_Indent_Line := Temp.Line;
                end if;
             end;
          end if;
@@ -123,9 +118,10 @@ package body WisiToken.Token_Line_Comment is
          First_Trailing_Comment_Line => Invalid_Line_Number,
          Last_Trailing_Comment_Line  => Invalid_Line_Number);
 
-      Stack_I    : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
-      Aug_Tokens : Augmented_Token_Arrays.Vector;
-      First_Set  : Boolean                       := False;
+      Stack_I           : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
+      Aug_Tokens        : Augmented_Token_Arrays.Vector;
+      First_Set         : Boolean                       := False;
+      First_Comment_Set : Boolean                       := False;
    begin
       Aug_Nonterm.ID      := Nonterm;
       Aug_Nonterm.Virtual := False;
@@ -187,10 +183,11 @@ package body WisiToken.Token_Line_Comment is
             declare
                Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
                  (Constant_Reference (Aug_Tokens, Cursor).Element.all);
-               First_Comment_Set : Boolean := False;
             begin
                if Token.Char_Region /= Null_Buffer_Region then
                   Done := True;
+
+                  Aug_Nonterm.Last_Indent_Line := Token.Line;
 
                   if Token.Non_Grammar.Length > 0 then
                      for Tok of Token.Non_Grammar loop

@@ -119,7 +119,7 @@ private
       --  Position and length in bytes and characters of last token from
       --  start of Managed.Buffer, 1 indexed.
 
-      Line            : Line_Number_Type; -- after last New_Line token
+      Line            : Line_Number_Type; -- after last (or current) New_Line token
       Char_Line_Start : Natural;          -- Character position after last New_Line token
       Prev_ID         : Token_ID;         -- previous token_id
    end record;
