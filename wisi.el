@@ -609,7 +609,8 @@ Used to ignore whitespace changes in before/after change hooks.")
 	 )
 	(error
 	 ;; parser failed for other reason
-	 (error (cadr err))))
+	 (signal (car err) (cdr err)))
+	)
 
       (when (> wisi-debug 0)
 	(if (wisi-parser-errors wisi--parser)
@@ -1027,7 +1028,7 @@ Called with BEGIN END.")
       (dotimes (i line-count)
 	(aset result i (point))
 	(forward-line 1)))
-    ))
+    result))
 
 (defun wisi-indent-region (begin end)
   "For `indent-region-function', using the wisi indentation engine."
@@ -1042,8 +1043,9 @@ Called with BEGIN END.")
 
     (goto-char begin)
     (when (bobp) (forward-line))
-    (while (<= (point) end)
-      (unless (get-text-property (1- point) 'wisi-indent)
+    (while (and (<= (point) end)
+		(not (eobp)))
+      (unless (get-text-property (1- (point)) 'wisi-indent)
 	(setq parse-required t))
       (forward-line))
 

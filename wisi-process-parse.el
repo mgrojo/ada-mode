@@ -145,17 +145,18 @@ If not found in ‘wisi-process--alist’, create using other parameters."
       (pop-to-buffer (wisi-process--parser-buffer parser))
     (error "wisi-process-parse process not active")))
 
-(defun wisi-process-parse--send-parse (parser)
+(defun wisi-process-parse--send-parse (parser line-count)
   "Send a parse command to PARSER external process, followed by
 the content of the current buffer.  Does not wait for command to
 complete."
   ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
 			(indent 2))
 		      (if (buffer-file-name) (file-name-nondirectory (buffer-file-name)) "")
+		      line-count
 		      (1- wisi-debug)
 		      (if wisi-mckenzie-enable 1 0)
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
@@ -233,7 +234,7 @@ complete."
 (defun wisi-process-parse--Indent (parser sexp)
   ;; sexp is [Indent line-number indent]
   ;; see ‘wisi-process-parse--execute’
-  (let ((pos (1- (aref (wisi-process--parser-line-begin parser) (aref sexp 1)))))
+  (let ((pos (aref (wisi-process--parser-line-begin parser) (1- (aref sexp 1)))))
     ;; FIXME: faster to check for & modify existing?
     (with-silent-modifications
       (put-text-property
@@ -386,9 +387,8 @@ complete."
 
 	  (let ((line-count (1+ (count-lines (point-min) (point-max)))))
 	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin line-count))
+	    (wisi-process-parse--send-parse parser line-count)
 	    )
-
-	  (wisi-process-parse--send-parse parser)
 
 	  (set-buffer response-buffer)
 
@@ -424,7 +424,7 @@ complete."
 		  (forward-line 1)
 		  (setq sexp-start (point))
 
-		  (set-buffer source-buffer) ;; for set-text-property in actions
+		  (set-buffer source-buffer) ;; for put-text-property in actions
 		  (if (listp response)
 		      ;; error of some sort
 		      (cond

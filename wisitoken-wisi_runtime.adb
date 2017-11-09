@@ -434,14 +434,12 @@ package body WisiToken.Wisi_Runtime is
       --  grammar indent rules or the algorithms in this package.
       case Item.Label is
       when Not_Set =>
-         null;
+         Ada.Text_IO.Put_Line
+           ('[' & Indent_Code & Int_Image (Integer (Line_Number)) & " 0]");
 
       when Int =>
          if Item.Int_Indent < 0 then
             Put_Error (Data, Line_Number, "indent " & Integer'Image (Item.Int_Indent) & " is < 0.");
-
-         elsif Item.Int_Indent = 0 then
-            null;
 
          else
             Ada.Text_IO.Put_Line
@@ -1104,17 +1102,23 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Put (Data : in Parse_Data_Type)
    is begin
-      for Cache of Data.Navigate_Caches loop
-         Put (Cache);
-      end loop;
+      case Data.Parse_Action is
+      when Navigate =>
+         for Cache of Data.Navigate_Caches loop
+            Put (Cache);
+         end loop;
 
-      for Cache of Data.Face_Caches loop
-         Put (Cache);
-      end loop;
+      when Face =>
+         for Cache of Data.Face_Caches loop
+            Put (Cache);
+         end loop;
 
-      for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-         Put (Data, I, Data.Indents (I));
-      end loop;
+      when Indent =>
+         --  Don't send indent for first line in source; always 0.
+         for I in Data.Indents.First_Index + 1 .. Data.Indents.Last_Index loop
+            Put (Data, I, Data.Indents (I));
+         end loop;
+      end case;
    end Put;
 
    procedure Put

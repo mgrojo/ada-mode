@@ -31,6 +31,8 @@ with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Emacs_Wisi_Parse
 is
+   use WisiToken; -- "+", "-" Unbounded_string
+
    Protocol_Version : constant String := "1";
    Version          : constant String := "0.0";
 
@@ -51,10 +53,11 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNparse <action> <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>" &
-       " <source_byte_count> <source bytes>");
+      ("NNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>" &
+       " <mckenzie_check_limit> <source_byte_count> <source bytes>");
       Put_Line ("  NN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
+      Put_Line ("  <line-count> is integer count of lines in source");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
       Put_Line ("  <mckenzie_enabled> is 0 | 1");
       Put_Line ("  <*_limit> is integer; -1 means use default");
@@ -173,7 +176,7 @@ begin
       end case;
    end;
 
-   Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
+   Create_Parser (Parser, LALR, State'Unrestricted_Access);
 
    Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
@@ -198,27 +201,35 @@ begin
          Put_Line (";; " & Command_Line);
 
          if Match ("parse") then
-            --  Args: <action> <source_file_name> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit> <mckenzie_check_limit>
-            --        <source byte count>
+            --  Args: <action> <source_file_name> <line-count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>
+            --        <mckenzie_check_limit> <source byte count>
             --  Input: <source text>
             --  Response:
             --  [response elisp vector]...
             --  [elisp error form]...
             --  prompt
             declare
-               Cost_Limit  : Integer;
-               Check_Limit : Integer;
-               Byte_Count  : Integer;
-               Buffer      : Ada.Strings.Unbounded.String_Access;
+               use WisiToken.Wisi_Runtime;
+               Parse_Action     : constant Parse_Action_Type := Wisi_Runtime.Parse_Action_Type'Val
+                 (Get_Integer (Command_Line, Last));
+               Source_File_Name : constant Ada.Strings.Unbounded.Unbounded_String := +Get_String (Command_Line, Last);
+               Line_Count       : constant Line_Number_Type := Line_Number_Type (Get_Integer (Command_Line, Last));
+               Cost_Limit       : Integer;
+               Check_Limit      : Integer;
+               Byte_Count       : Integer;
+               Buffer           : Ada.Strings.Unbounded.String_Access;
             begin
-               Parse_Data.Initialize
-                 (Descriptor       => Parser.Semantic_State.Trace.Descriptor,
-                  Lexer            => Parser.Lexer,
-                  Parse_Action     => WisiToken.Wisi_Runtime.Parse_Action_Type'Val (Get_Integer (Command_Line, Last)),
-                  Source_File_Name => Get_String (Command_Line, Last),
-                  Line_Count       => 0);
+               --  Computing Line_Count in elisp allows parsing in parallel with
+               --  sending source text.
 
-               WisiToken.Trace_Parse := Get_Integer (Command_Line, Last);
+               Parse_Data.Initialize
+                 (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+                  Lexer            => Parser.Lexer,
+                  Parse_Action     => Parse_Action,
+                  Source_File_Name => -Source_File_Name,
+                  Line_Count       => Line_Count);
+
+               Trace_Parse := Get_Integer (Command_Line, Last);
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
                --  information; don't override that.
@@ -242,18 +253,18 @@ begin
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
 
+               WisiToken.Wisi_Runtime.Resolve_Anchors (Parse_Data);
                WisiToken.Wisi_Runtime.Put (Parse_Data);
                WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
 
                Ada.Strings.Unbounded.Free (Buffer);
             exception
-            when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>
+            when E : Parse_Error | Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
                if Ada.Exceptions.Exception_Message (E)'Length > 0 then
                   Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
                end if;
-               WisiToken.Wisi_Runtime.Put (Parse_Data);
-               WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
+               Put (State.Errors, Trace.Descriptor.all);
                Ada.Strings.Unbounded.Free (Buffer);
                Put_Line ("(parse_error)");
             end;
@@ -264,7 +275,6 @@ begin
             --  prompt
             --  FIXME: not edited for new API
             declare
-               use WisiToken;
                ID : Token_ID := Invalid_Token_ID;
             begin
                Parser.Lexer.Reset;
@@ -273,7 +283,7 @@ begin
                   ID := Parser.Lexer.Find_Next;
                end loop;
             exception
-            when WisiToken.Syntax_Error =>
+            when Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
             end;
 

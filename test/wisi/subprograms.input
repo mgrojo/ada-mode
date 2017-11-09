@@ -3,7 +3,7 @@
 --EMACSCMD: (test-face "Sibling" 'font-lock-function-name-face)
 use Parent.Child,
   Sibling;
-    
+
 --EMACSCMD: (test-cache-class "function" 'statement-start)
 --EMACSCMD: (test-cache-class "(" 'misc)
 --EMACSCMD: (test-cache-class "Func_1" 'name)
@@ -33,19 +33,19 @@ procedure
 
 --EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))
 --EMACSRESULT:t
-function () Func_1
+function () Func_2
 begin
---EMACSCMD: (test-face "Parent" nil)
---EMACSCMD: (test-face "Child" nil)
+   --EMACSCMD: (test-face "Parent" nil)
+   --EMACSCMD: (test-face "Child" nil)
 for I
     in
       Parent.Child
    loop;
 
-   --EMACSCMD: (progn (forward-line 4)(forward-sexp)(looking-at "when Beep"))
-   --EMACSRESULT:t
-   --EMACSCMD: (progn (forward-line 3)(back-to-indentation)(forward-sexp)(looking-at "; -- target"))
-   --EMACSRESULT:t
+--EMACSCMD: (progn (forward-line 4)(forward-sexp)(looking-at "when Beep"))
+--EMACSRESULT:t
+--EMACSCMD: (progn (forward-line 3)(back-to-indentation)(forward-sexp)(looking-at "; -- target"))
+--EMACSRESULT:t
 exception
    when Beep
 end; -- target

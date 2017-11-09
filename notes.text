@@ -59,18 +59,16 @@ compute indent in Ada
             testing with run_wisi_parse subprogram.input, debug.input; works
             testing with emacs_wisi_parse
 
+    pass language-specific indent options to process
+
     need language-specific delta function: ada-indent-record, ada-indent-renames
         ie subp-indent-something
 
-    don't indent empty lines?
-
     copy subprograms.wy to wisitoken, run all tests
 
-    need elisp lexer, token table for wisi-repair-error
-        later
-        ;; FIXME: don’t need wisi--indent if lexer /= elisp; dispatch to lexer init function?
+    fix gen_emacs_wisi_parse.adb noop
 
-    pass language-specific indent options to process
+    see all FIXME
 
     add wisi-action-disable arg to process parse command, for profiling?
 

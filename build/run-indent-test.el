@@ -258,6 +258,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 	;; save a copy of that.
 	(revert-buffer t t))
 
+      (delete-trailing-whitespace)
       (write-file (concat dir (file-name-nondirectory file-name) ".tmp")) )
     )
   )
