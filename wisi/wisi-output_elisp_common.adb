@@ -126,14 +126,14 @@ package body Wisi.Output_Elisp_Common is
       Indent := Indent - 3;
    end Indent_Token_Table;
 
-   procedure Indent_Names
+   procedure Indent_Name_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Names            : in     String_Lists.List)
    is
       use Standard.Ada.Text_IO;
    begin
-      Indent_Line ("(defconst " & Output_File_Root & "-" & Label & "-names");
+      Indent_Line ("(defconst " & Output_File_Root & "-" & Label);
       Indent_Line ("  [");
       Indent := Indent + 3;
       for Name of Names loop
@@ -142,6 +142,6 @@ package body Wisi.Output_Elisp_Common is
       Indent_Line ("])");
       Indent := Indent - 3;
       New_Line;
-   end Indent_Names;
+   end Indent_Name_Table;
 
 end Wisi.Output_Elisp_Common;

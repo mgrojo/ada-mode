@@ -43,7 +43,7 @@ package Wisi.Output_Elisp_Common is
       Tokens           : in     Token_Lists.List;
       Image            : access function (Name : in Standard.Ada.Strings.Unbounded.Unbounded_String) return String);
 
-   procedure Indent_Names
+   procedure Indent_Name_Table
      (Output_File_Root : in     String;
       Label            : in     String;
       Names            : in     String_Lists.List);

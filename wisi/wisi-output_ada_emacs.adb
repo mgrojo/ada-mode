@@ -897,8 +897,8 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      Output_Elisp_Common.Indent_Names
-        (Output_File_Name_Root, "process-faces", Output_Elisp_Common.Elisp_Names.Faces);
+      Output_Elisp_Common.Indent_Name_Table
+        (Output_File_Name_Root, "process-face-table", Output_Elisp_Common.Elisp_Names.Faces);
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);
