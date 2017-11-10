@@ -57,24 +57,17 @@
   "Alist mapping string label to ‘wisi-process--session’ struct")
 
 ;;;###autoload
-(cl-defun wisi-make-process-parser (&key label exec face-table token-table)
-  "Return a ‘wisi-process--parser’ object matching LABEL.
-If not found in ‘wisi-process--alist’, create using other parameters."
-  (or (cdr (assoc label wisi-process--alist))
-      (let ((exec-file (locate-file exec exec-path '("" ".exe")))
-	    parser)
+(defun wisi-process-parse-get (parser)
+  "Return a ‘wisi-process--parser’ object matching PARSER label.
+If label found in ‘wisi-process--alist’, return that.
+Otherwise add PARSER to ‘wisi-process--alist’, return it."
+  (or (cdr (assoc (wisi-process--parser-label parser) wisi-process--alist))
+      (let ((exec-file (locate-file (wisi-process--parser-exec-file parser) exec-path '("" ".exe"))))
 
 	(unless exec-file
-	  (error "%s not found on `exec-path'" exec))
+	  (error "%s not found on `exec-path'" (wisi-process--parser-exec-file parser)))
 
-	(setq parser
-	      (make-wisi-process--parser
-	       :label label
-	       :exec-file exec-file
-	       :face-table face-table
-	       :token-table token-table))
-
-	(push (cons label parser) wisi-process--alist)
+	(push (cons (wisi-process--parser-label parser) parser) wisi-process--alist)
 
 	parser
      )))
@@ -150,7 +143,7 @@ If not found in ‘wisi-process--alist’, create using other parameters."
 the content of the current buffer.  Does not wait for command to
 complete."
   ;; Must match "parse" command arguments in gen_emacs_wisi_parse.adb
-  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d"
+  (let* ((cmd (format "parse %d \"%s\" %d %d %d %d %d %d %s"
 		      (cl-ecase wisi--parse-action
 			(navigate 0)
 			(face 1)
@@ -162,6 +155,7 @@ complete."
 		      (if wisi-mckenzie-cost-limit wisi-mckenzie-cost-limit -1)
 		      (if wisi-mckenzie-check-limit wisi-mckenzie-check-limit -1)
 		      (1- (position-bytes (point-max)))
+		      (wisi-parse-format-language-options parser)
 		      ))
 	 (msg (format "%02d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))

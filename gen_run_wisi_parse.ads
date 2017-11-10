@@ -32,4 +32,6 @@ generic
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 
+   with procedure Set_Language_Specific_Params (Params : in String);
+
 procedure Gen_Run_Wisi_Parse;

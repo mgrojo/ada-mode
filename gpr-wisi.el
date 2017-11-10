@@ -92,6 +92,17 @@
 
 ;;;;
 
+(cl-defstruct (gpr-wisi-parser (:include wisi-process--parser))
+  ;; no new structs
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser gpr-wisi-parser))
+  (format "%d %d %d"
+	  gpr-indent
+	  gpr-indent-broken
+	  gpr-indent-when
+	  ))
+
 (defvar gpr_grammar-elisp-parse-table nil) ;; gpr_grammar-elisp.el
 (defvar gpr_grammar-elisp-token-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
 (defvar gpr_grammar-elisp-keyword-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
@@ -114,12 +125,12 @@
 
     ((eq 'process gpr-parser)
      (require 'gpr_grammar-process)
-     (wisi-make-process-parser
+     (wisi-process-parse-get
+      (make-gpr-wisi-parser
       :label "gpr"
-      :exec gpr-process-parse-exec
+      :exec-file gpr-process-parse-exec
       :token-table (nth 0 gpr_grammar-process-token-table)
-      :action-table (nth 0 gpr_grammar-process-action-table)
-      :terminal-hashtable (nth 1 gpr_grammar-process-token-table)))
+      :face-table (nth 0 gpr_grammar-process-face-table))))
     )
 
    :lexer (wisi-make-elisp-lexer

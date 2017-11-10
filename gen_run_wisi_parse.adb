@@ -59,6 +59,7 @@ is
                   (if Parser.Table = null then ""
                    else "; default" & Integer'Image (Parser.Table.McKenzie.Check_Limit)));
       Put_Line ("--disable_recover : disable error recovery; default enabled");
+      Put_Line ("--indent_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
       Put_Line ("--repeat_count n : repeat parse count times, for profiling; default 1");
       Put_Line ("--pause : when repeating, prompt for <enter> after each parse; allows seeing memory leaks");
@@ -109,6 +110,10 @@ begin
          elsif Argument (Arg) = "--disable_recover" then
             Parser.Enable_McKenzie_Recover := False;
             Arg := Arg + 1;
+
+         elsif Argument (Arg) = "--indent_params" then
+            Set_Language_Specific_Params (Argument (Arg + 1));
+            Arg := Arg + 2;
 
          elsif Argument (Arg) = "--lexer_only" then
             Lexer_Only := True;

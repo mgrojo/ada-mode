@@ -53,13 +53,8 @@ compute indent in Ada
         remove test passing
         apply-list test passing
         (- ...) test passing
-
-        indent failing
-            implementing wisi-wisi_runtime.adb Indent_Action
-            testing with run_wisi_parse subprogram.input, debug.input; works
-            testing with emacs_wisi_parse
-
-    pass language-specific indent options to process
+        indent passing
+        language-specific indent options passing
 
     need language-specific delta function: ada-indent-record, ada-indent-renames
         ie subp-indent-something

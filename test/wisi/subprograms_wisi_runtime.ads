@@ -19,8 +19,13 @@ pragma License (Modified_GPL);
 
 package Subprograms_Wisi_Runtime is
 
-   --  FIXME: pass these values to process from Emacs
-   Subp_Indent        : Integer := 3;
-   Subp_Indent_Broken : Integer := 2;
+   --  Weird defaults, to test specifying these at runtime.
+   Subp_Indent               : Integer := 0;
+   Subp_Indent_Broken        : Integer := 0;
+   Subp_Indent_Comment_Col_0 : Boolean := False;
+
+   procedure Set_Params (Params : in String);
+   --  Set all params from Params, in declaration order. Boolean is
+   --  represented by 0 | 1. Parameter values are space delimited.
 
 end Subprograms_Wisi_Runtime;

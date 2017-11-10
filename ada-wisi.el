@@ -672,6 +672,26 @@ TOKEN-TEXT; move point to just past token."
        ))
     ))
 
+(cl-defstruct (ada-wisi-parser (:include wisi-process--parser))
+  ;; no new slots
+  )
+
+(cl-defmethod wisi-parse-format-language-options ((_parser ada-wisi-parser))
+  (format "%d %d %d %d %d %d %d %d %d %d %d %d"
+	  ada-indent
+	  ada-indent-broken
+	  (if ada-indent-comment-col-0 1 0)
+	  (if ada-indent-comment-gnat 1 0)
+	  ada-indent-label
+	  ada-indent-record-rel-type
+	  ada-indent-renames
+	  ada-indent-return
+	  ada-indent-use
+	  ada-indent-when
+	  ada-indent-with
+	  (if ada-indent-hanging-rel-exp 1 0)
+	  ))
+
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
 (defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
 (defvar ada_grammar-elisp-token-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
@@ -705,12 +725,13 @@ TOKEN-TEXT; move point to just past token."
 
 	  ((eq 'process ada-parser)
 	   (require 'ada_grammar-process)
-	   (wisi-make-process-parser
-	    :label "Ada"
-	    :exec ada-process-parse-exec
-	    :token-table (nth 0 ada_grammar-process-token-table)
-	    :action-table (nth 0 ada_grammar-process-action-table)
-	    :terminal-hashtable (nth 1 ada_grammar-process-token-table)))))
+	   (wisi-process-parse-get
+	    (make-ada-wisi-parser
+	     :label "Ada"
+	     :exec-file ada-process-parse-exec
+	     :face-table ada_grammar-process-face-table
+	     :token-table ada_grammar-process-token-table)))
+	  ))
 
 	(lexer
 	 ;; The process parser has its own lexer, but we still need

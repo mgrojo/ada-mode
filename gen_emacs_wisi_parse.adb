@@ -54,7 +54,7 @@ is
       New_Line;
       Put_Line
       ("NNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>" &
-       " <mckenzie_check_limit> <source_byte_count> <source bytes>");
+       " <mckenzie_check_limit> <source_byte_count> <source bytes> <language-specific params>");
       Put_Line ("  NN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
@@ -202,7 +202,7 @@ begin
 
          if Match ("parse") then
             --  Args: <action> <source_file_name> <line-count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>
-            --        <mckenzie_check_limit> <source byte count>
+            --        <mckenzie_check_limit> <source byte count> <language-specific params>
             --  Input: <source text>
             --  Response:
             --  [response elisp vector]...
@@ -239,6 +239,8 @@ begin
                Cost_Limit  := Get_Integer (Command_Line, Last);
                Check_Limit := Get_Integer (Command_Line, Last);
                Byte_Count  := Get_Integer (Command_Line, Last);
+
+               Set_Language_Specific_Params (Command_Line (Last + 2 .. Command_Line'Last));
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
