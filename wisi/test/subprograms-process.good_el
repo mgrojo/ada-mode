@@ -20,23 +20,44 @@
 (require 'wisi-process-parse)
 
 (defconst subprograms-process-token-table
-  [FUNCTION
-   LEFT_PAREN
+  [WHITESPACE
+   NEW_LINE
+   COMMENT
+   BEGIN
+   END
+   EXCEPTION
+   FOR
+   FUNCTION
+   IN
+   LOOP
    PROCEDURE
+   WHEN
+   USE
+   LEFT_PAREN
    RIGHT_PAREN
+   COMMA
+   DOT
+   SEMICOLON
    SYMBOL
    Wisi_EOI
    wisitoken_accept
+   block
    compilation_unit
    declarations
    declaration
-   subprogram
+   loop_statement
+   name
+   name_list
    parameter_list
+   subprogram
+   subtype
+   use_clause
    ])
 
-(defconst subprograms-process-faces-names
+(defconst subprograms-process-face-table
   [
    font-lock-keyword-face
+   font-lock-type-face
    font-lock-function-name-face
    nil
    ])

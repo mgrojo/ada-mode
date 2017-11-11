@@ -5,9 +5,7 @@
 ;;; output until after conflict is resolved.
 
 %{
-with WisiToken.Token_Region;
 %%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword ALIASED "aliased"

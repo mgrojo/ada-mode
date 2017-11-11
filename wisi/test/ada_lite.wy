@@ -27,10 +27,10 @@
 ;;
 %{
 with WisiToken.Text_IO_Trace;
-with WisiToken.Token_Region;
+with WisiToken.Token_Line_Comment;
 %%
    Trace : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+   State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
 %}
@@ -89,8 +89,9 @@ with WisiToken.Token_Region;
 %token <number> NUMERIC_LITERAL [0-9]+
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
-%non_grammar <non-reporting> WHITESPACE [ \t\n]
-%non_grammar <non-reporting> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t]
+%non_grammar <new-line> NEW_LINE [\n]
+%non_grammar <comment> COMMENT "--"[^\n]*[\n]
 
 %start compilation_unit_list
 %parser_algorithm LALR

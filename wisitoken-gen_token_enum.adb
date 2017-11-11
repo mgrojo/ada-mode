@@ -124,7 +124,7 @@ package body WisiToken.Gen_Token_Enum is
          Result : Augmented_Token_Array;
       begin
          for ID of Item loop
-            Result.Append (Augmented_Token'(ID => ID, Enum_ID => -ID));
+            Result.Append (Augmented_Token'(ID => ID, Enum_ID => -ID, Virtual => False));
          end loop;
          return Result;
       end To_Augmented;
@@ -136,7 +136,7 @@ package body WisiToken.Gen_Token_Enum is
          Put (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
       end if;
       if Action /= null then
-         Action (Augmented_Token'(ID => Nonterm, Enum_ID => Enum_Nonterm), Index, Augmented_Tokens);
+         Action (Augmented_Token'(ID => Nonterm, Enum_ID => Enum_Nonterm, Virtual => False), Index, Augmented_Tokens);
       end if;
    end Reduce_Stack;
 

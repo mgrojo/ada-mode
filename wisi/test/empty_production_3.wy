@@ -2,9 +2,7 @@
 ;;; production, where first can be empty, were handled wrong.
 
 %{
-with WisiToken.Token_Region;
 %%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword IN "in"

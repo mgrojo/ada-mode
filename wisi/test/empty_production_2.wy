@@ -16,9 +16,7 @@
 ;; conflict is never resolved, no actions are output.
 
 %{
-with WisiToken.Token_Region;
 %%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword BEGIN "begin"

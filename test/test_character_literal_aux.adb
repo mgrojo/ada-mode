@@ -15,7 +15,6 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks.Containers;
-with AUnit.Checks.Text_IO;
 with Ada.Containers;
 with Character_Literal;
 with WisiToken.AUnit;
@@ -27,7 +26,6 @@ package body Test_Character_Literal_Aux is
    procedure Test_Statement_List_0 (Nonterm : in WisiToken.Augmented_Token'Class)
    is
       use AUnit.Checks.Containers;
-      use AUnit.Checks.Text_IO;
       use WisiToken.AUnit;
 
       Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token (Nonterm);
@@ -39,17 +37,26 @@ package body Test_Character_Literal_Aux is
          when 1 =>
             Check ("statement_list_0 1 line", Token.Line, 2);
             Check ("statement_list_0 1 non_grammar.length", Token.Non_Grammar.Length, 0);
-            Check ("statement_list_0 1 region", Token.Char_Region, (29, 33)); -- includes trailing non_grammar
+            Check ("statement_list_0 1 region", Token.Char_Region, (29, 32));
 
          when 2 =>
             Check ("statement_list_0 2 line", Token.Line, 3);
             Check ("statement_list_0 2 non_grammar.length", Token.Non_Grammar.Length, 0);
-            Check ("statement_list_0 2 region", Token.Char_Region, (34, 83));
+            Check ("statement_list_0 2 region", Token.Char_Region, (34, 37));
+            Check ("statement_list_0 2 a", Token.First_Indent_Line, 3);
+            Check ("statement_list_0 2 b", Token.Last_Indent_Line, 3);
+            Check ("statement_list_0 2 c", Token.First_Trailing_Comment_Line, 5);
+            Check ("statement_list_0 2 d", Token.Last_Trailing_Comment_Line, 5);
 
-         when 11 =>
-            Check ("statement_list_0 11 line", Token.Line, 22);
-            Check ("statement_list_0 11 non_grammar.length", Token.Non_Grammar.Length, 0);
-            Check ("statement_list_0 11 region", Token.Char_Region, (390, 438)); -- EOF
+         when 10 =>
+            --  object'attribute
+            Check ("statement_list_0 10 line", Token.Line, 20);
+            Check ("statement_list_0 10 non_grammar.length", Token.Non_Grammar.Length, 0);
+            Check ("statement_list_0 10 region", Token.Char_Region, (295, 314));
+            Check ("statement_list_0 10 a", Token.First_Indent_Line, 20);
+            Check ("statement_list_0 10 b", Token.Last_Indent_Line, 21);
+            Check ("statement_list_0 10 c", Token.First_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
+            Check ("statement_list_0 10 d", Token.Last_Trailing_Comment_Line, WisiToken.Invalid_Line_Number);
 
          when others =>
             null;
@@ -62,7 +69,6 @@ package body Test_Character_Literal_Aux is
    is
       use AUnit.Checks;
       use AUnit.Checks.Containers;
-      use AUnit.Checks.Text_IO;
       use Character_Literal;
       use WisiToken.AUnit;
 

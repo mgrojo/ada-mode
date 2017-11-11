@@ -1,9 +1,7 @@
 ;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
 
 %{
-with WisiToken.Token_Region;
 %%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %token <punctuation> SEMICOLON ";"

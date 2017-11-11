@@ -12,6 +12,12 @@ VPATH += ../Test
 VPATH += ../wisi
 VPATH += ../wisi/test
 
+vpath %-wy.good_el  ../wisi/test
+vpath %.good_parse  ../wisi/test
+vpath %.input  ../wisi/test
+vpath %.texinfo ../Docs
+vpath %.wy ../wisi/test ../time
+
 # Variables for library creation
 export GPRBUILD_TARGET := $(shell gcc -dumpmachine)
 ifneq (,$(findstring mingw,$(GPRBUILD_TARGET)))
@@ -69,10 +75,12 @@ tests : empty_production_8_re2c.c
 tests : empty_production_8-parse.diff
 tests : identifier_list_name_conflict_re2c.c
 tests : identifier_list_name_conflict-parse.diff
+tests : subprograms-process.el.diff
 tests : subprograms_process.adb.diff
 
 # we don't run subprograms-parse because subprograms is used in a real
-# Emacs Ada mode test, so it has real elisp syntax.
+# Emacs Ada mode test, so it relies on the wisi Ada Emacs runtime,
+# which is in Ada mode, not here.
 
 test_all_harness.out : test_all_harness.exe wisi-generate.exe
 
@@ -124,13 +132,7 @@ DIFF_OPT := -u -w
 	diff $(DIFF_OPT) $(^:parse=parse_table) > $@
 	diff $(DIFF_OPT) $^ >> $@
 
-# FIXME: still need this?
-%-process.el : %.wy wisi-generate.exe
-	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer Elisp --interface process $< > $*.parse_table
-	dos2unix $*.parse_table
-	dos2unix $*-process.el
-
-%_process.adb : %.wy wisi-generate.exe
+%-process.el %_process.adb : %.wy wisi-generate.exe
 	./wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $< > $*.parse_table
 	dos2unix $*.parse_table
 	dos2unix $*_process.adb
@@ -186,11 +188,5 @@ zipfile : force
 	cd ../..; zip -q -r $(CURDIR)/wisitoken-$(ZIP_VERSION).zip $(BRANCH)-$(ZIP_VERSION) -x "$(ROOT)-$(ZIP_VERSION)/_MTN/*" -x "$(ROOT)-$(ZIP_VERSION)/build/x86_*" -x "$(ROOT)-$(ZIP_VERSION)/.mtn-ignore" -x "$(ROOT)-$(ZIP_VERSION)/.dvc-exclude" -x "$(ROOT)-$(ZIP_VERSION)/debug_parser.adb"
 
 .PRECIOUS : %.ada %.ads %_run.exe %.l %.parse %-process.el %_process.adb %.qx %.re2c %-wy.el
-
-vpath %-wy.good_el  ../wisi/test
-vpath %.good_parse  ../wisi/test
-vpath %.input  ../wisi/test
-vpath %.texinfo ../Docs
-vpath %.wy ../wisi/test ../time
 
 # end of file

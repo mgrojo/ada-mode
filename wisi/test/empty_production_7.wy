@@ -1,9 +1,7 @@
 ;;; finding bug in parse table generator; 2 consecutive nonterms can be empty
 
 %{
-with WisiToken.Token_Region;
 %%
-   State : aliased WisiToken.Token_Region.State_Type (Trace'Access);
 %}
 
 %keyword ALIASED "aliased"

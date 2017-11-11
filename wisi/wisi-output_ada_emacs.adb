@@ -51,11 +51,15 @@ procedure Wisi.Output_Ada_Emacs
 is
    use all type Standard.Ada.Containers.Count_Type;
 
+   Language_Name_Dir     : constant Integer := Standard.Ada.Strings.Fixed.Index
+     (Input_File_Name, Standard.Ada.Strings.Maps.To_Set ("/\"), Going => Standard.Ada.Strings.Backward);
    Language_Name_Grammar : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name, "_grammar");
    Language_Name_Ext     : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name, ".wy");
    Language_Name         : constant String  := Elisp_Name_To_Ada
      (Input_File_Name
-        (Input_File_Name'First ..
+        ((if Language_Name_Dir = 0
+          then Input_File_Name'First
+          else Language_Name_Dir + 1) ..
            (if Language_Name_Grammar = 0
             then Language_Name_Ext - 1
             else Language_Name_Grammar - 1)),
@@ -1165,7 +1169,7 @@ begin
       null;
 
    when Elisp_Lexer =>
-      raise Programmer_Error;
+      raise Programmer_Error with "Ada_Emacs requires re2c lexer";
    end case;
 
    Create_Ada_Spec

@@ -1,16 +1,16 @@
 Tokens:
- 1 => WHITESPACE
- 2 => OVERRIDING
- 3 => OTHER
- 4 => PROCEDURE
- 5 => SEMICOLON
- 6 => IDENTIFIER
- 7 => Wisi_EOI
- 8 => wisitoken_accept
- 9 => compilation_unit
- 10 => subprogram_declaration
- 11 => overriding_indicator
- 12 => other_indicator
+ 0 => WHITESPACE
+ 1 => OVERRIDING
+ 2 => OTHER
+ 3 => PROCEDURE
+ 4 => SEMICOLON
+ 5 => IDENTIFIER
+ 6 => Wisi_EOI
+ 7 => wisitoken_accept
+ 8 => compilation_unit
+ 9 => subprogram_declaration
+ 10 => overriding_indicator
+ 11 => other_indicator
 
 LALR Parse Table:
 Follow:

@@ -498,17 +498,17 @@ package body Wisi.Gen_Output_Ada_Common is
       use all type WisiToken.Parser.LR.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser : out WisiToken.Parser.LR.Parser.Instance;");
+      Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Parser.Instance;");
       case Interface_Kind is
       when None =>
-         Indent_Line ("   Algorithm      : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in WisiToken.Token.Semantic_State_Access)");
+         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
       when Process =>
-         Indent_Line ("   Algorithm      : in WisiToken.Parser_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in WisiToken.Token.Semantic_State_Access)");
+         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
       when Module =>
-         Indent_Line ("   Env                 : in Emacs_Env_Access;");
-         Indent_Line ("   Lexer_Elisp_Symbols : in Lexers.Elisp_Array_Emacs_Value)");
+         Indent_Line ("   Env                 : in     Emacs_Env_Access;");
+         Indent_Line ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value)");
       end case;
 
       Indent_Line ("is");

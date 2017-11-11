@@ -1,16 +1,16 @@
 Tokens:
- 1 => WHITESPACE
- 2 => LEFT_PAREN
- 3 => RIGHT_PAREN
- 4 => TICK
- 5 => IDENTIFIER
- 6 => Wisi_EOI
- 7 => wisitoken_accept
- 8 => aggregate
- 9 => attribute_reference
- 10 => attribute_designator
- 11 => name
- 12 => qualified_expression
+ 0 => WHITESPACE
+ 1 => LEFT_PAREN
+ 2 => RIGHT_PAREN
+ 3 => TICK
+ 4 => IDENTIFIER
+ 5 => Wisi_EOI
+ 6 => wisitoken_accept
+ 7 => aggregate
+ 8 => attribute_reference
+ 9 => attribute_designator
+ 10 => name
+ 11 => qualified_expression
 
 LALR Parse Table:
 Follow:

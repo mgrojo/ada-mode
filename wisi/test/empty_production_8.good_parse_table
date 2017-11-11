@@ -1,16 +1,16 @@
 Tokens:
- 1 => WHITESPACE
- 2 => ALIASED
- 3 => CONSTANT
- 4 => COLON_EQUAL
- 5 => SEMICOLON
- 6 => IDENTIFIER
- 7 => Wisi_EOI
- 8 => wisitoken_accept
- 9 => object_declaration_list
- 10 => object_declaration
- 11 => aliased_opt
- 12 => constant_opt
+ 0 => WHITESPACE
+ 1 => ALIASED
+ 2 => CONSTANT
+ 3 => COLON_EQUAL
+ 4 => SEMICOLON
+ 5 => IDENTIFIER
+ 6 => Wisi_EOI
+ 7 => wisitoken_accept
+ 8 => object_declaration_list
+ 9 => object_declaration
+ 10 => aliased_opt
+ 11 => constant_opt
 
 LALR Parse Table:
 Follow:

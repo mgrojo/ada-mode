@@ -21,35 +21,49 @@
 %keyword BEGIN "begin"
 %keyword END "end"
 %keyword EXCEPTION "exception"
+%keyword FOR "for"
 %keyword FUNCTION "function"
-%keyword LEFT_PAREN "("
+%keyword IN "in"
+%keyword LOOP "loop"
 %keyword PROCEDURE "procedure"
-%keyword RIGHT_PAREN ")"
 %keyword WHEN "when"
+%keyword USE "use"
 
+%token <left-paren> LEFT_PAREN "("
+%token <right-paren> RIGHT_PAREN ")"
+
+%token <punctuation> COMMA ","
+%token <punctuation> DOT "."
 %token <punctuation> SEMICOLON ";"
 
 %token <symbol> SYMBOL [a-zA-Z][0-9a-zA-Z_]*
 
 %non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <reporting> COMMENT "--"[^\n]*
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 %start compilation_unit
 %parser_algorithm LALR
 %output_language Ada_Emacs
 %lexer Elisp
 
-;; elisp names in actions
+;; elisp names in face actions
 %elisp_face font-lock-keyword-face
+%elisp_face font-lock-type-face
 %elisp_face font-lock-function-name-face
 %elisp_face nil
+
+;; language-specific elisp names in indent actions
+%elisp_indent subp-indent-function Function_1
 
 %%
 
 block
   : BEGIN END
-  | BEGIN EXCEPTION WHEN SYMBOL END
+  | BEGIN loop_statement EXCEPTION WHEN name END
+    (progn
+      (wisi-statement-action [3 motion 4 motion])
+      (wisi-indent-action [0 subp-indent 0 subp-indent 0 0]))
 ;
 
 compilation_unit
@@ -63,24 +77,26 @@ declarations
 
 declaration
   : subprogram
+  | use_clause
   ;
 
-subprogram
-  : FUNCTION parameter_list SYMBOL block SEMICOLON
+loop_statement
+  : FOR SYMBOL IN subtype LOOP SEMICOLON
     (progn
-      ;; an example of each supported action, with the most complex parameter syntax
-      (wisi-statement-action [1 statement-start 2 misc 3 name])
-      (wisi-containing-action 1 2)
-      (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
-      (wisi-face-apply-action [1 nil font-lock-keyword-face 3 nil font-lock-function-name-face])
-      (wisi-indent-action [0 ada-indent-broken
-                             [2 ada-indent-broken] 0 0])) ;; single action on two lines
-  | PROCEDURE parameter_list SYMBOL
-    (progn
-      (wisi-statement-action [1 name 2 misc])
-      (wisi-face-apply-action [3 nil font-lock-function-name-face])
-      (wisi-indent-action [0 ada-indent-broken
-                             (wisi-anchored% 3 ada-indent-broken)]))
+      (wisi-face-remove-action [4])
+      (wisi-indent-action [(- subp-indent) 0 (- subp-indent subp-indent-broken) subp-indent 0 0]))
+  ;
+
+name
+  : SYMBOL
+    (wisi-face-mark-action [1 suffix])
+  | name DOT SYMBOL
+    (wisi-face-mark-action [1 prefix 3 suffix])
+  ;
+
+name_list
+  : name
+  | name_list COMMA name
   ;
 
 ;; not on one line, empty production with comment
@@ -89,8 +105,40 @@ parameter_list
     (wisi-statement-action [1 misc 2 misc]) ;; single action; no progn
   | ;; ada-like no parameters
   | LEFT_PAREN SYMBOL RIGHT_PAREN
+    (progn
+      (wisi-statement-action [2 misc]) ;; single pair
+      (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
   ;
 
-%%
+subprogram
+  : FUNCTION parameter_list name block SEMICOLON
+    (progn
+      ;; an example of each supported action, with the most complex parameter syntax
+      (wisi-statement-action [1 statement-start 2 misc 3 name 4 motion 5 statement-end])
+      (wisi-containing-action 1 2)
+      (wisi-containing-action 1 4)
+      (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
+      (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
+      (wisi-indent-action [0 (subp-indent-function)
+                             [subp-indent-broken subp-indent-broken] 0 0])) ;; single action on two lines
+  | PROCEDURE parameter_list name SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 2 misc 3 name 4 statement-end])
+      (wisi-containing-action 1 2)
+      (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
+      (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0]))
+  ;
 
+subtype
+  : name
+    (wisi-face-apply-action [1 font-lock-type-face font-lock-function-name-face])
+  ;
+
+use_clause
+  : USE name_list SEMICOLON
+    (progn
+      (wisi-face-apply-list-action [2 font-lock-type-face font-lock-function-name-face])
+      (wisi-indent-action [0 subp-indent-broken 0]))
+  ;
+%%
 ;; end of file

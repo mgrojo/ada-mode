@@ -217,13 +217,6 @@ package body WisiToken.Lexer.Regexp is
       return Lexer.ID;
    end Find_Next;
 
-   overriding function Line (Lexer : in Instance) return Ada.Text_IO.Count
-   is
-      pragma Unreferenced (Lexer);
-   begin
-      return 0;
-   end Line;
-
    overriding function Column (Lexer : in Instance) return Ada.Text_IO.Count
    is begin
       return Ada.Text_IO.Count (Lexer.Lexeme_Head);
@@ -231,17 +224,17 @@ package body WisiToken.Lexer.Regexp is
 
    overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
+      return (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail));
    end Char_Region;
 
    overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      return (Lexer.Lexeme_Head, Lexer.Lexeme_Tail);
+      return (Buffer_Pos (Lexer.Lexeme_Head), Buffer_Pos (Lexer.Lexeme_Tail));
    end Byte_Region;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String
    is begin
-      return Lexer.Source.Buffer (Byte_Region.First .. Byte_Region.Last);
+      return Lexer.Source.Buffer (Integer (Byte_Region.First) .. Integer (Byte_Region.Last));
    end Buffer_Text;
 
 end WisiToken.Lexer.Regexp;

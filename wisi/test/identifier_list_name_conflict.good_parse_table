@@ -1,22 +1,22 @@
 Tokens:
- 1 => WHITESPACE
- 2 => COMMENT
- 3 => LEFT_PAREN
- 4 => RIGHT_PAREN
- 5 => COMMA
- 6 => EQUAL_GREATER
- 7 => STRING_LITERAL
- 8 => IDENTIFIER
- 9 => Wisi_EOI
- 10 => wisitoken_accept
- 11 => association
- 12 => association_list
- 13 => compilation
- 14 => compilation_unit
- 15 => identifier_list
- 16 => name
- 17 => name_list
- 18 => selector_name
+ 0 => WHITESPACE
+ 1 => COMMENT
+ 2 => LEFT_PAREN
+ 3 => RIGHT_PAREN
+ 4 => COMMA
+ 5 => EQUAL_GREATER
+ 6 => STRING_LITERAL
+ 7 => IDENTIFIER
+ 8 => Wisi_EOI
+ 9 => wisitoken_accept
+ 10 => association
+ 11 => association_list
+ 12 => compilation
+ 13 => compilation_unit
+ 14 => identifier_list
+ 15 => name
+ 16 => name_list
+ 17 => selector_name
 
 LALR Parse Table:
 Follow:

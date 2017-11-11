@@ -72,7 +72,7 @@ package WisiToken.Lexer.Regexp is
    overriding function Find_Next (Lexer : in out Instance) return Token_ID;
 
    overriding
-   function Line (Lexer : in Instance) return Ada.Text_IO.Count;
+   function Line (Lexer : in Instance) return Line_Number_Type is (Invalid_Line_Number);
 
    overriding
    function Column (Lexer : in Instance) return Ada.Text_IO.Count;
@@ -81,6 +81,8 @@ package WisiToken.Lexer.Regexp is
    overriding function Byte_Region (Lexer : in Instance) return Buffer_Region;
 
    overriding function Buffer_Text (Lexer : in Instance; Byte_Region : in Buffer_Region) return String;
+
+   overriding function First (Lexer : in Instance) return Boolean is (False);
 
 private
 

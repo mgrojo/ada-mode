@@ -161,11 +161,17 @@ package body Test_McKenzie_Recover is
            ("1", Element (Cursor),
             (First_Terminal    => Descriptor.First_Terminal,
              Last_Terminal     => Descriptor.Last_Terminal,
-             Error_Token       => (+SEMICOLON_ID, 0, 83, (84, 84), (84, 84)),
+             Error_Token       =>
+               (ID             => +SEMICOLON_ID,
+                Virtual        => False,
+                Line           => 1,
+                Col            => 83,
+                Byte_Region    => (84, 84),
+                Char_Region    => (84, 84)),
              Expecting         => To_Token_ID_Set
                (Descriptor.First_Terminal,
                 Descriptor.Last_Terminal,
-                (1 => +IF_ID)),
+                (1             => +IF_ID)),
              Recover           => null),
             Check_Recover_Data => null);
 
@@ -507,7 +513,7 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, 0, 22, (23, 25), (23, 25)));
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, False, 1, 22, (23, 25), (23, 25)));
       end;
 
    exception
@@ -544,7 +550,7 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, 0, 27, (28, 30), (28, 30)));
+         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, False, 1, 27, (28, 30), (28, 30)));
       end;
 
    exception
@@ -591,9 +597,10 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, 0, 75, (76, 77), (76, 77)));
+         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, False, 1, 75, (76, 77), (76, 77)));
          Next (Cursor);
-         Check ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, 0, 114, (115, 119), (115, 119)));
+         Check
+           ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, False, 1, 114, (115, 119), (115, 119)));
       end;
 
    exception

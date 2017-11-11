@@ -1,13 +1,13 @@
 Tokens:
- 1 => WHITESPACE
- 2 => IN
- 3 => IDENTIFIER
- 4 => Wisi_EOI
- 5 => wisitoken_accept
- 6 => compilation_unit
- 7 => mode
- 8 => name
- 9 => parameter_specification
+ 0 => WHITESPACE
+ 1 => IN
+ 2 => IDENTIFIER
+ 3 => Wisi_EOI
+ 4 => wisitoken_accept
+ 5 => compilation_unit
+ 6 => mode
+ 7 => name
+ 8 => parameter_specification
 
 LALR Parse Table:
 Follow:

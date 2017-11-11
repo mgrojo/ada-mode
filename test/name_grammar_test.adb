@@ -161,6 +161,7 @@ package body Name_Grammar_Test is
       end if;
       Create (Trace_File, Out_File, Trace_File_Name);
       Set_Output (Trace_File);
+      Set_Error (Trace_File);
 
       Put_Line ("Simple Parser");
       declare

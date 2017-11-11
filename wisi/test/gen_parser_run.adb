@@ -25,6 +25,8 @@ with Ada.Exceptions;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
+with WisiToken.Text_IO_Trace;
+with WisiToken.Token_Region;
 procedure Gen_Parser_Run
 is
    procedure Put_Usage
@@ -40,17 +42,20 @@ is
    function "-" (Item : in Ada.Strings.Unbounded.Unbounded_String) return String
      renames Ada.Strings.Unbounded.To_String;
 
+   Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
+   State  : aliased WisiToken.Token_Region.State_Type (Trace'Access);
+
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is
       Parser : WisiToken.Parser.LR.Parser.Instance;
    begin
       case Algorithm is
       when WisiToken.LALR =>
-         Create_Parser (Parser, WisiToken.LALR);
+         Create_Parser (Parser, WisiToken.LALR, State'Unchecked_Access);
          Put_Line ("LALR_Parser parse:");
 
       when WisiToken.LR1 =>
-         Create_Parser (Parser, WisiToken.LR1);
+         Create_Parser (Parser, WisiToken.LR1, State'Unchecked_Access);
          Put_Line ("LR1_Parser parse:");
       end case;
 

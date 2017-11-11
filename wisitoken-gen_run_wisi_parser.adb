@@ -125,7 +125,7 @@ begin
       Parser.Lexer.Reset_With_File (To_String (File_Name));
    exception
    when Ada.IO_Exceptions.Name_Error =>
-      Put_Line (Standard_Error, "'" & To_String (File_Name) & "' cannot be opened");
+      Put_Line (Current_Error, "'" & To_String (File_Name) & "' cannot be opened");
       return;
    end;
 

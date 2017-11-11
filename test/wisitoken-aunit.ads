@@ -22,6 +22,8 @@ package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
 
+   procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Line_Number_Type);
+
    type Plain_Token_Array is array (Positive_Index_Type range <>) of Token_ID;
 
    function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.Vector;

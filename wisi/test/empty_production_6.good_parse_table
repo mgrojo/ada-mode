@@ -1,17 +1,17 @@
 Tokens:
- 1 => WHITESPACE
- 2 => BEGIN
- 3 => END
- 4 => COLON
- 5 => COLON_EQUAL
- 6 => SEMICOLON
- 7 => IDENTIFIER
- 8 => Wisi_EOI
- 9 => wisitoken_accept
- 10 => compilation_unit
- 11 => statement
- 12 => sequence_of_statements
- 13 => label_opt
+ 0 => WHITESPACE
+ 1 => BEGIN
+ 2 => END
+ 3 => COLON
+ 4 => COLON_EQUAL
+ 5 => SEMICOLON
+ 6 => IDENTIFIER
+ 7 => Wisi_EOI
+ 8 => wisitoken_accept
+ 9 => compilation_unit
+ 10 => statement
+ 11 => sequence_of_statements
+ 12 => label_opt
 
 LALR Parse Table:
 Follow:

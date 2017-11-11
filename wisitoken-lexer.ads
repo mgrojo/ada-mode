@@ -82,8 +82,7 @@ package WisiToken.Lexer is
    --  Returns the line number in which the most recent token started.
    --
    --  If the underlying text feeder does not support the notion of
-   --  'line', or if Lexer.Enable_Line_Numbers is False, returns
-   --  Invalid_Line_Number.
+   --  'line', returns Invalid_Line_Number.
 
    function Column (Lexer : in Instance) return Ada.Text_IO.Count is abstract;
    --  Return the column number of the start of the most recent token..

@@ -1,14 +1,14 @@
 Tokens:
- 1 => WHITESPACE
- 2 => COMMENT
- 3 => BEGIN
- 4 => IS
- 5 => SEMICOLON
- 6 => Wisi_EOI
- 7 => wisitoken_accept
- 8 => declarations
- 9 => declarative_part
- 10 => body
+ 0 => WHITESPACE
+ 1 => COMMENT
+ 2 => BEGIN
+ 3 => IS
+ 4 => SEMICOLON
+ 5 => Wisi_EOI
+ 6 => wisitoken_accept
+ 7 => declarations
+ 8 => declarative_part
+ 9 => body
 
 LALR Parse Table:
 Follow:

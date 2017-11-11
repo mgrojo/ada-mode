@@ -1,22 +1,22 @@
 Tokens:
- 1 => WHITESPACE
- 2 => COMMENT
- 3 => RANGE
- 4 => WHEN
- 5 => DOT_DOT
- 6 => EQUAL_GREATER
- 7 => TICK
- 8 => NUMBER_LITERAL
- 9 => IDENTIFIER
- 10 => Wisi_EOI
- 11 => wisitoken_accept
- 12 => case_expression
- 13 => choice_expression
- 14 => choice_relation
- 15 => discrete_choice
- 16 => factor
- 17 => factor_list
- 18 => range_nt
+ 0 => WHITESPACE
+ 1 => COMMENT
+ 2 => RANGE
+ 3 => WHEN
+ 4 => DOT_DOT
+ 5 => EQUAL_GREATER
+ 6 => TICK
+ 7 => NUMBER_LITERAL
+ 8 => IDENTIFIER
+ 9 => Wisi_EOI
+ 10 => wisitoken_accept
+ 11 => case_expression
+ 12 => choice_expression
+ 13 => choice_relation
+ 14 => discrete_choice
+ 15 => factor
+ 16 => factor_list
+ 17 => range_nt
 
 LALR Parse Table:
 Follow:

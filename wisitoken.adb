@@ -329,14 +329,14 @@ package body WisiToken is
      return String
    is begin
       return File_Name & ":" &
-        Int_Image (Integer (Line)) & ":" &
+        Int_Image (if Line = Invalid_Line_Number then Integer'(0) else Integer (Line)) & ":" &
         Int_Image (Integer (Col)) & ": " &
         Message;
    end Error_Message;
 
    procedure Put_Error (Message : in String)
    is begin
-      Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error, Message);
+      Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Message);
    end Put_Error;
 
    function Image (Item : in Buffer_Region) return String
