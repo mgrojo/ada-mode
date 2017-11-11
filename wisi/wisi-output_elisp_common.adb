@@ -32,13 +32,32 @@ package body Wisi.Output_Elisp_Common is
          end if;
          I := I + 1;
       end loop;
-      raise Not_Found with "elisp name '" & Elisp_Name & "' not found";
+      raise Not_Found;
    end Find_Elisp_ID;
 
-   function Find_Face_ID (Face : in String) return Integer
-   is begin
-      return Find_Elisp_ID (Elisp_Names.Faces, Face);
-   end Find_Face_ID;
+   function Find_Ada_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String
+   is
+      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for Pair of List loop
+         if Pair.Name = Elisp_Name then
+            return -Pair.Value;
+         end if;
+      end loop;
+      raise Not_Found;
+   end Find_Ada_Name;
+
+   function Is_Present (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return Boolean
+   is
+      use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
+   begin
+      for Pair of List loop
+         if Pair.Name = Elisp_Name then
+            return True;
+         end if;
+      end loop;
+      return False;
+   end Is_Present;
 
    function Elisp_Name_To_Ada
      (Elisp_Name : in String;

@@ -212,9 +212,10 @@ package Wisi is
    end record;
 
    type Elisp_Names is record
-      --  specified in grammar file declarations
-      --  FIXME: keep as record for now, in case we add more
+      --  specified in grammar file declarations; see
+      --  wisi-output_elisp_common.ads Find_*
       Faces   : String_Lists.List;
+      Indents : String_Pair_Lists.List;
    end record;
 
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String

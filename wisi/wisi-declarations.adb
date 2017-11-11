@@ -37,6 +37,7 @@ is
    Conflict_Str                  : constant String := "%conflict";
    End_If_Str                    : constant String := "%end if";
    Elisp_Face_Str                : constant String := "%elisp_face";
+   Elisp_Indent_Str              : constant String := "%elisp_indent";
    First_Parser_Label_Str        : constant String := "%first_parser_label";
    First_State_Index_Str         : constant String := "%first_state_index";
    If_Str                        : constant String := "%if lexer =";
@@ -157,6 +158,15 @@ begin
                Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
             begin
                Elisp_Names.Faces.Append (Line (Value_First .. Line'Last));
+            end;
+
+         elsif Match (Elisp_Indent_Str) then
+            declare
+               Name_First  : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Name_Last   : constant Integer := -1 + Index_Blank (Line, Name_First);
+               Value_First : constant Integer := Index_Non_Blank (Line, Name_Last + 1);
+            begin
+               Elisp_Names.Indents.Append ((+Line (Name_First .. Name_Last), +Line (Value_First .. Line'Last)));
             end;
 
          elsif Match (First_Parser_Label_Str) then

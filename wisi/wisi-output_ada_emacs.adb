@@ -45,6 +45,7 @@ procedure Wisi.Output_Ada_Emacs
    Tokens                : in Wisi.Tokens;
    Conflicts             : in Conflict_Lists.List;
    McKenzie_Recover      : in McKenzie_Recover_Param_Type;
+   Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
    Action_Count          : in Integer)
 is
@@ -61,7 +62,7 @@ is
       Append_ID => False,
       Trim      => 0);
 
-   Language_Runtime_Package : constant String := Language_Name & "_Wisi_Runtime";
+   Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
 
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
    use Common;
@@ -235,7 +236,7 @@ is
 
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
-            Result := Result & ',' & Integer'Image (Find_Face_ID (Params (First .. Last - 1)));
+            Result := Result & ',' & Integer'Image (Find_Elisp_ID (Elisp_Names.Faces, Params (First .. Last - 1)));
 
             if Params (Last) = ']' then
                Put_Error (Input_File_Name, RHS.Source_Line, "invalid wisi-face-apply argument");
@@ -244,7 +245,8 @@ is
 
             First  := Index_Non_Blank (Params, Last + 1);
             Last   := Index (Params, Delim, First);
-            Result := Result & ',' & Integer'Image (Find_Face_ID (Params (First .. Last - 1))) & ")";
+            Result := Result & ',' & Integer'Image (Find_Elisp_ID (Elisp_Names.Faces, Params (First .. Last - 1))) &
+              ")";
 
             Need_Comma := True;
          end loop;
@@ -349,7 +351,7 @@ is
          --
          --  - an integer; copy to output
          --
-         --  - a symbol; lookup in elisp_names.indents
+         --  - a symbol; translated by Indent_Label below or Elisp_Names.Indents
          --
          --  - a lisp function call with 2 args (wisi-anchored% 3 ada-indent-broken)
          --    first arg is tokens index, second is indent (integer or symbol)
@@ -363,27 +365,44 @@ is
 
          subtype Digit is Character range '0' .. '9';
 
-         Last        : Integer          := Params'First; -- skip [
-         First       : Integer;
-         Result      : Unbounded_String := +" (Parse_Data, Nonterm, Tokens, (";
-         Need_Comma  : Boolean          := False;
-         Param_Count : Count_Type       := 0;
+         Last          : Integer          := Params'First; -- skip [
+         First         : Integer;
+         Result        : Unbounded_String := +" (Parse_Data, Nonterm, Tokens, (";
+         Need_Comma    : Boolean          := False;
+         Param_Count   : Count_Type       := 0;            -- in Params
+         Function_Name : Unbounded_String;
+         Args          : Unbounded_String;
+         Arg_Count     : Count_Type       := 0;            -- in elisp function call
 
          function Int_Or_Symbol (First : in Integer) return String
          is
             --  Return an integer expression
             --
             --  Handles this syntax:
+            --
+            --  integer literal:
             --  1 => 1
+            --
+            --  variable name:
             --  ada-indent => Ada_Indent
+            --
+            --  token_id literal:
+            --  'TYPE => 13
+            --
+            --  simple expression:
             --  (- ada-indent) => -Ada_Indent
             --  (- ada-indent-when ada-indent) => Ada_Indent_When - Ada_Indent
+            use Generate_Utils;
+
             First_Last  : Integer;
             Second      : Integer;
          begin
             Last := Index (Params, Delim, First);
             if Params (First) in Digit then
                return Params (First .. Last - 1);
+
+            elsif Params (First) = ''' then
+               return WisiToken.Int_Image (Find_Token_ID (Params (First + 1 .. Last - 1)));
 
             elsif Params (First .. First + 1) = "(-" then
                First_Last := Index (Params, Delim, First + 3);
@@ -443,31 +462,53 @@ is
 
             case Params (Last) is
             when '(' =>
-               if Params (Last + 1) = '-' then
+               First  := Last + 1;
+               Last   := Index (Params, Delim, First);
+               Function_Name := +Params (First .. Last - 1);
+
+               if -Function_Name = "-" then
                   --  integer expression
-                  Result := Result & "(False, " & Delta_Int_Or_Symbol (Last) & ')';
+                  Result := Result & "(False, " & Delta_Int_Or_Symbol (First - 1) & ')';
+
+               elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
+                  --  Language-specific function call
+                  Function_Name := +Find_Ada_Name (Elisp_Names.Indents, -Function_Name);
+                  Arg_Count     := 0;
+                  loop
+                     exit when Params (Last) = ')';
+                     First      := Last + 1;
+                     Last       := Index (Params, Delim, First);
+                     if Arg_Count = 0 then
+                        Args :=  +Params (First .. Last - 1);
+                     else
+                        Args := Args & ", " & Params (First .. Last - 1);
+                     end if;
+                     Arg_Count  := Arg_Count + 1;
+                  end loop;
+
+                  if Arg_Count = 0 then
+                     Result := Result & "(False, (Language, " & (-Function_Name) & "'Access, Null_Args))";
+                  else
+                     Result := Result & "(False, (Language, " & (-Function_Name & "'Access") & ", (" & Args & ")))";
+                  end if;
+
                else
-                  --  lisp function call
-                  First := Last + 1;
-                  Last  := Index (Params, Delim, First);
-                  if Params (Last) /= ' ' then
-                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
-                  end if;
+                  --  wisi lisp function call
+                  Function_Name := +Indent_Label (-Function_Name);
+                  Arg_Count     := 0;
+                  Args          := +"";
+                  loop
+                     exit when Params (Last) = ')';
+                     First      := Last + 1;
+                     Last       := Index (Params, Delim, First);
+                     Args       := Args & ", " & Params (First .. Last - 1);
+                     Arg_Count  := Arg_Count + 1;
+                  end loop;
 
-                  Result := Result & "(False, (" & Indent_Label (Params (First .. Last - 1));
-
-                  First := Last + 1;
-                  Last  := Index (Params, Delim, First);
-                  if Params (Last) /= ' ' then
-                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent function call");
-                  end if;
-
-                  Result := Result & ", " & Params (First .. Last - 1);
-
-                  Result := Result & ", " & Int_Or_Symbol (Last + 1) & "))";
-
-                  if Params (Last) /= ')' then
-                     Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent syntax");
+                  if Arg_Count = 0 then
+                     Result := Result & "(False, (Label => " & (-Function_Name) & "))";
+                  else
+                     Result := Result & "(False, (" & (-Function_Name) & Args & "))";
                   end if;
                end if;
             when '[' =>
@@ -747,7 +788,7 @@ is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
-      --  generate Action subprograms, populate Action_Names, Elisp_Names
+      --  generate Action subprograms, populate Action_Names
       --  (for non-indent actions).
 
       for Rule of Tokens.Rules loop
@@ -897,8 +938,7 @@ is
       Indent := Indent - 3;
       New_Line;
 
-      Output_Elisp_Common.Indent_Name_Table
-        (Output_File_Name_Root, "process-face-table", Output_Elisp_Common.Elisp_Names.Faces);
+      Output_Elisp_Common.Indent_Name_Table (Output_File_Name_Root, "process-face-table", Elisp_Names.Faces);
 
       Put_Line ("(provide '" & Output_File_Name_Root & "-process)");
       Set_Output (Standard_Output);

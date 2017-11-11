@@ -20,9 +20,10 @@ pragma License (Modified_GPL);
 
 package Wisi.Output_Elisp_Common is
 
-   Elisp_Names : Wisi.Elisp_Names;
+   function Find_Elisp_ID (List : in Wisi.String_Lists.List; Elisp_Name : in String) return Integer;
 
-   function Find_Face_ID (Face : in String) return Integer;
+   function Is_Present (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return Boolean;
+   function Find_Ada_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String;
 
    function Elisp_Name_To_Ada
      (Elisp_Name : in String;

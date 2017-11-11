@@ -29,7 +29,6 @@ with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
-with Wisi.Output_Elisp_Common;
 with Wisi.Prologue;
 with Wisi.Rules;
 with WisiToken;
@@ -79,6 +78,7 @@ is
    Tokens           : Wisi.Tokens;
    Conflicts        : Conflict_Lists.List;
    McKenzie_Recover : McKenzie_Recover_Param_Type;
+   Elisp_Names      : Wisi.Elisp_Names;
    Rule_Count       : Integer;
    Action_Count     : Integer;
    Profile          : Boolean := False;
@@ -181,8 +181,7 @@ begin
    end;
 
    Wisi.Prologue (Input_File, Prologues);
-   Wisi.Declarations
-     (Input_File, Generate_Params, Tokens, Wisi.Output_Elisp_Common.Elisp_Names, Conflicts, McKenzie_Recover);
+   Wisi.Declarations (Input_File, Generate_Params, Tokens, Elisp_Names, Conflicts, McKenzie_Recover);
    Wisi.Rules
      (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules, Rule_Count, Action_Count);
 
@@ -198,7 +197,7 @@ begin
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
-         Rule_Count, Action_Count);
+         Elisp_Names, Rule_Count, Action_Count);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms
