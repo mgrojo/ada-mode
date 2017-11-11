@@ -148,9 +148,32 @@ package WisiToken.Wisi_Runtime is
       Anchored_2, -- wisi-anchored%-; accumulate => True
       Anchored_3, -- wisi-anchored*;  accumulate => False
       Anchored_4, -- wisi-anchored*-; accumulate => True
-      Hanging     -- wisi-hanging
+      Hanging,    -- wisi-hanging
+      Language    -- language-specific function
      );
    subtype Anchored_Label is Indent_Param_Label range Anchored_0 .. Anchored_4;
+
+   type Indent_Arg_Label is (Int, Token_Number, Token_ID);
+
+   type Indent_Arg (Label : Indent_Arg_Label := Indent_Arg_Label'First) is
+   record
+      case Label is
+      when Int =>
+         Int_Value : Integer;
+      when Token_Number =>
+         Token_Number_Value : Positive_Index_Type;
+      when Token_ID =>
+         Token_ID_Value : WisiToken.Token_ID;
+      end case;
+   end record;
+
+   package Indent_Arg_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Indent_Arg);
+
+   type Delta_Type (<>) is private;
+
+   type Language_Indent_Function is access function (Args : in Indent_Arg_Arrays.Vector) return Delta_Type;
+
+   Null_Args : Indent_Arg_Arrays.Vector renames Indent_Arg_Arrays.Empty_Vector;
 
    type Indent_Param_Type (Label : Indent_Param_Label := Int) is
    record
@@ -162,6 +185,9 @@ package WisiToken.Wisi_Runtime is
          Anchored_Delta : Integer;
       when Hanging =>
          Hanging_Delta : Integer;
+      when Language =>
+         Function_Ptr : Language_Indent_Function;
+         Args         : Indent_Arg_Arrays.Vector;
       end case;
    end record;
 
@@ -222,8 +248,8 @@ private
 
    type Navigate_Cache_Type is record
       Pos            : Buffer_Pos;          -- implicit in wisi-cache
-      Statement_ID   : Token_ID;            -- wisi-cache-nonterm
-      ID             : Token_ID;            -- wisi-cache-token
+      Statement_ID   : WisiToken.Token_ID;  -- wisi-cache-nonterm
+      ID             : WisiToken.Token_ID;  -- wisi-cache-token
       Length         : Natural;             -- wisi-cache-last
       Class          : Navigate_Class_Type; -- wisi-cache-class; one of wisi-class-list
       Containing_Pos : Nil_Buffer_Pos;      -- wisi-cache-containing
@@ -301,5 +327,32 @@ private
       Indents          : Indent_Vectors.Vector;      -- Used for Indent.
       Max_Anchor_ID    : Integer := First_Anchor_ID - 1;
    end record;
+
+   type Delta_Labels is (Int, Anchored, Hanging);
+
+   type Delta_Type (Label : Delta_Labels := Int) is
+   record
+      --  Matches DELTA input to wisi--indent-token-1
+
+      case Label is
+      when Int =>
+         Int_Delta : Integer;
+
+      when Anchored =>
+         Anchored_ID         : Natural;
+         Anchored_Delta      : Integer;
+         Anchored_Accumulate : Boolean;
+
+      when Hanging =>
+         Hanging_Delta_1    : Integer;
+         Hanging_Delta_2    : Integer;
+         Hanging_Accumulate : Boolean;
+         First_Line         : Natural;
+         Nest               : Natural;
+      end case;
+   end record;
+   subtype Anchored_Delta is Delta_Type (Anchored);
+
+   Null_Delta : constant Delta_Type := (Int, 0);
 
 end WisiToken.Wisi_Runtime;

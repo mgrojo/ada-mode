@@ -29,33 +29,6 @@ package body WisiToken.Wisi_Runtime is
 
    Chars_Per_Int : constant Integer := Integer'Width;
 
-   type Delta_Labels is (Int, Anchored, Hanging);
-
-   type Delta_Type (Label : Delta_Labels := Int) is
-   record
-      --  Matches DELTA input to wisi--indent-token-1
-
-      case Label is
-      when Int =>
-         Int_Delta : Integer;
-
-      when Anchored =>
-         Anchored_ID         : Natural;
-         Anchored_Delta      : Integer;
-         Anchored_Accumulate : Boolean;
-
-      when Hanging =>
-         Hanging_Delta_1    : Integer;
-         Hanging_Delta_2    : Integer;
-         Hanging_Accumulate : Boolean;
-         First_Line         : Natural;
-         Nest               : Natural;
-      end case;
-   end record;
-   subtype Anchored_Delta is Delta_Type (Anchored);
-
-   Null_Delta : constant Delta_Type := (Int, 0);
-
    ----------
    --  body subprogram specs (as needed), alphabetical
 
@@ -294,6 +267,8 @@ package body WisiToken.Wisi_Runtime is
          raise SAL.Not_Implemented;
          return Null_Delta;
 
+      when Language =>
+         return Param.Function_Ptr (Param.Args);
       end case;
    end Indent_Compute_Delta;
 
@@ -333,8 +308,8 @@ package body WisiToken.Wisi_Runtime is
       use all type Ada.Containers.Count_Type;
 
       Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
-      Left_Paren_ID  : Token_ID renames Descriptor.Left_Paren_ID;
-      Right_Paren_ID : Token_ID renames Descriptor.Right_Paren_ID;
+      Left_Paren_ID  : WisiToken.Token_ID renames Descriptor.Left_Paren_ID;
+      Right_Paren_ID : WisiToken.Token_ID renames Descriptor.Right_Paren_ID;
 
       I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
       Paren_Count    : Integer             := 0;
@@ -398,8 +373,8 @@ package body WisiToken.Wisi_Runtime is
    begin
       Append (Line, Navigate_Cache_Code);
       Append (Line, Buffer_Pos'Image (Cache.Pos));
-      Append (Line, Token_ID'Image (Cache.Statement_ID));
-      Append (Line, Token_ID'Image (Cache.ID));
+      Append (Line, WisiToken.Token_ID'Image (Cache.Statement_ID));
+      Append (Line, WisiToken.Token_ID'Image (Cache.ID));
       Append (Line, Integer'Image (Cache.Length));
       Append (Line, Integer'Image (Navigate_Class_Type'Pos (Cache.Class)));
       Append (Cache.Containing_Pos);
@@ -454,7 +429,7 @@ package body WisiToken.Wisi_Runtime is
    procedure Put (Item : in WisiToken.Parser.LR.Configuration; Descriptor : in WisiToken.Descriptor'Class)
    is
       use Ada.Containers;
-      subtype Bounded_Token_ID is Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
+      subtype Bounded_Token_ID is WisiToken.Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
         (Max => 10 + Bounded_Token_ID'Width * Integer
            (Item.Popped.Length + Count_Type (Item.Pushed.Depth) + Item.Inserted.Length + Item.Deleted.Length));
@@ -471,7 +446,7 @@ package body WisiToken.Wisi_Runtime is
               (Line,
                (if First
                 then Int_Image (ID)
-                else Token_ID'Image (ID)));
+                else WisiToken.Token_ID'Image (ID)));
             First := False;
          end loop;
       end To_Codes;
@@ -485,7 +460,7 @@ package body WisiToken.Wisi_Runtime is
               (Line,
                (if First
                 then Int_Image ((Stack.Peek (I).ID))
-                else Token_ID'Image (Stack.Peek (I).ID)));
+                else WisiToken.Token_ID'Image (Stack.Peek (I).ID)));
             First := False;
          end loop;
       end To_Codes;
@@ -719,14 +694,14 @@ package body WisiToken.Wisi_Runtime is
       end if;
    end Containing_Action;
 
-   function "&" (List : in Token_ID_Lists.List; Item : in Token_ID) return Token_ID_Lists.List
+   function "&" (List : in Token_ID_Lists.List; Item : in WisiToken.Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List := List do
          Result.Append (Item);
       end return;
    end "&";
 
-   function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List
+   function "&" (Left, Right : in WisiToken.Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List do
          Result.Append (Left);

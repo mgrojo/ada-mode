@@ -53,6 +53,9 @@
 %elisp_face font-lock-function-name-face
 %elisp_face nil
 
+;; language-specific elisp names in indent actions
+%elisp_indent subp-indent-function Function_1
+
 %%
 
 block
@@ -116,7 +119,7 @@ subprogram
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 subp-indent-broken
+      (wisi-indent-action [0 (subp-indent-function)
                              [subp-indent-broken subp-indent-broken] 0 0])) ;; single action on two lines
   | PROCEDURE parameter_list name SEMICOLON
     (progn

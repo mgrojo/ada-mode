@@ -2094,9 +2094,9 @@ real_range_specification_opt
 
 record_definition
   : RECORD component_list_opt END RECORD
-    (wisi-indent-action [(ada-indent-record 'TYPE 1 0)
-                         [(ada-indent-record 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
-                         (ada-indent-record 'TYPE 1 0)
+    (wisi-indent-action [(ada-indent-record* 'TYPE 1 0)
+                         [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
+                         (ada-indent-record* 'TYPE 1 0)
                          0])
   | NULL RECORD
     (wisi-indent-action [ada-indent-broken ada-indent-broken])

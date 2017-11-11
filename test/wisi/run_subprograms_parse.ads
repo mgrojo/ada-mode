@@ -20,10 +20,10 @@ pragma License (GPL);
 
 with Gen_Run_Wisi_Parse;
 with Subprograms_Process;
-with Subprograms_Wisi_Runtime;
+with WisiToken.Wisi_Runtime.Subprograms;
 procedure Run_Subprograms_Parse is new Gen_Run_Wisi_Parse
   (Name                         => "subprograms",
    Descriptor                   => Subprograms_Process.Descriptor,
    Parse_Data                   => Subprograms_Process.Parse_Data,
    Create_Parser                => Subprograms_Process.Create_Parser,
-   Set_Language_Specific_Params => Subprograms_Wisi_Runtime.Set_Params);
+   Set_Language_Specific_Params => WisiToken.Wisi_Runtime.Subprograms.Set_Params);

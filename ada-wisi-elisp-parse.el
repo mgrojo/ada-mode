@@ -142,63 +142,78 @@
     (list delta1))
    ))
 
+(defun ada-wisi-elisp-parse--indent-record-1 (anchor-tok record-tok offset)
+  "Return delta to implement `ada-indent-record-rel-type'.
+ANCHOR-TOK, RECORD-TOK are ’wisi-tok’ objects."
+  (cond
+   ((or (wisi-tok-virtual record-tok)
+	(wisi-tok-virtual anchor-tok))
+    0)
+
+   ((and (= 'RECORD (wisi-tok-token record-tok))
+	 (= offset 0))
+    ;; Indenting 'record'
+    ;; offset is non-zero when indenting comments after record.
+    ;; Anchor line.
+    (wisi-elisp-parse--anchored-2
+     (wisi-tok-line anchor-tok)
+     (cdr (wisi-tok-region record-tok))
+     ada-indent-record-rel-type
+     nil))
+
+   (t ;; indenting comment, component or 'end'
+
+    ;; ensure 'record' line is anchored
+    (let ((indent (aref wisi-elisp-parse--indent (1- (wisi-tok-line record-tok))))
+	  delta)
+      (unless (and (listp indent)
+		   (eq 'anchor (car indent)))
+	(setq
+	 delta
+	 (wisi-elisp-parse--anchored-2
+	  (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
+	(unless (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
+	  (wisi-elisp-parse--indent-token-1 (wisi-tok-line record-tok) (cdr (wisi-tok-region record-tok)) delta))))
+
+    ;; anchor comment lines
+    (wisi-elisp-parse--anchored-1
+     anchor-tok
+     (if (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
+	 offset
+       (+ offset ada-indent-record-rel-type))
+     nil))
+   ))
+
 (defun ada-indent-record (anchor-token record-token offset)
   ;; Not ada-wisi-elisp-parse--indent-record to match existing grammar files
   "Return delta to implement `ada-indent-record-rel-type'.
 
-ANCHOR-TOKEN is the token to anchor line containing 'record' to; it is one of:
-integer; token number in `wisi-tokens'
-symbol: token id to find in the parser stack.
+ANCHOR-TOKEN is the token to anchor line containing 'record' to; a token number in `wisi-tokens'
 
 RECORD-TOKEN is the token number of 'record'.
 
 For use in grammar action."
   (let ((record-tok (aref wisi-tokens (1- record-token)))
-	(anchor-tok
-	 (cond
-	  ((integerp anchor-token)
-	   (aref wisi-tokens (1- anchor-token)))
-	  ((symbolp anchor-token)
-	   (wisi-parse-find-token wisi--parser anchor-token))
-	  )))
-    (cond
-     ((or (wisi-tok-virtual record-tok)
-	  (wisi-tok-virtual anchor-tok))
-      0)
+	(anchor-tok(aref wisi-tokens (1- anchor-token))))
+    (ada-wisi-elisp-parse--indent-record-1 anchor-tok record-tok offset)))
 
-     ((and (= wisi-token-index (1- record-token))
-	   (= offset 0))
-      ;; Indenting 'record'
-      ;; offset is non-zero when indenting comments after record.
-      ;; Anchor line.
-      (wisi-elisp-parse--anchored-2 (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
+(defun ada-indent-record* (anchor-token record-token offset)
+  ;; Not ada-wisi-elisp-parse--indent-record to match existing grammar files
+  "Return delta to implement `ada-indent-record-rel-type'.
 
-     (t ;; indenting comment, component or 'end'
+ANCHOR-TOKEN is the token to anchor line containing 'record' to;
+it is the token id to find in the parser stack.
 
-      ;; ensure 'record' line is anchored
-      (let ((indent (aref wisi-elisp-parse--indent (1- (wisi-tok-line record-tok))))
-	    delta)
-	(unless (and (listp indent)
-		     (eq 'anchor (car indent)))
-	  (setq
-	   delta
-	   (wisi-elisp-parse--anchored-2
-	    (wisi-tok-line anchor-tok) (cdr (wisi-tok-region record-tok)) ada-indent-record-rel-type nil))
-	  (unless (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
-	    (wisi-elisp-parse--indent-token-1 (wisi-tok-line record-tok) (cdr (wisi-tok-region record-tok)) delta))))
+RECORD-TOKEN is the token number of 'record'.
 
-      ;; anchor comment lines
-      (wisi-elisp-parse--anchored-1
-       anchor-tok
-       (if (= (wisi-tok-line anchor-tok) (wisi-tok-line record-tok))
-	   offset
-	 (+ offset ada-indent-record-rel-type))
-       nil))
-     )))
+For use in grammar action."
+  (let ((record-tok (aref wisi-tokens (1- record-token)))
+	(anchor-tok (wisi-parse-find-token wisi--parser anchor-token)))
+    (ada-wisi-elisp-parse--indent-record-1 anchor-tok record-tok offset)))
 
 (defun ada-indent-renames (token-number)
   ;; Not ada-wisi-elisp-parse--indent-renames to match existing grammar files
-  "Implement `ada-indent-return' option in a subprogram renaming grammar action.
+  "Implement `ada-indent-renames' option in a subprogram renaming grammar action.
 TOKEN-NUMBER is the subprogram_specification token."
   ;; wisi-token-index is the renames token.
   (let* ((subp-tok (aref wisi-tokens (1- token-number)))

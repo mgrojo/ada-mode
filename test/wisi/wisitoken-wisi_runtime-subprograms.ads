@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package Subprograms_Wisi_Runtime is
+package WisiToken.Wisi_Runtime.Subprograms is
 
    --  Weird defaults, to test specifying these at runtime.
    Subp_Indent               : Integer := 0;
@@ -28,4 +28,8 @@ package Subprograms_Wisi_Runtime is
    --  Set all params from Params, in declaration order. Boolean is
    --  represented by 0 | 1. Parameter values are space delimited.
 
-end Subprograms_Wisi_Runtime;
+   function Function_1
+     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     return WisiToken.Wisi_Runtime.Delta_Type;
+
+end WisiToken.Wisi_Runtime.Subprograms;

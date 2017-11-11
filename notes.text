@@ -47,18 +47,6 @@ compute indent in Ada
     keep line-begin map in elisp for now; Indent_Action uses line numbers.
         need line-begin map to speed indent-region?
 
-    subprograms.wisi-process-test
-        navigate cache test passing
-        motion_action test passing
-        remove test passing
-        apply-list test passing
-        (- ...) test passing
-        indent passing
-        language-specific indent options passing
-
-    need language-specific delta function: ada-indent-record, ada-indent-renames
-        ie subp-indent-something
-
     copy subprograms.wy to wisitoken, run all tests
 
     fix gen_emacs_wisi_parse.adb noop

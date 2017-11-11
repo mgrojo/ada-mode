@@ -19,7 +19,7 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Strings.Fixed;
-package body Subprograms_Wisi_Runtime is
+package body WisiToken.Wisi_Runtime.Subprograms is
 
    procedure Set_Params (Params : in String)
    is
@@ -46,4 +46,14 @@ package body Subprograms_Wisi_Runtime is
            Ada.Exceptions.Exception_Message (E);
    end Set_Params;
 
-end Subprograms_Wisi_Runtime;
+   function Function_1
+     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     return WisiToken.Wisi_Runtime.Delta_Type
+   is
+      pragma Unreferenced (Args);
+   begin
+      --  subprograms.el subp-indent-function
+      return (Int, Subp_Indent_Broken);
+   end Function_1;
+
+end WisiToken.Wisi_Runtime.Subprograms;
