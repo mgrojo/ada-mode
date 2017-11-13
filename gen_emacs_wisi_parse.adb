@@ -272,14 +272,17 @@ begin
             end;
 
          elsif Match ("noop") then
+            --  Args: <source byte count>
             --  Input: <source text>
-            --  Response:
-            --  prompt
-            --  FIXME: not edited for new API
+            --  Response: prompt
             declare
-               ID : Token_ID := Invalid_Token_ID;
+               Byte_Count : constant Integer                             := Get_Integer (Command_Line, Last);
+               Buffer     : constant Ada.Strings.Unbounded.String_Access := new String (1 .. Byte_Count);
+               ID         : Token_ID                                     := Invalid_Token_ID;
             begin
-               Parser.Lexer.Reset;
+               Read_Input (Buffer (1)'Address, Byte_Count);
+
+               Parser.Lexer.Reset_With_String_Access (Buffer);
                loop
                   exit when ID = Parser.Semantic_State.Trace.Descriptor.EOF_ID;
                   ID := Parser.Lexer.Find_Next;

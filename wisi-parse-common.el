@@ -137,7 +137,7 @@ the grammar is excessively redundant.")
      "wisi parse error")
 
 (cl-defstruct wisi-tok
-  token  ;; symbol from a token table ;; FIXME: rename to ’id’?
+  token  ;; symbol from a token table ;; IMPROVEME: rename to ’id’?
   region ;; cons giving buffer region containing token text
 
   nonterminal ;; t if a nonterminal

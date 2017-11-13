@@ -37,8 +37,8 @@ docs : info html
 
 # this updates elisp and related executables after any source change,
 # without running the tests.
-update-elisp : ../ada_grammar-elisp.el
-update-elisp : ../gpr_grammar-elisp.el
+update-elisp : ../ada-elisp.el
+update-elisp : ../gpr-elisp.el
 update-elisp : install_ada_executables
 update-elisp : byte-compile
 
@@ -102,18 +102,21 @@ summarize :
 ONE_TEST_FILES += subprograms
 #ONE_TEST_FILES += ada_mode-nominal.adb
 one : subprograms_wisi_parse.exe
-#one : one-clean
+one : byte-compile
+one : one-clean
 one-clean: force
-	for file in $(ONE_TEST_FILES) ; do rm -f $$file* ; done
+	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 #one : RUNTEST := run-indent-test-elisp-gpr_query.el
 #one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
 one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= --verbosity 2
-run_subprograms_parse.exe : export Standard_Common_Build := Debug
-two : run_subprograms_parse.exe
-	../test/wisi/run_subprograms_parse.exe ../test/wisi/subprograms.input Indent $(RUN_ARGS)
+# two : RUN_ARGS ?= --verbosity 2 --indent_params "4 3 1"
+two : export Standard_Common_Build := Debug
+# two : run_subprograms_parse.exe
+# 	../test/wisi/run_subprograms_parse.exe ../test/wisi/debug.input Indent $(RUN_ARGS)
+two : $(WISI_WISITOKEN)/wisi-generate.exe
+	$(WISI_WISITOKEN)/wisi-generate.exe --output_language Ada_Emacs --lexer re2c --interface process ../test/wisi/debug.wy
 
 two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
 two_mem : export Standard_Common_Profile := On
@@ -242,7 +245,6 @@ pub-ada : force
 	cp ../*.gp $(ELPA_ROOT)/packages/ada-mode
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query-process_refresh.adb
 	rm -f $(ELPA_ROOT)/packages/ada-mode/gpr_query.gpr
-	rm -f $(ELPA_ROOT)/packages/ada-mode/check_xref.gpr
 	mkdir -p $(ELPA_ROOT)/packages/ada-mode/gps_source
 	cp ../gps_source/*.ad? $(ELPA_ROOT)/packages/ada-mode/gps_source
 
@@ -333,8 +335,9 @@ endif
 # interfaces.changed.
 
 # Determine whether the split-out gnatcoll_xref.gpr is available.
+# We specify $(SHELL) here to work around a Mingw64 'make' problem.
 Makefile.conf : create_makefile_conf.sh
-	./create_makefile_conf.sh
+	$(SHELL) -c ./create_makefile_conf.sh
 
 include Makefile.conf
 
@@ -366,8 +369,8 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-build_ada_executables : gpr_grammar.ads gpr_grammar_re2c.c gpr_grammar_process.ads  force
-build_ada_executables : ada_grammar.ads ada_grammar_re2c.c ada_grammar_process.ads force
+build_ada_executables : gpr_re2c.c gpr_process.ads  force
+build_ada_executables : ada_re2c.c ada_process.ads force
 	gprbuild -p ../ada_mode_wisi_parse.gpr $(GPRBUILD_LINK_ARGS)
 
 install_ada_executables : build_ada_executables

@@ -23,10 +23,12 @@
 ;;
 ;;;;
 
+(require 'ada-elisp)
 (require 'ada-fix-error)
 (require 'cl-lib)
 (require 'wisi)
 (require 'wisi-elisp-lexer)
+(require 'wisi-process-parse)
 
 (defun ada-wisi-comment-gnat (indent after)
   "Modify INDENT to match gnat rules. Return new indent.
@@ -693,17 +695,16 @@ TOKEN-TEXT; move point to just past token."
 	  ))
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
-(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
-(defvar ada_grammar-elisp-token-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
-(defvar ada_grammar-elisp-keyword-table-raw nil) ;; ada_grammar-elisp.el and ada_grammar-process.el
-(defvar ada_grammar-elisp-parse-table nil) ;; ada_grammar-elisp.el
-(defvar ada_grammar-process-action-table nil) ;; ada_grammar-process.el
-(defvar ada_grammar-process-token-table nil) ;; ada_grammar-process.el
+(defvar ada-elisp-parse-table nil) ;; ada-elisp.el
+(defvar ada-elisp-token-table-raw nil) ;; ada-elisp.el and ada-process.el
+(defvar ada-elisp-keyword-table-raw nil) ;; ada-elisp.el and ada-process.el
+(defvar ada-elisp-parse-table nil) ;; ada-elisp.el
+(defvar ada-process-token-table nil) ;; ada-process.el
+(defvar ada-process-face-table nil) ;; ada-process.el
 
 (defvar wisi-elisp-parse-indent-hanging-function nil); wisi-elisp-parse.el
 
 (declare-function wisi-make-elisp-parser "wisi-elisp-parse") ;; autoloaded
-(declare-function wisi-make-process-parser "wisi-process-parse") ;; autoloaded
 (declare-function ada-wisi-elisp-parse--indent-hanging "ada-wisi-elisp-parse")
 
 (defun ada-wisi-setup ()
@@ -713,24 +714,23 @@ TOKEN-TEXT; move point to just past token."
 	  ((or (null ada-parser)
 	       (eq 'elisp ada-parser))
 
-	   (require 'ada_grammar-elisp)
 	   (require 'ada-wisi-elisp-parser)
 
 	   (wisi-make-elisp-parser
-	    ada_grammar-elisp-parse-table
+	    ada-elisp-parse-table
 	    #'wisi-forward-token)
 
 	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
 	   )
 
 	  ((eq 'process ada-parser)
-	   (require 'ada_grammar-process)
+	   (require 'ada-process)
 	   (wisi-process-parse-get
 	    (make-ada-wisi-parser
 	     :label "Ada"
 	     :exec-file ada-process-parse-exec
-	     :face-table ada_grammar-process-face-table
-	     :token-table ada_grammar-process-token-table)))
+	     :face-table ada-process-face-table
+	     :token-table ada-process-token-table)))
 	  ))
 
 	(lexer
@@ -738,8 +738,8 @@ TOKEN-TEXT; move point to just past token."
 	 ;; the elisp lexer for ada-wisi-scan-paramlist,
 	 ;; ada-wisi-which-function, etc.
 	 (wisi-make-elisp-lexer
-	  :token-table-raw ada_grammar-elisp-token-table-raw
-	  :keyword-table-raw ada_grammar-elisp-keyword-table-raw
+	  :token-table-raw ada-elisp-token-table-raw
+	  :keyword-table-raw ada-elisp-keyword-table-raw
 	  :string-quote-escape-doubled t
 	  :string-quote-escape nil))
 	)

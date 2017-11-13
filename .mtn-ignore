@@ -1,5 +1,6 @@
 ^.*\.elc$
 ^.*\.exe$
+^.*\.re2c$
 ^.*_parse_table$
 ^ada-mode\.html$
 ^ada-mode\.info$

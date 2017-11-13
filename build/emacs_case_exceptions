@@ -1,2 +1,10 @@
+GNAT
+GNATCOLL
+NL
+SQL
+Text_IO
+VFS
+*OS
+*UTF8
 *IO
-*YYLex
+

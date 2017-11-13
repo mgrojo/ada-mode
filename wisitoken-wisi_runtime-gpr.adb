@@ -1,9 +1,6 @@
 --  Abstract :
 --
---  Ada implementation of:
---
---  [1] ada-wisi.el
---  [2] ada-indent-user-options.el
+--  See spec
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -20,10 +17,24 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.Ada_Wisi_Runtime is
+with Ada.Strings.Fixed;
+package body WisiToken.Wisi_Runtime.Gpr is
 
-   --  Indent parameters from [2]
-   Ada_Indent        : Integer;
-   Ada_Indent_Broken : Integer;
+   procedure Set_Params (Params : in String)
+   is
+      use Ada.Strings.Fixed;
+      First : Integer := Params'First;
+      Last  : Integer := Index (Params, " ");
+   begin
+      Gpr_Indent := Integer'Value (Params (First .. Last - 1));
 
-end WisiToken.Ada_Wisi_Runtime;
+      First := Last + 1;
+      Last := Index (Params, " ", First);
+      Gpr_Indent_Broken := Integer'Value (Params (First .. Last - 1));
+
+      First := Last + 1;
+      Last := Index (Params, " ", First);
+      Gpr_Indent_When := Integer'Value (Params (First .. Last - 1));
+   end Set_Params;
+
+end WisiToken.Wisi_Runtime.Gpr;

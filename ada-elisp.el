@@ -1,5 +1,5 @@
-;;; ada_grammar-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp ada_grammar.wy
+;;; ada-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp ada.wy
 
 ;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
@@ -17,10 +17,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
-(defconst ada_grammar-elisp-keyword-table-raw
+(defconst ada-elisp-keyword-table-raw
   '(
    ("abs" . ABS)
    ("accept" . ACCEPT)
@@ -99,7 +99,7 @@
    ("xor" . XOR)
    ))
 
-(defconst ada_grammar-elisp-token-table-raw
+(defconst ada-elisp-token-table-raw
   '(
    ("punctuation"
     (AMPERSAND . "&")
@@ -141,10 +141,9 @@
     )
    ))
 
-(defconst ada_grammar-elisp-parse-table
+(defconst ada-elisp-parse-table
    (wisi-compile-grammar
-   '((AMPERSAND BAR BOX COLON COLON_EQUAL COMMA DOT DOT_DOT EQUAL EQUAL_GREATER GREATER GREATER_EQUAL GREATER_GREATER LESS LESS_EQUAL LESS_LESS MINUS PLUS SEMICOLON SLASH SLASH_EQUAL STAR STAR_STAR TICK_1 NUMERIC_LITERAL IDENTIFIER STRING_LITERAL CHARACTER_LITERAL ABS ACCEPT ABORT ABSTRACT ACCESS ALIASED ALL AND ARRAY AT BEGIN BODY CASE CONSTANT DECLARE DELAY DELTA DIGITS DO ELSE ELSIF END ENTRY EXCEPTION EXIT FOR FUNCTION GENERIC GOTO IF IN INTERFACE IS LEFT_PAREN LIMITED LOOP MOD NEW NOT NULL OF OR OTHERS OUT OVERRIDING PACKAGE PRAGMA PRIVATE PROCEDURE PROTECTED RAISE RANGE RECORD REM RENAMES REQUEUE RETURN REVERSE RIGHT_PAREN SEPARATE SELECT SOME SUBTYPE SYNCHRONIZED TAGGED TASK TERMINATE THEN TYPE UNTIL USE WHEN WHILE WITH XOR )
-     ((abstract_limited_synchronized_opt
+   '(((abstract_limited_synchronized_opt
        (())
        ((ABSTRACT LIMITED ))
        ((ABSTRACT SYNCHRONIZED ))
@@ -690,7 +689,7 @@
        ((WITH subprogram_specification IS ABSTRACT subprogram_default aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
-        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
+        (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((WITH subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 6 statement-end])
@@ -813,7 +812,7 @@
         (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0])))
        ((GENERIC PROCEDURE name RENAMES name aspect_specification_opt SEMICOLON )
         (progn
-        (wisi-statement-action [1 statement-start  7 statement-end])
+        (wisi-statement-action [1 statement-start 7 statement-end])
         (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
         5 font-lock-function-name-face font-lock-function-name-face])
         (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0])))
@@ -1015,13 +1014,13 @@
        ((name_list COMMA name )))
       (name
        ((IDENTIFIER )
-        (wisi-face-mark-action [1]))
+        (wisi-face-mark-action [1 suffix]))
        ((CHARACTER_LITERAL ))
        ((name LEFT_PAREN range_list RIGHT_PAREN )
         (wisi-indent-action [0
         (wisi-anchored% 1 ada-indent-broken)
         (wisi-hanging (wisi-anchored 2 1)
-        (wisi-anchored 2 (1+ ada-indent-broken)))
+        (wisi-anchored 2 (+ 1 ada-indent-broken)))
         (wisi-anchored 2 0)]))
        ((selected_component ))
        ((attribute_reference ))
@@ -1103,6 +1102,7 @@
        ((IDENTIFIER COLON EXCEPTION RENAMES name aspect_specification_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 7 statement-end])
+        (wisi-face-apply-action [5 font-lock-function-name-face nil])
         (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))))
       (overriding_indicator_opt
        ((NOT OVERRIDING )
@@ -1199,7 +1199,7 @@
        ((LEFT_PAREN expression_opt RIGHT_PAREN )
         (wisi-indent-action [0
         (wisi-hanging (wisi-anchored 1 1)
-        (wisi-anchored 1 (1+ ada-indent-broken)))
+        (wisi-anchored 1 (+ 1 ada-indent-broken)))
         (wisi-anchored 1 0)]))
        ((LEFT_PAREN association_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)]))
@@ -1358,9 +1358,9 @@
        ((RANGE simple_expression DOT_DOT simple_expression )))
       (record_definition
        ((RECORD component_list_opt END RECORD )
-        (wisi-indent-action [(ada-indent-record 'TYPE 1 0)
-        [(ada-indent-record 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
-        (ada-indent-record 'TYPE 1 0)
+        (wisi-indent-action [(ada-indent-record* 'TYPE 1 0)
+        [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
+        (ada-indent-record* 'TYPE 1 0)
         0]))
        ((NULL RECORD )
         (wisi-indent-action [ada-indent-broken ada-indent-broken])))
@@ -1428,10 +1428,13 @@
        ((access_definition )))
       (selected_component
        ((name DOT IDENTIFIER )
-        (wisi-face-extend-action 1 3))
-       ((name DOT CHARACTER_LITERAL ))
-       ((name DOT STRING_LITERAL ))
-       ((name DOT ALL )))
+        (wisi-face-mark-action [1 prefix 3 suffix]))
+       ((name DOT CHARACTER_LITERAL )
+        (wisi-face-mark-action [1 prefix]))
+       ((name DOT STRING_LITERAL )
+        (wisi-face-mark-action [1 prefix]))
+       ((name DOT ALL )
+        (wisi-face-mark-action [1 prefix])))
       (selective_accept
        ((SELECT select_alternative_list_opt ELSE sequence_of_statements_opt END SELECT SEMICOLON )
         (progn
@@ -4403,5 +4406,5 @@
       nil]))
   "Parser table.")
 
-(provide 'ada_grammar-elisp)
+(provide 'ada-elisp)
 ;; end of file

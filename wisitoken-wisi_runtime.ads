@@ -6,7 +6,9 @@
 --
 --  [1] wisi.el - defines parse action functions.
 --
---  [2] wisi-process-parse.el - defines elisp/process API
+--  [2] wisi-elisp-parse.el - defines parse action functions.
+--
+--  [3] wisi-process-parse.el - defines elisp/process API
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
@@ -70,10 +72,11 @@ package WisiToken.Wisi_Runtime is
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type);
 
-   package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_ID);
+   package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (WisiToken.Token_ID);
 
    Empty_IDs : constant Token_ID_Lists.List := Token_ID_Lists.Empty_List;
 
+   function "+" (Item : in WisiToken.Token_ID) return Token_ID_Lists.List;
    function "&" (List : in Token_ID_Lists.List; Item : in Token_ID) return Token_ID_Lists.List;
    function "&" (Left, Right : in Token_ID) return Token_ID_Lists.List;
 
@@ -91,7 +94,7 @@ package WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Motion_Param_Array);
-   --  Implements [1] wisi-motion-action.
+   --  Implements [2] wisi-motion-action.
 
    type Index_Faces is record
       Index       : Positive_Index_Type; -- into Tokens
@@ -106,14 +109,14 @@ package WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
-   --  Implements [1] wisi-face-apply-action.
+   --  Implements [2] wisi-face-apply-action.
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
-   --  Implements [1] wisi-face-apply-list-action.
+   --  Implements [2] wisi-face-apply-list-action.
 
    type Face_Class_Type is (Prefix, Suffix);
    --  Matches wisi-cache-class values set in [1] wisi-face-apply-action.
@@ -130,7 +133,7 @@ package WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Mark_Param_Array);
-   --  Implements [1] wisi-face-mark-action.
+   --  Implements [2] wisi-face-mark-action.
 
    type Face_Remove_Param_Array is array (Natural range <>) of Positive_Index_Type;
 
@@ -139,35 +142,37 @@ package WisiToken.Wisi_Runtime is
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Face_Remove_Param_Array);
-   --  Implements [1] wisi-face-remove-action.
+   --  Implements [2] wisi-face-remove-action.
 
-   type Indent_Param_Label is
+   ----------
+   --  Indent
+   --
+   --  elisp indent functions are represented by the Indent_Param type,
+   --  not Ada functions. This is to get the execution time right; in
+   --  elisp, the array of parameters to wisi-indent-action is not
+   --  evaluated when wisi-indent-action is called; each parameter is
+   --  evaluated by wisi-elisp-parse--indent-compute-delta.
+
+   type Simple_Indent_Param_Label is -- not hanging
      (Int,
-      Anchored_0, -- wisi-anchored;   accumulate => False
-      Anchored_1, -- wisi-anchored%;  accumulate => False
-      Anchored_2, -- wisi-anchored%-; accumulate => True
-      Anchored_3, -- wisi-anchored*;  accumulate => False
-      Anchored_4, -- wisi-anchored*-; accumulate => True
-      Hanging,    -- wisi-hanging
+      Anchored_0, -- wisi-anchored
+      Anchored_1, -- wisi-anchored%
+      Anchored_2, -- wisi-anchored%-
+      Anchored_3, -- wisi-anchored*
+      Anchored_4, -- wisi-anchored*-
       Language    -- language-specific function
      );
-   subtype Anchored_Label is Indent_Param_Label range Anchored_0 .. Anchored_4;
+   subtype Anchored_Label is Simple_Indent_Param_Label range Anchored_0 .. Anchored_4;
 
-   type Indent_Arg_Label is (Int, Token_Number, Token_ID);
+   --  Arguments to language-specific functions are integers; one of
+   --  delta, Token_Number, or Token_ID - the syntax does not distinguish
+   --  among these three types.
 
-   type Indent_Arg (Label : Indent_Arg_Label := Indent_Arg_Label'First) is
-   record
-      case Label is
-      when Int =>
-         Int_Value : Integer;
-      when Token_Number =>
-         Token_Number_Value : Positive_Index_Type;
-      when Token_ID =>
-         Token_ID_Value : WisiToken.Token_ID;
-      end case;
-   end record;
+   package Indent_Arg_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Integer);
 
-   package Indent_Arg_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Indent_Arg);
+   function "+" (Item : in Integer) return Indent_Arg_Arrays.Vector;
+   function "&" (List : in Indent_Arg_Arrays.Vector; Item : in Integer) return Indent_Arg_Arrays.Vector;
+   function "&" (Left, Right : in Integer) return Indent_Arg_Arrays.Vector;
 
    type Delta_Type (<>) is private;
 
@@ -175,34 +180,49 @@ package WisiToken.Wisi_Runtime is
 
    Null_Args : Indent_Arg_Arrays.Vector renames Indent_Arg_Arrays.Empty_Vector;
 
-   type Indent_Param_Type (Label : Indent_Param_Label := Int) is
+   type Simple_Indent_Param (Label : Simple_Indent_Param_Label := Int) is
    record
       case Label is
       when Int =>
          Int_Delta : Integer;
+
       when Anchored_Label =>
          Anchored_Index : Positive_Index_Type;
          Anchored_Delta : Integer;
-      when Hanging =>
-         Hanging_Delta : Integer;
+
       when Language =>
          Function_Ptr : Language_Indent_Function;
          Args         : Indent_Arg_Arrays.Vector;
       end case;
    end record;
 
-   subtype Int_Indent_Param is Indent_Param_Type (Int);
-   subtype Anchored_Indent_Param is Indent_Param_Type
-   with Dynamic_Predicate => Anchored_Indent_Param.Label in Anchored_Label;
+   type Indent_Param_Label is
+     (Simple,
+      Hanging_0,  -- wisi-hanging
+      Hanging_1,  -- wisi-hanging%
+      Hanging_2  -- wisi-hanging%-
+     );
+   subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_2;
 
-   Null_Indent_Param : constant Indent_Param_Type := (Int, 0);
+   type Indent_Param (Label : Indent_Param_Label := Simple) is
+   record
+      case Label is
+      when Simple =>
+         Param : Simple_Indent_Param;
+
+      when Hanging_Label =>
+         Hanging_Delta_1 : Simple_Indent_Param;
+         Hanging_Delta_2 : Simple_Indent_Param;
+
+      end case;
+   end record;
 
    type Indent_Pair (Comment_Present : Boolean := False) is
    record
-      Code_Delta : Indent_Param_Type;
+      Code_Delta : Indent_Param;
       case Comment_Present is
       when True =>
-         Comment_Delta : Indent_Param_Type;
+         Comment_Delta : Indent_Param;
       when False =>
          null;
       end case;
@@ -210,25 +230,33 @@ package WisiToken.Wisi_Runtime is
 
    type Indent_Param_Array is array (Positive_Index_Type range <>) of Indent_Pair;
 
-   procedure Indent_Action
+   procedure Indent_Action_0
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
-   --  Implements [1] wisi-indent-action.
+   --  Implements [2] wisi-indent-action.
+
+   procedure Indent_Action_1
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Tokens  : in     Augmented_Token_Array;
+      N       : in     Integer;
+      Params  : in     Indent_Param_Array);
+   --  Implements [2] wisi-indent-action*.
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type);
 
    procedure Put (Data : in Parse_Data_Type);
    --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
-   --  set-text-property responses as defined in [2]
+   --  set-text-property responses as defined in [3]
    --  wisi-process-parse--execute.
 
    procedure Put
      (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class);
    --  Put Errors to Ada.Text_IO.Standard_Output, as encoded error
-   --  responses as defined in [2] wisi-process-parse--execute.
+   --  responses as defined in [3] wisi-process-parse--execute.
 
    procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Message : in String);
    --  Put an error elisp form to Ada.Text_IO.Standard_Output.
@@ -286,8 +314,8 @@ private
    package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
-      --  [1] wisi-ind struct. Indent values may be negative while indents
-      --  are being computed.
+      --  [2] wisi-elisp-parse--indent elements. Indent values may be
+      --  negative while indents are being computed.
       case Label is
       when Not_Set =>
          null;

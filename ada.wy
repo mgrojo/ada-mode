@@ -186,10 +186,18 @@
 %parser_algorithm LALR
 
 ;; output_language and lexer are set on the command line; this file is
-;; used to generate elisp, Ada_Emacs, and Ada parsers.
+;; used to generate elisp and Ada_Emacs parsers.
 
-%elisp_face nil
+%elisp_face font-lock-constant-face
 %elisp_face font-lock-function-name-face
+%elisp_face font-lock-type-face
+%elisp_face nil
+
+%elisp_indent ada-indent-aggregate Ada_Indent_Aggregate
+%elisp_indent ada-indent-renames Ada_Indent_Renames_0
+%elisp_indent ada-indent-return Ada_Indent_Return_0
+%elisp_indent ada-indent-record Ada_Indent_Record_0
+%elisp_indent ada-indent-record* Ada_Indent_Record_1
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
@@ -484,7 +492,6 @@ association_opt
  ;;     IO_CPU_Control_State_S_Pkg.CPU2_Fault_Status_Type'
  ;;       (Unused2  => 10,  -- Used to be aligned on "1 =>"
  ;;   requires '-' on wisi-hanging%-
-
     (wisi-indent-action [(wisi-hanging 0 ada-indent-broken)
                          ada-indent-broken
                          (wisi-hanging%- (wisi-anchored% 2 ada-indent-broken)
@@ -1132,7 +1139,7 @@ formal_subprogram_declaration
  ;; formal_abstract_subprogram_declaration
     (progn
       (wisi-statement-action [1 statement-start 7 statement-end])
-      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
+      (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | WITH subprogram_specification IS ABSTRACT aspect_specification_opt SEMICOLON
  ;; formal_abstract_subprogram_declaration
     (progn
@@ -1308,7 +1315,7 @@ generic_renaming_declaration
       (wisi-indent-action [0 0 ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken 0]))
   | GENERIC PROCEDURE name RENAMES name aspect_specification_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start  7 statement-end])
+      (wisi-statement-action [1 statement-start 7 statement-end])
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  5 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 0 ada-indent-broken (ada-indent-renames 3) ada-indent-broken ada-indent-broken 0]))
@@ -1618,7 +1625,7 @@ name
     (wisi-indent-action [0
                          (wisi-anchored% 1 ada-indent-broken)
                          (wisi-hanging (wisi-anchored 2 1)
-                                       (wisi-anchored 2 (1+ ada-indent-broken)))
+                                       (wisi-anchored 2 (+ 1 ada-indent-broken)))
                          (wisi-anchored 2 0)])
   | selected_component
   | attribute_reference ;; starts with name
@@ -1867,7 +1874,7 @@ paren_expression
  ;;         or else True);
     (wisi-indent-action [0
                          (wisi-hanging (wisi-anchored 1 1)
-                                       (wisi-anchored 1 (1+ ada-indent-broken)))
+                                       (wisi-anchored 1 (+ 1 ada-indent-broken)))
                          (wisi-anchored 1 0)])
 
   | LEFT_PAREN association_list RIGHT_PAREN

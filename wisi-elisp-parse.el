@@ -109,6 +109,10 @@ point at which that max was spawned.")
        (let ((line-count (1+ (count-lines (point-min) (point-max)))))
 	 (setq wisi-elisp-parse--indent (make-vector line-count 0))
 	 (setf (wisi-elisp-lexer-line-begin wisi--lexer) (wisi--set-line-begin line-count))))
+
+      (navigate
+       (setq wisi-end-caches nil))
+
       (t nil))
 
     (setf (wisi-parser-errors parser) nil)
@@ -1169,7 +1173,7 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 	)))
 
      (t
-      (error "wisi-elisp-parse--apply-int: invalid form in wisi-ind-indent: %s" indent))
+      (error "wisi-elisp-parse--apply-int: invalid form : %s" indent))
      )))
 
 (defun wisi-elisp-parse--apply-anchored (delta i)
@@ -1578,7 +1582,7 @@ DELTAS."
 (defun wisi-indent-action* (n deltas)
   ;; Not wisi-elisp-parse--indent-action* to match existing grammar files
   "If any of the first N tokens in `wisi-tokens' is first on a line,
-call `wisi-indent-action' with DETLAS.  Otherwise do nothing."
+call `wisi-indent-action' with DELTAS.  Otherwise do nothing."
   (when (eq wisi--parse-action 'indent)
     (let ((done nil)
 	  (i 0)
@@ -1595,7 +1599,7 @@ call `wisi-indent-action' with DETLAS.  Otherwise do nothing."
 
 ;;;; non-grammar indent functions
 
-(defconst wisi-elisp-parse--max-anchor-depth 20) ;; FIXME: can compute in actions
+(defconst wisi-elisp-parse--max-anchor-depth 20) ;; IMRPOVEME: can compute in actions
 
 (defun wisi-elisp-parse--indent-leading-comments ()
   "Set `wisi-ind-indent to 0 for comment lines before first token in buffer.

@@ -27,6 +27,7 @@
 (require 'gpr-mode)
 (require 'wisi)
 (require 'wisi-elisp-lexer)
+(require 'wisi-process-parse)
 
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
@@ -103,11 +104,11 @@
 	  gpr-indent-when
 	  ))
 
-(defvar gpr_grammar-elisp-parse-table nil) ;; gpr_grammar-elisp.el
-(defvar gpr_grammar-elisp-token-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
-(defvar gpr_grammar-elisp-keyword-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
-(defvar gpr_grammar-process-action-table nil) ;; gpr_grammar-process.el
-(defvar gpr_grammar-process-token-table nil) ;;gpr_grammar-process.el
+(defvar gpr-elisp-parse-table nil) ;; gpr-elisp.el
+(defvar gpr-elisp-token-table-raw nil) ;; gpr-elisp.el and gpr-process.el
+(defvar gpr-elisp-keyword-table-raw nil) ;; gpr-elisp.el and gpr-process.el
+(defvar gpr-process-face-table nil) ;; gpr-process.el
+(defvar gpr-process-token-table nil) ;;gpr-process.el
 
 (defun gpr-wisi-setup ()
   "Set up a buffer for parsing gpr files with wisi."
@@ -118,24 +119,24 @@
    (cond
     ((or (null gpr-parser)
 	 (eq 'elisp gpr-parser))
-     (require 'gpr_grammar-elisp)
+     (require 'gpr-elisp)
      (wisi-make-elisp-parser
-      gpr_grammar-elisp-parse-table
+      gpr-elisp-parse-table
       #'wisi-forward-token))
 
     ((eq 'process gpr-parser)
-     (require 'gpr_grammar-process)
+     (require 'gpr-process)
      (wisi-process-parse-get
       (make-gpr-wisi-parser
       :label "gpr"
       :exec-file gpr-process-parse-exec
-      :token-table (nth 0 gpr_grammar-process-token-table)
-      :face-table (nth 0 gpr_grammar-process-face-table))))
+      :token-table (nth 0 gpr-process-token-table)
+      :face-table (nth 0 gpr-process-face-table))))
     )
 
    :lexer (wisi-make-elisp-lexer
-	   :token-table-raw gpr_grammar-elisp-token-table-raw
-	   :keyword-table-raw gpr_grammar-elisp-keyword-table-raw
+	   :token-table-raw gpr-elisp-token-table-raw
+	   :keyword-table-raw gpr-elisp-keyword-table-raw
 	   :string-quote-escape-doubled nil
 	   :string-quote-escape nil))
 

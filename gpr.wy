@@ -109,7 +109,12 @@
 
 %start compilation_unit
 %parser_algorithm LALR
-%output_language Elisp
+
+;; output_language and lexer are set on the command line; this file is
+;; used to generate elisp and Ada_Emacs parsers.
+
+%elisp_face font-lock-function-name-face
+%elisp_face nil
 
 %mckenzie_cost_default 4 4 8
 %mckenzie_cost_limit 12
@@ -136,12 +141,12 @@ attribute_declaration
     (progn
       (wisi-statement-action [1 statement-start 8 statement-end])
       (wisi-face-apply-action [2 nil font-lock-function-name-face])
-      (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+      (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
                              gpr-indent-broken 0]))
   | FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 8 statement-end])
-      (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+      (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
                              gpr-indent-broken 0]))
   ;
 

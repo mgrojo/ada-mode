@@ -1,5 +1,5 @@
-;;; gpr_grammar-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
-;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp gpr_grammar.wy
+;;; gpr-elisp.el --- Generated parser support file  -*- lexical-binding:t -*-
+;;; with command line: wisi-generate.exe -v 1 --lexer Elisp --output_language Elisp gpr.wy
 
 ;;  Copyright (C) 2013 - 2015 Free Software Foundation, Inc.
 
@@ -17,10 +17,10 @@
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
-(defconst gpr_grammar-elisp-keyword-table-raw
+(defconst gpr-elisp-keyword-table-raw
   '(
    ("abstract" . ABSTRACT)
    ("aggregate" . AGGREGATE)
@@ -47,7 +47,7 @@
    ("with" . WITH)
    ))
 
-(defconst gpr_grammar-elisp-token-table-raw
+(defconst gpr-elisp-token-table-raw
   '(
    ("punctuation"
     (AMPERSAND . "&")
@@ -68,10 +68,9 @@
     )
    ))
 
-(defconst gpr_grammar-elisp-parse-table
+(defconst gpr-elisp-parse-table
    (wisi-compile-grammar
-   '((AMPERSAND COLON COLON_EQUALS COMMA DOT EQUAL_GREATER QUOTE SEMICOLON VERTICAL_BAR IDENTIFIER STRING_LITERAL ABSTRACT AGGREGATE CASE CONFIGURATION END EXTENDS EXTERNAL EXTERNAL_AS_LIST FOR IS LEFT_PAREN LIBRARY NULL OTHERS PACKAGE PROJECT RENAMES RIGHT_PAREN STANDARD TYPE USE WHEN WITH )
-     ((aggregate_g
+   '(((aggregate_g
        ((LEFT_PAREN string_list RIGHT_PAREN )
         (wisi-indent-action [0 (wisi-anchored 1 1) (wisi-anchored 1 0)])))
       (attribute_declaration
@@ -84,12 +83,12 @@
         (progn
         (wisi-statement-action [1 statement-start 8 statement-end])
         (wisi-face-apply-action [2 nil font-lock-function-name-face])
-        (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+        (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
         gpr-indent-broken 0])))
        ((FOR EXTERNAL LEFT_PAREN STRING_LITERAL RIGHT_PAREN USE expression SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 8 statement-end])
-        (wisi-indent-action [0 gpr-indent-broken (1- gpr-indent-broken) gpr-indent-broken (1- gpr-indent-broken) 0
+        (wisi-indent-action [0 gpr-indent-broken (- gpr-indent-broken 1) gpr-indent-broken (- gpr-indent-broken 1) 0
         gpr-indent-broken 0]))))
       (attribute_prefix
        ((PROJECT ))
@@ -522,5 +521,5 @@
       nil]))
   "Parser table.")
 
-(provide 'gpr_grammar-elisp)
+(provide 'gpr-elisp)
 ;; end of file

@@ -119,7 +119,7 @@ SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads
 
 ADA_GPS_TEST_FILES := $(shell cd ../test/ada-gps; ls *.ad[sb])
 
-.PRECIOUS : %-elisp.el %-process.el %-wy.el %.ads %.tmp %_process.adb %_re2c.c ../%-grammar-elisp.el ../%-grammar-wy.el
+.PRECIOUS : %-elisp.el %-process.el %.ads %.re2c %.tmp %_process.adb %_re2c.c
 
 .PHONY : all force one test test-clean
 
@@ -178,16 +178,14 @@ elisp-clean :
 
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
-%_process.ads : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
+%_process.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
 	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
-%.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	$(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada --lexer re2c $< > $(*F).ada_parse_table
-	dos2unix $(*F).ads $(*F).adb
-
-%_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+# The previous rule confuses 'make'; it thinks *.re2c is created in
+# the build dir, when it is not.
+%_re2c.c : ../%.re2c
+	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o ../$@ $<
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
@@ -237,7 +235,8 @@ GPRBUILD := gprbuild
 
 # (grep-find "find .. -type f -print | xargs grep -n FIXME")
 
-clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean
+clean :: build-ada-exec-clean compile-ada-test-clean doc-clean elisp-clean exe-clean source-clean test-clean profile-clean
+	rm -f check_xref.gpr Makefile.conf
 
 doc-clean ::
 	rm -f ../*.info ../*.html ../dir-ada-mode
@@ -252,7 +251,7 @@ compile-ada-test-clean :
 
 exe-clean ::
 	rm -rf obj
-	rm -rf ../obj Makefile.conf
+	rm -rf ../obj
 	rm -rf ../gpr_query$(EXE_EXT) ../gpr_query.gpr
 	rm -rf ../gpr_query-process_refresh.adb
 	rm -rf ../ada_mode_gps_indent$(EXE_EXT) ../ada_mode_gps_indent.gpr
@@ -261,11 +260,12 @@ exe-clean ::
 	rm -rf ../run_ada_parser$(EXE_EXT)
 	rm -rf ../run_gpr_parser$(EXE_EXT)
 
+profile-clean ::
+	rm -rf ../exec_pro ../obj_pro
+
 # delete all files created by wisi-generate
-build-ada-exec-clean : PATTERNS := *.*_output *.*_parse_table *.re2c *_re2c.c
 build-ada-exec-clean :
-	rm -f $(PATTERNS) *.ad?
-	cd ..; rm -f $(PATTERNS) *_grammar-elisp.el *_grammar-process.el *_grammar.*_parse_table *_grammar_process.ad?
+	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process.ad?
 
 test-clean ::
 	rm -f *.diff *.tmp

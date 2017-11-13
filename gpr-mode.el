@@ -225,7 +225,6 @@ of the package or project point is in or just after, or nil.")
   (interactive)
   (save-some-buffers t)
   ;; Kill sessions to catch changed env vars
-  ;; FIXME: need dispatching kill single session
   (cl-ecase ada-xref-tool
     (gnat nil)
     (gpr_query (gpr-query-kill-all-sessions))

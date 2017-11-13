@@ -18,8 +18,12 @@
 
 pragma License (GPL);
 
+with Ada_Process;
 with Gen_Emacs_Wisi_Parse;
-with Ada_Grammar_Process;
+with WisiToken.Wisi_Runtime.Ada;
 procedure Ada_Mode_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  (Name          => "Ada_mode",
-   Create_Parser => Ada_Grammar_Process.Create_Parser);
+  (Name                         => "Ada_mode",
+   Descriptor                   => Ada_Process.Descriptor,
+   Parse_Data                   => Ada_Process.Parse_Data,
+   Create_Parser                => Ada_Process.Create_Parser,
+   Set_Language_Specific_Params => WisiToken.Wisi_Runtime.Ada.Set_Params);

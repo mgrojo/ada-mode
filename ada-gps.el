@@ -252,7 +252,7 @@ are indented correctly.")
 		    (indent (string-to-number (match-string 2))))
 		(with-current-buffer source-buffer
 		  (goto-char (point-min))
-		  (forward-line (1- line)) ;; FIXME: count forward from prev indented line
+		  (forward-line (1- line))
 		  (indent-line-to indent)
 		  )
 

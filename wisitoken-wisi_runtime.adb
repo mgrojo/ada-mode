@@ -62,7 +62,7 @@ package body WisiToken.Wisi_Runtime is
       Indent    : Indent_Type      := Data.Indents (Anchor_Line);
       Anchor_ID : constant Integer := 1 + Max_Anchor_ID (Data, Anchor_Line, Last_Line);
    begin
-      --  [1] wisi--anchored-2
+      --  [2] wisi-elisp-parse--anchored-2
       Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
 
       case Indent.Label is
@@ -100,7 +100,7 @@ package body WisiToken.Wisi_Runtime is
       I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
       Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
-      --  [1] compute delta in wisi-anchored-1.
+      --  [2] compute delta in wisi-elisp-parse--anchored-1.
 
       if Anchor_Token.First or else
         ((Anchor_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
@@ -138,7 +138,7 @@ package body WisiToken.Wisi_Runtime is
      (Delta_Indent : in     Anchored_Delta;
       Indent       : in out Indent_Type)
    is begin
-      --  [1] wisi--apply-anchored
+      --  [2] wisi-elisp-parse--apply-anchored
 
       case Indent.Label is
       when Not_Set =>
@@ -160,7 +160,7 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Indent_Apply_Int (Indent : in out Indent_Type; Offset : in Integer)
    is begin
-      --  [1] wisi--apply-int
+      --  [2] wisi-elisp-parse--apply-int
       case Indent.Label is
       when Not_Set =>
          Indent := (Int, Offset);
@@ -182,7 +182,7 @@ package body WisiToken.Wisi_Runtime is
       Last_Line    : in     Line_Number_Type;
       Delta_Indent : in     Delta_Type)
    is
-      --  [1] wisi--indent-token-1
+      --  [2] wisi-elisp-parse--indent-token-1
       --  FIXME: implement wisi-indent-comment-col-0
    begin
       for Line in First_Line .. Last_Line loop
@@ -209,66 +209,70 @@ package body WisiToken.Wisi_Runtime is
    function Indent_Compute_Delta
      (Data              : in out Parse_Data_Type;
       Tokens            : in     Augmented_Token_Array;
-      Param             : in     Indent_Param_Type;
+      Param             : in     Indent_Param;
       Token             : in     Token_Line_Comment.Token;
       Indenting_Comment : in     Boolean)
      return Delta_Type
    is begin
-      --  [1] wisi--indent-compute-delta, which evals wisi-anchored*, wisi-hanging.
+      --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
       case Param.Label is
-      when Int =>
-         return (Int, Param.Int_Delta);
+      when Simple =>
+         case Param.Param.Label is
+         when Int =>
+            return (Int, Param.Param.Int_Delta);
 
-      when Anchored_Label =>
-         declare
-            Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-              (Tokens (Param.Anchored_Index).Element.all);
-         begin
-            if Token.Virtual or Anchor_Token.Virtual then
-               return Null_Delta;
-            else
-               case Anchored_Label'(Param.Label) is
-               when Anchored_0 =>
-                  --  [1] wisi-anchored, wisi-anchored-1
-                  return Anchored_2
-                    (Data,
-                     Anchor_Line  => Anchor_Token.Line,
-                     Last_Line    =>
-                       (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
-                     Indent_Delta => Current_Indent_Offset (Data, Anchor_Token, Param.Anchored_Delta),
-                     Accumulate   => True);
-
-               when Anchored_1 =>
-                  --  [1] wisi-anchored%
-                  return Anchored_2
-                    (Data,
-                     Anchor_Line  => Anchor_Token.Line,
-                     Last_Line    =>
-                       (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
-                     Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Anchored_Delta),
-                     Accumulate   => True);
-
-               when Anchored_2 =>
-                  raise SAL.Not_Implemented;
+         when Anchored_Label =>
+            declare
+               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Tokens (Param.Param.Anchored_Index).Element.all);
+            begin
+               if Token.Virtual or Anchor_Token.Virtual then
                   return Null_Delta;
+               else
+                  case Anchored_Label'(Param.Param.Label) is
+                  when Anchored_0 =>
+                     --  [1] wisi-anchored, wisi-anchored-1
+                     return Anchored_2
+                       (Data,
+                        Anchor_Line  => Anchor_Token.Line,
+                        Last_Line    =>
+                          (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                        Indent_Delta => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate   => True);
 
-               when Anchored_3 =>
-                  raise SAL.Not_Implemented;
-                  return Null_Delta;
+                  when Anchored_1 =>
+                     --  [1] wisi-anchored%
+                     return Anchored_2
+                       (Data,
+                        Anchor_Line  => Anchor_Token.Line,
+                        Last_Line    =>
+                          (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                        Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate   => True);
 
-               when Anchored_4 =>
-                  raise SAL.Not_Implemented;
-                  return Null_Delta;
-               end case;
-            end if;
-         end;
+                  when Anchored_2 =>
+                     raise SAL.Not_Implemented;
+                     return Null_Delta;
 
-      when Hanging =>
+                  when Anchored_3 =>
+                     raise SAL.Not_Implemented;
+                     return Null_Delta;
+
+                  when Anchored_4 =>
+                     raise SAL.Not_Implemented;
+                     return Null_Delta;
+                  end case;
+               end if;
+            end;
+
+         when Language =>
+            return Param.Param.Function_Ptr (Param.Param.Args);
+         end case;
+
+      when Hanging_Label =>
          raise SAL.Not_Implemented;
          return Null_Delta;
 
-      when Language =>
-         return Param.Function_Ptr (Param.Args);
       end case;
    end Indent_Compute_Delta;
 
@@ -316,7 +320,7 @@ package body WisiToken.Wisi_Runtime is
       Paren_Char_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
       Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
-      --  [1] wisi--paren-in-anchor-line. That uses elisp syntax-ppss; here
+      --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
       --  we search the parser stack.
       loop
          exit when I < Data.Semantic_State.Stack.First_Index;
@@ -630,7 +634,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-containing-action
+      --  [2] wisi-containing-action
       use Navigate_Cache_Trees;
       use WisiToken.Token_Line_Comment;
       Containing_Tok    : Token renames Token (Tokens (Containing).Element.all);
@@ -694,6 +698,13 @@ package body WisiToken.Wisi_Runtime is
       end if;
    end Containing_Action;
 
+   function "+" (Item : in WisiToken.Token_ID) return Token_ID_Lists.List
+   is begin
+      return Result : Token_ID_Lists.List do
+         Result.Append (Item);
+      end return;
+   end "+";
+
    function "&" (List : in Token_ID_Lists.List; Item : in WisiToken.Token_ID) return Token_ID_Lists.List
    is begin
       return Result : Token_ID_Lists.List := List do
@@ -717,7 +728,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-motion-action
+      --  [2] wisi-motion-action
       use Navigate_Cache_Trees;
       use all type Ada.Containers.Count_Type;
 
@@ -732,7 +743,7 @@ package body WisiToken.Wisi_Runtime is
       is
          Cache : Navigate_Cache_Type renames Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.all;
       begin
-         --  [1] wisi--match-token
+         --  [2] wisi-elisp-parse--match-token
          if (Start.Set and then Point = Start.Item) or else
            Cache.Containing_Pos = Start
          then
@@ -813,7 +824,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-face-apply-action
+      --  [2] wisi-face-apply-action
       use Face_Cache_Trees;
 
       Iter       : constant Iterator := Data.Face_Caches.Iterate;
@@ -870,7 +881,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-face-apply-list-action
+      --  [2] wisi-face-apply-list-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -912,7 +923,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-face-apply-action
+      --  [2] wisi-face-apply-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -959,7 +970,7 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
 
-      --  [1] wisi-face-remove-action
+      --  [2] wisi-face-remove-action
       use Face_Cache_Trees;
 
       Iter      : constant Iterator := Data.Face_Caches.Iterate;
@@ -985,7 +996,29 @@ package body WisiToken.Wisi_Runtime is
       end loop;
    end Face_Remove_Action;
 
-   procedure Indent_Action
+   function "+" (Item : in Integer) return Indent_Arg_Arrays.Vector
+   is begin
+      return Result : Indent_Arg_Arrays.Vector do
+         Result.Append (Item);
+      end return;
+   end "+";
+
+   function "&" (List : in Indent_Arg_Arrays.Vector; Item : in Integer) return Indent_Arg_Arrays.Vector
+   is begin
+      return Result : Indent_Arg_Arrays.Vector := List do
+         Result.Append (Item);
+      end return;
+   end "&";
+
+   function "&" (Left, Right : in Integer) return Indent_Arg_Arrays.Vector
+   is begin
+      return Result : Indent_Arg_Arrays.Vector do
+         Result.Append (Left);
+         Result.Append (Right);
+      end return;
+   end "&";
+
+   procedure Indent_Action_0
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
@@ -993,14 +1026,14 @@ package body WisiToken.Wisi_Runtime is
    is
       pragma Unreferenced (Nonterm);
    begin
-      --  [1] wisi-indent-action
+      --  [2] wisi-indent-action
       for I in Tokens.First_Index .. Tokens.Last_Index loop
          declare
             use all type Ada.Containers.Count_Type;
             Token             : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (I).Element.all);
             Pair              : Indent_Pair renames Params (I);
             Code_Delta        : Delta_Type;
-            Comment_Param     : Indent_Param_Type;
+            Comment_Param     : Indent_Param;
             Comment_Param_Set : Boolean := False;
             Comment_Delta     : Delta_Type;
          begin
@@ -1036,7 +1069,17 @@ package body WisiToken.Wisi_Runtime is
             end if;
          end;
       end loop;
-   end Indent_Action;
+   end Indent_Action_0;
+
+   procedure Indent_Action_1
+     (Data    : in out Parse_Data_Type;
+      Nonterm : in     Augmented_Token'Class;
+      Tokens  : in     Augmented_Token_Array;
+      N       : in     Integer;
+      Params  : in     Indent_Param_Array)
+   is begin
+      raise SAL.Not_Implemented;
+   end Indent_Action_1;
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type)
    is

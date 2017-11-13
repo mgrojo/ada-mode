@@ -1,5 +1,5 @@
 gpr_file=../gpr_query.gpr
 
-casing=emacs_case_exception
+casing=emacs_case_exceptions
 
 -- end of file

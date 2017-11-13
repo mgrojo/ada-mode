@@ -18,7 +18,9 @@
 
 pragma License (GPL);
 
-with Gen_Run_Wisi_Parser;
-with Gpr_Grammar;
-procedure Run_gpr_Parser is new Gen_Run_Wisi_Parser
-  ("gpr", Gpr_Grammar.Create_Parser, Gpr_Grammar.State.Errors, Gpr_Grammar.Descriptor);
+with Gen_Run_Wisi_Parse;
+with Gpr_Process;
+with WisiToken.Wisi_Runtime.Gpr;
+procedure Run_Gpr_Parse is new Gen_Run_Wisi_Parse
+  ("gpr", Gpr_Process.Descriptor, Gpr_Process.Parse_Data, Gpr_Process.Create_Parser,
+   WisiToken.Wisi_Runtime.Gpr.Set_Params);

@@ -203,7 +203,7 @@ OBJ-DIRS and PRJ-DIRS. Uses `gnat list'.  Returns new (SRC-DIRS OBJ-DIRS PRJ-DIR
        ))
     (list (cl-remove-duplicates src-dirs) (cl-remove-duplicates obj-dirs) (cl-remove-duplicates prj-dirs))))
 
-;; FIXME: use a dispatching function instead, with autoload, to
+;; IMPROVEME: use a dispatching function instead, with autoload, to
 ;; avoid "require" here, and this declare
 ;; Using 'require' at top level gives the wrong default ada-xref-tool
 (declare-function gpr-query-get-src-dirs "gpr-query.el" (src-dirs))

@@ -464,7 +464,7 @@ Used to ignore whitespace changes in before/after change hooks.")
 
 (defun wisi-goto-error ()
   "Move point to position in last error message (if any)."
-  ;; FIXME: next-error goto next etc
+  ;; IMPROVEME: next-error goto next etc
   (when (wisi-parser-errors wisi--parser)
     (let ((data (car (wisi-parser-errors wisi--parser))))
       (cond
@@ -478,9 +478,9 @@ Used to ignore whitespace changes in before/after change hooks.")
 	       (col (string-to-number (match-string 2 msg))))
 	  (push-mark)
 	  (goto-char (point-min))
-	  ;; FIXME: lexer can be confused about lines? line > last line in buffer.
 	  (condition-case nil
 	      (progn
+		;; line can be wrong if parser screws up, or user edits buffer
 		(forward-line (1- line))
 		(forward-char col))
 	    (error
@@ -650,8 +650,6 @@ Used to ignore whitespace changes in before/after change hooks.")
 
       ;; Don't keep retrying failed parse until text changes again.
       (wisi-set-parse-try nil)
-
-      (setq wisi-end-caches nil);; only used by navigate;; FIXME: move to wisi-elisp-parse
 
       (wisi--run-parse)
 

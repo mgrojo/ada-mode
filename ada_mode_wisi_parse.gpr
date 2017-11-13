@@ -22,9 +22,9 @@ project Ada_Mode_Wisi_Parse is
 
    for Main use
      ("ada_mode_wisi_parse.ads",
-      "run_ada_parser.ads",
+      "run_ada_parse.ads",
       "gpr_mode_wisi_parse.ads",
-      "run_gpr_parser.ads"
+      "run_gpr_parse.ads"
      );
 
    for Source_Dirs use (".", "build", "test/wisi");
@@ -44,39 +44,48 @@ project Ada_Mode_Wisi_Parse is
    for Languages use ("Ada", "C");
 
    package Compiler is
-      --  FIXME: use Standard_Common vars, publish standard_common
-
-      Standard_Style := "-gnaty3abcefhiklnOprtx";
-      Line_Length := "-gnatyM120";
-
-      Common_Switches :=
-        ("-g",
-         "-gnata",  -- assertions
-         "-gnatfoqQ",
-         "-gnatVa", -- validity checks
-         "-gnateE", -- extra info in exceptions
-         "-gnatwaBCeJL",
-         "-gnatw.d",
-         "-fstack-check",
-         "-gnat12");
 
       case Standard_Common.Build is
       when "Debug" =>
-         for Default_Switches ("Ada") use Common_Switches & Standard_Style & Line_Length & ("-O0");
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler.Debug_Switches;
 
-         for Switches ("ada_grammar_process.adb") use Common_Switches & Standard_Style & ("-O0");
-         for Switches ("ada_grammar.adb") use Common_Switches & Standard_Style & ("-O0");
+         for Switches ("ada_process.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Debug_Switches;
+         for Switches ("ada.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Debug_Switches;
 
       when "Normal" =>
-         for Default_Switches ("Ada") use Common_Switches & Standard_Style & Line_Length & ("-O2", "-gnatn");
+         for Default_Switches ("Ada") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Style_Checks &
+           Standard_Common.Compiler.Release_Switches;
 
-         for Switches ("ada_grammar_process.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
-         for Switches ("ada_grammar.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
+         for Switches ("ada_process.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+
+         for Switches ("ada.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
             -- With GNAT GPL 2016: gnatn hangs; 01 slow; 02 out of memory
-            -- -fvar-tracking-assignments gives up (only needed for debug)
 
-         for Switches ("gpr_grammar_process.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
-         for Switches ("gpr_grammar.adb") use Common_Switches & Standard_Style & ("-O1", "-fno-var-tracking-assignments");
+         for Switches ("gpr_process.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+         for Switches ("gpr.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Base_Release_Switches & ("-O1");
       end case;
 
    end Compiler;

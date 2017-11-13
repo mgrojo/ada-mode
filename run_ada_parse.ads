@@ -18,7 +18,9 @@
 
 pragma License (GPL);
 
-with Gen_Run_Wisi_Parser;
-with Ada_Grammar;
-procedure Run_Ada_Parser is new Gen_Run_Wisi_Parser
-  ("Ada", Ada_Grammar.Create_Parser, Ada_Grammar.State.Errors, Ada_Grammar.Descriptor);
+with Ada_Process;
+with Gen_Run_Wisi_Parse;
+with WisiToken.Wisi_Runtime.Ada;
+procedure Run_Ada_Parse is new Gen_Run_Wisi_Parse
+  ("Ada", Ada_Process.Descriptor, Ada_Process.Parse_Data, Ada_Process.Create_Parser,
+   WisiToken.Wisi_Runtime.Ada.Set_Params);
