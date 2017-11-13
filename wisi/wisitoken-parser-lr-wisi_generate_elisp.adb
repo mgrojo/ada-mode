@@ -190,22 +190,9 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
    begin
       Put_Line ("(defconst " & Elisp_Package & "-elisp-parse-table");
       Put_Line ("   (wisi-compile-grammar");
-      --  terminal tokens
-      Put ("   '((");
-      for Kind of Tokens.Tokens loop
-         if not (-Kind.Kind = "line_comment" or -Kind.Kind = "whitespace") then
-            for Pair of Kind.Tokens loop
-               Put (-Pair.Name & " ");
-            end loop;
-         end if;
-      end loop;
-      for Pair of Tokens.Keywords loop
-         Put (-Pair.Name & " ");
-      end loop;
-      Put_Line (")");
 
       --  nonterminal productions
-      Put ("     (");
+      Put ("   '((");
       for Rule of Tokens.Rules loop
          if Rule_Count = 1 then
             Put ("(");

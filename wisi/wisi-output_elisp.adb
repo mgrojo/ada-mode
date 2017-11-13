@@ -110,7 +110,6 @@ is
       New_Line;
 
       Put_Line ("(require 'wisi)");
-      Put_Line ("(require 'semantic/lex)");
       Put_Line ("(require 'wisi-compile)");
       New_Line;
       Output_Elisp_Common.Indent_Keyword_Table (-Elisp_Package_1, "elisp", Tokens.Keywords, To_String'Access);

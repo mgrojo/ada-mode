@@ -32,7 +32,7 @@ package body Wisi.Output_Elisp_Common is
          end if;
          I := I + 1;
       end loop;
-      raise Not_Found;
+      raise Not_Found with "unknown elisp name: '" & Elisp_Name & "'";
    end Find_Elisp_ID;
 
    function Find_Ada_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String

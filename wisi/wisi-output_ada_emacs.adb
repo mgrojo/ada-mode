@@ -53,16 +53,13 @@ is
 
    Language_Name_Dir     : constant Integer := Standard.Ada.Strings.Fixed.Index
      (Input_File_Name, Standard.Ada.Strings.Maps.To_Set ("/\"), Going => Standard.Ada.Strings.Backward);
-   Language_Name_Grammar : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name, "_grammar");
    Language_Name_Ext     : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name, ".wy");
    Language_Name         : constant String  := Elisp_Name_To_Ada
      (Input_File_Name
         ((if Language_Name_Dir = 0
           then Input_File_Name'First
           else Language_Name_Dir + 1) ..
-           (if Language_Name_Grammar = 0
-            then Language_Name_Ext - 1
-            else Language_Name_Grammar - 1)),
+           Language_Name_Ext - 1),
       Append_ID => False,
       Trim      => 0);
 
@@ -198,7 +195,8 @@ is
                end loop;
 
                Result := Result & (if Need_Comma_1 then " & " else "") & "(" &
-                 Params (Index_First .. Index_Last) & ", (" & (-IDs) & "))";
+                 Params (Index_First .. Index_Last) & ", " &
+                 (if IDs_Count = 1 then "+" else "") & IDs & ")";
             else
                First  := Index_Non_Blank (Params, Last);
                Last   := Index (Params, Delim, First);
@@ -349,18 +347,19 @@ is
          return "";
       end Face_Remove_Params;
 
-      function Indent_Params (Params : in String) return String
+      function Indent_Params (Params : in String; N : in String := "") return String
       is
+         --  If N is non-empty, it is the first arg in wisi-indent-action*, followed by ','.
+         --
          --  Params is a vector, one item for each token in Tokens. Each item is one of:
          --
          --  - an integer; copy to output
          --
-         --  - a symbol; translated by Indent_Label below or Elisp_Names.Indents
+         --  - a symbol; convert to Ada name syntax
          --
-         --  - a lisp function call with 2 args (wisi-anchored% 3 ada-indent-broken)
-         --    first arg is tokens index, second is indent (integer or symbol)
+         --  - a lisp function call with arbitrary args; convert to Indent_Param type
          --
-         --  - a vector with two elements [code_indent comment_indent].
+         --  - a vector with two elements [code_indent comment_indent]; convert to Indent_Pair.
 
          use Standard.Ada.Strings.Maps;
          use Standard.Ada.Containers;
@@ -369,18 +368,47 @@ is
 
          subtype Digit is Character range '0' .. '9';
 
-         Last          : Integer          := Params'First; -- skip [
-         First         : Integer;
-         Result        : Unbounded_String := +" (Parse_Data, Nonterm, Tokens, (";
-         Need_Comma    : Boolean          := False;
-         Param_Count   : Count_Type       := 0;            -- in Params
-         Function_Name : Unbounded_String;
-         Args          : Unbounded_String;
-         Arg_Count     : Count_Type       := 0;            -- in elisp function call
+         Last          : Integer         := Params'First; -- skip [
+         Prefix        : constant String := " (Parse_Data, Nonterm, Tokens, " & N & "(";
+         Result        : Unbounded_String;
+         Need_Comma    : Boolean         := False;
+         Param_Count   : Count_Type      := 0;            -- in Params
 
-         function Int_Or_Symbol (First : in Integer) return String
+         function Indent_Label (Elisp_Name : in String) return String
+         is begin
+            if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
+            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
+            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_2";
+            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_3";
+            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_4";
+            elsif Elisp_Name = "wisi-hanging"    then return "Hanging_0";
+            elsif Elisp_Name = "wisi-hanging%"   then return "Hanging_1";
+            elsif Elisp_Name = "wisi-hanging%-"  then return "Hanging_2";
+            else
+               Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
+               return "";
+            end if;
+         end Indent_Label;
+
+         function Ensure_Simple_Indent (Item : in String) return String
+         is begin
+            --  Return an aggregate for Simple_Indent_Param. Item can be anything
+            --  Expression returns except Hanging.
+
+            if Item (Item'First) = '(' then
+               --  Anchored or Language
+               return Item;
+
+            else
+               --  simple integer
+               return "(Int, " & Item & ")";
+            end if;
+         end Ensure_Simple_Indent;
+
+         function Expression (Param_First : in Integer) return String
          is
-            --  Return an integer expression
+            --  Return a simple integer expression, or an aggregate for
+            --  Simple_Indent_Param or Indent_Param.
             --
             --  Handles this syntax:
             --
@@ -393,62 +421,132 @@ is
             --  token_id literal:
             --  'TYPE => 13
             --
-            --  simple expression:
+            --  simple expression with + - * :
             --  (- ada-indent) => -Ada_Indent
             --  (- ada-indent-when ada-indent) => Ada_Indent_When - Ada_Indent
+            --
+            --  if expression:
+            --  (if c a b) => (if c then a else b)
+            --
+            --  function call with expression args:
+            --  (wisi-hanging (wisi-anchored% 1 ada-indent)
+            --                (wisi-anchored% 1 (+ ada-indent ada-indent-broken)))
+
             use Generate_Utils;
 
-            First_Last  : Integer;
-            Second      : Integer;
+            First : Integer := Index_Non_Blank (Params, Param_First);
+
+            Function_Name : Unbounded_String;
+            Args          : Unbounded_String;
+            Arg_Count     : Count_Type      := 0;
          begin
-            Last := Index (Params, Delim, First);
             if Params (First) in Digit then
+               Last := Index (Params, Delim, First);
                return Params (First .. Last - 1);
 
             elsif Params (First) = ''' then
+               Last := Index (Params, Delim, First);
                return WisiToken.Int_Image (Find_Token_ID (Params (First + 1 .. Last - 1)));
 
-            elsif Params (First .. First + 1) = "(-" then
-               First_Last := Index (Params, Delim, First + 3);
-               if Params (First_Last) = ')' then
-                  Last := First_Last;
-                  return '-' & Elisp_Name_To_Ada (Params (First + 3 .. First_Last - 1), False, 0);
+            elsif Params (First) = '(' then
+               First  := First + 1;
+               Last   := Index (Params, Delim, First);
+               Function_Name := +Params (First .. Last - 1);
+
+               if Length (Function_Name) = 1 then
+                  --  - + *
+                  Last := Index (Params, Delim, Last + 1);
+                  if Params (Last) = ')' then
+                     return Result : constant String := -Function_Name & Expression (First + 1)
+                     do
+                        Last := Last + 1; -- get past ')'
+                     end return;
+                  else
+                     Args := +Expression (First + 1);
+                     Args := Args & ' ' & Function_Name & ' ' & Expression (Last + 1);
+
+                     Last := Last + 1; -- get past ')'
+                     return -Args;
+                  end if;
+
+               elsif -Function_Name = "if" then
+                  Args := +Expression (Last + 1);
+                  Args := +"(if " & Args & " then " & Expression (Last + 1);
+                  Args := Args & " else " & Expression (Last + 1) & ')';
+
+                  Last := Last + 1; -- get past ')'
+                  return -Args;
+
+               elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
+                  --  Language-specific function call
+                  Function_Name := +Find_Ada_Name (Elisp_Names.Indents, -Function_Name);
+                  Arg_Count     := 0;
+                  loop
+                     exit when Params (Last) = ')';
+
+                     First := Last + 1;
+                     if Arg_Count = 0 then
+                        Args := +Expression (First);
+                     else
+                        Args := Args & " & " & Expression (First);
+                     end if;
+                     Arg_Count := Arg_Count + 1;
+                  end loop;
+
+                  Last := Last + 1; -- get past ')'
+
+                  return "(Language, " & (-Function_Name) & "'Access, " &
+                    (if Arg_Count = 0 then "Null_Args"
+                     elsif Arg_Count = 1 then '+' & (-Args)
+                     else -Args)
+                  & ')';
+
                else
-                  Second := Index_Non_Blank (Params, First_Last + 1);
-                  Last   := Index (Params, Delim, Second);
-                  return Elisp_Name_To_Ada (Params (First + 3 .. First_Last - 1), False, 0) & " - " &
-                    Elisp_Name_To_Ada (Params (Second .. Last - 1), False, 0);
+                  --  wisi lisp function call
+                  Function_Name := +Indent_Label (-Function_Name);
+                  if Slice (Function_Name, 1, 4) = "Hang" then
+                     --  Arguments are 2 Simple_Indent_Param
+                     Args := +Ensure_Simple_Indent (Expression (Last + 1));
+                     Args := Args & ", " & Ensure_Simple_Indent (Expression (Last + 1));
+                     Last := Last + 1; -- get past ')'
+                     return "(" & (-(Function_Name & ", " & Args)) & ")";
+                  else
+                     --  Arguments are 2 simple integer expressions
+                     Args := +Expression (Last + 1);
+                     Args := Args & ", " & Expression (Last + 1);
+                     Last := Last + 1; -- get past ')'
+                     return "(" & (-(Function_Name & ", " & Args)) & ")";
+                  end if;
                end if;
+
             else
-               --  Assume it is a language-specific indent option, like "ada-indent",
+               --  Assume it is a language-specific integer indent option, like "ada-indent",
                --  declared in Language_Runtime_Package, which is use-visible.
+               Last  := Index (Params, Delim, First);
                return Elisp_Name_To_Ada (Params (First .. Last - 1), False, 0);
             end if;
          exception
-         when E : Not_Found =>
+         when E : others =>
             Put_Error (Input_File_Name, RHS.Source_Line, Standard.Ada.Exceptions.Exception_Message (E));
             return "";
-         end Int_Or_Symbol;
+         end Expression;
 
-         function Delta_Int_Or_Symbol (First : in Integer) return String
+         function Ensure_Indent_Param (Item : in String) return String
          is begin
-            --  Return an aggregate for Indent_Param_Type
-            return "(Int, " & Int_Or_Symbol (First) & ")";
-         end Delta_Int_Or_Symbol;
+            --  Return an aggregate for Indent_Param. Item can be anything
+            --  Expression returns.
+            if Item'Length >= 5 and then Item (Item'First .. Item'First + 4) = "(Hang" then
+               return Item;
 
-         function Indent_Label (Elisp_Name : in String) return String
-         is begin
-            if    Elisp_Name = "wisi-anchored"   then return "Anchored_0";
-            elsif Elisp_Name = "wisi-anchored%"  then return "Anchored_1";
-            elsif Elisp_Name = "wisi-anchored%-" then return "Anchored_2";
-            elsif Elisp_Name = "wisi-anchored*"  then return "Anchored_3";
-            elsif Elisp_Name = "wisi-anchored*-" then return "Anchored_4";
-            elsif Elisp_Name = "wisi-hanging"    then return "Hanging";
+            elsif Item (Item'First) = '(' then
+               --  Anchored or Language
+               return "(Simple, " & Item & ")";
+
             else
-               Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized wisi indent function: '" & Elisp_Name & "'");
-               return "";
+               --  simple integer
+               return "(Simple, (Int, " & Item & "))";
             end if;
-         end Indent_Label;
+         end Ensure_Indent_Param;
 
       begin
          loop
@@ -466,59 +564,12 @@ is
 
             case Params (Last) is
             when '(' =>
-               First  := Last + 1;
-               Last   := Index (Params, Delim, First);
-               Function_Name := +Params (First .. Last - 1);
+               Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
 
-               if -Function_Name = "-" then
-                  --  integer expression
-                  Result := Result & "(False, " & Delta_Int_Or_Symbol (First - 1) & ')';
-
-               elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
-                  --  Language-specific function call
-                  Function_Name := +Find_Ada_Name (Elisp_Names.Indents, -Function_Name);
-                  Arg_Count     := 0;
-                  loop
-                     exit when Params (Last) = ')';
-                     First      := Last + 1;
-                     Last       := Index (Params, Delim, First);
-                     if Arg_Count = 0 then
-                        Args :=  +Params (First .. Last - 1);
-                     else
-                        Args := Args & ", " & Params (First .. Last - 1);
-                     end if;
-                     Arg_Count  := Arg_Count + 1;
-                  end loop;
-
-                  if Arg_Count = 0 then
-                     Result := Result & "(False, (Language, " & (-Function_Name) & "'Access, Null_Args))";
-                  else
-                     Result := Result & "(False, (Language, " & (-Function_Name & "'Access") & ", (" & Args & ")))";
-                  end if;
-
-               else
-                  --  wisi lisp function call
-                  Function_Name := +Indent_Label (-Function_Name);
-                  Arg_Count     := 0;
-                  Args          := +"";
-                  loop
-                     exit when Params (Last) = ')';
-                     First      := Last + 1;
-                     Last       := Index (Params, Delim, First);
-                     Args       := Args & ", " & Params (First .. Last - 1);
-                     Arg_Count  := Arg_Count + 1;
-                  end loop;
-
-                  if Arg_Count = 0 then
-                     Result := Result & "(False, (Label => " & (-Function_Name) & "))";
-                  else
-                     Result := Result & "(False, (" & (-Function_Name) & Args & "))";
-                  end if;
-               end if;
             when '[' =>
                --  vector
-               Result := Result & "(True, " & Delta_Int_Or_Symbol (Last + 1);
-               Result := Result & ", " & Delta_Int_Or_Symbol (Last + 1) & ')';
+               Result := Result & "(True, " & Ensure_Indent_Param (Expression (Last + 1));
+               Result := Result & ", " & Ensure_Indent_Param (Expression (Last + 1)) & ')';
                if Params (Last) /= ']' then
                   Put_Error (Input_File_Name, RHS.Source_Line, "invalid indent syntax");
                end if;
@@ -526,7 +577,7 @@ is
 
             when others =>
                --  integer or symbol
-               Result := Result & "(False, " & Delta_Int_Or_Symbol (Last) & ')';
+               Result := Result & "(False, " & Ensure_Indent_Param (Expression (Last)) & ')';
 
             end case;
             Param_Count := Param_Count + 1;
@@ -536,6 +587,12 @@ is
             Put_Error
               (Input_File_Name, RHS.Source_Line, "indent parameters count of" & Count_Type'Image (Param_Count) &
                  " /= production token count of" & Count_Type'Image (RHS.Production.Length));
+         end if;
+
+         if Param_Count = 1 then
+            Result := Prefix & "1 => " & Result;
+         else
+            Result := Prefix & Result;
          end if;
 
          return -(Result & "))");
@@ -595,11 +652,24 @@ is
 
          elsif Elisp_Name = "wisi-indent-action" then
             if Length (Indent_Action_Line) = 0 then
-               Indent_Action_Line := +Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+               Indent_Action_Line := +"Indent_Action_0" &
                  Indent_Params (Line (Last + 1 .. Line'Last)) & ";";
             else
                Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
+
+         elsif Elisp_Name = "wisi-indent-action*" then
+            if Length (Indent_Action_Line) = 0 then
+               declare
+                  Temp : constant Integer := Index (Line, " ", Last + 1);
+               begin
+                  Indent_Action_Line := +"Indent_Action_1" &
+                    Indent_Params (Line (Temp + 1 .. Line'Last), Line (Last + 1 .. Temp - 1) & ", ") & ";";
+               end;
+            else
+               Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
+            end if;
+
          else
             Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: " & Elisp_Name);
          end if;
@@ -629,7 +699,7 @@ is
                      Temp := +"";
                   end if;
                else
-                  --  Single elisp form on two lines; combine them.
+                  --  Single elisp form on two or more lines; combine them.
                   Temp := +Line;
                end if;
             else
@@ -648,6 +718,9 @@ is
                   Translate_Paren_State := 0;
                   Translate_Line (Slice (Temp, 1, Length (Temp) - 1));
                   Temp := +"";
+               else
+                  --  need another line
+                  Paren_State := Translate_Paren_State;
                end if;
             end if;
          exception
