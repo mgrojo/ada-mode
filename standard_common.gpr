@@ -44,13 +44,16 @@ project Standard_Common is
       --  processors are so fast.
       --  -fno-var-tracking-assignments speeds compiling of large
       --  files; var tracking is only useful for debugging.
-      Release_Switches := Common_Switches &
+      Base_Release_Switches := Common_Switches &
         (
          "-O2",
          "-fno-var-tracking-assignments",
-         "-gnatn",
          "-gnatyO"
         );
+
+      Inlining := ("-gnatn");
+
+      Release_Switches := Base_Release_Switches & Inlining;
 
       -- No -ansi; GNAT 7.1 compiler C header files are mingw 64, which don't support -ansi
       Debug_Switches_C := ("-Wall", "-Wstrict-prototypes", "-pedantic", "-Werror", "-g", "-O0", "-funwind-tables");
