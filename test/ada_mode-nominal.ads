@@ -41,7 +41,7 @@ limited private with Ada.Streams,
 --EMACSCMD:(test-face "limited" font-lock-keyword-face)
 --EMACSCMD:(test-face "with" font-lock-keyword-face)
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file nil)(looking-at "package Ada.Strings.Bounded"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "package Ada.Strings.Bounded"))
 limited with Ada.Strings.Bounded;
 --EMACSRESULT:t
 --EMACSCMD:(test-face "private" font-lock-keyword-face)
@@ -49,7 +49,7 @@ limited with Ada.Strings.Bounded;
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(test-face "Containers" font-lock-function-name-face)
 --EMACSCMD:(test-face "Vectors" font-lock-function-name-face)
---EMACSCMD:(progn  (forward-line 2)(ada-find-other-file nil)(looking-at "package Ada.Containers.Vectors"))
+--EMACSCMD:(progn  (forward-line 2)(ada-find-other-file)(looking-at "package Ada.Containers.Vectors"))
 --EMACSRESULT:t
 private with Ada.Containers.Vectors,
   --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
@@ -58,16 +58,16 @@ private with Ada.Containers.Vectors,
   Ada.Containers.Bounded_Doubly_Linked_Lists;
 
 -- test ada-find-other-file on 'with subprogram-body'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Library_Function return Integer; -- spec"))
 with Ada_Mode.Library_Function;
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line -2)(forward-word 4)(ada-goto-declaration nil)(looking-at "Library_Function return Integer; -- spec"))
+--EMACSCMD:(progn (forward-line -2)(forward-word 4)(ada-goto-declaration)(looking-at "Library_Function return Integer; -- spec"))
 --EMACSRESULT:t
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "procedure Ada_Mode.Library_Procedure is"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "procedure Ada_Mode.Library_Procedure is"))
 with Ada_Mode.Library_Procedure;
 --EMACSRESULT:t
 -- test ada-find-other-file on 'with subprogram-spec'
---EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
+--EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "function Ada_Mode.Function_2 return Boolean;"))
 with Ada_Mode.Function_2;
 --EMACSRESULT:t
 --EMACSCMD:(progn (ada-goto-end)(looking-back "end Ada_Mode.Nominal"))
@@ -299,7 +299,7 @@ is -- target 0
    --EMACSCMD:(test-face "limited" font-lock-keyword-face)
    --EMACSCMD:(test-face-1 "is" "private" font-lock-keyword-face)
    type Private_Type_1 is abstract tagged limited private;
-   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 1)(forward-char 1)(ada-goto-declaration)(looking-at "Private_Type_1 is abstract tagged limited null record;"))
    --EMACSRESULT:t
    -- result in same file
 
@@ -449,7 +449,7 @@ is -- target 0
      Subtype_7 is Signed_Integer_Type range 10 .. 20;
 
    -- result in other file
-   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration nil)(backward-word 1)(looking-at "body Protected_1 is"))
+   --EMACSCMD:(progn (end-of-line 5)(backward-word 5)(ada-goto-declaration)(backward-word 1)(looking-at "body Protected_1 is"))
    --EMACSRESULT:t
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation) (forward-sexp)(looking-at "is -- Protected_1"))
    --EMACSRESULT:t
@@ -512,7 +512,7 @@ is -- target 0
 
    -- Ici l'exemple du chapitre 9 du RM sur le tasking
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected body Protected_Buffer"))
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "protected body Protected_Buffer"))
    protected Protected_Buffer is
       --EMACSRESULT:t
       -- a single_protected_type

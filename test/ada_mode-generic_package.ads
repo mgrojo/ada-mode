@@ -10,7 +10,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
---EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "package Ada.Strings.Unbounded is"))
+--EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "package Ada.Strings.Unbounded is"))
 --EMACSRESULT: t
 with Ada.Strings.Unbounded;
 --EMACSCMD:(ada-which-function)

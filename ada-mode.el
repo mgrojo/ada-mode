@@ -2807,7 +2807,7 @@ The paragraph is indented on the first line."
 
 ;; ada-mode does not derive from prog-mode, because we need to call
 ;; ada-mode-post-local-vars, and prog-mode does not provide a way to
-;; do that.
+;; do that (at least before emacs 26).
 ;;
 ;; autoload required by automatic mode setting
 ;;;###autoload
@@ -2904,7 +2904,11 @@ The paragraph is indented on the first line."
 
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
-  (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+  (if (<= emacs-major-version 25)
+      ;; run-mode-hooks does _not_ call hack-local-variables
+      (add-hook 'hack-local-variables-hook 'ada-mode-post-local-vars nil t)
+    ;; >= 26; run-mode-hooks _does_ call hack-local-variables
+    (ada-mode-post-local-vars))
   )
 
 (defun ada-mode-post-local-vars ()

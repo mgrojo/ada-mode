@@ -8,7 +8,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Ada_Mode.Slices is
    type Day is (Sun, Mon, Tues);
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration nil)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(forward-char 1)(ada-goto-declaration)(looking-at "+\" (Left : in Day; Right : in Integer) return Day$"))
    --EMACSRESULT:t
    function "+" (Left : in Day; Right : in Integer) return Day;
 
@@ -28,9 +28,6 @@ procedure Ada_Mode.Slices is
       return Item;
    end "+";
 
-   -- FIXME: ada-goto-declaration fails with ada-xref-tool = gnat and
-   -- gnat version > GPL 2015; need a way to test with < GPL 2015.
-   --
    --EMACSCMD:(progn (end-of-line 9)(backward-char 5)(ada-identifier-at-point))
    --EMACSRESULT: "\"+\""
    --EMACSCMD:(progn (end-of-line 7)(backward-char 2)(ada-identifier-at-point))
@@ -40,9 +37,9 @@ procedure Ada_Mode.Slices is
    --EMACSCMD:(progn (end-of-line 3)(backward-char 4)(ada-identifier-at-point))
    --EMACSRESULT: "Sun"
    D1, D2 : Day := +Sun;
-   --EMACSCMD:(progn (end-of-line 0)(backward-char 5)(ada-goto-declaration nil)(looking-at "+\" (Item"))
+   --EMACSCMD:(progn (end-of-line 0)(backward-char 5)(ada-goto-declaration)(looking-at "+\" (Item"))
    --EMACSRESULT: t
-   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(ada-goto-declaration nil)(looking-at "Sun, Mon,"))
+   --EMACSCMD:(progn (end-of-line -2)(backward-char 4)(ada-goto-declaration)(looking-at "Sun, Mon,"))
    --EMACSRESULT: t
 
    N      : Integer;

@@ -6,13 +6,13 @@
 with Ada.Text_IO;
 --EMACSRESULT:t
 -- Other file from a subunit on a context clause.
---EMACSCMD:(progn (forward-line -3)(ada-find-other-file t)(looking-at "package Ada.Text_IO is"))
+--EMACSCMD:(progn (forward-line -3)(ada-find-other-file)(looking-at "package Ada.Text_IO is"))
 --EMACSRESULT:t
 
 --  WORKAROUND: GNAT GPL 2016 doesn't produce a .ali file for this
 --  file, so gpr_query doesn't work. And gnat find doesn't work either
 --
---  EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Separate_Package_1 is"))
+--  EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "Separate_Package_1 is"))
 separate (Ada_Mode.Nominal)
 package body Separate_Package_1 is
    --  EMACSRESULT:t
@@ -33,7 +33,7 @@ package body Separate_Package_1 is
 
    -- other file from a random place in the body
    -- WORKAROUND: see above
-   -- EMACSCMD:(progn (forward-line 1)(ada-find-other-file t)(looking-at "Separate_Package_1 is"))
+   -- EMACSCMD:(progn (forward-line 1)(ada-find-other-file)(looking-at "Separate_Package_1 is"))
    -- EMACSRESULT:t
 
    package Int_IO is new Ada.Text_IO.Integer_IO (Integer);

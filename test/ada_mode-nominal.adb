@@ -98,7 +98,7 @@ is -- target 0
    end
      Function_Access_11;
 
-   --EMACSCMD:(progn (forward-line 3)(ada-find-other-file nil)(looking-at "protected type Protected_1"))
+   --EMACSCMD:(progn (forward-line 3)(ada-find-other-file)(looking-at "protected type Protected_1"))
    protected body Protected_1 is -- target 2
 
       --EMACSCMD:(progn (ada-goto-declarative-region-start)(looking-at " -- target 2"))
@@ -382,7 +382,7 @@ is -- target 0
       entry E1 (X : Integer) when True is begin null; end E1;
    end Protected_Child_1;
 
-   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file nil)(looking-at "protected Protected_Buffer"))
+   --EMACSCMD:(progn (forward-line 2)(ada-find-other-file)(looking-at "protected Protected_Buffer"))
    protected body Protected_Buffer is
       --EMACSRESULT: t
       --EMACSCMD:(ada-which-function)

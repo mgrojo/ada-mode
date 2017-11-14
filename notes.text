@@ -115,6 +115,8 @@ newline not in a word should not cause parse retry after parse fail
 
 add missing features to gpr_query; see fixmes.
 
+refactor ada auto-case into wisi, use in gpr
+
 refactor {ada|gpr|java}-skel-expand
     (defun skel-expand
     use buffer-local skel-token-alist
