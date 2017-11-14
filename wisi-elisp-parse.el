@@ -108,7 +108,7 @@ point at which that max was spawned.")
       (indent
        (let ((line-count (1+ (count-lines (point-min) (point-max)))))
 	 (setq wisi-elisp-parse--indent (make-vector line-count 0))
-	 (setf (wisi-elisp-lexer-line-begin wisi--lexer) (wisi--set-line-begin line-count))))
+	 (wisi-elisp-lexer-reset line-count wisi--lexer)))
 
       (navigate
        (setq wisi-end-caches nil))
@@ -932,6 +932,7 @@ Intended as a grammar action."
       (while (< i (length pairs))
 	(let ((region (wisi-tok-region (aref wisi-tokens (1- (aref pairs i)))))
 	      (class (aref pairs (setq i (1+ i)))))
+	  (setq i (1+ i))
 	  (when region
 	    ;; region can be null on an optional or virtual token
 	    (let ((cache (get-text-property (car region) 'wisi-face)))
@@ -1303,8 +1304,10 @@ For use in grammar indent actions."
 
 (defun wisi-elisp-parse--max-anchor (begin-line end)
   (let ((i (1- begin-line))
+	(max-i (length (wisi-elisp-lexer-line-begin wisi--lexer)))
 	(result 0))
-    (while (<= (aref wisi-elisp-parse--indent i) end)
+    (while (and (< i max-i)
+		(<= (aref (wisi-elisp-lexer-line-begin wisi--lexer) i) end))
       (let ((indent (aref wisi-elisp-parse--indent i)))
 	(when (listp indent)
 	  (cond
@@ -1602,7 +1605,7 @@ call `wisi-indent-action' with DELTAS.  Otherwise do nothing."
 (defconst wisi-elisp-parse--max-anchor-depth 20) ;; IMRPOVEME: can compute in actions
 
 (defun wisi-elisp-parse--indent-leading-comments ()
-  "Set `wisi-ind-indent to 0 for comment lines before first token in buffer.
+  "Set `wisi-elisp-parse--indent to 0 for comment lines before first token in buffer.
 Leave point at first token (or eob)."
   (save-excursion
     (goto-char (point-min))
@@ -1610,9 +1613,9 @@ Leave point at first token (or eob)."
     (let ((end (point))
 	  (i 0)
 	  (max-i (length wisi-elisp-parse--indent)))
-      (while (< (aref wisi-elisp-parse--indent i) end)
-	(when (< i max-i)
-	  (aset wisi-elisp-parse--indent i 0))
+      (while (and (< i max-i)
+		  (< (aref (wisi-elisp-lexer-line-begin wisi--lexer) i) end))
+	(aset wisi-elisp-parse--indent i 0)
 	(setq i (1+ i)))
       )))
 
@@ -1659,7 +1662,7 @@ Leave point at first token (or eob)."
 	 );; cond indent
 
 	(when (> i 0)
-	  (setq pos (aref wisi-elisp-parse--indent i))
+	  (setq pos (aref (wisi-elisp-lexer-line-begin wisi--lexer) i))
 	  (with-silent-modifications
 	    (put-text-property (1- pos) pos 'wisi-indent indent)))
 	)) ;; dotimes lines

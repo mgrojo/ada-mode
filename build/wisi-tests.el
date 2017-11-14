@@ -75,6 +75,11 @@
 
 (defun wisi-tests-setup (grammar-name)
   ;; grammar file must be on load-path
+  ;; use Ada style comments in source
+  (set-syntax-table test-syntax-table)
+  (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
+  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
+
   (cl-ecase wisi-test-parser
     (elisp
      (require 'wisi-elisp-parse)
@@ -118,11 +123,6 @@
      (setq wisi-mckenzie-enable t)
      )
     )
-
-  ;; use Ada style comments in source
-  (set-syntax-table test-syntax-table)
-  (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
-  (syntax-ppss-flush-cache (point-min));; force re-evaluate with hook.
 
   ;; Not clear why this is not being done automatically
   (syntax-propertize (point-max))

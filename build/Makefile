@@ -94,22 +94,26 @@ test-wisi :: empty_production_8.wisi-test
 test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
-test-wisi :: subprograms.wisi-process-test
+
+test-wisi :: ../test/wisi/subprograms_re2c.c
+test-wisi :: subprograms_wisi_parse.exe
+test-wisi :: RUNTEST := run-indent-test-process-gpr_query.el
+test-wisi :: subprograms.input.diff
 
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += subprograms
+ONE_TEST_FILES += access_in_record.ads
 #ONE_TEST_FILES += ada_mode-nominal.adb
-one : subprograms_wisi_parse.exe
-one : byte-compile
+#one : subprograms_wisi_parse.exe
+#one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-#one : RUNTEST := run-indent-test-elisp-gpr_query.el
-#one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
-one : RUNTEST := run-indent-test-process-gpr_query.el
-one : $(addsuffix .input.diff-run, $(ONE_TEST_FILES))
+one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
+#one : RUNTEST := run-indent-test-process-gpr_query.el
+#one : $(addsuffix .wisi-test, $(ONE_TEST_FILES))
 
 # two : RUN_ARGS ?= --verbosity 2 --indent_params "4 3 1"
 two : export Standard_Common_Build := Debug

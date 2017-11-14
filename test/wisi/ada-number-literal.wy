@@ -1,12 +1,12 @@
 ;; test ada-wisi number-literal lexer
 
 %{
-  (require 'ada-wisi) ;; for ada-wisi-number-p
+(require 'ada-wisi) ;; for ada-wisi-number-p
 %}
 
 ;; This defines comment syntax for the Ada parser. Comment syntax for
 ;; the elisp parser is defined by run-wisi-test
-%token <line_comment> COMMENT "--"
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 %keyword NUMBER "number"
 %keyword RANGE "range"

@@ -24,9 +24,8 @@
 ;;  requires added by wisi-generate
 %}
 
-;; non-reporting
-%token <whitespace> WHITESPACE [ \t\n]
-%token <line_comment> COMMENT "--"[^\n]*[\n]
+%non_grammar <non-reporting> WHITESPACE [ \t\n]
+%non_grammar <comment> COMMENT "--"[^\n]*[\n]
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."

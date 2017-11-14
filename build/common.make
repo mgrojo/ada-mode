@@ -183,9 +183,9 @@ elisp-clean :
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
 # The previous rule confuses 'make'; it thinks *.re2c is created in
-# the build dir, when it is not.
-%_re2c.c : ../%.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o ../$@ $<
+# the build dir, when it is not. Specify path in higher level dependencies.
+%_re2c.c : %.re2c
+	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'
@@ -273,7 +273,7 @@ test-clean ::
 # ada-make-package-body.
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
-	cd ../test/wisi/; rm -f *.elisp-el *.output
+	cd ../test/wisi/; rm -f *-elisp.el *.*parse_table
 	cd ../test/wisi/; rm -f subprograms-process.el subprograms.ada_parse_table subprograms.re2c subprograms_process.ad? subprograms_re2c_c.ads subprograms_wisi_parse.exe
 
 source-clean :: test-clean

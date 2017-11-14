@@ -119,7 +119,7 @@ subprogram
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
       (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 (subp-indent-function (* 2 sub-indent-broken))
+      (wisi-indent-action [0 (subp-indent-function (* 2 subp-indent-broken))
                              [subp-indent-broken subp-indent-broken] 0 0])) ;; single action on two lines
   | PROCEDURE parameter_list name SEMICOLON
     (progn

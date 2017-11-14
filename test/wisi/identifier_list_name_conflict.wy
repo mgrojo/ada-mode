@@ -34,7 +34,7 @@
 %token <string-double> STRING_LITERAL "\"[^\"]*\""
 %token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
-%token <line_comment> COMMENT "--"
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 ;; not first nonterminal
 %start compilation

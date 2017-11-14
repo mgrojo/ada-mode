@@ -217,7 +217,7 @@ names have the format nonterm:index."
 	(setq i (1+ i)))
       (vector
        actions
-       (nth 3 grammar)
+       (nth 2 grammar)
        symbol-obarray)
       )))
 

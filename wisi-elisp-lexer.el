@@ -43,6 +43,11 @@
   last-line ;; index into line-begin of line containing last lexed token
   )
 
+(cl-defgeneric wisi-elisp-lexer-reset (line-count (lexer wisi-elisp-lexer))
+  "Reset lexer to start a new parse. LINE-COUNT is the count of lines in the current buffer."
+  (setf (wisi-elisp-lexer-line-begin lexer) (wisi--set-line-begin line-count))
+  (setf (wisi-elisp-lexer-last-line lexer) nil))
+
 (defvar-local wisi--lexer nil
   "A `wisi-elisp-lexer' struct defining the lexer for the current buffer.")
 

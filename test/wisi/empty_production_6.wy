@@ -41,7 +41,7 @@ sequence_of_statements
 label_opt
   : ;; empty
   | IDENTIFIER COLON ;; on blocks, loops
-    (wisi-statement-action [1 block-start])
+    (wisi-statement-action [1 statement-start])
   ;
 
 %%

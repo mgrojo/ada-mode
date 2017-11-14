@@ -94,8 +94,7 @@
        0))
     ))
 
-(defun ada-indent-hanging (tok delta1 delta2 option)
-  ;; Not ada-wisi-elisp-parse--indent-hanging to match existing grammar files
+(defun ada-wisi-elisp-parse--indent-hanging (tok delta1 delta2 option)
   "For `wisi-elisp-parse-indent-hanging-function'. Determine indent style from context."
   ;; ada-mode 5.2 used a special case for aspect specification
   ;; expressions; we implement that here. Otherwise, implement
@@ -150,7 +149,7 @@ ANCHOR-TOK, RECORD-TOK are ’wisi-tok’ objects."
 	(wisi-tok-virtual anchor-tok))
     0)
 
-   ((and (= 'RECORD (wisi-tok-token record-tok))
+   ((and (eq 'RECORD (wisi-tok-token record-tok))
 	 (= offset 0))
     ;; Indenting 'record'
     ;; offset is non-zero when indenting comments after record.

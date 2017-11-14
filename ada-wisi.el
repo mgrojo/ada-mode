@@ -714,13 +714,13 @@ TOKEN-TEXT; move point to just past token."
 	  ((or (null ada-parser)
 	       (eq 'elisp ada-parser))
 
-	   (require 'ada-wisi-elisp-parser)
+	   (require 'ada-wisi-elisp-parse)
+
+	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
 
 	   (wisi-make-elisp-parser
 	    ada-elisp-parse-table
 	    #'wisi-forward-token)
-
-	   (setq wisi-elisp-parse-indent-hanging-function #'ada-wisi-elisp-parse--indent-hanging)
 	   )
 
 	  ((eq 'process ada-parser)

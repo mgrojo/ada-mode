@@ -53,6 +53,7 @@
 ^test/gpr_query\.db-shm$
 ^test/gpr_query\.db-wal$
 ^test/subdir/ada_mode-nominal-child\.adb$
+^test/wisi/.*\.c$
 ^test/wisi/.*\.el$
 ^test/wisi/.*\.elisp_output$
 ^test/wisi/.*\.elisp_parse_table$
