@@ -20,7 +20,7 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 3)(ada-show-overridden t) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
+   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 3)(ada-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
    --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
    -- FIXME: test multiple parents
 
@@ -43,7 +43,7 @@ package Ada_Mode.Nominal.Child is
       Item_2 : out    Character)
      is null;
 
-   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file nil)(looking-at "overriding function Function_2a"))
+   --EMACSCMD:(progn (forward-line 2)(forward-word 1)(ada-find-other-file)(looking-at "overriding function Function_2a"))
    --EMACSRESULT:t
    overriding function Function_2a (Param : in Child_Type_1) return Float;
    -- FIXME: test does not distinguish spec from body!

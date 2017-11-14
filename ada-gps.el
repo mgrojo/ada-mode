@@ -436,14 +436,6 @@ For `ada-gps-indent-functions'.
 (defun ada-gps-or-wisi-setup ()
   "If buffer size > `ada-gps-size-threshold', use ada-gps;
 otherwise use ada-wisi indentation engine with ada-gps fallback,"
-  ;; ada-gps-size-threshold can be set in file-local variables, which
-  ;; are parsed after ada-mode-hook runs.
-  (add-hook 'hack-local-variables-hook 'ada-gps-post-local-vars nil t))
-
-(defun ada-gps-post-local-vars ()
-  "See `ada-gsp-or-wisi-setup'"
-  (setq hack-local-variables-hook (delq 'ada-gps-post-local-vars hack-local-variables-hook))
-
   (if (> (point-max) ada-gps-size-threshold)
       (progn
 	;; use ada-gps for indent, ada-wisi for face, navigation
