@@ -51,8 +51,7 @@ compute indent in Ada
 
     run all tests
         test-wisi : passing
-        test-ada-elisp-gpr_query: failing due to ada-find-other-file; no longer takes an arg
-            edit all tests in o.e.a, propagate
+        test-ada-elisp-gpr_query: passing
 
 
 ada_grammar.wy:1217:      ;; FIXME: indentation of comment after 'is' should be

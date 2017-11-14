@@ -185,7 +185,7 @@ elisp-clean :
 # The previous rule confuses 'make'; it thinks *.re2c is created in
 # the build dir, when it is not. Specify path in higher level dependencies.
 %_re2c.c : %.re2c
-	$(RE2C_HOME)/bin/re2c --debug-output --input custom -W -Werror --utf-8 -o $@ $<
+	$(RE2C_HOME)/bin/re2c --no-generation-date --debug-output --input custom -W -Werror --utf-8 -o $@ $<
 
 autoloads : force
 	$(EMACS_EXE) -Q -batch --eval '(progn (setq vc-handled-backends nil)(let ((generated-autoload-file (expand-file-name "../autoloads.el")))(update-directory-autoloads "../")))'

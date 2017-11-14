@@ -1246,7 +1246,7 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 		;;   Ada.Strings.Maps."or"
 		;;     (Ada.Strings.Maps.To_Set (' '),
 		(when (= paren-first
-			 (nth 0 (save-excursion (syntax-ppss (aref wisi-elisp-parse--indent i)))))
+			 (nth 0 (save-excursion (syntax-ppss (aref (wisi-elisp-lexer-line-begin wisi--lexer) i)))))
 		  (let ((delta2 (nth 4 delta)))
 		    (cond
 		     ((integerp delta2)
@@ -1412,7 +1412,7 @@ position. Otherwise return OFFSET."
 	 (anchor-line (wisi-tok-line anchor-tok)))
 
     (when (and paren-pos ;; in paren
-	      (< paren-pos (aref wisi-elisp-parse--indent (1- anchor-line))))
+	      (< paren-pos (aref (wisi-elisp-lexer-line-begin wisi--lexer) (1- anchor-line))))
       ;; paren not in anchor line
       (setq paren-pos nil))
 

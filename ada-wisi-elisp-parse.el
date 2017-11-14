@@ -230,7 +230,7 @@ TOKEN-NUMBER is the subprogram_specification token."
        ((>= 0 ada-indent-renames)
 	(setq delta (+ (abs ada-indent-renames) -1 (- (current-column) (current-indentation))))
 
-	(while (< (aref wisi-elisp-parse--indent paren-line) paren-pos)
+	(while (< (aref (wisi-elisp-lexer-line-begin wisi--lexer) paren-line) paren-pos)
 	  (setq paren-line (1+ paren-line)))
 
 	(wisi-elisp-parse--anchored-2 paren-line (cdr (wisi-tok-region renames-tok)) delta nil))
