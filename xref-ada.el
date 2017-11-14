@@ -11,13 +11,22 @@
 
 (cl-defmethod xref-backend-definitions ((_backend (eql xref-ada)) identifier)
   (let* ((t-prop (get-text-property 0 'xref-ada-identifier identifier))
-	 (identifier (substring-no-properties identifier 0 nil))
-	 (file (plist-get t-prop ':file))
+	 ;; t-prop is nil when identifier is from prompt, in which
+	 ;; case the line number is incuded in the identifier wrapped
+	 ;; in <>
+	 (ident
+	  (if t-prop
+	      (substring-no-properties identifier 0 nil)
+	    (string-match "\\(.*\\)<[0-9]+>" identifier)
+	    (match-string 1 identifier)
+	    ))
+	 (file
+	  (if t-prop
+	      (plist-get t-prop ':file)
+	    (match-string 2 identifier)))
 	 (line (plist-get t-prop ':line))
 	 (column (plist-get t-prop ':column))
 	 )
-
-    ;; t-prop is nil when identifier is from prompt
 
     (unless file
       ;; WORKARUND: gpr-query-other requires a non-nil file arg.
@@ -33,11 +42,12 @@
     (let ((target
 	   (funcall
 	    ada-xref-other-function
-	    identifier file line column)))
-      ;; IMPROVEME: change ada-xref-other-function to return xref-file-location
+	    ident file line column)))
+      ;; IMPROVEME: when drop support for emacs 24, change
+      ;; ada-xref-other-function to return xref-file-location
       (list
        (xref-make
-	identifier
+	ident
 	(xref-make-file-location
 	 (nth 0 target) ;; file
 	 (nth 1 target) ;; line
@@ -62,7 +72,7 @@
 	 nil))))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql xref-ada)))
-  (wisi-validate-cache (point-max) t)
+  (wisi-validate-cache (point-max) t 'navigate)
   (save-excursion
     (let ((table nil)
 	  cache)
@@ -87,7 +97,11 @@
 		  package_specification
 		  subtype_declaration
 		  type_declaration))
-	  (push (wisi-cache-text cache) table))
+	  (push
+	   (format "%s<%d>"
+	    (wisi-cache-text cache)
+	    (line-number-at-pos))
+	   table))
 	 ))
       table)))
 

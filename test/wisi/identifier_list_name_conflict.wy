@@ -1,3 +1,6 @@
+;; Small Ada-like grammar illustrating the reduce/reduce conflict
+;; between an identifier_list and a name.
+;;
 ;; The grammar is ambiguous between an identifier_list and a
 ;; name_list, if none of the names are string literals. This shows up
 ;; in the the compiled grammar as several reduce/reduce conflict, and
@@ -6,9 +9,20 @@
 ;; (ediff "identifier_list_name_conflict.wy" "../../../org.opentoken.stephe/wisi/test/identifier_list_name_conflict.wy")
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
+;; Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 %}
 
 %keyword LEFT_PAREN "("
@@ -17,17 +31,21 @@
 %token <punctuation> COMMA ","
 %token <punctuation> EQUAL_GREATER "=>"
 
-%token <string-double> STRING_LITERAL
-%token <symbol> IDENTIFIER
+%token <string-double> STRING_LITERAL "\"[^\"]*\""
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
+
+%token <line_comment> COMMENT "--"
 
 ;; not first nonterminal
 %start compilation
+%parser_algorithm LALR
+%output_language Elisp
 
 %conflict REDUCE/REDUCE in state identifier_list, name on token COMMA
 %conflict REDUCE/REDUCE in state identifier_list, name on token LEFT_PAREN
 %conflict REDUCE/REDUCE in state identifier_list, name on token IDENTIFIER
 %conflict REDUCE/REDUCE in state identifier_list, name on token STRING_LITERAL
-%conflict REDUCE/REDUCE in state identifier_list, name on token $EOI
+%conflict REDUCE/REDUCE in state identifier_list, name on token Wisi_EOI
 
 %%
 

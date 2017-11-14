@@ -1,6 +1,6 @@
 ;; wisi-compile.el --- Grammar compiler for the wisi parser, integrating Wisi OpenToken output.  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2012-2013, 2015-2017 Free Software Foundation, Inc.
+;; Copyright (C) 2012-2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -117,7 +117,7 @@ NONTERM is the nonterminal left hand side.
 IACTN is the index of the production in the NTERM rule.
 
 The semantic action function accepts two arguments;
-- $nterm      : the nonterminal
+- wisi-nterm  : the nonterminal
 - wisi-tokens : the list of tokens to be reduced.
 
 It returns nil; it is called for the semantic side-effects only."
@@ -126,7 +126,7 @@ It returns nil; it is called for the semantic side-effects only."
 	 (action-symbol (intern name symbol-obarray)))
 
     (fset action-symbol
-	  `(lambda ($nterm wisi-tokens)
+	  `(lambda (wisi-nterm wisi-tokens)
 	     ,form
 	     nil))
     (byte-compile action-symbol)))

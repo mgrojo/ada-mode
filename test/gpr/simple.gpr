@@ -51,7 +51,8 @@ library project Simple is
             end case;
          when "GPL-2011" |
            "6.2.2" |
-           "6.2.1" =>
+           "6.2.1"
+            =>
             --  comment in case
             for Default_Switches ("Ada") use ("-gnat2005", "-gnatyO");
 

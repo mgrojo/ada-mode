@@ -1,5 +1,6 @@
 ;; run only indent, using ada_mode_gps_indent; compare ada-gps indentation to ada-wisi
 
+(package-initialize)
 (require 'ada-gps)
 (require 'run-indent-test)
 

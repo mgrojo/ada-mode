@@ -1,9 +1,9 @@
 ;;; finding bug in parse table generator; nonterm followed by possibly empty nonterm
+;;
+;; also testing pending actions during conflict resolution; label_opt
+;; action is not output until one parser terminates.
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
 %}
 
 %token <punctuation> COLON ":"
@@ -13,11 +13,14 @@
 %keyword BEGIN "begin"
 %keyword END "end"
 
-%token <symbol> IDENTIFIER
+%token <symbol> IDENTIFIER "[a-zA-Z][0-9a-zA-Z_]*"
 
 %start compilation_unit
+%parser_algorithm LALR
+%output_language Elisp
 
-%conflict SHIFT/REDUCE in state label_opt, label_opt on token IDENTIFIER
+%conflict SHIFT/REDUCE in state compilation_unit, compilation_unit  on token IDENTIFIER
+%conflict SHIFT/REDUCE in state sequence_of_statements, sequence_of_statements  on token IDENTIFIER
 
 %%
 
@@ -38,6 +41,7 @@ sequence_of_statements
 label_opt
   : ;; empty
   | IDENTIFIER COLON ;; on blocks, loops
+    (wisi-statement-action [1 block-start])
   ;
 
 %%

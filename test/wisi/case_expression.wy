@@ -1,35 +1,53 @@
-;; test a former OpenToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;; test a former WisiToken bug; '=>' was missing in the lookaheads for 'factor <= IDENTIFIER ^'
+;; also test number-literal
 ;;
 ;; This is a subset of the syntax for an Ada 2012 case expression
 ;;
-;; (ediff "case_expression.wy" "../../../org.opentoken.stephe/wisi/test/case_expression.wy")
+;; (ediff "case_expression.wy" "../../../org.wisitoken/wisi/test/case_expression.wy")
 
 %{
-(require 'wisi)
-(require 'semantic/lex)
-(require 'wisi-compile)
+;; Copyright (C) 2013, 2015, 2017 Stephen Leake.  All Rights Reserved.
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3, or (at
+;; your option) any later version.
+;;
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;  requires added by wisi-generate
 %}
 
 ;; non-reporting
-;; whitespace added by wisi-generate
-%token <line_comment> COMMENT "--"
+%token <whitespace> WHITESPACE [ \t\n]
+%token <line_comment> COMMENT "--"[^\n]*[\n]
 
 ;; terminals
 %token <punctuation> DOT_DOT ".."
 %token <punctuation> EQUAL_GREATER "=>"
 %token <punctuation> TICK "'"
 
-%token <symbol> IDENTIFIER
+%token <number> NUMBER_LITERAL wisi-number-p
+%token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
 
 %keyword RANGE "range"
 %keyword WHEN "when"
 
 %start case_expression
-
+%first_state_index 0
+%first_parser_label 0
+%parser_algorithm LALR
+%output_language Elisp
 %%
 
 case_expression
-  : WHEN discrete_choice EQUAL_GREATER
+  : WHEN discrete_choice EQUAL_GREATER factor
     (setq wisi-test-success t)
   ;
 
@@ -48,6 +66,7 @@ discrete_choice
 
 factor
   : IDENTIFIER
+  | NUMBER_LITERAL
   ;
 
 factor_list
@@ -61,8 +80,4 @@ range_nt
   ;
 
 %%
-
-;; Local Variables:
-;; eval: (add-hook 'before-save-hook 'delete-trailing-whitespace nil t)
-;; End:
 ;;; end of file

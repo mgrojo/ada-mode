@@ -1,6 +1,6 @@
 ^.*\.elc$
 ^.*\.exe$
-^ada-grammar\.output$
+^.*_parse_table$
 ^ada-mode\.html$
 ^ada-mode\.info$
 ^ada_mode_gps_indent$
@@ -8,10 +8,11 @@
 ^build/.*\.adb$
 ^build/.*\.ads$
 ^build/.*\.ali$
+^build/.*\.c$
 ^build/.*\.diff$
-^build/.*\.el$
 ^build/.*\.log$
 ^build/.*\.output$
+^build/.*\.re2c$
 ^build/.*\.sig$
 ^build/.*\.stamp$
 ^build/.*\.tar\.gz$
@@ -22,10 +23,12 @@
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$
+^build/subprograms_process\.adb$
+^build/subprograms_process\.ads$
 ^build/test\.casing$
 ^check_xref\.gpr$
 ^dir-ada-mode$
-^gpr-grammar\.output$
+^exec_pro$
 ^gpr-mode\.html$
 ^gpr-mode\.info$
 ^gpr_query$
@@ -33,6 +36,7 @@
 ^gpr_query\.db$
 ^gpr_query\.gpr$
 ^obj$
+^obj_pro$
 ^run_sjw\.text$
 ^test/.*\.ali$
 ^test/.*\.o$
@@ -49,5 +53,6 @@
 ^test/gpr_query\.db-wal$
 ^test/subdir/ada_mode-nominal-child\.adb$
 ^test/wisi/.*\.el$
-^test/wisi/.*\.output$
+^test/wisi/.*\.elisp_output$
+^test/wisi/.*\.elisp_parse_table$
 ^test/wisi/.*\.wisi-test$

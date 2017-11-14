@@ -1,6 +1,6 @@
 ;; gpr-wisi.el --- Indentation engine for gpr mode, using the wisi parser  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2013 - 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -21,159 +21,71 @@
 ;;
 ;;; History: first version Jan 2013
 ;;
-;;; code style
-;;
-;; I don't use 'pcase', because it gives _really_ confusing errors
-;; when I forget a ')' somewhere. Even worse, the error message is
-;; given when you use edebug on a defun, not when you eval it. This
-;; code is hard enough to debug!
-;;
 ;;;;
 
-;; we reuse some stuff from ada-mode
-(require 'ada-indent-user-options)
-(require 'gpr-grammar-wy)
+(require 'gpr-indent-user-options)
 (require 'gpr-mode)
 (require 'wisi)
 
 (defconst gpr-wisi-class-list
   '(
-    block-start
-    block-middle
-    block-end
-    close-paren
-    list-break
-    open-paren
+    motion
     statement-end
-    statement-other
     statement-start
     ))
 
-(defun gpr-wisi-indent-cache (offset cache)
-  "Return indentation of OFFSET relative to indentation of line containing CACHE
-or containing ancestor of CACHE that is at a line beginning."
-  (let ((indent (current-indentation)))
-    (while (and cache
-		(not (= (current-column) indent)))
-      (when (eq 'WHEN (wisi-cache-token cache))
-	(setq offset (+ offset ada-indent-when)))
-      (setq cache (wisi-goto-containing cache))
-      (setq indent (current-indentation)))
-  (+ (current-indentation) offset)
-  ))
-
-(defun gpr-wisi-indent-containing (offset cache)
-  "Return indentation of OFFSET relative to containing ancestor of CACHE that is at a line beginning."
-  (gpr-wisi-indent-cache offset (wisi-goto-containing cache)))
-
-(defun gpr-wisi-before-cache ()
-  (let ((cache (wisi-get-cache (point))))
-    (when cache
-      (cl-ecase (wisi-cache-class cache)
-	(block-start (wisi-indent-start ada-indent (wisi-backward-cache)))
-	(block-end (wisi-indent-start 0 cache))
-	(block-middle
-	 (wisi-indent-start
-	  (if (eq (wisi-cache-token cache) 'WHEN) ada-indent-when 0)
-	  cache))
-	(close-paren (wisi-indent-paren 0))
-	(open-paren nil); let after-keyword handle it
-	(statement-start
-	 (if (not (wisi-get-containing-cache cache))
-	     ;; at bob
-	     0
-	   ;; not at bob
-	   (gpr-wisi-indent-containing ada-indent cache)))
-
-	(statement-end
-	   (gpr-wisi-indent-containing ada-indent-broken cache))
-	))
-    ))
-
-(defun gpr-wisi-after-cache ()
-  (let ((cache (wisi-backward-cache)))
-    (if (not cache)
-	;; bob
-	0
-      (cl-ecase (wisi-cache-class cache)
-	(block-end
-	 (wisi-indent-current 0))
-
-	(block-middle
-	 (cl-case (wisi-cache-token cache)
-	   (WHEN
-	    (gpr-wisi-indent-cache ada-indent-broken cache))
-	   (t
-	    (gpr-wisi-indent-cache ada-indent cache))
-	   ))
-
-	(block-start
-	 (cl-case (wisi-cache-token cache)
-	   (EQUAL_GREATER
-	    (gpr-wisi-indent-containing ada-indent cache))
-	   (t
-	    (gpr-wisi-indent-cache ada-indent cache))
-	   ))
-
-	(list-break
-	 ;; test/gpr/simple.gpr
-	 ;; type GNAT_Version_Type
-	 ;;   is ("7.0.1",
-	 ;;       "6.2.2", "6.2.1",
-	 ;;       "GPL-2012", "GPL-2011");
-	 ;;
-	 ;; for Source_Dirs use
-	 ;;   ("../auto",
-	 ;;    External ("GNAT_VERSION") & "/foo",
-	 ;;    "../../1553");
-	 (wisi-goto-containing cache)
-	 (1+ (current-column)))
-
-	(open-paren
-	 (1+ (current-column)))
-
-	(statement-end
-	 (wisi-indent-start 0 cache))
-
-	((statement-other close-paren)
-	 ;; test/gpr/simple.gpr
-	 ;; ) & Style_Checks
-	 ;; & Standard_Common.Compiler'Default_Switches;
-	 ;;
-	 ;; for Source_Dirs use
-	 ;;   ("../auto",
-	 (wisi-indent-start ada-indent-broken cache))
-
-	(statement-start
-	 ;; test/gpr/simple.gpr
-	 ;; type GNAT_Version_Type
-	 ;;   is ("7.0.1",
-	 ;; hanging
-	 (gpr-wisi-indent-cache ada-indent-broken cache))
-	))
-    ))
-
-(defun gpr-wisi-post-parse-fail ()
-  "For `wisi-post-parse-fail-hook'."
-  ;; keep it simple :)
-  nil)
-
 (defun gpr-wisi-which-function ()
   "For `gpr-which-function'."
-  (wisi-validate-cache (point))
+  (wisi-validate-cache (point) nil 'navigate)
   ;; no message on parse fail, since this could be called from which-func-mode
-  (when (> wisi-cache-max (point))
-    (let ((cache (wisi-backward-cache)))
-      (while (and cache
-		  (not (and
-			(memq (wisi-cache-nonterm cache) '(package_spec simple_project_declaration))
-			(eq (wisi-cache-class cache) 'statement-start))))
+  (when (> (wisi-cache-max 'navigate) (point))
+    (let ((cache (wisi-backward-cache))
+	  done
+	  project-pos
+	  package-pos
+	  decl-pos)
+      (while (and cache (not done))
+	;; find attribute_declaration and package containing point (if any)
+	(cond
+	 ((not (eq (wisi-cache-class cache) 'statement-start))
+	  nil)
+
+	 ((eq (wisi-cache-nonterm cache) 'attribute_declaration)
+	  (setq decl-pos (point)))
+
+	 ((eq (wisi-cache-nonterm cache) 'package_spec)
+	  (setq package-pos (point))
+	  (setq done t))
+
+	 ((eq (wisi-cache-nonterm cache) 'simple_project_declaration)
+	  (setq project-pos (point))
+	  (setq done t))
+	 )
+
 	(setq cache (wisi-goto-containing cache)))
-      (when cache
-	(wisi-forward-token); package | project
-	(wisi-token-text (wisi-forward-token)); name
-	))
-    ))
+
+      (cond
+       (package-pos
+	(goto-char package-pos)
+	(setq done t))
+
+       (decl-pos
+	(goto-char decl-pos)
+	(setq done t))
+
+       (project-pos
+	(goto-char project-pos)
+	(setq done t))
+
+       (t ;; before project
+	(setq done nil))
+       )
+
+      (when done
+	(wisi-forward-token); keyword
+	(wisi-token-text (wisi-forward-token))); name
+
+      )))
 
 ;;; debugging
 (defun gpr-wisi-debug-keys ()
@@ -185,15 +97,43 @@ or containing ancestor of CACHE that is at a line beginning."
   )
 
 ;;;;
+
+(defvar gpr_grammar-elisp-parse-table nil) ;; gpr_grammar-elisp.el
+(defvar gpr_grammar-elisp-token-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
+(defvar gpr_grammar-elisp-keyword-table-raw nil) ;; gpr_grammar-elisp.el and gpr_grammar-process.el
+(defvar gpr_grammar-process-action-table nil) ;; gpr_grammar-process.el
+(defvar gpr_grammar-process-token-table nil) ;;gpr_grammar-process.el
+
 (defun gpr-wisi-setup ()
-  "Set up a buffer for parsing Ada files with wisi."
-  (wisi-setup '(gpr-wisi-before-cache
-		gpr-wisi-after-cache)
-	      'gpr-wisi-post-parse-fail
-	      gpr-wisi-class-list
-	      gpr-grammar-wy--keyword-table
-	      gpr-grammar-wy--token-table
-	      gpr-grammar-wy--parse-table)
+  "Set up a buffer for parsing gpr files with wisi."
+  (wisi-setup
+   :indent-calculate nil
+   :post-indent-fail nil
+   :class-list gpr-wisi-class-list
+   :parser
+   (cond
+    ((or (null gpr-parser)
+	 (eq 'elisp gpr-parser))
+     (require 'gpr_grammar-elisp)
+     (wisi-make-elisp-parser
+      gpr_grammar-elisp-parse-table
+      #'wisi-forward-token))
+
+    ((eq 'process gpr-parser)
+     (require 'gpr_grammar-process)
+     (wisi-make-process-parser
+      :label "gpr"
+      :exec gpr-process-parse-exec
+      :token-table (nth 0 gpr_grammar-process-token-table)
+      :action-table (nth 0 gpr_grammar-process-action-table)
+      :terminal-hashtable (nth 1 gpr_grammar-process-token-table)))
+    )
+
+   :lexer (wisi-make-elisp-lexer
+	   :token-table-raw gpr_grammar-elisp-token-table-raw
+	   :keyword-table-raw gpr_grammar-elisp-keyword-table-raw
+	   :string-quote-escape-doubled nil
+	   :string-quote-escape nil))
 
   (setq gpr-indent-statement 'wisi-indent-statement)
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
@@ -206,6 +146,5 @@ or containing ancestor of CACHE that is at a line beginning."
 (setq gpr-show-parse-error 'wisi-show-parse-error)
 
 (provide 'gpr-wisi)
-(provide 'gpr-indent-engine)
 
 ;; end of file

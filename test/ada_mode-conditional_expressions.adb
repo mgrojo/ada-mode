@@ -13,9 +13,9 @@ procedure Ada_Mode.Conditional_Expressions is
    K3 : Integer := (if
                       J > 42
                     then
-                      -1
+                       -1
                     else
-                      +1);
+                       +1);
    K : Integer := K0a;
    L0 : Integer :=
      (case J is when 42 => -1, when Integer'First .. 41 => 0, when others => 1);
@@ -69,8 +69,8 @@ procedure Ada_Mode.Conditional_Expressions is
             Fun (J) = 0
               or else M,
          when others =>
-            (1
-               + 2) = 3);
+           (1
+              + 2) = 3);
 
    L : Integer := L0;
 begin
@@ -92,15 +92,14 @@ begin
          when -1 => 42, -- '=>' aligned with next line
          when 0  => 41,
          when 1  =>
+            -- comment indent matching GNAT style check
+            -- second line of comment
+           (if J > 42
 
-            (if J > 42
-               -- comment indent matching GNAT style check
-               -- second line of comment
-
-             then 44    -- comment matching GNAT
+            then 44     -- comment matching GNAT
                         -- second line
 
-             else 45)); -- comment _not_ matching GNAT style check
+            else 45)); -- comment _not_ matching GNAT style check
                         -- comment matching GNAT
 
 end Ada_Mode.Conditional_Expressions;

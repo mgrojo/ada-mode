@@ -210,7 +210,7 @@ point and return nil.")
       (let ((comp-buf-pt (point))
 	    (success
 	     (run-hook-with-args-until-success
-	      ada-fix-error-hook
+	      'ada-fix-error-hook
 	      (compilation-next-error 0)
 	      source-buffer
 	      source-window)))

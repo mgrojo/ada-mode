@@ -1,6 +1,6 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -37,6 +37,15 @@
 ;; we reuse several ada-mode functions
 (require 'ada-mode)
 (require 'cl-lib)
+
+(defgroup gpr nil
+  "Major mode for editing gpr (Gnat Project File) source code in Emacs."
+  :group 'languages)
+
+(defcustom gpr-process-parse-exec "gpr_mode_wisi_parse"
+  "Name of executable to use for external process gpr parser,"
+  :type 'string
+  :group 'gpr)
 
 (defvar gpr-mode-map
   (let ((map (make-sparse-keymap)))
@@ -78,7 +87,7 @@
     ["Select project ..."          ada-prj-select                   t]
     ["Parse and select current file" gpr-set-as-project             t]
     ["Show current project"        ada-prj-show                     t]
-    ["Show project search path"    ada-prj-show-path                t]
+    ["Show project search path"    ada-prj-show-prj-path            t]
     ["Next compilation error"      next-error                       t]
     ["Show secondary error"        ada-show-secondary-error         t]
     ["Show last parse error"       gpr-show-parse-error             t]
@@ -129,7 +138,7 @@ Function is called with no arguments.")
   (when gpr-indent-statement
     (funcall gpr-indent-statement)))
 
-(defconst gpr-casing-keywords
+(defconst gpr-keywords
   '(
     "abstract"
     "aggregate"
@@ -154,37 +163,13 @@ Function is called with no arguments.")
     "when"
     "with"
     )
-  "List of gpr mode keywords for auto-casing.")
+  "List of gpr mode keywords for font-lock and auto-casing.")
 
 (defvar gpr-font-lock-keywords
-  (progn
-    (list
-     ;;
-     ;; keyword plus name. FIXME: move to grammar action, use gpr-keywords here (see ada-font-lock-keywords).
-     (list (concat
-	    "\\<\\("
-	    "package\\|"
-	    "project\\|"
-	    "for"
-	    "\\)\\>[ \t]*"
-	    "\\(\\sw+\\(\\.\\sw*\\)*\\)?")
-	   '(1 font-lock-keyword-face) '(2 font-lock-function-name-face nil t))
-     ;;
-     ;; Main keywords
-     (list (concat "\\<"
-		   (regexp-opt
-		    '("abstract" "aggregate" "case" "configuration" "extends"
-                      "external" "external_as_list" "is" "library" "null"
-                      "others" "renames" "standard" "type" "use" "when" "with")
-		    t)
-		   "\\>")
-	   '(1 font-lock-keyword-face))
-     ;;
-     ;; Anything following end and not already fontified is a body name.
-     '("\\<\\(end\\)\\>\\([ \t]+\\)?\\(\\(\\sw\\|[_.]\\)+\\)?"
-       (1 font-lock-keyword-face) (3 font-lock-function-name-face nil t))
-     ;;
-     ))
+  ;; Grammar actions set `font-lock-face' property for all
+  ;; non-keyword tokens that need it.
+  (list
+   (list (concat "\\<" (regexp-opt gpr-keywords t) "\\>") '(0 font-lock-keyword-face)))
   "Expressions to highlight in gpr mode.")
 
 (defun gpr-ff-special-with ()
@@ -248,6 +233,23 @@ of the package or project point is in or just after, or nil.")
   (ada-parse-prj-file (or file (buffer-file-name)))
   (ada-select-prj-file (or file (buffer-file-name))))
 
+(defun gpr-syntax-propertize (start end)
+  "Assign `syntax-table' properties in accessible part of buffer.
+In particular, character constants are set to have string syntax."
+  ;; (info "(elisp)Syntax Properties")
+  ;;
+  ;; called from `syntax-propertize', inside save-excursion with-silent-modifications
+  ;; syntax-propertize-extend-region-functions is set to
+  ;; syntax-propertize-wholelines by default.
+  (let ((inhibit-read-only t)
+	(inhibit-point-motion-hooks t))
+    (goto-char start)
+    (save-match-data
+      (while (re-search-forward "--" end t); comment start
+	(put-text-property
+	 (match-beginning 0) (match-end 0) 'syntax-table '(11 . nil)))
+  )))
+
 ;;;;
 ;;;###autoload
 (defun gpr-mode ()
@@ -258,7 +260,8 @@ of the package or project point is in or just after, or nil.")
   (setq major-mode 'gpr-mode)
   (setq mode-name "GNAT Project")
   (use-local-map gpr-mode-map)
-  (set-syntax-table ada-mode-syntax-table)
+  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
+  (set (make-local-variable 'syntax-propertize-function) 'gpr-syntax-propertize)
   (when (boundp 'syntax-begin-function)
     ;; obsolete in emacs-25.1
     (set (make-local-variable 'syntax-begin-function) nil))
@@ -271,7 +274,7 @@ of the package or project point is in or just after, or nil.")
   (set (make-local-variable 'require-final-newline) t)
 
   (ada-case-activate-keys gpr-mode-map)
-  (set (make-local-variable 'ada-keywords) gpr-casing-keywords)
+  (set (make-local-variable 'ada-keywords) gpr-keywords)
 
   (set (make-local-variable 'font-lock-defaults)
        '(gpr-font-lock-keywords
@@ -291,10 +294,29 @@ of the package or project point is in or just after, or nil.")
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gpr\\'" . gpr-mode))  ; GNAT project files
 
+(put 'gpr-mode 'custom-mode-group 'gpr)
+
+(defvar gpr-parser nil
+  "Indicate parser and lexer to use for gpr buffers:
+
+elisp : wisi parser and lexer implemented in elisp.
+
+process : wisi elisp lexer, external process parser specified
+  by ‘gpr-process-parse-exec ’.
+")
+
 (provide 'gpr-mode)
 
-(unless (featurep 'gpr-indent-engine)
-  (require 'gpr-wisi))
+(require 'gpr-wisi)
+
+(cl-case gpr-parser
+  (elisp nil)
+  (process nil)
+  (t
+   (if (locate-file gpr-process-parse-exec exec-path '("" ".exe"))
+       (setq gpr-parser 'process)
+     (setq gpr-parser 'elisp)))
+  )
 
 (unless (featurep 'gpr-skeletons)
   (require 'gpr-skel))

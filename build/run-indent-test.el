@@ -1,17 +1,16 @@
 ;; utils for automating indentation and casing tests
 
-;; Default includes mtn, among others, which is broken in Emacs 22.2
-(setq vc-handled-backends '(CVS))
-
 ;; user can set these to t in an EMACSCMD
 (defvar skip-cmds nil)
 (defvar skip-reindent-test nil)
 (defvar skip-recase-test nil)
+(defvar skip-write nil)
 
 (defun test-face (token face)
   "Test if all of TOKEN in next code line has FACE.
 FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (save-excursion
+    (wisi-validate-cache (line-end-position 3) nil 'face)
     (when (ada-in-comment-p)
       (beginning-of-line); forward-comment doesn't move if inside a comment!
       (forward-comment (point-max)))
@@ -62,6 +61,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
   (setq jit-lock-context-time 0.0);; for test-face
 
   (let ((error-count 0)
+	cmd-line
 	last-result last-cmd expected-result)
     ;; Look for --EMACS comments in the file:
     ;;
@@ -74,42 +74,40 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
     ;;    of the previous EMACSCMD, and the test fails if they don't
     ;;    match.
     ;;
+    ;; --EMACS_SKIP_UNLESS: <form>
+    ;;   skip entire test if form evals nil
+    ;;
     ;; --EMACSDEBUG: <form>
     ;;    Eval form, display result. Also used for setting breakpoint.
 
     (goto-char (point-min))
     (while (and (not skip-cmds)
-		(re-search-forward "--EMACS\\(CMD\\|RESULT\\|DEBUG\\):" nil t))
+		(re-search-forward "--EMACS\\([^:]+\\):" nil t))
       (cond
        ((string= (match-string 1) "CMD")
 	(looking-at ".*$")
 	(save-excursion
-	  (setq last-cmd (match-string 0)
+	  (setq cmd-line (line-number-at-pos)
+		last-cmd (match-string 0)
 		last-result
-		(if debug-on-error
-		    ;; let debug-on-error work
+		(condition-case-unless-debug err
 		    (eval (car (read-from-string last-cmd)))
-
-		  ;; not debug
-		  (condition-case err
-		      (eval (car (read-from-string last-cmd)))
-		    (error
+		  (error
 		     (setq error-count (1+ error-count))
-		     (message
-		      (concat
-		       (buffer-file-name) ":" (format "%d" (line-number-at-pos))
-		       ": command: %s") last-cmd)
-		     (message
-		      (concat
-		       (buffer-file-name) ":" (format "%d" (count-lines (point-min) (point)))
-		       ": %s: %s") (car err) (cdr err)))))
+		     (message "%s:%d: command: %s"
+			      (buffer-file-name) cmd-line last-cmd)
+		     (message "%s:%d: %s: %s"
+			      (buffer-file-name)
+			      (line-number-at-pos)
+			      (car err)
+			      (cdr err))))
 		)))
 
        ((string= (match-string 1) "RESULT")
 	(looking-at ".*$")
 	(setq expected-result (save-excursion (end-of-line 1) (eval (car (read-from-string (match-string 0))))))
 	(unless (equal expected-result last-result)
-	  ;; we don't abort here, so we can see all errors at once
+	  (when debug-on-error (debug))
 	  (setq error-count (1+ error-count))
 	  (message
 	   (concat
@@ -120,6 +118,15 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 		    expected-result)
 	    ))))
 
+       ((string= (match-string 1) "_SKIP_UNLESS")
+	(looking-at ".*$")
+	(unless (eval (car (read-from-string (match-string 0))))
+	  (setq skip-cmds t)
+	  (setq skip-reindent-test t)
+	  (setq skip-recase-test t)
+	  ;; We don’t set ‘skip-write’ t here, so the *.diff Make target succeeds.
+	  ))
+
        ((string= (match-string 1) "DEBUG")
 	(looking-at ".*$")
 	(message "DEBUG: %s:%d %s"
@@ -129,7 +136,7 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 
        (t
 	(setq error-count (1+ error-count))
-	(error (concat "Unexpected command " (match-string 1))))))
+	(error (concat "Unexpected EMACS test command " (match-string 1))))))
 
     (when (> error-count 0)
       (error
@@ -191,20 +198,17 @@ FACE may be a list; emacs 24.3.93 uses nil instead of 'default."
 
     (run-test-here)
 
-    ;; Write the result file; makefile will diff.
-    (when skip-reindent-test
-      ;; user sets skip-reindent-test when testing interactive editing
-      ;; commands, so the diff would fail. Revert to the original file,
-      ;; save a copy of that.
-      (revert-buffer t t))
+    (unless skip-write
+      ;; Write the result file; makefile will diff.
+      (when skip-reindent-test
+	;; user sets skip-reindent-test when testing interactive editing
+	;; commands, so the diff would fail. Revert to the original file,
+	;; save a copy of that.
+	(revert-buffer t t))
 
-    (write-file (concat dir (file-name-nondirectory file-name) ".tmp"))
+      (write-file (concat dir (file-name-nondirectory file-name) ".tmp")) )
     )
   )
 
 (provide 'run-indent-test)
-
-;; Local Variables:
-;; eval: (add-to-list 'load-path (expand-file-name "../"))
-;; End:
 ;; end of file

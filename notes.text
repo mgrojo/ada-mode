@@ -2,62 +2,91 @@ General notes on Emacs Ada mode
 
 build/Makefile
 
-o.e.a.stephe-1 (from o.e.a): dead
+o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
 o.e.a.stephe-4 (from o.e.a.s-2, with o.w.s-1): Ada compute indent
-o.e.a.stephe-5 (from o.e.a): available
-
-(add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-(setq ada-xref-tool 'gnat_inspect)
-
-run test from emacs -Q using installed elpa:
-(progn
-;;  (add-to-list 'exec-path "/apps/GNAT-2014/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (package-initialize)
-  (setq debug-on-error t)
-;;  (setq wisi-debug 1)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (load "run-wisi-test")
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "ada-number-literal"))
+o.e.a.stephe-5 (from o.e.a.s-2): available
 
 run test from emacs -Q using source:
-(progn
-  (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
-  (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  (setq debug-on-error t)
-  (load "autoloads.el")
-  (load "run-indent-test-wisi-gpr_query")
-  (setq wisi-debug 1)
-  (setq default-directory "/Projects/org.emacs.ada-mode/build/wisi/")
-  (run-test "../../test/gnatprep.adb")
-  (ada-wisi-debug-keys))
-
 (progn
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2016/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode/build")
-  ; (setq debug-on-error t)
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (setq debug-on-error t)
+  (setq debug-on-quit t)
   (load "autoloads.el")
-  (require 'ada-mode)
-  (setq default-directory "/Projects/org.emacs.ada-mode/")
-  (load "run-indent-test-gps")
-  (find-file "/Projects/org.emacs.ada-mode/test/ada-gps/ada_gps_bug_005.adb")
-  )
+  (load "run-indent-test-process-gpr_query")
+  ; (setq wisi-debug 1)
+  (setq wisi-disable-face t)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (run-test "../../test/ada_mode-interactive_recover.adb")
+  (wisi-debug-keys))
 
-install packages in -Q:
 (progn
- (require 'package)
- (add-to-list 'package-archives (cons "test" "/Projects/elpa/archive/packages"))
- (list-packages))
+  (setq eval-expression-debug-on-error nil)
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (load "autoloads.el")
+  (load "run-wisi-process-test.el")
+  (setq debug-on-error t)
+  (setq wisi-disable-face t)
+  ; (find-file "/Projects/org.emacs.ada-mode.stephe-2/test/wisi/subprograms.input")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (run-test "subprograms"))
+
+(dvc-state-multiple
+'((xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")
+  (xmtn . "c:/Projects/org.wisitoken/")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+navigate bug:
+       LR1_Descriptor : WisiToken.Descriptor
+     (First_Terminal    => (if Non_Grammar.Length > 0
+                            then Token_ID (Non_Grammar.Length) + Token_ID'First
+                            else Token_ID'First),
+      Last_Terminal     => EOF_ID,
+      EOF_ID            => EOF_ID,
+      Accept_ID         => EOF_ID + 1,
+      First_Nonterminal => EOF_ID + 1,
+      Last_Nonterminal  => EOF_ID + Token_ID (Rules.Length) + 1);
+
+        on > 0, invoke "add-use-clause"; already at outermost containing token
+
+ada-which-function bug:
+   type Generate_Param_Type is record
+      --  Set by grammar file declarations. Error recover parameters
+      --  are elsewhere.
+      Output_Language           : Output_Language_Type  := None;
+      Parser_Algorithm          : Parser_Algorithm_Type := None;
+      Lexer                     : Lexer_Type            := None;
+      Interface_Kind            : Interface_Type        := None;
+      First_State_Index         : Integer               := 0;
+      First_Parser_Label        : Integer               := 0;
+      Keywords_Case_Insensitive : Boolean               := False;
+      Start_Token               : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
+    (ada-which-function t) is fine
+    add-log not setting include-type t?
+
+ada_mode_gps_parse, ada_mode_wisi_parse infinite loop when parent emacs dies
+    detect that, exit
+    debug ada_mode_gps_indent; not much help, stuck in read_file
+
+    gnat.os_lib.read probably returns 0
+        which gives infinite loop in Read_Input
+            raise input_closed exception for that
+
+put back mckenzie-enable in wisi-process-parse
+    so can disable for memory tests, and for really bad syntax (like C code that needs to be wrapped in Indent_Line)
+
+newline not in a word should not cause parse retry after parse fail
+
 add missing features to gpr_query; see fixmes.
 
 refactor ada auto-case into wisi, use in gpr
@@ -74,6 +103,225 @@ Ada 2020 features:
     http://www.ada-auth.org/cgi-bin/cvsweb.cgi/ai12s/ai12-0127-1.txt?rev=1.10
     wait for wisi-2.0
 
+    new syntax in AI12-061:
+        http://www.adacore.com/developers/development-log/NF-17-P617-043-gnat
+
+ speed issues
+
+/Projects/org.wisitoken/Test/gnatcoll-xref.adb
+    7252 lines, 29461 tokens, 254989 characters
+
+plain parse, no actions:
+    14 Sept 2017:
+        elisp parser
+            (setq ada-parser 'elisp)
+            (let ((wisi-action-disable t))(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 5))
+            1.515792 seconds 8 gcs
+
+        command line run_ada_parser with re2c lexer, memory mapped file
+            run_ada_parser.exe gnatcoll-xref.adb --repeat_count 10
+                per iteration: 0.261657065 seconds - fast enough!
+
+            run_ada_parser.exe gnatcoll-xref.adb --lexer-only --repeat_count 10
+                per iteration: 0.004567678
+
+        process parser with elisp lexer, warm process
+            (setq ada-parser 'parser)
+            gnatcoll-xref.adb
+            (let ((wisi-action-disable t))(wisi-time (lambda () (wisi-parse-buffer 'navigate)) 1 t))
+            6.734948 seconds 12 gcs 0.031288 wait
+            6.708216 seconds 11 gcs 0.015633 wait
+
+        just elisp lexer
+            (wisi-time (lambda () (wisi-lex-buffer 'indent)) 5) ;; compute line info
+            0.331260 seconds 2 gcs
+
+            (wisi-time (lambda () (wisi-lex-buffer 'face)) 5) ;; no line info
+            0.281287 seconds 2 gcs
+
+        elisp lexer + send tokens
+            (wisi-time #'wisi-process-send-tokens-noop 1)
+            1.559691 seconds 2 gcs
+
+        just send full buffer text to subprocess
+            (require 'ada-gps)
+            (wisi-time #'ada-gps-noop-send 1)
+            1.054854 seconds 0 gcs
+
+
+        repeat timing in Debian
+
+    need emacs module, run lexer in Ada
+
+parse face
+    compare to o.e.a
+
+    noticeable delay when typing code
+        jit-lock-defer-time 1.5 helps
+
+    wisitoken-parser-lr-lalr_generator.adb
+    (wisi-time (lambda () (wisi-parse-buffer 'face)) 5 t); t for process stats
+
+    15 Sep 2017
+        o.e.a.s-4 elisp parser: per iteration 0.284380 seconds, 1 gcs
+
+        process parser, elisp lexer 1.021952 seconds, 2 gcs
+
+indent
+    use module instead of process
+        can pass actions from module to elisp in binary, to avoid scan-sexps
+        try mingw64 gnat on Windows
+            use 32 bit gprbuild to run 64 bit tools
+
+    compute indent in Ada
+        also lex
+        add line info compute to lexer
+        compatible with AdaCore libadalang indent
+
+    take advantage of multicore:
+        Process ext feedback while waiting to send more
+            Need ewouldblock in lisp
+
+        Put parallel parse in separate tasks.
+
+        parallel mckenzie in separate tasks
+
+        at least one thread in module
+
+    wisi-anchored-2, wisi--indent-token-1
+        don't apply anchor if all lines already anchored
+        don't loop thru lines more than once?
+
+    indent compute only lines needed
+        skip nonterms that don't overlap indent region
+        significantly complicates cache valid, wisi-cache-try algorithm
+
+    delete 'end' processing, use next-statement-keyword to look for 'end'?
+
+
+    (wisi-time-indent-middle-line-cold-cache 1 t); t for process stats
+    /Projects/smm.main/source/smm-server.adb
+
+    15 Sept 2017:
+        elisp parser, full buffer:
+            gnatcoll-xref.adb: 2.875186 seconds, 11 gcs => action time (- 2.875186 1.515792) = 1.359394
+            smm-server.adb:    0.134355 seconds, 0 gcs
+
+        elisp parser, middle line
+            gnatcoll-xref.adb: 2.671991 seconds 11 gcs
+            smm-server.adb:    0.140611 seconds 0 gcs
+
+        process parser, whole buffer:
+            gnatcoll-xref.adb:
+
+            smm-server.adb:     0.303155 seconds, 1 gcs
+
+        process parser, middle line
+            gnatcoll-xref.adb: 16.166306 seconds 19 gcs 29461 tokens 149921 actions 0.015640 wait
+            => scan parse action time = total - wisi-lex-send-tokens - action-time - wait-time
+               = (+ 16.166306 -1.559691 -1.359394 -0.015640) = 13.231581
+               action                count
+                1 Lexer_To_Lookahead 29463
+                2 Error              (- 30598 29463) 1135 ; from conflict resolution
+                3 Spawn              (- 31803 30598) 1205 ; some terminated with identical stacks
+                4 Terminate_Parser   (- 33008 31803) 1205
+                5 Virtual_To_Lookahead 0 - no actual errors
+                6 Push_Current       (- 62469 33008) 29461 = token count
+                7 Reduce_Stack       (- 149928 62469) 87459
+
+            smm-server.adb:     0.303128 seconds 1 gcs
+
+            don't send right-hand-side tokens for reduce
+                gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
+
+parse navigate
+    wisi-motion-action
+        in [] token-numbers, skip statements with wisi-goto-end
+
+history
+    ada-mode 5.2
+        indent whole buffer:
+            (time-it (lambda () (progn (wisi-invalidate-cache)(indent-region (point-min) (point-max)))) 1)
+
+        gps: per iteration 4.463700
+        wisi: per iteration 8.331166
+
+        indent one line
+
+    ada-mode 6.x
+        indent whole buffer:
+            (time-it 'wisi-parse-buffer 1)
+
+        indent first line: (time-it (lambda() (goto-line 1) (indent-for-tab-command)) 1)
+        indent middle line: (time-it (lambda() (goto-line 3500) (indent-for-tab-command)) 1)
+        indent last line: (time-it (lambda() (goto-line 7251) (indent-for-tab-command)) 1)
+
+        march 8 2017; sort of working
+            wisi whole buffer: per iteration 2.484650
+
+        april 16 2017; all Ada tests pass
+            wisi whole buffer: per iteration 3.516
+            wisi first line: per iteration 2.594025, 2.562731, 2.578430
+            wisi middle line: per iteration 2.562810, 2.791537, 2.750257
+            wisi last line: per iteration 2.750262, 2.750256
+
+        apr 17 add byte-compile in wisi-semantic-action
+            wisi whole buffer: per iteration 3.127059, 3.109702, 2.984694 seconds, 13 gcs
+
+        apr 23 add indent cache
+            indent second line cold cache: (wisi-time-indent-line-cold-cache 2)
+            indent second line warm cache: (wisi-time-indent-line-warm-cache 2 100)
+            middle line: 3500
+            last line:   7251
+
+            second line cold cache: 2.735604 seconds 12 gcs
+            second line warm cache: 0.006563 seconds
+
+        june 8 Ada fasttoken process parser, wisi lexer
+            (setq wisi-indent-region-fallback nil)
+            second line cold cache: 5.351977 seconds 15 gcs
+            second line warm cache: 0.006563 seconds
+
+ indent issues
+http://langserver.org/
+    open protocol for IDE/compiler communication
+
+ada_mode_gps_indent bug #12: comment align with hanging code.
+    bug in GPS
+
+ada-indent-hanging-rel-exp
+    see FIXME: in ada-wisi.el
+    need input from ludovic
+
+    more cases:
+
+    if FTFX.Main_CASA_Result.Suspension.Status /= Previous_Suspension_Info.Status
+      or FTFX.Main_CASA_Result.Suspension.Delay_Threshold_Exceeded_Reg
+        /= Previous_Suspension_Info.Delay_Threshold_Exceeded_Reg
+    wisi aligns "/=" with "or"
+
+ wisi work
+
+upgrade to gnat gpl 2017
+    copy libiconv from mingw32; see wisi-user_guide install
+
+    gpr_query installed
+        crashes in test/ada_mode-child_procedure.adb
+        and under main emacs
+        run in gdb; in Tree.Load
+        need debug enabled in gnatcoll; reinstall with Gnatcoll_Build=Debug
+        crashes in gnatcoll-projects.adb Load call to Internal_Load
+        in call to Set_Path_From_Gnatls_Attribute
+            due to missing 'with' (should not be any!?)
+        in call to Process_gnatlist (default_gnatlist)
+        'catch exception' lands in gnatcoll_utils.Get_Command_Output call to Expect
+            exception process_died
+            handled right there, but never gets to the handler
+                spawn process is just broken?
+                try small example
+
+    try reinstall gnatcoll?
+
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
     on post-self-insert-hook
@@ -82,12 +330,6 @@ disable or use electric-indent-post-self-insert-function
 Smart edit - delete if/then/endif, leaving content
 
 Try antlr error recovery on Ada. Add elisp target.
-
-Report byte-compiler warning bug.
-    wisi-compile.el binds byte-compiler-warnings
-    Why is ada-indent ok (in stephe-2)?
-
-see pdf-tools for ideas on compiling during package install
 
 gps vs wisi
     when hit return with invalid syntax, does not indent until type some code
@@ -116,24 +358,11 @@ gps vs wisi
 
     anonymous access function return type
 
-https://www.emacswiki.org/emacs/AdaMode
-
-update ada-mode-keys.el on savannah
-
-C-u C-c C-r append references
-    rewrite gnatxref to not use compilation-start
-    or use xref
-
 gpr_query does not see libraries?
     need clear example; libadalang mains vs langkit?
     compare to GPS, gnatinspect
 
 change Emacs manual section on ada-mode to mention elpa
-
-new syntax in AI12-061:
-    http://www.adacore.com/developers/development-log/NF-17-P617-043-gnat
-
-adding "<" => "<" still confuses wisi
 
 ada-goto-declaration-start
     fails on task declaration
@@ -165,21 +394,6 @@ ada-goto-declaration-start
         fix the latter, see if it fixes ada-make-subprogram-body
             if not, obsolete that.
 
-add gnat_find_opts or obj_dir?
-    see email from Ludovic Brenta
-
-$ADA_OBJECTS_PATH...= in .prj:
-    += for list
-    Needs $CUR_DIR (or PRJ_DIR?)
-
-    but doesn't fix gnatfind xref problem?
-        test
-
-ada-mode.texi
-    add "upgrading from 4.0" section
-        obj_dir is now ignored
-        therefore gnatfind requires gpr_file
-
 add "show all overloads" in navigate
     leave out file, line, col from gpr-query id
 
@@ -199,19 +413,6 @@ is                              --  * if it was an empty comment.
                     'A');
 
 
-add gpr-projects.el in emacs 25
-    see project.el
-
-add gpr-ede.el
-    see ede.el
-
-    compare to project
-
-see http://ecb.sourceforge.net/ for ideas?
-    or add Ada to that?
-
-get casing from gpr file
-
 gnat-core support RTS choice
     with GNAT GPL 2014:
     foo.gpr contains:
@@ -226,9 +427,6 @@ gnat-core support RTS choice
     add project variable 'rts'
 
 Gpr_query
-    gnatcoll gpl 2015 has full aggregate support
-        provide gpr_query_2014, gpr_query_2015, pick one at compile/install time
-
     check gnatinspect for new features
 
     grok --RTS
@@ -236,10 +434,11 @@ Gpr_query
             for Runtime ("ada") use "stm32f429i-disco-rtos";
 
 
-test with gnat gpl 2015
-
 completion
     (info "(elisp)Completion")
+    http://emacswiki.org/emacs/CategoryCompletion
+    autocomplete package
+
     examples:
         Ada.Text_IO.<tab> => Put, Put_line, Get, etc
             needs new query; all symbols that match prefix
@@ -262,12 +461,21 @@ completion
 
             find the GPS source code
 
-use goto-decl-start to indent aspects?
-    avoid lots of nested cond/cl-ecase in ada-wisi-before|after-cache
+    match GPS behavior
+        get completion candidates from gpr_query
+        all names in scope at point
+
+    built-in pcomplete
+        completion-at-point-functions
+
+    http://elpa.gnu.org/packages/company.html
+        including C++ parameters, class members
+
+    MELPA package auto-complete
+    https://github.com/auto-complete/auto-complete
+    https://github.com/capitaomorte/yasnippet
 
 c:/Archive/Emacs/slime-2.10.1.tar.gz
-
-http://wikemacs.org/wiki/Projectile
 
 face actions in gpr grammar?
 
@@ -276,34 +484,11 @@ after ada-mode is fast enough:
 
 use cl-lib class/method for dispatching
 
-"others" clauses in all case statements, that return an indention of 0
-(or something similar) instead of throwing errors. They could still
-throw errors if wisi-debug > 0.
-
 emacs 25 compile.el supports HYPERLINK in compilation regexp; use for secondary ref?
     ada-gnat-compile.el ada-gnat-compilation-filter
 
 
- speed up, handle bad grammar
-
 implement packrat in fasttoken, generate elisp
-
-Use adacore langkit to generate parser, run as module
-    too hard to design AST types for grammar, since don't need them for ada-mode; maybe ok if that's already done
-
-parser speed dominated by set-text-properties
-    compute indent directly in parser actions
-        indent-action takes list of delta_indent, one per token
-    only set text properties for other things
-
-convert OpenToken to generate tables for LR1 parser
-    add error handling
-
-wisi-generate write defun for grammar actions
-    so they can be byte compiled
-    faster?
-
-speed up by not binding wisi-tokens for null action
 
 skip blocks of text unless needed for current user command
 
@@ -328,198 +513,18 @@ skip blocks of text unless needed for current user command
          level 1: function begin end if loop etc
          parse level 2 on demand
 
-5.1.c: GPS sub-process indentation engine
-    build/Makefile
-
-    (progn
-      (require 'ada-gps)
-      (setq ada-gps-exec (concat default-directory "build/ada_mode_gps_indent")))
-
-    Version in a_m_gps_i for upgrade control
-
-
-    d:/Apps/GNAT-gpl_2016/gnatcoll-gpl-2016-src/src/sqlite/gnatcoll-xref.adb
-        7252 lines, 256857 chars
-
-    wisi timing:
-    (progn
-        (ada-wisi-setup)
-        (wisi-invalidate-cache)
-        (time-it (lambda () (indent-region (point-min) (point-max))) 1))
-        2.062000
-
-    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
-        0.531000
-
-    (progn
-        (goto-char (point-max))
-        (forward-line -3)
-        (time-it 'indent-according-to-mode 10))
-        0.001 seconds
-
-    ada-gps timing:
-    (time-it (lambda () (indent-region (point-min) (point-max))) 1)
-        ~700 seconds?
-
-    (progn
-        (goto-char (point-max))
-        (forward-line -3)
-        (time-it 'indent-according-to-mode 10))
-        Total 1.857000 seconds; per iteration 0.185700
-
-    include *.adb, build/Makefile in ELPA for gpr_query, ada_mode_gps_indent
-
-5.1.d:
-
-handle parser errors more gracefully
-    continue by adding virtual tokens
-        find shortest path from current state to defined action on next real token
-            go thru FIRST, look for actions on next token, use first found
-                provide grammar source hint for picking? (prefer semicolon, or 'then')
-            if none, recurse (breadth-first search)
-        can compute at grammar compile time
-        add result as 'error' entry in state machine?
-
-        cache for virtual end token (if one needed) located after last real token in sentence
-            needed for 'goto end', and for setting something in 'end' field
-            add space if at eob?
-
-        no storage cache for other virtual tokens
-
-        adding 'if then else end if' before 'foo := bar;'; just typed 'if <expression>'; add 'then'
-            that will later add 'end if;' before the next 'end', which will be wrong
-                no problem; it will be deleted by invalidate-cache when the new 'end if' is typed/parsed
-                invalidate-cache must also delete refs to the virtual token?
-                    they will be overwritten?
-
-    don't use virtual tokens for indent
-        => don't set markers to them
-
-    show location of virtual tokens in 'show parse error'?
-        could be many
-
-can abandon parse when reach desired point (not just for errors)
-    ada-indent-region parse to end of region
-        avoids reparsing for every line
-        or is there an indent-region hook for that?
-
-        handle ada-gps better
-
-    if command is 'goto-end', "desired point" is end of current statement
-    in goto-end, check if end reached is virtual; if so, reparse
-
-5.1.x: misc
-
 if specify project file in gnat_stub_opts, gnat stub can't find it due to changed directory
     change to gnat_stub_gpr, manage directory
     or edit gnat_stub_opts, insert project dir?
 
 skeleton refactor/cleanup
-
-ftp://alpha.gnu.org/gnu/emacs/pretest/emacs-24.3.91.tar.xz
-    better compile trunk, emacs-24 branch
-    (dvc-status-one "/Projects/emacs/trunk")
-
-gpr-skel.el
-    ./gpr-skel.el:111:;; FIXME: code below should be in skeleton.el
-    ./gpr-skel.el:199:	;; FIXME: hook for Ada case adjust
-
-    move skel-expand to emacs-compat-*?
-        assume will be in emacs 24.5 or 25.*
-    use in ada-skel?
+    see fixmes
 
 move stuff out of ada-mode-keys.el
     ada-make-package-spec
         skel default to (ada-name-from-file-name (buffer-file-name))?
 
-(grep-find "find . -type f -print | \"xargs\" grep -nH \"FIXME:\"")
-
-C-c C-d on +Normalize_Pathname
-    includes + in identifier
-
-prev-statement-keyword in subprogram skips exception
-
-ada_mode-parens.adb:214:09: (style) bad column
-
-ada-set-point-accordingly
-    use parse info to find identifier declaration instead of reference?
-
 different casing for identifiers (uppercase) and attributes (mixed)
-
-src_dir=/foo/bar/* for C++
-
-ada-next-statement-keyword skip matched parens if on paren
-
-emacs-ada-prj-mode
-    or emacs-gnat-prj-mode?
-
-./wisi.el	  ;; FIXME: insert newline in comment to create non-comment!?
-    need tests for wisi-before/after-change vs comments, strings
-
-test on debian testing?
-
-gpr-add-log-current-function dispatch to gpr-wisi
-
-ada-add-log-current-function
-
-gpr log-edit-function-name
-    use package.attribute:
-        Source_Dirs
-        Compiler.Default_Switches
-
-separate color for vendor-specific aspects
-    spark aspects in test/aspects.ads
-
-(see general below for more possibilites)
-
-completion:
-    match GPS behavior
-        get completion candidates from gpr_query
-        all names in scope at point
-
-    built-in pcomplete
-        completion-at-point-functions
-
-    http://elpa.gnu.org/packages/company.html
-        including C++ parameters, class members
-
-    MELPA package auto-complete
-    https://github.com/auto-complete/auto-complete
-    https://github.com/capitaomorte/yasnippet
-
-find-identifer-in-prj
-    prompt for identifier, goto declaration
-    not useful until have completion
-
-reflect changes in subprogram spec to subprogram body
-    ada-resync-spec-body
-
-fix fontification of aspect names
-    they are _not_ context clauses
-    they are often on a different line than 'with'
-    there are more than one of them
-    use parser actions
-
-fix wisi-compile.el needing comp.el, not comp.elc
-    some systems don't install emacs source by default
-
-handle all indent options like ada-case-strict
-    need case-strict, ada-indent prj-wide for aflex
-    need case-strict buffer-local for ada-mode ada_tokens
-
-    set buffer-local from prj-get in ada-mode-hook
-        use an alist or auto naming rule to define prj var
-
-    or user write cond string-match on default-dir
-
-set face correctly for name on next line
-    edited some tests; see fixmes
-    use parser actions
-
-use post-self-insert-hook for casing
-    in 23.2?
-
-use electric-indent-mode instead of ada-indent-newline-indent
 
 refactoring
 
@@ -548,215 +553,64 @@ support for "ElDoc"?
 
 Add Ada parser to gnu global?
 
- gpr_query
-build/Makefile one
-
-get casing from gpr file
-
-gpr_query refs output distinguishes between read ref and write ref
-    useful for "where is this var set?"
-    xref filter?
-    elisp filter?
-
-use --display_progress
-
-write tests!
-
-implement C++ C-c ? children
-    /home/Projects/GDS/work_stephe_2/common/itc/itcsb/libitcsb_1553/inc/Itcsb1553/Bus.hpp
-
-    overridden_recursive
-
-    child_types_recursive
-        works
-
-add Ada, C++ tests of xref
-    /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/Makefile
-    /home/Projects/GDS/work_stephe_2/common/itc/opsim/itc_dscovr_gdsi/Gds1553/src/Gds1553.cpp
-
-
-cd /home/Projects/GDS/work_stephe_2/dscovr/build/x86_gnu_linux_release/
-
-export ADA_PROJECT_PATH=../../../makerules:../../../common/build/x86_gnu_linux_release:../../../sal/build:../../../sal/build/x86_gnu_linux_release:../../../opentoken/build/linux_release
-
-parse linker cross reference output; -cref
-    for pragma import
-
-
-(require 'gpr-mode)
-(gpr-set-as-project "c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/src/gnatcoll_tools.gpr")
-(browse-url "file:///c:/Apps/GNAT-7.1.2/gnatcoll-1.6w-src/docs/_build/html/xref.html")
-
- general
-build/wisi/Makefile
-build/Makefile
-
-do C-x 5 prefix
-    for Emacs 24.x
-    after 24.4 feature freeze
-
-move gpr-skel.el skel-expand to compat*.el
-    use in ada-mode
-    discuss on emacs-devel
-
-need indent test of skel expansions
-    verify they parse
-
-tooltip/skel support for subprogram param names
-
-implement secondary-error for scope in 'gnat-inspect-all'
-    /Projects/GDS/work_dscovr_release/common/build/x86_gnu_windows_release/Makefile
-    /Projects/GDS/work_dscovr_release/common/1553/gds-hardware-bus_1553.ads RX_Enable
-    secondary-error in compilation regexp not working
-        highlight can't be a function
-
-    change ada-show-secondary-error to parse line, col from text, not text-property?
-
-move gnat-inspect ada-* to ada-gnat-inspect.el
-
-wisi-validate-cache should call grammar parser in a loop
-    that would handle multiple compilation units; doesn't need to be in grammar
-    parser needs to ignore invalid token following valid parse.
-
-suggest jit-lock enable hook
-    allow enforcing order in after-change-functions
-
-ask about start-process vs --batch
-
-expression functions
-
-gpr fix errors
-    gds_dscovr_utf_agg.gpr:12:19: expected "gds_dscovr_utf_agg"
-
-add C++ tests
-
-C-c C-d on <= use
-
-'Access gives wrong face to following token:
-     Percent_Percent & EOF + Output_Elisp'Access and
-
-don't parse or move cache if narrowed
-
-ada-fix-error.el
-    sort 'limited private with' at end of context clause
-
-add test for el_file
-
-gnatprep
-    the value of a preprocessor symbol is either empty, a string
-    literal, or an Ada identifier/keyword; handle $symbol in lexer
-
-    gnatprep minor mode?
-
-manage "scenario variables" on project menu?
-    GDS_DEVICE_PLATFORM
-
-separate gpr-mode indent variables
-
-gpr-next-statement-keyword
-
-new align rule
-    from Florian Schanda <florian.schanda@altran.com>
-    >    case Foo |
-    >         Some_Other_Thing |
-    >         Bar |
-    >         Baz =>
-    >       null;
-    >
-    > It would be really nifty to have a macro that transforms it into this:
-    >
-    >    case Foo              |
-    >         Some_Other_Thing |
-    >         Bar              |
-    >         Baz              =>
-
-allow finding compiler libraries with no project
-    define the default project search path to contain the compiler library dirs
-    there is no default project!
-        big change to support that.
-
-test on debian testing?
-
- possible enhancements
-
-make as much as possible work with no project
-    use ada-build-require-project-file when a project is necessary
-
-example custom indentation function for Markus Schöpflin <markus.schoepflin@comsoft.aero>
-   FOOBAR.PROC (
-      ARG1 => VAL1,
-      ARG2 => VAL2
-   );
-
-EDE projects?
-    just .el files with random code
-
-skeleton
-    see python-skeleton-autoinsert
-
-    add else placeholders to all skeletons?
-        add 'placeholder text property, before-change that deletes it/checks for "..."
-        add goto-next-/prev-placeholder, kill-placeholder
-
-    bug in skeleton handling of _; if skeleton-end-hook indents, the pos of _ moves; should be a marker.
-
-    template system could be defined by parsing ada-grammar.wy
-        for ada-skel-verbose
-
-ada-align-paramlist
-    test/ada_mode-parens.adb
-
-    handle wrapping due to line length limit?
-
-    handle single-line trailing comments, or longer comments, in paramlist?
-
-DEC Ada legacy code
-    foo.a for spec, foo_b.a for body
-
-share/convert case exceptions with GPS
-    see email for python script
-
-file-local case exceptions
-    for -fdump-spec C imports
-
-vhdl-wisi
-
-ada-control.el from JP Rosen; see email
-
-completion
-    http://emacswiki.org/emacs/CategoryCompletion
-    autocomplete package
-
-http://cedet.sourceforge.net/addlang.shtml
-
-time on long code
-    get stats on GDS file sizes
-
-put-text-property fails if read-only
-
- possible new options
-ada-wisi-comment
-    add option to match gnat comment style check
-        have tests in ada_mode-conditional_expressions.adb, ada_mode-parens.adb
-
-from Simon Wright:
-   --  I'd like (the option to have) the 'is' line up with the 'type'.
-   type A;
-   type A_Finalizer
-     (AP : access A)
-   is new Ada.Finalization.Limited_Controlled with null record;
-
-Markus Schöpflin <markus.schoepflin@comsoft.aero> wants this style (including all caps):
-
-   FOOBAR.PROC (
-      ARG1 => VAL1,
-      ARG2 => VAL2
-   );
-
-    add a custom indent function, like the one for opentoken
-    12 sep 2013: sent email
-
  relevant files, debug hints
+Edebug displays
+
+in wisi-process-parse--Reduce_Stack:
+(setq edebug-eval-list
+ '(tokens-1
+   tok
+   (aref token-table (aref tokens-1 i))
+   (queue-head (wisi-process--parser-parse-stack wisi--parser))
+   sexp
+   ))
+
+in wisi-parse-reduce:
+(setq edebug-eval-list
+ '(nonterm
+   tok
+   first
+   ))
+
+in wisi--indent-token-1:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   i
+   delta
+   indent
+   ))
+
+in wisi-indent-action:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   wisi-nterm
+   wisi-tokens
+   deltas
+   wisi-token-index
+   tok
+   token-delta
+   comment-delta
+   ))
+
+wisi-indent-region:
+(setq edebug-eval-list
+ '((wisi-ind-indent wisi--indent)
+   anchor-indent
+   i
+   indent
+   new-indent
+   ))
+
+use elp (emacs lisp profiler)?
+    (with-current-buffer (find-file-noselect "~/src/xdisp.c")
+      (elp-instrument-function 'c-beginning-of-defun)
+      (goto-char (point-max))
+      (condition-case nil
+          (while (beginning-of-defun) nil)
+        (error nil))
+      (elp-results))
+
 (progn (profiler-start 'cpu) (time-it 'wisi-parse-buffer 10) (profiler-report) (profiler-stop))
     B - profiler-report-render-reversed-calltree shows low-level time hogs
 
@@ -781,6 +635,12 @@ https://www.dropbox.com/sh/7jr3vbv9tm1zod0/jPuvfrJAe8
     w32 builds of cutting-edge emacs branches, pretests
 
 ftp://alpha.gnu.org/gnu/emacs/pretest/
+    untar with cygwin
+    in mys32 under emacs:
+        cd /c/Projects/emacs/emacs-24.3.9x
+        ./configure --prefix=/mingw32
+        make
+        # don't make install, just run from the build dir
 
  access to ada-france:
 
@@ -798,7 +658,24 @@ read/write access requires a public key:
 
     mtn --db ~/monotone-dbs/ada-france.db sync "mtn://www.ada-france.org?org.emacs.*"
 
+ git config for elpa checkout
+[core]
+	repositoryformatversion = 0
+	filemode = false # don't set exec bits
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "origin"]
+	fetch = +refs/heads/master:refs/remotes/origin/master
+	push  = +refs/heads/master
+	url = stephen_leake@git.sv.gnu.org:/srv/git/emacs/elpa.git
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+
  release process
+do wisitoken release, if needed
+
 (dvc-status ".")
 (dvc-status "/Projects/org.opentoken")
 
@@ -873,6 +750,8 @@ bump versions
         first line
     README-wisi
         first line
+    ada_mode_wisi_parse.adb
+        Version
     build/Makefile
         run uninstall-elpa with old values before changing!
         ADA_MODE_VERSION
@@ -1020,5 +899,7 @@ mark fixed bugs
     http://debbugs.gnu.org/Developer.html
 
 check https://www.emacswiki.org/emacs/AdaMode
+
+update ada-mode-keys.el on savannah
 
 -- end of file
