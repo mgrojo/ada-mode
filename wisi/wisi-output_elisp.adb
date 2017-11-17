@@ -111,6 +111,7 @@ is
 
       Put_Line ("(require 'wisi)");
       Put_Line ("(require 'wisi-compile)");
+      Put_Line ("(require 'wisi-elisp-parse)");
       New_Line;
       Output_Elisp_Common.Indent_Keyword_Table (-Elisp_Package_1, "elisp", Tokens.Keywords, To_String'Access);
       New_Line;

@@ -11,8 +11,8 @@ all : test-clean tests library
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb
 t_one : export Standard_Common_Build := Debug
-# t_one : one-clean
-t_one : character_literal_re2c.c
+t_one : one-clean
+t_one : ada_lite_re2c.c
 #t_one : RUN_ARGS := 3
 t_one : test_one_harness.run
 
@@ -23,7 +23,7 @@ t_all : character_literal_re2c.c
 t_all : test_all_harness.run
 
 one-clean :
-	rm -rf character_literal*
+	rm -rf ada_lite*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
 one : export Standard_Common_Build := Debug
 #one : one-clean
@@ -60,8 +60,7 @@ some : some-clean
 # some : case_expression_re2c.c
 # some : case_expression-parse.diff
 # some : SOME_CLEAN_FILE += conflict_name
-# some : conflict_name-process.el.diff
-# some : conflict_name_yylex.adb
+# some : conflict_name_re2c.c
 # some : conflict_name-parse.diff
 # some : SOME_CLEAN_FILE += empty_production_1
 # some : empty_production_1_re2c.c
@@ -92,6 +91,7 @@ some : some-clean
 # some : identifier_list_name_conflict-parse.diff
 # some : SOME_CLEAN_FILE += subprograms-process
 # some : subprograms-process.el.diff
+# some : subprograms_process.adb.diff
 
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html

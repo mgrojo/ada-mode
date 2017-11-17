@@ -29,6 +29,7 @@ package body Wisi.Gen_Output_Ada_Common is
      (Input_File_Name  : in String;
       Output_File_Name : in String;
       Package_Name     : in String;
+      Language_Name    : in String;
       Output_Language  : in Ada_Output_Language;
       Descriptor       : in WisiToken.Descriptor'Class;
       Interface_Kind   : in Interface_Type)
@@ -62,7 +63,7 @@ package body Wisi.Gen_Output_Ada_Common is
             raise Programmer_Error;
 
          when Process =>
-            Put_Line ("with WisiToken.Wisi_Runtime;");
+            Put_Line ("with WisiToken.Wisi_Runtime." & Language_Name & ";");
             Put_Line ("with WisiToken.Token;");
 
          when Module =>
@@ -167,7 +168,8 @@ package body Wisi.Gen_Output_Ada_Common is
             raise Programmer_Error;
 
          when Process =>
-            Indent_Line ("Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type;");
+            Indent_Line
+              ("Parse_Data : WisiToken.Wisi_Runtime." & Language_Name & ".Parse_Data_Type;");
             New_Line;
 
             Indent_Line ("procedure Create_Parser");

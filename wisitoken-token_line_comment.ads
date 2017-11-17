@@ -26,7 +26,10 @@ package WisiToken.Token_Line_Comment is
 
    type Token is new WisiToken.Token_Region.Token with record
       First : Boolean;
-      --  True if token is a terminal, and is first on a line.
+      --  For a terminal, True if it is first on a line, or if it contains
+      --  trailing blank or comment lines.
+      --
+      --  For a nonterminal, True if some contained token's First is True.
 
       Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens between this token and the next grammar one or
@@ -37,13 +40,19 @@ package WisiToken.Token_Line_Comment is
       --  in the last token in the nonterminal region, and *_Region includes
       --  them.
 
+      First_Indent_Line : Line_Number_Type;
+      Last_Indent_Line  : Line_Number_Type;
+      --  Lines that need indenting; first token on these lines is contained
+      --  in this token.
+      --
       --  First_, Last_Indent_Line include comments between tokens, but
       --  exclude trailing comments after the last token, so they can be
       --  indented differently.
-      First_Indent_Line           : Line_Number_Type;
-      Last_Indent_Line            : Line_Number_Type;
+
       First_Trailing_Comment_Line : Line_Number_Type;
       Last_Trailing_Comment_Line  : Line_Number_Type;
+      --  Trailing comment or blank lines (contained by the last contained
+      --  token) that need indenting.
    end record;
 
    type State_Type is new WisiToken.Token_Region.State_Type with record

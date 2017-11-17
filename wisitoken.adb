@@ -48,6 +48,16 @@ package body WisiToken is
       return Trim (Token_ID'Image (Item), Both);
    end Int_Image;
 
+   function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID
+   is begin
+      for I in Descriptor.Image'Range loop
+         if Descriptor.Image (I).all = Name then
+            return I;
+         end if;
+      end loop;
+      raise Programmer_Error with "token name '" & Name & "' not found in descriptor.image";
+   end Find_ID;
+
    function Any (Item : in Token_ID_Set) return Boolean
    is begin
       for I in Item'Range loop

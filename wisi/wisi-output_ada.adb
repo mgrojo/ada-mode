@@ -29,6 +29,7 @@ with Wisi.Utils;
 procedure Wisi.Output_Ada
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
+   Language_Name         : in String;
    Params                : in Generate_Param_Type;
    Prologues             : in Wisi.Prologues;
    Tokens                : in Wisi.Tokens;
@@ -246,7 +247,7 @@ begin
    end case;
 
    Create_Ada_Spec
-     (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root,
+     (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root, Language_Name,
       Ada, Generate_Utils.LR1_Descriptor, None);
 
    Create_Ada_Body;

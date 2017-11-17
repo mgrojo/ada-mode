@@ -22,6 +22,8 @@ pragma License (Modified_GPL);
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Exceptions;
+with Ada.Strings.Fixed;
+with Ada.Strings.Maps;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
 with GNAT.Traceback.Symbolic;
@@ -29,6 +31,7 @@ with Wisi.Declarations;
 with Wisi.Output_Ada;
 with Wisi.Output_Ada_Emacs;
 with Wisi.Output_Elisp;
+with Wisi.Output_Elisp_Common;
 with Wisi.Prologue;
 with Wisi.Rules;
 with WisiToken;
@@ -71,6 +74,7 @@ is
    Generate_Params : Generate_Param_Type;
 
    Input_File_Name  : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Language_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File       : Standard.Ada.Text_IO.File_Type;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
@@ -91,6 +95,22 @@ is
       Input_File_Name  := +File_Name;
       Output_File_Root := +Standard.Ada.Directories.Base_Name (File_Name) & Suffix;
       Open (Input_File, In_File, File_Name);
+
+      declare
+         Input_File_Name_Str : constant String  := -Input_File_Name;
+         Language_Name_Dir   : constant Integer := Standard.Ada.Strings.Fixed.Index
+           (Input_File_Name_Str, Standard.Ada.Strings.Maps.To_Set ("/\"), Going => Standard.Ada.Strings.Backward);
+         Language_Name_Ext   : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name_Str, ".wy");
+      begin
+         Language_Name := +Wisi.Output_Elisp_Common.Elisp_Name_To_Ada
+           (Input_File_Name_Str
+              ((if Language_Name_Dir = 0
+                then Input_File_Name_Str'First
+                else Language_Name_Dir + 1) ..
+                 Language_Name_Ext - 1),
+            Append_ID => False,
+            Trim      => 0);
+      end;
    exception
    when Name_Error | Use_Error =>
       raise Name_Error with "input file '" & File_Name & "' could not be opened.";
@@ -191,13 +211,13 @@ begin
 
    when Ada =>
       Wisi.Output_Ada
-        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
-         Rule_Count, Action_Count, Profile);
+        (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
+         McKenzie_Recover, Rule_Count, Action_Count, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
-        (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, McKenzie_Recover,
-         Elisp_Names, Rule_Count, Action_Count);
+        (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
+         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms

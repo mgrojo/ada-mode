@@ -80,6 +80,7 @@ package Wisi.Gen_Output_Ada_Common is
      (Input_File_Name  : in String;
       Output_File_Name : in String;
       Package_Name     : in String;
+      Language_Name    : in String;
       Output_Language  : in Ada_Output_Language;
       Descriptor       : in WisiToken.Descriptor'Class;
       Interface_Kind   : in Interface_Type);

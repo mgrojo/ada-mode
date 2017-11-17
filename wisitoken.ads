@@ -119,6 +119,9 @@ package WisiToken is
    function Int_Image (Item : in Token_ID) return String;
    --  Return Token_ID'Image, leading space stripped.
 
+   function Find_ID (Descriptor : in WisiToken.Descriptor'Class; Name : in String) return Token_ID;
+   --  Return index of Name in Descriptor.Image. If not found, raise Programmer_Error.
+
    type Token_ID_Set is array (Token_ID range <>) of Boolean;
 
    function Any (Item : in Token_ID_Set) return Boolean;

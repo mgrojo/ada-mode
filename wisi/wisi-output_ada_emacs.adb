@@ -40,6 +40,7 @@ with WisiToken.Parser.LR.LR1_Generator;
 procedure Wisi.Output_Ada_Emacs
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
+   Language_Name         : in String;
    Params                : in Generate_Param_Type;
    Prologues             : in Wisi.Prologues;
    Tokens                : in Wisi.Tokens;
@@ -50,18 +51,6 @@ procedure Wisi.Output_Ada_Emacs
    Action_Count          : in Integer)
 is
    use all type Standard.Ada.Containers.Count_Type;
-
-   Language_Name_Dir     : constant Integer := Standard.Ada.Strings.Fixed.Index
-     (Input_File_Name, Standard.Ada.Strings.Maps.To_Set ("/\"), Going => Standard.Ada.Strings.Backward);
-   Language_Name_Ext     : constant Integer := Standard.Ada.Strings.Fixed.Index (Input_File_Name, ".wy");
-   Language_Name         : constant String  := Elisp_Name_To_Ada
-     (Input_File_Name
-        ((if Language_Name_Dir = 0
-          then Input_File_Name'First
-          else Language_Name_Dir + 1) ..
-           Language_Name_Ext - 1),
-      Append_ID => False,
-      Trim      => 0);
 
    Language_Runtime_Package : constant String := "WisiToken.Wisi_Runtime." & Language_Name;
 
@@ -1256,6 +1245,7 @@ begin
         (case Data.Interface_Kind is
          when Process => "_Process",
          when Module  => "_Module"),
+      Language_Name   => Language_Name,
       Output_Language => Ada_Emacs,
       Descriptor      => Generate_Utils.LALR_Descriptor,
       Interface_Kind  => Params.Interface_Kind);
