@@ -23,12 +23,27 @@ pragma License (Modified_GPL);
 package WisiToken.Wisi_Runtime.Gpr is
 
    --  Indent parameters from [2]
-   Gpr_Indent        : Integer;
-   Gpr_Indent_Broken : Integer;
-   Gpr_Indent_When   : Integer;
+   Gpr_Indent        : Integer := 3;
+   Gpr_Indent_Broken : Integer := 2;
+   Gpr_Indent_When   : Integer := 3;
 
-   procedure Set_Params (Params : in String);
-   --  Set all params from Params, in declaration order. Boolean is
+   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
+
+   overriding
+   procedure Initialize
+     (Data             : in out Parse_Data_Type;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Lexer            : in     WisiToken.Lexer.Handle;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String);
+   --  Call Wisi_Runtime.Initialize, then:
+   --
+   --  If Params /= "", set all indent parameters from Params, in
+   --  declaration order; otherwise keep default values. Boolean is
    --  represented by 0 | 1. Parameter values are space delimited.
+   --
+   --  Also do any other initialization that Gpr_Data needs.
 
 end WisiToken.Wisi_Runtime.Gpr;

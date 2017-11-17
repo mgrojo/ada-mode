@@ -43,8 +43,10 @@ package WisiToken.Wisi_Runtime is
       Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type);
-   --  Line_Count only used for Indent
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String);
+   --  Line_Count only used for Indent. Params contains language-specific
+   --  indent parameter values.
 
    function Source_File_Name (Data : in Parse_Data_Type) return String;
    function Parse_Action (Data : in Parse_Data_Type) return Parse_Action_Type;
@@ -176,7 +178,12 @@ package WisiToken.Wisi_Runtime is
 
    type Delta_Type (<>) is private;
 
-   type Language_Indent_Function is access function (Args : in Indent_Arg_Arrays.Vector) return Delta_Type;
+   type Language_Indent_Function is access function
+     (Data          : in out Parse_Data_Type'Class;
+      Tokens        : in     Augmented_Token_Array;
+      Indenting     : in     Token_Line_Comment.Token;
+      Args          : in     Indent_Arg_Arrays.Vector)
+     return Delta_Type;
 
    Null_Args : Indent_Arg_Arrays.Vector renames Indent_Arg_Arrays.Empty_Vector;
 
@@ -311,7 +318,7 @@ private
 
    type Indent_Label is (Not_Set, Int, Anchor, Anchored, Anchor_Anchored);
 
-   package Int_Vectors is new Ada.Containers.Vectors (Natural, Natural);
+   package Anchor_ID_Vectors is new Ada.Containers.Vectors (Natural, Positive);
 
    type Indent_Type (Label : Indent_Label := Not_Set) is record
       --  [2] wisi-elisp-parse--indent elements. Indent values may be
@@ -324,20 +331,20 @@ private
          Int_Indent : Integer;
 
       when Anchor =>
-         Anchor_IDs    : Int_Vectors.Vector; --  Largest ID first.
+         Anchor_IDs    : Anchor_ID_Vectors.Vector; --  Largest ID first.
          Anchor_Indent : Integer;
 
       when Anchored =>
-         Anchored_ID    : Natural;
+         Anchored_ID    : Positive;
          Anchored_Delta : Integer; -- added to Anchor_Indent of Anchor_ID
 
       when Anchor_Anchored =>
-         Anchor_Anchored_IDs   : Int_Vectors.Vector := Int_Vectors.Empty_Vector;
+         Anchor_Anchored_IDs   : Anchor_ID_Vectors.Vector;
          Anchor_Anchored_ID    : Natural;
          Anchor_Anchored_Delta : Integer;
       end case;
    end record;
-   First_Anchor_ID : constant Natural := 0;
+   First_Anchor_ID : constant Positive := Positive'First;
 
    package Indent_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Indent_Type);
    package Navigate_Cursor_Lists is new Ada.Containers.Doubly_Linked_Lists
@@ -345,15 +352,16 @@ private
 
    type Parse_Data_Type is tagged limited
    record
-      Semantic_State   : WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : WisiToken.Lexer.Handle;
-      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
-      Parse_Action     : Parse_Action_Type;
-      Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Used for Navigate.
-      Face_Caches      : Face_Cache_Trees.Tree;      -- Used for Face.
-      End_Positions    : Navigate_Cursor_Lists.List; -- Used for Navigate.
-      Indents          : Indent_Vectors.Vector;      -- Used for Indent.
-      Max_Anchor_ID    : Integer := First_Anchor_ID - 1;
+      Semantic_State    : WisiToken.Token_Line_Comment.State_Access;
+      Lexer             : WisiToken.Lexer.Handle;
+      Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
+      Parse_Action      : Parse_Action_Type;
+      Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Used for Navigate.
+      Face_Caches       : Face_Cache_Trees.Tree;      -- Used for Face.
+      End_Positions     : Navigate_Cursor_Lists.List; -- Used for Navigate.
+      Indents           : Indent_Vectors.Vector;      -- Used for Indent.
+      Max_Anchor_ID     : Integer;
+      Indenting_Comment : Boolean;
    end record;
 
    type Delta_Labels is (Int, Anchored, Hanging);
@@ -382,5 +390,33 @@ private
    subtype Anchored_Delta is Delta_Type (Anchored);
 
    Null_Delta : constant Delta_Type := (Int, 0);
+
+   ----------
+   --  Utilities for language-specific child packages
+
+   function Current_Indent_Offset
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Token_Line_Comment.Token;
+      Offset       : in Integer)
+     return Integer;
+
+   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Token_Line_Comment.Token;
+
+   function Indent_Anchored_2
+     (Data        : in out Parse_Data_Type;
+      Anchor_Line : in     Line_Number_Type;
+      Last_Line   : in     Line_Number_Type;
+      Offset      : in     Integer;
+      Accumulate  : in     Boolean)
+     return Delta_Type;
+   --  [2] wisi-elisp-parse--anchored-2
+
+   procedure Indent_Token_1
+     (Data         : in out Parse_Data_Type;
+      First_Line   : in     Line_Number_Type;
+      Last_Line    : in     Line_Number_Type;
+      Delta_Indent : in     Delta_Type);
+   --  [2] wisi-elisp-parse--indent-token-1. Sets Data.Indents, so caller
+   --  may not be in a renames for a Data.Indents element.
 
 end WisiToken.Wisi_Runtime;

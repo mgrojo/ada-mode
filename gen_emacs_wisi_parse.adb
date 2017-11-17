@@ -54,7 +54,7 @@ is
       New_Line;
       Put_Line
       ("NNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>" &
-       " <mckenzie_check_limit> <source_byte_count> <source bytes> <language-specific params>");
+       " <mckenzie_check_limit> <source_byte_count> <language-specific params> <source bytes>");
       Put_Line ("  NN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
@@ -163,6 +163,8 @@ is
    end Get_Integer;
 
 begin
+   Create_Parser (Parser, LALR, State'Unrestricted_Access);
+
    declare
       use Ada.Command_Line;
    begin
@@ -175,8 +177,6 @@ begin
          raise Programmer_Error with "invalid option count: " & Integer'Image (Argument_Count);
       end case;
    end;
-
-   Create_Parser (Parser, LALR, State'Unrestricted_Access);
 
    Put_Line (Name & "_wisi_parse " & Version & ", protocol version " & Protocol_Version);
 
@@ -222,13 +222,6 @@ begin
                --  Computing Line_Count in elisp allows parsing in parallel with
                --  sending source text.
 
-               Parse_Data.Initialize
-                 (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
-                  Lexer            => Parser.Lexer,
-                  Parse_Action     => Parse_Action,
-                  Source_File_Name => -Source_File_Name,
-                  Line_Count       => Line_Count);
-
                Trace_Parse := Get_Integer (Command_Line, Last);
 
                --  Default Enable_McKenzie_Recover is False if there is no McKenzie
@@ -240,7 +233,13 @@ begin
                Check_Limit := Get_Integer (Command_Line, Last);
                Byte_Count  := Get_Integer (Command_Line, Last);
 
-               Set_Language_Specific_Params (Command_Line (Last + 2 .. Command_Line'Last));
+               Parse_Data.Initialize
+                 (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+                  Lexer            => Parser.Lexer,
+                  Parse_Action     => Parse_Action,
+                  Source_File_Name => -Source_File_Name,
+                  Line_Count       => Line_Count,
+                  Params           => Command_Line (Last + 2 .. Command_Line'Last));
 
                if Cost_Limit > 0 then
                   Parser.Table.McKenzie.Cost_Limit := Cost_Limit;

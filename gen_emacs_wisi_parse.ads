@@ -3,6 +3,8 @@
 --  Generic Emacs background process; parse token stream, return
 --  parser actions.
 --
+--  See gen_run_wisi_parse.ads for a standalone version.
+--
 --  References :
 --
 --  [1] On the elisp side, the inter-process protocol is defined in
@@ -35,13 +37,11 @@ generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
 
    Descriptor : in WisiToken.Descriptor'Class;
-   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type;
+   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
 
    with procedure Create_Parser
      (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
-
-   with procedure Set_Language_Specific_Params (Params : in String);
 
 procedure Gen_Emacs_Wisi_Parse;

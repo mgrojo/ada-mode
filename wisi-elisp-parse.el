@@ -1203,7 +1203,7 @@ Let-bound in `wisi-indent-action', for grammar actions.")
 
 (defun wisi-elisp-parse--indent-token-1 (line end delta)
   "Apply indent DELTA to all lines from LINE (a line number) thru END (a buffer position)."
-  (let ((i (1- line));; index to wisi-ind-line-begin, wisi-ind-indent
+  (let ((i (1- line));; index to wisi-elisp-lexer-line-begin, wisi-elisp-parse--indent
 	(paren-first (when (and (listp delta)
 				(eq 'hanging (car delta)))
 		       (nth 2 delta))))

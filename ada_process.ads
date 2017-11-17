@@ -16,7 +16,7 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Wisi_Runtime;
+with WisiToken.Wisi_Runtime.Ada;
 with WisiToken.Token;
 with WisiToken.Parser.LR.Parser;
 package Ada_Process is
@@ -379,7 +379,7 @@ package Ada_Process is
       Terminal_Image_Width => 17,
       Image_Width          => 38);
 
-   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type;
+   Parse_Data : WisiToken.Wisi_Runtime.Ada.Parse_Data_Type;
 
    procedure Create_Parser
      (Parser         :    out WisiToken.Parser.LR.Parser.Instance;

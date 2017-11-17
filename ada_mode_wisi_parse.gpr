@@ -61,6 +61,15 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Debug_Switches;
 
+         for Switches ("gpr_process.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Debug_Switches & ("-O1");
+         for Switches ("gpr.adb") use
+           Standard_Common.Compiler.Common_Switches &
+           Standard_Common.Compiler.Base_Style_Checks &
+           Standard_Common.Compiler.Debug_Switches & ("-O1");
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &

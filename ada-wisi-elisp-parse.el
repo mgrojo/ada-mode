@@ -149,8 +149,8 @@ ANCHOR-TOK, RECORD-TOK are ’wisi-tok’ objects."
 	(wisi-tok-virtual anchor-tok))
     0)
 
-   ((and (eq 'RECORD (wisi-tok-token record-tok))
-	 (= offset 0))
+   ((and (eq 'RECORD (wisi-tok-token record-tok)) ;; FIXME: always true
+	 (= offset 0)) ;; FIXME: true depending on how this is used in .wy
     ;; Indenting 'record'
     ;; offset is non-zero when indenting comments after record.
     ;; Anchor line.
@@ -160,7 +160,7 @@ ANCHOR-TOK, RECORD-TOK are ’wisi-tok’ objects."
      ada-indent-record-rel-type
      nil))
 
-   (t ;; indenting comment, component or 'end'
+   (t ;; indenting comment, component or 'end';; FIXME: say what? get here when offset /= 0
 
     ;; ensure 'record' line is anchored
     (let ((indent (aref wisi-elisp-parse--indent (1- (wisi-tok-line record-tok))))

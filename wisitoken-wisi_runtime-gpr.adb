@@ -20,21 +20,34 @@ pragma License (Modified_GPL);
 with Ada.Strings.Fixed;
 package body WisiToken.Wisi_Runtime.Gpr is
 
-   procedure Set_Params (Params : in String)
+   overriding
+   procedure Initialize
+     (Data             : in out Parse_Data_Type;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Lexer            : in     WisiToken.Lexer.Handle;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String)
    is
       use Ada.Strings.Fixed;
       First : Integer := Params'First;
       Last  : Integer := Index (Params, " ");
    begin
-      Gpr_Indent := Integer'Value (Params (First .. Last - 1));
+      Wisi_Runtime.Initialize
+        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Lexer, Source_File_Name, Parse_Action, Line_Count, "");
 
-      First := Last + 1;
-      Last := Index (Params, " ", First);
-      Gpr_Indent_Broken := Integer'Value (Params (First .. Last - 1));
+      if Params /= "" then
+         Gpr_Indent := Integer'Value (Params (First .. Last - 1));
 
-      First := Last + 1;
-      Last := Index (Params, " ", First);
-      Gpr_Indent_When := Integer'Value (Params (First .. Last - 1));
-   end Set_Params;
+         First := Last + 1;
+         Last := Index (Params, " ", First);
+         Gpr_Indent_Broken := Integer'Value (Params (First .. Last - 1));
+
+         First := Last + 1;
+         Last := Index (Params, " ", First);
+         Gpr_Indent_When := Integer'Value (Params (First .. Last - 1));
+      end if;
+   end Initialize;
 
 end WisiToken.Wisi_Runtime.Gpr;

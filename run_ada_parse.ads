@@ -20,7 +20,8 @@ pragma License (GPL);
 
 with Ada_Process;
 with Gen_Run_Wisi_Parse;
-with WisiToken.Wisi_Runtime.Ada;
+with WisiToken.Wisi_Runtime;
 procedure Run_Ada_Parse is new Gen_Run_Wisi_Parse
-  ("Ada", Ada_Process.Descriptor, Ada_Process.Parse_Data, Ada_Process.Create_Parser,
-   WisiToken.Wisi_Runtime.Ada.Set_Params);
+  ("Ada", Ada_Process.Descriptor,
+   WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Ada_Process.Parse_Data),
+   Ada_Process.Create_Parser);

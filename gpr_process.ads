@@ -16,7 +16,7 @@
 --  You should have received a copy of the GNU General Public License
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-with WisiToken.Wisi_Runtime;
+with WisiToken.Wisi_Runtime.Gpr;
 with WisiToken.Token;
 with WisiToken.Parser.LR.Parser;
 package Gpr_Process is
@@ -108,7 +108,7 @@ package Gpr_Process is
       Terminal_Image_Width => 16,
       Image_Width          => 26);
 
-   Parse_Data : WisiToken.Wisi_Runtime.Parse_Data_Type;
+   Parse_Data : WisiToken.Wisi_Runtime.Gpr.Parse_Data_Type;
 
    procedure Create_Parser
      (Parser         :    out WisiToken.Parser.LR.Parser.Instance;

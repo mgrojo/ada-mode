@@ -69,12 +69,13 @@ is
    Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
    Parse_Action     : WisiToken.Wisi_Runtime.Parse_Action_Type;
 
-   Line_Count   : WisiToken.Line_Number_Type := 1;
-   Lexer_Only   : Boolean                    := False;
-   Repeat_Count : Integer                    := 1;
-   Pause        : Boolean                    := False;
-   Arg          : Integer;
-   Start        : Ada.Real_Time.Time;
+   Line_Count    : WisiToken.Line_Number_Type := 1;
+   Lexer_Only    : Boolean                    := False;
+   Repeat_Count  : Integer                    := 1;
+   Pause         : Boolean                    := False;
+   Arg           : Integer;
+   Indent_Params : Ada.Strings.Unbounded.Unbounded_String;
+   Start         : Ada.Real_Time.Time;
 begin
    --  Create parser first so Put_Usage has defaults from Parser.Table.
    Create_Parser (Parser, WisiToken.LALR, State'Unrestricted_Access);
@@ -112,7 +113,7 @@ begin
             Arg := Arg + 1;
 
          elsif Argument (Arg) = "--indent_params" then
-            Set_Language_Specific_Params (Argument (Arg + 1));
+            Indent_Params := +Argument (Arg + 1);
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--lexer_only" then
@@ -154,9 +155,10 @@ begin
    Parse_Data.Initialize
      (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
       Lexer            => Parser.Lexer,
-      Source_File_Name => -Source_File_Name,
       Parse_Action     => Parse_Action,
-      Line_Count       => Line_Count);
+      Source_File_Name => -Source_File_Name,
+      Line_Count       => Line_Count,
+      Params           => -Indent_Params);
 
    Parser.Lexer.Reset;
 

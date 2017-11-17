@@ -2,6 +2,8 @@
 --
 --  Run an Emacs parser as a standalone executable, for debugging.
 --
+--  See gen_emacs_wisi_parse.ads for the Emacs background process.
+--
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
 --
 --  This program is free software; you can redistribute it and/or
@@ -25,13 +27,11 @@ generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
 
    Descriptor : in WisiToken.Descriptor'Class;
-   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type;
+   Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
 
    with procedure Create_Parser
      (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
-
-   with procedure Set_Language_Specific_Params (Params : in String);
 
 procedure Gen_Run_Wisi_Parse;

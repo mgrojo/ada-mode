@@ -44,95 +44,8 @@ package body WisiToken.Wisi_Runtime is
       Offset       : in Integer)
      return Integer;
 
-   -----------
+   ----------
    --  body subprograms bodies, alphabetical
-
-   function Anchored_2
-     (Data         : in out Parse_Data_Type;
-      Anchor_Line  : in     Line_Number_Type;
-      Last_Line    : in     Line_Number_Type;
-      Indent_Delta : in     Integer;
-      Accumulate   : in     Boolean)
-     return Delta_Type
-   is
-      use Int_Vectors;
-      --  We can't use a Reference here, because the Element in reference
-      --  types is constrained (as are all allocated objects of access
-      --  types; AARM 4.8 (6/3)), and we may need to change the Label.
-      Indent    : Indent_Type      := Data.Indents (Anchor_Line);
-      Anchor_ID : constant Integer := 1 + Max_Anchor_ID (Data, Anchor_Line, Last_Line);
-   begin
-      --  [2] wisi-elisp-parse--anchored-2
-      Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
-
-      case Indent.Label is
-      when Not_Set =>
-         Indent := (Anchor, To_Vector (Anchor_ID, 1), 0);
-
-      when Int =>
-         Indent := (Anchor, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
-
-      when Anchor =>
-         Indent.Anchor_IDs := Anchor_ID & Indent.Anchor_IDs;
-
-      when Anchored =>
-         Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
-
-      when Anchor_Anchored =>
-         Indent.Anchor_Anchored_IDs := Anchor_ID & Indent.Anchor_Anchored_IDs;
-      end case;
-
-      Data.Indents.Replace_Element (Anchor_Line, Indent);
-
-      return (Anchored, Anchor_ID, Indent_Delta, Accumulate);
-   end Anchored_2;
-
-   function Current_Indent_Offset
-     (Data         : in Parse_Data_Type;
-      Anchor_Token : in Token_Line_Comment.Token;
-      Offset       : in Integer)
-     return Integer
-   is
-      use all type Ada.Containers.Count_Type;
-
-      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
-
-      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
-      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
-   begin
-      --  [2] compute delta in wisi-elisp-parse--anchored-1.
-
-      if Anchor_Token.First or else
-        ((Anchor_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
-           Anchor_Token.First_Indent_Line = Anchor_Token.Line)
-      then
-         Text_Begin_Pos := Anchor_Token.Char_Region.First;
-      else
-         loop
-            exit when I < Data.Semantic_State.Stack.First_Index;
-            declare
-               Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-                 (Data.Semantic_State.Stack (I).Element.all);
-            begin
-               exit when Stack_Token.Line /= Anchor_Token.Line;
-
-               if Stack_Token.First or else
-                 ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
-                    Stack_Token.First_Indent_Line = Stack_Token.Line)
-               then
-                  Text_Begin_Pos := Stack_Token.Char_Region.First;
-                  exit;
-               end if;
-            end;
-            I := I - 1;
-         end loop;
-      end if;
-
-      if Text_Begin_Pos = Invalid_Buffer_Pos then
-         raise Programmer_Error;
-      end if;
-      return Offset + Integer (Anchor_Token.Char_Region.First - Text_Begin_Pos);
-   end Current_Indent_Offset;
 
    procedure Indent_Apply_Anchored
      (Delta_Indent : in     Anchored_Delta;
@@ -150,7 +63,13 @@ package body WisiToken.Wisi_Runtime is
          end if;
 
       when Anchor =>
-         raise SAL.Not_Implemented;
+         if Delta_Indent.Anchored_Accumulate or Indent.Anchor_Indent = 0 then
+            Indent :=
+              (Anchor_Anchored,
+               Indent.Anchor_IDs,
+               Delta_Indent.Anchored_ID,
+               Delta_Indent.Anchored_Delta + Indent.Anchor_Indent);
+         end if;
 
       when Anchored | Anchor_Anchored =>
          --  already anchored
@@ -176,42 +95,11 @@ package body WisiToken.Wisi_Runtime is
       end case;
    end Indent_Apply_Int;
 
-   procedure Indent_1
-     (Data         : in out Parse_Data_Type;
-      First_Line   : in     Line_Number_Type;
-      Last_Line    : in     Line_Number_Type;
-      Delta_Indent : in     Delta_Type)
-   is
-      --  [2] wisi-elisp-parse--indent-token-1
-      --  FIXME: implement wisi-indent-comment-col-0
-   begin
-      for Line in First_Line .. Last_Line loop
-         declare
-            --  See note in Anchored_2 for why we can't use renames here.
-            Indent : Indent_Type := Data.Indents (Line);
-         begin
-            case Delta_Indent.Label is
-            when Int =>
-               Indent_Apply_Int (Indent, Delta_Indent.Int_Delta);
-
-            when Anchored =>
-               Indent_Apply_Anchored (Delta_Indent, Indent);
-
-            when Hanging =>
-               raise SAL.Not_Implemented;
-            end case;
-
-            Data.Indents.Replace_Element (Line, Indent);
-         end;
-      end loop;
-   end Indent_1;
-
    function Indent_Compute_Delta
-     (Data              : in out Parse_Data_Type;
-      Tokens            : in     Augmented_Token_Array;
-      Param             : in     Indent_Param;
-      Token             : in     Token_Line_Comment.Token;
-      Indenting_Comment : in     Boolean)
+     (Data   : in out Parse_Data_Type;
+      Tokens : in     Augmented_Token_Array;
+      Param  : in     Indent_Param;
+      Token  : in     Token_Line_Comment.Token)
      return Delta_Type
    is begin
       --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
@@ -232,23 +120,23 @@ package body WisiToken.Wisi_Runtime is
                   case Anchored_Label'(Param.Param.Label) is
                   when Anchored_0 =>
                      --  [1] wisi-anchored, wisi-anchored-1
-                     return Anchored_2
+                     return Indent_Anchored_2
                        (Data,
-                        Anchor_Line  => Anchor_Token.Line,
-                        Last_Line    =>
-                          (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
-                        Indent_Delta => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate   => True);
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   =>
+                          (if Data.Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => True);
 
                   when Anchored_1 =>
                      --  [1] wisi-anchored%
-                     return Anchored_2
+                     return Indent_Anchored_2
                        (Data,
-                        Anchor_Line  => Anchor_Token.Line,
-                        Last_Line    =>
-                          (if Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
-                        Indent_Delta => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate   => True);
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   =>
+                          (if Data.Indenting_Comment then Token.Last_Trailing_Comment_Line else Token.Last_Indent_Line),
+                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => True);
 
                   when Anchored_2 =>
                      raise SAL.Not_Implemented;
@@ -266,7 +154,7 @@ package body WisiToken.Wisi_Runtime is
             end;
 
          when Language =>
-            return Param.Param.Function_Ptr (Param.Param.Args);
+            return Param.Param.Function_Ptr (Data, Tokens, Token, Param.Param.Args);
          end case;
 
       when Hanging_Label =>
@@ -525,12 +413,16 @@ package body WisiToken.Wisi_Runtime is
       Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
-      Line_Count       : in     Line_Number_Type)
-   is begin
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String)
+   is
+      pragma Unreferenced (Params);
+   begin
       Data.Semantic_State   := Semantic_State;
       Data.Lexer            := Lexer;
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
+      Data.Max_Anchor_ID    := First_Anchor_ID - 1;
 
       case Parse_Action is
       when Navigate =>
@@ -1039,10 +931,11 @@ package body WisiToken.Wisi_Runtime is
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                if Token.First then
-                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token, Indenting_Comment => False);
+                  Data.Indenting_Comment := False;
+                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token);
 
                   if Code_Delta /= Null_Delta then
-                     Indent_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
+                     Indent_Token_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
                   end if;
                end if;
 
@@ -1057,11 +950,12 @@ package body WisiToken.Wisi_Runtime is
                   end if;
 
                   if Comment_Param_Set then
+                     Data.Indenting_Comment := True;
                      Comment_Delta := Indent_Compute_Delta
-                       (Data, Tokens, Comment_Param, Token, Indenting_Comment => True);
+                       (Data, Tokens, Comment_Param, Token);
 
                      if Comment_Delta /= Null_Delta then
-                        Indent_1
+                        Indent_Token_1
                           (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Comment_Delta);
                      end if;
                   end if;
@@ -1105,7 +999,8 @@ package body WisiToken.Wisi_Runtime is
 
                when Anchor_Anchored =>
                   declare
-                     Temp : constant Integer := Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta;
+                     Temp : constant Integer :=
+                       Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
                   begin
                      for I of Indent.Anchor_Anchored_IDs loop
                         Anchor_Indent (I) := Temp;
@@ -1167,7 +1062,142 @@ package body WisiToken.Wisi_Runtime is
    is
       use Ada.Text_IO;
    begin
-      Put_Line ("(error """ & Error_Message (-Data.Source_File_Name, Line_Number, 0, Message) & """");
+      Put_Line ("(error """ & Error_Message (-Data.Source_File_Name, Line_Number, 0, Message) & """)");
    end Put_Error;
+
+   ----------
+   --  Spec visible private subprograms, alphabetical
+
+   function Current_Indent_Offset
+     (Data         : in Parse_Data_Type;
+      Anchor_Token : in Token_Line_Comment.Token;
+      Offset       : in Integer)
+     return Integer
+   is
+      use all type Ada.Containers.Count_Type;
+
+      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
+
+      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
+   begin
+      --  [2] compute delta in wisi-elisp-parse--anchored-1.
+
+      if Anchor_Token.First and
+        Anchor_Token.First_Indent_Line = Anchor_Token.Line
+      then
+         Text_Begin_Pos := Anchor_Token.Char_Region.First;
+      else
+         loop
+            exit when I < Data.Semantic_State.Stack.First_Index;
+            declare
+               Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Data.Semantic_State.Stack (I).Element.all);
+            begin
+               exit when Stack_Token.Line /= Anchor_Token.Line;
+
+               if Stack_Token.First or else
+                 ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
+                    Stack_Token.First_Indent_Line = Stack_Token.Line)
+               then
+                  Text_Begin_Pos := Stack_Token.Char_Region.First;
+                  exit;
+               end if;
+            end;
+            I := I - 1;
+         end loop;
+      end if;
+
+      if Text_Begin_Pos = Invalid_Buffer_Pos then
+         raise Programmer_Error;
+      end if;
+      return Offset + Integer (Anchor_Token.Char_Region.First - Text_Begin_Pos);
+   end Current_Indent_Offset;
+
+   function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Token_Line_Comment.Token
+   is
+      use all type Ada.Containers.Count_Type;
+      I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+   begin
+      loop
+         exit when I < Data.Semantic_State.Stack.First_Index;
+         exit when Data.Semantic_State.Stack (I).ID = ID;
+         I := I - 1;
+      end loop;
+      if I < Data.Semantic_State.Stack.First_Index then
+         raise Programmer_Error with
+           "token ID " & Image (Data.Semantic_State.Trace.Descriptor.all, ID) & " not found on parse stack";
+      end if;
+      return Token_Line_Comment.Token (Data.Semantic_State.Stack (I).Element.all);
+   end Find_Token_On_Stack;
+
+   function Indent_Anchored_2
+     (Data        : in out Parse_Data_Type;
+      Anchor_Line : in     Line_Number_Type;
+      Last_Line   : in     Line_Number_Type;
+      Offset      : in     Integer;
+      Accumulate  : in     Boolean)
+     return Delta_Type
+   is
+      use Anchor_ID_Vectors;
+      --  We can't use a Reference here, because the Element in reference
+      --  types is constrained (as are all allocated objects of access
+      --  types; AARM 4.8 (6/3)), and we may need to change the Label.
+      Indent    : Indent_Type      := Data.Indents (Anchor_Line);
+      Anchor_ID : constant Integer := 1 + Max_Anchor_ID (Data, Anchor_Line, Last_Line);
+   begin
+      --  [2] wisi-elisp-parse--anchored-2
+      Data.Max_Anchor_ID := Integer'Max (Data.Max_Anchor_ID, Anchor_ID);
+
+      case Indent.Label is
+      when Not_Set =>
+         Indent := (Anchor, To_Vector (Anchor_ID, 1), 0);
+
+      when Int =>
+         Indent := (Anchor, To_Vector (Anchor_ID, 1), Indent.Int_Indent);
+
+      when Anchor =>
+         Indent.Anchor_IDs := Anchor_ID & Indent.Anchor_IDs;
+
+      when Anchored =>
+         Indent := (Anchor_Anchored, To_Vector (Anchor_ID, 1), Indent.Anchored_ID, Indent.Anchored_Delta);
+
+      when Anchor_Anchored =>
+         Indent.Anchor_Anchored_IDs := Anchor_ID & Indent.Anchor_Anchored_IDs;
+      end case;
+
+      Data.Indents.Replace_Element (Anchor_Line, Indent);
+
+      return (Anchored, Anchor_ID, Offset, Accumulate);
+   end Indent_Anchored_2;
+
+   procedure Indent_Token_1
+     (Data         : in out Parse_Data_Type;
+      First_Line   : in     Line_Number_Type;
+      Last_Line    : in     Line_Number_Type;
+      Delta_Indent : in     Delta_Type)
+   is
+      --  FIXME: implement wisi-indent-comment-col-0
+   begin
+      for Line in First_Line .. Last_Line loop
+         declare
+            --  See note in Indent_Anchored_2 for why we can't use renames here.
+            Indent : Indent_Type := Data.Indents (Line);
+         begin
+            case Delta_Indent.Label is
+            when Int =>
+               Indent_Apply_Int (Indent, Delta_Indent.Int_Delta);
+
+            when Anchored =>
+               Indent_Apply_Anchored (Delta_Indent, Indent);
+
+            when Hanging =>
+               raise SAL.Not_Implemented;
+            end case;
+
+            Data.Indents.Replace_Element (Line, Indent);
+         end;
+      end loop;
+   end Indent_Token_1;
 
 end WisiToken.Wisi_Runtime;

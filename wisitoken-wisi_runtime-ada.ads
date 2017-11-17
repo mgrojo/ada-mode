@@ -2,7 +2,7 @@
 --
 --  Ada implementation of:
 --
---  [1] ada-wisi.el
+--  [1] ada-wisi-elisp-parser.el
 --  [2] ada-indent-user-options.el
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
@@ -23,45 +23,86 @@ pragma License (Modified_GPL);
 package WisiToken.Wisi_Runtime.Ada is
 
    --  Indent parameters from [2]
-   Ada_Indent                 : Integer;
-   Ada_Indent_Broken          : Integer;
-   Ada_Indent_Comment_Col_0   : Boolean;
-   Ada_Indent_Comment_GNAT    : Boolean;
-   Ada_Indent_Label           : Integer;
-   Ada_Indent_Record_Rel_Type : Integer;
-   Ada_Indent_Renames         : Integer;
-   Ada_Indent_Return          : Integer;
-   Ada_Indent_Use             : Integer;
-   Ada_Indent_When            : Integer;
-   Ada_Indent_With            : Integer;
-   Ada_Indent_Hanging_Rel_Exp : Boolean;
+   Ada_Indent                 : Integer := 3;
+   Ada_Indent_Broken          : Integer := 2;
+   Ada_Indent_Comment_Col_0   : Boolean := False;
+   Ada_Indent_Comment_GNAT    : Boolean := False;
+   Ada_Indent_Label           : Integer := -3;
+   Ada_Indent_Record_Rel_Type : Integer := 3;
+   Ada_Indent_Renames         : Integer := 2;
+   Ada_Indent_Return          : Integer := 0;
+   Ada_Indent_Use             : Integer := 2;
+   Ada_Indent_When            : Integer := 3;
+   Ada_Indent_With            : Integer := 2;
+   Ada_Indent_Hanging_Rel_Exp : Boolean := False;
 
-   procedure Set_Params (Params : in String);
-   --  Set all indent parameters from Params, in declaration order.
-   --  Boolean is represented by 0 | 1. Parameter values are space
-   --  delimited.
+   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with private;
+
+   overriding
+   procedure Initialize
+     (Data             : in out Parse_Data_Type;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Lexer            : in     WisiToken.Lexer.Handle;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String);
+   --  Call Wisi_Runtime.Initialize, then:
+   --
+   --  If Params /= "", set all indent parameters from Params, in
+   --  declaration order; otherwise keep default values. Boolean is
+   --  represented by 0 | 1. Parameter values are space delimited.
+   --
+   --  Also do any other initialization that Data needs.
 
    ----------
    --  The following are declared in ada.wy %elisp_indent
 
    function Ada_Indent_Aggregate
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
+   --  [1] ada-indent-aggregate
 
    function Ada_Indent_Renames_0
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
+   --  [1] ada-indent-renames
 
    function Ada_Indent_Return_0
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
+   --  [1] ada-indent-return
 
    function Ada_Indent_Record_0
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
+   --  [1] ada-indent-record
 
    function Ada_Indent_Record_1
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
+   --  [1] ada-indent-record*
+
+private
+
+   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with
+   record
+      Record_ID : Token_ID;
+   end record;
 
 end WisiToken.Wisi_Runtime.Ada;
