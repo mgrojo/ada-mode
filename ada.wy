@@ -174,7 +174,7 @@
 ;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
 %non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <reporting> COMMENT "--"[^\n]*
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 

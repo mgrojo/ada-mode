@@ -29,7 +29,7 @@ package Ada_Process is
       EOF_ID            => 107,
       Accept_ID         => 108,
       New_Line_ID       => 1,
-      Comment_ID        => 2147483647,
+      Comment_ID        => 2,
       Left_Paren_ID     => 2147483647,
       Right_Paren_ID    => 2147483647,
       Image             =>

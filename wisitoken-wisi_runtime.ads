@@ -205,8 +205,8 @@ package WisiToken.Wisi_Runtime is
 
    type Indent_Param_Label is
      (Simple,
-      Hanging_0,  -- wisi-hanging
-      Hanging_1,  -- wisi-hanging%
+      Hanging_0, -- wisi-hanging
+      Hanging_1, -- wisi-hanging%
       Hanging_2  -- wisi-hanging%-
      );
    subtype Hanging_Label is Indent_Param_Label range Hanging_0 .. Hanging_2;
@@ -248,9 +248,23 @@ package WisiToken.Wisi_Runtime is
      (Data    : in out Parse_Data_Type;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
-      N       : in     Integer;
+      N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action*.
+
+   function Indent_Hanging_1
+     (Data            : in out Parse_Data_Type;
+      Tokens          : in     Augmented_Token_Array;
+      Indenting_Token : in     Token_Line_Comment.Token;
+      Delta_1         : in     Simple_Indent_Param;
+      Delta_2         : in     Simple_Indent_Param;
+      Option          : in     Boolean;
+      Accumulate      : in     Boolean)
+     return Delta_Type;
+   --  [2] wisi-elisp-parse--hanging-1
+   --
+   --  Language specific child packages override this to implement
+   --  wisi-elisp-parse-indent-hanging-function.
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type);
 
@@ -352,24 +366,24 @@ private
 
    type Parse_Data_Type is tagged limited
    record
-      Semantic_State    : WisiToken.Token_Line_Comment.State_Access;
-      Lexer             : WisiToken.Lexer.Handle;
-      Source_File_Name  : Ada.Strings.Unbounded.Unbounded_String;
-      Parse_Action      : Parse_Action_Type;
-      Navigate_Caches   : Navigate_Cache_Trees.Tree;  -- Used for Navigate.
-      Face_Caches       : Face_Cache_Trees.Tree;      -- Used for Face.
-      End_Positions     : Navigate_Cursor_Lists.List; -- Used for Navigate.
-      Indents           : Indent_Vectors.Vector;      -- Used for Indent.
+      Semantic_State   : WisiToken.Token_Line_Comment.State_Access;
+      Lexer            : WisiToken.Lexer.Handle;
+      Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
+      Parse_Action     : Parse_Action_Type;
+      Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Set by Navigate.
+      End_Positions    : Navigate_Cursor_Lists.List; -- Dynamic data for Navigate.
+      Face_Caches      : Face_Cache_Trees.Tree;      -- Set by Face.
+      Indents          : Indent_Vectors.Vector;      -- Set by Indent.
+
+      --  Dynamic data for Indent
       Max_Anchor_ID     : Integer;
       Indenting_Comment : Boolean;
    end record;
 
-   type Delta_Labels is (Int, Anchored, Hanging);
+   type Simple_Delta_Labels is (Int, Anchored);
 
-   type Delta_Type (Label : Delta_Labels := Int) is
+   type Simple_Delta_Type (Label : Simple_Delta_Labels := Int) is
    record
-      --  Matches DELTA input to wisi--indent-token-1
-
       case Label is
       when Int =>
          Int_Delta : Integer;
@@ -379,17 +393,29 @@ private
          Anchored_Delta      : Integer;
          Anchored_Accumulate : Boolean;
 
-      when Hanging =>
-         Hanging_Delta_1    : Integer;
-         Hanging_Delta_2    : Integer;
-         Hanging_Accumulate : Boolean;
-         First_Line         : Natural;
-         Nest               : Natural;
       end case;
    end record;
-   subtype Anchored_Delta is Delta_Type (Anchored);
+   subtype Anchored_Delta is Simple_Delta_Type (Anchored);
 
-   Null_Delta : constant Delta_Type := (Int, 0);
+   type Delta_Labels is (Simple, Hanging);
+
+   type Delta_Type (Label : Delta_Labels := Simple) is
+   record
+      --  Matches DELTA input to wisi--indent-token-1
+      case Label is
+      when Simple =>
+         Simple_Delta : Simple_Delta_Type;
+
+      when Hanging =>
+         Hanging_First_Line  : Line_Number_Type;
+         Hanging_Paren_State : Natural;
+         Hanging_Delta_1     : Simple_Delta_Type;
+         Hanging_Delta_2     : Simple_Delta_Type;
+         Hanging_Accumulate  : Boolean;
+      end case;
+   end record;
+
+   Null_Delta : constant Delta_Type := (Simple, (Int, 0));
 
    ----------
    --  Utilities for language-specific child packages

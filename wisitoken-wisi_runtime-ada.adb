@@ -28,9 +28,6 @@ package body WisiToken.Wisi_Runtime.Ada is
       Offset          : in     Integer)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      Delta_Indent : constant Delta_Type := Indent_Anchored_2
-        (Data, Anchor_Token.Line, Record_Token.Last_Indent_Line, Ada_Indent_Record_Rel_Type,
-         Accumulate => True);
    begin
       --  [1] ada-wisi-elisp-parse--indent-record-1, modified to use
       --  Indenting_Token instead of relying on the usage in ada.wy.
@@ -41,7 +38,9 @@ package body WisiToken.Wisi_Runtime.Ada is
 
       if Indenting_Token.ID = Data.Record_ID then
          --  Indenting 'record'
-         return Delta_Indent;
+         return Indent_Anchored_2
+           (Data, Anchor_Token.Line, Record_Token.Last_Indent_Line, Ada_Indent_Record_Rel_Type,
+            Accumulate => True);
 
       else
          --  Indenting comment, component or 'end'
@@ -51,7 +50,11 @@ package body WisiToken.Wisi_Runtime.Ada is
                    Data.Indents (Record_Token.Line).Label = Anchor_Anchored)
          then
             if Anchor_Token.Line /= Record_Token.Line then
-               Indent_Token_1 (Data, Record_Token.First_Indent_Line, Record_Token.Last_Indent_Line, Delta_Indent);
+               Indent_Token_1
+                 (Data, Record_Token.First_Indent_Line, Record_Token.Last_Indent_Line,
+                  Indent_Anchored_2
+                    (Data, Anchor_Token.Line, Record_Token.Last_Indent_Line, Ada_Indent_Record_Rel_Type,
+                     Accumulate => True));
             end if;
          end if;
 
