@@ -688,31 +688,10 @@ Point must be at cache."
 (defun wisi-backward-cache ()
   "Move point backward to the beginning of the first token preceding point that has a cache.
 Returns cache, or nil if at beginning of buffer."
-  (let (cache pos)
-    (setq pos (previous-single-property-change (point) 'wisi-cache))
-    ;; There are three cases:
-    ;;
-    ;; 1) caches separated by non-cache chars: 'if ... then'
-    ;;    pos is before 'f', cache is on 'i'
-    ;;
-    ;; 2) caches not separated: ');'
-    ;;    pos is before ';', cache is on ';'
-    ;;
-    ;; 3) at bob; pos is nil
-    ;;
-    (if pos
-	(progn
-	  (setq cache (get-text-property pos 'wisi-cache))
-	  (if cache
-	      ;; case 2
-	      (goto-char pos)
-	    ;; case 1
-	    (setq cache (get-text-property (1- pos) 'wisi-cache))
-	    (goto-char (1- pos))))
-      ;; at bob
-      (goto-char (point-min))
-      (setq cache nil))
-    cache
+  (goto-char (1- (previous-single-property-change (point) 'wisi-cache)))
+  (if (bobp)
+      nil
+    (get-text-property (point) 'wisi-cache)
     ))
 
 (defun wisi-forward-cache ()

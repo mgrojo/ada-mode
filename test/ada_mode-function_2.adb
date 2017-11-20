@@ -9,4 +9,3 @@ begin
    --EMACSRESULT:0
    return True;
 end Ada_Mode.Function_2;
---EMACSCMD:(setq wisi-debug 1); don't ignore syntax errors

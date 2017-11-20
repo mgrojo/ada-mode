@@ -37,10 +37,10 @@
   ;;
   ;; `ada-indent-aggregate' is used in only one place in the grammar,
   ;; in 'primary'.
-  (let ((prev-token (wisi-tok-token (wisi-parse-prev-token wisi--parser 1))))
+  (let ((prev-token (wisi-tok-token (wisi-parse-stack-peek wisi--parser 1))))
     (cl-case prev-token
       (ELSE ;; in if_expression or boolean shortcut "or else"
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
+       (cl-case (wisi-tok-token (wisi-parse-stack-peek wisi--parser 2))
 	 (OR
 	  ;; boolean shortcut
 	  ;;
@@ -57,7 +57,7 @@
 
       (EQUAL_GREATER
        ;; in association_opt or case_expression_alternative
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 3))
+       (cl-case (wisi-tok-token (wisi-parse-stack-peek wisi--parser 3))
 	 (WHEN
 	  ;; case_expression_alternative
 	  ;;
@@ -77,7 +77,7 @@
 	 ))
 
       (THEN
-       (cl-case (wisi-tok-token (wisi-parse-prev-token wisi--parser 2))
+       (cl-case (wisi-tok-token (wisi-parse-stack-peek wisi--parser 2))
 	 (AND
 	  ;; boolean shortcut
 	  ;;
@@ -101,8 +101,8 @@
   ;; ada-indent-hanging-rel-exp.
   (cond
    ((and (eq (wisi-tok-token tok) 'expression_opt)
-	 (let ((prev-1 (wisi-parse-prev-token wisi--parser 1))
-	       (prev-3 (wisi-parse-prev-token wisi--parser 3)))
+	 (let ((prev-1 (wisi-parse-stack-peek wisi--parser 1))
+	       (prev-3 (wisi-parse-stack-peek wisi--parser 3)))
 	   (or
 	    ;; test/aspects.ads
 	    ;; with Pre => X > 10 and
@@ -257,7 +257,7 @@ TOKEN-NUMBER is the formal_part token."
 	;; return is first on a line; needs indenting
 	(cond
 	 ((>= 0 ada-indent-return)
-	  ;; realtive to paren
+	  ;; relative to paren
 	  (wisi-anchored token-number (+ offset (abs ada-indent-return))))
 
 	 (t

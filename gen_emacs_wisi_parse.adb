@@ -260,11 +260,8 @@ begin
 
                Ada.Strings.Unbounded.Free (Buffer);
             exception
-            when E : Parse_Error | Syntax_Error =>
+            when Parse_Error | Syntax_Error =>
                Parser.Lexer.Discard_Rest_Of_Input;
-               if Ada.Exceptions.Exception_Message (E)'Length > 0 then
-                  Put_Line ("(error """ & Ada.Exceptions.Exception_Message (E) & """)");
-               end if;
                Put (State.Errors, Trace.Descriptor.all);
                Ada.Strings.Unbounded.Free (Buffer);
                Put_Line ("(parse_error)");

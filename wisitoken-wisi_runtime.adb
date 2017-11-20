@@ -119,7 +119,7 @@ package body WisiToken.Wisi_Runtime is
                else
                   case Anchored_Label'(Param.Param.Label) is
                   when Anchored_0 =>
-                     --  [1] wisi-anchored, wisi-anchored-1
+                     --  [2] wisi-anchored, wisi-anchored-1
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
@@ -131,7 +131,7 @@ package body WisiToken.Wisi_Runtime is
                         Accumulate  => True);
 
                   when Anchored_1 =>
-                     --  [1] wisi-anchored%
+                     --  [2] wisi-anchored%
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
@@ -143,16 +143,46 @@ package body WisiToken.Wisi_Runtime is
                         Accumulate  => True);
 
                   when Anchored_2 =>
-                     raise SAL.Not_Implemented;
-                     return Null_Delta;
+                     --  [2] wisi-anchored%-
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   =>
+                          (if Data.Indenting_Comment
+                           then Indenting_Token.Last_Trailing_Comment_Line
+                           else Indenting_Token.Last_Indent_Line),
+                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => False);
 
                   when Anchored_3 =>
-                     raise SAL.Not_Implemented;
-                     return Null_Delta;
+                     --  [2] wisi-anchored*
+                     if Indenting_Token.First then
+                        return Indent_Anchored_2
+                          (Data,
+                           Anchor_Line => Anchor_Token.Line,
+                           Last_Line   =>
+                             (if Data.Indenting_Comment
+                              then Indenting_Token.Last_Trailing_Comment_Line
+                              else Indenting_Token.Last_Indent_Line),
+                           Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                           Accumulate  => True);
+
+                     else
+                        return Null_Delta;
+                     end if;
 
                   when Anchored_4 =>
-                     raise SAL.Not_Implemented;
-                     return Null_Delta;
+                     --  [2] wisi-anchored*-
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   =>
+                          (if Data.Indenting_Comment
+                           then Indenting_Token.Last_Trailing_Comment_Line
+                           else Indenting_Token.Last_Indent_Line),
+                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => False);
+
                   end case;
                end if;
             end;
@@ -434,12 +464,14 @@ package body WisiToken.Wisi_Runtime is
       pragma Unreferenced (Params);
    begin
       Data.Semantic_State := Semantic_State;
-      Data.Semantic_State.Initialize (Line_Count);
+      Data.Semantic_State.Initialize (Token_Line_Comment.Init_Data'(Line_Count => Line_Count));
 
-      Data.Lexer            := Lexer;
+      Data.Lexer := Lexer;
+      --  Lexer.Reset not called; we assume caller calls Reset_With_File or
+      --  Reset_With_String_Access
+
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
-      Data.Max_Anchor_ID    := First_Anchor_ID - 1;
 
       case Parse_Action is
       when Navigate =>
@@ -453,6 +485,10 @@ package body WisiToken.Wisi_Runtime is
 
       when Indent =>
          Data.Indents.Set_Length (Ada.Containers.Count_Type (Line_Count));
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            Data.Indents.Replace_Element (I, (Label => Not_Set));
+         end loop;
+         Data.Max_Anchor_ID := First_Anchor_ID - 1;
       end case;
    end Initialize;
 
@@ -1142,8 +1178,6 @@ package body WisiToken.Wisi_Runtime is
    is
       use all type Ada.Containers.Count_Type;
 
-      Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
-
       I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
       Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
@@ -1162,9 +1196,7 @@ package body WisiToken.Wisi_Runtime is
             begin
                exit when Stack_Token.Line /= Anchor_Token.Line;
 
-               if Stack_Token.First or else
-                 ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
-                    Stack_Token.First_Indent_Line = Stack_Token.Line)
+               if Stack_Token.First_Indent_Line = Stack_Token.Line
                then
                   Text_Begin_Pos := Stack_Token.Char_Region.First;
                   exit;
@@ -1251,8 +1283,10 @@ package body WisiToken.Wisi_Runtime is
             Indent : Indent_Type := Data.Indents (I);
          begin
             case Delta_Indent.Label is
-            when Int =>
-               Indent_Apply_Int (Indent, Delta_Indent.Int_Delta);
+            when Simple =>
+               case Delta_Indent.Simple_Delta.Label is
+               when Int =>
+                  Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
 
                when Anchored =>
                   Indent_Apply_Anchored (Delta_Indent.Simple_Delta, Indent);

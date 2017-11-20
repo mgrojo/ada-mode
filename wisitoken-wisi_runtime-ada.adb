@@ -17,8 +17,23 @@
 
 pragma License (Modified_GPL);
 
+with Ada_Process; -- FIXME: module? move token_enum_id (and more?) to separate package?
+with Ada.Containers;
 with Ada.Strings.Fixed;
 package body WisiToken.Wisi_Runtime.Ada is
+
+   function Find_ID_On_Stack
+     (Data : in Wisi_Runtime.Parse_Data_Type'Class;
+      ID   : in Token_ID)
+     return Token_Line_Comment.Token
+   is begin
+      for Tok of reverse Data.Semantic_State.Stack loop
+         if Tok.ID = ID then
+            return Token_Line_Comment.Token (Tok);
+         end if;
+      end loop;
+      raise Programmer_Error with Image (Data.Semantic_State.Trace.Descriptor.all, ID) & " not found on parse stack";
+   end Find_ID_On_Stack;
 
    function Indent_Record
      (Data            : in out Parse_Data_Type;
@@ -152,9 +167,49 @@ package body WisiToken.Wisi_Runtime.Ada is
       Indenting : in     Token_Line_Comment.Token;
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
-   is begin
-      raise SAL.Not_Implemented;
-      return Null_Delta;
+   is
+      pragma Unreferenced (Args);
+      pragma Unreferenced (Indenting);
+      pragma Unreferenced (Tokens);
+      use Ada_Process;
+
+      function Peek (N : in Positive_Index_Type) return Token_Enum_ID
+      is
+         use all type Standard.Ada.Containers.Count_Type;
+      begin
+         return -Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N).ID;
+      end Peek;
+
+   begin
+      --  [1] ada-indent-aggregate
+      case Peek (1) is
+      when ELSE_ID =>
+         case Peek (2) is
+         when OR_ID =>
+            return Null_Delta;
+         when others =>
+            return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
+         end case;
+
+      when EQUAL_GREATER_ID =>
+         case Peek (3) is
+         when WHEN_ID =>
+            return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
+         when others =>
+            return Null_Delta;
+         end case;
+
+      when THEN_ID =>
+         case Peek (2) is
+         when AND_ID =>
+            return Null_Delta;
+         when others =>
+            return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
+         end case;
+
+      when others =>
+         return Null_Delta;
+      end case;
    end Ada_Indent_Aggregate;
 
    function Ada_Indent_Renames_0
@@ -174,9 +229,37 @@ package body WisiToken.Wisi_Runtime.Ada is
       Indenting : in     Token_Line_Comment.Token;
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
-   is begin
-      raise SAL.Not_Implemented;
-      return Null_Delta;
+   is
+      use all type Ada_Process.Token_Enum_ID;
+   begin
+      --  'return-tok' is Indenting,
+      if Indenting.Line = Indenting.First_Indent_Line then
+         if Ada_Indent_Return = 0 then
+            return Indent_Anchored_2
+              (Data,
+               Anchor_Line => Token_Line_Comment.Token
+                 (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all).Line,
+               Last_Line   =>
+                 (if Data.Indenting_Comment
+                  then Indenting.Last_Trailing_Comment_Line
+                  else Indenting.Last_Indent_Line),
+               Offset      => Args (2) + abs Ada_Indent_Return,
+               Accumulate  => True);
+         else
+            return Indent_Anchored_2
+              (Data,
+               Anchor_Line => Find_ID_On_Stack (Data, +FUNCTION_ID).Line,
+               Last_Line   =>
+                 (if Data.Indenting_Comment
+                  then Indenting.Last_Trailing_Comment_Line
+                  else Indenting.Last_Indent_Line),
+               Offset      => Args (2) + abs Ada_Indent_Return,
+               Accumulate  => True);
+         end if;
+
+      else
+         return Null_Delta;
+      end if;
    end Ada_Indent_Return_0;
 
    function Ada_Indent_Record_0

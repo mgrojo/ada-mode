@@ -179,7 +179,7 @@ elisp-clean :
 # We create the output files in the same directory as the .wy file, so
 # they can be saved in CM together.
 %_process.ads %.re2c : %.wy $(WISI_WISITOKEN)/wisi-generate.exe
-	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process $(<F) > $(*F).ada_parse_table
+	cd ./$(<D); $(WISI_WISITOKEN)/wisi-generate.exe -v 1 --output_language Ada_Emacs --lexer re2c --interface process --enum $(<F) > $(*F).ada_parse_table
 	cd ./$(<D); dos2unix $(*F)_process.ads $(*F)_process.adb $(*F)-process.el $(*F).re2c
 
 # The previous rule confuses 'make'; it thinks *.re2c is created in

@@ -59,8 +59,8 @@ for the language-specific parser options."
   "Find token with TOKEN-SYMBOL on current parser stack, return token struct.
 For use in grammar actions.")
 
-(cl-defgeneric wisi-parse-prev-token ((parser wisi-parser) n)
-  "Return the Nth token on the stack before the token currently being reduced.
+(cl-defgeneric wisi-parse-stack-peek ((parser wisi-parser) n)
+  "Return the Nth token on the parse stack.
 For use in grammar actions.")
 
 (defvar wisi-debug 0

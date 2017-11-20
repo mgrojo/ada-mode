@@ -17,12 +17,12 @@ run test from emacs -Q using source:
   (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   ; (setq debug-on-quit t)
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (load "autoloads.el")
-  (load "run-indent-test-elisp-gpr_query")
+  (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
-  (find-file "../test/access_in_record.ads")
+  (find-file "../test/debug.ads")
   (wisi-debug-keys))
 
 (progn
@@ -53,8 +53,7 @@ compute indent in Ada
         test-wisi : passing
         test-ada-elisp-gpr_query: passing
         test-ada-process-gpr_query:
-            test/ada_mode-ada2005.ads: face parse wisitoken-parser-lr-parser.adb:580 raise syntax_error
-                need new variant of test-face that doesn't force parse
+            test/ada_mode-generic_instantiation.ads:11: error: (Marker does not point anywhere)
 
         test-gpr: add process (for error correction)
 

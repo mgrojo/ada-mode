@@ -545,11 +545,11 @@ For use in grammar actions."
       (setq sp (- sp 2))
       (setq tok (aref stack sp)))
     (if (= sp 0)
-	(error "token %s not found on parser stack" token-symbol)
+	(error "token %s not found on parse stack" token-symbol)
       tok)
     ))
 
-(cl-defmethod wisi-parse-prev-token ((_parser wisi-elisp-parser) n)
+(cl-defmethod wisi-parse-stack-peek ((_parser wisi-elisp-parser) n)
   ;; IMPROVEME: store stack in parser
   (let* ((stack (wisi-elisp-parser-state-stack wisi-elisp-parser-state))
 	 (sp (1- (wisi-elisp-parser-state-sp wisi-elisp-parser-state)))
@@ -1114,7 +1114,7 @@ TOK is a `wisi-tok' struct for the token being indented.
 DELTA1, DELTA2 are the indents of the first and following lines
 within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
 point is at start of TOK, and may be moved.")
-(make-variable-buffer-local 'wisi-indent-comment-col-0)
+(make-variable-buffer-local 'wisi-elisp-parse-indent-hanging-function)
 
 (defvar wisi-elisp-parse--indent
   ;; not buffer-local; only let-bound in wisi-parse-current (elisp)

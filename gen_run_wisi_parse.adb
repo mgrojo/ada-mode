@@ -152,23 +152,22 @@ begin
       Line_Count := Parser.Lexer.Line;
    end if;
 
-   Parse_Data.Initialize
-     (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
-      Lexer            => Parser.Lexer,
-      Parse_Action     => Parse_Action,
-      Source_File_Name => -Source_File_Name,
-      Line_Count       => Line_Count,
-      Params           => -Indent_Params);
-
-   Parser.Lexer.Reset;
-
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
    end if;
 
    for I in 1 .. Repeat_Count loop
       begin
+         Parse_Data.Initialize
+           (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+            Lexer            => Parser.Lexer,
+            Parse_Action     => Parse_Action,
+            Source_File_Name => -Source_File_Name,
+            Line_Count       => Line_Count,
+            Params           => -Indent_Params);
+
          Parser.Lexer.Reset;
+
          if Lexer_Only then
             declare
                ID : Token_ID := Invalid_Token_ID;

@@ -2,7 +2,7 @@
 --
 --  Ada implementation of:
 --
---  [1] ada-wisi-elisp-parser.el
+--  [1] ada-wisi-elisp-parse.el
 --  [2] ada-indent-user-options.el
 --
 --  Copyright (C) 2017 Stephen Leake All Rights Reserved.
