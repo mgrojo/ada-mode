@@ -162,6 +162,15 @@ package WisiToken.Token is
    --  error recovery algorithm; when the parser retrieves them as the
    --  current token, it calls Virtual_To_Lookahead.
 
+   type Init_Data is tagged null record;
+   procedure Initialize (State : not null access Semantic_State; Init : in Init_Data'Class) is abstract;
+   --  Reset State to start a new parse, using data from Init; should normally call Reset.
+
+   procedure Reset (State : not null access Semantic_State; Init_Done : in Boolean := False) is abstract;
+   --  Reset State to start a new parse, with previous Init data.
+   --
+   --  If Init_Done is True, assume Initialize has just been called.
+
    type Recover_Data is abstract tagged null record;
    --  For storing error recovery information, for reuse in subsequent
    --  parse.
@@ -180,9 +189,6 @@ package WisiToken.Token is
 
    ----------
    --  Operations that are not pended
-
-   procedure Reset (State : not null access Semantic_State) is abstract;
-   --  Reset State to start a new parse.
 
    procedure Lexer_To_Lookahead
      (State : not null access Semantic_State;

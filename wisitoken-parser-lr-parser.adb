@@ -321,7 +321,9 @@ package body WisiToken.Parser.LR.Parser is
       Zombie_Count               : Ada.Containers.Count_Type;
       Resume_Active              : Boolean := False;
    begin
-      WisiToken.Token.Reset (Parser.Semantic_State);
+      --  We do not call Parser.Semantic_State.Reset here; we assume the
+      --  caller has called Initialize or Reset.
+
       Parser.Shared_Lookahead.Clear;
 
       loop

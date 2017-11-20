@@ -21,13 +21,14 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
+with WisiToken.Token;
 with WisiToken.Token_Region;
 package WisiToken.Token_Line_Comment is
 
    type Token is new WisiToken.Token_Region.Token with record
       First : Boolean;
-      --  For a terminal, True if it is first on a line, or if it contains
-      --  trailing blank or comment lines.
+      --  For a terminal, True if the token is not empty and it is first on
+      --  a line, or if it contains trailing blank or comment lines.
       --
       --  For a nonterminal, True if some contained token's First is True.
 
@@ -35,10 +36,9 @@ package WisiToken.Token_Line_Comment is
       --  Non_Grammar tokens between this token and the next grammar one or
       --  EOF.
       --
-      --  Only set when State.Parse_Action is Indent, and only for terminal
-      --  tokens; for nonterminals, trailing Non_Grammar tokens are stored
-      --  in the last token in the nonterminal region, and *_Region includes
-      --  them.
+      --  Only set for terminal tokens; for nonterminals, trailing
+      --  Non_Grammar tokens are stored in the last token in the nonterminal
+      --  region, and *_Region includes them.
 
       First_Indent_Line : Line_Number_Type;
       Last_Indent_Line  : Line_Number_Type;
@@ -52,14 +52,38 @@ package WisiToken.Token_Line_Comment is
       First_Trailing_Comment_Line : Line_Number_Type;
       Last_Trailing_Comment_Line  : Line_Number_Type;
       --  Trailing comment or blank lines (contained by the last contained
-      --  token) that need indenting.
+      --  token) that need indenting. Excludes comments following code on a
+      --  line.
+
+      Paren_State : Integer;
+      --  Parenthesis nesting count, before token.
    end record;
+
+   package Int_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Integer);
 
    type State_Type is new WisiToken.Token_Region.State_Type with record
       Initial_Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens before first grammar token.
+
+      Line_Paren_State : Int_Vectors.Vector;
+      --  Parenthesis nesting state at the start of each line; used by
+      --  Indent. Set by Lexer_To_Lookahead on Left, Right_Paren_ID.
+
+      Current_Paren_State : Integer;
+      --  Current parenthesis nesting state; used by Indent. Set by
+      --  Lexer_To_Lookahead on Left, Right_Paren_ID.
    end record;
    type State_Access is access all State_Type;
+
+   type Init_Data is new WisiToken.Token.Init_Data with record
+      Line_Count : Line_Number_Type;
+   end record;
+
+   overriding
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class);
+
+   overriding
+   procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False);
 
    overriding
    procedure Lexer_To_Lookahead

@@ -111,7 +111,31 @@ package body WisiToken.Token_Region is
    end Put;
 
    ----------
-   --  Public subprograms
+   --  Public subprograms, declaration order
+
+   overriding
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
+   is
+      pragma Unreferenced (Init);
+   begin
+      State.Reset;
+   end Initialize;
+
+   overriding
+   procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False)
+   is
+      pragma Unreferenced (Init_Done);
+   begin
+      State.Stack.Clear;
+      State.Lookahead_Queue.Clear;
+
+      --  WORKAROUND: GNAT GPL 2016: just state.errors.clear leaves some
+      --  info in state.errors(0) that comes back when we do Set_Length 2.
+      for List of State.Errors loop
+         List.Clear;
+      end loop;
+      State.Errors.Clear;
+   end Reset;
 
    function Active_Error_List (State : not null access State_Type) return Error_List_Arrays.Constant_Reference_Type
    is
@@ -184,20 +208,6 @@ package body WisiToken.Token_Region is
       Put (State.Trace.all, State.Lookahead_Queue);
       State.Trace.New_Line;
    end Put;
-
-   overriding
-   procedure Reset (State : not null access State_Type)
-   is begin
-      State.Stack.Clear;
-      State.Lookahead_Queue.Clear;
-
-      --  Just state.errors.clear leaves some info in state.errors(0) that
-      --  comes back when we do Set_Length 2.
-      for List of State.Errors loop
-         List.Clear;
-      end loop;
-      State.Errors.Clear;
-   end Reset;
 
    overriding
    procedure Lexer_To_Lookahead

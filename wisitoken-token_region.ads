@@ -74,15 +74,18 @@ package WisiToken.Token_Region is
       --  Indexed by Parser_ID.
    end record;
 
+   overriding
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class);
+
    function Active_Error_List (State : not null access State_Type) return Error_List_Arrays.Constant_Reference_Type;
    --  Return a reference to the single active error list.
    --  If more than one is active, raise Programmer_Error.
 
    overriding
-   procedure Put (State : not null access State_Type);
+   procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False);
 
    overriding
-   procedure Reset (State : not null access State_Type);
+   procedure Put (State : not null access State_Type);
 
    overriding
    procedure Lexer_To_Lookahead

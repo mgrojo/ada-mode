@@ -49,7 +49,7 @@ package WisiToken is
 
    Parse_Error : exception; -- Input does not conform to the grammar
 
-   Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions)
+   Grammar_Error : exception; -- Grammar is not consistent (ie unused tokens, missing productions, invalid actions)
 
    User_Error : exception; -- other user error (ie command line parameter)
 

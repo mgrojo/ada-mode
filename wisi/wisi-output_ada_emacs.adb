@@ -48,7 +48,8 @@ procedure Wisi.Output_Ada_Emacs
    McKenzie_Recover      : in McKenzie_Recover_Param_Type;
    Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
-   Action_Count          : in Integer)
+   Action_Count          : in Integer;
+   Declare_Enum          : in Boolean)
 is
    use all type Standard.Ada.Containers.Count_Type;
 
@@ -1248,7 +1249,8 @@ begin
       Language_Name   => Language_Name,
       Output_Language => Ada_Emacs,
       Descriptor      => Generate_Utils.LALR_Descriptor,
-      Interface_Kind  => Params.Interface_Kind);
+      Interface_Kind  => Params.Interface_Kind,
+      Declare_Enum    => Declare_Enum);
 
    Create_Ada_Body;
 

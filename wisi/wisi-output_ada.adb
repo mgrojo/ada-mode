@@ -37,6 +37,7 @@ procedure Wisi.Output_Ada
    McKenzie_Recover      : in McKenzie_Recover_Param_Type;
    Rule_Count            : in Integer;
    Action_Count          : in Integer;
+   Declare_Enum          : in Boolean;
    Profile               : in Boolean)
 is
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
@@ -248,7 +249,7 @@ begin
 
    Create_Ada_Spec
      (Input_File_Name, Output_File_Name_Root & ".ads", -Data.Package_Name_Root, Language_Name,
-      Ada, Generate_Utils.LR1_Descriptor, None);
+      Ada, Generate_Utils.LR1_Descriptor, None, Declare_Enum);
 
    Create_Ada_Body;
 

@@ -65,6 +65,7 @@ is
       Put_Line ("     0 - only error messages to standard error");
       Put_Line ("     1 - add compiled grammar output to standard out");
       Put_Line ("     2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
+      Put_Line ("  --enum; declare enumeration token type");
       Put_Line ("  --suffix <string>; appended to grammar file name");
       Put_Line ("  --profile; grammar file production actions are replaced by counters");
       Put_Line ("  --<directive_name> <value>; same as directive in grammar file; override grammar file");
@@ -77,6 +78,7 @@ is
    Language_Name    : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Input_File       : Standard.Ada.Text_IO.File_Type;
    Output_File_Root : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   Declare_Enum     : Boolean := False;
    Suffix           : Standard.Ada.Strings.Unbounded.Unbounded_String;
    Prologues        : Wisi.Prologues;
    Tokens           : Wisi.Tokens;
@@ -124,10 +126,16 @@ begin
       loop
          exit when Argument (Arg_Next)(1) /= '-';
 
+         --   -v first, then alphabetical
+
          if Argument (Arg_Next) = "-v" then
             Arg_Next  := Arg_Next + 1;
             Verbosity := Integer'Value (Argument (Arg_Next));
             Arg_Next  := Arg_Next + 1;
+
+         elsif Argument (Arg_Next) = "--enum" then
+            Declare_Enum := True;
+            Arg_Next     := Arg_Next + 1;
 
          elsif Argument (Arg_Next) = "--first_state_index" then
             Arg_Next  := Arg_Next + 1;
@@ -212,12 +220,12 @@ begin
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
-         McKenzie_Recover, Rule_Count, Action_Count, Profile);
+         McKenzie_Recover, Rule_Count, Action_Count, Declare_Enum, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
-         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count);
+         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Declare_Enum);
 
    when Elisp =>
       --  The Elisp parser does not support any error recover algorithms

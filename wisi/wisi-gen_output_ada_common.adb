@@ -32,7 +32,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Language_Name    : in String;
       Output_Language  : in Ada_Output_Language;
       Descriptor       : in WisiToken.Descriptor'Class;
-      Interface_Kind   : in Interface_Type)
+      Interface_Kind   : in Interface_Type;
+      Declare_Enum     : in Boolean)
    is
       use Generate_Utils;
       use Wisi.Utils;
@@ -150,9 +151,45 @@ package body Wisi.Gen_Output_Ada_Common is
          Indent := Indent - 3;
          Indent_Line ("Terminal_Image_Width =>" & Integer'Image (Descriptor.Terminal_Image_Width) & ",");
          Indent_Line ("Image_Width          =>" & Integer'Image (Descriptor.Image_Width) & ");");
+         Indent := Indent - 3;
+         New_Line;
+
+         if Declare_Enum then
+            Paren_Done := False;
+
+            Cursor := First (Non_Grammar => True);
+            Indent_Line ("type Token_Enum_ID is");
+            Indent_Start ("  (");
+            Indent := Indent + 3;
+            loop
+               exit when Is_Done (Cursor);
+               if Paren_Done then
+                  Indent_Start (To_Token_Ada_Name (Name (Cursor)));
+               else
+                  Put (To_Token_Ada_Name (Name (Cursor)));
+                  Paren_Done := True;
+               end if;
+               Next (Cursor, Other_Tokens => True);
+               if Is_Done (Cursor) then
+                  Put_Line (");");
+               else
+                  Put_Line (",");
+               end if;
+            end loop;
+
+            Indent := Indent - 3;
+            New_Line;
+
+            Indent_Line ("use all type WisiToken.Token_ID;");
+            Indent_Line ("function ""+"" (Item : in Token_Enum_ID) return WisiToken.Token_ID");
+            Indent_Line ("  is (WisiToken.Token_ID'First + Token_Enum_ID'Pos (Item));");
+
+            Indent_Line ("function ""-"" (Item : in WisiToken.Token_ID) return Token_Enum_ID");
+            Indent_Line ("  is (Token_Enum_ID'Val (Item - WisiToken.Token_ID'First));");
+            New_Line;
+
+         end if;
       end;
-      Indent := Indent - 3;
-      New_Line;
 
       case Output_Language is
       when Ada =>

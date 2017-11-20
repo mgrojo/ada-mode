@@ -32,6 +32,33 @@ package body WisiToken.Token_Line_Comment is
            Tokens (Tokens.Last_Index - 1).ID = New_Line_ID);
    end Trailing_Blank_Line;
 
+   overriding
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
+   is
+      Line_Count : Line_Number_Type renames Init_Data (Init).Line_Count;
+   begin
+      Token_Region.Initialize (Token_Region.State_Type (State.all)'Access, Init);
+
+      State.Line_Paren_State.Set_Length (Ada.Containers.Count_Type (Line_Count));
+
+      State.Reset (Init_Done => True);
+   end Initialize;
+
+   overriding
+   procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False)
+   is begin
+      if not Init_Done then
+         Token_Region.Reset (Token_Region.State_Type (State.all)'Access);
+      end if;
+
+      State.Initial_Non_Grammar.Clear;
+
+      for S of State.Line_Paren_State loop
+         S := 0;
+      end loop;
+      State.Current_Paren_State := 0;
+   end Reset;
+
    overriding procedure Lexer_To_Lookahead
      (State : not null access State_Type;
       ID    : in              Token_ID;
@@ -46,35 +73,58 @@ package body WisiToken.Token_Line_Comment is
          Col                         => Lexer.Column,
          Char_Region                 => Lexer.Char_Region,
          Byte_Region                 => Lexer.Byte_Region,
-         First                       => Lexer.First,
+         First                       => Lexer.First and Lexer.Char_Region /= Null_Buffer_Region,
          Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
          First_Indent_Line           => Lexer.Line,
          Last_Indent_Line            => Lexer.Line,
          First_Trailing_Comment_Line => Invalid_Line_Number,
-         Last_Trailing_Comment_Line  => Invalid_Line_Number);
+         Last_Trailing_Comment_Line  => Invalid_Line_Number,
+         Paren_State                 => State.Current_Paren_State);
 
    begin
       if ID < State.Trace.Descriptor.First_Terminal then
          --  Non-grammar token
+         if ID = State.Trace.Descriptor.New_Line_ID then
+            State.Line_Paren_State (Temp.Line) := State.Current_Paren_State;
+         end if;
+
          if State.Stack.Length = 0 then
             State.Initial_Non_Grammar.Append (Temp);
          else
             declare
-               Prev_Token : Token renames Token
-                 (State.Stack.Reference (State.Stack.Length).Element.all);
-               Trailing_Blank : Boolean;
-            begin
-               Prev_Token.Non_Grammar.Append (Temp);
-               Trailing_Blank := Trailing_Blank_Line (State.Trace.Descriptor.all, Prev_Token.Non_Grammar);
-               if Temp.ID = State.Trace.Descriptor.Comment_ID or Trailing_Blank then
-                  if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                     Prev_Token.First_Trailing_Comment_Line := Temp.Line;
+               procedure Set_Prev_Trailing (Prev_Token : in out Token)
+               is
+                  Trailing_Blank : Boolean;
+               begin
+                  Prev_Token.Non_Grammar.Append (Temp);
+                  Trailing_Blank := Trailing_Blank_Line (State.Trace.Descriptor.all, Prev_Token.Non_Grammar);
+                  if Temp.First and (Temp.ID = State.Trace.Descriptor.Comment_ID or Trailing_Blank) then
+                     Prev_Token.First := True;
+                     if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                        Prev_Token.First_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+                     end if;
+                     Prev_Token.Last_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
                   end if;
-                  Prev_Token.Last_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+               end Set_Prev_Trailing;
+
+            begin
+               if State.Lookahead_Queue.Length = 0 then
+                  Set_Prev_Trailing (Token (State.Stack.Reference (State.Stack.Length).Element.all));
+               else
+                  Set_Prev_Trailing
+                    (Token (State.Lookahead_Queue.Variable_Peek (State.Lookahead_Queue.Length).Element.all));
                end if;
             end;
          end if;
+
       else
+         if ID = State.Trace.Descriptor.Left_Paren_ID then
+            State.Current_Paren_State := State.Current_Paren_State + 1;
+
+         elsif ID = State.Trace.Descriptor.Right_Paren_ID then
+            State.Current_Paren_State := State.Current_Paren_State - 1;
+         end if;
+
          State.Lookahead_Queue.Put (Temp);
       end if;
 
@@ -101,7 +151,8 @@ package body WisiToken.Token_Line_Comment is
          First_Indent_Line           => Invalid_Line_Number,
          Last_Indent_Line            => Invalid_Line_Number,
          First_Trailing_Comment_Line => Invalid_Line_Number,
-         Last_Trailing_Comment_Line  => Invalid_Line_Number);
+         Last_Trailing_Comment_Line  => Invalid_Line_Number,
+         Paren_State                 => 0);
    begin
       State.Lookahead_Queue.Add_To_Head (Temp);
 
@@ -129,12 +180,14 @@ package body WisiToken.Token_Line_Comment is
          First_Indent_Line           => Invalid_Line_Number,
          Last_Indent_Line            => Invalid_Line_Number,
          First_Trailing_Comment_Line => Invalid_Line_Number,
-         Last_Trailing_Comment_Line  => Invalid_Line_Number);
+         Last_Trailing_Comment_Line  => Invalid_Line_Number,
+         Paren_State                 => 0);
 
       Stack_I           : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
       Aug_Tokens        : Augmented_Token_Arrays.Vector;
       First_Set         : Boolean                       := False;
       First_Comment_Set : Boolean                       := False;
+      Paren_State_Set   : Boolean                       := False;
    begin
       Aug_Nonterm.ID      := Nonterm;
       Aug_Nonterm.Virtual := False;
@@ -150,12 +203,21 @@ package body WisiToken.Token_Line_Comment is
 
             if not First_Set then
                if Token.First then
-                  Aug_Nonterm.First             := True;
-                  Aug_Nonterm.First_Indent_Line := Token.First_Indent_Line;
-                  Aug_Nonterm.Last_Indent_Line  := Token.Last_Indent_Line;
-
+                  Aug_Nonterm.First := True;
                   First_Set := True;
+                  Aug_Nonterm.First_Indent_Line := Token.First_Indent_Line;
+
+                  if I = IDs.Last_Index or Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
+                     Aug_Nonterm.Last_Indent_Line := Token.Last_Indent_Line;
+                  else
+                     Aug_Nonterm.Last_Indent_Line := Token.Last_Trailing_Comment_Line;
+                  end if;
                end if;
+            end if;
+
+            if not Paren_State_Set then
+               Aug_Nonterm.Paren_State := Token.Paren_State;
+               Paren_State_Set := True;
             end if;
 
             Aug_Tokens.Append (Token);
