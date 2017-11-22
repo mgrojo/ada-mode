@@ -17,9 +17,9 @@
 
 pragma License (Modified_GPL);
 
-with Ada_Process; -- FIXME: module? move token_enum_id (and more?) to separate package?
 with Ada.Containers;
 with Ada.Strings.Fixed;
+with Ada_Process; -- FIXME: module? move token_enum_id (and more?) to separate package?
 package body WisiToken.Wisi_Runtime.Ada is
 
    function Find_ID_On_Stack
@@ -98,7 +98,6 @@ package body WisiToken.Wisi_Runtime.Ada is
    procedure Initialize
      (Data             : in out Parse_Data_Type;
       Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -109,7 +108,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Last  : Integer := Index (Params, " ");
    begin
       Wisi_Runtime.Initialize
-        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Lexer, Source_File_Name, Parse_Action, Line_Count, "");
+        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Source_File_Name, Parse_Action, Line_Count, "");
 
       if Params /= "" then
          Ada_Indent := Integer'Value (Params (First .. Last - 1));
@@ -218,9 +217,52 @@ package body WisiToken.Wisi_Runtime.Ada is
       Indenting : in     Token_Line_Comment.Token;
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
-   is begin
-      raise SAL.Not_Implemented;
-      return Null_Delta;
+   is
+      use all type Standard.Ada.Containers.Count_Type;
+      Subp_Tok    : Token_Line_Comment.Token renames Token_Line_Comment.Token
+        (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
+      Renames_Tok : Token_Line_Comment.Token renames Indenting;
+      Paren_I     : constant Standard.Ada.Containers.Count_Type := Token_Line_Comment.Find
+        (Data.Semantic_State.Grammar_Tokens, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok.Char_Region);
+   begin
+      if Paren_I /= Tokens.First_Index - 1 then
+         --  paren is present
+         declare
+            Paren_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (Paren_I).Element.all);
+         begin
+            if Ada_Indent_Renames > 0 then
+               return Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Paren_Tok.Line,
+                  Last_Line   =>
+                    (if Data.Indenting_Comment
+                     then Renames_Tok.Last_Trailing_Comment_Line
+                     else Renames_Tok.Last_Indent_Line),
+                  Offset      => Current_Indent_Offset (Data, Paren_Tok, abs Ada_Indent_Renames),
+                  Accumulate  => True);
+            else
+               return Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Subp_Tok.Line,
+                  Last_Line   =>
+                    (if Data.Indenting_Comment
+                     then Renames_Tok.Last_Trailing_Comment_Line
+                     else Renames_Tok.Last_Indent_Line),
+                  Offset      => Ada_Indent_Renames,
+                  Accumulate  => True);
+            end if;
+         end;
+      else
+         return Indent_Anchored_2
+           (Data,
+            Anchor_Line => Subp_Tok.Line,
+            Last_Line   =>
+              (if Data.Indenting_Comment
+               then Renames_Tok.Last_Trailing_Comment_Line
+               else Renames_Tok.Last_Indent_Line),
+            Offset      => Ada_Indent_Broken,
+            Accumulate  => True);
+      end if;
    end Ada_Indent_Renames_0;
 
    function Ada_Indent_Return_0
@@ -278,7 +320,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       Tokens    : in     Augmented_Token_Array;
       Indenting : in     Token_Line_Comment.Token;
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
-   return WisiToken.Wisi_Runtime.Delta_Type
+     return WisiToken.Wisi_Runtime.Delta_Type
    is
       Anchor_Tok : Token_Line_Comment.Token renames Find_Token_On_Stack (Data, Token_ID (Integer'(Args (1))));
       Record_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token

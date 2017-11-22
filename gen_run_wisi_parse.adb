@@ -145,12 +145,17 @@ begin
       return;
    end;
 
-   if Parse_Action = WisiToken.Wisi_Runtime.Indent then
-      loop
-         exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
-      end loop;
-      Line_Count := Parser.Lexer.Line;
-   end if;
+   loop
+      exit when Parser.Lexer.Find_Next = Descriptor.EOF_ID;
+   end loop;
+   Line_Count := Parser.Lexer.Line;
+
+   Parse_Data.Initialize
+     (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
+      Parse_Action     => Parse_Action,
+      Source_File_Name => -Source_File_Name,
+      Line_Count       => Line_Count,
+      Params           => -Indent_Params);
 
    if Repeat_Count > 1 then
       Start := Ada.Real_Time.Clock;
@@ -158,14 +163,7 @@ begin
 
    for I in 1 .. Repeat_Count loop
       begin
-         Parse_Data.Initialize
-           (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
-            Lexer            => Parser.Lexer,
-            Parse_Action     => Parse_Action,
-            Source_File_Name => -Source_File_Name,
-            Line_Count       => Line_Count,
-            Params           => -Indent_Params);
-
+         Parse_Data.Reset;
          Parser.Lexer.Reset;
 
          if Lexer_Only then

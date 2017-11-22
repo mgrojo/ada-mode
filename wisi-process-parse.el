@@ -187,8 +187,8 @@ complete."
     (process-send-string process (buffer-substring-no-properties (point-min) (point-max)))
     ))
 
-(defun wisi-process-parse--pos-or-nil (item)
-  (if (= -1 item) nil item))
+(defun wisi-process-parse--marker-or-nil (item)
+  (if (= -1 item) nil (copy-marker item t)))
 
 (defun wisi-process-parse--Navigate_Cache (parser sexp)
   ;; sexp is [Navigate_Cache pos statement_id id length class containing_pos prev_pos next_pos end_pos]
@@ -205,10 +205,10 @@ complete."
 	:token      (aref (wisi-process--parser-token-table parser) (aref sexp 3))
 	:last       (aref sexp 4)
 	:class      (aref wisi-class-list (aref sexp 5))
-	:containing (copy-marker (wisi-process-parse--pos-or-nil (aref sexp 6)) t)
-	:prev       (copy-marker (wisi-process-parse--pos-or-nil (aref sexp 7)) t)
-	:next       (copy-marker (wisi-process-parse--pos-or-nil (aref sexp 8)) t)
-	:end        (copy-marker (wisi-process-parse--pos-or-nil (aref sexp 9)) t)
+	:containing (wisi-process-parse--marker-or-nil (aref sexp 6))
+	:prev       (wisi-process-parse--marker-or-nil (aref sexp 7))
+	:next       (wisi-process-parse--marker-or-nil (aref sexp 8))
+	:end        (wisi-process-parse--marker-or-nil (aref sexp 9))
 	)))
     ))
 

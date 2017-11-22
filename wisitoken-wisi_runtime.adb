@@ -123,10 +123,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   =>
-                          (if Data.Indenting_Comment
-                           then Indenting_Token.Last_Trailing_Comment_Line
-                           else Indenting_Token.Last_Indent_Line),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -135,10 +132,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   =>
-                          (if Data.Indenting_Comment
-                           then Indenting_Token.Last_Trailing_Comment_Line
-                           else Indenting_Token.Last_Indent_Line),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -147,10 +141,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   =>
-                          (if Data.Indenting_Comment
-                           then Indenting_Token.Last_Trailing_Comment_Line
-                           else Indenting_Token.Last_Indent_Line),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -160,10 +151,7 @@ package body WisiToken.Wisi_Runtime is
                         return Indent_Anchored_2
                           (Data,
                            Anchor_Line => Anchor_Token.Line,
-                           Last_Line   =>
-                             (if Data.Indenting_Comment
-                              then Indenting_Token.Last_Trailing_Comment_Line
-                              else Indenting_Token.Last_Indent_Line),
+                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
                            Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                            Accumulate  => True);
 
@@ -176,10 +164,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   =>
-                          (if Data.Indenting_Comment
-                           then Indenting_Token.Last_Trailing_Comment_Line
-                           else Indenting_Token.Last_Indent_Line),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -455,7 +440,6 @@ package body WisiToken.Wisi_Runtime is
    procedure Initialize
      (Data             : in out Parse_Data_Type;
       Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -466,14 +450,26 @@ package body WisiToken.Wisi_Runtime is
       Data.Semantic_State := Semantic_State;
       Data.Semantic_State.Initialize (Token_Line_Comment.Init_Data'(Line_Count => Line_Count));
 
-      Data.Lexer := Lexer;
-      --  Lexer.Reset not called; we assume caller calls Reset_With_File or
-      --  Reset_With_String_Access
-
       Data.Source_File_Name := +Source_File_Name;
       Data.Parse_Action     := Parse_Action;
 
       case Parse_Action is
+      when Navigate | Face =>
+         null;
+      when Indent =>
+         Data.Indents.Set_Length (Ada.Containers.Count_Type (Line_Count));
+      end case;
+
+      Data.Reset (Init_Done => True);
+   end Initialize;
+
+   procedure Reset (Data : in out Parse_Data_Type; Init_Done : in Boolean := False)
+   is begin
+      if not Init_Done then
+         Data.Semantic_State.Reset;
+      end if;
+
+      case Data.Parse_Action is
       when Navigate =>
          Data.Navigate_Caches.Finalize;
          Data.Navigate_Caches.Initialize;
@@ -484,13 +480,12 @@ package body WisiToken.Wisi_Runtime is
          Data.Face_Caches.Initialize;
 
       when Indent =>
-         Data.Indents.Set_Length (Ada.Containers.Count_Type (Line_Count));
          for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
             Data.Indents.Replace_Element (I, (Label => Not_Set));
          end loop;
          Data.Max_Anchor_ID := First_Anchor_ID - 1;
       end case;
-   end Initialize;
+   end Reset;
 
    function Source_File_Name (Data : in Parse_Data_Type) return String
    is begin
@@ -983,7 +978,7 @@ package body WisiToken.Wisi_Runtime is
             Comment_Delta     : Delta_Type;
          begin
             if Token.Char_Region /= Null_Buffer_Region then
-               if Token.First then
+               if Token.First_Indent_Line /= Invalid_Line_Number then
                   Data.Indenting_Comment := False;
                   Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token);
 

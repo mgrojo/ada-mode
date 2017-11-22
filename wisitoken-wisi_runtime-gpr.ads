@@ -33,7 +33,6 @@ package WisiToken.Wisi_Runtime.Gpr is
    procedure Initialize
      (Data             : in out Parse_Data_Type;
       Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;

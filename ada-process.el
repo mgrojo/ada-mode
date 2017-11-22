@@ -55,7 +55,6 @@
    IN
    INTERFACE
    IS
-   LEFT_PAREN
    LIMITED
    LOOP
    MOD
@@ -80,7 +79,6 @@
    REQUEUE
    RETURN
    REVERSE
-   RIGHT_PAREN
    SEPARATE
    SELECT
    SOME
@@ -97,6 +95,8 @@
    WHILE
    WITH
    XOR
+   LEFT_PAREN
+   RIGHT_PAREN
    AMPERSAND
    BAR
    BOX

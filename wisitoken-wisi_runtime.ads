@@ -28,7 +28,6 @@ pragma License (Modified_GPL);
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
-with WisiToken.Lexer;
 with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region;
 package WisiToken.Wisi_Runtime is
@@ -40,13 +39,15 @@ package WisiToken.Wisi_Runtime is
    procedure Initialize
      (Data             : in out Parse_Data_Type;
       Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
       Params           : in     String);
    --  Line_Count only used for Indent. Params contains language-specific
    --  indent parameter values.
+
+   procedure Reset (Data : in out Parse_Data_Type; Init_Done : in Boolean := False);
+   --  Reset for a new parse, with data from previous Initialize.
 
    function Source_File_Name (Data : in Parse_Data_Type) return String;
    function Parse_Action (Data : in Parse_Data_Type) return Parse_Action_Type;
@@ -367,7 +368,6 @@ private
    type Parse_Data_Type is tagged limited
    record
       Semantic_State   : WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : WisiToken.Lexer.Handle;
       Source_File_Name : Ada.Strings.Unbounded.Unbounded_String;
       Parse_Action     : Parse_Action_Type;
       Navigate_Caches  : Navigate_Cache_Trees.Tree;  -- Set by Navigate.

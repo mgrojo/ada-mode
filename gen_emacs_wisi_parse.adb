@@ -235,7 +235,6 @@ begin
 
                Parse_Data.Initialize
                  (Semantic_State   => Token_Line_Comment.State_Access (Parser.Semantic_State),
-                  Lexer            => Parser.Lexer,
                   Parse_Action     => Parse_Action,
                   Source_File_Name => -Source_File_Name,
                   Line_Count       => Line_Count,

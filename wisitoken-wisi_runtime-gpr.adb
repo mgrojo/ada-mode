@@ -24,7 +24,6 @@ package body WisiToken.Wisi_Runtime.Gpr is
    procedure Initialize
      (Data             : in out Parse_Data_Type;
       Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
-      Lexer            : in     WisiToken.Lexer.Handle;
       Source_File_Name : in     String;
       Parse_Action     : in     Parse_Action_Type;
       Line_Count       : in     Line_Number_Type;
@@ -35,7 +34,7 @@ package body WisiToken.Wisi_Runtime.Gpr is
       Last  : Integer := Index (Params, " ");
    begin
       Wisi_Runtime.Initialize
-        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Lexer, Source_File_Name, Parse_Action, Line_Count, "");
+        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Source_File_Name, Parse_Action, Line_Count, "");
 
       if Params /= "" then
          Gpr_Indent := Integer'Value (Params (First .. Last - 1));

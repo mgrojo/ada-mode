@@ -240,6 +240,7 @@ TOKEN-NUMBER is the subprogram_specification token."
        ))
 
      (t
+      ;; FIXME: renames.line should be renames.region.last?
       (wisi-elisp-parse--anchored-2 subp-line (wisi-tok-line renames-tok) ada-indent-broken nil))
      )))
 

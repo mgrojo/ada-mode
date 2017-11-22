@@ -92,7 +92,6 @@
 %keyword IN "in"
 %keyword INTERFACE "interface"
 %keyword IS "is"
-%keyword LEFT_PAREN "("
 %keyword LIMITED "limited"
 %keyword LOOP "loop"
 %keyword MOD "mod"
@@ -117,7 +116,6 @@
 %keyword REQUEUE "requeue"
 %keyword RETURN "return"
 %keyword REVERSE "reverse"
-%keyword RIGHT_PAREN ")"
 %keyword SEPARATE "separate"
 %keyword SELECT "select"
 %keyword SOME "some"
@@ -134,6 +132,9 @@
 %keyword WHILE "while"
 %keyword WITH "with"
 %keyword XOR "xor"
+
+%token <left-paren> LEFT_PAREN "("
+%token <right-paren> RIGHT_PAREN ")"
 
 ;; all tokens that consist of characters with punctuation syntax
 %token <punctuation> AMPERSAND "&"
