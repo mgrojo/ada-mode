@@ -43,7 +43,7 @@ package WisiToken.Token_Line_Comment is
       First_Indent_Line : Line_Number_Type;
       Last_Indent_Line  : Line_Number_Type;
       --  Lines that need indenting; first token on these lines is contained
-      --  in this token.
+      --  in this token. If First is False, these are Invalid_Line_Number.
       --
       --  First_, Last_Indent_Line include comments between tokens, but
       --  exclude trailing comments after the last token, so they can be
@@ -53,15 +53,35 @@ package WisiToken.Token_Line_Comment is
       Last_Trailing_Comment_Line  : Line_Number_Type;
       --  Trailing comment or blank lines (contained by the last contained
       --  token) that need indenting. Excludes comments following code on a
-      --  line.
+      --  line. If there are no such lines, these are Invalid_Line_Number.
 
       Paren_State : Integer;
       --  Parenthesis nesting count, before token.
    end record;
 
+   function Last_Line (Token : in Token_Line_Comment.Token; Indenting_Comment : in Boolean) return Line_Number_Type;
+   --  Return last line in Token's region.
+
+   package Token_Vectors is new Ada.Containers.Vectors (Positive_Index_Type, Token);
+
+   function Find
+     (Tokens      : in Token_Vectors.Vector;
+      ID          : in Token_ID;
+      Char_Region : in Buffer_Region)
+     return Ada.Containers.Count_Type;
+   --  Return index to first token with ID, starting in Char_Region. If
+   --  not found, return Tokens.First_Index - 1.
+   --
+   --  Char_Region must be from a real token, so there is a token S in
+   --  Tokens with T.Char_Region.First = Char_Region.First, and another
+   --  token T with S.Char_Region.Last = Char_Region.Last.
+
    package Int_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Integer);
 
    type State_Type is new WisiToken.Token_Region.State_Type with record
+      Grammar_Tokens : Token_Vectors.Vector;
+      --  All grammar tokens, in lexical order.
+
       Initial_Non_Grammar : WisiToken.Augmented_Token_Array;
       --  Non_Grammar tokens before first grammar token.
 
