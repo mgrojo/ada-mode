@@ -271,7 +271,7 @@ package body WisiToken.Wisi_Runtime is
       end loop;
 
       if Paren_Char_Pos /= Invalid_Buffer_Pos and Text_Begin_Pos /= Invalid_Buffer_Pos then
-         return Offset + Integer (Paren_Char_Pos - Text_Begin_Pos);
+         return 1 + Offset + Integer (Paren_Char_Pos - Text_Begin_Pos);
       else
          return Offset;
       end if;
@@ -697,16 +697,16 @@ package body WisiToken.Wisi_Runtime is
       end Match;
 
    begin
-      for I in Params.First_Index .. Params.Last_Index loop
+      for Param of Params loop
          declare
-            Token  : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (Params (I).Index).Element.all);
+            Token  : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (Param.Index).Element.all);
             Region : constant Buffer_Region := Token.Char_Region;
          begin
-            if not Start.Set then
-               Start := (True, Region.First);
-            end if;
-
             if Region /= Null_Buffer_Region then
+               if not Start.Set then
+                  Start := (True, Region.First);
+               end if;
+
                Cache_Cur := Find (Iter, Ascending, Region.First);
                if not Has_Element (Cache_Cur) then
                   raise Parse_Error with Error_Message
@@ -718,7 +718,7 @@ package body WisiToken.Wisi_Runtime is
                        " has no cache; add to statement-action.");
                end if;
 
-               if Params (I).IDs.Length = 0 then
+               if Param.IDs.Length = 0 then
                   if Prev_Keyword_Mark.Set then
                      Variable_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos      := Prev_Keyword_Mark;
                      Variable_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos := (True, Region.First);
@@ -731,7 +731,7 @@ package body WisiToken.Wisi_Runtime is
                   Point := Region.First;
                   loop
                      exit when Point >= Region.Last;
-                     if Match (Params (I).IDs) then
+                     if Match (Param.IDs) then
                         if Prev_Keyword_Mark.Set then
                            if not Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Prev_Pos.Set and
                              not Constant_Ref (Data.Navigate_Caches, Prev_Cache_Cur).Element.Next_Pos.Set
@@ -1189,9 +1189,9 @@ package body WisiToken.Wisi_Runtime is
                Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
                  (Data.Semantic_State.Stack (I).Element.all);
             begin
-               exit when Stack_Token.Line /= Anchor_Token.Line;
+               exit when Stack_Token.Char_Region /= Null_Buffer_Region and Stack_Token.Line /= Anchor_Token.Line;
 
-               if Stack_Token.First_Indent_Line = Stack_Token.Line
+               if Stack_Token.Char_Region /= Null_Buffer_Region and Stack_Token.First_Indent_Line = Stack_Token.Line
                then
                   Text_Begin_Pos := Stack_Token.Char_Region.First;
                   exit;

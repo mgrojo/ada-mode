@@ -200,6 +200,8 @@
 %elisp_indent ada-indent-record Ada_Indent_Record_0
 %elisp_indent ada-indent-record* Ada_Indent_Record_1
 
+%elisp_regexp ada-wisi-number-p ([0-9]+"#")?[0-9][-0-9a-fA-F._]*("#")?
+
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
 ;; Default insert, delete terminal, delete nonterminal cost.

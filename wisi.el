@@ -1035,17 +1035,19 @@ Called with BEGIN END.")
     (wisi--check-change)
 
     ;; Always indent the line containing BEGIN.
-    (setq begin (save-excursion (goto-char begin) (line-beginning-position)))
+    (save-excursion
+      (goto-char begin) 
+      (setq begin (line-beginning-position))
 
-    (goto-char begin)
-    (when (bobp) (forward-line))
-    (while (and (not parse-required)
-		(<= (point) end)
-		(not (eobp)))
-      (unless (get-text-property (1- (point)) 'wisi-indent)
-	(setq parse-required t))
-      (forward-line))
-
+      (when (bobp) (forward-line))
+      (while (and (not parse-required)
+		  (<= (point) end)
+		  (not (eobp)))
+	(unless (get-text-property (1- (point)) 'wisi-indent)
+	  (setq parse-required t))
+	(forward-line))
+      )
+    
     ;; A parse either succeeds and sets the indent cache on all
     ;; lines in the buffer, or fails and leaves valid caches
     ;; untouched.

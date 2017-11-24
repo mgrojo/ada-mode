@@ -22,7 +22,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/ada_mode-generic_instantiation.ads")
+  (find-file "../test/debug.ads")
   (wisi-debug-keys))
 
 (progn
@@ -54,10 +54,26 @@ compute indent in Ada
         test-wisi : passing
         test-ada-elisp-gpr_query: passing
         test-ada-process-gpr_query:
-            test/ada_mode-interactive_common.adb
-                slow, indent error
+        test/ada_mode-nominal.ads:525: wrong-type-argument: (number-or-marker-p nil)
+            SAL.NOT_IMPLEMENTED: wisitoken-wisi_runtime-ada.adb:300
 
-        test-gpr: add process (for error correction)
+rename ada_mode-interactive_common
+
+review wisi-hanging% use
+    access_definition - why anchored to PROCEDURE? why %?
+
+    array_type_definition - why anchored to OF? why %?
+
+    assignment_statement - why anchored to :=?
+
+    association_opt - why anchored to =>?
+        changes indent if => on newline
+
+    expression_opt - why not wisi-hanging%?
+
+    etc
+
+test-gpr: add process (for error correction)
 
 
 ada_grammar.wy:1217:      ;; FIXME: indentation of comment after 'is' should be

@@ -54,7 +54,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       if Indenting_Token.ID = Data.Record_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
-           (Data, Anchor_Token.Line, Record_Token.Last_Indent_Line, Ada_Indent_Record_Rel_Type,
+           (Data, Anchor_Token.Line, Record_Token.Last_Line (Data.Indenting_Comment), Ada_Indent_Record_Rel_Type,
             Accumulate => True);
 
       else
@@ -66,9 +66,13 @@ package body WisiToken.Wisi_Runtime.Ada is
          then
             if Anchor_Token.Line /= Record_Token.Line then
                Indent_Token_1
-                 (Data, Record_Token.First_Indent_Line, Record_Token.Last_Indent_Line,
+                 (Data,
+                  Record_Token.First_Line (Data.Indenting_Comment),
+                  Record_Token.Last_Line (Data.Indenting_Comment),
                   Indent_Anchored_2
-                    (Data, Anchor_Token.Line, Record_Token.Last_Indent_Line, Ada_Indent_Record_Rel_Type,
+                    (Data, Anchor_Token.Line,
+                     Record_Token.Last_Line (Data.Indenting_Comment),
+                     Ada_Indent_Record_Rel_Type,
                      Accumulate => True));
             end if;
          end if;
@@ -77,13 +81,10 @@ package body WisiToken.Wisi_Runtime.Ada is
          return Indent_Anchored_2
            (Data,
             Anchor_Line => Anchor_Token.Line,
-            Last_Line   =>
-              (if Data.Indenting_Comment
-               then Indenting_Token.Last_Trailing_Comment_Line
-               else Indenting_Token.Last_Indent_Line),
-            Offset     => Current_Indent_Offset
+            Last_Line   => Indenting_Token.Last_Line (Data.Indenting_Comment),
+            Offset      => Current_Indent_Offset
               (Data, Anchor_Token,
-               Offset =>
+               Offset   =>
                  (if Anchor_Token.Line = Record_Token.Line
                   then Offset
                   else Offset + Ada_Indent_Record_Rel_Type)),
@@ -234,20 +235,14 @@ package body WisiToken.Wisi_Runtime.Ada is
                return Indent_Anchored_2
                  (Data,
                   Anchor_Line => Paren_Tok.Line,
-                  Last_Line   =>
-                    (if Data.Indenting_Comment
-                     then Renames_Tok.Last_Trailing_Comment_Line
-                     else Renames_Tok.Last_Indent_Line),
+                  Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
                   Offset      => Current_Indent_Offset (Data, Paren_Tok, abs Ada_Indent_Renames),
                   Accumulate  => True);
             else
                return Indent_Anchored_2
                  (Data,
                   Anchor_Line => Subp_Tok.Line,
-                  Last_Line   =>
-                    (if Data.Indenting_Comment
-                     then Renames_Tok.Last_Trailing_Comment_Line
-                     else Renames_Tok.Last_Indent_Line),
+                  Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
                   Offset      => Ada_Indent_Renames,
                   Accumulate  => True);
             end if;
@@ -256,10 +251,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          return Indent_Anchored_2
            (Data,
             Anchor_Line => Subp_Tok.Line,
-            Last_Line   =>
-              (if Data.Indenting_Comment
-               then Renames_Tok.Last_Trailing_Comment_Line
-               else Renames_Tok.Last_Indent_Line),
+            Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
             Offset      => Ada_Indent_Broken,
             Accumulate  => True);
       end if;
@@ -281,20 +273,14 @@ package body WisiToken.Wisi_Runtime.Ada is
               (Data,
                Anchor_Line => Token_Line_Comment.Token
                  (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all).Line,
-               Last_Line   =>
-                 (if Data.Indenting_Comment
-                  then Indenting.Last_Trailing_Comment_Line
-                  else Indenting.Last_Indent_Line),
+               Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
                Offset      => Args (2) + abs Ada_Indent_Return,
                Accumulate  => True);
          else
             return Indent_Anchored_2
               (Data,
                Anchor_Line => Find_ID_On_Stack (Data, +FUNCTION_ID).Line,
-               Last_Line   =>
-                 (if Data.Indenting_Comment
-                  then Indenting.Last_Trailing_Comment_Line
-                  else Indenting.Last_Indent_Line),
+               Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
                Offset      => Args (2) + abs Ada_Indent_Return,
                Accumulate  => True);
          end if;
