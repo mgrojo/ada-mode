@@ -59,8 +59,15 @@ package WisiToken.Token_Line_Comment is
       --  Parenthesis nesting count, before token.
    end record;
 
-   function Last_Line (Token : in Token_Line_Comment.Token; Indenting_Comment : in Boolean) return Line_Number_Type;
-   --  Return last line in Token's region.
+   function First_Line
+     (Token             : in Token_Line_Comment.Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type;
+   function Last_Line
+     (Token             : in Token_Line_Comment.Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type;
+   --  Return first and last line in Token's region.
 
    package Token_Vectors is new Ada.Containers.Vectors (Positive_Index_Type, Token);
 

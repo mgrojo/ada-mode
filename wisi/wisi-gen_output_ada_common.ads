@@ -96,6 +96,7 @@ package Wisi.Gen_Output_Ada_Common is
 
    procedure Create_re2c
      (Input_File_Name       : in String;
-      Output_File_Name_Root : in String);
+      Output_File_Name_Root : in String;
+      Elisp_Regexps         : in Wisi.String_Pair_Lists.List);
 
 end Wisi.Gen_Output_Ada_Common;

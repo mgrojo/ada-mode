@@ -220,7 +220,7 @@ begin
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
-         McKenzie_Recover, Rule_Count, Action_Count, Declare_Enum, Profile);
+         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Declare_Enum, Profile);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs

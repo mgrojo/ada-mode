@@ -35,6 +35,7 @@ procedure Wisi.Output_Ada
    Tokens                : in Wisi.Tokens;
    Conflicts             : in Conflict_Lists.List;
    McKenzie_Recover      : in McKenzie_Recover_Param_Type;
+   Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
    Action_Count          : in Integer;
    Declare_Enum          : in Boolean;
@@ -253,7 +254,7 @@ begin
 
    Create_Ada_Body;
 
-   Create_re2c (Input_File_Name, Output_File_Name_Root);
+   Create_re2c (Input_File_Name, Output_File_Name_Root, Elisp_Names.Regexps);
 
 exception
 when others =>

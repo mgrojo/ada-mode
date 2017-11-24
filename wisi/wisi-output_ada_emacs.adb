@@ -469,7 +469,7 @@ is
 
                elsif Is_Present (Elisp_Names.Indents, -Function_Name) then
                   --  Language-specific function call
-                  Function_Name := +Find_Ada_Name (Elisp_Names.Indents, -Function_Name);
+                  Function_Name := +Find_Name (Elisp_Names.Indents, -Function_Name);
                   Arg_Count     := 0;
                   loop
                      exit when Params (Last) = ')';
@@ -1254,7 +1254,7 @@ begin
 
    Create_Ada_Body;
 
-   Create_re2c (Input_File_Name, Output_File_Name_Root);
+   Create_re2c (Input_File_Name, Output_File_Name_Root, Elisp_Names.Regexps);
 
    case Data.Interface_Kind is
    when Process =>

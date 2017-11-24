@@ -35,7 +35,26 @@ package body WisiToken.Token_Line_Comment is
    ----------
    --  Public subprograms, declaration order
 
-   function Last_Line (Token : in Token_Line_Comment.Token; Indenting_Comment : in Boolean) return Line_Number_Type
+   function First_Line
+     (Token             : in Token_Line_Comment.Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type
+   is begin
+      return
+      (if Indenting_Comment then
+           (if Token.First_Trailing_Comment_Line = Invalid_Line_Number
+            then Token.Line
+            else Token.First_Trailing_Comment_Line)
+         else
+           (if Token.First_Indent_Line = Invalid_Line_Number
+            then Token.Line
+            else Token.First_Indent_Line));
+   end First_Line;
+
+   function Last_Line
+     (Token             : in Token_Line_Comment.Token;
+      Indenting_Comment : in Boolean)
+     return Line_Number_Type
    is begin
       return
       (if Indenting_Comment then
@@ -297,12 +316,22 @@ package body WisiToken.Token_Line_Comment is
                if Token.First then
                   Aug_Nonterm.First := True;
                   First_Set := True;
-                  Aug_Nonterm.First_Indent_Line := Token.First_Indent_Line;
 
-                  if I = IDs.Last_Index or Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
-                     Aug_Nonterm.Last_Indent_Line := Token.Last_Indent_Line;
+                  if I = IDs.Last_Index then
+                     Aug_Nonterm.First_Indent_Line := Token.First_Indent_Line;
+                     Aug_Nonterm.Last_Indent_Line  := Token.Last_Indent_Line;
                   else
-                     Aug_Nonterm.Last_Indent_Line := Token.Last_Trailing_Comment_Line;
+                     if Token.First_Indent_Line = Invalid_Line_Number then
+                        Aug_Nonterm.First_Indent_Line := Token.First_Trailing_Comment_Line;
+                     else
+                        Aug_Nonterm.First_Indent_Line := Token.First_Indent_Line;
+                     end if;
+
+                     if Token.Last_Trailing_Comment_Line = Invalid_Line_Number then
+                        Aug_Nonterm.Last_Indent_Line := Token.Last_Indent_Line;
+                     else
+                        Aug_Nonterm.Last_Indent_Line := Token.Last_Trailing_Comment_Line;
+                     end if;
                   end if;
                end if;
             end if;
@@ -351,9 +380,7 @@ package body WisiToken.Token_Line_Comment is
                Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
                  (Constant_Reference (Aug_Tokens, Cursor).Element.all);
             begin
-               if Token.Char_Region /= Null_Buffer_Region and
-                 Token.First_Trailing_Comment_Line /= Invalid_Line_Number
-               then
+               if Token.Char_Region /= Null_Buffer_Region then
                   Aug_Nonterm.First_Trailing_Comment_Line := Token.First_Trailing_Comment_Line;
                   Aug_Nonterm.Last_Trailing_Comment_Line  := Token.Last_Trailing_Comment_Line;
                   exit;

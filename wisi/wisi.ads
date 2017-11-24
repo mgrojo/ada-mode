@@ -213,9 +213,10 @@ package Wisi is
 
    type Elisp_Names is record
       --  specified in grammar file declarations; see
-      --  wisi-output_elisp_common.ads Find_*
+      --  wisi-output_elisp_common.ads Find_Name
       Faces   : String_Lists.List;
       Indents : String_Pair_Lists.List;
+      Regexps : String_Pair_Lists.List;
    end record;
 
    function "+" (Item : in String) return Standard.Ada.Strings.Unbounded.Unbounded_String

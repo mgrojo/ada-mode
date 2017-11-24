@@ -35,7 +35,7 @@ package body Wisi.Output_Elisp_Common is
       raise Not_Found with "unknown elisp name: '" & Elisp_Name & "'";
    end Find_Elisp_ID;
 
-   function Find_Ada_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String
+   function Find_Name (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return String
    is
       use all type Standard.Ada.Strings.Unbounded.Unbounded_String;
    begin
@@ -45,7 +45,7 @@ package body Wisi.Output_Elisp_Common is
          end if;
       end loop;
       raise Not_Found;
-   end Find_Ada_Name;
+   end Find_Name;
 
    function Is_Present (List : in Wisi.String_Pair_Lists.List; Elisp_Name : in String) return Boolean
    is

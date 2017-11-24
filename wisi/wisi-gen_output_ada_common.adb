@@ -19,6 +19,7 @@ pragma License (GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
+with Wisi.Output_Elisp_Common;
 with Wisi.Utils;
 with WisiToken;
 package body Wisi.Gen_Output_Ada_Common is
@@ -235,7 +236,8 @@ package body Wisi.Gen_Output_Ada_Common is
 
    procedure Create_re2c
      (Input_File_Name       : in String;
-      Output_File_Name_Root : in String)
+      Output_File_Name_Root : in String;
+      Elisp_Regexps         : in Wisi.String_Pair_Lists.List)
    is
       use Standard.Ada.Strings.Fixed;
       use Generate_Utils;
@@ -409,36 +411,47 @@ package body Wisi.Gen_Output_Ada_Common is
       --  definitions
       for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
 
-         if Kind (I) = "keyword" and Params.Keywords_Case_Insensitive then
-            Indent_Line (Name (I) & " = '" & Strip_Quotes (Value (I)) & "';");
+         declare
+            Val : constant String :=
+              (if Output_Elisp_Common.Is_Present (Elisp_Regexps, Value (I))
+               then Output_Elisp_Common.Find_Name (Elisp_Regexps, Value (I))
+               else Value (I));
+         begin
+            if 0 /= Index (Source => Val, Pattern => "/") then
+               --  trailing context syntax; forbidden in definitions
+               null;
 
-         elsif Kind (I) = "number" and Value (I) = "ada-wisi-number-p" then
-            Indent_Line (Name (I) & " = ([0-9]+""#"")?[0-9][0-9a-fA-F._]*(""#"")?;");
+            elsif Kind (I) = "keyword" and Params.Keywords_Case_Insensitive then
+               Indent_Line (Name (I) & " = '" & Strip_Quotes (Val) & "';");
 
-         elsif 0 /= Index (Source => Value (I), Pattern => "/") then
-            --  trailing context syntax; forbidden in definitions
-            null;
-
-         else
-            --  Other kinds have values that are regular expressions, in re2c syntax
-            Indent_Line (Name (I) & " = " & Value (I) & ";");
-         end if;
+            else
+               --  Other kinds have values that are regular expressions, in re2c syntax
+               Indent_Line (Name (I) & " = " & Val & ";");
+            end if;
+         end;
       end loop;
       New_Line;
 
       --  rules
       for I in All_Tokens.Iterate (Non_Grammar => True, Other_Tokens => False) loop
+         declare
+            Val : constant String :=
+              (if Output_Elisp_Common.Is_Present (Elisp_Regexps, Value (I))
+               then Output_Elisp_Common.Find_Name (Elisp_Regexps, Value (I))
+               else Value (I));
+         begin
 
-         if Kind (I) = "non-reporting" then
-            Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
-            Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
+            if Kind (I) = "non-reporting" then
+               Indent_Line (Name (I) & " { lexer->byte_token_start = lexer->cursor;");
+               Indent_Line ("    lexer->char_token_start = lexer->char_pos; continue; }");
 
-         elsif 0 /= Index (Source => Value (I), Pattern => "/") then
-            Indent_Line (Value (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
+            elsif 0 /= Index (Source => Val, Pattern => "/") then
+               Indent_Line (Val & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
 
-         else
-            Indent_Line (Name (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
-         end if;
+            else
+               Indent_Line (Name (I) & " {*id = " & WisiToken.Token_ID'Image (ID (I)) & "; continue;}");
+            end if;
+         end;
       end loop;
       New_Line;
 
