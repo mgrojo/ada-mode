@@ -297,8 +297,12 @@ package body WisiToken.Wisi_Runtime.Ada is
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is begin
-      raise SAL.Not_Implemented;
-      return Null_Delta;
+      return Indent_Record
+        (Parse_Data_Type (Data),
+         Anchor_Token    => Token_Line_Comment.Token (Tokens (Positive_Index_Type (Integer'(Args (1)))).Element.all),
+         Record_Token    => Token_Line_Comment.Token (Tokens (Positive_Index_Type (Integer'(Args (2)))).Element.all),
+         Offset          => Args (3),
+         Indenting_Token => Indenting);
    end Ada_Indent_Record_0;
 
    function Ada_Indent_Record_1

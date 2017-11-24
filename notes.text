@@ -54,8 +54,7 @@ compute indent in Ada
         test-wisi : passing
         test-ada-elisp-gpr_query: passing
         test-ada-process-gpr_query:
-        test/ada_mode-nominal.ads:525: wrong-type-argument: (number-or-marker-p nil)
-            SAL.NOT_IMPLEMENTED: wisitoken-wisi_runtime-ada.adb:300
+            test/ada_mode-opentoken.ads indenting: Wrong type argument: arrayp, nil
 
 rename ada_mode-interactive_common
 

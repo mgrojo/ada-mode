@@ -1,3 +1,5 @@
+--  File is saved with DOS line endings, to test lexer with that.
+--
 --EMACSCMD:(test-face "Ada" font-lock-function-name-face)
 --EMACSCMD:(test-face "Text_IO" font-lock-function-name-face)
 with

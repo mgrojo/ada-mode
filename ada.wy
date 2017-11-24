@@ -172,9 +172,10 @@
 
 %token <number> NUMERIC_LITERAL ada-wisi-number-p
 
-;; whitespace, comment not seen by wisi lexer, but are needed by Ada lexer
+;; non_grammar are not seen by the wisi lexer, but are needed by the re2c lexer
 %non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\n]
+;; handle DOS or Unix newline
+%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
 %non_grammar <comment> COMMENT "--"[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
@@ -200,7 +201,7 @@
 %elisp_indent ada-indent-record Ada_Indent_Record_0
 %elisp_indent ada-indent-record* Ada_Indent_Record_1
 
-%elisp_regexp ada-wisi-number-p ([0-9]+"#")?[0-9][-0-9a-fA-F._]*("#")?
+%elisp_regexp ada-wisi-number-p ([0-9][0-9a-fA-F._-]*)|([0-9]+"#"[0-9a-fA-F._-]+"#")
 
 ;; Set McKenzie costs to take advantage of syntax to get to solution faster.
 
