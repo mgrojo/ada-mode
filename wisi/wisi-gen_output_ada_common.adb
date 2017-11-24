@@ -337,7 +337,10 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->verbosity > 0)");
-      Indent_Line ("   printf (""lexer: %d, '%c'\n"", state, ch);");
+      Indent_Line ("   if (ch < ' ')");
+      Indent_Line ("      printf (""lexer: %d, 0x%x\n"", state, ch);");
+      Indent_Line ("   else");
+      Indent_Line ("      printf (""lexer: %d, '%c' 0x%x\n"", state, ch, ch);");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Line ("#define YYDEBUG(state, ch) debug(lexer, state, ch)");
@@ -355,8 +358,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;");
       Indent_Line ("if (lexer->cursor <= lexer->buffer_last)");
-      --  Don't count UTF-8 continuation bytes
-      Indent_Line ("   if ((*lexer->cursor & 0xC0) != 0xC0) ++lexer->char_pos;");
+      --  Don't count UTF-8 continuation bytes, or first byte of DOS newline
+      Indent_Line ("   if (((*lexer->cursor & 0xC0) != 0xC0) && (*lexer->cursor != 0x0D)) ++lexer->char_pos;");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Start ("#define YYSKIP() skip(lexer)");
