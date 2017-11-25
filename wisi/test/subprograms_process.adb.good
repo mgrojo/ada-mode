@@ -44,7 +44,7 @@ package body Subprograms_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, 0)), (False, (Int, Subp_Indent)), (False, (Int, 0)), (False, (Int, Subp_Indent)), (False, (Int, 0)), (False, (Int, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end block_1;
 
@@ -61,7 +61,7 @@ package body Subprograms_Process is
       when Face =>
          Face_Remove_Action (Parse_Data, Nonterm, Tokens, (1 => 4));
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, -Subp_Indent)), (False, (Int, 0)), (False, (Int, Subp_Indent - Subp_Indent_Broken)), (False, (Int, Subp_Indent)), (False, (Int, 0)), (False, (Int, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, -Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent - Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end loop_statement_0;
 
@@ -129,7 +129,7 @@ package body Subprograms_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, 0)), (False, (Anchored_0, 1, 1)), (False, (Anchored_0, 1, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end parameter_list_2;
 
@@ -145,11 +145,11 @@ package body Subprograms_Process is
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (3, Name), (4, Motion), (5, Statement_End)));
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 4);
-         Motion_Action (Parse_Data, Nonterm, Tokens, ((1, Empty_IDs) & (4, (5 & 11)) & (5, Empty_IDs)));
+         Motion_Action (Parse_Data, Nonterm, Tokens, ((1, Empty_IDs) & (4, 5 & 11) & (5, Empty_IDs)));
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (3, 1, 2)));
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, 0)), (False, (Language, Function_1'Access, Null_Args)), (True, (Int, Subp_Indent_Broken), (Int, Subp_Indent_Broken)), (False, (Int, 0)), (False, (Int, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Language, Function_1'Access, Null_Args))), (True, (Simple, (Int, Subp_Indent_Broken)), (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_0;
 
@@ -167,7 +167,7 @@ package body Subprograms_Process is
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (3, 1, 2)));
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, 0)), (False, (Int, Subp_Indent_Broken)), (False, (Int, Subp_Indent_Broken)), (False, (Int, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_1;
 
@@ -201,7 +201,7 @@ package body Subprograms_Process is
       when Face =>
          Face_Apply_List_Action (Parse_Data, Nonterm, Tokens, (1 => (2, 1, 2)));
       when Indent =>
-         Indent_Action (Parse_Data, Nonterm, Tokens, ((False, (Int, 0)), (False, (Int, Subp_Indent_Broken)), (False, (Int, 0))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end use_clause_0;
 

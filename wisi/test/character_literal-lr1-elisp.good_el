@@ -21,8 +21,8 @@
 
 
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
 (defconst character_literal-lr1-elisp-keyword-table-raw
   '(
@@ -48,8 +48,7 @@
 
 (defconst character_literal-lr1-elisp-parse-table
    (wisi-compile-grammar
-   '((SEMICOLON TICK_1 LEFT_PAREN RIGHT_PAREN CHARACTER_LITERAL IDENTIFIER STRING_LITERAL FOO )
-     ((compilation_unit
+   '(((compilation_unit
        ((statement_list )))
       (statement_list
        ((statement )

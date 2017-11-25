@@ -337,10 +337,12 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("{");
       Indent := Indent + 3;
       Indent_Line ("if (lexer->verbosity > 0)");
+      Indent_Line ("   {");
       Indent_Line ("   if (ch < ' ')");
       Indent_Line ("      printf (""lexer: %d, 0x%x\n"", state, ch);");
       Indent_Line ("   else");
       Indent_Line ("      printf (""lexer: %d, '%c' 0x%x\n"", state, ch, ch);");
+      Indent_Line ("   }");
       Indent := Indent - 3;
       Indent_Line ("}");
       Indent_Line ("#define YYDEBUG(state, ch) debug(lexer, state, ch)");

@@ -31,19 +31,6 @@ one : export Standard_Common_Build := Debug
 #one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
 one : subprograms_process.adb.diff
 
-two : RUN_ARGS ?= --verbosity 1
-two : ada_lite_yylex.adb run_ada_lite_parser.exe
-	./run_ada_lite_parser.exe ../test/gnatmem_test_2.adb $(RUN_ARGS) > gnatmem_test_2.parse
-
-two_mem : RUN_ARGS ?= --repeat_count 1
-two_mem : ada_lite_yylex.adb exec_pro/run_ada_lite_parser.exe
-	exec_pro/run_ada_lite_parser.exe  ../test/gnatmem_test_2.adb $(RUN_ARGS)
-	gnatmem exec_pro/run_ada_lite_parser.exe > gnatmem_test_2_1.gnatmem
-
-two_pro: ada_lite_yylex.adb exec_pro/run_ada_lite_parser.exe
-	exec_pro/run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 10
-	gprof --demangle=gnat exec_pro/run_ada_lite_parser.exe > ada_lite.profile
-
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
 exec_pro/run_ada_lite_parser.exe : force

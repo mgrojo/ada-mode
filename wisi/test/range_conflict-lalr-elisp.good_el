@@ -18,8 +18,8 @@
 ;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
 (defconst range_conflict-lalr-elisp-keyword-table-raw
   '(
@@ -45,8 +45,7 @@
 
 (defconst range_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
-   '((DOT_DOT TICK IDENTIFIER STRING_LITERAL IN LEFT_PAREN RANGE RIGHT_PAREN )
-     ((compilation_unit
+   '(((compilation_unit
        ((membership_choice range )
         (setq wisi-test-success t)))
       (membership_choice

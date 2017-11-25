@@ -145,7 +145,7 @@ package body Test_Character_Literal_Aux is
                when 3 =>
                   Check ("statement_1 1 3.First", Token.First, False);
                when 4 =>
-                  Check ("statement_1 1 4.First", Token.First, False);
+                  Check ("statement_1 1 4.First", Token.First, True); -- trailing blank line
                when others =>
                   raise Programmer_Error;
                end case;
@@ -167,7 +167,7 @@ package body Test_Character_Literal_Aux is
                when 3 =>
                   Check ("statement_1 2 3.First", Token.First, False);
                when 4 =>
-                  Check ("statement_1 2 4.First", Token.First, False);
+                  Check ("statement_1 2 4.First", Token.First, True);
                when others =>
                   raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
                end case;
@@ -180,12 +180,46 @@ package body Test_Character_Literal_Aux is
       end case;
    end Test_Statement_1;
 
+   Statement_2_Count : Integer := 0;
    procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
    is
-      pragma Unreferenced (Wisi_Tokens);
+      use AUnit.Checks;
+      use AUnit.Checks.Containers;
+      use Ada.Containers;
+      use Character_Literal;
+      use WisiToken.AUnit;
+      use WisiToken;
    begin
-      null;
-      --  FIXME: test lines, comments; 'comment before EOF'
+      Statement_2_Count := Statement_2_Count + 1;
+      case Statement_2_Count is
+      when 1 =>
+         --  " a string with Greek ..."
+         for I in Wisi_Tokens.First_Index .. Wisi_Tokens.Last_Index loop
+            declare
+               Token : Token_Line_Comment.Token renames Token_Line_Comment.Token (Wisi_Tokens (I).Element.all);
+            begin
+               case I is
+               when 1 =>
+                  Check ("statement_2 1 1.First", Token.First, True);
+               when 2 =>
+                  Check ("statement_2 1 2.ID", Token.ID, +SEMICOLON_ID);
+                  Check ("statement_2 1 2.Line", Token.Line, 23);
+                  Check ("statement_2 1 2.First", Token.First, True);
+
+                  Check ("statement_2 1 2.non_grammar.length", Token.Non_Grammar.Length, 4);
+                  --  NEW_LINE, NEW_LINE, COMMENT, NEW_LINE
+
+               when others =>
+                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+               end case;
+            end;
+         end loop;
+
+      when others =>
+         --  Not tested
+         null;
+
+      end case;
    end Test_Statement_2;
 
 end Test_Character_Literal_Aux;

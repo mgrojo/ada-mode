@@ -4,8 +4,8 @@
 
 
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
 (defconst identifier_list_name_conflict-lalr-elisp-keyword-table-raw
   '(
@@ -29,8 +29,7 @@
 
 (defconst identifier_list_name_conflict-lalr-elisp-parse-table
    (wisi-compile-grammar
-   '((COMMA EQUAL_GREATER STRING_LITERAL IDENTIFIER LEFT_PAREN RIGHT_PAREN )
-     ((association
+   '(((association
        ((selector_name EQUAL_GREATER name )))
       (association_list
        ((association ))

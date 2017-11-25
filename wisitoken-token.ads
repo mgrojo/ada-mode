@@ -163,6 +163,9 @@ package WisiToken.Token is
    --  current token, it calls Virtual_To_Lookahead.
 
    type Init_Data is tagged null record;
+
+   Null_Init_Data : Init_Data;
+
    procedure Initialize (State : not null access Semantic_State; Init : in Init_Data'Class) is abstract;
    --  Reset State to start a new parse, using data from Init; should normally call Reset.
 

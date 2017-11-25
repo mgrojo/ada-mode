@@ -17,10 +17,9 @@
 ;;  You should have received a copy of the GNU General Public License
 ;;  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-
 (require 'wisi)
-(require 'semantic/lex)
 (require 'wisi-compile)
+(require 'wisi-elisp-parse)
 
 (defconst case_expression-lr1-elisp-keyword-table-raw
   '(
@@ -45,8 +44,7 @@
 
 (defconst case_expression-lr1-elisp-parse-table
    (wisi-compile-grammar
-   '((DOT_DOT EQUAL_GREATER TICK NUMBER_LITERAL IDENTIFIER RANGE WHEN )
-     ((case_expression
+   '(((case_expression
        ((WHEN discrete_choice EQUAL_GREATER factor )))
       (choice_expression
        ((choice_relation )))

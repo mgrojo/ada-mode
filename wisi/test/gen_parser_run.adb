@@ -59,6 +59,8 @@ is
          Put_Line ("LR1_Parser parse:");
       end case;
 
+      State.Initialize (WisiToken.Token.Null_Init_Data);
+
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;
    exception

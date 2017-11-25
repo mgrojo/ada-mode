@@ -56,7 +56,12 @@ subprograms_reset_lexer(wisi_lexer* lexer)
 static void debug(wisi_lexer* lexer, int state, unsigned char ch)
 {
    if (lexer->verbosity > 0)
-      printf ("lexer: %d, '%c'\n", state, ch);
+      {
+      if (ch < ' ')
+         printf ("lexer: %d, 0x%x\n", state, ch);
+      else
+         printf ("lexer: %d, '%c' 0x%x\n", state, ch, ch);
+      }
 }
 #define YYDEBUG(state, ch) debug(lexer, state, ch)
 #define YYCURSOR lexer->cursor
@@ -67,7 +72,7 @@ static void skip(wisi_lexer* lexer)
 {
    if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;
    if (lexer->cursor <= lexer->buffer_last)
-      if ((*lexer->cursor & 0xC0) != 0xC0) ++lexer->char_pos;
+      if (((*lexer->cursor & 0xC0) != 0xC0) && (*lexer->cursor != 0x0D)) ++lexer->char_pos;
 }
 #define YYSKIP() skip(lexer)
 #define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos

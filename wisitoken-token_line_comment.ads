@@ -83,6 +83,12 @@ package WisiToken.Token_Line_Comment is
    --  Tokens with T.Char_Region.First = Char_Region.First, and another
    --  token T with S.Char_Region.Last = Char_Region.Last.
 
+   function Find_Line_Begin
+     (Tokens : in Token_Vectors.Vector;
+      Before : in Token'Class)
+     return Positive_Index_Type;
+   --  Return index to first token on Before.Line.
+
    package Int_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Integer);
 
    type State_Type is new WisiToken.Token_Region.State_Type with record

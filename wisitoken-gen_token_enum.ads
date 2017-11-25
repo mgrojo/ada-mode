@@ -111,7 +111,8 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Put (State : not null access State_Type) is null;
 
-   overriding procedure Reset (State : not null access State_Type) is null;
+   overriding procedure Initialize (State : not null access State_Type; Init : in Token.Init_Data'Class) is null;
+   overriding procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False) is null;
 
    overriding procedure Lexer_To_Lookahead
      (State : not null access State_Type;

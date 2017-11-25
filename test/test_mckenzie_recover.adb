@@ -27,6 +27,7 @@ with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
 with WisiToken.Parser.LR.Parser;
+with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region.AUnit;
 package body Test_McKenzie_Recover is
 
@@ -47,6 +48,7 @@ package body Test_McKenzie_Recover is
          Ada.Text_IO.Put_Line ("input: '" & Text & "'");
       end if;
 
+      Ada_Lite.State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 1));
       Parser.Lexer.Reset_With_String (Text & "   ");
       --  Trailing spaces so final token has proper region;
       --  otherwise it is wrapped to 1.
@@ -71,6 +73,7 @@ package body Test_McKenzie_Recover is
 
       WisiToken.Trace_Parse := Test.Debug;
 
+      Ada_Lite.State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 49));
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
    exception

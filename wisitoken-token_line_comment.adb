@@ -93,7 +93,7 @@ package body WisiToken.Token_Line_Comment is
                return Tokens.First_Index - 1;
             end if;
 
-            if Current_Tok.Char_Region.First > Char_Region.First then
+            if Current_Tok.Char_Region.First < Char_Region.First then
                First := Current;
             else
                Last := Current;
@@ -119,7 +119,7 @@ package body WisiToken.Token_Line_Comment is
                return Tokens.First_Index - 1;
             end if;
 
-            if Current_Tok.Char_Region.Last > Char_Region.Last then
+            if Current_Tok.Char_Region.Last < Char_Region.Last then
                First := Current;
             else
                Last := Current;
@@ -140,6 +140,50 @@ package body WisiToken.Token_Line_Comment is
       return Tokens.First_Index - 1;
    end Find;
 
+   function Find_Line_Begin
+     (Tokens : in Token_Vectors.Vector;
+      Before : in Token'Class)
+     return Positive_Index_Type
+   is
+      use all type Ada.Containers.Count_Type;
+      First   : Positive_Index_Type := Tokens.First_Index;
+      Last    : Positive_Index_Type := Tokens.Last_Index;
+      Current : Positive_Index_Type := (First + Last) / 2;
+   begin
+      --  Binary search for Before
+      loop
+         declare
+            Current_Tok : Token renames Tokens (Current).Element.all;
+         begin
+            exit when Current_Tok.Char_Region.First = Before.Char_Region.First;
+
+            if First = Current then
+               raise Programmer_Error;
+            end if;
+
+            if Current_Tok.Char_Region.First < Before.Char_Region.First then
+               First := Current;
+            else
+               Last := Current;
+            end if;
+
+            Current := (First + Last) / 2;
+         end;
+      end loop;
+
+      --  Linear search for previous line
+      loop
+         exit when Current = Tokens.First_Index;
+         declare
+            Next_Tok : Token renames Tokens (Current - 1).Element.all;
+         begin
+            exit when Next_Tok.Line /= Before.Line;
+            Current := Current - 1;
+         end;
+      end loop;
+      return Current;
+   end Find_Line_Begin;
+
    overriding
    procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
    is
@@ -159,6 +203,7 @@ package body WisiToken.Token_Line_Comment is
          Token_Region.Reset (Token_Region.State_Type (State.all)'Access);
       end if;
 
+      State.Grammar_Tokens.Clear;
       State.Initial_Non_Grammar.Clear;
 
       for S of State.Line_Paren_State loop
