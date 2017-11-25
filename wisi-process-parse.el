@@ -157,7 +157,7 @@ complete."
 		      (1- (position-bytes (point-max)))
 		      (wisi-parse-format-language-options parser)
 		      ))
-	 (msg (format "%02d%s" (length cmd) cmd))
+	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
     (when (> wisi-process-parse-debug 0)
       (message msg))
@@ -176,7 +176,7 @@ complete."
 the content of the current buffer.  Does not wait for command to
 complete."
   (let* ((cmd (format "noop %d" (1- (position-bytes (point-max)))))
-	 (msg (format "%02d%s" (length cmd) cmd))
+	 (msg (format "%03d%s" (length cmd) cmd))
 	 (process (wisi-process--parser-process parser)))
     (when (> wisi-process-parse-debug 0)
       (message msg))
@@ -382,6 +382,9 @@ complete."
 	  (let ((line-count (1+ (count-lines (point-min) (point-max)))))
 	    (setf (wisi-process--parser-line-begin parser) (wisi--set-line-begin line-count))
 	    (wisi-process-parse--send-parse parser line-count)
+
+	    ;; We reset the elisp lexer, because post-parse actions may use it.
+	    (wisi-elisp-lexer-reset line-count wisi--lexer)
 	    )
 
 	  (set-buffer response-buffer)

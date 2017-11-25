@@ -177,7 +177,7 @@ package body WisiToken.Wisi_Runtime.Ada is
       is
          use all type Standard.Ada.Containers.Count_Type;
       begin
-         return -Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N).ID;
+         return -Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N + 1).ID;
       end Peek;
 
    begin

@@ -209,7 +209,7 @@ If at end of buffer, return `wisi-eoi-term'."
 	   (signal 'wisi-parse-error (format "wisi-forward-token: forward-sexp failed %s" err))
 	   ))))
 
-     ((memq syntax '(2 3 6)) ;; word, symbol expression prefix (includes numbers)
+     ((memq syntax '(2 3 6)) ;; word, symbol, expression prefix (includes numbers)
       (skip-syntax-forward "w_'")
       (setq token-text (buffer-substring-no-properties start (point)))
       (setq token-id

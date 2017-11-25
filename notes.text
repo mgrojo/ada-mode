@@ -22,20 +22,8 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/debug.ads")
+  (find-file "../test/ada_mode-conditional_expressions.adb")
   (wisi-debug-keys))
-
-(progn
-  (setq eval-expression-debug-on-error nil)
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
-  (load "autoloads.el")
-  (load "run-wisi-test.el")
-  (setq debug-on-error t)
-  (setq debug-on-quit t)
-  ; (find-file "/Projects/org.emacs.ada-mode.stephe-4/test/wisi/subprograms.input")
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
-  (run-test "ada-number-literal"))
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
@@ -53,10 +41,13 @@ compute indent in Ada
     run all tests
         test-wisi : passing
         test-ada-elisp-gpr_query: passing
-        test-ada-process-gpr_query:
-            test/ada_mode-opentoken.ads indenting: Wrong type argument: arrayp, nil
+        test-ada-process-gpr_query: passing
 
 rename ada_mode-interactive_common
+
+review fixme
+
+use grammar_tokens, not stack
 
 review wisi-hanging% use
     access_definition - why anchored to PROCEDURE? why %?

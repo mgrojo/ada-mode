@@ -53,9 +53,9 @@ is
       Put_Line ("Commands: ");
       New_Line;
       Put_Line
-      ("NNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>" &
+      ("NNNparse <action> <source_file_name> <line_count> <verbosity> <mckenzie_enabled> <mckenzie_cost_limit>" &
        " <mckenzie_check_limit> <source_byte_count> <language-specific params> <source bytes>");
-      Put_Line ("  NN excludes <source bytes>");
+      Put_Line ("  NNN excludes <source bytes>");
       Put_Line ("  <action> is an integer; 0 - navigate, 1 - face, 2 - indent");
       Put_Line ("  <line-count> is integer count of lines in source");
       Put_Line ("  <verbosity> is an integer; set parse trace output level");
@@ -63,7 +63,7 @@ is
       Put_Line ("  <*_limit> is integer; -1 means use default");
       Put_Line ("  outputs: elisp vectors for set-text-property from parser actions or elisp forms for errors.");
       New_Line;
-      Put_Line ("NNnoop <source_byte_count> <source bytes>");
+      Put_Line ("NNNnoop <source_byte_count> <source bytes>");
       Put_Line ("  Just receive source; otherwise no operation. NN excludes <source bytes>");
       New_Line;
       Put_Line ("04quit");
@@ -101,9 +101,9 @@ is
 
    function Get_Command_Length return Integer
    is
-      Temp : aliased String (1 .. 2) := "  ";
+      Temp : aliased String (1 .. 3) := (others => ' '); -- initialize for error message
    begin
-      Read_Input (Temp'Address, 2);
+      Read_Input (Temp'Address, Temp'Length);
       return Integer'Value (Temp);
    exception
    when Constraint_Error =>

@@ -59,7 +59,7 @@ package body WisiToken.Wisi_Runtime is
 
       when Int =>
          if Indent.Int_Indent = 0 or Delta_Indent.Anchored_Accumulate then
-            Indent := (Anchored, First_Anchor_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
+            Indent := (Anchored, Delta_Indent.Anchored_ID, Indent.Int_Indent + Delta_Indent.Anchored_Delta);
          end if;
 
       when Anchor =>
@@ -239,7 +239,7 @@ package body WisiToken.Wisi_Runtime is
       Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
       --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
-      --  we search the parser stack.
+      --  we search the parser stack. FIXME: use Grammar_Tokens instead
       loop
          exit when I < Data.Semantic_State.Stack.First_Index;
          declare
@@ -1171,40 +1171,16 @@ package body WisiToken.Wisi_Runtime is
       Offset       : in Integer)
      return Integer
    is
-      use all type Ada.Containers.Count_Type;
-
-      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
-      Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
-   begin
       --  [2] compute delta in wisi-elisp-parse--anchored-1.
 
-      if Anchor_Token.First and
-        Anchor_Token.First_Indent_Line = Anchor_Token.Line
-      then
-         Text_Begin_Pos := Anchor_Token.Char_Region.First;
-      else
-         loop
-            exit when I < Data.Semantic_State.Stack.First_Index;
-            declare
-               Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-                 (Data.Semantic_State.Stack (I).Element.all);
-            begin
-               exit when Stack_Token.Char_Region /= Null_Buffer_Region and Stack_Token.Line /= Anchor_Token.Line;
-
-               if Stack_Token.Char_Region /= Null_Buffer_Region and Stack_Token.First_Indent_Line = Stack_Token.Line
-               then
-                  Text_Begin_Pos := Stack_Token.Char_Region.First;
-                  exit;
-               end if;
-            end;
-            I := I - 1;
-         end loop;
-      end if;
-
-      if Text_Begin_Pos = Invalid_Buffer_Pos then
-         raise Programmer_Error;
-      end if;
-      return Offset + Integer (Anchor_Token.Char_Region.First - Text_Begin_Pos);
+      Line_Begin_Pos : constant Buffer_Pos :=
+        (if Anchor_Token.First and
+           Anchor_Token.First_Indent_Line = Anchor_Token.Line
+         then Anchor_Token.Char_Region.First
+         else Data.Semantic_State.Grammar_Tokens
+           (Token_Line_Comment.Find_Line_Begin (Data.Semantic_State.Grammar_Tokens, Anchor_Token)).Char_Region.First);
+   begin
+      return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
    end Current_Indent_Offset;
 
    function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Token_Line_Comment.Token

@@ -174,9 +174,12 @@
 
 ;; non_grammar are not seen by the wisi lexer, but are needed by the re2c lexer
 %non_grammar <non-reporting> WHITESPACE [ \t]
+
 ;; handle DOS or Unix newline
 %non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
-%non_grammar <comment> COMMENT "--"[^\n]*
+
+;; treat gnatprep preprocessor lines as comments
+%non_grammar <comment> COMMENT ("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 

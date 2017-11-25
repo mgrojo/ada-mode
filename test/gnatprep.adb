@@ -1,10 +1,10 @@
 --EMACSCMD:(setq skip-recase-test t)
 
 -- Tests the way gnatprep statements are highlighted and indented. We
--- also test other usage of the '#' sign, especially in based numbers
--- or in strings.
+-- also test other usage of the '#' character, especially in based
+-- numbers and strings.
 
--- gnatprep indentation is enabled by `ada-*-setup', which is added to
+-- gnatprep indentation is enabled by `gnatprep-setup', which is added to
 -- ada-mode-hook when a project file is selected. When this file is
 -- run as a test, no project file has been selected before the file is
 -- opened, so gnatprep indentation is not enabled. So we run
@@ -14,9 +14,9 @@
 --EMACSCMD:(ada-select-prj-file "ada_mode.gpr")
 --EMACSCMD:(gnatprep-setup)
 
--- In Emacs < 25, we need to force syntax propertize to give gnatprep
+-- Even in Emacs 26, we need to force syntax propertize to give gnatprep
 -- statements comment syntax.
---EMACSCMD:(when (< emacs-major-version 25) (syntax-propertize (point-max)))
+--EMACSCMD:(syntax-propertize (point-max))
 
 --EMACSCMD:(progn (wisi-parse-buffer 'face)(font-lock-ensure))
 
