@@ -37,6 +37,7 @@ package body WisiToken.Wisi_Runtime.Gpr is
         (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Source_File_Name, Parse_Action, Line_Count, "");
 
       if Params /= "" then
+         --  must match [1] wisi-parse-format-language-options
          Gpr_Indent := Integer'Value (Params (First .. Last - 1));
 
          First := Last + 1;
@@ -44,8 +45,7 @@ package body WisiToken.Wisi_Runtime.Gpr is
          Gpr_Indent_Broken := Integer'Value (Params (First .. Last - 1));
 
          First := Last + 1;
-         Last := Index (Params, " ", First);
-         Gpr_Indent_When := Integer'Value (Params (First .. Last - 1));
+         Gpr_Indent_When := Integer'Value (Params (First .. Params'Last));
       end if;
    end Initialize;
 

@@ -1,5 +1,9 @@
 -- captured from 'Standard settings for all of Stephe's Ada projects'
 
+-- Set in Local Variables below
+--EMACSCMD:gpr-indent-when
+--EMACSRESULT:0
+
 project Standard_Common is
    for Source_Dirs use ();
 

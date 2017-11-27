@@ -2,6 +2,7 @@
 
 (setq ada-xref-tool 'gpr_query)
 (setq ada-parser 'elisp)
+(setq gpr-parser 'elisp)
 
 (require 'run-indent-test)
 

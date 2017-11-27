@@ -141,7 +141,7 @@ test-elisp :
 	$(EMACS_EXE) -Q -batch -L ../test -L . $(ADA_MODE_DIR) -l ada-mode-test.el
 
 gpr-skel.gpr.tmp :
-	$(EMACS_EXE) -Q -batch -L ../test/gpr -L .. $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
+	$(EMACS_EXE) -Q -batch -L ../test/gpr -L . $(ADA_MODE_DIR) -l gpr-skel-test.el --eval '(progn (setq vc-handled-backends nil)(gpr-skel-test))'
 
 %.diff : % %.tmp
 	-diff -u $< $*.tmp > $*.diff

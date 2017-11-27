@@ -22,7 +22,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/ada_mode-conditional_expressions.adb")
+  ; (find-file "../test/gpr/standard_common.gpr")
   (wisi-debug-keys))
 
 (dvc-state-multiple
@@ -32,16 +32,7 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
-compute indent in Ada
-    install_ada_executables
-        ada.wy passes wisi-generate 1330 states
-        ada_process.adb passes compile
-            27,000 lines total, 4000 follow, 4000 action
-
-    run all tests
-        test-wisi : passing
-        test-ada-elisp-gpr_query: passing
-        test-ada-process-gpr_query: passing
+measure speed
 
 rename ada_mode-interactive_common
 
@@ -68,11 +59,13 @@ test-gpr: add process (for error correction)
 
 ada_grammar.wy:1217:      ;; FIXME: indentation of comment after 'is' should be
     try anchor comment to next token
-wisitoken-wisi_runtime.adb:186:      --  FIXME: implement wisi-indent-comment-col-0
 
-    do more optimization later
+wisitoken-wisi_runtime.adb:186:      --  FIXME: implement wisi-indent-comment-col-0
+    needs test
 
 ada-wisi-elisp-parse.el:115:		     ;; FIXME: doc test case
+
+skeleton placeholders should be treated as whitespace/comment
 
 gpr-mode.el:263:  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
 gpr-query.el:263:  ;; FIXME: implement ada-xref-full-path.

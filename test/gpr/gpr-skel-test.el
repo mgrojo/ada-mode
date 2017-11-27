@@ -7,7 +7,8 @@
 ;; in gpr buffer: (setq skeleton-end-hook nil)
 ;; (setq wisi-debug 1)
 
-(package-initialize) ;; for queue
+;; Don’t require installing executables to run tests
+(setq gpr-process-parse-exec (expand-file-name "../../gpr_mode_wisi_parse.exe"))
 
 (require 'gpr-mode)
 
@@ -51,6 +52,9 @@ Preserves text after point."
       (goto-char (point-max))
       (skeleton-expand "Project_1") ;; project
       (skeleton-expand-all gpr-skel-token-alist '("header""project"))
+      (goto-char (point-max))
+      (when (not (= 0 (current-column)))
+	(insert "\n"))
       (indent-region (point-min) (point-max))
       (delete-trailing-whitespace (point-min) (point-max))
       (let ((buffer-file-coding-system 'undecided-unix))

@@ -101,8 +101,11 @@
 %keyword WITH "with"
 
 %non_grammar <non-reporting> WHITESPACE [ \t]
-%non_grammar <new-line> NEW_LINE [\n]
-%non_grammar <reporting> COMMENT "--"[^\n]*
+
+;; handle DOS or Unix newline
+%non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
+
+%non_grammar <comment> COMMENT "--"[^\n]*
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+

@@ -23,6 +23,7 @@
 ;;
 ;;;;
 
+(require 'gpr-elisp)
 (require 'gpr-indent-user-options)
 (require 'gpr-mode)
 (require 'wisi)
@@ -104,9 +105,6 @@
 	  gpr-indent-when
 	  ))
 
-(defvar gpr-elisp-parse-table nil) ;; gpr-elisp.el
-(defvar gpr-elisp-token-table-raw nil) ;; gpr-elisp.el and gpr-process.el
-(defvar gpr-elisp-keyword-table-raw nil) ;; gpr-elisp.el and gpr-process.el
 (defvar gpr-process-face-table nil) ;; gpr-process.el
 (defvar gpr-process-token-table nil) ;;gpr-process.el
 
@@ -130,8 +128,9 @@
       (make-gpr-wisi-parser
       :label "gpr"
       :exec-file gpr-process-parse-exec
-      :token-table (nth 0 gpr-process-token-table)
-      :face-table (nth 0 gpr-process-face-table))))
+      :face-table gpr-process-face-table
+      :token-table gpr-process-token-table
+      )))
     )
 
    :lexer (wisi-make-elisp-lexer

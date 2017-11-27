@@ -695,10 +695,6 @@ TOKEN-TEXT; move point to just past token."
 	  ))
 
 (defvar ada-parser nil) ;; declared, set in ada-mode.el for parser detection
-(defvar ada-elisp-parse-table nil) ;; ada-elisp.el
-(defvar ada-elisp-token-table-raw nil) ;; ada-elisp.el and ada-process.el
-(defvar ada-elisp-keyword-table-raw nil) ;; ada-elisp.el and ada-process.el
-(defvar ada-elisp-parse-table nil) ;; ada-elisp.el
 (defvar ada-process-token-table nil) ;; ada-process.el
 (defvar ada-process-face-table nil) ;; ada-process.el
 

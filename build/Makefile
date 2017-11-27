@@ -82,7 +82,8 @@ test : test-ada-elisp-gpr_query.stamp
 test : test-ada-process-gpr_query.stamp
 test : test-ada-gps.stamp
 test : gpr-skel.gpr.diff
-test : test-gpr.stamp
+test : test-gpr-elisp.stamp
+test : test-gpr-process.stamp
 test : test-elisp
 test : summarize
 
@@ -103,24 +104,22 @@ test-wisi :: subprograms.input.diff
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += access_in_record.ads
+ONE_TEST_FILES += simple.gpr
 #ONE_TEST_FILES += ada_mode-nominal.adb
-#one : subprograms_wisi_parse.exe
+one : build_ada_executables
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
-one : RUNTEST := run-indent-test-elisp-gpr_query.el
+one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one : RUNTEST := run-indent-test-process-gpr_query.el
 #one : $(addsuffix .wisi-test, $(ONE_TEST_FILES))
 
-# two : RUN_ARGS ?= --verbosity 2 --indent_params "4 3 1"
+two : RUN_ARGS ?= --indent_params "3 2 0"
 two : export Standard_Common_Build := Debug
-# two : run_subprograms_parse.exe
-# 	../test/wisi/run_subprograms_parse.exe ../test/wisi/debug.input Indent $(RUN_ARGS)
-two : $(WISI_WISITOKEN)/wisi-generate.exe
-	$(WISI_WISITOKEN)/wisi-generate.exe --output_language Ada_Emacs --lexer re2c --interface process ../test/wisi/debug.wy
+two : build_ada_executables
+	../run_gpr_parse.exe ../test/gpr/simple.gpr Navigate $(RUN_ARGS)
 
 two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
 two_mem : export Standard_Common_Profile := On
@@ -179,12 +178,20 @@ test-ada-gps.stamp : force
 	$(MAKE) test-ada-gps
 	touch $@
 
-test-gpr : RUNTEST := run-indent-test.el
-test-gpr : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+test-gpr-elisp : RUNTEST := run-indent-test-elisp-gpr_query.el
+test-gpr-elisp : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
 
-test-gpr.stamp : force
+test-gpr-elisp.stamp : force
 	rm -f *.diff *.tmp
-	$(MAKE) test-gpr
+	$(MAKE) test-gpr-elisp
+	touch $@
+
+test-gpr-process : RUNTEST := run-indent-test-process-gpr_query.el
+test-gpr-process : $(addsuffix .diff, $(subst subdir/,,$(GPR_TEST_FILES)))
+
+test-gpr-process.stamp : force
+	rm -f *.diff *.tmp
+	$(MAKE) test-gpr-process
 	touch $@
 
 # compare gps indent to ada-wisi indent
