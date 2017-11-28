@@ -24,6 +24,7 @@
 
 (require 'ada-mode)
 (require 'ada-indent-user-options)
+(require 'wisi)
 
 (defcustom ada-gps-size-threshold 100000
   "Max size (in characters) for using ada-wisi indentation engine.
@@ -426,7 +427,7 @@ otherwise use ada-wisi indentation engine with ada-gps fallback,"
 
     (ada-wisi-setup)
     (set (make-local-variable 'indent-region-function) nil)
-    (setq wisi-indent-fallback 'ada-gps-indent-compute)
+    (setq wisi-indent-region-fallback 'ada-gps-indent-compute)
     ))
 
 (provide 'ada-gps)

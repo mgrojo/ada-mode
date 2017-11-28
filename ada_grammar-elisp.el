@@ -1490,6 +1490,7 @@
        ((RETURN expression_opt SEMICOLON )
         (progn
         (wisi-statement-action [1 statement-start 3 statement-end])
+        (wisi-containing-action 1 2)
         (wisi-indent-action [0 ada-indent-broken 0]))))
       (simple_statement
        ((NULL SEMICOLON )

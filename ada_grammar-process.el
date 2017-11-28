@@ -1543,6 +1543,7 @@
      (("simple_return_statement:0"
        (progn
        (wisi-statement-action [1 statement-start 3 statement-end])
+       (wisi-containing-action 1 2)
        (wisi-indent-action [0 ada-indent-broken 0])))
       )
      (("simple_statement:0"

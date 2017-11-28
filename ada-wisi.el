@@ -963,6 +963,9 @@ TOKEN-TEXT; move point to just past token."
 
   (set (make-local-variable 'comment-indent-function) 'wisi-comment-indent)
 
+  ;; In Emacs >= 26, ’run-mode-hooks’ (in ’ada-mode’) runs
+  ;; ’hack-local-variables’ after ’ada-mode-hooks’; we need
+  ;; ’ada-wisi-post-local-vars’ to run after ’hack-local-variables’.
   (add-hook 'hack-local-variables-hook 'ada-wisi-post-local-vars nil t)
   )
 

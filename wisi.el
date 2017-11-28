@@ -145,7 +145,7 @@ TOK is a `wisi-tok' struct for the token being indented.
 DELTA1, DELTA2 are the indents of the first and following lines
 within the nonterminal.  OPTION is non-nil if action is `wisi-hanging%'.
 point is at start of TOK, and may be moved.")
-(make-variable-buffer-local 'wisi-indent-comment-col-0)
+(make-variable-buffer-local 'wisi-indent-hanging-function)
 
 (defvar wisi-inhibit-parse nil
   "When non-nil, don't run the parser.
@@ -1839,9 +1839,9 @@ position. Otherwise return OFFSET."
     ))
 
 (defun wisi-anchored% (token-number offset &optional no-accumulate)
-  "Return either an anchor for the current token at OFFSET from an enclosing paren on
-the line containing TOKEN-NUMBER, or OFFSET.
-For use in grammar indent actions."
+  "Return either an anchor for the current token at OFFSET after
+an enclosing paren on the line containing TOKEN-NUMBER, or
+OFFSET.  For use in grammar indent actions."
   (let* ((indent-tok (aref wisi-tokens wisi-token-index))
 	 ;; indent-tok is a nonterminal; this function makes no sense for terminals
 	 (anchor-tok (aref wisi-tokens (1- token-number))))
@@ -1861,9 +1861,9 @@ For use in grammar indent actions."
 
 (defun wisi-anchored%- (token-number offset)
   "If existing indent is zero, anchor the current token at OFFSET
-from the first token on the line containing TOKEN-NUMBER in `wisi-tokens'.
-Return the delta.
-For use in grammar indent actions."
+after an enclosing paren on the line containing TOKEN-NUMBER in
+`wisi-tokens'.  Return the delta.  For use in grammar indent
+actions."
   (wisi-anchored% token-number offset t))
 
 (defun wisi-hanging-1 (delta1 delta2 option no-accumulate)
@@ -2753,6 +2753,9 @@ If non-nil, only repair errors in BEG END region."
   ;; See comments above on syntax-propertize.
   (when (< emacs-major-version 25) (syntax-propertize (point-max)))
 
+  ;; In Emacs >= 26, ’run-mode-hooks’ (in the major mode function)
+  ;; runs ’hack-local-variables’ after ’*-mode-hooks’; we need
+  ;; ’wisi-post-local-vars’ to run after ’hack-local-variables’.
   (add-hook 'hack-local-variables-hook 'wisi-post-local-vars nil t)
   )
 

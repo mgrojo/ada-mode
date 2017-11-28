@@ -501,7 +501,7 @@ Menu displays currently parsed Ada mode projects."
       "Select Project"
       (ada-project-menu-compute)))
 
-    ;; FIXME: this doesn’t work; "Select Project" is at end
+    ;; IMPROVEME: this doesn’t work; "Select Project" is at end
     (lookup-key ada-mode-map [menu-bar Ada Project\ files]) ;; after
     ))
 
@@ -1499,7 +1499,6 @@ list. Parser must modify or add to the property list and return it.")
 (defun ada-parse-prj-file (prj-file)
   "Read Emacs Ada or compiler-specific project file PRJ-FILE, set project properties in `ada-prj-alist'."
   ;; Not called ada-prj-parse-file for Ada mode 4.01 compatibility
-  ;; FIXME: need to kill gpr-query session if .gpr file has changed (like from non-agg to agg!)
   (setq prj-file (expand-file-name prj-file))
 
   (unless (file-readable-p prj-file)
@@ -2213,7 +2212,6 @@ buffer in another window."
 (defun ada-find-file (filename)
   ;; we assume compliation-search-path is set, either by an
   ;; ada-mode project, or by some other means.
-  ;; FIXME: option to filter with ada-*-suffixes?
   (interactive (list (completing-read "File: "
 				      (apply-partially
 				       'locate-file-completion-table
@@ -2274,7 +2272,7 @@ identifier.  May be an Ada identifier or operator."
     (error "No identifier around"))
    ))
 
-;; FIXME (for emacs 25): use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
+;; IMPROVEME (for emacs >= 25): use find-tag-marker-ring, ring-insert, pop-tag-mark (see xref.el)
 (defvar ada-goto-pos-ring '()
   "List of positions selected by navigation functions. Used
 to go back to these positions.")
@@ -2313,8 +2311,8 @@ LINE, COLUMN are Emacs origin."
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
-      ;; use display-buffer, so package other-frame-window works.
-      (display-buffer buffer))
+      ;; use pop-to-buffer, so package other-frame-window works.
+      (pop-to-buffer buffer (list #'display-buffer-same-window) nil))
 
      ((file-exists-p file)
       (find-file file))
@@ -2360,7 +2358,7 @@ versa.")
 (defun ada-goto-declaration ()
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa."
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-other-function)
@@ -2491,7 +2489,7 @@ FILE may be absolute, or on `compilation-search-path'.")
 
 (defun ada-show-overridden ()
   "Show the overridden declaration of identifier at point."
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overridden-function)
@@ -2552,7 +2550,8 @@ compiler-specific compilation filters."
   (let ((start-buffer (current-buffer))
 	pos item file)
     ;; We use `pop-to-buffer', not `set-buffer', so `forward-line'
-    ;; works. But that might eat an `other-frame-window-mode' prefix;
+    ;; works. But that might eat an `other-frame-window-mode' prefix,
+    ;; which the user means to apply to ’ada-goto-source’ below;
     ;; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
       (pop-to-buffer compilation-last-buffer nil t)
@@ -2928,7 +2927,7 @@ The paragraph is indented on the first line."
   ;; fill-region-as-paragraph in ada-fill-comment-paragraph does not
   ;; call syntax-propertize, so set comment syntax on
   ;; ada-fill-comment-prefix. In post-local because user may want to
-  ;; set it per-file. FIXME: only in emacs < 25?
+  ;; set it per-file. IMPROVEME: only in emacs < 25?
   (put-text-property 0 2 'syntax-table '(11 . nil) ada-fill-comment-prefix)
 
   (cl-case ada-language-version
