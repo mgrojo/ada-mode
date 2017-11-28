@@ -2311,8 +2311,8 @@ LINE, COLUMN are Emacs origin."
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
-      ;; use display-buffer, so package other-frame-window works.
-      (display-buffer buffer))
+      ;; use pop-to-buffer, so package other-frame-window works.
+      (pop-to-buffer buffer (list #'display-buffer-same-window) nil))
 
      ((file-exists-p file)
       (find-file file))
@@ -2358,7 +2358,7 @@ versa.")
 (defun ada-goto-declaration ()
   "Move to the declaration or body of the identifier around point.
 If at the declaration, go to the body, and vice versa."
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-other-function)
@@ -2489,7 +2489,7 @@ FILE may be absolute, or on `compilation-search-path'.")
 
 (defun ada-show-overridden ()
   "Show the overridden declaration of identifier at point."
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overridden-function)
@@ -2550,7 +2550,8 @@ compiler-specific compilation filters."
   (let ((start-buffer (current-buffer))
 	pos item file)
     ;; We use `pop-to-buffer', not `set-buffer', so `forward-line'
-    ;; works. But that might eat an `other-frame-window-mode' prefix;
+    ;; works. But that might eat an `other-frame-window-mode' prefix,
+    ;; which the user means to apply to ’ada-goto-source’ below;
     ;; disable that temporarily.
     (let ((display-buffer-overriding-action nil))
       (pop-to-buffer compilation-last-buffer nil t)

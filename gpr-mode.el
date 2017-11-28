@@ -286,7 +286,7 @@ In particular, character constants are set to have string syntax."
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
 
-  (run-hooks 'gpr-mode-hook)
+  (run-mode-hooks 'gpr-mode-hook)
 
   )
 

@@ -400,7 +400,13 @@ $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gp
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
+<<<<<<< variant A
+# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken/build"))
+>>>>>>> variant B
 # eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken.stephe-1/build"))
+####### Ancestor
+# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken/build"))
+======= end
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))
