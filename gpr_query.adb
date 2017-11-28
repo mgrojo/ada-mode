@@ -26,6 +26,7 @@ with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Environment_Variables;
 with Ada.Exceptions.Traceback;
+with Ada.IO_Exceptions;
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
@@ -76,7 +77,7 @@ procedure Gpr_Query is
    Xref              : aliased My_Xref_Database;
    Env               : GNATCOLL.Projects.Project_Environment_Access;
    Tree              : aliased GNATCOLL.Projects.Project_Tree;
-   Previous_Progress : Natural                          := 0;
+   Previous_Progress : Natural := 0;
    Progress_Reporter : access procedure (Current, Total : Integer) := null;
 
    --  Subprogram specs for subprograms used before bodies
@@ -171,7 +172,7 @@ procedure Gpr_Query is
       Name    : GNAT.Strings.String_Access;
       Args    : GNAT.Strings.String_Access;
       Help    : GNAT.Strings.String_Access;
-      Handler : access procedure (Args : GNATCOLL.Arg_Lists.Arg_List);
+      Handler : not null access procedure (Args : GNATCOLL.Arg_Lists.Arg_List);
    end record;
 
    Commands : constant array (Natural range <>) of Command_Descr :=
@@ -274,8 +275,8 @@ procedure Gpr_Query is
       use GNAT.Directory_Operations;
       use GNATCOLL.Xref;
 
-      Words  : GNAT.Strings.String_List_Access := GNATCOLL.Utils.Split (Arg, On => ':');
-      Ref    : GNATCOLL.Xref.Entity_Reference;
+      Words : GNAT.Strings.String_List_Access := GNATCOLL.Utils.Split (Arg, On => ':');
+      Ref   : GNATCOLL.Xref.Entity_Reference;
    begin
       case Words'Length is
       when 4         =>
@@ -448,8 +449,8 @@ procedure Gpr_Query is
 
       declare
          use GNATCOLL.Xref;
-         Entity  : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
-         Refs    : References_Cursor;
+         Entity : constant Entity_Information := Get_Entity (Nth_Arg (Args, 1));
+         Refs   : References_Cursor;
       begin
          Xref.References (Entity, Cursor => Refs);
          Dump (Refs);
@@ -561,7 +562,7 @@ begin
       Env.Set_Config_File
         (GNATCOLL.VFS.Create_From_UTF8
            (GNAT.OS_Lib.Normalize_Pathname
-              (Name => Gpr_Config_File.all,
+              (Name      => Gpr_Config_File.all,
                Directory => GNAT.Directory_Operations.Get_Current_Dir)));
    else
       --  Apparently Ada language extensions are already registered (sigh)
@@ -583,8 +584,6 @@ begin
       use Ada.Text_IO;
       use GNATCOLL.VFS;
       use GNATCOLL.VFS_Utils;
-      use GNAT.Directory_Operations;
-      use type GNAT.Strings.String_Access;
 
       Gpr_Project_Path : constant String :=
         (if Exists ("GPR_PROJECT_PATH") then Ada.Directories.Current_Directory &
@@ -693,6 +692,8 @@ begin
    end loop;
 
 exception
+when Ada.IO_Exceptions.End_Error =>
+   null;
 when E : GNATCOLL.Projects.Invalid_Project =>
    Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message (E));
    Ada.Command_Line.Set_Exit_Status (Ada.Command_Line.Failure);

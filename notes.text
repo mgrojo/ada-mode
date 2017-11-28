@@ -87,6 +87,10 @@ put back mckenzie-enable in wisi-process-parse
 
 newline not in a word should not cause parse retry after parse fail
 
+ current work
+review execute permissions in git
+    see if mingw git can keep them straight.
+
 add missing features to gpr_query; see fixmes.
 
 refactor ada auto-case into wisi, use in gpr
@@ -816,7 +820,7 @@ Emacs 24.3, gnat 2016 (sal-standard), installed ada-mode:
     build/wisi/Makefile all
     build/Makefile uninstall-elpa
 
-sync for Debian:
+sync for Debian (verify *.sh have exec permission, etc):
     Emacs 25 for dvc
     (dvc-status ".")
     (dvc-status "/Projects/org.opentoken")
