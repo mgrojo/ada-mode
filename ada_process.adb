@@ -2986,7 +2986,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (True, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent)), (Simple, (Language, Ada_Indent_Record_0'Access, 69 & 1 & Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (True, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent)), (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (False, (Simple, (Int, 0)))));
       end case;
    end record_definition_0;
 

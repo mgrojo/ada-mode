@@ -344,7 +344,8 @@ is -- target 0
       --EMACSCMD:(progn (forward-line 1)(forward-word 2)(insert "   ")(ada-align))
       Component_1   : Integer := 1;
       Component_2   : Integer := 2;
-      Component_356 : Float   := 3.0; -- longer component name, shorter type name for align test
+      Component_356 : Float   := 3.0;
+      -- longer component name, shorter type name for align test
    end record;
    --EMACSCMD:(test-face "Record_Type_1" font-lock-type-face)
    for Record_Type_1 use

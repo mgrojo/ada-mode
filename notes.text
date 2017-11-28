@@ -32,9 +32,9 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
-measure speed
+propagate from o.e.a
 
-rename ada_mode-interactive_common
+propagate to o.e.a.s-2
 
 review fixme
 
@@ -139,6 +139,7 @@ Ada 2020 features:
  speed issues
 
 /Projects/org.wisitoken/Test/gnatcoll-xref.adb
+    copied to c:/tmp/gnatcoll-xref.adb
     7252 lines, 29461 tokens, 254989 characters
 
 plain parse, no actions:
@@ -187,6 +188,13 @@ consider doing all actions in one parse in process
     not helpful if dominated by communications time
 
 parse navigate
+    (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
+        repeat count > 2 gives EXCEPTION_ACCESS_VIOLATION; some race condition?
+
+    27 Nov 2017 - compute actions in Ada
+        1.377199 seconds 3 gcs 6560 responses 0.509915 wait
+        1.523548 seconds 2 gcs 6560 responses 0.518090 wait
+
     wisi-motion-action
         in [] token-numbers, skip statements with wisi-goto-end
 
@@ -207,14 +215,28 @@ parse face
 
         process parser, elisp lexer 1.021952 seconds, 2 gcs
 
+    28 Nov 2017 compute actions in Ada
+        gnatcoll-xref.adb
+            per iteration 1.405831 seconds 2 gcs 2145 responses 0.493506 wait
+
+        wisitoken-parser-lr-lalr_generator.adb
+            per iteration 0.175466 seconds 0 gcs 276 responses 0.082255 wait
+
     marking _every_ identifer as possible face prefix
         count face actions before/after delete that
         to avoid marking contents of allocator aggregate
         handle that case individually; find others
 
 parse indent
+    28 Nov 2017 compute actions in Ada
+        gnatcoll-xref.adb
+            per iteration 1.497652 seconds 1 gcs 7251 responses 0.507303 wait
+
+        wisitoken-parser-lr-lalr_generator.adb
+            per iteration 0.179418 seconds 0 gcs 775 responses 0.083123 wait
+
     use module instead of process
-        can pass actions from module to elisp in binary, to avoid scan-sexps
+        can pass actions from module to elisp in binary?, to avoid scan-sexps
         try mingw64 gnat on Windows
             use 32 bit gprbuild to run 64 bit tools
 

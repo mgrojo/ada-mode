@@ -1363,7 +1363,7 @@
       (record_definition
        ((RECORD component_list_opt END RECORD )
         (wisi-indent-action [(ada-indent-record* 'TYPE 1 0)
-        [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record 'TYPE 1 ada-indent)]
+        [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record* 'TYPE 1 ada-indent)]
         (ada-indent-record* 'TYPE 1 0)
         0]))
        ((NULL RECORD )

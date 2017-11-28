@@ -25,6 +25,7 @@
 
 (require 'ada-elisp)
 (require 'ada-fix-error)
+(require 'ada-indent-user-options)
 (require 'cl-lib)
 (require 'wisi)
 (require 'wisi-elisp-lexer)
