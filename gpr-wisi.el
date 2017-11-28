@@ -1,6 +1,6 @@
 ;; gpr-wisi.el --- Indentation engine for gpr mode, using the wisi parser  -*- lexical-binding:t -*-
 ;;
-;; Copyright (C) 2013 - 2016 Free Software Foundation, Inc.
+;; Copyright (C) 2013 - 2017 Free Software Foundation, Inc.
 ;;
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;;
@@ -78,6 +78,8 @@ or containing ancestor of CACHE that is at a line beginning."
 	  cache))
 	(close-paren (wisi-indent-paren 0))
 	(open-paren nil); let after-keyword handle it
+        (statement-other
+         (gpr-wisi-indent-containing ada-indent-broken cache))
 	(statement-start
 	 (if (not (wisi-get-containing-cache cache))
 	     ;; at bob

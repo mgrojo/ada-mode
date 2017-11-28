@@ -1,6 +1,6 @@
 ;; gpr-mode --- Major mode for editing GNAT project files  -*- lexical-binding:t -*-
 
-;; Copyright (C) 2004, 2007, 2008, 2012-2015  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2007, 2008, 2012-2015, 2017  Free Software Foundation, Inc.
 
 ;; Author: Stephen Leake <stephen_leake@member.fsf.org>
 ;; Maintainer: Stephen Leake <stephen_leake@member.fsf.org>
@@ -284,7 +284,7 @@ of the package or project point is in or just after, or nil.")
   (set (make-local-variable 'add-log-current-defun-function)
        'gpr-add-log-current-function)
 
-  (run-hooks 'gpr-mode-hook)
+  (run-mode-hooks 'gpr-mode-hook)
 
   )
 

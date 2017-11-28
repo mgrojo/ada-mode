@@ -2308,7 +2308,8 @@ If OTHER-WINDOW is non-nil, show the buffer in another window."
   (let ((buffer (get-file-buffer file)))
     (cond
      ((bufferp buffer)
-      (display-buffer buffer))
+      ;; use pop-to-buffer, so package other-frame-window works.
+      (pop-to-buffer buffer (list #'display-buffer-same-window) nil))
 
      ((file-exists-p file)
       (find-file file))
@@ -2485,7 +2486,7 @@ FILE may be absolute, or on `compilation-search-path'.")
 
 (defun ada-show-overridden ()
   "Show the overridden declaration of identifier at point."
-  (interactive "P")
+  (interactive)
   (ada-check-current-project (buffer-file-name))
 
   (when (null ada-xref-overridden-function)

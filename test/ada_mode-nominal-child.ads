@@ -20,8 +20,8 @@ package Ada_Mode.Nominal.Child is
    --EMACSCMD:(progn (end-of-line 3)(backward-word 1)(ada-show-declaration-parents)(looking-at "Parent_Type_1"))
    --EMACSRESULT:t
    overriding procedure Procedure_1a (Item  : in out Child_Type_1);
-   --EMACSCMD:(unless (eq ada-xref-tool 'gnat) (forward-line -1)(forward-word 3)(ada-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
-   --EMACSRESULT:(not (eq ada-xref-tool 'gnat))
+   --EMACSCMD:(progn (forward-line -1)(forward-word 3)(ada-show-overridden) (back-to-indentation) (looking-at "not overriding procedure Procedure_1a"))
+   --EMACSRESULT:t
    -- FIXME: test multiple parents
 
    --EMACSCMD: (progn (forward-line 2)(ada-which-function))
