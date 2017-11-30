@@ -9,12 +9,11 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
-for Ada_Emacs Ada body, translate wisi actions to Ada:
-    /Projects/org.emacs.ada-mode.stephe-4/wisitoken-wisi_runtime.ads
-    /Projects/org.wisitoken.stephe-1/wisi/wisi-output_ada_emacs.adb
-    testing in o.e.a.s-4
+token_region error_list_arrays
+    can have parser #s 1, 20, 32 ...
+    need sparse vector
 
-still losing memory
+still losing memory?
     possibly Augmented_Token_Array
         deallocation thru root class type?
 

@@ -59,7 +59,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       else
          Trace.Put (Image (Trace.Descriptor.all, Config.Stack, Depth => 1));
       end if;
-      Trace.Put (" ");
+      Trace.Put ("|");
 
       if Config.Local_Lookahead.Length = 0 then
          Put (Trace, Parser.Shared_Lookahead.Peek (Config.Shared_Lookahead_Index));
@@ -68,11 +68,11 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Trace.Put (":");
          Put (Trace, Int_Image (Integer (Config.Local_Lookahead_Index)));
       end if;
-      Trace.Put (" ");
+      Trace.Put ("|");
       Put (Trace, Config.Popped);
-      Trace.Put (" ");
+      Trace.Put ("/");
       Put (Trace, Config.Inserted);
-      Trace.Put (" ");
+      Trace.Put ("/");
       Put (Trace, Config.Deleted);
       Trace.New_Line;
    end Put;

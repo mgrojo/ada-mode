@@ -320,6 +320,51 @@ package body WisiToken.Parser.LR.Parser is
       Max_Shared_Lookahead_Index : SAL.Peek_Type;
       Zombie_Count               : Ada.Containers.Count_Type;
       Resume_Active              : Boolean := False;
+
+      procedure Terminate_Parser (The_Parser : in out Parser_Lists.Cursor)
+      is begin
+         if Trace_Parse > 0 then
+            Trace.Put_Line
+              (Integer'Image (The_Parser.Label) & ": terminate (" &
+                 Int_Image (Integer (Parsers.Count) - 1) & " active)");
+         end if;
+
+         Parser.Semantic_State.Terminate_Parser (The_Parser.Label);
+
+         The_Parser.Free;
+
+         if Parsers.Count = 1 then
+            Execute_Pending (Parser, Parsers.First);
+         end if;
+      end Terminate_Parser;
+
+      procedure Check_Error (Check_Parser : in out Parser_Lists.Cursor)
+      is begin
+         if Check_Parser.Verb = Error then
+            --  This parser errored on last input, and some other parser(s) can
+            --  continue (else we would have handled this elsewhere). This is how
+            --  grammar conflicts are resolved when the input text is valid, in
+            --  which case we should just terminate this parser. However, this may
+            --  be due to invalid input text, so we keep the parser alive but
+            --  suspended for a few tokens, to see if the other parsers also
+            --  error, in which case they all participate in error recovery.
+
+            --  We do not create zombie parsers during resume.
+            if not Resume_Active then
+               --  Parser is now a zombie
+               if Trace_Parse > 0 then
+                  Trace.Put_Line (Integer'Image (Check_Parser.Label) & ": zombie");
+               end if;
+               Check_Parser.Next;
+
+            else
+               Terminate_Parser (Check_Parser);
+            end if;
+         else
+            Check_Parser.Next;
+         end if;
+      end Check_Error;
+
    begin
       --  We do not call Parser.Semantic_State.Reset here; we assume the
       --  caller has called Initialize or Reset.
@@ -602,18 +647,11 @@ package body WisiToken.Parser.LR.Parser is
             --  (which advances to the next parser) or Current_Parser.Next.
 
             if Current_Parser.Verb = Error then
-               --  This parser errored on last input, and some other parser(s) can
-               --  continue (else we would have handled this above). This is how
-               --  grammar conflicts are resolved when the input text is valid, in
-               --  which case we should just terminate this parser. However, this may
-               --  be due to invalid input text, so we keep the parser alive but
-               --  suspended for a few tokens, to see if the other parsers also
-               --  error, in which case they all participate in error recovery.
-
-               --  We cannot create zombie parsers during resume.
+               --  This parser is a zombie; see Check_Error above.
+               --
+               --  Check to see if it is time to terminate it
                if Parser.Enable_McKenzie_Recover and then
-                 (Current_Parser.State_Ref.Zombie_Token_Count <= Parser.Table.McKenzie.Check_Limit and
-                    not Resume_Active)
+                 Current_Parser.State_Ref.Zombie_Token_Count <= Parser.Table.McKenzie.Check_Limit
                then
                   if Trace_Parse > 0 then
                      Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");
@@ -621,37 +659,17 @@ package body WisiToken.Parser.LR.Parser is
 
                   Current_Parser.Next;
                else
-                  if Trace_Parse > 0 then
-                     Trace.Put_Line
-                       (Integer'Image (Current_Parser.Label) & ": terminate (" &
-                          Int_Image (Integer (Parsers.Count) - 1) & " active)");
-                  end if;
-
-                  Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
-
-                  Current_Parser.Free;
-
-                  if Parsers.Count = 1 then
-                     Execute_Pending (Parser, Parsers.First);
-                  end if;
+                  Terminate_Parser (Current_Parser);
                end if;
 
             elsif Parser.Terminate_Same_State and then
               (Current_Verb in Shift | Shift_Local_Lookahead and Duplicate_State (Parsers, Current_Parser))
             then
                if Trace_Parse > 0 then
-                  Trace.Put_Line
-                    (Integer'Image (Current_Parser.Label) & ": duplicate state; terminate (" &
-                       Int_Image (Integer (Parsers.Count) - 1) & " active)");
+                  Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": duplicate state");
                end if;
 
-               Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);
-
-               Current_Parser.Free;
-
-               if Parsers.Count = 1 then
-                  Execute_Pending (Parser, Parsers.First);
-               end if;
+               Terminate_Parser (Current_Parser);
 
             elsif Current_Parser.Verb = Current_Verb then
                if Trace_Parse > 1 then
@@ -689,13 +707,20 @@ package body WisiToken.Parser.LR.Parser is
                      Parsers.Prepend_Copy (Current_Parser);
                      Parser.Semantic_State.Spawn (Current_Parser.Label, Parsers.First.Label);
                      Do_Action (Action.Next.Item, Parsers.First, Parsers.First.State_Ref.Current_Token, Parser);
-                     --  We don't need to check for error, here
+
+                     --  We must terminate error parsers immediately in order to avoid
+                     --  zombie parsers during recovery.
+                     declare
+                        Temp : Parser_Lists.Cursor := Parsers.First;
+                     begin
+                        Check_Error (Temp);
+                     end;
                   end if;
                end if;
 
                Do_Action (Action.Item, Current_Parser, Current_Parser.State_Ref.Current_Token, Parser);
+               Check_Error (Current_Parser);
 
-               Current_Parser.Next;
             else
                --  Current parser is waiting for others to catch up
                Current_Parser.Next;

@@ -54,7 +54,8 @@ spawn parser from 0 (2 active)
  0: 5: STRING_LITERAL : shift and goto state 2
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
- 1: duplicate state; terminate (1 active)
+ 1: duplicate state
+ 1: terminate (1 active)
  0: execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))
@@ -201,7 +202,8 @@ spawn parser from 0 (2 active)
  0: 5: STRING_LITERAL : shift and goto state 2
  1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
- 1: duplicate state; terminate (1 active)
+ 1: duplicate state
+ 1: terminate (1 active)
  0: execute pending
 (identifier_list 39 . 45) <= ((IDENTIFIER 39 . 45))
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))

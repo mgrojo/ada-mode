@@ -273,6 +273,11 @@ package body WisiToken.Token_Line_Comment is
             end;
          end if;
 
+         if Trace_Parse > 2 then
+            State.Trace.Put_Line
+              ("lexer to non_grammar: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+         end if;
+
       else
          if ID = State.Trace.Descriptor.Left_Paren_ID then
             State.Current_Paren_State := State.Current_Paren_State + 1;
@@ -283,11 +288,11 @@ package body WisiToken.Token_Line_Comment is
 
          State.Lookahead_Queue.Put (Temp);
          State.Grammar_Tokens.Append (Temp);
-      end if;
 
-      if Trace_Parse > 2 then
-         State.Trace.Put_Line
-           ("lexer_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+         if Trace_Parse > 2 then
+            State.Trace.Put_Line
+              ("lexer_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+         end if;
       end if;
    end Lexer_To_Lookahead;
 

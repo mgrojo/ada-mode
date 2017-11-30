@@ -10,11 +10,14 @@ all : test-clean tests library
 
 # ../Test/test_one_harness.adb
 # ../Test/test_all_harness.adb
+#
+# mingw implementation of Gnu make runs dependencies in different
+# order than Cygwin Gnu make!
+# t_one_1 : one-clean
+t_one_2 : ada_lite_re2c.c
 t_one : export Standard_Common_Build := Debug
-t_one : one-clean
-t_one : ada_lite_re2c.c
-#t_one : RUN_ARGS := 3
-t_one : test_one_harness.run
+t_one : RUN_ARGS ?= Indent_Hanging_1 1
+t_one : t_one_1 t_one_2 test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
 t_all : ./wisi-generate.exe
@@ -26,10 +29,9 @@ one-clean :
 	rm -rf ada_lite*
 # %_process.l : RUN_ARGS := -v 2 --first_state_index 1
 one : export Standard_Common_Build := Debug
-#one : one-clean
-#one : character_literal_re2c.c
 #one : RUN_ARGS := -v 4 ../wisi/test/empty_production_6.input
-one : subprograms_process.adb.diff
+one : ada_lite_re2c.c ada_lite_run.exe
+	./ada_lite_run.exe -v 4 c:/Projects/org.emacs.ada-mode.stephe-2/test/debug.adb
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
@@ -79,6 +81,8 @@ some : some-clean
 # some : SOME_CLEAN_FILE += subprograms-process
 # some : subprograms-process.el.diff
 # some : subprograms_process.adb.diff
+
+.PHONY : t_one_1 t_one_2
 
 doc : ../Docs/wisi-user_guide.info
 doc : ../Docs/wisi-user_guide.html

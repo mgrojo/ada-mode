@@ -167,7 +167,7 @@ package body WisiToken.Parser.LR is
          then Stack.Depth
          else SAL.Base_Peek_Type'Min (Depth, Stack.Depth));
 
-      Result : Unbounded_String;
+      Result : Unbounded_String := +"(";
    begin
       if Top_First then
          for I in 1 .. Last loop
