@@ -24,12 +24,24 @@ package WisiToken.Wisi_Runtime.Subprograms is
    Subp_Indent_Broken        : Integer := 0;
    Subp_Indent_Comment_Col_0 : Boolean := False;
 
-   procedure Set_Params (Params : in String);
+   type Parse_Data_Type is new Wisi_Runtime.Parse_Data_Type with null record;
+
+   overriding
+   procedure Initialize
+     (Data             : in out Parse_Data_Type;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String);
    --  Set all params from Params, in declaration order. Boolean is
    --  represented by 0 | 1. Parameter values are space delimited.
 
    function Function_1
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
 
 end WisiToken.Wisi_Runtime.Subprograms;

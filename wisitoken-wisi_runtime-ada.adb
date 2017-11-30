@@ -51,7 +51,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          return Null_Delta;
       end if;
 
-      if Indenting_Token.ID = Data.Record_ID then
+      if not Data.Indenting_Comment and Indenting_Token.ID = Data.Record_ID then
          --  Indenting 'record'
          return Indent_Anchored_2
            (Data, Anchor_Token.Line, Record_Token.Last_Line (Data.Indenting_Comment), Ada_Indent_Record_Rel_Type,
@@ -61,17 +61,19 @@ package body WisiToken.Wisi_Runtime.Ada is
          --  Indenting comment, component or 'end'
          --
          --  Ensure 'record' line is anchored.
-         if not (Data.Indents (Record_Token.Line).Label = Anchor or
+         if not (Data.Indents (Record_Token.Line).Label = Anchored or
                    Data.Indents (Record_Token.Line).Label = Anchor_Anchored)
          then
             if Anchor_Token.Line /= Record_Token.Line then
+               --  We don't pass Data.Indenting_Comment here, because 'record' is
+               --  always treated as code.
                Indent_Token_1
                  (Data,
-                  Record_Token.First_Line (Data.Indenting_Comment),
-                  Record_Token.Last_Line (Data.Indenting_Comment),
+                  Record_Token.First_Line (Indenting_Comment => False),
+                  Record_Token.Last_Line (Indenting_Comment => False),
                   Indent_Anchored_2
                     (Data, Anchor_Token.Line,
-                     Record_Token.Last_Line (Data.Indenting_Comment),
+                     Record_Token.Last_Line (Indenting_Comment => False),
                      Ada_Indent_Record_Rel_Type,
                      Accumulate => True));
             end if;
@@ -91,6 +93,17 @@ package body WisiToken.Wisi_Runtime.Ada is
             Accumulate => True);
       end if;
    end Indent_Record;
+
+   function Peek_ID (Data : in out Wisi_Runtime.Parse_Data_Type'Class; N : in Positive_Index_Type) return Token_ID
+   is
+      use all type Standard.Ada.Containers.Count_Type;
+   begin
+      if N > Data.Semantic_State.Stack.Length then
+         return Invalid_Token_ID;
+      else
+         return Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N + 1).ID;
+      end if;
+   end Peek_ID;
 
    ----------
    --  Public subprograms
@@ -161,6 +174,94 @@ package body WisiToken.Wisi_Runtime.Ada is
       Data.Record_ID := Find_ID (Data.Semantic_State.Trace.Descriptor.all, "RECORD");
    end Initialize;
 
+   overriding
+   function Indent_Hanging_1
+     (Data            : in out Parse_Data_Type;
+      Tokens          : in     Augmented_Token_Array;
+      Indenting_Token : in     Token_Line_Comment.Token;
+      Delta_1         : in     Simple_Indent_Param;
+      Delta_2         : in     Simple_Indent_Param;
+      Option          : in     Boolean;
+      Accumulate      : in     Boolean)
+     return Delta_Type
+   is
+      function Result (Delta_1 : in Simple_Indent_Param; Delta_2 : in Simple_Delta_Type) return Delta_Type
+      is begin
+         return
+           (Hanging,
+            Hanging_First_Line  => Indenting_Token.Line,
+            Hanging_Paren_State => Indenting_Token.Paren_State,
+            Hanging_Delta_1     => Indent_Compute_Delta
+              (Data, Tokens, (Simple, Delta_1), Indenting_Token).Simple_Delta,
+            Hanging_Delta_2     => Delta_2,
+            Hanging_Accumulate => Accumulate);
+      end Result;
+
+      function Result (Delta_1 : in Simple_Delta_Type) return Delta_Type
+      is begin
+         return
+           (Hanging,
+            Hanging_First_Line  => Indenting_Token.Line,
+            Hanging_Paren_State => Indenting_Token.Paren_State,
+            Hanging_Delta_1     => Delta_1,
+            Hanging_Delta_2     => Delta_1,
+            Hanging_Accumulate => Accumulate);
+      end Result;
+
+   begin
+      if Data.Indenting_Comment
+      then
+         return Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token);
+      else
+         declare
+            use Ada_Process;
+            Prev_1 : constant Token_ID := Peek_ID (Data, 1);
+            Prev_3 : constant Token_ID := Peek_ID (Data, 3);
+         begin
+            if Indenting_Token.ID = +expression_opt_ID
+              and
+              ((Prev_1 = +WITH_ID and
+                  (Prev_3 = Invalid_Token_ID or
+                     Prev_3 /= +LEFT_PAREN_ID))
+                 or
+                 Prev_3 = +WITH_ID)
+            then
+               --  in aspect_specification_opt
+               return Result
+                 (Delta_1,
+                  Indent_Anchored_2
+                    (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
+                     Current_Indent_Offset (Data, Indenting_Token, 0),
+                     Accumulate => False).Simple_Delta);
+
+            elsif Ada_Indent_Hanging_Rel_Exp then
+               declare
+                  New_Delta_2 : constant Simple_Delta_Type := Indent_Anchored_2
+                    (Data, Indenting_Token.Line, Indenting_Token.Last_Indent_Line,
+                     Current_Indent_Offset (Data, Indenting_Token, Ada_Indent_Broken),
+                     Accumulate => False).Simple_Delta;
+               begin
+                  if not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
+                     return Result (Delta_1, New_Delta_2);
+                  else
+                     return Result (New_Delta_2);
+                  end if;
+               end;
+            elsif not Option or Indenting_Token.Line = Indenting_Token.First_Indent_Line then
+               return Result
+                 (Delta_1,
+                  Indent_Compute_Delta
+                    (Data, Tokens, (Simple, Delta_2), Indenting_Token).Simple_Delta);
+
+            else
+               return Result
+                 (Indent_Compute_Delta
+                    (Data, Tokens, (Simple, Delta_1), Indenting_Token).Simple_Delta);
+            end if;
+         end;
+      end if;
+   end Indent_Hanging_1;
+
    function Ada_Indent_Aggregate
      (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
       Tokens    : in     Augmented_Token_Array;
@@ -172,19 +273,11 @@ package body WisiToken.Wisi_Runtime.Ada is
       pragma Unreferenced (Indenting);
       pragma Unreferenced (Tokens);
       use Ada_Process;
-
-      function Peek (N : in Positive_Index_Type) return Token_Enum_ID
-      is
-         use all type Standard.Ada.Containers.Count_Type;
-      begin
-         return -Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N + 1).ID;
-      end Peek;
-
    begin
       --  [1] ada-indent-aggregate
-      case Peek (1) is
+      case Token_Enum_ID'(-Peek_ID (Data, 1)) is
       when ELSE_ID =>
-         case Peek (2) is
+         case Token_Enum_ID'(-Peek_ID (Data, 2)) is
          when OR_ID =>
             return Null_Delta;
          when others =>
@@ -192,7 +285,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          end case;
 
       when EQUAL_GREATER_ID =>
-         case Peek (3) is
+         case Token_Enum_ID'(-Peek_ID (Data, 3)) is
          when WHEN_ID =>
             return (Simple, (Int, Ada_Indent_Broken - Ada_Indent));
          when others =>
@@ -200,7 +293,7 @@ package body WisiToken.Wisi_Runtime.Ada is
          end case;
 
       when THEN_ID =>
-         case Peek (2) is
+         case Token_Enum_ID'(-Peek_ID (Data, 2)) is
          when AND_ID =>
             return Null_Delta;
          when others =>
@@ -268,21 +361,29 @@ package body WisiToken.Wisi_Runtime.Ada is
    begin
       --  'return-tok' is Indenting,
       if Indenting.Line = Indenting.First_Indent_Line then
-         if Ada_Indent_Return = 0 then
-            return Indent_Anchored_2
-              (Data,
-               Anchor_Line => Token_Line_Comment.Token
-                 (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all).Line,
-               Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
-               Offset      => Args (2) + abs Ada_Indent_Return,
-               Accumulate  => True);
+         if Ada_Indent_Return <= 0 then
+            declare
+               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
+            begin
+               return Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Anchor_Token.Line,
+                  Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
+                  Offset      => Current_Indent_Offset (Data, Anchor_Token, Args (2) + abs Ada_Indent_Return),
+                  Accumulate  => True);
+            end;
          else
-            return Indent_Anchored_2
-              (Data,
-               Anchor_Line => Find_ID_On_Stack (Data, +FUNCTION_ID).Line,
-               Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
-               Offset      => Args (2) + abs Ada_Indent_Return,
-               Accumulate  => True);
+            declare
+               Anchor_Token : Token_Line_Comment.Token renames Find_ID_On_Stack (Data, +FUNCTION_ID);
+            begin
+               return Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Anchor_Token.Line,
+                  Last_Line   => Indenting.Last_Line (Data.Indenting_Comment),
+                  Offset      => Current_Indent_Offset (Data, Anchor_Token, Args (2) + abs Ada_Indent_Return),
+                  Accumulate  => True);
+            end;
          end if;
 
       else

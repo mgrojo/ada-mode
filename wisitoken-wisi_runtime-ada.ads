@@ -54,6 +54,18 @@ package WisiToken.Wisi_Runtime.Ada is
    --
    --  Also do any other initialization that Data needs.
 
+   overriding
+   function Indent_Hanging_1
+     (Data            : in out Parse_Data_Type;
+      Tokens          : in     Augmented_Token_Array;
+      Indenting_Token : in     Token_Line_Comment.Token;
+      Delta_1         : in     Simple_Indent_Param;
+      Delta_2         : in     Simple_Indent_Param;
+      Option          : in     Boolean;
+      Accumulate      : in     Boolean)
+     return Delta_Type;
+   --  [1] ada-wisi-elisp-parse--indent-hanging
+
    ----------
    --  The following are declared in ada.wy %elisp_indent
 

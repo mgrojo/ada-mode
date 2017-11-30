@@ -74,7 +74,7 @@
       (restore-buffer-modified-p nil))))
 
 (defun wisi-tests-setup (grammar-name)
-  ;; grammar file must be on load-path
+  ;; grammar-elisp file must be on load-path
   ;; use Ada style comments in source
   (set-syntax-table test-syntax-table)
   (set (make-local-variable 'syntax-propertize-function) 'test-syntax-propertize)
@@ -119,7 +119,11 @@
 	:face-table (symbol-value (intern-soft (concat grammar-name "-process-face-table")))
 	:token-table (symbol-value (intern-soft (concat grammar-name "-process-token-table")))
 	))
-      :lexer nil)
+      :lexer (wisi-make-elisp-lexer
+	      :token-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-token-table-raw")))
+	      :keyword-table-raw (symbol-value (intern-soft (concat grammar-name "-elisp-keyword-table-raw")))
+	      :string-quote-escape-doubled nil
+	      :string-quote-escape nil))
      (setq wisi-mckenzie-enable t)
      )
     )

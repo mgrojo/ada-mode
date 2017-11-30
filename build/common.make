@@ -128,7 +128,6 @@ vpath %.ads   ../test ../test/ada-gps ../test/subdir ../test/wisi
 vpath %.el    ../ ../test/wisi
 vpath %.gpr   ../test/gpr
 vpath %.input ../test/wisi
-vpath %.re2c  ../test/wisi
 vpath %.wy    ../ ../test/wisi
 
 # emacs to test with
@@ -151,10 +150,6 @@ gpr-skel.gpr.tmp :
 
 %.wisi-test : %-elisp.el
 	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-test.el --eval '(run-test "$*")'
-
-# FIXME: delete?
-%.wisi-process-test : %_wisi_parse.exe
-	$(EMACS_EXE) -Q -batch -L . $(ADA_MODE_DIR) -l run-wisi-process-test.el --eval '(run-test "$*")'
 
 %_wisi_parse.exe : %_wisi_parse.ads %_process.ads %_re2c.c force
 	gprbuild -p wisi_parse.gpr $<
@@ -263,7 +258,7 @@ exe-clean ::
 profile-clean ::
 	rm -rf ../exec_pro ../obj_pro
 
-# delete all files created by wisi-generate
+# delete all files created by wisi-generate for main programs
 build-ada-exec-clean :
 	cd ..; rm -f *.*_parse_table *.re2c *_re2c.c *_re2c_c.ads *-elisp.el *-process.el *_process.ad?
 
@@ -274,7 +269,7 @@ test-clean ::
 	rm -f ../test/ada_mode-spec.adb
 	rm -f *.log *.output *.wisi-test *.stamp
 	cd ../test/wisi/; rm -f *-elisp.el *.*parse_table
-	cd ../test/wisi/; rm -f subprograms-process.el subprograms.ada_parse_table subprograms.re2c subprograms_process.ad? subprograms_re2c_c.ads subprograms_wisi_parse.exe
+	cd ../test/wisi/; rm -f subprograms.ada_parse_table subprograms.re2c subprograms_re2c.c subprograms_re2c_c.ads subprograms-process.el subprograms_process.ad? subprograms_wisi_parse.exe
 
 source-clean :: test-clean
 	-find ../ -name "*~" -print -delete

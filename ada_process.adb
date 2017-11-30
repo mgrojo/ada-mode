@@ -3310,6 +3310,7 @@ package body Ada_Process is
       case Parse_Data.Parse_Action is
       when Navigate =>
          Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (3, Statement_End)));
+         Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
       when Face =>
          null;
       when Indent =>

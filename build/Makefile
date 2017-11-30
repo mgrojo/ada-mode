@@ -96,30 +96,28 @@ test-wisi :: identifier_list_name_conflict.wisi-test
 test-wisi :: number-literal.wisi-test
 test-wisi :: range_conflict.wisi-test
 
-test-wisi :: ../test/wisi/subprograms_re2c.c
-test-wisi :: subprograms_wisi_parse.exe
+test-wisi :: ../test/wisi/subprograms_re2c.c subprograms_process.ads
+test-wisi :: ../test/wisi/subprograms_wisi_parse.exe
 test-wisi :: RUNTEST := run-indent-test-process-gpr_query.el
 test-wisi :: subprograms.input.diff
 
 summarize :
 	cat *.log
 
-ONE_TEST_FILES += simple.gpr
-#ONE_TEST_FILES += ada_mode-nominal.adb
-one : build_ada_executables
+ONE_TEST_FILES += aspects.ads
+#one : build_ada_executables
 #one : byte-compile
 one : one-clean
 one-clean: force
 	for file in $(ONE_TEST_FILES) ; do rm -f $$file.* ; done
 one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
-#one : RUNTEST := run-indent-test-process-gpr_query.el
-#one : $(addsuffix .wisi-test, $(ONE_TEST_FILES))
+#one : $(addsuffix .input.diff, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= --indent_params "3 2 0"
+two : RUN_ARGS ?= --verbosity 1
 two : export Standard_Common_Build := Debug
 two : build_ada_executables
-	../run_gpr_parse.exe ../test/gpr/simple.gpr Navigate $(RUN_ARGS)
+	../run_ada_parse.exe ../test/debug.adb Indent $(RUN_ARGS)
 
 two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
 two_mem : export Standard_Common_Profile := On
@@ -141,7 +139,7 @@ export ADA_PROJECT_PATH=../test/:../test/subdir
 
 else
 # windows
-export WISI_WISITOKEN ?= /Projects/org.wisitoken.stephe-1/build
+export WISI_WISITOKEN ?= /Projects/org.wisitoken/build
 export ADA_PROJECT_PATH=../test/;../test/subdir
 
 INSTALL_BIN := d:/Apps/emacs-25.1/libexec/emacs/25.1/x86_64-w64-mingw32
@@ -380,7 +378,7 @@ $(INSTALL_BIN)gpr_query$(EXE_EXT) install_gpr_query : gpr_query$(EXE_EXT)
 $(INSTALL_BIN)ada_mode_gps_indent$(EXE_EXT) install_ada_mode_gps_indent : ada_mode_gps_indent$(EXE_EXT)
 	gprinstall -f -p -P ../ada_mode_gps_indent.gpr --install-name=ada_mode_gps_indent
 
-build_ada_executables : ../gpr_re2c.c gpr_process.ads  force
+build_ada_executables : ../gpr_re2c.c gpr_process.ads force
 build_ada_executables : ../ada_re2c.c ada_process.ads force
 	gprbuild -p ../ada_mode_wisi_parse.gpr $(GPRBUILD_LINK_ARGS)
 
@@ -400,13 +398,7 @@ $(INSTALL_BIN)run_gpr_mode_parser$(EXE_EXT) install_run_gpr_mode_parser : run_gp
 
 # Load both Ada mode projects, so we can choose one via the menu
 # Local Variables:
-<<<<<<< variant A
 # eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken/build"))
->>>>>>> variant B
-# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "c:/Projects/org.wisitoken.stephe-1/build"))
-####### Ancestor
-# eval: (unless (getenv "WISI_WISITOKEN") (setenv "WISI_WISITOKEN" "/Projects/org.wisitoken/build"))
-======= end
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_elisp_prj.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "wisi_parse.el"))
 # eval: (unless dvc-doing-ediff-p (load-file "ada_mode_wisi_parse.el"))

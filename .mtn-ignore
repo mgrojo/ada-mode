@@ -24,8 +24,6 @@
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$
-^build/subprograms_process\.adb$
-^build/subprograms_process\.ads$
 ^build/test\.casing$
 ^check_xref\.gpr$
 ^dir-ada-mode$
@@ -53,13 +51,13 @@
 ^test/gpr_query\.db-shm$
 ^test/gpr_query\.db-wal$
 ^test/subdir/ada_mode-nominal-child\.adb$
+^test/wisi/.*-elisp\.el$
+^test/wisi/.*-process\.el$
 ^test/wisi/.*\.c$
-^test/wisi/.*\.el$
-^test/wisi/.*\.elisp_output$
 ^test/wisi/.*\.elisp_parse_table$
 ^test/wisi/.*\.re2c$
 ^test/wisi/.*\.wisi-test$
-^test/wisi/debug\.input$
+^test/wisi/debug.*$
 ^test/wisi/subprograms_process\.adb$
 ^test/wisi/subprograms_process\.ads$
 ^test/wisi/subprograms_re2c_c\.ads$

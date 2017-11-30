@@ -21,13 +21,23 @@ with Ada.Exceptions;
 with Ada.Strings.Fixed;
 package body WisiToken.Wisi_Runtime.Subprograms is
 
-   procedure Set_Params (Params : in String)
+   overriding
+   procedure Initialize
+     (Data             : in out Parse_Data_Type;
+      Semantic_State   : in     WisiToken.Token_Line_Comment.State_Access;
+      Source_File_Name : in     String;
+      Parse_Action     : in     Parse_Action_Type;
+      Line_Count       : in     Line_Number_Type;
+      Params           : in     String)
    is
       use Ada.Strings.Fixed;
       First : Integer := Params'First;
       Last  : Integer := Index (Source => Params, Pattern => " ");
       Temp  : Integer;
    begin
+      Wisi_Runtime.Initialize
+        (Wisi_Runtime.Parse_Data_Type (Data), Semantic_State, Source_File_Name, Parse_Action, Line_Count, "");
+
       Subp_Indent := Integer'Value (Params (First .. Last));
 
       First := Last;
@@ -44,16 +54,19 @@ package body WisiToken.Wisi_Runtime.Subprograms is
       when E : Constraint_Error =>
          raise Constraint_Error with "params '" & Params & "' raised Constraint_Error: " &
            Ada.Exceptions.Exception_Message (E);
-   end Set_Params;
+   end Initialize;
 
    function Function_1
-     (Args : in WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens    : in     Augmented_Token_Array;
+      Indenting : in     Token_Line_Comment.Token;
+      Args      : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      pragma Unreferenced (Args);
+      pragma Unreferenced (Data, Tokens, Indenting, Args);
    begin
       --  subprograms.el subp-indent-function
-      return (Int, Subp_Indent_Broken);
+      return (Simple, (Int, Subp_Indent_Broken));
    end Function_1;
 
 end WisiToken.Wisi_Runtime.Subprograms;

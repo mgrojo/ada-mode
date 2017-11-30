@@ -95,105 +95,6 @@ package body WisiToken.Wisi_Runtime is
       end case;
    end Indent_Apply_Int;
 
-   function Indent_Compute_Delta
-     (Data            : in out Parse_Data_Type;
-      Tokens          : in     Augmented_Token_Array;
-      Param           : in     Indent_Param;
-      Indenting_Token : in     Token_Line_Comment.Token)
-     return Delta_Type
-   is begin
-      --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
-      case Param.Label is
-      when Simple =>
-         case Param.Param.Label is
-         when Int =>
-            return (Simple, (Int, Param.Param.Int_Delta));
-
-         when Anchored_Label =>
-            declare
-               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-                 (Tokens (Param.Param.Anchored_Index).Element.all);
-            begin
-               if Indenting_Token.Virtual or Anchor_Token.Virtual then
-                  return Null_Delta;
-               else
-                  case Anchored_Label'(Param.Param.Label) is
-                  when Anchored_0 =>
-                     --  [2] wisi-anchored, wisi-anchored-1
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => True);
-
-                  when Anchored_1 =>
-                     --  [2] wisi-anchored%
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => True);
-
-                  when Anchored_2 =>
-                     --  [2] wisi-anchored%-
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
-                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => False);
-
-                  when Anchored_3 =>
-                     --  [2] wisi-anchored*
-                     if Indenting_Token.First then
-                        return Indent_Anchored_2
-                          (Data,
-                           Anchor_Line => Anchor_Token.Line,
-                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
-                           Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                           Accumulate  => True);
-
-                     else
-                        return Null_Delta;
-                     end if;
-
-                  when Anchored_4 =>
-                     --  [2] wisi-anchored*-
-                     return Indent_Anchored_2
-                       (Data,
-                        Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
-                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
-                        Accumulate  => False);
-
-                  end case;
-               end if;
-            end;
-
-         when Language =>
-            return Param.Param.Function_Ptr (Data, Tokens, Indenting_Token, Param.Param.Args);
-         end case;
-
-      when Hanging_Label =>
-         case Hanging_Label'(Param.Label) is
-         when Hanging_0 => -- wisi-hanging
-            return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
-               Option => False, Accumulate => True);
-         when Hanging_1 => -- wisi-hanging%
-            return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
-               Option => True, Accumulate => True);
-         when Hanging_2 => -- wisi-hanging%-
-            return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
-               Option => True, Accumulate => False);
-         end case;
-      end case;
-   end Indent_Compute_Delta;
-
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
       First_Line : in     Line_Number_Type;
@@ -999,8 +900,7 @@ package body WisiToken.Wisi_Runtime is
 
                   if Comment_Param_Set then
                      Data.Indenting_Comment := True;
-                     Comment_Delta := Indent_Compute_Delta
-                       (Data, Tokens, Comment_Param, Token);
+                     Comment_Delta := Indent_Compute_Delta (Data, Tokens, Comment_Param, Token);
 
                      if Comment_Delta /= Null_Delta then
                         Indent_Token_1
@@ -1060,6 +960,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Indent_Zero_P (Indent : in Indent_Type) return Boolean
    is begin
+      --  wisi-elisp-parse--indent-zero-p
       case Indent.Label is
       when Not_Set =>
          return True;
@@ -1067,8 +968,14 @@ package body WisiToken.Wisi_Runtime is
       when Int =>
          return Indent.Int_Indent = 0;
 
-      when Anchor | Anchored | Anchor_Anchored =>
-         return False;
+      when Anchor =>
+         return Indent.Anchor_Indent = 0;
+
+      when Anchored =>
+         return Indent.Anchored_Delta = 0;
+
+      when Anchor_Anchored =>
+         return Indent.Anchor_Anchored_Delta = 0;
       end case;
    end Indent_Zero_P;
 
@@ -1239,6 +1146,105 @@ package body WisiToken.Wisi_Runtime is
 
       return (Simple, (Anchored, Anchor_ID, Offset, Accumulate));
    end Indent_Anchored_2;
+
+   function Indent_Compute_Delta
+     (Data            : in out Parse_Data_Type;
+      Tokens          : in     Augmented_Token_Array;
+      Param           : in     Indent_Param;
+      Indenting_Token : in     Token_Line_Comment.Token)
+     return Delta_Type
+   is begin
+      --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
+      case Param.Label is
+      when Simple =>
+         case Param.Param.Label is
+         when Int =>
+            return (Simple, (Int, Param.Param.Int_Delta));
+
+         when Anchored_Label =>
+            declare
+               Anchor_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
+                 (Tokens (Param.Param.Anchored_Index).Element.all);
+            begin
+               if Indenting_Token.Virtual or Anchor_Token.Virtual then
+                  return Null_Delta;
+               else
+                  case Anchored_Label'(Param.Param.Label) is
+                  when Anchored_0 =>
+                     --  [2] wisi-anchored, wisi-anchored-1
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => True);
+
+                  when Anchored_1 =>
+                     --  [2] wisi-anchored%
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => True);
+
+                  when Anchored_2 =>
+                     --  [2] wisi-anchored%-
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => False);
+
+                  when Anchored_3 =>
+                     --  [2] wisi-anchored*
+                     if Indenting_Token.First then
+                        return Indent_Anchored_2
+                          (Data,
+                           Anchor_Line => Anchor_Token.Line,
+                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                           Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                           Accumulate  => True);
+
+                     else
+                        return Null_Delta;
+                     end if;
+
+                  when Anchored_4 =>
+                     --  [2] wisi-anchored*-
+                     return Indent_Anchored_2
+                       (Data,
+                        Anchor_Line => Anchor_Token.Line,
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
+                        Accumulate  => False);
+
+                  end case;
+               end if;
+            end;
+
+         when Language =>
+            return Param.Param.Function_Ptr (Data, Tokens, Indenting_Token, Param.Param.Args);
+         end case;
+
+      when Hanging_Label =>
+         case Hanging_Label'(Param.Label) is
+         when Hanging_0 => -- wisi-hanging
+            return Indent_Hanging_1
+              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+               Option => False, Accumulate => True);
+         when Hanging_1 => -- wisi-hanging%
+            return Indent_Hanging_1
+              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+               Option => True, Accumulate => True);
+         when Hanging_2 => -- wisi-hanging%-
+            return Indent_Hanging_1
+              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+               Option => True, Accumulate => False);
+         end case;
+      end case;
+   end Indent_Compute_Delta;
 
    procedure Indent_Token_1
      (Data         : in out Parse_Data_Type;

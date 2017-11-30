@@ -27,7 +27,7 @@
 (require 'cl-lib)
 
 (cl-defstruct wisi-elisp-lexer
-  id-alist ;; alist mapping strings to token ids
+  id-alist ;; alist mapping strings to token ids; used by repair error
   keyword-table ;; obarray holding keyword tokens
   punctuation-table ;; obarray holding punctuation tokens
   punctuation-table-max-length ;; max string length in punctuation-table
@@ -43,7 +43,7 @@
   last-line ;; index into line-begin of line containing last lexed token
   )
 
-(cl-defgeneric wisi-elisp-lexer-reset (line-count (lexer wisi-elisp-lexer))
+(defun wisi-elisp-lexer-reset (line-count lexer)
   "Reset lexer to start a new parse. LINE-COUNT is the count of lines in the current buffer."
   (setf (wisi-elisp-lexer-line-begin lexer) (wisi--set-line-begin line-count))
   (setf (wisi-elisp-lexer-last-line lexer) nil))
@@ -59,6 +59,8 @@
   "Return a ‘wisi-elisp-lexer’ object."
   (let* ((token-table (semantic-lex-make-type-table token-table-raw))
 	 (keyword-table (semantic-lex-make-keyword-table keyword-table-raw))
+	 (left-paren (cadr (wisi-elisp-lexer--safe-intern "left-paren" token-table)))
+	 (right-paren (cadr (wisi-elisp-lexer--safe-intern "right-paren" token-table)))
 	 (punctuation-table (wisi-elisp-lexer--safe-intern "punctuation" token-table))
 	 (punct-max-length 0)
 	 (number (cadr (wisi-elisp-lexer--safe-intern "number" token-table)))
@@ -92,9 +94,12 @@
       (when (nth 2 number)
 	(require (nth 2 number)))) ;; for number-p
 
-    ;; build rest of id-alist
-    (dolist (item keyword-table-raw)
-      (push (cons (cdr item) (car item)) id-alist))
+    (when left-paren
+      (push left-paren id-alist)
+      (set (intern (cdr left-paren) keyword-table) (car left-paren)))
+    (when right-paren
+      (push right-paren id-alist)
+      (set (intern (cdr right-paren) keyword-table) (car right-paren)))
 
     (when symbol
       (push (cons (car symbol) "a_bogus_identifier") id-alist))

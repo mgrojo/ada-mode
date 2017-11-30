@@ -409,8 +409,8 @@ private
       when Hanging =>
          Hanging_First_Line  : Line_Number_Type;
          Hanging_Paren_State : Natural;
-         Hanging_Delta_1     : Simple_Delta_Type;
-         Hanging_Delta_2     : Simple_Delta_Type;
+         Hanging_Delta_1     : Simple_Delta_Type; -- indentation of first line
+         Hanging_Delta_2     : Simple_Delta_Type; -- indentation of continuation lines
          Hanging_Accumulate  : Boolean;
       end case;
    end record;
@@ -436,6 +436,13 @@ private
       Accumulate  : in     Boolean)
      return Delta_Type;
    --  [2] wisi-elisp-parse--anchored-2
+
+   function Indent_Compute_Delta
+     (Data            : in out Parse_Data_Type;
+      Tokens          : in     Augmented_Token_Array;
+      Param           : in     Indent_Param;
+      Indenting_Token : in     Token_Line_Comment.Token)
+     return Delta_Type;
 
    procedure Indent_Token_1
      (Data         : in out Parse_Data_Type;

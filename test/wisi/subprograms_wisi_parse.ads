@@ -20,7 +20,9 @@ pragma License (GPL);
 
 with Gen_Emacs_Wisi_Parse;
 with Subprograms_Process;
-with WisiToken.Wisi_Runtime.Subprograms;
+with WisiToken.Wisi_Runtime;
 procedure Subprograms_Wisi_Parse is new Gen_Emacs_Wisi_Parse
-  ("Subprograms", Subprograms_Process.Descriptor, Subprograms_Process.Parse_Data, Subprograms_Process.Create_Parser,
-   WisiToken.Wisi_Runtime.Subprograms.Set_Params);
+  ("Subprograms",
+   Subprograms_Process.Descriptor,
+   WisiToken.Wisi_Runtime.Parse_Data_Type'Class (Subprograms_Process.Parse_Data),
+   Subprograms_Process.Create_Parser);
