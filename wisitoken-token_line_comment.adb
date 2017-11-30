@@ -76,13 +76,15 @@ package body WisiToken.Token_Line_Comment is
       use all type Ada.Containers.Count_Type;
       First   : Positive_Index_Type := Tokens.First_Index;
       Last    : Positive_Index_Type := Tokens.Last_Index;
-      Current : Positive_Index_Type := (First + Last) / 2;
+      Current : Positive_Index_Type;
 
       Final_First : Positive_Index_Type;
       Final_Last  : Positive_Index_Type;
    begin
       --  Binary search for Char_Region.First
       loop
+         Current := (First + Last) / 2;
+
          declare
             Current_Tok : Token renames Tokens (Current).Element.all;
          begin
@@ -98,8 +100,6 @@ package body WisiToken.Token_Line_Comment is
             else
                Last := Current;
             end if;
-
-            Current := (First + Last) / 2;
          end;
       end loop;
 
@@ -109,6 +109,8 @@ package body WisiToken.Token_Line_Comment is
       First := Final_First;
       Last  := Tokens.Last_Index;
       loop
+         Current := (First + Last) / 2;
+
          declare
             Current_Tok : Token renames Tokens (Current).Element.all;
          begin
@@ -125,7 +127,6 @@ package body WisiToken.Token_Line_Comment is
                Last := Current;
             end if;
 
-            Current := (First + Last) / 2;
          end;
       end loop;
 
