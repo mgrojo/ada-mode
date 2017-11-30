@@ -239,14 +239,14 @@ package WisiToken.Wisi_Runtime is
    type Indent_Param_Array is array (Positive_Index_Type range <>) of Indent_Pair;
 
    procedure Indent_Action_0
-     (Data    : in out Parse_Data_Type;
+     (Data    : in out Parse_Data_Type'Class;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
    procedure Indent_Action_1
-     (Data    : in out Parse_Data_Type;
+     (Data    : in out Parse_Data_Type'Class;
       Nonterm : in     Augmented_Token'Class;
       Tokens  : in     Augmented_Token_Array;
       N       : in     Positive_Index_Type;
@@ -438,7 +438,7 @@ private
    --  [2] wisi-elisp-parse--anchored-2
 
    function Indent_Compute_Delta
-     (Data            : in out Parse_Data_Type;
+     (Data            : in out Parse_Data_Type'Class;
       Tokens          : in     Augmented_Token_Array;
       Param           : in     Indent_Param;
       Indenting_Token : in     Token_Line_Comment.Token)

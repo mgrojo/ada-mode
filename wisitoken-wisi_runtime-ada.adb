@@ -319,24 +319,25 @@ package body WisiToken.Wisi_Runtime.Ada is
       Paren_I     : constant Standard.Ada.Containers.Count_Type := Token_Line_Comment.Find
         (Data.Semantic_State.Grammar_Tokens, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok.Char_Region);
    begin
-      if Paren_I /= Tokens.First_Index - 1 then
+      if Paren_I /= Data.Semantic_State.Grammar_Tokens.First_Index - 1 then
          --  paren is present
          declare
-            Paren_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (Paren_I).Element.all);
+            Paren_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token
+              (Data.Semantic_State.Grammar_Tokens (Paren_I).Element.all);
          begin
             if Ada_Indent_Renames > 0 then
-               return Indent_Anchored_2
-                 (Data,
-                  Anchor_Line => Paren_Tok.Line,
-                  Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
-                  Offset      => Current_Indent_Offset (Data, Paren_Tok, abs Ada_Indent_Renames),
-                  Accumulate  => True);
-            else
                return Indent_Anchored_2
                  (Data,
                   Anchor_Line => Subp_Tok.Line,
                   Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
                   Offset      => Ada_Indent_Renames,
+                  Accumulate  => True);
+            else
+               return Indent_Anchored_2
+                 (Data,
+                  Anchor_Line => Paren_Tok.Line,
+                  Last_Line   => Renames_Tok.Last_Line (Data.Indenting_Comment),
+                  Offset      => Current_Indent_Offset (Data, Paren_Tok, abs Ada_Indent_Renames),
                   Accumulate  => True);
             end if;
          end;

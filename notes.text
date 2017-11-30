@@ -13,16 +13,16 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
   (load "autoloads.el")
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  ; (find-file "../test/gpr/standard_common.gpr")
+  (find-file "../test/slow_recover_1.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
@@ -32,13 +32,6 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
-run all tests
-    ada process indent:
-        build/aspects.ads.diff
-        build/format_paramlist.ads.diff
-        build/generic_param.adb.diff
-        build/limited_record.ads.diff
-
 review fixme
 
 use grammar_tokens, not stack
