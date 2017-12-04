@@ -32,10 +32,6 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
-change grammar_tokens to all_tokens, drop token.non_grammar
-    running all tests
-
-
 review wisi-hanging% use
     access_definition - why anchored to PROCEDURE? why %?
 

@@ -178,11 +178,8 @@ begin
             end;
          else
             Parser.Parse;
-
-            WisiToken.Wisi_Runtime.Resolve_Anchors (Parse_Data);
             WisiToken.Wisi_Runtime.Put (Parse_Data);
             WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
-
          end if;
       exception
       when E : WisiToken.Parse_Error | WisiToken.Syntax_Error =>

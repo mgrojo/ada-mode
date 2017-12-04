@@ -252,8 +252,6 @@ begin
 
                Parser.Lexer.Reset_With_String_Access (Buffer);
                Parser.Parse;
-
-               WisiToken.Wisi_Runtime.Resolve_Anchors (Parse_Data);
                WisiToken.Wisi_Runtime.Put (Parse_Data);
                WisiToken.Wisi_Runtime.Put (State.Errors, Trace.Descriptor.all);
 

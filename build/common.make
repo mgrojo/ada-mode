@@ -113,6 +113,9 @@ SYNTAX_FILES  := $(SYNTAX_FILES) parent.adb
 COMPILE_FILES := $(filter-out prime-volatilities.adb, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
 
+# deliberate errors to test error recovery
+COMPILE_FILES := $(filter-out slow_recover_1.adb, $(COMPILE_FILES))
+
 # GNAT GPL 2016 complains about compiling these; not clear why
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))
 SYNTAX_FILES  := $(SYNTAX_FILES) test_private.ads

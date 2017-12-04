@@ -1,6 +1,7 @@
 --  This is from a real editing session; it found a bug in the parser,
 --  and now takes a long time in recover, ending with two errors.
 --
+--EMACS_SKIP_UNLESS: (eq ada-parser 'process)
 --EMACSCMD:(setq skip-recase-test t)
 --EMACSCMD:(progn (wisi-validate-cache (point-max) nil 'navigate) (length (wisi-parser-errors wisi--parser)))
 --EMACSRESULT:2

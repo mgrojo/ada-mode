@@ -360,6 +360,44 @@ package body WisiToken.Wisi_Runtime is
       Ada.Text_IO.Put_Line (To_String (Line));
    end Put;
 
+   procedure Resolve_Anchors (Data : in out Parse_Data_Type)
+   is
+      Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
+   begin
+      if Data.Max_Anchor_ID >= First_Anchor_ID then
+         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
+            declare
+               Indent : constant Indent_Type := Data.Indents (I);
+            begin
+               case Indent.Label is
+               when Not_Set | Int =>
+                  null;
+
+               when Anchor =>
+                  for I of Indent.Anchor_IDs loop
+                     Anchor_Indent (I) := Indent.Anchor_Indent;
+                  end loop;
+                  Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent));
+
+               when Anchored =>
+                  Data.Indents.Replace_Element (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
+
+               when Anchor_Anchored =>
+                  declare
+                     Temp : constant Integer :=
+                       Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
+                  begin
+                     for I of Indent.Anchor_Anchored_IDs loop
+                        Anchor_Indent (I) := Temp;
+                     end loop;
+                     Data.Indents.Replace_Element (I, (Int, Temp));
+                  end;
+               end case;
+            end;
+         end loop;
+      end if;
+   end Resolve_Anchors;
+
    procedure Set_End
      (Data           : in out Parse_Data_Type;
       Containing_Pos : in     Buffer_Pos;
@@ -1016,45 +1054,7 @@ package body WisiToken.Wisi_Runtime is
       end if;
    end Indent_Hanging_1;
 
-   procedure Resolve_Anchors (Data : in out Parse_Data_Type)
-   is
-      Anchor_Indent : array (First_Anchor_ID .. Data.Max_Anchor_ID) of Integer;
-   begin
-      if Data.Max_Anchor_ID >= First_Anchor_ID then
-         for I in Data.Indents.First_Index .. Data.Indents.Last_Index loop
-            declare
-               Indent : constant Indent_Type := Data.Indents (I);
-            begin
-               case Indent.Label is
-               when Not_Set | Int =>
-                  null;
-
-               when Anchor =>
-                  for I of Indent.Anchor_IDs loop
-                     Anchor_Indent (I) := Indent.Anchor_Indent;
-                  end loop;
-                  Data.Indents.Replace_Element (I, (Int, Indent.Anchor_Indent));
-
-               when Anchored =>
-                  Data.Indents.Replace_Element (I, (Int, Anchor_Indent (Indent.Anchored_ID) + Indent.Anchored_Delta));
-
-               when Anchor_Anchored =>
-                  declare
-                     Temp : constant Integer :=
-                       Anchor_Indent (Indent.Anchor_Anchored_ID) + Indent.Anchor_Anchored_Delta;
-                  begin
-                     for I of Indent.Anchor_Anchored_IDs loop
-                        Anchor_Indent (I) := Temp;
-                     end loop;
-                     Data.Indents.Replace_Element (I, (Int, Temp));
-                  end;
-               end case;
-            end;
-         end loop;
-      end if;
-   end Resolve_Anchors;
-
-   procedure Put (Data : in Parse_Data_Type)
+   procedure Put (Data : in out Parse_Data_Type)
    is begin
       case Data.Parse_Action is
       when Navigate =>
@@ -1068,7 +1068,12 @@ package body WisiToken.Wisi_Runtime is
          end loop;
 
       when Indent =>
-         --  Don't send indent for first line in source; always 0.
+         --  We don't need "Indent_Leading_Comments"; they are indented to 0,
+         --  which is the default.
+
+         Resolve_Anchors (Data);
+
+         --  Can't set indent for first line
          for I in Data.Indents.First_Index + 1 .. Data.Indents.Last_Index loop
             Put (Data, I, Data.Indents (I));
          end loop;

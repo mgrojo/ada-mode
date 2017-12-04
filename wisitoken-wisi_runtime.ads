@@ -267,17 +267,15 @@ package WisiToken.Wisi_Runtime is
    --  Language specific child packages override this to implement
    --  wisi-elisp-parse-indent-hanging-function.
 
-   procedure Resolve_Anchors (Data : in out Parse_Data_Type);
-
-   procedure Put (Data : in Parse_Data_Type);
-   --  Put parse result to Ada.Text_IO.Standard_Output, as encoded
-   --  set-text-property responses as defined in [3]
+   procedure Put (Data : in out Parse_Data_Type);
+   --  Perform some post-parse actions, then put parse result to
+   --  Ada.Text_IO.Current_Output, as encoded responses as defined in [3]
    --  wisi-process-parse--execute.
 
    procedure Put
      (Errors     : in WisiToken.Token_Region.Error_List_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class);
-   --  Put Errors to Ada.Text_IO.Standard_Output, as encoded error
+   --  Put Errors to Ada.Text_IO.Current_Output, as encoded error
    --  responses as defined in [3] wisi-process-parse--execute.
 
    procedure Put_Error (Data : in Parse_Data_Type; Line_Number : in Line_Number_Type; Message : in String);
