@@ -69,8 +69,7 @@ package body WisiToken.Wisi_Runtime.Ada is
                --  always treated as code.
                Indent_Token_1
                  (Data,
-                  Record_Token.First_Line (Indenting_Comment => False),
-                  Record_Token.Last_Line (Indenting_Comment => False),
+                  Record_Token,
                   Indent_Anchored_2
                     (Data, Anchor_Token.Line,
                      Record_Token.Last_Line (Indenting_Comment => False),
@@ -170,6 +169,8 @@ package body WisiToken.Wisi_Runtime.Ada is
          First := Last + 1;
          Ada_Indent_Hanging_Rel_Exp := Params (First) = '1';
       end if;
+
+      Data.Indent_Comment_Col_0 := Ada_Indent_Comment_Col_0;
 
       Data.Record_ID := Find_ID (Data.Semantic_State.Trace.Descriptor.all, "RECORD");
    end Initialize;
@@ -317,13 +318,12 @@ package body WisiToken.Wisi_Runtime.Ada is
         (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
       Renames_Tok : Token_Line_Comment.Token renames Indenting;
       Paren_I     : constant Standard.Ada.Containers.Count_Type := Token_Line_Comment.Find
-        (Data.Semantic_State.Grammar_Tokens, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok.Char_Region);
+        (Data.Semantic_State.all, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
    begin
-      if Paren_I /= Data.Semantic_State.Grammar_Tokens.First_Index - 1 then
+      if Paren_I /= Token_Line_Comment.Invalid_All_Tokens_Index then
          --  paren is present
          declare
-            Paren_Tok : Token_Line_Comment.Token renames Token_Line_Comment.Token
-              (Data.Semantic_State.Grammar_Tokens (Paren_I).Element.all);
+            Paren_Tok : Token_Line_Comment.Token renames Data.Semantic_State.All_Tokens (Paren_I).Element.all;
          begin
             if Ada_Indent_Renames > 0 then
                return Indent_Anchored_2

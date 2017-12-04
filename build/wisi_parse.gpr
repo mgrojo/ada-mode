@@ -36,10 +36,14 @@ project Wisi_Parse is
            Standard_Common.Compiler.Debug_Switches &
            Standard_common.Compiler.Style_Checks;
 
+         for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Release_Switches &
            Standard_Common.Compiler.Style_Checks;
+
+         for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;
 
       --  Lines in subprograms_process.adb can exceed 120 char

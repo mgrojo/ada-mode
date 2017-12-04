@@ -70,6 +70,8 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Debug_Switches & ("-O1");
 
+         for Default_Switches ("C") use Standard_Common.Compiler.Debug_Switches_C;
+
       when "Normal" =>
          for Default_Switches ("Ada") use
            Standard_Common.Compiler.Common_Switches &
@@ -95,6 +97,8 @@ project Ada_Mode_Wisi_Parse is
            Standard_Common.Compiler.Common_Switches &
            Standard_Common.Compiler.Base_Style_Checks &
            Standard_Common.Compiler.Base_Release_Switches & ("-O1");
+
+         for Default_Switches ("C") use Standard_Common.Compiler.Release_Switches_C;
       end case;
 
    end Compiler;

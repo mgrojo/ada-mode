@@ -375,6 +375,9 @@ private
       Face_Caches      : Face_Cache_Trees.Tree;      -- Set by Face.
       Indents          : Indent_Vectors.Vector;      -- Set by Indent.
 
+      --  Copied from language-specific parameters
+      Indent_Comment_Col_0 : Boolean := False;
+
       --  Dynamic data for Indent
       Max_Anchor_ID     : Integer;
       Indenting_Comment : Boolean;
@@ -445,10 +448,9 @@ private
      return Delta_Type;
 
    procedure Indent_Token_1
-     (Data         : in out Parse_Data_Type;
-      First_Line   : in     Line_Number_Type;
-      Last_Line    : in     Line_Number_Type;
-      Delta_Indent : in     Delta_Type);
+     (Data            : in out Parse_Data_Type;
+      Indenting_Token : in     Token_Line_Comment.Token;
+      Delta_Indent    : in     Delta_Type);
    --  [2] wisi-elisp-parse--indent-token-1. Sets Data.Indents, so caller
    --  may not be in a renames for a Data.Indents element.
 

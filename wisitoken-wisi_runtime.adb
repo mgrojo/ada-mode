@@ -32,6 +32,8 @@ package body WisiToken.Wisi_Runtime is
    ----------
    --  body subprogram specs (as needed), alphabetical
 
+   function Indent_Zero_P (Indent : in Indent_Type) return Boolean;
+
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
       First_Line : in     Line_Number_Type;
@@ -95,6 +97,70 @@ package body WisiToken.Wisi_Runtime is
       end case;
    end Indent_Apply_Int;
 
+   procedure Indent_Line
+     (Data         : in out Parse_Data_Type;
+      Line         : in     Line_Number_Type;
+      Delta_Indent : in     Delta_Type)
+   is
+      --  See note in Indent_Anchored_2 for why we can't use renames here.
+      Indent : Indent_Type := Data.Indents (Line);
+   begin
+      case Delta_Indent.Label is
+      when Simple =>
+         case Delta_Indent.Simple_Delta.Label is
+         when Int =>
+            Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
+
+         when Anchored =>
+            Indent_Apply_Anchored (Delta_Indent.Simple_Delta, Indent);
+         end case;
+
+      when Hanging =>
+         if Delta_Indent.Hanging_Accumulate or Indent_Zero_P (Data.Indents (Line)) then
+            if Line = Delta_Indent.Hanging_First_Line then
+               --  Apply delta_1
+               case Delta_Indent.Hanging_Delta_1.Label is
+               when Int =>
+                  Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta);
+               when Anchored =>
+                  Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
+               end case;
+            else
+               if Delta_Indent.Hanging_Paren_State = Data.Semantic_State.Line_Paren_State (Line) then
+                  case Delta_Indent.Hanging_Delta_2.Label is
+                  when Int =>
+                     Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
+                  when Anchored =>
+                     Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
+                  end case;
+               end if;
+            end if;
+         end if;
+      end case;
+      Data.Indents.Replace_Element (Line, Indent);
+   end Indent_Line;
+
+   function Indent_Zero_P (Indent : in Indent_Type) return Boolean
+   is begin
+      --  wisi-elisp-parse--indent-zero-p
+      case Indent.Label is
+      when Not_Set =>
+         return True;
+
+      when Int =>
+         return Indent.Int_Indent = 0;
+
+      when Anchor =>
+         return Indent.Anchor_Indent = 0;
+
+      when Anchored =>
+         return Indent.Anchored_Delta = 0;
+
+      when Anchor_Anchored =>
+         return Indent.Anchor_Anchored_Delta = 0;
+      end case;
+   end Indent_Zero_P;
+
    function Max_Anchor_ID
      (Data       : in out Parse_Data_Type;
       First_Line : in     Line_Number_Type;
@@ -134,37 +200,30 @@ package body WisiToken.Wisi_Runtime is
       Left_Paren_ID  : WisiToken.Token_ID renames Descriptor.Left_Paren_ID;
       Right_Paren_ID : WisiToken.Token_ID renames Descriptor.Right_Paren_ID;
 
-      I              : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
+      I              : Positive_Index_Type := Anchor_Token.First_All_Tokens_Index;
       Paren_Count    : Integer             := 0;
       Paren_Char_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
       Text_Begin_Pos : Buffer_Pos          := Invalid_Buffer_Pos;
    begin
       --  [1] wisi-elisp-parse--paren-in-anchor-line. That uses elisp syntax-ppss; here
-      --  we search the parser stack. FIXME: use Grammar_Tokens instead
+      --  we search All_Tokens.
       loop
-         exit when I < Data.Semantic_State.Stack.First_Index;
          declare
-            Stack_Token : Token_Line_Comment.Token renames Token_Line_Comment.Token
-              (Data.Semantic_State.Stack (I).Element.all);
+            Tok : Token_Line_Comment.Token renames Data.Semantic_State.All_Tokens (I).Element.all;
          begin
-            exit when Stack_Token.Line /= Anchor_Token.Line;
-
-            if Stack_Token.ID = Left_Paren_ID then
+            if Tok.ID = Left_Paren_ID then
                Paren_Count := Paren_Count + 1;
                if Paren_Count = 1 then
-                  Paren_Char_Pos := Stack_Token.Char_Region.First;
+                  Paren_Char_Pos := Tok.Char_Region.First;
                end if;
 
-            elsif Stack_Token.ID = Right_Paren_ID then
+            elsif Tok.ID = Right_Paren_ID then
                Paren_Count := Paren_Count - 1;
 
             end if;
 
-            if Stack_Token.First or else
-              ((Stack_Token.ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) and then
-                 Stack_Token.First_Indent_Line = Stack_Token.Line)
-            then
-               Text_Begin_Pos := Stack_Token.Char_Region.First;
+            if Tok.First then
+               Text_Begin_Pos := Tok.Char_Region.First;
                exit;
             end if;
          end;
@@ -884,7 +943,7 @@ package body WisiToken.Wisi_Runtime is
                   Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token);
 
                   if Code_Delta /= Null_Delta then
-                     Indent_Token_1 (Data, Token.First_Indent_Line, Token.Last_Indent_Line, Code_Delta);
+                     Indent_Token_1 (Data, Token, Code_Delta);
                   end if;
                end if;
 
@@ -903,8 +962,7 @@ package body WisiToken.Wisi_Runtime is
                      Comment_Delta := Indent_Compute_Delta (Data, Tokens, Comment_Param, Token);
 
                      if Comment_Delta /= Null_Delta then
-                        Indent_Token_1
-                          (Data, Token.First_Trailing_Comment_Line, Token.Last_Trailing_Comment_Line, Comment_Delta);
+                        Indent_Token_1 (Data, Token, Comment_Delta);
                      end if;
                   end if;
                end if;
@@ -957,27 +1015,6 @@ package body WisiToken.Wisi_Runtime is
             Hanging_Accumulate => Accumulate);
       end if;
    end Indent_Hanging_1;
-
-   function Indent_Zero_P (Indent : in Indent_Type) return Boolean
-   is begin
-      --  wisi-elisp-parse--indent-zero-p
-      case Indent.Label is
-      when Not_Set =>
-         return True;
-
-      when Int =>
-         return Indent.Int_Indent = 0;
-
-      when Anchor =>
-         return Indent.Anchor_Indent = 0;
-
-      when Anchored =>
-         return Indent.Anchored_Delta = 0;
-
-      when Anchor_Anchored =>
-         return Indent.Anchor_Anchored_Delta = 0;
-      end case;
-   end Indent_Zero_P;
 
    procedure Resolve_Anchors (Data : in out Parse_Data_Type)
    is
@@ -1084,8 +1121,9 @@ package body WisiToken.Wisi_Runtime is
         (if Anchor_Token.First and
            Anchor_Token.First_Indent_Line = Anchor_Token.Line
          then Anchor_Token.Char_Region.First
-         else Data.Semantic_State.Grammar_Tokens
-           (Token_Line_Comment.Find_Line_Begin (Data.Semantic_State.Grammar_Tokens, Anchor_Token)).Char_Region.First);
+         else Data.Semantic_State.All_Tokens
+           (Token_Line_Comment.Find_Line_Begin
+              (Data.Semantic_State.all, Anchor_Token.Line, Anchor_Token)).Char_Region.First);
    begin
       return Offset + Integer (Anchor_Token.Char_Region.First - Line_Begin_Pos);
    end Current_Indent_Offset;
@@ -1247,52 +1285,32 @@ package body WisiToken.Wisi_Runtime is
    end Indent_Compute_Delta;
 
    procedure Indent_Token_1
-     (Data         : in out Parse_Data_Type;
-      First_Line   : in     Line_Number_Type;
-      Last_Line    : in     Line_Number_Type;
-      Delta_Indent : in     Delta_Type)
+     (Data            : in out Parse_Data_Type;
+      Indenting_Token : in     Token_Line_Comment.Token;
+      Delta_Indent    : in     Delta_Type)
    is
-      --  FIXME: implement wisi-indent-comment-col-0
+      First_Line : constant Line_Number_Type := Indenting_Token.First_Line (Data.Indenting_Comment);
+      Last_Line  : constant Line_Number_Type := Indenting_Token.Last_Line (Data.Indenting_Comment);
    begin
-      for I in First_Line .. Last_Line loop
-         declare
-            --  See note in Indent_Anchored_2 for why we can't use renames here.
-            Indent : Indent_Type := Data.Indents (I);
-         begin
-            case Delta_Indent.Label is
-            when Simple =>
-               case Delta_Indent.Simple_Delta.Label is
-               when Int =>
-                  Indent_Apply_Int (Indent, Delta_Indent.Simple_Delta.Int_Delta);
+      for Line in First_Line .. Last_Line loop
+         if Data.Indent_Comment_Col_0 then
+            declare
+               use all type Ada.Text_IO.Count;
 
-               when Anchored =>
-                  Indent_Apply_Anchored (Delta_Indent.Simple_Delta, Indent);
-               end case;
-
-            when Hanging =>
-               if Delta_Indent.Hanging_Accumulate or Indent_Zero_P (Data.Indents (I)) then
-                  if I = Delta_Indent.Hanging_First_Line then
-                     --  Apply delta_1
-                     case Delta_Indent.Hanging_Delta_1.Label is
-                     when Int =>
-                        Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_1.Int_Delta);
-                     when Anchored =>
-                        Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_1, Indent);
-                     end case;
-                  else
-                     if Delta_Indent.Hanging_Paren_State = Data.Semantic_State.Line_Paren_State (I) then
-                        case Delta_Indent.Hanging_Delta_2.Label is
-                        when Int =>
-                           Indent_Apply_Int (Indent, Delta_Indent.Hanging_Delta_2.Int_Delta);
-                        when Anchored =>
-                           Indent_Apply_Anchored (Delta_Indent.Hanging_Delta_2, Indent);
-                        end case;
-                     end if;
-                  end if;
+               I : constant Positive_Index_Type := Token_Line_Comment.Find_Line_Begin
+                 (Data.Semantic_State.all, Line, Indenting_Token);
+            begin
+               if Data.Semantic_State.All_Tokens (I).ID = Data.Semantic_State.Trace.Descriptor.Comment_ID and
+                 Data.Semantic_State.All_Tokens (I).Col = 0
+               then
+                  null;
+               else
+                  Indent_Line (Data, Line, Delta_Indent);
                end if;
-            end case;
-            Data.Indents.Replace_Element (I, Indent);
-         end;
+            end;
+         else
+            Indent_Line (Data, Line, Delta_Indent);
+         end if;
       end loop;
    end Indent_Token_1;
 

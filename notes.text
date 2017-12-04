@@ -5,7 +5,7 @@ build/Makefile
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser with actions
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
-o.e.a.stephe-4 (from o.e.a.s-2): available
+o.e.a.stephe-4 (from o.e.a.s-2): change grammar_tokens to all_tokens, drop token.non_grammar
 o.e.a.stephe-5 (from o.e.a.s-2): available
 
 run test from emacs -Q using source:
@@ -32,9 +32,9 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
-review fixme
+change grammar_tokens to all_tokens, drop token.non_grammar
+    running all tests
 
-use grammar_tokens, not stack
 
 review wisi-hanging% use
     access_definition - why anchored to PROCEDURE? why %?
