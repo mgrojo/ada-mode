@@ -44,8 +44,7 @@ package body WisiToken.Wisi_Runtime.Ada is
      return WisiToken.Wisi_Runtime.Delta_Type
    is
    begin
-      --  [1] ada-wisi-elisp-parse--indent-record-1, modified to use
-      --  Indenting_Token instead of relying on the usage in ada.wy.
+      --  [1] ada-wisi-elisp-parse--indent-record-1.
 
       if Anchor_Token.Virtual or Record_Token.Virtual or Indenting_Token.Virtual then
          return Null_Delta;

@@ -390,12 +390,19 @@ access_definition
       (wisi-face-apply-action [4 font-lock-function-name-face font-lock-type-face])
       (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken]))
   | null_exclusion_opt ACCESS protected_opt PROCEDURE parameter_profile_opt
+ ;; test/ada_mode-nomina.ads
+ ;; type Procedure_Access_Type_8 is access
+ ;;   protected procedure
+ ;;     (A_Param : out Integer);
     (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                                            (wisi-anchored% 4 ada-indent-broken)])
+
   | null_exclusion_opt ACCESS protected_opt FUNCTION parameter_and_result_profile
  ;; test/ada_mode-nominal.ads
- ;; type Function_Access_Type_2d is access protected function (A_Param : in Float) return access
- ;;   Standard.Float;
+ ;; type Function_Access_Type_10 is access
+ ;;   protected function
+ ;;     (A_Param : in Float)
+ ;;     return Standard.Float;
     (wisi-indent-action [ada-indent-broken ada-indent-broken ada-indent-broken ada-indent-broken
                                            (wisi-anchored%- 4 ada-indent-broken)])
   ;
@@ -443,12 +450,12 @@ array_type_definition
   : ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; unconstrained_array_definition
     (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-                                           (wisi-anchored% 5 ada-indent-broken)])
+                                           ada-indent-broken])
 
   | ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition
  ;; constrained_array_definition
     (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-                                           (wisi-anchored% 5 ada-indent-broken)])
+                                           ada-indent-broken])
   ;
 
 aspect_clause
@@ -475,7 +482,12 @@ assignment_statement
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
       (wisi-containing-action 1 3)
-      (wisi-indent-action [0 ada-indent-broken (wisi-anchored%- 2 ada-indent-broken) 0]))
+      (wisi-indent-action [0
+                           ada-indent-broken
+                           (wisi-hanging
+                            (wisi-anchored% 2 ada-indent-broken)
+                            (wisi-anchored% 3 ada-indent-broken))
+                           0]))
   ;
 
 association_opt

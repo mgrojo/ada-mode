@@ -224,10 +224,10 @@
       (array_type_definition
        ((ARRAY LEFT_PAREN index_subtype_definition_list RIGHT_PAREN OF component_definition )
         (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-        (wisi-anchored% 5 ada-indent-broken)]))
+        ada-indent-broken]))
        ((ARRAY LEFT_PAREN discrete_subtype_definition_list RIGHT_PAREN OF component_definition )
         (wisi-indent-action [ada-indent-broken ada-indent-broken (wisi-anchored 2 1) (wisi-anchored 2 0) ada-indent-broken
-        (wisi-anchored% 5 ada-indent-broken)])))
+        ada-indent-broken])))
       (aspect_clause
        ((FOR attribute_reference USE expression_opt SEMICOLON )
         (wisi-statement-action [1 statement-start 5 statement-end]))
@@ -243,7 +243,12 @@
         (progn
         (wisi-statement-action [1 statement-start 4 statement-end])
         (wisi-containing-action 1 3)
-        (wisi-indent-action [0 ada-indent-broken (wisi-anchored%- 2 ada-indent-broken) 0]))))
+        (wisi-indent-action [0
+        ada-indent-broken
+        (wisi-hanging
+        (wisi-anchored% 2 ada-indent-broken)
+        (wisi-anchored% 3 ada-indent-broken))
+        0]))))
       (association_opt
        (())
        ((CHARACTER_LITERAL EQUAL_GREATER expression_opt )

@@ -5,7 +5,7 @@ build/Makefile
 o.e.a.stephe-1: dead
 o.e.a.stephe-2 (from o.e.a. with o.w): indent-action deltas in grammar, external process wisitoken parser with actions
 o.e.a.stephe-3 (from o.e.a.s-1): emacs module parser
-o.e.a.stephe-4 (from o.e.a.s-2): change grammar_tokens to all_tokens, drop token.non_grammar
+o.e.a.stephe-4 (from o.e.a.s-2): available
 o.e.a.stephe-5 (from o.e.a.s-2): available
 
 run test from emacs -Q using source:
@@ -32,30 +32,7 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
 
  current work
-review wisi-hanging% use
-    access_definition - why anchored to PROCEDURE? why %?
-
-    array_type_definition - why anchored to OF? why %?
-
-    assignment_statement - why anchored to :=?
-
-    association_opt - why anchored to =>?
-        changes indent if => on newline
-
-    expression_opt - why not wisi-hanging%?
-
-    etc
-
-test-gpr: add process (for error correction)
-
-
-ada_grammar.wy:1217:      ;; FIXME: indentation of comment after 'is' should be
-    try anchor comment to next token
-
-wisitoken-wisi_runtime.adb:186:      --  FIXME: implement wisi-indent-comment-col-0
-    needs test
-
-ada-wisi-elisp-parse.el:115:		     ;; FIXME: doc test case
+see wisitoken notes for mckenzie improve
 
 skeleton placeholders should be treated as whitespace/comment
 
