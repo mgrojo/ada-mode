@@ -178,8 +178,9 @@
 ;; handle DOS or Unix newline
 %non_grammar <new-line> NEW_LINE [\x0a]|[\x0d][\x0a]
 
-;; treat gnatprep preprocessor lines as comments
-%non_grammar <comment> COMMENT ("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*
+;; Treat Ada comments, gnatprep preprocessor lines, and skeleton
+;; placeholders as comments.
+%non_grammar <comment> COMMENT (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*)|("{"[^}]*"}")
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
 

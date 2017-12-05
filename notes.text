@@ -34,8 +34,6 @@ run test from emacs -Q using source:
  current work
 see wisitoken notes for mckenzie improve
 
-skeleton placeholders should be treated as whitespace/comment
-
 gpr-mode.el:263:  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
 gpr-query.el:263:  ;; FIXME: implement ada-xref-full-path.
 gpr-query.el:265:  ;; FIXME: implement append

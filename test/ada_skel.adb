@@ -1,5 +1,10 @@
 --  test ada-skel.el; does not compile (not even close :)
 --
+--  Next line is a typical skeleton placeholder; must be treated as a comment by the parser.
+
+{header}
+
+--
 --  We expand each token in ada-skel-token-alist, after first deleting
 --  the expected expansion. The result is checked by diff.
 package body Ada_Skel is
