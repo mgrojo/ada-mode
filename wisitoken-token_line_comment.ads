@@ -25,33 +25,48 @@ with WisiToken.Token;
 with WisiToken.Token_Region;
 package WisiToken.Token_Line_Comment is
 
+   Invalid_All_Tokens_Index : constant Positive_Index_Type := Positive_Index_Type'Last;
+
    type Token is new WisiToken.Token_Region.Token with record
+      First_All_Tokens_Index : Positive_Index_Type;
+      --  For non-grammar and terminal tokens, index of this token in
+      --  State.All_Tokens.
+      --
+      --  For nonterminal tokens, index of first contained token in
+      --  State.All_Tokens.
+      --
+      --  For virtual tokens, Invalid_All_Tokens_Index.
+
+      Last_All_Tokens_Index : Positive_Index_Type;
+      --  For non-grammar tokens, Invalid_All_Tokens_Index.
+      --
+      --  For terminal tokens, index of last following non-grammar token in
+      --  State.All_Tokens (normally a new-line), or
+      --  Invalid_All_Tokens_Index if following token is a grammar token.
+      --
+      --  For nonterminal tokens, index of last contained token in
+      --  State.All_Tokens (normally a new-line).
+      --
+      --  For virtual tokens, Invalid_All_Tokens_Index.
+
       First : Boolean;
       --  For a terminal, True if the token is not empty and it is first on
       --  a line, or if it contains trailing blank or comment lines.
       --
       --  For a nonterminal, True if some contained token's First is True.
 
-      Non_Grammar : WisiToken.Augmented_Token_Array;
-      --  Non_Grammar tokens between this token and the next grammar one or
-      --  EOF.
-      --
-      --  Only set for terminal tokens; for nonterminals, trailing
-      --  Non_Grammar tokens are stored in the last token in the nonterminal
-      --  region, and *_Region includes them.
-
       First_Indent_Line : Line_Number_Type;
       Last_Indent_Line  : Line_Number_Type;
       --  Lines that need indenting; first token on these lines is contained
       --  in this token. If First is False, these are Invalid_Line_Number.
       --
-      --  First_, Last_Indent_Line include comments between tokens, but
-      --  exclude trailing comments after the last token, so they can be
-      --  indented differently.
+      --  First_, Last_Indent_Line include blank and comment lines between
+      --  grammar tokens, but exclude trailing blanks and comments after the
+      --  last token, so they can be indented differently.
 
       First_Trailing_Comment_Line : Line_Number_Type;
       Last_Trailing_Comment_Line  : Line_Number_Type;
-      --  Trailing comment or blank lines (contained by the last contained
+      --  Trailing comment or blank lines (after the last contained grammar
       --  token) that need indenting. Excludes comments following code on a
       --  line. If there are no such lines, these are Invalid_Line_Number.
 
@@ -71,42 +86,43 @@ package WisiToken.Token_Line_Comment is
 
    package Token_Vectors is new Ada.Containers.Vectors (Positive_Index_Type, Token);
 
-   function Find
-     (Tokens      : in Token_Vectors.Vector;
-      ID          : in Token_ID;
-      Char_Region : in Buffer_Region)
-     return Ada.Containers.Count_Type;
-   --  Return index to first token with ID, starting in Char_Region. If
-   --  not found, return Tokens.First_Index - 1.
-   --
-   --  Char_Region must be from a real token, so there is a token S in
-   --  Tokens with T.Char_Region.First = Char_Region.First, and another
-   --  token T with S.Char_Region.Last = Char_Region.Last.
-
-   function Find_Line_Begin
-     (Tokens : in Token_Vectors.Vector;
-      Before : in Token'Class)
-     return Positive_Index_Type;
-   --  Return index to first token on Before.Line.
-
    package Int_Vectors is new Ada.Containers.Vectors (Line_Number_Type, Integer);
 
    type State_Type is new WisiToken.Token_Region.State_Type with record
-      Grammar_Tokens : Token_Vectors.Vector;
-      --  All grammar tokens, in lexical order.
-
-      Initial_Non_Grammar : WisiToken.Augmented_Token_Array;
-      --  Non_Grammar tokens before first grammar token.
+      All_Tokens : Token_Vectors.Vector;
+      --  All terminal grammar and non-grammar tokens, in lexical order. Does not
+      --  contain nonterminal or virtual tokens.
 
       Line_Paren_State : Int_Vectors.Vector;
       --  Parenthesis nesting state at the start of each line; used by
-      --  Indent. Set by Lexer_To_Lookahead on Left, Right_Paren_ID.
+      --  Indent. Set by Lexer_To_Lookahead on New_Line_ID.
 
       Current_Paren_State : Integer;
       --  Current parenthesis nesting state; used by Indent. Set by
       --  Lexer_To_Lookahead on Left, Right_Paren_ID.
    end record;
    type State_Access is access all State_Type;
+
+   function Find
+     (State : in State_Type;
+      ID    : in Token_ID;
+      Token : in Token_Line_Comment.Token'Class)
+     return Ada.Containers.Count_Type;
+   --  Return index to State.All_Tokens of first token in
+   --  Token.Char_Region with ID. If not found, return
+   --  Invalid_All_Tokens_Index.
+
+   function Find_Line_Begin
+     (State : in State_Type;
+      Line  : in Line_Number_Type;
+      Start : in Token'Class)
+     return Positive_Index_Type;
+   --  Return index to State.All_Tokens of first grammar, comment, or
+   --  new-line token on Line. Start is used to find a starting point to
+   --  search State.All_Tokens; Line must be <=
+   --  Start.Last_All_Tokens_Index line.
+   --
+   --  If the result is a new-line token, the line is empty.
 
    type Init_Data is new WisiToken.Token.Init_Data with record
       Line_Count : Line_Number_Type;

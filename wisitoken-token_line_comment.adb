@@ -19,17 +19,15 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Token_Line_Comment is
 
-   function Trailing_Blank_Line
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Tokens     : in WisiToken.Augmented_Token_Array)
-     return Boolean
+   function Trailing_Blank_Line (State : in State_Type; ID : in Token_ID) return Boolean
    is
+      --  Return True if token at State.All_Tokens ends with two New_Line
+      --  tokens (ie, a blank line).
       use all type Ada.Containers.Count_Type;
-      New_Line_ID : Token_ID renames Descriptor.New_Line_ID;
+      New_Line_ID : Token_ID renames State.Trace.Descriptor.New_Line_ID;
+      I           : constant Positive_Index_Type := State.All_Tokens.Last_Index;
    begin
-      return Tokens.Length > 1 and then
-        (Tokens (Tokens.Last_Index).ID = New_Line_ID and
-           Tokens (Tokens.Last_Index - 1).ID = New_Line_ID);
+      return ID = New_Line_ID and State.All_Tokens (I).ID = New_Line_ID;
    end Trailing_Blank_Line;
 
    ----------
@@ -68,121 +66,61 @@ package body WisiToken.Token_Line_Comment is
    end Last_Line;
 
    function Find
-     (Tokens      : in Token_Vectors.Vector;
-      ID          : in Token_ID;
-      Char_Region : in Buffer_Region)
+     (State : in State_Type;
+      ID    : in Token_ID;
+      Token : in Token_Line_Comment.Token'Class)
      return Ada.Containers.Count_Type
    is
       use all type Ada.Containers.Count_Type;
-      First   : Positive_Index_Type := Tokens.First_Index;
-      Last    : Positive_Index_Type := Tokens.Last_Index;
-      Current : Positive_Index_Type;
-
-      Final_First : Positive_Index_Type;
-      Final_Last  : Positive_Index_Type;
    begin
-      --  Binary search for Char_Region.First
-      loop
-         Current := (First + Last) / 2;
-
-         declare
-            Current_Tok : Token renames Tokens (Current).Element.all;
-         begin
-            exit when Current_Tok.Char_Region.First = Char_Region.First;
-
-            if First = Current then
-               --  Not found
-               return Tokens.First_Index - 1;
-            end if;
-
-            if Current_Tok.Char_Region.First < Char_Region.First then
-               First := Current;
-            else
-               Last := Current;
-            end if;
-         end;
-      end loop;
-
-      Final_First := Current;
-
-      --  Binary search for Char_Region.Last
-      First := Final_First;
-      Last  := Tokens.Last_Index;
-      loop
-         Current := (First + Last) / 2;
-
-         declare
-            Current_Tok : Token renames Tokens (Current).Element.all;
-         begin
-            exit when Current_Tok.Char_Region.Last = Char_Region.Last;
-
-            if First = Current then
-               --  Not found
-               return Tokens.First_Index - 1;
-            end if;
-
-            if Current_Tok.Char_Region.Last < Char_Region.Last then
-               First := Current;
-            else
-               Last := Current;
-            end if;
-
-         end;
-      end loop;
-
-      Final_Last := Current;
-
       --  linear search for ID.
-      for I in Final_First .. Final_Last loop
-         if Tokens (I).ID = ID then
+      for I in Token.First_All_Tokens_Index .. Token.Last_All_Tokens_Index loop
+         if State.All_Tokens (I).ID = ID then
             return I;
          end if;
       end loop;
-      return Tokens.First_Index - 1;
+      return Invalid_All_Tokens_Index;
    end Find;
 
    function Find_Line_Begin
-     (Tokens : in Token_Vectors.Vector;
-      Before : in Token'Class)
+     (State : in State_Type;
+      Line  : in Line_Number_Type;
+      Start : in Token'Class)
      return Positive_Index_Type
    is
       use all type Ada.Containers.Count_Type;
-      First   : Positive_Index_Type := Tokens.First_Index;
-      Last    : Positive_Index_Type := Tokens.Last_Index;
-      Current : Positive_Index_Type := (First + Last) / 2;
+      Current : Positive_Index_Type :=
+        (if Line <= Start.Line
+         then Start.First_All_Tokens_Index
+         else Start.Last_All_Tokens_Index);
    begin
-      --  Binary search for Before
-      loop
-         declare
-            Current_Tok : Token renames Tokens (Current).Element.all;
-         begin
-            exit when Current_Tok.Char_Region.First = Before.Char_Region.First;
-
-            if First = Current then
-               raise Programmer_Error;
-            end if;
-
-            if Current_Tok.Char_Region.First < Before.Char_Region.First then
-               First := Current;
-            else
-               Last := Current;
-            end if;
-
-            Current := (First + Last) / 2;
-         end;
-      end loop;
-
-      --  Linear search for previous line
-      loop
-         exit when Current = Tokens.First_Index;
-         declare
-            Next_Tok : Token renames Tokens (Current - 1).Element.all;
-         begin
-            exit when Next_Tok.Line /= Before.Line;
+      if State.All_Tokens (Current).Line >= Line then
+         --  Search backwards
+         loop
+            exit when Current = State.All_Tokens.First_Index or
+              (State.All_Tokens (Current - 1).Line = Line and
+                 State.All_Tokens (Current - 1).ID = State.Trace.Descriptor.New_Line_ID);
             Current := Current - 1;
-         end;
-      end loop;
-      return Current;
+         end loop;
+         if State.All_Tokens (Current).ID = State.Trace.Descriptor.New_Line_ID then
+            return Current - 1;
+         else
+            return Current;
+         end if;
+
+      else
+         --  Search forwards
+         loop
+            exit when State.All_Tokens (Current).ID = State.Trace.Descriptor.New_Line_ID;
+            Current := Current + 1;
+         end loop;
+
+         if State.All_Tokens (Current + 1).ID = State.Trace.Descriptor.New_Line_ID then
+            return Current;
+         else
+            return Current + 1;
+         end if;
+      end if;
    end Find_Line_Begin;
 
    overriding
@@ -204,8 +142,7 @@ package body WisiToken.Token_Line_Comment is
          Token_Region.Reset (Token_Region.State_Type (State.all)'Access);
       end if;
 
-      State.Grammar_Tokens.Clear;
-      State.Initial_Non_Grammar.Clear;
+      State.All_Tokens.Clear;
 
       for S of State.Line_Paren_State loop
          S := 0;
@@ -230,8 +167,9 @@ package body WisiToken.Token_Line_Comment is
          Col                         => Lexer.Column,
          Char_Region                 => Lexer.Char_Region,
          Byte_Region                 => Lexer.Byte_Region,
+         First_All_Tokens_Index      => State.All_Tokens.Last_Index + 1,
+         Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
          First                       => Temp_First,
-         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
          First_Indent_Line           => (if Temp_First then Lexer.Line else Invalid_Line_Number),
          Last_Indent_Line            => (if Temp_First then Lexer.Line else Invalid_Line_Number),
          First_Trailing_Comment_Line => Invalid_Line_Number,
@@ -245,34 +183,44 @@ package body WisiToken.Token_Line_Comment is
             State.Line_Paren_State (Temp.Line) := State.Current_Paren_State;
          end if;
 
-         if State.Stack.Length = 0 then
-            State.Initial_Non_Grammar.Append (Temp);
-         else
-            declare
-               procedure Set_Prev_Trailing (Prev_Token : in out Token)
-               is
-                  Trailing_Blank : Boolean;
-               begin
-                  Prev_Token.Non_Grammar.Append (Temp);
-                  Trailing_Blank := Trailing_Blank_Line (State.Trace.Descriptor.all, Prev_Token.Non_Grammar);
-                  if Temp.First and (Temp.ID = State.Trace.Descriptor.Comment_ID or Trailing_Blank) then
-                     Prev_Token.First := True;
-                     if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
-                        Prev_Token.First_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
-                     end if;
-                     Prev_Token.Last_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
-                  end if;
-               end Set_Prev_Trailing;
+         declare
+            procedure Set_Prev_Trailing (Prev_Token : in out Token)
+            is
+               --  Prev_Token is in either State.Stack or State.Lookahead_Queue; we
+               --  must also update the copy in State.All_Tokens.
+               Copy : Token renames State.All_Tokens.Reference (Prev_Token.First_All_Tokens_Index).Element.all;
 
+               Trailing_Blank : constant Boolean := Trailing_Blank_Line (State.all, ID);
             begin
-               if State.Lookahead_Queue.Length = 0 then
-                  Set_Prev_Trailing (Token (State.Stack.Reference (State.Stack.Length).Element.all));
-               else
-                  Set_Prev_Trailing
-                    (Token (State.Lookahead_Queue.Variable_Peek (State.Lookahead_Queue.Length).Element.all));
+               Prev_Token.Last_All_Tokens_Index := Temp.First_All_Tokens_Index;
+               Copy.Last_All_Tokens_Index       := Temp.First_All_Tokens_Index;
+
+               if Temp.First and (Temp.ID = State.Trace.Descriptor.Comment_ID or Trailing_Blank) then
+                  Prev_Token.First := True;
+                  Copy.First       := True;
+
+                  if Prev_Token.First_Trailing_Comment_Line = Invalid_Line_Number then
+                     Prev_Token.First_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+                     Copy.First_Trailing_Comment_Line       := Prev_Token.First_Trailing_Comment_Line;
+                  end if;
+                  Prev_Token.Last_Trailing_Comment_Line := (if Trailing_Blank then Temp.Line - 1 else Temp.Line);
+                  Copy.Last_Trailing_Comment_Line       := Prev_Token.Last_Trailing_Comment_Line;
                end if;
-            end;
-         end if;
+            end Set_Prev_Trailing;
+
+         begin
+            if State.Lookahead_Queue.Length = 0 then
+               if State.Stack.Length = 0 then
+                  --  no previous token
+                  null;
+               else
+                  Set_Prev_Trailing (Token (State.Stack.Reference (State.Stack.Length).Element.all));
+               end if;
+            else
+               Set_Prev_Trailing
+                 (Token (State.Lookahead_Queue.Variable_Peek (State.Lookahead_Queue.Length).Element.all));
+            end if;
+         end;
 
          if Trace_Parse > 2 then
             State.Trace.Put_Line
@@ -288,13 +236,14 @@ package body WisiToken.Token_Line_Comment is
          end if;
 
          State.Lookahead_Queue.Put (Temp);
-         State.Grammar_Tokens.Append (Temp);
 
          if Trace_Parse > 2 then
             State.Trace.Put_Line
-              ("lexer_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
+              ("lexer to lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
          end if;
       end if;
+
+      State.All_Tokens.Append (Temp);
    end Lexer_To_Lookahead;
 
    overriding
@@ -310,7 +259,8 @@ package body WisiToken.Token_Line_Comment is
          Char_Region                 => Null_Buffer_Region,
          Byte_Region                 => Null_Buffer_Region,
          First                       => False,
-         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
+         First_All_Tokens_Index      => Invalid_All_Tokens_Index,
+         Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
          First_Indent_Line           => Invalid_Line_Number,
          Last_Indent_Line            => Invalid_Line_Number,
          First_Trailing_Comment_Line => Invalid_Line_Number,
@@ -339,7 +289,8 @@ package body WisiToken.Token_Line_Comment is
       Aug_Nonterm : Token :=
         (WisiToken.Token_Region.Token with
          First                       => False,
-         Non_Grammar                 => WisiToken.Augmented_Token_Arrays.Empty_Vector,
+         First_All_Tokens_Index      => Invalid_All_Tokens_Index,
+         Last_All_Tokens_Index       => Invalid_All_Tokens_Index,
          First_Indent_Line           => Invalid_Line_Number,
          Last_Indent_Line            => Invalid_Line_Number,
          First_Trailing_Comment_Line => Invalid_Line_Number,
@@ -361,6 +312,16 @@ package body WisiToken.Token_Line_Comment is
          begin
             if ID /= State.Stack (Stack_I).ID then
                raise Programmer_Error;
+            end if;
+
+            if Aug_Nonterm.First_All_Tokens_Index = Invalid_All_Tokens_Index and
+              Token.First_All_Tokens_Index /= Invalid_All_Tokens_Index
+            then
+               Aug_Nonterm.First_All_Tokens_Index := Token.First_All_Tokens_Index;
+            end if;
+
+            if Token.Last_All_Tokens_Index /= Invalid_All_Tokens_Index then
+               Aug_Nonterm.Last_All_Tokens_Index := Token.Last_All_Tokens_Index;
             end if;
 
             if not First_Set then
@@ -462,10 +423,8 @@ package body WisiToken.Token_Line_Comment is
       end;
 
       if Trace_Parse > 0 then
-         --  We use the stack for the trace, not Aug_Tokens, because
-         --  we don't compute aug_tokens when Action is null.
          Token_Region.Put
-           (State.Trace.all, Aug_Nonterm, Index, State.Stack, IDs.Length, Include_Action_Name => Action /= null);
+           (State.Trace.all, Aug_Nonterm, Index, Aug_Tokens, Aug_Tokens.Length, Include_Action_Name => Action /= null);
       end if;
 
       for I in 1 .. IDs.Length loop
