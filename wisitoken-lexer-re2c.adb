@@ -160,9 +160,9 @@ package body WisiToken.Lexer.re2c is
                Context : constant String (Context_First .. Context_Last) := String
                  (Buffer (Context_First .. Context_Last));
             begin
-               raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position + 1) &
-                 "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position + 1))) & ") at character position" &
-                 Natural'Image (Lexer.Char_Position + 1) & " in context '" & Context & "'";
+               raise Syntax_Error with " unrecognized character '" & Buffer (Lexer.Byte_Position) &
+                 "' (" & Integer'Image (Character'Pos (Buffer (Lexer.Byte_Position))) & ") at character position" &
+                 Natural'Image (Lexer.Char_Position) & " in context '" & Context & "'";
             end;
 
          when others =>

@@ -191,7 +191,7 @@ package WisiToken.Parser.LR is
 
    function Image (Item : in Pattern) return String is abstract;
    --  Return image of Item, using Token_ID'Image for any Token_IDs,
-   --  in Ada aggregate syntax.
+   --  in Ada aggregate syntax. Used in generated Ada code.
 
    package Patterns is new Standard.Ada.Containers.Indefinite_Doubly_Linked_Lists (Pattern'Class);
 
@@ -203,6 +203,16 @@ package WisiToken.Parser.LR is
    end record;
 
    overriding function Image (Item : in Recover_Pattern_1) return String;
+
+   type Recover_Pattern_2 is new Pattern with record
+      --  See [info] node Error Recovery item recover_pattern_2
+      Stack     : Token_ID;
+      Error     : Token_ID;
+      Expecting : Token_ID;
+      Insert    : Token_ID;
+   end record;
+
+   overriding function Image (Item : in Recover_Pattern_2) return String;
 
    type McKenzie_Param_Type
      (First_Terminal    : Token_ID;

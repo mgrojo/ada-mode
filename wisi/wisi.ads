@@ -140,6 +140,13 @@ package Wisi is
       Expecting : Standard.Ada.Strings.Unbounded.Unbounded_String;
    end record;
 
+   type Recover_Pattern_2 is new Pattern with record
+      Stack     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Error     : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Expecting : Standard.Ada.Strings.Unbounded.Unbounded_String;
+      Insert    : Standard.Ada.Strings.Unbounded.Unbounded_String;
+   end record;
+
    type McKenzie_Recover_Param_Type is record
       Default_Insert             : Natural := 0;
       Default_Delete_Terminal    : Natural := 0;

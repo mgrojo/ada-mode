@@ -9,9 +9,9 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
-token_region error_list_arrays
-    can have parser #s 1, 20, 32 ...
-    need sparse vector
+change mckenzie limit to enqueue count, divide by number of parallel parsers
+
+use multiple CPUs for mckenzie
 
 still losing memory?
     possibly Augmented_Token_Array

@@ -382,6 +382,49 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       end if;
    end Apply_Pattern;
 
+   procedure Apply_Pattern
+     (Pattern      : in     Recover_Pattern_2;
+      Parser       : in     LR.Instance'Class;
+      Parser_State : in     Parser_Lists.Parser_State;
+      Error_ID     : in     Token_ID;
+      Data         : in out McKenzie_Data;
+      Root_Config  : in     Configuration)
+   is begin
+      if Parser_State.Stack.Peek.ID = Pattern.Stack and
+        Error_ID = Pattern.Error
+      then
+         declare
+            --  Don't compute Expecting unless we need it.
+            Descriptor : WisiToken.Descriptor'Class renames Parser.Semantic_State.Trace.Descriptor.all;
+            Expecting  : constant WisiToken.Token_ID_Set := LR.Expecting
+              (Parser.Table.all, Parser_State.Stack.Peek.State);
+         begin
+            if Expecting (Pattern.Expecting) and Count (Expecting) = 1 then
+               if Trace_Parse > 0 then
+                  Parser.Semantic_State.Trace.Put_Line
+                    ("special rule recover_pattern_2 " &
+                       Image (Descriptor, Pattern.Stack) & ", " &
+                       Image (Descriptor, Pattern.Error) & ", " &
+                       Image (Descriptor, Pattern.Expecting) & ", " &
+                       Image (Descriptor, Pattern.Insert) &
+                       " matched.");
+               end if;
+
+               declare
+                  Config : Configuration := Root_Config;
+               begin
+                  Config.Local_Lookahead.Prepend (Pattern.Stack);
+                  Config.Local_Lookahead.Prepend (Pattern.Insert);
+                  Config.Local_Lookahead.Prepend (Pattern.Expecting);
+                  Config.Local_Lookahead_Index := 1;
+
+                  Enqueue (Data, Config);
+               end;
+            end if;
+         end;
+      end if;
+   end Apply_Pattern;
+
    procedure Patterns
      (Parser       : in out LR.Instance'Class;
       Parser_State : in     Parser_Lists.Parser_State;
@@ -394,6 +437,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       for Pattern of Param.Patterns loop
          if Pattern in Recover_Pattern_1'Class then
             Apply_Pattern (Recover_Pattern_1 (Pattern), Parser, Parser_State, Error_ID, Data, Root_Config);
+
+         elsif Pattern in Recover_Pattern_2'Class then
+            Apply_Pattern (Recover_Pattern_2 (Pattern), Parser, Parser_State, Error_ID, Data, Root_Config);
          end if;
       end loop;
    end Patterns;

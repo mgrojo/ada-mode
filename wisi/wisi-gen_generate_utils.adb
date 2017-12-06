@@ -642,6 +642,17 @@ package body Wisi.Gen_Generate_Utils is
                      Error     => Find_Token_ID (-Pat.Error),
                      Expecting => Find_Token_ID (-Pat.Expecting)));
             end;
+         elsif Pattern in Wisi.Recover_Pattern_2'Class then
+            declare
+               Pat : Wisi.Recover_Pattern_2 renames Wisi.Recover_Pattern_2 (Pattern);
+            begin
+               Result.Patterns.Append
+                 (WisiToken.Parser.LR.Recover_Pattern_2'
+                    (Stack     => Find_Token_ID (-Pat.Stack),
+                     Error     => Find_Token_ID (-Pat.Error),
+                     Expecting => Find_Token_ID (-Pat.Expecting),
+                     Insert    => Find_Token_ID (-Pat.Insert)));
+            end;
          else
             raise Programmer_Error;
          end if;

@@ -55,6 +55,7 @@ is
    Non_Grammar_Str               : constant String := "%non_grammar";
    Parser_Algorithm_Str          : constant String := "%parser_algorithm";
    Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
+   Recover_Pattern_2_Str         : constant String := "%recover_pattern_2";
    Start_Str                     : constant String := "%start";
    Token_Str                     : constant String := "%token";
 
@@ -306,6 +307,24 @@ begin
                     (Stack     => +Line (Stack_First .. Stack_Last),
                      Error     => +Line (Error_First .. Error_Last),
                      Expecting => +Line (Expecting_First .. Line'Last)));
+            end;
+
+         elsif Match (Recover_Pattern_2_Str) then
+            declare
+               Stack_First     : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+               Stack_Last      : constant Integer := -1 + Index_Blank (Line, Stack_First);
+               Error_First     : constant Integer := Index_Non_Blank (Line, Stack_Last + 1);
+               Error_Last      : constant Integer := -1 + Index_Blank (Line, Error_First);
+               Expecting_First : constant Integer := Index_Non_Blank (Line, Error_Last + 1);
+               Expecting_Last  : constant Integer := -1 + Index_Blank (Line, Expecting_First);
+               Insert_First    : constant Integer := Index_Non_Blank (Line, Expecting_Last + 1);
+            begin
+               McKenzie_Recover.Patterns.Append
+                 (Recover_Pattern_2'
+                    (Stack     => +Line (Stack_First .. Stack_Last),
+                     Error     => +Line (Error_First .. Error_Last),
+                     Expecting => +Line (Expecting_First .. Expecting_Last),
+                     Insert    => +Line (Insert_First .. Line'Last)));
             end;
 
          elsif Match (Start_Str) then

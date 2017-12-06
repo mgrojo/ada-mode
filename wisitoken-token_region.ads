@@ -53,9 +53,8 @@ package WisiToken.Token_Region is
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
 
    package Error_List_Arrays is new Ada.Containers.Vectors (Natural, Error_Data_Lists.List, Error_Data_Lists."=");
-   --  IMPROVEME: parser_id is not < 15; parser ids are never reused. So
-   --  this ends up with many empty slots, because first_index = 0. use a
-   --  map, or a vector with arbitrary first_index.
+   --  IMPROVEME: parser ids are never reused. So this ends up with many
+   --  empty slots, because first_index = 0. Use a sparse vector.
 
    procedure Put
      (Source_File_Name : in String;
