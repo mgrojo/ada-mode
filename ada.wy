@@ -261,6 +261,24 @@
 ;; 3 causes 'procedure Process_Text_File (File_Name ; in String); is' to fail
 %mckenzie_check_limit 3
 
+;; We are not likely to type 'end;' or 'end <identifier>;' when
+;; meaning 'end if;'; more likely to not be done entering 'if then
+;; else'. So if just pushed 'end' on the stack, and enter error
+;; recovery on ';' expecting 'if', best to insert 'if; end'.
+;;
+;; args: stack ID, error ID, expecting ID
+;; result: insert expecting ID, error ID, stack ID.
+%recover_pattern_1 END SEMICOLON CASE
+%recover_pattern_1 END SEMICOLON IF
+%recover_pattern_1 END SEMICOLON LOOP
+
+;; Similarly; expecting 'end if ;', find 'end <identifier>'
+;; insert 'if; end'
+;; => 'end if; end <identifier> ;'
+%recover_pattern_2 END IDENTIFIER CASE SEMICOLON
+%recover_pattern_2 END IDENTIFIER IF SEMICOLON
+%recover_pattern_2 END IDENTIFIER LOOP SEMICOLON
+
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW
 %conflict REDUCE/REDUCE in state actual_parameter_part, actual_parameter_part  on token RIGHT_PAREN

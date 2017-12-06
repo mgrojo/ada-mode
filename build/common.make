@@ -73,6 +73,7 @@ SYNTAX_FILES  := $(SYNTAX_FILES) ada_mode-spec.ads
 COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_indent_3.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
 

@@ -4139,6 +4139,12 @@ package body Ada_Process is
          Check_Limit => 3,
          Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
 
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 15));
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 32));
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 37));
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 15, 96));
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 32, 96));
+      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 37, 96));
       Table.Follow :=
         (109 =>
            (39 => True,
