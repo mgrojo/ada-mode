@@ -30,15 +30,15 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Put ("(" & Image (Descriptor, Config.Stack));
       Put (" " & All_Parse_Action_Verbs'Image (Config.Verb));
       Put (SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & " ");
-      WisiToken.Put (Descriptor, Config.Local_Lookahead);
+      Put (Descriptor, Config.Local_Lookahead);
       Put (" " & Count_Type'Image (Config.Local_Lookahead_Index) & " ");
-      WisiToken.Put (Descriptor, Config.Popped);
+      Put (Descriptor, Config.Popped);
       Put (" ");
       Put (Image (Descriptor, Config.Pushed));
       Put (" ");
-      WisiToken.Put (Descriptor, Config.Inserted);
+      Put (Descriptor, Config.Inserted);
       Put (" ");
-      WisiToken.Put (Descriptor, Config.Deleted);
+      Put (Descriptor, Config.Deleted);
       Put (Natural'Image (Config.Cost) & ")");
    end Put;
 
@@ -494,7 +494,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
            Data.Config_Heap.Min_Key > Data.Parser.Table.McKenzie.Cost_Limit;
 
          declare
-            use all type Token_Array;
+            use all type Fast_Token_ID_Vectors.Vector;
 
             Config     : constant Configuration := Data.Config_Heap.Remove;
             New_Config : Configuration;
@@ -515,8 +515,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                return;
             end if;
 
-            if Config.Deleted = Empty_Token_Array and
-              Config.Inserted = Empty_Token_Array and
+            if Config.Deleted = Fast_Token_ID_Vectors.Empty_Vector and
+              Config.Inserted = Fast_Token_ID_Vectors.Empty_Vector and
               Config.Stack.Depth > 1 -- can't delete the first state
             then
                --  Try deleting stack top
@@ -538,7 +538,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end;
             end if;
 
-            if Config.Deleted = Empty_Token_Array then
+            if Config.Deleted = Fast_Token_ID_Vectors.Empty_Vector then
                --  Find insertions to try
                Action_I := First_Action (Data.Parser.Table.States (Config.Stack.Peek.State));
                loop

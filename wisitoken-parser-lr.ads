@@ -40,6 +40,7 @@ pragma License (Modified_GPL);
 
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Bounded_Definite_Vectors;
 with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Stacks;
@@ -326,26 +327,43 @@ package WisiToken.Parser.LR is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; State : in Parse_State);
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Table : in Parse_Table);
 
-   --  For McKenzie_Recover: Parser_Lists needs these; mckenzie needs parser_lists
+   ----------
+   --  For McKenzie_Recover: Parser_Lists needs these, Mckenzie_Recover
+   --  needs Parser_Lists.
+
+   package Fast_Token_ID_Vectors is new SAL.Gen_Bounded_Definite_Vectors
+     (Positive_Index_Type, Token_ID, Capacity => 20);
+   --  Using a fixed size vector significantly speeds up
+   --  McKenzie_Recover.
+   --
+   --  Capacity is determined by the maximum number of popped, inserted,
+   --  deleted, or lookahead tokens. The first three are limited by the
+   --  cost_limit McKenzie parameter; in practice, a cost of 20 is too
+   --  high. Lookahead is limited by the check_limit parameter; 20 is
+   --  very high.
+
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector) return String;
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector);
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Fast_Token_ID_Vectors.Vector);
 
    type Configuration is new WisiToken.Token.Recover_Data with record
       Stack : Parser_Stacks.Stack_Type;
-      --  This is the stack after the operations below have been done;
-      --  suitable for the next operation.
+      --  The stack after the operations below have been done; suitable for
+      --  the next operation.
 
       Verb                   : All_Parse_Action_Verbs;
       Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
 
-      Local_Lookahead        : Token_Arrays.Vector;
+      Local_Lookahead        : Fast_Token_ID_Vectors.Vector;
       Local_Lookahead_Index  : Ada.Containers.Count_Type;
       --  Local_Lookahead contains tokens inserted by special rules.
       --  It is not a queue type, because we always access it via
       --  Local_Lookahead_Index
 
-      Popped   : Token_Arrays.Vector;
+      Popped   : Fast_Token_ID_Vectors.Vector;
       Pushed   : Parser_Stacks.Stack_Type;
-      Inserted : Token_Arrays.Vector;
-      Deleted  : Token_Arrays.Vector;
+      Inserted : Fast_Token_ID_Vectors.Vector;
+      Deleted  : Fast_Token_ID_Vectors.Vector;
       Cost     : Natural := 0;
    end record;
 
@@ -361,12 +379,12 @@ package WisiToken.Parser.LR is
      (Stack                  => Parser_Stacks.Empty_Stack,
       Verb                   => Shift_Local_Lookahead,
       Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
-      Local_Lookahead        => Token_Arrays.Empty_Vector,
-      Local_Lookahead_Index  => Token_Arrays.No_Index,
-      Popped                 => Token_Arrays.Empty_Vector,
+      Local_Lookahead        => Fast_Token_ID_Vectors.Empty_Vector,
+      Local_Lookahead_Index  => Fast_Token_ID_Vectors.No_Index,
+      Popped                 => Fast_Token_ID_Vectors.Empty_Vector,
       Pushed                 => Parser_Stacks.Empty_Stack,
-      Inserted               => Token_Arrays.Empty_Vector,
-      Deleted                => Token_Arrays.Empty_Vector,
+      Inserted               => Fast_Token_ID_Vectors.Empty_Vector,
+      Deleted                => Fast_Token_ID_Vectors.Empty_Vector,
       Cost                   => 0);
 
    package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci

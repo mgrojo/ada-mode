@@ -612,6 +612,49 @@ package body WisiToken.Parser.LR is
       end loop;
    end Put;
 
+   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector) return String
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := To_Unbounded_String ("(");
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         Result := Result & Image (Descriptor, Item (I));
+         if I /= Item.Last_Index then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return To_String (Result);
+   end Image;
+
+   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector)
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Text_IO;
+   begin
+      Put ("(");
+      for I in Item.First_Index .. Item.Last_Index loop
+         Put (Image (Descriptor, Item (I)));
+         if I /= Item.Last_Index then
+            Put (", ");
+         end if;
+      end loop;
+      Put (")");
+   end Put;
+
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Fast_Token_ID_Vectors.Vector)
+   is
+      use all type Ada.Containers.Count_Type;
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         Put (Trace, Item (I));
+         if I /= Item.Last_Index then
+            Put (Trace, ", ");
+         end if;
+      end loop;
+   end Put;
+
    overriding
    function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String
    is
