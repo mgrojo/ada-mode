@@ -221,6 +221,7 @@
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
+%mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
 %mckenzie_cost_insert COMMA 3
 %mckenzie_cost_insert DECLARE 3
@@ -240,16 +241,12 @@
 %mckenzie_cost_delete declarative_part_opt 1
 %mckenzie_cost_delete END 1
 
-;; These can follow 'end', or start new statements
-%mckenzie_cost_insert IF 2
-%mckenzie_cost_insert LOOP 2
-
 ;; Most common paren error is missing closing paren.
 %mckenzie_cost_insert RIGHT_PAREN 1
 
-;; Prefer inserting these over everything; lets us finish a
-;; subprogram body.
-%mckenzie_cost_insert BEGIN 1
+;; Prefer inserting these over everything; lets us finish a subprogram
+;; body or other block statement. BEGIN is not here, because that
+;; makes it too cheap to insert "begin end", which is useless.
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
@@ -271,6 +268,7 @@
 %recover_pattern_1 END SEMICOLON CASE
 %recover_pattern_1 END SEMICOLON IF
 %recover_pattern_1 END SEMICOLON LOOP
+%recover_pattern_1 END SEMICOLON RETURN
 
 ;; Similarly; expecting 'end if ;', find 'end <identifier>'
 ;; insert 'if; end'
@@ -278,6 +276,7 @@
 %recover_pattern_2 END IDENTIFIER CASE SEMICOLON
 %recover_pattern_2 END IDENTIFIER IF SEMICOLON
 %recover_pattern_2 END IDENTIFIER LOOP SEMICOLON
+%recover_pattern_2 END IDENTIFIER RETURN SEMICOLON
 
 ;; known conflicts that are resolved by generalized LALR parser
 %conflict REDUCE/REDUCE in state abstract_limited_opt, abstract_limited_synchronized_opt on token NEW

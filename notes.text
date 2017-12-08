@@ -154,6 +154,13 @@ plain parse, no actions:
 consider doing all actions in one parse in process
     not helpful if dominated by communications time
 
+mckenzie recover
+    ada-mode/build/Makefile
+        run_ada_parser ../test/slow_recover_1.adb --repeat_count 5
+            use binary min heap: ~2.7
+            use fibonacci min heap: ~2.57
+            sal.bounded_vector in Configuration: 1.700269668, 1.675688670
+
 parse navigate
     (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
         repeat count > 2 gives EXCEPTION_ACCESS_VIOLATION; some race condition?

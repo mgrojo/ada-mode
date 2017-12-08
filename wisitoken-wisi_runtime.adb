@@ -319,7 +319,7 @@ package body WisiToken.Wisi_Runtime is
 
       Line : Bounded_String := To_Bounded_String ("[");
 
-      procedure To_Codes (Tokens : in Token_Arrays.Vector)
+      procedure To_Codes (Tokens : in WisiToken.Parser.LR.Fast_Token_ID_Vectors.Vector)
       is
          First : Boolean := True;
       begin

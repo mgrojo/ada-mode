@@ -24,4 +24,11 @@ package body Ada_Mode.Recover_Pattern_2 is
          -- end loop;
       end Loop_Example;
 
+   function Return_Example return Integer
+   is begin
+      return A : Integer := 0 do
+         null;
+         -- end return;
+      end Return_Example;
+
 end Ada_Mode.Recover_Pattern_2;
