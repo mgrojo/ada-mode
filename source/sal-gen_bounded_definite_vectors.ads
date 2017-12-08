@@ -73,7 +73,6 @@ package SAL.Gen_Bounded_Definite_Vectors is
 
 private
 
-   --  FIXME: 'aliased' here needed for constant_reference, which is only used for debug image; slows things down?
    type Array_Type is array (Ada.Containers.Count_Type range 1 .. Capacity) of aliased Element_Type;
 
    type Vector is tagged
