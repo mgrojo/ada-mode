@@ -9,9 +9,77 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
 
  current work
+improve mckenzie speed
+    current slow functions: parser_stacks
+        in sal-...stacks:
+            get rid of interface
+            replace containers.vectors with plain array
+        in o.s-l.sal-1, o.w.s-1, o.e.a.s-4
+
+
 change mckenzie limit to enqueue count, divide by number of parallel parsers
 
 use multiple CPUs for mckenzie
+
+do block name matching
+
+ada-mode/test/slow_recover_1.adb
+    10 parsers in recovery, almost all doing > 20,000 enqueue
+        smallest enqueue/check is eventual winner
+
+    test_mckenzie extra_begin has two parsers in recovery
+       final winner descended from parser 0, which is second tested
+          requiring 2 successes loses almost all advantage in slow_recover_1
+
+    do multi-cpu in mckenzie
+
+    slow_recover_1 McKenzie error recovery:
+
+    parser 20:
+    mckenzie (max cost 12) enqueue 21070, check  1588; fail
+
+    parser 19:
+    mckenzie (max cost 12) enqueue 51073, check  3644; fail
+
+    parser 12:
+     12: mckenzie enqueue 40792, check  2999; succeed : 12, (1264 : SEMICOLON, )|END|/RIGHT_PAREN, THEN, END, IF, SEMICOLON/THEN
+
+    parser 11:
+    mckenzie (max cost 12) enqueue 21148, check  1732; fail
+
+    parser 10:
+    mckenzie (max cost 12) enqueue 26051, check  2054; fail
+
+    parser 9:
+    mckenzie (max cost 12) enqueue 21916, check  1777; fail
+
+    parser 6:
+    mckenzie (max cost 12) enqueue 21880, check  1788; fail
+
+    parser 5:
+     5: mckenzie enqueue 4351, check  334; succeed : 8, (679 : END, )|IDENTIFIER|/IF, SEMICOLON, END, IF, SEMICOLON, END/
+
+    parser 3:
+    mckenzie (max cost 12) enqueue 25589, check  2028; fail
+
+    parser 1:
+    mckenzie (max cost 12) enqueue 23497, check  1910; fail
+
+
+ada_mode/test/slow_recover_2.adb
+    error is typed "loop;" instead of "end loop;"
+        should pop loop, insert "end loop"
+            it gets to pop loop cost 4, never checks it
+
+        inserts "begin begin end"
+            because "begin" is cheap, and begin ... end <name>; is legal, and meets check limit
+            make 'begin' same cost as others
+
+
+really need name matching!
+
+
+cache recover for subsequent parse
 
 still losing memory?
     possibly Augmented_Token_Array
@@ -46,27 +114,17 @@ Use indentation as hint?
 Start document with algorithm design.
 
 improve mckenzie
-    ./run_ada_lite_parser.exe ../test/ada_mode-recover_indent_3.adb --repeat_count 1000
-    run_ada_parser.exe 0 1 -1 ../test/ada_mode-recover_indent_3.adb --repeat_count 10
-        correct solution inserts 8 tokens, costs 8.
-        ada_lite finds that after enqueue 4734, check  679;  0.000_231_979 seconds
-        Full Ada finds that after enqueue 14164, check  1084; 0.010_793_146 seconds
+    focus on real use cases that are slow; document in ada-mode/test
 
     ./Test/test_mckenzie_recover.adb:442:      --  FIXME: recover finds "insert 'case; end'"; need another pattern
 
-    ada_lite.profile
-        top total time functions:
-            wisitoken.token_arrays.finalize
-            wisitoken.token_arrays.adjust
-            wisitoken.parser.lr.mckenzie_recover.configuration.Finalize
-            wisitoken.parser.lr.mckenzie_recover.":=" (for configuration, presumably)
-            wisitoken.parser.lr.mckenzie_recover.config_heaps.exchange
-
-    Derive token_array, add discriminant that sets initial size
-
-    try Ada.Containers.Bounded_Vectors (first_terminal .. last_nonterminal) for token_arrays
-        = 337 for Ada
-        just in mckenzie first
+    exec_pro/ada_lite_run.exe 10 c:/Projects/org.emacs.ada-mode.stephe-2/test/slow_recover_1.adb
+         1: mckenzie enqueue 540, check  69; succeed : 8, (18 : IDENTIFIER, )|OR|/THEN, IF, IDENTIFIER/
+         1: mckenzie enqueue 1373, check  181; succeed : 8, (196 : END, )|IDENTIFIER|/IF, SEMICOLON, END, IF, SEMICOLON, END/
+        ada_lite-slow_recover_1.profile
+            top total time functions:
+  0.00      0.09     0.00   231856     0.00     0.00  wisitoken__parser__lr__parser_stacks__element_arrays__finalize__2
+  0.00      0.09     0.00   231855     0.00     0.00  wisitoken__parser__lr__parser_stacks__stack_typeDF__2
 
     try lr1 ada_lite
         slow but tolerable wisi-generate time
@@ -75,13 +133,20 @@ improve mckenzie
         gcc gives up; gnat1.exe: out of memory allocating 4072 bytes
             need to read table from file.
 
+    include current state and current token in cost function:
+        cost of "125 | then | elsif" = 0
+        125 implied by trying 'then' without preceding 'if'
+
     config_queue:
         Fibonacci heap
 
     for each state, pre-compute shortest list of tokens (term/nonterm) to finish each nonterm
-        maybe this is what kim-choe means?
-        queue those (build graph?).
+        test/terminal_sequences_1.adb
         If any contain next token, queue that fragment.
+        use case: start typing a statement, hit enter
+            => error correction finishes statement with minimum token count.
+            but this case is not slow now;
+                'if a = 5 then' => queue 90
 
     run mckenzie in parallel, take first success, kill other parsers
         for i in 1 .. cost_limit
@@ -181,64 +246,8 @@ rename mckenzie to dpa_explore?
 
     includes special rules
 
-better syntax error handling
-    new algorithm 0:
-        Grune 326 Kim, Choe 2001
-        Definition 3.5 Lookback is just reduce
-        faster because it searches grammar graph including nonterminals, not dpa with only terminals
-        just implement the algorithms, see if that makes it clearer.
-            appears to be just Dijkstra
-                https://en.m.wikipedia.org/wiki/Dijkstra%27s_algorithm#Specialized_variants
-                    change costs to non-negative integers
-                not clear where the difference is
-            not clear how to compute S(A) for nonterminals?
-                Fischer Mauney 1989 ? no
-                fischer, dion, mauney 1979?
-                or dion, fischer, 1978? not in google scholar
-                or it's "just obvious"; terminal_sequences_1
 
-        Annotate grammar to eliminate cycles for least-cost search?
-
-        Precompute list of forced paths to shift terminal - shortens path search?
-            terminal_sequences_2 below
-
-    new algorithm 1:
-        if error symbol is in a terminal sequence:
-                need fast lookup; use linear search for now
-            find first terminal in sequence that is in follow (current state), or equiv
-            insert that sequence subset, do McKenzie
-
-        process grammar to generate shortest terminal sequences for each nonterm
-            same as Grune 326 S(A)
-
-            that does _not_ insert 'elsif' into 'if_statement'
-                which is why we need a full graph search?
-
-            also produce second list with optional nonterms, to find sequence for elsif?
-                not repeating nonterms
-                how do we decide to keep 'elsif', but not all statement variants?
-
-            terminal_sequences_1.adb
-
-        move param into .wy
-
-        move terminal_sequences.adb into wisi-*
-
-    new algorithm 2:
-        adjust mckenzie costs to include terminal sequences
-        include current_token in cost function
-            cost of "if then | elsif" = 0.0
-
-        include current state and current token in cost function:
-            cost of "125 | then | elsif" = 0
-            125 implied by trying 'then' without preceding 'if'
-
-    t_one RUN_ARGS=1
-        Error_5
-            deleted 'if then'
-            fixed with hardcoded 'if then else endif' sequence; need general solution
-                doing kim, choe 2001 dpa graph search
-
+other mckenzie stuff
     search dpa backwards from elsif; insert 'if then'
         same result as Grune 326 graph search; do that?
 
@@ -271,22 +280,12 @@ better syntax error handling
         ada_lite.lr1_parse_table
         10 times the states, table entries
 
-    then to elisp parser?
-
-    or Emacs module parser
-        elisp lexer supports utf-8, other encodings; tick/char_literal
-
-    Leaves some sections unindented - OK if not user line (not typical editing case).
-        not uncached; if indent is not computed, cache is 0
-        If indent cache 0, use previous line?
-        see how it works in practice
-
-include actual token count in nonterminal pop cost?
-    requires cumulative token count on parser stack
-
-Panic mode is supposed to skip input to ';', then pop states - grune 16.6.1
+    include actual token count in nonterminal pop cost?
+        requires cumulative token count on parser stack
 
 speed up
+    profile parsing gnatcoll-xref
+
     stack compare
         override "=" to start comparison at stack top; most likely to be different
 
