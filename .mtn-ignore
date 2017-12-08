@@ -18,6 +18,7 @@
 ^build/.*\.output$
 ^build/.*\.parse$
 ^build/.*\.parse_table$
+^build/.*\.profile$
 ^build/.*\.qx$
 ^build/.*\.re2c$
 ^build/.*\.wy$

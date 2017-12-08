@@ -16,7 +16,7 @@ all : test-clean tests library
 # t_one_1 : one-clean
 t_one_2 : ada_lite_re2c.c
 t_one : export Standard_Common_Build := Debug
-t_one : RUN_ARGS ?= Indent_Hanging_1 1
+#t_one : RUN_ARGS ?= Indent_Hanging_1 1
 t_one : t_one_1 t_one_2 test_one_harness.run
 
 t_all : export Standard_Common_Build := Debug
@@ -35,8 +35,13 @@ one : ada_lite_re2c.c ada_lite_run.exe
 
 # rule copied from gprbuild_rules.make; that rule gets overridden by
 # %.exe rules in rules.make
-exec_pro/run_ada_lite_parser.exe : force
-	gprbuild -XStandard_Common_Profile=On -p -P wisitoken_test.gpr run_ada_lite_parser -largs -pg -lgmem
+exec_pro/ada_lite_run.exe : force
+	gprbuild -XStandard_Common_Profile=On -p -P wisitoken_test.gpr ada_lite_run
+
+two : exec_pro/ada_lite_run.exe
+	exec_pro/ada_lite_run.exe 5 c:/Projects/org.emacs.ada-mode.stephe-2/test/slow_recover_1.adb
+	gnatmem exec_pro/ada_lite_run.exe
+	gprof exec_pro/ada_lite_run.exe gmon.out > ada_lite-slow_recover_1.profile
 
 some-clean :
 	rm -rf $(addsuffix *, $(SOME_CLEAN_FILE))
