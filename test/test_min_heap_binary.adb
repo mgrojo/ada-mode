@@ -20,8 +20,8 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with SAL.AUnit;
-with SAL.Gen_Unbounded_Definite_Min_Heaps.Gen_Test;
-package body Test_Min_Heap is
+with SAL.Gen_Unbounded_Definite_Min_Heaps_Binary.Gen_Test;
+package body Test_Min_Heap_Binary is
 
    type Element_Type is record
       Data : Float;
@@ -34,7 +34,7 @@ package body Test_Min_Heap is
       Element.Key := Key;
    end Set_Key;
 
-   package Unbounded_Definite_Min_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps
+   package Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Binary
      (Element_Type => Element_Type,
       Key_Type     => Integer,
       Key          => Key,
@@ -42,9 +42,9 @@ package body Test_Min_Heap is
       "<"          => "<",
       Initial_Size => 6);
 
-   package Heap_Test is new Unbounded_Definite_Min_Heaps.Gen_Test;
+   package Heap_Test is new Heaps.Gen_Test;
 
-   --  We don't 'use Unbounded_Definite_Min_Heaps', to test that
+   --  We don't 'use Heaps', to test that
    --  object.method notation works for heap operations.
 
    procedure Check
@@ -62,7 +62,7 @@ package body Test_Min_Heap is
 
    procedure Check
      (Label    : in String;
-      Computed : in Unbounded_Definite_Min_Heaps.Heap_Type;
+      Computed : in Heaps.Heap_Type;
       Expected : in Element_Array_Type)
    is
       use AUnit.Checks;
@@ -86,7 +86,7 @@ package body Test_Min_Heap is
       use AUnit.Checks;
       use SAL.AUnit;
 
-      Min_Heap : Unbounded_Definite_Min_Heaps.Heap_Type;
+      Min_Heap : Heaps.Heap_Type;
    begin
 
       Check ("0b", Min_Heap.Count, 0);
@@ -174,7 +174,7 @@ package body Test_Min_Heap is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_min_heaps.adb");
+      return new String'("test_min_heaps_binary.adb");
    end Name;
 
-end Test_Min_Heap;
+end Test_Min_Heap_Binary;

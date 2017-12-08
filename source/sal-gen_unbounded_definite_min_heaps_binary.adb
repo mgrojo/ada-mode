@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package body SAL.Gen_Unbounded_Definite_Min_Heaps is
+package body SAL.Gen_Unbounded_Definite_Min_Heaps_Binary is
 
    ----------
    --  Hidden operations
@@ -177,4 +177,4 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps is
       Internal_Decrease_Key (Heap, Heap.Count);
    end Add;
 
-end SAL.Gen_Unbounded_Definite_Min_Heaps;
+end SAL.Gen_Unbounded_Definite_Min_Heaps_Binary;

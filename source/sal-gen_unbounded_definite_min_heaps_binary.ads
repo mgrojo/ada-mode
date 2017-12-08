@@ -1,13 +1,11 @@
 --  Abstract:
 --
---  An unbounded minimum heap of definite non-limited elements.
---
---  The implementation emphasizes speed of execution.
+--  An unbounded minimum binary heap of definite non-limited elements.
 --
 --  References:
 --
 --  [1] Introduction to Algorithms, Third Edition. Thomas H. Cormen,
---  Charles E. Leiserson, Ronald L. Rivest, Clifford Stein
+--  Charles E. Leiserson, Ronald L. Rivest, Clifford Stein. Chapter 6.
 --
 --  Copyright (C) 2017 Stephen Leake.  All Rights Reserved.
 --
@@ -35,7 +33,7 @@ generic
    with function "<" (Left, Right : in Key_Type) return Boolean is <>;
 
    Initial_Size : in SAL.Base_Peek_Type := 128; --  Initial internal data array size.
-package SAL.Gen_Unbounded_Definite_Min_Heaps is
+package SAL.Gen_Unbounded_Definite_Min_Heaps_Binary is
 
    type Heap_Type is new Ada.Finalization.Controlled with private;
 
@@ -51,7 +49,7 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps is
    procedure Adjust (Object : in out Heap_Type);
 
    procedure Clear (Heap : in out Heap_Type);
-   --  Empty Heap.
+   --  Empty Heap (may not free memory; use Finalize for that).
 
    function Count (Heap : in Heap_Type) return Base_Peek_Type;
    --  Return count of elements in Heap.
@@ -72,8 +70,8 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps is
 
    procedure Insert (Heap : in out Heap_Type; Item : in Element_Type) renames Add;
 
-   --  FIXME: implement. need Index (heap, Key), or Add return index.
    --  procedure Increase_Key (Heap : in out Heap_Type; index : in index_type; Item : in Element_Type);
+   --  IMPROVEME: implement. need Index (heap, Key), or Add return index.
 private
 
    type Element_Array is array (SAL.Peek_Type range <>) of Element_Type;
@@ -91,4 +89,4 @@ private
 
    Empty_Heap : constant Heap_Type := (Ada.Finalization.Controlled with Data => null, Count => 0);
 
-end SAL.Gen_Unbounded_Definite_Min_Heaps;
+end SAL.Gen_Unbounded_Definite_Min_Heaps_Binary;

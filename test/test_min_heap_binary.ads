@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-package Test_Min_Heap is
+package Test_Min_Heap_Binary is
 
    type Test_Case is new AUnit.Test_Cases.Test_Case with null record;
 
@@ -28,4 +28,4 @@ package Test_Min_Heap is
 
    overriding function Name (T : Test_Case) return AUnit.Message_String;
 
-end Test_Min_Heap;
+end Test_Min_Heap_Binary;

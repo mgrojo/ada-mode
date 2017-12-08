@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  See spec.
+--  Access to private part of parent for unit test
 --
 --  Copyright (C) 2004, 2017 Stephen Leake.  All Rights Reserved.
 --
@@ -16,16 +16,12 @@
 --  the Free Software Foundation, 59 Temple Place - Suite 330, Boston,
 --  MA 02111-1307, USA.
 
-package body SAL.Gen_Unbounded_Definite_Min_Heaps.Gen_Test is
+pragma License (GPL);
 
-   function Peek (Heap : in Heap_Type; I : in SAL.Peek_Type) return Element_Type
-   is begin
-      return Heap.Data (I);
-   end Peek;
+generic
+package SAL.Gen_Unbounded_Definite_Min_Heaps_Binary.Gen_Test is
 
-   function Size (Heap : in Heap_Type) return Base_Peek_Type
-   is begin
-      return (if Heap.Data = null then 0 else Heap.Data'Length);
-   end Size;
+   function Peek (Heap : in Heap_Type; I : in SAL.Peek_Type) return Element_Type;
+   function Size (Heap : in Heap_Type) return Base_Peek_Type;
 
-end SAL.Gen_Unbounded_Definite_Min_Heaps.Gen_Test;
+end SAL.Gen_Unbounded_Definite_Min_Heaps_Binary.Gen_Test;
