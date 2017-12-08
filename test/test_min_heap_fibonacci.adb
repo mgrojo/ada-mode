@@ -143,6 +143,9 @@ package body Test_Min_Heap_Fibonacci is
 
       Min_Heap.Clear;
       Check ("11", Min_Heap.Count, 0);
+
+      Min_Heap.Add ((5.5, 5));
+      Check ("12", Min_Heap, (1 => (5.5, 5)));
    end Nominal;
 
    ----------

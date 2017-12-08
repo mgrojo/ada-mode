@@ -32,8 +32,7 @@ generic
    with function "<" (Left, Right : in Key_Type) return Boolean is <>;
 package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
-   type Heap_Type is new Ada.Finalization.Limited_Controlled with private;
-   --  Limited so we don't have to implement Adjust
+   type Heap_Type is new Ada.Finalization.Controlled with private;
 
    Empty_Heap : constant Heap_Type;
 
@@ -43,8 +42,11 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
    overriding
    procedure Finalize (Object : in out Heap_Type);
 
+   overriding
+   procedure Adjust (Object : in out Heap_Type);
+
    procedure Clear (Heap : in out Heap_Type);
-   --  Empty Heap (may not free memory; use Finalize for that).
+   --  Empty Heap.
 
    function Count (Heap : in Heap_Type) return Base_Peek_Type;
    --  Return count of elements in Heap.
@@ -82,11 +84,11 @@ private
       Mark    : Boolean;
    end record;
 
-   type Heap_Type is new Ada.Finalization.Limited_Controlled with record
+   type Heap_Type is new Ada.Finalization.Controlled with record
       Min   : Node_Access;
       Count : Base_Peek_Type;
    end record;
 
-   Empty_Heap : constant Heap_Type := (Ada.Finalization.Limited_Controlled with Min => null, Count => 0);
+   Empty_Heap : constant Heap_Type := (Ada.Finalization.Controlled with Min => null, Count => 0);
 
 end SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;

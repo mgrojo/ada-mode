@@ -163,7 +163,7 @@ is
    is
       pragma Unreferenced (T);
    begin
-      return new String'("test_definite_queues.adb");
+      return new String'("test_bounded_definite_queues.adb");
    end Name;
 
    overriding procedure Register_Tests (T : in out Test_Case)

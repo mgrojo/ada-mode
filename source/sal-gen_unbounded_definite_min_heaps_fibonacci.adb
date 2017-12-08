@@ -98,6 +98,27 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
       end loop;
    end Consolidate;
 
+   procedure Copy_Node (Old_Obj : in Node_Access; New_Obj : in out Heap_Type)
+   is
+      Child : Node_Access;
+   begin
+      if Old_Obj = null then
+         return;
+      end if;
+
+      if Old_Obj.Child /= null then
+         Child := Old_Obj.Child;
+
+         loop
+            Add (New_Obj, Child.Element);
+            Child := Child.Right;
+            exit when Child = Old_Obj.Child;
+         end loop;
+      end if;
+
+      Add (New_Obj, Old_Obj.Element);
+   end Copy_Node;
+
    procedure Free is new Ada.Unchecked_Deallocation (Node, Node_Access);
 
    procedure Free_Node (Item : in out Node_Access)
@@ -195,12 +216,32 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
          Free_Node (Temp);
          exit when Next = Object.Min;
       end loop;
+      Object.Min   := null;
       Object.Count := 0;
    end Finalize;
 
+   overriding
+   procedure Adjust (Object : in out Heap_Type)
+   is
+      Old_Obj : Node_Access := Object.Min;
+      Last : constant Node_Access := Old_Obj;
+   begin
+      if Old_Obj = null then
+         return;
+      end if;
+
+      Object.Min := null;
+
+      loop
+         Copy_Node (Old_Obj, Object);
+         Old_Obj := Old_Obj.Right;
+         exit when Old_Obj = Last;
+      end loop;
+   end Adjust;
+
    procedure Clear (Heap : in out Heap_Type)
    is begin
-      Heap.Count := 0;
+      Finalize (Heap);
    end Clear;
 
    function Count (Heap : in Heap_Type) return Base_Peek_Type
