@@ -104,15 +104,6 @@ still losing memory?
         watch memory while editing other files
         wait for compute indent in ada
 
-Use indentation as hint?
-    to solve missing 'end';
-    at current edit point, if indent does not match:
-        spawn parser,
-        enter error recovery for just it,
-        insert end ... to match, or fail.
-
-Start document with algorithm design.
-
 improve mckenzie
     focus on real use cases that are slow; document in ada-mode/test
 
@@ -273,8 +264,6 @@ other mckenzie stuff
 
         search all productions in 'declarations', 'statements'?
             start with final terminal, work backward to first
-
-    cache recover for subsequent parse
 
     test lr1 vs lalr tables
         ada_lite.lr1_parse_table
