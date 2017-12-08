@@ -41,7 +41,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Stack_Interfaces;
-with SAL.Gen_Unbounded_Definite_Min_Heaps;
+with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Token;
 package WisiToken.Parser.LR is
@@ -369,7 +369,7 @@ package WisiToken.Parser.LR is
       Deleted                => Token_Arrays.Empty_Vector,
       Cost                   => 0);
 
-   package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps
+   package Config_Heaps is new SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci
      (Element_Type => Configuration,
       Key_Type     => Integer,
       Key          => Key,
