@@ -245,7 +245,7 @@ package body Test_McKenzie_Recover is
       --  cost 2 due to grammar cost settings. That allows parsing to
       --  continue to EOF.
 
-      Check ("errors.length", State.Active_Error_List.Length, 1);
+      Check ("errors.length", State.Active_Error_List.Length, 2);
 
    exception
    when WisiToken.Syntax_Error =>

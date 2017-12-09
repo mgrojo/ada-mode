@@ -68,11 +68,13 @@ static void debug(wisi_lexer* lexer, int state, unsigned char ch)
 
 #define YYPEEK() (lexer->cursor <= lexer->buffer_last) ? *lexer->cursor : 4
 
+#define DO_COUNT ((*lexer->cursor & 0xC0) != 0xC0) && (*lexer->cursor != 0x0D)
+
 static void skip(wisi_lexer* lexer)
 {
    if (lexer->cursor <= lexer->buffer_last) ++lexer->cursor;
    if (lexer->cursor <= lexer->buffer_last)
-      if (((*lexer->cursor & 0xC0) != 0xC0) && (*lexer->cursor != 0x0D)) ++lexer->char_pos;
+      if (DO_COUNT) ++lexer->char_pos;
 }
 #define YYSKIP() skip(lexer)
 #define YYBACKUP() lexer->marker = lexer->cursor; lexer->marker_pos = lexer->char_pos
@@ -101,7 +103,10 @@ int subprograms_next_token
    }
 
    lexer->byte_token_start = lexer->cursor;
-   lexer->char_token_start = lexer->char_pos;
+   if (DO_COUNT)
+      lexer->char_token_start = lexer->char_pos;
+   else
+      lexer->char_token_start = lexer->char_pos + 1;
 
    while (*id == 0 && status == 0)
    {
@@ -156,6 +161,9 @@ int subprograms_next_token
    *byte_position = lexer->byte_token_start - lexer->buffer + 1;
    *byte_length   = lexer->cursor - lexer->byte_token_start;
    *char_position = lexer->char_token_start;
-   *char_length   = lexer->char_pos - lexer->char_token_start;
+   if (DO_COUNT)
+      *char_length = lexer->char_pos - lexer->char_token_start;
+   else
+      *char_length = lexer->char_pos - lexer->char_token_start + 1;
    return status;
    }

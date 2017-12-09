@@ -19,7 +19,6 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks.Containers;
 with AUnit.Checks;
 with Ada.Exceptions;
 with Ada.Text_IO;
@@ -40,7 +39,6 @@ package body Test_Character_Literal is
       Test : Test_Case renames Test_Case (T);
       use Ada.Exceptions;
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
       use Character_Literal;
 
       File_Name : constant String := "../wisi/test/character_literal.input";
@@ -52,8 +50,6 @@ package body Test_Character_Literal is
       State.Initialize (WisiToken.Token_Line_Comment.Init_Data'(Line_Count => 29));
       Parser.Lexer.Reset_With_File (File_Name);
       Parser.Parse;
-
-      Check ("initial_non_grammar.length", State.Initial_Non_Grammar.Length, 2); -- comment, new_line
 
       Check ("character_literal_count", Character_Literal_Count, 6);
       Check ("string_literal_count", String_Literal_Count, 2);
