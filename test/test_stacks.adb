@@ -19,16 +19,14 @@
 pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
+with Ada.Exceptions;
 with SAL.AUnit;
-with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Stacks;
 package body Test_Stacks is
 
    type Integer_Array_Type is array (SAL.Peek_Type range <>) of Integer;
 
-   package Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Integer);
-
-   package Unbounded_Definite_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Integer, Stack_Interfaces);
+   package Unbounded_Definite_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Integer);
 
    procedure Check
      (Label    : in String;
@@ -61,6 +59,17 @@ package body Test_Stacks is
 
       Check ("0a", Stack.Is_Empty, True);
       Check ("0b", Stack.Depth, 0);
+
+      --  Assign (copy) an empty stack; test Adjust
+      declare
+         Stack_2 : Unbounded_Definite_Stacks.Stack_Type;
+         pragma Unreferenced (Stack_2);
+      begin
+         Stack_2 := Stack;
+      exception
+      when E : others =>
+         Assert (False, Ada.Exceptions.Exception_Message (E));
+      end;
 
       for I in 1 .. 5 loop
          Stack.Push (I);
@@ -108,6 +117,46 @@ package body Test_Stacks is
       Check ("12", Stack.Is_Empty, True);
    end Nominal;
 
+   procedure Compare (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use SAL.AUnit;
+
+      Stack_1 : Unbounded_Definite_Stacks.Stack_Type;
+      Stack_2 : Unbounded_Definite_Stacks.Stack_Type;
+
+      use all type Unbounded_Definite_Stacks.Stack_Type; -- "="
+   begin
+      --  Compare stacks that have different Data'Last, but same content.
+      --  Also test Adjust with non-empty stack.
+
+      Stack_1.Set_Depth (10);
+      for I in 1 .. 5 loop
+         Stack_1.Set (SAL.Base_Peek_Type (I), 5, I);
+      end loop;
+
+      Stack_2.Set_Depth (5);
+      for I in 1 .. 5 loop
+         Stack_2.Set (SAL.Base_Peek_Type (I), 5, I);
+      end loop;
+
+      Assert (Stack_2 = Stack_1, "set not equal");
+
+      --  test Adjust
+      begin
+         Stack_2 := Stack_1;
+         Assert (Stack_2 = Stack_1, "copy not equal");
+      exception
+      when E : others =>
+         Assert (False, Ada.Exceptions.Exception_Message (E));
+      end;
+
+
+   end Compare;
+
    ----------
    --  Public routines
 
@@ -116,6 +165,7 @@ package body Test_Stacks is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Compare'Access, "Compare");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String

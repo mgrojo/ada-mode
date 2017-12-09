@@ -27,83 +27,115 @@ pragma License (Modified_GPL);
 
 package body SAL.Gen_Unbounded_Definite_Stacks is
 
-   overriding procedure Clear (Stack : in out Stack_Type)
+   ----------
+   --  local subprogram bodies
+
+   procedure Grow (Stack : in out Stack_Type; Desired_Size : in Base_Peek_Type)
    is
-      use Element_Arrays;
+      New_Data : constant Element_Array_Access := new Element_Array (1 .. Desired_Size);
    begin
+      New_Data (1 .. Stack.Top) := Stack.Data (1 .. Stack.Top);
+      Free (Stack.Data);
+      Stack.Data := New_Data;
+   end Grow;
+
+   ----------
+   --  Spec visible subprograms
+   overriding procedure Finalize (Stack : in out Stack_Type)
+   is begin
+      if Stack.Data /= null then
+         Free (Stack.Data);
+         Stack.Top := Invalid_Peek_Index;
+      end if;
+   end Finalize;
+
+   overriding procedure Adjust (Stack : in out Stack_Type)
+   is begin
+      if Stack.Data /= null then
+         Stack.Data := new Element_Array'(Stack.Data.all);
+      end if;
+   end Adjust;
+
+   overriding
+   function "=" (Left, Right : in Stack_Type) return Boolean
+   is begin
+      if Left.Data = null then
+         return Right.Data = null;
+      elsif Left.Top /= Right.Top then
+         return False;
+      else
+         --  Assume stacks differ near top.
+         for I in reverse 1 .. Left.Top loop
+            if Left.Data (I) /= Right.Data (I) then
+               return False;
+            end if;
+         end loop;
+         return True;
+      end if;
+   end "=";
+
+   procedure Clear (Stack : in out Stack_Type)
+   is begin
       --  We don't change the reserved capacity, on the assumption the
       --  stack will be used again.
-      for I in 1 .. Stack.Data.Length loop
-         Stack.Data.Delete_Last;
-      end loop;
       Stack.Top := 0;
    end Clear;
 
-   overriding function Depth (Stack : in Stack_Type) return Base_Peek_Type
+   function Depth (Stack : in Stack_Type) return Base_Peek_Type
    is begin
       return Stack.Top;
    end Depth;
 
-   overriding function Is_Empty (Stack : in Stack_Type) return Boolean
+   function Is_Empty (Stack : in Stack_Type) return Boolean
    is begin
       return Stack.Top = 0;
    end Is_Empty;
 
-   overriding function Max_Depth (Stack : in Stack_Type) return Base_Peek_Type
-   is begin
-      return Stack.Data.Last_Index;
-   end Max_Depth;
-
-   overriding function Peek
+   function Peek
      (Stack : in Stack_Type;
       Index : in Peek_Type := 1)
      return Element_Type
    is begin
-      return Element_Arrays.Element (Stack.Data, Stack.Top - Index + 1);
+      return Stack.Data (Stack.Top - Index + 1);
    end Peek;
 
-   overriding procedure Pop (Stack : in out Stack_Type)
-   is
-      use Ada.Containers;
-   begin
+   procedure Pop (Stack : in out Stack_Type)
+   is begin
       if Stack.Top = 0 then
          raise Container_Empty;
       else
-         Stack.Data.Delete (Stack.Top);
          Stack.Top := Stack.Top - 1;
       end if;
    end Pop;
 
-   overriding function Pop (Stack : in out Stack_Type) return Element_Type
-   is
-      use type Ada.Containers.Count_Type;
-   begin
+   function Pop (Stack : in out Stack_Type) return Element_Type
+   is begin
       if Stack.Top = 0 then
          raise Container_Empty;
       else
          return Result : constant Element_Type := Stack.Peek (1)
          do
-            Stack.Pop;
+            Stack.Top := Stack.Top - 1;
          end return;
       end if;
    end Pop;
 
-   overriding procedure Push (Stack : in out Stack_Type; Item : in Element_Type)
-   is
-      use Ada.Containers;
-   begin
-      Stack.Top := Stack.Top + 1;
-      if Stack.Top > Stack.Data.Last_Index then
-         Stack.Data.Append (Item);
-      else
-         Stack.Data.Replace_Element (Stack.Top, Item);
+   procedure Push (Stack : in out Stack_Type; Item : in Element_Type)
+   is begin
+      if Stack.Data = null then
+         --  Adding a generic parameter for a reasonably large default initial
+         --  size here makes Wisitoken McKenzie recover slightly slower,
+         --  presumably due to increased cache thrashing.
+         Stack.Data := new Element_Array (1 .. 2);
+      elsif Stack.Top = Stack.Data'Last then
+         Grow (Stack, Desired_Size => 2 * Stack.Data'Last);
       end if;
+      Stack.Top := Stack.Top + 1;
+      Stack.Data (Stack.Top) := Item;
    end Push;
 
-   overriding function Top (Stack : in Stack_Type) return Element_Type
-   is
-      use type Ada.Containers.Count_Type;
-   begin
+   function Top (Stack : in Stack_Type) return Element_Type
+   is begin
       if Stack.Top < 1 then
          raise SAL.Container_Empty;
       else
@@ -115,9 +147,11 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
      (Stack : in out Stack_Type;
       Depth : in     Peek_Type)
    is begin
-      Stack :=
-        (Top  => Depth,
-         Data => Element_Arrays.To_Vector (Ada.Containers.Count_Type (Depth)));
+      if Stack.Data = null then
+         Stack.Data := new Element_Array (1 .. 2 * Depth);
+      elsif Depth > Stack.Data'Last then
+         Grow (Stack, Desired_Size => 2 * Depth);
+      end if;
    end Set_Depth;
 
    procedure Set
@@ -128,7 +162,7 @@ package body SAL.Gen_Unbounded_Definite_Stacks is
    is begin
       --  Same Position algorithm as in Peek
       Stack.Top := Depth;
-      Stack.Data.Replace_Element (Depth - Index + 1, Element);
+      Stack.Data (Depth - Index + 1) := Element;
    end Set;
 
 end SAL.Gen_Unbounded_Definite_Stacks;
