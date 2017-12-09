@@ -14,7 +14,7 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
-with AUnit.Checks.Containers;
+with AUnit.Checks;
 with Ada.Containers;
 with Character_Literal;
 with WisiToken.AUnit;
@@ -25,7 +25,6 @@ package body Test_Character_Literal_Aux is
 
    procedure Test_Statement_List_0 (Nonterm : in WisiToken.Augmented_Token'Class)
    is
-      use AUnit.Checks.Containers;
       use WisiToken.AUnit;
 
       Token : WisiToken.Token_Line_Comment.Token renames WisiToken.Token_Line_Comment.Token (Nonterm);
@@ -36,12 +35,10 @@ package body Test_Character_Literal_Aux is
          case Statement_Count is
          when 1 =>
             Check ("statement_list_0 1 line", Token.Line, 2);
-            Check ("statement_list_0 1 non_grammar.length", Token.Non_Grammar.Length, 0);
             Check ("statement_list_0 1 region", Token.Char_Region, (29, 32));
 
          when 2 =>
             Check ("statement_list_0 2 line", Token.Line, 3);
-            Check ("statement_list_0 2 non_grammar.length", Token.Non_Grammar.Length, 0);
             Check ("statement_list_0 2 region", Token.Char_Region, (34, 37));
             Check ("statement_list_0 2 a", Token.First_Indent_Line, 3);
             Check ("statement_list_0 2 b", Token.Last_Indent_Line, 3);
@@ -51,7 +48,6 @@ package body Test_Character_Literal_Aux is
          when 10 =>
             --  object'attribute
             Check ("statement_list_0 10 line", Token.Line, 20);
-            Check ("statement_list_0 10 non_grammar.length", Token.Non_Grammar.Length, 0);
             Check ("statement_list_0 10 region", Token.Char_Region, (295, 314));
             Check ("statement_list_0 10 a", Token.First_Indent_Line, 20);
             Check ("statement_list_0 10 b", Token.Last_Indent_Line, 21);
@@ -68,7 +64,6 @@ package body Test_Character_Literal_Aux is
    procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
    is
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
       use Character_Literal;
       use WisiToken.AUnit;
 
@@ -85,8 +80,6 @@ package body Test_Character_Literal_Aux is
             Check ("statement_0 1 byte region", Character_Token.Byte_Region, (95, 97));
             Check ("statement_0 1 text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'a'");
             Check ("statement_0 1 line", Semicolon_Token.Line, 7);
-            Check ("statement_0 1 non_grammar.length", Semicolon_Token.Non_Grammar.Length, 1);
-            Check ("statement_0 1 non_grammar.id", Semicolon_Token.Non_Grammar (1).ID, +NEW_LINE_ID);
 
          when 2 =>
             Check ("statement_0 2 char text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'b'");
@@ -103,11 +96,6 @@ package body Test_Character_Literal_Aux is
          when 5 =>
             Check ("statement_0 5 char text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'π'");
             Check ("statement_0 5 line", Semicolon_Token.Line, 11);
-            Check ("statement_0 5 non_grammar.length", Semicolon_Token.Non_Grammar.Length, 4);
-            Check ("statement_0 5 non_grammar (1).id", Semicolon_Token.Non_Grammar (1).ID, +NEW_LINE_ID);
-            Check ("statement_0 5 non_grammar (2).id", Semicolon_Token.Non_Grammar (2).ID, +NEW_LINE_ID);
-            Check ("statement_0 5 non_grammar (3).id", Semicolon_Token.Non_Grammar (3).ID, +COMMENT_ID);
-            Check ("statement_0 5 non_grammar (4).id", Semicolon_Token.Non_Grammar (4).ID, +NEW_LINE_ID);
 
          when 6 =>
             Check ("statement_0 6 char text", Lexer.Buffer_Text (Character_Token.Byte_Region), "'''");
@@ -184,7 +172,6 @@ package body Test_Character_Literal_Aux is
    procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
    is
       use AUnit.Checks;
-      use AUnit.Checks.Containers;
       use Ada.Containers;
       use Character_Literal;
       use WisiToken.AUnit;
@@ -205,9 +192,6 @@ package body Test_Character_Literal_Aux is
                   Check ("statement_2 1 2.ID", Token.ID, +SEMICOLON_ID);
                   Check ("statement_2 1 2.Line", Token.Line, 23);
                   Check ("statement_2 1 2.First", Token.First, True);
-
-                  Check ("statement_2 1 2.non_grammar.length", Token.Non_Grammar.Length, 4);
-                  --  NEW_LINE, NEW_LINE, COMMENT, NEW_LINE
 
                when others =>
                   raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
