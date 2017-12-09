@@ -10,16 +10,8 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
 
  current work
 improve mckenzie speed
-    current slow functions: parser_stacks
-        in sal-...stacks:
-            get rid of interface
-            replace containers.vectors with plain array
-        in o.s-l.sal-1, o.w.s-1, o.e.a.s-4
-
-
-change mckenzie limit to enqueue count, divide by number of parallel parsers
-
-use multiple CPUs for mckenzie
+    use multiple CPUs
+        change mckenzie limit to check count, multiply by number of cpus
 
 do block name matching
 

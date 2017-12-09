@@ -172,7 +172,6 @@ package body WisiToken.Parser.LR is
    is
       use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
-      use Parser_Stack_Interfaces;
 
       Last : constant SAL.Base_Peek_Type :=
         (if Depth = 0

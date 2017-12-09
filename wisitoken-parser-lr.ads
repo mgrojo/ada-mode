@@ -41,7 +41,6 @@ pragma License (Modified_GPL);
 with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Unchecked_Deallocation;
 with SAL.Gen_Bounded_Definite_Vectors;
-with SAL.Gen_Stack_Interfaces;
 with SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
 with SAL.Gen_Unbounded_Definite_Stacks;
 with WisiToken.Token;
@@ -287,8 +286,7 @@ package WisiToken.Parser.LR is
    end record;
    Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token_ID);
 
-   package Parser_Stack_Interfaces is new SAL.Gen_Stack_Interfaces (Parser_Stack_Item);
-   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item, Parser_Stack_Interfaces);
+   package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
 
    function Extract_IDs (Stack : in Parser_Stacks.Stack_Type) return Token_Array;
    --  Items in result are in order they would appear in the text
