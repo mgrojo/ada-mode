@@ -67,6 +67,12 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    procedure Insert (Heap : in out Heap_Type; Item : in Element_Type) renames Add;
 
+   --  Despite being called a "mergeable heap" in [1], there is no
+   --  algorithm for merging two Fibonacci heaps. And the naive method of
+   --  simply splicing the root lists apparently breaks the consolidate
+   --  algorithm; it assumes there can only be one tree of each degree >
+   --  0.
+
    --  procedure Increase_Key (Heap : in out Heap_Type; index : in index_type; Item : in Element_Type);
    --  IMPROVEME: implement. need Index (heap, Key), or Add return index.
 private

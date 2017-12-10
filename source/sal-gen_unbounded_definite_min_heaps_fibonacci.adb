@@ -231,6 +231,7 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
       end if;
 
       Object.Min := null;
+      Object.Count := 0;
 
       loop
          Copy_Node (Old_Obj, Object);

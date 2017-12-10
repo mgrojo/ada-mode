@@ -148,6 +148,33 @@ package body Test_Min_Heap_Fibonacci is
       Check ("12", Min_Heap, (1 => (5.5, 5)));
    end Nominal;
 
+   procedure Test_Adjust (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      pragma Unreferenced (T);
+
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use Heap_Test;
+      use SAL.AUnit;
+
+      A : Heaps.Heap_Type;
+      B : Heaps.Heap_Type;
+   begin
+
+      for I in 1 .. 5 loop
+         A.Add ((Float (I), I));
+      end loop;
+
+      B := A;
+      Check ("1 A", A, ((1.0, 1), (2.0, 2), (3.0, 3), (4.0, 4), (5.0, 5)));
+      Check ("1 B", B, ((1.0, 1), (2.0, 2), (3.0, 3), (4.0, 4), (5.0, 5)));
+
+      A.Clear;
+      Check ("2 A", A, (1 .. 0 => (1.0, 1)));
+      Check ("2 B", B, ((1.0, 1), (2.0, 2), (3.0, 3), (4.0, 4), (5.0, 5)));
+
+   end Test_Adjust;
+
    ----------
    --  Public routines
 
@@ -156,6 +183,7 @@ package body Test_Min_Heap_Fibonacci is
       use AUnit.Test_Cases.Registration;
    begin
       Register_Routine (T, Nominal'Access, "Nominal");
+      Register_Routine (T, Test_Adjust'Access, "Test_Adjust");
    end Register_Tests;
 
    overriding function Name (T : Test_Case) return AUnit.Message_String
