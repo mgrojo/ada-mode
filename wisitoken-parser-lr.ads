@@ -392,12 +392,11 @@ package WisiToken.Parser.LR is
       Set_Key      => Set_Key);
 
    type McKenzie_Data is tagged record
-      Parser        : access Instance'Class;
       Config_Heap   : Config_Heaps.Heap_Type;
-      Enqueue_Count : Integer := 0;
-      Check_Count   : Integer := 0;
+      Enqueue_Count : Integer       := 0;
+      Check_Count   : Integer       := 0;
       Result        : Configuration := Default_Configuration;
-      Success       : Boolean := False;
+      Success       : Boolean       := False;
    end record;
 
    Default_McKenzie : constant McKenzie_Data := (others => <>);

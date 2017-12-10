@@ -194,9 +194,9 @@ package WisiToken is
    --  4: add lexer debug
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
-   --  Derived types should support Ada.Text_IO for tests/debugging,
-   --  and a protocol for inter-process communication for running a
-   --  parser as a subprocess of an IDE.
+   --  Output for tests/debugging. Derived types should support
+   --  Ada.Text_IO, and a protocol for inter-process communication for
+   --  running a parser as a subprocess of an IDE.
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace object

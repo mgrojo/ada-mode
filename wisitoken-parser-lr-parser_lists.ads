@@ -79,9 +79,8 @@ package WisiToken.Parser.LR.Parser_Lists is
      Iterator_Element  => Parser_State;
 
    function New_List
-     (Parser             : access LR.Instance'Class;
-      First_State_Index  : in     State_Index;
-      First_Parser_Label : in     Natural)
+     (First_State_Index  : in State_Index;
+      First_Parser_Label : in Natural)
      return List;
 
    function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type;
@@ -91,6 +90,7 @@ package WisiToken.Parser.LR.Parser_Lists is
    function First (List : aliased in out Parser_Lists.List'Class) return Cursor;
    procedure Next (Cursor : in out Parser_Lists.Cursor);
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
+   function Has_Element (Cursor : in Parser_Lists.Cursor) return Boolean is (not Is_Done (Cursor));
 
    function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
 
@@ -108,6 +108,12 @@ package WisiToken.Parser.LR.Parser_Lists is
 
    function State_Ref (Position : in Cursor) return State_Reference;
    --  Direct access to visible components of Parser_State
+
+   function State_Ref_2
+     (Container : not null access List'Class;
+      Label     : in              Natural)
+     return State_Reference;
+   --  WORKAROUND: GNAT GPL 2017 does not like overloading this as "State_Ref".
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
@@ -169,13 +175,10 @@ package WisiToken.Parser.LR.Parser_Lists is
       Position  :         in Parser_Node_Access)
      return Constant_Reference_Type;
 
-   type Reference_Type (Element : not null access Parser_State) is null record
-   with Implicit_Dereference => Element;
-
    function Reference
      (Container : aliased in out List'Class;
       Position  :         in     Parser_Node_Access)
-     return Reference_Type;
+     return State_Reference;
 
    function Has_Element (Iterator : in Parser_Node_Access) return Boolean;
 
