@@ -8,6 +8,9 @@ project Standard_Common is
    type Profile_Type is ("On", "Off");
    Profile : Profile_Type := External ("Standard_Common_Profile", "Off");
 
+   type Mem_Check_Type is ("On", "Off");
+   Mem_Check : Profile_Type := External ("Standard_Common_Mem_Check", "Off");
+
    package Compiler is
       -- Switches for gcc
 
@@ -95,10 +98,20 @@ project Standard_Common is
    package Linker is
       case Profile is
       when "On" =>
-         for Linker_Options use ("-pg", "-lgmem");
+         case Mem_Check is
+         when "On" =>
+            for Linker_Options use ("-pg", "-lgmem");
+         when "Off" =>
+            for Linker_Options use ("-pg");
+         end case;
 
       when "Off" =>
-         null;
+         case Mem_Check is
+         when "On" =>
+            for Linker_Options use ("-lgmem");
+         when "Off" =>
+            null;
+         end case;
       end case;
    end Linker;
 
