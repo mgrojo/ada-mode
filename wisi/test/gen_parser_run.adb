@@ -107,6 +107,7 @@ begin
    Parse (WisiToken.LALR);
 
    if LR1 then
+      New_Line;
       Parse (WisiToken.LR1);
    end if;
 

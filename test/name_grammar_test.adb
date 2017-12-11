@@ -154,7 +154,7 @@ package body Name_Grammar_Test is
    begin
       --  The test is that there are no exceptions, and that the parse
       --  trace matches the known good trace.
-      WisiToken.Trace_Parse := 1;
+      WisiToken.Trace_Parse := WisiToken.Detail + 1;
 
       if Exists (Trace_File_Name) then
          Delete_File (Trace_File_Name);

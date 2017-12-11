@@ -1,58 +1,37 @@
 LALR_Parser parse:
- 0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
- 0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
  1: 3: COMMA : reduce 1 tokens to name
  ... goto state 7
  0: 3: COMMA : reduce 1 tokens to identifier_list
  ... goto state 6
- 1 stack:  7 : name,  0 : 
  1: 7: COMMA : reduce 1 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
- 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
- 1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: COMMA : reduce 1 tokens to name
  ... goto state 23
- 0 stack:  21 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 21: COMMA : reduce 3 tokens to identifier_list
  ... goto state 6
- 1 stack:  23 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 23: COMMA : reduce 3 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 22
- 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 21
- 1 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 22: STRING_LITERAL : reduce 1 tokens to name
  ... goto state 23
- 0 stack:  21 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 21: STRING_LITERAL : reduce 3 tokens to identifier_list
  ... goto state 6
- 1 stack:  23 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 23: STRING_LITERAL : reduce 3 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: STRING_LITERAL : reduce 1 tokens to compilation_unit
  ... goto state 5
- 1 stack:  8 : name_list,  0 : 
  1: 8: STRING_LITERAL : reduce 1 tokens to compilation_unit
  ... goto state 5
- 0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
- 1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
  1: duplicate state
  1: terminate (1 active)
@@ -61,146 +40,100 @@ spawn parser from 0 (2 active)
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))
 (identifier_list 39 . 63) <= ((identifier_list 39 . 54), (COMMA 55 . 55), (IDENTIFIER 57 . 63))
 (compilation_unit 39 . 63) <= ((identifier_list 39 . 63))
- 0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  0: 2: COMMA : reduce 1 tokens to name
 (name 99 . 101) <= ((STRING_LITERAL 99 . 101))
  ... goto state 7
- 0 stack:  7 : name,  5 : compilation_unit,  0 : 
  0: 7: COMMA : reduce 1 tokens to name_list
 (name_list 99 . 101) <= ((name 99 . 101))
  ... goto state 8
- 0 stack:  8 : name_list,  5 : compilation_unit,  0 : 
  0: 8: COMMA : shift and goto state 9
- 0 stack:  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 9: IDENTIFIER : shift and goto state 22
- 0 stack:  22 : IDENTIFIER,  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 22: LEFT_PAREN : reduce 1 tokens to name
 (name 104 . 109) <= ((IDENTIFIER 104 . 109))
  ... goto state 23
- 0 stack:  23 : name,  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 23: LEFT_PAREN : reduce 3 tokens to name_list
 (name_list 99 . 109) <= ((name_list 99 . 101), (COMMA 102 . 102), (name 104 . 109))
  ... goto state 8
- 0 stack:  8 : name_list,  5 : compilation_unit,  0 : 
  0: 8: LEFT_PAREN : reduce 1 tokens to compilation_unit
 (compilation_unit 99 . 109) <= ((name_list 99 . 109))
  ... goto state 11
- 0 stack:  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 11: LEFT_PAREN : shift and goto state 1
- 0 stack:  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 1: IDENTIFIER : shift and goto state 13
- 0 stack:  13 : IDENTIFIER,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 13: EQUAL_GREATER : reduce 1 tokens to selector_name
 (selector_name 126 . 135) <= ((IDENTIFIER 126 . 135))
  ... goto state 16
- 0 stack:  16 : selector_name,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 16: EQUAL_GREATER : shift and goto state 17
- 0 stack:  17 : EQUAL_GREATER,  16 : selector_name,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 17: IDENTIFIER : shift and goto state 22
- 0 stack:  22 : IDENTIFIER,  17 : EQUAL_GREATER,  16 : selector_name,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 22: COMMA : reduce 1 tokens to name
 (name 140 . 145) <= ((IDENTIFIER 140 . 145))
  ... goto state 25
- 0 stack:  25 : name,  17 : EQUAL_GREATER,  16 : selector_name,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 25: COMMA : reduce 3 tokens to association
 (association 126 . 145) <= ((selector_name 126 . 135), (EQUAL_GREATER 137 . 138), (name 140 . 145))
  ... goto state 14
- 0 stack:  14 : association,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 14: COMMA : reduce 1 tokens to association_list
 (association_list 126 . 145) <= ((association 126 . 145))
  ... goto state 15
- 0 stack:  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 15: COMMA : shift and goto state 19
- 0 stack:  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 19: STRING_LITERAL : shift and goto state 12
- 0 stack:  12 : STRING_LITERAL,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 12: EQUAL_GREATER : reduce 1 tokens to selector_name
 (selector_name 148 . 150) <= ((STRING_LITERAL 148 . 150))
  ... goto state 16
- 0 stack:  16 : selector_name,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 16: EQUAL_GREATER : shift and goto state 17
- 0 stack:  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 17: STRING_LITERAL : shift and goto state 2
- 0 stack:  2 : STRING_LITERAL,  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 2: RIGHT_PAREN : reduce 1 tokens to name
 (name 155 . 157) <= ((STRING_LITERAL 155 . 157))
  ... goto state 25
- 0 stack:  25 : name,  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 25: RIGHT_PAREN : reduce 3 tokens to association
 (association 148 . 157) <= ((selector_name 148 . 150), (EQUAL_GREATER 152 . 153), (name 155 . 157))
  ... goto state 24
- 0 stack:  24 : association,  19 : COMMA,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 24: RIGHT_PAREN : reduce 3 tokens to association_list
 (association_list 126 . 157) <= ((association_list 126 . 145), (COMMA 146 . 146), (association 148 . 157))
  ... goto state 15
- 0 stack:  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 15: RIGHT_PAREN : shift and goto state 18
- 0 stack:  18 : RIGHT_PAREN,  15 : association_list,  1 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 18: Wisi_EOI : reduce 3 tokens to compilation_unit
 (compilation_unit 125 . 158) <= ((LEFT_PAREN 125 . 125), (association_list 126 . 157), (RIGHT_PAREN 158 . 158))
  ... goto state 20
- 0 stack:  20 : compilation_unit,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 20: Wisi_EOI : reduce 3 tokens to compilation
 compilation_0: (compilation 39 . 158) <= ((compilation_unit 39 . 63), (compilation_unit 99 . 109), (compilation_unit 125 . 158))
  ... goto state 4
- 0 stack:  4 : compilation,  0 : 
  0: 4: Wisi_EOI : accept it
 (wisitoken_accept 39 . 158) <= ((compilation 39 . 158))
+ 0: succeed
+
 LR1_Parser parse:
- 0 stack:  0 : 
  0: 0: IDENTIFIER : shift and goto state 3
- 0 stack:  3 : IDENTIFIER,  0 : 
 spawn parser from 0 (2 active)
  1: 3: COMMA : reduce 1 tokens to name
  ... goto state 7
  0: 3: COMMA : reduce 1 tokens to identifier_list
  ... goto state 6
- 1 stack:  7 : name,  0 : 
  1: 7: COMMA : reduce 1 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
- 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
- 1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: COMMA : reduce 1 tokens to name
  ... goto state 29
- 0 stack:  27 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 27: COMMA : reduce 3 tokens to identifier_list
  ... goto state 6
- 1 stack:  29 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 29: COMMA : reduce 3 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: COMMA : shift and goto state 10
- 1 stack:  8 : name_list,  0 : 
  1: 8: COMMA : shift and goto state 9
- 1 stack:  9 : COMMA,  8 : name_list,  0 : 
  1: 9: IDENTIFIER : shift and goto state 28
- 0 stack:  10 : COMMA,  6 : identifier_list,  0 : 
  0: 10: IDENTIFIER : shift and goto state 27
- 1 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  0 : 
  1: 28: STRING_LITERAL : reduce 1 tokens to name
  ... goto state 29
- 0 stack:  27 : IDENTIFIER,  10 : COMMA,  6 : identifier_list,  0 : 
  0: 27: STRING_LITERAL : reduce 3 tokens to identifier_list
  ... goto state 6
- 1 stack:  29 : name,  9 : COMMA,  8 : name_list,  0 : 
  1: 29: STRING_LITERAL : reduce 3 tokens to name_list
  ... goto state 8
- 0 stack:  6 : identifier_list,  0 : 
  0: 6: STRING_LITERAL : reduce 1 tokens to compilation_unit
  ... goto state 5
- 1 stack:  8 : name_list,  0 : 
  1: 8: STRING_LITERAL : reduce 1 tokens to compilation_unit
  ... goto state 5
- 0 stack:  5 : compilation_unit,  0 : 
  0: 5: STRING_LITERAL : shift and goto state 2
- 1 stack:  5 : compilation_unit,  0 : 
  1: 5: STRING_LITERAL : shift and goto state 2
  1: duplicate state
  1: terminate (1 active)
@@ -209,88 +142,62 @@ spawn parser from 0 (2 active)
 (identifier_list 39 . 54) <= ((identifier_list 39 . 45), (COMMA 46 . 46), (IDENTIFIER 48 . 54))
 (identifier_list 39 . 63) <= ((identifier_list 39 . 54), (COMMA 55 . 55), (IDENTIFIER 57 . 63))
 (compilation_unit 39 . 63) <= ((identifier_list 39 . 63))
- 0 stack:  2 : STRING_LITERAL,  5 : compilation_unit,  0 : 
  0: 2: COMMA : reduce 1 tokens to name
 (name 99 . 101) <= ((STRING_LITERAL 99 . 101))
  ... goto state 7
- 0 stack:  7 : name,  5 : compilation_unit,  0 : 
  0: 7: COMMA : reduce 1 tokens to name_list
 (name_list 99 . 101) <= ((name 99 . 101))
  ... goto state 8
- 0 stack:  8 : name_list,  5 : compilation_unit,  0 : 
  0: 8: COMMA : shift and goto state 9
- 0 stack:  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 9: IDENTIFIER : shift and goto state 28
- 0 stack:  28 : IDENTIFIER,  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 28: LEFT_PAREN : reduce 1 tokens to name
 (name 104 . 109) <= ((IDENTIFIER 104 . 109))
  ... goto state 29
- 0 stack:  29 : name,  9 : COMMA,  8 : name_list,  5 : compilation_unit,  0 : 
  0: 29: LEFT_PAREN : reduce 3 tokens to name_list
 (name_list 99 . 109) <= ((name_list 99 . 101), (COMMA 102 . 102), (name 104 . 109))
  ... goto state 8
- 0 stack:  8 : name_list,  5 : compilation_unit,  0 : 
  0: 8: LEFT_PAREN : reduce 1 tokens to compilation_unit
 (compilation_unit 99 . 109) <= ((name_list 99 . 109))
  ... goto state 11
- 0 stack:  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 11: LEFT_PAREN : shift and goto state 20
- 0 stack:  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 20: IDENTIFIER : shift and goto state 13
- 0 stack:  13 : IDENTIFIER,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 13: EQUAL_GREATER : reduce 1 tokens to selector_name
 (selector_name 126 . 135) <= ((IDENTIFIER 126 . 135))
  ... goto state 16
- 0 stack:  16 : selector_name,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 16: EQUAL_GREATER : shift and goto state 17
- 0 stack:  17 : EQUAL_GREATER,  16 : selector_name,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 17: IDENTIFIER : shift and goto state 35
- 0 stack:  35 : IDENTIFIER,  17 : EQUAL_GREATER,  16 : selector_name,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 35: COMMA : reduce 1 tokens to name
 (name 140 . 145) <= ((IDENTIFIER 140 . 145))
  ... goto state 36
- 0 stack:  36 : name,  17 : EQUAL_GREATER,  16 : selector_name,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 36: COMMA : reduce 3 tokens to association
 (association 126 . 145) <= ((selector_name 126 . 135), (EQUAL_GREATER 137 . 138), (name 140 . 145))
  ... goto state 14
- 0 stack:  14 : association,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 14: COMMA : reduce 1 tokens to association_list
 (association_list 126 . 145) <= ((association 126 . 145))
  ... goto state 32
- 0 stack:  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 32: COMMA : shift and goto state 19
- 0 stack:  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 19: STRING_LITERAL : shift and goto state 12
- 0 stack:  12 : STRING_LITERAL,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 12: EQUAL_GREATER : reduce 1 tokens to selector_name
 (selector_name 148 . 150) <= ((STRING_LITERAL 148 . 150))
  ... goto state 16
- 0 stack:  16 : selector_name,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 16: EQUAL_GREATER : shift and goto state 17
- 0 stack:  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 17: STRING_LITERAL : shift and goto state 34
- 0 stack:  34 : STRING_LITERAL,  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 34: RIGHT_PAREN : reduce 1 tokens to name
 (name 155 . 157) <= ((STRING_LITERAL 155 . 157))
  ... goto state 36
- 0 stack:  36 : name,  17 : EQUAL_GREATER,  16 : selector_name,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 36: RIGHT_PAREN : reduce 3 tokens to association
 (association 148 . 157) <= ((selector_name 148 . 150), (EQUAL_GREATER 152 . 153), (name 155 . 157))
  ... goto state 33
- 0 stack:  33 : association,  19 : COMMA,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 33: RIGHT_PAREN : reduce 3 tokens to association_list
 (association_list 126 . 157) <= ((association_list 126 . 145), (COMMA 146 . 146), (association 148 . 157))
  ... goto state 32
- 0 stack:  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 32: RIGHT_PAREN : shift and goto state 37
- 0 stack:  37 : RIGHT_PAREN,  32 : association_list,  20 : LEFT_PAREN,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 37: Wisi_EOI : reduce 3 tokens to compilation_unit
 (compilation_unit 125 . 158) <= ((LEFT_PAREN 125 . 125), (association_list 126 . 157), (RIGHT_PAREN 158 . 158))
  ... goto state 23
- 0 stack:  23 : compilation_unit,  11 : compilation_unit,  5 : compilation_unit,  0 : 
  0: 23: Wisi_EOI : reduce 3 tokens to compilation
 compilation_0: (compilation 39 . 158) <= ((compilation_unit 39 . 63), (compilation_unit 99 . 109), (compilation_unit 125 . 158))
  ... goto state 4
- 0 stack:  4 : compilation,  0 : 
  0: 4: Wisi_EOI : accept it
 (wisitoken_accept 39 . 158) <= ((compilation 39 . 158))
+ 0: succeed

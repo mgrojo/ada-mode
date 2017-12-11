@@ -226,7 +226,7 @@ package body WisiToken.Token_Region is
    begin
       State.Lookahead_Queue.Put (Temp);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line
            ("lexer_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
@@ -305,7 +305,7 @@ package body WisiToken.Token_Region is
    begin
       State.Lookahead_Queue.Add_To_Head (Temp);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line
            ("virtual_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
@@ -326,7 +326,7 @@ package body WisiToken.Token_Region is
 
       State.Stack.Append (Temp);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line
            ("push_current: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
@@ -388,7 +388,7 @@ package body WisiToken.Token_Region is
          Next (Stack_I);
       end loop;
 
-      if Trace_Parse > 0 then
+      if Trace_Parse > Detail then
          --  We use the stack for the trace, not Aug_Tokens, because
          --  we don't compute aug_tokens when Action is null.
          Put
@@ -419,7 +419,7 @@ package body WisiToken.Token_Region is
            ", Token " & Token.Image (State.Trace.Descriptor.all, ID_Only => False);
       end if;
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line ("discard_lookahead: " & Token.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
    end Discard_Lookahead;
@@ -437,7 +437,7 @@ package body WisiToken.Token_Region is
       if ID /= Token.ID then
          raise Programmer_Error;
       end if;
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line ("discard_stack: " & Token.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
    end Discard_Stack;
@@ -452,7 +452,7 @@ package body WisiToken.Token_Region is
       Error      : Error_Data renames Error_List.Reference (Error_List.Last);
    begin
       Error.Recover := new WisiToken.Token.Recover_Data'Class'(Recover);
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line (Natural'Image (Parser_ID) & ": recover");
       end if;
    end Recover;

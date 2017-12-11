@@ -153,7 +153,7 @@ package body Association_Grammar_Test is
          State'Access,
          First_Parser_Label);
 
-      WisiToken.Trace_Parse := 1;
+      WisiToken.Trace_Parse := WisiToken.Detail + 1;
 
       Parse_Command ("(identifier)");
       Parse_Command ("(identifier, identifier)");

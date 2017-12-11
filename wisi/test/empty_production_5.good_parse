@@ -1,100 +1,69 @@
 LALR_Parser parse:
- 1 stack:  1 : 
  1: 1: ACCEPT : shift and goto state 2
- 1 stack:  2 : ACCEPT,  1 : 
  1: 2: IDENTIFIER : shift and goto state 6
- 1 stack:  6 : IDENTIFIER,  2 : ACCEPT,  1 : 
  1: 6: LEFT_PAREN : reduce 1 tokens to name
 (name 8 . 13) <= ((IDENTIFIER 8 . 13))
  ... goto state 7
- 1 stack:  7 : name,  2 : ACCEPT,  1 : 
  1: 7: LEFT_PAREN : shift and goto state 8
- 1 stack:  8 : LEFT_PAREN,  7 : name,  2 : ACCEPT,  1 : 
  1: 8: IDENTIFIER : shift and goto state 11
- 1 stack:  11 : IDENTIFIER,  8 : LEFT_PAREN,  7 : name,  2 : ACCEPT,  1 : 
  1: 11: RIGHT_PAREN : shift and goto state 12
- 1 stack:  12 : RIGHT_PAREN,  11 : IDENTIFIER,  8 : LEFT_PAREN,  7 : name,  2 : ACCEPT,  1 : 
  1: 12: SEMICOLON : reduce 3 tokens to parameter_profile
 (parameter_profile 15 . 19) <= ((LEFT_PAREN 15 . 15), (IDENTIFIER 16 . 18), (RIGHT_PAREN 19 . 19))
  ... goto state 9
- 1 stack:  9 : parameter_profile,  7 : name,  2 : ACCEPT,  1 : 
  1: 9: SEMICOLON : shift and goto state 10
- 1 stack:  10 : SEMICOLON,  9 : parameter_profile,  7 : name,  2 : ACCEPT,  1 : 
  1: 10: ACCEPT : reduce 4 tokens to accept_statement
 accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name 8 . 13), (parameter_profile 15 . 19), (SEMICOLON 20 . 20))
  ... goto state 4
- 1 stack:  4 : accept_statement,  1 : 
  1: 4: ACCEPT : shift and goto state 2
- 1 stack:  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 2: IDENTIFIER : shift and goto state 6
- 1 stack:  6 : IDENTIFIER,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 6: SEMICOLON : reduce 1 tokens to name
 (name 29 . 34) <= ((IDENTIFIER 29 . 34))
  ... goto state 7
- 1 stack:  7 : name,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 7: SEMICOLON : reduce 0 tokens to parameter_profile
 (parameter_profile) <= ()
  ... goto state 9
- 1 stack:  9 : parameter_profile,  7 : name,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 9: SEMICOLON : shift and goto state 10
- 1 stack:  10 : SEMICOLON,  9 : parameter_profile,  7 : name,  2 : ACCEPT,  4 : accept_statement,  1 : 
  1: 10: Wisi_EOI : reduce 4 tokens to accept_statement
 accept_statement_0: (accept_statement 22 . 35) <= ((ACCEPT 22 . 27), (name 29 . 34), (parameter_profile), (SEMICOLON 35 . 35))
  ... goto state 5
- 1 stack:  5 : accept_statement,  4 : accept_statement,  1 : 
  1: 5: Wisi_EOI : reduce 2 tokens to compilation_unit
 (compilation_unit 1 . 35) <= ((accept_statement 1 . 20), (accept_statement 22 . 35))
  ... goto state 3
- 1 stack:  3 : compilation_unit,  1 : 
  1: 3: Wisi_EOI : accept it
 (wisitoken_accept 1 . 35) <= ((compilation_unit 1 . 35))
+ 1: succeed
+
 LR1_Parser parse:
- 1 stack:  1 : 
  1: 1: ACCEPT : shift and goto state 2
- 1 stack:  2 : ACCEPT,  1 : 
  1: 2: IDENTIFIER : shift and goto state 7
- 1 stack:  7 : IDENTIFIER,  2 : ACCEPT,  1 : 
  1: 7: LEFT_PAREN : reduce 1 tokens to name
 (name 8 . 13) <= ((IDENTIFIER 8 . 13))
  ... goto state 8
- 1 stack:  8 : name,  2 : ACCEPT,  1 : 
  1: 8: LEFT_PAREN : shift and goto state 9
- 1 stack:  9 : LEFT_PAREN,  8 : name,  2 : ACCEPT,  1 : 
  1: 9: IDENTIFIER : shift and goto state 14
- 1 stack:  14 : IDENTIFIER,  9 : LEFT_PAREN,  8 : name,  2 : ACCEPT,  1 : 
  1: 14: RIGHT_PAREN : shift and goto state 15
- 1 stack:  15 : RIGHT_PAREN,  14 : IDENTIFIER,  9 : LEFT_PAREN,  8 : name,  2 : ACCEPT,  1 : 
  1: 15: SEMICOLON : reduce 3 tokens to parameter_profile
 (parameter_profile 15 . 19) <= ((LEFT_PAREN 15 . 15), (IDENTIFIER 16 . 18), (RIGHT_PAREN 19 . 19))
  ... goto state 10
- 1 stack:  10 : parameter_profile,  8 : name,  2 : ACCEPT,  1 : 
  1: 10: SEMICOLON : shift and goto state 13
- 1 stack:  13 : SEMICOLON,  10 : parameter_profile,  8 : name,  2 : ACCEPT,  1 : 
  1: 13: ACCEPT : reduce 4 tokens to accept_statement
 accept_statement_0: (accept_statement 1 . 20) <= ((ACCEPT 1 . 6), (name 8 . 13), (parameter_profile 15 . 19), (SEMICOLON 20 . 20))
  ... goto state 4
- 1 stack:  4 : accept_statement,  1 : 
  1: 4: ACCEPT : shift and goto state 5
- 1 stack:  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 5: IDENTIFIER : shift and goto state 7
- 1 stack:  7 : IDENTIFIER,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 7: SEMICOLON : reduce 1 tokens to name
 (name 29 . 34) <= ((IDENTIFIER 29 . 34))
  ... goto state 11
- 1 stack:  11 : name,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 11: SEMICOLON : reduce 0 tokens to parameter_profile
 (parameter_profile) <= ()
  ... goto state 12
- 1 stack:  12 : parameter_profile,  11 : name,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 12: SEMICOLON : shift and goto state 16
- 1 stack:  16 : SEMICOLON,  12 : parameter_profile,  11 : name,  5 : ACCEPT,  4 : accept_statement,  1 : 
  1: 16: Wisi_EOI : reduce 4 tokens to accept_statement
 accept_statement_0: (accept_statement 22 . 35) <= ((ACCEPT 22 . 27), (name 29 . 34), (parameter_profile), (SEMICOLON 35 . 35))
  ... goto state 6
- 1 stack:  6 : accept_statement,  4 : accept_statement,  1 : 
  1: 6: Wisi_EOI : reduce 2 tokens to compilation_unit
 (compilation_unit 1 . 35) <= ((accept_statement 1 . 20), (accept_statement 22 . 35))
  ... goto state 3
- 1 stack:  3 : compilation_unit,  1 : 
  1: 3: Wisi_EOI : accept it
 (wisitoken_accept 1 . 35) <= ((compilation_unit 1 . 35))
+ 1: succeed
