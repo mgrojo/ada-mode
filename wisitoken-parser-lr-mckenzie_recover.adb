@@ -300,7 +300,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end if;
             end;
          end loop;
-         if Trace_Parse > Outline then
+         if Trace_Parse > Detail then
             Put_Line
               (Shared_Parser.Semantic_State.Trace.all, Parser_Label,
                "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
@@ -1040,7 +1040,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                if Trace_Parse > Outline then
                   Trace.Put_Line
                     (Integer'Image (Label (Parser_State)) &
-                       ": failed, enqueue" & Integer'Image (Data.Enqueue_Count) &
+                       ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
                        ", check " & Integer'Image (Data.Check_Count) &
                        ", cost: " &
                        (if Data.Config_Heap.Count > 0

@@ -499,6 +499,9 @@ package body WisiToken.Parser.LR.Parser is
             begin
                if Count = 1 then
                   --  Nothing more to do
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line (Integer'Image (Parsers.First.Label) & ": succeed");
+                  end if;
                   return;
 
                elsif Zombie_Count + 1 = Count then
@@ -507,6 +510,9 @@ package body WisiToken.Parser.LR.Parser is
                   loop
                      if Current_Parser.Verb = Accept_It then
                         Execute_Pending (Shared_Parser, Current_Parser);
+                        if Trace_Parse > Outline then
+                           Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": succeed");
+                        end if;
                      else
                         --  We called Semantic_State.Error earlier, now we need to call Terminate_Parser.
                         Shared_Parser.Semantic_State.Terminate_Parser (Current_Parser.Label);

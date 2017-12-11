@@ -14,6 +14,9 @@ improve mckenzie speed
     use multiple CPUs
 
     time ada-mode/slow_recover_1
+        factor of 3 gain
+
+    change to one protected object per parser, to control access to McKenzie_Data, plus one for Shared_Lookahead
 
     test cases:
         test_mckenzie_recover
@@ -35,8 +38,6 @@ check_tasks(4)_0218CEA8 0: succeed enqueue 39, check  13: 6, (15 : SEMICOLON, )|
             => need parallel tasks for parallel parsers
             or by higher level rule on matching names
         find more; keep mckenzie going until check hits higher cost
-
-    change mckenzie limit to check count, multiply by number of cpus?
 
 do block name matching
 
