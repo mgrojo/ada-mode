@@ -5,13 +5,38 @@ org.wisitoken          - working, used by o.e.a.s-2
 org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
 
 (dvc-state-multiple
-'((xmtn . "c:/Projects/org.wisitoken.stephe-1")
-  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")))
+'((xmtn . "c:/Projects/org.stephe_leake.makerules")
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
 improve mckenzie speed
     use multiple CPUs
-        change mckenzie limit to check count, multiply by number of cpus
+
+    time ada-mode/slow_recover_1
+
+    test cases:
+        test_mckenzie_recover
+        Extra_Begin, Conflict_1, Conflict_2, Revive_Zombie_Parser, Error_Token_When_Parallel, If_In_Handler: two parsers
+
+    Extra_Begin non-deterministic error list
+        two solutions with same cost:
+check_tasks(4)_0218CEA8 1: succeed enqueue 63, check  11: 2, (255 : SEMICOLON, )| 2|()()(END, SEMICOLON)()
+check_tasks(5)_0218FF70 1: succeed enqueue 75, check  11: 2, (36 : IS, )| 2|(BEGIN, declarative_part_opt)()()()
+
+check_tasks(4)_0218CEA8 0: succeed enqueue 39, check  13: 6, (15 : SEMICOLON, )| 2|(IS)()(SEMICOLON)(BEGIN)
+
+    from o.w:
+ 1: mckenzie enqueue 32, check  5; succeed : 2, (255 : SEMICOLON, )|PROCEDURE|/END, SEMICOLON/
+ 0: mckenzie enqueue 26, check  10; succeed : 6, (15 : SEMICOLON, )|PROCEDURE|IS/SEMICOLON/BEGIN
+
+    parser 1 second solution is actually prefered; it matches programmer intent, gives fewer errors later
+        keep both, resolve parse ambiguity by error count?
+            => need parallel tasks for parallel parsers
+            or by higher level rule on matching names
+        find more; keep mckenzie going until check hits higher cost
+
+    change mckenzie limit to check count, multiply by number of cpus?
 
 do block name matching
 

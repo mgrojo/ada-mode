@@ -661,7 +661,6 @@ package body WisiToken.Parser.LR is
    begin
       return
         "(" & Image (Descriptor, Config.Stack) & ", " &
-        All_Parse_Action_Verbs'Image (Config.Verb) &
         SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & ", " &
         Image (Descriptor, Config.Local_Lookahead) & ", " &
         Count_Type'Image (Config.Local_Lookahead_Index) & ", " &

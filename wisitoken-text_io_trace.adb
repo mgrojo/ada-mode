@@ -38,8 +38,10 @@ package body WisiToken.Text_IO_Trace is
    begin
       if Trace.File /= null and then Is_Open (Trace.File.all) then
          Ada.Text_IO.Put_Line (Trace.File.all, Item);
+         Ada.Text_IO.Flush (Trace.File.all);
       else
          Ada.Text_IO.Put_Line (Item);
+         Ada.Text_IO.Flush;
       end if;
    end Put_Line;
 

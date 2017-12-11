@@ -349,7 +349,6 @@ package WisiToken.Parser.LR is
       --  The stack after the operations below have been done; suitable for
       --  the next operation.
 
-      Verb                   : All_Parse_Action_Verbs;
       Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
 
       Local_Lookahead        : Fast_Token_ID_Vectors.Vector;
@@ -375,7 +374,6 @@ package WisiToken.Parser.LR is
 
    Default_Configuration : constant Configuration :=
      (Stack                  => Parser_Stacks.Empty_Stack,
-      Verb                   => Shift_Local_Lookahead,
       Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
       Local_Lookahead        => Fast_Token_ID_Vectors.Empty_Vector,
       Local_Lookahead_Index  => Fast_Token_ID_Vectors.No_Index,
