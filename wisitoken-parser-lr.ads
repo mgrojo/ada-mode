@@ -349,7 +349,6 @@ package WisiToken.Parser.LR is
       --  The stack after the operations below have been done; suitable for
       --  the next operation.
 
-      Verb                   : All_Parse_Action_Verbs;
       Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
 
       Local_Lookahead        : Fast_Token_ID_Vectors.Vector;
@@ -375,7 +374,6 @@ package WisiToken.Parser.LR is
 
    Default_Configuration : constant Configuration :=
      (Stack                  => Parser_Stacks.Empty_Stack,
-      Verb                   => Shift_Local_Lookahead,
       Shared_Lookahead_Index => SAL.Base_Peek_Type'First,
       Local_Lookahead        => Fast_Token_ID_Vectors.Empty_Vector,
       Local_Lookahead_Index  => Fast_Token_ID_Vectors.No_Index,
@@ -392,12 +390,11 @@ package WisiToken.Parser.LR is
       Set_Key      => Set_Key);
 
    type McKenzie_Data is tagged record
-      Parser        : access Instance'Class;
       Config_Heap   : Config_Heaps.Heap_Type;
-      Enqueue_Count : Integer := 0;
-      Check_Count   : Integer := 0;
+      Enqueue_Count : Integer       := 0;
+      Check_Count   : Integer       := 0;
       Result        : Configuration := Default_Configuration;
-      Success       : Boolean := False;
+      Success       : Boolean       := False;
    end record;
 
    Default_McKenzie : constant McKenzie_Data := (others => <>);

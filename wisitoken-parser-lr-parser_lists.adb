@@ -32,9 +32,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
    end Pend;
 
    function New_List
-     (Parser             : access LR.Instance'Class;
-      First_State_Index  : in     State_Index;
-      First_Parser_Label : in     Natural)
+     (First_State_Index  : in State_Index;
+      First_Parser_Label : in Natural)
      return List
    is
       Stack : Parser_Stacks.Stack_Type;
@@ -59,8 +58,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
              Verb                     => Shift,
              Prev_Verb                => Parse_Action_Verbs'First,
              Pre_Reduce_Item          => Default_Parser_Stack_Item));
-
-         Result.First.State_Ref.Recover.Parser := Parser;
       end return;
    end New_List;
 
@@ -123,6 +120,21 @@ package body WisiToken.Parser.LR.Parser_Lists is
       return (Element => Parser_State_Lists.Constant_Reference (Position.Elements.all, Position.Ptr).Element);
    end State_Ref;
 
+   function State_Ref_2
+     (Container : not null access List'Class;
+      Label     : in              Natural)
+     return State_Reference
+   is
+      use Parser_State_Lists;
+      Ptr : Parser_State_Lists.Cursor := Container.Elements.First;
+   begin
+      loop
+         exit when Constant_Reference (Container.Elements, Ptr).Label = Label;
+         Ptr := Next (Ptr);
+      end loop;
+      return (Element => Reference (Container.Elements, Ptr).Element);
+   end State_Ref_2;
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       use all type SAL.Base_Peek_Type;
@@ -166,8 +178,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
             Verb                     => Item.Verb,
             Prev_Verb                => Item.Prev_Verb,
             Pre_Reduce_Item          => Item.Pre_Reduce_Item);
-
-         New_Item.Recover.Parser := Item.Recover.Parser;
       end;
       List.Elements.Prepend (New_Item);
    end Prepend_Copy;
@@ -201,7 +211,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
    function Reference
      (Container : aliased in out List'Class;
       Position  :         in     Parser_Node_Access)
-     return Reference_Type
+     return State_Reference
    is begin
       return (Element => Parser_State_Lists.Reference (Container.Elements, Position.Ptr).Element);
    end Reference;

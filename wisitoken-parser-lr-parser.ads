@@ -39,7 +39,7 @@ package WisiToken.Parser.LR.Parser is
       First_Parser_Label   : in     Integer                   := 1;
       Terminate_Same_State : in     Boolean                   := True);
 
-   overriding procedure Parse (Parser : in out Instance);
+   overriding procedure Parse (Shared_Parser : in out Instance);
    --  Trace_Parse settings:
    --  0 - no info
    --  1 - parallel parser create, delete

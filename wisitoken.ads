@@ -184,19 +184,21 @@ package WisiToken is
    ----------
    --  Trace
 
-   Trace_Parse : Integer := 0;
+   Trace_Parse : Integer  := 0;
    --  If Trace_Parse > 0, Parse prints messages helpful for debugging
    --  the grammar and/or the parser; higher value prints more.
    --
-   --  1: shows each parser cycle, spawn/terminate parallel parsers, error recovery enter/exit
-   --  2: add parse stack in each cycle, error recovery enqueue/check
-   --  3: add pending semantic state operations, error recovery parse actions
-   --  4: add lexer debug
+   --  Trace_Parse levels; output info if Trace_Parse > than:
+   --
+   Outline     : constant := 0; -- spawn/terminate parallel parsers, error recovery enter/exit
+   Detail      : constant := 1; -- add each parser cycle and error recovery configuration
+   Extra       : constant := 2; -- add pending semantic state operations, error recovery parse actions
+   Lexer_Debug : constant := 3; -- add lexer debug
 
    type Trace (Descriptor : not null access constant WisiToken.Descriptor'Class) is abstract tagged limited null record;
-   --  Derived types should support Ada.Text_IO for tests/debugging,
-   --  and a protocol for inter-process communication for running a
-   --  parser as a subprocess of an IDE.
+   --  Output for tests/debugging. Derived types should support
+   --  Ada.Text_IO, and a protocol for inter-process communication for
+   --  running a parser as a subprocess of an IDE.
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
    --  Put Item to the Trace object

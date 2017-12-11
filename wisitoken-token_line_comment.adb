@@ -222,7 +222,7 @@ package body WisiToken.Token_Line_Comment is
             end if;
          end;
 
-         if Trace_Parse > 2 then
+         if Trace_Parse > Extra then
             State.Trace.Put_Line
               ("lexer to non_grammar: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
          end if;
@@ -237,7 +237,7 @@ package body WisiToken.Token_Line_Comment is
 
          State.Lookahead_Queue.Put (Temp);
 
-         if Trace_Parse > 2 then
+         if Trace_Parse > Extra then
             State.Trace.Put_Line
               ("lexer to lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
          end if;
@@ -269,7 +269,7 @@ package body WisiToken.Token_Line_Comment is
    begin
       State.Lookahead_Queue.Add_To_Head (Temp);
 
-      if Trace_Parse > 2 then
+      if Trace_Parse > Extra then
          State.Trace.Put_Line
            ("virtual_to_lookahead: " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False));
       end if;
@@ -422,7 +422,7 @@ package body WisiToken.Token_Line_Comment is
          end loop;
       end;
 
-      if Trace_Parse > 0 then
+      if Trace_Parse > Detail then
          Token_Region.Put
            (State.Trace.all, Aug_Nonterm, Index, Aug_Tokens, Aug_Tokens.Length, Include_Action_Name => Action /= null);
       end if;

@@ -30,8 +30,8 @@ with WisiToken.Parser.LR.Parser_Lists;
 package WisiToken.Parser.LR.McKenzie_Recover is
 
    function Recover
-     (Parser  : in out LR.Instance'Class;
-      Parsers : in out Parser_Lists.List)
+     (Shared_Parser : in out LR.Instance'Class;
+      Parsers       : in out Parser_Lists.List)
      return Boolean;
    --  Attempt to modify Parsers state and Parser.Lookahead to allow
    --  recovering from an error state. Return True if successful.
