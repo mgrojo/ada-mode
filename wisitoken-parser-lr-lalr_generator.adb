@@ -127,9 +127,9 @@ package body WisiToken.Parser.LR.LALR_Generator is
    begin
       Put_Line ("LALR Parse Table:");
 
-      if Table.McKenzie.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
+      if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
          Put_Line ("McKenzie:");
-         Put (Descriptor, Table.McKenzie);
+         Put (Descriptor, Table.McKenzie_Param);
          New_Line;
       end if;
 
@@ -726,7 +726,7 @@ package body WisiToken.Parser.LR.LALR_Generator is
 
       if McKenzie_Param = Default_McKenzie_Param then
          --  Descriminants in Default are wrong
-         Table.McKenzie :=
+         Table.McKenzie_Param :=
            (First_Terminal    => Descriptor.First_Terminal,
             Last_Terminal     => Descriptor.Last_Terminal,
             First_Nonterminal => Descriptor.First_Nonterminal,
@@ -737,7 +737,7 @@ package body WisiToken.Parser.LR.LALR_Generator is
             Check_Limit       => Default_McKenzie_Param.Check_Limit,
             Patterns          => LR.Patterns.Empty_List);
       else
-         Table.McKenzie := McKenzie_Param;
+         Table.McKenzie_Param := McKenzie_Param;
       end if;
 
       Table.Follow := LR1_Items.Follow (Grammar, Descriptor, First, Has_Empty_Production);

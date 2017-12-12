@@ -144,7 +144,7 @@ package body Grune_9_30 is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : WisiToken.Parser.LR.Parser.Instance;
+      Parser : WisiToken.Parser.LR.Instance;
 
       procedure Execute_Command (Command : in String)
       is begin

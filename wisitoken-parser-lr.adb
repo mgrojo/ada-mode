@@ -30,6 +30,7 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with WisiToken.Parser.LR.Parser;
 package body WisiToken.Parser.LR is
 
    overriding
@@ -150,6 +151,11 @@ package body WisiToken.Parser.LR is
 
       Free (Object.Table);
    end Finalize;
+
+   overriding procedure Parse (Shared_Parser : in out Instance)
+   is begin
+      WisiToken.Parser.LR.Parser.Parse (Shared_Parser);
+   end Parse;
 
    function State_Image (Item : in Unknown_State_Index) return String
    is
@@ -598,9 +604,9 @@ package body WisiToken.Parser.LR is
       Put_Line ("Follow:");
       Put (Descriptor, Table.Follow);
 
-      if Table.McKenzie.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
-         Put_Line ("McKenzie:");
-         Put (Descriptor, Table.McKenzie);
+      if Table.McKenzie_Param.Cost_Limit /= Default_McKenzie_Param.Cost_Limit then
+         Put_Line ("McKenzie_Param:");
+         Put (Descriptor, Table.McKenzie_Param);
          New_Line;
       end if;
 

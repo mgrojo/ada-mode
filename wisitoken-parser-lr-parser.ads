@@ -2,6 +2,9 @@
 --
 --  A generalized LR parser.
 --
+--  In a child package of Parser.LR partly for historical reasons,
+--  partly to allow McKenzie_Recover to be in a sibling package.
+--
 --  Copyright (C) 2002, 2003, 2009, 2010, 2013-2015, 2017 Stephe Leake
 --  Copyright (C) 1999 Ted Dennison
 --
@@ -24,12 +27,6 @@ pragma License (Modified_GPL);
 with WisiToken.Token;
 package WisiToken.Parser.LR.Parser is
 
-   type Instance is new WisiToken.Parser.LR.Instance with record
-      Max_Parallel         : Ada.Containers.Count_Type;
-      First_Parser_Label   : Integer;
-      Terminate_Same_State : Boolean;
-   end record;
-
    procedure New_Parser
      (Parser               :    out Instance;
       Lexer                : in     WisiToken.Lexer.Handle;
@@ -39,11 +36,6 @@ package WisiToken.Parser.LR.Parser is
       First_Parser_Label   : in     Integer                   := 1;
       Terminate_Same_State : in     Boolean                   := True);
 
-   overriding procedure Parse (Shared_Parser : in out Instance);
-   --  Trace_Parse settings:
-   --  0 - no info
-   --  1 - parallel parser create, delete
-   --  2 - input tokens, reduce actions
-   --  3 - parse stack
+   procedure Parse (Shared_Parser : in out Instance);
 
 end WisiToken.Parser.LR.Parser;

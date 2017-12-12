@@ -26,12 +26,12 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region.AUnit;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Instance;
 
    Orig_Cost_Limit  : Integer;
 
@@ -241,9 +241,11 @@ package body Test_McKenzie_Recover is
       --  must be handled.
       --
       --  The desired solution is pop 'begin 20' and reduced
-      --  declarative_part_opt, leaving 'is' 17 on the parse stack. That has
-      --  cost 2 due to grammar cost settings. That allows parsing to
-      --  continue to EOF.
+      --  declarative_part_opt, leaving 'is' 17 on the parse stack.
+      --  That has cost 2 due to grammar cost settings. That allows
+      --  parsing to continue to EOF. Error recovery finds 3 solutions
+      --  with cost 2, and the desired succeeds, because it encounters
+      --  no more errors.
 
       if Test.Debug > 0 then
          for Error of State.Active_Error_List loop
@@ -252,11 +254,7 @@ package body Test_McKenzie_Recover is
          end loop;
       end if;
 
-      --  There are (at least) two viable parses with error recovery with
-      --  the same cost, and there is a race condition that chooses which
-      --  one is chosen. So this test randomly fails.
-      --
-      --  Check ("errors.length", State.Active_Error_List.Length, 2);
+      Check ("errors.length", State.Active_Error_List.Length, 1);
 
    exception
    when WisiToken.Syntax_Error =>
@@ -309,7 +307,7 @@ package body Test_McKenzie_Recover is
       --  Symmetric case where generic_instantiation is desired
       begin
 
-         Parser.Table.McKenzie.Cost_Limit := 6;
+         Parser.Table.McKenzie_Param.Cost_Limit := 6;
 
          Parse_Text
            ("procedure Check_2 is end new Check_2;",
@@ -421,7 +419,7 @@ package body Test_McKenzie_Recover is
       use AUnit.Assertions;
       use AUnit.Checks;
    begin
-      Parser.Table.McKenzie.Cost_Limit := 1; -- show that matching the pattern reduces cost
+      Parser.Table.McKenzie_Param.Cost_Limit := 1; -- show that matching the pattern reduces cost
 
       --  Test 'recover_pattern_1' for CASE
       begin
@@ -439,7 +437,7 @@ package body Test_McKenzie_Recover is
 
       --  Similar to Test_CASE_1, but error token is IDENTIFIER (and it could be dotted).
       --  FIXME: recover finds "insert 'case; end'"; need another pattern
-      Parser.Table.McKenzie.Cost_Limit := 10; -- no pattern matching here
+      Parser.Table.McKenzie_Param.Cost_Limit := 10; -- no pattern matching here
       begin
          Parse_Text
            ("procedure Test_CASE_2 is begin case I is when 1 => A; end Test_CASE_2;",
@@ -455,7 +453,7 @@ package body Test_McKenzie_Recover is
          Assert (False, "1 exception: got Syntax_Error");
       end;
 
-      Parser.Table.McKenzie.Cost_Limit := 2; -- show that matching the pattern reduces enqueues
+      Parser.Table.McKenzie_Param.Cost_Limit := 2; -- show that matching the pattern reduces enqueues
 
       --  Test 'recover_pattern_1' for IF
       begin
@@ -693,13 +691,13 @@ package body Test_McKenzie_Recover is
    begin
       --  Run before all tests in register
       Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);
-      Orig_Cost_Limit := Parser.Table.McKenzie.Cost_Limit;
+      Orig_Cost_Limit := Parser.Table.McKenzie_Param.Cost_Limit;
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       --  Run before each test
-      Parser.Table.McKenzie.Cost_Limit := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
+      Parser.Table.McKenzie_Param.Cost_Limit := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
    end Set_Up;
 
 end Test_McKenzie_Recover;

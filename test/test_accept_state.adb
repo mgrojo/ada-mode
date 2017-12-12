@@ -80,7 +80,7 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);

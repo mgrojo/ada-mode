@@ -300,7 +300,7 @@ package body WisiToken.Parser.LR.Parser is
       end loop;
    end Execute_Pending;
 
-   overriding procedure Parse (Shared_Parser : in out Instance)
+   procedure Parse (Shared_Parser : in out Instance)
    is
       use all type Ada.Containers.Count_Type;
       use all type SAL.Base_Peek_Type;
@@ -415,7 +415,7 @@ package body WisiToken.Parser.LR.Parser is
                         Trace.Put_Line
                           (Integer'Image (Parser_State.Label) & ": zombie (" &
                              Int_Image
-                               (Shared_Parser.Table.McKenzie.Check_Limit - Parser_State.Zombie_Token_Count) &
+                               (Shared_Parser.Table.McKenzie_Param.Check_Limit - Parser_State.Zombie_Token_Count) &
                              " tokens remaining)");
                      end if;
                   end if;
@@ -618,7 +618,7 @@ package body WisiToken.Parser.LR.Parser is
                         when Error =>
                            --  Force this parser to be terminated.
                            if Shared_Parser.Enable_McKenzie_Recover then
-                              Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie.Check_Limit + 1;
+                              Parser_State.Zombie_Token_Count := Shared_Parser.Table.McKenzie_Param.Check_Limit + 1;
                            end if;
 
                         when Shift =>
@@ -670,7 +670,7 @@ package body WisiToken.Parser.LR.Parser is
                --
                --  Check to see if it is time to terminate it
                if Shared_Parser.Enable_McKenzie_Recover and then
-                 Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie.Check_Limit
+                 Current_Parser.State_Ref.Zombie_Token_Count <= Shared_Parser.Table.McKenzie_Param.Check_Limit
                then
                   if Trace_Parse > Detail then
                      Trace.Put_Line (Integer'Image (Current_Parser.Label) & ": zombie");
@@ -762,7 +762,7 @@ package body WisiToken.Parser.LR.Parser is
       Parser.Semantic_State          := Semantic_State;
       Parser.Shared_Lookahead        := Token_Queues.Empty_Queue;
       Parser.Enable_McKenzie_Recover :=
-        Table.McKenzie.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit;
+        Table.McKenzie_Param.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel            := Max_Parallel;
       Parser.First_Parser_Label      := First_Parser_Label;
       Parser.Terminate_Same_State    := Terminate_Same_State;

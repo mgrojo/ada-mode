@@ -112,7 +112,7 @@ package body Test_LR_Expecting is
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   Parser : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);

@@ -20,13 +20,13 @@
 
 pragma License (GPL);
 
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 with WisiToken.Token;
 generic
    Descriptor : in WisiToken.Descriptor'Class;
 
    with procedure  Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 

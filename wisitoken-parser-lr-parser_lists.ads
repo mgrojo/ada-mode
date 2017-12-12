@@ -20,8 +20,8 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Iterator_Interfaces;
+with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Queues;
 package WisiToken.Parser.LR.Parser_Lists is
 
@@ -57,7 +57,7 @@ package WisiToken.Parser.LR.Parser_Lists is
       Last_Shift_Was_Virtual   : Boolean;
       Stack                    : Parser_Stacks.Stack_Type;
       Pend_Items               : Pend_Items_Queues.Queue_Type;
-      Recover                  : LR.McKenzie_Data;
+      Recover                  : aliased LR.McKenzie_Data;
       Local_Lookahead          : Token_Queues.Queue_Type; -- Holds error recovery insertions.
       Shared_Lookahead_Index   : SAL.Peek_Type;
       Zombie_Token_Count       : Integer;
@@ -115,6 +115,8 @@ package WisiToken.Parser.LR.Parser_Lists is
      return State_Reference;
    --  WORKAROUND: GNAT GPL 2017 does not like overloading this as "State_Ref".
 
+   function McKenzie_Ref (Position : in Cursor) return McKenzie_Access;
+
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
 
@@ -127,6 +129,8 @@ package WisiToken.Parser.LR.Parser_Lists is
    procedure Prepend_Copy (List : in out Parser_Lists.List; Cursor : in Parser_Lists.Cursor'Class);
    --  Copy parser at Cursor, prepend to current list. New copy will not
    --  appear in Cursor.Next ...; it is accessible as First (List).
+   --
+   --  Copy.Recover is set to Default_McKenzie.
 
    procedure Free (Cursor : in out Parser_Lists.Cursor'Class);
    --  Delete the Cursor parser. It will not appear in future
@@ -191,7 +195,6 @@ package WisiToken.Parser.LR.Parser_Lists is
    function Label (Iterator : in Parser_State) return Natural;
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
-   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
    procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class);
 
@@ -210,7 +213,7 @@ private
       Pre_Reduce_Item : Parser_Stack_Item := Default_Parser_Stack_Item;
    end record;
 
-   package Parser_State_Lists is new Ada.Containers.Doubly_Linked_Lists (Parser_State);
+   package Parser_State_Lists is new SAL.Gen_Definite_Doubly_Linked_Lists (Parser_State);
 
    type List is tagged record
       Elements     : aliased Parser_State_Lists.List;

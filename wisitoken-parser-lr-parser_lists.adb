@@ -90,34 +90,34 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    function Label (Cursor : in Parser_Lists.Cursor) return Natural
    is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Label;
+      return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Label;
    end Label;
 
    procedure Set_Verb (Cursor : in Parser_Lists.Cursor; Verb : in All_Parse_Action_Verbs)
    is begin
-      Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Verb := Verb;
+      Parser_State_Lists.Reference (Cursor.Ptr).Verb := Verb;
    end Set_Verb;
 
    function Verb (Cursor : in Parser_Lists.Cursor) return All_Parse_Action_Verbs
    is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Verb;
+      return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Verb;
    end Verb;
 
    procedure Save_Verb (Cursor : in Parser_Lists.Cursor)
    is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
+      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr);
    begin
       Item.Prev_Verb := Item.Verb;
    end Save_Verb;
 
    function Prev_Verb (Cursor : in Parser_Lists.Cursor) return Parse_Action_Verbs
    is begin
-      return Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr).Prev_Verb;
+      return Parser_State_Lists.Constant_Reference (Cursor.Ptr).Prev_Verb;
    end Prev_Verb;
 
    function State_Ref (Position : in Cursor) return State_Reference
    is begin
-      return (Element => Parser_State_Lists.Constant_Reference (Position.Elements.all, Position.Ptr).Element);
+      return (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element);
    end State_Ref;
 
    function State_Ref_2
@@ -129,16 +129,21 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Ptr : Parser_State_Lists.Cursor := Container.Elements.First;
    begin
       loop
-         exit when Constant_Reference (Container.Elements, Ptr).Label = Label;
-         Ptr := Next (Ptr);
+         exit when Constant_Reference (Ptr).Label = Label;
+         Next (Ptr);
       end loop;
-      return (Element => Reference (Container.Elements, Ptr).Element);
+      return (Element => Reference (Ptr).Element);
    end State_Ref_2;
+
+   function McKenzie_Ref (Position : in Cursor) return McKenzie_Access
+   is begin
+      return Parser_State_Lists.Persistent_Ref (Position.Ptr).Recover'Access;
+   end McKenzie_Ref;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       use all type SAL.Base_Peek_Type;
-      Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Elements.all, Cursor.Ptr);
+      Item  : Parser_State renames Parser_State_Lists.Constant_Reference (Cursor.Ptr);
       Stack : Parser_Stacks.Stack_Type renames Item.Stack;
    begin
       Trace.Put (Natural'Image (Item.Label) & " stack: ");
@@ -147,7 +152,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
    is
-      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr);
+      Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr);
    begin
       Item.Pre_Reduce_Item := Item.Stack.Peek;
    end Pre_Reduce_Stack_Save;
@@ -160,7 +165,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
    begin
       List.Parser_Label := List.Parser_Label + 1;
       declare
-         Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Elements.all, Cursor.Ptr).Element.all;
+         Item : Parser_State renames Parser_State_Lists.Reference (Cursor.Ptr).Element.all;
          --  We can't do 'Prepend' in the scope of this 'renames';
          --  that would be tampering with cursors.
       begin
@@ -202,9 +207,11 @@ package body WisiToken.Parser.LR.Parser_Lists is
      (Container : aliased in List'Class;
       Position  :         in Parser_Node_Access)
      return Constant_Reference_Type
-   is begin
+   is
+      pragma Unreferenced (Container);
+   begin
       return
-        (Element => Parser_State_Lists.Constant_Reference (Container.Elements, Position.Ptr).Element,
+        (Element => Parser_State_Lists.Constant_Reference (Position.Ptr).Element,
          Dummy   => 1);
    end Constant_Reference;
 
@@ -212,8 +219,10 @@ package body WisiToken.Parser.LR.Parser_Lists is
      (Container : aliased in out List'Class;
       Position  :         in     Parser_Node_Access)
      return State_Reference
-   is begin
-      return (Element => Parser_State_Lists.Reference (Container.Elements, Position.Ptr).Element);
+   is
+      pragma Unreferenced (Container);
+   begin
+      return (Element => Parser_State_Lists.Reference (Position.Ptr).Element);
    end Reference;
 
    type List_Access is access all List;
@@ -224,8 +233,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
 
    overriding function First (Object : Iterator) return Parser_Node_Access;
    overriding function Next
-     (Object   : Iterator;
-      Position : Parser_Node_Access)
+     (Object   : in Iterator;
+      Position : in Parser_Node_Access)
      return Parser_Node_Access;
 
    overriding function First (Object : Iterator) return Parser_Node_Access
@@ -234,8 +243,8 @@ package body WisiToken.Parser.LR.Parser_Lists is
    end First;
 
    overriding function Next
-     (Object   : Iterator;
-      Position : Parser_Node_Access)
+     (Object   : in Iterator;
+      Position : in Parser_Node_Access)
      return Parser_Node_Access
    is
       pragma Unreferenced (Object);
@@ -268,11 +277,6 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Iterator.Verb := Verb;
    end Set_Verb;
 
-   function Prev_Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs
-   is begin
-      return Iterator.Prev_Verb;
-   end Prev_Verb;
-
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item
    is begin
       return Iterator.Pre_Reduce_Item;
@@ -294,8 +298,11 @@ package body WisiToken.Parser.LR.Parser_Lists is
       Trace.Put (Pend_Semantic_Verbs'Image (Pend_Item.Verb) & " ");
 
       case Pend_Item.Verb is
-      when Virtual_To_Lookahead .. Discard_Stack =>
+      when Virtual_To_Lookahead .. Push_Current =>
          Trace.Put (Image (Trace.Descriptor.all, Pend_Item.ID));
+
+      when Discard_Lookahead .. Discard_Stack =>
+         Trace.Put (Image (Trace.Descriptor.all, Pend_Item.Discard_ID));
 
       when Reduce_Stack =>
          declare
@@ -316,7 +323,7 @@ package body WisiToken.Parser.LR.Parser_Lists is
    procedure Put_Pending_Actions (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor)
    is
       Queue : Pend_Items_Queues.Queue_Type renames Parser_State_Lists.Constant_Reference
-        (Cursor.Elements.all, Cursor.Ptr).Pend_Items;
+        (Cursor.Ptr).Pend_Items;
    begin
       for I in 1 .. Queue.Count loop
          declare

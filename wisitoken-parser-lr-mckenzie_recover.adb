@@ -24,7 +24,9 @@ with SAL.Gen_Unbounded_Definite_Queues;
 with System.Multiprocessors;
 package body WisiToken.Parser.LR.McKenzie_Recover is
 
-   use all type Ada.Containers.Count_Type; -- for protected body entry barrier
+   --  For protected body entry barriers.
+   use all type Ada.Containers.Count_Type;
+   use all type SAL.Base_Peek_Type;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration)
    is
@@ -46,18 +48,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    end Put;
 
    procedure Put
-     (Message      : in     String;
-      Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Config       : in     Configuration)
+     (Message         : in     String;
+      Trace           : in out WisiToken.Trace'Class;
+      Parser_Label    : in     Natural;
+      Config          : in     Configuration;
+      Include_Task_ID : in     Boolean := True)
    is
       --  For debugging output
       use Ada.Containers;
 
       --  Build a string, call trace.put_line, so output from multiple tasks is not interleaved
       use all type Ada.Strings.Unbounded.Unbounded_String;
-      Result : Ada.Strings.Unbounded.Unbounded_String := +Ada.Task_Identification.Image
-        (Ada.Task_Identification.Current_Task) & Integer'Image (Parser_Label) & ": " & Message & ":";
+      Result : Ada.Strings.Unbounded.Unbounded_String :=
+        (if Include_Task_ID then +Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else +"") &
+         Integer'Image (Parser_Label) & ": " & Message & ":";
    begin
       Result := Result & Natural'Image (Config.Cost) & ", ";
       if Trace_Parse > Extra then
@@ -76,256 +80,141 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
            Int_Image (Integer (Config.Local_Lookahead_Index));
       end if;
       Result := Result & "|" &
-      Image (Trace.Descriptor.all, Config.Popped) &
-      Image (Trace.Descriptor.all, Config.Pushed) &
-      Image (Trace.Descriptor.all, Config.Inserted) &
-      Image (Trace.Descriptor.all, Config.Deleted);
+        Image (Trace.Descriptor.all, Config.Popped) &
+        Image (Trace.Descriptor.all, Config.Pushed) &
+        Image (Trace.Descriptor.all, Config.Inserted) &
+        Image (Trace.Descriptor.all, Config.Deleted);
       Trace.Put_Line (-Result);
    end Put;
 
    procedure Put_Line
-     (Trace        : in out WisiToken.Trace'Class;
-      Parser_Label : in     Natural;
-      Message      : in     String)
+     (Trace           : in out WisiToken.Trace'Class;
+      Parser_Label    : in     Natural;
+      Message         : in     String;
+      Include_Task_ID : in     Boolean := True)
    is
       use all type Ada.Strings.Unbounded.Unbounded_String;
    begin
       Trace.Put_Line
-        (Ada.Task_Identification.Image
-           (Ada.Task_Identification.Current_Task) & Integer'Image (Parser_Label) & ": " & Message);
+        ((if Include_Task_ID then Ada.Task_Identification.Image (Ada.Task_Identification.Current_Task) else "") &
+           Integer'Image (Parser_Label) & ": " & Message);
    end Put_Line;
 
    ----------
-   --  Config_Store
+   --  Protected object specs
 
-   All_Done_Excep : exception;
-
-   protected type Config_Store
-     (Shared_Parser : not null access LR.Instance'Class;
-      Parsers       : not null access Parser_Lists.List)
+   protected type Supervisor (Trace : not null access WisiToken.Trace'Class)
    is
       --  There is only one object of this type, declared in Recover. It
-      --  controls access to all resources shared by the Check_Task
-      --  tasks; the shared lookahead, the parallel parser states.
+      --  keeps track of which parsers are have succeeded or failed.
 
-      procedure Initialize;
+      procedure Initialize (Parser_Count : in Ada.Containers.Count_Type);
 
-      function Get_Shared_Lookahead_Token (Index : in SAL.Base_Peek_Type) return Token_ID;
+      procedure Finished (Parser_Label : in Natural; Success : in Boolean);
+      --  Report that a parser has failed or succeeded.
 
-      entry Get
-        (Parser_Label  : out Natural;
-         Config        : out Configuration;
-         Current_Input : out Token_ID);
-      --  Get a new configuration to check. Available when there is a
-      --  configuration to get, or Done is available.
-      --
-      --  Raises All_Done_Excep when Done is available.
+      function Success_Count return Natural;
 
-      procedure Success (Parser_Label : in Natural; Config : in Configuration);
-      --  Report that Configuration succeeds for Parser_Label.
-
-      procedure Put (Parser_Label : in Natural; Configs : in out Config_Heaps.Heap_Type);
-      --  Add Configs to the McKenzie_Data Config_Heap for Parser_Label
+      procedure Fatal (E : in Ada.Exceptions.Exception_Occurrence);
+      --  Report a fatal error; abort all processing, make Done
+      --  available.
 
       entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String);
-      --  Available when all configurations less than cost limit checked, or
-      --  all parsers succeeded.
+      --  Available when all parsers have failed or succeeded, or an error
+      --  occured.
       --
       --  If Error_ID is not Null_Id, an error occured.
 
-      function Success_Count return Integer;
-
-      procedure Fatal (E : in Ada.Exceptions.Exception_Occurrence);
-      --  Some fatal error occured; abort all processing, make Done
-      --  available.
-
    private
-      Cur             : Parser_Lists.Cursor;
       Active_Parsers  : Ada.Containers.Count_Type; --  Parsers that have neither failed nor succeeded.
-      Active_Workers  : Integer;                   -- Check_Tasks that have done Get but not Put or Success.
-      Success_Counter : Integer;
-      All_Done        : Boolean;
+      Success_Counter : Natural;
       Fatal_Called    : Boolean;
       Error_ID        : Ada.Exceptions.Exception_Id;
       Error_Message   : Ada.Strings.Unbounded.Unbounded_String;
+   end Supervisor;
+
+   protected type Shared_Lookahead (Shared_Parser : not null access LR.Instance'Class)
+   is
+      --  There is only one object of this type, declared in Recover. It
+      --  controls access to the shared lookahead queue.
+
+      function Get_Token (Index : in SAL.Base_Peek_Type) return Token_ID;
+      --  Get the token at Index, reading from the lexer if necessary.
+
+   end Shared_Lookahead;
+
+   type Config_Status_Type is (Valid, All_Done, Try_Later);
+
+   protected type Config_Store
+     (Super        : not null access Supervisor;
+      Trace        : not null access WisiToken.Trace'Class;
+      Cost_Limit   : Natural;
+      Data         : McKenzie_Access;
+      Parser_Label : Natural)
+   is
+      --  There is one object of this type per parallel parser, declared in
+      --  Recover. It controls read/write access to the McKenzie_Data.
+
+      procedure Initialize;
+
+      function Get_Parser_Label return Natural;
+
+      entry Get (Status : out Config_Status_Type; Config : out Configuration);
+      --  Get a new configuration to check. Available when there is a
+      --  configuration to get.
+      --
+      --  Status values mean:
+      --
+      --  Valid - Config is valid, should be checked.
+      --
+      --  All_Done - Config is not valid; all configs checked, don't call Get again.
+      --
+      --  Try_Later - Config is not valid; call Get again.
+
+      procedure Success (Config : in Configuration);
+      --  Report that Configuration succeeds. This calls Supervisor.Finished.
+
+      procedure Put (Configs : in out Config_Heaps.Heap_Type);
+      --  Add Configs to the Config_Heap.
+
+      procedure Fatal;
+      --  Some fatal error occured; abort all processing.
+
+   private
+      Active_Workers : Integer; -- Check_Tasks that have done Get but not Put or Success.
+      Ready          : Boolean;
+      Done           : Boolean;
    end Config_Store;
 
-   protected body Config_Store is
+   type Config_Store_Access is access Config_Store;
+   procedure Free is new Ada.Unchecked_Deallocation (Config_Store, Config_Store_Access);
+   type Config_Store_Array is array (Positive_Index_Type range <>) of Config_Store_Access;
 
-      procedure Initialize
+   ----------
+   --  Protected object bodies
+
+   protected body Supervisor is
+
+      procedure Initialize (Parser_Count : in Ada.Containers.Count_Type)
       is begin
-         Cur             := Parsers.First;
-         Active_Parsers  := Parsers.Count;
-         Active_Workers  := 0;
-         All_Done        := False;
+         Active_Parsers  := Parser_Count;
          Success_Counter := 0;
          Fatal_Called    := False;
+         Error_ID        := Ada.Exceptions.Null_Id;
       end Initialize;
 
-      function Get_Shared_Lookahead_Token (Index : in SAL.Base_Peek_Type) return Token_ID
-      is
-         use all type SAL.Base_Peek_Type;
-      begin
-         if Index > Shared_Parser.Shared_Lookahead.Count then
-            Shared_Parser.Shared_Lookahead.Put
-              (Next_Grammar_Token (Shared_Parser.Lexer, Shared_Parser.Semantic_State));
-         end if;
-         return Shared_Parser.Shared_Lookahead.Peek (Index);
-      end Get_Shared_Lookahead_Token;
-
-      entry Get
-        (Parser_Label  : out Natural;
-         Config        : out Configuration;
-         Current_Input : out Token_ID)
-        when Active_Parsers > 0 or All_Done or Fatal_Called
+      procedure Finished (Parser_Label : in Natural; Success : in Boolean)
       is begin
-         if Fatal_Called or All_Done then
-            raise All_Done_Excep;
-         end if;
-
-         loop
-            declare
-               use Parser_Lists;
-               use all type SAL.Base_Peek_Type;
-               Data : McKenzie_Data renames State_Ref (Cur).Recover;
-            begin
-               if not Data.Success and
-                 (Data.Config_Heap.Count > 0 and then
-                    Data.Config_Heap.Min_Key < Shared_Parser.Table.McKenzie.Cost_Limit)
-               then
-                  Parser_Label := Label (Cur);
-                  Config       := Data.Config_Heap.Remove;
-
-                  if Config.Local_Lookahead_Index /= Token_Arrays.No_Index and
-                    Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
-                  then
-                     Current_Input := Config.Local_Lookahead (Config.Local_Lookahead_Index);
-                  else
-                     Current_Input := Shared_Parser.Shared_Lookahead.Peek (Config.Shared_Lookahead_Index);
-                  end if;
-
-                  Data.Check_Count := Data.Check_Count + 1;
-
-                  Next (Cur);
-                  if Is_Done (Cur) then
-                     Cur := Parsers.First;
-                  end if;
-                  Active_Workers := Active_Workers + 1;
-                  return;
-               else
-                  --  Find another parser
-                  Active_Parsers := Active_Parsers - 1;
-                  if Active_Parsers = 0 then
-                     if Active_Workers = 0 then
-                        if Trace_Parse > Outline then
-                           if Success_Count = 0 then
-                              Shared_Parser.Semantic_State.Trace.Put_Line ("Config_Store.Get: all_done, fail");
-                           else
-                              Shared_Parser.Semantic_State.Trace.Put_Line ("Config_Store.Get: all_done, success");
-                           end if;
-                        end if;
-                        All_Done := True;
-                        raise All_Done_Excep;
-                     else
-                        requeue Get;
-                     end if;
-                  end if;
-
-                  Next (Cur);
-                  if Is_Done (Cur) then
-                     Active_Parsers := Parsers.Count;
-                     Cur := Parsers.First;
-                  end if;
-               end if;
-            end;
-         end loop;
-      end Get;
-
-      procedure Success (Parser_Label : in Natural; Config : in Configuration)
-      is
-         Parser_State : Parser_Lists.Parser_State renames Parser_Lists.State_Ref_2 (Parsers, Parser_Label).Element.all;
-         Data : McKenzie_Data renames Parser_State.Recover;
-      begin
-         Active_Workers  := Active_Workers - 1;
-         Success_Counter := Success_Counter + 1;
-
          if Trace_Parse > Detail then
-            Put ("succeed enqueue" & Integer'Image (Data.Enqueue_Count) &
-                   ", check " & Integer'Image (Data.Check_Count),
-                 Shared_Parser.Semantic_State.Trace.all, Parser_Label, Config);
+            Put_Line (Trace.all, Parser_Label, "Supervisor: " & (if Success then "succeed" else "fail"));
          end if;
-
-         if Active_Parsers = 0 then
-            Active_Parsers := Parsers.Count;
-            Cur := Parsers.First;
+         Active_Parsers := Active_Parsers - 1;
+         if Success then
+            Success_Counter := Success_Counter + 1;
          end if;
+      end Finished;
 
-         --  FIXME: we may get more than one success for a parser
-         Data.Result  := Config;
-         Data.Success := True;
-         Parser_State.Set_Verb (Parser_State.Prev_Verb);
-         if Trace_Parse > Detail then
-            Put_Line
-              (Shared_Parser.Semantic_State.Trace.all, Parser_Label,
-                 "Success: workers:" & Integer'Image (Active_Workers) &
-                 ", parsers:" & Ada.Containers.Count_Type'Image (Active_Parsers));
-         end if;
-      end Success;
-
-      procedure Put (Parser_Label : in Natural; Configs : in out Config_Heaps.Heap_Type)
-      is
-         use all type SAL.Base_Peek_Type;
-         Configs_Count : constant SAL.Base_Peek_Type := Configs.Count;
-         Data : McKenzie_Data renames Parser_Lists.State_Ref_2 (Parsers, Parser_Label).Recover;
-      begin
-         if Fatal_Called then
-            return;
-         end if;
-
-         Active_Workers := Active_Workers - 1;
-         if Active_Parsers = 0 then
-            Active_Parsers := Parsers.Count;
-            Cur := Parsers.First;
-         end if;
-
-         loop
-            exit when Configs.Count = 0;
-            declare
-               Config : constant Configuration := Configs.Remove;
-            begin
-               Data.Config_Heap.Add (Config);
-               Data.Enqueue_Count := Data.Enqueue_Count + 1;
-               if Trace_Parse > Detail then
-                  Put ("enqueue", Shared_Parser.Semantic_State.Trace.all, Parser_Label, Config);
-               end if;
-            end;
-         end loop;
-         if Trace_Parse > Detail then
-            Put_Line
-              (Shared_Parser.Semantic_State.Trace.all, Parser_Label,
-               "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
-                 "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
-                 "/" & Int_Image (Data.Enqueue_Count) &
-                 ", cost:" &
-                 (if Data.Config_Heap.Count > 0
-                  then Integer'Image (Data.Config_Heap.Min_Key)
-                     else " ? ") &
-                 ", workers:" & Integer'Image (Active_Workers) &
-                 ", parsers:" & Ada.Containers.Count_Type'Image (Active_Parsers));
-         end if;
-      end Put;
-
-      entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String)
-        when All_Done
-      is begin
-         Error_ID := Config_Store.Error_ID;
-         Message  := Error_Message;
-         if Trace_Parse > Detail then
-            Shared_Parser.Semantic_State.Trace.Put_Line ("Config_Store Done");
-         end if;
-      end Done;
-
-      function Success_Count return Integer
+      function Success_Count return Natural
       is begin
          return Success_Counter;
       end Success_Count;
@@ -335,10 +224,150 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          use Ada.Exceptions;
       begin
          Active_Parsers := 0;
-         Active_Workers := 0;
          Error_ID       := Exception_Identity (E);
          Error_Message  := +Exception_Message (E);
-         Shared_Parser.Semantic_State.Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+         Trace.Put_Line (Exception_Name (E) & ": " & Exception_Message (E));
+      end Fatal;
+
+      entry Done (Error_ID : out Ada.Exceptions.Exception_Id; Message : out Ada.Strings.Unbounded.Unbounded_String)
+        when Active_Parsers = 0
+      is begin
+         Error_ID := Supervisor.Error_ID;
+         Message  := Error_Message;
+         if Trace_Parse > Detail then
+            Trace.Put_Line ("Supervisor: Done");
+         end if;
+      end Done;
+
+   end Supervisor;
+
+   protected body Shared_Lookahead is
+
+      function Get_Token (Index : in SAL.Base_Peek_Type) return Token_ID
+      is begin
+         if Index > Shared_Parser.Shared_Lookahead.Count then
+            Shared_Parser.Shared_Lookahead.Put
+              (Next_Grammar_Token (Shared_Parser.Lexer, Shared_Parser.Semantic_State));
+         end if;
+         return Shared_Parser.Shared_Lookahead.Peek (Index);
+      end Get_Token;
+
+   end Shared_Lookahead;
+
+   protected body Config_Store is
+
+      procedure Initialize
+      is begin
+         Active_Workers := 0;
+         Ready          := False;
+         Done           := False;
+
+         Data.Results.Clear;
+      end Initialize;
+
+      function Get_Parser_Label return Natural
+      is begin
+         return Config_Store.Parser_Label;
+      end Get_Parser_Label;
+
+      entry Get (Status : out Config_Status_Type; Config : out Configuration)
+        when Data.Config_Heap.Count > 0 or Done
+      is begin
+         if Done then
+            Status := All_Done;
+            return;
+         end if;
+
+         if not Ready and then Data.Config_Heap.Min_Key < Cost_Limit then
+
+            Status           := Valid;
+            Config           := Data.Config_Heap.Remove;
+            Data.Check_Count := Data.Check_Count + 1;
+            Active_Workers   := Active_Workers + 1;
+
+         else
+            if Active_Workers = 0 then
+               if Trace_Parse > Detail then
+                  Put_Line
+                    (Trace.all, Parser_Label, "Config_Store.Get: done, " &
+                       (if Data.Success then "succeed" else "fail"));
+               end if;
+               Super.Finished (Parser_Label, Success => Data.Success);
+               Done   := True;
+               Status := All_Done;
+            else
+               if Ready then
+                  Status := All_Done;
+               else
+                  Status := Try_Later;
+               end if;
+            end if;
+         end if;
+      end Get;
+
+      procedure Success (Config : in Configuration)
+      is begin
+         if Trace_Parse > Detail then
+            Put
+              ("succeed: enqueue" & Integer'Image (Data.Enqueue_Count) &
+                 ", check " & Integer'Image (Data.Check_Count),
+               Trace.all, Parser_Label, Config);
+         end if;
+
+         Data.Success   := True;
+         Active_Workers := Active_Workers - 1;
+
+         --  There may be more than one successful config for a parser, so we
+         --  keep going. We could get a lot if we always go to the cost limit,
+         --  so we stop when we get a successful config that costs more than a
+         --  previous one, and only keep the cheapest ones.
+         --
+         --  We don't set Done here, to keep the termination logic simpler, and
+         --  all in one place (in Get).
+
+         if Data.Results.Count = 0 or else Config.Cost <= Data.Results.Min_Key then
+            Data.Results.Add (Config);
+         else
+            Ready := True;
+         end if;
+      end Success;
+
+      procedure Put (Configs : in out Config_Heaps.Heap_Type)
+      is
+         Configs_Count : constant SAL.Base_Peek_Type := Configs.Count;
+      begin
+         if Done then
+            return;
+         end if;
+
+         Active_Workers := Active_Workers - 1;
+
+         loop
+            exit when Configs.Count = 0;
+            if Trace_Parse > Detail then
+               Put ("enqueue", Trace.all, Parser_Label, Configs.Peek);
+            end if;
+            Data.Config_Heap.Add (Configs.Remove);
+            Data.Enqueue_Count := Data.Enqueue_Count + 1;
+         end loop;
+
+         if Trace_Parse > Detail then
+            Put_Line
+              (Trace.all, Parser_Label,
+               "enqueue:" & SAL.Base_Peek_Type'Image (Configs_Count) &
+                 "/" & SAL.Base_Peek_Type'Image (Data.Config_Heap.Count) &
+                 "/" & Int_Image (Data.Enqueue_Count) &
+                 ", cost:" &
+                 (if Data.Config_Heap.Count > 0
+                  then Integer'Image (Data.Config_Heap.Min_Key)
+                  else " ? ") &
+                 ", workers:" & Integer'Image (Active_Workers));
+         end if;
+      end Put;
+
+      procedure Fatal
+      is begin
+         Done := True;
       end Fatal;
 
    end Config_Store;
@@ -404,7 +433,8 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          case Next_Action.Item.Verb is
          when Shift =>
             Do_Shift
-              (Trace, Parser_Label, Table.McKenzie, Local_Config_Heap, New_Config_2, Next_Action.Item, Inserted_Token);
+              (Trace, Parser_Label, Table.McKenzie_Param, Local_Config_Heap, New_Config_2,
+               Next_Action.Item, Inserted_Token);
 
          when Reduce =>
             Do_Reduce (Trace, Parser_Label, Table, Local_Config_Heap, New_Config_2, Next_Action.Item, Inserted_Token);
@@ -425,20 +455,18 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    package Check_Item_Queues is new SAL.Gen_Unbounded_Definite_Queues (Check_Item);
 
    function Check_One_Item
-     (Config_Store          : not null access McKenzie_Recover.Config_Store;
+     (Shared                : not null access Shared_Lookahead;
+      Trace                 : in out          WisiToken.Trace'Class;
+      Table                 : in              Parse_Table;
       Parser_Label          : in              Natural;
-      Item                  : in              Check_Item;
       Check_Item_Queue      : in out          Check_Item_Queues.Queue_Type;
       Enqueue_Count         : in out          Integer;
       Shared_Lookahead_Goal : in              SAL.Peek_Type)
      return Boolean
    is
-      use all type SAL.Base_Peek_Type;
-
-      Trace      : WisiToken.Trace'Class renames Config_Store.Shared_Parser.Semantic_State.Trace.all;
       Descriptor : WisiToken.Descriptor'Class renames Trace.Descriptor.all;
-      Table      : Parse_Table renames Config_Store.Shared_Parser.Table.all;
 
+      Item         : constant Check_Item    := Check_Item_Queue.Get;
       Check_Config : Configuration := Item.Config;
       Check_Token  : Token_ID      := Item.Current_Token;
 
@@ -493,7 +521,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end if;
                Last_Token_Virtual := False;
 
-               Check_Token := Config_Store.Get_Shared_Lookahead_Token (Check_Config.Shared_Lookahead_Index);
+               Check_Token := Shared.Get_Token (Check_Config.Shared_Lookahead_Index);
             end if;
 
          when Reduce =>
@@ -528,18 +556,16 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
    end Check_One_Item;
 
    function Check
-     (Config_Store  : not null access McKenzie_Recover.Config_Store;
+     (Shared        : not null access Shared_Lookahead;
+      Trace         : in out          WisiToken.Trace'Class;
+      Table         : in              Parse_Table;
       Parser_Label  : in              Natural;
       Config        : in              Configuration;
       Current_Token : in              Token_ID)
      return Boolean
    is
-      use all type SAL.Base_Peek_Type;
-      Trace          : WisiToken.Trace'Class renames Config_Store.Shared_Parser.Semantic_State.Trace.all;
-      McKenzie_Param : McKenzie_Param_Type renames Config_Store.Shared_Parser.Table.McKenzie;
-
       Shared_Lookahead_Goal : constant SAL.Peek_Type := Config.Shared_Lookahead_Index +
-        SAL.Base_Peek_Type (Config.Deleted.Length) + SAL.Peek_Type (McKenzie_Param.Check_Limit);
+        SAL.Base_Peek_Type (Config.Deleted.Length) + SAL.Peek_Type (Table.McKenzie_Param.Check_Limit);
 
       Check_Item_Queue : Check_Item_Queues.Queue_Type; -- Only used for conflicts
       Check_Count      : Integer := 1;
@@ -551,7 +577,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       loop
          Keep_Going := Check_One_Item
-           (Config_Store, Parser_Label, Check_Item_Queue.Get, Check_Item_Queue, Enqueue_Count, Shared_Lookahead_Goal);
+           (Shared, Trace, Table, Parser_Label, Check_Item_Queue, Enqueue_Count, Shared_Lookahead_Goal);
 
          exit when Keep_Going or Check_Item_Queue.Count = 0;
          Check_Count := Check_Count + 1;
@@ -573,17 +599,20 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       return Keep_Going;
    end Check;
 
-   procedure Check_One (Config_Store : not null access McKenzie_Recover.Config_Store)
+   procedure Check_One
+     (Active       : in out          Boolean;
+      Config_Store : not null access McKenzie_Recover.Config_Store;
+      Shared       : not null access Shared_Lookahead;
+      Trace        : in out          WisiToken.Trace'Class;
+      Table        : in              Parse_Table)
    is
-      use all type SAL.Base_Peek_Type;
       use all type Fast_Token_ID_Vectors.Vector;
 
-      Trace          : WisiToken.Trace'Class renames Config_Store.Shared_Parser.Semantic_State.Trace.all;
-      Table          : Parse_Table renames Config_Store.Shared_Parser.Table.all;
-      McKenzie_Param : McKenzie_Param_Type renames Table.McKenzie;
+      Parser_Label   : constant Natural := Config_Store.Get_Parser_Label;
+      McKenzie_Param : McKenzie_Param_Type renames Table.McKenzie_Param;
       EOF_ID         : Token_ID renames Trace.Descriptor.EOF_ID;
 
-      Parser_Label  : Natural;
+      Config_Status : Config_Status_Type;
       Config        : Configuration;
       Current_Input : Token_ID;
       New_Config    : Configuration;
@@ -591,10 +620,28 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Local_Config_Heap : Config_Heaps.Heap_Type;
       Action_I          : Action_List_Iterator;
    begin
-      Config_Store.Get (Parser_Label, Config, Current_Input);
+      Config_Store.Get (Config_Status, Config);
 
-      if Check (Config_Store, Parser_Label, Config, Current_Input) then
-         Config_Store.Success (Parser_Label, Config);
+      case Config_Status is
+      when Valid =>
+         null;
+      when All_Done =>
+         Active := False;
+         return;
+      when Try_Later =>
+         return;
+      end case;
+
+      if Config.Local_Lookahead_Index /= Token_Arrays.No_Index and
+        Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
+      then
+         Current_Input := Config.Local_Lookahead (Config.Local_Lookahead_Index);
+      else
+         Current_Input := Shared.Get_Token (Config.Shared_Lookahead_Index);
+      end if;
+
+      if Check (Shared, Trace, Table, Parser_Label, Config, Current_Input) then
+         Config_Store.Success (Config);
          return;
       end if;
 
@@ -659,8 +706,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
         Config.Local_Lookahead_Index > Config.Local_Lookahead.Last_Index
       then
          declare
-            Deleted_ID : constant Token_ID := Config_Store.Get_Shared_Lookahead_Token
-              (Config.Shared_Lookahead_Index);
+            Deleted_ID : constant Token_ID := Shared.Get_Token (Config.Shared_Lookahead_Index);
             Junk_ID : Token_ID;
             pragma Unreferenced (Junk_ID);
          begin
@@ -675,42 +721,62 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                end if;
 
                New_Config.Shared_Lookahead_Index := New_Config.Shared_Lookahead_Index + 1;
-               Junk_ID := Config_Store.Get_Shared_Lookahead_Token (New_Config.Shared_Lookahead_Index);
+               Junk_ID := Shared.Get_Token (New_Config.Shared_Lookahead_Index);
 
                Local_Config_Heap.Add (New_Config);
             end if;
          end;
       end if;
 
-      Config_Store.Put (Parser_Label, Local_Config_Heap);
+      Config_Store.Put (Local_Config_Heap);
    end Check_One;
 
    ----------
    --  Top level
 
-   task type Check_Task (Config_Store : not null access McKenzie_Recover.Config_Store)
+   task type Check_Task
+     (Super         : not null access Supervisor;
+      Shared        : not null access Shared_Lookahead;
+      Config_Stores : not null access McKenzie_Recover.Config_Store_Array;
+      Trace         : not null access WisiToken.Trace'Class;
+      Table         : not null access Parse_Table)
    is
       entry Start;
-      --  Start getting parser/configs to check from Config_Store
+      --  Start getting parser/configs to check from Config_Store.
 
-      --  Task exits on Config_Store.Get raising All_Done_Excep.
+      entry Done;
+      --  Available when task is ready to terminate; after this rendezvous,
+      --  task discriminants may be freed.
 
    end Check_Task;
 
    task body Check_Task
-   is begin
+   is
+      I : Positive_Index_Type := Config_Stores'First;
+
+      Active : array (Config_Stores'First .. Config_Stores'Last) of Boolean := (others => True);
+   begin
       accept Start;
 
       loop
-         Check_One (Config_Store);
+         exit when (for all X of Active => not X);
+
+         Check_One (Active (I), Config_Stores (I), Shared, Trace.all, Table.all);
+
+         if I = Active'Last then
+            I := Active'First;
+         else
+            I := I + 1;
+         end if;
       end loop;
 
+      accept Done;
    exception
-   when All_Done_Excep =>
-      null;
-
    when E : others =>
-      Config_Store.Fatal (E);
+      for Store of Config_Stores.all loop
+         Store.Fatal;
+      end loop;
+      Super.Fatal (E);
    end Check_Task;
 
    procedure Enqueue
@@ -822,7 +888,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Data          : in out McKenzie_Data;
       Root_Config   : in     Configuration)
    is
-      Param    : McKenzie_Param_Type renames Shared_Parser.Table.McKenzie;
+      Param    : McKenzie_Param_Type renames Shared_Parser.Table.McKenzie_Param;
       Error_ID : Token_ID renames Shared_Parser.Shared_Lookahead.Peek (Parser_State.Shared_Lookahead_Index);
    begin
       for Pattern of Param.Patterns loop
@@ -839,8 +905,6 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
      (Shared_Parser : in out LR.Instance'Class;
       Parser_State  : in out Parser_Lists.Parser_State)
    is
-      use all type SAL.Base_Peek_Type;
-
       Data  : McKenzie_Data renames Parser_State.Recover;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
    begin
@@ -854,6 +918,9 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          raise Programmer_Error;
       end if;
 
+      --  This is done here, not in Config_Stores.Initialize, becuase
+      --  Patterns does not use Config_Stores. FIXME: change Patterns to use
+      --  Config_Stores.
       Data.Config_Heap.Clear;
       Data.Enqueue_Count := 0;
       Data.Check_Count   := 0;
@@ -884,9 +951,28 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       use all type System.Multiprocessors.CPU_Range;
       Trace : WisiToken.Trace'Class renames Shared_Parser.Semantic_State.Trace.all;
 
-      Config_Store : aliased McKenzie_Recover.Config_Store (Shared_Parser'Access, Parsers'Access);
-      Check_Tasks  : array (1 .. System.Multiprocessors.Number_Of_CPUs - 1) of Check_Task (Config_Store'Access);
-      --  Keep one CPU free for main task.
+      Super         : aliased Supervisor (Trace'Access);
+      Shared        : aliased Shared_Lookahead (Shared_Parser'Access);
+      Config_Stores : aliased Config_Store_Array := (1 .. Parsers.Count => null);
+
+      Check_Tasks   : array (1 .. System.Multiprocessors.Number_Of_CPUs - 1) of Check_Task
+        (Super'Access, Shared'Access, Config_Stores'Access, Shared_Parser.Semantic_State.Trace,
+         Shared_Parser.Table.all'Access);
+      --  Keep one CPU free for this main task, and the user.
+
+      procedure Cleanup
+      is begin
+         for I in Config_Stores'Range loop
+            Free (Config_Stores (I));
+         end loop;
+
+         for I in Check_Tasks'Range loop
+            if Check_Tasks (I)'Callable then
+               abort Check_Tasks (I);
+            end if;
+         end loop;
+      end Cleanup;
+
    begin
       if Trace_Parse > Outline then
          Trace.New_Line;
@@ -904,7 +990,23 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          Recover_Init (Shared_Parser, Parser_State);
       end loop;
 
-      Config_Store.Initialize;
+      Super.Initialize (Parsers.Count);
+
+      declare
+         use Parser_Lists;
+         Cur : Cursor                    := Parsers.First;
+         I   : Ada.Containers.Count_Type := Config_Stores'First;
+      begin
+         loop
+            Config_Stores (I) := new Config_Store
+              (Super'Unchecked_Access, Trace'Access, Shared_Parser.Table.McKenzie_Param.Cost_Limit,
+               Cur.McKenzie_Ref, Cur.Label);
+            Config_Stores (I).Initialize;
+            I := I + 1;
+            Next (Cur);
+            exit when Is_Done (Cur);
+         end loop;
+      end;
 
       if Trace_Parse > Outline then
          Trace.New_Line;
@@ -920,11 +1022,19 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          ID : Exception_Id;
          Message : Ada.Strings.Unbounded.Unbounded_String;
       begin
-         Config_Store.Done (ID, Message); -- Wait for all parsers to fail or succeed
+         Super.Done (ID, Message); -- Wait for all parsers to fail or succeed
          if ID /= Null_Id then
             Raise_Exception (ID, -Message);
          end if;
       end;
+
+      --  Ensure all tasks terminate before proceeding; otherwise local
+      --  variables disappear while task is still trying to access them.
+      for I in Check_Tasks'Range loop
+         if Check_Tasks (I)'Callable then
+            Check_Tasks (I).Done;
+         end if;
+      end loop;
 
       --  Adjust parser state for each successful recovery.
       --
@@ -932,35 +1042,95 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       --  cost fix. However, the normal reason for having multiple parsers
       --  is to resolve a grammar ambiguity; the least cost fix might
       --  resolve the ambiguity the wrong way. As could any other fix, of
-      --  course. We'll have to see how this works in practice.
+      --  course.
 
-      for Parser_State of Parsers loop
-         declare
-            use Parser_Lists;
-            use all type SAL.Base_Peek_Type;
-            Data : McKenzie_Data renames Parser_State.Recover;
-         begin
-            if Data.Success then
-               if Trace_Parse > Outline then
-                  Trace.Put_Line
-                    (Integer'Image (Label (Parser_State)) &
-                       ": succeed, enqueue" & Integer'Image (Data.Enqueue_Count) &
-                       ", check " & Integer'Image (Data.Check_Count) &
-                       ", cost: " &
-                       (if Data.Config_Heap.Count > 0
-                        then Integer'Image (Data.Config_Heap.Min_Key)
-                        else " ? "));
+      --  Spawn new parsers for multiple solutions
+      declare
+         use Parser_Lists;
+         Cur : Cursor := Parsers.First;
+      begin
+         loop
+            declare
+               Data : McKenzie_Data renames State_Ref (Cur).Recover;
+            begin
+               if Data.Success then
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line
+                       (Integer'Image (Label (Cur)) &
+                          ": succeed" & SAL.Base_Peek_Type'Image (Data.Results.Count) &
+                          ", enqueue" & Integer'Image (Data.Enqueue_Count) &
+                          ", check " & Integer'Image (Data.Check_Count) &
+                          ", cost: " & Integer'Image (Data.Results.Min_Key));
+                  end if;
+
+                  --  Restore pre-error parser verb before spawning, just for
+                  --  simplicity.
+                  Cur.Set_Verb (Cur.Prev_Verb);
+
+                  if Data.Results.Count > 1 then
+                     if Parsers.Count + Ada.Containers.Count_Type (Data.Results.Count) > Shared_Parser.Max_Parallel then
+                        raise Parse_Error with Error_Message
+                          ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
+                           ": too many parallel parsers required in grammar state" &
+                             State_Index'Image (Cur.State_Ref.Stack.Peek.State) &
+                             "; simplify grammar, or increase max-parallel (" &
+                             Ada.Containers.Count_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                     end if;
+
+                     for I in 1 .. Data.Results.Count - 1 loop
+                        Parsers.Prepend_Copy (Cur); --  does not copy recover
+                        if Trace_Parse > Outline then
+                           declare
+                              Msg : constant String :=
+                                "spawn parser" & Integer'Image (Parsers.First.Label) & " from " &
+                                Int_Image (Cur.Label) & " (" & Int_Image (1 + Integer (Parsers.Count)) & " active)";
+                           begin
+                              if Trace_Parse > Detail then
+                                 Put (Msg, Trace, 0, Data.Results.Peek, Include_Task_ID => False);
+                              else
+                                 Trace.Put_Line (Msg);
+                              end if;
+                           end;
+                        end if;
+
+                        State_Ref (Parsers.First).Recover.Results.Add (Data.Results.Remove);
+                        State_Ref (Parsers.First).Recover.Success := True;
+                        Shared_Parser.Semantic_State.Spawn (Cur.Label, Parsers.First.Label);
+                     end loop;
+                  end if;
+
+               else
+                  if Trace_Parse > Outline then
+                     Trace.Put_Line
+                       (Integer'Image (Cur.Label) &
+                          ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
+                          ", check " & Integer'Image (Data.Check_Count) &
+                          ", cost_limit: " & Integer'Image (Shared_Parser.Table.McKenzie_Param.Cost_Limit));
+                  end if;
                end if;
 
+            end;
+            Next (Cur);
+            exit when Is_Done (Cur);
+         end loop;
+      end;
+
+      for Parser_State of Parsers loop
+         if Parser_State.Recover.Success then
+            declare
+               use Parser_Lists;
+               Data   : McKenzie_Data renames Parser_State.Recover;
+               Result : Configuration renames Data.Results.Peek;
+            begin
                if Parsers.Count > 1 then
-                  for ID of Data.Result.Popped loop
+                  for ID of Result.Popped loop
                      Parser_State.Stack.Pop;
                      Pend (Parser_State, (Discard_Stack, ID), Trace);
                   end loop;
 
-                  for I in 1 .. Data.Result.Pushed.Depth loop
+                  for I in 1 .. Result.Pushed.Depth loop
                      declare
-                        Item : constant Parser_Stack_Item := Data.Result.Pushed.Pop;
+                        Item : constant Parser_Stack_Item := Result.Pushed.Peek (I);
                      begin
                         Parser_State.Stack.Push (Item);
                         Pend (Parser_State, (Virtual_To_Lookahead, Item.ID), Trace);
@@ -968,35 +1138,35 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      end;
                   end loop;
 
-                  for ID of Data.Result.Deleted loop
+                  for ID of Result.Deleted loop
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
                      Pend (Parser_State, (Discard_Lookahead, ID), Trace);
                   end loop;
 
-                  for ID of reverse Data.Result.Local_Lookahead loop
+                  for ID of reverse Result.Local_Lookahead loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  for ID of reverse Data.Result.Inserted loop
+                  for ID of reverse Result.Inserted loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
                   Pend
                     (Parser_State,
                      (Verb    => Parser_Lists.Recover,
-                      Recover => new Configuration'(Data.Result)),
+                      Recover => new Configuration'(Result)),
                      Trace);
                else
                   --  Only one parser
 
-                  for ID of Data.Result.Popped loop
+                  for ID of Result.Popped loop
                      Parser_State.Stack.Pop;
                      Shared_Parser.Semantic_State.Discard_Stack (ID);
                   end loop;
 
-                  for I in 1 .. Data.Result.Pushed.Depth loop
+                  for I in 1 .. Result.Pushed.Depth loop
                      declare
-                        Item : constant Parser_Stack_Item := Data.Result.Pushed.Pop;
+                        Item : constant Parser_Stack_Item := Result.Pushed.Peek (I);
                      begin
                         Parser_State.Stack.Push (Item);
                         Shared_Parser.Semantic_State.Virtual_To_Lookahead (Item.ID);
@@ -1004,7 +1174,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                      end;
                   end loop;
 
-                  for ID of Data.Result.Deleted loop
+                  for ID of Result.Deleted loop
                      Parser_State.Shared_Lookahead_Index := Parser_State.Shared_Lookahead_Index + 1;
 
                      Shared_Parser.Semantic_State.Discard_Lookahead (ID);
@@ -1012,15 +1182,15 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
                   --  We use Parser_State.Local_Lookahead even when there is only one
                   --  parser, so main loop knows these are virtual tokens.
-                  for ID of reverse Data.Result.Local_Lookahead loop
+                  for ID of reverse Result.Local_Lookahead loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  for ID of reverse Data.Result.Inserted loop
+                  for ID of reverse Result.Inserted loop
                      Parser_State.Local_Lookahead.Add_To_Head (ID);
                   end loop;
 
-                  Shared_Parser.Semantic_State.Recover (Parser_State.Label, Data.Result);
+                  Shared_Parser.Semantic_State.Recover (Parser_State.Label, Result);
                end if;
 
                if Parser_State.Local_Lookahead.Count > 0 then
@@ -1036,26 +1206,22 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
                     (Parser_State.Shared_Lookahead_Index);
                   Parser_State.Current_Token_Is_Virtual := False;
                end if;
-            else
-               if Trace_Parse > Outline then
-                  Trace.Put_Line
-                    (Integer'Image (Label (Parser_State)) &
-                       ": fail, enqueue" & Integer'Image (Data.Enqueue_Count) &
-                       ", check " & Integer'Image (Data.Check_Count) &
-                       ", cost: " &
-                       (if Data.Config_Heap.Count > 0
-                        then Integer'Image (Data.Config_Heap.Min_Key)
-                        else " ? "));
-               end if;
-            end if;
-         end;
+            end;
+         end if;
       end loop;
 
       if Trace_Parse > Extra then
          Shared_Parser.Semantic_State.Put;
       end if;
 
-      return Config_Store.Success_Count > 0;
+      Cleanup;
+
+      return Super.Success_Count > 0;
+
+   exception
+   when others =>
+      Cleanup;
+      raise;
    end Recover;
 
 end WisiToken.Parser.LR.McKenzie_Recover;

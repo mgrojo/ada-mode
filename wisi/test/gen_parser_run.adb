@@ -47,7 +47,7 @@ is
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is
-      Parser : WisiToken.Parser.LR.Parser.Instance;
+      Parser : WisiToken.Parser.LR.Instance;
    begin
       case Algorithm is
       when WisiToken.LALR =>

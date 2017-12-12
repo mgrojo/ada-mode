@@ -75,7 +75,7 @@ package body Wisi.Gen_Output_Ada_Common is
             Put_Line ("with WisiToken.Token;");
          end case;
       end case;
-      Put_Line ("with WisiToken.Parser.LR.Parser;");
+      Put_Line ("with WisiToken.Parser.LR;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
@@ -195,7 +195,7 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Parser.Instance;");
+         Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
          Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
          Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
          New_Line;
@@ -211,7 +211,7 @@ package body Wisi.Gen_Output_Ada_Common is
             New_Line;
 
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Parser.Instance;");
+            Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
             Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
             Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
             New_Line;
@@ -564,7 +564,7 @@ package body Wisi.Gen_Output_Ada_Common is
       use all type WisiToken.Parser.LR.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Parser.Instance;");
+      Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
       case Interface_Kind is
       when None =>
          Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
@@ -703,34 +703,34 @@ package body Wisi.Gen_Output_Ada_Common is
       end Put;
 
    begin
-      if Table.McKenzie = WisiToken.Parser.LR.Default_McKenzie_Param then
-         Indent_Line ("Table.McKenzie := Default_McKenzie_Param;");
+      if Table.McKenzie_Param = WisiToken.Parser.LR.Default_McKenzie_Param then
+         Indent_Line ("Table.McKenzie_Param := Default_McKenzie_Param;");
       else
-         Indent_Line ("Table.McKenzie :=");
-         Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Terminal) & ",");
+         Indent_Line ("Table.McKenzie_Param :=");
+         Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Terminal) & ",");
          Indent := Indent + 3;
-         Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Terminal) & ",");
-         Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie.First_Nonterminal) & ",");
-         Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie.Last_Nonterminal) & ",");
-         Put ("Insert", Table.McKenzie.Insert);
-         Put ("Delete", Table.McKenzie.Delete);
-         Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie.Cost_Limit) & ",");
-         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie.Check_Limit) & ",");
+         Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Terminal) & ",");
+         Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.First_Nonterminal) & ",");
+         Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Table.McKenzie_Param.Last_Nonterminal) & ",");
+         Put ("Insert", Table.McKenzie_Param.Insert);
+         Put ("Delete", Table.McKenzie_Param.Delete);
+         Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
+         Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ",");
          Indent_Line ("Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);");
          Indent := Indent - 3;
          New_Line;
 
          --  WORKAROUND: GNAT GPL 2016 compiler hangs on this:
-         --  for Pattern of Table.McKenzie.Patterns loop
+         --  for Pattern of Table.McKenzie_Param.Patterns loop
          --     Indent_Line ("Table.Mckenzie.patterns.Append (" & Pattern.Image & ");");
          --  end loop;
          declare
             use WisiToken.Parser.LR.Patterns;
-            I : Cursor := Table.McKenzie.Patterns.First;
+            I : Cursor := Table.McKenzie_Param.Patterns.First;
          begin
             loop
                exit when I = No_Element;
-               Indent_Line ("Table.McKenzie.Patterns.Append (" & Element (I).Image & ");");
+               Indent_Line ("Table.McKenzie_Param.Patterns.Append (" & Element (I).Image & ");");
                Next (I);
             end loop;
          end;

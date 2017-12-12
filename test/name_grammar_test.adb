@@ -118,7 +118,7 @@ package body Name_Grammar_Test is
 
    procedure Parse_Command
      (Label   : in     String;
-      Parser  : in out WisiToken.Parser.LR.Parser.Instance;
+      Parser  : in out WisiToken.Parser.LR.Instance;
       Command : in     String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
@@ -165,7 +165,7 @@ package body Name_Grammar_Test is
 
       Put_Line ("Simple Parser");
       declare
-         Parser : WisiToken.Parser.LR.Parser.Instance;
+         Parser : WisiToken.Parser.LR.Instance;
       begin
          WisiToken.Parser.LR.Parser.New_Parser
            (Parser,
@@ -187,7 +187,7 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Medium Parser");
       declare
-         Parser : WisiToken.Parser.LR.Parser.Instance;
+         Parser : WisiToken.Parser.LR.Instance;
       begin
          WisiToken.Parser.LR.Parser.New_Parser
            (Parser,
@@ -208,7 +208,7 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : WisiToken.Parser.LR.Parser.Instance;
+         Parser : WisiToken.Parser.LR.Instance;
       begin
          WisiToken.Parser.LR.Parser.New_Parser
            (Parser,

@@ -26,7 +26,9 @@ with Ada.Command_Line; use Ada.Command_Line;
 with Test_McKenzie_Recover;
 procedure Test_One_Harness
 is
-   --  command line arguments: [routine name [trace level [cost_limit]]]
+   --  command line arguments: [routine_name [trace_level [cost_limit]]]
+   --
+   --  routine_name can be '' to set trace or cost for all routines.
    --
    --  AUnit design forces this awkward order of declarations.
 
@@ -51,7 +53,10 @@ is
      (Global_Timer     => False,
       Test_Case_Timer  => False,
       Report_Successes => True,
-      Filter           => (if Argument_Count > 0 then New_Name_Filter (Argument (1)) else null));
+      Filter           =>
+        (if Argument_Count > 0 and then Argument (1) /= ""
+         then New_Name_Filter (Argument (1))
+         else null));
 
    Suite    : constant Access_Test_Suite := new Test_Suite;
    Reporter : AUnit.Reporter.Text.Text_Reporter;

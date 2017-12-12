@@ -103,6 +103,7 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with WisiToken.Parser.LR.Parser;");
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;

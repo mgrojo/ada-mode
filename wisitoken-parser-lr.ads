@@ -254,9 +254,9 @@ package WisiToken.Parser.LR is
       Last_Nonterminal  : Token_ID)
      is
    record
-      States   : Parse_State_Array (State_First .. State_Last);
-      McKenzie : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
-      Follow   : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
+      States         : Parse_State_Array (State_First .. State_Last);
+      McKenzie_Param : McKenzie_Param_Type (First_Terminal, Last_Terminal, First_Nonterminal, Last_Nonterminal);
+      Follow         : Token_Array_Token_Set (First_Nonterminal .. Last_Nonterminal, First_Terminal .. Last_Terminal);
    end record;
 
    type Parse_Table_Ptr is access Parse_Table;
@@ -295,15 +295,20 @@ package WisiToken.Parser.LR is
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type);
    --  Put image of top 10 stack items to Trace.
 
-   type Instance is abstract new WisiToken.Parser.Instance with record
+   type Instance is new WisiToken.Parser.Instance with record
       Table                   : Parse_Table_Ptr;
       Semantic_State          : WisiToken.Token.Semantic_State_Access;
       Shared_Lookahead        : Token_Queues.Queue_Type;
+      Max_Parallel            : Ada.Containers.Count_Type;
+      First_Parser_Label      : Integer;
+      Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
    end record;
 
    overriding procedure Finalize (Object : in out Instance);
    --  Deep free Object.Table.
+
+   overriding procedure Parse (Shared_Parser : in out Instance);
 
    ----------
    --  Useful text output
@@ -391,11 +396,13 @@ package WisiToken.Parser.LR is
 
    type McKenzie_Data is tagged record
       Config_Heap   : Config_Heaps.Heap_Type;
-      Enqueue_Count : Integer       := 0;
-      Check_Count   : Integer       := 0;
-      Result        : Configuration := Default_Configuration;
-      Success       : Boolean       := False;
+      Enqueue_Count : Integer := 0;
+      Check_Count   : Integer := 0;
+      Results       : Config_Heaps.Heap_Type;
+      Success       : Boolean := False;
    end record;
+
+   type McKenzie_Access is access all McKenzie_Data;
 
    Default_McKenzie : constant McKenzie_Data := (others => <>);
 private

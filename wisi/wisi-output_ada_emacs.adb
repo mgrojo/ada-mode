@@ -827,6 +827,7 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
+      Put_Line ("with WisiToken.Parser.LR.Parser;");
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
       Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");

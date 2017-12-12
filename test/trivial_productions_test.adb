@@ -81,7 +81,7 @@ package body Trivial_Productions_Test is
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Parser : WisiToken.Parser.LR.Parser.Instance;
+         Parser : WisiToken.Parser.LR.Instance;
 
          Text : constant String := "symbol";
       begin
@@ -176,7 +176,7 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         Parser : WisiToken.Parser.LR.Parser.Instance;
+         Parser : WisiToken.Parser.LR.Instance;
 
          Text : constant String := "function (symbol) symbol procedure";
       begin
