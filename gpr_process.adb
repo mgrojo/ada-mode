@@ -17,6 +17,7 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Lexer.re2c;
+with WisiToken.Parser.LR.Parser;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Gpr; use WisiToken.Wisi_Runtime.Gpr;
 with gpr_re2c_c;
@@ -291,7 +292,7 @@ package body Gpr_Process is
    end typed_string_declaration_0;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access)
    is
@@ -306,7 +307,7 @@ package body Gpr_Process is
          Last_Nonterminal  => Descriptor.Last_Nonterminal);
       pragma Unreferenced (Algorithm);
    begin
-      Table.McKenzie :=
+      Table.McKenzie_Param :=
         (First_Terminal    => 3,
          Last_Terminal     => 37,
          First_Nonterminal => 38,

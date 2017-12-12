@@ -27,9 +27,9 @@ run test from emacs -Q using source:
 
 (dvc-state-multiple
 '((xmtn . "c:/Projects/org.stephe_leake.makerules")
-  (xmtn . "c:/Projects/org.stephe_leake.sal")
-  (xmtn . "c:/Projects/org.wisitoken")
-  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-2/")))
+  (xmtn . "c:/Projects/org.stephe_leake.sal.stephe-1")
+  (xmtn . "c:/Projects/org.wisitoken.stephe-1")
+  (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
 see wisitoken notes for mckenzie improve
@@ -160,6 +160,11 @@ mckenzie recover
             use binary min heap: ~2.7
             use fibonacci min heap: ~2.57
             sal.bounded_vector in Configuration: 1.700269668, 1.675688670
+            faster sal stack: 1.599979082, 1.555800480, 1.569708386 -> slightly faster, keep it.
+            default_init => 50 : 1.602228258, 1.629959644 -> slower!
+
+        turn off gnatmem when doing gprof; may confuse things
+
 
 parse navigate
     (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats

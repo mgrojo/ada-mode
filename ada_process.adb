@@ -17,6 +17,7 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Lexer.re2c;
+with WisiToken.Parser.LR.Parser;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Ada; use WisiToken.Wisi_Runtime.Ada;
 with ada_re2c_c;
@@ -4056,7 +4057,7 @@ package body Ada_Process is
    end with_clause_3;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access)
    is
@@ -4071,7 +4072,7 @@ package body Ada_Process is
          Last_Nonterminal  => Descriptor.Last_Nonterminal);
       pragma Unreferenced (Algorithm);
    begin
-      Table.McKenzie :=
+      Table.McKenzie_Param :=
         (First_Terminal    => 3,
          Last_Terminal     => 107,
          First_Nonterminal => 108,
@@ -4139,14 +4140,14 @@ package body Ada_Process is
          Check_Limit => 3,
          Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
 
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 15));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 32));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 37));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 58));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 15, 96));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 32, 96));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 37, 96));
-      Table.McKenzie.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 58, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 15));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 32));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 37));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_1'(24, 96, 58));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 15, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 32, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 37, 96));
+      Table.McKenzie_Param.Patterns.Append (WisiToken.Parser.LR.Recover_Pattern_2'(24, 104, 58, 96));
       Table.Follow :=
         (109 =>
            (39 => True,

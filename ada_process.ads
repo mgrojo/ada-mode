@@ -18,7 +18,7 @@
 
 with WisiToken.Wisi_Runtime.Ada;
 with WisiToken.Token;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 package Ada_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
@@ -733,7 +733,7 @@ package Ada_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Ada.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 
