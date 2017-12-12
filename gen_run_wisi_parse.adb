@@ -26,7 +26,7 @@ with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with WisiToken.Lexer;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
@@ -37,7 +37,7 @@ is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
-   Parser : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Instance;
 
    procedure Put_Usage
    is
@@ -54,10 +54,10 @@ is
       Put_Line ("   4 - add lexer debug");
       Put_Line ("--cost_limit n   : set error recover cost limit" &
                   (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie.Cost_Limit)));
+                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Cost_Limit)));
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
-                   else "; default" & Integer'Image (Parser.Table.McKenzie.Check_Limit)));
+                   else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Check_Limit)));
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--indent_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
@@ -101,11 +101,11 @@ begin
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--cost_limit" then
-            Parser.Table.McKenzie.Cost_Limit := Integer'Value (Argument (Arg + 1));
+            Parser.Table.McKenzie_Param.Cost_Limit := Integer'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--check_limit" then
-            Parser.Table.McKenzie.Check_Limit := Integer'Value (Argument (Arg + 1));
+            Parser.Table.McKenzie_Param.Check_Limit := Integer'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--disable_recover" then

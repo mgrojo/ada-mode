@@ -20,7 +20,7 @@
 
 pragma License (GPL);
 
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 with WisiToken.Token;
 with WisiToken.Wisi_Runtime;
 generic
@@ -30,7 +30,7 @@ generic
    Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
 
    with procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 

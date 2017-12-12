@@ -18,7 +18,7 @@
 
 with WisiToken.Wisi_Runtime.Gpr;
 with WisiToken.Token;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 package Gpr_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
@@ -191,7 +191,7 @@ package Gpr_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Gpr.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Parser.Instance;
+     (Parser         :    out WisiToken.Parser.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
       Semantic_State : in     WisiToken.Token.Semantic_State_Access);
 

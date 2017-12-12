@@ -13,6 +13,7 @@
 ^build/.*\.diff$
 ^build/.*\.log$
 ^build/.*\.output$
+^build/.*\.profile$
 ^build/.*\.re2c$
 ^build/.*\.sig$
 ^build/.*\.stamp$
@@ -21,6 +22,8 @@
 ^build/.*\.wisi-test$
 ^build/Makefile\.conf$
 ^build/check_xref\.gpr$
+^build/gmem\.out$
+^build/gmon\.out$
 ^build/gpr_query$
 ^build/obj$
 ^build/obj$

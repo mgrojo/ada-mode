@@ -27,7 +27,7 @@ with GNAT.OS_Lib;
 with GNAT.Traceback.Symbolic;
 with System.Storage_Elements;
 with WisiToken.Lexer;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.Parser.LR;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Emacs_Wisi_Parse
@@ -72,7 +72,7 @@ is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
-   Parser : WisiToken.Parser.LR.Parser.Instance;
+   Parser : WisiToken.Parser.LR.Instance;
 
    procedure Read_Input (A : System.Address; N : Integer)
    is
@@ -242,10 +242,10 @@ begin
                   Params           => Command_Line (Last + 2 .. Command_Line'Last));
 
                if Cost_Limit > 0 then
-                  Parser.Table.McKenzie.Cost_Limit := Cost_Limit;
+                  Parser.Table.McKenzie_Param.Cost_Limit := Cost_Limit;
                end if;
                if Check_Limit > 0 then
-                  Parser.Table.McKenzie.Check_Limit := Check_Limit;
+                  Parser.Table.McKenzie_Param.Check_Limit := Check_Limit;
                end if;
 
                Buffer := new String (1 .. Byte_Count);
