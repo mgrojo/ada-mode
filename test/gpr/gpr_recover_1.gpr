@@ -1,0 +1,15 @@
+-- FIXME: Error recovery gives up on this; it should do better.
+project gpr_recover_1 is
+   package Linker is
+      case Profile is
+      when "On" =>
+         case Mem_Check is
+         when
+         for Linker_Options use ("-pg", "-lgmem");
+
+      when "Off" =>
+         null;
+      end case;
+   end Linker;
+
+end gpr_recover_1;

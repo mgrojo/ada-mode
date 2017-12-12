@@ -746,7 +746,9 @@ package body WisiToken.Wisi_Runtime is
                      end if;
 
                      Cache_Cur := Next (Iter, Cache_Cur);
-                     Point     := Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Pos;
+                     exit when Cache_Cur = No_Element;
+
+                     Point := Constant_Ref (Data.Navigate_Caches, Cache_Cur).Element.Pos;
                   end loop;
                end if;
             end if;

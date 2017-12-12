@@ -24,6 +24,7 @@ with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.OS_Lib;
+with GNAT.Traceback.Symbolic;
 with System.Storage_Elements;
 with WisiToken.Lexer;
 with WisiToken.Parser.LR.Parser;
@@ -304,4 +305,5 @@ when E : others =>
    Put_Line
      ("(error ""unhandled exception: " & Ada.Exceptions.Exception_Name (E) & ": " &
         Ada.Exceptions.Exception_Message (E) & """)");
+   Put_Line (GNAT.Traceback.Symbolic.Symbolic_Traceback (E));
 end Gen_Emacs_Wisi_Parse;

@@ -114,14 +114,21 @@ one : RUNTEST := run-indent-test-process-gpr_query.el
 one : $(addsuffix .diff-run, $(ONE_TEST_FILES))
 #one : $(addsuffix .input.diff, $(ONE_TEST_FILES))
 
-two : RUN_ARGS ?= --verbosity 1
-two : export Standard_Common_Build := Debug
+#two : RUN_ARGS ?= --verbosity 1
+two : RUN_ARGS ?= --repeat_count 5
+#two : export Standard_Common_Build := Debug
 two : build_ada_executables
-	../run_ada_parse.exe ../test/debug.adb Indent $(RUN_ARGS)
+	../run_ada_parse.exe ../test/slow_recover_1.adb Face $(RUN_ARGS)
 
-two_mem : export GPRBUILD_LINK_ARGS := -largs -pg -lgmem
-two_mem : export Standard_Common_Profile := On
+two_mem : export Standard_Common_Mem_Check := On
 two_mem : build_ada_executables
+	../exec_mem/run_ada_parse.exe ../test/slow_recover_1.adb Face
+	gnatmem ../exec_pro/run_ada_parse.exe > slo_recover_1.memory
+
+two_pro : export Standard_Common_Profile := On
+two_pro : build_ada_executables
+	../exec_pro/run_ada_parse.exe ../test/slow_recover_1.adb Face --repeat_count 5
+	gprof ../exec_pro/run_ada_parse.exe > slow_recover_1.profile
 
 # WISI_WISITOKEN is correct for Stephe's development machines;
 # it can be overridden on the 'make' command line or by an

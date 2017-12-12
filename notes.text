@@ -156,10 +156,20 @@ consider doing all actions in one parse in process
 
 mckenzie recover
     ada-mode/build/Makefile
-        run_ada_parser ../test/slow_recover_1.adb --repeat_count 5
-            use binary min heap: ~2.7
-            use fibonacci min heap: ~2.57
-            sal.bounded_vector in Configuration: 1.700269668, 1.675688670
+        ensure sal, wisitoken, ada-mode built with non-debug
+            gpr file 'echo' command to output debug/normal?
+            make echo debug/normal
+            gpr_query check compiler options
+
+    run_ada_parser ../test/slow_recover_1.adb --repeat_count 5
+    use binary min heap: ~2.7
+    use fibonacci min heap: ~2.57
+    sal.bounded_vector in Configuration: 1.700269668, 1.675688670
+    faster sal stack: 1.599979082, 1.555800480, 1.569708386 -> slightly faster, keep it.
+    default_init stack => 50 : 1.602228258, 1.629959644 -> slower!
+    7 parallel tasks, one protected object, one solution: 0.556900752, 0.564946255, 0.580240866
+    7 tasks, many protected objects, several equal cost solutions, keep last one: 0.588807432, 0.555614030, 0.591806258
+    "", keep several: 0.611813538, 0.724677583, 0.659352765
 
 parse navigate
     (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
@@ -280,6 +290,8 @@ compile ada_process.adb is slow
     27,000 lines total, 4000 follow, 4000 action
     split into 3 files?
     move table into text file loaded at run time?
+
+    try gprbuild -jnum 8
 
 history
     ada-mode 5.2

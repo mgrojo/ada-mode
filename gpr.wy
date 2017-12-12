@@ -25,16 +25,13 @@
 ;;; Commentary:
 ;;
 ;; This is a wisi grammar file for the gpr language. It is derived
-;; from the Gnat Reference Manual (GRM), with the following substitutions:
+;; from the gprbuild user guide, with the following substitutions:
 ;;
 ;; simple_name -> IDENTIFIER
 ;;
 ;; and some simplifications. Repeating constructs are implemented with
 ;; extra productions. Optional constructs are implemented by repeated
 ;; productions
-;;
-;; The GRM is available as (info "(gnat_ugn)") or at
-;; http://libre.adacore.com/developers/documentation-single/gnat-users-guide
 ;;
 ;; see wisi.el for discussion of using the wisi parser for an
 ;; indentation engine.
@@ -59,7 +56,7 @@
 
 ;; Declarations
 
-;;  (info "(gnat_ugn)Project File Reference")
+;; GNAT GPL 2017 (info "(gprbuild_ug) Configuration File Reference")
 
 ;; punctuation
 %token <punctuation> AMPERSAND "&"

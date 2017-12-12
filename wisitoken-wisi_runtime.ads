@@ -409,7 +409,7 @@ private
 
       when Hanging =>
          Hanging_First_Line  : Line_Number_Type;
-         Hanging_Paren_State : Natural;
+         Hanging_Paren_State : Integer;
          Hanging_Delta_1     : Simple_Delta_Type; -- indentation of first line
          Hanging_Delta_2     : Simple_Delta_Type; -- indentation of continuation lines
          Hanging_Accumulate  : Boolean;

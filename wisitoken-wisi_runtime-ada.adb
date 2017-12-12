@@ -316,9 +316,16 @@ package body WisiToken.Wisi_Runtime.Ada is
       Subp_Tok    : Token_Line_Comment.Token renames Token_Line_Comment.Token
         (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
       Renames_Tok : Token_Line_Comment.Token renames Indenting;
-      Paren_I     : constant Standard.Ada.Containers.Count_Type := Token_Line_Comment.Find
-        (Data.Semantic_State.all, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
+      Paren_I     : Standard.Ada.Containers.Count_Type;
    begin
+      if Subp_Tok.Char_Region = Null_Buffer_Region then
+         --  built from virtual tokens
+         return Null_Delta;
+      end if;
+
+      Paren_I := Token_Line_Comment.Find
+        (Data.Semantic_State.all, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
+
       if Paren_I /= Token_Line_Comment.Invalid_All_Tokens_Index then
          --  paren is present
          declare
