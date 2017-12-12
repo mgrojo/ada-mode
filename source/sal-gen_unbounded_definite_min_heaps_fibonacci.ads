@@ -75,13 +75,20 @@ package SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
 
    --  procedure Increase_Key (Heap : in out Heap_Type; index : in index_type; Item : in Element_Type);
    --  IMPROVEME: implement. need Index (heap, Key), or Add return index.
+
+   type Constant_Reference_Type (Element : not null access constant Element_Type) is null record
+   with Implicit_Dereference => Element;
+
+   function Peek (Heap : in Heap_Type) return Constant_Reference_Type;
+   --  Return a constant reference to the min element.
+
 private
 
    type Node;
    type Node_Access is access Node;
 
    type Node is record
-      Element : Element_Type;
+      Element : aliased Element_Type;
       Parent  : Node_Access;
       Child   : Node_Access;
       Left    : Node_Access;

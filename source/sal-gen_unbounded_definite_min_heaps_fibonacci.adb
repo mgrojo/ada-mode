@@ -315,4 +315,9 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
       Heap.Count := Heap.Count + 1;
    end Add;
 
+   function Peek (Heap : in Heap_Type) return Constant_Reference_Type
+   is begin
+      return (Element => Heap.Min.all.Element'Access);
+   end Peek;
+
 end SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci;
