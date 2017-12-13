@@ -26,8 +26,8 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Parser.LR.Parser_Lists;
-package WisiToken.Parser.LR.McKenzie_Recover is
+with WisiToken.LR.Parser_Lists;
+package WisiToken.LR.McKenzie_Recover is
 
    function Recover
      (Shared_Parser : in out LR.Instance'Class;
@@ -39,4 +39,4 @@ package WisiToken.Parser.LR.McKenzie_Recover is
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
    --  Put Config to Ada.Text_IO.Current_Output, for debug
 
-end WisiToken.Parser.LR.McKenzie_Recover;
+end WisiToken.LR.McKenzie_Recover;

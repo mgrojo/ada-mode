@@ -22,7 +22,7 @@ with Ada.Task_Identification;
 with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with System.Multiprocessors;
-package body WisiToken.Parser.LR.McKenzie_Recover is
+package body WisiToken.LR.McKenzie_Recover is
 
    --  For protected body entry barriers.
    use all type Ada.Containers.Count_Type;
@@ -632,7 +632,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
          return;
       end case;
 
-      if Config.Local_Lookahead_Index /= Token_Arrays.No_Index and
+      if Config.Local_Lookahead_Index /= Fast_Token_ID_Vectors.No_Index and
         Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
       then
          Current_Input := Config.Local_Lookahead (Config.Local_Lookahead_Index);
@@ -702,7 +702,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
 
       --  Try deleting current token, but not if it was inserted by a
       --  special rule.
-      if Config.Local_Lookahead_Index = Token_Arrays.No_Index or
+      if Config.Local_Lookahead_Index = Fast_Token_ID_Vectors.No_Index or
         Config.Local_Lookahead_Index > Config.Local_Lookahead.Last_Index
       then
          declare
@@ -1224,4 +1224,4 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       raise;
    end Recover;
 
-end WisiToken.Parser.LR.McKenzie_Recover;
+end WisiToken.LR.McKenzie_Recover;

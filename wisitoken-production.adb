@@ -30,6 +30,18 @@ pragma License (Modified_GPL);
 
 package body WisiToken.Production is
 
+   function Only (Item : in Token_ID) return WisiToken.Token_ID_Lists.List
+   is begin
+      return List : WisiToken.Token_ID_Lists.List do
+         List.Append (Item);
+      end return;
+   end Only;
+
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Lists.List
+   is begin
+      return Only (Left).Append (Right);
+   end "&";
+
    function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side
    is begin
       return (Tokens, Action, 0);

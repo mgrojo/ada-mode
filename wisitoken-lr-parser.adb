@@ -28,9 +28,9 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Parser.LR.McKenzie_Recover;
-with WisiToken.Parser.LR.Parser_Lists;
-package body WisiToken.Parser.LR.Parser is
+with WisiToken.LR.McKenzie_Recover;
+with WisiToken.LR.Parser_Lists;
+package body WisiToken.LR.Parser is
 
    procedure Reduce_Stack
      (Current_Parser : in     Parser_Lists.Cursor;
@@ -762,10 +762,10 @@ package body WisiToken.Parser.LR.Parser is
       Parser.Semantic_State          := Semantic_State;
       Parser.Shared_Lookahead        := Token_Queues.Empty_Queue;
       Parser.Enable_McKenzie_Recover :=
-        Table.McKenzie_Param.Cost_Limit /= WisiToken.Parser.LR.Default_McKenzie_Param.Cost_Limit;
+        Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel            := Max_Parallel;
       Parser.First_Parser_Label      := First_Parser_Label;
       Parser.Terminate_Same_State    := Terminate_Same_State;
    end New_Parser;
 
-end WisiToken.Parser.LR.Parser;
+end WisiToken.LR.Parser;

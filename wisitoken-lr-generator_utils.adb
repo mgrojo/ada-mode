@@ -18,7 +18,7 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-package body WisiToken.Parser.LR.Generator_Utils is
+package body WisiToken.LR.Generator_Utils is
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -492,4 +492,4 @@ package body WisiToken.Parser.LR.Generator_Utils is
       end loop;
    end Put;
 
-end WisiToken.Parser.LR.Generator_Utils;
+end WisiToken.LR.Generator_Utils;

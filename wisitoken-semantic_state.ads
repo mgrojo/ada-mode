@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Utilities for tokens.
+--  Abstract interface to a semantic state.
 --
 --  Copyright (C) 2017 Stephe Leake
 --
@@ -27,107 +27,46 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Iterator_Interfaces;
+with Ada.Containers.Indefinite_Vectors;
 with Ada.Unchecked_Deallocation;
+with SAL.Gen_Unbounded_Indefinite_Queues;
 with WisiToken.Lexer;
-package WisiToken.Token is
+package WisiToken.Semantic_State is
 
-   ----------
-   --  Token lists
+   type Augmented_Token is abstract new Base_Token with record
+      Virtual : Boolean;
+      --  Derived types add various lexical information.
+   end record;
 
-   package List is
-      --  FIXME: replace with Token_Array?
+   function Image
+     (Item       : in Augmented_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean)
+     return String is abstract;
+   --  Return a string for debug/test messages
 
-      type Instance is tagged private
-      with
-        Constant_Indexing => Constant_Reference,
-        Default_Iterator  => Iterate,
-        Iterator_Element  => Token_ID;
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class);
+   --  Put Image to Trace.
 
-      type Constant_Reference_Type (Element : not null access constant Token_ID) is null record
-      with Implicit_Dereference => Element;
+   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
 
-      type List_Node_Ptr is private;
+   subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
 
-      function Constant_Reference
-        (Container : aliased in Instance'Class;
-         Position  :         in List_Node_Ptr)
-        return Constant_Reference_Type;
+   package Augmented_Token_Queues is new SAL.Gen_Unbounded_Indefinite_Queues (Augmented_Token'Class);
 
-      function Has_Element (Cursor : in List_Node_Ptr) return Boolean;
-      package Iterator_Interfaces is new Ada.Iterator_Interfaces (List_Node_Ptr, Has_Element);
-      function Iterate (Container : aliased Instance) return Iterator_Interfaces.Forward_Iterator'Class;
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type);
 
-      Null_List : constant Instance;
+   type Semantic_Action is access procedure
+     (Nonterm : in Augmented_Token'Class;
+      Index   : in Natural;
+      Tokens  : in Augmented_Token_Array);
+   --  Routines of this type are called by the parser when it reduces
+   --  a production to Nonterm. Index indicates which production for
+   --  Nonterm (0 origin); Tokens is the right hand side tokens.
+   --
+   --  Nonterm is classwide to avoid freezing rules.
 
-      function Is_Empty (Item : in Instance) return Boolean;
-
-      function Length (Item : in Instance) return Ada.Containers.Count_Type;
-
-      function Only (Subject : in Token_ID) return Instance;
-
-      function "&" (Left : in Token_ID; Right : in Token_ID) return Instance;
-      function "&" (Left : in Instance; Right : in Token_ID) return Instance;
-
-      procedure Clean (List : in out Instance);
-      --  Delete and free all elements of List
-
-      procedure Free (List : in out Instance) renames Clean;
-      procedure Clear (List : in out Instance) renames Clean;
-
-      function Deep_Copy (Item : in Instance) return Instance;
-
-      type List_Iterator is private;
-      Null_Iterator : constant List_Iterator;
-
-      function First (List : in Instance) return List_Iterator;
-
-      function Pop (List : in out Instance) return Token_ID;
-      --  Delete head of List from List, return it.
-
-      function Peek (List : in out Instance; I : in Integer) return Token_ID;
-      --  Return the Ith element; head is 1.
-
-      procedure Next (Iterator : in out List_Iterator);
-      function Next (Iterator : in List_Iterator) return List_Iterator;
-      --  Null_Iterator if there is no next token.
-
-      function Is_Done (Iterator : in List_Iterator) return Boolean;
-      function Is_Null (Iterator : in List_Iterator) return Boolean renames Is_Done;
-
-      function Current (Iterator : in List_Iterator) return Token_ID;
-      function ID (Iterator : in List_Iterator) return Token_ID renames Current;
-
-      procedure Prepend (List : in out Instance; Item : in Token_ID);
-      --  Add Token to the head of List.
-
-      procedure Append (List  : in out Instance; Item : in Token_ID);
-      --  Append to tail of List.
-
-      procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Instance);
-      --  Put Item to Trace.
-
-   private
-      type List_Node;
-      type List_Node_Ptr is access List_Node;
-      type List_Node is record
-         ID   : aliased Token_ID;
-         Next : List_Node_Ptr;
-      end record;
-
-      type Instance is tagged record
-         Head : List_Node_Ptr;
-         Tail : List_Node_Ptr;
-      end record;
-
-      type List_Iterator is new List_Node_Ptr;
-      Null_Iterator : constant List_Iterator := null;
-
-      Null_List : constant Instance := (null, null);
-   end List;
-
-   ----------
-   --  Semantic state
+   Null_Action : constant Semantic_Action := null;
 
    type Semantic_State (Trace : not null access WisiToken.Trace'Class) is abstract tagged limited null record;
    type Semantic_State_Access is access all Semantic_State'Class;
@@ -176,7 +115,7 @@ package WisiToken.Token is
 
    type Recover_Data is abstract tagged null record;
    --  For storing error recovery information, for reuse in subsequent
-   --  parse.
+   --  parse, or to inform the IDE about repairing errors.
 
    function Image (Data : in Recover_Data; Descriptor : in WisiToken.Descriptor'Class) return String is abstract;
    --  Human readable (for extended error messages), with token string images.
@@ -275,14 +214,14 @@ package WisiToken.Token is
    --  described by Recover; save the recover information.
 
    procedure Reduce_Stack
-     (State   : not null access Semantic_State;
-      Nonterm : in              Token_ID;
-      Index   : in              Natural;
-      IDs     : in              Token_Array;
-      Action  : in              Semantic_Action)
+     (State       : not null access Semantic_State;
+      Nonterm     : in              Token_ID;
+      Index       : in              Natural;
+      Base_Tokens : in              Base_Token_Arrays.Vector;
+      Action      : in              Semantic_Action)
    is abstract;
-   --  Parser reduced IDs to Nonterm; perform same operations on State
-   --  stack, call Action. Index identifies the production for Nonterm
-   --  used.
+   --  Parser reduced Base_Tokens to Nonterm; perform same operations on
+   --  State stack, call Action. Index identifies the production for
+   --  Nonterm used.
 
-end WisiToken.Token;
+end WisiToken.Semantic_State;

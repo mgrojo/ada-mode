@@ -30,14 +30,14 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with WisiToken.Parser.LR.Parser;
-package body WisiToken.Parser.LR is
+with WisiToken.LR.Parser;
+package body WisiToken.LR is
 
    overriding
    function Image (Item : in Recover_Pattern_1) return String
    is begin
       return
-        "WisiToken.Parser.LR.Recover_Pattern_1'(" &
+        "WisiToken.LR.Recover_Pattern_1'(" &
         Int_Image (Integer (Item.Stack)) & "," &
         Token_ID'Image (Item.Error) & "," &
         Token_ID'Image (Item.Expecting) &
@@ -48,7 +48,7 @@ package body WisiToken.Parser.LR is
    function Image (Item : in Recover_Pattern_2) return String
    is begin
       return
-        "WisiToken.Parser.LR.Recover_Pattern_2'(" &
+        "WisiToken.LR.Recover_Pattern_2'(" &
         Int_Image (Integer (Item.Stack)) & "," &
         Token_ID'Image (Item.Error) & "," &
         Token_ID'Image (Item.Expecting) & "," &
@@ -82,16 +82,6 @@ package body WisiToken.Parser.LR is
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
       New_Line;
    end Put;
-
-   function Extract_IDs (Stack : in Parser_Stacks.Stack_Type) return Token_Array
-   is begin
-      return Result : Token_Array do
-         Result.Reserve_Capacity (Ada.Containers.Count_Type (Stack.Depth));
-         for I in reverse 1 .. Stack.Depth loop
-            Result.Append (Stack.Peek (I).ID);
-         end loop;
-      end return;
-   end Extract_IDs;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
    is
@@ -152,9 +142,9 @@ package body WisiToken.Parser.LR is
       Free (Object.Table);
    end Finalize;
 
-   overriding procedure Parse (Shared_Parser : in out Instance)
+   procedure Parse (Shared_Parser : in out Instance)
    is begin
-      WisiToken.Parser.LR.Parser.Parse (Shared_Parser);
+      WisiToken.LR.Parser.Parse (Shared_Parser);
    end Parse;
 
    function State_Image (Item : in Unknown_State_Index) return String
@@ -361,7 +351,8 @@ package body WisiToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Check  : in     LR.Semantic_Check)
    is
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
@@ -369,9 +360,9 @@ package body WisiToken.Parser.LR is
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Accept_It, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -395,10 +386,11 @@ package body WisiToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Check  : in     LR.Semantic_Check)
    is
-      Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+      Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
+      Action_2 : constant Parse_Action_Rec := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -411,18 +403,21 @@ package body WisiToken.Parser.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     Semantic_Action;
+      Semantic_Action_1 : in     Semantic_State.Semantic_Action;
+      Semantic_Check_1  : in     LR.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     Semantic_Action)
+      Semantic_Action_2 : in     Semantic_State.Semantic_Action;
+      Semantic_Check_2  : in     LR.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
+         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
          when others => raise WisiToken.Programmer_Error);
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
+      Action_2 : constant Parse_Action_Rec :=
+        (Reduce, LHS_ID_2, Semantic_Action_2, Semantic_Check_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -530,6 +525,20 @@ package body WisiToken.Parser.LR is
       end loop;
       return Result;
    end Expecting;
+
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Base_Token_Queues.Queue_Type)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      Trace.Put ("(");
+      for I in 1 .. Item.Count loop
+         Put (Trace, Item.Peek (I));
+         if I < Item.Count then
+            Put (Trace, ", ");
+         end if;
+      end loop;
+      Trace.Put (")");
+   end Put;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
@@ -684,7 +693,7 @@ package body WisiToken.Parser.LR is
 
    function Next_Grammar_Token
      (Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : not null access WisiToken.Token.Semantic_State'Class)
+      Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
      return Token_ID
    is
       ID : Token_ID;
@@ -698,4 +707,4 @@ package body WisiToken.Parser.LR is
       return ID;
    end Next_Grammar_Token;
 
-end WisiToken.Parser.LR;
+end WisiToken.LR;

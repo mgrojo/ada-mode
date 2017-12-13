@@ -19,7 +19,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Characters.Handling;
-package body WisiToken.Parser.LR.Parser_Lists is
+package body WisiToken.LR.Parser_Lists is
 
    procedure Pend (State : in out Parser_State; Item : in Pend_Item; Trace : in out WisiToken.Trace'Class)
    is begin
@@ -335,4 +335,4 @@ package body WisiToken.Parser.LR.Parser_Lists is
       end loop;
    end Put_Pending_Actions;
 
-end WisiToken.Parser.LR.Parser_Lists;
+end WisiToken.LR.Parser_Lists;

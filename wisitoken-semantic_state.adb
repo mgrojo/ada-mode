@@ -1,9 +1,9 @@
 --  Abstract :
 --
---  An abstract interface for a parser for grammars.
+--  see spec
 --
---  Copyright (C) 2002, 2003, 2010, 2012 - 2015, 2017 Stephe Leake
---  Copyright (C) 1999 Ted Dennison
+--
+--  Copyright (C) 2009, 2014, 2015, 2017 Stephe Leake
 --
 --  This file is part of the WisiToken package.
 --
@@ -28,23 +28,25 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Finalization;
-with WisiToken.Lexer;
-package WisiToken.Parser is
+package body WisiToken.Semantic_State is
 
-   type Instance is abstract new Ada.Finalization.Limited_Controlled with record
-      Lexer : WisiToken.Lexer.Handle;
-   end record;
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class)
+   is begin
+      Put (Trace, Item.Image (Trace.Descriptor.all, ID_Only => False));
+   end Put;
 
-   procedure Parse (Parser : in out Instance) is abstract;
-   --  Attempt a parse. Does _not_ reset Parser.Lexer on each call, to
-   --  allow continuing in the same input stream.
-   --
-   --  Raises Syntax_Error for lexer errors, Parse_Error for
-   --  parser errors.
-   --
-   --  If an error is encountered but a recover strategy succeeds, no
-   --  exception is raised. Parser.Invalid_Regions contains the
-   --  regions ignored.
+   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type)
+   is
+      use all type SAL.Base_Peek_Type;
+   begin
+      Trace.Put ("(");
+      for I in 1 .. Item.Count loop
+         Put (Trace, Item.Peek (I));
+         if I < Item.Count then
+            Put (Trace, ", ");
+         end if;
+      end loop;
+      Trace.Put (")");
+   end Put;
 
-end WisiToken.Parser;
+end WisiToken.Semantic_State;

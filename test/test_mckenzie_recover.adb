@@ -653,6 +653,32 @@ package body Test_McKenzie_Recover is
       Assert (False, "1 exception: got Syntax_Error");
    end Zombie_In_Resume;
 
+   procedure Match_Name (T : in out AUnit.Test_Cases.Test_Case'Class)
+   is
+      Test : Test_Case renames Test_Case (T);
+      use Ada_Lite;
+      use AUnit.Assertions;
+      use AUnit.Checks;
+      use WisiToken.Token_Region.AUnit;
+   begin
+      --  Test that block name matching is used to reject some solutions
+      --  during error recovery.
+
+      Parse_Text
+        ("procedure Remove is begin loop A := B; loop; end Remove;",
+         --        |10       |20       |30       |40       |50
+         Test.Debug);
+      --  typed 'loop;' instead of 'end loop;'
+      --
+      --  This used to fail error recovery.
+
+      Assert (False, "1 exception: did not get Syntax_Error");
+
+   exception
+   when WisiToken.Syntax_Error =>
+      null;
+   end Match_Name;
+
    ----------
    --  Public subprograms
 
@@ -683,6 +709,7 @@ package body Test_McKenzie_Recover is
       Register_Routine (T, Error_Token_When_Parallel'Access, "Error_Token_When_Parallel");
       Register_Routine (T, If_In_Handler'Access, "If_In_Handler");
       Register_Routine (T, Zombie_In_Resume'Access, "Zombie_In_Resume");
+      Register_Routine (T, Match_Name'Access, "Match_Name");
    end Register_Tests;
 
    overriding procedure Set_Up_Case (T : in out Test_Case)

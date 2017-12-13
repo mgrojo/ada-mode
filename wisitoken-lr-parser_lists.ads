@@ -23,7 +23,7 @@ pragma License (Modified_GPL);
 with Ada.Iterator_Interfaces;
 with SAL.Gen_Definite_Doubly_Linked_Lists;
 with SAL.Gen_Unbounded_Definite_Queues;
-package WisiToken.Parser.LR.Parser_Lists is
+package WisiToken.LR.Parser_Lists is
 
    type Pend_Semantic_Verbs is
      (Virtual_To_Lookahead, Push_Current, Discard_Lookahead, Discard_Stack, Reduce_Stack, Recover);
@@ -230,4 +230,4 @@ private
       Ptr      : Parser_State_Lists.Cursor;
    end record;
 
-end WisiToken.Parser.LR.Parser_Lists;
+end WisiToken.LR.Parser_Lists;

@@ -75,7 +75,7 @@ package body Wisi.Gen_Output_Ada_Common is
             Put_Line ("with WisiToken.Token;");
          end case;
       end case;
-      Put_Line ("with WisiToken.Parser.LR;");
+      Put_Line ("with WisiToken.LR;");
       Put_Line ("package " & Package_Name & " is");
       Indent := Indent + 3;
       New_Line;
@@ -195,8 +195,8 @@ package body Wisi.Gen_Output_Ada_Common is
       case Output_Language is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
-         Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
+         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
          Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
          New_Line;
 
@@ -211,8 +211,8 @@ package body Wisi.Gen_Output_Ada_Common is
             New_Line;
 
             Indent_Line ("procedure Create_Parser");
-            Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
-            Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
+            Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
             Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
             New_Line;
 
@@ -561,16 +561,16 @@ package body Wisi.Gen_Output_Ada_Common is
    is
       use Generate_Utils;
       use Wisi.Utils;
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use all type WisiToken.LR.Unknown_State_Index;
    begin
       Indent_Line ("procedure Create_Parser");
-      Indent_Line ("  (Parser         :    out WisiToken.Parser.LR.Instance;");
+      Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
       case Interface_Kind is
       when None =>
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
          Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
       when Process =>
-         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
          Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
       when Module =>
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
@@ -580,8 +580,8 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("is");
       Indent := Indent + 3;
 
-      Indent_Line ("use WisiToken.Parser.LR;");
-      Indent_Line ("use all type WisiToken.Parser_Algorithm_Type;");
+      Indent_Line ("use WisiToken.LR;");
+      Indent_Line ("use all type WisiToken_Algorithm_Type;");
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
       Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;
@@ -637,7 +637,7 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
       New_Line;
 
-      Indent_Line ("WisiToken.Parser.LR.Parser.New_Parser");
+      Indent_Line ("WisiToken.LR.Parser.New_Parser");
       Indent_Line ("  (Parser,");
       case Interface_Kind is
       when None | Process =>
@@ -657,11 +657,11 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("end Create_Parser;");
    end Create_Create_Parser;
 
-   procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr)
+   procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr)
    is
-      use all type WisiToken.Parser.LR.Patterns.List;
+      use all type WisiToken.LR.Patterns.List;
       use all type WisiToken.Token_ID;
-      use all type WisiToken.Parser.LR.McKenzie_Param_Type;
+      use all type WisiToken.LR.McKenzie_Param_Type;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -677,7 +677,7 @@ package body Wisi.Gen_Output_Ada_Common is
          return Trim (Natural'Image (Item), Both);
       end Natural_Image;
 
-      procedure Put (Label : in String; Item : in WisiToken.Token_Array_Natural)
+      procedure Put (Label : in String; Item : in WisiToken.Token_ID_Array_Natural)
       is begin
          Indent_Line (Label & " =>");
          Indent_Start ("  (");
@@ -703,7 +703,7 @@ package body Wisi.Gen_Output_Ada_Common is
       end Put;
 
    begin
-      if Table.McKenzie_Param = WisiToken.Parser.LR.Default_McKenzie_Param then
+      if Table.McKenzie_Param = WisiToken.LR.Default_McKenzie_Param then
          Indent_Line ("Table.McKenzie_Param := Default_McKenzie_Param;");
       else
          Indent_Line ("Table.McKenzie_Param :=");
@@ -716,7 +716,7 @@ package body Wisi.Gen_Output_Ada_Common is
          Put ("Delete", Table.McKenzie_Param.Delete);
          Indent_Line ("Cost_Limit  =>" & Integer'Image (Table.McKenzie_Param.Cost_Limit) & ",");
          Indent_Line ("Check_Limit =>" & Integer'Image (Table.McKenzie_Param.Check_Limit) & ",");
-         Indent_Line ("Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);");
+         Indent_Line ("Patterns    => WisiToken.LR.Patterns.Empty_List);");
          Indent := Indent - 3;
          New_Line;
 
@@ -725,7 +725,7 @@ package body Wisi.Gen_Output_Ada_Common is
          --     Indent_Line ("Table.Mckenzie.patterns.Append (" & Pattern.Image & ");");
          --  end loop;
          declare
-            use WisiToken.Parser.LR.Patterns;
+            use WisiToken.LR.Patterns;
             I : Cursor := Table.McKenzie_Param.Patterns.First;
          begin
             loop
@@ -781,7 +781,7 @@ package body Wisi.Gen_Output_Ada_Common is
             use Standard.Ada.Containers;
             use Standard.Ada.Strings;
             use Standard.Ada.Strings.Unbounded;
-            use WisiToken.Parser.LR;
+            use WisiToken.LR;
             Base_Indent : constant Standard.Ada.Text_IO.Count := Indent;
             Node        : Action_Node_Ptr := Table.States (State_Index).Action_List;
             Line        : Unbounded_String;
@@ -833,7 +833,7 @@ package body Wisi.Gen_Output_Ada_Common is
                          elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                          else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
 
-                  when WisiToken.Parser.LR.Error =>
+                  when WisiToken.LR.Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
                   end case;
 
@@ -854,7 +854,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &
-                          WisiToken.Parser.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
+                          WisiToken.LR.Parse_Action_Verbs'Image (Action_Node.Item.Verb);
                      end case;
                   end if;
                end;
@@ -866,7 +866,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
          Gotos :
          declare
-            use WisiToken.Parser.LR;
+            use WisiToken.LR;
             Node : Goto_Node_Ptr := Table.States (State_Index).Goto_List;
          begin
             loop

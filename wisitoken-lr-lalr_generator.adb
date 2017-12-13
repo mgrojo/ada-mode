@@ -24,7 +24,7 @@ pragma License (Modified_GPL);
 with Ada.Containers;
 with Ada.Text_IO;
 with Ada.Unchecked_Deallocation;
-package body WisiToken.Parser.LR.LALR_Generator is
+package body WisiToken.LR.LALR_Generator is
 
    --  The following types are used for computing lookahead
    --  propagations.
@@ -121,9 +121,9 @@ package body WisiToken.Parser.LR.LALR_Generator is
       Kernels    : in LR1_Items.Item_Set_List;
       Descriptor : in LALR_Descriptor)
    is
-      use all type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      use all type WisiToken.LR.LR1_Items.Item_Set_Ptr;
       use Ada.Text_IO;
-      Kernel : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      Kernel : WisiToken.LR.LR1_Items.Item_Set_Ptr;
    begin
       Put_Line ("LALR Parse Table:");
 
@@ -772,4 +772,4 @@ package body WisiToken.Parser.LR.LALR_Generator is
       return Table;
    end Generate;
 
-end WisiToken.Parser.LR.LALR_Generator;
+end WisiToken.LR.LALR_Generator;

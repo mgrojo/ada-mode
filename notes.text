@@ -10,65 +10,66 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+add token byte_region and name to core parser, to allow name matching in error recovery
+    time it
+
+move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
+    augmented_token_array can be definite
+
+reorganize into three package hierarchies:
+    wisitoken.parse - parser runtime
+    wisitoken.generate - represent grammar as production list, generate parse table
+    wisitoken.wisi - translate.wy files into production list, source code
+
 do block name matching
+    ada_mode/test/slow_recover_2.adb
+        error is typed "loop;" instead of "end loop;"
+        should pop loop, insert "end loop"; enqueues cost 9, never checks it
 
-ada-mode/test/slow_recover_1.adb
-    10 parsers in recovery, almost all doing > 20,000 enqueue
-        smallest enqueue/check is eventual winner
+        finds 3 cost 6 solutions:
+        6, (636 : RETURN, )| 1|()()(BEGIN, RETURN)()
+        6, (628 : EXIT, )| 1|()()(BEGIN, EXIT)()
+        6, (640 : IDENTIFIER, )| 1|()()(BEGIN, IDENTIFIER)()
 
-    test_mckenzie extra_begin has two parsers in recovery
-       final winner descended from parser 0, which is second tested
-          requiring 2 successes loses almost all advantage in slow_recover_1
+        acceptable because the inserted BEGIN pairs with the exising 'end Remove;'
+        add wisi-name-match action to prevent that
+            need mechanism to feed action result to parser action, at least in mckenzie
+                oops, don't execute parser actions in mckenzie
+                so add a class of actions that is; semantic_check
+                config.stack is just token_id, no augmented info
+                would have to merge token_line_comment into parser-lr to make that work
 
-    do multi-cpu in mckenzie
-
-    slow_recover_1 McKenzie error recovery:
-
-    parser 20:
-    mckenzie (max cost 12) enqueue 21070, check  1588; fail
-
-    parser 19:
-    mckenzie (max cost 12) enqueue 51073, check  3644; fail
-
-    parser 12:
-     12: mckenzie enqueue 40792, check  2999; succeed : 12, (1264 : SEMICOLON, )|END|/RIGHT_PAREN, THEN, END, IF, SEMICOLON/THEN
-
-    parser 11:
-    mckenzie (max cost 12) enqueue 21148, check  1732; fail
-
-    parser 10:
-    mckenzie (max cost 12) enqueue 26051, check  2054; fail
-
-    parser 9:
-    mckenzie (max cost 12) enqueue 21916, check  1777; fail
-
-    parser 6:
-    mckenzie (max cost 12) enqueue 21880, check  1788; fail
-
-    parser 5:
-     5: mckenzie enqueue 4351, check  334; succeed : 8, (679 : END, )|IDENTIFIER|/IF, SEMICOLON, END, IF, SEMICOLON, END/
-
-    parser 3:
-    mckenzie (max cost 12) enqueue 25589, check  2028; fail
-
-    parser 1:
-    mckenzie (max cost 12) enqueue 23497, check  1910; fail
+            that's why mckenzie paper talked about resuming real parse, re-enter error recover if it failed.
+                worse for us if pending
+                    could execute semantic_check during pending
+                        which means it is a separate action pointer in the parse table
+                        could put buffer_region in main parse stack, to allow getting names
 
 
-ada_mode/test/slow_recover_2.adb
-    error is typed "loop;" instead of "end loop;"
-        should pop loop, insert "end loop"
-            it gets to pop loop cost 4, never checks it
+    test_mckenzie_recover.adb Match_Name reproduces problem with ada_lite
+        enqueues 'pop LOOP insert END', never enqueues 'pop LOOP insert END LOOP'
+            because it succeeds with cost 3
 
-        inserts "begin begin end"
-            because "begin" is cheap, and begin ... end <name>; is legal, and meets check limit
-            make 'begin' same cost as others
+    in ada_lite.wy and ada.wy, need to move label into block_statement, loop_statement
+        easy in ada_lite; affects indentation logic in ada
+
+delete Index from Semantic_Action
+
+mckenzie keep going until heap.min_key > results.min_key
+    avoid race condition; slow worker can add new low-cost solutions
+
+if full parse fails, go back to successful error recover and find more expensive solutions
+    save full config_heap after successful error recover
+
+try kim-choe for ada_mode/test/slow_recover_2.adb (before name matching)
 
 
-really need name matching!
+do multi-cpu parsing?
+    won't help as much in absence of errors
+    errors are when speed is noticeable
 
 
-cache recover for subsequent parse
+cache recover for subsequent parse?
 
 still losing memory?
     possibly Augmented_Token_Array

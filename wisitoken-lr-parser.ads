@@ -24,18 +24,18 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Token;
-package WisiToken.Parser.LR.Parser is
+with WisiToken.Semantic_State;
+package WisiToken.LR.Parser is
 
    procedure New_Parser
      (Parser               :    out Instance;
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
-      Semantic_State       : in     WisiToken.Token.Semantic_State_Access;
+      Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
       Max_Parallel         : in     Ada.Containers.Count_Type := 15;
       First_Parser_Label   : in     Integer                   := 1;
       Terminate_Same_State : in     Boolean                   := True);
 
    procedure Parse (Shared_Parser : in out Instance);
 
-end WisiToken.Parser.LR.Parser;
+end WisiToken.LR.Parser;

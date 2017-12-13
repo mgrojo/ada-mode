@@ -35,14 +35,10 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Characters.Latin_1;
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with SAL.Gen_Unbounded_Definite_Queues;
-with SAL.Gen_Unbounded_Indefinite_Queues;
 package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -55,31 +51,19 @@ package WisiToken is
 
    Programmer_Error : exception; -- a programming convention has been violated
 
-   --  We use this regardless of OS, since we need a standard way of
-   --  representing an end of line in a string buffer. We use
-   --  LF to match WisiToken.Lexer.Aflex; Aflex hard-codes LF.
-   EOL_Character : constant Character := Ada.Characters.Latin_1.LF;
-
-   --  Similarly, this is independent of OS
-   EOF_Character : constant Character := Ada.Characters.Latin_1.EOT;
+   subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
 
    ----------
-   --  Tokens
+   --  Token IDs
 
    type Token_ID is range 0 .. Integer'Last; -- 0 origin to match elisp array
 
-   subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
-   package Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
-   subtype Token_Array is Token_Arrays.Vector;
-   Empty_Token_Array : Token_Array renames Token_Arrays.Empty_Vector;
+   package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_ID);
 
    Invalid_Token_ID : constant Token_ID := Token_ID'Last;
 
-   package Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_ID);
-
-   type Token_Array_String is array (Token_ID range <>) of access constant String;
-   type Token_Array_Float is array (Token_ID range <>) of Float;
-   type Token_Array_Natural is array (Token_ID range <>) of Natural;
+   type Token_ID_Array_String is array (Token_ID range <>) of access constant String;
+   type Token_ID_Array_Natural is array (Token_ID range <>) of Natural;
 
    type Descriptor
      (First_Terminal    : Token_ID;
@@ -98,14 +82,19 @@ package WisiToken is
       --
       --  Components are discriminants if they can be specified statically.
 
-      New_Line_ID    : Token_ID;
-      Comment_ID     : Token_ID;
-      Left_Paren_ID  : Token_ID;
-      Right_Paren_ID : Token_ID;
+      New_Line_ID         : Token_ID;
+      Comment_ID          : Token_ID;
+      Left_Paren_ID       : Token_ID;
+      Right_Paren_ID      : Token_ID;
+      Terminal_Name_ID    : Token_ID;
+      Nonterminal_Name_ID : Token_ID;
+      --  Terminal_Name_ID is a simple identifier; Nonterminal_Name_ID is a
+      --  combination of Terminal_Name_IDs, ie a dotted name.
+      --
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
 
-      Image : Token_Array_String (Token_ID'First .. Last_Nonterminal);
+      Image : Token_ID_Array_String (Token_ID'First .. Last_Nonterminal);
       --  User names for tokens.
 
       Terminal_Image_Width : Integer;
@@ -142,9 +131,6 @@ package WisiToken is
    function Any (Item : in Token_Array_Token_Set) return Boolean;
    procedure Or_Slice (Item : in out Token_Array_Token_Set; I : in Token_ID; Value : in Token_ID_Set);
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array) return String;
-
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Token_Array);
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set);
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
@@ -182,6 +168,48 @@ package WisiToken is
    function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String;
 
    ----------
+   --  Tokens
+
+   type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
+   type Buffer_Region is record
+      First : Buffer_Pos;
+      Last  : Buffer_Pos;
+   end record;
+
+   Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
+   Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
+
+   function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));
+
+   function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
+     is (Region.First <= Pos and Pos <= Region.Last);
+
+   function Image (Item : in Buffer_Region) return String;
+
+   function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
+   --  Return region enclosing both Left and Right.
+
+   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
+
+   type Base_Token is tagged record
+      --  Base_Token is used in the core parser and error recovery; one
+      --  error recovery algorithm matches names, so it needs references to
+      --  the actual input text. We do not include all of the information
+      --  used by the semantic actions here, because thousands of copies of
+      --  the parser stack can be made during error recovery, so minimizing
+      --  its size is important. Only one copy of the full semantic parser
+      --  stack is maintained; see WisiToken.Token_Line_Comment.
+
+      ID   : Token_ID      := Invalid_Token_ID;
+      Name : Buffer_Region := Null_Buffer_Region;
+      --  Name is set if ID is Descriptor.Terminal_Name_ID or
+      --  Nonterminal_Name_ID, or is a higher level nonterminal containing
+      --  exactly one token with Name set.
+   end record;
+
+   package Base_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Base_Token);
+
+   ----------
    --  Trace
 
    Trace_Parse : Integer  := 0;
@@ -201,58 +229,16 @@ package WisiToken is
    --  running a parser as a subprocess of an IDE.
 
    procedure Put (Trace : in out WisiToken.Trace; Item : in String) is abstract;
-   --  Put Item to the Trace object
+   --  Put Item to the Trace display.
 
    procedure Put_Line (Trace : in out WisiToken.Trace; Item : in String) is abstract;
-   --  Accumulate Item in the trace buffer, output the trace buffer to
-   --  the display.
+   --  Put Item to the Trace display, followed by a newline.
 
    procedure New_Line (Trace : in out WisiToken.Trace) is abstract;
-   --  Output the trace buffer to the display.
+   --  Put a newline to the Trace display.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID);
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Array);
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_Queues.Queue_Type);
-   --  Accumulate Item in the trace buffer.
-
-   ----------
-   --  Augmented tokens, semantic actions
-
-   type Augmented_Token is abstract tagged record
-      ID      : Token_ID := Invalid_Token_ID;
-      Virtual : Boolean;
-      --  Derived types add various lexical information.
-   end record;
-
-   function Image
-     (Item       : in Augmented_Token;
-      Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
-     return String is abstract;
-   --  Return a string for debug/test messages
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token'Class);
-   --  Put Image to Trace.
-
-   package Augmented_Token_Arrays is new Ada.Containers.Indefinite_Vectors (Positive_Index_Type, Augmented_Token'Class);
-
-   subtype Augmented_Token_Array is Augmented_Token_Arrays.Vector;
-
-   package Augmented_Token_Queues is new SAL.Gen_Unbounded_Indefinite_Queues (Augmented_Token'Class);
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Augmented_Token_Queues.Queue_Type);
-
-   type Semantic_Action is access procedure
-     (Nonterm : in Augmented_Token'Class;
-      Index   : in Natural;
-      Tokens  : in Augmented_Token_Array);
-   --  Routines of this type are called by the parser when it reduces
-   --  a production to Nonterm. Index indicates which production for
-   --  Nonterm (0 origin); Tokens is the right hand side tokens.
-   --
-   --  Nonterm is classwide to avoid freezing rules.
-
-   Null_Action : constant Semantic_Action := null;
+   --  Put Item to the Trace display.
 
    ----------
    --  Misc
@@ -282,26 +268,5 @@ package WisiToken is
    --  Put Message to Standard_Error.
 
    type Parser_Algorithm_Type is (LALR, LR1);
-
-   type Buffer_Pos is range 1 .. Integer'Last; -- match Emacs buffer origin.
-   type Buffer_Region is record
-      First : Buffer_Pos;
-      Last  : Buffer_Pos;
-   end record;
-
-   Invalid_Buffer_Pos : constant Buffer_Pos    := Buffer_Pos'Last;
-   Null_Buffer_Region : constant Buffer_Region := (Buffer_Pos'Last, Buffer_Pos'First);
-
-   function Length (Region : in Buffer_Region) return Natural is (Natural (Region.Last - Region.First + 1));
-
-   function Inside (Pos : in Buffer_Pos; Region : in Buffer_Region) return Boolean
-     is (Region.First <= Pos and Pos <= Region.Last);
-
-   function Image (Item : in Buffer_Region) return String;
-
-   function "and" (Left, Right : in Buffer_Region) return Buffer_Region;
-   --  Return region enclosing both Left and Right.
-
-   package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
 end WisiToken;

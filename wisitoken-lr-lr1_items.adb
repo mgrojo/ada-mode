@@ -30,7 +30,7 @@ pragma License (Modified_GPL);
 
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
-package body WisiToken.Parser.LR.LR1_Items is
+package body WisiToken.LR.LR1_Items is
    use type Ada.Strings.Unbounded.Unbounded_String;
 
    function Reverse_List (List : in Item_Ptr) return Item_Ptr
@@ -1065,7 +1065,4 @@ package body WisiToken.Parser.LR.LR1_Items is
       Put (Descriptor, Item.Head, Show_Lookaheads);
    end Put;
 
-end WisiToken.Parser.LR.LR1_Items;
---  Local Variables:
---  jit-lock-defer-time: 0.5
---  End:
+end WisiToken.LR.LR1_Items;

@@ -22,8 +22,8 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Parser.LR.LR1_Generator;
-with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LALR_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
 procedure Wisi.Output_Ada
@@ -46,7 +46,7 @@ is
 
    procedure Create_Ada_Body
    is
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use all type WisiToken.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -57,10 +57,10 @@ is
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := WisiToken.Parser.LR.LALR_Generator.Generate
+         Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -74,10 +74,10 @@ is
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := WisiToken.Parser.LR.LR1_Generator.Generate
+         Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -87,7 +87,7 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := WisiToken.Parser.LR.Unknown_State_Index'Max
+         Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
            (Data.Parser_State_Count,
             Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
@@ -103,7 +103,7 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.Parser.LR.Parser;");
+      Put_Line ("with WisiToken.LR.Parser;");
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
@@ -220,7 +220,7 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           WisiToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
            Integer'Image (Data.Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
