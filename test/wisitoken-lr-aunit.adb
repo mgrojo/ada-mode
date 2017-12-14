@@ -175,7 +175,7 @@ package body WisiToken.LR.AUnit is
       use WisiToken.AUnit;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
-      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Token", Computed.Token, Expected.Token);
    end Check;
 
    function To_State_Stack (Item : in Parser_Stack_Item_Array) return Parser_Stacks.Stack_Type

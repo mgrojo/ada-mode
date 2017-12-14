@@ -32,33 +32,31 @@ with WisiToken.LR.McKenzie_Recover;
 with WisiToken.LR.Parser_Lists;
 package body WisiToken.LR.Parser is
 
-   procedure Reduce_Stack
+   procedure Reduce_Stack_1
      (Current_Parser : in     Parser_Lists.Cursor;
       Action         : in     Reduce_Action_Rec;
-      Semantic_State : access WisiToken.Semantic_State.Semantic_State'Class)
+      Semantic_State : access WisiToken.Semantic_State.Semantic_State'Class;
+      Nonterm        :    out Base_Token)
    is
       use all type Ada.Containers.Count_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
-      Tokens       : Token_ID_Arrays.Vector;
+      Tokens       : Base_Token_Arrays.Vector;
    begin
-      Tokens.Set_Length (Action.Token_Count);
-      for I in reverse 1 .. Action.Token_Count loop
-         Tokens.Replace_Element (I, Parser_State.Stack.Pop.ID);
-      end loop;
+      Reduce_Stack (Parser_State.Stack, Action, Nonterm, Tokens);
 
       if Current_Parser.Active_Parser_Count > 1 then
-         Parser_State.Pend ((Parser_Lists.Reduce_Stack, Action, Tokens), Semantic_State.Trace.all);
+         Parser_State.Pend ((Parser_Lists.Reduce_Stack, Action, Nonterm, Tokens), Semantic_State.Trace.all);
       else
-         Semantic_State.Reduce_Stack (Action.LHS, Action.Index, Tokens, Action.Action);
-         --  Reduce_Stack puts a trace, with extra token info
+         Semantic_State.Reduce_Stack (Nonterm, Action.Index, Tokens, Action.Action);
+         --  puts a trace, with extra token info
       end if;
-   end Reduce_Stack;
+   end Reduce_Stack_1;
 
    procedure Do_Action
      (Action         : in Parse_Action_Rec;
       Current_Parser : in Parser_Lists.Cursor;
-      Current_Token  : in Token_ID;
+      Current_Token  : in Base_Token;
       Parser         : in Instance)
    is
       use all type SAL.Base_Peek_Type;
@@ -66,6 +64,7 @@ package body WisiToken.LR.Parser is
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Trace        : WisiToken.Trace'Class renames Parser.Semantic_State.Trace.all;
+      Nonterm      : Base_Token;
    begin
       if Trace_Parse > Detail then
          Trace.Put
@@ -91,24 +90,24 @@ package body WisiToken.LR.Parser is
       when Reduce =>
          Current_Parser.Pre_Reduce_Stack_Save;
 
-         Reduce_Stack (Current_Parser, Action, Parser.Semantic_State);
+         Reduce_Stack_1 (Current_Parser, Action, Parser.Semantic_State, Nonterm);
 
          Parser_State.Stack.Push
            ((State    => Goto_For
                (Table => Parser.Table.all,
                 State => Parser_State.Stack.Peek.State,
                 ID    => Action.LHS),
-             ID       => Action.LHS));
+             Token    => Nonterm));
 
          if Trace_Parse > Detail then
             Trace.Put_Line (" ... goto state " & State_Image (Parser_State.Stack.Peek.State));
          end if;
 
       when Accept_It =>
-         Reduce_Stack
+         Reduce_Stack_1
            (Current_Parser,
             (Reduce, Action.LHS, Action.Action, Action.Check, Action.Index, Action.Token_Count),
-            Parser.Semantic_State);
+            Parser.Semantic_State, Nonterm);
 
       when Error =>
          Current_Parser.Save_Verb; -- For error recovery
@@ -277,10 +276,10 @@ package body WisiToken.LR.Parser is
 
          case Item.Verb is
          when Parser_Lists.Virtual_To_Lookahead =>
-            Semantic_State.Virtual_To_Lookahead (Item.ID);
+            Semantic_State.Virtual_To_Lookahead (Item.Token);
 
          when Parser_Lists.Push_Current =>
-            Semantic_State.Push_Current (Item.ID);
+            Semantic_State.Push_Current (Item.Token);
 
          when Parser_Lists.Discard_Stack =>
             Semantic_State.Discard_Stack (Item.Discard_ID);
@@ -290,7 +289,7 @@ package body WisiToken.LR.Parser is
 
          when Parser_Lists.Reduce_Stack =>
             Semantic_State.Reduce_Stack
-              (Item.Action.LHS, Item.Action.Index, Item.Tokens, Item.Action.Action);
+              (Item.Nonterm, Item.Action.Index, Item.Tokens, Item.Action.Action);
 
          when Parser_Lists.Recover =>
             Semantic_State.Recover (Parser_State.Label, Item.Recover.all);
@@ -701,7 +700,7 @@ package body WisiToken.LR.Parser is
                   Action := Action_For
                     (Table => Shared_Parser.Table.all,
                      State => State.Stack.Peek.State,
-                     ID    => State.Current_Token);
+                     ID    => State.Current_Token.ID);
                end;
 
                if Action.Next /= null then
@@ -760,7 +759,7 @@ package body WisiToken.LR.Parser is
       Parser.Lexer                   := Lexer;
       Parser.Table                   := Table;
       Parser.Semantic_State          := Semantic_State;
-      Parser.Shared_Lookahead        := Token_ID_Queues.Empty_Queue;
+      Parser.Shared_Lookahead        := Base_Token_Queues.Empty_Queue;
       Parser.Enable_McKenzie_Recover :=
         Table.McKenzie_Param.Cost_Limit /= WisiToken.LR.Default_McKenzie_Param.Cost_Limit;
       Parser.Max_Parallel            := Max_Parallel;

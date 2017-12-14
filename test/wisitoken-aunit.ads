@@ -26,16 +26,18 @@ package WisiToken.AUnit is
 
    type Plain_Token_ID_Array is array (Positive_Index_Type range <>) of Token_ID;
 
-   function To_Token_ID_Array (Item : in Plain_Token_ID_Array) return Token_ID_Arrays.Vector;
+   function To_Base_Token_Array (Item : in Plain_Token_ID_Array) return Base_Token_Arrays.Vector;
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.
    --  For each element in Item, set result (element) True.
 
+   procedure Check (Label : in String; Computed, Expected : in Base_Token);
+
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
      (Index_Type    => Positive_Index_Type,
-      Element_Type  => Token_ID,
-      Container_Pkg => Token_ID_Arrays,
+      Element_Type  => Base_Token,
+      Container_Pkg => Base_Token_Arrays,
       Check_Index   => Standard.AUnit.Checks.Containers.Check,
       Check_Element => Check);
 

@@ -83,21 +83,6 @@ package body WisiToken.LR is
       New_Line;
    end Put;
 
-   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
-   is
-      use all type SAL.Base_Peek_Type;
-      Last : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Min (10, Stack.Depth);
-   begin
-      for I in 1 .. Last loop
-         Trace.Put
-           (State_Index'Image (Stack.Peek (I).State) & " : " &
-              (if I = Last
-               then ""
-               else Image (Stack.Peek (I).ID, Trace.Descriptor.all) & ", "));
-      end loop;
-      Trace.New_Line;
-   end Put_Top_10;
-
    overriding
    procedure Finalize (Object : in out Instance)
    is
@@ -182,7 +167,7 @@ package body WisiToken.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Stack.Peek (I).ID, Descriptor) & ", "));
+                  else Image (Stack.Peek (I).Token, Descriptor) & ", "));
          end loop;
       else
          for I in reverse 1 .. Last loop
@@ -190,7 +175,7 @@ package body WisiToken.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Stack.Peek (I).ID, Descriptor) & ", "));
+                  else Image (Stack.Peek (I).Token, Descriptor) & ", "));
          end loop;
       end if;
       return To_String (Result & ")");
@@ -526,7 +511,7 @@ package body WisiToken.LR is
       return Result;
    end Expecting;
 
-   function Image (Item : in Token_ID_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String
+   function Image (Item : in Base_Token_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String
    is
       use Ada.Strings.Unbounded;
       use all type SAL.Base_Peek_Type;
@@ -669,17 +654,47 @@ package body WisiToken.LR is
    function Next_Grammar_Token
      (Lexer          : not null access WisiToken.Lexer.Instance'Class;
       Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
-     return Token_ID
+     return Base_Token
    is
-      ID : Token_ID;
+      Token : Base_Token;
    begin
       loop
-         ID := Lexer.Find_Next;
-         Semantic_State.Lexer_To_Lookahead (ID, Lexer);
+         Token.ID := Lexer.Find_Next;
+         if Token.ID = Semantic_State.Trace.Descriptor.Terminal_Name_ID then
+            Token.Name := Lexer.Byte_Region;
+         end if;
 
-         exit when ID >= Semantic_State.Trace.Descriptor.First_Terminal;
+         Semantic_State.Lexer_To_Lookahead (Token, Lexer);
+
+         exit when Token.ID >= Semantic_State.Trace.Descriptor.First_Terminal;
       end loop;
-      return ID;
+      return Token;
    end Next_Grammar_Token;
+
+   procedure Reduce_Stack
+     (Stack   : in out Parser_Stacks.Stack_Type;
+      Action  : in     Reduce_Action_Rec;
+      Nonterm :    out Base_Token;
+      Tokens  :    out Base_Token_Arrays.Vector)
+   is
+      Name_Count : Integer := 0;
+   begin
+      Nonterm := (Action.LHS, Null_Buffer_Region);
+      Tokens.Set_Length (Action.Token_Count);
+      for I in reverse 1 .. Action.Token_Count loop
+         declare
+            Token : constant Base_Token := Stack.Pop.Token;
+         begin
+            Tokens.Replace_Element (I, Token);
+            if Token.Name /= Null_Buffer_Region then
+               Name_Count   := Name_Count + 1;
+               Nonterm.Name := Token.Name;
+            end if;
+         end;
+      end loop;
+      if Name_Count > 1 then
+         Nonterm.Name := Null_Buffer_Region;
+      end if;
+   end Reduce_Stack;
 
 end WisiToken.LR;

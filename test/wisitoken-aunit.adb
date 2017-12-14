@@ -19,17 +19,17 @@ pragma License (Modified_GPL);
 
 package body WisiToken.AUnit is
 
-   function To_Token_ID_Array (Item : in Plain_Token_ID_Array) return Token_ID_Arrays.Vector
+   function To_Base_Token_Array (Item : in Plain_Token_ID_Array) return Base_Token_Arrays.Vector
    is begin
       return
-        Result : Token_ID_Arrays.Vector
+        Result : Base_Token_Arrays.Vector
       do
          Result.Reserve_Capacity (Item'Length);
          for I of Item loop
-            Result.Append (I);
+            Result.Append ((I, Null_Buffer_Region));
          end loop;
       end return;
-   end To_Token_ID_Array;
+   end To_Base_Token_Array;
 
    function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_ID_Array) return Token_ID_Set
    is begin
@@ -40,6 +40,12 @@ package body WisiToken.AUnit is
          end loop;
       end return;
    end To_Token_ID_Set;
+
+   procedure Check (Label : in String; Computed, Expected : in Base_Token)
+   is begin
+      Check (Label & ".ID", Computed.ID, Expected.ID);
+      Check (Label & ".Name", Computed.Name, Expected.Name);
+   end Check;
 
    procedure Check
      (Label    : in String;

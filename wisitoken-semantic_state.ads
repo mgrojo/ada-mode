@@ -42,7 +42,7 @@ package WisiToken.Semantic_State is
    function Image
      (Item       : in Augmented_Token;
       Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
+      ID_Only    : in Boolean := False)
      return String is abstract;
    --  Return a string for debug/test messages
 
@@ -135,10 +135,10 @@ package WisiToken.Semantic_State is
 
    procedure Lexer_To_Lookahead
      (State : not null access Semantic_State;
-      ID    : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
      is abstract;
-   --  The parser just fetched ID from Lexer during parallel parsing
+   --  The parser just fetched Token from Lexer during parallel parsing
    --  or error recovery lookahead, stored it in the shared parser
    --  lookahead. Add augmented data from Lexer, and add it to the
    --  back of the State lookahead queue.
@@ -175,19 +175,18 @@ package WisiToken.Semantic_State is
 
    procedure Virtual_To_Lookahead
      (State : not null access Semantic_State;
-      ID    : in              Token_ID)
+      Token : in              Base_Token)
      is abstract;
-   --  The parser just retrieved ID from an error recover solution
-   --  during parallel parsing; it is now the current token. Add
-   --  default augmented data, and add to front of the lookahead
-   --  queue.
+   --  The parser just retrieved Token from an error recover solution
+   --  during parallel parsing; it is now the current token. Add default
+   --  augmented data, and add to the front of the lookahead queue.
 
    procedure Push_Current
      (State : not null access Semantic_State;
-      ID    : in              Token_ID)
+      Token : in              Base_Token)
      is abstract;
-   --  Parser just pushed the current token (ID) on the parse stack;
-   --  remove the corresponding token from the front of the State
+   --  Parser just pushed Token on the parse stack; remove the
+   --  corresponding augmented token from the front of the State
    --  lookahead queue, push it on the State stack.
 
    procedure Discard_Lookahead
@@ -216,9 +215,9 @@ package WisiToken.Semantic_State is
 
    procedure Reduce_Stack
      (State       : not null access Semantic_State;
-      Nonterm     : in              Token_ID;
+      Nonterm     : in              Base_Token;
       Index       : in              Natural;
-      Base_Tokens : in              Token_ID_Arrays.Vector; -- FIXME: replace with base_Token_Arrays
+      Base_Tokens : in              Base_Token_Arrays.Vector;
       Action      : in              Semantic_Action)
    is abstract;
    --  Parser reduced Base_Tokens to Nonterm; perform same operations on

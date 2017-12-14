@@ -85,9 +85,7 @@ package WisiToken is
       Left_Paren_ID       : Token_ID;
       Right_Paren_ID      : Token_ID;
       Terminal_Name_ID    : Token_ID;
-      Nonterminal_Name_ID : Token_ID;
-      --  Terminal_Name_ID is a simple identifier; Nonterminal_Name_ID is a
-      --  combination of Terminal_Name_IDs, ie a dotted name.
+      --  Terminal_Name_ID is a simple identifier; see Base_Token.Name below.
       --
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
@@ -200,9 +198,8 @@ package WisiToken is
 
       ID   : Token_ID      := Invalid_Token_ID;
       Name : Buffer_Region := Null_Buffer_Region;
-      --  Name is set if ID is Descriptor.Terminal_Name_ID or
-      --  Nonterminal_Name_ID, or is a higher level nonterminal containing
-      --  exactly one token with Name set.
+      --  Name is set if ID is Descriptor.Terminal_Name_ID, or is a higher
+      --  level nonterminal containing exactly one token with Name set.
    end record;
 
    function Image
@@ -211,13 +208,10 @@ package WisiToken is
       ID_Only    : in Boolean := False)
      return String;
 
-   package Token_ID_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
-   --  FIXME: delete Token_ID_Arrays, use Base_Token_Arrays instead.
-
    package Base_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Base_Token);
 
    function Image
-     (Item       : in Token_ID_Arrays.Vector;
+     (Item       : in Base_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return String;
 

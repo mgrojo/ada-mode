@@ -53,7 +53,6 @@ package WisiToken.Gen_Token_Enum is
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
       Terminal_Name_ID     => Invalid_Token_ID,
-      Nonterminal_Name_ID  => Invalid_Token_ID,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,
       Image_Width          => Token_Enum_ID'Width);
@@ -70,7 +69,6 @@ package WisiToken.Gen_Token_Enum is
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
       Terminal_Name_ID     => Invalid_Token_ID,
-      Nonterminal_Name_ID  => Invalid_Token_ID,
       Propagate_ID         => +First_Nonterminal,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,
@@ -119,7 +117,7 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      Token : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
      is null;
 
@@ -142,12 +140,12 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID)
+      token : in              Base_Token)
    is null;
 
    overriding procedure Push_Current
      (State : not null access State_Type;
-      Token : in              Token_ID)
+      Token : in              Base_Token)
      is null;
 
    overriding
@@ -164,9 +162,9 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Reduce_Stack
      (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
+      Nonterm : in              Base_Token;
       Index   : in              Natural;
-      Tokens  : in              WisiToken.Token_ID_Arrays.Vector;
+      Tokens  : in              WisiToken.Base_Token_Arrays.Vector;
       Action  : in              Semantic_State.Semantic_Action);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.

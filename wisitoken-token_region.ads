@@ -38,7 +38,7 @@ package WisiToken.Token_Region is
    function Image
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
+      ID_Only    : in Boolean := False)
      return String;
 
    type Error_Data
@@ -89,7 +89,7 @@ package WisiToken.Token_Region is
    overriding
    procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
@@ -112,20 +112,20 @@ package WisiToken.Token_Region is
    overriding
    procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID);
+      Token : in              Base_Token);
 
    overriding
    procedure Push_Current
      (State : not null access State_Type;
-      ID    : in              Token_ID);
+      Token : in              Base_Token);
 
    overriding
    procedure Reduce_Stack
-     (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
-      Index   : in              Natural;
-      IDs     : in              WisiToken.Token_ID_Arrays.Vector;
-      Action  : in              WisiToken.Semantic_State.Semantic_Action);
+     (State       : not null access State_Type;
+      Nonterm     : in              Base_Token;
+      Index       : in              Natural;
+      Base_Tokens : in              WisiToken.Base_Token_Arrays.Vector;
+      Action      : in              WisiToken.Semantic_State.Semantic_Action);
 
    overriding
    procedure Discard_Lookahead

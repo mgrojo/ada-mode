@@ -23,6 +23,8 @@ reorganize into three package hierarchies:
     wisitoken.generate - represent grammar as production list, generate parse table
     wisitoken.wisi - translate.wy files into production list, source code
 
+    semantic_state.recover_data should be mckenzie configuration; no need for pointer
+
 do block name matching
     ada_mode/test/slow_recover_2.adb
         error is typed "loop;" instead of "end loop;"

@@ -32,33 +32,34 @@ package WisiToken.LR.Parser_Lists is
    type Pend_Item (Verb : Pend_Semantic_Verbs := Pend_Semantic_Verbs'First) is record
       case Verb is
       when Virtual_To_Lookahead .. Push_Current =>
-         ID : Token_ID;
+         Token : Base_Token;
 
       when Discard_Lookahead .. Discard_Stack =>
          Discard_ID : Token_ID;
 
       when Reduce_Stack =>
-         Action : Reduce_Action_Rec;
-         Tokens : Token_ID_Arrays.Vector;
+         Action  : Reduce_Action_Rec;
+         Nonterm : Base_Token;
+         Tokens  : Base_Token_Arrays.Vector;
 
       when Recover =>
          Recover : WisiToken.Semantic_State.Recover_Data_Access;
       end case;
    end record;
 
-   Null_Pend_Item : constant Pend_Item := (Push_Current, Invalid_Token_ID);
+   Null_Pend_Item : constant Pend_Item := (Discard_Lookahead, Invalid_Token_ID);
 
    package Pend_Items_Queues is new SAL.Gen_Unbounded_Definite_Queues (Pend_Item);
 
    type Base_Parser_State is tagged record
       --  Visible components for direct access
-      Current_Token            : Token_ID;
+      Current_Token            : Base_Token;
       Current_Token_Is_Virtual : Boolean;
       Last_Shift_Was_Virtual   : Boolean;
       Stack                    : Parser_Stacks.Stack_Type;
       Pend_Items               : Pend_Items_Queues.Queue_Type;
       Recover                  : aliased LR.McKenzie_Data;
-      Local_Lookahead          : Token_ID_Queues.Queue_Type; -- Holds error recovery insertions.
+      Local_Lookahead          : Base_Token_Queues.Queue_Type; -- Holds error recovery insertions.
       Shared_Lookahead_Index   : SAL.Peek_Type;
       Zombie_Token_Count       : Integer;
       --  If Zombie_Token_Count > 0, this parser has errored, but is
@@ -196,7 +197,6 @@ package WisiToken.LR.Parser_Lists is
    procedure Set_Verb (Iterator : in out Parser_State; Verb : in All_Parse_Action_Verbs);
    function Verb (Iterator : in Parser_State) return All_Parse_Action_Verbs;
    function Pre_Reduce_Stack_Item (Iterator : in Parser_State) return Parser_Stack_Item;
-   procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class);
 
    ----------
    --  For unit tests, debug assertions

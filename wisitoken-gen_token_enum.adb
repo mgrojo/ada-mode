@@ -76,9 +76,9 @@ package body WisiToken.Gen_Token_Enum is
 
    procedure Put
      (Trace        : in out WisiToken.Trace'Class;
-      Nonterm      : in     Token_ID;
+      Nonterm      : in     Base_Token;
       Index        : in     Natural;
-      Tokens       : in     WisiToken.Token_ID_Arrays.Vector;
+      Tokens       : in     WisiToken.Base_Token_Arrays.Vector;
       Include_Name : in     Boolean)
    is
       use Ada.Characters.Handling;
@@ -119,24 +119,25 @@ package body WisiToken.Gen_Token_Enum is
 
    overriding procedure Reduce_Stack
      (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
+      Nonterm : in              Base_Token;
       Index   : in              Natural;
-      Tokens  : in              WisiToken.Token_ID_Arrays.Vector;
+      Tokens  : in              WisiToken.Base_Token_Arrays.Vector;
       Action  : in              WisiToken.Semantic_State.Semantic_Action)
    is
       use WisiToken.Semantic_State;
 
-      function To_Augmented (Item : in WisiToken.Token_ID_Arrays.Vector) return Augmented_Token_Array
+      function To_Augmented (Item : in WisiToken.Base_Token_Arrays.Vector) return Augmented_Token_Array
       is
          Result : Augmented_Token_Array;
       begin
-         for ID of Item loop
-            Result.Append (Augmented_Token'(ID => ID, Name => Null_Buffer_Region, Enum_ID => -ID, Virtual => False));
+         for Token of Item loop
+            Result.Append
+              (Augmented_Token'(ID => Token.ID, Name => Token.Name, Enum_ID => -Token.ID, Virtual => False));
          end loop;
          return Result;
       end To_Augmented;
 
-      Enum_Nonterm     : constant Token_Enum_ID         := -Nonterm;
+      Enum_Nonterm_ID  : constant Token_Enum_ID         := -Nonterm.ID;
       Augmented_Tokens : constant Augmented_Token_Array := To_Augmented (Tokens);
    begin
       if Trace_Parse > Detail then
@@ -144,7 +145,8 @@ package body WisiToken.Gen_Token_Enum is
       end if;
       if Action /= null then
          Action
-           (Augmented_Token'(ID => Nonterm, Name => Null_Buffer_Region, Enum_ID => Enum_Nonterm, Virtual => False),
+           (Augmented_Token'
+              (ID => Nonterm.ID, Name => Null_Buffer_Region, Enum_ID => Enum_Nonterm_ID, Virtual => False),
             Index, Augmented_Tokens);
       end if;
    end Reduce_Stack;

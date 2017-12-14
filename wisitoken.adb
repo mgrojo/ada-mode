@@ -291,26 +291,22 @@ package body WisiToken is
    is
       ID_Image : constant String := Image (Item.ID, Descriptor);
    begin
-      if ID_Only then
-         --  No parens for consistency with previous unit test results.
+      if ID_Only or Item.Name = Null_Buffer_Region then
+         --  No parens for consistency with existing tests.
          return ID_Image;
-
-      elsif Item.Name = Null_Buffer_Region then
-         return "(" & ID_Image & ")";
-
       else
          return "(" & ID_Image & ", " & Image (Item.Name) & ")";
       end if;
    end Image;
 
    function Image
-     (Item       : in Token_ID_Arrays.Vector;
+     (Item       : in Base_Token_Arrays.Vector;
       Descriptor : in WisiToken.Descriptor'Class)
      return String
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Strings.Unbounded;
-      --  No parens, for compatibility with existing tests.
+      --  No outer parens, for compatibility with existing tests.
       Result : Unbounded_String;
    begin
       for I in Item.First_Index .. Item.Last_Index loop

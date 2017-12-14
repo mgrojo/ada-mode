@@ -38,20 +38,20 @@ package body WisiToken.LR.Parser_Lists is
    is
       Stack : Parser_Stacks.Stack_Type;
    begin
-      Stack.Push ((First_State_Index, Invalid_Token_ID));
+      Stack.Push ((First_State_Index, (Invalid_Token_ID, Null_Buffer_Region)));
 
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
          Result.Elements.Append
-           ((Current_Token            => Invalid_Token_ID,
+           ((Current_Token            => (Invalid_Token_ID, Null_Buffer_Region),
              Current_Token_Is_Virtual => False,
              Last_Shift_Was_Virtual   => False,
              Stack                    => Stack,
              Pend_Items               => Pend_Items_Queues.Empty_Queue,
              Recover                  => Default_McKenzie,
-             Local_Lookahead          => Token_ID_Queues.Empty_Queue,
+             Local_Lookahead          => Base_Token_Queues.Empty_Queue,
              Shared_Lookahead_Index   => SAL.Peek_Type'First,
              Zombie_Token_Count       => 0,
              Label                    => First_Parser_Label,
@@ -147,7 +147,7 @@ package body WisiToken.LR.Parser_Lists is
       Stack : Parser_Stacks.Stack_Type renames Item.Stack;
    begin
       Trace.Put (Natural'Image (Item.Label) & " stack: ");
-      Put_Top_10 (Trace, Stack);
+      Trace.Put_Line (Image (Stack, Trace.Descriptor.all, Depth => 10));
    end Put_Top_10;
 
    procedure Pre_Reduce_Stack_Save (Cursor : in Parser_Lists.Cursor)
@@ -282,12 +282,6 @@ package body WisiToken.LR.Parser_Lists is
       return Iterator.Pre_Reduce_Item;
    end Pre_Reduce_Stack_Item;
 
-   procedure Put_Top_10 (Iterator : in Parser_State; Trace : in out WisiToken.Trace'Class)
-   is begin
-      Trace.Put (Natural'Image (Iterator.Label) & " stack: ");
-      Put_Top_10 (Trace, Iterator.Stack);
-   end Put_Top_10;
-
    ----------
    --  For unit tests
 
@@ -299,7 +293,7 @@ package body WisiToken.LR.Parser_Lists is
 
       case Pend_Item.Verb is
       when Virtual_To_Lookahead .. Push_Current =>
-         Trace.Put (Image (Pend_Item.ID, Trace.Descriptor.all));
+         Trace.Put (Image (Pend_Item.Token, Trace.Descriptor.all));
 
       when Discard_Lookahead .. Discard_Stack =>
          Trace.Put (Image (Pend_Item.Discard_ID, Trace.Descriptor.all));
