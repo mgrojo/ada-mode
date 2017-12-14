@@ -21,8 +21,8 @@ pragma License (GPL);
 with AUnit.Assertions;
 with AUnit.Checks;
 with WisiToken.AUnit; use WisiToken.AUnit;
-with WisiToken.Parser.LR.AUnit;
-with WisiToken.Token.AUnit;
+with WisiToken.LR.AUnit;
+with WisiToken.Token_ID_Lists.AUnit;
 package body WisiToken_AUnit is
 
    procedure Check
@@ -31,8 +31,7 @@ package body WisiToken_AUnit is
       Expected : in WisiToken.Production.Instance)
    is
       use AUnit.Checks;
-      use WisiToken.Token;
-      use WisiToken.Token.AUnit;
+      use WisiToken.Token_ID_Lists.AUnit;
    begin
       Check (Label & ".Index", Computed.RHS.Index, Expected.RHS.Index);
       Check (Label & ".LHS", Computed.LHS, Expected.LHS);
@@ -41,14 +40,14 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.Parser.LR.LR1_Items.Item_Ptr;
-      Expected         : in WisiToken.Parser.LR.LR1_Items.Item_Ptr;
+      Computed         : in WisiToken.LR.LR1_Items.Item_Ptr;
+      Expected         : in WisiToken.LR.LR1_Items.Item_Ptr;
       Match_Lookaheads : in Boolean)
    is
       use AUnit.Checks;
-      use WisiToken.Parser.LR.AUnit;
-      use WisiToken.Parser.LR.LR1_Items;
-      use WisiToken.Token.AUnit;
+      use WisiToken.LR.AUnit;
+      use WisiToken.LR.LR1_Items;
+      use WisiToken.Token_ID_Lists.AUnit;
       Computed_I : Item_Ptr := Computed;
       Expected_I : Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -78,14 +77,14 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.Parser.LR.LR1_Items.Item_Set;
-      Expected         : in WisiToken.Parser.LR.LR1_Items.Item_Set;
+      Computed         : in WisiToken.LR.LR1_Items.Item_Set;
+      Expected         : in WisiToken.LR.LR1_Items.Item_Set;
       Match_Lookaheads : in Boolean := True)
    is
       use AUnit.Checks;
-      use WisiToken.Parser.LR.AUnit;
-      use type WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
-      use type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      use WisiToken.LR.AUnit;
+      use type WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+      use type WisiToken.LR.LR1_Items.Item_Set_Ptr;
    begin
       Check (Label & ".State", Computed.State, Expected.State);
       Check (Label & ".Set", Computed.Set, Expected.Set, Match_Lookaheads);
@@ -95,12 +94,12 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
-      Expected : in WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr)
+      Computed : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
+      Expected : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
    is
       use AUnit.Checks;
-      use WisiToken.Parser.LR.AUnit;
-      use WisiToken.Parser.LR.LR1_Items;
+      use WisiToken.LR.AUnit;
+      use WisiToken.LR.LR1_Items;
       Computed_I : Goto_Item_Ptr := Computed;
       Expected_I : Goto_Item_Ptr := Expected;
       Index      : Integer  := 1;
@@ -127,14 +126,14 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label            : in String;
-      Computed         : in WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
-      Expected         : in WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
+      Computed         : in WisiToken.LR.LR1_Items.Item_Set_Ptr;
+      Expected         : in WisiToken.LR.LR1_Items.Item_Set_Ptr;
       Match_Lookaheads : in Boolean := True)
    is
-      use WisiToken.Parser.LR.AUnit;
-      use type WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr;
-      Computed_1 : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr := Computed;
-      Expected_1 : WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr := Expected;
+      use WisiToken.LR.AUnit;
+      use type WisiToken.LR.LR1_Items.Item_Set_Ptr;
+      Computed_1 : WisiToken.LR.LR1_Items.Item_Set_Ptr := Computed;
+      Expected_1 : WisiToken.LR.LR1_Items.Item_Set_Ptr := Expected;
       I          : Integer                           := 1;
    begin
       if Computed_1 = null then
@@ -156,10 +155,10 @@ package body WisiToken_AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in WisiToken.Parser.LR.LR1_Items.Item_Set_List;
-      Expected : in WisiToken.Parser.LR.LR1_Items.Item_Set_List)
+      Computed : in WisiToken.LR.LR1_Items.Item_Set_List;
+      Expected : in WisiToken.LR.LR1_Items.Item_Set_List)
    is
-      use WisiToken.Parser.LR.AUnit;
+      use WisiToken.LR.AUnit;
    begin
       Check (Label & ".Size", Computed.Size, Expected.Size);
       Check (Label & ".Head", Computed.Head, Expected.Head, Match_Lookaheads => True);
@@ -191,13 +190,13 @@ package body WisiToken_AUnit is
      (Grammar    : in WisiToken.Production.List.Instance;
       Prod       : in Positive;
       Dot        : in Positive;
-      Lookaheads : in WisiToken.Parser.LR.LR1_Items.Lookahead;
-      State      : in WisiToken.Parser.LR.Unknown_State_Index := WisiToken.Parser.LR.Unknown_State)
-     return WisiToken.Parser.LR.LR1_Items.Item_Ptr
+      Lookaheads : in WisiToken.LR.LR1_Items.Lookahead;
+      State      : in WisiToken.LR.Unknown_State_Index := WisiToken.LR.Unknown_State)
+     return WisiToken.LR.LR1_Items.Item_Ptr
    is
       Grammar_I : WisiToken.Production.List.List_Iterator := Grammar.First;
 
-      Dot_I : WisiToken.Token.List.List_Iterator;
+      Dot_I : WisiToken.Token_ID_Lists.Cursor;
    begin
       for I in 2 .. Prod loop
          WisiToken.Production.List.Next (Grammar_I);
@@ -209,40 +208,40 @@ package body WisiToken_AUnit is
 
       Dot_I := WisiToken.Production.First_Token (WisiToken.Production.List.Current (Grammar_I));
       for I in 2 .. Dot loop
-         WisiToken.Token.List.Next (Dot_I);
+         WisiToken.Token_ID_Lists.Next (Dot_I);
       end loop;
 
-      return WisiToken.Parser.LR.LR1_Items.New_Item_Node
+      return WisiToken.LR.LR1_Items.New_Item_Node
         (WisiToken.Production.List.Current (Grammar_I), Dot_I, State, Lookaheads);
    end Get_Item_Node;
 
-   function "+" (Item : in WisiToken.Parser.LR.LR1_Items.Item_Ptr) return WisiToken.Parser.LR.LR1_Items.Item_Set
+   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set
    is begin
-      return WisiToken.Parser.LR.LR1_Items.Item_Set'(Item, null, WisiToken.Parser.LR.LR1_Items.State (Item), null);
+      return WisiToken.LR.LR1_Items.Item_Set'(Item, null, WisiToken.LR.LR1_Items.State (Item), null);
    end "+";
 
-   function "+" (Item : in WisiToken.Parser.LR.LR1_Items.Item_Ptr) return WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr
+   function "+" (Item : in WisiToken.LR.LR1_Items.Item_Ptr) return WisiToken.LR.LR1_Items.Item_Set_Ptr
    is begin
-      return new WisiToken.Parser.LR.LR1_Items.Item_Set'(Item, null, WisiToken.Parser.LR.LR1_Items.State (Item), null);
+      return new WisiToken.LR.LR1_Items.Item_Set'(Item, null, WisiToken.LR.LR1_Items.State (Item), null);
    end "+";
 
    function "+"
-     (State : in WisiToken.Parser.LR.Unknown_State_Index;
-      Item  : in WisiToken.Parser.LR.LR1_Items.Item_Ptr)
-     return WisiToken.Parser.LR.LR1_Items.Item_Set_List
+     (State : in WisiToken.LR.Unknown_State_Index;
+      Item  : in WisiToken.LR.LR1_Items.Item_Ptr)
+     return WisiToken.LR.LR1_Items.Item_Set_List
    is begin
-      WisiToken.Parser.LR.LR1_Items.Set_State (Item, State);
+      WisiToken.LR.LR1_Items.Set_State (Item, State);
       return
-        (Head => new WisiToken.Parser.LR.LR1_Items.Item_Set'(Item, null, State, null),
+        (Head => new WisiToken.LR.LR1_Items.Item_Set'(Item, null, State, null),
          Size => 1);
    end "+";
 
    function "&"
-     (Left, Right : in WisiToken.Parser.LR.LR1_Items.Item_Set_List)
-     return WisiToken.Parser.LR.LR1_Items.Item_Set_List
+     (Left, Right : in WisiToken.LR.LR1_Items.Item_Set_List)
+     return WisiToken.LR.LR1_Items.Item_Set_List
    is
-      use WisiToken.Parser.LR.LR1_Items;
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use WisiToken.LR.LR1_Items;
+      use all type WisiToken.LR.Unknown_State_Index;
 
       I : Item_Set_Ptr;
    begin
@@ -259,12 +258,12 @@ package body WisiToken_AUnit is
    end "&";
 
    function Get_Set
-     (To_State : in WisiToken.Parser.LR.Unknown_State_Index;
-      Set_List : in WisiToken.Parser.LR.LR1_Items.Item_Set_List)
-     return WisiToken.Parser.LR.LR1_Items.Item_Set_Ptr
+     (To_State : in WisiToken.LR.Unknown_State_Index;
+      Set_List : in WisiToken.LR.LR1_Items.Item_Set_List)
+     return WisiToken.LR.LR1_Items.Item_Set_Ptr
    is
-      use WisiToken.Parser.LR.LR1_Items;
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use WisiToken.LR.LR1_Items;
+      use all type WisiToken.LR.Unknown_State_Index;
 
       I : Item_Set_Ptr := Set_List.Head;
    begin
@@ -275,29 +274,29 @@ package body WisiToken_AUnit is
       return I;
    end Get_Set;
 
-   function "+" (Right : in AUnit_Goto_Item) return WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr
+   function "+" (Right : in AUnit_Goto_Item) return WisiToken.LR.LR1_Items.Goto_Item_Ptr
    is begin
-      return WisiToken.Parser.LR.LR1_Items.New_Goto_Item (Right.Symbol, Right.Set);
+      return WisiToken.LR.LR1_Items.New_Goto_Item (Right.Symbol, Right.Set);
    end "+";
 
    function "&"
-     (Left  : in WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr;
+     (Left  : in WisiToken.LR.LR1_Items.Goto_Item_Ptr;
       Right : in AUnit_Goto_Item)
-     return WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr
+     return WisiToken.LR.LR1_Items.Goto_Item_Ptr
    is
-      Result : WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr := Left;
+      Result : WisiToken.LR.LR1_Items.Goto_Item_Ptr := Left;
    begin
-      WisiToken.Parser.LR.LR1_Items.Add (Result, Right.Symbol, Right.Set);
+      WisiToken.LR.LR1_Items.Add (Result, Right.Symbol, Right.Set);
       return Left;
    end "&";
 
    procedure Add_Gotos
-     (List  : in WisiToken.Parser.LR.LR1_Items.Item_Set_List;
-      State : in WisiToken.Parser.LR.Unknown_State_Index;
-      Gotos : in WisiToken.Parser.LR.LR1_Items.Goto_Item_Ptr)
+     (List  : in WisiToken.LR.LR1_Items.Item_Set_List;
+      State : in WisiToken.LR.Unknown_State_Index;
+      Gotos : in WisiToken.LR.LR1_Items.Goto_Item_Ptr)
    is
-      use WisiToken.Parser.LR.LR1_Items;
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use WisiToken.LR.LR1_Items;
+      use all type WisiToken.LR.Unknown_State_Index;
       I : Item_Set_Ptr := List.Head;
    begin
       loop
@@ -311,8 +310,8 @@ package body WisiToken_AUnit is
      (Grammar   : in WisiToken.Production.List.Instance;
       Prod      : in Positive;
       Dot       : in Positive;
-      Lookahead : in WisiToken.Parser.LR.LR1_Items.Lookahead)
-     return WisiToken.Parser.LR.LR1_Items.Item_Set
+      Lookahead : in WisiToken.LR.LR1_Items.Lookahead)
+     return WisiToken.LR.LR1_Items.Item_Set
    is begin
       return
         (Set => Get_Item_Node
@@ -321,7 +320,7 @@ package body WisiToken_AUnit is
             Dot        => Dot,
             Lookaheads => Lookahead),
          Goto_List       => null,
-         State           => WisiToken.Parser.LR.Unknown_State,
+         State           => WisiToken.LR.Unknown_State,
          Next            => null);
    end Get_Item_Set;
 

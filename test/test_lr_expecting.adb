@@ -20,11 +20,13 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with WisiToken.AUnit;
+with Ada.Characters.Latin_1;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Test_LR_Expecting is
 
@@ -80,7 +82,7 @@ package body Test_LR_Expecting is
       Grammar : constant WisiToken.Production.List.Instance :=
         --  set symbol = value
         WisiToken.Production.List.Only
-        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Null_Action);
+        (Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + WisiToken.Semantic_State.Null_Action);
 
    end Set_Statement;
 
@@ -89,7 +91,8 @@ package body Test_LR_Expecting is
       Grammar : constant WisiToken.Production.List.Instance :=
         --  verify symbol = value +- tolerance
         WisiToken.Production.List.Only
-        (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID + WisiToken.Null_Action);
+          (Statement_ID  <= Verify_ID & Equals_ID & Int_ID & Plus_Minus_ID & Int_ID +
+             WisiToken.Semantic_State.Null_Action);
    end Verify_Statement;
 
    package Lexer renames WisiToken.Lexer.Regexp;
@@ -104,15 +107,15 @@ package body Test_LR_Expecting is
        Set_ID        => Lexer.Get ("set"),
        Verify_ID     => Lexer.Get ("verify"),
        Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
-       EOF_ID        => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    Grammar : constant WisiToken.Production.List.Instance :=
-     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Null_Action and
+     Parse_Sequence_ID <= Statement_ID & Semicolon_ID & EOF_ID + WisiToken.Semantic_State.Null_Action and
      Set_Statement.Grammar and
      Verify_Statement.Grammar;
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
@@ -138,10 +141,10 @@ package body Test_LR_Expecting is
       Test : Test_Case renames Test_Case (T);
       use WisiToken.AUnit;
    begin
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
             First_State_Index,

@@ -20,12 +20,14 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks;
+with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Test_Statement_Actions is
 
@@ -60,7 +62,7 @@ package body Test_Statement_Actions is
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    package Set_Statement is
 
@@ -88,15 +90,15 @@ package body Test_Statement_Actions is
        Set_ID        => Lexer.Get ("set"),
        Verify_ID     => Lexer.Get ("verify"),
        Int_ID        => Lexer.Get ("[0-9]+"),
-       EOF_ID        => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    Action_Count : Integer := 0;
 
    procedure Statement_Semi_Action
-     (Nonterm : in WisiToken.Augmented_Token'Class;
+     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
       Index   : in Natural;
-      Source  : in WisiToken.Augmented_Token_Array)
+      Source  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Nonterm);
       pragma Unreferenced (Source);
@@ -117,7 +119,7 @@ package body Test_Statement_Actions is
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    procedure Execute_Command (Command : in String)
    is begin
@@ -138,10 +140,10 @@ package body Test_Statement_Actions is
 
       use AUnit.Checks;
    begin
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,
          First_Parser_Label);

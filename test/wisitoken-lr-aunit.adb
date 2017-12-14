@@ -21,7 +21,7 @@ pragma License (GPL); --  AUnit
 with AUnit.Checks.Containers;
 with AUnit.Assertions;
 with WisiToken.AUnit;
-package body WisiToken.Parser.LR.AUnit is
+package body WisiToken.LR.AUnit is
 
    procedure Check
      (Label    : in String;
@@ -190,4 +190,4 @@ package body WisiToken.Parser.LR.AUnit is
       end return;
    end To_State_Stack;
 
-end WisiToken.Parser.LR.AUnit;
+end WisiToken.LR.AUnit;

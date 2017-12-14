@@ -27,6 +27,8 @@
 
 pragma License (Modified_GPL);
 
+with Ada.Characters.Latin_1;
+with SAL;
 package body WisiToken.Lexer.Regexp is
 
    function Find_Best_Match (Lexer : in out Instance) return Boolean
@@ -103,7 +105,7 @@ package body WisiToken.Lexer.Regexp is
          Lexer.ID          := Best_Match_ID;
 
          if Lexer.Lexeme_Head = Lexer.Source.Buffer'Last and
-           Lexer.Source.Buffer (Lexer.Lexeme_Head) = EOF_Character
+           Lexer.Source.Buffer (Lexer.Lexeme_Head) = Ada.Characters.Latin_1.EOT
          then
             --  matched EOF; repeat that next time
             null;

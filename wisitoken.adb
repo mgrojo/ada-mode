@@ -310,7 +310,8 @@ package body WisiToken is
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Strings.Unbounded;
-      Result : Unbounded_String := +"(";
+      --  No parens, for compatibility with existing tests.
+      Result : Unbounded_String;
    begin
       for I in Item.First_Index .. Item.Last_Index loop
          Result := Result & Image (Item (I), Descriptor);
@@ -318,7 +319,6 @@ package body WisiToken is
             Result := Result & ", ";
          end if;
       end loop;
-      Result := Result & ")";
       return -Result;
    end Image;
 

@@ -18,26 +18,27 @@
 
 pragma License (GPL);
 
+with AUnit.Checks;
 with WisiToken.AUnit;
 package body WisiToken.Token_ID_Lists.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in List.List_Iterator;
-      Expected : in List.List_Iterator)
+      Computed : in Cursor;
+      Expected : in Cursor)
    is
       use Standard.AUnit.Checks;
       use WisiToken.AUnit;
-      Computed_I : List_Iterator := Computed;
-      Expected_I : List_Iterator := Expected;
-      Index      : Integer       := 1;
+      Computed_I : Cursor  := Computed;
+      Expected_I : Cursor  := Expected;
+      Index      : Integer := 1;
    begin
       loop
-         if Computed_I = Null_Iterator or Expected_I = Null_Iterator then
-            Check (Label & " = null", Computed_I = Null_Iterator and Expected_I = Null_Iterator, True);
+         if Computed_I = No_Element or Expected_I = No_Element then
+            Check (Label & " = null", Computed_I = No_Element and Expected_I = No_Element, True);
             exit;
          end if;
-         Check (Label & Integer'Image (Index), ID (Computed_I), ID (Expected_I));
+         Check (Label & Integer'Image (Index), Element (Computed_I), Element (Expected_I));
          Next (Computed_I);
          Next (Expected_I);
          Index := Index + 1;

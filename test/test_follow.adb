@@ -23,9 +23,10 @@ pragma License (GPL);
 with Ada.Text_IO;
 with WisiToken.AUnit;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Parser.LR.LR1_Items;
-with WisiToken.Parser.LR;
+with WisiToken.LR.LR1_Items;
+with WisiToken.LR;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 package body Test_Follow is
 
    package Subprograms is
@@ -62,7 +63,7 @@ package body Test_Follow is
       use all type WisiToken.Production.Right_Hand_Side;
       use all type WisiToken.Production.List.Instance;
 
-      Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+      Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
       --  This grammar has right recursion on Declarations_ID, and an
       --  empty production for Parameter_List_ID
@@ -75,9 +76,9 @@ package body Test_Follow is
         Parameter_List_ID   <= +Null_Action and                                          -- 6
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
-      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.Parser.LR.LR1_Items.Has_Empty_Production
+      Has_Empty_Production : constant WisiToken.Token_ID_Set := WisiToken.LR.LR1_Items.Has_Empty_Production
         (Grammar, LALR_Descriptor);
-      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
+      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
       procedure One (T : in out AUnit.Test_Cases.Test_Case'Class)
@@ -85,7 +86,7 @@ package body Test_Follow is
          Test : Test_Case renames Test_Case (T);
 
          use Ada.Text_IO;
-         use WisiToken.Parser.LR.LR1_Items;
+         use WisiToken.LR.LR1_Items;
 
          Computed : constant WisiToken.Token_Array_Token_Set :=
            Follow (Grammar, LALR_Descriptor, First, Has_Empty_Production);

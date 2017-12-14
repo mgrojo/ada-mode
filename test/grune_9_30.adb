@@ -19,14 +19,16 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LR1_Generator;
-with WisiToken.Parser.LR.LR1_Items;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LR1_Items;
+with WisiToken.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 with WisiToken_AUnit;
 package body Grune_9_30 is
@@ -61,7 +63,7 @@ package body Grune_9_30 is
    use all type WisiToken.Production.Right_Hand_Side;
    use all type WisiToken.Production.List.Instance;
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    Grammar : constant WisiToken.Production.List.Instance :=
      Upper_S_ID <= Upper_A_ID & Upper_B_ID & Lower_C_ID & EOF_ID + Null_Action -- 1
@@ -80,13 +82,13 @@ package body Grune_9_30 is
        Lower_A_ID => Lexer.Get ("a"),
        Lower_B_ID => Lexer.Get ("b"),
        Lower_C_ID => Lexer.Get ("c"),
-       EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-     WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
+     WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, LR1_Descriptor);
 
-   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LR1_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
@@ -100,9 +102,9 @@ package body Grune_9_30 is
       Test : Test_Case renames Test_Case (T);
       use Ada.Text_IO;
       use WisiToken_AUnit;
-      use WisiToken.Parser.LR.LR1_Items;
+      use WisiToken.LR.LR1_Items;
 
-      Computed : Item_Set_List := WisiToken.Parser.LR.LR1_Generator.LR1_Item_Sets
+      Computed : Item_Set_List := WisiToken.LR.LR1_Generator.LR1_Item_Sets
         (Has_Empty_Production, First, Grammar, First_State_Index, LR1_Descriptor, Trace => Test.Debug > 0);
 
       Expected : Item_Set_List :=
@@ -144,7 +146,7 @@ package body Grune_9_30 is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : WisiToken.Parser.LR.Instance;
+      Parser : WisiToken.LR.Instance;
 
       procedure Execute_Command (Command : in String)
       is begin
@@ -157,10 +159,10 @@ package body Grune_9_30 is
       end Execute_Command;
 
    begin
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LR1_Generator.Generate
+         WisiToken.LR.LR1_Generator.Generate
            (Grammar, LR1_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,
          First_Parser_Label);

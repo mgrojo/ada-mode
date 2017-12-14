@@ -19,15 +19,17 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.AUnit;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.LR1_Items;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.AUnit;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Items;
+with WisiToken.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 with WisiToken.AUnit;
 with WisiToken_AUnit; use WisiToken_AUnit;
@@ -64,7 +66,7 @@ package body Dragon_4_45_LALR_Test is
    use all type WisiToken.Production.Right_Hand_Side;
    use all type WisiToken.Production.List.Instance;
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    Grammar : constant WisiToken.Production.List.Instance :=
      Accept_ID <= Upper_S_ID & EOF_ID + Null_Action -- 1
@@ -91,14 +93,14 @@ package body Dragon_4_45_LALR_Test is
      ((
        Lower_C_ID => Lexer.Get ("c"),
        Lower_D_ID => Lexer.Get ("d"),
-       EOF_ID     => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID     => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
      ));
 
 
    Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-     WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
+     WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, LALR_Descriptor);
 
-   First : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
+   First : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
      (Grammar, LALR_Descriptor, Has_Empty_Production, Trace => False);
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
@@ -124,12 +126,12 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Test_LALR_Kernels (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use WisiToken.Parser.LR.LR1_Items;
+      use WisiToken.LR.LR1_Items;
       use all type WisiToken.Token_ID;
 
       Test : Test_Case renames Test_Case (T);
 
-      Computed : constant Item_Set_List := WisiToken.Parser.LR.LALR_Generator.LALR_Kernels
+      Computed : constant Item_Set_List := WisiToken.LR.LALR_Generator.LALR_Kernels
         (Grammar, First, First_State_Index, LALR_Descriptor, Trace => Test.Debug > 0);
 
       Null_Lookaheads : constant WisiToken.Token_ID_Set :=
@@ -186,8 +188,8 @@ package body Dragon_4_45_LALR_Test is
 
    procedure Parser_Table (T : in out AUnit.Test_Cases.Test_Case'Class)
    is
-      use WisiToken.Parser.LR;
-      use WisiToken.Parser.LR.AUnit;
+      use WisiToken.LR;
+      use WisiToken.LR.AUnit;
 
       Test : Test_Case renames Test_Case (T);
 
@@ -216,7 +218,7 @@ package body Dragon_4_45_LALR_Test is
       Add_Goto (Expected.States (S0), +Upper_C_ID, S2);
       Add_Goto (Expected.States (S0), +Upper_S_ID, S1);
 
-      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, +Accept_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S1), +EOF_ID, Accept_It, +Accept_ID, 0, 1, Null_Action, null);
       Add_Error (Expected.States (S1));
 
       Add_Action (Expected.States (S2), +Lower_C_ID, S36);
@@ -229,17 +231,17 @@ package body Dragon_4_45_LALR_Test is
       Add_Error (Expected.States (S36));
       Add_Goto (Expected.States (S36), +Upper_C_ID, S89);
 
-      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
-      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
-      Add_Action (Expected.States (S47), +EOF_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action);
+      Add_Action (Expected.States (S47), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
+      Add_Action (Expected.States (S47), +EOF_ID, Reduce, +Upper_C_ID, 0, 1, Null_Action, null);
       Add_Error (Expected.States (S47));
 
-      Add_Action (Expected.States (S5), +EOF_ID, Reduce, +Upper_S_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S5), +EOF_ID, Reduce, +Upper_S_ID, 0, 2, Null_Action, null);
       Add_Error (Expected.States (S5));
 
-      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
-      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
-      Add_Action (Expected.States (S89), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action);
+      Add_Action (Expected.States (S89), +Lower_C_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +Lower_D_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
+      Add_Action (Expected.States (S89), +EOF_ID, Reduce, +Upper_C_ID, 0, 2, Null_Action, null);
       Add_Error (Expected.States (S89));
 
       if Test.Debug > 0 then
@@ -256,7 +258,7 @@ package body Dragon_4_45_LALR_Test is
    is
       Test : Test_Case renames Test_Case (T);
 
-      Parser : WisiToken.Parser.LR.Instance;
+      Parser : WisiToken.LR.Instance;
 
       procedure Execute_Command (Command : in String)
       is
@@ -271,10 +273,10 @@ package body Dragon_4_45_LALR_Test is
       end Execute_Command;
 
    begin
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.LR.LALR_Generator.Generate
            (Grammar, LALR_Descriptor, First_State_Index, Trace => Test.Debug > 0),
          State'Access,
          First_Parser_Label);

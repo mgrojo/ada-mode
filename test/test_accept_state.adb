@@ -19,12 +19,14 @@
 pragma License (GPL);
 
 with AUnit.Assertions;
+with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Test_Accept_State is
 
@@ -66,13 +68,13 @@ package body Test_Accept_State is
        Int_ID        => Lexer.Get ("[0-9]+"),
        Set_ID        => Lexer.Get ("set"),
        Identifier_ID => Lexer.Get ("[0-9a-zA-Z_]+"),
-       EOF_ID        => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID        => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    Grammar : constant WisiToken.Production.List.Instance :=
      --  First production in Grammar must be the terminating
@@ -80,7 +82,7 @@ package body Test_Accept_State is
      Parse_Sequence_ID <= Statement_ID & EOF_ID + Null_Action and
      Statement_ID <= Set_ID & Identifier_ID & Equals_ID & Int_ID + Null_Action;
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
@@ -94,10 +96,10 @@ package body Test_Accept_State is
    begin
       --  The test is that there are no exceptions.
 
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             LALR_Descriptor,
             First_State_Index,

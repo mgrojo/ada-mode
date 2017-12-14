@@ -23,7 +23,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_Count : Integer := 0;
 
-   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Augmented_Token'Class)
+   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
    is
       use WisiToken.AUnit;
 
@@ -61,7 +61,7 @@ package body Test_Character_Literal_Aux is
       end if;
    end Test_Statement_List_0;
 
-   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -109,7 +109,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_1_Count : Integer := 0;
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Ada.Containers;
@@ -169,7 +169,7 @@ package body Test_Character_Literal_Aux is
    end Test_Statement_1;
 
    Statement_2_Count : Integer := 0;
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Ada.Containers;

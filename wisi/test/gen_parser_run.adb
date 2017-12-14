@@ -47,7 +47,7 @@ is
 
    procedure Parse (Algorithm : in WisiToken.Parser_Algorithm_Type)
    is
-      Parser : WisiToken.Parser.LR.Instance;
+      Parser : WisiToken.LR.Instance;
    begin
       case Algorithm is
       when WisiToken.LALR =>
@@ -59,7 +59,7 @@ is
          Put_Line ("LR1_Parser parse:");
       end case;
 
-      State.Initialize (WisiToken.Token.Null_Init_Data);
+      State.Initialize (WisiToken.Semantic_State.Null_Init_Data);
 
       Parser.Lexer.Reset_With_File (-File_Name);
       Parser.Parse;

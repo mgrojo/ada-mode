@@ -22,7 +22,7 @@ package WisiToken.Token_ID_Lists.AUnit is
 
    procedure Check
      (Label    : in String;
-      Computed : in List.Cursor;
-      Expected : in List.Cursor);
+      Computed : in Cursor;
+      Expected : in Cursor);
 
 end WisiToken.Token_ID_Lists.AUnit;

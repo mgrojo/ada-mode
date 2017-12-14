@@ -25,11 +25,11 @@ with Ada.Text_IO;
 with Character_Literal;
 with Test_Character_Literal_Aux;
 with WisiToken.AUnit;
-with WisiToken.Parser.LR;
+with WisiToken.LR;
 with WisiToken.Token_Line_Comment;
 package body Test_Character_Literal is
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    ----------
    --  Test procedures
