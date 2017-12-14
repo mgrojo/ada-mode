@@ -667,9 +667,9 @@ is
 
    begin
       Indent_Line ("procedure " & Name);
-      Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
+      Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
       Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
+      Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
       Indent_Line ("is");
       Indent_Line ("   pragma Unreferenced (Index);");
       Indent_Line ("begin");

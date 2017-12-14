@@ -33,9 +33,9 @@ package body Subprograms_Process is
       subprograms_re2c_c.Next_Token);
 
    procedure block_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -50,9 +50,9 @@ package body Subprograms_Process is
    end block_1;
 
    procedure loop_statement_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -67,9 +67,9 @@ package body Subprograms_Process is
    end loop_statement_0;
 
    procedure name_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -84,9 +84,9 @@ package body Subprograms_Process is
    end name_0;
 
    procedure name_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -101,9 +101,9 @@ package body Subprograms_Process is
    end name_1;
 
    procedure parameter_list_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -118,9 +118,9 @@ package body Subprograms_Process is
    end parameter_list_0;
 
    procedure parameter_list_2
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -135,9 +135,9 @@ package body Subprograms_Process is
    end parameter_list_2;
 
    procedure subprogram_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -155,9 +155,9 @@ package body Subprograms_Process is
    end subprogram_0;
 
    procedure subprogram_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -173,9 +173,9 @@ package body Subprograms_Process is
    end subprogram_1;
 
    procedure subtype_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -190,9 +190,9 @@ package body Subprograms_Process is
    end subtype_0;
 
    procedure use_clause_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
