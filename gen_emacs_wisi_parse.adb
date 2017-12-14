@@ -26,7 +26,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with GNAT.OS_Lib;
 with System.Storage_Elements;
 with WisiToken.Lexer;
-with WisiToken.Parser.LR;
+with WisiToken.LR;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Emacs_Wisi_Parse
@@ -71,7 +71,7 @@ is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    procedure Read_Input (A : System.Address; N : Integer)
    is

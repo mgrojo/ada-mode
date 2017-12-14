@@ -26,7 +26,7 @@ with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with WisiToken.Lexer;
-with WisiToken.Parser.LR;
+with WisiToken.LR;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
@@ -37,11 +37,11 @@ is
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    procedure Put_Usage
    is
-      use all type WisiToken.Parser.LR.Parse_Table_Ptr;
+      use all type WisiToken.LR.Parse_Table_Ptr;
    begin
       Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");

@@ -20,8 +20,8 @@
 
 pragma License (GPL);
 
-with WisiToken.Parser.LR;
-with WisiToken.Token;
+with WisiToken.LR;
+with WisiToken.Semantic_State;
 with WisiToken.Wisi_Runtime;
 generic
    Name : in String; --  for Usage, error messages. "_wisi_parse" will be appended
@@ -30,8 +30,8 @@ generic
    Parse_Data : in out WisiToken.Wisi_Runtime.Parse_Data_Type'Class;
 
    with procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Instance;
+     (Parser         :    out WisiToken.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Token.Semantic_State_Access);
+      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
 
 procedure Gen_Run_Wisi_Parse;

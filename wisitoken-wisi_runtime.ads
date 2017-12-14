@@ -28,6 +28,7 @@ pragma License (Modified_GPL);
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with SAL.Gen_Unbounded_Definite_Red_Black_Trees;
+with WisiToken.Semantic_State;
 with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region;
 package WisiToken.Wisi_Runtime is
@@ -64,14 +65,14 @@ package WisiToken.Wisi_Runtime is
 
    procedure Statement_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Statement_Param_Array);
 
    procedure Containing_Action
      (Data       : in out Parse_Data_Type;
-      Nonterm    : in     Augmented_Token'Class;
-      Tokens     : in     Augmented_Token_Array;
+      Nonterm    : in     Semantic_State.Augmented_Token'Class;
+      Tokens     : in     Semantic_State.Augmented_Token_Array;
       Containing : in     Positive_Index_Type;
       Contained  : in     Positive_Index_Type);
 
@@ -94,8 +95,8 @@ package WisiToken.Wisi_Runtime is
 
    procedure Motion_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Motion_Param_Array);
    --  Implements [2] wisi-motion-action.
 
@@ -109,15 +110,15 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Apply_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-action.
 
    procedure Face_Apply_List_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Face_Apply_Param_Array);
    --  Implements [2] wisi-face-apply-list-action.
 
@@ -133,8 +134,8 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Mark_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Face_Mark_Param_Array);
    --  Implements [2] wisi-face-mark-action.
 
@@ -142,8 +143,8 @@ package WisiToken.Wisi_Runtime is
 
    procedure Face_Remove_Action
      (Data    : in out Parse_Data_Type;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Face_Remove_Param_Array);
    --  Implements [2] wisi-face-remove-action.
 
@@ -181,7 +182,7 @@ package WisiToken.Wisi_Runtime is
 
    type Language_Indent_Function is access function
      (Data          : in out Parse_Data_Type'Class;
-      Tokens        : in     Augmented_Token_Array;
+      Tokens        : in     Semantic_State.Augmented_Token_Array;
       Indenting     : in     Token_Line_Comment.Token;
       Args          : in     Indent_Arg_Arrays.Vector)
      return Delta_Type;
@@ -240,22 +241,22 @@ package WisiToken.Wisi_Runtime is
 
    procedure Indent_Action_0
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action.
 
    procedure Indent_Action_1
      (Data    : in out Parse_Data_Type'Class;
-      Nonterm : in     Augmented_Token'Class;
-      Tokens  : in     Augmented_Token_Array;
+      Nonterm : in     Semantic_State.Augmented_Token'Class;
+      Tokens  : in     Semantic_State.Augmented_Token_Array;
       N       : in     Positive_Index_Type;
       Params  : in     Indent_Param_Array);
    --  Implements [2] wisi-indent-action*.
 
    function Indent_Hanging_1
      (Data            : in out Parse_Data_Type;
-      Tokens          : in     Augmented_Token_Array;
+      Tokens          : in     Semantic_State.Augmented_Token_Array;
       Indenting_Token : in     Token_Line_Comment.Token;
       Delta_1         : in     Simple_Indent_Param;
       Delta_2         : in     Simple_Indent_Param;
@@ -440,7 +441,7 @@ private
 
    function Indent_Compute_Delta
      (Data            : in out Parse_Data_Type'Class;
-      Tokens          : in     Augmented_Token_Array;
+      Tokens          : in     Semantic_State.Augmented_Token_Array;
       Param           : in     Indent_Param;
       Indenting_Token : in     Token_Line_Comment.Token)
      return Delta_Type;

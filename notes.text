@@ -34,6 +34,9 @@ run test from emacs -Q using source:
  current work
 see wisitoken notes for mckenzie improve
 
+test/ada_mode-recover_pattern_1.adb _2.adb
+    virtual tokens are not on a line; should not affect indentation of following 'end'
+
 gpr-mode.el:263:  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
 gpr-query.el:263:  ;; FIXME: implement ada-xref-full-path.
 gpr-query.el:265:  ;; FIXME: implement append
