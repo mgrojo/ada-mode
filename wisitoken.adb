@@ -27,7 +27,7 @@
 with Ada.Strings.Fixed;
 package body WisiToken is
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String
+   function Image (Item : in Token_ID; Desc : in Descriptor'Class; Pad : in Boolean := False) return String
    is begin
       if Pad then
          return Ada.Strings.Fixed.Head
@@ -81,8 +81,8 @@ package body WisiToken is
    end Count;
 
    function Image
-     (Desc      : in Descriptor'Class;
-      Item      : in Token_ID_Set;
+     (Item      : in Token_ID_Set;
+      Desc      : in Descriptor'Class;
       Max_Count : in Integer := Integer'Last)
      return String
    is
@@ -96,7 +96,7 @@ package body WisiToken is
             if Need_Comma then
                Result := Result & ", ";
             end if;
-            Result     := Result & Image (Desc, I);
+            Result     := Result & Image (I, Desc);
             Need_Comma := True;
             Count := Count + 1;
             if Count = Max_Count then
@@ -107,7 +107,7 @@ package body WisiToken is
       return To_String (Result);
    end Image;
 
-   function To_Lookahead (Descriptor : in WisiToken.Descriptor; Item : in Token_ID) return Token_ID_Set
+   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set
    is
       Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Last_Terminal => False);
    begin
@@ -115,7 +115,7 @@ package body WisiToken is
       return Result;
    end To_Lookahead;
 
-   function Lookahead_Image (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set) return String
+   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := Null_Unbounded_String;
@@ -125,14 +125,14 @@ package body WisiToken is
             if Length (Result) > 0 then
                Result := Result & "/";
             end if;
-            Result := Result & Image (Descriptor, I);
+            Result := Result & Image (I, Descriptor);
          end if;
       end loop;
       return To_String (Result);
    end Lookahead_Image;
 
    overriding
-   function To_Lookahead (Descriptor : in LALR_Descriptor; Item : in Token_ID) return Token_ID_Set
+   function To_Lookahead (Item : in Token_ID; Descriptor : in LALR_Descriptor) return Token_ID_Set
    is
       Result : Token_ID_Set := (Descriptor.First_Terminal .. Descriptor.Propagate_ID => False);
    begin
@@ -141,7 +141,7 @@ package body WisiToken is
    end To_Lookahead;
 
    overriding
-   function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String
+   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in LALR_Descriptor) return String
    is
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := Null_Unbounded_String;
@@ -154,7 +154,7 @@ package body WisiToken is
             if I = Descriptor.Propagate_ID then
                Result := Result & "#";
             else
-               Result := Result & Image (Descriptor, I);
+               Result := Result & Image (I, Descriptor);
             end if;
          end if;
       end loop;
@@ -202,7 +202,7 @@ package body WisiToken is
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Token_ID)
    is begin
-      Trace.Put (Image (Trace.Descriptor.all, Item));
+      Trace.Put (Image (Item, Trace.Descriptor.all));
    end Put;
 
    function Int_Image (Item : in Integer) return String
@@ -215,7 +215,7 @@ package body WisiToken is
 
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set)
    is begin
-      Ada.Text_IO.Put (Image (Descriptor, Item));
+      Ada.Text_IO.Put (Image (Item, Descriptor));
    end Put;
 
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set)
@@ -229,17 +229,17 @@ package body WisiToken is
          Put ("(");
          for I in Item'Range (1) loop
             if Any (Item, I) then
-               Put_Line (" " & Image (Descriptor, I) & " =>");
+               Put_Line (" " & Image (I, Descriptor) & " =>");
                Put ("  (");
                Paren_Done := False;
                for J in Item'Range (2) loop
                   if Item (I, J) then
                      if Paren_Done then
                         Put_Line (" |");
-                        Put ("   " & Image (Descriptor, J));
+                        Put ("   " & Image (J, Descriptor));
                      else
                         Paren_Done := True;
-                        Put (Image (Descriptor, J));
+                        Put (Image (J, Descriptor));
                      end if;
                   end if;
                end loop;
@@ -282,5 +282,44 @@ package body WisiToken is
    is begin
       return (Buffer_Pos'Min (Left.First, Right.First), Buffer_Pos'Max (Left.Last, Right.Last));
    end "and";
+
+   function Image
+     (Item       : in Base_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean := False)
+     return String
+   is
+      ID_Image : constant String := Image (Item.ID, Descriptor);
+   begin
+      if ID_Only then
+         --  No parens for consistency with previous unit test results.
+         return ID_Image;
+
+      elsif Item.Name = Null_Buffer_Region then
+         return "(" & ID_Image & ")";
+
+      else
+         return "(" & ID_Image & ", " & Image (Item.Name) & ")";
+      end if;
+   end Image;
+
+   function Image
+     (Item       : in Token_ID_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String
+   is
+      use all type Ada.Containers.Count_Type;
+      use Ada.Strings.Unbounded;
+      Result : Unbounded_String := +"(";
+   begin
+      for I in Item.First_Index .. Item.Last_Index loop
+         Result := Result & Image (Item (I), Descriptor);
+         if I /= Item.Last_Index then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return -Result;
+   end Image;
 
 end WisiToken;

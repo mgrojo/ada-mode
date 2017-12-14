@@ -38,6 +38,7 @@ package WisiToken.Semantic_State is
       --  Derived types add various lexical information.
    end record;
 
+   overriding
    function Image
      (Item       : in Augmented_Token;
       Descriptor : in WisiToken.Descriptor'Class;
@@ -217,7 +218,7 @@ package WisiToken.Semantic_State is
      (State       : not null access Semantic_State;
       Nonterm     : in              Token_ID;
       Index       : in              Natural;
-      Base_Tokens : in              Base_Token_Arrays.Vector;
+      Base_Tokens : in              Token_ID_Arrays.Vector; -- FIXME: replace with base_Token_Arrays
       Action      : in              Semantic_Action)
    is abstract;
    --  Parser reduced Base_Tokens to Nonterm; perform same operations on

@@ -56,7 +56,7 @@ package WisiToken.LR is
    --  Parser stack type. Visible here for error recovery.
    type Parser_Stack_Item is record
       State : Unknown_State_Index;
-      ID    : Token_ID;
+      ID    : Token_ID; --  FIXME: replace with Base_Token
    end record;
    Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token_ID);
 
@@ -115,7 +115,7 @@ package WisiToken.LR is
    Null_Reduce_Action_Rec : constant Reduce_Action_Rec :=
      (Reduce, Token_ID'First, WisiToken.Semantic_State.Null_Action, Null_Check, 0, 0);
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String;
+   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String;
    --  Ada aggregate syntax, leaving out Semantic_Action in reduce.
 
    procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Parse_Action_Rec);
@@ -314,14 +314,17 @@ package WisiToken.LR is
 
    function Expecting (Table : in Parse_Table; State : in State_Index) return Token_ID_Set;
 
-   package Base_Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Base_Token);
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Base_Token_Queues.Queue_Type);
+   package Token_ID_Queues is new SAL.Gen_Unbounded_Definite_Queues (Token_ID);
+   --  FIXME: replace with:
+   --  package Base_Token_Queues is new SAL.Gen_Unbounded_Definite_Queues (Base_Token);
+
+   function Image (Item : in Token_ID_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String;
 
    type Instance is new Ada.Finalization.Limited_Controlled with record
       Lexer                   : WisiToken.Lexer.Handle;
       Table                   : Parse_Table_Ptr;
       Semantic_State          : WisiToken.Semantic_State.Semantic_State_Access;
-      Shared_Lookahead        : Base_Token_Queues.Queue_Type;
+      Shared_Lookahead        : Token_ID_Queues.Queue_Type;
       Max_Parallel            : Ada.Containers.Count_Type;
       First_Parser_Label      : Integer;
       Terminate_Same_State    : Boolean;
@@ -349,8 +352,8 @@ package WisiToken.LR is
    --  no leading space; " " for Unknown_State
 
    function Image
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Stack      : in Parser_Stacks.Stack_Type;
+     (Stack      : in Parser_Stacks.Stack_Type;
+      Descriptor : in WisiToken.Descriptor'Class;
       Depth      : in SAL.Base_Peek_Type := 0;
       Top_First  : in Boolean            := True)
      return String;
@@ -377,9 +380,7 @@ package WisiToken.LR is
    --  high. Lookahead is limited by the check_limit parameter; 20 is
    --  very high.
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector) return String;
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector);
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Fast_Token_ID_Vectors.Vector);
+   function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String;
 
    type Configuration is new WisiToken.Semantic_State.Recover_Data with record
       Stack : Parser_Stacks.Stack_Type;
@@ -465,5 +466,6 @@ private
      return Token_ID;
    --  Get next token from Lexer, call Semantic_State.Lexer_To_Lookahead.
    --  If it is a grammar token, return it. Otherwise, repeat.
+   --  FIXME: change to return Base_Token
 
 end WisiToken.LR;

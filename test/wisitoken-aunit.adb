@@ -19,19 +19,19 @@ pragma License (Modified_GPL);
 
 package body WisiToken.AUnit is
 
-   function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.Vector
+   function To_Token_ID_Array (Item : in Plain_Token_ID_Array) return Token_ID_Arrays.Vector
    is begin
       return
-        Result : Token_Arrays.Vector
+        Result : Token_ID_Arrays.Vector
       do
          Result.Reserve_Capacity (Item'Length);
          for I of Item loop
             Result.Append (I);
          end loop;
       end return;
-   end To_Token_Array;
+   end To_Token_ID_Array;
 
-   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_Array) return Token_ID_Set
+   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_ID_Array) return Token_ID_Set
    is begin
       return Result : Token_ID_Set := (First .. Last => False)
       do

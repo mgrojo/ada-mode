@@ -19,7 +19,6 @@ pragma License (Modified_GPL);
 
 with Ada.Exceptions;
 with Ada.Task_Identification;
-with Ada.Text_IO;
 with SAL.Gen_Unbounded_Definite_Queues;
 with System.Multiprocessors;
 package body WisiToken.LR.McKenzie_Recover is
@@ -27,25 +26,6 @@ package body WisiToken.LR.McKenzie_Recover is
    --  For protected body entry barriers.
    use all type Ada.Containers.Count_Type;
    use all type SAL.Base_Peek_Type;
-
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration)
-   is
-      use Ada.Text_IO;
-      use Ada.Containers;
-   begin
-      Put ("(" & Image (Descriptor, Config.Stack));
-      Put (SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & " ");
-      Put (Descriptor, Config.Local_Lookahead);
-      Put (" " & Count_Type'Image (Config.Local_Lookahead_Index) & " ");
-      Put (Descriptor, Config.Popped);
-      Put (" ");
-      Put (Image (Descriptor, Config.Pushed));
-      Put (" ");
-      Put (Descriptor, Config.Inserted);
-      Put (" ");
-      Put (Descriptor, Config.Deleted);
-      Put (Natural'Image (Config.Cost) & ")");
-   end Put;
 
    procedure Put
      (Message         : in     String;
@@ -65,9 +45,9 @@ package body WisiToken.LR.McKenzie_Recover is
    begin
       Result := Result & Natural'Image (Config.Cost) & ", ";
       if Trace_Parse > Extra then
-         Result := Result & Image (Trace.Descriptor.all, Config.Stack, Depth => 4);
+         Result := Result & Image (Config.Stack, Trace.Descriptor.all, Depth => 4);
       else
-         Result := Result & Image (Trace.Descriptor.all, Config.Stack, Depth => 1);
+         Result := Result & Image (Config.Stack, Trace.Descriptor.all, Depth => 1);
       end if;
       Result := Result & "|";
 
@@ -76,14 +56,14 @@ package body WisiToken.LR.McKenzie_Recover is
          --  don't want to access Config_Store.
          Result := Result & SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index);
       else
-         Result := Result & Image (Trace.Descriptor.all, Config.Local_Lookahead) & ":" &
+         Result := Result & Image (Config.Local_Lookahead, Trace.Descriptor.all) & ":" &
            Int_Image (Integer (Config.Local_Lookahead_Index));
       end if;
       Result := Result & "|" &
-        Image (Trace.Descriptor.all, Config.Popped) &
-        Image (Trace.Descriptor.all, Config.Pushed) &
-        Image (Trace.Descriptor.all, Config.Inserted) &
-        Image (Trace.Descriptor.all, Config.Deleted);
+        Image (Config.Popped, Trace.Descriptor.all) &
+        Image (Config.Pushed, Trace.Descriptor.all) &
+        Image (Config.Inserted, Trace.Descriptor.all) &
+        Image (Config.Deleted, Trace.Descriptor.all);
       Trace.Put_Line (-Result);
    end Put;
 
@@ -385,8 +365,8 @@ package body WisiToken.LR.McKenzie_Recover is
       Inserted_Token    : in     Token_ID)
    is begin
       if Trace_Parse > Extra then
-         Put_Line (Trace, Parser_Label, Image (Trace.Descriptor.all, Config.Stack));
-         Put_Line (Trace, Parser_Label, Image (Trace.Descriptor.all, Action));
+         Put_Line (Trace, Parser_Label, Image (Config.Stack, Trace.Descriptor.all));
+         Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
       Config.Stack.Push ((Action.State, Inserted_Token));
       Config.Inserted.Append (Inserted_Token);
@@ -409,8 +389,8 @@ package body WisiToken.LR.McKenzie_Recover is
       Next_Action  : Parse_Action_Node_Ptr;
    begin
       if Trace_Parse > Extra then
-         Put_Line (Trace, Parser_Label, Image (Trace.Descriptor.all, New_Config_1.Stack));
-         Put_Line (Trace, Parser_Label, Image (Trace.Descriptor.all, Action));
+         Put_Line (Trace, Parser_Label, Image (New_Config_1.Stack, Trace.Descriptor.all));
+         Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
 
       for I in 1 .. Action.Token_Count loop
@@ -482,7 +462,7 @@ package body WisiToken.LR.McKenzie_Recover is
       if Trace_Parse > Detail then
          Put ("check  ", Trace, Parser_Label, Check_Config);
          if Trace_Parse > Extra then
-            Put_Line (Trace, "   action " & Image (Descriptor, Action.Item));
+            Put_Line (Trace, "   action " & Image (Action.Item, Descriptor));
          end if;
       end if;
 
@@ -490,13 +470,13 @@ package body WisiToken.LR.McKenzie_Recover is
          if Trace_Parse > Extra then
             Put_Line
               (Trace, Parser_Label, "checking :" & State_Index'Image (Check_Config.Stack.Peek.State) &
-                 " : " & Image (Descriptor, Check_Token) &
-                 " : " & Image (Descriptor, Action.Item));
+                 " : " & Image (Check_Token, Descriptor) &
+                 " : " & Image (Action.Item, Descriptor));
          end if;
 
          if Action.Next /= null then
             if Trace_Parse > Detail then
-               Put_Line (Trace, Parser_Label, "checking: enqueue conflict " & Image (Descriptor, Action.Next.Item));
+               Put_Line (Trace, Parser_Label, "checking: enqueue conflict " & Image (Action.Next.Item, Descriptor));
             end if;
             Enqueue_Count := Enqueue_Count + 1;
             Check_Item_Queue.Put ((Check_Config, Action.Next, Check_Token));
@@ -659,7 +639,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
             New_Config.Popped.Append (Deleted_ID);
             if Trace_Parse > Extra then
-               Put_Line (Trace, Parser_Label, "pop " & Image (Trace.Descriptor.all, Deleted_ID));
+               Put_Line (Trace, Parser_Label, "pop " & Image (Deleted_ID, Trace.Descriptor.all));
             end if;
 
             Local_Config_Heap.Add (New_Config);
@@ -679,7 +659,7 @@ package body WisiToken.LR.McKenzie_Recover is
                   case Action.Verb is
                   when Shift =>
                      if Trace_Parse > Extra then
-                        Put_Line (Trace, "insert " & Image (Trace.Descriptor.all, ID));
+                        Put_Line (Trace, "insert " & Image (ID, Trace.Descriptor.all));
                      end if;
 
                      New_Config := Config;
@@ -687,7 +667,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                   when Reduce =>
                      if Trace_Parse > Extra then
-                        Put_Line (Trace, Parser_Label, "try insert " & Image (Trace.Descriptor.all, ID));
+                        Put_Line (Trace, Parser_Label, "try insert " & Image (ID, Trace.Descriptor.all));
                      end if;
                      Do_Reduce (Trace, Parser_Label, Table, Local_Config_Heap, Config, Action, ID);
 
@@ -717,7 +697,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
                New_Config.Deleted.Append (Deleted_ID);
                if Trace_Parse > Extra then
-                  Put_Line (Trace, Parser_Label, "delete " & Image (Trace.Descriptor.all, Deleted_ID));
+                  Put_Line (Trace, Parser_Label, "delete " & Image (Deleted_ID, Trace.Descriptor.all));
                end if;
 
                New_Config.Shared_Lookahead_Index := New_Config.Shared_Lookahead_Index + 1;
@@ -818,9 +798,9 @@ package body WisiToken.LR.McKenzie_Recover is
                if Trace_Parse > Outline then
                   Shared_Parser.Semantic_State.Trace.Put_Line
                     ("special rule recover_pattern_1 " &
-                       Image (Descriptor, Pattern.Stack) & ", " &
-                       Image (Descriptor, Pattern.Error) & ", " &
-                       Image (Descriptor, Pattern.Expecting) &
+                       Image (Pattern.Stack, Descriptor) & ", " &
+                       Image (Pattern.Error, Descriptor) & ", " &
+                       Image (Pattern.Expecting, Descriptor) &
                        " matched.");
                end if;
 
@@ -860,10 +840,10 @@ package body WisiToken.LR.McKenzie_Recover is
                if Trace_Parse > Outline then
                   Shared_Parser.Semantic_State.Trace.Put_Line
                     ("special rule recover_pattern_2 " &
-                       Image (Descriptor, Pattern.Stack) & ", " &
-                       Image (Descriptor, Pattern.Error) & ", " &
-                       Image (Descriptor, Pattern.Expecting) & ", " &
-                       Image (Descriptor, Pattern.Insert) &
+                       Image (Pattern.Stack, Descriptor) & ", " &
+                       Image (Pattern.Error, Descriptor) & ", " &
+                       Image (Pattern.Expecting, Descriptor) & ", " &
+                       Image (Pattern.Insert, Descriptor) &
                        " matched.");
                end if;
 
@@ -980,7 +960,7 @@ package body WisiToken.LR.McKenzie_Recover is
          if Trace_Parse > Extra then
             Trace.New_Line;
             Trace.Put ("shared_lookahead: ");
-            Put (Trace, Shared_Parser.Shared_Lookahead);
+            Trace.Put (Image (Shared_Parser.Shared_Lookahead, Trace.Descriptor.all));
             Trace.New_Line;
             Shared_Parser.Semantic_State.Put;
          end if;

@@ -39,10 +39,10 @@ package WisiToken.LR.Parser_Lists is
 
       when Reduce_Stack =>
          Action : Reduce_Action_Rec;
-         Tokens : Token_Array;
+         Tokens : Token_ID_Arrays.Vector;
 
       when Recover =>
-         Recover : WisiToken.Token.Recover_Data_Access;
+         Recover : WisiToken.Semantic_State.Recover_Data_Access;
       end case;
    end record;
 
@@ -58,7 +58,7 @@ package WisiToken.LR.Parser_Lists is
       Stack                    : Parser_Stacks.Stack_Type;
       Pend_Items               : Pend_Items_Queues.Queue_Type;
       Recover                  : aliased LR.McKenzie_Data;
-      Local_Lookahead          : Token_Queues.Queue_Type; -- Holds error recovery insertions.
+      Local_Lookahead          : Token_ID_Queues.Queue_Type; -- Holds error recovery insertions.
       Shared_Lookahead_Index   : SAL.Peek_Type;
       Zombie_Token_Count       : Integer;
       --  If Zombie_Token_Count > 0, this parser has errored, but is

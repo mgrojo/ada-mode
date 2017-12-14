@@ -63,7 +63,7 @@ package body WisiToken.LR is
    begin
       Put_Line ("(Insert =>");
       for I in Item.Insert'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
+         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
          if I = Item.Insert'Last then
             Put_Line (")");
          else
@@ -72,7 +72,7 @@ package body WisiToken.LR is
       end loop;
       Put_Line ("(Delete =>");
       for I in Item.Delete'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
+         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
          if I = Item.Delete'Last then
             Put_Line (")");
          else
@@ -93,7 +93,7 @@ package body WisiToken.LR is
            (State_Index'Image (Stack.Peek (I).State) & " : " &
               (if I = Last
                then ""
-               else Image (Trace.Descriptor.all, Stack.Peek (I).ID) & ", "));
+               else Image (Stack.Peek (I).ID, Trace.Descriptor.all) & ", "));
       end loop;
       Trace.New_Line;
    end Put_Top_10;
@@ -160,8 +160,8 @@ package body WisiToken.LR is
    end State_Image;
 
    function Image
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Stack      : in Parser_Stacks.Stack_Type;
+     (Stack      : in Parser_Stacks.Stack_Type;
+      Descriptor : in WisiToken.Descriptor'Class;
       Depth      : in SAL.Base_Peek_Type := 0;
       Top_First  : in Boolean            := True)
      return String
@@ -182,7 +182,7 @@ package body WisiToken.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+                  else Image (Stack.Peek (I).ID, Descriptor) & ", "));
          end loop;
       else
          for I in reverse 1 .. Last loop
@@ -190,7 +190,7 @@ package body WisiToken.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+                  else Image (Stack.Peek (I).ID, Descriptor) & ", "));
          end loop;
       end if;
       return To_String (Result & ")");
@@ -256,7 +256,7 @@ package body WisiToken.LR is
       return Iter.Item.Item;
    end Action;
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String
+   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String
    is
    begin
       case Item.Verb is
@@ -265,7 +265,7 @@ package body WisiToken.LR is
 
       when Reduce =>
          return "(Reduce," & Ada.Containers.Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Descriptor, Item.LHS) & ")";
+           Image (Item.LHS, Descriptor) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>
@@ -284,7 +284,7 @@ package body WisiToken.LR is
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Trace.Descriptor.all, Item.LHS));
+              Image (Item.LHS, Trace.Descriptor.all));
       when Accept_It =>
          Trace.Put ("accept it");
       when Error =>
@@ -526,19 +526,21 @@ package body WisiToken.LR is
       return Result;
    end Expecting;
 
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Base_Token_Queues.Queue_Type)
+   function Image (Item : in Token_ID_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String
    is
+      use Ada.Strings.Unbounded;
       use all type SAL.Base_Peek_Type;
+      Result : Unbounded_String := +"(";
    begin
-      Trace.Put ("(");
       for I in 1 .. Item.Count loop
-         Put (Trace, Item.Peek (I));
+         Result := Result & Image (Item.Peek (I), Descriptor);
          if I < Item.Count then
-            Put (Trace, ", ");
+            Result := Result & ", ";
          end if;
       end loop;
-      Trace.Put (")");
-   end Put;
+      Result := Result & ")";
+      return -Result;
+   end Image;
 
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
@@ -550,7 +552,7 @@ package body WisiToken.LR is
       when Reduce =>
          Put
            ("reduce" & Ada.Containers.Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Descriptor, Item.LHS));
+              Image (Item.LHS, Descriptor));
       when Accept_It =>
          Put ("accept it");
       when Error =>
@@ -586,8 +588,8 @@ package body WisiToken.LR is
             Put ("default" & (Descriptor.Image_Width - 7) * ' ' & " => ");
 
          elsif Action_Ptr.Action.Item.Verb /= Error then
-            Put (Image (Descriptor, Action_Ptr.Symbol) &
-                   (Descriptor.Image_Width - Image (Descriptor, Action_Ptr.Symbol)'Length) * ' '
+            Put (Image (Action_Ptr.Symbol, Descriptor) &
+                   (Descriptor.Image_Width - Image (Action_Ptr.Symbol, Descriptor)'Length) * ' '
                    & " => ");
          end if;
          Put (Descriptor, Action_Ptr.Action);
@@ -599,8 +601,8 @@ package body WisiToken.LR is
 
       while Goto_Ptr /= null loop
          Put_Line
-           ("   " & Image (Descriptor, Goto_Ptr.Symbol) &
-              (Descriptor.Image_Width - Image (Descriptor, Goto_Ptr.Symbol)'Length) * ' ' &
+           ("   " & Image (Goto_Ptr.Symbol, Descriptor) &
+              (Descriptor.Image_Width - Image (Goto_Ptr.Symbol, Descriptor)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
@@ -626,14 +628,14 @@ package body WisiToken.LR is
       end loop;
    end Put;
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector) return String
+   function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := To_Unbounded_String ("(");
    begin
       for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Descriptor, Item (I));
+         Result := Result & Image (Item (I), Descriptor);
          if I /= Item.Last_Index then
             Result := Result & ", ";
          end if;
@@ -642,47 +644,20 @@ package body WisiToken.LR is
       return To_String (Result);
    end Image;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector)
-   is
-      use all type Ada.Containers.Count_Type;
-      use Ada.Text_IO;
-   begin
-      Put ("(");
-      for I in Item.First_Index .. Item.Last_Index loop
-         Put (Image (Descriptor, Item (I)));
-         if I /= Item.Last_Index then
-            Put (", ");
-         end if;
-      end loop;
-      Put (")");
-   end Put;
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Fast_Token_ID_Vectors.Vector)
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Put (Trace, Item (I));
-         if I /= Item.Last_Index then
-            Put (Trace, ", ");
-         end if;
-      end loop;
-   end Put;
-
    overriding
    function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String
    is
       use Ada.Containers;
    begin
       return
-        "(" & Image (Descriptor, Config.Stack) & ", " &
+        "(" & Image (Config.Stack, Descriptor) & ", " &
         SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Local_Lookahead) & ", " &
+        Image (Config.Local_Lookahead, Descriptor) & ", " &
         Count_Type'Image (Config.Local_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Popped) & ", " &
-        Image (Descriptor, Config.Pushed) & ", " &
-        Image (Descriptor, Config.Inserted) & ", " &
-        Image  (Descriptor, Config.Deleted) & ", " &
+        Image (Config.Popped, Descriptor) & ", " &
+        Image (Config.Pushed, Descriptor) & ", " &
+        Image (Config.Inserted, Descriptor) & ", " &
+        Image  (Config.Deleted, Descriptor) & ", " &
         Natural'Image (Config.Cost) & ")";
    end Image;
 

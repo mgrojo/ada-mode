@@ -51,7 +51,7 @@ package body WisiToken.LR.Parser_Lists is
              Stack                    => Stack,
              Pend_Items               => Pend_Items_Queues.Empty_Queue,
              Recover                  => Default_McKenzie,
-             Local_Lookahead          => Token_Queues.Empty_Queue,
+             Local_Lookahead          => Token_ID_Queues.Empty_Queue,
              Shared_Lookahead_Index   => SAL.Peek_Type'First,
              Zombie_Token_Count       => 0,
              Label                    => First_Parser_Label,
@@ -299,20 +299,20 @@ package body WisiToken.LR.Parser_Lists is
 
       case Pend_Item.Verb is
       when Virtual_To_Lookahead .. Push_Current =>
-         Trace.Put (Image (Trace.Descriptor.all, Pend_Item.ID));
+         Trace.Put (Image (Pend_Item.ID, Trace.Descriptor.all));
 
       when Discard_Lookahead .. Discard_Stack =>
-         Trace.Put (Image (Trace.Descriptor.all, Pend_Item.Discard_ID));
+         Trace.Put (Image (Pend_Item.Discard_ID, Trace.Descriptor.all));
 
       when Reduce_Stack =>
          declare
             Action_Name : constant String := To_Lower
-              (Image (Trace.Descriptor.all, Pend_Item.Action.LHS)) &
+              (Image (Pend_Item.Action.LHS, Trace.Descriptor.all)) &
               "_" & WisiToken.Int_Image (Pend_Item.Action.Index);
          begin
             Trace.Put
-              (Action_Name & ": " & Image (Trace.Descriptor.all, Pend_Item.Action.LHS) & " <= ");
-            Put (Trace, Pend_Item.Tokens);
+              (Action_Name & ": " & Image (Pend_Item.Action.LHS, Trace.Descriptor.all) & " <= ");
+            Trace.Put (Image (Pend_Item.Tokens, Trace.Descriptor.all));
          end;
 
       when Recover =>

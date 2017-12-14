@@ -30,6 +30,7 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with WisiToken.Production;
+with WisiToken.Token_ID_Lists;
 package WisiToken.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
@@ -262,6 +263,10 @@ private
    --  Private to force use of Add
 
    type Item_Node is record
+      --  Production.Instance, and Token_ID_Lists.List, are _not_
+      --  Controlled; the values stored here are shallow copies of the root
+      --  list pointers orignally stored in the Grammar structure; Dot
+      --  points into that token list.
       Prod       : Production.Instance;
       Dot        : Token_ID_Lists.Cursor; -- token after item Dot
       State      : Unknown_State_Index;

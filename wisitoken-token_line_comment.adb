@@ -17,6 +17,7 @@
 
 pragma License (Modified_GPL);
 
+with SAL;
 package body WisiToken.Token_Line_Comment is
 
    function Trailing_Blank_Line (State : in State_Type; ID : in Token_ID) return Boolean
@@ -124,7 +125,7 @@ package body WisiToken.Token_Line_Comment is
    end Find_Line_Begin;
 
    overriding
-   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Semantic_State.Init_Data'Class)
    is
       Line_Count : Line_Number_Type renames Init_Data (Init).Line_Count;
    begin
@@ -162,6 +163,7 @@ package body WisiToken.Token_Line_Comment is
 
       Temp : constant Token :=
         (ID,
+         Name                        => Null_Buffer_Region, -- FIXME: implement
          Virtual                     => False,
          Line                        => Lexer.Line,
          Col                         => Lexer.Column,
@@ -253,6 +255,7 @@ package body WisiToken.Token_Line_Comment is
    is
       Temp : constant Token :=
         (ID,
+         Name                        => Null_Buffer_Region, -- FIXME: implement
          Virtual                     => True,
          Line                        => Invalid_Line_Number,
          Col                         => 0,
@@ -280,9 +283,10 @@ package body WisiToken.Token_Line_Comment is
      (State   : not null access State_Type;
       Nonterm : in              Token_ID;
       Index   : in              Natural;
-      IDs     : in              WisiToken.Token_Array;
-      Action  : in              Semantic_Action)
+      IDs     : in              WisiToken.Token_ID_Arrays.Vector;
+      Action  : in              WisiToken.Semantic_State.Semantic_Action)
    is
+      use WisiToken.Semantic_State;
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
 

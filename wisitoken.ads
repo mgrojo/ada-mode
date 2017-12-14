@@ -58,8 +58,6 @@ package WisiToken is
 
    type Token_ID is range 0 .. Integer'Last; -- 0 origin to match elisp array
 
-   package Token_ID_Lists is new Ada.Containers.Doubly_Linked_Lists (Token_ID);
-
    Invalid_Token_ID : constant Token_ID := Token_ID'Last;
 
    type Token_ID_Array_String is array (Token_ID range <>) of access constant String;
@@ -101,7 +99,7 @@ package WisiToken is
       Image_Width          : Integer; --  max width of Image
    end record;
 
-   function Image (Desc : in Descriptor'Class; Item : in Token_ID; Pad : in Boolean := False) return String;
+   function Image (Item : in Token_ID; Desc : in Descriptor'Class; Pad : in Boolean := False) return String;
    --  Return Desc.Image (Item), possibly padded to
    --  Terminal_Image_Width (if Item is a terminal) or to Image_Width.
 
@@ -119,8 +117,8 @@ package WisiToken is
    --  Count of True elements.
 
    function Image
-     (Desc      : in Descriptor'Class;
-      Item      : in Token_ID_Set;
+     (Item      : in Token_ID_Set;
+      Desc      : in Descriptor'Class;
       Max_Count : in Integer := Integer'Last)
      return String;
 
@@ -135,12 +133,12 @@ package WisiToken is
    procedure Put (Descriptor : in WisiToken.Descriptor; Item : in Token_Array_Token_Set);
    --  Put Item to Ada.Text_IO.Current_Output, using valid Ada aggregate syntax
 
-   function To_Lookahead (Descriptor : in WisiToken.Descriptor; Item : in Token_ID) return Token_ID_Set;
+   function To_Lookahead (Item : in Token_ID; Descriptor : in WisiToken.Descriptor) return Token_ID_Set;
    --  Base implementation returns (Descriptor.First_Terminal ..
    --  Descriptor.Last_Terminal), with Item = True, others False. LALR
    --  child type adds Propagate_ID.
 
-   function Lookahead_Image (Descriptor : in WisiToken.Descriptor; Item : in Token_ID_Set) return String;
+   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in WisiToken.Descriptor) return String;
    --  Base implementation just returns aggregate syntax for Item.
    --  LALR child includes '#' for Propagate_ID.
 
@@ -162,10 +160,10 @@ package WisiToken is
      with null record;
 
    overriding
-   function To_Lookahead (Descriptor : in LALR_Descriptor; Item : in Token_ID) return Token_ID_Set;
+   function To_Lookahead (Item : in Token_ID; Descriptor : in LALR_Descriptor) return Token_ID_Set;
 
    overriding
-   function Lookahead_Image (Descriptor : in LALR_Descriptor; Item : in Token_ID_Set) return String;
+   function Lookahead_Image (Item : in Token_ID_Set; Descriptor : in LALR_Descriptor) return String;
 
    ----------
    --  Tokens
@@ -207,7 +205,21 @@ package WisiToken is
       --  exactly one token with Name set.
    end record;
 
+   function Image
+     (Item       : in Base_Token;
+      Descriptor : in WisiToken.Descriptor'Class;
+      ID_Only    : in Boolean := False)
+     return String;
+
+   package Token_ID_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Token_ID);
+   --  FIXME: delete Token_ID_Arrays, use Base_Token_Arrays instead.
+
    package Base_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Base_Token);
+
+   function Image
+     (Item       : in Token_ID_Arrays.Vector;
+      Descriptor : in WisiToken.Descriptor'Class)
+     return String;
 
    ----------
    --  Trace

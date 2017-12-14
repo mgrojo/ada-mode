@@ -20,7 +20,7 @@ pragma License (GPL);
 
 with Ada.Containers;
 with Ada.Text_IO; use Ada.Text_IO;
-package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
+package body WisiToken.LR.Wisi_Generate_Elisp is
 
    procedure Action_Table (Table : in Parse_Table; Descriptor : in WisiToken.Descriptor'Class)
    is begin
@@ -42,7 +42,7 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
                   Parse_Action_Node : Parse_Action_Node_Ptr := Action.Action;
                   Conflict          : constant Boolean      := Parse_Action_Node.Next /= null;
                begin
-                  Put (" (" & Image (Descriptor, Action.Symbol) & " . ");
+                  Put (" (" & Image (Action.Symbol, Descriptor) & " . ");
 
                   if Conflict then
                      Put ("(");
@@ -61,7 +61,7 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
 
                         when Reduce =>
                            Put
-                             ("(" & Image (Descriptor, Parse_Action.LHS) & " ." &
+                             ("(" & Image (Parse_Action.LHS, Descriptor) & " ." &
                                 Integer'Image (Parse_Action.Index) & ")");
 
                         when Shift =>
@@ -155,7 +155,7 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
                   Put ("      (");
                end if;
                loop
-                  Put ("(" & Image (Descriptor, Gotos.Symbol) & " ." & State_Index'Image (Gotos.State) & ")");
+                  Put ("(" & Image (Gotos.Symbol, Descriptor) & " ." & State_Index'Image (Gotos.State) & ")");
                   Gotos := Gotos.Next;
                   exit when Gotos = null;
                end loop;
@@ -246,4 +246,4 @@ package body WisiToken.Parser.LR.Wisi_Generate_Elisp is
       Put_Line ("  ""Parser table."")");
    end Output;
 
-end WisiToken.Parser.LR.Wisi_Generate_Elisp;
+end WisiToken.LR.Wisi_Generate_Elisp;

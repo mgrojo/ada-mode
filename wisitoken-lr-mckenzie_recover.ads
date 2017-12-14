@@ -36,7 +36,4 @@ package WisiToken.LR.McKenzie_Recover is
    --  Attempt to modify Parsers state and Parser.Lookahead to allow
    --  recovering from an error state. Return True if successful.
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Config : in Configuration);
-   --  Put Config to Ada.Text_IO.Current_Output, for debug
-
 end WisiToken.LR.McKenzie_Recover;

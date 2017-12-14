@@ -57,7 +57,7 @@ package body Wisi.Gen_Output_Ada_Common is
 
       case Output_Language is
       when Ada =>
-         Put_Line ("with WisiToken.Token;");
+         Put_Line ("with WisiToken.Semantic_State;");
 
       when Ada_Emacs =>
          case Interface_Kind is
@@ -66,13 +66,13 @@ package body Wisi.Gen_Output_Ada_Common is
 
          when Process =>
             Put_Line ("with WisiToken.Wisi_Runtime." & Language_Name & ";");
-            Put_Line ("with WisiToken.Token;");
+            Put_Line ("with WisiToken.Semantic_State;");
 
          when Module =>
             Put_Line ("with Emacs_Module_Aux;");
             Put_Line ("with emacs_module_h;");
             Put_Line ("with Interfaces.C;");
-            Put_Line ("with WisiToken.Token;");
+            Put_Line ("with WisiToken.Semantic_State;");
          end case;
       end case;
       Put_Line ("with WisiToken.LR;");
@@ -114,18 +114,20 @@ package body Wisi.Gen_Output_Ada_Common is
       end case;
 
       Indent_Line ("Descriptor : aliased WisiToken.Descriptor :=");
-      Indent_Line ("  (First_Terminal    =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
+      Indent_Line ("  (First_Terminal      =>" & WisiToken.Token_ID'Image (Descriptor.First_Terminal) & ",");
       Indent := Indent + 3;
-      Indent_Line ("Last_Terminal     =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
-      Indent_Line ("First_Nonterminal =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
-      Indent_Line ("Last_Nonterminal  =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
-      Indent_Line ("EOF_ID            =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
-      Indent_Line ("Accept_ID         =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
-      Indent_Line ("New_Line_ID       =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
-      Indent_Line ("Comment_ID        =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
-      Indent_Line ("Left_Paren_ID     =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
-      Indent_Line ("Right_Paren_ID    =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
-      Indent_Line ("Image             =>");
+      Indent_Line ("Last_Terminal       =>" & WisiToken.Token_ID'Image (Descriptor.Last_Terminal) & ",");
+      Indent_Line ("First_Nonterminal   =>" & WisiToken.Token_ID'Image (Descriptor.First_Nonterminal) & ",");
+      Indent_Line ("Last_Nonterminal    =>" & WisiToken.Token_ID'Image (Descriptor.Last_Nonterminal) & ",");
+      Indent_Line ("EOF_ID              =>" & WisiToken.Token_ID'Image (Descriptor.EOF_ID) & ",");
+      Indent_Line ("Accept_ID           =>" & WisiToken.Token_ID'Image (Descriptor.Accept_ID) & ",");
+      Indent_Line ("New_Line_ID         =>" & WisiToken.Token_ID'Image (Descriptor.New_Line_ID) & ",");
+      Indent_Line ("Comment_ID          =>" & WisiToken.Token_ID'Image (Descriptor.Comment_ID) & ",");
+      Indent_Line ("Left_Paren_ID       =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
+      Indent_Line ("Right_Paren_ID      =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
+      Indent_Line ("Terminal_Name_ID    =>" & WisiToken.Token_ID'Image (Descriptor.Terminal_Name_ID) & ",");
+      Indent_Line ("Nonterminal_Name_ID =>" & WisiToken.Token_ID'Image (Descriptor.Nonterminal_Name_ID) & ",");
+      Indent_Line ("Image               =>");
       declare
          use Standard.Ada.Strings.Unbounded;
          Paren_Done : Boolean := False;
@@ -196,8 +198,8 @@ package body Wisi.Gen_Output_Ada_Common is
       when Ada =>
          Indent_Line ("procedure Create_Parser");
          Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
-         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
+         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);");
          New_Line;
 
       when Ada_Emacs =>
@@ -212,8 +214,8 @@ package body Wisi.Gen_Output_Ada_Common is
 
             Indent_Line ("procedure Create_Parser");
             Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
-            Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
-            Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access);");
+            Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+            Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);");
             New_Line;
 
          when Module =>
@@ -567,11 +569,11 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("  (Parser         :    out WisiToken.LR.Instance;");
       case Interface_Kind is
       when None =>
-         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
+         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)");
       when Process =>
-         Indent_Line ("   Algorithm      : in     WisiToken_Algorithm_Type;");
-         Indent_Line ("   Semantic_State : in     WisiToken.Token.Semantic_State_Access)");
+         Indent_Line ("   Algorithm      : in     WisiToken.Parser_Algorithm_Type;");
+         Indent_Line ("   Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)");
       when Module =>
          Indent_Line ("   Env                 : in     Emacs_Env_Access;");
          Indent_Line ("   Lexer_Elisp_Symbols : in     Lexers.Elisp_Array_Emacs_Value)");
@@ -581,7 +583,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent := Indent + 3;
 
       Indent_Line ("use WisiToken.LR;");
-      Indent_Line ("use all type WisiToken_Algorithm_Type;");
+      Indent_Line ("use all type WisiToken.Parser_Algorithm_Type;");
       Indent_Line ("Table : constant Parse_Table_Ptr := new Parse_Table");
       Indent_Line ("  (State_First       =>" & Integer'Image (First_State_Index) & ",");
       Indent := Indent + 3;
@@ -832,6 +834,7 @@ package body Wisi.Gen_Output_Ada_Common is
                        ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                          elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                          else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                     Append (", null"); -- Semantic_Check
 
                   when WisiToken.LR.Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
@@ -851,6 +854,7 @@ package body Wisi.Gen_Output_Ada_Common is
                           ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                             elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                             else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
+                        Append (", null"); -- Semantic_Check_2
 
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &

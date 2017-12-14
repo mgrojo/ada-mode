@@ -26,12 +26,12 @@ with Ada.Strings.Fixed;
 with Ada.Text_IO;
 with Ada_Lite;
 with WisiToken.AUnit;
-with WisiToken.Parser.LR;
+with WisiToken.LR;
 with WisiToken.Token_Line_Comment;
 with WisiToken.Token_Region.AUnit;
 package body Test_McKenzie_Recover is
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    Orig_Cost_Limit  : Integer;
 
@@ -166,6 +166,7 @@ package body Test_McKenzie_Recover is
              Last_Terminal     => Descriptor.Last_Terminal,
              Error_Token       =>
                (ID             => +SEMICOLON_ID,
+                Name           => WisiToken.Null_Buffer_Region,
                 Virtual        => False,
                 Line           => 1,
                 Col            => 83,
@@ -525,7 +526,10 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+IDENTIFIER_ID, False, 1, 22, (23, 25), (23, 25)));
+         Check
+           ("errors.error_token",
+            Element (Cursor).Error_Token,
+            (+IDENTIFIER_ID, WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25), (23, 25)));
       end;
 
    exception
@@ -562,7 +566,10 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors.error_token", Element (Cursor).Error_Token, (+AND_ID, False, 1, 27, (28, 30), (28, 30)));
+         Check
+           ("errors.error_token",
+            Element (Cursor).Error_Token,
+            (+AND_ID, WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30), (28, 30)));
       end;
 
    exception
@@ -609,10 +616,15 @@ package body Test_McKenzie_Recover is
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
          Cursor : Error_Data_Lists.Cursor := Error_List.First;
       begin
-         Check ("errors 1.error_token", Element (Cursor).Error_Token, (+IF_ID, False, 1, 75, (76, 77), (76, 77)));
+         Check
+           ("errors 1.error_token",
+            Element (Cursor).Error_Token,
+            (+IF_ID, WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77), (76, 77)));
          Next (Cursor);
          Check
-           ("errors 2.error_token", Element (Cursor).Error_Token, (+BEGIN_ID, False, 1, 114, (115, 119), (115, 119)));
+           ("errors 2.error_token",
+            Element (Cursor).Error_Token,
+            (+BEGIN_ID, WisiToken.Null_Buffer_Region, False, 1, 114, (115, 119), (115, 119)));
       end;
 
    exception

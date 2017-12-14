@@ -169,9 +169,9 @@ is
 
                      Temp (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
-                     Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
+                     Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
                      Indent_Line ("  Index   : in Natural;");
-                     Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
+                     Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
                      Indent_Line ("is");
 
                      if Profile or Unref_Nonterm then

@@ -10,6 +10,8 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
+run all tests
+
 add token byte_region and name to core parser, to allow name matching in error recovery
     time it
 

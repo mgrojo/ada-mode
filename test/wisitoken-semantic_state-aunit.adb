@@ -14,35 +14,8 @@
 pragma License (GPL); -- AUnit is not Modified_GPL
 
 with AUnit.Assertions;
-with AUnit.Checks;
 with Ada.Tags;
-with WisiToken.AUnit;
-package body WisiToken.Token.AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in List.List_Iterator;
-      Expected : in List.List_Iterator)
-   is
-      use Standard.AUnit.Checks;
-      use WisiToken.AUnit;
-      use WisiToken.Token;
-      use WisiToken.Token.List;
-      Computed_I : List_Iterator := Computed;
-      Expected_I : List_Iterator := Expected;
-      Index      : Integer       := 1;
-   begin
-      loop
-         if Computed_I = Null_Iterator or Expected_I = Null_Iterator then
-            Check (Label & " = null", Computed_I = Null_Iterator and Expected_I = Null_Iterator, True);
-            exit;
-         end if;
-         Check (Label & Integer'Image (Index), ID (Computed_I), ID (Expected_I));
-         Next (Computed_I);
-         Next (Expected_I);
-         Index := Index + 1;
-      end loop;
-   end Check;
+package body WisiToken.Semantic_State.AUnit is
 
    procedure Check
      (Label              : in String;
@@ -76,4 +49,4 @@ package body WisiToken.Token.AUnit is
       end if;
    end Check;
 
-end WisiToken.Token.AUnit;
+end WisiToken.Semantic_State.AUnit;

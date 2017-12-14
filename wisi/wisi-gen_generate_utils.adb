@@ -20,6 +20,7 @@ pragma License (GPL);
 with Ada.Exceptions;
 with Wisi.Utils;
 with WisiToken.Semantic_State;
+with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Generate_Utils is
 
    --  For Constant_Reference

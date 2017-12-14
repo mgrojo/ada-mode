@@ -18,6 +18,7 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
+with SAL;
 package body WisiToken.Token_Region is
 
    overriding
@@ -28,7 +29,7 @@ package body WisiToken.Token_Region is
      return String
    is
       use all type Ada.Text_IO.Count;
-      Name : constant String := WisiToken.Image (Descriptor, Item.ID);
+      Name : constant String := WisiToken.Image (Item.ID, Descriptor);
    begin
       if ID_Only then
          --  No parens for consistency with previous unit test results.
@@ -51,13 +52,13 @@ package body WisiToken.Token_Region is
 
    procedure Put
      (Trace     : in out WisiToken.Trace'Class;
-      Stack     : in     Augmented_Token_Array;
+      Stack     : in     WisiToken.Semantic_State.Augmented_Token_Array;
       Count     : in     Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
       Top_First : in     Boolean                   := True)
    is
       --  Put top Count items on Stack; all if Count_Type'Last.
       --  Top is Stack.Last_Index
-      use Augmented_Token_Arrays;
+      use WisiToken.Semantic_State.Augmented_Token_Arrays;
       use Ada.Containers;
 
       First : constant Count_Type := (if Count = Ada.Containers.Count_Type'Last then 1 else Stack.Length - Count + 1);
@@ -92,17 +93,17 @@ package body WisiToken.Token_Region is
      (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token'Class;
       Index               : in     Natural;
-      Stack               : in     Augmented_Token_Array;
+      Stack               : in     WisiToken.Semantic_State.Augmented_Token_Array;
       Tokens_Length       : in     Ada.Containers.Count_Type;
       Include_Action_Name : in     Boolean)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Characters.Handling;
-      use Augmented_Token_Arrays;
+      use WisiToken.Semantic_State.Augmented_Token_Arrays;
 
       Action_Name : constant String :=
         (if Include_Action_Name
-         then To_Lower (Image (Trace.Descriptor.all, Nonterm.ID)) & "_" & WisiToken.Int_Image (Index) & ": "
+         then To_Lower (Image (Nonterm.ID, Trace.Descriptor.all)) & "_" & WisiToken.Int_Image (Index) & ": "
          else "");
    begin
       Trace.Put (Action_Name & Nonterm.Image (Trace.Descriptor.all, ID_Only => False) & " <= ");
@@ -114,7 +115,7 @@ package body WisiToken.Token_Region is
    --  Public subprograms, declaration order
 
    overriding
-   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Semantic_State.Init_Data'Class)
    is
       pragma Unreferenced (Init);
    begin
@@ -178,13 +179,13 @@ package body WisiToken.Token_Region is
             for Item of Errors (I) loop
                if Item.Error_Token.Line = Invalid_Line_Number then
                   Put_Line
-                    (Source_File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                    (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                        ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
                else
                   Put_Line
                     (Error_Message
                        (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
-                        "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                        "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                           ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
                end if;
 
@@ -200,6 +201,7 @@ package body WisiToken.Token_Region is
    overriding
    procedure Put (State : not null access State_Type)
    is
+      use WisiToken.Semantic_State;
    begin
       State.Trace.Put ("semantic state: stack: ");
       Put (State.Trace.all, State.Stack);
@@ -218,6 +220,7 @@ package body WisiToken.Token_Region is
       use all type SAL.Base_Peek_Type;
       Temp : constant Token :=
         (ID,
+         Name        => Null_Buffer_Region, -- FIXME: implement
          Virtual     => False,
          Line        => Lexer.Line,
          Col         => Lexer.Column,
@@ -297,6 +300,7 @@ package body WisiToken.Token_Region is
    is
       Temp : constant Token :=
         (ID,
+         Name        => Null_Buffer_Region, -- FIXME: implement
          Virtual     => True,
          Line        => Invalid_Line_Number,
          Col         => 0,
@@ -316,11 +320,11 @@ package body WisiToken.Token_Region is
      (State : not null access State_Type;
       ID    : in     Token_ID)
    is
-      Temp : constant WisiToken.Augmented_Token'Class := State.Lookahead_Queue.Get;
+      Temp : constant WisiToken.Semantic_State.Augmented_Token'Class := State.Lookahead_Queue.Get;
    begin
       if ID /= Temp.ID then
          raise Programmer_Error with "token_region.push_current: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
+           Image (ID, State.Trace.Descriptor.all) &
            ", Token " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False);
       end if;
 
@@ -337,9 +341,10 @@ package body WisiToken.Token_Region is
      (State   : not null access State_Type;
       Nonterm : in     Token_ID;
       Index   : in     Natural;
-      IDs     : in     WisiToken.Token_Array;
-      Action  : in     Semantic_Action)
+      IDs     : in     WisiToken.Token_ID_Arrays.Vector;
+      Action  : in     WisiToken.Semantic_State.Semantic_Action)
    is
+      use WisiToken.Semantic_State;
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
 
@@ -415,7 +420,7 @@ package body WisiToken.Token_Region is
    begin
       if ID /= Token.ID then
          raise Programmer_Error with "token_region.discard_lookahead: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
+           Image (ID, State.Trace.Descriptor.all) &
            ", Token " & Token.Image (State.Trace.Descriptor.all, ID_Only => False);
       end if;
 
@@ -430,7 +435,7 @@ package body WisiToken.Token_Region is
       ID    : in              Token_ID)
    is
       Token : constant Token_Region.Token := Token_Region.Token
-        (Augmented_Token_Arrays.Element (State.Stack.Last));
+        (WisiToken.Semantic_State.Augmented_Token_Arrays.Element (State.Stack.Last));
    begin
       State.Stack.Delete_Last;
 
@@ -446,12 +451,12 @@ package body WisiToken.Token_Region is
    procedure Recover
      (State     : not null access State_Type;
       Parser_ID : in     Natural;
-      Recover   : in     WisiToken.Token.Recover_Data'Class)
+      Recover   : in     WisiToken.Semantic_State.Recover_Data'Class)
    is
       Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
       Error      : Error_Data renames Error_List.Reference (Error_List.Last);
    begin
-      Error.Recover := new WisiToken.Token.Recover_Data'Class'(Recover);
+      Error.Recover := new WisiToken.Semantic_State.Recover_Data'Class'(Recover);
       if Trace_Parse > Extra then
          State.Trace.Put_Line (Natural'Image (Parser_ID) & ": recover");
       end if;

@@ -39,37 +39,40 @@ package body WisiToken.Production is
 
    function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Lists.List
    is begin
-      return Only (Left).Append (Right);
+      return Result : WisiToken.Token_ID_Lists.List do
+         Result.Append (Left);
+         Result.Append (Right);
+      end return;
    end "&";
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID_Lists.List; Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
    is begin
       return (Tokens, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token_ID; Action : in Semantic_Action) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID; Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Token.List.Only (Tokens), Action, 0);
+      return (Only (Tokens), Action, 0);
    end "+";
 
-   function "+" (Action : in Semantic_Action) return Right_Hand_Side
+   function "+" (Action : in Semantic_State.Semantic_Action) return Right_Hand_Side
    is begin
-      return (Token.List.Null_List, Action, 0);
+      return (Token_ID_Lists.Empty_List, Action, 0);
    end "+";
 
-   function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side
+   function "+" (Tokens : in Token_ID_Lists.List; Index  : in Integer) return Right_Hand_Side
    is begin
       return (Tokens, null, Index);
    end "+";
 
    function "+" (Tokens : in Token_ID; Index  : in Integer) return Right_Hand_Side
    is begin
-      return (Token.List.Only (Tokens), null, Index);
+      return (Only (Tokens), null, Index);
    end "+";
 
    function "+" (Index  : in Integer) return Right_Hand_Side
    is begin
-      return (Token.List.Null_List, null, Index);
+      return (Token_ID_Lists.Empty_List, null, Index);
    end "+";
 
    function "<=" (LHS : in Token_ID; RHS : in Right_Hand_Side) return Instance
@@ -77,7 +80,7 @@ package body WisiToken.Production is
       return (LHS, RHS);
    end "<=";
 
-   function First_Token (Item : in Instance) return Token.List.List_Iterator
+   function First_Token (Item : in Instance) return Token_ID_Lists.Cursor
    is begin
       return Item.RHS.Tokens.First;
    end First_Token;
