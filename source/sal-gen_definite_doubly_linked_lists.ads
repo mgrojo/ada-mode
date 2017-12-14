@@ -31,7 +31,7 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
 
    type List is new Ada.Finalization.Controlled with private;
 
-   Null_List : constant List;
+   Empty_List : constant List;
 
    overriding procedure Adjust (Container : in out List);
    --  Deep copy.
@@ -56,6 +56,8 @@ package SAL.Gen_Definite_Doubly_Linked_Lists is
    procedure Next (Position : in out Cursor);
 
    function Next (Position : in Cursor) return Cursor;
+
+   function Element (Position : in Cursor) return Element_Type;
 
    procedure Delete (Container : in out List; Position : in out Cursor);
 
@@ -95,7 +97,7 @@ private
       Ptr       : Node_Access;
    end record;
 
-   Null_List : constant List := (Ada.Finalization.Controlled with null, null, 0);
+   Empty_List : constant List := (Ada.Finalization.Controlled with null, null, 0);
 
    No_Element : constant Cursor := (null, null);
 

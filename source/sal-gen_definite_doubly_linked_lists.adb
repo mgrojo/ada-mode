@@ -149,6 +149,11 @@ package body SAL.Gen_Definite_Doubly_Linked_Lists is
       end if;
    end Next;
 
+   function Element (Position : in Cursor) return Element_Type
+   is begin
+      return Position.Ptr.Element;
+   end Element;
+
    procedure Delete (Container : in out List; Position : in out Cursor)
    is
       use all type Ada.Containers.Count_Type;
