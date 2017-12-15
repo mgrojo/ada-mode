@@ -198,6 +198,7 @@ package Wisi is
    type RHS_Type is record
       Production  : String_Lists.List; -- Tokens
       Action      : String_Lists.List; -- one string per line
+      Check       : String_Lists.List; -- one string per line
       Source_Line : Standard.Ada.Text_IO.Positive_Count;
    end record;
    package RHS_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (RHS_Type, "=");

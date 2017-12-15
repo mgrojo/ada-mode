@@ -270,10 +270,10 @@ package body WisiToken.LR.LR1_Generator is
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
             if not Unused_Tokens then
-               Ada.Text_IO.Put_Line ("Unused tokens:");
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "Unused tokens:");
                Unused_Tokens := True;
             end if;
-            Ada.Text_IO.Put_Line (Image (I, Descriptor));
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (I, Descriptor));
          end if;
       end loop;
 
@@ -349,23 +349,23 @@ package body WisiToken.LR.LR1_Generator is
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line ("unknown conflicts:");
-         Put (Descriptor, Unknown_Conflicts);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "unknown conflicts; aborting";
-         end if;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
+         Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line ("excess known conflicts:");
-         Put (Descriptor, Known_Conflicts_Edit);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "excess known conflicts; aborting";
-         end if;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
+         Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
-      if Unused_Tokens and not (Trace or Ignore_Unused_Tokens) then
-         raise Grammar_Error with "unused tokens; aborting";
+      Generator_Utils.Error := Generator_Utils.Error or (Unused_Tokens and not (Trace or Ignore_Unused_Tokens));
+
+      if Generator_Utils.Error then
+         raise Grammar_Error with "errors: aborting";
       end if;
 
       return Table;

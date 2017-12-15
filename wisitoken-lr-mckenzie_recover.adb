@@ -162,7 +162,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
    private
       Active_Workers : Integer; -- Worker_Tasks that have done Get but not Put or Success.
-      Ready          : Boolean;
+      Ready          : Boolean; -- Have at least one solution.
       Done           : Boolean;
    end Config_Store;
 
@@ -251,16 +251,34 @@ package body WisiToken.LR.McKenzie_Recover is
       end Get_Parser_Label;
 
       entry Get (Status : out Config_Status_Type; Config : out Configuration)
-        when Data.Config_Heap.Count > 0 or Done
+        when Data.Config_Heap.Count > 0 or Done or Ready
       is begin
          if Done then
             Status := All_Done;
             return;
          end if;
 
-         if not Ready and then Data.Config_Heap.Min_Key < Cost_Limit then
+         if Data.Config_Heap.Count = 0 then
+            --  We can get here if a solution is found very early, when there are
+            --  more worker tasks than configs in the heap.
+            Status := Try_Later;
 
-            Status           := Valid;
+         elsif Data.Config_Heap.Min_Key > Cost_Limit then
+            --  Worker tasks never reduce the cost of a configuration. There might
+            --  be an active worker with a cheaper solution.
+            Status := Try_Later;
+
+         elsif Ready then
+            if Data.Config_Heap.Min_Key > Data.Results.Min_Key then
+               --  Can't get any more solutions with the same cost as existing ones,
+               --  unless there are active workers.
+               Status := Try_Later;
+            end if;
+         else
+            Status := Valid;
+         end if;
+
+         if Status = Valid then
             Config           := Data.Config_Heap.Remove;
             Data.Check_Count := Data.Check_Count + 1;
             Active_Workers   := Active_Workers + 1;
@@ -275,12 +293,6 @@ package body WisiToken.LR.McKenzie_Recover is
                Super.Finished (Parser_Label, Success => Data.Success);
                Done   := True;
                Status := All_Done;
-            else
-               if Ready then
-                  Status := All_Done;
-               else
-                  Status := Try_Later;
-               end if;
             end if;
          end if;
       end Get;
@@ -377,18 +389,23 @@ package body WisiToken.LR.McKenzie_Recover is
    function Reduce_Stack_1
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;
-      Nonterm :    out Base_Token)
+      Nonterm :    out Base_Token;
+      Lexer   : in     WisiToken.Lexer.Handle)
      return Semantic_Status
    is
       --  Reduce Stack according to Action, calling Action.Check and
       --  returning result, or Ok if null.
-      Tokens : Base_Token_Arrays.Vector;
    begin
-      Reduce_Stack (Stack, Action, Nonterm, Tokens);
       if Action.Check = null then
+         Reduce_Stack (Stack, Action, Nonterm);
          return Ok;
       else
-         return Action.Check (Stack, Nonterm, Tokens);
+         declare
+            Tokens : Base_Token_Arrays.Vector;
+         begin
+            Reduce_Stack (Stack, Action, Nonterm, Tokens);
+            return Action.Check (Lexer, Nonterm, Tokens);
+         end;
       end if;
    end Reduce_Stack_1;
 
@@ -399,7 +416,8 @@ package body WisiToken.LR.McKenzie_Recover is
       Local_Config_Heap : in out Config_Heaps.Heap_Type;
       Config            : in     Configuration;
       Action            : in     Reduce_Action_Rec;
-      Inserted_Token    : in     Token_ID)
+      Inserted_Token    : in     Token_ID;
+      Lexer             : in     WisiToken.Lexer.Handle)
    is
       --  Perform reduce actions until get to a shift; if all succeed, add
       --  the final configuration to the heap. If any action fails, just
@@ -416,7 +434,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
 
-      if Error = Reduce_Stack_1 (New_Config_1.Stack, Action, Nonterm) then
+      if Error = Reduce_Stack_1 (New_Config_1.Stack, Action, Nonterm, Lexer) then
          return;
       end if;
 
@@ -441,7 +459,8 @@ package body WisiToken.LR.McKenzie_Recover is
                Next_Action.Item, Inserted_Token);
 
          when Reduce =>
-            Do_Reduce (Trace, Parser_Label, Table, Local_Config_Heap, New_Config_2, Next_Action.Item, Inserted_Token);
+            Do_Reduce
+              (Trace, Parser_Label, Table, Local_Config_Heap, New_Config_2, Next_Action.Item, Inserted_Token, Lexer);
 
          when Accept_It | Error =>
             null;
@@ -538,7 +557,7 @@ package body WisiToken.LR.McKenzie_Recover is
             end if;
 
          when Reduce =>
-            if Error = Reduce_Stack_1 (Check_Config.Stack, Action.Item, Nonterm) then
+            if Error = Reduce_Stack_1 (Check_Config.Stack, Action.Item, Nonterm, Shared.Shared_Parser.Lexer) then
                Keep_Going := False;
             else
                New_State := Check_Config.Stack.Peek.State;
@@ -706,7 +725,8 @@ package body WisiToken.LR.McKenzie_Recover is
                      if Trace_Parse > Extra then
                         Put_Line (Trace, Parser_Label, "try insert " & Image (ID, Trace.Descriptor.all));
                      end if;
-                     Do_Reduce (Trace, Parser_Label, Table, Local_Config_Heap, Config, Action, ID);
+                     Do_Reduce
+                       (Trace, Parser_Label, Table, Local_Config_Heap, Config, Action, ID, Shared.Shared_Parser.Lexer);
 
                   when Accept_It | Error =>
                      null;

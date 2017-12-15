@@ -49,6 +49,7 @@ procedure Wisi.Output_Ada_Emacs
    Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
    Action_Count          : in Integer;
+   Check_Count           : in Integer;
    Declare_Enum          : in Boolean)
 is
    use all type Standard.Ada.Containers.Count_Type;
@@ -958,6 +959,7 @@ is
          Put_Line
            (Integer'Image (Rule_Count) & " rules," &
               Integer'Image (Action_Count) & " actions," &
+              Integer'Image (Check_Count) & " checks," &
               WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
               Integer'Image (Data.Table_Entry_Count) & " table entries");
          Put_Line

@@ -29,7 +29,8 @@ procedure Wisi.Rules
    Lexer           : in     Lexer_Type;
    Rule_List       : in out Rule_Lists.List;
    Rule_Count      :    out Integer;
-   Action_Count    :    out Integer)
+   Action_Count    :    out Integer;
+   Check_Count     :    out Integer)
 is
    use Standard.Ada.Strings;
    use Standard.Ada.Strings.Fixed;
@@ -39,7 +40,7 @@ is
    End_If_Str : constant String := "%end if";
    If_Active  : Boolean         := False;
 
-   type State_Type is (Left_Hand_Side, Production, Action);
+   type State_Type is (Left_Hand_Side, Production, Action, Check);
    State : State_Type := Left_Hand_Side;
 
    Paren_Count   : Integer; --  For reporting unbalanced parens
@@ -200,6 +201,7 @@ begin
                   Rule.Right_Hand_Sides.Append (RHS);
                   RHS.Production.Clear;
                   RHS.Action.Clear;
+                  RHS.Check.Clear;
                   Rule_List.Append (Rule);
                   Rule.Right_Hand_Sides.Clear;
 
@@ -210,6 +212,7 @@ begin
                   Rule.Right_Hand_Sides.Append (RHS);
                   RHS.Production.Clear;
                   RHS.Action.Clear;
+                  RHS.Check.Clear;
 
                   Token_Count := 0;
 
@@ -240,9 +243,11 @@ begin
                   case Line (Cursor) is
                   when ';' =>
                      Rule.Right_Hand_Sides.Append (RHS);
+                     Rule_List.Append (Rule);
+
                      RHS.Production.Clear;
                      RHS.Action.Clear;
-                     Rule_List.Append (Rule);
+                     RHS.Check.Clear;
                      Rule.Right_Hand_Sides.Clear;
 
                      State         := Left_Hand_Side;
@@ -257,6 +262,82 @@ begin
                      State := Production;
                      RHS.Production.Clear;
                      RHS.Action.Clear;
+                     RHS.Check.Clear;
+
+                     Cursor := Index_Non_Blank (Line, From => Cursor + 1);
+                     Need_New_Line := Cursor = 0;
+
+                  when '(' =>
+                     State         := Check;
+                     Need_New_Line := True;
+                     Paren_Count   := 0;
+                     Bracket_Count := 0;
+
+                     Check_Numbers (Line);
+                     Update_Paren_Count (Line);
+
+                     if Output_Language in Elisp | Ada_Emacs then
+                        --  keep parens
+                        RHS.Check := RHS.Check + Line;
+
+                     elsif Paren_Count = 0 then
+                        --  Current line also has the terminating ')'; assume no trailing whitespace
+                        RHS.Check := RHS.Check + Line (Line'First + 1 .. Line'Last - 1);
+
+                     else
+                        RHS.Check := RHS.Check + Line (Line'First + 1 .. Line'Last);
+                     end if;
+
+                     Check_Count := Check_Count + 1;
+
+                  when others =>
+                     raise Syntax_Error with "expecting '(', '|', or ';'";
+                  end case;
+
+               else
+                  Update_Paren_Count (Line);
+
+                  if Output_Language in Elisp | Ada_Emacs then
+                     --  keep parens
+                     RHS.Action := RHS.Action + Line;
+
+                  elsif Paren_Count = 0 then
+                     --  Current line has the terminating ')'; assume no trailing whitespace
+                     RHS.Action := RHS.Action + Line (Line'First .. Line'Last - 1);
+                  else
+                     RHS.Action := RHS.Action + Line;
+                  end if;
+
+                  Need_New_Line := True;
+
+                  Check_Numbers (Line);
+               end if;
+
+            when Check =>
+               if Paren_Count = 0 then
+                  --  Current line has the terminating ')'
+                  case Line (Cursor) is
+                  when ';' =>
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     Rule_List.Append (Rule);
+                     RHS.Production.Clear;
+                     RHS.Action.Clear;
+                     RHS.Check.Clear;
+                     Rule.Right_Hand_Sides.Clear;
+
+                     State         := Left_Hand_Side;
+                     Need_New_Line := True;
+
+                     if Bracket_Count /= 0 then
+                        raise Syntax_Error with "unbalanced brackets in action";
+                     end if;
+
+                  when '|' =>
+                     Rule.Right_Hand_Sides.Append (RHS);
+                     State := Production;
+                     RHS.Production.Clear;
+                     RHS.Action.Clear;
+                     RHS.Check.Clear;
 
                      Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                      Need_New_Line := Cursor = 0;

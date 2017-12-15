@@ -56,7 +56,7 @@ package body Wisi.Gen_Generate_Utils is
       LR1_Descriptor.Comment_ID       := Find_Kind ("comment");
       LR1_Descriptor.Left_Paren_ID    := Find_Kind ("left-paren");
       LR1_Descriptor.Right_Paren_ID   := Find_Kind ("right-paren");
-      LR1_Descriptor.Terminal_Name_ID := Find_Kind ("name");
+      LR1_Descriptor.Terminal_Name_ID := Find_Kind ("symbol");
 
       LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width          := 0;

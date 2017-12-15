@@ -833,7 +833,11 @@ package body Wisi.Gen_Output_Ada_Common is
                        ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                          elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                          else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
-                     Append (", null"); -- Semantic_Check
+                     Append (", ");
+                     Append
+                       ((if Ada_Check_Names (Action_Node.Item.LHS) = null then "null"
+                         elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
+                         else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
 
                   when WisiToken.LR.Error =>
                      Line := +"Add_Error (Table.States (" & State_Image (State_Index) & ")";
@@ -853,7 +857,11 @@ package body Wisi.Gen_Output_Ada_Common is
                           ((if Ada_Action_Names (Action_Node.Item.LHS) = null then "null"
                             elsif Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
                             else Ada_Action_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
-                        Append (", null"); -- Semantic_Check_2
+                        Append (", ");
+                        Append
+                          ((if Ada_Check_Names (Action_Node.Item.LHS) = null then "null"
+                            elsif Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index) = null then "null"
+                            else Ada_Check_Names (Action_Node.Item.LHS)(Action_Node.Item.Index).all));
 
                      when others =>
                         raise Programmer_Error with "conflict second action verb: " &
@@ -863,7 +871,7 @@ package body Wisi.Gen_Output_Ada_Common is
                end;
                Put_Line (-Line & ");");
                Indent := Base_Indent;
-               Node := Node.Next;
+               Node   := Node.Next;
             end loop;
          end Actions;
 

@@ -77,12 +77,15 @@ package WisiToken.LR is
    type Semantic_Status is (Ok, Error);
 
    type Semantic_Check is access function
-     (Stack   : in Parser_Stacks.Stack_Type;
+     (Lexer   : in WisiToken.Lexer.Handle;
       Nonterm : in Base_Token;
       Tokens  : in Base_Token_Arrays.Vector)
      return Semantic_Status;
    --  Called during error recovery to implement language-specific
    --  checks, such as block name matching in Ada.
+   --
+   --  FIXME: if don't need Parser_Stack parameter, move these
+   --  declarations elsewhere.
 
    Null_Check : constant Semantic_Check := null;
 
@@ -467,6 +470,10 @@ private
    --  Get next token from Lexer, call Semantic_State.Lexer_To_Lookahead.
    --  If it is a grammar token, return it. Otherwise, repeat.
 
+   procedure Reduce_Stack
+     (Stack   : in out Parser_Stacks.Stack_Type;
+      Action  : in     Reduce_Action_Rec;
+      Nonterm :    out Base_Token);
    procedure Reduce_Stack
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;

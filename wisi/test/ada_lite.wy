@@ -33,6 +33,8 @@ with WisiToken.Token_Line_Comment;
    State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
+%%
+with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
 %}
 
 %keyword AND "and"
@@ -114,6 +116,7 @@ with WisiToken.Token_Line_Comment;
 ;;
 ;; IDENTIFIER is here, so if we are inserting an expression, it is
 ;; prefered over "null".
+%mckenzie_cost_insert BEGIN 3
 %mckenzie_cost_insert CASE 3
 %mckenzie_cost_insert DECLARE 3
 %mckenzie_cost_insert ELSE 3
@@ -142,8 +145,7 @@ with WisiToken.Token_Line_Comment;
 %mckenzie_cost_delete END 1
 
 ;; Prefer insert these over everything; lets us finish a
-;; subprogram body.
-%mckenzie_cost_insert BEGIN 1
+;; statement.
 %mckenzie_cost_insert END 1
 %mckenzie_cost_insert SEMICOLON 1
 
@@ -194,16 +196,24 @@ association_list
   | association_list COMMA association_opt
   ;
 
-binary_adding_operator : PLUS | MINUS ; ;; + | -
+binary_adding_operator :
+    PLUS
+  | MINUS
+  ; ;; + | -
 
 block_statement
   : DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
   | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
   ;
 
-body_g : proper_body | body_stub;
+body_g :
+    proper_body
+  | body_stub
+  ;
 
-body_stub : subprogram_body_stub;
+body_stub :
+    subprogram_body_stub
+  ;
 
 case_statement
   : CASE expression_opt IS case_statement_alternative_list END CASE SEMICOLON
@@ -528,6 +538,7 @@ subprogram_body
   : subprogram_specification aspect_specification_opt IS declarative_part_opt BEGIN
     handled_sequence_of_statements END name_opt SEMICOLON
     (Action_Count (+subprogram_body_ID) := Action_Count (+subprogram_body_ID) + 1;)
+    (return Match_Names (Lexer, Tokens, 1, 8, True);)
   ;
 
 subprogram_body_stub

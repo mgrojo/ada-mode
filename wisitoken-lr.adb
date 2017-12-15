@@ -674,6 +674,29 @@ package body WisiToken.LR is
    procedure Reduce_Stack
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;
+      Nonterm :    out Base_Token)
+   is
+      Name_Count : Integer := 0;
+   begin
+      Nonterm := (Action.LHS, Null_Buffer_Region);
+      for I in reverse 1 .. Action.Token_Count loop
+         declare
+            Token : constant Base_Token := Stack.Pop.Token;
+         begin
+            if Token.Name /= Null_Buffer_Region then
+               Name_Count   := Name_Count + 1;
+               Nonterm.Name := Token.Name;
+            end if;
+         end;
+      end loop;
+      if Name_Count > 1 then
+         Nonterm.Name := Null_Buffer_Region;
+      end if;
+   end Reduce_Stack;
+
+   procedure Reduce_Stack
+     (Stack   : in out Parser_Stacks.Stack_Type;
+      Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token;
       Tokens  :    out Base_Token_Arrays.Vector)
    is

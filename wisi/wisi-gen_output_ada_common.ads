@@ -70,8 +70,9 @@ package Wisi.Gen_Output_Ada_Common is
    type Action_Name_List_Access is access Action_Name_List;
    type Nonterminal_Array_Action_Names is array (Generate_Utils.Nonterminal_ID) of Action_Name_List_Access;
    Ada_Action_Names : Nonterminal_Array_Action_Names;
-   --  Ada names of subprograms for each grammar semantic action;
-   --  non-null only if there is an action in the grammar.
+   Ada_Check_Names : Nonterminal_Array_Action_Names;
+   --  Ada names of subprograms for each grammar semantic action and check;
+   --  non-null only if there is an action or check in the grammar.
 
    Parsers : array (Single_Parser_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
 

@@ -10,11 +10,31 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
-add token byte_region and name to core parser, to allow name matching in error recovery
-    time it; signficant slowdown (sigh)
+do block name matching
+    ada-mode/wisi/test/subprograms.wy
+        add to wisi-output_ada_emacs.adb
+
+    ada_mode-recover_match_names.adb
+        add match_name in ada.wy
+            move label into block_statement, loop_statement
+                affects indentation logic; hope tests catch all cases
+
+        change check_limit to 4 in ada.wy; doc required for this
+            check that it is required first
+
+
+why does test_mckenzie_recover.adb Match_Name fail at eof with check_limit < 4?
+    similar question for slow_recover_2.adb
 
 move token_line_comment into wisitoken.semantic_state.token; no need for dispatching/classwide token type
     augmented_token_array can be definite
+
+delete Index from Semantic_Action
+
+if full parse fails, go back to successful error recover and find more expensive solutions
+    save full config_heap after successful error recover
+
+try kim-choe for ada_mode/test/slow_recover_2.adb (before name matching)
 
 reorganize into three package hierarchies:
     wisitoken.parse - parser runtime
@@ -22,48 +42,6 @@ reorganize into three package hierarchies:
     wisitoken.wisi - translate.wy files into production list, source code
 
     semantic_state.recover_data should be mckenzie configuration; no need for pointer
-
-do block name matching
-    ada_mode/test/slow_recover_2.adb
-        error is typed "loop;" instead of "end loop;"
-        should pop loop, insert "end loop"; enqueues cost 9, never checks it
-
-        finds 3 cost 6 solutions:
-        6, (636 : RETURN, )| 1|()()(BEGIN, RETURN)()
-        6, (628 : EXIT, )| 1|()()(BEGIN, EXIT)()
-        6, (640 : IDENTIFIER, )| 1|()()(BEGIN, IDENTIFIER)()
-
-        acceptable because the inserted BEGIN pairs with the exising 'end Remove;'
-        add wisi-name-match action to prevent that
-            need mechanism to feed action result to parser action, at least in mckenzie
-                oops, don't execute parser actions in mckenzie
-                so add a class of actions that is; semantic_check
-                config.stack is just token_id, no augmented info
-                would have to merge token_line_comment into parser-lr to make that work
-
-            that's why mckenzie paper talked about resuming real parse, re-enter error recover if it failed.
-                worse for us if pending
-                    could execute semantic_check during pending
-                        which means it is a separate action pointer in the parse table
-                        could put buffer_region in main parse stack, to allow getting names
-
-
-    test_mckenzie_recover.adb Match_Name reproduces problem with ada_lite
-        enqueues 'pop LOOP insert END', never enqueues 'pop LOOP insert END LOOP'
-            because it succeeds with cost 3
-
-    in ada_lite.wy and ada.wy, need to move label into block_statement, loop_statement
-        easy in ada_lite; affects indentation logic in ada
-
-delete Index from Semantic_Action
-
-mckenzie keep going until heap.min_key > results.min_key
-    avoid race condition; slow worker can add new low-cost solutions
-
-if full parse fails, go back to successful error recover and find more expensive solutions
-    save full config_heap after successful error recover
-
-try kim-choe for ada_mode/test/slow_recover_2.adb (before name matching)
 
 
 do multi-cpu parsing?
@@ -131,15 +109,14 @@ improve mckenzie
             but this case is not slow now;
                 'if a = 5 then' => queue 90
 
-    run mckenzie in parallel, take first success, kill other parsers
-        for i in 1 .. cost_limit
-            do each parser (i)
-        end loop
-
-        helps conflict resolve, but not ada_mode-recover_indent_3
-
     prune duplicate/higher cost configs?
         only needed for higher cost levels
+
+    cost for pop empty nonterm should be zero
+        need byte_range in parser
+            could get it from semantic_state, unless pending.
+        wait til we find a test case that needs it
+
 
 new test cases:
 

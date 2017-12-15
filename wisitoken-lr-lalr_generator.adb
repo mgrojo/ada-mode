@@ -751,17 +751,17 @@ package body WisiToken.LR.LALR_Generator is
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line ("unknown conflicts:");
-         Put (Descriptor, Unknown_Conflicts);
-         Ada.Text_IO.New_Line;
-         Generator_Utils.Error := not Ignore_Unknown_Conflicts;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
+         Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line ("excess known conflicts:");
-         Put (Descriptor, Known_Conflicts_Edit);
-         Ada.Text_IO.New_Line;
-         Generator_Utils.Error := not Ignore_Unknown_Conflicts;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
+         Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Generator_Utils.Error then

@@ -33,7 +33,11 @@ package body Test_McKenzie_Recover is
 
    Parser : WisiToken.LR.Instance;
 
-   Orig_Cost_Limit  : Integer;
+   Orig_Params : WisiToken.LR.McKenzie_Param_Type
+     (First_Terminal    => Ada_Lite.Descriptor.First_Terminal,
+      Last_Terminal     => Ada_Lite.Descriptor.Last_Terminal,
+      First_Nonterminal => Ada_Lite.Descriptor.First_Nonterminal,
+      Last_Nonterminal  => Ada_Lite.Descriptor.Last_Nonterminal);
 
    procedure Parse_Text (Text : in String; Debug : in Integer)
    is begin
@@ -676,19 +680,33 @@ package body Test_McKenzie_Recover is
       --  Test that block name matching is used to reject some solutions
       --  during error recovery.
 
+      Parser.Table.McKenzie_Param.Check_Limit := 4;
+      --  Force checking solution thru '; end Remove;'
+
       Parse_Text
         ("procedure Remove is begin loop A := B; loop; end Remove;",
          --        |10       |20       |30       |40       |50
          Test.Debug);
-      --  typed 'loop;' instead of 'end loop;'
+      --  Typed 'loop;' instead of 'end loop;'
       --
-      --  This used to fail error recovery.
-
-      Assert (False, "1 exception: did not get Syntax_Error");
+      --  Error at ';' 44. Desired solutions are:
+      --
+      --  (pop loop)(insert 'end loop ')
+      --
+      --  or
+      --
+      --  (insert 'end loop ; end loop ')
+      --
+      --  both cost 7. With help from the Match_Name semantic check, and
+      --  cost_limit 4, this finds both. The ambiguity is resolved by
+      --  a duplicate parse state.
+      --
+      --  This used to fail recovery, so the test is there is no
+      --  Syntax_Error.
 
    exception
    when WisiToken.Syntax_Error =>
-      null;
+      Assert (False, "1 exception: got Syntax_Error");
    end Match_Name;
 
    ----------
@@ -730,13 +748,16 @@ package body Test_McKenzie_Recover is
    begin
       --  Run before all tests in register
       Ada_Lite.Create_Parser (Parser, WisiToken.LALR, Ada_Lite.State'Access);
-      Orig_Cost_Limit := Parser.Table.McKenzie_Param.Cost_Limit;
+      Orig_Params := Parser.Table.McKenzie_Param;
    end Set_Up_Case;
 
    overriding procedure Set_Up (T : in out Test_Case)
    is begin
       --  Run before each test
-      Parser.Table.McKenzie_Param.Cost_Limit := (if T.Cost_Limit = Natural'Last then Orig_Cost_Limit else T.Cost_Limit);
+      Parser.Table.McKenzie_Param := Orig_Params;
+      if T.Cost_Limit /= Natural'Last then
+         Parser.Table.McKenzie_Param.Cost_Limit := T.Cost_Limit;
+      end if;
    end Set_Up;
 
 end Test_McKenzie_Recover;

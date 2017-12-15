@@ -490,10 +490,13 @@ package body WisiToken.LR.Generator_Utils is
         Known.On = Item.On;
    end Match;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict_Lists.List)
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor'Class)
    is begin
       for Conflict of Item loop
-         Ada.Text_IO.Put_Line (Image (Descriptor, Conflict));
+         Ada.Text_IO.Put_Line (File, Image (Descriptor, Conflict));
       end loop;
    end Put;
 

@@ -115,6 +115,9 @@ package WisiToken.LR.Generator_Utils is
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict_Lists.List);
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor'Class);
 
 end WisiToken.LR.Generator_Utils;
