@@ -358,7 +358,7 @@ package body WisiToken.Token_Region is
          Virtual     => False,
          Line        => Invalid_Line_Number,
          Col         => 0,
-         Byte_Region => Null_Buffer_Region,
+         Byte_Region => Nonterm.Byte_Region,
          Char_Region => Null_Buffer_Region);
 
       Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor
@@ -390,14 +390,6 @@ package body WisiToken.Token_Region is
 
             if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
                Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.First > Aug_Token.Byte_Region.First then
-               Aug_Nonterm.Byte_Region.First := Aug_Token.Byte_Region.First;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.Last < Aug_Token.Byte_Region.Last then
-               Aug_Nonterm.Byte_Region.Last := Aug_Token.Byte_Region.Last;
             end if;
          end;
 

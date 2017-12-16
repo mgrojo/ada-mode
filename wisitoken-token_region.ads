@@ -30,7 +30,6 @@ package WisiToken.Token_Region is
    type Token is new WisiToken.Semantic_State.Augmented_Token with record
       Line        : Line_Number_Type  := Invalid_Line_Number;
       Col         : Ada.Text_IO.Count := 0;
-      Byte_Region : Buffer_Region     := Null_Buffer_Region;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
    end record;
 

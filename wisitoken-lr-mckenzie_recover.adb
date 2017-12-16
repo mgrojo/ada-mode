@@ -382,7 +382,7 @@ package body WisiToken.LR.McKenzie_Recover is
          Put_Line (Trace, Parser_Label, Image (Config.Stack, Trace.Descriptor.all));
          Put_Line (Trace, Parser_Label, Image (Action, Trace.Descriptor.all));
       end if;
-      Config.Stack.Push ((Action.State, (Inserted_Token, Null_Buffer_Region)));
+      Config.Stack.Push ((Action.State, (Inserted_Token, Null_Buffer_Region, Null_Buffer_Region)));
       Config.Inserted.Append (Inserted_Token);
       Config.Cost := Config.Cost + McKenzie_Param.Insert (Inserted_Token);
       Local_Config_Heap.Add (Config);
@@ -547,7 +547,9 @@ package body WisiToken.LR.McKenzie_Recover is
             then
                --  These don't count towards Check_Limit
                Check_Config.Local_Lookahead_Index := Check_Config.Local_Lookahead_Index + 1;
-               Check_Token := (Check_Config.Local_Lookahead (Check_Config.Local_Lookahead_Index), Null_Buffer_Region);
+               Check_Token :=
+                 (Check_Config.Local_Lookahead (Check_Config.Local_Lookahead_Index),
+                  Null_Buffer_Region, Null_Buffer_Region);
                Last_Token_Virtual := True;
             else
                if not Last_Token_Virtual then
@@ -673,7 +675,8 @@ package body WisiToken.LR.McKenzie_Recover is
       if Config.Local_Lookahead_Index /= Fast_Token_ID_Vectors.No_Index and
         Config.Local_Lookahead_Index <= Config.Local_Lookahead.Last_Index
       then
-         Current_Input := (Config.Local_Lookahead (Config.Local_Lookahead_Index), Null_Buffer_Region);
+         Current_Input :=
+           (Config.Local_Lookahead (Config.Local_Lookahead_Index), Null_Buffer_Region, Null_Buffer_Region);
       else
          Current_Input := Shared.Get_Token (Config.Shared_Lookahead_Index);
       end if;
@@ -689,15 +692,18 @@ package body WisiToken.LR.McKenzie_Recover is
       then
          --  Try deleting stack top
          declare
-            Deleted_ID : constant Token_ID := Config.Stack.Peek.Token.ID;
+            Deleted_Token : Base_Token renames Config.Stack.Peek.Token;
          begin
             New_Config      := Config;
             New_Config.Stack.Pop;
-            New_Config.Cost := New_Config.Cost + McKenzie_Param.Delete (Deleted_ID);
+            New_Config.Cost := New_Config.Cost +
+              (if Deleted_Token.Byte_Region = Null_Buffer_Region
+               then 0
+               else McKenzie_Param.Delete (Deleted_Token.ID));
 
-            New_Config.Popped.Append (Deleted_ID);
+            New_Config.Popped.Append (Deleted_Token.ID);
             if Trace_Parse > Extra then
-               Put_Line (Trace, Parser_Label, "pop " & Image (Deleted_ID, Trace.Descriptor.all));
+               Put_Line (Trace, Parser_Label, "pop " & Image (Deleted_Token, Trace.Descriptor.all));
             end if;
 
             Local_Config_Heap.Add (New_Config);
@@ -1183,11 +1189,11 @@ package body WisiToken.LR.McKenzie_Recover is
                   end loop;
 
                   for ID of reverse Result.Local_Lookahead loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
                   end loop;
 
                   for ID of reverse Result.Inserted loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
                   end loop;
 
                   Pend
@@ -1222,11 +1228,11 @@ package body WisiToken.LR.McKenzie_Recover is
                   --  We use Parser_State.Local_Lookahead even when there is only one
                   --  parser, so main loop knows these are virtual tokens.
                   for ID of reverse Result.Local_Lookahead loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
                   end loop;
 
                   for ID of reverse Result.Inserted loop
-                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region));
+                     Parser_State.Local_Lookahead.Add_To_Head ((ID, Null_Buffer_Region, Null_Buffer_Region));
                   end loop;
 
                   Shared_Parser.Semantic_State.Recover (Parser_State.Label, Result);

@@ -77,12 +77,20 @@ package body Wisi.Gen_Generate_Utils is
          end if;
       end loop;
 
+      --  We can't use Find_Token_ID until Image is fully set.
+      if Standard.Ada.Strings.Unbounded.Length (Tokens.Nonterminal_Name) = 0 then
+         LR1_Descriptor.Nonterminal_Name_ID := Invalid_Token_ID;
+      else
+         LR1_Descriptor.Nonterminal_Name_ID := Find_Token_ID (-Tokens.Nonterminal_Name);
+      end if;
+
       LALR_Descriptor.New_Line_ID          := LR1_Descriptor.New_Line_ID;
       LALR_Descriptor.Comment_ID           := LR1_Descriptor.Comment_ID;
       LALR_Descriptor.Left_Paren_ID        := LR1_Descriptor.Left_Paren_ID;
       LALR_Descriptor.Right_Paren_ID       := LR1_Descriptor.Right_Paren_ID;
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
       LALR_Descriptor.Terminal_Name_ID     := LR1_Descriptor.Terminal_Name_ID;
+      LALR_Descriptor.Nonterminal_Name_ID  := LR1_Descriptor.Nonterminal_Name_ID;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
    end Set_Token_Images;

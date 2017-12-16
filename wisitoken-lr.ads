@@ -58,7 +58,7 @@ package WisiToken.LR is
       State : Unknown_State_Index;
       Token : Base_Token;
    end record;
-   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, (Invalid_Token_ID, Null_Buffer_Region));
+   Default_Parser_Stack_Item : constant Parser_Stack_Item := (Unknown_State, Invalid_Token);
 
    package Parser_Stacks is new SAL.Gen_Unbounded_Definite_Stacks (Parser_Stack_Item);
 

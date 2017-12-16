@@ -126,6 +126,7 @@ package body Wisi.Gen_Output_Ada_Common is
       Indent_Line ("Left_Paren_ID       =>" & WisiToken.Token_ID'Image (Descriptor.Left_Paren_ID) & ",");
       Indent_Line ("Right_Paren_ID      =>" & WisiToken.Token_ID'Image (Descriptor.Right_Paren_ID) & ",");
       Indent_Line ("Terminal_Name_ID    =>" & WisiToken.Token_ID'Image (Descriptor.Terminal_Name_ID) & ",");
+      Indent_Line ("Nonterminal_Name_ID =>" & WisiToken.Token_ID'Image (Descriptor.Nonterminal_Name_ID) & ",");
       Indent_Line ("Image               =>");
       declare
          use Standard.Ada.Strings.Unbounded;

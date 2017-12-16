@@ -38,14 +38,14 @@ package body WisiToken.LR.Parser_Lists is
    is
       Stack : Parser_Stacks.Stack_Type;
    begin
-      Stack.Push ((First_State_Index, (Invalid_Token_ID, Null_Buffer_Region)));
+      Stack.Push ((First_State_Index, Invalid_Token));
 
       return Result : List
       do
          Result.Parser_Label := First_Parser_Label;
 
          Result.Elements.Append
-           ((Current_Token            => (Invalid_Token_ID, Null_Buffer_Region),
+           ((Current_Token            => Invalid_Token,
              Current_Token_Is_Virtual => False,
              Last_Shift_Was_Virtual   => False,
              Stack                    => Stack,

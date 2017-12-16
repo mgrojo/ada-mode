@@ -51,8 +51,9 @@ is
    McKenzie_Cost_Delete_Str      : constant String := "%mckenzie_cost_delete";
    McKenzie_Cost_Insert_Str      : constant String := "%mckenzie_cost_insert";
    McKenzie_Cost_Limit_Str       : constant String := "%mckenzie_cost_limit";
-   Output_Language_Str           : constant String := "%output_language";
    Non_Grammar_Str               : constant String := "%non_grammar";
+   Nonterminal_Symbol_Str        : constant String := "%nonterminal_symbol";
+   Output_Language_Str           : constant String := "%output_language";
    Parser_Algorithm_Str          : constant String := "%parser_algorithm";
    Recover_Pattern_1_Str         : constant String := "%recover_pattern_1";
    Recover_Pattern_2_Str         : constant String := "%recover_pattern_2";
@@ -284,6 +285,13 @@ begin
          elsif Match (Non_Grammar_Str) then
             --  Same syntax as Token_Str
             Parse_Kind_Value (Tokens.Non_Grammar);
+
+         elsif Match (Nonterminal_Symbol_Str) then
+            declare
+               Value_First : constant Integer := Index_Non_Blank (Line, Key_Last + 1);
+            begin
+               Tokens.Nonterminal_Name := +Line (Value_First .. Line'Last);
+            end;
 
          elsif Match (Parser_Algorithm_Str) then
             if Generate_Params.Parser_Algorithm = None then

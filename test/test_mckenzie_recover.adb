@@ -533,7 +533,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+IDENTIFIER_ID, WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25), (23, 25)));
+            (+IDENTIFIER_ID, (23, 25), WisiToken.Null_Buffer_Region, False, 1, 22, (23, 25)));
       end;
 
    exception
@@ -556,7 +556,7 @@ package body Test_McKenzie_Recover is
         ("procedure One is begin if  and B then C; end if; end;",
          --        |10       |20       |30       |40       |50
          Test.Debug);
-      --  Missing and expression between 'if' and 'and'.
+      --  Missing an expression between 'if' and 'and'.
       --
       --  Spawns a second parser on 'is'; one for procedure body, one for
       --  generic instantiation. Both are still around when the error is
@@ -573,7 +573,7 @@ package body Test_McKenzie_Recover is
          Check
            ("errors.error_token",
             Element (Cursor).Error_Token,
-            (+AND_ID, WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30), (28, 30)));
+            (+AND_ID, (28, 30), WisiToken.Null_Buffer_Region, False, 1, 27, (28, 30)));
       end;
 
    exception
@@ -606,29 +606,21 @@ package body Test_McKenzie_Recover is
       --  Enters error recovery at 'if' 76, with two parsers active; one for
       --  subprogram_body, the other for subprogram_body_stub.
       --
-      --  The subprogram_body parser inserts 'end; begin', terminating
-      --  Process_Text_File and starting the sequence_of_statements for
-      --  Journal_To_TSV. The subprogram_body_stub fails error recovery.
-      --
-      --  The subprogram_body parser proceeds to 'begin' 115, expecting EOF.
-      --  It inserts 'procedure IDENTIFIER is' and continues.
+      --  The subprogram_body parser pops 'exception,
+      --  sequence_of_statement_opt' cost 4 (since
+      --  sequence_of_statements_opt is empty), and continues to EOF.
 
-      Check ("1 errors.length", State.Active_Error_List.Length, 2);
+      Check ("1 errors.length", State.Active_Error_List.Length, 1);
       declare
          use WisiToken.Token_Region;
          use WisiToken.Token_Region.Error_Data_Lists;
          Error_List : Error_Data_Lists.List renames Ada_Lite.State.Active_Error_List.Element.all;
-         Cursor : Error_Data_Lists.Cursor := Error_List.First;
+         Cursor : constant Error_Data_Lists.Cursor := Error_List.First;
       begin
          Check
            ("errors 1.error_token",
             Element (Cursor).Error_Token,
-            (+IF_ID, WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77), (76, 77)));
-         Next (Cursor);
-         Check
-           ("errors 2.error_token",
-            Element (Cursor).Error_Token,
-            (+BEGIN_ID, WisiToken.Null_Buffer_Region, False, 1, 114, (115, 119), (115, 119)));
+            (+IF_ID, (76, 77), WisiToken.Null_Buffer_Region, False, 1, 75, (76, 77)));
       end;
 
    exception

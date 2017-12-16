@@ -85,7 +85,10 @@ package WisiToken is
       Left_Paren_ID       : Token_ID;
       Right_Paren_ID      : Token_ID;
       Terminal_Name_ID    : Token_ID;
-      --  Terminal_Name_ID is a simple identifier; see Base_Token.Name below.
+      Nonterminal_Name_ID : Token_ID;
+      --  Terminal_Name_ID is a simple identifier; Nonterminal_Name_ID is a
+      --  longer name composed of Terminal_Name_IDs and punctuation. see
+      --  Base_Token.Name below.
       --
       --  If the language does not define these tokens, set them to
       --  Invalid_Token_ID.
@@ -188,18 +191,24 @@ package WisiToken is
    package Region_Lists is new Ada.Containers.Doubly_Linked_Lists (Buffer_Region);
 
    type Base_Token is tagged record
-      --  Base_Token is used in the core parser and error recovery; one
-      --  error recovery algorithm matches names, so it needs references to
-      --  the actual input text. We do not include all of the information
-      --  used by the semantic actions here, because thousands of copies of
-      --  the parser stack can be made during error recovery, so minimizing
-      --  its size is important. Only one copy of the full semantic parser
-      --  stack is maintained; see WisiToken.Token_Line_Comment.
+      --  Base_Token is used in the core parser and error recovery. The cost
+      --  of deleting a token in error recovery depends on whether it is
+      --  empty or not, se we need Byte_Region. One error recovery algorithm
+      --  matches names, so it needs references to the actual input text, in
+      --  Name.
+      --
+      --  We do not include all of the information used by the semantic
+      --  actions here, because thousands of copies of the parser stack can
+      --  be made during error recovery, so minimizing its size is
+      --  important. Only one copy of the full semantic parser stack is
+      --  maintained; see WisiToken.Semantic_State.
 
-      ID   : Token_ID      := Invalid_Token_ID;
-      Name : Buffer_Region := Null_Buffer_Region;
-      --  Name is set if ID is Descriptor.Terminal_Name_ID, or is a higher
-      --  level nonterminal containing exactly one token with Name set.
+      ID          : Token_ID      := Invalid_Token_ID;
+      Byte_Region : Buffer_Region := Null_Buffer_Region;
+      Name        : Buffer_Region := Null_Buffer_Region;
+      --  Name is set if ID is Descriptor.Terminal_Name_ID or
+      --  Descriptor.Nonterminal_Name_ID, or is a higher level nonterminal
+      --  containing exactly one token with Name set.
    end record;
 
    function Image
@@ -207,6 +216,8 @@ package WisiToken is
       Descriptor : in WisiToken.Descriptor'Class;
       ID_Only    : in Boolean := False)
      return String;
+
+   Invalid_Token : constant Base_Token := (others => <>);
 
    package Base_Token_Arrays is new Ada.Containers.Vectors (Positive_Index_Type, Base_Token);
 

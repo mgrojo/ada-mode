@@ -53,6 +53,7 @@ package WisiToken.Gen_Token_Enum is
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
       Terminal_Name_ID     => Invalid_Token_ID,
+      Nonterminal_Name_ID  => Invalid_Token_ID,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,
       Image_Width          => Token_Enum_ID'Width);
@@ -69,6 +70,7 @@ package WisiToken.Gen_Token_Enum is
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
       Terminal_Name_ID     => Invalid_Token_ID,
+      Nonterminal_Name_ID  => Invalid_Token_ID,
       Propagate_ID         => +First_Nonterminal,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,

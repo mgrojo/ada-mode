@@ -299,7 +299,7 @@ package body WisiToken.Token_Line_Comment is
          Virtual                     => False,
          Line                        => Invalid_Line_Number,
          Col                         => 0,
-         Byte_Region                 => Null_Buffer_Region,
+         Byte_Region                 => Nonterm.Byte_Region,
          Char_Region                 => Null_Buffer_Region,
          First                       => False,
          First_All_Tokens_Index      => Invalid_All_Tokens_Index,
@@ -379,14 +379,6 @@ package body WisiToken.Token_Line_Comment is
 
             if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
                Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.First > Aug_Token.Byte_Region.First then
-               Aug_Nonterm.Byte_Region.First := Aug_Token.Byte_Region.First;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.Last < Aug_Token.Byte_Region.Last then
-               Aug_Nonterm.Byte_Region.Last := Aug_Token.Byte_Region.Last;
             end if;
          end;
 

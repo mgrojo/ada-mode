@@ -660,6 +660,7 @@ package body WisiToken.LR is
    begin
       loop
          Token.ID := Lexer.Find_Next;
+         Token.Byte_Region := Lexer.Byte_Region;
          if Token.ID = Semantic_State.Trace.Descriptor.Terminal_Name_ID then
             Token.Name := Lexer.Byte_Region;
          end if;
@@ -678,11 +679,19 @@ package body WisiToken.LR is
    is
       Name_Count : Integer := 0;
    begin
-      Nonterm := (Action.LHS, Null_Buffer_Region);
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
       for I in reverse 1 .. Action.Token_Count loop
          declare
             Token : constant Base_Token := Stack.Pop.Token;
          begin
+            if Nonterm.Byte_Region.First > Token.Byte_Region.First then
+               Nonterm.Byte_Region.First := Token.Byte_Region.First;
+            end if;
+
+            if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
+               Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
+            end if;
+
             if Token.Name /= Null_Buffer_Region then
                Name_Count   := Name_Count + 1;
                Nonterm.Name := Token.Name;
@@ -702,13 +711,22 @@ package body WisiToken.LR is
    is
       Name_Count : Integer := 0;
    begin
-      Nonterm := (Action.LHS, Null_Buffer_Region);
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
       Tokens.Set_Length (Action.Token_Count);
       for I in reverse 1 .. Action.Token_Count loop
          declare
             Token : constant Base_Token := Stack.Pop.Token;
          begin
             Tokens.Replace_Element (I, Token);
+
+            if Nonterm.Byte_Region.First > Token.Byte_Region.First then
+               Nonterm.Byte_Region.First := Token.Byte_Region.First;
+            end if;
+
+            if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
+               Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
+            end if;
+
             if Token.Name /= Null_Buffer_Region then
                Name_Count   := Name_Count + 1;
                Nonterm.Name := Token.Name;

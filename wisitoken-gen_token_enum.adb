@@ -132,7 +132,12 @@ package body WisiToken.Gen_Token_Enum is
       begin
          for Token of Item loop
             Result.Append
-              (Augmented_Token'(ID => Token.ID, Name => Token.Name, Enum_ID => -Token.ID, Virtual => False));
+              (Augmented_Token'
+                 (ID          => Token.ID,
+                  Byte_Region => Token.Byte_Region,
+                  Name        => Token.Name,
+                  Enum_ID     => -Token.ID,
+                  Virtual     => False));
          end loop;
          return Result;
       end To_Augmented;
@@ -146,7 +151,11 @@ package body WisiToken.Gen_Token_Enum is
       if Action /= null then
          Action
            (Augmented_Token'
-              (ID => Nonterm.ID, Name => Null_Buffer_Region, Enum_ID => Enum_Nonterm_ID, Virtual => False),
+              (ID          => Nonterm.ID,
+               Byte_Region => Nonterm.Byte_Region,
+               Name        => Nonterm.Name,
+               Enum_ID     => Enum_Nonterm_ID,
+               Virtual     => False),
             Index, Augmented_Tokens);
       end if;
    end Reduce_Stack;

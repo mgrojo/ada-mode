@@ -26,7 +26,7 @@ package body WisiToken.AUnit is
       do
          Result.Reserve_Capacity (Item'Length);
          for I of Item loop
-            Result.Append ((I, Null_Buffer_Region));
+            Result.Append ((I, Null_Buffer_Region, Null_Buffer_Region));
          end loop;
       end return;
    end To_Base_Token_Array;

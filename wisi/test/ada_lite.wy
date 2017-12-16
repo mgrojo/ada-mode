@@ -88,6 +88,7 @@ with WisiToken.Token_Line_Comment;
 
 %token <number> NUMERIC_LITERAL [0-9]+
 %token <symbol> IDENTIFIER [a-zA-Z][0-9a-zA-Z_]*
+%nonterminal_symbol selected_component
 
 %non_grammar <non-reporting> WHITESPACE [ \t]
 %non_grammar <new-line> NEW_LINE [\n]

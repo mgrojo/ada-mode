@@ -211,10 +211,11 @@ package Wisi is
    package Rule_Lists is new Standard.Ada.Containers.Doubly_Linked_Lists (Rule_Type);
 
    type Tokens is record
-      Non_Grammar : Token_Lists.List;
-      Keywords    : String_Pair_Lists.List;
-      Tokens      : Token_Lists.List;
-      Rules       : Rule_Lists.List;
+      Non_Grammar      : Token_Lists.List;
+      Keywords         : String_Pair_Lists.List;
+      Tokens           : Token_Lists.List;
+      Rules            : Rule_Lists.List;
+      Nonterminal_Name : Standard.Ada.Strings.Unbounded.Unbounded_String;
       --  Rules included here because they define the nonterminal tokens, as
       --  well as the productions.
    end record;
