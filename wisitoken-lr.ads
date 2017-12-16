@@ -77,9 +77,8 @@ package WisiToken.LR is
    type Semantic_Status is (Ok, Error);
 
    type Semantic_Check is access function
-     (Lexer   : in WisiToken.Lexer.Handle;
-      Nonterm : in Base_Token;
-      Tokens  : in Base_Token_Arrays.Vector)
+     (Lexer  : in WisiToken.Lexer.Handle;
+      Tokens : in Base_Token_Arrays.Vector)
      return Semantic_Status;
    --  Called during error recovery to implement language-specific
    --  checks, such as block name matching in Ada.

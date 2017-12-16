@@ -104,6 +104,9 @@ is
 
       Put_Line ("with WisiToken.Lexer.re2c;");
       Put_Line ("with WisiToken.LR.Parser;");
+      if Check_Count > 0 then
+         Put_Line ("with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;");
+      end if;
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
@@ -118,21 +121,22 @@ is
       Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
-      --  generate Action and Check subprograms, populate Ada_Action_Names. Ada_Check_Names.
+      --  generate Action and Check subprograms, populate Ada_Action_Names.
+      --  Ada_Check_Names.
 
       for Rule of Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
-
          declare
             use all type Standard.Ada.Containers.Count_Type;
 
-            LHS_ID           : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-            Prod_Index       : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+
             Action_Names     : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
             Check_Names      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            Action_All_Empty : Boolean                     := True;
-            Check_All_Empty  : Boolean                     := True;
+            Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            Action_All_Empty : Boolean := True;
+            Check_All_Empty  : Boolean := True;
 
             function Is_Elisp (Action : in String_Lists.List) return Boolean
             is
@@ -205,15 +209,11 @@ is
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
 
                      Unref_Lexer   : Boolean := True;
-                     Unref_Nonterm : Boolean := True;
                      Unref_Tokens  : Boolean := True;
                   begin
                      for Line of RHS.Check loop
                         if 0 < Index (Line, "Lexer") then
                            Unref_Lexer := False;
-                        end if;
-                        if 0 < Index (Line, "Nonterm") then
-                           Unref_Nonterm := False;
                         end if;
                         if 0 < Index (Line, "Tokens") then
                            Unref_Tokens := False;
@@ -225,16 +225,12 @@ is
                      Check_Names (Prod_Index) := new String'(Name & "_check'Access");
                      Indent_Line ("function " & Name & "_check");
                      Indent_Line (" (Lexer   : in WisiToken.Lexer.Handle;");
-                     Indent_Line ("  Nonterm : in WisiToken.Base_Token;");
                      Indent_Line ("  Tokens  : in WisiToken.Base_Token_Arrays.Vector)");
                      Indent_Line (" return WisiToken.LR.Semantic_Status");
                      Indent_Line ("is");
 
                      if Unref_Lexer then
                         Indent_Line ("   pragma Unreferenced (Lexer);");
-                     end if;
-                     if Unref_Nonterm then
-                        Indent_Line ("   pragma Unreferenced (Nonterm);");
                      end if;
                      if Unref_Tokens then
                         Indent_Line ("   pragma Unreferenced (Tokens);");

@@ -27,12 +27,14 @@ pragma License (Modified_GPL);
 with WisiToken.Semantic_State;
 package WisiToken.LR.Parser is
 
+   Default_Max_Parallel : constant := 15;
+
    procedure New_Parser
      (Parser               :    out Instance;
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
       Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     Ada.Containers.Count_Type := 15;
+      Max_Parallel         : in     Ada.Containers.Count_Type := Default_Max_Parallel;
       First_Parser_Label   : in     Integer                   := 1;
       Terminate_Same_State : in     Boolean                   := True);
 

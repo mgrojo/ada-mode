@@ -33,8 +33,6 @@ with WisiToken.Token_Line_Comment;
    State : aliased WisiToken.Token_Line_Comment.State_Type (Trace'Access);
 
    Action_Count : array (Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal) of Integer := (others => 0);
-%%
-with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
 %}
 
 %keyword AND "and"

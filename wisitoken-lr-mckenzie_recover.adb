@@ -185,7 +185,7 @@ package body WisiToken.LR.McKenzie_Recover is
 
       procedure Finished (Parser_Label : in Natural; Success : in Boolean)
       is begin
-         if Trace_Parse > Detail then
+         if Trace_Parse > Extra then
             Put_Line (Trace.all, Parser_Label, "Supervisor: " & (if Success then "succeed" else "fail"));
          end if;
          Active_Parsers := Active_Parsers - 1;
@@ -273,6 +273,8 @@ package body WisiToken.LR.McKenzie_Recover is
                --  Can't get any more solutions with the same cost as existing ones,
                --  unless there are active workers.
                Status := Try_Later;
+            else
+               Status := Valid;
             end if;
          else
             Status := Valid;
@@ -285,9 +287,9 @@ package body WisiToken.LR.McKenzie_Recover is
 
          else
             if Active_Workers = 0 then
-               if Trace_Parse > Detail then
+               if Trace_Parse > Extra then
                   Put_Line
-                    (Trace.all, Parser_Label, "Config_Store.Get: done, " &
+                    (Trace.all, Parser_Label, "Config_Store: done, " &
                        (if Data.Success then "succeed" else "fail"));
                end if;
                Super.Finished (Parser_Label, Success => Data.Success);
@@ -404,7 +406,7 @@ package body WisiToken.LR.McKenzie_Recover is
             Tokens : Base_Token_Arrays.Vector;
          begin
             Reduce_Stack (Stack, Action, Nonterm, Tokens);
-            return Action.Check (Lexer, Nonterm, Tokens);
+            return Action.Check (Lexer, Tokens);
          end;
       end if;
    end Reduce_Stack_1;

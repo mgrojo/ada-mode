@@ -752,7 +752,7 @@ package body WisiToken.LR.Parser is
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
       Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     Ada.Containers.Count_Type := 15;
+      Max_Parallel         : in     Ada.Containers.Count_Type := Default_Max_Parallel;
       First_Parser_Label   : in     Integer                   := 1;
       Terminate_Same_State : in     Boolean                   := True)
    is begin

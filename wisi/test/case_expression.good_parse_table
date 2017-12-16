@@ -396,5 +396,5 @@ State 21:
    default           => ERROR
 
 
- 7 rules, 0 actions, 2 checks, 22 states, 52 table entries
+ 7 rules, 0 actions, 0 checks, 22 states, 52 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

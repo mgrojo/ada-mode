@@ -219,5 +219,5 @@ State 10:
    default                 => ERROR
 
 
- 4 rules, 2 actions, 10 states, 28 table entries
+ 4 rules, 2 actions, 0 checks, 10 states, 28 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

@@ -10,18 +10,40 @@ org.wisitoken.stephe-1 - translate elisp actions to Ada, used by o.e.a.s-4
   (xmtn . "c:/Projects/org.wisitoken.stephe-1")))
 
  current work
-do block name matching
-    ada-mode/wisi/test/subprograms.wy
-        add to wisi-output_ada_emacs.adb
+update NEWS.text
 
+delete empty nonterm should cost zero
+    requires byte-region in base_token
+    add that, time it.
+
+need case-insensitive compare in match-names
+    UTF-8 version
+    ASCII bytes do not appear in UTF-8 unless they are valid, so to_lower (Character) is safe
+
+do block name matching
     ada_mode-recover_match_names.adb
         add match_name in ada.wy
             move label into block_statement, loop_statement
                 affects indentation logic; hope tests catch all cases
 
-        change check_limit to 4 in ada.wy; doc required for this
-            check that it is required first
+    p ada_process.descriptor.image (tokens.elements.ea (1).id)
 
+    with loop label added, desired solution is:
+    (pop loop:4 block_label_opt:8)(insert end:1 loop:4) => cost 17
+        delete empty nonterm should cost zero
+            requires byte-region in base_token
+            add that, time it.
+
+    alternate solution:
+    (insert END:1, LOOP:4, SEMICOLON:1, END:1, LOOP:4) = cost 11
+        not found for debug!?
+            match names fails due to case mismatch; add case-insensitive?
+                not valid for UTF?
+
+selected_component has two names, so it's dropped.
+   need nonterminal_name_id
+   hard to add to test_mckenzie_recover
+   ignore this for now
 
 why does test_mckenzie_recover.adb Match_Name fail at eof with check_limit < 4?
     similar question for slow_recover_2.adb

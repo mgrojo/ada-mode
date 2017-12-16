@@ -82,6 +82,7 @@ package body Wisi.Gen_Generate_Utils is
       LALR_Descriptor.Left_Paren_ID        := LR1_Descriptor.Left_Paren_ID;
       LALR_Descriptor.Right_Paren_ID       := LR1_Descriptor.Right_Paren_ID;
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
+      LALR_Descriptor.Terminal_Name_ID     := LR1_Descriptor.Terminal_Name_ID;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
    end Set_Token_Images;

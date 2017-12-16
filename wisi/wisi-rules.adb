@@ -109,6 +109,7 @@ begin
 
    Rule_Count   := 0;
    Action_Count := 0;
+   Check_Count  := 0;
 
    loop
       declare

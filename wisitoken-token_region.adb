@@ -29,23 +29,27 @@ package body WisiToken.Token_Region is
      return String
    is
       use all type Ada.Text_IO.Count;
-      Name : constant String := WisiToken.Image (Item.ID, Descriptor);
+      ID_Image   : constant String := WisiToken.Image (Item.ID, Descriptor);
+      Name_Image : constant String :=
+        (if Item.Name = Null_Buffer_Region
+         then ""
+         else " " & Image (Item.Name));
    begin
       if ID_Only then
          --  No parens for consistency with previous unit test results.
-         return Name;
+         return ID_Image;
 
       elsif Item.Line /= Invalid_Line_Number then
-         return "(" & Name &
+         return "(" & ID_Image & Name_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
-         return "(" & Name & ")";
+         return "(" & ID_Image & Name_Image & ")";
 
       else
          --  For test result backward compatiblity, we don't call Image
          --  (Item.Region) here
-         return "(" & Name &
+         return "(" & ID_Image & Name_Image &
            Buffer_Pos'Image (Item.Char_Region.First) & " ." & Buffer_Pos'Image (Item.Char_Region.Last) & ")";
       end if;
    end Image;

@@ -264,5 +264,5 @@ State 16:
    default           => ERROR
 
 
- 4 rules, 1 actions, 16 states, 35 table entries
+ 4 rules, 1 actions, 0 checks, 16 states, 35 table entries
  0 accept/reduce conflicts, 0 shift/reduce conflicts, 0 reduce/reduce conflicts

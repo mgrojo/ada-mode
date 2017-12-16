@@ -203,7 +203,10 @@ package body WisiToken.Lexer.re2c is
 
    overriding function Char_Region (Lexer : in Instance) return Buffer_Region
    is begin
-      return (Buffer_Pos (Lexer.Char_Position), Buffer_Pos (Lexer.Char_Position + Lexer.Char_Length - 1));
+      --  In an empty buffer, char_position = 0 and char_length = 0.
+      return
+        (Buffer_Pos (Lexer.Char_Position),
+         Buffer_Pos (Integer'Max (0, Lexer.Char_Position + Lexer.Char_Length - 1)));
    end Char_Region;
 
    overriding function Byte_Region (Lexer : in Instance) return Buffer_Region
