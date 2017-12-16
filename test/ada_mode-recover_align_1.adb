@@ -10,7 +10,7 @@
 --  align process. To let the diff succeed, we first delete a couple
 --  colons.
 
---EMACSCMD:(progn (forward-line 8)(forward-word 3)(forward-word -1)(delete-char -2))
+--EMACSCMD:(progn (forward-line 7)(forward-word 3)(forward-word -1)(delete-char -2))
 --EMACSCMD:(progn (forward-line 8)(forward-word 2)(forward-word -1)(delete-char -5)(ada-align))
 --EMACSCMD:(progn (forward-line 6)(forward-word 3)(current-column))
 --EMACSRESULT: 20

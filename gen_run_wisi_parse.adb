@@ -26,7 +26,7 @@ with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
 with WisiToken.Lexer;
-with WisiToken.LR;
+with WisiToken.LR.Parser;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
@@ -58,6 +58,8 @@ is
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Check_Limit)));
+      Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
+                  Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--indent_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
@@ -119,6 +121,10 @@ begin
          elsif Argument (Arg) = "--lexer_only" then
             Lexer_Only := True;
             Arg := Arg + 1;
+
+         elsif Argument (Arg) = "--max_parallel" then
+            Parser.Max_Parallel := Ada.Containers.Count_Type'Value (Argument (Arg + 1));
+            Arg := Arg + 2;
 
          elsif Argument (Arg) = "--pause" then
             Pause := True;

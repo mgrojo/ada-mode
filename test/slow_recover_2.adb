@@ -1,4 +1,4 @@
---  real example of slow error recovery
+--  real example of slow error recovery that fails
 
 pragma License (Modified_GPL);
 
@@ -60,6 +60,7 @@ package body SAL.Gen_Unbounded_Definite_Min_Heaps_Fibonacci is
          Heap.Min.Left := X;
 
          X := X.Right;
+--  Error here; typed 'loop;' instead of 'end loop;'
          loop;
 
    end Remove;

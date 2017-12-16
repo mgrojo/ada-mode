@@ -32,7 +32,7 @@ package Gpr_Process is
       Comment_ID          => 2,
       Left_Paren_ID       => 2147483647,
       Right_Paren_ID      => 2147483647,
-      Terminal_Name_ID    => 3735744,
+      Terminal_Name_ID    => 35,
       Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
