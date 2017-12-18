@@ -149,7 +149,13 @@ plain parse, no actions:
 
         repeat timing in Debian
 
-    need emacs module, run lexer in Ada
+    16 Dec 2017:
+        process parser: re2c lexer, name in base_token, block_label_opt in block, loop
+        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
+            0.346936964, 0.341999256
+
+        add byte_region in base_token: 0.339586284, 0.341083772, 0.340257321
+
 
 consider doing all actions in one parse in process
     not helpful if dominated by communications time
@@ -170,6 +176,9 @@ mckenzie recover
     7 parallel tasks, one protected object, one solution: 0.556900752, 0.564946255, 0.580240866
     7 tasks, many protected objects, several equal cost solutions, keep last one: 0.588807432, 0.555614030, 0.591806258
     "", keep several: 0.611813538, 0.724677583, 0.659352765
+    change to Base_Token, prep for block name matching: 0.829402871, 0.822722491, 0.834653581
+
+    add match_names, block_label, loop_label; set check_limit 4; requires --max_parallel 17: 4.822095917 4.955374324
 
 parse navigate
     (wisi-time (lambda () (wisi-parse-buffer 'navigate)) 2 t); t for process stats
@@ -285,6 +294,14 @@ parse indent
 
             don't send right-hand-side tokens for reduce
                 gnatcoll-xref.adb: 10.641623 seconds 15 gcs 29461 tokens 149921 actions 0.000000 wait
+
+    16 Dec 2017:
+        process parser: name in base_token, block_label_opt in block, loop
+        ../run_ada_parse.exe c:/tmp/gnatcoll-xref.adb Indent --repeat_count 5
+            0.346936964, 0.341999256
+
+        (wisi-time-indent-middle-line-cold-cache 1 t)
+        gnatcoll-xref.adb: 1.482145 seconds 0 gcs 7251 responses 0.387635 wait
 
 compile ada_process.adb is slow
     27,000 lines total, 4000 follow, 4000 action
@@ -616,6 +633,15 @@ gdb run_ada_parse
         p ada_process.descriptor.image (token.id)
 
         p data.indents.elements.ea
+
+to change process executable for all current and future buffers:
+    in any *.adb buffer:
+    (setf (wisi-process--parser-exec-file wisi--parser)
+      "c:/Projects/org.emacs.ada-mode.stephe-4/ada_mode_wisi_parse.exe")
+
+    to undo:
+      (setf (wisi-process--parser-exec-file wisi--parser)
+        "ada_mode_wisi_parse.exe")
 
 Edebug displays
 

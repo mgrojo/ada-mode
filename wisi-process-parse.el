@@ -25,7 +25,7 @@
 (defconst wisi-process-parse-prompt "^;;> "
   "Regexp matching executable prompt; indicates previous command is complete.")
 
-(defconst wisi-process-parse-quit-cmd "04quit\n"
+(defconst wisi-process-parse-quit-cmd "004quit\n"
   "Command to external process telling it to quit.")
 
 (defvar wisi-process-parse-debug 0)

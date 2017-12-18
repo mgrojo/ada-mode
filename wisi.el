@@ -651,9 +651,7 @@ Used to ignore whitespace changes in before/after change hooks.")
       ;; Don't keep retrying failed parse until text changes again.
       (wisi-set-parse-try nil)
 
-      (wisi--run-parse)
-
-      )
+      (wisi--run-parse))
 
     ;; We want this error even if we did not try to parse; it means
     ;; the parse results are not valid.
@@ -1030,7 +1028,8 @@ Called with BEGIN END.")
   "For `indent-region-function', using the wisi indentation engine."
   (let ((wisi--parse-action 'indent)
 	(parse-required nil)
-	(end-mark (copy-marker end)))
+	(end-mark (copy-marker end))
+	(prev-indent-failed wisi-indent-failed))
 
     (wisi--check-change)
 
@@ -1056,6 +1055,10 @@ Called with BEGIN END.")
 
       (wisi-set-parse-try nil)
       (wisi--run-parse)
+
+      ;; If there were errors corrected, the indentation is
+      ;; potentially ambiguous; see test/ada_mode-interactive_2.adb
+      (setq wisi-indent-failed (> (length (wisi-parser-errors wisi--parser)) 0))
       )
 
     (if wisi-parse-failed
@@ -1087,9 +1090,11 @@ Called with BEGIN END.")
 
 	    (forward-line 1)))
 
-	(when wisi-indent-failed
-	  ;; Previous parse failed, this one succeeded.
-	  (setq wisi-indent-failed nil)
+	(when
+	    (and prev-indent-failed
+		 (not wisi-indent-failed))
+	  ;; Previous parse failed or indent was potentially
+	  ;; ambiguous, this one is not.
 	  (goto-char end-mark)
 	  (run-hooks 'wisi-post-indent-fail-hook))
 	))
