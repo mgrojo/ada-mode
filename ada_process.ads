@@ -33,6 +33,7 @@ package Ada_Process is
       Left_Paren_ID       => 76,
       Right_Paren_ID      => 77,
       Terminal_Name_ID    => 104,
+      Nonterminal_Name_ID => 304,
       Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),

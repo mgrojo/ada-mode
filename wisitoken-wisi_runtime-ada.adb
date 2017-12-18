@@ -17,7 +17,6 @@
 
 pragma License (Modified_GPL);
 
-with Ada.Containers;
 with Ada.Strings.Fixed;
 with Ada_Process; -- FIXME: module? move token_enum_id (and more?) to separate package?
 package body WisiToken.Wisi_Runtime.Ada is
@@ -94,9 +93,9 @@ package body WisiToken.Wisi_Runtime.Ada is
 
    function Peek_ID (Data : in out Wisi_Runtime.Parse_Data_Type'Class; N : in Positive_Index_Type) return Token_ID
    is
-      use all type Standard.Ada.Containers.Count_Type;
+      use all type Positive_Index_Type;
    begin
-      if N > Data.Semantic_State.Stack.Length then
+      if N > Positive_Index_Type (Data.Semantic_State.Stack.Length) then
          return Invalid_Token_ID;
       else
          return Data.Semantic_State.Stack (Data.Semantic_State.Stack.Last_Index - N + 1).ID;
@@ -312,11 +311,11 @@ package body WisiToken.Wisi_Runtime.Ada is
       Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type
    is
-      use all type Standard.Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       Subp_Tok    : Token_Line_Comment.Token renames Token_Line_Comment.Token
         (Tokens (Positive_Index_Type (Args (1).Element.all)).Element.all);
       Renames_Tok : Token_Line_Comment.Token renames Indenting;
-      Paren_I     : constant Standard.Ada.Containers.Count_Type := Token_Line_Comment.Find
+      Paren_I     : constant SAL.Base_Peek_Type := Token_Line_Comment.Find
         (Data.Semantic_State.all, Data.Semantic_State.Trace.Descriptor.Left_Paren_ID, Subp_Tok);
    begin
       if Paren_I /= Token_Line_Comment.Invalid_All_Tokens_Index then

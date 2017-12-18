@@ -19,20 +19,20 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
-with Ada.Containers;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Lexer;
+with SAL;
 with WisiToken.LR.Parser;
+with WisiToken.Lexer;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
-   use all type Ada.Containers.Count_Type;
+   use all type SAL.Base_Peek_Type;
    use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
@@ -123,7 +123,7 @@ begin
             Arg := Arg + 1;
 
          elsif Argument (Arg) = "--max_parallel" then
-            Parser.Max_Parallel := Ada.Containers.Count_Type'Value (Argument (Arg + 1));
+            Parser.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
             Arg := Arg + 2;
 
          elsif Argument (Arg) = "--pause" then

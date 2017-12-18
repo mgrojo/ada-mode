@@ -13,16 +13,16 @@ run test from emacs -Q using source:
   (setq eval-expression-debug-on-error nil)
   (add-to-list 'exec-path "d:/apps/GNAT-GPL_2017/bin")
   (setenv "PATH" (mapconcat 'identity  exec-path  path-separator))
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2")
-  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-2/build")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4")
+  (add-to-list 'load-path "/Projects/org.emacs.ada-mode.stephe-4/build")
   (setq debug-on-error t)
   (setq debug-on-quit t)
-  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-2/build/")
+  (setq default-directory "/Projects/org.emacs.ada-mode.stephe-4/build/")
   (load "autoloads.el")
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/slow_recover_1.adb")
+  (find-file "../test/debug.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
@@ -32,7 +32,29 @@ run test from emacs -Q using source:
   (xmtn . "c:/Projects/org.emacs.ada-mode.stephe-4/")))
 
  current work
-see wisitoken notes for mckenzie improve
+wisitoken-token_line_comment.adb:101:31: already at outermost
+    fix in o.e.a.s-2
+
+emacs occasionally hangs
+    kill ada_mode_wisi_parse.exe via task manager fixes it
+    could be parser hanging, or emacs process io hanging
+        attach debugger!
+
+    happens more often with s-4, esp during ediff on:
+        test/ada_mode-recover_match_names.adb
+        test/slow_recover_2.adb
+run all tests
+    test-ada-process-gpr_query
+        test/ada_mode-interactive_wisi.adb
+            indent not right on 'null' in Function_Access_1
+                ada-mode-wisi-parser returned indent 5, then 3
+                5 correct for (pop 'begin')(insert '(') for expression_function
+
+    ambiguity goes away after insert 'end;', and post-indent-fail is supposed to re-indent statement at that point
+        ada-wisi-post-indent-fail not called
+            because wisi-parse-fail is false?
+
+see c:/Projects/org.wisitoken.stephe-1/notes.text for mckenzie improve
 
 test/ada_mode-recover_pattern_1.adb _2.adb
     virtual tokens are not on a line; should not affect indentation of following 'end'
@@ -604,7 +626,7 @@ support for "ElDoc"?
 
 Add Ada parser to gnu global?
 
- relevant files, debug hints
+ debug hints, relevant files
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
         break on 'if token.first then' line 933

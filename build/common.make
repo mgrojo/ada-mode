@@ -32,8 +32,8 @@ COMPILE_FILES := $(filter-out ada_mode-generic_parent_instantiation.ads, $(COMPI
 
 # These have incomplete code deliberately; used for interactive editing test (via EMACSCMD)
 COMPILE_FILES := $(filter-out ada_mode-interactive_case_statement.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_common.adb, $(COMPILE_FILES))
-COMPILE_FILES := $(filter-out ada_mode-interactive_wisi.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-interactive_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_gps_fallback.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-interactive_recover.adb, $(COMPILE_FILES))
 
@@ -74,6 +74,9 @@ COMPILE_FILES := $(filter-out ada_mode-recover_align_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_indent_3.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_match_names.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_pattern_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out ada_mode-recover_pattern_2.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_repair_1.adb, $(COMPILE_FILES))
 COMPILE_FILES := $(filter-out ada_mode-recover_virtual.adb, $(COMPILE_FILES))
 
@@ -116,6 +119,7 @@ SYNTAX_FILES  := $(SYNTAX_FILES) prime-volatilities.adb
 
 # deliberate errors to test error recovery
 COMPILE_FILES := $(filter-out slow_recover_1.adb, $(COMPILE_FILES))
+COMPILE_FILES := $(filter-out slow_recover_2.adb, $(COMPILE_FILES))
 
 # GNAT GPL 2016 complains about compiling these; not clear why
 COMPILE_FILES := $(filter-out test_private.ads, $(COMPILE_FILES))

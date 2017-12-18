@@ -1,4 +1,5 @@
 -- Test various things interactively; while the user is typing code.
+-- See also ada_mode-interactive_*.adb
 
 -- It doesn't compile; missing bodies, undefined vars.
 
@@ -34,13 +35,28 @@ is
                           );
    --EMACSRESULT:26
 
-   -- Adding a body interactively leaves it properly indented, and
-   -- caches updated. Start with invalid syntax (missing final ';'),
-   -- indent after syntax fixed should indent entire statement.
+   -- Adding a body interactively leaves it properly indented, and caches
+   -- updated. Start with invalid syntax (missing final ';'), automatic
+   -- indent after syntax fixed should indent entire statement correctly.
+   --
+   -- Indentation of 'null;' before 'end;' is inserted is somewhat
+   -- random, due to error correction. Error correction finds multiple
+   -- solutions to the error; one inserts 'end;' to complete the
+   -- subprogram_body as desired, but others delete 'begin' and complete
+   -- a subprogram_body_stub, or delete 'is begin' and complete a
+   -- subprogram_specification. Each of those solutions result in
+   -- different indentations (6, 5, 3). They all eventuallly lead to
+   -- identical parser stacks, where one is arbitrarily dropped. The
+   -- results are not even repeatable in this test, since error recovery
+   -- uses multiple tasks, so there is a race condition in the order the
+   -- solutions are delivered.
+   --
+   -- After 'end;' is inserted, there is no error, so there is only one
+   -- possible indentation for 'null;'.
 
    --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
    --EMACSRESULT:(if (eq ada-parser 'elisp) 5 3)
-   --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(indent-for-tab-command)(current-indentation))
+   --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)

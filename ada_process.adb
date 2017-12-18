@@ -69,6 +69,14 @@ package body Ada_Process is
       end case;
    end accept_statement_0;
 
+   function accept_statement_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 7, True);
+   end accept_statement_0_check;
+
    procedure accept_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -835,6 +843,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_1, 4, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end entry_body_0;
+
+   function entry_body_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 11, True);
+   end entry_body_0_check;
 
    procedure entry_body_formal_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -1942,6 +1958,14 @@ package body Ada_Process is
       end case;
    end loop_statement_0;
 
+   function loop_statement_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 1, 7, True);
+   end loop_statement_0_check;
+
    procedure loop_statement_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -1959,6 +1983,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end loop_statement_1;
+
+   function loop_statement_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 1, 6, True);
+   end loop_statement_1_check;
 
    procedure name_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -2418,6 +2450,14 @@ package body Ada_Process is
       end case;
    end package_specification_0;
 
+   function package_specification_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 9, True);
+   end package_specification_0_check;
+
    procedure package_specification_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -2437,6 +2477,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end package_specification_1;
+
+   function package_specification_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 7, True);
+   end package_specification_1_check;
 
    procedure parameter_and_result_profile_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -2781,6 +2829,14 @@ package body Ada_Process is
       end case;
    end protected_body_0;
 
+   function protected_body_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 3, 8, True);
+   end protected_body_0_check;
+
    procedure protected_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -2815,6 +2871,14 @@ package body Ada_Process is
       end case;
    end protected_definition_0;
 
+   function protected_definition_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 1, 5, True);
+   end protected_definition_0_check;
+
    procedure protected_definition_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -2831,6 +2895,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end protected_definition_1;
+
+   function protected_definition_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 1, 5, True);
+   end protected_definition_1_check;
 
    procedure protected_type_declaration_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -3443,6 +3515,14 @@ package body Ada_Process is
       end case;
    end single_task_declaration_0;
 
+   function single_task_declaration_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 10, True);
+   end single_task_declaration_0_check;
+
    procedure single_task_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -3461,6 +3541,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end single_task_declaration_1;
+
+   function single_task_declaration_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 7, True);
+   end single_task_declaration_1_check;
 
    procedure single_task_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -3698,6 +3786,14 @@ package body Ada_Process is
       end case;
    end task_body_0;
 
+   function task_body_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 3, 10, True);
+   end task_body_0_check;
+
    procedure task_body_stub_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -3769,6 +3865,14 @@ package body Ada_Process is
       end case;
    end task_type_declaration_0;
 
+   function task_type_declaration_0_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 3, 12, True);
+   end task_type_declaration_0_check;
+
    procedure task_type_declaration_1
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -3787,6 +3891,14 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, 0)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end task_type_declaration_1;
+
+   function task_type_declaration_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 3, 9, True);
+   end task_type_declaration_1_check;
 
    procedure task_type_declaration_2
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -4106,7 +4218,7 @@ package body Ada_Process is
             4, 4, 3, 4, 3, 4, 3, 4,
             4, 4, 4, 3, 4, 1, 4, 4,
             3, 4, 4, 4, 4, 4, 4, 4,
-            3, 4, 4, 4, 4, 4, 4, 4,
+            3, 4, 3, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 4,
             4, 4, 4, 4, 4, 4, 4, 3,
             4, 4, 4, 4, 4, 4, 4, 4,
@@ -17136,7 +17248,8 @@ package body Ada_Process is
       Add_Goto (Table.States (582), 304, 54);
       Add_Action (Table.States (583), 24, 752);
       Add_Error (Table.States (583));
-      Add_Action (Table.States (584), 96, Reduce, 262, 1,  7, package_specification_1'Access, null);
+      Add_Action (Table.States (584), 96, Reduce, 262, 1,  7, package_specification_1'Access,
+        package_specification_1_check'Access);
       Add_Error (Table.States (584));
       Add_Action (Table.States (585), 82, 751);
       Add_Error (Table.States (585));
@@ -21232,7 +21345,8 @@ package body Ada_Process is
       Add_Goto (Table.States (864), 250, 1008);
       Add_Goto (Table.States (864), 283, 53);
       Add_Goto (Table.States (864), 304, 54);
-      Add_Action (Table.States (865), 96, Reduce, 262, 0,  9, package_specification_0'Access, null);
+      Add_Action (Table.States (865), 96, Reduce, 262, 0,  9, package_specification_0'Access,
+        package_specification_0_check'Access);
       Add_Error (Table.States (865));
       Add_Action (Table.States (866), 96, 1007);
       Add_Error (Table.States (866));
@@ -24150,7 +24264,8 @@ package body Ada_Process is
       Add_Goto (Table.States (1087), 342, 321);
       Add_Action (Table.States (1088), 24, 1223);
       Add_Error (Table.States (1088));
-      Add_Action (Table.States (1089), 96, Reduce, 277, 1,  3, protected_definition_1'Access, null);
+      Add_Action (Table.States (1089), 96, Reduce, 277, 1,  3, protected_definition_1'Access,
+        protected_definition_1_check'Access);
       Add_Error (Table.States (1089));
       Add_Action (Table.States (1090), 104, 47);
       Add_Action (Table.States (1090), 105, 48);
@@ -25538,24 +25653,42 @@ package body Ada_Process is
       Add_Action (Table.States (1218), 10, 1064);
       Add_Action (Table.States (1218), 74, 1237);
       Add_Error (Table.States (1218));
-      Add_Action (Table.States (1219), 13, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 24, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 25, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 28, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 29, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 30, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 40, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 46, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 47, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 48, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 49, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 50, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 51, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 63, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 66, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 69, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 71, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
-      Add_Action (Table.States (1219), 104, Reduce, 316, 1,  8, single_task_declaration_1'Access, null);
+      Add_Action (Table.States (1219), 13, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 24, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 25, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 28, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 29, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 30, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 40, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 46, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 47, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 48, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 49, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 50, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 51, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 63, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 66, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 69, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 71, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
+      Add_Action (Table.States (1219), 104, Reduce, 316, 1,  8, single_task_declaration_1'Access,
+        single_task_declaration_1_check'Access);
       Add_Error (Table.States (1219));
       Add_Action (Table.States (1220), 24, 1236);
       Add_Error (Table.States (1220));
@@ -25678,7 +25811,8 @@ package body Ada_Process is
       Add_Action (Table.States (1233), 71, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
       Add_Action (Table.States (1233), 104, Reduce, 315, 0,  9, single_protected_declaration_0'Access, null);
       Add_Error (Table.States (1233));
-      Add_Action (Table.States (1234), 96, Reduce, 277, 0,  5, protected_definition_0'Access, null);
+      Add_Action (Table.States (1234), 96, Reduce, 277, 0,  5, protected_definition_0'Access,
+        protected_definition_0_check'Access);
       Add_Error (Table.States (1234));
       Add_Action (Table.States (1235), 24, Reduce, 167, 0,  0, null, null);
       Add_Action (Table.States (1235), 25, Reduce, 257, 2,  0, null, null);
@@ -26018,28 +26152,30 @@ package body Ada_Process is
       Add_Action (Table.States (1251), 71, Reduce, 187, 0,  9, entry_declaration_0'Access, null);
       Add_Action (Table.States (1251), 104, Reduce, 187, 0,  9, entry_declaration_0'Access, null);
       Add_Error (Table.States (1251));
-      Add_Action (Table.States (1252), 13, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 24, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 25, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 28, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 29, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 30, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 36, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 40, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 46, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 47, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 48, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 49, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 50, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 51, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 60, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 63, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 66, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 69, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 71, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 74, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 104, Reduce, 275, 0,  9, protected_body_0'Access, null);
-      Add_Action (Table.States (1252), 107, Reduce, 275, 0,  9, protected_body_0'Access, null);
+      Add_Action (Table.States (1252), 13, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 24, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 25, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 28, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 29, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 30, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 36, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 40, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 46, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 47, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 48, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 49, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 50, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 51, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 60, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 63, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 66, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 69, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 71, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 74, Reduce, 275, 0,  9, protected_body_0'Access, protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 104, Reduce, 275, 0,  9, protected_body_0'Access,
+        protected_body_0_check'Access);
+      Add_Action (Table.States (1252), 107, Reduce, 275, 0,  9, protected_body_0'Access,
+        protected_body_0_check'Access);
       Add_Error (Table.States (1252));
       Add_Action (Table.States (1253), 3, 146);
       Add_Action (Table.States (1253), 35, Reduce, 200, 0,  0, null, null);
@@ -26370,35 +26506,38 @@ package body Ada_Process is
       Add_Error (Table.States (1269));
       Add_Action (Table.States (1270), 96, 1276);
       Add_Error (Table.States (1270));
-      Add_Action (Table.States (1271), 4, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 5, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 13, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 15, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 17, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 18, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 22, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 23, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 24, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 26, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 27, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 28, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 31, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 32, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 37, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 41, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 43, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 48, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 52, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 57, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 58, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 61, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 68, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 72, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 73, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 93, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 104, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 105, Reduce, 243, 1,  7, loop_statement_1'Access, null);
-      Add_Action (Table.States (1271), 106, Reduce, 243, 1,  7, loop_statement_1'Access, null);
+      Add_Action (Table.States (1271), 4, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 5, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 13, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 15, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 17, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 18, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 22, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 23, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 24, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 26, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 27, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 28, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 31, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 32, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 37, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 41, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 43, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 48, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 52, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 57, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 58, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 61, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 68, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 72, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 73, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 93, Reduce, 243, 1,  7, loop_statement_1'Access, loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 104, Reduce, 243, 1,  7, loop_statement_1'Access,
+        loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 105, Reduce, 243, 1,  7, loop_statement_1'Access,
+        loop_statement_1_check'Access);
+      Add_Action (Table.States (1271), 106, Reduce, 243, 1,  7, loop_statement_1'Access,
+        loop_statement_1_check'Access);
       Add_Error (Table.States (1271));
       Add_Action (Table.States (1272), 96, 1275);
       Add_Error (Table.States (1272));
@@ -26520,35 +26659,38 @@ package body Ada_Process is
       Add_Action (Table.States (1275), 106, Reduce, 133, 0,  8, block_statement_0'Access,
         block_statement_0_check'Access);
       Add_Error (Table.States (1275));
-      Add_Action (Table.States (1276), 4, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 5, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 13, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 15, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 17, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 18, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 22, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 23, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 24, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 26, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 27, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 28, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 31, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 32, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 37, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 41, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 43, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 48, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 52, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 57, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 58, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 61, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 68, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 72, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 73, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 93, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 104, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 105, Reduce, 243, 0,  8, loop_statement_0'Access, null);
-      Add_Action (Table.States (1276), 106, Reduce, 243, 0,  8, loop_statement_0'Access, null);
+      Add_Action (Table.States (1276), 4, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 5, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 13, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 15, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 17, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 18, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 22, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 23, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 24, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 26, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 27, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 28, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 31, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 32, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 37, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 41, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 43, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 48, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 52, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 57, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 58, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 61, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 68, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 72, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 73, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 93, Reduce, 243, 0,  8, loop_statement_0'Access, loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 104, Reduce, 243, 0,  8, loop_statement_0'Access,
+        loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 105, Reduce, 243, 0,  8, loop_statement_0'Access,
+        loop_statement_0_check'Access);
+      Add_Action (Table.States (1276), 106, Reduce, 243, 0,  8, loop_statement_0'Access,
+        loop_statement_0_check'Access);
       Add_Error (Table.States (1276));
       Add_Action (Table.States (1277), 4, Reduce, 126, 0,  8, asynchronous_select_0'Access, null);
       Add_Action (Table.States (1277), 5, Reduce, 126, 0,  8, asynchronous_select_0'Access, null);
@@ -26657,24 +26799,42 @@ package body Ada_Process is
       Add_Action (Table.States (1294), 74, Reduce, 290, 1,  4, null, null);
       Add_Action (Table.States (1294), 96, Reduce, 290, 1,  4, null, null);
       Add_Error (Table.States (1294));
-      Add_Action (Table.States (1295), 13, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 24, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 25, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 28, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 29, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 30, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 40, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 46, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 47, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 48, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 49, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 50, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 51, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 63, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 66, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 69, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 71, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
-      Add_Action (Table.States (1295), 104, Reduce, 330, 1,  10, task_type_declaration_1'Access, null);
+      Add_Action (Table.States (1295), 13, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 24, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 25, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 28, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 29, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 30, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 40, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 46, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 47, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 48, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 49, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 50, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 51, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 63, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 66, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 69, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 71, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
+      Add_Action (Table.States (1295), 104, Reduce, 330, 1,  10, task_type_declaration_1'Access,
+        task_type_declaration_1_check'Access);
       Add_Error (Table.States (1295));
       Add_Action (Table.States (1296), 24, 1303);
       Add_Error (Table.States (1296));
@@ -26726,24 +26886,42 @@ package body Ada_Process is
       Add_Action (Table.States (1301), 71, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
       Add_Action (Table.States (1301), 104, Reduce, 282, 0,  11, protected_type_declaration_0'Access, null);
       Add_Error (Table.States (1301));
-      Add_Action (Table.States (1302), 13, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 24, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 25, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 28, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 29, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 30, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 40, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 46, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 47, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 48, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 49, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 50, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 51, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 63, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 66, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 69, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 71, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
-      Add_Action (Table.States (1302), 104, Reduce, 316, 0,  11, single_task_declaration_0'Access, null);
+      Add_Action (Table.States (1302), 13, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 24, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 25, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 28, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 29, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 30, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 40, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 46, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 47, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 48, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 49, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 50, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 51, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 63, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 66, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 69, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 71, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
+      Add_Action (Table.States (1302), 104, Reduce, 316, 0,  11, single_task_declaration_0'Access,
+        single_task_declaration_0_check'Access);
       Add_Error (Table.States (1302));
       Add_Action (Table.States (1303), 96, Reduce, 228, 0,  0, null, null);
       Add_Action (Table.States (1303), 104, 707);
@@ -26868,58 +27046,87 @@ package body Ada_Process is
       Add_Goto (Table.States (1309), 331, 189);
       Add_Goto (Table.States (1309), 332, 190);
       Add_Goto (Table.States (1309), 341, 191);
-      Add_Action (Table.States (1310), 13, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 24, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 25, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 28, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 29, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 30, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 36, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 40, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 46, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 47, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 48, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 49, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 50, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 51, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 60, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 63, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 66, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 69, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 71, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 74, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 104, Reduce, 327, 0,  11, task_body_0'Access, null);
-      Add_Action (Table.States (1310), 107, Reduce, 327, 0,  11, task_body_0'Access, null);
+      Add_Action (Table.States (1310), 13, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 24, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 25, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 28, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 29, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 30, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 36, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 40, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 46, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 47, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 48, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 49, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 50, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 51, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 60, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 63, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 66, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 69, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 71, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 74, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 104, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
+      Add_Action (Table.States (1310), 107, Reduce, 327, 0,  11, task_body_0'Access, task_body_0_check'Access);
       Add_Error (Table.States (1310));
-      Add_Action (Table.States (1311), 4, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 5, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 13, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 15, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 17, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 18, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 22, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 23, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 24, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 26, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 27, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 28, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 31, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 32, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 37, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 41, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 43, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 48, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 52, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 57, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 58, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 61, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 68, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 72, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 73, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 93, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 104, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 105, Reduce, 113, 0,  9, accept_statement_0'Access, null);
-      Add_Action (Table.States (1311), 106, Reduce, 113, 0,  9, accept_statement_0'Access, null);
+      Add_Action (Table.States (1311), 4, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 5, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 13, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 15, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 17, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 18, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 22, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 23, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 24, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 26, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 27, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 28, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 31, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 32, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 37, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 41, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 43, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 48, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 52, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 57, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 58, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 61, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 68, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 72, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 73, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 93, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 104, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 105, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
+      Add_Action (Table.States (1311), 106, Reduce, 113, 0,  9, accept_statement_0'Access,
+        accept_statement_0_check'Access);
       Add_Error (Table.States (1311));
       Add_Action (Table.States (1312), 4, Reduce, 230, 2,  9, if_statement_2'Access, null);
       Add_Action (Table.States (1312), 5, Reduce, 230, 2,  9, if_statement_2'Access, null);
@@ -27028,24 +27235,42 @@ package body Ada_Process is
       Add_Action (Table.States (1323), 24, Reduce, 151, 0,  8, component_clause_0'Access, null);
       Add_Action (Table.States (1323), 104, Reduce, 151, 0,  8, component_clause_0'Access, null);
       Add_Error (Table.States (1323));
-      Add_Action (Table.States (1324), 13, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 24, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 25, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 28, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 29, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 30, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 40, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 46, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 47, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 48, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 49, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 50, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 51, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 63, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 66, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 69, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 71, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
-      Add_Action (Table.States (1324), 104, Reduce, 330, 0,  13, task_type_declaration_0'Access, null);
+      Add_Action (Table.States (1324), 13, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 24, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 25, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 28, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 29, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 30, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 40, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 46, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 47, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 48, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 49, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 50, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 51, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 63, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 66, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 69, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 71, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
+      Add_Action (Table.States (1324), 104, Reduce, 330, 0,  13, task_type_declaration_0'Access,
+        task_type_declaration_0_check'Access);
       Add_Error (Table.States (1324));
       Add_Action (Table.States (1325), 4, 622);
       Add_Action (Table.States (1325), 5, 623);
@@ -27119,13 +27344,13 @@ package body Ada_Process is
       Add_Goto (Table.States (1329), 228, 1330);
       Add_Action (Table.States (1330), 96, 1331);
       Add_Error (Table.States (1330));
-      Add_Action (Table.States (1331), 24, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 25, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 28, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 29, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 40, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 46, Reduce, 184, 0,  12, entry_body_0'Access, null);
-      Add_Action (Table.States (1331), 50, Reduce, 184, 0,  12, entry_body_0'Access, null);
+      Add_Action (Table.States (1331), 24, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 25, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 28, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 29, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 40, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 46, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
+      Add_Action (Table.States (1331), 50, Reduce, 184, 0,  12, entry_body_0'Access, entry_body_0_check'Access);
       Add_Error (Table.States (1331));
 
       WisiToken.LR.Parser.New_Parser

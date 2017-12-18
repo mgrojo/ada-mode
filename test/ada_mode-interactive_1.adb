@@ -1,4 +1,5 @@
--- Test various things parser-independent things interactively; while the user is typing code.
+-- Test various things interactively; while the user is typing code.
+-- See also ada_mode-interactive_*.adb
 
 -- It doesn't compile; missing bodies, undefined vars.
 
@@ -7,7 +8,7 @@
 -- Since we are editing, the syntax will be illegal at times; don't fail for that.
 --EMACSCMD:(setq wisi-debug 0)
 
-procedure Ada_Mode.Interactive_Common
+procedure Ada_Mode.Interactive_1
 is
    -- newline at start of comment; indent-according-to-mode is called with the comment text exposed!
    --EMACSCMD:(progn (forward-line 2)(back-to-indentation)(forward-char 2) (comment-indent-new-line)(indent-for-tab-command))
@@ -125,4 +126,4 @@ begin
          3);
    --EMACSRESULT:9
 
-end Ada_Mode.Interactive_Common;
+end Ada_Mode.Interactive_1;

@@ -194,6 +194,7 @@ package body WisiToken.Wisi_Runtime is
       Offset       : in Integer)
      return Integer
    is
+      use all type SAL.Base_Peek_Type;
       use all type Ada.Containers.Count_Type;
 
       Descriptor     : WisiToken.Descriptor'Class renames Data.Semantic_State.Trace.Descriptor.all;
@@ -310,11 +311,11 @@ package body WisiToken.Wisi_Runtime is
 
    procedure Put (Item : in WisiToken.LR.Configuration; Descriptor : in WisiToken.Descriptor'Class)
    is
-      use Ada.Containers;
+      use all type SAL.Base_Peek_Type;
       subtype Bounded_Token_ID is WisiToken.Token_ID range Descriptor.First_Terminal .. Descriptor.Last_Terminal;
       package Bounded is new Ada.Strings.Bounded.Generic_Bounded_Length
         (Max => 10 + Bounded_Token_ID'Width * Integer
-           (Item.Popped.Length + Count_Type (Item.Pushed.Depth) + Item.Inserted.Length + Item.Deleted.Length));
+           (Item.Popped.Length + Item.Pushed.Depth + Item.Inserted.Length + Item.Deleted.Length));
       use Bounded;
 
       Line : Bounded_String := To_Bounded_String ("[");
@@ -530,7 +531,7 @@ package body WisiToken.Wisi_Runtime is
                          Statement_ID   => Nonterm.ID,
                          ID             => Token.ID,
                          Length         => Length (Token.Char_Region),
-                         Class          => Pair.Class,
+                         Class          => (if Override_Start_Set then Override_Start else Pair.Class),
                          Containing_Pos => Containing_Pos,
                          others         => Nil));
                   end if;
@@ -967,7 +968,7 @@ package body WisiToken.Wisi_Runtime is
       --  [2] wisi-indent-action
       for I in Tokens.First_Index .. Tokens.Last_Index loop
          declare
-            use all type Ada.Containers.Count_Type;
+            use all type SAL.Base_Peek_Type;
             Token             : Token_Line_Comment.Token renames Token_Line_Comment.Token (Tokens (I).Element.all);
             Pair              : Indent_Pair renames Params (I);
             Code_Delta        : Delta_Type;
@@ -1135,7 +1136,7 @@ package body WisiToken.Wisi_Runtime is
 
    function Find_Token_On_Stack (Data : in Parse_Data_Type; ID : in Token_ID) return Token_Line_Comment.Token
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       I : Positive_Index_Type := Data.Semantic_State.Stack.Last_Index;
    begin
       loop

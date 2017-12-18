@@ -21,7 +21,6 @@ begin end;
 --EMACSCMD: (test-face "Proc_1" 'font-lock-function-name-face)
 procedure Proc_1 end Proc_1;
 
---EMACSCMD: (test-cache-containing "procedure" "a")
 --EMACSCMD: (test-face "Parent" 'font-lock-type-face)
 --EMACSCMD: (test-face "Proc_1" 'font-lock-function-name-face)
 procedure Parent.Proc_1
@@ -29,11 +28,11 @@ procedure Parent.Proc_1
    a
   --  See comment in ../ada_mode-parens.adb on hanging right paren.
   )
-  end Parent.Proc_1;
+end Parent.Proc_1;
 
 --EMACSCMD: (progn (forward-line 6)(forward-sexp)(looking-at "exception"))
 --EMACSRESULT:t
-function () Func_2
+function Func_2 ()
 begin
    --EMACSCMD: (test-face "Parent" nil)
    --EMACSCMD: (test-face "Child" nil)
