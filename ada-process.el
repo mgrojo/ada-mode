@@ -150,6 +150,8 @@
    attribute_reference
    attribute_designator
    binary_adding_operator
+   block_label
+   block_label_opt
    block_statement
    body_g
    body_stub
@@ -257,7 +259,6 @@
    iteration_scheme
    iterator_specification
    iterator_specification_opt
-   label
    library_item
    library_unit_declaration
    library_unit_renaming_declaration

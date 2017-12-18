@@ -17,22 +17,24 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Wisi_Runtime.Ada;
-with WisiToken.Token;
-with WisiToken.Parser.LR;
+with WisiToken.Semantic_State;
+with WisiToken.LR;
 package Ada_Process is
 
    Descriptor : aliased WisiToken.Descriptor :=
-     (First_Terminal    => 3,
-      Last_Terminal     => 107,
-      First_Nonterminal => 108,
-      Last_Nonterminal  => 342,
-      EOF_ID            => 107,
-      Accept_ID         => 108,
-      New_Line_ID       => 1,
-      Comment_ID        => 2,
-      Left_Paren_ID     => 76,
-      Right_Paren_ID    => 77,
-      Image             =>
+     (First_Terminal      => 3,
+      Last_Terminal       => 107,
+      First_Nonterminal   => 108,
+      Last_Nonterminal    => 343,
+      EOF_ID              => 107,
+      Accept_ID           => 108,
+      New_Line_ID         => 1,
+      Comment_ID          => 2,
+      Left_Paren_ID       => 76,
+      Right_Paren_ID      => 77,
+      Terminal_Name_ID    => 104,
+      Nonterminal_Name_ID => 304,
+      Image               =>
         (new String'("WHITESPACE"),
          new String'("NEW_LINE"),
          new String'("COMMENT"),
@@ -164,6 +166,8 @@ package Ada_Process is
          new String'("attribute_reference"),
          new String'("attribute_designator"),
          new String'("binary_adding_operator"),
+         new String'("block_label"),
+         new String'("block_label_opt"),
          new String'("block_statement"),
          new String'("body_g"),
          new String'("body_stub"),
@@ -271,7 +275,6 @@ package Ada_Process is
          new String'("iteration_scheme"),
          new String'("iterator_specification"),
          new String'("iterator_specification_opt"),
-         new String'("label"),
          new String'("library_item"),
          new String'("library_unit_declaration"),
          new String'("library_unit_renaming_declaration"),
@@ -511,6 +514,8 @@ package Ada_Process is
       attribute_reference_ID,
       attribute_designator_ID,
       binary_adding_operator_ID,
+      block_label_ID,
+      block_label_opt_ID,
       block_statement_ID,
       body_g_ID,
       body_stub_ID,
@@ -618,7 +623,6 @@ package Ada_Process is
       iteration_scheme_ID,
       iterator_specification_ID,
       iterator_specification_opt_ID,
-      label_ID,
       library_item_ID,
       library_unit_declaration_ID,
       library_unit_renaming_declaration_ID,
@@ -733,8 +737,8 @@ package Ada_Process is
    Parse_Data : WisiToken.Wisi_Runtime.Ada.Parse_Data_Type;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Instance;
+     (Parser         :    out WisiToken.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Token.Semantic_State_Access);
+      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access);
 
 end Ada_Process;

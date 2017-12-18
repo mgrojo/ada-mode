@@ -19,29 +19,29 @@
 pragma License (GPL);
 
 with Ada.Command_Line;
-with Ada.Containers;
 with Ada.Exceptions;
 with Ada.IO_Exceptions;
 with Ada.Real_Time;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO; use Ada.Text_IO;
+with SAL;
+with WisiToken.LR.Parser;
 with WisiToken.Lexer;
-with WisiToken.Parser.LR;
 with WisiToken.Text_IO_Trace;
 with WisiToken.Token_Line_Comment;
 procedure Gen_Run_Wisi_Parse
 is
    use WisiToken; -- Token_ID, "+", "-" Unbounded_string
-   use all type Ada.Containers.Count_Type;
+   use all type SAL.Base_Peek_Type;
    use all type WisiToken.Wisi_Runtime.Parse_Action_Type;
 
    Trace  : aliased WisiToken.Text_IO_Trace.Trace (Descriptor'Access);
    State  : WisiToken.Token_Line_Comment.State_Type (Trace'Access);
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    procedure Put_Usage
    is
-      use all type WisiToken.Parser.LR.Parse_Table_Ptr;
+      use all type WisiToken.LR.Parse_Table_Ptr;
    begin
       Put_Line ("usage: " & Name & "_wisi_parse <file_name> <parse_action> [options]");
       Put_Line ("parse_action: {Navigate | Face | Indent}");
@@ -58,6 +58,8 @@ is
       Put_Line ("--check_limit n  : set error recover token check limit" &
                   (if Parser.Table = null then ""
                    else "; default" & Integer'Image (Parser.Table.McKenzie_Param.Check_Limit)));
+      Put_Line ("--max_parallel n  : set maximum count of parallel parsers (default" &
+                  Integer'Image (WisiToken.LR.Parser.Default_Max_Parallel) & ")");
       Put_Line ("--disable_recover : disable error recovery; default enabled");
       Put_Line ("--indent_params <language-specific params>");
       Put_Line ("--lexer_only : only run lexer, for profiling");
@@ -119,6 +121,10 @@ begin
          elsif Argument (Arg) = "--lexer_only" then
             Lexer_Only := True;
             Arg := Arg + 1;
+
+         elsif Argument (Arg) = "--max_parallel" then
+            Parser.Max_Parallel := SAL.Base_Peek_Type'Value (Argument (Arg + 1));
+            Arg := Arg + 2;
 
          elsif Argument (Arg) = "--pause" then
             Pause := True;

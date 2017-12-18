@@ -111,22 +111,28 @@ parameter_list
   ;
 
 subprogram
-  : FUNCTION parameter_list name block SEMICOLON
+  : FUNCTION name parameter_list block SEMICOLON
     (progn
       ;; an example of each supported action, with somewhat complex parameter syntax
-      (wisi-statement-action [1 statement-start 2 misc 3 name 4 motion 5 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 3 misc 4 motion 5 statement-end])
       (wisi-containing-action 1 2)
       (wisi-containing-action 1 4)
       (wisi-motion-action [1 [4 EXCEPTION WHEN] 5])
-      (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 (subp-indent-function (* 2 subp-indent-broken))
-                             [subp-indent-broken subp-indent-broken] 0 0])) ;; single action on two lines
-  | PROCEDURE parameter_list name SEMICOLON
+      (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
+      (wisi-indent-action [0 [subp-indent-broken subp-indent-broken]
+                             (subp-indent-function (* 2 subp-indent-broken))
+                             0 0])) ;; single action on multiple lines
+  | PROCEDURE name parameter_list END name SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 misc 3 name 4 statement-end])
+      (wisi-statement-action [1 statement-start 2 name 6 statement-end])
       (wisi-containing-action 1 2)
-      (wisi-face-apply-action [1 nil font-lock-keyword-face 3 font-lock-type-face font-lock-function-name-face])
-      (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0]))
+      (wisi-face-apply-action [1 nil font-lock-keyword-face 2 font-lock-type-face font-lock-function-name-face])
+      (wisi-indent-action [0 subp-indent-broken subp-indent-broken 0 0 0]))
+    (wisi-match-names 2 5 nil)
+ ;; We don't have procedures nested in another named statement, so we
+ ;; can't test that 'wisi-match-names' actually helps here (note that
+ ;; there are no McKenzie parameters defined). But this serves to test
+ ;; that wisi-output_ada_emacs generates check source code properly.
   ;
 
 subtype

@@ -39,7 +39,7 @@ package WisiToken.Wisi_Runtime.Subprograms is
 
    function Function_1
      (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Augmented_Token_Array;
+      Tokens    : in     Semantic_State.Augmented_Token_Array;
       Indenting : in     Token_Line_Comment.Token;
       Args      : in     Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;

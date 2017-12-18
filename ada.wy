@@ -183,6 +183,7 @@
 %non_grammar <comment> COMMENT (("--"|"#if"|"#elsif"|"#else"|"#end")[^\n]*)|("{"[^}]*"}")
 
 %token <symbol> IDENTIFIER [a-zA-Z\x80-\U0010FFFF][0-9a-zA-Z_\x80-\U0010FFFF]*
+%nonterminal_symbol selected_component
 
 %token <string-double> STRING_LITERAL (["][\x20-\x21\x23-\U0010FFFF]*["])+
 
@@ -229,6 +230,7 @@
 %mckenzie_cost_insert EXIT 3
 %mckenzie_cost_insert IDENTIFIER 3
 %mckenzie_cost_insert IS 3
+%mckenzie_cost_insert LOOP 3
 %mckenzie_cost_insert RETURN 3
 %mckenzie_cost_insert THEN 3
 %mckenzie_cost_insert WHEN 3
@@ -252,11 +254,8 @@
 
 %mckenzie_cost_limit 12
 
-;; 4 causes test/ada_mode-recover_align_1.adb to fail; two errors
-;; close together.
-;;
-;; 3 causes 'procedure Process_Text_File (File_Name ; in String); is' to fail
-%mckenzie_check_limit 3
+;; 4 required for test/ada_mode-recover_match_names.adb.
+%mckenzie_check_limit 4
 
 ;; We are not likely to type 'end;' or 'end <identifier>;' when
 ;; meaning 'end if;'; more likely to not be done entering 'if then
@@ -393,6 +392,8 @@ accept_statement
       (wisi-motion-action [1 5 [6 EXCEPTION WHEN] 9])
       (wisi-face-apply-action [2 nil font-lock-function-name-face 8 nil font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 2 7 t)
+
   | ACCEPT IDENTIFIER actual_parameter_part_opt parameter_profile_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 5 statement-end])
@@ -578,21 +579,32 @@ attribute_designator
 
 binary_adding_operator : PLUS | MINUS | AMPERSAND ; ;; + | - | &
 
+block_label
+  : IDENTIFIER COLON
+    (wisi-indent-action [ada-indent-label 0])
+  ;
+
+block_label_opt
+  : ;; empty
+  | block_label
+  ;
+
 block_statement
-  : DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
- ;; label covered by statement; no face for label names
+  : block_label_opt DECLARE declarative_part_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 3 motion 7 statement-end])
-      (wisi-containing-action 1 2)
-      (wisi-containing-action 1 4)
-      (wisi-motion-action [1 3 [4 EXCEPTION WHEN] 7])
-      (wisi-indent-action [0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0 0]))
-  | BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
+      (wisi-statement-action [1 statement-start 2 misc 4 motion 8 statement-end])
+      (wisi-containing-action 2 3)
+      (wisi-containing-action 2 5)
+      (wisi-motion-action [2 5 [5 EXCEPTION WHEN] 8])
+      (wisi-indent-action [0 0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 1 7 t)
+  | block_label_opt BEGIN handled_sequence_of_statements END identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 5 statement-end])
-      (wisi-containing-action 1 2)
-      (wisi-motion-action [1 [2 EXCEPTION WHEN] 5])
-      (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0]))
+      (wisi-statement-action [1 statement-start 2 misc 6 statement-end])
+      (wisi-containing-action 2 3)
+      (wisi-motion-action [2 [3 EXCEPTION WHEN] 6])
+      (wisi-indent-action [0 0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 1 5 t)
   ;
 
 body_g : proper_body | body_stub ;
@@ -966,6 +978,7 @@ entry_body
       ;;     (Local_2 = 1)
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken (wisi-anchored% 4 ada-indent-broken)
                              0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 2 11 t)
   ;
 
 entry_body_formal_part
@@ -1374,7 +1387,9 @@ generic_subprogram_declaration
 
 goto_label
   : LESS_LESS IDENTIFIER GREATER_GREATER
-    (wisi-face-apply-action [2 nil font-lock-constant-face])
+    (progn
+      (wisi-face-apply-action [2 nil font-lock-constant-face])
+      (wisi-indent-action [[ada-indent-label 0] 0 0]))
   ;
 
 handled_sequence_of_statements
@@ -1548,17 +1563,6 @@ iterator_specification_opt
   | iterator_specification
   ;
 
-;; goto and block/loop labels merged into label because
-;; indentation code treats them equally.
-label
-  : goto_label
-    (wisi-indent-action [[ada-indent-label 0]])
-  | IDENTIFIER COLON ;; on blocks, loops
-    (progn
-      (wisi-statement-action [1 misc]) ;; so there is a cache at the start of sequence_of_statements
-      (wisi-indent-action [ada-indent-label 0]))
-  ;
-
 library_item
   : PRIVATE library_unit_declaration
   | library_unit_declaration
@@ -1582,18 +1586,19 @@ library_unit_renaming_declaration
   ;
 
 loop_statement
-  : iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
- ;; label included in statement
+  : block_label_opt iteration_scheme LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
     (progn
-      (wisi-statement-action [1 statement-start 2 motion 7 statement-end])
-      (wisi-containing-action 1 3)
-      (wisi-motion-action [1 2 7])
+      (wisi-statement-action [1 statement-start 2 misc 3 motion 8 statement-end])
+      (wisi-containing-action 2 4)
+      (wisi-motion-action [2 3 8])
+      (wisi-indent-action [0 0 0 [ada-indent ada-indent] 0 0 0 0]))
+    (wisi-match-names 1 7 t)
+  | block_label_opt LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
+    (progn
+      (wisi-statement-action [1 statement-start 2 misc 7 statement-end])
+      (wisi-containing-action 2 3)
       (wisi-indent-action [0 0 [ada-indent ada-indent] 0 0 0 0]))
-  | LOOP sequence_of_statements_opt END LOOP identifier_opt SEMICOLON
-    (progn
-      (wisi-statement-action [1 statement-start 6 statement-end])
-      (wisi-containing-action 1 2)
-      (wisi-indent-action [0 [ada-indent ada-indent] 0 0 0 0]))
+    (wisi-match-names 1 6 t)
   ;
 
 membership_choice_list
@@ -1808,6 +1813,8 @@ package_body
                                  10 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 0 [ada-indent ada-indent]
                              0 [ada-indent ada-indent] 0 ada-indent-broken 0]))
+    (wisi-match-names 3 10 t)
+
   | PACKAGE BODY name aspect_specification_opt IS declarative_part_opt END name_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 name 5 motion 9 statement-end])
@@ -1816,6 +1823,7 @@ package_body
       (wisi-face-apply-action [3 font-lock-function-name-face font-lock-function-name-face
                                  8 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 3 8 t)
   ;
 
 package_body_stub
@@ -1853,6 +1861,7 @@ package_specification
       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                  9 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken 0 0 [ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0]))
+    (wisi-match-names 2 9 t)
   | PACKAGE name aspect_specification_opt IS declarative_part_opt END name_opt
     (progn
       (wisi-statement-action [1 statement-start 2 name 4 motion])
@@ -1862,6 +1871,7 @@ package_specification
       (wisi-face-apply-action [2 font-lock-function-name-face font-lock-function-name-face
                                  7 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 [ada-indent ada-indent] 0 0]))
+    (wisi-match-names 2 7 t)
   ;
 
 parameter_and_result_profile
@@ -2008,6 +2018,7 @@ protected_body
       (wisi-motion-action [1 5 9])
       (wisi-face-apply-action [3 nil font-lock-type-face 8 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken 0 0 ada-indent 0 0 0]))
+    (wisi-match-names 3 8 t)
   ;
 
 protected_body_stub
@@ -2024,10 +2035,13 @@ protected_definition
       (wisi-statement-action [2 motion])
       (wisi-face-apply-action [5 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0]))
+    (wisi-match-names 1 5 t)
+
   | declarative_part_opt END identifier_opt
     (progn
       (wisi-face-apply-action [3 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] 0 0]))
+    (wisi-match-names 1 5 t)
   ;
 
 protected_operation_item
@@ -2385,6 +2399,8 @@ single_task_declaration
       (wisi-motion-action [1 4 [8 PRIVATE] 11])
       (wisi-face-apply-action [2 nil font-lock-type-face 9 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken 0 0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0 0 0]))
+    (wisi-match-names 2 10 t)
+
   | TASK IDENTIFIER aspect_specification_opt IS task_definition END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 motion 8 statement-end])
@@ -2392,6 +2408,8 @@ single_task_declaration
       (wisi-motion-action [1 4 [5 PRIVATE] 8])
       (wisi-face-apply-action [2 nil font-lock-type-face 6 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken 0 [0 ada-indent] 0 0 0 0]))
+    (wisi-match-names 2 7 t)
+
   | TASK IDENTIFIER aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 4 statement-end])
@@ -2400,7 +2418,7 @@ single_task_declaration
   ;
 
 statement
-  : label
+  : goto_label
   | simple_statement
   | compound_statement
   ;
@@ -2417,6 +2435,7 @@ subprogram_body
       (wisi-face-apply-action [9 font-lock-function-name-face font-lock-function-name-face])
       (wisi-indent-action [0 [0 ada-indent] 0 0 [ada-indent ada-indent]
                              0 [ada-indent ada-indent] 0 ada-indent-broken 0]))
+    (wisi-match-names 2 9 t)
   ;
 
 subprogram_body_stub
@@ -2493,6 +2512,7 @@ task_body
       (wisi-face-apply-action [3 nil font-lock-type-face 10 nil font-lock-type-face])
       (wisi-indent-action [0 0 ada-indent-broken 0 0 [ada-indent ada-indent]
                              0 [ada-indent ada-indent] 0 0 0]))
+    (wisi-match-names 3 10 t)
   ;
 
 task_body_stub
@@ -2528,6 +2548,7 @@ task_type_declaration
       (wisi-face-apply-action [3 nil font-lock-type-face 12 nil font-lock-type-face])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 0
                              ada-indent-broken ada-indent-broken ada-indent-broken 0 0 0 0]))
+    (wisi-match-names 3 12 t)
   | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt IS task_definition END identifier_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 name 6 motion 10 statement-end])
@@ -2535,6 +2556,8 @@ task_type_declaration
       (wisi-face-apply-action [3 nil font-lock-type-face 9 nil font-lock-type-face])
       (wisi-motion-action [1 6 [7 PRIVATE] 10])
       (wisi-indent-action [0 ada-indent-broken ada-indent-broken ada-indent-broken 0 [0 ada-indent] 0 0 0 0]))
+    (wisi-match-names 3 9 t)
+
   | TASK TYPE IDENTIFIER discriminant_part_opt aspect_specification_opt SEMICOLON
     (progn
       (wisi-statement-action [1 statement-start 3 name 6 statement-end])
