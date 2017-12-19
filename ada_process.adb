@@ -2901,7 +2901,7 @@ package body Ada_Process is
      Tokens : in WisiToken.Base_Token_Arrays.Vector)
     return WisiToken.LR.Semantic_Status
    is begin
-      return Match_Names (Lexer, Tokens, 1, 5, True);
+      return Match_Names (Lexer, Tokens, 1, 3, True);
    end protected_definition_1_check;
 
    procedure protected_type_declaration_0
@@ -3075,7 +3075,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (True, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent)), (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((True, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0)), (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent))), (True, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent)), (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & Ada_Indent))), (False, (Simple, (Language, Ada_Indent_Record_1'Access, 69 & 1 & 0))), (False, (Simple, (Int, 0)))));
       end case;
    end record_definition_0;
 

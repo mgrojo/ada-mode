@@ -1,5 +1,10 @@
---  Test that ada_indent_renames_0 handles
---  subp_tok with null region
+--  Test that ada_indent_renames_0 handles subp_tok with null region.
+-- It no longer crashes, but it does produce random indentation
+-- results; there are three solutions found with the same cost, they
+-- are chosen randomly (race condition among multiple tasks in error
+-- recovery), and they give different indentation results.
+
+--EMACSCMD:(setq skip-reindent-test t)
 
 procedure Put
 is

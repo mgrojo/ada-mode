@@ -22,7 +22,7 @@ run test from emacs -Q using source:
   (load "run-indent-test-process-gpr_query")
   ; (setq wisi-debug 1)
   (setq wisi-disable-face t)
-  (find-file "../test/debug.adb")
+  (find-file "../test/virtual_renames.adb")
   (wisi-debug-keys))
 
 (dvc-state-multiple
@@ -42,17 +42,6 @@ emacs occasionally hangs
 
     happens more often with s-4, esp during ediff on:
         test/ada_mode-recover_match_names.adb
-        test/slow_recover_2.adb
-run all tests
-    test-ada-process-gpr_query
-        test/ada_mode-interactive_wisi.adb
-            indent not right on 'null' in Function_Access_1
-                ada-mode-wisi-parser returned indent 5, then 3
-                5 correct for (pop 'begin')(insert '(') for expression_function
-
-    ambiguity goes away after insert 'end;', and post-indent-fail is supposed to re-indent statement at that point
-        ada-wisi-post-indent-fail not called
-            because wisi-parse-fail is false?
 
 see c:/Projects/org.wisitoken.stephe-1/notes.text for mckenzie improve
 
@@ -660,13 +649,17 @@ gdb run_ada_parse
         p data.indents.elements.ea
 
 to change process executable for all current and future buffers:
+    however, this may cause elisp/Ada mismatch!
+
     in any *.adb buffer:
     (setf (wisi-process--parser-exec-file wisi--parser)
       "c:/Projects/org.emacs.ada-mode.stephe-4/ada_mode_wisi_parse.exe")
+    M-x wisi-kill-parser
 
     to undo:
       (setf (wisi-process--parser-exec-file wisi--parser)
         "ada_mode_wisi_parse.exe")
+    M-x wisi-kill-parser
 
 Edebug displays
 

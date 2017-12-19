@@ -16,7 +16,7 @@
 
 --EMACSCMD:(wisi-validate-cache (point-max) nil 'navigate)
 --EMACSCMD:(length (wisi-parser-errors wisi--parser))
---EMACSRESULT:2
+--EMACSRESULT:1
 
 --EMACSCMD:(wisi-validate-cache (point-max) nil 'face)
 
@@ -25,9 +25,9 @@ procedure Journal_To_TSV
 is
    procedure Process_Text_File
    is begin
-exception
-   if then end if;
-end Process_Text_File;
+   exception
+      if then end if;
+   end Process_Text_File;
 begin
    begin
    end;

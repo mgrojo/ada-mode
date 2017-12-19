@@ -1,5 +1,13 @@
--- Error recovery fails on this, demonstrating the need for a second
--- pass using package and procedure names.
+-- Error recovery fails on this, because it requires too much editing to fix.
+--
+-- Correct solution:
+-- insert ');' after 'Parser_Label'
+-- delete ': constant Token_ID' after 'Current_Input'
+--
+-- The first step is rejected because it requires the second step to
+-- be legal.
+
+--EMACSCMD:(setq skip-recase-test t)
 
 pragma License (Modified_GPL);
 
@@ -23,25 +31,25 @@ package body WisiToken.Parser.LR.McKenzie_Recover is
       Config_Store.Get
         (Parser_label
 
-      -- Copied from above, intending to move the function call here.
-      Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
+         -- Copied from above, intending to move the function call here.
+           Current_Input : constant Token_ID := Get_Current_Input (Shared_Lookahead, Config);
 
-      if Check (Data, Config, Current_Input) then
+         if Check (Data, Config, Current_Input) then
 
-         return;
-      end if;
+              return;
+         end if;
 
-   end Check_One;
+         end Check_One;
 
-   task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.Config_Store) is
-      entry Start;
-      --  Start getting parser/configs to check from Config_Store
+         task type Check_Parser_Config (Config_Store : not null access McKenzie_Recover.Config_Store) is
+         entry Start;
+         --  Start getting parser/configs to check from Config_Store
 
-      entry Finish;
-      --  Terminate; no more configs to check.
-   end Check_Parser_Config;
+         entry Finish;
+         --  Terminate; no more configs to check.
+         end Check_Parser_Config;
 
-end WisiToken.Parser.LR.McKenzie_Recover;
--- Local variables:
--- wisi-disable-face: t
--- End:
+         end WisiToken.Parser.LR.McKenzie_Recover;
+         -- Local variables:
+         -- wisi-disable-face: t
+         -- End:

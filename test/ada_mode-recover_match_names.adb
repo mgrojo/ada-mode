@@ -36,114 +36,114 @@ pragma License (Modified_Gpl);
 
 package body Ada_Mode.Recover_Match_Names is
 
-  task body Accept_Statement_0
-  is begin
-     accept Start do
-        loop
-     loop;
-     end Start;
-  end Accept_Statement_0;
+   task body Accept_Statement_0
+   is begin
+      accept Start do
+         loop
+      loop;
+      end Start;
+   end Accept_Statement_0;
 
-  procedure Block_Statement_0
-  is begin
-  Block_1:
-     declare
-     begin
-        loop
-     loop;
-     end Block_1;
-  end Block_Statement_0;
+   procedure Block_Statement_0
+   is begin
+   Block_1:
+      declare
+      begin
+         loop
+      loop;
+      end Block_1;
+   end Block_Statement_0;
 
-  procedure Block_Statement_1
-  is begin
-  Block_1:
-     begin
-        loop
-     loop;
-     end Block_1;
-  end Block_Statement_1;
+   procedure Block_Statement_1
+   is begin
+   Block_1:
+      begin
+         loop
+      loop;
+      end Block_1;
+   end Block_Statement_1;
 
-  protected body Entry_Body_0
-  is
-     entry E1 when A is
-     begin
-        loop
-     loop;
-     end E1;
-  end Entry_Body_0;
+   protected body Entry_Body_0
+   is
+      entry E1 when A is
+      begin
+         loop
+      loop;
+      end E1;
+   end Entry_Body_0;
 
-  procedure Loop_Statement_0
-  is begin
-  Loop_1 :
-     for I in B'Range loop
-        if then
-     if; -- meant 'end if;'
-     end loop Loop_1;
-  end Loop_Statement_0;
+   procedure Loop_Statement_0
+   is begin
+   Loop_1 :
+      for I in B'Range loop
+         if then
+      if; -- meant 'end if;'
+      end loop Loop_1;
+   end Loop_Statement_0;
 
-  procedure Loop_Statement_1
-  is begin
-  Loop_1 :
-     loop
-        exit when C;
-        if then
-     if; -- meant 'end if;'
-     end loop Loop_1;
-  end Loop_Statement_1;
+   procedure Loop_Statement_1
+   is begin
+   Loop_1 :
+      loop
+         exit when C;
+         if then
+      if; -- meant 'end if;'
+      end loop Loop_1;
+   end Loop_Statement_1;
 
-  package body Package_Body_0 is
-  begin -- for package_body_1
-     loop
-  loop; -- meant 'end loop;'
-  end Package_Body_0;
+   package body Package_Body_0 is
+   begin -- for package_body_1
+      loop
+   loop; -- meant 'end loop;'
+   end Package_Body_0;
 
-  package body Package_Body_1 is
-  procedure A
-  is
-     -- missing 'begin end A;'
-  end Package_Body_1;
+   package body Package_Body_1 is
+   procedure A
+   is
+      -- missing 'begin end A;'
+   end Package_Body_1;
 
-  package Package_Specification_0
-  private
-     type A is record
-     record; -- meant 'end record'
-  end Package_Specification_0;
+   package Package_Specification_0
+   private
+      type A is record
+      record; -- meant 'end record'
+   end Package_Specification_0;
 
-  package Package_Specification_1 is
-     type A is record
-     record; -- meant 'end record'
-  end Package_Specification_1;
+   package Package_Specification_1 is
+      type A is record
+      record; -- meant 'end record'
+   end Package_Specification_1;
 
-  protected body Protected_Body_0 is
-  entry E1 is
-  -- missing 'end E1'
-  end Protected_Body_0;
+   protected body Protected_Body_0 is
+   entry E1 is
+      -- missing 'end E1'
+   end Protected_Body_0;
 
-  --  protected protected_definition
-  --
-  --  There are no legal protected_definition declarations that can be
-  --  missing an 'end'
+   --  protected protected_definition
+   --
+   --  There are no legal protected_definition declarations that can be
+   --  missing an 'end'
 
-  -- single_task_declaration_0
-  --
-  --  There are no legal task_definition declarations that can be
-  --  missing an 'end'
+   -- single_task_declaration_0
+   --
+   --  There are no legal task_definition declarations that can be
+   --  missing an 'end'
 
-  procedure Subprogram_Body_0
-  is begin
-     loop
-  loop; --  meant 'end loop;'
-  end Subprogram_Body_0;
+   procedure Subprogram_Body_0
+   is begin
+      loop
+   loop; --  meant 'end loop;'
+   end Subprogram_Body_0;
 
-  procedure Task_Body_0
-  is begin
-     loop
-  loop; --  meant 'end loop;'
-  end Task_Body_0;
+   procedure Task_Body_0
+   is begin
+      loop
+   loop; --  meant 'end loop;'
+   end Task_Body_0;
 
-  --  task_type_declaration
-  --
-  --  There are no legal task_definition declarations that can be
-  --  missing an 'end'
+   --  task_type_declaration
+   --
+   --  There are no legal task_definition declarations that can be
+   --  missing an 'end'
 
 end Ada_Mode.Recover_Match_Names;

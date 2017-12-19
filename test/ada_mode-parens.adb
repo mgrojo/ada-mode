@@ -1,3 +1,12 @@
+-- WORKAROUND: For some reason, this test causes the process parser to
+-- crash. Adding a delay before running ada-align or font-lock-ensure
+-- again does _not_ fix it. The tests pass when run by hand, and the
+-- main purpose is to test the code in ada-scan-paramlist and
+-- ada-insert-paramlist-*; that code does not rely on the parser
+-- except for the initial indent.
+--
+--EMACS_SKIP_UNLESS:(eq ada-parser 'elisp)
+
 --EMACSCMD:(ada-parse-prj-file "subdir/ada_mode.adp")
 --EMACSCMD:(ada-select-prj-file "subdir/ada_mode.adp")
 

@@ -54,22 +54,22 @@ is
    -- After 'end;' is inserted, there is no error, so there is only one
    -- possible indentation for 'null;'.
 
-   --EMACSCMD:(progn (end-of-line 7)(delete-char -1)(newline-and-indent)(current-column))
-   --EMACSRESULT:(if (eq ada-parser 'elisp) 5 3)
-   --EMACSCMD:(progn (forward-line 5)(back-to-indentation)(execute-kbd-macro "is begin\nnull;\nend;")(current-indentation))
+   --EMACSCMD:(progn (end-of-line 7)(delete-char -2)(newline-and-indent))
+   --EMACSCMD:(progn (forward-line 5)(execute-kbd-macro "is begin\nnull;\nend;\n")(current-indentation))
    --EMACSRESULT:3
    function Function_Access_1
      (A_Param : in Float)
      return Standard.Float;
-   --EMACSCMD:(progn (forward-line -3)(current-indentation))
-   --EMACSRESULT:3
+
    --EMACSCMD:(progn (forward-line -4)(current-indentation))
-   --EMACSRESULT:6
-   --EMACSCMD:(progn (forward-line -5)(current-indentation))
    --EMACSRESULT:3
-   --EMACSCMD:(progn (forward-line -7)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
+   --EMACSCMD:(progn (forward-line -5)(current-indentation))
+   --EMACSRESULT:6
+   --EMACSCMD:(progn (forward-line -6)(current-indentation))
+   --EMACSRESULT:3
+   --EMACSCMD:(progn (forward-line -8)(ada-goto-declaration-start)(looking-at "function Function_Access_1"))
    --EMACSRESULT:t
-   --EMACSCMD:(progn (forward-line -14)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
+   --EMACSCMD:(progn (forward-line -15)(forward-word 1)(ada-goto-declaration-end)(looking-back "end"))
    --EMACSRESULT:t
 
    -- calling ada-make-subprogram-body tested in ada_mode-interactive_common.adb

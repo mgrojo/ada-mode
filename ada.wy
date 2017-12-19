@@ -2041,7 +2041,7 @@ protected_definition
     (progn
       (wisi-face-apply-action [3 nil font-lock-type-face])
       (wisi-indent-action [[ada-indent ada-indent] 0 0]))
-    (wisi-match-names 1 5 t)
+    (wisi-match-names 1 3 t)
   ;
 
 protected_operation_item
@@ -2152,7 +2152,7 @@ real_range_specification_opt
 
 record_definition
   : RECORD component_list_opt END RECORD
-    (wisi-indent-action [(ada-indent-record* 'TYPE 1 0)
+    (wisi-indent-action [[(ada-indent-record* 'TYPE 1 0) (ada-indent-record* 'TYPE 1 ada-indent)]
                          [(ada-indent-record* 'TYPE 1 ada-indent) (ada-indent-record* 'TYPE 1 ada-indent)]
                          (ada-indent-record* 'TYPE 1 0)
                          0])
