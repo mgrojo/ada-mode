@@ -18,6 +18,7 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks.Containers;
+with SAL.AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
@@ -38,7 +39,7 @@ package WisiToken.AUnit is
      (Index_Type    => Positive_Index_Type,
       Element_Type  => Base_Token,
       Container_Pkg => Base_Token_Arrays,
-      Check_Index   => Standard.AUnit.Checks.Containers.Check,
+      Check_Index   => SAL.AUnit.Check,
       Check_Element => Check);
 
    procedure Check

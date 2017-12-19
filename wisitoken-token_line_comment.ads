@@ -107,7 +107,7 @@ package WisiToken.Token_Line_Comment is
      (State : in State_Type;
       ID    : in Token_ID;
       Token : in Token_Line_Comment.Token'Class)
-     return Ada.Containers.Count_Type;
+     return SAL.Base_Peek_Type;
    --  Return index to State.All_Tokens of first token in
    --  Token.Char_Region with ID. If not found, return
    --  Invalid_All_Tokens_Index.

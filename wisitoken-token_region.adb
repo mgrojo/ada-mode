@@ -62,10 +62,12 @@ package body WisiToken.Token_Region is
    is
       --  Put top Count items on Stack; all if Count_Type'Last.
       --  Top is Stack.Last_Index
+      use all type Positive_Index_Type;
       use WisiToken.Semantic_State.Augmented_Token_Arrays;
       use Ada.Containers;
 
-      First : constant Count_Type := (if Count = Ada.Containers.Count_Type'Last then 1 else Stack.Length - Count + 1);
+      First : constant Positive_Index_Type :=
+        (if Count = Ada.Containers.Count_Type'Last then 1 else Positive_Index_Type (Stack.Length - Count + 1));
    begin
       if Count = 0 then
          Trace.Put ("()");
@@ -362,7 +364,7 @@ package body WisiToken.Token_Region is
          Char_Region => Null_Buffer_Region);
 
       Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor
-        (State.Stack.Length - Base_Tokens.Length + 1);
+        (Positive_Index_Type (State.Stack.Length - Base_Tokens.Length + 1));
       Aug_Tokens  : Augmented_Token_Arrays.Vector;
    begin
       for I in Base_Tokens.First_Index .. Base_Tokens.Last_Index loop

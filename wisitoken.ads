@@ -39,6 +39,7 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
+with SAL;
 package WisiToken is
 
    Syntax_Error : exception; -- no token matching current input could be found.
@@ -51,7 +52,7 @@ package WisiToken is
 
    Programmer_Error : exception; -- a programming convention has been violated
 
-   subtype Positive_Index_Type is Ada.Containers.Count_Type range 1 .. Ada.Containers.Count_Type'Last;
+   subtype Positive_Index_Type is SAL.Peek_Type;
 
    ----------
    --  Token IDs
@@ -208,7 +209,8 @@ package WisiToken is
       Name        : Buffer_Region := Null_Buffer_Region;
       --  Name is set if ID is Descriptor.Terminal_Name_ID or
       --  Descriptor.Nonterminal_Name_ID, or is a higher level nonterminal
-      --  containing exactly one token with Name set.
+      --  containing at least one token with Name set; this is the first of
+      --  those.
    end record;
 
    function Image

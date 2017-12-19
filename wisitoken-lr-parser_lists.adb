@@ -61,7 +61,7 @@ package body WisiToken.LR.Parser_Lists is
       end return;
    end New_List;
 
-   function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type
+   function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type
    is begin
       return List.Elements.Length;
    end Count;
@@ -83,7 +83,7 @@ package body WisiToken.LR.Parser_Lists is
       return Cursor.Ptr = No_Element;
    end Is_Done;
 
-   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type
+   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type
    is begin
       return Cursor.Elements.Length;
    end Active_Parser_Count;
@@ -135,7 +135,7 @@ package body WisiToken.LR.Parser_Lists is
       return (Element => Reference (Ptr).Element);
    end State_Ref_2;
 
-   function McKenzie_Ref (Position : in Cursor) return McKenzie_Access
+   function McKenzie_Ref (Position : in Parser_Node_Access) return McKenzie_Access
    is begin
       return Parser_State_Lists.Persistent_Ref (Position.Ptr).Recover'Access;
    end McKenzie_Ref;

@@ -70,10 +70,8 @@ package body WisiToken.Token_Line_Comment is
      (State : in State_Type;
       ID    : in Token_ID;
       Token : in Token_Line_Comment.Token'Class)
-     return Ada.Containers.Count_Type
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
+     return SAL.Base_Peek_Type
+   is begin
       --  linear search for ID.
       for I in Token.First_All_Tokens_Index .. Token.Last_All_Tokens_Index loop
          if State.All_Tokens (I).ID = ID then
@@ -89,7 +87,7 @@ package body WisiToken.Token_Line_Comment is
       Start : in Token'Class)
      return Positive_Index_Type
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       Current : Positive_Index_Type :=
         (if Line <= Start.Line
          then Start.First_All_Tokens_Index
@@ -217,7 +215,8 @@ package body WisiToken.Token_Line_Comment is
                   --  no previous token
                   null;
                else
-                  Set_Prev_Trailing (Token_Line_Comment.Token (State.Stack.Reference (State.Stack.Length).Element.all));
+                  Set_Prev_Trailing
+                    (Token_Line_Comment.Token (State.Stack.Reference (SAL.Peek_Type (State.Stack.Length)).Element.all));
                end if;
             else
                Set_Prev_Trailing
@@ -311,13 +310,14 @@ package body WisiToken.Token_Line_Comment is
          Paren_State                 => 0);
 
       Stack_I         : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor
-        (State.Stack.Length - Base_Tokens.Length + 1);
+        (SAL.Base_Peek_Type (State.Stack.Length - Base_Tokens.Length + 1));
       Aug_Tokens      : Augmented_Token_Arrays.Vector;
       First_Set       : Boolean                       := False;
       Paren_State_Set : Boolean                       := False;
    begin
       for I in Base_Tokens.First_Index .. Base_Tokens.Last_Index loop
          declare
+            use all type SAL.Base_Peek_Type;
             Base_Token : WisiToken.Base_Token renames Base_Tokens.Element (I);
             Aug_Token  : Token renames Token (State.Stack (Stack_I).Element.all);
          begin

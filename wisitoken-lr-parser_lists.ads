@@ -84,7 +84,7 @@ package WisiToken.LR.Parser_Lists is
       First_Parser_Label : in Natural)
      return List;
 
-   function Count (List : in Parser_Lists.List) return Ada.Containers.Count_Type;
+   function Count (List : in Parser_Lists.List) return SAL.Base_Peek_Type;
 
    type Cursor is tagged private;
 
@@ -93,7 +93,7 @@ package WisiToken.LR.Parser_Lists is
    function Is_Done (Cursor : in Parser_Lists.Cursor) return Boolean;
    function Has_Element (Cursor : in Parser_Lists.Cursor) return Boolean is (not Is_Done (Cursor));
 
-   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return Ada.Containers.Count_Type;
+   function Active_Parser_Count (Cursor : in Parser_Lists.Cursor) return SAL.Base_Peek_Type;
 
    function Label (Cursor : in Parser_Lists.Cursor) return Natural;
 
@@ -115,8 +115,6 @@ package WisiToken.LR.Parser_Lists is
       Label     : in              Natural)
      return State_Reference;
    --  WORKAROUND: GNAT GPL 2017 does not like overloading this as "State_Ref".
-
-   function McKenzie_Ref (Position : in Cursor) return McKenzie_Access;
 
    procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Cursor : in Parser_Lists.Cursor);
    --  Put image of top 10 stack items to Trace.
@@ -184,6 +182,8 @@ package WisiToken.LR.Parser_Lists is
      (Container : aliased in out List'Class;
       Position  :         in     Parser_Node_Access)
      return State_Reference;
+
+   function McKenzie_Ref (Position : in Parser_Node_Access) return McKenzie_Access;
 
    function Has_Element (Iterator : in Parser_Node_Access) return Boolean;
 

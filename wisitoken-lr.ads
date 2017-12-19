@@ -334,7 +334,7 @@ package WisiToken.LR is
       Table                   : Parse_Table_Ptr;
       Semantic_State          : WisiToken.Semantic_State.Semantic_State_Access;
       Shared_Lookahead        : Base_Token_Queues.Queue_Type;
-      Max_Parallel            : Ada.Containers.Count_Type;
+      Max_Parallel            : SAL.Base_Peek_Type;
       First_Parser_Label      : Integer;
       Terminate_Same_State    : Boolean;
       Enable_McKenzie_Recover : Boolean;
@@ -392,7 +392,7 @@ package WisiToken.LR is
       Shared_Lookahead_Index : SAL.Base_Peek_Type; -- index into Parser.Shared_Lookahead for next input token
 
       Local_Lookahead        : Fast_Token_ID_Vectors.Vector;
-      Local_Lookahead_Index  : Ada.Containers.Count_Type;
+      Local_Lookahead_Index  : SAL.Base_Peek_Type;
       --  Local_Lookahead contains token IDs inserted by special rules.
       --  It is not a queue type, because we always access it via
       --  Local_Lookahead_Index
@@ -430,6 +430,7 @@ package WisiToken.LR is
       Set_Key      => Set_Key);
 
    type McKenzie_Data is tagged record
+      Parser_Label  : Natural; --  For trace.
       Config_Heap   : Config_Heaps.Heap_Type;
       Enqueue_Count : Integer := 0;
       Check_Count   : Integer := 0;

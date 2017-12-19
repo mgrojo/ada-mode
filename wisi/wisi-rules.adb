@@ -265,6 +265,8 @@ begin
                      RHS.Action.Clear;
                      RHS.Check.Clear;
 
+                     Token_Count := 0;
+
                      Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                      Need_New_Line := Cursor = 0;
 
@@ -310,7 +312,6 @@ begin
                   end if;
 
                   Need_New_Line := True;
-
                   Check_Numbers (Line);
                end if;
 
@@ -340,6 +341,8 @@ begin
                      RHS.Action.Clear;
                      RHS.Check.Clear;
 
+                     Token_Count := 0;
+
                      Cursor := Index_Non_Blank (Line, From => Cursor + 1);
                      Need_New_Line := Cursor = 0;
 
@@ -362,7 +365,6 @@ begin
                   end if;
 
                   Need_New_Line := True;
-
                   Check_Numbers (Line);
                end if;
             end case;
@@ -374,6 +376,11 @@ begin
          if If_Active then
             If_Active := Line /= End_If_Str;
          else
+            --  It's tempting to call Check_Numbers here if in state Action or
+            --  Check, but that's wrong; actually need to call it in Parse_State
+            --  when transition to either Action or Check, and when requesting a
+            --  new line while staying in those states.
+
             loop
                Parse_State;
                exit when Need_New_Line;

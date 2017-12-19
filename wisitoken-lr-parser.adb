@@ -38,7 +38,7 @@ package body WisiToken.LR.Parser is
       Semantic_State : access WisiToken.Semantic_State.Semantic_State'Class;
       Nonterm        :    out Base_Token)
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
 
       Parser_State : Parser_Lists.Parser_State renames Current_Parser.State_Ref.Element.all;
       Tokens       : Base_Token_Arrays.Vector;
@@ -153,15 +153,14 @@ package body WisiToken.LR.Parser is
       Parsers                    : in out Parser_Lists.List;
       Verb                       :    out All_Parse_Action_Verbs;
       Max_Shared_Lookahead_Index :    out SAL.Peek_Type;
-      Zombie_Count               :    out Ada.Containers.Count_Type)
+      Zombie_Count               :    out SAL.Base_Peek_Type)
    is
-      use Ada.Containers;
       use all type SAL.Base_Peek_Type;
 
-      Shift_Count       : Count_Type := 0;
-      Shift_Local_Count : Count_Type := 0;
-      Accept_Count      : Count_Type := 0;
-      Error_Count       : Count_Type := 0;
+      Shift_Count       : SAL.Base_Peek_Type := 0;
+      Shift_Local_Count : SAL.Base_Peek_Type := 0;
+      Accept_Count      : SAL.Base_Peek_Type := 0;
+      Error_Count       : SAL.Base_Peek_Type := 0;
    begin
       Max_Shared_Lookahead_Index := SAL.Peek_Type'First;
       Zombie_Count               := 0;
@@ -315,8 +314,8 @@ package body WisiToken.LR.Parser is
       Action         : Parse_Action_Node_Ptr;
 
       First_Token                : Boolean := True;
-      Max_Shared_Lookahead_Index : SAL.Peek_Type;
-      Zombie_Count               : Ada.Containers.Count_Type;
+      Max_Shared_Lookahead_Index : SAL.Base_Peek_Type;
+      Zombie_Count               : SAL.Base_Peek_Type;
       Resume_Active              : Boolean := False;
 
       procedure Terminate_Parser (Cur : in out Parser_Lists.Cursor)
@@ -494,7 +493,7 @@ package body WisiToken.LR.Parser is
 
          when Accept_It =>
             declare
-               Count : constant Ada.Containers.Count_Type := Parsers.Count;
+               Count : constant SAL.Base_Peek_Type := Parsers.Count;
             begin
                if Count = 1 then
                   --  Nothing more to do
@@ -526,7 +525,7 @@ package body WisiToken.LR.Parser is
                   --  Error recovery does not help with this.
                   raise Parse_Error with Error_Message
                     ("", Shared_Parser.Lexer.Line, Shared_Parser.Lexer.Column,
-                     "Ambiguous parse:" & Ada.Containers.Count_Type'Image (Count) & " parsers active.");
+                     "Ambiguous parse:" & SAL.Base_Peek_Type'Image (Count) & " parsers active.");
                end if;
             end;
 
@@ -552,7 +551,7 @@ package body WisiToken.LR.Parser is
                   if Keep_Going then
                      if Parsers.Count > 1 then
                         Trace.Put_Line
-                          ("recover: succeed, parser count" & Ada. Containers.Count_Type'Image (Parsers.Count));
+                          ("recover: succeed, parser count" & SAL.Base_Peek_Type'Image (Parsers.Count));
 
                         if Trace_Parse > Extra then
                            Trace.Put ("shared lookahead: ");
@@ -585,7 +584,7 @@ package body WisiToken.LR.Parser is
                   else
                      if Parsers.Count > 1 then
                         Trace.Put_Line
-                          ("recover: fail, parser count" & Ada.Containers.Count_Type'Image (Parsers.Count));
+                          ("recover: fail, parser count" & SAL.Base_Peek_Type'Image (Parsers.Count));
                      else
                         Trace.Put_Line ("recover: fail");
                      end if;
@@ -713,7 +712,7 @@ package body WisiToken.LR.Parser is
                         ": too many parallel parsers required in grammar state" &
                           State_Index'Image (Current_Parser.State_Ref.Stack.Peek.State) &
                           "; simplify grammar, or increase max-parallel (" &
-                          Ada.Containers.Count_Type'Image (Shared_Parser.Max_Parallel) & ")");
+                          SAL.Base_Peek_Type'Image (Shared_Parser.Max_Parallel) & ")");
 
                   else
                      if Trace_Parse > Outline then
@@ -752,9 +751,9 @@ package body WisiToken.LR.Parser is
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
       Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     Ada.Containers.Count_Type := Default_Max_Parallel;
-      First_Parser_Label   : in     Integer                   := 1;
-      Terminate_Same_State : in     Boolean                   := True)
+      Max_Parallel         : in     SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label   : in     Integer            := 1;
+      Terminate_Same_State : in     Boolean            := True)
    is begin
       Parser.Lexer                   := Lexer;
       Parser.Table                   := Table;

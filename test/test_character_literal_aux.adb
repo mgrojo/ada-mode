@@ -17,6 +17,7 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Character_Literal;
+with SAL;
 with WisiToken.AUnit;
 with WisiToken.Token_Line_Comment;
 package body Test_Character_Literal_Aux is
@@ -157,7 +158,8 @@ package body Test_Character_Literal_Aux is
                when 4 =>
                   Check ("statement_1 2 4.First", Token.First, True);
                when others =>
-                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                    Token_ID'Image (Token.ID);
                end case;
             end;
          end loop;
@@ -194,7 +196,8 @@ package body Test_Character_Literal_Aux is
                   Check ("statement_2 1 2.First", Token.First, True);
 
                when others =>
-                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                    Token_ID'Image (Token.ID);
                end case;
             end;
          end loop;

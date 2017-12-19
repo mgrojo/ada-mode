@@ -34,9 +34,9 @@ package WisiToken.LR.Parser is
       Lexer                : in     WisiToken.Lexer.Handle;
       Table                : in     Parse_Table_Ptr;
       Semantic_State       : in     WisiToken.Semantic_State.Semantic_State_Access;
-      Max_Parallel         : in     Ada.Containers.Count_Type := Default_Max_Parallel;
-      First_Parser_Label   : in     Integer                   := 1;
-      Terminate_Same_State : in     Boolean                   := True);
+      Max_Parallel         : in     SAL.Base_Peek_Type := Default_Max_Parallel;
+      First_Parser_Label   : in     Integer            := 1;
+      Terminate_Same_State : in     Boolean            := True);
 
    procedure Parse (Shared_Parser : in out Instance);
 

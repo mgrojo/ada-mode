@@ -304,7 +304,7 @@ package body WisiToken is
       Descriptor : in WisiToken.Descriptor'Class)
      return String
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
       --  No outer parens, for compatibility with existing tests.
       Result : Unbounded_String;

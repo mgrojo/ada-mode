@@ -615,7 +615,7 @@ package body WisiToken.LR is
 
    function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := To_Unbounded_String ("(");
    begin
@@ -631,14 +631,12 @@ package body WisiToken.LR is
 
    overriding
    function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String
-   is
-      use Ada.Containers;
-   begin
+   is begin
       return
         "(" & Image (Config.Stack, Descriptor) & ", " &
         SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & ", " &
         Image (Config.Local_Lookahead, Descriptor) & ", " &
-        Count_Type'Image (Config.Local_Lookahead_Index) & ", " &
+        SAL.Base_Peek_Type'Image (Config.Local_Lookahead_Index) & ", " &
         Image (Config.Popped, Descriptor) & ", " &
         Image (Config.Pushed, Descriptor) & ", " &
         Image (Config.Inserted, Descriptor) & ", " &
@@ -676,9 +674,7 @@ package body WisiToken.LR is
      (Stack   : in out Parser_Stacks.Stack_Type;
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token)
-   is
-      Name_Count : Integer := 0;
-   begin
+   is begin
       Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
       for I in reverse 1 .. Action.Token_Count loop
          declare
@@ -693,14 +689,15 @@ package body WisiToken.LR is
             end if;
 
             if Token.Name /= Null_Buffer_Region then
-               Name_Count   := Name_Count + 1;
+               --  Always keep first name in production (which is last name in this
+               --  loop); it will be the block name.
+               --
+               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
+               --  regions.
                Nonterm.Name := Token.Name;
             end if;
          end;
       end loop;
-      if Name_Count > 1 then
-         Nonterm.Name := Null_Buffer_Region;
-      end if;
    end Reduce_Stack;
 
    procedure Reduce_Stack
@@ -708,12 +705,10 @@ package body WisiToken.LR is
       Action  : in     Reduce_Action_Rec;
       Nonterm :    out Base_Token;
       Tokens  :    out Base_Token_Arrays.Vector)
-   is
-      Name_Count : Integer := 0;
-   begin
+   is begin
       Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
       Tokens.Set_Length (Action.Token_Count);
-      for I in reverse 1 .. Action.Token_Count loop
+      for I in reverse 1 .. SAL.Base_Peek_Type (Action.Token_Count) loop
          declare
             Token : constant Base_Token := Stack.Pop.Token;
          begin
@@ -728,14 +723,15 @@ package body WisiToken.LR is
             end if;
 
             if Token.Name /= Null_Buffer_Region then
-               Name_Count   := Name_Count + 1;
+               --  Always keep first name in production(which is last name in this
+               --  loop); it will be the block name.
+               --
+               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
+               --  regions.
                Nonterm.Name := Token.Name;
             end if;
          end;
       end loop;
-      if Name_Count > 1 then
-         Nonterm.Name := Null_Buffer_Region;
-      end if;
    end Reduce_Stack;
 
 end WisiToken.LR;
