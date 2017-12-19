@@ -67,7 +67,6 @@ is
       Put_Line ("     2 - add diagnostics to standard out, ignore unused tokens, unknown conflicts");
       Put_Line ("  --enum; declare enumeration token type");
       Put_Line ("  --suffix <string>; appended to grammar file name");
-      Put_Line ("  --profile; grammar file production actions are replaced by counters");
       Put_Line ("  --<directive_name> <value>; same as directive in grammar file; override grammar file");
 
    end Put_Usage;
@@ -87,7 +86,7 @@ is
    Elisp_Names      : Wisi.Elisp_Names;
    Rule_Count       : Integer;
    Action_Count     : Integer;
-   Profile          : Boolean := False;
+   Check_Count      : Integer;
 
    procedure Use_Input_File (File_Name : in String)
    is
@@ -186,10 +185,6 @@ begin
                raise User_Error with "invalid value for parser_algorithm: '" & Argument (Arg_Next) & ";";
             end;
 
-         elsif Argument (Arg_Next) = "--profile" then
-            Arg_Next := Arg_Next + 1;
-            Profile  := True;
-
          elsif Argument (Arg_Next) = "--suffix" then
             Arg_Next := Arg_Next + 1;
             Suffix   := +Argument (Arg_Next);
@@ -211,7 +206,8 @@ begin
    Wisi.Prologue (Input_File, Prologues);
    Wisi.Declarations (Input_File, Generate_Params, Tokens, Elisp_Names, Conflicts, McKenzie_Recover);
    Wisi.Rules
-     (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules, Rule_Count, Action_Count);
+     (Input_File, Generate_Params.Output_Language, Generate_Params.Lexer, Tokens.Rules,
+      Rule_Count, Action_Count, Check_Count);
 
    case Generate_Params.Output_Language is
    when None =>
@@ -220,15 +216,16 @@ begin
    when Ada =>
       Wisi.Output_Ada
         (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
-         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Declare_Enum, Profile);
+         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Check_Count, Declare_Enum);
 
    when Ada_Emacs =>
       Wisi.Output_Ada_Emacs
         (-Input_File_Name, -Output_File_Root, -Language_Name, Generate_Params, Prologues, Tokens, Conflicts,
-         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Declare_Enum);
+         McKenzie_Recover, Elisp_Names, Rule_Count, Action_Count, Check_Count, Declare_Enum);
 
    when Elisp =>
-      --  The Elisp parser does not support any error recover algorithms
+      --  The Elisp parser does not support any error recover algorithms,
+      --  thus no semantic checks.
       Wisi.Output_Elisp
         (-Input_File_Name, -Output_File_Root, Generate_Params, Prologues, Tokens, Conflicts, Rule_Count, Action_Count);
 

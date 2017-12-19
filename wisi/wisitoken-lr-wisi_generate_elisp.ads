@@ -19,7 +19,7 @@
 pragma License (Modified_GPL);
 
 with Wisi;
-package WisiToken.Parser.LR.Wisi_Generate_Elisp is
+package WisiToken.LR.Wisi_Generate_Elisp is
 
    procedure Output
      (Elisp_Package : in String;
@@ -27,4 +27,4 @@ package WisiToken.Parser.LR.Wisi_Generate_Elisp is
       Parser        : in Parse_Table_Ptr;
       Descriptor    : in WisiToken.Descriptor'Class);
 
-end WisiToken.Parser.LR.Wisi_Generate_Elisp;
+end WisiToken.LR.Wisi_Generate_Elisp;

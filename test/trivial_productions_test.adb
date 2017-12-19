@@ -21,11 +21,13 @@
 
 pragma License (GPL);
 
+with Ada.Characters.Latin_1;
 with WisiToken.Gen_Token_Enum;
 with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Trivial_Productions_Test is
 
@@ -68,29 +70,29 @@ package body Trivial_Productions_Test is
          package Lexer renames WisiToken.Lexer.Regexp;
 
          Syntax : constant Lexer.Syntax := To_Syntax
-           ((EOF_ID    => Lexer.Get ("" & WisiToken.EOF_Character),
+           ((EOF_ID    => Lexer.Get ("" & Ada.Characters.Latin_1.EOT),
              Symbol_ID => Lexer.Get ("symbol")));
 
          use type WisiToken.Production.Right_Hand_Side;
          use type WisiToken.Production.List.Instance;
 
-         Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+         Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
          Grammar : constant WisiToken.Production.List.Instance :=
            E_ID <= T_ID & EOF_ID + Null_Action and
            T_ID <= F_ID + Null_Action and
            F_ID <= Symbol_ID + Null_Action;
 
-         Parser : WisiToken.Parser.LR.Instance;
+         Parser : WisiToken.LR.Instance;
 
          Text : constant String := "symbol";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         WisiToken.Parser.LR.Parser.New_Parser
+         WisiToken.LR.Parser.New_Parser
            (Parser,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.Parser.LR.LALR_Generator.Generate
+            WisiToken.LR.LALR_Generator.Generate
               (Grammar, LALR_Descriptor, First_State_Index, Trace => Test_Case (Test).Debug > 0),
             State'Access,
             First_Parser_Label);
@@ -158,13 +160,13 @@ package body Trivial_Productions_Test is
              Procedure_ID   => Lexer.Get ("procedure"),
              Right_Paren_ID => Lexer.Get ("\)"),
              Symbol_ID      => Lexer.Get ("symbol"),
-             EOF_ID         => Lexer.Get ("" & WisiToken.EOF_Character)
+             EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
             ));
 
          use type WisiToken.Production.Right_Hand_Side;
          use type WisiToken.Production.List.Instance;
 
-         Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+         Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
          Grammar : constant WisiToken.Production.List.Instance :=
            WisiToken_Accept_ID <= Declarations_ID & EOF_ID + Null_Action and
@@ -176,16 +178,16 @@ package body Trivial_Productions_Test is
            Parameter_List_ID   <= +Null_Action and
            Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action;
 
-         Parser : WisiToken.Parser.LR.Instance;
+         Parser : WisiToken.LR.Instance;
 
          Text : constant String := "function (symbol) symbol procedure";
       begin
          --  The test is that there are no exceptions raised, either during grammar construction or parsing
 
-         WisiToken.Parser.LR.Parser.New_Parser
+         WisiToken.LR.Parser.New_Parser
            (Parser,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.Parser.LR.LALR_Generator.Generate
+            WisiToken.LR.LALR_Generator.Generate
               (Grammar,
                LALR_Descriptor,
                First_State_Index,

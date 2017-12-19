@@ -18,49 +18,56 @@
 pragma License (GPL);
 
 with Ada.Characters.Handling;
+with SAL;
 package body WisiToken.Token_Region is
 
    overriding
    function Image
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
+      ID_Only    : in Boolean := False)
      return String
    is
       use all type Ada.Text_IO.Count;
-      Name : constant String := WisiToken.Image (Descriptor, Item.ID);
+      ID_Image   : constant String := WisiToken.Image (Item.ID, Descriptor);
+      Name_Image : constant String :=
+        (if Item.Name = Null_Buffer_Region
+         then ""
+         else " " & Image (Item.Name));
    begin
       if ID_Only then
          --  No parens for consistency with previous unit test results.
-         return Name;
+         return ID_Image;
 
       elsif Item.Line /= Invalid_Line_Number then
-         return "(" & Name &
+         return "(" & ID_Image & Name_Image &
            Line_Number_Type'Image (Item.Line) & ":" & Int_Image (Integer (Item.Col)) & ")";
 
       elsif Item.Char_Region = Null_Buffer_Region then
-         return "(" & Name & ")";
+         return "(" & ID_Image & Name_Image & ")";
 
       else
          --  For test result backward compatiblity, we don't call Image
          --  (Item.Region) here
-         return "(" & Name &
+         return "(" & ID_Image & Name_Image &
            Buffer_Pos'Image (Item.Char_Region.First) & " ." & Buffer_Pos'Image (Item.Char_Region.Last) & ")";
       end if;
    end Image;
 
    procedure Put
      (Trace     : in out WisiToken.Trace'Class;
-      Stack     : in     Augmented_Token_Array;
+      Stack     : in     WisiToken.Semantic_State.Augmented_Token_Array;
       Count     : in     Ada.Containers.Count_Type := Ada.Containers.Count_Type'Last;
       Top_First : in     Boolean                   := True)
    is
       --  Put top Count items on Stack; all if Count_Type'Last.
       --  Top is Stack.Last_Index
-      use Augmented_Token_Arrays;
+      use all type Positive_Index_Type;
+      use WisiToken.Semantic_State.Augmented_Token_Arrays;
       use Ada.Containers;
 
-      First : constant Count_Type := (if Count = Ada.Containers.Count_Type'Last then 1 else Stack.Length - Count + 1);
+      First : constant Positive_Index_Type :=
+        (if Count = Ada.Containers.Count_Type'Last then 1 else Positive_Index_Type (Stack.Length - Count + 1));
    begin
       if Count = 0 then
          Trace.Put ("()");
@@ -92,17 +99,17 @@ package body WisiToken.Token_Region is
      (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token'Class;
       Index               : in     Natural;
-      Stack               : in     Augmented_Token_Array;
+      Stack               : in     WisiToken.Semantic_State.Augmented_Token_Array;
       Tokens_Length       : in     Ada.Containers.Count_Type;
       Include_Action_Name : in     Boolean)
    is
       use all type Ada.Containers.Count_Type;
       use Ada.Characters.Handling;
-      use Augmented_Token_Arrays;
+      use WisiToken.Semantic_State.Augmented_Token_Arrays;
 
       Action_Name : constant String :=
         (if Include_Action_Name
-         then To_Lower (Image (Trace.Descriptor.all, Nonterm.ID)) & "_" & WisiToken.Int_Image (Index) & ": "
+         then To_Lower (Image (Nonterm.ID, Trace.Descriptor.all)) & "_" & WisiToken.Int_Image (Index) & ": "
          else "");
    begin
       Trace.Put (Action_Name & Nonterm.Image (Trace.Descriptor.all, ID_Only => False) & " <= ");
@@ -114,7 +121,7 @@ package body WisiToken.Token_Region is
    --  Public subprograms, declaration order
 
    overriding
-   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class)
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Semantic_State.Init_Data'Class)
    is
       pragma Unreferenced (Init);
    begin
@@ -178,13 +185,13 @@ package body WisiToken.Token_Region is
             for Item of Errors (I) loop
                if Item.Error_Token.Line = Invalid_Line_Number then
                   Put_Line
-                    (Source_File_Name & ": syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                    (Source_File_Name & ": syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                        ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => False) & "'");
                else
                   Put_Line
                     (Error_Message
                        (Source_File_Name, Item.Error_Token.Line, Item.Error_Token.Col,
-                        "syntax error: expecting " & Image (Descriptor, Item.Expecting) &
+                        "syntax error: expecting " & Image (Item.Expecting, Descriptor) &
                           ", found '" & Item.Error_Token.Image (Descriptor, ID_Only => True) & "'"));
                end if;
 
@@ -200,6 +207,7 @@ package body WisiToken.Token_Region is
    overriding
    procedure Put (State : not null access State_Type)
    is
+      use WisiToken.Semantic_State;
    begin
       State.Trace.Put ("semantic state: stack: ");
       Put (State.Trace.all, State.Stack);
@@ -212,12 +220,13 @@ package body WisiToken.Token_Region is
    overriding
    procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'class)
    is
       use all type SAL.Base_Peek_Type;
-      Temp : constant Token :=
-        (ID,
+      Temp : constant Token_Region.Token :=
+        (ID          => Token.ID,
+         Name        => Token.Name,
          Virtual     => False,
          Line        => Lexer.Line,
          Col         => Lexer.Column,
@@ -293,10 +302,11 @@ package body WisiToken.Token_Region is
    overriding
    procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in     Token_ID)
+      Token : in              Base_Token)
    is
-      Temp : constant Token :=
-        (ID,
+      Temp : constant Token_Region.Token :=
+        (ID          => Token.ID,
+         Name        => Token.Name,
          Virtual     => True,
          Line        => Invalid_Line_Number,
          Col         => 0,
@@ -314,13 +324,13 @@ package body WisiToken.Token_Region is
    overriding
    procedure Push_Current
      (State : not null access State_Type;
-      ID    : in     Token_ID)
+      Token : in              Base_Token)
    is
-      Temp : constant WisiToken.Augmented_Token'Class := State.Lookahead_Queue.Get;
+      Temp : constant WisiToken.Semantic_State.Augmented_Token'Class := State.Lookahead_Queue.Get;
    begin
-      if ID /= Temp.ID then
+      if Token.ID /= Temp.ID then
          raise Programmer_Error with "token_region.push_current: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
+           Image (Token.ID, State.Trace.Descriptor.all) &
            ", Token " & Temp.Image (State.Trace.Descriptor.all, ID_Only => False);
       end if;
 
@@ -334,54 +344,54 @@ package body WisiToken.Token_Region is
 
    overriding
    procedure Reduce_Stack
-     (State   : not null access State_Type;
-      Nonterm : in     Token_ID;
-      Index   : in     Natural;
-      IDs     : in     WisiToken.Token_Array;
-      Action  : in     Semantic_Action)
+     (State       : not null access State_Type;
+      Nonterm     : in              Base_Token;
+      Index       : in              Natural;
+      Base_Tokens : in              WisiToken.Base_Token_Arrays.Vector;
+      Action      : in              WisiToken.Semantic_State.Semantic_Action)
    is
+      use WisiToken.Semantic_State;
       use all type Ada.Containers.Count_Type;
       use all type Augmented_Token_Arrays.Cursor;
 
-      Aug_Nonterm : Token;
-      Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor (State.Stack.Length - IDs.Length + 1);
+      Aug_Nonterm : Token :=
+        (ID          => Nonterm.ID,
+         Name        => Nonterm.Name,
+         Virtual     => False,
+         Line        => Invalid_Line_Number,
+         Col         => 0,
+         Byte_Region => Nonterm.Byte_Region,
+         Char_Region => Null_Buffer_Region);
+
+      Stack_I     : Augmented_Token_Arrays.Cursor := State.Stack.To_Cursor
+        (Positive_Index_Type (State.Stack.Length - Base_Tokens.Length + 1));
       Aug_Tokens  : Augmented_Token_Arrays.Vector;
    begin
-      Aug_Nonterm.ID := Nonterm;
-
-      for I in IDs.First_Index .. IDs.Last_Index loop
+      for I in Base_Tokens.First_Index .. Base_Tokens.Last_Index loop
          declare
             use all type Ada.Text_IO.Count;
-            ID    : Token_ID renames IDs.Element (I);
-            Token : Token_Region.Token renames Token_Region.Token (State.Stack (Stack_I).Element.all);
+            Base_Token : WisiToken.Base_Token renames Base_Tokens.Element (I);
+            Aug_Token  : Token_Region.Token renames Token_Region.Token (State.Stack (Stack_I).Element.all);
          begin
-            if ID /= State.Stack (Stack_I).ID then
+            if Base_Token.ID /= Aug_Token.ID then
                raise Programmer_Error;
             end if;
 
             if Action /= null then
-               Aug_Tokens.Append (Token);
+               Aug_Tokens.Append (Aug_Token);
             end if;
 
-            if Aug_Nonterm.Line = Invalid_Line_Number and Token.Line /= Invalid_Line_Number then
-               Aug_Nonterm.Line := Token.Line;
-               Aug_Nonterm.Col  := Token.Col;
+            if Aug_Nonterm.Line = Invalid_Line_Number and Aug_Token.Line /= Invalid_Line_Number then
+               Aug_Nonterm.Line := Aug_Token.Line;
+               Aug_Nonterm.Col  := Aug_Token.Col;
             end if;
 
-            if Aug_Nonterm.Char_Region.First > Token.Char_Region.First then
-               Aug_Nonterm.Char_Region.First := Token.Char_Region.First;
+            if Aug_Nonterm.Char_Region.First > Aug_Token.Char_Region.First then
+               Aug_Nonterm.Char_Region.First := Aug_Token.Char_Region.First;
             end if;
 
-            if Aug_Nonterm.Char_Region.Last < Token.Char_Region.Last then
-               Aug_Nonterm.Char_Region.Last := Token.Char_Region.Last;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.First > Token.Byte_Region.First then
-               Aug_Nonterm.Byte_Region.First := Token.Byte_Region.First;
-            end if;
-
-            if Aug_Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
-               Aug_Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
+            if Aug_Nonterm.Char_Region.Last < Aug_Token.Char_Region.Last then
+               Aug_Nonterm.Char_Region.Last := Aug_Token.Char_Region.Last;
             end if;
          end;
 
@@ -392,10 +402,11 @@ package body WisiToken.Token_Region is
          --  We use the stack for the trace, not Aug_Tokens, because
          --  we don't compute aug_tokens when Action is null.
          Put
-           (State.Trace.all, Aug_Nonterm, Index, State.Stack, IDs.Length, Include_Action_Name => Action /= null);
+           (State.Trace.all, Aug_Nonterm, Index, State.Stack, Base_Tokens.Length,
+            Include_Action_Name => Action /= null);
       end if;
 
-      for I in 1 .. IDs.Length loop
+      for I in 1 .. Base_Tokens.Length loop
          State.Stack.Delete_Last;
       end loop;
 
@@ -415,7 +426,7 @@ package body WisiToken.Token_Region is
    begin
       if ID /= Token.ID then
          raise Programmer_Error with "token_region.discard_lookahead: ID " &
-           Image (State.Trace.Descriptor.all, ID) &
+           Image (ID, State.Trace.Descriptor.all) &
            ", Token " & Token.Image (State.Trace.Descriptor.all, ID_Only => False);
       end if;
 
@@ -430,7 +441,7 @@ package body WisiToken.Token_Region is
       ID    : in              Token_ID)
    is
       Token : constant Token_Region.Token := Token_Region.Token
-        (Augmented_Token_Arrays.Element (State.Stack.Last));
+        (WisiToken.Semantic_State.Augmented_Token_Arrays.Element (State.Stack.Last));
    begin
       State.Stack.Delete_Last;
 
@@ -446,12 +457,12 @@ package body WisiToken.Token_Region is
    procedure Recover
      (State     : not null access State_Type;
       Parser_ID : in     Natural;
-      Recover   : in     WisiToken.Token.Recover_Data'Class)
+      Recover   : in     WisiToken.Semantic_State.Recover_Data'Class)
    is
       Error_List : Error_Data_Lists.List renames State.Errors.Reference (Parser_ID).Element.all;
       Error      : Error_Data renames Error_List.Reference (Error_List.Last);
    begin
-      Error.Recover := new WisiToken.Token.Recover_Data'Class'(Recover);
+      Error.Recover := new WisiToken.Semantic_State.Recover_Data'Class'(Recover);
       if Trace_Parse > Extra then
          State.Trace.Put_Line (Natural'Image (Parser_ID) & ": recover");
       end if;

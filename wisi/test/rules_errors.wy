@@ -31,17 +31,49 @@ declaration
   : subprogram
   ;
 
-;; valid token numbers in action
+;; valid token numbers in action, check
 subprogram
   : FUNCTION parameter_list SYMBOL
     (wisi-statement-action [1 start 2 name 3 other])
+    (wisi-match-names 1 2)
   | PROCEDURE parameter_list
   ;
 
-;; invalid token number in action
+;; invalid token numbers in single line action
 parameter_list
   : LEFT_PAREN SYMBOL RIGHT_PAREN
     (wisi-statement-action [ 1 paren-open 4 paren-close])
+  ;
+
+;; invalid token numbers in second line of action
+parameter_list_1
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
+    (progn
+      (wisi-statement-action [ 1 paren-open 3 paren-close])
+      (wisi-statement-action [ 1 paren-open 4 paren-close]))
+  ;
+
+;; invalid token number in check
+parameter_list_2
+  : LEFT_PAREN SYMBOL RIGHT_PAREN
+    (wisi-statement-action [ 1 paren-open 3 paren-close])
+    (wisi-match-names 1 4)
+  ;
+
+;; from ada.wy; error in second check
+protected_definition
+  : declarative_part_opt PRIVATE declarative_part_opt END identifier_opt
+    (progn
+      (wisi-statement-action [2 motion])
+      (wisi-face-apply-action [5 nil font-lock-type-face])
+      (wisi-indent-action [[ada-indent ada-indent] 0 [ada-indent ada-indent] 0 0]))
+    (wisi-match-names 1 5 t)
+
+  | declarative_part_opt END identifier_opt
+    (progn
+      (wisi-face-apply-action [3 nil font-lock-type-face])
+      (wisi-indent-action [[ada-indent ada-indent] 0 0]))
+    (wisi-match-names 1 5 t)
   ;
 
 %%

@@ -17,13 +17,14 @@ with AUnit.Assertions;
 with AUnit.Checks;
 with Ada.Containers;
 with Character_Literal;
+with SAL;
 with WisiToken.AUnit;
 with WisiToken.Token_Line_Comment;
 package body Test_Character_Literal_Aux is
 
    Statement_Count : Integer := 0;
 
-   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Augmented_Token'Class)
+   procedure Test_Statement_List_0 (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class)
    is
       use WisiToken.AUnit;
 
@@ -61,7 +62,7 @@ package body Test_Character_Literal_Aux is
       end if;
    end Test_Statement_List_0;
 
-   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_0 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Character_Literal;
@@ -109,7 +110,7 @@ package body Test_Character_Literal_Aux is
 
    Statement_1_Count : Integer := 0;
 
-   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_1 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Ada.Containers;
@@ -157,7 +158,8 @@ package body Test_Character_Literal_Aux is
                when 4 =>
                   Check ("statement_1 2 4.First", Token.First, True);
                when others =>
-                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                    Token_ID'Image (Token.ID);
                end case;
             end;
          end loop;
@@ -169,7 +171,7 @@ package body Test_Character_Literal_Aux is
    end Test_Statement_1;
 
    Statement_2_Count : Integer := 0;
-   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Augmented_Token_Array)
+   procedure Test_Statement_2 (Wisi_Tokens : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       use AUnit.Checks;
       use Ada.Containers;
@@ -194,7 +196,8 @@ package body Test_Character_Literal_Aux is
                   Check ("statement_2 1 2.First", Token.First, True);
 
                when others =>
-                  raise Programmer_Error with "unexpected token" & Count_Type'Image (I) & Token_ID'Image (Token.ID);
+                  raise Programmer_Error with "unexpected token" & SAL.Base_Peek_Type'Image (I) &
+                    Token_ID'Image (Token.ID);
                end case;
             end;
          end loop;

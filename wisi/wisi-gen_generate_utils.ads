@@ -20,7 +20,7 @@
 pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
-with WisiToken.Parser.LR.Generator_Utils;
+with WisiToken.LR.Generator_Utils;
 with WisiToken.Production;
 generic
    Tokens                : in Wisi.Tokens;
@@ -141,7 +141,7 @@ package Wisi.Gen_Generate_Utils is
       Accept_Reduce_Conflict_Count :    out Integer;
       Shift_Reduce_Conflict_Count  :    out Integer;
       Reduce_Reduce_Conflict_Count :    out Integer)
-     return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
+     return WisiToken.LR.Generator_Utils.Conflict_Lists.List;
 
    function To_Grammar
      (Descriptor       : in WisiToken.Descriptor'Class;
@@ -152,7 +152,7 @@ package Wisi.Gen_Generate_Utils is
 
    function To_Nonterminal_ID_Set (Item : in String_Lists.List) return Token_ID_Set;
 
-   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.Parser.LR.McKenzie_Param_Type;
+   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.LR.McKenzie_Param_Type;
 
 private
 

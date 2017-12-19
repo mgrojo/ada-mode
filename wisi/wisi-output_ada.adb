@@ -22,8 +22,8 @@ pragma License (Modified_GPL);
 
 with Ada.Strings.Fixed;
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Parser.LR.LR1_Generator;
-with WisiToken.Parser.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LALR_Generator;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Utils;
 procedure Wisi.Output_Ada
@@ -38,15 +38,15 @@ procedure Wisi.Output_Ada
    Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
    Action_Count          : in Integer;
-   Declare_Enum          : in Boolean;
-   Profile               : in Boolean)
+   Check_Count           : in Integer;
+   Declare_Enum          : in Boolean)
 is
    package Common is new Wisi.Gen_Output_Ada_Common (Prologues, Tokens, Conflicts, Params);
    use Common;
 
    procedure Create_Ada_Body
    is
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use all type WisiToken.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -57,10 +57,10 @@ is
       Body_File    : File_Type;
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := WisiToken.Parser.LR.LALR_Generator.Generate
+         Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -74,10 +74,10 @@ is
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := WisiToken.Parser.LR.LR1_Generator.Generate
+         Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -87,7 +87,7 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := WisiToken.Parser.LR.Unknown_State_Index'Max
+         Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
            (Data.Parser_State_Count,
             Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
@@ -103,7 +103,10 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.Parser.LR.Parser;");
+      Put_Line ("with WisiToken.LR.Parser;");
+      if Check_Count > 0 then
+         Put_Line ("with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;");
+      end if;
       Put_Line ("with " & Lower_Package_Name_Root & "_re2c_c;");
       Put_Line ("package body " & Package_Name & " is");
       Indent := Indent + 3;
@@ -118,19 +121,22 @@ is
       Indent_Line ("   " & Lower_Package_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
-      --  generate Action subprograms, populate Action_Names.
+      --  generate Action and Check subprograms, populate Ada_Action_Names.
+      --  Ada_Check_Names.
 
       for Rule of Tokens.Rules loop
          --  No need for a Token_Cursor here, since we only need the
          --  nonterminals.
-
          declare
             use all type Standard.Ada.Containers.Count_Type;
 
-            LHS_ID     : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
-            Prod_Index : Integer                     := 0; -- Semantic_Action defines Prod_Index as zero-origin
-            Temp       : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
-            All_Empty  : Boolean                     := True;
+            LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+
+            Action_Names     : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Check_Names      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            Action_All_Empty : Boolean := True;
+            Check_All_Empty  : Boolean := True;
 
             function Is_Elisp (Action : in String_Lists.List) return Boolean
             is
@@ -165,38 +171,79 @@ is
                         end if;
                      end loop;
 
-                     All_Empty := False;
+                     Action_All_Empty := False;
 
-                     Temp (Prod_Index) := new String'(Name & "'Access");
+                     Action_Names (Prod_Index) := new String'(Name & "'Access");
                      Indent_Line ("procedure " & Name);
-                     Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
+                     Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
                      Indent_Line ("  Index   : in Natural;");
-                     Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
+                     Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
                      Indent_Line ("is");
 
-                     if Profile or Unref_Nonterm then
+                     if Unref_Nonterm then
                         Indent_Line ("   pragma Unreferenced (Nonterm);");
                      end if;
-                     if Profile or Unref_Index then
+                     if Unref_Index then
                         Indent_Line ("   pragma Unreferenced (Index);");
                      end if;
-                     if Profile or Unref_Tokens then
+                     if Unref_Tokens then
                         Indent_Line ("   pragma Unreferenced (Tokens);");
                      end if;
 
                      Indent_Line ("begin");
                      Indent := Indent + 3;
 
-                     if Profile then
-                        Indent_Line ("Action_Counts (Nonterm) := Action_Counts (Nonterm) + 1;");
-
-                     else
-                        for Line of RHS.Action loop
-                           Indent_Line (Line);
-                        end loop;
-                     end if;
+                     for Line of RHS.Action loop
+                        Indent_Line (Line);
+                     end loop;
                      Indent := Indent - 3;
                      Indent_Line ("end " & Name & ";");
+                     New_Line;
+                  end;
+               end if;
+
+               if RHS.Check.Length > 0 and then not Is_Elisp (RHS.Check) then
+                  declare
+                     use Standard.Ada.Strings.Fixed;
+
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
+
+                     Unref_Lexer   : Boolean := True;
+                     Unref_Tokens  : Boolean := True;
+                  begin
+                     for Line of RHS.Check loop
+                        if 0 < Index (Line, "Lexer") then
+                           Unref_Lexer := False;
+                        end if;
+                        if 0 < Index (Line, "Tokens") then
+                           Unref_Tokens := False;
+                        end if;
+                     end loop;
+
+                     Check_All_Empty := False;
+
+                     Check_Names (Prod_Index) := new String'(Name & "_check'Access");
+                     Indent_Line ("function " & Name & "_check");
+                     Indent_Line (" (Lexer   : in WisiToken.Lexer.Handle;");
+                     Indent_Line ("  Tokens  : in WisiToken.Base_Token_Arrays.Vector)");
+                     Indent_Line (" return WisiToken.LR.Semantic_Status");
+                     Indent_Line ("is");
+
+                     if Unref_Lexer then
+                        Indent_Line ("   pragma Unreferenced (Lexer);");
+                     end if;
+                     if Unref_Tokens then
+                        Indent_Line ("   pragma Unreferenced (Tokens);");
+                     end if;
+
+                     Indent_Line ("begin");
+                     Indent := Indent + 3;
+
+                     for Line of RHS.Check loop
+                        Indent_Line (Line);
+                     end loop;
+                     Indent := Indent - 3;
+                     Indent_Line ("end " & Name & "_check;");
                      New_Line;
                   end;
                end if;
@@ -204,8 +251,11 @@ is
                Prod_Index := Prod_Index + 1;
             end loop;
 
-            if not All_Empty then
-               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp);
+            if not Action_All_Empty then
+               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Action_Names);
+            end if;
+            if not Check_All_Empty then
+               Ada_Check_Names (LHS_ID) := new Action_Name_List'(Check_Names);
             end if;
          end;
       end loop;
@@ -220,7 +270,8 @@ is
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           WisiToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+           Integer'Image (Check_Count) & " checks," &
+           WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
            Integer'Image (Data.Table_Entry_Count) & " table entries");
       Put_Line
         (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &

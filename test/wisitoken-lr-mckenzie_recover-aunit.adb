@@ -25,8 +25,8 @@ pragma License (Modified_GPL);
 with AUnit.Checks.Containers;
 with SAL.AUnit;
 with WisiToken.AUnit;
-with WisiToken.Parser.LR.AUnit;
-package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
+with WisiToken.LR.AUnit;
+package body WisiToken.LR.McKenzie_Recover.AUnit is
 
    procedure Check
      (Label    : in String;
@@ -37,7 +37,7 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
       use Standard.AUnit.Checks;
       use SAL.AUnit;
       use WisiToken.AUnit;
-      use WisiToken.Parser.LR.AUnit;
+      use WisiToken.LR.AUnit;
 
       Computed_Config : Configuration renames Configuration (Computed);
       Expected_Config : Configuration renames Configuration (Expected);
@@ -60,4 +60,4 @@ package body WisiToken.Parser.LR.McKenzie_Recover.AUnit is
       Check (Label & ".Cost", Computed_Config.Cost, Expected_Config.Cost);
    end Check;
 
-end WisiToken.Parser.LR.McKenzie_Recover.AUnit;
+end WisiToken.LR.McKenzie_Recover.AUnit;

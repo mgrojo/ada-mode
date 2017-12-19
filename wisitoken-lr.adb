@@ -30,14 +30,14 @@ pragma License (GPL);
 with Ada.Strings.Fixed;
 with Ada.Strings.Unbounded;
 with Ada.Text_IO;
-with WisiToken.Parser.LR.Parser;
-package body WisiToken.Parser.LR is
+with WisiToken.LR.Parser;
+package body WisiToken.LR is
 
    overriding
    function Image (Item : in Recover_Pattern_1) return String
    is begin
       return
-        "WisiToken.Parser.LR.Recover_Pattern_1'(" &
+        "WisiToken.LR.Recover_Pattern_1'(" &
         Int_Image (Integer (Item.Stack)) & "," &
         Token_ID'Image (Item.Error) & "," &
         Token_ID'Image (Item.Expecting) &
@@ -48,7 +48,7 @@ package body WisiToken.Parser.LR is
    function Image (Item : in Recover_Pattern_2) return String
    is begin
       return
-        "WisiToken.Parser.LR.Recover_Pattern_2'(" &
+        "WisiToken.LR.Recover_Pattern_2'(" &
         Int_Image (Integer (Item.Stack)) & "," &
         Token_ID'Image (Item.Error) & "," &
         Token_ID'Image (Item.Expecting) & "," &
@@ -63,7 +63,7 @@ package body WisiToken.Parser.LR is
    begin
       Put_Line ("(Insert =>");
       for I in Item.Insert'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
+         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Insert (I)));
          if I = Item.Insert'Last then
             Put_Line (")");
          else
@@ -72,7 +72,7 @@ package body WisiToken.Parser.LR is
       end loop;
       Put_Line ("(Delete =>");
       for I in Item.Delete'Range loop
-         Put (" " & Image (Descriptor, I, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
+         Put (" " & Image (I, Descriptor, Pad => True) & " =>" & Natural'Image (Item.Delete (I)));
          if I = Item.Delete'Last then
             Put_Line (")");
          else
@@ -82,31 +82,6 @@ package body WisiToken.Parser.LR is
       Put_Line ("Cost_Limit =>" & Integer'Image (Item.Cost_Limit));
       New_Line;
    end Put;
-
-   function Extract_IDs (Stack : in Parser_Stacks.Stack_Type) return Token_Array
-   is begin
-      return Result : Token_Array do
-         Result.Reserve_Capacity (Ada.Containers.Count_Type (Stack.Depth));
-         for I in reverse 1 .. Stack.Depth loop
-            Result.Append (Stack.Peek (I).ID);
-         end loop;
-      end return;
-   end Extract_IDs;
-
-   procedure Put_Top_10 (Trace : in out WisiToken.Trace'Class; Stack : in Parser_Stacks.Stack_Type)
-   is
-      use all type SAL.Base_Peek_Type;
-      Last : constant SAL.Base_Peek_Type := SAL.Base_Peek_Type'Min (10, Stack.Depth);
-   begin
-      for I in 1 .. Last loop
-         Trace.Put
-           (State_Index'Image (Stack.Peek (I).State) & " : " &
-              (if I = Last
-               then ""
-               else Image (Trace.Descriptor.all, Stack.Peek (I).ID) & ", "));
-      end loop;
-      Trace.New_Line;
-   end Put_Top_10;
 
    overriding
    procedure Finalize (Object : in out Instance)
@@ -152,9 +127,9 @@ package body WisiToken.Parser.LR is
       Free (Object.Table);
    end Finalize;
 
-   overriding procedure Parse (Shared_Parser : in out Instance)
+   procedure Parse (Shared_Parser : in out Instance)
    is begin
-      WisiToken.Parser.LR.Parser.Parse (Shared_Parser);
+      WisiToken.LR.Parser.Parse (Shared_Parser);
    end Parse;
 
    function State_Image (Item : in Unknown_State_Index) return String
@@ -170,8 +145,8 @@ package body WisiToken.Parser.LR is
    end State_Image;
 
    function Image
-     (Descriptor : in WisiToken.Descriptor'Class;
-      Stack      : in Parser_Stacks.Stack_Type;
+     (Stack      : in Parser_Stacks.Stack_Type;
+      Descriptor : in WisiToken.Descriptor'Class;
       Depth      : in SAL.Base_Peek_Type := 0;
       Top_First  : in Boolean            := True)
      return String
@@ -192,7 +167,7 @@ package body WisiToken.Parser.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+                  else Image (Stack.Peek (I).Token, Descriptor) & ", "));
          end loop;
       else
          for I in reverse 1 .. Last loop
@@ -200,7 +175,7 @@ package body WisiToken.Parser.LR is
               (State_Image (Stack.Peek (I).State) & " : " &
                  (if I = Stack.Depth
                   then ""
-                  else Image (Descriptor, Stack.Peek (I).ID) & ", "));
+                  else Image (Stack.Peek (I).Token, Descriptor) & ", "));
          end loop;
       end if;
       return To_String (Result & ")");
@@ -266,7 +241,7 @@ package body WisiToken.Parser.LR is
       return Iter.Item.Item;
    end Action;
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec) return String
+   function Image (Item : in Parse_Action_Rec; Descriptor : in WisiToken.Descriptor'Class) return String
    is
    begin
       case Item.Verb is
@@ -275,7 +250,7 @@ package body WisiToken.Parser.LR is
 
       when Reduce =>
          return "(Reduce," & Ada.Containers.Count_Type'Image (Item.Token_Count) & ", " &
-           Image (Descriptor, Item.LHS) & ")";
+           Image (Item.LHS, Descriptor) & ")";
       when Accept_It =>
          return "(Accept It)";
       when Error =>
@@ -294,7 +269,7 @@ package body WisiToken.Parser.LR is
       when Reduce =>
          Trace.Put
            ("reduce" & Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Trace.Descriptor.all, Item.LHS));
+              Image (Item.LHS, Trace.Descriptor.all));
       when Accept_It =>
          Trace.Put ("accept it");
       when Error =>
@@ -361,7 +336,8 @@ package body WisiToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Check  : in     LR.Semantic_Check)
    is
       Action   : Parse_Action_Rec;
       New_Node : Action_Node_Ptr;
@@ -369,9 +345,9 @@ package body WisiToken.Parser.LR is
    begin
       case Verb is
       when Reduce =>
-         Action := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
       when Accept_It =>
-         Action := (Accept_It, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+         Action := (Accept_It, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
       when others =>
          null;
       end case;
@@ -395,10 +371,11 @@ package body WisiToken.Parser.LR is
       LHS_ID          : in     Token_ID;
       Index           : in     Integer;
       RHS_Token_Count : in     Ada.Containers.Count_Type;
-      Semantic_Action : in     WisiToken.Semantic_Action)
+      Semantic_Action : in     WisiToken.Semantic_State.Semantic_Action;
+      Semantic_Check  : in     LR.Semantic_Check)
    is
-      Action_1 : constant Parse_Action_Rec   := (Shift, State_Index);
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID, Semantic_Action, Index, RHS_Token_Count);
+      Action_1 : constant Parse_Action_Rec := (Shift, State_Index);
+      Action_2 : constant Parse_Action_Rec := (Reduce, LHS_ID, Semantic_Action, Semantic_Check, Index, RHS_Token_Count);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -411,18 +388,21 @@ package body WisiToken.Parser.LR is
       LHS_ID_1          : in     Token_ID;
       Index_1           : in     Integer;
       RHS_Token_Count_1 : in     Ada.Containers.Count_Type;
-      Semantic_Action_1 : in     Semantic_Action;
+      Semantic_Action_1 : in     Semantic_State.Semantic_Action;
+      Semantic_Check_1  : in     LR.Semantic_Check;
       LHS_ID_2          : in     Token_ID;
       Index_2           : in     Integer;
       RHS_Token_Count_2 : in     Ada.Containers.Count_Type;
-      Semantic_Action_2 : in     Semantic_Action)
+      Semantic_Action_2 : in     Semantic_State.Semantic_Action;
+      Semantic_Check_2  : in     LR.Semantic_Check)
    is
       Action_1 : constant Parse_Action_Rec   :=
         (case Verb is
-         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
-         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Index_1, RHS_Token_Count_1),
+         when Reduce    => (Reduce, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
+         when Accept_It => (Accept_It, LHS_ID_1, Semantic_Action_1, Semantic_Check_1, Index_1, RHS_Token_Count_1),
          when others => raise WisiToken.Programmer_Error);
-      Action_2 : constant Parse_Action_Rec   := (Reduce, LHS_ID_2, Semantic_Action_2, Index_2, RHS_Token_Count_2);
+      Action_2 : constant Parse_Action_Rec :=
+        (Reduce, LHS_ID_2, Semantic_Action_2, Semantic_Check_2, Index_2, RHS_Token_Count_2);
    begin
       State.Action_List := new Action_Node'
         (Symbol, new Parse_Action_Node'(Action_1, new Parse_Action_Node'(Action_2, null)), State.Action_List);
@@ -531,6 +511,22 @@ package body WisiToken.Parser.LR is
       return Result;
    end Expecting;
 
+   function Image (Item : in Base_Token_Queues.Queue_Type; Descriptor : in WisiToken.Descriptor'Class) return String
+   is
+      use Ada.Strings.Unbounded;
+      use all type SAL.Base_Peek_Type;
+      Result : Unbounded_String := +"(";
+   begin
+      for I in 1 .. Item.Count loop
+         Result := Result & Image (Item.Peek (I), Descriptor);
+         if I < Item.Count then
+            Result := Result & ", ";
+         end if;
+      end loop;
+      Result := Result & ")";
+      return -Result;
+   end Image;
+
    procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Parse_Action_Rec)
    is
       use Ada.Text_IO;
@@ -541,7 +537,7 @@ package body WisiToken.Parser.LR is
       when Reduce =>
          Put
            ("reduce" & Ada.Containers.Count_Type'Image (Item.Token_Count) & " tokens to " &
-              Image (Descriptor, Item.LHS));
+              Image (Item.LHS, Descriptor));
       when Accept_It =>
          Put ("accept it");
       when Error =>
@@ -577,8 +573,8 @@ package body WisiToken.Parser.LR is
             Put ("default" & (Descriptor.Image_Width - 7) * ' ' & " => ");
 
          elsif Action_Ptr.Action.Item.Verb /= Error then
-            Put (Image (Descriptor, Action_Ptr.Symbol) &
-                   (Descriptor.Image_Width - Image (Descriptor, Action_Ptr.Symbol)'Length) * ' '
+            Put (Image (Action_Ptr.Symbol, Descriptor) &
+                   (Descriptor.Image_Width - Image (Action_Ptr.Symbol, Descriptor)'Length) * ' '
                    & " => ");
          end if;
          Put (Descriptor, Action_Ptr.Action);
@@ -590,8 +586,8 @@ package body WisiToken.Parser.LR is
 
       while Goto_Ptr /= null loop
          Put_Line
-           ("   " & Image (Descriptor, Goto_Ptr.Symbol) &
-              (Descriptor.Image_Width - Image (Descriptor, Goto_Ptr.Symbol)'Length) * ' ' &
+           ("   " & Image (Goto_Ptr.Symbol, Descriptor) &
+              (Descriptor.Image_Width - Image (Goto_Ptr.Symbol, Descriptor)'Length) * ' ' &
               " goto state" & State_Index'Image (Goto_Ptr.State));
          Goto_Ptr := Goto_Ptr.Next;
       end loop;
@@ -617,14 +613,14 @@ package body WisiToken.Parser.LR is
       end loop;
    end Put;
 
-   function Image (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector) return String
+   function Image (Item : in Fast_Token_ID_Vectors.Vector; Descriptor : in WisiToken.Descriptor'Class) return String
    is
-      use all type Ada.Containers.Count_Type;
+      use all type SAL.Base_Peek_Type;
       use Ada.Strings.Unbounded;
       Result : Unbounded_String := To_Unbounded_String ("(");
    begin
       for I in Item.First_Index .. Item.Last_Index loop
-         Result := Result & Image (Descriptor, Item (I));
+         Result := Result & Image (Item (I), Descriptor);
          if I /= Item.Last_Index then
             Result := Result & ", ";
          end if;
@@ -633,47 +629,18 @@ package body WisiToken.Parser.LR is
       return To_String (Result);
    end Image;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Fast_Token_ID_Vectors.Vector)
-   is
-      use all type Ada.Containers.Count_Type;
-      use Ada.Text_IO;
-   begin
-      Put ("(");
-      for I in Item.First_Index .. Item.Last_Index loop
-         Put (Image (Descriptor, Item (I)));
-         if I /= Item.Last_Index then
-            Put (", ");
-         end if;
-      end loop;
-      Put (")");
-   end Put;
-
-   procedure Put (Trace : in out WisiToken.Trace'Class; Item : in Fast_Token_ID_Vectors.Vector)
-   is
-      use all type Ada.Containers.Count_Type;
-   begin
-      for I in Item.First_Index .. Item.Last_Index loop
-         Put (Trace, Item (I));
-         if I /= Item.Last_Index then
-            Put (Trace, ", ");
-         end if;
-      end loop;
-   end Put;
-
    overriding
    function Image (Config : in Configuration; Descriptor : in WisiToken.Descriptor'Class) return String
-   is
-      use Ada.Containers;
-   begin
+   is begin
       return
-        "(" & Image (Descriptor, Config.Stack) & ", " &
+        "(" & Image (Config.Stack, Descriptor) & ", " &
         SAL.Base_Peek_Type'Image (Config.Shared_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Local_Lookahead) & ", " &
-        Count_Type'Image (Config.Local_Lookahead_Index) & ", " &
-        Image (Descriptor, Config.Popped) & ", " &
-        Image (Descriptor, Config.Pushed) & ", " &
-        Image (Descriptor, Config.Inserted) & ", " &
-        Image  (Descriptor, Config.Deleted) & ", " &
+        Image (Config.Local_Lookahead, Descriptor) & ", " &
+        SAL.Base_Peek_Type'Image (Config.Local_Lookahead_Index) & ", " &
+        Image (Config.Popped, Descriptor) & ", " &
+        Image (Config.Pushed, Descriptor) & ", " &
+        Image (Config.Inserted, Descriptor) & ", " &
+        Image  (Config.Deleted, Descriptor) & ", " &
         Natural'Image (Config.Cost) & ")";
    end Image;
 
@@ -684,18 +651,87 @@ package body WisiToken.Parser.LR is
 
    function Next_Grammar_Token
      (Lexer          : not null access WisiToken.Lexer.Instance'Class;
-      Semantic_State : not null access WisiToken.Token.Semantic_State'Class)
-     return Token_ID
+      Semantic_State : not null access WisiToken.Semantic_State.Semantic_State'Class)
+     return Base_Token
    is
-      ID : Token_ID;
+      Token : Base_Token;
    begin
       loop
-         ID := Lexer.Find_Next;
-         Semantic_State.Lexer_To_Lookahead (ID, Lexer);
+         Token.ID := Lexer.Find_Next;
+         Token.Byte_Region := Lexer.Byte_Region;
+         if Token.ID = Semantic_State.Trace.Descriptor.Terminal_Name_ID then
+            Token.Name := Lexer.Byte_Region;
+         end if;
 
-         exit when ID >= Semantic_State.Trace.Descriptor.First_Terminal;
+         Semantic_State.Lexer_To_Lookahead (Token, Lexer);
+
+         exit when Token.ID >= Semantic_State.Trace.Descriptor.First_Terminal;
       end loop;
-      return ID;
+      return Token;
    end Next_Grammar_Token;
 
-end WisiToken.Parser.LR;
+   procedure Reduce_Stack
+     (Stack   : in out Parser_Stacks.Stack_Type;
+      Action  : in     Reduce_Action_Rec;
+      Nonterm :    out Base_Token)
+   is begin
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
+      for I in reverse 1 .. Action.Token_Count loop
+         declare
+            Token : constant Base_Token := Stack.Pop.Token;
+         begin
+            if Nonterm.Byte_Region.First > Token.Byte_Region.First then
+               Nonterm.Byte_Region.First := Token.Byte_Region.First;
+            end if;
+
+            if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
+               Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
+            end if;
+
+            if Token.Name /= Null_Buffer_Region then
+               --  Always keep first name in production (which is last name in this
+               --  loop); it will be the block name.
+               --
+               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
+               --  regions.
+               Nonterm.Name := Token.Name;
+            end if;
+         end;
+      end loop;
+   end Reduce_Stack;
+
+   procedure Reduce_Stack
+     (Stack   : in out Parser_Stacks.Stack_Type;
+      Action  : in     Reduce_Action_Rec;
+      Nonterm :    out Base_Token;
+      Tokens  :    out Base_Token_Arrays.Vector)
+   is begin
+      Nonterm := (Action.LHS, Null_Buffer_Region, Null_Buffer_Region);
+      Tokens.Set_Length (Action.Token_Count);
+      for I in reverse 1 .. SAL.Base_Peek_Type (Action.Token_Count) loop
+         declare
+            Token : constant Base_Token := Stack.Pop.Token;
+         begin
+            Tokens.Replace_Element (I, Token);
+
+            if Nonterm.Byte_Region.First > Token.Byte_Region.First then
+               Nonterm.Byte_Region.First := Token.Byte_Region.First;
+            end if;
+
+            if Nonterm.Byte_Region.Last < Token.Byte_Region.Last then
+               Nonterm.Byte_Region.Last := Token.Byte_Region.Last;
+            end if;
+
+            if Token.Name /= Null_Buffer_Region then
+               --  Always keep first name in production(which is last name in this
+               --  loop); it will be the block name.
+               --
+               --  FIXME: If Nonterm.ID = Descriptor.Nonterminal_Name_ID, merge name
+               --  regions.
+               Nonterm.Name := Token.Name;
+            end if;
+         end;
+      end loop;
+   end Reduce_Stack;
+
+end WisiToken.LR;

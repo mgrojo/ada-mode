@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Token.AUnit;
+with WisiToken.Semantic_State.AUnit;
 package WisiToken.Token_Region.AUnit is
 
    procedure Check
@@ -29,6 +29,6 @@ package WisiToken.Token_Region.AUnit is
      (Label              : in String;
       Computed           : in Error_Data;
       Expected           : in Error_Data;
-      Check_Recover_Data : in WisiToken.Token.AUnit.Check_Recover_Type);
+      Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type);
 
 end WisiToken.Token_Region.AUnit;

@@ -24,7 +24,6 @@
 pragma License (GPL);
 
 with AUnit.Test_Cases;
-with WisiToken;
 package Test_Character_Literal is
 
    type Test_Case (Debug : Integer) is new AUnit.Test_Cases.Test_Case with null record;

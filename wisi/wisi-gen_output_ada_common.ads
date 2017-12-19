@@ -17,7 +17,7 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Parser.LR;
+with WisiToken.LR;
 with WisiToken.Production;
 with Wisi.Gen_Generate_Utils;
 generic
@@ -36,8 +36,7 @@ package Wisi.Gen_Output_Ada_Common is
 
    function To_Token_Ada_Name (WY_Name : in String) return String;
 
-   package Generate_Utils is new Wisi.Gen_Generate_Utils
-     (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
+   package Generate_Utils is new Wisi.Gen_Generate_Utils (Tokens, Conflicts, EOI_Name, WisiToken_Accept_Name);
 
    type Data_Type is record
       Parser_Algorithm : Valid_Parser_Algorithm;
@@ -48,7 +47,7 @@ package Wisi.Gen_Output_Ada_Common is
       Shift_Reduce_Conflict_Count  : Integer := -1;
       Reduce_Reduce_Conflict_Count : Integer := -1;
       Table_Entry_Count            : Integer := -1;
-      Parser_State_Count           : WisiToken.Parser.LR.Unknown_State_Index := 0;
+      Parser_State_Count           : WisiToken.LR.Unknown_State_Index := 0;
 
       Grammar : WisiToken.Production.List.Instance;
 
@@ -71,10 +70,11 @@ package Wisi.Gen_Output_Ada_Common is
    type Action_Name_List_Access is access Action_Name_List;
    type Nonterminal_Array_Action_Names is array (Generate_Utils.Nonterminal_ID) of Action_Name_List_Access;
    Ada_Action_Names : Nonterminal_Array_Action_Names;
-   --  Ada names of subprograms for each grammar semantic action;
-   --  non-null only if there is an action in the grammar.
+   Ada_Check_Names : Nonterminal_Array_Action_Names;
+   --  Ada names of subprograms for each grammar semantic action and check;
+   --  non-null only if there is an action or check in the grammar.
 
-   Parsers : array (Single_Parser_Algorithm) of WisiToken.Parser.LR.Parse_Table_Ptr;
+   Parsers : array (Single_Parser_Algorithm) of WisiToken.LR.Parse_Table_Ptr;
 
    procedure Create_Ada_Spec
      (Input_File_Name  : in String;
@@ -92,7 +92,7 @@ package Wisi.Gen_Output_Ada_Common is
       First_State_Index  : in Integer;
       First_Parser_Label : in Integer);
 
-   procedure Create_Parser_Core (Table : in WisiToken.Parser.LR.Parse_Table_Ptr);
+   procedure Create_Parser_Core (Table : in WisiToken.LR.Parse_Table_Ptr);
 
    procedure Create_re2c
      (Input_File_Name       : in String;

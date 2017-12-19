@@ -43,10 +43,10 @@ package body WisiToken.Token_Region.AUnit is
      (Label              : in String;
       Computed           : in Error_Data;
       Expected           : in Error_Data;
-      Check_Recover_Data : in WisiToken.Token.AUnit.Check_Recover_Type)
+      Check_Recover_Data : in WisiToken.Semantic_State.AUnit.Check_Recover_Type)
    is
       use WisiToken.AUnit;
-      use WisiToken.Token.AUnit;
+      use WisiToken.Semantic_State.AUnit;
    begin
       Check (Label & ".Error_Token", Computed.Error_Token, Expected.Error_Token);
       Check (Label & ".Expecting", Computed.Expecting, Expected.Expecting);

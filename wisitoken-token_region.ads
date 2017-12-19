@@ -24,13 +24,12 @@ with Ada.Containers.Indefinite_Doubly_Linked_Lists;
 with Ada.Containers.Vectors;
 with Ada.Text_IO;
 with WisiToken.Lexer;
-with WisiToken.Token;
+with WisiToken.Semantic_State;
 package WisiToken.Token_Region is
 
-   type Token is new WisiToken.Augmented_Token with record
+   type Token is new WisiToken.Semantic_State.Augmented_Token with record
       Line        : Line_Number_Type  := Invalid_Line_Number;
       Col         : Ada.Text_IO.Count := 0;
-      Byte_Region : Buffer_Region     := Null_Buffer_Region;
       Char_Region : Buffer_Region     := Null_Buffer_Region;
    end record;
 
@@ -38,7 +37,7 @@ package WisiToken.Token_Region is
    function Image
      (Item       : in Token;
       Descriptor : in WisiToken.Descriptor'Class;
-      ID_Only    : in Boolean)
+      ID_Only    : in Boolean := False)
      return String;
 
    type Error_Data
@@ -47,7 +46,7 @@ package WisiToken.Token_Region is
    is record
       Error_Token : Token;
       Expecting   : Token_ID_Set (First_Terminal .. Last_Terminal);
-      Recover     : access WisiToken.Token.Recover_Data'Class;
+      Recover     : access WisiToken.Semantic_State.Recover_Data'Class;
    end record;
 
    package Error_Data_Lists is new Ada.Containers.Indefinite_Doubly_Linked_Lists (Error_Data);
@@ -62,19 +61,19 @@ package WisiToken.Token_Region is
       Descriptor       : in WisiToken.Descriptor'Class);
    --  Put user-friendly error messages to Ada.Text_IO.Current_Output.
 
-   type State_Type is new WisiToken.Token.Semantic_State with record
-      Stack : Augmented_Token_Array;
+   type State_Type is new WisiToken.Semantic_State.Semantic_State with record
+      Stack : WisiToken.Semantic_State.Augmented_Token_Array;
       --  Top of stack is Stack.Last_Index; Push = Append, Pop = Delete_Last.
       --  Tokens are added by Push_Current, removed by Reduce_Stack.
 
-      Lookahead_Queue : Augmented_Token_Queues.Queue_Type;
+      Lookahead_Queue : WisiToken.Semantic_State.Augmented_Token_Queues.Queue_Type;
 
       Errors : Error_List_Arrays.Vector;
       --  Indexed by Parser_ID.
    end record;
 
    overriding
-   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class);
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Semantic_State.Init_Data'Class);
 
    function Active_Error_List (State : not null access State_Type) return Error_List_Arrays.Constant_Reference_Type;
    --  Return a reference to the single active error list.
@@ -89,7 +88,7 @@ package WisiToken.Token_Region is
    overriding
    procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
@@ -112,20 +111,20 @@ package WisiToken.Token_Region is
    overriding
    procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID);
+      Token : in              Base_Token);
 
    overriding
    procedure Push_Current
      (State : not null access State_Type;
-      ID    : in              Token_ID);
+      Token : in              Base_Token);
 
    overriding
    procedure Reduce_Stack
-     (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
-      Index   : in              Natural;
-      IDs     : in              WisiToken.Token_Array;
-      Action  : in              Semantic_Action);
+     (State       : not null access State_Type;
+      Nonterm     : in              Base_Token;
+      Index       : in              Natural;
+      Base_Tokens : in              WisiToken.Base_Token_Arrays.Vector;
+      Action      : in              WisiToken.Semantic_State.Semantic_Action);
 
    overriding
    procedure Discard_Lookahead
@@ -141,7 +140,7 @@ package WisiToken.Token_Region is
    procedure Recover
      (State     : not null access State_Type;
       Parser_ID : in              Natural;
-      Recover   : in              WisiToken.Token.Recover_Data'Class);
+      Recover   : in              WisiToken.Semantic_State.Recover_Data'Class);
 
    ----------
    --  Visible for derived types
@@ -150,7 +149,7 @@ package WisiToken.Token_Region is
      (Trace               : in out WisiToken.Trace'Class;
       Nonterm             : in     Token'Class;
       Index               : in     Natural;
-      Stack               : in     Augmented_Token_Array;
+      Stack               : in     WisiToken.Semantic_State.Augmented_Token_Array;
       Tokens_Length       : in     Ada.Containers.Count_Type;
       Include_Action_Name : in     Boolean);
 

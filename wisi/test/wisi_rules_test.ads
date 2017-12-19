@@ -1,6 +1,7 @@
 --  Abstract :
 --
 --  Test Wisi.Rules. Tests of reported errors are done via Test_Generate_Errors.
+--  Also tested by *.wy.
 --
 --  Copyright (C) 2013, 2017 Stephen Leake.  All Rights Reserved.
 --

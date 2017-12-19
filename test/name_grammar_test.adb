@@ -20,14 +20,16 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
+with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Name_Grammar_Test is
 
@@ -70,13 +72,13 @@ package body Name_Grammar_Test is
        Paren_Left_ID  => Lexer.Get ("\("),
        Paren_Right_ID => Lexer.Get ("\)"),
        Identifier_ID  => Lexer.Get ("[0-9a-zA-Z_]+"),
-       EOF_ID         => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID         => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    use all type WisiToken.Production.List.Instance;   --  "and"
    use all type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    --  valid names:
    --  Module (Index)
@@ -118,7 +120,7 @@ package body Name_Grammar_Test is
 
    procedure Parse_Command
      (Label   : in     String;
-      Parser  : in out WisiToken.Parser.LR.Instance;
+      Parser  : in out WisiToken.LR.Instance;
       Command : in     String)
    is begin
       Ada.Text_IO.Put_Line ("'" & Command & "'");
@@ -165,12 +167,12 @@ package body Name_Grammar_Test is
 
       Put_Line ("Simple Parser");
       declare
-         Parser : WisiToken.Parser.LR.Instance;
+         Parser : WisiToken.LR.Instance;
       begin
-         WisiToken.Parser.LR.Parser.New_Parser
+         WisiToken.LR.Parser.New_Parser
            (Parser,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.Parser.LR.LALR_Generator.Generate
+            WisiToken.LR.LALR_Generator.Generate
               (Simple_Grammar,
                LALR_Descriptor,
                First_State_Index,
@@ -187,12 +189,12 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Medium Parser");
       declare
-         Parser : WisiToken.Parser.LR.Instance;
+         Parser : WisiToken.LR.Instance;
       begin
-         WisiToken.Parser.LR.Parser.New_Parser
+         WisiToken.LR.Parser.New_Parser
            (Parser,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.Parser.LR.LALR_Generator.Generate
+            WisiToken.LR.LALR_Generator.Generate
               (Medium_Grammar,
                LALR_Descriptor,
                First_State_Index,
@@ -208,12 +210,12 @@ package body Name_Grammar_Test is
       New_Line;
       Put_Line ("Full Parser");
       declare
-         Parser : WisiToken.Parser.LR.Instance;
+         Parser : WisiToken.LR.Instance;
       begin
-         WisiToken.Parser.LR.Parser.New_Parser
+         WisiToken.LR.Parser.New_Parser
            (Parser,
             Lexer.New_Lexer (Trace'Access, Syntax),
-            WisiToken.Parser.LR.LALR_Generator.Generate
+            WisiToken.LR.LALR_Generator.Generate
               (Full_Grammar,
                LALR_Descriptor,
                First_State_Index,

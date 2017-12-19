@@ -18,25 +18,28 @@
 pragma License (Modified_GPL);
 
 with AUnit.Checks.Containers;
+with SAL.AUnit;
 package WisiToken.AUnit is
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Token_ID);
 
    procedure Check is new Standard.AUnit.Checks.Gen_Check_Discrete (WisiToken.Line_Number_Type);
 
-   type Plain_Token_Array is array (Positive_Index_Type range <>) of Token_ID;
+   type Plain_Token_ID_Array is array (Positive_Index_Type range <>) of Token_ID;
 
-   function To_Token_Array (Item : in Plain_Token_Array) return Token_Arrays.Vector;
+   function To_Base_Token_Array (Item : in Plain_Token_ID_Array) return Base_Token_Arrays.Vector;
 
-   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_Array) return Token_ID_Set;
+   function To_Token_ID_Set (First, Last : in Token_ID; Item : in Plain_Token_ID_Array) return Token_ID_Set;
    --  First, Last determine size of result.
    --  For each element in Item, set result (element) True.
 
+   procedure Check (Label : in String; Computed, Expected : in Base_Token);
+
    procedure Check is new Standard.AUnit.Checks.Containers.Gen_Check_Vector
      (Index_Type    => Positive_Index_Type,
-      Element_Type  => Token_ID,
-      Container_Pkg => Token_Arrays,
-      Check_Index   => Standard.AUnit.Checks.Containers.Check,
+      Element_Type  => Base_Token,
+      Container_Pkg => Base_Token_Arrays,
+      Check_Index   => SAL.AUnit.Check,
       Check_Element => Check);
 
    procedure Check

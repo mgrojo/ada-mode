@@ -1,13 +1,9 @@
 --  Abstract :
 --
---  LR1 (Left-to-right scanning 1 look-ahead) parser table generator.
+--  Generalized LALR parse table generator.
 --
---  References:
---
---  [dragon] "Compilers Principles, Techniques, and Tools" by Aho,
---  Sethi, and Ullman (aka: "The [Red] Dragon Book").
---
---  Copyright (C) 2017 Stephe Leake
+--  Copyright (C) 2002 - 2003, 2009 - 2010, 2013 - 2015, 2017 Stephe Leake
+--  Copyright (C) 1999 Ted Dennison
 --
 --  This file is part of the WisiToken package.
 --
@@ -25,16 +21,14 @@
 
 pragma License (Modified_GPL);
 
-with WisiToken.Parser.LR.Generator_Utils;
-with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.LR.Generator_Utils; use WisiToken.LR.Generator_Utils;
+with WisiToken.LR.LR1_Items;
 with WisiToken.Production;
-package WisiToken.Parser.LR.LR1_Generator is
-
-   use Generator_Utils;
+package WisiToken.LR.LALR_Generator is
 
    function Generate
      (Grammar                  : in Production.List.Instance;
-      Descriptor               : in WisiToken.Descriptor;
+      Descriptor               : in LALR_Descriptor;
       First_State_Index        : in State_Index;
       Known_Conflicts          : in Conflict_Lists.List := Conflict_Lists.Empty_List;
       McKenzie_Param           : in McKenzie_Param_Type := Default_McKenzie_Param;
@@ -43,7 +37,7 @@ package WisiToken.Parser.LR.LR1_Generator is
       Ignore_Unused_Tokens     : in Boolean             := False;
       Ignore_Unknown_Conflicts : in Boolean             := False)
      return Parse_Table_Ptr;
-   --  Generate a generalized LR1 parse table for Grammar. The
+   --  Generate a generalized LALR parse table for Grammar. The
    --  grammar start symbol is the LHS of the first production in
    --  Grammar.
    --
@@ -61,27 +55,23 @@ package WisiToken.Parser.LR.LR1_Generator is
    --  are unknown conflicts.
 
    ----------
-   --  visible for unit test
+   --  Visible for unit tests
 
-   function LR1_Goto_Transitions
-     (Set                  : in LR1_Items.Item_Set;
-      Symbol               : in Token_ID;
-      Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+   function LALR_Goto_Transitions
+     (Kernel     : in LR1_Items.Item_Set;
+      Symbol     : in Token_ID;
+      First      : in Token_Array_Token_Set;
+      Grammar    : in Production.List.Instance;
+      Descriptor : in LALR_Descriptor;
+      Trace      : in Boolean)
      return LR1_Items.Item_Set;
-   --  'goto' from [dragon] algorithm 4.9
 
-   function LR1_Item_Sets
-     (Has_Empty_Production : in Token_ID_Set;
-      First                : in Token_Array_Token_Set;
-      Grammar              : in Production.List.Instance;
-      First_State_Index    : in State_Index;
-      Descriptor           : in WisiToken.Descriptor;
-      Trace                : in Boolean)
+   function LALR_Kernels
+     (Grammar           : in Production.List.Instance;
+      First             : in Token_Array_Token_Set;
+      First_State_Index : in State_Index;
+      Descriptor        : in LALR_Descriptor;
+      Trace             : in Boolean)
      return LR1_Items.Item_Set_List;
-   --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
-end WisiToken.Parser.LR.LR1_Generator;
+end WisiToken.LR.LALR_Generator;

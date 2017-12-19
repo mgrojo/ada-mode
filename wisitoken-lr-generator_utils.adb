@@ -18,7 +18,8 @@
 pragma License (GPL);
 
 with Ada.Text_IO;
-package body WisiToken.Parser.LR.Generator_Utils is
+with WisiToken.Token_ID_Lists;
+package body WisiToken.LR.Generator_Utils is
 
    procedure Add_Action
      (Symbol               : in     Token_ID;
@@ -34,7 +35,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Matching_Action : constant Action_Node_Ptr := Find (Symbol, Action_List);
    begin
       if Trace then
-         Ada.Text_IO.Put (Image (Descriptor, Symbol) & " => ");
+         Ada.Text_IO.Put (Image (Symbol, Descriptor) & " => ");
          Put (Descriptor, Action);
          Ada.Text_IO.New_Line;
       end if;
@@ -92,7 +93,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
                      end if;
                   else
                      Put_Error
-                       ("More than two actions on " & Image (Descriptor, Symbol) &
+                       ("More than two actions on " & Image (Symbol, Descriptor) &
                           " in state" & State_Index'Image (Closure.State));
                      Error := True;
                   end if;
@@ -119,8 +120,8 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Trace                : in     Boolean;
       Descriptor           : in     WisiToken.Descriptor'Class)
    is
+      use Token_ID_Lists;
       use all type LR1_Items.Item_Ptr;
-      use all type Token.List.List_Iterator;
 
       State : constant State_Index := Closure.State;
       Item  : LR1_Items.Item_Ptr   := Closure.Set;
@@ -131,29 +132,31 @@ package body WisiToken.Parser.LR.Generator_Utils is
       end if;
 
       while Item /= null loop
-         if Dot (Item) = Token.List.Null_Iterator then
+         if Dot (Item) = No_Element then
             --  Pointer is at the end of the production; add a reduce action.
 
             Add_Lookahead_Actions
               (Item, Table.States (State).Action_List,
                Has_Empty_Production, First, Conflicts, Closure, Trace, Descriptor);
 
-         elsif Token.List.ID (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
+         elsif Token_ID_Lists.Element (Dot (Item)) in Descriptor.First_Terminal .. Descriptor.Last_Terminal then
             --  Dot is before a terminal token.
             declare
                use all type Ada.Containers.Count_Type;
                use all type LR1_Items.Item_Set_Ptr;
 
-               Dot_ID : constant Token_ID := Token.List.ID (Dot (Item));
+               Dot_ID : constant Token_ID := Element (Dot (Item));
                --  ID of token after Item.Dot
 
                Goto_Set : constant LR1_Items.Item_Set_Ptr := LR1_Items.Goto_Set (Closure, Dot_ID);
             begin
                if Dot_ID = Descriptor.EOF_ID then
-                  --  This is the start symbol production with dot before EOF.
+                  --  This is the start symbol production with dot before EOF. Note that
+                  --  semantic_check is null; we only support semantic checks in Wisi
+                  --  source files, not grammars defined in Ada code.
                   Add_Action
                     (Dot_ID,
-                     (Accept_It, LHS (Item), RHS (Item).Action, RHS (Item).Index,
+                     (Accept_It, LHS (Item), RHS (Item).Action, null, RHS (Item).Index,
                         RHS (Item).Tokens.Length - 1), -- EOF is not pushed on stack
                      Table.States (State).Action_List,
                      Closure, Has_Empty_Production, First, Conflicts, Trace, Descriptor);
@@ -171,7 +174,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
          else
             --  Dot is before a non-terminal token; no action.
             if Trace then
-               Ada.Text_IO.Put_Line (Image (Descriptor, Token.List.ID (Dot (Item))) & " => no action");
+               Ada.Text_IO.Put_Line (Image (Element (Dot (Item)), Descriptor) & " => no action");
             end if;
          end if;
 
@@ -253,8 +256,10 @@ package body WisiToken.Parser.LR.Generator_Utils is
    is
       use all type LR1_Items.Item_Ptr;
 
+      --  Note that semantic_check is null; we only support semantic checks
+      --  in Wisi source files, not grammars defined in Ada code.
       Action : constant Parse_Action_Rec :=
-        (Reduce, LHS (Item), RHS (Item).Action, RHS (Item).Index, RHS (Item).Tokens.Length);
+        (Reduce, LHS (Item), RHS (Item).Action, null, RHS (Item).Index, RHS (Item).Tokens.Length);
    begin
       if Trace then
          Ada.Text_IO.Put_Line ("processing lookaheads");
@@ -339,14 +344,14 @@ package body WisiToken.Parser.LR.Generator_Utils is
       Descriptor           : in WisiToken.Descriptor'Class)
      return Token_ID
    is
-      use Token.List;
+      use Token_ID_Lists;
       use all type LR1_Items.Item_Set;
       use all type LR1_Items.Item_Ptr;
       use all type LR1_Items.Item_Set_Ptr;
 
       Current : LR1_Items.Item_Set := Closure;
       Item    : LR1_Items.Item_Ptr;
-      ID_I    : Token.List.List_Iterator;
+      ID_I    : Token_ID_Lists.Cursor;
    begin
       case Action.Verb is
       when Reduce | Accept_It =>
@@ -374,13 +379,13 @@ package body WisiToken.Parser.LR.Generator_Utils is
                if In_Kernel (Descriptor, Item) then
                   ID_I := Dot (Item);
                   loop
-                     if ID_I = Null_Iterator then
+                     if ID_I = No_Element then
                         if Lookaheads (Item) (Lookahead) then
                            return LHS (Item);
                         end if;
                      else
                         declare
-                           Dot_ID : Token_ID renames ID (ID_I);
+                           Dot_ID : Token_ID renames Element (ID_I);
                         begin
                            if Dot_ID = Lookahead or
                              (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
@@ -393,7 +398,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
                         end;
                      end if;
 
-                     exit when ID_I = Null_Iterator;
+                     exit when ID_I = No_Element;
                      Next (ID_I);
                   end loop;
                end if;
@@ -411,9 +416,9 @@ package body WisiToken.Parser.LR.Generator_Utils is
                if In_Kernel (Descriptor, Item) then
                   ID_I := Dot (Item);
                   loop
-                     exit when ID_I = Null_Iterator;
+                     exit when ID_I = No_Element;
                      declare
-                        Dot_ID : Token_ID renames ID (ID_I);
+                        Dot_ID : Token_ID renames Element (ID_I);
                      begin
                         if Dot_ID = Lookahead or
                           (Dot_ID in Descriptor.First_Nonterminal .. Descriptor.Last_Nonterminal and then
@@ -440,7 +445,7 @@ package body WisiToken.Parser.LR.Generator_Utils is
       end case;
 
       Ada.Text_IO.Put_Line
-        ("item for " & Image (Descriptor, Action) & " on " & Image (Descriptor, Lookahead) & " not found in");
+        ("item for " & Image (Action, Descriptor) & " on " & Image (Lookahead, Descriptor) & " not found in");
       LR1_Items.Put (Descriptor, Closure, Kernel_Only => True);
       raise Programmer_Error;
    end Find;
@@ -451,9 +456,9 @@ package body WisiToken.Parser.LR.Generator_Utils is
         ("%conflict " &
            Conflict_Parse_Actions'Image (Item.Action_A) & "/" &
            Conflict_Parse_Actions'Image (Item.Action_B) & " in state " &
-           Image (Descriptor, Item.LHS_A) & ", " &
-           Image (Descriptor, Item.LHS_B) &
-           "  on token " & Image (Descriptor, Item.On) &
+           Image (Item.LHS_A, Descriptor) & ", " &
+           Image (Item.LHS_B, Descriptor) &
+           "  on token " & Image (Item.On, Descriptor) &
            " (" & State_Index'Image (Item.State_Index) & ")"); -- state number last for easier delete
    end Image;
 
@@ -485,11 +490,14 @@ package body WisiToken.Parser.LR.Generator_Utils is
         Known.On = Item.On;
    end Match;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict_Lists.List)
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor'Class)
    is begin
       for Conflict of Item loop
-         Ada.Text_IO.Put_Line (Image (Descriptor, Conflict));
+         Ada.Text_IO.Put_Line (File, Image (Descriptor, Conflict));
       end loop;
    end Put;
 
-end WisiToken.Parser.LR.Generator_Utils;
+end WisiToken.LR.Generator_Utils;

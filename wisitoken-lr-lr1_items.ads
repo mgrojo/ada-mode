@@ -30,7 +30,8 @@ pragma License (Modified_GPL);
 
 with Ada.Unchecked_Deallocation;
 with WisiToken.Production;
-package WisiToken.Parser.LR.LR1_Items is
+with WisiToken.Token_ID_Lists;
+package WisiToken.LR.LR1_Items is
 
    --  We need a special value of Lookahead to indicate '#' in
    --  [dragon] LALR algorithm 4.12. That is implemented by setting
@@ -43,7 +44,7 @@ package WisiToken.Parser.LR.LR1_Items is
    function Prod (Item : in Item_Ptr) return Production.Instance;
    function LHS (Item : in Item_Ptr) return Token_ID;
    function RHS (Item : in Item_Ptr) return Production.Right_Hand_Side;
-   function Dot (Item : in Item_Ptr) return WisiToken.Token.List.List_Iterator;
+   function Dot (Item : in Item_Ptr) return Token_ID_Lists.Cursor;
    --  Token after Dot.
    function State (Item : in Item_Ptr) return Unknown_State_Index;
    function Lookaheads (Item : in Item_Ptr) return Lookahead;
@@ -51,7 +52,7 @@ package WisiToken.Parser.LR.LR1_Items is
 
    function New_Item_Node
      (Prod       : in Production.Instance;
-      Dot        : in WisiToken.Token.List.List_Iterator;
+      Dot        : in Token_ID_Lists.Cursor;
       State      : in Unknown_State_Index;
       Lookaheads : in Lookahead)
      return Item_Ptr;
@@ -59,7 +60,7 @@ package WisiToken.Parser.LR.LR1_Items is
    procedure Set
      (Item       : in out Item_Node;
       Prod       : in     Production.Instance;
-      Dot        : in     WisiToken.Token.List.List_Iterator;
+      Dot        : in     Token_ID_Lists.Cursor;
       State      : in     Unknown_State_Index;
       Lookaheads : in     Lookahead);
    --  Replace all values in Item.
@@ -144,7 +145,7 @@ package WisiToken.Parser.LR.LR1_Items is
 
    function Find
      (Prod             : in     Production.Instance;
-      Dot              : in     WisiToken.Token.List.List_Iterator;
+      Dot              : in     Token_ID_Lists.Cursor;
       Right            : in     Item_Set;
       Lookaheads       : access Lookahead := null;
       Match_Lookaheads : in     Boolean)
@@ -262,8 +263,12 @@ private
    --  Private to force use of Add
 
    type Item_Node is record
+      --  Production.Instance, and Token_ID_Lists.List, are _not_
+      --  Controlled; the values stored here are shallow copies of the root
+      --  list pointers orignally stored in the Grammar structure; Dot
+      --  points into that token list.
       Prod       : Production.Instance;
-      Dot        : WisiToken.Token.List.List_Iterator; -- token after item Dot
+      Dot        : Token_ID_Lists.Cursor; -- token after item Dot
       State      : Unknown_State_Index;
       Lookaheads : access Lookahead;
       Next       : Item_Ptr;
@@ -279,4 +284,5 @@ private
 
    procedure Free is new Ada.Unchecked_Deallocation (Item_Node, Item_Ptr);
    procedure Free is new Ada.Unchecked_Deallocation (Goto_Item, Goto_Item_Ptr);
-end WisiToken.Parser.LR.LR1_Items;
+
+end WisiToken.LR.LR1_Items;

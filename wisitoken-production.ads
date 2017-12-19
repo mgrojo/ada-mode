@@ -31,28 +31,32 @@ pragma License (Modified_GPL);
 
 with Ada.Iterator_Interfaces;
 with Ada.Unchecked_Deallocation;
-with WisiToken.Token;
+with WisiToken.Semantic_State;
+with WisiToken.Token_ID_Lists;
 package WisiToken.Production is
 
    type Right_Hand_Side is record
-      Tokens : Token.List.Instance;
-      Action : Semantic_Action;
+      Tokens : WisiToken.Token_ID_Lists.List;
+      Action : WisiToken.Semantic_State.Semantic_Action;
+      --  No semantic_check here; only supported in Wisi source files.
       Index  : Integer;
       --  Index of production among productions for a single nonterminal (the LHS)
    end record;
-   --  The Right Hand Side of a production is a token list "+"ed with a
-   --  synthesization routine. For example:
-   --
-   --     Number & Minus_Sign & Number + Nonterminal.Synthesize_First
-   --
-   --  The synthesization routine is called whenever the production is
-   --  reduced by the parser.
 
-   function "+" (Tokens : in Token.List.Instance; Action : in Semantic_Action) return Right_Hand_Side;
-   function "+" (Tokens : in Token_ID; Action : in Semantic_Action) return Right_Hand_Side;
-   function "+" (Action : in Semantic_Action) return Right_Hand_Side;
+   function Only (Item : in Token_ID) return WisiToken.Token_ID_Lists.List;
+   function "&" (Left : in Token_ID; Right : in Token_ID) return WisiToken.Token_ID_Lists.List;
 
-   function "+" (Tokens : in Token.List.Instance; Index  : in Integer) return Right_Hand_Side;
+   function "+"
+     (Tokens : in Token_ID_Lists.List;
+      Action : in WisiToken.Semantic_State.Semantic_Action)
+     return Right_Hand_Side;
+   function "+"
+     (Tokens : in Token_ID;
+      Action : in WisiToken.Semantic_State.Semantic_Action)
+     return Right_Hand_Side;
+   function "+" (Action : in WisiToken.Semantic_State.Semantic_Action) return Right_Hand_Side;
+
+   function "+" (Tokens : in Token_ID_Lists.List; Index  : in Integer) return Right_Hand_Side;
    function "+" (Tokens : in Token_ID; Index  : in Integer) return Right_Hand_Side;
    function "+" (Index  : in Integer) return Right_Hand_Side;
    --  Create the right hand side of a production.
@@ -62,17 +66,13 @@ package WisiToken.Production is
 
    type Instance is record
       LHS : Token_ID;
-      RHS : Right_Hand_Side;
+      RHS : aliased Right_Hand_Side;
    end record;
    type Handle is access all Instance;
-   --  A production consists of a nonterminal token instance "<=" ed to
-   --  a Right Hand Side . For example:
-   --
-   --    Subtraction <= Number & Minus_Sign & Number + Token.Null_Action
 
    function "<=" (LHS : in Token_ID; RHS : in Right_Hand_Side) return Instance;
 
-   function First_Token (Item : in Instance) return Token.List.List_Iterator;
+   function First_Token (Item : in Instance) return Token_ID_Lists.Cursor;
 
    package List is
 
@@ -81,6 +81,9 @@ package WisiToken.Production is
         Constant_Indexing => Constant_Reference,
         Default_Iterator  => Iterate,
         Iterator_Element  => Production.Instance;
+      --  Instance is _not_ Controlled; assignment does a shallow copy of
+      --  the root list pointers. WisiToken.LR.LR1_Items takes advantage of
+      --  this.
 
       type Constant_Reference_Type (Element : not null access constant Production.Instance) is null record
       with Implicit_Dereference => Element;

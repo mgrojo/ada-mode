@@ -20,9 +20,9 @@ pragma License (GPL);
 with Ada.Characters.Handling;
 package body WisiToken.Gen_Token_Enum is
 
-   function Token_Enum_Image return Token_Array_String
+   function Token_Enum_Image return Token_ID_Array_String
    is
-      Result : Token_Array_String (Token_ID'First .. +Last_Nonterminal);
+      Result : Token_ID_Array_String (Token_ID'First .. +Last_Nonterminal);
    begin
       for I in Token_Enum_ID loop
          Result (+I) := new String'(Token_Enum_ID'Image (I));
@@ -40,20 +40,28 @@ package body WisiToken.Gen_Token_Enum is
       return Result;
    end To_Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Token.List.Instance
+   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Lists.List
    is begin
-      return WisiToken.Token.List."&" (+Left, +Right);
+      return Result : Token_ID_Lists.List do
+         Result.Append (+Left);
+         Result.Append (+Right);
+      end return;
    end "&";
 
    function "&"
-     (Left  : in WisiToken.Token.List.Instance;
+     (Left  : in Token_ID_Lists.List;
       Right : in Token_Enum_ID)
-     return WisiToken.Token.List.Instance
+     return Token_ID_Lists.List
    is begin
-      return WisiToken.Token.List."&" (Left, +Right);
+      return Result : Token_ID_Lists.List := Left do
+         Result.Append (+Right);
+      end return;
    end "&";
 
-   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return WisiToken.Production.Right_Hand_Side
+   function "+"
+     (Left  : in Token_Enum_ID;
+      Right : in WisiToken.Semantic_State.Semantic_Action)
+     return WisiToken.Production.Right_Hand_Side
    is begin
       return WisiToken.Production."+" (+Left, Right);
    end "+";
@@ -68,22 +76,21 @@ package body WisiToken.Gen_Token_Enum is
 
    procedure Put
      (Trace        : in out WisiToken.Trace'Class;
-      Nonterm      : in     Token_ID;
+      Nonterm      : in     Base_Token;
       Index        : in     Natural;
-      Tokens       : in     WisiToken.Token_Array;
+      Tokens       : in     WisiToken.Base_Token_Arrays.Vector;
       Include_Name : in     Boolean)
    is
       use Ada.Characters.Handling;
-      use Token.List;
 
       Action_Name : constant String :=
         (if Include_Name
-         then To_Lower (Image (Trace.Descriptor.all, Nonterm)) &
+         then To_Lower (Image (Nonterm, Trace.Descriptor.all)) &
             "_" & Int_Image (Index) & ": "
          else "");
    begin
-      Trace.Put (Action_Name & Image (Trace.Descriptor.all, Nonterm) & " <= ");
-      Put (Trace, Tokens);
+      Trace.Put (Action_Name & Image (Nonterm, Trace.Descriptor.all) & " <= ");
+      Trace.Put (Image (Tokens, Trace.Descriptor.all));
       Trace.New_Line;
    end Put;
 
@@ -112,31 +119,44 @@ package body WisiToken.Gen_Token_Enum is
 
    overriding procedure Reduce_Stack
      (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
+      Nonterm : in              Base_Token;
       Index   : in              Natural;
-      Tokens  : in              WisiToken.Token_Array;
-      Action  : in              Semantic_Action)
+      Tokens  : in              WisiToken.Base_Token_Arrays.Vector;
+      Action  : in              WisiToken.Semantic_State.Semantic_Action)
    is
-      function To_Augmented (Item : in WisiToken.Token_Array) return Augmented_Token_Array
-      is
-         use Token.List;
+      use WisiToken.Semantic_State;
 
+      function To_Augmented (Item : in WisiToken.Base_Token_Arrays.Vector) return Augmented_Token_Array
+      is
          Result : Augmented_Token_Array;
       begin
-         for ID of Item loop
-            Result.Append (Augmented_Token'(ID => ID, Enum_ID => -ID, Virtual => False));
+         for Token of Item loop
+            Result.Append
+              (Augmented_Token'
+                 (ID          => Token.ID,
+                  Byte_Region => Token.Byte_Region,
+                  Name        => Token.Name,
+                  Enum_ID     => -Token.ID,
+                  Virtual     => False));
          end loop;
          return Result;
       end To_Augmented;
 
-      Enum_Nonterm     : constant Token_Enum_ID         := -Nonterm;
+      Enum_Nonterm_ID  : constant Token_Enum_ID         := -Nonterm.ID;
       Augmented_Tokens : constant Augmented_Token_Array := To_Augmented (Tokens);
    begin
       if Trace_Parse > Detail then
          Put (State.Trace.all, Nonterm, Index, Tokens, Include_Name => Action /= null);
       end if;
       if Action /= null then
-         Action (Augmented_Token'(ID => Nonterm, Enum_ID => Enum_Nonterm, Virtual => False), Index, Augmented_Tokens);
+         Action
+           (Augmented_Token'
+              (ID          => Nonterm.ID,
+               Byte_Region => Nonterm.Byte_Region,
+               Name        => Nonterm.Name,
+               Enum_ID     => Enum_Nonterm_ID,
+               Virtual     => False),
+            Index, Augmented_Tokens);
       end if;
    end Reduce_Stack;
 

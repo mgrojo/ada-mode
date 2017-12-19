@@ -19,9 +19,9 @@
 pragma License (Modified_GPL);
 
 with Ada.Text_IO; use Ada.Text_IO;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.LR1_Generator;
-with WisiToken.Parser.LR.Wisi_Generate_Elisp;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.Wisi_Generate_Elisp;
 with WisiToken.Production;
 with Wisi.Gen_Generate_Utils;
 with Wisi.Output_Elisp_Common;
@@ -50,7 +50,7 @@ is
    Grammar : constant WisiToken.Production.List.Instance := Generate_Utils.To_Grammar
      (Generate_Utils.LR1_Descriptor, Input_File_Name, -Params.Start_Token);
 
-   Parser : WisiToken.Parser.LR.Parse_Table_Ptr;
+   Parser : WisiToken.LR.Parse_Table_Ptr;
 
    procedure Create_Elisp (Algorithm : in Single_Parser_Algorithm)
    is
@@ -70,14 +70,14 @@ is
          end case;
       end case;
 
-      WisiToken.Parser.LR.Free (Parser);
+      WisiToken.LR.Free (Parser);
 
       case Algorithm is
       when LALR                      =>
-         Parser := WisiToken.Parser.LR.LALR_Generator.Generate
+         Parser := WisiToken.LR.LALR_Generator.Generate
            (Grammar,
             Generate_Utils.LALR_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
@@ -87,10 +87,10 @@ is
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
       when LR1                       =>
-         Parser := WisiToken.Parser.LR.LR1_Generator.Generate
+         Parser := WisiToken.LR.LR1_Generator.Generate
            (Grammar,
             Generate_Utils.LR1_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Accept_Reduce_Conflict_Count, Shift_Reduce_Conflict_Count,
                Reduce_Reduce_Conflict_Count),
@@ -117,7 +117,7 @@ is
       New_Line;
       Output_Elisp_Common.Indent_Token_Table (-Elisp_Package_1, "elisp", Tokens.Tokens, To_String'Access);
       New_Line;
-      WisiToken.Parser.LR.Wisi_Generate_Elisp.Output (-Elisp_Package_1, Tokens, Parser, Generate_Utils.LR1_Descriptor);
+      WisiToken.LR.Wisi_Generate_Elisp.Output (-Elisp_Package_1, Tokens, Parser, Generate_Utils.LR1_Descriptor);
       New_Line;
       Put_Line ("(provide '" & (-Elisp_Package_1) & "-elisp)");
       Put_Line (";; end of file");
@@ -126,7 +126,7 @@ is
       Set_Output (Standard_Output);
    end Create_Elisp;
 
-   use all type WisiToken.Parser.LR.Unknown_State_Index;
+   use all type WisiToken.LR.Unknown_State_Index;
 begin
    case Valid_Parser_Algorithm (Params.Parser_Algorithm) is
    when LALR | LR1 =>
@@ -141,7 +141,7 @@ begin
       Put_Line
         (Integer'Image (Rule_Count) & " rules," &
            Integer'Image (Action_Count) & " actions," &
-           WisiToken.Parser.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
+           WisiToken.LR.State_Index'Image (Parser.State_Last - Parser.State_First + 1) & " states");
       Put_Line
         (Integer'Image (Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &
            Integer'Image (Shift_Reduce_Conflict_Count) & " shift/reduce conflicts," &

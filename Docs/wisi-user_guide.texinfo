@@ -55,7 +55,8 @@ the elisp wisi parser.
 At one point, ``wisi'' was short for ``Wisent Indentation engine'';
 the Emacs 'wisi' package implements an indentation engine that used to
 be based on the Emacs wisent parser. However, that parser has now been
-replaced by a generalized LALR parser, so ``wisi'' is just a name.
+replaced by a generalized LALR parser with error recovery, so ``wisi''
+is just a name.
 
 The WisiToken grammar compiler @code{wisi-generate} reads a grammar file in
 wisi syntax, and outputs a compiled grammar in elisp format; it can
@@ -328,6 +329,21 @@ argument is the regular expression to recognize the entire comment.
 
 @node Error recovery
 @subsection Error recovery
+The parser can use error recovery algorithms when it encounters syntax
+errors; if a solution is found, the parse continues.
+
+Error recovery uses multiple tasks to take advantage of multiple CPU
+cores.  Unfortunately, this means there is a race condition; the
+   solutions found can be delivered in different orders on different
+   runs. This matters because each solution results in a successful
+   parse, possibly with different actions (different indentation
+   computed, for example).  Which solution finally succeeds depends on
+   which are terminated due to identical parser stacks, which in turn
+   depends on the order they were delivered. See
+   @file{ada-mode/tests/ada_mode-interactive_2.adb} for an example.
+
+Once the syntax errors are fixed, only the ambiguities in the grammar
+itself can cause a similar problem.
 
 @table @code
 @item %mckenzie_cost_default <insert> <delete_terminal> <delete_nonterminal>

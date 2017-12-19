@@ -1,6 +1,6 @@
 --  Abstract :
 --
---  Store token regions.
+--  Store token information useful for indentation.
 --
 --  The parser deals only with token_ids; this package adds additional
 --  information.
@@ -21,7 +21,7 @@
 pragma License (Modified_GPL);
 
 with WisiToken.Lexer;
-with WisiToken.Token;
+with WisiToken.Semantic_State;
 with WisiToken.Token_Region;
 package WisiToken.Token_Line_Comment is
 
@@ -107,7 +107,7 @@ package WisiToken.Token_Line_Comment is
      (State : in State_Type;
       ID    : in Token_ID;
       Token : in Token_Line_Comment.Token'Class)
-     return Ada.Containers.Count_Type;
+     return SAL.Base_Peek_Type;
    --  Return index to State.All_Tokens of first token in
    --  Token.Char_Region with ID. If not found, return
    --  Invalid_All_Tokens_Index.
@@ -124,12 +124,12 @@ package WisiToken.Token_Line_Comment is
    --
    --  If the result is a new-line token, the line is empty.
 
-   type Init_Data is new WisiToken.Token.Init_Data with record
+   type Init_Data is new WisiToken.Semantic_State.Init_Data with record
       Line_Count : Line_Number_Type;
    end record;
 
    overriding
-   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Token.Init_Data'Class);
+   procedure Initialize (State : not null access State_Type; Init : in WisiToken.Semantic_State.Init_Data'Class);
 
    overriding
    procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False);
@@ -137,20 +137,20 @@ package WisiToken.Token_Line_Comment is
    overriding
    procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class);
 
    overriding
    procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID);
+      Token : in              Base_Token);
 
    overriding
    procedure Reduce_Stack
-     (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
-      Index   : in              Natural;
-      IDs     : in              WisiToken.Token_Array;
-      Action  : in              Semantic_Action);
+     (State       : not null access State_Type;
+      Nonterm     : in              Base_Token;
+      Index       : in              Natural;
+      Base_Tokens : in              WisiToken.Base_Token_Arrays.Vector;
+      Action      : in              WisiToken.Semantic_State.Semantic_Action);
 
 end WisiToken.Token_Line_Comment;

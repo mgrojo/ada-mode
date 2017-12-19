@@ -35,8 +35,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Wisi.Gen_Output_Ada_Common;
 with Wisi.Output_Elisp_Common; use Wisi.Output_Elisp_Common;
 with Wisi.Utils;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.LR1_Generator;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
 procedure Wisi.Output_Ada_Emacs
   (Input_File_Name       : in String;
    Output_File_Name_Root : in String;
@@ -49,6 +49,7 @@ procedure Wisi.Output_Ada_Emacs
    Elisp_Names           : in Wisi.Elisp_Names;
    Rule_Count            : in Integer;
    Action_Count          : in Integer;
+   Check_Count           : in Integer;
    Declare_Enum          : in Boolean)
 is
    use all type Standard.Ada.Containers.Count_Type;
@@ -59,9 +60,15 @@ is
    use Common;
 
    procedure Create_Ada_Action
-     (Name : in String;
-      RHS  : in RHS_Type)
+     (Name  : in String;
+      RHS   : in RHS_Type;
+      Lines : in String_Lists.List;
+      Check : in Boolean)
    is
+      --  Create Action (if Check = False; Lines must be RHS.Action) or
+      --  Check (if Check = True; Lines must be RHS.Check) subprogram named
+      --  Name for RHS.
+
       use Standard.Ada.Strings.Fixed;
       use Standard.Ada.Strings.Unbounded;
       use Wisi.Utils;
@@ -74,6 +81,7 @@ is
       Navigate_Lines     : String_Lists.List;
       Face_Line          : Unbounded_String;
       Indent_Action_Line : Unbounded_String;
+      Check_Lines        : String_Lists.List;
 
       Space_Paren_Set : constant Standard.Ada.Strings.Maps.Character_Set := Standard.Ada.Strings.Maps.To_Set (" ])");
 
@@ -588,11 +596,28 @@ is
          return -(Result & "))");
       end Indent_Params;
 
+      function Match_Names_Params (Params : in String) return String
+      is
+         --  Input looks like: 1 2 nil)
+         First  : constant Integer := Params'First;
+         Second : constant Integer := Index (Params, " ", First);
+         Third  : constant Integer := Index (Params, " ", Second + 1);
+      begin
+         return " (Lexer, Tokens, " &
+           Params (First .. Second - 1) & ',' &
+           Params (Second .. Third - 1) &
+           (if Params (Second + 1 .. Params'Last - 1) = "nil"
+            then ", False)"
+            else ", True)");
+      end Match_Names_Params;
+
       procedure Translate_Line (Line : in String)
       is
          Last       : constant Integer := Index (Line, " ");
          Elisp_Name : constant String  := Line (Line'First + 1 .. Last - 1);
       begin
+         --  wisi action/check functions, in same order as typically used in
+         --  .wy files; Navigate, Face, Indent, Check.
          if Elisp_Name = "wisi-statement-action" then
             Navigate_Lines.Append
               (Elisp_Name_To_Ada (Elisp_Name, False, 5) &
@@ -660,28 +685,43 @@ is
                Put_Error (Input_File_Name, RHS.Source_Line, "multiple indent actions");
             end if;
 
+         elsif Elisp_Name = "wisi-match-names" then
+            Check_Lines.Append
+              ("return " & Elisp_Name_To_Ada (Elisp_Name, False, Trim => 5) &
+                 Match_Names_Params (Line (Last + 1 .. Line'Last)) & ";");
+
          else
             Put_Error (Input_File_Name, RHS.Source_Line, "unrecognized elisp action: " & Elisp_Name);
          end if;
       end Translate_Line;
 
    begin
-      Indent_Line ("procedure " & Name);
-      Indent_Line (" (Nonterm : in WisiToken.Augmented_Token'Class;");
-      Indent_Line ("  Index   : in Natural;");
-      Indent_Line ("  Tokens  : in WisiToken.Augmented_Token_Array)");
-      Indent_Line ("is");
-      Indent_Line ("   pragma Unreferenced (Index);");
-      Indent_Line ("begin");
-      Indent := Indent + 3;
+      if Check then
+         --  in a check
+         Indent_Line ("function " & Name);
+         Indent_Line (" (Lexer  : in WisiToken.Lexer.Handle;");
+         Indent_Line ("  Tokens : in WisiToken.Base_Token_Arrays.Vector)");
+         Indent_Line (" return WisiToken.LR.Semantic_Status");
+         Indent_Line ("is begin");
+      else
+         --  In an action
+         Indent_Line ("procedure " & Name);
+         Indent_Line (" (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;");
+         Indent_Line ("  Index   : in Natural;");
+         Indent_Line ("  Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)");
+         Indent_Line ("is");
+         Indent_Line ("   pragma Unreferenced (Index);");
+         Indent_Line ("begin");
+         Indent := Indent + 3;
+      end if;
 
-      for Line of RHS.Action loop
+      for Line of Lines loop
          begin
             if Translate_Paren_State = 0 and Length (Temp) = 0 then
                if Line = "(progn" then
                   Translate_Paren_State := 1;
                   Paren_State := 1;
-               elsif String_Lists.Length (RHS.Action) = 1 then
+               elsif Lines.Length = 1 then
                   Temp := +Line;
                   Count_Parens;
                   if Paren_State = 0 then
@@ -720,37 +760,45 @@ is
          end;
       end loop;
 
-      Indent_Line ("case Parse_Data.Parse_Action is");
-      Indent_Line ("when Navigate =>");
-      if Navigate_Lines.Length > 0 then
+      if Check then
+         --  in a check
          Indent := Indent + 3;
-         for Line of Navigate_Lines loop
+         for Line of Check_Lines loop
             Indent_Line (Line);
          end loop;
-         Indent := Indent - 3;
       else
-         Indent_Line ("   null;");
-      end if;
+         --  In an action
+         Indent_Line ("case Parse_Data.Parse_Action is");
+         Indent_Line ("when Navigate =>");
+         if Navigate_Lines.Length > 0 then
+            Indent := Indent + 3;
+            for Line of Navigate_Lines loop
+               Indent_Line (Line);
+            end loop;
+            Indent := Indent - 3;
+         else
+            Indent_Line ("   null;");
+         end if;
 
-      Indent_Line ("when Face =>");
-      if Length (Face_Line) > 0 then
-         Indent := Indent + 3;
-         Indent_Line (-Face_Line);
-         Indent := Indent - 3;
-      else
-         Indent_Line ("   null;");
-      end if;
+         Indent_Line ("when Face =>");
+         if Length (Face_Line) > 0 then
+            Indent := Indent + 3;
+            Indent_Line (-Face_Line);
+            Indent := Indent - 3;
+         else
+            Indent_Line ("   null;");
+         end if;
 
-      Indent_Line ("when Indent =>");
-      if Length (Indent_Action_Line) > 0 then
-         Indent := Indent + 3;
-         Indent_Line (-Indent_Action_Line);
-         Indent := Indent - 3;
-      else
-         Indent_Line ("   null;");
+         Indent_Line ("when Indent =>");
+         if Length (Indent_Action_Line) > 0 then
+            Indent := Indent + 3;
+            Indent_Line (-Indent_Action_Line);
+            Indent := Indent - 3;
+         else
+            Indent_Line ("   null;");
+         end if;
+         Indent_Line ("end case;");
       end if;
-      Indent_Line ("end case;");
-
       Indent := Indent - 3;
       Indent_Line ("end " & Name & ";");
       New_Line;
@@ -759,7 +807,7 @@ is
 
    procedure Create_Ada_Body
    is
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
+      use all type WisiToken.LR.Unknown_State_Index;
       use Generate_Utils;
       use Wisi.Utils;
 
@@ -778,10 +826,10 @@ is
 
    begin
       if Data.Parser_Algorithm in LALR | LALR_LR1 then
-         Parsers (LALR) := WisiToken.Parser.LR.LALR_Generator.Generate
+         Parsers (LALR) := WisiToken.LR.LALR_Generator.Generate
            (Data.Grammar,
             LALR_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -795,10 +843,10 @@ is
       end if;
 
       if Data.Parser_Algorithm in LR1 | LALR_LR1 then
-         Parsers (LR1) := WisiToken.Parser.LR.LR1_Generator.Generate
+         Parsers (LR1) := WisiToken.LR.LR1_Generator.Generate
            (Data.Grammar,
             LR1_Descriptor,
-            WisiToken.Parser.LR.State_Index (Params.First_State_Index),
+            WisiToken.LR.State_Index (Params.First_State_Index),
             Generate_Utils.To_Conflicts
               (Input_File_Name, Data.Accept_Reduce_Conflict_Count, Data.Shift_Reduce_Conflict_Count,
                Data.Reduce_Reduce_Conflict_Count),
@@ -808,7 +856,7 @@ is
             Ignore_Unused_Tokens     => Verbosity > 1,
             Ignore_Unknown_Conflicts => Verbosity > 1);
 
-         Data.Parser_State_Count := WisiToken.Parser.LR.Unknown_State_Index'Max
+         Data.Parser_State_Count := WisiToken.LR.Unknown_State_Index'Max
            (Data.Parser_State_Count,
             Parsers (LR1).State_Last - Parsers (LR1).State_First + 1);
       end if;
@@ -827,7 +875,10 @@ is
       New_Line;
 
       Put_Line ("with WisiToken.Lexer.re2c;");
-      Put_Line ("with WisiToken.Parser.LR.Parser;");
+      Put_Line ("with WisiToken.LR.Parser;");
+      if Check_Count > 0 then
+         Put_Line ("with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;");
+      end if;
       Put_Line ("with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;");
       Put_Line ("with " & Language_Runtime_Package & "; use " & Language_Runtime_Package & ";");
       Put_Line ("with " & Output_File_Name_Root & "_re2c_c;");
@@ -856,33 +907,49 @@ is
       Indent_Line ("   " & Output_File_Name_Root & "_re2c_c.Next_Token);");
       New_Line;
 
-      --  generate Action subprograms, populate Action_Names
-      --  (for non-indent actions).
+      --  generate Action and Check subprograms, populate Ada_Action_Names,
+      --  Ada_Check_Names.
 
       for Rule of Tokens.Rules loop
-         --  No need for a Token_Cursor here, since we only need the nonterminals.
+         --  No need for a Token_Cursor here, since we only need the
+         --  nonterminals.
          declare
-            LHS_ID : constant Generate_Utils.Nonterminal_ID := Find_Token_ID (-Rule.Left_Hand_Side);
+            LHS_ID : constant WisiToken.Token_ID := Find_Token_ID (-Rule.Left_Hand_Side);
 
-            Prod_Index : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
-            All_Empty  : Boolean := True;
-            Temp_Ada   : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Action_Names     : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Check_Names      : Action_Name_List (0 .. Integer (Rule.Right_Hand_Sides.Length) - 1);
+            Prod_Index       : Integer := 0; -- Semantic_Action defines Prod_Index as zero-origin
+            Action_All_Empty : Boolean := True;
+            Check_All_Empty  : Boolean := True;
          begin
             for RHS of Rule.Right_Hand_Sides loop
                if RHS.Action.Length > 0 then
-                  All_Empty := False;
+                  Action_All_Empty := False;
                   declare
                      Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index);
                   begin
-                     Temp_Ada (Prod_Index) := new String'(Name & "'Access");
-                     Create_Ada_Action (Name, RHS);
+                     Action_Names (Prod_Index) := new String'(Name & "'Access");
+                     Create_Ada_Action (Name, RHS, RHS.Action, Check => False);
+                  end;
+               end if;
+
+               if RHS.Check.Length > 0 then
+                  Check_All_Empty := False;
+                  declare
+                     Name : constant String := -Rule.Left_Hand_Side & '_' & WisiToken.Int_Image (Prod_Index) & "_check";
+                  begin
+                     Check_Names (Prod_Index) := new String'(Name & "'Access");
+                     Create_Ada_Action (Name, RHS, RHS.Check, Check => True);
                   end;
                end if;
                Prod_Index := Prod_Index + 1;
             end loop;
 
-            if not All_Empty then
-               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Temp_Ada);
+            if not Action_All_Empty then
+               Ada_Action_Names (LHS_ID) := new Action_Name_List'(Action_Names);
+            end if;
+            if not Check_All_Empty then
+               Ada_Check_Names (LHS_ID) := new Action_Name_List'(Check_Names);
             end if;
          end;
       end loop;
@@ -958,7 +1025,8 @@ is
          Put_Line
            (Integer'Image (Rule_Count) & " rules," &
               Integer'Image (Action_Count) & " actions," &
-              WisiToken.Parser.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
+              Integer'Image (Check_Count) & " checks," &
+              WisiToken.LR.State_Index'Image (Data.Parser_State_Count) & " states," &
               Integer'Image (Data.Table_Entry_Count) & " table entries");
          Put_Line
            (Integer'Image (Data.Accept_Reduce_Conflict_Count) & " accept/reduce conflicts," &

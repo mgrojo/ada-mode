@@ -19,7 +19,8 @@ pragma License (GPL);
 
 with WisiToken.Lexer.Regexp;
 with WisiToken.Production;
-with WisiToken.Token;
+with WisiToken.Semantic_State;
+with WisiToken.Token_ID_Lists;
 generic
    type Token_Enum_ID is (<>);
    First_Terminal    : Token_Enum_ID;
@@ -36,7 +37,7 @@ package WisiToken.Gen_Token_Enum is
    function "-" (Item : in Token_ID) return Token_Enum_ID
      is (Token_Enum_ID'Val (Item - Token_ID'First));
 
-   function Token_Enum_Image return Token_Array_String;
+   function Token_Enum_Image return Token_ID_Array_String;
 
    subtype Terminal_Enum_ID is Token_Enum_ID range First_Terminal .. Last_Terminal;
 
@@ -51,6 +52,8 @@ package WisiToken.Gen_Token_Enum is
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
+      Terminal_Name_ID     => Invalid_Token_ID,
+      Nonterminal_Name_ID  => Invalid_Token_ID,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,
       Image_Width          => Token_Enum_ID'Width);
@@ -66,6 +69,8 @@ package WisiToken.Gen_Token_Enum is
       Comment_ID           => Invalid_Token_ID,
       Left_Paren_ID        => Invalid_Token_ID,
       Right_Paren_ID       => Invalid_Token_ID,
+      Terminal_Name_ID     => Invalid_Token_ID,
+      Nonterminal_Name_ID  => Invalid_Token_ID,
       Propagate_ID         => +First_Nonterminal,
       Image                => Token_Enum_Image,
       Terminal_Image_Width => Terminal_Enum_ID'Width,
@@ -76,21 +81,18 @@ package WisiToken.Gen_Token_Enum is
 
    function To_Syntax (Item : in Enum_Syntax) return WisiToken.Lexer.Regexp.Syntax;
 
-   function "&" (Left, Right : in Token_Enum_ID) return WisiToken.Token.List.Instance;
+   function "&" (Left, Right : in Token_Enum_ID) return Token_ID_Lists.List;
 
-   function "&"
-     (Left  : in WisiToken.Token.List.Instance;
-      Right : in Token_Enum_ID)
-     return WisiToken.Token.List.Instance;
+   function "&" (Left  : in Token_ID_Lists.List; Right : in Token_Enum_ID) return Token_ID_Lists.List;
 
-   function "+" (Left : in Token_Enum_ID; Right : in Semantic_Action) return WisiToken.Production.Right_Hand_Side;
+   function "+" (Left : in Token_Enum_ID; Right : in Semantic_State.Semantic_Action) return Production.Right_Hand_Side;
 
    function "<="
      (Left  : in Token_Enum_ID;
       Right : in WisiToken.Production.Right_Hand_Side)
      return WisiToken.Production.Instance;
 
-   type Augmented_Token is new WisiToken.Augmented_Token with record
+   type Augmented_Token is new Semantic_State.Augmented_Token with record
       Enum_ID : Token_Enum_ID;
    end record;
 
@@ -105,18 +107,19 @@ package WisiToken.Gen_Token_Enum is
      (Trace : not null access WisiToken.Trace'Class;
       First_Terminal : Token_ID;
       Last_Terminal  : Token_ID)
-   is new WisiToken.Token.Semantic_State (Trace => Trace) with record
+   is new WisiToken.Semantic_State.Semantic_State (Trace => Trace) with record
       Expecting : Token_ID_Set (First_Terminal .. Last_Terminal);
    end record;
 
    overriding procedure Put (State : not null access State_Type) is null;
 
-   overriding procedure Initialize (State : not null access State_Type; Init : in Token.Init_Data'Class) is null;
+   overriding procedure Initialize (State : not null access State_Type; Init : in Semantic_State.Init_Data'Class)
+     is null;
    overriding procedure Reset (State : not null access State_Type; Init_Done : in Boolean := False) is null;
 
    overriding procedure Lexer_To_Lookahead
      (State : not null access State_Type;
-      Token : in              Token_ID;
+      Token : in              Base_Token;
       Lexer : not null access WisiToken.Lexer.Instance'Class)
      is null;
 
@@ -139,12 +142,12 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Virtual_To_Lookahead
      (State : not null access State_Type;
-      ID    : in              Token_ID)
+      token : in              Base_Token)
    is null;
 
    overriding procedure Push_Current
      (State : not null access State_Type;
-      Token : in              Token_ID)
+      Token : in              Base_Token)
      is null;
 
    overriding
@@ -161,17 +164,17 @@ package WisiToken.Gen_Token_Enum is
 
    overriding procedure Reduce_Stack
      (State   : not null access State_Type;
-      Nonterm : in              Token_ID;
+      Nonterm : in              Base_Token;
       Index   : in              Natural;
-      Tokens  : in              WisiToken.Token_Array;
-      Action  : in              Semantic_Action);
+      Tokens  : in              WisiToken.Base_Token_Arrays.Vector;
+      Action  : in              Semantic_State.Semantic_Action);
    --  Puts trace of production, and calls Action if non-null;
    --  otherwise does nothing.
 
    overriding procedure Recover
      (State     : not null access State_Type;
       Parser_ID : in              Natural;
-      Recover   : in              WisiToken.Token.Recover_Data'Class)
+      Recover   : in              Semantic_State.Recover_Data'Class)
      is null;
 
    ----------

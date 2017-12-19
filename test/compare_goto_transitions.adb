@@ -23,10 +23,11 @@ pragma License (GPL);
 with AUnit.Assertions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.LR1_Generator;
-with WisiToken.Parser.LR.LR1_Items;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.LR1_Generator;
+with WisiToken.LR.LR1_Items;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken_AUnit;
 package body Compare_Goto_Transitions is
 
@@ -67,7 +68,7 @@ package body Compare_Goto_Transitions is
       use all type WisiToken.Production.Right_Hand_Side;
       use all type WisiToken.Production.List.Instance;
 
-      Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+      Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
       --  This grammar has an empty production (number 6); test that
       --  Closure and Goto_Transitions handle it properly.
@@ -81,21 +82,21 @@ package body Compare_Goto_Transitions is
         Parameter_List_ID   <= Left_Paren_ID & Symbol_ID & Right_Paren_ID + Null_Action; -- 7
 
       Has_Empty_Production : constant WisiToken.Token_ID_Set :=
-        WisiToken.Parser.LR.LR1_Items.Has_Empty_Production (Grammar, Token_Enum.LALR_Descriptor);
-      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.Parser.LR.LR1_Items.First
+        WisiToken.LR.LR1_Items.Has_Empty_Production (Grammar, Token_Enum.LALR_Descriptor);
+      First                : constant WisiToken.Token_Array_Token_Set := WisiToken.LR.LR1_Items.First
         (Grammar, Token_Enum.LALR_Descriptor, Has_Empty_Production, Trace => False);
 
       procedure Compare (Prod : in Integer; Symbol : in Token_Enum_ID; Trace : in Boolean)
       is
          use Ada.Text_IO;
          use WisiToken;
-         use WisiToken.Parser.LR.LR1_Items;
+         use WisiToken.LR.LR1_Items;
 
          Set : constant Item_Set := Closure
            ((Set      => WisiToken_AUnit.Get_Item_Node
-               (Grammar, Prod, 1, WisiToken.To_Lookahead (Token_Enum.LALR_Descriptor, +Symbol)),
+               (Grammar, Prod, 1, WisiToken.To_Lookahead (+Symbol, Token_Enum.LALR_Descriptor)),
              Goto_List => null,
-             State     => WisiToken.Parser.LR.Unknown_State,
+             State     => WisiToken.LR.Unknown_State,
              Next      => null),
            Has_Empty_Production, First, Grammar, Token_Enum.LALR_Descriptor,
            Trace      => False);
@@ -112,12 +113,12 @@ package body Compare_Goto_Transitions is
                  Token_Enum_ID'Image (Symbol) & "." &
                  Token_Enum_ID'Image (ID);
             begin
-               LR1 := WisiToken.Parser.LR.LR1_Generator.LR1_Goto_Transitions
+               LR1 := WisiToken.LR.LR1_Generator.LR1_Goto_Transitions
                     (Set, +ID, Has_Empty_Production, First, Grammar, LR1_Descriptor, Trace => False);
                LR1_Filtered := Filter (LR1, LR1_Descriptor, In_Kernel'Access);
                Free (LR1);
 
-               LALR := WisiToken.Parser.LR.LALR_Generator.LALR_Goto_Transitions
+               LALR := WisiToken.LR.LALR_Generator.LALR_Goto_Transitions
                  (Set, +ID, First, Grammar, Token_Enum.LALR_Descriptor, Trace => False);
 
                WisiToken_AUnit.Check (Label, LR1_Filtered, LALR, Match_Lookaheads => False);

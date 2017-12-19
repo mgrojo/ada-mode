@@ -20,14 +20,16 @@ pragma License (GPL);
 
 with AUnit.Assertions;
 with AUnit.Checks.Text_IO;
+with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with WisiToken.Gen_Token_Enum;
+with WisiToken.LR.LALR_Generator;
+with WisiToken.LR.Parser;
 with WisiToken.Lexer.Regexp;
-with WisiToken.Parser.LR.LALR_Generator;
-with WisiToken.Parser.LR.Parser;
 with WisiToken.Production;
+with WisiToken.Semantic_State;
 with WisiToken.Text_IO_Trace;
 package body Association_Grammar_Test is
 
@@ -70,13 +72,13 @@ package body Association_Grammar_Test is
        Identifier_ID    => Lexer.Get ("[0-9a-zA-Z_]+"),
        Paren_Left_ID    => Lexer.Get ("\("),
        Paren_Right_ID   => Lexer.Get ("\)"),
-       EOF_ID           => Lexer.Get ("" & WisiToken.EOF_Character)
+       EOF_ID           => Lexer.Get ("" & Ada.Characters.Latin_1.EOT)
       ));
 
    use type WisiToken.Production.List.Instance;   --  "and"
    use type WisiToken.Production.Right_Hand_Side; --  "+"
 
-   Null_Action : WisiToken.Semantic_Action renames WisiToken.Null_Action;
+   Null_Action : WisiToken.Semantic_State.Semantic_Action renames WisiToken.Semantic_State.Null_Action;
 
    --  valid syntax:
    --  (identifier)
@@ -95,7 +97,7 @@ package body Association_Grammar_Test is
 
    First_Parser_Label : constant := 1;
 
-   Parser : WisiToken.Parser.LR.Instance;
+   Parser : WisiToken.LR.Instance;
 
    Trace : aliased WisiToken.Text_IO_Trace.Trace (LALR_Descriptor'Access);
    State : aliased State_Type (Trace'Access, LR1_Descriptor.First_Terminal, LR1_Descriptor.Last_Terminal);
@@ -141,10 +143,10 @@ package body Association_Grammar_Test is
       Create (Trace_File, Out_File, Trace_File_Name);
       Trace.Set_File (Trace_File'Access);
 
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Trace'Access, Syntax),
-         WisiToken.Parser.LR.LALR_Generator.Generate
+         WisiToken.LR.LALR_Generator.Generate
            (Full_Grammar,
             LALR_Descriptor,
             First_State_Index => 1,

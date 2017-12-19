@@ -18,7 +18,8 @@
 --  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 with WisiToken.Lexer.re2c;
-with WisiToken.Parser.LR.Parser;
+with WisiToken.LR.Parser;
+with WisiToken.LR.Semantic_Checks; use WisiToken.LR.Semantic_Checks;
 with WisiToken.Wisi_Runtime; use WisiToken.Wisi_Runtime;
 with WisiToken.Wisi_Runtime.Subprograms; use WisiToken.Wisi_Runtime.Subprograms;
 with subprograms_re2c_c;
@@ -33,9 +34,9 @@ package body Subprograms_Process is
       subprograms_re2c_c.Next_Token);
 
    procedure block_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -50,9 +51,9 @@ package body Subprograms_Process is
    end block_1;
 
    procedure loop_statement_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -67,9 +68,9 @@ package body Subprograms_Process is
    end loop_statement_0;
 
    procedure name_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -84,9 +85,9 @@ package body Subprograms_Process is
    end name_0;
 
    procedure name_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -101,9 +102,9 @@ package body Subprograms_Process is
    end name_1;
 
    procedure parameter_list_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -118,9 +119,9 @@ package body Subprograms_Process is
    end parameter_list_0;
 
    procedure parameter_list_2
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -135,47 +136,55 @@ package body Subprograms_Process is
    end parameter_list_2;
 
    procedure subprogram_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (3, Name), (4, Motion), (5, Statement_End)));
+         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (3, Misc), (4, Motion), (5, Statement_End)));
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 4);
          Motion_Action (Parse_Data, Nonterm, Tokens, ((1, Empty_IDs) & (4, 5 & 11) & (5, Empty_IDs)));
       when Face =>
-         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (3, 1, 2)));
+         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Language, Function_1'Access, Null_Args))), (True, (Simple, (Int, Subp_Indent_Broken)), (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, Subp_Indent_Broken)), (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Language, Function_1'Access, +2 * Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_0;
 
    procedure subprogram_1
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
       case Parse_Data.Parse_Action is
       when Navigate =>
-         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Misc), (3, Name), (4, Statement_End)));
+         Statement_Action (Parse_Data, Nonterm, Tokens, ((1, Statement_Start), (2, Name), (6, Statement_End)));
          Containing_Action (Parse_Data, Nonterm, Tokens, 1, 2);
       when Face =>
-         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (3, 1, 2)));
+         Face_Apply_Action (Parse_Data, Nonterm, Tokens, ((1, 3, 0), (2, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, Subp_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end subprogram_1;
 
+   function subprogram_1_check
+    (Lexer  : in WisiToken.Lexer.Handle;
+     Tokens : in WisiToken.Base_Token_Arrays.Vector)
+    return WisiToken.LR.Semantic_Status
+   is begin
+      return Match_Names (Lexer, Tokens, 2, 5, True);
+   end subprogram_1_check;
+
    procedure subtype_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -190,9 +199,9 @@ package body Subprograms_Process is
    end subtype_0;
 
    procedure use_clause_0
-    (Nonterm : in WisiToken.Augmented_Token'Class;
+    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
-     Tokens  : in WisiToken.Augmented_Token_Array)
+     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
    is
       pragma Unreferenced (Index);
    begin
@@ -207,15 +216,15 @@ package body Subprograms_Process is
    end use_clause_0;
 
    procedure Create_Parser
-     (Parser         :    out WisiToken.Parser.LR.Instance;
+     (Parser         :    out WisiToken.LR.Instance;
       Algorithm      : in     WisiToken.Parser_Algorithm_Type;
-      Semantic_State : in     WisiToken.Token.Semantic_State_Access)
+      Semantic_State : in     WisiToken.Semantic_State.Semantic_State_Access)
    is
-      use WisiToken.Parser.LR;
+      use WisiToken.LR;
       use all type WisiToken.Parser_Algorithm_Type;
       Table : constant Parse_Table_Ptr := new Parse_Table
         (State_First       => 0,
-         State_Last        => 42,
+         State_Last        => 44,
          First_Terminal    => Descriptor.First_Terminal,
          Last_Terminal     => Descriptor.Last_Terminal,
          First_Nonterminal => Descriptor.First_Nonterminal,
@@ -238,7 +247,7 @@ package body Subprograms_Process is
             0, 0, 0, 0, 0),
          Cost_Limit  => 2147483647,
          Check_Limit => 2147483647,
-         Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
+         Patterns    => WisiToken.LR.Patterns.Empty_List);
 
       Table.Follow :=
         (21 =>
@@ -263,19 +272,24 @@ package body Subprograms_Process is
            (5 => True,
              others => False),
          26 =>
-           (3 |
-             4 |
+           (4 |
+             7 |
              9 |
+             10 |
+             12 |
+             13 |
              15 |
              16 |
-             17 => True,
+             17 |
+             19 => True,
              others => False),
          27 =>
            (15 |
              17 => True,
              others => False),
          28 =>
-           (18 => True,
+           (3 |
+             4 => True,
              others => False),
          29 =>
            (7 |
@@ -303,154 +317,164 @@ package body Subprograms_Process is
       Add_Goto (Table.States (0), 24, 6);
       Add_Goto (Table.States (0), 29, 7);
       Add_Goto (Table.States (0), 31, 8);
-      Add_Action (Table.States (1), 13, 13);
-      Add_Action (Table.States (1), 18, Reduce, 28, 1,  0, null);
+      Add_Action (Table.States (1), 18, 10);
       Add_Error (Table.States (1));
-      Add_Goto (Table.States (1), 28, 15);
-      Add_Action (Table.States (2), 13, 13);
-      Add_Action (Table.States (2), 18, Reduce, 28, 1,  0, null);
+      Add_Goto (Table.States (1), 26, 14);
+      Add_Action (Table.States (2), 18, 10);
       Add_Error (Table.States (2));
-      Add_Goto (Table.States (2), 28, 14);
+      Add_Goto (Table.States (2), 26, 13);
       Add_Action (Table.States (3), 18, 10);
       Add_Error (Table.States (3));
       Add_Goto (Table.States (3), 26, 11);
       Add_Goto (Table.States (3), 27, 12);
-      Add_Action (Table.States (4), 19, Accept_It, 20, 0,  1, null);
+      Add_Action (Table.States (4), 19, Accept_It, 20, 0,  1, null, null);
       Add_Error (Table.States (4));
       Add_Action (Table.States (5), 7, 1);
       Add_Action (Table.States (5), 10, 2);
       Add_Action (Table.States (5), 12, 3);
-      Add_Action (Table.States (5), 19, Reduce, 22, 0,  1, null);
+      Add_Action (Table.States (5), 19, Reduce, 22, 0,  1, null, null);
       Add_Error (Table.States (5));
       Add_Goto (Table.States (5), 24, 9);
       Add_Goto (Table.States (5), 29, 7);
       Add_Goto (Table.States (5), 31, 8);
-      Add_Action (Table.States (6), 7, Reduce, 23, 0,  1, null);
-      Add_Action (Table.States (6), 10, Reduce, 23, 0,  1, null);
-      Add_Action (Table.States (6), 12, Reduce, 23, 0,  1, null);
-      Add_Action (Table.States (6), 19, Reduce, 23, 0,  1, null);
+      Add_Action (Table.States (6), 7, Reduce, 23, 0,  1, null, null);
+      Add_Action (Table.States (6), 10, Reduce, 23, 0,  1, null, null);
+      Add_Action (Table.States (6), 12, Reduce, 23, 0,  1, null, null);
+      Add_Action (Table.States (6), 19, Reduce, 23, 0,  1, null, null);
       Add_Error (Table.States (6));
-      Add_Action (Table.States (7), 7, Reduce, 24, 0,  1, null);
-      Add_Action (Table.States (7), 10, Reduce, 24, 0,  1, null);
-      Add_Action (Table.States (7), 12, Reduce, 24, 0,  1, null);
-      Add_Action (Table.States (7), 19, Reduce, 24, 0,  1, null);
+      Add_Action (Table.States (7), 7, Reduce, 24, 0,  1, null, null);
+      Add_Action (Table.States (7), 10, Reduce, 24, 0,  1, null, null);
+      Add_Action (Table.States (7), 12, Reduce, 24, 0,  1, null, null);
+      Add_Action (Table.States (7), 19, Reduce, 24, 0,  1, null, null);
       Add_Error (Table.States (7));
-      Add_Action (Table.States (8), 7, Reduce, 24, 1,  1, null);
-      Add_Action (Table.States (8), 10, Reduce, 24, 1,  1, null);
-      Add_Action (Table.States (8), 12, Reduce, 24, 1,  1, null);
-      Add_Action (Table.States (8), 19, Reduce, 24, 1,  1, null);
+      Add_Action (Table.States (8), 7, Reduce, 24, 1,  1, null, null);
+      Add_Action (Table.States (8), 10, Reduce, 24, 1,  1, null, null);
+      Add_Action (Table.States (8), 12, Reduce, 24, 1,  1, null, null);
+      Add_Action (Table.States (8), 19, Reduce, 24, 1,  1, null, null);
       Add_Error (Table.States (8));
-      Add_Action (Table.States (9), 7, Reduce, 23, 1,  2, null);
-      Add_Action (Table.States (9), 10, Reduce, 23, 1,  2, null);
-      Add_Action (Table.States (9), 12, Reduce, 23, 1,  2, null);
-      Add_Action (Table.States (9), 19, Reduce, 23, 1,  2, null);
+      Add_Action (Table.States (9), 7, Reduce, 23, 1,  2, null, null);
+      Add_Action (Table.States (9), 10, Reduce, 23, 1,  2, null, null);
+      Add_Action (Table.States (9), 12, Reduce, 23, 1,  2, null, null);
+      Add_Action (Table.States (9), 19, Reduce, 23, 1,  2, null, null);
       Add_Error (Table.States (9));
-      Add_Action (Table.States (10), 3, Reduce, 26, 0,  1, name_0'Access);
-      Add_Action (Table.States (10), 4, Reduce, 26, 0,  1, name_0'Access);
-      Add_Action (Table.States (10), 9, Reduce, 26, 0,  1, name_0'Access);
-      Add_Action (Table.States (10), 15, Reduce, 26, 0,  1, name_0'Access);
-      Add_Action (Table.States (10), 16, Reduce, 26, 0,  1, name_0'Access);
-      Add_Action (Table.States (10), 17, Reduce, 26, 0,  1, name_0'Access);
+      Add_Action (Table.States (10), 3, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 4, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 9, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 13, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 15, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 16, Reduce, 26, 0,  1, name_0'Access, null);
+      Add_Action (Table.States (10), 17, Reduce, 26, 0,  1, name_0'Access, null);
       Add_Error (Table.States (10));
-      Add_Action (Table.States (11), 15, Reduce, 27, 0,  1, null);
-      Add_Action (Table.States (11), 16, 22);
-      Add_Action (Table.States (11), 17, Reduce, 27, 0,  1, null);
+      Add_Action (Table.States (11), 15, Reduce, 27, 0,  1, null, null);
+      Add_Action (Table.States (11), 16, 16);
+      Add_Action (Table.States (11), 17, Reduce, 27, 0,  1, null, null);
       Add_Error (Table.States (11));
-      Add_Action (Table.States (12), 15, 20);
-      Add_Action (Table.States (12), 17, 21);
+      Add_Action (Table.States (12), 15, 19);
+      Add_Action (Table.States (12), 17, 20);
       Add_Error (Table.States (12));
-      Add_Action (Table.States (13), 14, 18);
-      Add_Action (Table.States (13), 18, 19);
+      Add_Action (Table.States (13), 4, Reduce, 28, 1,  0, null, null);
+      Add_Action (Table.States (13), 13, 15);
+      Add_Action (Table.States (13), 16, 16);
       Add_Error (Table.States (13));
-      Add_Action (Table.States (14), 18, 10);
+      Add_Goto (Table.States (13), 28, 18);
+      Add_Action (Table.States (14), 3, Reduce, 28, 1,  0, null, null);
+      Add_Action (Table.States (14), 13, 15);
+      Add_Action (Table.States (14), 16, 16);
       Add_Error (Table.States (14));
-      Add_Goto (Table.States (14), 26, 17);
-      Add_Action (Table.States (15), 18, 10);
+      Add_Goto (Table.States (14), 28, 17);
+      Add_Action (Table.States (15), 14, 26);
+      Add_Action (Table.States (15), 18, 27);
       Add_Error (Table.States (15));
-      Add_Goto (Table.States (15), 26, 16);
-      Add_Action (Table.States (16), 3, 27);
-      Add_Action (Table.States (16), 16, 22);
+      Add_Action (Table.States (16), 18, 25);
       Add_Error (Table.States (16));
-      Add_Goto (Table.States (16), 21, 28);
-      Add_Action (Table.States (17), 16, 22);
-      Add_Action (Table.States (17), 17, 26);
+      Add_Action (Table.States (17), 3, 23);
       Add_Error (Table.States (17));
-      Add_Action (Table.States (18), 18, Reduce, 28, 0,  2, parameter_list_0'Access);
+      Add_Goto (Table.States (17), 21, 24);
+      Add_Action (Table.States (18), 4, 22);
       Add_Error (Table.States (18));
-      Add_Action (Table.States (19), 14, 25);
+      Add_Action (Table.States (19), 18, 10);
       Add_Error (Table.States (19));
-      Add_Action (Table.States (20), 18, 10);
+      Add_Goto (Table.States (19), 26, 21);
+      Add_Action (Table.States (20), 7, Reduce, 31, 0,  3, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 10, Reduce, 31, 0,  3, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 12, Reduce, 31, 0,  3, use_clause_0'Access, null);
+      Add_Action (Table.States (20), 19, Reduce, 31, 0,  3, use_clause_0'Access, null);
       Add_Error (Table.States (20));
-      Add_Goto (Table.States (20), 26, 24);
-      Add_Action (Table.States (21), 7, Reduce, 31, 0,  3, use_clause_0'Access);
-      Add_Action (Table.States (21), 10, Reduce, 31, 0,  3, use_clause_0'Access);
-      Add_Action (Table.States (21), 12, Reduce, 31, 0,  3, use_clause_0'Access);
-      Add_Action (Table.States (21), 19, Reduce, 31, 0,  3, use_clause_0'Access);
+      Add_Action (Table.States (21), 15, Reduce, 27, 1,  3, null, null);
+      Add_Action (Table.States (21), 16, 16);
+      Add_Action (Table.States (21), 17, Reduce, 27, 1,  3, null, null);
       Add_Error (Table.States (21));
-      Add_Action (Table.States (22), 18, 23);
+      Add_Action (Table.States (22), 18, 10);
       Add_Error (Table.States (22));
-      Add_Action (Table.States (23), 3, Reduce, 26, 1,  3, name_1'Access);
-      Add_Action (Table.States (23), 4, Reduce, 26, 1,  3, name_1'Access);
-      Add_Action (Table.States (23), 9, Reduce, 26, 1,  3, name_1'Access);
-      Add_Action (Table.States (23), 15, Reduce, 26, 1,  3, name_1'Access);
-      Add_Action (Table.States (23), 16, Reduce, 26, 1,  3, name_1'Access);
-      Add_Action (Table.States (23), 17, Reduce, 26, 1,  3, name_1'Access);
+      Add_Goto (Table.States (22), 26, 33);
+      Add_Action (Table.States (23), 4, 30);
+      Add_Action (Table.States (23), 6, 31);
       Add_Error (Table.States (23));
-      Add_Action (Table.States (24), 15, Reduce, 27, 1,  3, null);
-      Add_Action (Table.States (24), 16, 22);
-      Add_Action (Table.States (24), 17, Reduce, 27, 1,  3, null);
+      Add_Goto (Table.States (23), 25, 32);
+      Add_Action (Table.States (24), 17, 29);
       Add_Error (Table.States (24));
-      Add_Action (Table.States (25), 18, Reduce, 28, 2,  3, parameter_list_2'Access);
+      Add_Action (Table.States (25), 3, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 4, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 9, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 13, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 15, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 16, Reduce, 26, 1,  3, name_1'Access, null);
+      Add_Action (Table.States (25), 17, Reduce, 26, 1,  3, name_1'Access, null);
       Add_Error (Table.States (25));
-      Add_Action (Table.States (26), 7, Reduce, 29, 1,  4, subprogram_1'Access);
-      Add_Action (Table.States (26), 10, Reduce, 29, 1,  4, subprogram_1'Access);
-      Add_Action (Table.States (26), 12, Reduce, 29, 1,  4, subprogram_1'Access);
-      Add_Action (Table.States (26), 19, Reduce, 29, 1,  4, subprogram_1'Access);
+      Add_Action (Table.States (26), 3, Reduce, 28, 0,  2, parameter_list_0'Access, null);
+      Add_Action (Table.States (26), 4, Reduce, 28, 0,  2, parameter_list_0'Access, null);
       Add_Error (Table.States (26));
-      Add_Action (Table.States (27), 4, 30);
-      Add_Action (Table.States (27), 6, 31);
+      Add_Action (Table.States (27), 14, 28);
       Add_Error (Table.States (27));
-      Add_Goto (Table.States (27), 25, 32);
-      Add_Action (Table.States (28), 17, 29);
+      Add_Action (Table.States (28), 3, Reduce, 28, 2,  3, parameter_list_2'Access, null);
+      Add_Action (Table.States (28), 4, Reduce, 28, 2,  3, parameter_list_2'Access, null);
       Add_Error (Table.States (28));
-      Add_Action (Table.States (29), 7, Reduce, 29, 0,  5, subprogram_0'Access);
-      Add_Action (Table.States (29), 10, Reduce, 29, 0,  5, subprogram_0'Access);
-      Add_Action (Table.States (29), 12, Reduce, 29, 0,  5, subprogram_0'Access);
-      Add_Action (Table.States (29), 19, Reduce, 29, 0,  5, subprogram_0'Access);
+      Add_Action (Table.States (29), 7, Reduce, 29, 0,  5, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 10, Reduce, 29, 0,  5, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 12, Reduce, 29, 0,  5, subprogram_0'Access, null);
+      Add_Action (Table.States (29), 19, Reduce, 29, 0,  5, subprogram_0'Access, null);
       Add_Error (Table.States (29));
-      Add_Action (Table.States (30), 17, Reduce, 21, 0,  2, null);
+      Add_Action (Table.States (30), 17, Reduce, 21, 0,  2, null, null);
       Add_Error (Table.States (30));
-      Add_Action (Table.States (31), 18, 34);
+      Add_Action (Table.States (31), 18, 36);
       Add_Error (Table.States (31));
-      Add_Action (Table.States (32), 5, 33);
+      Add_Action (Table.States (32), 5, 35);
       Add_Error (Table.States (32));
-      Add_Action (Table.States (33), 11, 36);
+      Add_Action (Table.States (33), 16, 16);
+      Add_Action (Table.States (33), 17, 34);
       Add_Error (Table.States (33));
-      Add_Action (Table.States (34), 8, 35);
+      Add_Action (Table.States (34), 7, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 10, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 12, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
+      Add_Action (Table.States (34), 19, Reduce, 29, 1,  6, subprogram_1'Access, subprogram_1_check'Access);
       Add_Error (Table.States (34));
-      Add_Action (Table.States (35), 18, 10);
+      Add_Action (Table.States (35), 11, 38);
       Add_Error (Table.States (35));
-      Add_Goto (Table.States (35), 26, 38);
-      Add_Goto (Table.States (35), 30, 39);
-      Add_Action (Table.States (36), 18, 10);
+      Add_Action (Table.States (36), 8, 37);
       Add_Error (Table.States (36));
-      Add_Goto (Table.States (36), 26, 37);
-      Add_Action (Table.States (37), 4, 41);
-      Add_Action (Table.States (37), 16, 22);
+      Add_Action (Table.States (37), 18, 10);
       Add_Error (Table.States (37));
-      Add_Action (Table.States (38), 9, Reduce, 30, 0,  1, subtype_0'Access);
-      Add_Action (Table.States (38), 16, 22);
+      Add_Goto (Table.States (37), 26, 40);
+      Add_Goto (Table.States (37), 30, 41);
+      Add_Action (Table.States (38), 18, 10);
       Add_Error (Table.States (38));
-      Add_Action (Table.States (39), 9, 40);
+      Add_Goto (Table.States (38), 26, 39);
+      Add_Action (Table.States (39), 4, 43);
+      Add_Action (Table.States (39), 16, 16);
       Add_Error (Table.States (39));
-      Add_Action (Table.States (40), 17, 42);
+      Add_Action (Table.States (40), 9, Reduce, 30, 0,  1, subtype_0'Access, null);
+      Add_Action (Table.States (40), 16, 16);
       Add_Error (Table.States (40));
-      Add_Action (Table.States (41), 17, Reduce, 21, 1,  6, block_1'Access);
+      Add_Action (Table.States (41), 9, 42);
       Add_Error (Table.States (41));
-      Add_Action (Table.States (42), 5, Reduce, 25, 0,  6, loop_statement_0'Access);
+      Add_Action (Table.States (42), 17, 44);
       Add_Error (Table.States (42));
+      Add_Action (Table.States (43), 17, Reduce, 21, 1,  6, block_1'Access, null);
+      Add_Error (Table.States (43));
+      Add_Action (Table.States (44), 5, Reduce, 25, 0,  6, loop_statement_0'Access, null);
+      Add_Error (Table.States (44));
 
-      WisiToken.Parser.LR.Parser.New_Parser
+      WisiToken.LR.Parser.New_Parser
         (Parser,
          Lexer.New_Lexer (Semantic_State.Trace),
          Table,

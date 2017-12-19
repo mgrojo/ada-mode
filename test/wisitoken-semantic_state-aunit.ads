@@ -17,12 +17,7 @@
 
 pragma License (Modified_GPL);
 
-package WisiToken.Token.AUnit is
-
-   procedure Check
-     (Label    : in String;
-      Computed : in WisiToken.Token.List.List_Iterator;
-      Expected : in WisiToken.Token.List.List_Iterator);
+package WisiToken.Semantic_State.AUnit is
 
    type Check_Recover_Type is access procedure
      (Label    : in String;
@@ -35,4 +30,4 @@ package WisiToken.Token.AUnit is
       Expected           : in Recover_Data_Access;
       Check_Recover_Data : in Check_Recover_Type);
 
-end WisiToken.Token.AUnit;
+end WisiToken.Semantic_State.AUnit;

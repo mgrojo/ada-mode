@@ -19,7 +19,8 @@
 pragma License (GPL);
 with Ada.Exceptions;
 with Wisi.Utils;
-with WisiToken.Token;
+with WisiToken.Semantic_State;
+with WisiToken.Token_ID_Lists;
 package body Wisi.Gen_Generate_Utils is
 
    --  For Constant_Reference
@@ -51,10 +52,11 @@ package body Wisi.Gen_Generate_Utils is
 
    procedure Set_Token_Images
    is begin
-      LR1_Descriptor.New_Line_ID    := Find_Kind ("new-line");
-      LR1_Descriptor.Comment_ID     := Find_Kind ("comment");
-      LR1_Descriptor.Left_Paren_ID  := Find_Kind ("left-paren");
-      LR1_Descriptor.Right_Paren_ID := Find_Kind ("right-paren");
+      LR1_Descriptor.New_Line_ID      := Find_Kind ("new-line");
+      LR1_Descriptor.Comment_ID       := Find_Kind ("comment");
+      LR1_Descriptor.Left_Paren_ID    := Find_Kind ("left-paren");
+      LR1_Descriptor.Right_Paren_ID   := Find_Kind ("right-paren");
+      LR1_Descriptor.Terminal_Name_ID := Find_Kind ("symbol");
 
       LR1_Descriptor.Terminal_Image_Width := 0;
       LR1_Descriptor.Image_Width          := 0;
@@ -75,11 +77,20 @@ package body Wisi.Gen_Generate_Utils is
          end if;
       end loop;
 
+      --  We can't use Find_Token_ID until Image is fully set.
+      if Standard.Ada.Strings.Unbounded.Length (Tokens.Nonterminal_Name) = 0 then
+         LR1_Descriptor.Nonterminal_Name_ID := Invalid_Token_ID;
+      else
+         LR1_Descriptor.Nonterminal_Name_ID := Find_Token_ID (-Tokens.Nonterminal_Name);
+      end if;
+
       LALR_Descriptor.New_Line_ID          := LR1_Descriptor.New_Line_ID;
       LALR_Descriptor.Comment_ID           := LR1_Descriptor.Comment_ID;
       LALR_Descriptor.Left_Paren_ID        := LR1_Descriptor.Left_Paren_ID;
       LALR_Descriptor.Right_Paren_ID       := LR1_Descriptor.Right_Paren_ID;
       LALR_Descriptor.Image                := LR1_Descriptor.Image;
+      LALR_Descriptor.Terminal_Name_ID     := LR1_Descriptor.Terminal_Name_ID;
+      LALR_Descriptor.Nonterminal_Name_ID  := LR1_Descriptor.Nonterminal_Name_ID;
       LALR_Descriptor.Terminal_Image_Width := LR1_Descriptor.Terminal_Image_Width;
       LALR_Descriptor.Image_Width          := LR1_Descriptor.Image_Width;
    end Set_Token_Images;
@@ -488,13 +499,13 @@ package body Wisi.Gen_Generate_Utils is
       Accept_Reduce_Conflict_Count :    out Integer;
       Shift_Reduce_Conflict_Count  :    out Integer;
       Reduce_Reduce_Conflict_Count :    out Integer)
-     return WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List
+     return WisiToken.LR.Generator_Utils.Conflict_Lists.List
    is
-      use WisiToken.Parser.LR.Generator_Utils;
-      use all type WisiToken.Parser.LR.Unknown_State_Index;
-      use all type WisiToken.Parser.LR.Parse_Action_Verbs;
-      Result   : WisiToken.Parser.LR.Generator_Utils.Conflict_Lists.List;
-      Conflict : WisiToken.Parser.LR.Generator_Utils.Conflict;
+      use WisiToken.LR.Generator_Utils;
+      use all type WisiToken.LR.Unknown_State_Index;
+      use all type WisiToken.LR.Parse_Action_Verbs;
+      Result   : WisiToken.LR.Generator_Utils.Conflict_Lists.List;
+      Conflict : WisiToken.LR.Generator_Utils.Conflict;
       Error    : Boolean := False;
    begin
       Accept_Reduce_Conflict_Count := 0;
@@ -533,11 +544,11 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end To_Conflicts;
 
-   function "&" (Tokens : in Token.List.Instance; Token : in String) return WisiToken.Token.List.Instance
-   is
-      use WisiToken.Token.List;
-   begin
-      return Tokens & Find_Token_ID (Token);
+   function "&" (Tokens : in Token_ID_Lists.List; Token : in String) return Token_ID_Lists.List
+   is begin
+      return Result : Token_ID_Lists.List := Tokens do
+         Result.Append (Find_Token_ID (Token));
+      end return;
    end "&";
 
    function To_Grammar
@@ -547,14 +558,14 @@ package body Wisi.Gen_Generate_Utils is
      return Production.List.Instance
    is
       use Production;
-      use Token.List;
+      use all type Token_ID_Lists.List;
 
       Grammar : Production.List.Instance;
       Error   : Boolean := False;
    begin
       begin
          Grammar := Production.List.Only
-           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + Null_Action);
+           (Descriptor.Accept_ID <= Find_Token_ID (Start_Token) & EOF_ID + WisiToken.Semantic_State.Null_Action);
       exception
       when Not_Found =>
          Wisi.Utils.Put_Error
@@ -570,7 +581,7 @@ package body Wisi.Gen_Generate_Utils is
                declare
                   use Production.List;
 
-                  Tokens : WisiToken.Token.List.Instance;
+                  Tokens : Token_ID_Lists.List;
                begin
                   for Token of Right_Hand_Side.Production loop
                      Tokens := Tokens & Token;
@@ -604,11 +615,11 @@ package body Wisi.Gen_Generate_Utils is
       return Result;
    end To_Nonterminal_ID_Set;
 
-   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.Parser.LR.McKenzie_Param_Type
+   function To_McKenzie_Param (Item : in McKenzie_Recover_Param_Type) return WisiToken.LR.McKenzie_Param_Type
    is
       use Standard.Ada.Strings.Unbounded;
 
-      Result : WisiToken.Parser.LR.McKenzie_Param_Type :=
+      Result : WisiToken.LR.McKenzie_Param_Type :=
         --  We use an aggregate, and overwrite some below, so the compiler
         --  reminds us to change this when we modify McKenzie_Param_Type.
         (LR1_Descriptor.First_Terminal,
@@ -619,7 +630,7 @@ package body Wisi.Gen_Generate_Utils is
          Delete      => (others => Item.Default_Delete_Terminal),
          Cost_Limit  => Item.Cost_Limit,
          Check_Limit => Item.Check_Limit,
-         Patterns    => WisiToken.Parser.LR.Patterns.Empty_List);
+         Patterns    => WisiToken.LR.Patterns.Empty_List);
    begin
       Result.Delete (Result.First_Nonterminal .. Result.Last_Nonterminal) :=
         (others => Item.Default_Delete_Nonterminal);
@@ -637,7 +648,7 @@ package body Wisi.Gen_Generate_Utils is
                Pat : Wisi.Recover_Pattern_1 renames Wisi.Recover_Pattern_1 (Pattern);
             begin
                Result.Patterns.Append
-                 (WisiToken.Parser.LR.Recover_Pattern_1'
+                 (WisiToken.LR.Recover_Pattern_1'
                     (Stack     => Find_Token_ID (-Pat.Stack),
                      Error     => Find_Token_ID (-Pat.Error),
                      Expecting => Find_Token_ID (-Pat.Expecting)));
@@ -647,7 +658,7 @@ package body Wisi.Gen_Generate_Utils is
                Pat : Wisi.Recover_Pattern_2 renames Wisi.Recover_Pattern_2 (Pattern);
             begin
                Result.Patterns.Append
-                 (WisiToken.Parser.LR.Recover_Pattern_2'
+                 (WisiToken.LR.Recover_Pattern_2'
                     (Stack     => Find_Token_ID (-Pat.Stack),
                      Error     => Find_Token_ID (-Pat.Error),
                      Expecting => Find_Token_ID (-Pat.Expecting),

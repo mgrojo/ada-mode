@@ -22,7 +22,8 @@ pragma License (Modified_GPL);
 
 with Ada.Containers;
 with Ada.Text_IO;
-package body WisiToken.Parser.LR.LR1_Generator is
+with WisiToken.Token_ID_Lists;
+package body WisiToken.LR.LR1_Generator is
 
    function LR1_Goto_Transitions
      (Set                  : in LR1_Items.Item_Set;
@@ -34,7 +35,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
       Trace                : in Boolean)
      return LR1_Items.Item_Set
    is
-      use Token.List;
+      use Token_ID_Lists;
       use LR1_Items;
 
       Goto_Set : Item_Set;
@@ -43,8 +44,8 @@ package body WisiToken.Parser.LR.LR1_Generator is
       Goto_Set.State := Unknown_State;
 
       while Item /= null loop
-         if Dot (Item) /= Null_Iterator then
-            if ID (Dot (Item)) = Symbol and
+         if Dot (Item) /= No_Element then
+            if Element (Dot (Item)) = Symbol and
               --  We don't need a state with dot after EOF in the
               --  accept production. EOF should only appear in the
               --  accept production.
@@ -61,7 +62,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
 
       if Goto_Set.Set /= null then
          if Trace then
-            Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Descriptor, Symbol));
+            Ada.Text_IO.Put_Line ("LR1_Goto_Transitions " & Image (Symbol, Descriptor));
             Put (Descriptor, Goto_Set, Show_Lookaheads => True);
          end if;
 
@@ -81,8 +82,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
      return LR1_Items.Item_Set_List
    is
       use LR1_Items;
-      use type Token.List.List_Iterator;
-      use type Token_ID;
+      use Token_ID_Lists;
 
       --  [dragon] algorithm 4.9 pg 231; figure 4.38 pg 232; procedure "items"
 
@@ -93,7 +93,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
                   (Production.List.Current (Production.List.First (Grammar)),
                    Production.List.RHS (Production.List.First (Grammar)).Tokens.First,
                    First_State_Index,
-                   To_Lookahead (Descriptor, Descriptor.EOF_ID)),
+                   To_Lookahead (Descriptor.EOF_ID, Descriptor)),
                 Goto_List => null,
                 State     => First_State_Index,
                 Next      => null),
@@ -154,7 +154,7 @@ package body WisiToken.Parser.LR.LR1_Generator is
                      then
                         if Trace then
                            Ada.Text_IO.Put_Line
-                             ("  adding goto on " & Image (Descriptor, Symbol) & " to state" &
+                             ("  adding goto on " & Image (Symbol, Descriptor) & " to state" &
                                 Unknown_State_Index'Image (New_Items_Set.State));
 
                         end if;
@@ -253,13 +253,13 @@ package body WisiToken.Parser.LR.LR1_Generator is
          exit when Is_Done (I);
          declare
             use Production;
-            use Token.List;
+            use Token_ID_Lists;
             Prod : constant Production.Instance := Current (I);
-            J    : Token.List.List_Iterator     := First (Prod.RHS.Tokens);
+            J    : Cursor                       := Prod.RHS.Tokens.First;
          begin
             loop
-               exit when Is_Done (J);
-               Used_Tokens (ID (J)) := True;
+               exit when not Has_Element (J);
+               Used_Tokens (Element (J)) := True;
                Next (J);
             end loop;
          end;
@@ -270,10 +270,10 @@ package body WisiToken.Parser.LR.LR1_Generator is
       for I in Used_Tokens'Range loop
          if not Used_Tokens (I) then
             if not Unused_Tokens then
-               Ada.Text_IO.Put_Line ("Unused tokens:");
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "Unused tokens:");
                Unused_Tokens := True;
             end if;
-            Ada.Text_IO.Put_Line (Image (Descriptor, I));
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, Image (I, Descriptor));
          end if;
       end loop;
 
@@ -349,26 +349,26 @@ package body WisiToken.Parser.LR.LR1_Generator is
       Delete_Known (Unknown_Conflicts, Known_Conflicts_Edit);
 
       if Unknown_Conflicts.Length > 0 then
-         Ada.Text_IO.Put_Line ("unknown conflicts:");
-         Put (Descriptor, Unknown_Conflicts);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "unknown conflicts; aborting";
-         end if;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "unknown conflicts:");
+         Put (Unknown_Conflicts, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
       if Known_Conflicts_Edit.Length > 0 then
-         Ada.Text_IO.Put_Line ("excess known conflicts:");
-         Put (Descriptor, Known_Conflicts_Edit);
-         if not Ignore_Unknown_Conflicts then
-            raise Grammar_Error with "excess known conflicts; aborting";
-         end if;
+         Ada.Text_IO.Put_Line (Ada.Text_IO.Current_Error, "excess known conflicts:");
+         Put (Known_Conflicts_Edit, Ada.Text_IO.Current_Error, Descriptor);
+         Ada.Text_IO.New_Line (Ada.Text_IO.Current_Error);
+         Generator_Utils.Error := Generator_Utils.Error or not Ignore_Unknown_Conflicts;
       end if;
 
-      if Unused_Tokens and not (Trace or Ignore_Unused_Tokens) then
-         raise Grammar_Error with "unused tokens; aborting";
+      Generator_Utils.Error := Generator_Utils.Error or (Unused_Tokens and not (Trace or Ignore_Unused_Tokens));
+
+      if Generator_Utils.Error then
+         raise Grammar_Error with "errors: aborting";
       end if;
 
       return Table;
    end Generate;
 
-end WisiToken.Parser.LR.LR1_Generator;
+end WisiToken.LR.LR1_Generator;

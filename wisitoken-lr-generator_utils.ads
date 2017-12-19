@@ -20,8 +20,8 @@
 pragma License (Modified_GPL);
 
 with Ada.Containers.Doubly_Linked_Lists;
-with WisiToken.Parser.LR.LR1_Items;
-package WisiToken.Parser.LR.Generator_Utils is
+with WisiToken.LR.LR1_Items;
+package WisiToken.LR.Generator_Utils is
 
    Error : Boolean := False;
    --  Set True by errors during grammar generation
@@ -115,6 +115,9 @@ package WisiToken.Parser.LR.Generator_Utils is
 
    function Match (Known : in Conflict; Item : in Conflict_Lists.Constant_Reference_Type) return Boolean;
 
-   procedure Put (Descriptor : in WisiToken.Descriptor'Class; Item : in Conflict_Lists.List);
+   procedure Put
+     (Item       : in Conflict_Lists.List;
+      File       : in Ada.Text_IO.File_Type;
+      Descriptor : in WisiToken.Descriptor'Class);
 
-end WisiToken.Parser.LR.Generator_Utils;
+end WisiToken.LR.Generator_Utils;
