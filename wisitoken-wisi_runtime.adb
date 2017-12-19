@@ -980,11 +980,10 @@ package body WisiToken.Wisi_Runtime is
          begin
             if Token.Char_Region /= Null_Buffer_Region then
                if Token.First_Indent_Line /= Invalid_Line_Number then
-                  Data.Indenting_Comment := False;
-                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token);
+                  Code_Delta := Indent_Compute_Delta (Data, Tokens, Pair.Code_Delta, Token, Indenting_Comment => False);
 
                   if Code_Delta /= Null_Delta then
-                     Indent_Token_1 (Data, Token, Code_Delta);
+                     Indent_Token_1 (Data, Token, Code_Delta, Indenting_Comment => False);
                   end if;
                end if;
 
@@ -999,11 +998,11 @@ package body WisiToken.Wisi_Runtime is
                   end if;
 
                   if Comment_Param_Set then
-                     Data.Indenting_Comment := True;
-                     Comment_Delta := Indent_Compute_Delta (Data, Tokens, Comment_Param, Token);
+                     Comment_Delta := Indent_Compute_Delta
+                       (Data, Tokens, Comment_Param, Token, Indenting_Comment => True);
 
                      if Comment_Delta /= Null_Delta then
-                        Indent_Token_1 (Data, Token, Comment_Delta);
+                        Indent_Token_1 (Data, Token, Comment_Delta, Indenting_Comment => True);
                      end if;
                   end if;
                end if;
@@ -1029,30 +1028,33 @@ package body WisiToken.Wisi_Runtime is
    end Indent_Action_1;
 
    function Indent_Hanging_1
-     (Data            : in out Parse_Data_Type;
-      Tokens          : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token : in     Token_Line_Comment.Token;
-      Delta_1         : in     Simple_Indent_Param;
-      Delta_2         : in     Simple_Indent_Param;
-      Option          : in     Boolean;
-      Accumulate      : in     Boolean)
+     (Data              : in out Parse_Data_Type;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Delta_1           : in     Simple_Indent_Param;
+      Delta_2           : in     Simple_Indent_Param;
+      Option            : in     Boolean;
+      Accumulate        : in     Boolean)
      return Delta_Type
    is begin
       --  [2] wisi-elisp-parse--hanging-1
-      if Data.Indenting_Comment
-      then
-         return Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token);
+      if Indenting_Comment then
+         return Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment);
       else
          return
            (Hanging,
             Hanging_First_Line  => Indenting_Token.Line,
             Hanging_Paren_State => Indenting_Token.Paren_State,
-            Hanging_Delta_1     => Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token).Simple_Delta,
+            Hanging_Delta_1     => Indent_Compute_Delta
+              (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta,
             Hanging_Delta_2     =>
               (if (not Option) or
                  Indenting_Token.Line = Indenting_Token.First_Indent_Line -- first token in tok is first on line
-               then Indent_Compute_Delta (Data, Tokens, (Simple, Delta_2), Indenting_Token).Simple_Delta
-               else Indent_Compute_Delta (Data, Tokens, (Simple, Delta_1), Indenting_Token).Simple_Delta),
+               then Indent_Compute_Delta
+                 (Data, Tokens, (Simple, Delta_2), Indenting_Token, Indenting_Comment).Simple_Delta
+               else Indent_Compute_Delta
+                 (Data, Tokens, (Simple, Delta_1), Indenting_Token, Indenting_Comment).Simple_Delta),
             Hanging_Accumulate => Accumulate);
       end if;
    end Indent_Hanging_1;
@@ -1194,10 +1196,11 @@ package body WisiToken.Wisi_Runtime is
    end Indent_Anchored_2;
 
    function Indent_Compute_Delta
-     (Data            : in out Parse_Data_Type'Class;
-      Tokens          : in     Semantic_State.Augmented_Token_Array;
-      Param           : in     Indent_Param;
-      Indenting_Token : in     Token_Line_Comment.Token)
+     (Data              : in out Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Param             : in     Indent_Param;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean)
      return Delta_Type
    is begin
       --  [2] wisi-elisp-parse--indent-compute-delta, which evals wisi-anchored*, wisi-hanging*.
@@ -1221,7 +1224,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -1230,7 +1233,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => True);
 
@@ -1239,7 +1242,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
                         Offset      => Paren_In_Anchor_Line (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -1249,7 +1252,7 @@ package body WisiToken.Wisi_Runtime is
                         return Indent_Anchored_2
                           (Data,
                            Anchor_Line => Anchor_Token.Line,
-                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                           Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
                            Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                            Accumulate  => True);
 
@@ -1262,7 +1265,7 @@ package body WisiToken.Wisi_Runtime is
                      return Indent_Anchored_2
                        (Data,
                         Anchor_Line => Anchor_Token.Line,
-                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Data.Indenting_Comment),
+                        Last_Line   => Token_Line_Comment.Last_Line (Indenting_Token, Indenting_Comment),
                         Offset      => Current_Indent_Offset (Data, Anchor_Token, Param.Param.Anchored_Delta),
                         Accumulate  => False);
 
@@ -1271,34 +1274,35 @@ package body WisiToken.Wisi_Runtime is
             end;
 
          when Language =>
-            return Param.Param.Function_Ptr (Data, Tokens, Indenting_Token, Param.Param.Args);
+            return Param.Param.Function_Ptr (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Param.Args);
          end case;
 
       when Hanging_Label =>
          case Hanging_Label'(Param.Label) is
          when Hanging_0 => -- wisi-hanging
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
                Option => False, Accumulate => True);
          when Hanging_1 => -- wisi-hanging%
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
                Option => True, Accumulate => True);
          when Hanging_2 => -- wisi-hanging%-
             return Indent_Hanging_1
-              (Data, Tokens, Indenting_Token, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
+              (Data, Tokens, Indenting_Token, Indenting_Comment, Param.Hanging_Delta_1, Param.Hanging_Delta_2,
                Option => True, Accumulate => False);
          end case;
       end case;
    end Indent_Compute_Delta;
 
    procedure Indent_Token_1
-     (Data            : in out Parse_Data_Type;
-      Indenting_Token : in     Token_Line_Comment.Token;
-      Delta_Indent    : in     Delta_Type)
+     (Data              : in out Parse_Data_Type;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Delta_Indent      : in     Delta_Type;
+      Indenting_Comment : in     Boolean)
    is
-      First_Line : constant Line_Number_Type := Indenting_Token.First_Line (Data.Indenting_Comment);
-      Last_Line  : constant Line_Number_Type := Indenting_Token.Last_Line (Data.Indenting_Comment);
+      First_Line : constant Line_Number_Type := Indenting_Token.First_Line (Indenting_Comment);
+      Last_Line  : constant Line_Number_Type := Indenting_Token.Last_Line (Indenting_Comment);
    begin
       for Line in First_Line .. Last_Line loop
          if Data.Indent_Comment_Col_0 then

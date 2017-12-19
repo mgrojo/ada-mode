@@ -108,7 +108,7 @@ package body Ada_Process is
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, (1 => (4, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
+         null;
       end case;
    end access_definition_0;
 
@@ -125,7 +125,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_1, 4, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Anchored_1, 4, Ada_Indent_Broken)))));
       end case;
    end access_definition_1;
 
@@ -142,7 +142,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_2, 4, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Anchored_2, 4, Ada_Indent_Broken)))));
       end case;
    end access_definition_2;
 
@@ -261,7 +261,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_0, 2, 1))), (False, (Simple, (Anchored_0, 2, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 2, 1))), (False, (Simple, (Anchored_0, 2, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end array_type_definition_0;
 
@@ -278,7 +278,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_0, 2, 1))), (False, (Simple, (Anchored_0, 2, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 2, 1))), (False, (Simple, (Anchored_0, 2, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end array_type_definition_1;
 
@@ -751,7 +751,7 @@ package body Ada_Process is
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, (1 => (3, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Record_Rel_Type))), (False, (Simple, (Int, 0)))));
+         null;
       end case;
    end derived_type_definition_0;
 
@@ -768,7 +768,7 @@ package body Ada_Process is
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, (1 => (3, 1, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
+         null;
       end case;
    end derived_type_definition_1;
 
@@ -935,7 +935,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Anchored_0, 1, 1))), (False, (Simple, (Anchored_0, 1, 0)))));
       end case;
    end enumeration_type_definition_0;
 
@@ -1381,7 +1381,7 @@ package body Ada_Process is
       when Face =>
          Face_Apply_Action (Parse_Data, Nonterm, Tokens, (1 => (2, 3, 2)));
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (True, (Simple, (Int, Ada_Indent_Broken)), (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end full_type_declaration_0;
 
@@ -2214,7 +2214,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_1, 6, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Anchored_1, 6, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end object_declaration_4;
 
@@ -2232,7 +2232,7 @@ package body Ada_Process is
       when Face =>
          null;
       when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
+         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
       end case;
    end object_declaration_5;
 
@@ -3079,23 +3079,6 @@ package body Ada_Process is
       end case;
    end record_definition_0;
 
-   procedure record_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end record_definition_1;
-
    procedure record_representation_clause_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
      Index   : in Natural;
@@ -3935,108 +3918,6 @@ package body Ada_Process is
          Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (True, (Simple, (Int, Ada_Indent)), (Simple, (Int, Ada_Indent))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0))), (False, (Simple, (Int, 0)))));
       end case;
    end timed_entry_call_0;
-
-   procedure type_definition_1
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end type_definition_1;
-
-   procedure type_definition_2
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end type_definition_2;
-
-   procedure type_definition_3
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end type_definition_3;
-
-   procedure type_definition_4
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end type_definition_4;
-
-   procedure type_definition_5
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, Ada_Indent_Broken)))));
-      end case;
-   end type_definition_5;
-
-   procedure type_definition_7
-    (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
-     Index   : in Natural;
-     Tokens  : in WisiToken.Semantic_State.Augmented_Token_Array)
-   is
-      pragma Unreferenced (Index);
-   begin
-      case Parse_Data.Parse_Action is
-      when Navigate =>
-         null;
-      when Face =>
-         null;
-      when Indent =>
-         Indent_Action_0 (Parse_Data, Nonterm, Tokens, ((False, (Simple, (Int, Ada_Indent_Broken))), (False, (Simple, (Int, 0)))));
-      end case;
-   end type_definition_7;
 
    procedure variant_part_0
     (Nonterm : in WisiToken.Semantic_State.Augmented_Token'Class;
@@ -23362,8 +23243,8 @@ package body Ada_Process is
       Add_Action (Table.States (1012), 96, Reduce, 122, 0,  0, null, null);
       Add_Error (Table.States (1012));
       Add_Goto (Table.States (1012), 122, 1117);
-      Add_Action (Table.States (1013), 74, Reduce, 337, 7,  2, type_definition_7'Access, null);
-      Add_Action (Table.States (1013), 96, Reduce, 337, 7,  2, type_definition_7'Access, null);
+      Add_Action (Table.States (1013), 74, Reduce, 337, 7,  2, null, null);
+      Add_Action (Table.States (1013), 96, Reduce, 337, 7,  2, null, null);
       Add_Error (Table.States (1013));
       Add_Action (Table.States (1014), 104, 47);
       Add_Action (Table.States (1014), 105, 48);
@@ -23467,11 +23348,11 @@ package body Ada_Process is
       Add_Error (Table.States (1029));
       Add_Action (Table.States (1030), 85, 1103);
       Add_Error (Table.States (1030));
-      Add_Action (Table.States (1031), 74, Reduce, 291, 1,  2, record_definition_1'Access, null);
-      Add_Action (Table.States (1031), 96, Reduce, 291, 1,  2, record_definition_1'Access, null);
+      Add_Action (Table.States (1031), 74, Reduce, 291, 1,  2, null, null);
+      Add_Action (Table.States (1031), 96, Reduce, 291, 1,  2, null, null);
       Add_Error (Table.States (1031));
-      Add_Action (Table.States (1032), 74, Reduce, 337, 2,  2, type_definition_2'Access, null);
-      Add_Action (Table.States (1032), 96, Reduce, 337, 2,  2, type_definition_2'Access, null);
+      Add_Action (Table.States (1032), 74, Reduce, 337, 2,  2, null, null);
+      Add_Action (Table.States (1032), 96, Reduce, 337, 2,  2, null, null);
       Add_Error (Table.States (1032));
       Add_Action (Table.States (1033), 53, 1100);
       Add_Action (Table.States (1033), 74, Reduce, 290, 0,  0, null, null);
@@ -24462,11 +24343,11 @@ package body Ada_Process is
       Add_Goto (Table.States (1100), 331, 189);
       Add_Goto (Table.States (1100), 332, 190);
       Add_Goto (Table.States (1100), 341, 191);
-      Add_Action (Table.States (1101), 74, Reduce, 337, 4,  3, type_definition_4'Access, null);
-      Add_Action (Table.States (1101), 96, Reduce, 337, 4,  3, type_definition_4'Access, null);
+      Add_Action (Table.States (1101), 74, Reduce, 337, 4,  3, null, null);
+      Add_Action (Table.States (1101), 96, Reduce, 337, 4,  3, null, null);
       Add_Error (Table.States (1101));
-      Add_Action (Table.States (1102), 74, Reduce, 337, 3,  3, type_definition_3'Access, null);
-      Add_Action (Table.States (1102), 96, Reduce, 337, 3,  3, type_definition_3'Access, null);
+      Add_Action (Table.States (1102), 74, Reduce, 337, 3,  3, null, null);
+      Add_Action (Table.States (1102), 96, Reduce, 337, 3,  3, null, null);
       Add_Error (Table.States (1102));
       Add_Action (Table.States (1103), 3, 146);
       Add_Action (Table.States (1103), 39, 150);
@@ -25636,8 +25517,8 @@ package body Ada_Process is
       Add_Action (Table.States (1213), 96, Reduce, 122, 0,  0, null, null);
       Add_Error (Table.States (1213));
       Add_Goto (Table.States (1213), 122, 1242);
-      Add_Action (Table.States (1214), 74, Reduce, 337, 1,  4, type_definition_1'Access, null);
-      Add_Action (Table.States (1214), 96, Reduce, 337, 1,  4, type_definition_1'Access, null);
+      Add_Action (Table.States (1214), 74, Reduce, 337, 1,  4, null, null);
+      Add_Action (Table.States (1214), 96, Reduce, 337, 1,  4, null, null);
       Add_Error (Table.States (1214));
       Add_Action (Table.States (1215), 85, 1240);
       Add_Error (Table.States (1215));
@@ -25964,8 +25845,8 @@ package body Ada_Process is
       Add_Goto (Table.States (1237), 342, 321);
       Add_Action (Table.States (1238), 96, 1295);
       Add_Error (Table.States (1238));
-      Add_Action (Table.States (1239), 74, Reduce, 337, 5,  5, type_definition_5'Access, null);
-      Add_Action (Table.States (1239), 96, Reduce, 337, 5,  5, type_definition_5'Access, null);
+      Add_Action (Table.States (1239), 74, Reduce, 337, 5,  5, null, null);
+      Add_Action (Table.States (1239), 96, Reduce, 337, 5,  5, null, null);
       Add_Error (Table.States (1239));
       Add_Action (Table.States (1240), 3, 146);
       Add_Action (Table.States (1240), 39, 150);

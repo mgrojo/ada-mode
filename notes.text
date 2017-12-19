@@ -35,6 +35,10 @@ run test from emacs -Q using source:
 wisitoken-token_line_comment.adb:101:31: already at outermost
     fix in o.e.a.s-2
 
+interactive_1, _2 crash process
+    try Debian
+    change to module
+
 emacs occasionally hangs
     kill ada_mode_wisi_parse.exe via task manager fixes it
     could be parser hanging, or emacs process io hanging
@@ -44,9 +48,6 @@ emacs occasionally hangs
         test/ada_mode-recover_match_names.adb
 
 see c:/Projects/org.wisitoken.stephe-1/notes.text for mckenzie improve
-
-test/ada_mode-recover_pattern_1.adb _2.adb
-    virtual tokens are not on a line; should not affect indentation of following 'end'
 
 gpr-mode.el:263:  (set-syntax-table ada-mode-syntax-table);; FIXME: create gpr-mode-syntax-table
 gpr-query.el:263:  ;; FIXME: implement ada-xref-full-path.
@@ -388,61 +389,12 @@ ada-indent-hanging-rel-exp
 
  wisi work
 
-upgrade to gnat gpl 2017
-    copy libiconv from mingw32; see wisi-user_guide install
-
-    gpr_query installed
-        crashes in test/ada_mode-child_procedure.adb
-        and under main emacs
-        run in gdb; in Tree.Load
-        need debug enabled in gnatcoll; reinstall with Gnatcoll_Build=Debug
-        crashes in gnatcoll-projects.adb Load call to Internal_Load
-        in call to Set_Path_From_Gnatls_Attribute
-            due to missing 'with' (should not be any!?)
-        in call to Process_gnatlist (default_gnatlist)
-        'catch exception' lands in gnatcoll_utils.Get_Command_Output call to Expect
-            exception process_died
-            handled right there, but never gets to the handler
-                spawn process is just broken?
-                try small example
-
-    try reinstall gnatcoll?
-
 disable or use electric-indent-post-self-insert-function
     called during ada-indent-newline-indent
     on post-self-insert-hook
         use that for ada-mode capitalization
 
 Smart edit - delete if/then/endif, leaving content
-
-Try antlr error recovery on Ada. Add elisp target.
-
-gps vs wisi
-    when hit return with invalid syntax, does not indent until type some code
-
-    comments aligned with prev code, not next
-
-    missing ada-indent-label
-
-    conditional expressions different continuation
-
-    expression function "is"
-
-    generic renaming
-
-    generic package continuation
-
-    named association continuation
-
-    missing ada-indent-renames > 0
-
-    overriding continuation
-
-    bug in record field; ada_mode-nominal-child.ads
-
-    aspect continuation
-
-    anonymous access function return type
 
 gpr_query does not see libraries?
     need clear example; libadalang mains vs langkit?
@@ -642,7 +594,7 @@ Add Ada parser to gnu global?
  debug hints, relevant files
 gdb run_ada_parse
     in wisitoken-wisi_runtime.adb Indent_Action_0:
-        break on 'if token.first then' line 933
+        break on 'if token.first_indent_line then' line 981
         p ada_process.descriptor.image (nonterm.id)
         p ada_process.descriptor.image (token.id)
 

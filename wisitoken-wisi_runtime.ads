@@ -181,10 +181,11 @@ package WisiToken.Wisi_Runtime is
    type Delta_Type (<>) is private;
 
    type Language_Indent_Function is access function
-     (Data          : in out Parse_Data_Type'Class;
-      Tokens        : in     Semantic_State.Augmented_Token_Array;
-      Indenting     : in     Token_Line_Comment.Token;
-      Args          : in     Indent_Arg_Arrays.Vector)
+     (Data              : in out Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     Indent_Arg_Arrays.Vector)
      return Delta_Type;
 
    Null_Args : Indent_Arg_Arrays.Vector renames Indent_Arg_Arrays.Empty_Vector;
@@ -255,13 +256,14 @@ package WisiToken.Wisi_Runtime is
    --  Implements [2] wisi-indent-action*.
 
    function Indent_Hanging_1
-     (Data            : in out Parse_Data_Type;
-      Tokens          : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token : in     Token_Line_Comment.Token;
-      Delta_1         : in     Simple_Indent_Param;
-      Delta_2         : in     Simple_Indent_Param;
-      Option          : in     Boolean;
-      Accumulate      : in     Boolean)
+     (Data              : in out Parse_Data_Type;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Delta_1           : in     Simple_Indent_Param;
+      Delta_2           : in     Simple_Indent_Param;
+      Option            : in     Boolean;
+      Accumulate        : in     Boolean)
      return Delta_Type;
    --  [2] wisi-elisp-parse--hanging-1
    --
@@ -378,8 +380,7 @@ private
       Indent_Comment_Col_0 : Boolean := False;
 
       --  Dynamic data for Indent
-      Max_Anchor_ID     : Integer;
-      Indenting_Comment : Boolean;
+      Max_Anchor_ID : Integer;
    end record;
 
    type Simple_Delta_Labels is (Int, Anchored);
@@ -440,16 +441,18 @@ private
    --  [2] wisi-elisp-parse--anchored-2
 
    function Indent_Compute_Delta
-     (Data            : in out Parse_Data_Type'Class;
-      Tokens          : in     Semantic_State.Augmented_Token_Array;
-      Param           : in     Indent_Param;
-      Indenting_Token : in     Token_Line_Comment.Token)
+     (Data              : in out Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Param             : in     Indent_Param;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean)
      return Delta_Type;
 
    procedure Indent_Token_1
-     (Data            : in out Parse_Data_Type;
-      Indenting_Token : in     Token_Line_Comment.Token;
-      Delta_Indent    : in     Delta_Type);
+     (Data              : in out Parse_Data_Type;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Delta_Indent      : in     Delta_Type;
+      Indenting_Comment : in     Boolean);
    --  [2] wisi-elisp-parse--indent-token-1. Sets Data.Indents, so caller
    --  may not be in a renames for a Data.Indents element.
 

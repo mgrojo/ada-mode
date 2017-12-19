@@ -56,56 +56,63 @@ package WisiToken.Wisi_Runtime.Ada is
 
    overriding
    function Indent_Hanging_1
-     (Data            : in out Parse_Data_Type;
-      Tokens          : in     Semantic_State.Augmented_Token_Array;
-      Indenting_Token : in     Token_Line_Comment.Token;
-      Delta_1         : in     Simple_Indent_Param;
-      Delta_2         : in     Simple_Indent_Param;
-      Option          : in     Boolean;
-      Accumulate      : in     Boolean)
+     (Data              : in out Parse_Data_Type;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting_Token   : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Delta_1           : in     Simple_Indent_Param;
+      Delta_2           : in     Simple_Indent_Param;
+      Option            : in     Boolean;
+      Accumulate        : in     Boolean)
      return Delta_Type;
    --  [1] ada-wisi-elisp-parse--indent-hanging
 
    ----------
-   --  The following are declared in ada.wy %elisp_indent
+   --  The following are declared in ada.wy %elisp_indent, and must match
+   --  Language_Indent_Function.
 
    function Ada_Indent_Aggregate
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-aggregate
 
    function Ada_Indent_Renames_0
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-renames
 
    function Ada_Indent_Return_0
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-return
 
    function Ada_Indent_Record_0
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-record
 
    function Ada_Indent_Record_1
-     (Data      : in out Wisi_Runtime.Parse_Data_Type'Class;
-      Tokens    : in     Semantic_State.Augmented_Token_Array;
-      Indenting : in     Token_Line_Comment.Token;
-      Args      : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
+     (Data              : in out Wisi_Runtime.Parse_Data_Type'Class;
+      Tokens            : in     Semantic_State.Augmented_Token_Array;
+      Indenting         : in     Token_Line_Comment.Token;
+      Indenting_Comment : in     Boolean;
+      Args              : in     WisiToken.Wisi_Runtime.Indent_Arg_Arrays.Vector)
      return WisiToken.Wisi_Runtime.Delta_Type;
    --  [1] ada-indent-record*
 

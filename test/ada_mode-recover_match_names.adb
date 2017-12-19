@@ -98,25 +98,25 @@ package body Ada_Mode.Recover_Match_Names is
    end Package_Body_0;
 
    package body Package_Body_1 is
-   procedure A
+      procedure A
    is
-      -- missing 'begin end A;'
+   -- missing 'begin end A;'
    end Package_Body_1;
 
    package Package_Specification_0
    private
       type A is record
-      record; -- meant 'end record'
+        record; -- meant 'end record'
    end Package_Specification_0;
 
    package Package_Specification_1 is
       type A is record
-      record; -- meant 'end record'
+        record; -- meant 'end record'
    end Package_Specification_1;
 
    protected body Protected_Body_0 is
    entry E1 is
-      -- missing 'end E1'
+   -- missing 'end E1'
    end Protected_Body_0;
 
    --  protected protected_definition
